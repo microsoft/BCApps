@@ -25,6 +25,7 @@ codeunit 134284 "Non Ded. VAT Misc."
         IncorrectGLEntryAmtErr: Label 'Incorect amount in G/L Entry.';
         InCorrectProjLedgEntryAmtErr: Label 'Incorrect amount in Project Ledger Entry';
         IsInitialized: Boolean;
+        FALedgerEntryAmtErr: Label 'FA Ledger Entry amount should be equal to GL Entry amount';
 
     [Test]
     [Scope('OnPrem')]
@@ -1032,7 +1033,6 @@ codeunit 134284 "Non Ded. VAT Misc."
         InvoiceNo: Code[20];
         VATAmount: Decimal;
         VATCalculationType: Enum "Tax Calculation Type";
-
     begin
         // [SCENARIO 562366] Posting a Purchase Invoice with Non-deductible VAT amount incorrectly posts to the depreciation expense account instead of the fixed asset cost account in the British version.
         Initialize();
@@ -1121,6 +1121,92 @@ codeunit 134284 "Non Ded. VAT Misc."
             Round(JobJnlLine."Total Cost (LCY)"),
             Round(GenJnlLine."Job Total Cost (LCY)" + Round(GenJnlLine."Non-Deductible VAT Amount" * GenJnlLine."Job Currency Factor")),
             'Total Cost (LCY) with Non-Deductible VAT amount is not correct in Job Journal Line');
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    procedure PurchInvoiceWithNonDeductibleVATAndFixedAsset()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        GeneralPostingSetup: Record "General Posting Setup";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FALedgEntry: Record "FA Ledger Entry";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        GLEntry: Record "G/L Entry";
+        FANo: Code[20];
+        AcquisitionCostAccountNo: Code[20];
+        AccumDepreciationAccountNo: Code[20];
+        SecondDocNo: Code[20];
+        VATPct: Decimal;
+        NonDeductibleVATPct: Decimal;
+        FirstDirectUnitCost: Decimal;
+        SecondDirectUnitCost: Decimal;
+        DepreciationYears: Integer;
+    begin
+        // [SCENARIO 621158] Post Purchase Invoice with Fixed Asset, Non-Deductible VAT, and Depreciation creates correct GL entries for additional acquisition costs
+        Initialize();
+
+        // [GIVEN] Non-Deductible VAT is enabled for Fixed Assets
+        SetUseForFixedAssetCost();
+
+        VATPct := LibraryRandom.RandDecInRange(10, 25, 2);
+        NonDeductibleVATPct := LibraryRandom.RandDecInRange(50, 90, 5);
+        FirstDirectUnitCost := LibraryRandom.RandDecInRange(100, 200, 2);
+        SecondDirectUnitCost := LibraryRandom.RandDecInRange(1500, 2500, 2);
+        DepreciationYears := LibraryRandom.RandIntInRange(2, 5);
+
+        // [GIVEN] VAT Posting Setup "V" with VAT % = 64.17429 and Non-Deductible VAT enabled
+        LibraryNonDeductibleVAT.CreateNonDeductibleNormalVATPostingSetup(VATPostingSetup);
+        VATPostingSetup.Validate("VAT %", VATPct);
+        VATPostingSetup.Validate("Non-Deductible VAT %", NonDeductibleVATPct);
+        VATPostingSetup.Modify(true);
+
+        // [GIVEN] Fixed Asset "FA" with Gen. Prod. Posting Group and FA Posting Group
+        LibraryERM.FindGeneralPostingSetup(GeneralPostingSetup);
+        FANo := CreateFixedAsset(GeneralPostingSetup."Gen. Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+
+        // [GIVEN] Set Depreciation Starting Date for the Fixed Asset
+        FADepreciationBook.Get(FANo, LibraryFA.GetDefaultDeprBook());
+        FADepreciationBook.Validate("Depreciation Starting Date", WorkDate());
+        FADepreciationBook.Validate("No. of Depreciation Years", DepreciationYears);
+        FADepreciationBook.Modify(true);
+
+        // [GIVEN] First Purchase Invoice with FA "FA", Direct Unit Cost Excl. VAT = 100, posted
+        CreatePurchaseInvoiceWithFixedAsset(PurchaseHeader, PurchaseLine, VATPostingSetup, FANo);
+        PurchaseLine.Validate("Quantity", 1);
+        PurchaseLine.Validate("Direct Unit Cost", FirstDirectUnitCost);
+        PurchaseLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        PurchaseLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] Second Purchase Invoice with FA "FA", Direct Unit Cost Excl. VAT = 2000, "Depr. until FA Posting Date" = TRUE, "Depr. Acquisition Cost" = TRUE
+        CreatePurchaseInvoiceWithFixedAsset(PurchaseHeader, PurchaseLine, VATPostingSetup, FANo);
+        PurchaseHeader.Validate("Posting Date", CalcDate('<CM+1D>', WorkDate()));
+        PurchaseLine.Validate("Quantity", 1);
+        PurchaseLine.Validate("Direct Unit Cost", SecondDirectUnitCost);
+        PurchaseLine.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        PurchaseLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        PurchaseLine.Validate("Depr. until FA Posting Date", true);
+        PurchaseLine.Validate("Depr. Acquisition Cost", true);
+        PurchaseLine.Modify(true);
+        AcquisitionCostAccountNo := GetAcquisitionAccFromPurchLine(PurchaseLine);
+        AccumDepreciationAccountNo := GetAccumDepreciationAccFromPurchLine(PurchaseLine);
+
+        // [WHEN] Post the second purchase invoice
+        SecondDocNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] Calculate expected Amount for FA Ledger Entry and GL Entry
+        FALedgEntry.SetRange("FA No.", FANo);
+        FALedgEntry.SetRange("Document No.", SecondDocNo);
+        FALedgEntry.CalcSums(Amount);
+
+        // [THEN] FA Ledger Entry for the second purchase invoice shows correct Amount which includes Non-Deductible VAT
+        GLEntry.SetRange("Document No.", SecondDocNo);
+        GLEntry.SetFilter("G/L Account No.", '%1|%2', AcquisitionCostAccountNo, AccumDepreciationAccountNo);
+        GLEntry.CalcSums(Amount);
+        Assert.AreEqual(FALedgEntry.Amount, GLEntry.Amount, FALedgerEntryAmtErr);
     end;
 
     local procedure Initialize()
@@ -1804,10 +1890,36 @@ codeunit 134284 "Non Ded. VAT Misc."
         exit(CalcDate('<1Y>', WorkDate()));
     end;
 
+    local procedure GetAccumDepreciationAccFromPurchLine(PurchLine: Record "Purchase Line"): Code[20]
+    var
+        FADeprBook: Record "FA Depreciation Book";
+        FAPostingGroup: Record "FA Posting Group";
+    begin
+        FADeprBook.Get(PurchLine."No.", PurchLine."Depreciation Book Code");
+        FAPostingGroup.Get(FADeprBook."FA Posting Group");
+        exit(FAPostingGroup."Accum. Depreciation Account");
+    end;
+
+    local procedure SetUseForFixedAssetCost()
+    var
+        VATSetup: Record "VAT Setup";
+    begin
+        LibraryNonDeductibleVAT.SetUseForFixedAssetCost();
+        VATSetup.Get();
+        VATSetup.Validate("Show Non-Ded. VAT In Lines", true);
+        VATSetup.Modify(true);
+    end;
+
     [ConfirmHandler]
     [Scope('OnPrem')]
     procedure ConfirmHandler(Question: Text; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [MessageHandler]
+    [Scope('OnPrem')]
+    procedure MessageHandler(Message: Text[1024])
+    begin
     end;
 }

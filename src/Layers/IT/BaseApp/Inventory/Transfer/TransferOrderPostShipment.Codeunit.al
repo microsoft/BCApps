@@ -292,7 +292,7 @@ codeunit 5704 "TransferOrder-Post Shipment"
         TempWhseSplitSpecification: Record "Tracking Specification" temporary;
         TempHandlingSpecification: Record "Tracking Specification" temporary;
         ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
-#if not CLEAN29
+#if not CLEAN28
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif
         DimMgt: Codeunit DimensionManagement;
@@ -339,7 +339,7 @@ codeunit 5704 "TransferOrder-Post Shipment"
     end;
 
     local procedure CreateItemJnlLine(var ItemJnlLine: Record "Item Journal Line"; TransferLine: Record "Transfer Line"; TransShptHeader2: Record "Transfer Shipment Header"; TransShptLine2: Record "Transfer Shipment Line")
-#if not CLEAN29
+#if not CLEAN28
         var
             LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif
@@ -713,6 +713,8 @@ codeunit 5704 "TransferOrder-Post Shipment"
     local procedure TransferTracking(var FromTransLine: Record "Transfer Line"; var ToTransLine: Record "Transfer Line"; TransferQty: Decimal)
     var
         DummySpecification: Record "Tracking Specification";
+        ReservationEntry: Record "Reservation Entry";
+        TrackedQtyTransferred: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -723,13 +725,24 @@ codeunit 5704 "TransferOrder-Post Shipment"
         TempHandlingSpecification.Reset();
         TempHandlingSpecification.SetRange("Source Prod. Order Line", ToTransLine."Derived From Line No.");
         if TempHandlingSpecification.Find('-') then begin
+            ReserveTransLine.SynchronizeInboundTrackingForTransfer(FromTransLine, TempHandlingSpecification);
             repeat
                 ReserveTransLine.TransferTransferToTransfer(
                   FromTransLine, ToTransLine, -TempHandlingSpecification."Quantity (Base)", Enum::"Transfer Direction"::Inbound, TempHandlingSpecification);
                 OnTransferTrackingOnAfterTransferToTransfer(TempHandlingSpecification, FromTransLine, ToTransLine);
-                TransferQty += TempHandlingSpecification."Quantity (Base)";
             until TempHandlingSpecification.Next() = 0;
             TempHandlingSpecification.DeleteAll();
+
+            // Calculate the actual tracked quantity transferred to the derived line.
+            // In case inbound entries still did not match (e.g. multiple lots that cross
+            // entry boundaries), the remaining quantity falls through to the untracked
+            // transfer below.
+            ReservationEntry.SetSourceFilter(
+                Database::"Transfer Line", 1, ToTransLine."Document No.", ToTransLine."Line No.", true);
+            ReservationEntry.SetSourceFilter('', ToTransLine."Derived From Line No.");
+            ReservationEntry.CalcSums("Quantity (Base)");
+            TrackedQtyTransferred := ReservationEntry."Quantity (Base)";
+            TransferQty -= TrackedQtyTransferred;
         end;
 
         OnTransferTrackingOnBeforeReserveTransferToTransfer(FromTransLine, ToTransLine, TransferQty);

@@ -56,7 +56,11 @@ codeunit 31056 "Data Class. Eval. Handler CZP"
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Cash Desk CZP");
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Cash Desk Cue CZP");
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Cash Desk Event CZP");
+#if not CLEAN29
+#pragma warning disable AL0432
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Cash Desk Rep. Selections CZP");
+#pragma warning restore AL0432
+#endif
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Cash Desk User CZP");
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Cash Document Header CZP");
         DataClassificationMgt.SetTableFieldsToNormal(Database::"Cash Document Line CZP");

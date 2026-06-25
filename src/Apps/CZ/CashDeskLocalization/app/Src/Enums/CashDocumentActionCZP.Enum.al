@@ -31,4 +31,12 @@ enum 11735 "Cash Document Action CZP"
     {
         Caption = 'Post and Print';
     }
+    value(6; "Release and Send")
+    {
+        Caption = 'Release and Send';
+    }
+    value(7; "Post and Send")
+    {
+        Caption = 'Post and Send';
+    }
 }

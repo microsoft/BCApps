@@ -220,7 +220,7 @@ codeunit 99000760 "Mfg. Item Jnl. Check Line"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Check Line", 'OnCheckEmptyQuantity', '', true, true)]
     local procedure OnCheckEmptyQuantity(ItemJournalLine: Record "Item Journal Line")
-#if not CLEAN29
+#if not CLEAN28
     var
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif

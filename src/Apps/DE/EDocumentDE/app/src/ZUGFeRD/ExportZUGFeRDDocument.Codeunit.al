@@ -18,7 +18,6 @@ using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Location;
 using Microsoft.Peppol;
 using Microsoft.Sales.History;
-using Microsoft.Sales.Peppol;
 using Microsoft.Service.History;
 using System.IO;
 using System.Reflection;
@@ -36,7 +35,6 @@ codeunit 13917 "Export ZUGFeRD Document"
         GeneralLedgerSetup: Record "General Ledger Setup";
         EDocumentService: Record "E-Document Service";
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        PEPPOLMgt: Codeunit "PEPPOL Management";
         PeppolVATHelper: Codeunit "PEPPOL VAT Helper";
         FeatureNameTok: Label 'E-document ZUGFeRD Format', Locked = true;
         StartEventNameTok: Label 'E-document ZUGFeRD export started', Locked = true;
@@ -353,12 +351,12 @@ codeunit 13917 "Export ZUGFeRD Document"
     begin
         GetSetups();
         FindEDocumentService();
-        PEPPOLMgt.TransferHeaderToSalesInvoiceHeader(ServiceInvoiceHeader, SalesInvoiceHeader);
+        TransferToSalesInvoiceHeader(ServiceInvoiceHeader, SalesInvoiceHeader);
         SalesInvoiceHeader."Company Bank Account Code" := ServiceInvoiceHeader."Company Bank Account Code";
         ServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceHeader."No.");
         if ServiceInvoiceLine.FindSet() then
             repeat
-                PEPPOLMgt.TransferLineToSalesInvoiceLine(ServiceInvoiceLine, TempSalesInvLine);
+                TransferToSalesInvoiceLine(ServiceInvoiceLine, TempSalesInvLine);
                 TempSalesInvLine.Insert();
             until ServiceInvoiceLine.Next() = 0;
         if not DocumentLinesExist(SalesInvoiceHeader, TempSalesInvLine) then
@@ -397,12 +395,12 @@ codeunit 13917 "Export ZUGFeRD Document"
     begin
         GetSetups();
         FindEDocumentService();
-        PEPPOLMgt.TransferHeaderToSalesCrMemoHeader(ServiceCrMemoHeader, SalesCrMemoHeader);
+        TransferToSalesCrMemoHeader(ServiceCrMemoHeader, SalesCrMemoHeader);
         SalesCrMemoHeader."Company Bank Account Code" := ServiceCrMemoHeader."Company Bank Account Code";
         ServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
         if ServiceCrMemoLine.FindSet() then
             repeat
-                PEPPOLMgt.TransferLineToSalesCrMemoLine(ServiceCrMemoLine, TempSalesCrMemoLine);
+                TransferToSalesCrMemoLine(ServiceCrMemoLine, TempSalesCrMemoLine);
                 TempSalesCrMemoLine.Insert();
             until ServiceCrMemoLine.Next() = 0;
         if not DocumentLinesExist(SalesCrMemoHeader, TempSalesCrMemoLine) then
@@ -1564,5 +1562,69 @@ codeunit 13917 "Export ZUGFeRD Document"
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertApplicableHeaderTradeAgreement(var HeaderTradeAgreementElement: XmlElement; HeaderRecordRef: RecordRef)
     begin
+    end;
+
+    /// <summary>
+    /// Copies fields with matching numbers, classes, and types between two record variants.
+    /// W1 PEPPOL30 only exposes generic Sales Header / Sales Line targets, but ZUGFeRD/XRechnung exports
+    /// operate on the posted Sales Invoice/Cr.Memo Header and Line shapes - this local helper provides
+    /// the posted-to-posted field copy that the old PEPPOL Management.Transfer*ToSalesInvoice/CrMemo*
+    /// helpers used to do.
+    /// </summary>
+    local procedure TransferRecordFields(FromRecord: Variant; var ToRecord: Variant)
+    var
+        FromRecRef: RecordRef;
+        ToRecRef: RecordRef;
+        FromFieldRef: FieldRef;
+        ToFieldRef: FieldRef;
+        i: Integer;
+    begin
+        FromRecRef.GetTable(FromRecord);
+        ToRecRef.GetTable(ToRecord);
+        for i := 1 to FromRecRef.FieldCount do begin
+            FromFieldRef := FromRecRef.FieldIndex(i);
+            if ToRecRef.FieldExist(FromFieldRef.Number) then begin
+                ToFieldRef := ToRecRef.Field(FromFieldRef.Number);
+                if (FromFieldRef.Class = ToFieldRef.Class) and (FromFieldRef.Type = ToFieldRef.Type) and (FromFieldRef.Length <= ToFieldRef.Length) then
+                    ToFieldRef.Value := FromFieldRef.Value();
+            end;
+        end;
+        ToRecRef.SetTable(ToRecord);
+    end;
+
+    local procedure TransferToSalesInvoiceHeader(FromRecord: Variant; var ToSalesInvoiceHeader: Record "Sales Invoice Header")
+    var
+        ToRecord: Variant;
+    begin
+        ToRecord := ToSalesInvoiceHeader;
+        TransferRecordFields(FromRecord, ToRecord);
+        ToSalesInvoiceHeader := ToRecord;
+    end;
+
+    local procedure TransferToSalesCrMemoHeader(FromRecord: Variant; var ToSalesCrMemoHeader: Record "Sales Cr.Memo Header")
+    var
+        ToRecord: Variant;
+    begin
+        ToRecord := ToSalesCrMemoHeader;
+        TransferRecordFields(FromRecord, ToRecord);
+        ToSalesCrMemoHeader := ToRecord;
+    end;
+
+    local procedure TransferToSalesInvoiceLine(FromRecord: Variant; var ToSalesInvoiceLine: Record "Sales Invoice Line")
+    var
+        ToRecord: Variant;
+    begin
+        ToRecord := ToSalesInvoiceLine;
+        TransferRecordFields(FromRecord, ToRecord);
+        ToSalesInvoiceLine := ToRecord;
+    end;
+
+    local procedure TransferToSalesCrMemoLine(FromRecord: Variant; var ToSalesCrMemoLine: Record "Sales Cr.Memo Line")
+    var
+        ToRecord: Variant;
+    begin
+        ToRecord := ToSalesCrMemoLine;
+        TransferRecordFields(FromRecord, ToRecord);
+        ToSalesCrMemoLine := ToRecord;
     end;
 }

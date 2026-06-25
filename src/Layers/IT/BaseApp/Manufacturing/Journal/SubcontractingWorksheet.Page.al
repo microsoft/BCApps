@@ -1,4 +1,4 @@
-#if not CLEAN29
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -25,7 +25,7 @@ page 99000886 "Subcontracting Worksheet"
     UsageCategory = Tasks;
     ObsoleteReason = 'Will be replaced by Page "Subc. Subcontracting Worksheet" in the Subcontracting App.';
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '28.0';
 
     layout
     {

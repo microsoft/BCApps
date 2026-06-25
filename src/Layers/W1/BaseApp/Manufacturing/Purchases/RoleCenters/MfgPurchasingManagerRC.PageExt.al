@@ -13,7 +13,7 @@ pageextension 99000761 "Mfg. Purchasing Manager RC" extends "Purchasing Manager 
     {
         addafter("Certificates of Supply")
         {
-#if not CLEAN29
+#if not CLEAN28
             action("Subcontracting Worksheet")
             {
                 ApplicationArea = Manufacturing;
@@ -23,7 +23,7 @@ pageextension 99000761 "Mfg. Purchasing Manager RC" extends "Purchasing Manager 
 #pragma warning restore AL0432
                 ObsoleteReason = 'Will be replaced by the Subcontracting App.';
                 ObsoleteState = Pending;
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '28.0';
             }
 #endif
         }

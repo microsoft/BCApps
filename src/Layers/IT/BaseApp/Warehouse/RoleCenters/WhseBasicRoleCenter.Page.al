@@ -152,7 +152,7 @@ page 9008 "Whse. Basic Role Center"
             {
                 ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                 ObsoleteState = Pending;
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '28.0';
             }
             action("Subcontract. Transfer Shipment")
             {

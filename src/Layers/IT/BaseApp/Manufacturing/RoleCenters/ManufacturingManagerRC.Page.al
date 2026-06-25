@@ -301,7 +301,7 @@ page 8903 "Manufacturing Manager RC"
                         Caption = 'Requisition Worksheets';
                         RunObject = page "Req. Worksheet";
                     }
-#if not CLEAN29
+#if not CLEAN28
                     action("Subcontracting Worksheet")
                     {
                         ApplicationArea = LegacySubcontracting;
@@ -311,7 +311,7 @@ page 8903 "Manufacturing Manager RC"
 #pragma warning restore AL0432
                         ObsoleteReason = 'Will be replaced by the Subcontracting App.';
                         ObsoleteState = Pending;
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '28.0';
                     }
 #endif
                     action("Recurring Req. Worksheet")

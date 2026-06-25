@@ -9,10 +9,10 @@ using Microsoft.CRM.Team;
 using Microsoft.Finance;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
-using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.BatchProcessing;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.Reporting;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Inventory.Location;
 using Microsoft.Purchases.History;
@@ -1097,79 +1097,140 @@ table 11732 "Cash Document Header CZP"
         exit(not CashDocumentLineCZP.IsEmpty());
     end;
 
-    procedure PrintRecords(ShowRequestForm: Boolean)
+    /// <summary>
+    /// Sends the cash document records by email.
+    /// </summary>
+    /// <param name="ShowDialog">Whether to show the email dialog.</param>
+    procedure EmailRecords(ShowDialog: Boolean)
     var
-        CashDocumentHeaderCZP: Record "Cash Document Header CZP";
-        CashDeskRepSelectionsCZP: Record "Cash Desk Rep. Selections CZP";
-        IsHandled: Boolean;
+        DocumentSendingProfile: Record "Document Sending Profile";
     begin
-        TestField("Document Type");
-        CashDocumentHeaderCZP.Copy(Rec);
-        case CashDocumentHeaderCZP."Document Type" of
-            CashDocumentHeaderCZP."Document Type"::Receipt:
-                CashDeskRepSelectionsCZP.SetRange(Usage, CashDeskRepSelectionsCZP.Usage::"Cash Receipt");
-            CashDocumentHeaderCZP."Document Type"::Withdrawal:
-                CashDeskRepSelectionsCZP.SetRange(Usage, CashDeskRepSelectionsCZP.Usage::"Cash Withdrawal");
-        end;
+        TestField("Document Type", "Document Type"::Receipt);
+        TestField("Partner Type", "Partner Type"::Customer);
+        TestField("Partner No.");
 
-        IsHandled := false;
-        OnPrintRecordsOnBeforeFilterAndPrintReports(CashDeskRepSelectionsCZP, CashDocumentHeaderCZP, ShowRequestForm, IsHandled);
-        if IsHandled then
-            exit;
-
-        CashDeskRepSelectionsCZP.SetFilter("Report ID", '<>0');
-        CashDeskRepSelectionsCZP.FindSet();
-        repeat
-            Report.RunModal(CashDeskRepSelectionsCZP."Report ID", ShowRequestForm, false, CashDocumentHeaderCZP);
-        until CashDeskRepSelectionsCZP.Next() = 0;
+        DocumentSendingProfile.TrySendToEMail(
+            Enum::"Report Selection Usage"::"Cash Receipt CZP".AsInteger(), Rec, FieldNo("No."), GetDocumentTypeText(), FieldNo("Partner No."), ShowDialog);
     end;
 
+    /// <summary>
+    /// Sends selected cash document reports to the companies. Before this procedure is called,
+    /// cash documents are selected on the page and then selection filter is used to filter the selected documents.
+    /// </summary>
+    /// <remarks>
+    /// Shows profile selection window and then send the selected reports to the companies.
+    /// </remarks>
+    procedure SendRecords()
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+    begin
+        TestField("Document Type", "Document Type"::Receipt);
+        TestField("Partner Type", "Partner Type"::Customer);
+        TestField("Partner No.");
+
+        DocumentSendingProfile.SendCustomerRecords(
+            Enum::"Report Selection Usage"::"Cash Receipt CZP".AsInteger(), Rec, GetDocumentTypeText(), "Partner No.", "No.",
+            FieldNo("Partner No."), FieldNo("No."));
+    end;
+
+    /// <summary>
+    /// Prints selected cash document reports. Before this procedure is called,
+    /// cash documents are selected on the page and then selection filter is used to filter the selected documents.
+    /// </summary>
+    /// <param name="ShowDialog">
+    /// Request window for the report will be displayed if true, otherwise the default settings are used.
+    /// </param>
+    procedure PrintRecords(ShowDialog: Boolean)
+    begin
+        TestField("Document Type");
+
+        case "Document Type" of
+            "Document Type"::Receipt:
+                PrintCashReceipt(ShowDialog);
+            "Document Type"::Withdrawal:
+                PrintCashWithdrawal(ShowDialog);
+        end;
+    end;
+
+    local procedure PrintCashReceipt(ShowDialog: Boolean)
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+    begin
+        case "Partner Type" of
+            "Partner Type"::Customer:
+                DocumentSendingProfile.TrySendToPrinter(
+                    Enum::"Report Selection Usage"::"Cash Receipt CZP".AsInteger(), Rec, FieldNo("Partner No."), ShowDialog);
+            "Partner Type"::Vendor:
+                DocumentSendingProfile.TrySendToPrinterVendor(
+                    Enum::"Report Selection Usage"::"Cash Receipt CZP".AsInteger(), Rec, FieldNo("Partner No."), ShowDialog);
+            else
+                DocumentSendingProfile.TrySendToPrinter(
+                    Enum::"Report Selection Usage"::"Cash Receipt CZP".AsInteger(), Rec, 0, ShowDialog);
+        end;
+    end;
+
+    local procedure PrintCashWithdrawal(ShowDialog: Boolean)
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+    begin
+        case "Partner Type" of
+            "Partner Type"::Customer:
+                DocumentSendingProfile.TrySendToPrinter(
+                    Enum::"Report Selection Usage"::"Cash Withdrawal CZP".AsInteger(), Rec, FieldNo("Partner No."), ShowDialog);
+            "Partner Type"::Vendor:
+                DocumentSendingProfile.TrySendToPrinterVendor(
+                    Enum::"Report Selection Usage"::"Cash Withdrawal CZP".AsInteger(), Rec, FieldNo("Partner No."), ShowDialog);
+            else
+                DocumentSendingProfile.TrySendToPrinter(
+                    Enum::"Report Selection Usage"::"Cash Withdrawal CZP".AsInteger(), Rec, 0, ShowDialog);
+        end;
+    end;
+
+    /// <summary>
+    /// Prints the cash documents and saves them as document attachments.
+    /// </summary>
     procedure PrintToDocumentAttachment()
     var
         CashDocumentHeaderCZP: Record "Cash Document Header CZP";
-        CashDeskRepSelectionsCZP: Record "Cash Desk Rep. Selections CZP";
-        DocumentAttachment: Record "Document Attachment";
-        DocumentAttachmentMgmt: Codeunit "Document Attachment Mgmt";
-        TempBlob: Codeunit "Temp Blob";
-        RecordRef: RecordRef;
-        DummyInStream: InStream;
-        ReportOutStream: OutStream;
-        DocumentInStream: InStream;
-        FileName: Text[250];
-        DocumentAttachmentFileNameLbl: Label '%1 %2', Comment = '%1 = Usage, %2 = Cash Document No.';
     begin
-        TestField(Status, Status::Released);
-        CashDocumentHeaderCZP := Rec;
+        CashDocumentHeaderCZP.Copy(Rec);
         CashDocumentHeaderCZP.SetRecFilter();
-        RecordRef.GetTable(CashDocumentHeaderCZP);
-        if not RecordRef.FindFirst() then
-            exit;
+        PrintToDocumentAttachment(CashDocumentHeaderCZP);
+    end;
 
+    /// <summary>
+    /// Prints the cash documents and saves them as document attachments.
+    /// </summary>
+    /// <param name="CashDocumentHeaderCZP">The cash document records to print and attach.</param>
+    procedure PrintToDocumentAttachment(var CashDocumentHeaderCZP: Record "Cash Document Header CZP")
+    var
+        ShowNotificationAction: Boolean;
+    begin
+        ShowNotificationAction := CashDocumentHeaderCZP.Count() = 1;
+        if CashDocumentHeaderCZP.FindSet() then
+            repeat
+                CashDocumentHeaderCZP.TestField(Status, CashDocumentHeaderCZP.Status::Released);
+                DoPrintToDocumentAttachment(CashDocumentHeaderCZP, ShowNotificationAction);
+            until CashDocumentHeaderCZP.Next() = 0;
+    end;
+
+    local procedure DoPrintToDocumentAttachment(CashDocumentHeaderCZP: Record "Cash Document Header CZP"; ShowNotificationAction: Boolean)
+    var
+        ReportSelections: Record "Report Selections";
+        RepSelManualHandlerCZP: Codeunit "Rep. Sel. Manual Handler CZP";
+    begin
+        CashDocumentHeaderCZP.SetRecFilter();
+        RepSelManualHandlerCZP.SetCashDocumentHeader(CashDocumentHeaderCZP);
+        BindSubscription(RepSelManualHandlerCZP);
         case CashDocumentHeaderCZP."Document Type" of
             CashDocumentHeaderCZP."Document Type"::Receipt:
-                CashDeskRepSelectionsCZP.SetRange(Usage, CashDeskRepSelectionsCZP.Usage::"Cash Receipt");
+                ReportSelections.SaveAsDocumentAttachment(
+                    ReportSelections.Usage::"Cash Receipt CZP".AsInteger(), CashDocumentHeaderCZP, CashDocumentHeaderCZP."No.", CashDocumentHeaderCZP."Partner No.", ShowNotificationAction);
             CashDocumentHeaderCZP."Document Type"::Withdrawal:
-                CashDeskRepSelectionsCZP.SetRange(Usage, CashDeskRepSelectionsCZP.Usage::"Cash Withdrawal");
+                ReportSelections.SaveAsDocumentAttachment(
+                    ReportSelections.Usage::"Cash Withdrawal CZP".AsInteger(), CashDocumentHeaderCZP, CashDocumentHeaderCZP."No.", CashDocumentHeaderCZP."Partner No.", ShowNotificationAction);
         end;
-        CashDeskRepSelectionsCZP.SetFilter("Report ID", '<>0');
-        CashDeskRepSelectionsCZP.FindSet();
-        repeat
-            if not Report.RdlcLayout(CashDeskRepSelectionsCZP."Report ID", DummyInStream) then
-                exit;
-
-            Clear(TempBlob);
-            TempBlob.CreateOutStream(ReportOutStream);
-            Report.SaveAs(CashDeskRepSelectionsCZP."Report ID", '',
-                        ReportFormat::Pdf, ReportOutStream, RecordRef);
-
-            Clear(DocumentAttachment);
-            DocumentAttachment.InitFieldsFromRecRef(RecordRef);
-            FileName := DocumentAttachment.FindUniqueFileName(
-                        StrSubstNo(DocumentAttachmentFileNameLbl, CashDeskRepSelectionsCZP.Usage, CashDocumentHeaderCZP."No."), 'pdf');
-            TempBlob.CreateInStream(DocumentInStream);
-            DocumentAttachment.SaveAttachmentFromStream(DocumentInStream, RecordRef, FileName);
-        until CashDeskRepSelectionsCZP.Next() = 0;
-        DocumentAttachmentMgmt.ShowNotification(RecordRef, CashDeskRepSelectionsCZP.Count(), true);
+        UnbindSubscription(RepSelManualHandlerCZP);
     end;
 
     procedure SetSkipLineNoToUpdateLine(LineNo: Integer)
@@ -1370,6 +1431,13 @@ table 11732 "Cash Document Header CZP"
         BatchProcessingMgt.BatchProcess(CashDocumentHeaderCZP, Codeunit::"Cash Document Manual Reopen", "Error Handling Options"::"Show Error", NoOfSelected, NoOfSkipped);
     end;
 
+    local procedure GetDocumentTypeText(): Text[150]
+    var
+        ReportDistributionMgt: Codeunit "Report Distribution Management";
+    begin
+        exit(ReportDistributionMgt.GetFullDocumentTypeText(Rec));
+    end;
+
     [IntegrationEvent(true, false)]
     local procedure OnCheckCashDocReleaseRestrictions()
     begin
@@ -1444,11 +1512,16 @@ table 11732 "Cash Document Header CZP"
     local procedure OnAfterCalculateRoundingAmount(CashDocumentHeaderCZP: Record "Cash Document Header CZP"; RoundingMethod: Record "Rounding Method"; var RoundingAmount: Decimal);
     begin
     end;
+#if not CLEAN29
+#pragma warning disable AL0432
 
+    [Obsolete('The table "Cash Desk Rep. Selections CZP" has been replaced by the standard "Report Selections" table and is no longer supported. This event will be removed in future versions.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnPrintRecordsOnBeforeFilterAndPrintReports(var CashDeskRepSelectionsCZP: Record "Cash Desk Rep. Selections CZP"; CashDocumentHeaderCZP: Record "Cash Document Header CZP"; ShowRequestForm: Boolean; var IsHandled: Boolean);
     begin
     end;
+#pragma warning restore AL0432
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateDim(var CashDocumentHeaderCZP: Record "Cash Document Header CZP"; var IsHandled: Boolean)

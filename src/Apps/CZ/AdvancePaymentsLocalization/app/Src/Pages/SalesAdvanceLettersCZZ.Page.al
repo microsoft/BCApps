@@ -187,6 +187,10 @@ page 31170 "Sales Advance Letters CZZ"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
+                field("External Document No."; Rec."External Document No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
             }
         }
         area(FactBoxes)

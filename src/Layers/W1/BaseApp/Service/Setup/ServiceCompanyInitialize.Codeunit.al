@@ -6,8 +6,10 @@ namespace Microsoft.Service.Setup;
 
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Company;
+#if not CLEAN29
 using Microsoft.Foundation.Reporting;
 using Microsoft.Sales.Peppol;
+#endif
 
 codeunit 6475 "Service Company Initialize"
 {
@@ -16,8 +18,10 @@ codeunit 6475 "Service Company Initialize"
     var
         ServiceTxt: Label 'SERVICE', MaxLength = 10;
         ServiceManagementTxt: Label 'Service Management';
+#if not CLEAN29
         PEPPOLBIS3_ElectronicFormatTxt: Label 'PEPPOL BIS3', Locked = true;
         PEPPOLBIS3_ElectronicFormatDescriptionTxt: Label 'PEPPOL BIS3 Format (Pan-European Public Procurement Online)';
+#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", 'OnAfterInitSetupTables', '', true, false)]
     local procedure OnAfterInitSetupTables()
@@ -36,6 +40,7 @@ codeunit 6475 "Service Company Initialize"
         sender.InsertSourceCode(SourceCodeSetup."Service Management", ServiceTxt, ServiceManagementTxt);
     end;
 
+#if not CLEAN29
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", 'OnAfterInitElectronicFormats', '', true, false)]
     local procedure OnAfterInitElectronicFormats()
     var
@@ -53,5 +58,6 @@ codeunit 6475 "Service Company Initialize"
           PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,
           CODEUNIT::"PEPPOL Service Validation", 0, ElectronicDocumentFormat.Usage::"Service Validation".AsInteger());
     end;
+#endif
 
 }

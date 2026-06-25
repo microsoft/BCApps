@@ -429,7 +429,7 @@ table 5409 "Prod. Order Routing Line"
                 ProdOrderRoutingPersonnel: Record "Prod. Order Routing Personnel";
                 ProdOrderRtngQltyMeas: Record "Prod. Order Rtng Qlty Meas.";
                 ProdOrderRtngCommentLine: Record "Prod. Order Rtng Comment Line";
-#if not CLEAN29
+#if not CLEAN28
                 LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif
             begin
@@ -1126,7 +1126,7 @@ table 5409 "Prod. Order Routing Line"
     end;
 
     procedure CopyFromPlanningRoutingLine(PlanningRoutingLine: Record "Planning Routing Line")
-#if not CLEAN29
+#if not CLEAN28
     var
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif
@@ -1274,7 +1274,7 @@ table 5409 "Prod. Order Routing Line"
 
     local procedure WorkCenterTransferFields()
     var
-#if not CLEAN29
+#if not CLEAN28
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif
         IsHandled, SkipUpdateDescription : Boolean;

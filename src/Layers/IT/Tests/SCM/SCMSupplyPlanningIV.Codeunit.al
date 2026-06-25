@@ -46,19 +46,19 @@ codeunit 137077 "SCM Supply Planning -IV"
         RequisitionLineQtyErr: Label 'The Quantity of component Item on Requisition Line is not correct.';
         RequisitionLineExistenceErr: Label 'Requisition Line expected to %1 for Item %2 and Location %3', Comment = '%1 = "Exist/Not exist", %2 = Item No., %3 = Location code';
         ReqLineExpectedTo: Option "Not Exist",Exist;
-#if not CLEAN29
+#if not CLEAN28
         RequisitionLineProdOrderErr: Label '"Prod Order No." should be same as Released Production Order';
 #endif
         CloseBOMVersionsQst: Label 'All versions attached to the BOM will be closed';
         NotAllItemsPlannedMsg: Label 'Not all items were planned. A total of %1 items were not planned.', Comment = '%1 = count of items not planned';
-#if not CLEAN29
+#if not CLEAN28
         PeriodType: Option Day,Week,Month,Quarter,Year,Period;
         AmountType: Option "Net Change","Balance at Date";
         AppliesToEntryMissingErr: Label 'Applies-to Entry must have a value';
         ItemNoErr: Label 'Item No. must be equal';
 #endif
         AmountErr: Label '%1 must be equal to %2', Comment = '%1 = Cost Amount, %2 = Expected Amount';
-#if not CLEAN29
+#if not CLEAN28
         DimSetIDErr: Label 'Dimension set id on Requisition Line does not match the updated dimension set id on production order line.';
 #endif
         AssemblyOrderCreatedErr: Label 'The assembly order has been created.';
@@ -649,7 +649,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         RequisitionLine.TestField("Production BOM No.", ProductionBOMHeader."No.");
         RequisitionLine.TestField("Routing No.", RoutingHeader."No.");
     end;
-#if not CLEAN29
+#if not CLEAN28
     [Test]
     [Scope('OnPrem')]
     procedure CalcSubcontractOrderForReleasedProdOrder()
@@ -1585,7 +1585,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         // Verify: Verify Starting Time and Ending Time on Planning Worksheet is according to Manufacturing Setup.
         VerifyRequisitionLineStartingAndEndingTime(ChildItemNo);
     end;
-#if not CLEAN29
+#if not CLEAN28
     [Test]
     [Scope('OnPrem')]
     procedure CalcSubcontractOrderAndCarryOutForReleasedProdOrderWithLocation()
@@ -1810,7 +1810,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         UpdInvSetupLocMandatory(PrevLocMandatory);
         UpdateSetupComponentsAtLocation(PrevComponentsAtLocation);
     end;
-#if not CLEAN29
+#if not CLEAN28
     [Test]
     [Scope('OnPrem')]
     procedure RequisitionLineIsDeletedWhileCalculatingWorksheetForDifferentBatch()
@@ -1985,7 +1985,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         RequisitionLine[2].TestField("Starting Date-Time", RequisitionLine[1]."Starting Date-Time");
         RequisitionLine[2].TestField("Ending Date-Time", RequisitionLine[1]."Ending Date-Time");
     end;
-#if not CLEAN29
+#if not CLEAN28
     [Test]
     [Scope('OnPrem')]
     procedure CalcChangeSubcontractOrderWithExistingPurchase()
@@ -2185,7 +2185,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         asserterror PlanningWorksheet.CalculateRegenerativePlan.Invoke();
         Assert.ExpectedTestFieldError(ProductionBOMHeader.FieldCaption(Status), Format(ProductionBOMHeader.Status::Certified));
     end;
-#if not CLEAN29
+#if not CLEAN28
     [Test]
     [Scope('OnPrem')]
     procedure SubcontractPurchHeaderNotSavedWhenLineCreationFails()
@@ -3318,7 +3318,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         RequisitionLine.SetRange("Ref. Order No.", ProdOrderLine."Prod. Order No.");
         Assert.RecordIsEmpty(RequisitionLine);
     end;
-#if not CLEAN29
+#if not CLEAN28
     [Test]
     [Scope('OnPrem')]
     procedure ProductionOrderValueEntryRelatedGLProdOrderNo()
@@ -4225,7 +4225,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         // Teardown: Return "Manufacturing Setup"."Components at Location".
         UpdateSetupComponentsAtLocation(PrevComponentsAtLocation);
     end;
-#if not CLEAN29
+#if not CLEAN28
     [Test]
     [Scope('OnPrem')]
     procedure VerifyNoErrorWhenReceivingSubContractingPurchaseOrder()
@@ -4369,7 +4369,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         Assert.AreEqual(ExpectedCostAmount, AssemblyHeader."Cost Amount",
             StrSubstNo(AmountErr, AssemblyHeader.FieldCaption("Cost Amount"), ExpectedCostAmount));
     end;
-#if not CLEAN29
+#if not CLEAN28
     [Test]
     procedure VerifyDimensionCalcSubcontractOrderForReleasedProdOrder()
     var
@@ -4511,7 +4511,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         NoSeriesSetup();
         CreateLocationSetup();
         ItemJournalSetup();
-#if not CLEAN29
+#if not CLEAN28
         EnableLegacySubcontracting();
 #endif        
         LibrarySetupStorage.SaveManufacturingSetup();
@@ -4523,7 +4523,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Supply Planning -IV");
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     local procedure EnableLegacySubcontracting()
     var
         ManufacturingSetup: Record "Manufacturing Setup";
@@ -4606,7 +4606,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         Item.Validate("Include Inventory", true);
         Item.Modify(true);
     end;
-#if not CLEAN29
+#if not CLEAN28
     local procedure CalculateSubcontractingWorksheetForBatch(RequisitionWkshName: Record "Requisition Wksh. Name"; WorkCenter: Record "Work Center")
     var
         RequisitionLine: Record "Requisition Line";
@@ -4647,7 +4647,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         UpdateProductionBOMNoOnItem(Item, ProductionBOMHeader."No.");
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     local procedure CreateItemWithChildReplenishmentPurchaseAsProdBOM(var Item: Record Item) QuantityPer: Decimal
     var
         ProductionBOMHeader: Record "Production BOM Header";
@@ -4966,7 +4966,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         RequisitionLine.FindFirst();
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     local procedure PostPurchaseDocument(var PurchaseLine: Record "Purchase Line"; ToInvoice: Boolean)
     var
         PurchaseHeader: Record "Purchase Header";
@@ -5009,7 +5009,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         PurchaseLine.SetRange("No.", No);
         PurchaseLine.FindFirst();
     end;
-#if not CLEAN29
+#if not CLEAN28
     local procedure CalculateSubcontractOrder(var WorkCenter: Record "Work Center")
     begin
         WorkCenter.SetRange("No.", WorkCenter."No.");
@@ -5062,7 +5062,7 @@ codeunit 137077 "SCM Supply Planning -IV"
           CalcDate('<' + Format(SignFactor * LibraryRandom.RandInt(Days) + IncludeAdditionalPeriod) + 'D>', RelativeDate);
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     local procedure UpdateProdOrderLineUnitOfMeasureCode(ItemNo: Code[20]; UnitOfMeasureCode: Code[10])
     var
         ProdOrderLine: Record "Prod. Order Line";
@@ -5110,7 +5110,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         ReqWkshTemplate.SetRange(Recurring, false);
         ReqWkshTemplate.FindFirst();
     end;
-#if not CLEAN29
+#if not CLEAN28
     local procedure CalculateSubcontractsWithProdOrderRoutingLine(ProductionOrderNo: Code[20]; StartingDate: Date)
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
@@ -5567,7 +5567,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         SalesHeader.Get(SalesHeader."Document Type"::Order, SalesLine."Document No.");
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     local procedure FindValueEntry(var ValueEntry: Record "Value Entry"; ItemNo: Code[20])
     begin
         ValueEntry.SetRange("Item No.", ItemNo);
@@ -5596,7 +5596,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         LibraryManufacturing.CalculateMachCenterCalendar(MachineCenter[2], CalcDate('<-1W>', WorkDate()), WorkDate());
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     local procedure VerifyItemAvailabilityByPeriod(Item: Record Item; ScheduledRcpt: Decimal; ScheduledRcpt2: Decimal; ProjAvailableBalance: Decimal)
     var
         ItemCard: TestPage "Item Card";
@@ -5788,7 +5788,7 @@ codeunit 137077 "SCM Supply Planning -IV"
           StrSubstNo(RequisitionLineExistenceErr, ReqLineExists, ItemNo, LocationCode));
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     local procedure VerifyRequisitionLineForTwoBatches(RequisitionWkshName: Code[10]; RequisitionWkshName2: Code[10]; ItemNo: Code[20]; ProductionOrderNo: Code[20])
     var
         RequisitionLine: Record "Requisition Line";
@@ -5985,7 +5985,7 @@ codeunit 137077 "SCM Supply Planning -IV"
         InternalMovementLine.Modify(true);
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     local procedure VerifyWareHouseEntry(ItemNo: Code[20])
     var
         WarehouseEntry: Record "Warehouse Entry";
@@ -6021,7 +6021,7 @@ codeunit 137077 "SCM Supply Planning -IV"
             BOMComponent."Resource Usage Type", QuantityPer, true);
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     local procedure UpdateProductionOrderDimension(ProductionOrderNo: Code[20]) DimensionSetID: Integer
     var
         ProductionOrder: Record "Production Order";

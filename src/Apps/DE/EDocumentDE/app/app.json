@@ -23,6 +23,12 @@
       "name": "PEPPOL",
       "publisher": "Microsoft",
       "version": "29.0.0.0"
+    },
+    {
+      "id": "68d26ce3-10e9-4890-875c-b53dfea85767",
+      "name": "PEPPOL DE",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
     }
   ],
   "screenshots": [],

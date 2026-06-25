@@ -11,6 +11,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Sales.Document;
@@ -35,7 +36,7 @@ codeunit 31054 "Install Application CZP"
                   tabledata "Posted Cash Document Line CZP" = im,
                   tabledata "Currency Nominal Value CZP" = i,
                   tabledata "Source Code" = i,
-                  tabledata "Cash Desk Rep. Selections CZP" = i,
+                  tabledata "Report Selections" = i,
                   tabledata "Bank Account" = m,
                   tabledata "Payment Method" = m,
                   tabledata "Sales Header" = m,
@@ -150,26 +151,19 @@ codeunit 31054 "Install Application CZP"
     end;
 
     local procedure InitCashDeskReportSelections()
-    var
-        ReportUsage: Enum "Cash Desk Rep. Sel. Usage CZP";
     begin
-        InsertCashDeskReportSelectionsCZP(ReportUsage::"Cash Receipt", '1', Report::"Receipt Cash Document CZP");
-        InsertCashDeskReportSelectionsCZP(ReportUsage::"Cash Withdrawal", '1', Report::"Withdrawal Cash Document CZP");
-        InsertCashDeskReportSelectionsCZP(ReportUsage::"Posted Cash Receipt", '1', Report::"Posted Rcpt. Cash Document CZP");
-        InsertCashDeskReportSelectionsCZP(ReportUsage::"Posted Cash Withdrawal", '1', Report::"Posted Wdrl. Cash Document CZP");
+        InsertReportSelections(Enum::"Report Selection Usage"::"Cash Receipt CZP", '1', Report::"Receipt Cash Document CZP");
+        InsertReportSelections(Enum::"Report Selection Usage"::"Cash Withdrawal CZP", '1', Report::"Withdrawal Cash Document CZP");
+        InsertReportSelections(Enum::"Report Selection Usage"::"Posted Cash Receipt CZP", '1', Report::"Posted Rcpt. Cash Document CZP");
+        InsertReportSelections(Enum::"Report Selection Usage"::"Posted Cash Withdrawal CZP", '1', Report::"Posted Wdrl. Cash Document CZP");
     end;
 
-    local procedure InsertCashDeskReportSelectionsCZP(ReportUsage: Enum "Cash Desk Rep. Sel. Usage CZP"; ReportSequence: Code[10]; ReportID: Integer)
+    local procedure InsertReportSelections(ReportUsage: Enum "Report Selection Usage"; Sequence: Code[10]; ReportID: Integer)
     var
-        CashDeskRepSelectionsCZP: Record "Cash Desk Rep. Selections CZP";
+        ReportSelections: Record "Report Selections";
     begin
-        if CashDeskRepSelectionsCZP.Get(ReportUsage, ReportSequence) then
+        if ReportSelections.Get(ReportUsage, Sequence) then
             exit;
-
-        CashDeskRepSelectionsCZP.Init();
-        CashDeskRepSelectionsCZP.Validate(Usage, ReportUsage);
-        CashDeskRepSelectionsCZP.Validate(Sequence, ReportSequence);
-        CashDeskRepSelectionsCZP.Validate("Report ID", ReportID);
-        CashDeskRepSelectionsCZP.Insert();
+        ReportSelections.InsertRecord(ReportUsage, Sequence, ReportID);
     end;
 }

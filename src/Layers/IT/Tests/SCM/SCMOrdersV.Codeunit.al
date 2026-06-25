@@ -4085,7 +4085,7 @@ codeunit 137158 "SCM Orders V"
         LibraryERMCountryData.UpdatePrepaymentAccounts();
         LibraryERMCountryData.UpdateSalesReceivablesSetup();
         LibraryERMCountryData.UpdateJournalTemplMandatory(false);
-#if not CLEAN29
+#if not CLEAN28
         EnableLegacySubcontracting();
 #endif
 
@@ -4098,7 +4098,7 @@ codeunit 137158 "SCM Orders V"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Orders V");
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     local procedure EnableLegacySubcontracting()
     var
         ManufacturingSetup: Record "Manufacturing Setup";

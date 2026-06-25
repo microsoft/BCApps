@@ -396,6 +396,7 @@ codeunit 31002 "SalesAdvLetterManagement CZZ"
         AdvancePostingParametersCZZ."Original Document VAT Date" := VATDate;
         AdvancePostingParametersCZZ."Currency Code" := SalesAdvLetterEntryCZZ."Currency Code";
         AdvancePostingParametersCZZ."Currency Factor" := SalesAdvLetterEntryCZZ."Currency Factor";
+        AdvancePostingParametersCZZ."External Document No." := AdvanceLetterTemplateCZZ.GetExternalDocumentNo(SalesAdvLetterHeaderCZZ."No.", SalesAdvLetterHeaderCZZ."External Document No.", DocumentNo);
 
         SalesAdvLetterPostCZZ.PostAdvancePaymentVAT(
             SalesAdvLetterEntryCZZ, TempAdvancePostingBufferCZZ, GenJnlPostLine, AdvancePostingParametersCZZ);
@@ -1017,6 +1018,7 @@ codeunit 31002 "SalesAdvLetterManagement CZZ"
             AdvancePostingParametersCZZ."Original Document VAT Date" := VATDate;
             AdvancePostingParametersCZZ."Currency Code" := SalesAdvLetterEntryCZZ."Currency Code";
             AdvancePostingParametersCZZ."Currency Factor" := CurrencyFactor;
+            AdvancePostingParametersCZZ."External Document No." := AdvanceLetterTemplateCZZ.GetExternalDocumentNo(SalesAdvLetterHeaderCZZ."No.", SalesAdvLetterHeaderCZZ."External Document No.", DocumentNo);
 
             SalesAdvLetterPostCZZ.PostAdvanceCreditMemoVAT(
                 SalesAdvLetterEntryCZZ, TempAdvancePostingBufferCZZ, GenJnlPostLine, AdvancePostingParametersCZZ);

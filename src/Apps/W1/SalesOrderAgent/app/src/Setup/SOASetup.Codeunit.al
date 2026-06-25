@@ -72,8 +72,11 @@ codeunit 4400 "SOA Setup"
         TempSOASetup."User Security ID" := AgentSetup.SaveChanges(AgentSetupBuffer);
         UpdateInstructions(TempSOASetup);
 
-        if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then
+        if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then begin
+            if TempSOASetup."Email Monitoring" then
+                UpdateSyncDateTime(TempSOASetup);
             UpdateSOASetupActivationDT(TempSOASetup);
+        end;
         UpdateSOASetup(TempSOASetup);
 
         if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then begin
@@ -173,6 +176,8 @@ codeunit 4400 "SOA Setup"
             if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then begin
                 UpdateSOASetupActivationDT(TempSOASetup);
                 UpdateInstructions(TempSOASetup);
+                if TempSOASetup."Email Monitoring" and (TempSOASetup."Earliest Sync At" = 0DT) then
+                    UpdateSyncDateTime(TempSOASetup);
             end;
 
             if AgentSetupBuffer.State = AgentSetupBuffer.State::Enabled then begin
@@ -937,11 +942,17 @@ codeunit 4400 "SOA Setup"
         EmailsCount: Integer;
         ConfirmMessage: Text;
     begin
-        // First activation
+        // First activation (brand new agent)
         if TempSOASetup."Activated At" = 0DT then begin
             TempSOASetup."Earliest Sync At" := CreateDateTime(Today(), 0T);
             TempSOASetup."Last Sync At" := TempSOASetup."Earliest Sync At";
             exit;
+        end;
+
+        // First time enabling email monitoring (Earliest Sync At not yet initialized)
+        if TempSOASetup."Earliest Sync At" = 0DT then begin
+            TempSOASetup."Earliest Sync At" := CreateDateTime(Today(), 0T);
+            TempSOASetup."Last Sync At" := TempSOASetup."Earliest Sync At";
         end;
 
         EmailsCount := GetEmailsCount(TempSOASetup);

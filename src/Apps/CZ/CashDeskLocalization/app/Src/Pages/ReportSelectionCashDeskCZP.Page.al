@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN29
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -9,12 +10,15 @@ using System.Reflection;
 page 31169 "Report Selection Cash Desk CZP"
 {
     ApplicationArea = Basic, Suite;
-    Caption = 'Report Selection - Cash Desk';
+    Caption = 'Report Selection - Cash Desk (Obsolete)';
     DelayedInsert = true;
     PageType = Worksheet;
     SaveValues = true;
     SourceTable = "Cash Desk Rep. Selections CZP";
     UsageCategory = Administration;
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'The page is replaced by a new page "Report Sel. - Cash Desk CZP" that uses the standard "Report Selections" table to store report selections for cash documents.';
 
     layout
     {
@@ -69,12 +73,6 @@ page 31169 "Report Selection Cash Desk CZP"
         }
     }
 
-
-    trigger OnNewRecord(BelowxRec: Boolean)
-    begin
-        Rec.NewRecord();
-    end;
-
     trigger OnOpenPage()
     begin
         SetUsageFilter();
@@ -99,3 +97,4 @@ page 31169 "Report Selection Cash Desk CZP"
         Rec.FilterGroup(0);
     end;
 }
+#endif

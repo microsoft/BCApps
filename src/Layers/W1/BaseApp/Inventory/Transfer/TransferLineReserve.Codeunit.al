@@ -515,6 +515,47 @@ codeunit 99000836 "Transfer Line-Reserve"
         end;
     end;
 
+    procedure SynchronizeInboundTrackingForTransfer(var FromTransferLine: Record "Transfer Line"; var TempHandlingSpecification: Record "Tracking Specification" temporary)
+    var
+        ReservationEntry: Record "Reservation Entry";
+        RemainingTrackQty: Decimal;
+    begin
+        ReservationEntry.SetSourceFilter(
+            Database::"Transfer Line", 1, FromTransferLine."Document No.", FromTransferLine."Line No.", false);
+        ReservationEntry.SetSourceFilter('', FromTransferLine."Derived From Line No.");
+        if not ReservationEntry.FindSet(true) then
+            exit;
+
+        if not TempHandlingSpecification.FindFirst() then
+            exit;
+
+        RemainingTrackQty := Abs(TempHandlingSpecification."Quantity (Base)");
+        repeat
+            if not ReservationEntry.TrackingExists() and (ReservationEntry."Quantity (Base)" <> 0) and (ReservationEntry."Reservation Status" <> ReservationEntry."Reservation Status"::Reservation) then begin
+                ReservationEntry.CopyTrackingFromSpec(TempHandlingSpecification);
+                ReservationEntry.UpdateItemTracking();
+                ReservationEntry."Qty. to Handle (Base)" := ReservationEntry."Quantity (Base)";
+                ReservationEntry."Qty. to Invoice (Base)" := ReservationEntry."Quantity (Base)";
+                ReservationEntry.Modify();
+                ConsumeAndAdvanceSpecQty(TempHandlingSpecification, RemainingTrackQty, ReservationEntry."Quantity (Base)");
+            end;
+        until ReservationEntry.Next() = 0;
+
+        TempHandlingSpecification.FindFirst();
+    end;
+
+    local procedure ConsumeAndAdvanceSpecQty(var TempHandlingSpecification: Record "Tracking Specification" temporary; var RemainingTrackQty: Decimal; ConsumedQty: Decimal)
+    begin
+        RemainingTrackQty -= Abs(ConsumedQty);
+        while RemainingTrackQty <= 0 do begin
+            if TempHandlingSpecification.Next() = 0 then begin
+                RemainingTrackQty := 0;
+                exit;
+            end;
+            RemainingTrackQty += Abs(TempHandlingSpecification."Quantity (Base)");
+        end;
+    end;
+
     local procedure UpdateTransferQuantity(var TransferQty: Decimal; var Direction: Enum "Transfer Direction"; var NewTransferLine: Record "Transfer Line"; var OldTransferLine: Record "Transfer Line"; var OldReservationEntry: Record "Reservation Entry")
     var
         IsHandled: Boolean;

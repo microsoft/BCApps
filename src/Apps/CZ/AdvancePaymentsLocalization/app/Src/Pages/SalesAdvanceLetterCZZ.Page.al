@@ -182,6 +182,11 @@ page 31171 "Sales Advance Letter CZZ"
                     Importance = Promoted;
                     ToolTip = 'Specifies when the related advance letter must be paid.';
                 }
+                field("External Document No."; Rec."External Document No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                }
                 field("Salesperson Code"; Rec."Salesperson Code")
                 {
                     ApplicationArea = Basic, Suite;

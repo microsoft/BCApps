@@ -171,7 +171,7 @@ codeunit 5815 "Undo Sales Shipment Line"
             if PostedWhseShptLineFound then
                 WhseUndoQuantity.UndoPostedWhseShptLine(PostedWhseShipmentLine);
 
-            TempWarehouseJournalLine.SetRange("Source Line No.", SalesShipmentLine."Line No.");
+            TempWarehouseJournalLine.SetRange("Source Line No.", SalesShipmentLine."Order Line No.");
             WhseUndoQuantity.PostTempWhseJnlLineCache(TempWarehouseJournalLine, WhseJnlRegisterLine);
 
             UndoPostATO(SalesShipmentLine, WhseJnlRegisterLine);

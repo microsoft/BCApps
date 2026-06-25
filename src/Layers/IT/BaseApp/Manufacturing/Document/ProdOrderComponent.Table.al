@@ -1122,7 +1122,7 @@ table 5407 "Prod. Order Component"
         ItemLedgEntry: Record "Item Ledger Entry";
         ItemTrackingMgt: Codeunit "Item Tracking Management";
         NewQuantity: Decimal;
-#if not CLEAN29
+#if not CLEAN28
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif
         IsHandled: Boolean;

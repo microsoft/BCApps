@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -11,6 +12,9 @@ enum 1610 "PEPPOL Processing Type"
 {
     Extensible = true;
     AssignmentCompatibility = true;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by PEPPOL App';
+    ObsoleteTag = '29.0';
 
     /// <summary>
     /// Specifies that the PEPPOL document is processed as a sales transaction.
@@ -21,3 +25,4 @@ enum 1610 "PEPPOL Processing Type"
     /// </summary>
     value(1; "Service") { Caption = 'Service'; }
 }
+#endif

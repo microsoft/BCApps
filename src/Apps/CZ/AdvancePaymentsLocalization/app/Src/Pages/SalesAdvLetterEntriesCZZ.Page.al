@@ -76,6 +76,10 @@ page 31173 "Sales Adv. Letter Entries CZZ"
                         Page.Run(Page::"Customer Ledger Entries", CustLedgerEntry);
                     end;
                 }
+                field("External Document No."; Rec."External Document No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
                 field("User ID"; Rec."User ID")
                 {
                     ApplicationArea = Basic, Suite;

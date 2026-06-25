@@ -12,7 +12,7 @@ using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.MachineCenter;
-#if not CLEAN29
+#if not CLEAN28
 using Microsoft.Manufacturing.Setup;
 #endif
 using Microsoft.Manufacturing.WorkCenter;
@@ -983,7 +983,7 @@ table 99000830 "Planning Routing Line"
 
     [Scope('OnPrem')]
     procedure TransferFromRoutingLine(RoutingLine: Record "Routing Line")
-#if not CLEAN29
+#if not CLEAN28
     var
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif

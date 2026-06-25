@@ -81,8 +81,10 @@ codeunit 97 "Blanket Purch. Order to Order"
                                 PurchOrderLine.Validate("Order Date", PurchOrderHeader."Order Date");
                             UpdatePurchOrderLineDirectUnitCost();
                             PurchOrderLineValidateLineDiscountPct(PurchOrderLine, PurchBlanketOrderLine);
-                            if PurchOrderLine.Quantity <> 0 then
-                                PurchOrderLine.Validate("Inv. Discount Amount", PurchBlanketOrderLine."Inv. Discount Amount");
+                            if (PurchOrderLine.Quantity <> 0) and (PurchBlanketOrderLine."Inv. Discount Amount" <> 0) then
+                                PurchOrderLine.Validate(
+                                    "Inv. Discount Amount",
+                                    Round(PurchBlanketOrderLine."Inv. Discount Amount" * (PurchBlanketOrderLine."Qty. to Receive" / PurchBlanketOrderLine.Quantity)));
                             PurchBlanketOrderLine.CalcFields("Reserved Qty. (Base)");
                             OnRunOnAfterCalcReservedQtyBase(Rec, PurchBlanketOrderLine, PurchOrderHeader, PurchOrderLine);
                             if PurchBlanketOrderLine."Reserved Qty. (Base)" <> 0 then

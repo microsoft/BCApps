@@ -15,7 +15,11 @@ permissionset 11780 "CZ Cash Desk - Read CZP"
     Permissions = tabledata "Cash Desk Cue CZP" = R,
                   tabledata "Cash Desk CZP" = R,
                   tabledata "Cash Desk Event CZP" = R,
+#if not CLEAN29
+#pragma warning disable AL0432
                   tabledata "Cash Desk Rep. Selections CZP" = R,
+#pragma warning restore AL0432
+#endif
                   tabledata "Cash Desk User CZP" = R,
                   tabledata "Cash Document Header CZP" = R,
                   tabledata "Cash Document Line CZP" = R,

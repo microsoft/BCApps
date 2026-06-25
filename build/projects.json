@@ -5243,9 +5243,15 @@
         "CA",
         "NZ",
         "AU",
-        "W1"
+        "W1",
+        "ES",
+        "DK",
+        "FR",
+        "DE",
+        "AT"
       ],
       "runStaticCodeAnalysis": true,
+      "installOnEnvironmentUpdate": true,
       "logLevel": "warning",
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
@@ -5260,7 +5266,12 @@
         "CA",
         "NZ",
         "AU",
-        "W1"
+        "W1",
+        "ES",
+        "DK",
+        "FR",
+        "DE",
+        "AT"
       ],
       "isTest": true,
       "runStaticCodeAnalysis": true,
@@ -5654,7 +5665,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
-      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
     "Payment Practices Tests": {
@@ -5740,7 +5751,7 @@
       "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\app.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
-    },
+    }, 
     "PEPPOL": {
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\PEPPOL\\App",
       "dvdFolder": "Applications\\PEPPOL\\Source",
@@ -5810,7 +5821,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
-      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.json"
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core": {
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\W1\\EDocument\\App",

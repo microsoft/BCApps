@@ -12,15 +12,15 @@ using Microsoft.Foundation.Company;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Sales.Setup;
 using System.Security.User;
+using System.Text;
 using System.Utilities;
 
 report 11734 "Receipt Cash Document CZP"
 {
-    DefaultLayout = RDLC;
-    RDLCLayout = './Src/Reports/ReceiptCashDocument.rdl';
-    PreviewMode = PrintLayout;
     Caption = 'Receipt Cash Document';
     UsageCategory = None;
+    DefaultRenderingLayout = "ReceiptCashDocument.rdl";
+    WordMergeDataItem = CashDocumentHeaderCZP;
 
     dataset
     {
@@ -134,6 +134,9 @@ report 11734 "Receipt Cash Document CZP"
             {
             }
             column(FromAmountToDescription_CashDocumentHeader; CashDeskManagementCZP.FromAmountToDescription("Amount Including VAT"))
+            {
+            }
+            column(FormattedAmount_CashDocumentHeader; Format("Amount Including VAT", 0, AutoFormat.ResolveAutoFormat(Enum::"Auto Format"::AmountFormat, CashDocumentHeaderCZP."Currency Code")))
             {
             }
             dataitem(CopyLoop; Integer)
@@ -315,9 +318,27 @@ report 11734 "Receipt Cash Document CZP"
             }
         }
     }
+    rendering
+    {
+        layout("ReceiptCashDocument.rdl")
+        {
+            Type = RDLC;
+            LayoutFile = './Src/Reports/ReceiptCashDocument.rdl';
+            Caption = 'Receipt Cash Document (RDL)';
+            Summary = 'The Receipt Cash Document (RDL) provides a detailed layout.';
+        }
+        layout("ReceiptCashDocumentEmail.docx")
+        {
+            Type = Word;
+            LayoutFile = './Src/Reports/ReceiptCashDocumentEmail.docx';
+            Caption = 'Receipt Cash Document Email (Word)';
+            Summary = 'The Receipt Cash Document Email (Word) provides an email body layout.';
+        }
+    }
+
     labels
     {
-        DocumentLbl = 'Reciept Cash Document';
+        DocumentLbl = 'Receipt Cash Document';
         PageLbl = 'Page';
         CompanyLbl = 'Company';
         TotalLbl = 'Total';
@@ -333,12 +354,17 @@ report 11734 "Receipt Cash Document CZP"
         CopyLbl = 'Copy';
         VATDateLbl = 'VAT Date';
         DocumentDateLbl = 'Document Date';
+        DocumentNoLbl = 'Document No.';
+        GreetingLbl = 'Hello';
+        ClosingLbl = 'Sincerely';
+        BodyLbl = 'Your receipt cash document is attached to this message.';
     }
 
     var
         CurrencyExchangeRate: Record "Currency Exchange Rate";
         FormatAddress: Codeunit "Format Address";
         CashDeskManagementCZP: Codeunit "Cash Desk Management CZP";
+        AutoFormat: Codeunit "Auto Format";
         ExchangeRateTxt: Label 'Exchange Rate %1 %2 / %3 %4', Comment = '%1 = Calculated Exchange Rate Amount; %2 = LCY Code; %3 = Exchange Rate Amount; %4 = Currency Code';
 
     protected var

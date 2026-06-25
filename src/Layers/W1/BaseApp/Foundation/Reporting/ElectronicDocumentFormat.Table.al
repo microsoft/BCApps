@@ -7,10 +7,14 @@ namespace Microsoft.Foundation.Reporting;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+#if not CLEAN29
 using Microsoft.Sales.Peppol;
+#endif
 using System.IO;
 using System.Reflection;
+#if not CLEAN29
 using System.Telemetry;
+#endif
 using System.Utilities;
 
 table 61 "Electronic Document Format"
@@ -45,6 +49,7 @@ table 61 "Electronic Document Format"
             NotBlank = true;
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Codeunit));
 
+#if not CLEAN29
             trigger OnValidate()
             var
                 PEPPOLManagement: Codeunit "PEPPOL Management";
@@ -55,6 +60,7 @@ table 61 "Electronic Document Format"
                     FeatureTelemetry.LogUptake('0000KOR', PEPPOLManagement.GetPeppolTelemetryTok(), Enum::"Feature Uptake Status"::"Set up");
                 end;
             end;
+#endif
         }
         field(6; "Codeunit Caption"; Text[250])
         {
@@ -413,6 +419,7 @@ table 61 "Electronic Document Format"
         ElectronicDocumentFormat.Insert();
     end;
 
+#if not CLEAN29
     local procedure ShouldLogUptake() Result: Boolean
     begin
         if "Codeunit ID" in [
@@ -422,6 +429,7 @@ table 61 "Electronic Document Format"
 
         OnAfterShouldLogUptake(Rec, Result);
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     [Scope('OnPrem')]
@@ -477,10 +485,13 @@ table 61 "Electronic Document Format"
     begin
     end;
 
+#if not CLEAN29
+    [Obsolete('Peppol functionality is replaced by PEPPOL App. This event will be removed in future versions.', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnAfterShouldLogUptake(var ElectronicDocumentFormat: Record "Electronic Document Format"; var Result: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnSendElectronicallyOnAfterRecordExportBufferFileGenerated(var RecordExportBuffer: Record "Record Export Buffer"; RecRef: RecordRef)

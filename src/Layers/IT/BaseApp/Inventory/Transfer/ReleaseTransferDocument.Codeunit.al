@@ -6,7 +6,7 @@ namespace Microsoft.Inventory.Transfer;
 
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Setup;
-#if not CLEAN29
+#if not CLEAN28
 using Microsoft.Manufacturing.Setup;
 #endif
 codeunit 5708 "Release Transfer Document"
@@ -112,7 +112,7 @@ codeunit 5708 "Release Transfer Document"
     local procedure CheckTransLines(var TransLine: Record "Transfer Line"; TransHeader: Record "Transfer Header")
     var
         Item: Record Item;
-#if not CLEAN29
+#if not CLEAN28
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif
         IsHandled: Boolean;

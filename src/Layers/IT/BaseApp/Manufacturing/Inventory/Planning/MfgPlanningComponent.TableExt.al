@@ -8,10 +8,8 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
-#if not CLEAN29
-using Microsoft.Manufacturing.Setup;
-#endif
 #if not CLEAN28
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Vendor;
 using System.Security.AccessControl;
 #endif

@@ -218,6 +218,55 @@
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure PurchOrdrInvDiscProRatedForPartialQtyToReceive()
+    var
+        Vendor: Record Vendor;
+        VendorInvoiceDisc: Record "Vendor Invoice Disc.";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchCalcDiscount: Codeunit "Purch.-Calc.Discount";
+        BlanketInvDiscountAmount: Decimal;
+        BlanketQuantity: Decimal;
+        QtyToReceive: Decimal;
+        ExpectedInvDiscountAmount: Decimal;
+    begin
+        // [SCENARIO 631522] Invoice Discount Amount is pro-rated by "Qty. to Receive" / "Quantity" when creating a Purchase Order from a Blanket Purchase Order for a partial quantity.
+        Initialize();
+
+        // [GIVEN] "Calculate Invoice Discount" is FALSE, so the Invoice Discount Amount is not recalculated after Make Order.
+        LibraryPurchase.SetCalcInvDiscount(false);
+
+        // [GIVEN] Vendor with Invoice Discount.
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryERM.CreateInvDiscForVendor(VendorInvoiceDisc, Vendor."No.", '', 0);
+        VendorInvoiceDisc.Validate("Discount %", LibraryRandom.RandIntInRange(10, 20));
+        VendorInvoiceDisc.Modify(true);
+
+        // [GIVEN] Blanket Purchase Order with a line where "Qty. to Receive" is less than "Quantity" and the Invoice Discount Amount is calculated.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::"Blanket Order", Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, '', LibraryRandom.RandIntInRange(10, 20));
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandIntInRange(100, 200));
+        PurchaseLine.Validate("Qty. to Receive", LibraryRandom.RandInt(5));
+        PurchaseLine.Modify(true);
+        PurchCalcDiscount.CalculateInvoiceDiscountOnLine(PurchaseLine);
+
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        BlanketQuantity := PurchaseLine.Quantity;
+        QtyToReceive := PurchaseLine."Qty. to Receive";
+        BlanketInvDiscountAmount := PurchaseLine."Inv. Discount Amount";
+
+        // [WHEN] A Purchase Order is created from the Blanket Purchase Order.
+        CODEUNIT.Run(CODEUNIT::"Blanket Purch. Order to Order", PurchaseHeader);
+
+        // [THEN] The Purchase Order line "Inv. Discount Amount" is pro-rated to the partial "Qty. to Receive", not carried over in full.
+        ExpectedInvDiscountAmount := Round(BlanketInvDiscountAmount * (QtyToReceive / BlanketQuantity));
+        FindPurchaseLine(PurchaseLine, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        Assert.AreEqual(ExpectedInvDiscountAmount, PurchaseLine."Inv. Discount Amount",
+          StrSubstNo(AmountErrorMessage, PurchaseLine.FieldCaption("Inv. Discount Amount"), ExpectedInvDiscountAmount, PurchaseLine.TableCaption()));
+    end;
+
+    [Test]
     [HandlerFunctions('BlanketOrderStatisticsHandler')]
     [Scope('OnPrem')]
     procedure VATAmountNonEditableOnStatistics()

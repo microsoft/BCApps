@@ -181,9 +181,9 @@ table 9178 "Application Area Setup"
         {
             Caption = 'Legacy Subcontracting';
             ObsoleteReason = 'Legacy Subcontracting will be discontinued, environments should move to the Subcontracting App.';
-#if not CLEAN29
+#if not CLEAN28
             ObsoleteState = Pending;
-            ObsoleteTag = '29.0';
+            ObsoleteTag = '28.0';
 #else
             ObsoleteState = Removed;
             ObsoleteTag = '32.0';

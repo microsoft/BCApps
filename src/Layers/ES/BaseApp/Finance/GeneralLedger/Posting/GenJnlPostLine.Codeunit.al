@@ -1156,17 +1156,18 @@ codeunit 12 "Gen. Jnl.-Post Line"
     var
         TempFAGLPostingBuffer: Record "FA G/L Posting Buffer" temporary;
         FAJnlPostLine: Codeunit "FA Jnl.-Post Line";
+        GLBalanceAmount: Decimal;
+        IsLastDepreciationEntry: Boolean;
     begin
         if not NonDeductibleVAT.UseNonDeductibleVATAmountForFixedAssetCost() then
             exit;
         GenJnlLine."Non-Ded. VAT FA Cost" := true;
         FAJnlPostLine.GenJnlPostLine(GenJnlLine, VATPostingParameters."Non-Deductible VAT Amount", 0, NextTransactionNo, LastNextEntryNo, GLReg."No.");
         GenJnlLine."Non-Ded. VAT FA Cost" := false;
-        if FAJnlPostLine.FindFirstGLAcc(TempFAGLPostingBuffer) then begin
-            TempGLEntryBuf."FA Entry Type" := TempFAGLPostingBuffer."FA Entry Type";
-            TempGLEntryBuf."FA Entry No." := TempFAGLPostingBuffer."FA Entry No.";
-            TempGLEntryBuf.Modify();
-        end;
+        if FAJnlPostLine.FindFirstGLAcc(TempFAGLPostingBuffer) then
+            repeat
+                PostFAGLPostingBuffer(GenJnlLine, TempFAGLPostingBuffer, GLBalanceAmount, IsLastDepreciationEntry);
+            until FAJnlPostLine.GetNextGLAcc(TempFAGLPostingBuffer) = 0;
     end;
 
     /// <summary>
@@ -10156,6 +10157,68 @@ codeunit 12 "Gen. Jnl.-Post Line"
         for i := 1 to ArrayLen(AdjAmount) do
             if AdjAmount[i] <> 0 then
                 BillSettlementGainLoss := true;
+    end;
+
+    local procedure PostFAGLPostingBuffer(GenJnlLine: Record "Gen. Journal Line"; TempFAGLPostingBuffer: Record "FA G/L Posting Buffer"; var GLBalanceAmount: Decimal; var IsLastDepreciationEntry: Boolean)
+    var
+        GLEntry: Record "G/L Entry";
+        GLEntry2: Record "G/L Entry";
+        FALedgerEntry: Record "FA Ledger Entry";
+        FAAutomaticEntry: Codeunit "FA Automatic Entry";
+        NetDisposalNo: Integer;
+    begin
+        if (TempFAGLPostingBuffer."Entry No." = TempGLEntryBuf."Entry No.") and
+           (TempFAGLPostingBuffer."Account No." = TempGLEntryBuf."G/L Account No.") then begin
+            TempGLEntryBuf."FA Entry Type" := TempFAGLPostingBuffer."FA Entry Type";
+            TempGLEntryBuf."FA Entry No." := TempFAGLPostingBuffer."FA Entry No.";
+            TempGLEntryBuf.Modify();
+            exit;
+        end;
+
+        FALedgerEntry.SetLoadFields("FA Posting Type");
+        if not FALedgerEntry.Get(TempFAGLPostingBuffer."FA Entry No.") and (GLBalanceAmount = 0) then
+            exit;
+        if (FALedgerEntry."FA Posting Type" <> FALedgerEntry."FA Posting Type"::Depreciation) and (GLBalanceAmount = 0) then
+            exit;
+        if not IsLastDepreciationEntry and (GLBalanceAmount <> 0) then
+            exit;
+
+        InitGLEntry(
+            GenJnlLine, GLEntry, '', GenJnlLine."Amount (LCY)", GenJnlLine."Source Currency Amount", true, GenJnlLine."System-Created Entry",
+            CalcAmountSrcCurr(GenJnlLine, GenJnlLine."Amount (LCY)"));
+        GLEntry."Gen. Posting Type" := GenJnlLine."Gen. Posting Type";
+        GLEntry."Bal. Account Type" := GenJnlLine."Bal. Account Type";
+        GLEntry."Bal. Account No." := GenJnlLine."Bal. Account No.";
+        GLEntry2 := GLEntry;
+        if TempFAGLPostingBuffer."Original General Journal Line" then
+            InitGLEntry(
+                GenJnlLine, GLEntry, TempFAGLPostingBuffer."Account No.", TempFAGLPostingBuffer.Amount, GLEntry2."Additional-Currency Amount", true, true,
+                CalcAmountSrcCurr(GenJnlLine, TempFAGLPostingBuffer.Amount))
+        else begin
+            CheckNonAddCurrCodeOccurred('');
+            InitGLEntry(
+                GenJnlLine, GLEntry, TempFAGLPostingBuffer."Account No.", TempFAGLPostingBuffer.Amount, 0, false, true,
+                CalcAmountSrcCurr(GenJnlLine, TempFAGLPostingBuffer.Amount));
+        end;
+        FADimAlreadyChecked := false;
+        GLEntry.CopyPostingGroupsFromGLEntry(GLEntry);
+        GLEntry."FA Entry Type" := TempFAGLPostingBuffer."FA Entry Type";
+        GLEntry."FA Entry No." := TempFAGLPostingBuffer."FA Entry No.";
+        if TempFAGLPostingBuffer."Net Disposal" then
+            NetDisposalNo := NetDisposalNo + 1
+        else
+            NetDisposalNo := 0;
+        if TempFAGLPostingBuffer."Automatic Entry" and not TempFAGLPostingBuffer."Net Disposal" then
+            FAAutomaticEntry.AdjustGLEntry(GLEntry);
+        if NetDisposalNo > 1 then
+            GLEntry."VAT Amount" := 0;
+        InsertGLEntry(GenJnlLine, GLEntry, true);
+
+        GLBalanceAmount += TempFAGLPostingBuffer.Amount;
+        if GLBalanceAmount = 0 then
+            IsLastDepreciationEntry := false
+        else
+            IsLastDepreciationEntry := true;
     end;
 
     procedure IncreaseTaxEntryNo()

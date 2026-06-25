@@ -506,6 +506,8 @@ codeunit 5856 "TransferOrder-Post Transfer"
     procedure TransferTracking(var FromTransLine: Record "Transfer Line"; var ToTransLine: Record "Transfer Line"; TransferQty: Decimal)
     var
         DummySpecification: Record "Tracking Specification";
+        ReservationEntry: Record "Reservation Entry";
+        TrackedQtyTransferred: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -516,12 +518,19 @@ codeunit 5856 "TransferOrder-Post Transfer"
         TempHandlingSpecification.Reset();
         TempHandlingSpecification.SetRange("Source Prod. Order Line", ToTransLine."Derived From Line No.");
         if TempHandlingSpecification.Find('-') then begin
+            ReserveTransLine.SynchronizeInboundTrackingForTransfer(FromTransLine, TempHandlingSpecification);
             repeat
                 ReserveTransLine.TransferTransferToTransfer(
                   FromTransLine, ToTransLine, -TempHandlingSpecification."Quantity (Base)", Enum::"Transfer Direction"::Inbound, TempHandlingSpecification);
-                TransferQty += TempHandlingSpecification."Quantity (Base)";
             until TempHandlingSpecification.Next() = 0;
             TempHandlingSpecification.DeleteAll();
+
+            ReservationEntry.SetSourceFilter(
+                Database::"Transfer Line", 1, ToTransLine."Document No.", ToTransLine."Line No.", true);
+            ReservationEntry.SetSourceFilter('', ToTransLine."Derived From Line No.");
+            ReservationEntry.CalcSums("Quantity (Base)");
+            TrackedQtyTransferred := ReservationEntry."Quantity (Base)";
+            TransferQty -= TrackedQtyTransferred;
         end;
 
         if TransferQty > 0 then

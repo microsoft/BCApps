@@ -455,7 +455,7 @@ page 9010 "Production Planner Role Center"
                                         Recurring = const(false));
                     ToolTip = 'Calculate a supply plan to fulfill item demand with purchases or transfers.';
                 }
-#if not CLEAN29
+#if not CLEAN28
                 action(SubcontractingWorksheets)
                 {
                     ApplicationArea = LegacySubcontracting;
@@ -468,7 +468,7 @@ page 9010 "Production Planner Role Center"
                     ToolTip = 'Calculate the needed production supply, find the production orders that have material ready to send to a subcontractor, and automatically create purchase orders for subcontracted operations from production order routings.';
                     ObsoleteReason = 'Will be replaced by the Subcontracting App.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '28.0';
                 }
 #endif
                 action("Standard Cost Worksheet")
@@ -756,7 +756,7 @@ page 9010 "Production Planner Role Center"
                     RunObject = Page "Planning Worksheet";
                     ToolTip = 'Plan supply orders automatically to fulfill new demand.';
                 }
-#if not CLEAN29
+#if not CLEAN28
                 action("Subcontracting &Worksheet")
                 {
                     ApplicationArea = LegacySubcontracting;
@@ -767,7 +767,7 @@ page 9010 "Production Planner Role Center"
 #pragma warning restore AL0432
                     ObsoleteReason = 'Will be replaced by the Subcontracting App.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '28.0';
                     ToolTip = 'Calculate the needed production supply, find the production orders that have material ready to send to a subcontractor, and automatically create purchase orders for subcontracted operations from production order routings.';
                 }
 #endif

@@ -416,8 +416,9 @@ codeunit 135097 "Incoming Document Status Tests"
         Item: Record Item;
         CompanyInformation: Record "Company Information";
         CustomerBankAccount: Record "Customer Bank Account";
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
         FileManagement: Codeunit "File Management";
-        ExpSalesInvPEPPOLBIS30: Codeunit "Exp. Sales Inv. PEPPOL BIS3.0";
+        ExpSalesInvPEPPOL30: Codeunit "Exp. Sales Inv. PEPPOL30";
         TempBlob: Codeunit "Temp Blob";
         OutStr: OutStream;
         ServerAttachmentFilePath: Text;
@@ -450,8 +451,9 @@ codeunit 135097 "Incoming Document Status Tests"
         LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", 1);
         SalesInvoiceHeader.Get(LibrarySales.PostSalesDocument(SalesHeader, true, true));
 
+        PeppolSetup.GetSetup();
         TempBlob.CreateOutStream(OutStr);
-        ExpSalesInvPEPPOLBIS30.GenerateXMLFile(SalesInvoiceHeader, OutStr);
+        ExpSalesInvPEPPOL30.GenerateXMLFile(SalesInvoiceHeader, OutStr, PeppolSetup."PEPPOL 3.0 Sales Format");
         ServerAttachmentFilePath := FileManagement.ServerTempFileName('xml');
         FileManagement.BLOBExportToServerFile(TempBlob, ServerAttachmentFilePath);
 

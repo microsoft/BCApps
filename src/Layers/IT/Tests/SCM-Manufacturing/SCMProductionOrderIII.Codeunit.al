@@ -8331,7 +8331,7 @@ codeunit 137079 "SCM Production Order III"
         ItemJournalSetup();
         ConsumptionJournalSetup();
         OutputJournalSetup();
-#if not CLEAN29
+#if not CLEAN28
         EnableLegacySubcontracting();
 #endif
         ShopCalendarMgt.ClearInternals(); // clear single instance codeunit vars to avoid influence of other test codeunits
@@ -8341,7 +8341,7 @@ codeunit 137079 "SCM Production Order III"
         LibraryTestInitialize.OnAfterTestSuiteInitialize(CODEUNIT::"SCM Production Order III");
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     local procedure EnableLegacySubcontracting()
     var
         ManufacturingSetup: Record "Manufacturing Setup";

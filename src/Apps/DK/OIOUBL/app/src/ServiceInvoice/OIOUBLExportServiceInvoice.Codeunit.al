@@ -10,7 +10,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
-using Microsoft.Sales.Peppol;
+using Microsoft.Peppol;
 using Microsoft.Service.History;
 using Microsoft.Service.Setup;
 using System.IO;
@@ -209,7 +209,7 @@ codeunit 13643 "OIOUBL-Export Service Invoice"
         DeliveryAddress: Record "Standard Address";
         BillToAddress: Record "Standard Address";
         CustomerContact: Record Contact;
-        PEPPOLManagement: Codeunit "PEPPOL Management";
+        PEPPOL30: Codeunit "PEPPOL30";
         XMLCurrNode: XmlElement;
         XMLdocOut: XmlDocument;
         CurrencyCode: Code[10];
@@ -384,7 +384,7 @@ codeunit 13643 "OIOUBL-Export Service Invoice"
             ServInvLine.TESTFIELD(Description);
 
             if (ServInvLine.Type = ServInvLine.Type::"G/L Account") and (ServInvLine."Unit of Measure Code" = '') then
-                UnitOfMeasureCode := PEPPOLManagement.GetUoMforPieceINUNECERec20ListID()
+                UnitOfMeasureCode := PEPPOL30.GetUoMforPieceINUNECERec20ListID()
             else
                 UnitOfMeasureCode := ServInvLine."Unit of Measure Code";
 

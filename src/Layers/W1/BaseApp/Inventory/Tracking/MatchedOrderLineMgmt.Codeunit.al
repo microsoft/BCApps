@@ -134,13 +134,26 @@ codeunit 5826 "Matched Order Line Mgmt."
     var
         MatchedOrderLine: Record "Matched Order Line";
         PurchRcptLineSysIDFilter: Text;
+        UseMarking: Boolean;
     begin
         MatchedOrderLine.SetRange("Document Line SystemId", PurchaseLineInvoice.SystemId);
         MatchedOrderLine.SetFilter("Matched Rcpt./Shpt. Line SysId", '<> %1', NullGuid);
+        MatchedOrderLine.SetLoadFields("Matched Rcpt./Shpt. Line SysId");
+        UseMarking := MatchedOrderLine.Count() > MaxFilterValues();
+
         if MatchedOrderLine.FindSet() then begin
             repeat
-                PurchRcptLineSysIDFilter += Format(MatchedOrderLine."Matched Rcpt./Shpt. Line SysId") + '|';
+                if UseMarking then begin
+                    if PurchRcptLine.GetBySystemId(MatchedOrderLine."Matched Rcpt./Shpt. Line SysId") then
+                        PurchRcptLine.Mark(true);
+                end else
+                    PurchRcptLineSysIDFilter += Format(MatchedOrderLine."Matched Rcpt./Shpt. Line SysId") + '|';
             until MatchedOrderLine.Next() = 0;
+
+            if UseMarking then begin
+                PurchRcptLine.MarkedOnly(true);
+                exit;
+            end;
 
             if StrLen(PurchRcptLineSysIDFilter) = 0 then
                 exit;
@@ -275,26 +288,37 @@ codeunit 5826 "Matched Order Line Mgmt."
 
     internal procedure DeleteAllMatchedOrderLines(var PurchaseHeader: Record "Purchase Header")
     var
-        MatchedOrderLine: Record "Matched Order Line";
         PurchaseLine: Record "Purchase Line";
         PurchaseLineSystemIDFilter: Text;
+        FilterValueCount: Integer;
     begin
-        if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Order then begin
-            PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
-            PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
-            if PurchaseLine.FindSet() then begin
-                repeat
-                    PurchaseLineSystemIDFilter += Format(PurchaseLine.SystemId) + '|';
-                until PurchaseLine.Next() = 0;
+        if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Order then
+            exit;
 
-                if StrLen(PurchaseLineSystemIDFilter) = 0 then
-                    exit;
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetLoadFields(SystemId);
+        if PurchaseLine.FindSet() then
+            repeat
+                PurchaseLineSystemIDFilter += Format(PurchaseLine.SystemId) + '|';
+                FilterValueCount += 1;
+                if FilterValueCount = MaxFilterValues() then begin
+                    DeleteMatchedOrderLinesBatch(PurchaseLineSystemIDFilter);
+                    Clear(PurchaseLineSystemIDFilter);
+                    FilterValueCount := 0;
+                end;
+            until PurchaseLine.Next() = 0;
 
-                PurchaseLineSystemIDFilter := CopyStr(PurchaseLineSystemIDFilter, 1, StrLen(PurchaseLineSystemIDFilter) - 1);
-                MatchedOrderLine.SetFilter("Matched Order Line SystemId", PurchaseLineSystemIDFilter);
-                MatchedOrderLine.DeleteAll();
-            end;
-        end;
+        if PurchaseLineSystemIDFilter <> '' then
+            DeleteMatchedOrderLinesBatch(PurchaseLineSystemIDFilter);
+    end;
+
+    local procedure DeleteMatchedOrderLinesBatch(SystemIDFilter: Text)
+    var
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        MatchedOrderLine.SetFilter("Matched Order Line SystemId", CopyStr(SystemIDFilter, 1, StrLen(SystemIDFilter) - 1));
+        MatchedOrderLine.DeleteAll();
     end;
 
     internal procedure DeleteMatchedLinesForPurchReceipt(var PurchRcptLine: Record "Purch. Rcpt. Line")
@@ -1002,9 +1026,9 @@ codeunit 5826 "Matched Order Line Mgmt."
 
     internal procedure RefreshMatchedOrderLineReceipt(PurchaseHeader: Record "Purchase Header")
     var
-        MatchedOrderLine: Record "Matched Order Line";
         PurchaseLine: Record "Purchase Line";
         PurchaseLineSystemIDFilter: Text;
+        FilterValueCount: Integer;
     begin
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
@@ -1012,14 +1036,24 @@ codeunit 5826 "Matched Order Line Mgmt."
         if PurchaseLine.FindSet() then
             repeat
                 PurchaseLineSystemIDFilter += Format(PurchaseLine.SystemId) + '|';
+                FilterValueCount += 1;
+                if FilterValueCount = MaxFilterValues() then begin
+                    RefreshMatchedOrderLinesBatch(PurchaseLineSystemIDFilter, PurchaseHeader."Receipt on Invoice");
+                    Clear(PurchaseLineSystemIDFilter);
+                    FilterValueCount := 0;
+                end;
             until PurchaseLine.Next() = 0;
 
-        if PurchaseLineSystemIDFilter = '' then
-            exit;
+        if PurchaseLineSystemIDFilter <> '' then
+            RefreshMatchedOrderLinesBatch(PurchaseLineSystemIDFilter, PurchaseHeader."Receipt on Invoice");
+    end;
 
-        PurchaseLineSystemIDFilter := CopyStr(PurchaseLineSystemIDFilter, 1, StrLen(PurchaseLineSystemIDFilter) - 1);
-        MatchedOrderLine.SetFilter("Matched Order Line SystemId", PurchaseLineSystemIDFilter);
-        MatchedOrderLine.ModifyAll("Receipt on Invoice", PurchaseHeader."Receipt on Invoice");
+    local procedure RefreshMatchedOrderLinesBatch(SystemIDFilter: Text; ReceiptOnInvoice: Boolean)
+    var
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        MatchedOrderLine.SetFilter("Matched Order Line SystemId", CopyStr(SystemIDFilter, 1, StrLen(SystemIDFilter) - 1));
+        MatchedOrderLine.ModifyAll("Receipt on Invoice", ReceiptOnInvoice);
     end;
 
     internal procedure CheckReceiptOnInvoiceAllowedForItem(Item: Record Item; PurchHeader: Record "Purchase Header")
@@ -1070,13 +1104,27 @@ codeunit 5826 "Matched Order Line Mgmt."
         MatchedOrderLine: Record "Matched Order Line";
         PurchaseLine: Record "Purchase Line";
         PurchInvSystemIDFilter: Text;
+        UseMarking: Boolean;
     begin
         MatchedOrderLine.SetRange("Matched Order Line SystemId", PurchaseLineOrder.SystemId);
         MatchedOrderLine.SetFilter("Matched Rcpt./Shpt. Line SysId", NullGuid);
+        MatchedOrderLine.SetLoadFields("Document Line SystemId");
+        UseMarking := MatchedOrderLine.Count() > MaxFilterValues();
+
         if MatchedOrderLine.FindSet() then
             repeat
-                PurchInvSystemIDFilter += Format(MatchedOrderLine."Document Line SystemId") + '|';
+                if UseMarking then begin
+                    if PurchaseLine.GetBySystemId(MatchedOrderLine."Document Line SystemId") then
+                        PurchaseLine.Mark(true);
+                end else
+                    PurchInvSystemIDFilter += Format(MatchedOrderLine."Document Line SystemId") + '|';
             until MatchedOrderLine.Next() = 0;
+
+        if UseMarking then begin
+            PurchaseLine.MarkedOnly(true);
+            Page.RunModal(0, PurchaseLine);
+            exit;
+        end;
 
         if PurchInvSystemIDFilter <> '' then
             PurchInvSystemIDFilter := CopyStr(PurchInvSystemIDFilter, 1, StrLen(PurchInvSystemIDFilter) - 1)
@@ -1106,6 +1154,13 @@ codeunit 5826 "Matched Order Line Mgmt."
         MatchedOrderLine.Insert();
 
         FeatureTelemetry.LogUptake('0000SIX', MatchedOrderLinesTok, Enum::"Feature Uptake Status"::"Set up");
+    end;
+
+    local procedure MaxFilterValues(): Integer
+    begin
+        // Business Central supports up to about 2000 filter values in a single request.
+        // Use a conservative threshold to stay clear of both the value-count and filter-string-length limits.
+        exit(1000);
     end;
 
     var

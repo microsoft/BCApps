@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Routing;
 
 using Microsoft.Foundation.UOM;
 using Microsoft.Manufacturing.MachineCenter;
-#if not CLEAN29
+#if not CLEAN28
 using Microsoft.Manufacturing.Setup;
 #endif
 using Microsoft.Manufacturing.WorkCenter;
@@ -393,7 +393,7 @@ codeunit 99000752 "Check Routing Lines"
         RtngLine2: Record "Routing Line";
         WorkCenter: Record "Work Center";
         MachineCenter: Record "Machine Center";
-#if not CLEAN29
+#if not CLEAN28
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif
         IsHandled: Boolean;

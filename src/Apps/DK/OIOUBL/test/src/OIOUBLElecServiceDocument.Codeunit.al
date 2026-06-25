@@ -25,7 +25,7 @@ codeunit 148055 "OIOUBL-Elec. Service Document"
         LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         OIOUBLNewFileMock: Codeunit "OIOUBL-File Events Mock";
-        PEPPOLManagement: Codeunit "PEPPOL Management";
+        PEPPOL30: Codeunit "PEPPOL30";
         Assert: Codeunit Assert;
         IDCapTxt: Label 'cbc:ID';
         TaxAmountCapTxt: Label 'cbc:TaxExclusiveAmount';
@@ -408,8 +408,8 @@ codeunit 148055 "OIOUBL-Elec. Service Document"
         // Verify: Verify Service Invoice Number and Account Code with Service Header - Account Code on generated xml file of Electronic Invoice.
         // Verify: Unit of Measure for Service Line with Type = G/L Account is "EA".
         VerifyElectronicServiceDocument(PostedDocumentNo, ServiceHeader."OIOUBL-Account Code");
-        VerifyUnitOfMeasureForInvoiceLineOnElectronicDocument(PEPPOLManagement.GetUoMforPieceINUNECERec20ListID(), 0);
-        VerifyUnitOfMeasureForInvoiceLineOnElectronicDocument(PEPPOLManagement.GetUoMforPieceINUNECERec20ListID(), 1);
+        VerifyUnitOfMeasureForInvoiceLineOnElectronicDocument(PEPPOL30.GetUoMforPieceINUNECERec20ListID(), 0);
+        VerifyUnitOfMeasureForInvoiceLineOnElectronicDocument(PEPPOL30.GetUoMforPieceINUNECERec20ListID(), 1);
     end;
 
     [Test]
@@ -437,8 +437,8 @@ codeunit 148055 "OIOUBL-Elec. Service Document"
         // Verify: Unit of Measure for Service Line with Type = G/L Account is "EA".
         // Verify: Unit of Measure for Service Line with Type = Item is "International Standard Code" of "Unit of Measure Code" of Service Line.
         VerifyElectronicServiceDocument(PostedDocumentNo, ServiceHeader."OIOUBL-Account Code");
-        VerifyUnitOfMeasureForInvoiceLineOnElectronicDocument(PEPPOLManagement.GetUoMforPieceINUNECERec20ListID(), 0);
-        VerifyUnitOfMeasureForInvoiceLineOnElectronicDocument(PEPPOLManagement.GetUoMforPieceINUNECERec20ListID(), 1);
+        VerifyUnitOfMeasureForInvoiceLineOnElectronicDocument(PEPPOL30.GetUoMforPieceINUNECERec20ListID(), 0);
+        VerifyUnitOfMeasureForInvoiceLineOnElectronicDocument(PEPPOL30.GetUoMforPieceINUNECERec20ListID(), 1);
         VerifyUnitOfMeasureForInvoiceLineOnElectronicDocument(GetOIOUBLUoMCode(ServiceLine."Unit of Measure Code"), 2);
     end;
 
@@ -598,8 +598,8 @@ codeunit 148055 "OIOUBL-Elec. Service Document"
         // Verify: Verify Service Credit Memo Number and Account Code with Service Header - Account Code on generated xml file of Electronic Credit Memo.
         // Verify: Unit of Measure for Service Line with Type = G/L Account is "EA".
         VerifyElectronicServiceDocument(PostedDocumentNo, ServiceHeader."OIOUBL-Account Code");
-        VerifyUnitOfMeasureForCrMemoLineOnElectronicDocument(PEPPOLManagement.GetUoMforPieceINUNECERec20ListID(), 0);
-        VerifyUnitOfMeasureForCrMemoLineOnElectronicDocument(PEPPOLManagement.GetUoMforPieceINUNECERec20ListID(), 1);
+        VerifyUnitOfMeasureForCrMemoLineOnElectronicDocument(PEPPOL30.GetUoMforPieceINUNECERec20ListID(), 0);
+        VerifyUnitOfMeasureForCrMemoLineOnElectronicDocument(PEPPOL30.GetUoMforPieceINUNECERec20ListID(), 1);
     end;
 
     [Test]
@@ -626,8 +626,8 @@ codeunit 148055 "OIOUBL-Elec. Service Document"
         // Verify: Unit of Measure for Service Line with Type = G/L Account is "EA".
         // Verify: Unit of Measure for Service Line with Type = Item is "International Standard Code" of "Unit of Measure Code" of Service Line.
         VerifyElectronicServiceDocument(PostedDocumentNo, ServiceHeader."OIOUBL-Account Code");
-        VerifyUnitOfMeasureForCrMemoLineOnElectronicDocument(PEPPOLManagement.GetUoMforPieceINUNECERec20ListID(), 0);
-        VerifyUnitOfMeasureForCrMemoLineOnElectronicDocument(PEPPOLManagement.GetUoMforPieceINUNECERec20ListID(), 1);
+        VerifyUnitOfMeasureForCrMemoLineOnElectronicDocument(PEPPOL30.GetUoMforPieceINUNECERec20ListID(), 0);
+        VerifyUnitOfMeasureForCrMemoLineOnElectronicDocument(PEPPOL30.GetUoMforPieceINUNECERec20ListID(), 1);
         VerifyUnitOfMeasureForCrMemoLineOnElectronicDocument(GetOIOUBLUoMCode(ServiceLine."Unit of Measure Code"), 2);
     end;
 
@@ -1657,7 +1657,7 @@ codeunit 148055 "OIOUBL-Elec. Service Document"
         OIOUBLUoMs.Add(GetOIOUBLUoMCode(ServiceLine."Unit of Measure Code"));
 
         CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::"G/L Account", CreateGLAccount(), ServiceHeader."OIOUBL-Account Code");
-        OIOUBLUoMs.Add(PEPPOLManagement.GetUoMforPieceINUNECERec20ListID());
+        OIOUBLUoMs.Add(PEPPOL30.GetUoMforPieceINUNECERec20ListID());
     end;
 
     local procedure CreateAndPostServiceInvoice(): Code[20];

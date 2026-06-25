@@ -132,9 +132,11 @@ codeunit 37400 "PEPPOL30 DE Sales Validation" implements "PEPPOL30 Validation"
         SalesHeader.TestField("Bill-to Country/Region Code");
         PEPPOL30SalesValidation.CheckCountryRegionCode(SalesHeader."Bill-to Country/Region Code");
 
-        // DE deviation #1: skip Customer GLN/VAT check when the active buyer reference mode
-        // is "Customer Reference".
-        if not (DEContext.HasContext() and DEContext.GetIsCustomerReferenceMode()) then
+        // DE deviation #1: skip the Customer GLN/VAT identifier check when the document carries a
+        // routing number (a Leitweg-ID on the document Buyer Reference, or an E-Invoice Routing No.
+        // on the bill-to customer). The flag is computed by "E-Document DE Helper".HasRoutingNo and
+        // pushed by the EDocumentDE bridge before the W1 PEPPOL bridge runs.
+        if not (DEContext.HasContext() and DEContext.GetSkipCustomerVATRegNoCheck()) then
             if (SalesHeader."Document Type" in [SalesHeader."Document Type"::Invoice, SalesHeader."Document Type"::Order, SalesHeader."Document Type"::"Credit Memo"]) and
                Customer.Get(SalesHeader."Bill-to Customer No.")
             then

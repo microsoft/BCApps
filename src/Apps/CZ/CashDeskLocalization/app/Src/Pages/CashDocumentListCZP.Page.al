@@ -309,6 +309,24 @@ page 31162 "Cash Document List CZP"
         }
         area(reporting)
         {
+            action(SendCustom)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Send';
+                Ellipsis = true;
+                Image = SendToMultiple;
+                Enabled = (Rec."Document Type" = Rec."Document Type"::Receipt) and (Rec.Status = Rec.Status::Released);
+                ToolTip = 'Prepare to send the document according to the customer''s sending profile, such as attachment to an email. The Send document to window opens first so you can confirm or select a sending profile.';
+
+                trigger OnAction()
+                var
+                    CashDocumentHeaderCZP: Record "Cash Document Header CZP";
+                begin
+                    CashDocumentHeaderCZP := Rec;
+                    CurrPage.SetSelectionFilter(CashDocumentHeaderCZP);
+                    CashDocumentHeaderCZP.SendRecords();
+                end;
+            }
             action("&Print")
             {
                 ApplicationArea = Basic, Suite;
@@ -322,8 +340,25 @@ page 31162 "Cash Document List CZP"
                     CashDocumentHeaderCZP: Record "Cash Document Header CZP";
                 begin
                     CashDocumentHeaderCZP := Rec;
-                    CashDocumentHeaderCZP.SetRecFilter();
+                    CurrPage.SetSelectionFilter(CashDocumentHeaderCZP);
                     CashDocumentHeaderCZP.PrintRecords(true);
+                end;
+            }
+            action(Email)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = '&Email';
+                Image = Email;
+                Enabled = (Rec."Document Type" = Rec."Document Type"::Receipt) and (Rec.Status = Rec.Status::Released);
+                ToolTip = 'Prepare to send the document by email. The Send Email window opens prefilled for the customer where you can add or change information before you send the email.';
+
+                trigger OnAction()
+                var
+                    CashDocumentHeaderCZP: Record "Cash Document Header CZP";
+                begin
+                    CashDocumentHeaderCZP := Rec;
+                    CurrPage.SetSelectionFilter(CashDocumentHeaderCZP);
+                    CashDocumentHeaderCZP.EmailRecords(true);
                 end;
             }
             action(PrintToAttachment)
@@ -334,8 +369,12 @@ page 31162 "Cash Document List CZP"
                 ToolTip = 'Create a PDF file and attach it to the document.';
 
                 trigger OnAction()
+                var
+                    CashDocumentHeaderCZP: Record "Cash Document Header CZP";
                 begin
-                    Rec.PrintToDocumentAttachment();
+                    CashDocumentHeaderCZP := Rec;
+                    CurrPage.SetSelectionFilter(CashDocumentHeaderCZP);
+                    Rec.PrintToDocumentAttachment(CashDocumentHeaderCZP);
                 end;
             }
         }
@@ -389,12 +428,18 @@ page 31162 "Cash Document List CZP"
             }
             group(Category_Category8)
             {
-                Caption = 'Print';
+                Caption = 'Print/Send';
 
                 actionref(Print_Promoted; "&Print")
                 {
                 }
+                actionref(Email_Promoted; Email)
+                {
+                }
                 actionref(PrintToAttachment_Promoted; PrintToAttachment)
+                {
+                }
+                actionref(SendCustom_Promoted; SendCustom)
                 {
                 }
             }

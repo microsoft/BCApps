@@ -17,7 +17,7 @@ codeunit 139152 DocSendingProfileCRUDTests
         UnexpectedValueErr: Label 'Unexpected value found.';
         UncheckingDefaultErr: Label 'There must be one default rule in the system. To remove the default property from this rule, assign default to another rule. (Select Refresh to discard errors)';
         IsInitialized: Boolean;
-        PeppolFormatNameTxt: Label 'PEPPOL', Locked = true;
+        PeppolFormatNameTxt: Label 'PEPPOL30', Locked = true;
         UnableToFindFormatErr: Label 'Unable to find electronic format with Code ''%1'' and Description ''%2''.';
         TooManyResultsErr: Label 'Too many results shown after filtering in Electronic Document Format page.';
 
@@ -206,7 +206,7 @@ codeunit 139152 DocSendingProfileCRUDTests
 
         ElectronicDocumentFormat.Init();
         ElectronicDocumentFormat.Code := AdditionalElectronicFormatCode;
-        ElectronicDocumentFormat."Codeunit ID" := CODEUNIT::"Exp. Sales Inv. PEPPOL BIS3.0";
+        ElectronicDocumentFormat."Codeunit ID" := CODEUNIT::"Exp. Sales Inv. PEPPOL30";
         ElectronicDocumentFormat.Usage := ElectronicDocumentFormat.Usage::"Sales Invoice";
         ElectronicDocumentFormat.Description := AdditionalElectronicFormatDescription;
         ElectronicDocumentFormat.Insert(true);
@@ -299,7 +299,7 @@ codeunit 139152 DocSendingProfileCRUDTests
         ElectronicDocumentFormat.Init();
         ElectronicDocumentFormat.Code := PeppolFormatNameTxt;
 
-        ElectronicDocumentFormat."Codeunit ID" := CODEUNIT::"Exp. Sales Inv. PEPPOL BIS3.0";
+        ElectronicDocumentFormat."Codeunit ID" := CODEUNIT::"Exp. Sales Inv. PEPPOL30";
         ElectronicDocumentFormat.Usage := ElectronicDocumentFormat.Usage::"Sales Invoice";
         ElectronicDocumentFormat.Description := LibraryUtility.GenerateGUID();
         ElectronicDocumentFormat.Insert(true);

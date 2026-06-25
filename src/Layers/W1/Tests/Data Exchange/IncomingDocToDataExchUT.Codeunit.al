@@ -10,7 +10,7 @@ codeunit 139154 "Incoming Doc. To Data Exch.UT"
 
     var
         VATPostingSetup: Record "VAT Posting Setup";
-        ServPEPPOLManagement: Codeunit "Serv. PEPPOL Management";
+        ServPEPPOLManagement: Codeunit "PEPPOL30";
         LibraryUtility: Codeunit "Library - Utility";
         LibraryPaymentFormat: Codeunit "Library - Payment Format";
         NamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2';
@@ -2171,26 +2171,30 @@ codeunit 139154 "Incoming Doc. To Data Exch.UT"
 
     local procedure ExportPEPPOLInvoice(VariantRec: Variant) FileName: Text
     var
-        ExpSalesInvPEPPOLBIS30: Codeunit "Exp. Sales Inv. PEPPOL BIS3.0";
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
+        ExpSalesInvPEPPOL30: Codeunit "Exp. Sales Inv. PEPPOL30";
         FileManagement: Codeunit "File Management";
         TempBlob: Codeunit "Temp Blob";
         OutStr: OutStream;
     begin
+        PeppolSetup.GetSetup();
         TempBlob.CreateOutStream(OutStr);
-        ExpSalesInvPEPPOLBIS30.GenerateXMLFile(VariantRec, OutStr);
+        ExpSalesInvPEPPOL30.GenerateXMLFile(VariantRec, OutStr, PeppolSetup."PEPPOL 3.0 Sales Format");
         FileName := FileManagement.ServerTempFileName('xml');
         FileManagement.BLOBExportToServerFile(TempBlob, FileName);
     end;
 
     local procedure ExportPEPPOLCreditMemo(VariantRec: Variant) FileName: Text
     var
-        ExpSalesCrMPEPPOLBIS30: Codeunit "Exp. Sales CrM. PEPPOL BIS3.0";
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
+        ExpSalesCrMPEPPOL30: Codeunit "Exp. Sales CrM. PEPPOL30";
         FileManagement: Codeunit "File Management";
         TempBlob: Codeunit "Temp Blob";
         OutStr: OutStream;
     begin
+        PeppolSetup.GetSetup();
         TempBlob.CreateOutStream(OutStr);
-        ExpSalesCrMPEPPOLBIS30.GenerateXMLFile(VariantRec, OutStr);
+        ExpSalesCrMPEPPOL30.GenerateXMLFile(VariantRec, OutStr, PeppolSetup."PEPPOL 3.0 Sales Format");
         FileName := FileManagement.ServerTempFileName('xml');
         FileManagement.BLOBExportToServerFile(TempBlob, FileName);
     end;

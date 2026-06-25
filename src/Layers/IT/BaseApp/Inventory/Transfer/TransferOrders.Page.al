@@ -544,7 +544,7 @@ page 5742 "Transfer Orders"
         IsFoundationEnabled := ApplicationAreaMgmtFacade.IsFoundationEnabled();
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     trigger OnOpenPage()
     var
         LegacySubcFeatureHandler: Codeunit Microsoft.Manufacturing.Setup."Legacy Subc. Feature Handler";

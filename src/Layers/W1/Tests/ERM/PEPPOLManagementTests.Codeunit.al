@@ -1,7 +1,11 @@
-﻿codeunit 139155 "PEPPOL Management Tests"
+﻿#if not CLEAN29
+codeunit 139155 "PEPPOL Management Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by PEPPOL App';
+    ObsoleteTag = '29.0';
 
     trigger OnRun()
     begin
@@ -3997,4 +4001,5 @@
         Reply := false;
     end;
 }
+#endif
 

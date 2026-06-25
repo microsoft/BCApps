@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+#if not CLEAN29
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -34,6 +35,9 @@ using System.Utilities;
 /// </summary>
 codeunit 1605 "PEPPOL Management"
 {
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by PEPPOL App';
+    ObsoleteTag = '29.0';
 
     trigger OnRun()
     begin
@@ -2918,3 +2922,4 @@ codeunit 1605 "PEPPOL Management"
     begin
     end;
 }
+#endif

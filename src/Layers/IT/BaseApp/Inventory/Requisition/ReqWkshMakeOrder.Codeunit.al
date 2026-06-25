@@ -16,7 +16,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
-#if not CLEAN29
+#if not CLEAN28
 using Microsoft.Manufacturing.Setup;
 #endif
 using Microsoft.Projects.Project.Planning;
@@ -645,7 +645,7 @@ codeunit 333 "Req. Wksh.-Make Order"
     var
         PurchOrderLine2: Record "Purchase Line";
         DimensionSetIDArr: array[10] of Integer;
-#if not CLEAN29
+#if not CLEAN28
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif
         IsHandled: Boolean;

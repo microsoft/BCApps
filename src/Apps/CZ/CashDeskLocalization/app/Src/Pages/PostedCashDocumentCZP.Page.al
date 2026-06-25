@@ -273,6 +273,24 @@ page 31165 "Posted Cash Document CZP"
         }
         area(reporting)
         {
+            action(SendCustom)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Send';
+                Ellipsis = true;
+                Image = SendToMultiple;
+                Enabled = Rec."Document Type" = Rec."Document Type"::Receipt;
+                ToolTip = 'Prepare to send the document according to the customer''s sending profile, such as attachment to an email. The Send document to window opens first so you can confirm or select a sending profile.';
+
+                trigger OnAction()
+                var
+                    PostedCashDocumentHdrCZP: Record "Posted Cash Document Hdr. CZP";
+                begin
+                    PostedCashDocumentHdrCZP := Rec;
+                    CurrPage.SetSelectionFilter(PostedCashDocumentHdrCZP);
+                    PostedCashDocumentHdrCZP.SendRecords();
+                end;
+            }
             action("&Print")
             {
                 ApplicationArea = Basic, Suite;
@@ -288,6 +306,23 @@ page 31165 "Posted Cash Document CZP"
                     PostedCashDocumentHdrCZP := Rec;
                     PostedCashDocumentHdrCZP.SetRecFilter();
                     PostedCashDocumentHdrCZP.PrintRecords(true);
+                end;
+            }
+            action(Email)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = '&Email';
+                Image = Email;
+                Enabled = Rec."Document Type" = Rec."Document Type"::Receipt;
+                ToolTip = 'Prepare to send the document by email. The Send Email window opens prefilled for the customer where you can add or change information before you send the email.';
+
+                trigger OnAction()
+                var
+                    PostedCashDocumentHdrCZP: Record "Posted Cash Document Hdr. CZP";
+                begin
+                    PostedCashDocumentHdrCZP := Rec;
+                    CurrPage.SetSelectionFilter(PostedCashDocumentHdrCZP);
+                    PostedCashDocumentHdrCZP.EmailRecords(true);
                 end;
             }
             action(PrintToAttachment)
@@ -332,12 +367,18 @@ page 31165 "Posted Cash Document CZP"
             }
             group(Category_Category8)
             {
-                Caption = 'Print';
+                Caption = 'Print/Send';
 
                 actionref(Print_Promoted; "&Print")
                 {
                 }
-                actionref(PrinttoAttachment_Promoted; PrintToAttachment)
+                actionref(Email_Promoted; Email)
+                {
+                }
+                actionref(PrintToAttachment_Promoted; PrintToAttachment)
+                {
+                }
+                actionref(SendCustom_Promoted; SendCustom)
                 {
                 }
             }

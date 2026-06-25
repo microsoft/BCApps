@@ -535,6 +535,20 @@ page 31160 "Cash Document CZP"
                         ReleaseDocument(Codeunit::"Cash Document-ReleasePrint CZP", NavigateAfterRelease::"Do Nothing");
                     end;
                 }
+                action(ReleaseAndSend)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Release and Send';
+                    Image = SendConfirmation;
+                    Enabled = (Rec."Document Type" = Rec."Document Type"::Receipt) and (Rec.Status = Rec.Status::Released);
+                    Ellipsis = true;
+                    ToolTip = 'Release and prepare to send the document according to the customer''s sending profile, such as attachment to an email. The Send document to window opens first so you can confirm or select a sending profile.';
+
+                    trigger OnAction()
+                    begin
+                        ReleaseDocument(Codeunit::"Cash Document-Release Send CZP", NavigateAfterRelease::"Do Nothing");
+                    end;
+                }
                 action(Reopen)
                 {
                     ApplicationArea = Basic, Suite;
@@ -611,6 +625,20 @@ page 31160 "Cash Document CZP"
                         PostDocument(Codeunit::"Cash Document-Post + Print CZP", NavigateAfterPost::"Do Nothing");
                     end;
                 }
+                action(PostAndSend)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Post and Send';
+                    Ellipsis = true;
+                    Image = PostSendTo;
+                    Enabled = (Rec."Document Type" = Rec."Document Type"::Receipt) and (Rec.Status = Rec.Status::Released);
+                    ToolTip = 'Finalize and prepare to send the document according to the customer''s sending profile, such as attachment to an email. The Send document to window opens first so you can confirm or select a sending profile.';
+
+                    trigger OnAction()
+                    begin
+                        PostDocument(Codeunit::"Cash Document-Post + Send CZP", NavigateAfterPost::"Do Nothing");
+                    end;
+                }
                 action(Preview)
                 {
                     ApplicationArea = Basic, Suite;
@@ -664,6 +692,24 @@ page 31160 "Cash Document CZP"
         }
         area(reporting)
         {
+            action(SendCustom)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Send';
+                Ellipsis = true;
+                Image = SendToMultiple;
+                Enabled = (Rec."Document Type" = Rec."Document Type"::Receipt) and (Rec.Status = Rec.Status::Released);
+                ToolTip = 'Prepare to send the document according to the customer''s sending profile, such as attachment to an email. The Send document to window opens first so you can confirm or select a sending profile.';
+
+                trigger OnAction()
+                var
+                    CashDocumentHeaderCZP: Record "Cash Document Header CZP";
+                begin
+                    CashDocumentHeaderCZP := Rec;
+                    CurrPage.SetSelectionFilter(CashDocumentHeaderCZP);
+                    CashDocumentHeaderCZP.SendRecords();
+                end;
+            }
             action("&Print")
             {
                 ApplicationArea = Basic, Suite;
@@ -677,8 +723,25 @@ page 31160 "Cash Document CZP"
                     CashDocumentHeaderCZP: Record "Cash Document Header CZP";
                 begin
                     CashDocumentHeaderCZP := Rec;
-                    CashDocumentHeaderCZP.SetRecFilter();
+                    CurrPage.SetSelectionFilter(CashDocumentHeaderCZP);
                     CashDocumentHeaderCZP.PrintRecords(true);
+                end;
+            }
+            action(Email)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = '&Email';
+                Image = Email;
+                Enabled = (Rec."Document Type" = Rec."Document Type"::Receipt) and (Rec.Status = Rec.Status::Released);
+                ToolTip = 'Prepare to send the document by email. The Send Email window opens prefilled for the customer where you can add or change information before you send the email.';
+
+                trigger OnAction()
+                var
+                    CashDocumentHeaderCZP: Record "Cash Document Header CZP";
+                begin
+                    CashDocumentHeaderCZP := Rec;
+                    CurrPage.SetSelectionFilter(CashDocumentHeaderCZP);
+                    CashDocumentHeaderCZP.EmailRecords(true);
                 end;
             }
             action(PrintToAttachment)
@@ -718,6 +781,9 @@ page 31160 "Cash Document CZP"
                 actionref(ReleaseAndPrintPromoted; ReleaseAndPrint)
                 {
                 }
+                actionref(ReleaseAndSendPromoted; ReleaseAndSend)
+                {
+                }
                 actionref(ReopenPromoted; Reopen)
                 {
                 }
@@ -734,6 +800,9 @@ page 31160 "Cash Document CZP"
                 {
                 }
                 actionref(PostAndPrintPromoted; PostAndPrint)
+                {
+                }
+                actionref(PostAndSendPromoted; PostAndSend)
                 {
                 }
                 actionref(PreviewPromoted; Preview)
@@ -753,12 +822,18 @@ page 31160 "Cash Document CZP"
             }
             group(Category_Category9)
             {
-                Caption = 'Print';
+                Caption = 'Print/Send';
 
                 actionref(Print_Promoted; "&Print")
                 {
                 }
-                actionref(PrinttoAttachment_Promoted; PrintToAttachment)
+                actionref(Email_Promoted; Email)
+                {
+                }
+                actionref(PrintToAttachment_Promoted; PrintToAttachment)
+                {
+                }
+                actionref(SendCustom_Promoted; SendCustom)
                 {
                 }
             }
@@ -870,12 +945,15 @@ page 31160 "Cash Document CZP"
         CashDocumentHeaderCZP: Record "Cash Document Header CZP";
         CashDocumentReleaseCZP: Codeunit "Cash Document-Release CZP";
         CashDocumentReleasePrintCZP: Codeunit "Cash Document-ReleasePrint CZP";
+        CashDocumentReleaseSendCZP: Codeunit "Cash Document-Release Send CZP";
     begin
         case ReleasingCodeunitID of
             Codeunit::"Cash Document-Release CZP":
                 CashDocumentReleaseCZP.PerformManualRelease(Rec);
             Codeunit::"Cash Document-ReleasePrint CZP":
                 CashDocumentReleasePrintCZP.PerformManualRelease(Rec);
+            Codeunit::"Cash Document-Release Send CZP":
+                CashDocumentReleaseSendCZP.PerformManualRelease(Rec);
         end;
 
         CashDocumentHeaderCZP.Get(Rec."Cash Desk No.", Rec."No.");

@@ -299,7 +299,7 @@ page 9012 "Shop Supervisor Role Center"
                                     Recurring = const(false));
                 ToolTip = 'Calculate a supply plan to fulfill item demand with purchases or transfers.';
             }
-#if not CLEAN29
+#if not CLEAN28
             action(SubcontractingWorksheets)
             {
                 ApplicationArea = Manufacturing;
@@ -311,7 +311,7 @@ page 9012 "Shop Supervisor Role Center"
 #pragma warning restore AL0432
                 ObsoleteReason = 'Will be replaced by the Subcontracting App.';
                 ObsoleteState = Pending;
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '28.0';
                 ToolTip = 'Calculate the needed production supply, find the production orders that have material ready to send to a subcontractor, and automatically create purchase orders for subcontracted operations from production order routings.';
             }
 #endif

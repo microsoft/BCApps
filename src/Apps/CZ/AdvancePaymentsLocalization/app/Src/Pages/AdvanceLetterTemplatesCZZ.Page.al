@@ -79,6 +79,10 @@ page 31179 "Advance Letter Templates CZZ"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+                field("Ext. Doc. No. (VAT Document)"; Rec."Ext. Doc. No. (VAT Document)")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
             }
         }
     }

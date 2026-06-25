@@ -125,7 +125,7 @@ page 9009 "Whse. Worker WMS Role Center"
             {
                 ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                 ObsoleteState = Pending;
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '28.0';
             }
             action("Subcontract. Transfer Shipment")
             {

@@ -130,11 +130,17 @@ report 99000756 "Detailed Calculation"
                 trigger OnAfterGetRecord()
                 var
                     UnitCostCalculation: Enum "Unit Cost Calculation Type";
+                    IsHandled: Boolean;
                 begin
                     ProdUnitCost := "Unit Cost per";
 
-                    MfgCostCalcMgt.CalcRoutingCostPerUnit(
-                      Type, "No.", DirectUnitCost, IndirectCostPct, OverheadRate, ProdUnitCost, UnitCostCalculation);
+                    IsHandled := false;
+                    OnAfterGetRecordRoutingLineOnBeforeCalcRoutingCostPerUnit(
+                      "Routing Line", Item."No.", Item."Base Unit of Measure", "Routing Line"."Standard Task Code",
+                      CalculateDate, DirectUnitCost, IndirectCostPct, OverheadRate, ProdUnitCost, UnitCostCalculation, IsHandled);
+                    if not IsHandled then
+                        MfgCostCalcMgt.CalcRoutingCostPerUnit(
+                          Type, "No.", DirectUnitCost, IndirectCostPct, OverheadRate, ProdUnitCost, UnitCostCalculation);
                     CostTime :=
                       MfgCostCalcMgt.CalculateCostTime(
                         MfgCostCalcMgt.CalcQtyAdjdForBOMScrap(Item."Lot Size", Item."Scrap %"),
@@ -484,6 +490,11 @@ report 99000756 "Detailed Calculation"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeOnPreReport(var Item: Record Item)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetRecordRoutingLineOnBeforeCalcRoutingCostPerUnit(var RoutingLine: Record "Routing Line"; ItemNo: Code[20]; BaseUnitOfMeasure: Code[10]; StandardTaskCode: Code[10]; CalculationDate: Date; var DirectUnitCost: Decimal; var IndirectCostPct: Decimal; var OverheadRate: Decimal; var ProdUnitCost: Decimal; var UnitCostCalculation: Enum "Unit Cost Calculation Type"; var IsHandled: Boolean)
     begin
     end;
 }

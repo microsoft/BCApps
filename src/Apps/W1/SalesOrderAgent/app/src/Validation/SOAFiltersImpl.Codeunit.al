@@ -18,7 +18,7 @@ codeunit 4305 "SOA Filters Impl."
     InherentPermissions = X;
     Permissions = tabledata Contact = m,
                   tabledata "Agent Task Message" = r,
-                  tabledata "SOA Task Contact Override" = rim;
+                  tabledata "SOA Task Contact Override" = RIM;
 
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";

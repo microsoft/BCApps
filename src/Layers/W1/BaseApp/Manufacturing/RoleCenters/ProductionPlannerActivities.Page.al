@@ -104,7 +104,7 @@ page 9038 "Production Planner Activities"
                         RunObject = Page "Planning Worksheet";
                         ToolTip = 'Plan supply orders automatically to fulfill new demand.';
                     }
-#if not CLEAN29
+#if not CLEAN28
                     action("Edit Subcontracting Worksheet")
                     {
                         ApplicationArea = Manufacturing;
@@ -114,7 +114,7 @@ page 9038 "Production Planner Activities"
 #pragma warning restore AL0432
                         ObsoleteReason = 'Will be replaced by the Subcontracting App.';
                         ObsoleteState = Pending;
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '28.0';
                         ToolTip = 'Plan outsourcing of operation on released production orders.';
                     }
 #endif

@@ -188,6 +188,7 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(Database::"Payment Term Translation");
         ListOfTablesToMigrate.Add(Database::"Payment Terms");
         ListOfTablesToMigrate.Add(Database::"Payroll Setup");
+        ListOfTablesToMigrate.Add(37202); // PEPPOL 3.0 Setup
         ListOfTablesToMigrate.Add(Database::"Phys. Inventory Ledger Entry");
         ListOfTablesToMigrate.Add(Database::"Phys. Invt. Comment Line");
         ListOfTablesToMigrate.Add(Database::"Phys. Invt. Count Buffer");

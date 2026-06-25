@@ -589,7 +589,7 @@ codeunit 144025 "Test Enterprise No and Branch"
     procedure PEPPOLMgt_GetAccountingSupplierPartyTaxScheme_EnterpriseNo()
     var
         CompanyInformation: Record "Company Information";
-        PEPPOLManagement: Codeunit "PEPPOL Management";
+        PEPPOLManagement: Codeunit "PEPPOL30";
         CompanyID: Text;
         CompanyIDSchemeID: Text;
         TaxSchemeID: Text;
@@ -614,7 +614,7 @@ codeunit 144025 "Test Enterprise No and Branch"
     procedure PEPPOLMgt_GetAccountingSupplierPartyTaxScheme_VATRegNo()
     var
         CompanyInformation: Record "Company Information";
-        PEPPOLManagement: Codeunit "PEPPOL Management";
+        PEPPOLManagement: Codeunit "PEPPOL30";
         CompanyID: Text;
         CompanyIDSchemeID: Text;
         TaxSchemeID: Text;
@@ -641,7 +641,7 @@ codeunit 144025 "Test Enterprise No and Branch"
     procedure PEPPOLMgt_GetAccountingSupplierPartyTaxScheme_Empty()
     var
         CompanyInformation: Record "Company Information";
-        PEPPOLManagement: Codeunit "PEPPOL Management";
+        PEPPOLManagement: Codeunit "PEPPOL30";
         CompanyID: Text;
         CompanyIDSchemeID: Text;
         TaxSchemeID: Text;
@@ -665,7 +665,7 @@ codeunit 144025 "Test Enterprise No and Branch"
     procedure PEPPOLMgt_GetAccountingCustomerPartyTaxScheme_EnterpriseNo()
     var
         SalesHeader: Record "Sales Header";
-        PEPPOLManagement: Codeunit "PEPPOL Management";
+        PEPPOLManagement: Codeunit "PEPPOL30";
         CustPartyTaxSchemeCompanyID: Text;
         CustPartyTaxSchemeCompIDSchID: Text;
         CustTaxSchemeID: Text;
@@ -691,7 +691,7 @@ codeunit 144025 "Test Enterprise No and Branch"
     var
         SalesHeader: Record "Sales Header";
         CountryRegion: Record "Country/Region";
-        PEPPOLManagement: Codeunit "PEPPOL Management";
+        PEPPOLManagement: Codeunit "PEPPOL30";
         CustPartyTaxSchemeCompanyID: Text;
         CustPartyTaxSchemeCompIDSchID: Text;
         CustTaxSchemeID: Text;
@@ -717,7 +717,7 @@ codeunit 144025 "Test Enterprise No and Branch"
     procedure PEPPOLMgt_GetAccountingCustomerPartyTaxScheme_Empty()
     var
         SalesHeader: Record "Sales Header";
-        PEPPOLManagement: Codeunit "PEPPOL Management";
+        PEPPOLManagement: Codeunit "PEPPOL30";
         CustPartyTaxSchemeCompanyID: Text;
         CustPartyTaxSchemeCompIDSchID: Text;
         CustTaxSchemeID: Text;
@@ -752,10 +752,10 @@ codeunit 144025 "Test Enterprise No and Branch"
         CompanyInformation.TestField("VAT Registration No.", '');
         CompanyInformation.TestField(GLN, '');
 
-        asserterror CODEUNIT.Run(CODEUNIT::"PEPPOL Validation", SalesHeader);
+        asserterror CODEUNIT.Run(CODEUNIT::"PEPPOL30 BE Sales Validation", SalesHeader);
         Assert.ExpectedErrorCode('Dialog');
         Assert.ExpectedError(
-          'You must fill in either the GLN, VAT Registration No., or Enterprise No. field in the Company Information window.');
+          'You must specify either GLN, VAT Registration No. or Enterprise No. in Company Information.');
     end;
 
     [Test]
@@ -775,7 +775,7 @@ codeunit 144025 "Test Enterprise No and Branch"
         CompanyInformation.TestField("VAT Registration No.", '');
         CompanyInformation.TestField(GLN, '');
 
-        asserterror CODEUNIT.Run(CODEUNIT::"PEPPOL Validation", SalesHeader);
+        asserterror CODEUNIT.Run(CODEUNIT::"PEPPOL30 BE Sales Validation", SalesHeader);
         Assert.ExpectedErrorCode('TestField');
         Assert.ExpectedError(BillToNameMustHaveValueErr);
     end;
@@ -796,7 +796,7 @@ codeunit 144025 "Test Enterprise No and Branch"
         CompanyInformation.TestField("VAT Registration No.");
         CompanyInformation.TestField(GLN, '');
 
-        asserterror CODEUNIT.Run(CODEUNIT::"PEPPOL Validation", SalesHeader);
+        asserterror CODEUNIT.Run(CODEUNIT::"PEPPOL30 BE Sales Validation", SalesHeader);
         Assert.ExpectedErrorCode('TestField');
         Assert.ExpectedError(BillToNameMustHaveValueErr);
     end;
@@ -817,7 +817,7 @@ codeunit 144025 "Test Enterprise No and Branch"
         CompanyInformation.TestField("VAT Registration No.", '');
         CompanyInformation.TestField(GLN);
 
-        asserterror CODEUNIT.Run(CODEUNIT::"PEPPOL Validation", SalesHeader);
+        asserterror CODEUNIT.Run(CODEUNIT::"PEPPOL30 BE Sales Validation", SalesHeader);
         Assert.ExpectedErrorCode('TestField');
         Assert.ExpectedError(BillToNameMustHaveValueErr);
     end;
@@ -840,10 +840,10 @@ codeunit 144025 "Test Enterprise No and Branch"
         SalesHeader.TestField("Enterprise No.", '');
         SalesHeader.TestField("VAT Registration No.", '');
 
-        asserterror CODEUNIT.Run(CODEUNIT::"PEPPOL Validation", SalesHeader);
+        asserterror CODEUNIT.Run(CODEUNIT::"PEPPOL30 BE Sales Validation", SalesHeader);
         Assert.ExpectedErrorCode('Dialog');
         Assert.ExpectedError(
-          StrSubstNo('You must fill in either the GLN, VAT Registration No., or Enterprise No. field for customer %1.',
+          StrSubstNo('You must specify either GLN, VAT Registration No. or Enterprise No. for Customer %1.',
             SalesHeader."Bill-to Customer No."));
     end;
 
@@ -866,7 +866,7 @@ codeunit 144025 "Test Enterprise No and Branch"
         SalesHeader.TestField("Enterprise No.");
         SalesHeader.TestField("VAT Registration No.", '');
 
-        CODEUNIT.Run(CODEUNIT::"PEPPOL Validation", SalesHeader);
+        CODEUNIT.Run(CODEUNIT::"PEPPOL30 BE Sales Validation", SalesHeader);
     end;
 
     [Test]
@@ -888,7 +888,7 @@ codeunit 144025 "Test Enterprise No and Branch"
         SalesHeader.TestField("Enterprise No.", '');
         SalesHeader.TestField("VAT Registration No.");
 
-        CODEUNIT.Run(CODEUNIT::"PEPPOL Validation", SalesHeader);
+        CODEUNIT.Run(CODEUNIT::"PEPPOL30 BE Sales Validation", SalesHeader);
     end;
 
     [Test]
@@ -910,7 +910,7 @@ codeunit 144025 "Test Enterprise No and Branch"
         SalesHeader.TestField("Enterprise No.", '');
         SalesHeader.TestField("VAT Registration No.", '');
 
-        CODEUNIT.Run(CODEUNIT::"PEPPOL Validation", SalesHeader);
+        CODEUNIT.Run(CODEUNIT::"PEPPOL30 BE Sales Validation", SalesHeader);
     end;
 
     [Test]

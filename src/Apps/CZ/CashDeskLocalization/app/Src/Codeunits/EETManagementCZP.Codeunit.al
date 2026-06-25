@@ -282,12 +282,12 @@ codeunit 31083 "EET Management CZP"
     procedure CheckCashDocumentAction(CashDeskNo: Code[20]; CashDocumentAction: Enum "Cash Document Action CZP")
     var
         EETCashRegisterCZL: Record "EET Cash Register CZL";
-        EETDocReleaseDeniedErr: Label 'Cash desk %1 is set up as EET cash register. Cash documents for this EET cash register is not possible release only.\Cash document action must not be set up to value "Release" or "Release and Print".', Comment = '%1 = cash desk code';
+        EETDocReleaseDeniedErr: Label 'Cash desk %1 is set up as EET cash register. Cash documents for this EET cash register is not possible release only.\Cash document action must not be set up to value "Release", "Release and Print" or "Release and Send".', Comment = '%1 = cash desk code';
     begin
         if CashDeskNo = '' then
             exit;
 
-        if (CashDocumentAction in [CashDocumentAction::Release, CashDocumentAction::"Release and Print"]) and
+        if (CashDocumentAction in [CashDocumentAction::Release, CashDocumentAction::"Release and Print", CashDocumentAction::"Release and Send"]) and
            EETCashRegisterCZL.FindByCashRegisterNo("EET Cash Register Type CZL"::"Cash Desk", CashDeskNo)
         then
             Error(EETDocReleaseDeniedErr, CashDeskNo);

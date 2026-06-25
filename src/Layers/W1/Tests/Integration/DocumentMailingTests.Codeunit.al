@@ -26,7 +26,7 @@
         JobQueueEntryParameterString: Label '%1|%2|%3|%4|', Comment = '%1 - ReportUsage, %2 - DocNo, %3 - DocName, %4 - CustNo';
         KeepDraftOrDiscardPageQst: Label 'The email has not been sent.';
         VendorLbl: Label 'Vendor';
-        PeppolFormatNameTxt: Label 'PEPPOL', Locked = true;
+        PeppolFormatNameTxt: Label 'PEPPOL30', Locked = true;
 
     [Test]
     [HandlerFunctions('ConfirmHandlerFalse')]
@@ -696,7 +696,7 @@
     begin
         ElectronicDocumentFormat.DeleteAll();
         ElectronicDocumentFormat.InsertElectronicFormat(
-            PeppolFormatNameTxt, PeppolFormatNameTxt, Codeunit::"Exp. Sales Inv. PEPPOL BIS3.0", 0,
+            PeppolFormatNameTxt, PeppolFormatNameTxt, Codeunit::"Exp. Sales Inv. PEPPOL30", 0,
             ElectronicDocumentFormat.Usage::"Sales Invoice".AsInteger());
 
         CountryRegion.SetRange("VAT Scheme", '');

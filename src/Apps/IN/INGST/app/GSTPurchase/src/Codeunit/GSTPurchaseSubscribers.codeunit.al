@@ -535,8 +535,10 @@ codeunit 18080 "GST Purchase Subscribers"
     local procedure CalculateTaxOnPurchase(PurchaseLine: Record "Purchase Line"; xPurchaseLine: Record "Purchase Line")
     var
         CalculateTax: Codeunit "Calculate Tax";
+        GSTPurchaseDeferral: Codeunit "GST Purchase Deferral";
     begin
         CalculateTax.CallTaxEngineOnPurchaseLine(PurchaseLine, xPurchaseLine);
+        GSTPurchaseDeferral.UpdateDeferralSchedule(PurchaseLine);
     end;
 
     local procedure CalculateAsPerShipToOptionforQuoteAndInvoice(var ShipToOptions: Option "Default (Company Address)",Location,"Custom Address"; PurchaseHeader: Record "Purchase Header")

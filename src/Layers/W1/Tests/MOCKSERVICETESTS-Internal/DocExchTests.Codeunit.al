@@ -991,6 +991,7 @@ codeunit 139159 "Doc.Exch.Tests"
         Assert.AreEqual(DocState, ServiceCrMemoHeader."Document Exchange Status", '');
     end;
 
+#if not CLEAN29
     [Test]
     [Scope('OnPrem')]
     procedure TestInvoiceMapsToCorrectDataExchFormat()
@@ -1086,6 +1087,7 @@ codeunit 139159 "Doc.Exch.Tests"
         IncomingDocument.Find();
         Assert.AreEqual('PEPPOLCREDITMEMO', IncomingDocument."Data Exchange Type", '');
     end;
+#endif
 
     [Test]
     [HandlerFunctions('PostedSalesInvoicePageHandler,PostedSalesInvoicesPageHandler,PostedSalesCrMemoPageHandler,PostedSalesCrMemosPageHandler,PostedServiceInvoicePageHandler,PostedServiceInvoicesPageHandler,PostedServiceCrMemoPageHandler,PostedServiceCrMemosPageHandler')]
@@ -1363,17 +1365,17 @@ codeunit 139159 "Doc.Exch.Tests"
         ElectronicDocumentFormat: Record "Electronic Document Format";
     begin
         CreateElectrDocFormat(ElectronicDocumentFormat.Usage::"Sales Validation",
-          CODEUNIT::"PEPPOL Validation");
+          CODEUNIT::"PEPPOL30 Sales Validation");
         CreateElectrDocFormat(ElectronicDocumentFormat.Usage::"Service Validation",
-          CODEUNIT::"PEPPOL Service Validation");
+          CODEUNIT::"PEPPOL30 Service Validation");
         CreateElectrDocFormat(ElectronicDocumentFormat.Usage::"Sales Invoice",
-          CODEUNIT::"Exp. Sales Inv. PEPPOL BIS3.0");
+          CODEUNIT::"Exp. Sales Inv. PEPPOL30");
         CreateElectrDocFormat(ElectronicDocumentFormat.Usage::"Sales Credit Memo",
-          CODEUNIT::"Exp. Sales CrM. PEPPOL BIS3.0");
+          CODEUNIT::"Exp. Sales CrM. PEPPOL30");
         CreateElectrDocFormat(ElectronicDocumentFormat.Usage::"Service Invoice",
-          CODEUNIT::"Exp. Serv.Inv. PEPPOL BIS3.0");
+          CODEUNIT::"Exp. Serv.Inv. PEPPOL30");
         CreateElectrDocFormat(ElectronicDocumentFormat.Usage::"Service Credit Memo",
-          CODEUNIT::"Exp. Serv.CrM. PEPPOL BIS3.0");
+          CODEUNIT::"Exp. Serv.CrM. PEPPOL30");
     end;
 
     [PageHandler]

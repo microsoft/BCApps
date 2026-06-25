@@ -15,9 +15,10 @@ namespace Microsoft.Peppol.DE;
 /// only receive a record/variant — they cannot accept an arbitrary "context" argument. The DE
 /// implementations need information that is not on the document itself:
 /// <list type="bullet">
-/// <item>The active <i>buyer-reference mode</i> ("Customer Reference" vs "Your Reference") configured
-///       on the E-Document Service. The Sales Validation uses this to decide whether to skip the
-///       Customer GLN/VAT identifier check.</item>
+/// <item>Whether the customer GLN/VAT identifier check should be skipped, computed by EDocumentDE as
+///       "E-Document DE Helper".HasRoutingNo (true when the document's Buyer Reference is a valid
+///       Leitweg-ID or the bill-to customer has an E-Invoice Routing No.). The Sales Validation reads
+///       this to relax the W1 Customer GLN/VAT requirement.</item>
 /// <item>The resolved <i>buyer-reference value</i> (computed by EDocumentDE's InitBuyerReference
 ///       from either the Customer's E-Invoice Routing No. or the document's Your Reference field).
 ///       The Doc Info Provider returns this in the PEPPOL XML BuyerReference element.</item>
@@ -31,7 +32,7 @@ namespace Microsoft.Peppol.DE;
 /// declared <c>EventSubscriberInstance = Manual</c> — instances are NOT auto-bound at session start.
 /// A caller creates a local instance, calls <see cref="Start"/> which runs <c>BindSubscription(this)</c>
 /// to register that specific instance as the live subscriber for the current call stack. State
-/// (BuyerReferenceValue, IsCustomerReferenceModeValue) lives on the instance, not on a singleton.
+/// (BuyerReferenceValue, SkipCustomerVATRegNoCheckValue) lives on the instance, not on a singleton.
 /// Calls to the public Set/Get/Has methods publish internal IntegrationEvents that the bound
 /// instance answers via its own subscribers. <see cref="Stop"/> calls <c>UnbindSubscription(this)</c>
 /// and clears the captured state.
@@ -59,7 +60,7 @@ namespace Microsoft.Peppol.DE;
 /// begin
 ///     DEContext.Start();
 ///     DEContext.SetBuyerReference(value);
-///     DEContext.SetIsCustomerReferenceMode(mode);
+///     DEContext.SetSkipCustomerVATRegNoCheck(skip);
 ///     EDocPEPPOLBIS30.Check(...);   // DE interface impls read via Has/Get*
 ///     DEContext.Stop();
 /// end;
@@ -75,7 +76,7 @@ codeunit 37404 "PEPPOL30 DE Context"
 
     var
         BuyerReferenceValue: Text;
-        IsCustomerReferenceModeValue: Boolean;
+        SkipCustomerVATRegNoCheckValue: Boolean;
 
     /// <summary>
     /// Binds this codeunit instance as the active DE PEPPOL context for the current call stack
@@ -91,7 +92,7 @@ codeunit 37404 "PEPPOL30 DE Context"
     begin
         if BindSubscription(this) then;
         Clear(BuyerReferenceValue);
-        Clear(IsCustomerReferenceModeValue);
+        Clear(SkipCustomerVATRegNoCheckValue);
     end;
 
     /// <summary>
@@ -108,7 +109,7 @@ codeunit 37404 "PEPPOL30 DE Context"
     begin
         if UnbindSubscription(this) then;
         Clear(BuyerReferenceValue);
-        Clear(IsCustomerReferenceModeValue);
+        Clear(SkipCustomerVATRegNoCheckValue);
     end;
 
     /// <summary>
@@ -133,22 +134,23 @@ codeunit 37404 "PEPPOL30 DE Context"
     end;
 
     /// <summary>
-    /// Publishes whether the active E-Document Service is configured with buyer-reference mode
-    /// equal to "Customer Reference". The DE Sales Validation reads this flag to decide whether
-    /// to skip the Customer GLN/VAT identifier check (in Customer Reference mode the customer
-    /// identity is established via the routing number, so the W1 GLN/VAT requirement is relaxed).
+    /// Publishes whether the W1 Customer GLN/VAT identifier check should be skipped for the active
+    /// document. The DE Sales Validation reads this flag to relax the W1 requirement: when the
+    /// document carries a routing number (Leitweg-ID on the document Buyer Reference, or an
+    /// E-Invoice Routing No. on the bill-to customer) the customer identity is established via that
+    /// routing number, so the GLN/VAT requirement is not enforced.
     /// </summary>
     /// <param name="NewValue">
-    /// <c>true</c> when the active <c>E-Document Service."Buyer Reference"</c> is "Customer Reference";
-    /// <c>false</c> otherwise (Your Reference or unknown).
+    /// <c>true</c> to skip the Customer GLN/VAT check (as computed by
+    /// "E-Document DE Helper".HasRoutingNo); <c>false</c> to enforce it.
     /// </param>
     /// <remarks>
     /// Only meaningful between Start() and Stop(). When no instance is bound the publish has no
     /// observable effect.
     /// </remarks>
-    procedure SetIsCustomerReferenceMode(NewValue: Boolean)
+    procedure SetSkipCustomerVATRegNoCheck(NewValue: Boolean)
     begin
-        OnSetIsCustomerReferenceMode(NewValue);
+        OnSetSkipCustomerVATRegNoCheck(NewValue);
     end;
 
     /// <summary>
@@ -181,17 +183,18 @@ codeunit 37404 "PEPPOL30 DE Context"
     end;
 
     /// <summary>
-    /// Returns the buyer-reference mode flag pushed by the EDocumentDE bridge via
-    /// <see cref="SetIsCustomerReferenceMode"/> on the active bound instance.
+    /// Returns the skip-customer-VAT/GLN-check flag pushed by the EDocumentDE bridge via
+    /// <see cref="SetSkipCustomerVATRegNoCheck"/> on the active bound instance.
     /// </summary>
     /// <returns>
-    /// <c>true</c> when the active E-Document Service is in "Customer Reference" mode; <c>false</c>
-    /// when no context is bound or the mode is "Your Reference". Callers that need to disambiguate
-    /// "no context" from "explicit false" should test <see cref="HasContext"/> first.
+    /// <c>true</c> when the active document carries a routing number and the W1 Customer GLN/VAT
+    /// check should be skipped; <c>false</c> when no context is bound or the check must be enforced.
+    /// Callers that need to disambiguate "no context" from "explicit false" should test
+    /// <see cref="HasContext"/> first.
     /// </returns>
-    procedure GetIsCustomerReferenceMode() Result: Boolean
+    procedure GetSkipCustomerVATRegNoCheck() Result: Boolean
     begin
-        OnGetIsCustomerReferenceMode(Result);
+        OnGetSkipCustomerVATRegNoCheck(Result);
     end;
 
     #region Internal pub/sub bridge - the bound instance captures writes and answers reads
@@ -201,7 +204,7 @@ codeunit 37404 "PEPPOL30 DE Context"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnSetIsCustomerReferenceMode(NewValue: Boolean)
+    local procedure OnSetSkipCustomerVATRegNoCheck(NewValue: Boolean)
     begin
     end;
 
@@ -216,7 +219,7 @@ codeunit 37404 "PEPPOL30 DE Context"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnGetIsCustomerReferenceMode(var Result: Boolean)
+    local procedure OnGetSkipCustomerVATRegNoCheck(var Result: Boolean)
     begin
     end;
 
@@ -226,10 +229,10 @@ codeunit 37404 "PEPPOL30 DE Context"
         BuyerReferenceValue := NewBuyerReference;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"PEPPOL30 DE Context", OnSetIsCustomerReferenceMode, '', false, false)]
-    local procedure SubOnSetIsCustomerReferenceMode(NewValue: Boolean)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"PEPPOL30 DE Context", OnSetSkipCustomerVATRegNoCheck, '', false, false)]
+    local procedure SubOnSetSkipCustomerVATRegNoCheck(NewValue: Boolean)
     begin
-        IsCustomerReferenceModeValue := NewValue;
+        SkipCustomerVATRegNoCheckValue := NewValue;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"PEPPOL30 DE Context", OnHasContext, '', false, false)]
@@ -244,10 +247,10 @@ codeunit 37404 "PEPPOL30 DE Context"
         Result := BuyerReferenceValue;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"PEPPOL30 DE Context", OnGetIsCustomerReferenceMode, '', false, false)]
-    local procedure SubOnGetIsCustomerReferenceMode(var Result: Boolean)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"PEPPOL30 DE Context", OnGetSkipCustomerVATRegNoCheck, '', false, false)]
+    local procedure SubOnGetSkipCustomerVATRegNoCheck(var Result: Boolean)
     begin
-        Result := IsCustomerReferenceModeValue;
+        Result := SkipCustomerVATRegNoCheckValue;
     end;
     #endregion
 }

@@ -20,10 +20,8 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Posting;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Tracking;
-#if not CLEAN29
-using Microsoft.Manufacturing.Setup;
-#endif
 #if not CLEAN28
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 #endif
 using Microsoft.Utilities;
@@ -273,7 +271,7 @@ codeunit 5705 "TransferOrder-Post Receipt"
         WhseEntry: Record "Warehouse Entry";
         TempItemEntryRelation2: Record "Item Entry Relation" temporary;
         ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
-#if not CLEAN29
+#if not CLEAN28
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif
         DimMgt: Codeunit DimensionManagement;

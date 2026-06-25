@@ -128,6 +128,11 @@ table 31003 "Advance Letter Template CZZ"
             InitValue = true;
             ToolTip = 'Specifies whether the VAT document will be posting for reverse charge.';
         }
+        field(35; "Ext. Doc. No. (VAT Document)"; Enum "Ext. Doc. No. VAT Source CZZ")
+        {
+            Caption = 'External Document No. (VAT Document)';
+            ToolTip = 'Specifies how the system will populate the External Document No. when posting Sales Advance Letter VAT documents.';
+        }
     }
     keys
     {
@@ -140,4 +145,18 @@ table 31003 "Advance Letter Template CZZ"
     var
         GLAccountCategoryMgt: Codeunit "G/L Account Category Mgt.";
         ConfirmManagement: Codeunit "Confirm Management";
+
+    internal procedure GetExternalDocumentNo(AdvanceLetterNo: Code[20]; ExternalDocumentNo: Code[35]; VATDocumentNo: Code[20]): Code[35]
+    begin
+        case "Ext. Doc. No. (VAT Document)" of
+            "Ext. Doc. No. (VAT Document)"::" ":
+                exit('');
+            "Ext. Doc. No. (VAT Document)"::"Advance Letter No.":
+                exit(AdvanceLetterNo);
+            "Ext. Doc. No. (VAT Document)"::"External Document No.":
+                exit(ExternalDocumentNo);
+            "Ext. Doc. No. (VAT Document)"::"VAT Document No.":
+                exit(VATDocumentNo);
+        end;
+    end;
 }

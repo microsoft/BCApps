@@ -6,7 +6,13 @@ namespace Microsoft.Finance.CashDesk;
 
 using Microsoft;
 using Microsoft.Bank.BankAccount;
+#if not CLEANSCHEMA32
+using Microsoft.Foundation.Reporting;
+#endif
 using System.Environment.Configuration;
+#if not CLEANSCHEMA32
+using System.Reflection;
+#endif
 using System.Upgrade;
 
 #pragma warning disable AL0432
@@ -17,7 +23,8 @@ codeunit 31107 "Upgrade Application CZP"
                   tabledata "Cash Desk Event CZP" = m,
                   tabledata "Cash Document Line CZP" = m,
                   tabledata "Posted Cash Document Hdr. CZP" = m,
-                  tabledata "Posted Cash Document Line CZP" = m;
+                  tabledata "Posted Cash Document Line CZP" = m,
+                  tabledata "Report Selections" = rim;
 
     var
         DataUpgradeMgt: Codeunit "Data Upgrade Mgt.";
@@ -38,6 +45,9 @@ codeunit 31107 "Upgrade Application CZP"
         DataUpgradeMgt.SetUpgradeInProgress();
         BindSubscription(InstallApplicationsMgtCZL);
         UpgradeUsage();
+#if not CLEANSCHEMA32
+        UpgradeReportSelections();
+#endif
         UnbindSubscription(InstallApplicationsMgtCZL);
         SetCompanyUpgradeTags();
     end;
@@ -58,6 +68,58 @@ codeunit 31107 "Upgrade Application CZP"
 
         InstallApplicationsMgtCZL.InsertTableDataUsage(Database::"Bank Account", Database::"Cash Desk CZP");
     end;
+#if not CLEANSCHEMA32
+
+    local procedure UpgradeReportSelections()
+    var
+        CashDeskRepSelectionsCZP: Record "Cash Desk Rep. Selections CZP";
+        ReportSelections: Record "Report Selections";
+    begin
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitionsCZP.GetUseReportSelectionsUpgradeTag()) then
+            exit;
+
+        if CashDeskRepSelectionsCZP.FindSet(false) then
+            repeat
+                case CashDeskRepSelectionsCZP.Usage of
+                    CashDeskRepSelectionsCZP.Usage::"Cash Receipt":
+                        begin
+                            if not ReportSelections.Get(Enum::"Report Selection Usage"::"Cash Receipt CZP", CashDeskRepSelectionsCZP.Sequence) then
+                                ReportSelections.InsertRecord(Enum::"Report Selection Usage"::"Cash Receipt CZP", CashDeskRepSelectionsCZP."Sequence", CashDeskRepSelectionsCZP."Report ID");
+                            AddEmailBodyLayout(ReportSelections, 'ReceiptCashDocumentEmail.docx');
+                        end;
+                    CashDeskRepSelectionsCZP.Usage::"Cash Withdrawal":
+                        if not ReportSelections.Get(Enum::"Report Selection Usage"::"Cash Withdrawal CZP", CashDeskRepSelectionsCZP.Sequence) then
+                            ReportSelections.InsertRecord(Enum::"Report Selection Usage"::"Cash Withdrawal CZP", CashDeskRepSelectionsCZP.Sequence, CashDeskRepSelectionsCZP."Report ID");
+                    CashDeskRepSelectionsCZP.Usage::"Posted Cash Receipt":
+                        begin
+                            if not ReportSelections.Get(Enum::"Report Selection Usage"::"Posted Cash Receipt CZP", CashDeskRepSelectionsCZP.Sequence) then
+                                ReportSelections.InsertRecord(Enum::"Report Selection Usage"::"Posted Cash Receipt CZP", CashDeskRepSelectionsCZP."Sequence", CashDeskRepSelectionsCZP."Report ID");
+                            AddEmailBodyLayout(ReportSelections, 'PostedRcptCashDocumentEmail.docx');
+                        end;
+                    CashDeskRepSelectionsCZP.Usage::"Posted Cash Withdrawal":
+                        if not ReportSelections.Get(Enum::"Report Selection Usage"::"Posted Cash Withdrawal CZP", CashDeskRepSelectionsCZP.Sequence) then
+                            ReportSelections.InsertRecord(Enum::"Report Selection Usage"::"Posted Cash Withdrawal CZP", CashDeskRepSelectionsCZP.Sequence, CashDeskRepSelectionsCZP."Report ID");
+                end;
+            until CashDeskRepSelectionsCZP.Next() = 0;
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitionsCZP.GetUseReportSelectionsUpgradeTag());
+    end;
+
+    local procedure AddEmailBodyLayout(ReportSelections: Record "Report Selections"; ReportLayoutName: Text[250])
+    var
+        ReportLayoutList: Record "Report Layout List";
+    begin
+        ReportLayoutList.SetRange("Report ID", ReportSelections."Report ID");
+        ReportLayoutList.SetRange(Name, ReportLayoutName);
+        if not ReportLayoutList.FindFirst() then
+            exit;
+
+        ReportSelections."Use for Email Body" := true;
+        ReportSelections."Email Body Layout Name" := CopyStr(ReportLayoutName, 1, MaxStrLen(ReportSelections."Email Body Layout Name"));
+        ReportSelections."Email Body Layout AppID" := ReportLayoutList."Application ID";
+        ReportSelections.Modify(false);
+    end;
+#endif
 
     local procedure SetDatabaseUpgradeTags();
     begin

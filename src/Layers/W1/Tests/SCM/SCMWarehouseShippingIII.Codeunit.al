@@ -1,7 +1,8 @@
-﻿codeunit 137162 "SCM Warehouse - Shipping III"
+﻿﻿codeunit 137162 "SCM Warehouse - Shipping III"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -1289,7 +1290,7 @@
         TransferHeader: Record "Transfer Header";
         TransferOrderPostTransfer: Codeunit "TransferOrder-Post Transfer";
     begin
-        // [FEATURE] [Direct Transfer] 
+        // [FEATURE] [Direct Transfer]
         // [SCENARIO 467919] Posted Direct Transfer line has blank “Transfer-to Bin Code” when transfer to location has Bin Mandatory setup
         Initialize();
 
@@ -1303,10 +1304,10 @@
         LibraryInventory.CreateItemJournalLineInItemTemplate(ItemJournalLine, Item."No.", LocationBlue.Code, '', 10);
         LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
 
-        // [GIVEN] Set default bin on the destination location 
+        // [GIVEN] Set default bin on the destination location
         CreatedDefaulBinContent(LocationSilver, Item, '');
 
-        // [GIVEN] Created new transfer order 
+        // [GIVEN] Created new transfer order
         CreateAndReleaseDirectTransferOrder(TransferHeader, LocationBlue.Code, LocationSilver.Code, Item."No.", 1);
 
         // [WHEN] transfer order posted as direct transfer
@@ -1874,7 +1875,7 @@
 
         LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
 
-        // [THEN] Only an shipment service ILE exists for the non-inventory item. 
+        // [THEN] Only an shipment service ILE exists for the non-inventory item.
         ItemLedgerEntry.SetRange("Item No.", NonInventoryItem."No.");
         Assert.AreEqual(1, ItemLedgerEntry.Count(), 'Expected only one ILE');
         ItemLedgerEntry.FindFirst();
@@ -2055,7 +2056,7 @@
         // [SCENARIO 456417] Automatic posting of attached non-inventory sales order lines using inventory pick.
         Initialize();
 
-        // [GIVEN] Set "Non-Invt. Item Whse. Policy" in sales setup to "Attached/Assigned".        
+        // [GIVEN] Set "Non-Invt. Item Whse. Policy" in sales setup to "Attached/Assigned".
         UpdateNonInvtPostingPolicyInSalesSetup("Non-Invt. Item Whse. Policy"::"Attached/Assigned");
 
         // [GIVEN] Create two items, two non-inventory items, and two item charges.
@@ -2065,7 +2066,7 @@
             LibraryInventory.CreateItemCharge(ItemCharge[i]);
         end;
 
-        // [GIVEN] Location set up for required pick.        
+        // [GIVEN] Location set up for required pick.
         LibraryWarehouse.CreateLocationWMS(Location, false, false, true, false, false);
 
         // [GIVEN] Post items to inventory.
@@ -2511,6 +2512,89 @@
 
         // [THEN] No Error is raised.
         LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('UndoShipmentConfirmHandler')]
+    procedure UndoSalesShipmentLinePostsWhseReversalWhenLineNoDiffersFromOrderLineNo()
+    var
+        Item: Record Item;
+        Bin: Record Bin;
+        PurchaseHeader: Record "Purchase Header";
+        SalesHeader: Record "Sales Header";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        WarehouseEntry: Record "Warehouse Entry";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+        Quantity: Decimal;
+    begin
+        // [FEATURE] [Undo Sales Shipment Line] [Warehouse Entry] [Bin Mandatory]
+        // [SCENARIO] Undo Sales Shipment Line posts warehouse journal reversal entries at the shipment bin
+        // [SCENARIO] when the posted Sales Shipment Line has "Line No." different from "Order Line No.".
+        // [SCENARIO] Regression guard for filter using "Line No." instead of "Order Line No." in PostTempWhseJnlLineCache.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(10, 20);
+
+        // [GIVEN] An item posted to a bin in the PICK zone of a full-WMS bin-mandatory location
+        // [GIVEN] via purchase order + warehouse receipt + put-away (redirected to the PICK-zone bin).
+        LibraryInventory.CreateItem(Item);
+        FindBinForPickZone(Bin, LocationWhite.Code, true);
+        CreateAndReleasePurchaseOrderWithItemTracking(PurchaseHeader, Item."No.", LocationWhite.Code, Quantity, false);
+        CreateAndPostWarehouseReceiptFromPurchaseOrder(PurchaseHeader, false, ItemTrackingMode::" ");
+        UpdateZoneAndBinCodeOnWarehouseActivityLine(
+          WarehouseActivityLine, WarehouseActivityLine."Source Document"::"Purchase Order",
+          WarehouseActivityLine."Activity Type"::"Put-away", WarehouseActivityLine."Action Type"::Place,
+          PurchaseHeader."No.", Bin);
+        RegisterWarehouseActivity(
+          WarehouseActivityLine, WarehouseActivityLine."Source Document"::"Purchase Order", PurchaseHeader."No.",
+          WarehouseActivityLine."Activity Type"::"Put-away");
+
+        // [GIVEN] Sales order released, warehouse shipment created, picked and posted.
+        CreateAndReleaseSalesOrder(
+          SalesHeader, LibrarySales.CreateCustomerNo(), Item."No.", Quantity, LocationWhite.Code, '', false, ReservationMode::" ");
+        CreateWarehouseShipmentFromSalesHeader(SalesHeader);
+        CreatePickFromWarehouseShipment(WarehouseShipmentLine."Source Document"::"Sales Order", SalesHeader."No.");
+        FindWarehouseActivityLine(
+          WarehouseActivityLine, WarehouseActivityLine."Source Document"::"Sales Order", SalesHeader."No.",
+          WarehouseActivityLine."Activity Type"::Pick);
+        RegisterWhseActivityAfterAutofillingQtyToHandle(WarehouseActivityLine);
+
+        // [GIVEN] Bind manual subscriber to skip the posted-tracking-spec check during undo
+        // [GIVEN] (renaming the posted shipment line invalidates the tracking-spec lookup, which is unrelated to the regression under test).
+        BindSubscription(this);
+        UpdateQtyToShipAndPostWhseShipment(SalesHeader."No.", Quantity);
+
+        // [GIVEN] Sales Shipment Line "Line No." is changed from 10000 to 30000 to force "Line No." != "Order Line No."
+        // [GIVEN] (Simulates multi-partial-shipment / line renumbering scenarios reported in the issue.)
+        SalesShipmentHeader.SetRange("Order No.", SalesHeader."No.");
+        SalesShipmentHeader.FindFirst();
+        SalesShipmentLine.SetRange("Document No.", SalesShipmentHeader."No.");
+        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+        SalesShipmentLine.FindFirst();
+        SalesShipmentLine.Rename(SalesShipmentLine."Document No.", 30000);
+        Assert.AreNotEqual(
+          SalesShipmentLine."Line No.", SalesShipmentLine."Order Line No.",
+          'Test setup: Sales Shipment Line "Line No." must differ from "Order Line No." to reproduce the defect.');
+        Bin.Get(LocationWhite.Code, LocationWhite."Shipment Bin Code");
+
+        // [WHEN] Undo Sales Shipment Line.
+        Commit();
+        LibrarySales.UndoSalesShipmentLine(SalesShipmentLine);
+        UnbindSubscription(this);
+
+        // [THEN] A "Positive Adjmt." warehouse entry is posted for the undone quantity at the original shipment bin.
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.SetRange("Location Code", LocationWhite.Code);
+        WarehouseEntry.SetRange("Entry Type", WarehouseEntry."Entry Type"::"Positive Adjmt.");
+        WarehouseEntry.SetRange("Bin Code", Bin.Code);
+        Assert.AreEqual(Quantity, CalcWarehouseEntryQuantity(WarehouseEntry), ValueMustBeEqualTxt);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Undo Posting Management", OnBeforeRevertPostedItemTrackingFromSalesLine, '', false, false)]
+    local procedure UndoPostingManagement_OnBeforeRevertPostedItemTrackingFromSalesLine(SalesLine: Record "Sales Line"; var TempUndoneItemLedgEntry: Record "Item Ledger Entry" temporary; var IsHandled: Boolean)
+    begin
+        IsHandled := true;
     end;
 
     [Test]
@@ -3947,6 +4031,14 @@
             PositiveAdjmtQty += WarehouseEntry.Quantity;
         until WarehouseEntry.Next() = 0;
         exit(PositiveAdjmtQty);
+    end;
+
+    local procedure CalcWarehouseEntryQuantity(var WarehouseEntry: Record "Warehouse Entry") TotalQuantity: Decimal
+    begin
+        if WarehouseEntry.FindSet() then
+            repeat
+                TotalQuantity += WarehouseEntry.Quantity;
+            until WarehouseEntry.Next() = 0;
     end;
 
     local procedure OpenWhseReceiptItemTrackingLines(var WarehouseReceiptLine: Record "Warehouse Receipt Line"; ItemTrackingMode: Option " ",AssignLotNo,SelectEntries,AssignSerialNo,ApplyFromItemEntry,AssignAutoSerialNo,AssignAutoLotAndSerialNo)

@@ -2,11 +2,18 @@ namespace Microsoft.eServices.EDocument.IO.Peppol;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Formats;
+#if not CLEAN29
 using Microsoft.Foundation.Company;
+#endif
+using Microsoft.Peppol.DE;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
+#if not CLEAN29
 using Microsoft.Sales.Peppol;
+#endif
+using Microsoft.Service.Document;
+using Microsoft.Service.History;
 using System.Utilities;
 
 codeunit 11035 "EDoc PEPPOL BIS 3.0 DE" implements "E-Document"
@@ -19,7 +26,6 @@ codeunit 11035 "EDoc PEPPOL BIS 3.0 DE" implements "E-Document"
 
     var
         EDocPEPPOLBIS30: Codeunit "EDoc PEPPOL BIS 3.0";
-        EDocPEPPOLValidationDE: Codeunit "EDoc PEPPOL Validation DE";
         EDocumentDEHelper: Codeunit "E-Document DE Helper";
         UBLInvoiceNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2', Locked = true;
         UBLCrMemoNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2', Locked = true;
@@ -27,17 +33,36 @@ codeunit 11035 "EDoc PEPPOL BIS 3.0 DE" implements "E-Document"
         UBLCBCNamespaceTxt: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', Locked = true;
 
     procedure Check(var SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service"; EDocumentProcessingPhase: Enum "E-Document Processing Phase")
+    var
+        DEContext: Codeunit "PEPPOL30 DE Context";
     begin
         EDocumentDEHelper.CheckBuyerReferenceMandatory(EDocumentService, SourceDocumentHeader);
-        BindSubscription(EDocPEPPOLValidationDE);
+        // Push whether the Customer GLN/VAT check should be skipped (document carries a routing
+        // number / Leitweg-ID) so the DE Sales Validation interface impl can relax the W1 requirement.
+        DEContext.Start();
+        DEContext.SetSkipCustomerVATRegNoCheck(EDocumentDEHelper.HasRoutingNo(SourceDocumentHeader));
         EDocPEPPOLBIS30.Check(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);
-        UnbindSubscription(EDocPEPPOLValidationDE);
+        DEContext.Stop();
     end;
 
     procedure Create(EDocumentService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
+    var
+        DEContext: Codeunit "PEPPOL30 DE Context";
+        BuyerReferenceValue: Text;
     begin
+        // Resolve the Buyer Reference via the shared DE priority chain (valid Leitweg-ID on the
+        // document > Customer E-Invoice Routing No. > document Buyer Reference > Your Reference) and
+        // push it to PEPPOL30 DE Context so the DE Document Info Provider returns it for the
+        // BuyerReference XML element. The document's Buyer Reference field is maintained separately
+        // by "E-Document Header Handler DE".
+        BuyerReferenceValue := ResolveBuyerReference(SourceDocumentHeader);
+        DEContext.Start();
+        DEContext.SetBuyerReference(BuyerReferenceValue);
+        DEContext.SetSkipCustomerVATRegNoCheck(EDocumentDEHelper.HasRoutingNo(SourceDocumentHeader));
+
         EDocPEPPOLBIS30.Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob);
 
+        DEContext.Stop();
         RemoveSchemeIDAttributes(EDocument."Document Type", TempBlob);
     end;
 
@@ -141,6 +166,35 @@ codeunit 11035 "EDoc PEPPOL BIS 3.0 DE" implements "E-Document"
         EDocServiceSupportedType.Insert();
     end;
 
+    local procedure ResolveBuyerReference(SourceDocumentHeader: RecordRef): Text
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        BuyerReferenceFieldRef: FieldRef;
+        CustomerNoFieldRef: FieldRef;
+        YourReferenceFieldRef: FieldRef;
+        BuyerReference: Text[100];
+        BillToCustomerNo: Code[20];
+        YourReference: Text[35];
+    begin
+        if not (SourceDocumentHeader.Number() in
+            [Database::"Sales Header",
+            Database::"Sales Invoice Header",
+            Database::"Sales Cr.Memo Header",
+            Database::"Service Header",
+            Database::"Service Invoice Header",
+            Database::"Service Cr.Memo Header"])
+        then
+            exit('');
+
+        BuyerReferenceFieldRef := SourceDocumentHeader.Field(SalesInvoiceHeader.FieldNo("Buyer Reference"));
+        CustomerNoFieldRef := SourceDocumentHeader.Field(SalesInvoiceHeader.FieldNo("Bill-to Customer No."));
+        YourReferenceFieldRef := SourceDocumentHeader.Field(SalesInvoiceHeader.FieldNo("Your Reference"));
+        BuyerReference := BuyerReferenceFieldRef.Value();
+        BillToCustomerNo := CustomerNoFieldRef.Value();
+        YourReference := YourReferenceFieldRef.Value();
+        exit(EDocumentDEHelper.GetBuyerReferenceValue(BuyerReference, BillToCustomerNo, YourReference));
+    end;
+
     local procedure GetBuyerReferenceFromXml(EDocumentType: Enum "E-Document Type"; var TempBlob: Codeunit "Temp Blob") BuyerReference: Text
     var
         XMLDoc: XmlDocument;
@@ -169,6 +223,15 @@ codeunit 11035 "EDoc PEPPOL BIS 3.0 DE" implements "E-Document"
             BuyerReference := '';
     end;
 
+#if not CLEAN29
+#pragma warning disable AA0228
+    [Obsolete('Buyer Reference is resolved automatically via priority chain: Document field > Customer E-Invoice Routing No. > Your Reference.', '29.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckBuyerReferenceOnElseCase(var SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service")
+    begin
+    end;
+#pragma warning restore AA0228
+
     local procedure SetSellerContactFromCompanyInformation(var ContactName: Text; var PhoneNumber: Text; var EmailAddress: Text)
     var
         CompanyInformation: Record "Company Information";
@@ -180,25 +243,21 @@ codeunit 11035 "EDoc PEPPOL BIS 3.0 DE" implements "E-Document"
         EmailAddress := CompanyInformation."E-Mail";
     end;
 
-#if not CLEAN29
-    [Obsolete('Buyer Reference enum has been removed. The buyer reference is now resolved from the document and customer fields.', '29.0')]
-    [IntegrationEvent(false, false)]
-    local procedure OnCheckBuyerReferenceOnElseCase(var SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service")
-    begin
-    end;
-#endif
-
+#pragma warning disable AL0432
+    [Obsolete('Replaced by "PEPPOL30 DE Doc Info".GetBuyerReference - the DE Document Info Provider returns the buyer-reference value pushed to "PEPPOL30 DE Context" by Create above.', '29.0')]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"PEPPOL Management", 'OnAfterGetBuyerReference', '', false, false)]
     local procedure SetReferenceOnAfterGetBuyerReference(SalesHeader: Record "Sales Header"; var BuyerReference: Text)
     begin
-        // Apply priority chain for backwards compatibility with documents created before posting logic was added
-        BuyerReference := EDocumentDEHelper.GetBuyerReferenceValue(SalesHeader."Buyer Reference", SalesHeader."Bill-to Customer No.", SalesHeader."Your Reference");
+        BuyerReference := SalesHeader."Buyer Reference";
     end;
 
+    [Obsolete('Replaced by "PEPPOL30 DE Party Info".GetAccountingSupplierPartyContact - the DE Party Info Provider falls back to Company Information when no salesperson is assigned.', '29.0')]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"PEPPOL Management", 'OnAfterGetAccountingSupplierPartyContact', '', false, false)]
     local procedure SetContactInfoOnAfterGetAccountingSupplierPartyContact(SalesHeader: Record "Sales Header"; var ContactID: Text; var ContactName: Text; var Telephone: Text; var Telefax: Text; var ElectronicMail: Text)
     begin
         if SalesHeader."Salesperson Code" = '' then
             SetSellerContactFromCompanyInformation(ContactName, Telephone, ElectronicMail);
     end;
+#pragma warning restore AL0432
+#endif
 }

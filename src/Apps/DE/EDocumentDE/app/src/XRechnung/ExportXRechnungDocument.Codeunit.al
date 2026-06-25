@@ -21,7 +21,6 @@ using Microsoft.Peppol;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Sales.Peppol;
 using Microsoft.Service.History;
 using System.IO;
 using System.Reflection;
@@ -39,13 +38,14 @@ codeunit 13916 "Export XRechnung Document"
         GeneralLedgerSetup: Record "General Ledger Setup";
         EDocumentService: Record "E-Document Service";
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        PEPPOLMgt: Codeunit "PEPPOL Management";
+        PEPPOLMgt: Codeunit "PEPPOL30";
         PeppolVATHelper: Codeunit "PEPPOL VAT Helper";
         TypeHelper: Codeunit "Type Helper";
         EDocumentDEHelper: Codeunit "E-Document DE Helper";
         FeatureNameTok: Label 'E-document XRechnung Format', Locked = true;
         StartEventNameTok: Label 'E-document XRechnung export started', Locked = true;
         EndEventNameTok: Label 'E-document XRechnung export completed', Locked = true;
+        GLNSchemeIDTok: Label '0088', Locked = true;
         XmlNamespaceCBC: Text;
         XmlNamespaceCAC: Text;
         AlwaysIncludeTwoDecimalPlacesForAmountFields: Boolean;
@@ -248,12 +248,12 @@ codeunit 13916 "Export XRechnung Document"
         LineDiscAmount: Dictionary of [Decimal, Decimal];
     begin
         GetSetups();
-        PEPPOLMgt.TransferHeaderToSalesInvoiceHeader(ServiceInvoiceHeader, SalesInvoiceHeader);
+        TransferToSalesInvoiceHeader(ServiceInvoiceHeader, SalesInvoiceHeader);
         SalesInvoiceHeader."Company Bank Account Code" := ServiceInvoiceHeader."Company Bank Account Code";
         ServiceInvoiceLine.SetRange("Document No.", ServiceInvoiceHeader."No.");
         if ServiceInvoiceLine.FindSet() then
             repeat
-                PEPPOLMgt.TransferLineToSalesInvoiceLine(ServiceInvoiceLine, TempSalesInvLine);
+                TransferToSalesInvoiceLine(ServiceInvoiceLine, TempSalesInvLine);
                 TempSalesInvLine.Insert();
             until ServiceInvoiceLine.Next() = 0;
 
@@ -306,12 +306,12 @@ codeunit 13916 "Export XRechnung Document"
         LineDiscAmount: Dictionary of [Decimal, Decimal];
     begin
         GetSetups();
-        PEPPOLMgt.TransferHeaderToSalesCrMemoHeader(ServiceCrMemoHeader, SalesCrMemoHeader);
+        TransferToSalesCrMemoHeader(ServiceCrMemoHeader, SalesCrMemoHeader);
         SalesCrMemoHeader."Company Bank Account Code" := ServiceCrMemoHeader."Company Bank Account Code";
         ServiceCrMemoLine.SetRange("Document No.", ServiceCrMemoHeader."No.");
         if ServiceCrMemoLine.FindSet() then
             repeat
-                PEPPOLMgt.TransferLineToSalesCrMemoLine(ServiceCrMemoLine, TempSalesCrMemoLine);
+                TransferToSalesCrMemoLine(ServiceCrMemoLine, TempSalesCrMemoLine);
                 TempSalesCrMemoLine.Insert();
             until ServiceCrMemoLine.Next() = 0;
         if not DocumentLinesExist(SalesCrMemoHeader, TempSalesCrMemoLine) then
@@ -655,11 +655,21 @@ codeunit 13916 "Export XRechnung Document"
     end;
 
     local procedure InsertPartyIdentification(var PartyElement: XmlElement; ID: Text);
+    begin
+        InsertPartyIdentification(PartyElement, ID, '');
+    end;
+
+    local procedure InsertPartyIdentification(var PartyElement: XmlElement; ID: Text; SchemeID: Text);
     var
+        IDElement: XmlElement;
         PartyIdentificationElement: XmlElement;
     begin
         PartyIdentificationElement := XmlElement.Create('PartyIdentification', XmlNamespaceCAC);
-        PartyIdentificationElement.Add(XmlElement.Create('ID', XmlNamespaceCBC, ID));
+        if SchemeID <> '' then
+            IDElement := XmlElement.Create('ID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', SchemeID), ID)
+        else
+            IDElement := XmlElement.Create('ID', XmlNamespaceCBC, ID);
+        PartyIdentificationElement.Add(IDElement);
         PartyElement.Add(PartyIdentificationElement);
     end;
 
@@ -772,7 +782,7 @@ codeunit 13916 "Export XRechnung Document"
 
         PartyElement.Add(XmlElement.Create('EndpointID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', 'EM'), CompanyInformation."E-Mail"));
         if CompanyInformation."Use GLN in Electronic Document" and (CompanyInformation.GLN <> '') then
-            InsertPartyIdentification(PartyElement, CompanyInformation.GLN)
+            InsertPartyIdentification(PartyElement, CompanyInformation.GLN, GLNSchemeIDTok)
         else
             InsertPartyIdentification(PartyElement, GetVATRegistrationNo(CompanyInformation."VAT Registration No.", CompanyInformation."Country/Region Code"));
         InsertPartyName(PartyElement, CompanyInformation.Name);
@@ -851,7 +861,7 @@ codeunit 13916 "Export XRechnung Document"
         PartyElement := XmlElement.Create('Party', XmlNamespaceCAC);
         PartyElement.Add(XmlElement.Create('EndpointID', XmlNamespaceCBC, XmlAttribute.Create('schemeID', 'EM'), ContactEMail));
         if CustomerGLN <> '' then
-            InsertPartyIdentification(PartyElement, CustomerGLN)
+            InsertPartyIdentification(PartyElement, CustomerGLN, GLNSchemeIDTok)
         else
             if VATRegNo <> '' then
                 InsertPartyIdentification(PartyElement, GetVATRegistrationNo(VATRegNo, PostalAddress."Country/Region Code"));
@@ -899,7 +909,7 @@ codeunit 13916 "Export XRechnung Document"
         AllowanceChargeElement := XmlElement.Create('AllowanceCharge', XmlNamespaceCAC);
         AllowanceChargeElement.Add(XmlElement.Create('ChargeIndicator', XmlNamespaceCBC, 'false'));
         AllowanceChargeElement.Add(XmlElement.Create('AllowanceChargeReason', XmlNamespaceCBC, AllowanceChargeReason));
-        AllowanceChargeElement.Add(XmlElement.Create('MultiplierFactorNumeric', XmlNamespaceCBC, FormatFiveDecimal(MultiplierFactorNumeric)));
+        AllowanceChargeElement.Add(XmlElement.Create('MultiplierFactorNumeric', XmlNamespaceCBC, FormatDecimal(MultiplierFactorNumeric)));
         AllowanceChargeElement.Add(XmlElement.Create('Amount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(Amount, AlwaysIncludeTwoDecimalPlacesForAmountFields)));
         AllowanceChargeElement.Add(XmlElement.Create('BaseAmount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(BaseAmount, AlwaysIncludeTwoDecimalPlacesForAmountFields)));
         if InsertTaxCat then
@@ -914,7 +924,7 @@ codeunit 13916 "Export XRechnung Document"
         AllowanceChargeElement := XmlElement.Create('AllowanceCharge', XmlNamespaceCAC);
         AllowanceChargeElement.Add(XmlElement.Create('ChargeIndicator', XmlNamespaceCBC, 'false'));
         AllowanceChargeElement.Add(XmlElement.Create('AllowanceChargeReason', XmlNamespaceCBC, AllowanceChargeReason));
-        AllowanceChargeElement.Add(XmlElement.Create('MultiplierFactorNumeric', XmlNamespaceCBC, FormatFiveDecimal(MultiplierFactorNumeric)));
+        AllowanceChargeElement.Add(XmlElement.Create('MultiplierFactorNumeric', XmlNamespaceCBC, FormatDecimal(MultiplierFactorNumeric)));
         AllowanceChargeElement.Add(XmlElement.Create('Amount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(Amount, AlwaysIncludeTwoDecimalPlacesForAmountFields)));
         AllowanceChargeElement.Add(XmlElement.Create('BaseAmount', XmlNamespaceCBC, XmlAttribute.Create('currencyID', CurrencyCode), FormatDecimal(BaseAmount, AlwaysIncludeTwoDecimalPlacesForAmountFields)));
         RootXMLNode.Add(AllowanceChargeElement);
@@ -1739,5 +1749,69 @@ codeunit 13916 "Export XRechnung Document"
     [IntegrationEvent(false, false)]
     local procedure OnInitializeDecimalFormatFlags(var AlwaysIncludeTwoDecimalPlacesForAmountFields: Boolean)
     begin
+    end;
+
+    /// <summary>
+    /// Copies fields with matching numbers, classes, and types between two record variants.
+    /// W1 PEPPOL30 only exposes generic Sales Header / Sales Line targets, but ZUGFeRD/XRechnung exports
+    /// operate on the posted Sales Invoice/Cr.Memo Header and Line shapes - this local helper provides
+    /// the posted-to-posted field copy that the old PEPPOL Management.Transfer*ToSalesInvoice/CrMemo*
+    /// helpers used to do.
+    /// </summary>
+    local procedure TransferRecordFields(FromRecord: Variant; var ToRecord: Variant)
+    var
+        FromRecRef: RecordRef;
+        ToRecRef: RecordRef;
+        FromFieldRef: FieldRef;
+        ToFieldRef: FieldRef;
+        i: Integer;
+    begin
+        FromRecRef.GetTable(FromRecord);
+        ToRecRef.GetTable(ToRecord);
+        for i := 1 to FromRecRef.FieldCount do begin
+            FromFieldRef := FromRecRef.FieldIndex(i);
+            if ToRecRef.FieldExist(FromFieldRef.Number) then begin
+                ToFieldRef := ToRecRef.Field(FromFieldRef.Number);
+                if (FromFieldRef.Class = ToFieldRef.Class) and (FromFieldRef.Type = ToFieldRef.Type) and (FromFieldRef.Length <= ToFieldRef.Length) then
+                    ToFieldRef.Value := FromFieldRef.Value();
+            end;
+        end;
+        ToRecRef.SetTable(ToRecord);
+    end;
+
+    local procedure TransferToSalesInvoiceHeader(FromRecord: Variant; var ToSalesInvoiceHeader: Record "Sales Invoice Header")
+    var
+        ToRecord: Variant;
+    begin
+        ToRecord := ToSalesInvoiceHeader;
+        TransferRecordFields(FromRecord, ToRecord);
+        ToSalesInvoiceHeader := ToRecord;
+    end;
+
+    local procedure TransferToSalesCrMemoHeader(FromRecord: Variant; var ToSalesCrMemoHeader: Record "Sales Cr.Memo Header")
+    var
+        ToRecord: Variant;
+    begin
+        ToRecord := ToSalesCrMemoHeader;
+        TransferRecordFields(FromRecord, ToRecord);
+        ToSalesCrMemoHeader := ToRecord;
+    end;
+
+    local procedure TransferToSalesInvoiceLine(FromRecord: Variant; var ToSalesInvoiceLine: Record "Sales Invoice Line")
+    var
+        ToRecord: Variant;
+    begin
+        ToRecord := ToSalesInvoiceLine;
+        TransferRecordFields(FromRecord, ToRecord);
+        ToSalesInvoiceLine := ToRecord;
+    end;
+
+    local procedure TransferToSalesCrMemoLine(FromRecord: Variant; var ToSalesCrMemoLine: Record "Sales Cr.Memo Line")
+    var
+        ToRecord: Variant;
+    begin
+        ToRecord := ToSalesCrMemoLine;
+        TransferRecordFields(FromRecord, ToRecord);
+        ToSalesCrMemoLine := ToRecord;
     end;
 }

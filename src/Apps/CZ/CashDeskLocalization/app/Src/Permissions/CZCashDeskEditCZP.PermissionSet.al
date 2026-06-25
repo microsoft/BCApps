@@ -15,7 +15,11 @@ permissionset 11781 "CZ Cash Desk - Edit CZP"
     Permissions = tabledata "Cash Desk Cue CZP" = IMD,
                   tabledata "Cash Desk CZP" = IMD,
                   tabledata "Cash Desk Event CZP" = IMD,
+#if not CLEAN29
+#pragma warning disable AL0432
                   tabledata "Cash Desk Rep. Selections CZP" = IMD,
+#pragma warning restore AL0432
+#endif
                   tabledata "Cash Desk User CZP" = IMD,
                   tabledata "Cash Document Header CZP" = IMD,
                   tabledata "Cash Document Line CZP" = IMD,

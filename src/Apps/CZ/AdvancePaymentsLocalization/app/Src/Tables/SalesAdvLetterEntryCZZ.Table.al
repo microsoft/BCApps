@@ -213,6 +213,11 @@ table 31006 "Sales Adv. Letter Entry CZZ"
             DataClassification = CustomerContent;
             Editable = false;
         }
+        field(85; "External Document No."; Code[35])
+        {
+            Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s numbering system.';
+        }
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -392,6 +397,7 @@ table 31006 "Sales Adv. Letter Entry CZZ"
     procedure CopyFromGenJnlLine(GenJournalLine: Record "Gen. Journal Line")
     begin
         "Document No." := GenJournalLine."Document No.";
+        "External Document No." := GenJournalLine."External Document No.";
         "Global Dimension 1 Code" := GenJournalLine."Shortcut Dimension 1 Code";
         "Global Dimension 2 Code" := GenJournalLine."Shortcut Dimension 2 Code";
         "Dimension Set ID" := GenJournalLine."Dimension Set ID";

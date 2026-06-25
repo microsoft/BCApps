@@ -41,6 +41,10 @@ permissionset 11782 "CZ Cash Desk - Objects CZP"
                   Codeunit "Upgrade Tag Definitions CZP" = X,
                   Codeunit "Workflow Handler CZP" = X,
                   Codeunit "Reconciliation Handler CZP" = X,
+                  Codeunit "Cash Document-Post + Send CZP" = X,
+                  Codeunit "Cash Document-Release Send CZP" = X,
+                  Codeunit "Report Selection Handler CZP" = X,
+                  Codeunit "Rep. Sel. Manual Handler CZP" = X,
                   Page "Cash Desk Activities CZP" = X,
                   Page "Cash Desk Card CZP" = X,
                   Page "Cash Desk Events CZP" = X,
@@ -67,7 +71,12 @@ permissionset 11782 "CZ Cash Desk - Objects CZP"
                   Page "Posted Cash Doc. Stat. CZP" = X,
                   Page "Posted Cash Document Subf. CZP" = X,
                   Page "Posted Cash Document Lines CZP" = X,
+#if not CLEAN29
+#pragma warning disable AL0432
                   Page "Report Selection Cash Desk CZP" = X,
+#pragma warning restore AL0432
+#endif
+                  Page "Report Sel. - Cash Desk CZP" = X,
                   Report "Cash Desk Account Book CZP" = X,
                   Report "Cash Desk Book CZP" = X,
                   Report "Cash Desk Hand Over CZP" = X,
@@ -80,7 +89,11 @@ permissionset 11782 "CZ Cash Desk - Objects CZP"
                   Table "Cash Desk CZP" = X,
                   Table "Cash Desk Cue CZP" = X,
                   Table "Cash Desk Event CZP" = X,
+#if not CLEAN29
+#pragma warning disable AL0432
                   Table "Cash Desk Rep. Selections CZP" = X,
+#pragma warning restore AL0432
+#endif
                   Table "Cash Desk User CZP" = X,
                   Table "Cash Document Header CZP" = X,
                   Table "Cash Document Line CZP" = X,

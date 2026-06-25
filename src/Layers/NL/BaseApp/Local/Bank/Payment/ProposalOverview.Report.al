@@ -592,6 +592,9 @@ report 11000001 "Proposal Overview"
 
         layout
         {
+            area(Content)
+            {
+            }
         }
 
         actions

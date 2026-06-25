@@ -1,4 +1,4 @@
-#if not CLEAN29
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12,7 +12,7 @@ codeunit 99008503 "Legacy Subc. Install"
 {
     Subtype = Install;
     ObsoleteReason = 'Legacy Subcontracting is being deprecated. This codeunit will be removed in a future release. Please use the "Disable Legacy Subcontracting" action in Manufacturing Setup to disable the feature and migrate to the new subcontracting app.';
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '28.0';
     ObsoleteState = Pending;
 
     trigger OnInstallAppPerCompany()

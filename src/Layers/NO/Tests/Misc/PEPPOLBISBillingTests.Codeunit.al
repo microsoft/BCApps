@@ -1,7 +1,11 @@
-﻿codeunit 139145 "PEPPOL BIS BillingTests"
+#if not CLEAN29
+codeunit 139145 "PEPPOL BIS BillingTests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by PEPPOL App';
+    ObsoleteTag = '29.0';
 
     trigger OnRun()
     begin
@@ -2077,3 +2081,4 @@
         SalesLine.Modify(true);
     end;
 }
+#endif

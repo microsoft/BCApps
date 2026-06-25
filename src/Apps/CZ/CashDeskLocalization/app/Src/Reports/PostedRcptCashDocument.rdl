@@ -4139,6 +4139,42 @@ Cstr(First(Fields!LogoPositiononDocuments_SalesReceivablesSetup.Value, "DataSet_
       </DefaultValue>
       <Prompt>PostingDateLbl</Prompt>
     </ReportParameter>
+    <ReportParameter Name="DocumentNoLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>DocumentNoLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>DocumentNoLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="GreetingLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>GreetingLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>GreetingLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="ClosingLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>ClosingLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>ClosingLbl</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="BodyLbl">
+      <DataType>String</DataType>
+      <DefaultValue>
+        <Values>
+          <Value>BodyLbl</Value>
+        </Values>
+      </DefaultValue>
+      <Prompt>BodyLbl</Prompt>
+    </ReportParameter>
     <ReportParameter Name="PaymentPurpose_PostedCashDocumentHeaderCaption">
       <DataType>String</DataType>
       <DefaultValue>
@@ -4287,7 +4323,7 @@ Cstr(First(Fields!LogoPositiononDocuments_SalesReceivablesSetup.Value, "DataSet_
   <ReportParametersLayout>
     <GridLayoutDefinition>
       <NumberOfColumns>1</NumberOfColumns>
-      <NumberOfRows>35</NumberOfRows>
+      <NumberOfRows>39</NumberOfRows>
       <CellDefinitions>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
@@ -4387,81 +4423,101 @@ Cstr(First(Fields!LogoPositiononDocuments_SalesReceivablesSetup.Value, "DataSet_
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>19</RowIndex>
-          <ParameterName>PaymentPurpose_PostedCashDocumentHeaderCaption</ParameterName>
+          <ParameterName>DocumentNoLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>20</RowIndex>
-          <ParameterName>RegistrationNo_PostedCashDocumentHeaderCaption</ParameterName>
+          <ParameterName>GreetingLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>21</RowIndex>
-          <ParameterName>VATRegistrationNo_PostedCashDocumentHeaderCaption</ParameterName>
+          <ParameterName>ClosingLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>22</RowIndex>
-          <ParameterName>ReceivedFrom_PostedCashDocumentHeaderCaption</ParameterName>
+          <ParameterName>BodyLbl</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>23</RowIndex>
-          <ParameterName>IdentificationCardNo_PostedCashDocumentHeaderCaption</ParameterName>
+          <ParameterName>PaymentPurpose_PostedCashDocumentHeaderCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>24</RowIndex>
-          <ParameterName>ReceivedBy_PostedCashDocumentHeaderCaption</ParameterName>
+          <ParameterName>RegistrationNo_PostedCashDocumentHeaderCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>25</RowIndex>
-          <ParameterName>Description_PostedCashDocumentLineCaption</ParameterName>
+          <ParameterName>VATRegistrationNo_PostedCashDocumentHeaderCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>26</RowIndex>
-          <ParameterName>AmountIncludingVAT_PostedCashDocumentLineCaption</ParameterName>
+          <ParameterName>ReceivedFrom_PostedCashDocumentHeaderCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>27</RowIndex>
-          <ParameterName>VAT_PostedCashDocumentLineCaption</ParameterName>
+          <ParameterName>IdentificationCardNo_PostedCashDocumentHeaderCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>28</RowIndex>
-          <ParameterName>VATAmount_PostedCashDocumentLineCaption</ParameterName>
+          <ParameterName>ReceivedBy_PostedCashDocumentHeaderCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>29</RowIndex>
-          <ParameterName>VATBaseAmount_PostedCashDocumentLineCaption</ParameterName>
+          <ParameterName>Description_PostedCashDocumentLineCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>30</RowIndex>
-          <ParameterName>VATAmtLineVATPerCaption</ParameterName>
+          <ParameterName>AmountIncludingVAT_PostedCashDocumentLineCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>31</RowIndex>
-          <ParameterName>AccountNo_GLEntryCaption</ParameterName>
+          <ParameterName>VAT_PostedCashDocumentLineCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>32</RowIndex>
-          <ParameterName>Description_GLEntryCaption</ParameterName>
+          <ParameterName>VATAmount_PostedCashDocumentLineCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>33</RowIndex>
-          <ParameterName>DebitAmount_GLEntryCaption</ParameterName>
+          <ParameterName>VATBaseAmount_PostedCashDocumentLineCaption</ParameterName>
         </CellDefinition>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>34</RowIndex>
+          <ParameterName>VATAmtLineVATPerCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>35</RowIndex>
+          <ParameterName>AccountNo_GLEntryCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>36</RowIndex>
+          <ParameterName>Description_GLEntryCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>37</RowIndex>
+          <ParameterName>DebitAmount_GLEntryCaption</ParameterName>
+        </CellDefinition>
+        <CellDefinition>
+          <ColumnIndex>0</ColumnIndex>
+          <RowIndex>38</RowIndex>
           <ParameterName>CreditAmount_GLEntryCaption</ParameterName>
         </CellDefinition>
       </CellDefinitions>
@@ -4663,6 +4719,9 @@ End Function</Code>
         </Field>
         <Field Name="ExchRateText">
           <DataField>ExchRateText</DataField>
+        </Field>
+        <Field Name="FormattedAmount_CashDocumentHeader">
+          <DataField>FormattedAmount_CashDocumentHeader</DataField>
         </Field>
         <Field Name="CopyNo">
           <DataField>CopyNo</DataField>

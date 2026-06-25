@@ -50,7 +50,9 @@ using Microsoft.Projects.Resources.Ledger;
 using Microsoft.Projects.Resources.Setup;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Setup;
+#if not CLEAN29
 using Microsoft.Sales.Peppol;
+#endif
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Setup;
 using Microsoft.Utilities;
@@ -298,8 +300,10 @@ codeunit 2 "Company-Initialize"
 #pragma warning disable AA0074
         Text14809: Label 'VATONCOST';
 #pragma warning restore AA0074
+#if not CLEAN29
         PEPPOLBIS3_ElectronicFormatTxt: Label 'PEPPOL BIS3', Locked = true;
         PEPPOLBIS3_ElectronicFormatDescriptionTxt: Label 'PEPPOL BIS3 Format (Pan-European Public Procurement Online)';
+#endif
         SourceCodeGeneralDeferralLbl: Label 'Gen-Defer';
         SourceCodeSalesDeferralLbl: Label 'Sal-Defer';
         SourceCodePurchaseDeferralLbl: Label 'Pur-Defer';
@@ -684,9 +688,12 @@ codeunit 2 "Company-Initialize"
     end;
 
     local procedure InitElectronicFormats()
+#if not CLEAN29
     var
         ElectronicDocumentFormat: Record "Electronic Document Format";
+#endif
     begin
+#if not CLEAN29
         ElectronicDocumentFormat.InsertElectronicFormat(
           PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,
           CODEUNIT::"Exp. Sales Inv. PEPPOL BIS3.0", 0, ElectronicDocumentFormat.Usage::"Sales Invoice".AsInteger());
@@ -698,7 +705,7 @@ codeunit 2 "Company-Initialize"
         ElectronicDocumentFormat.InsertElectronicFormat(
           PEPPOLBIS3_ElectronicFormatTxt, PEPPOLBIS3_ElectronicFormatDescriptionTxt,
           CODEUNIT::"PEPPOL Validation", 0, ElectronicDocumentFormat.Usage::"Sales Validation".AsInteger());
-
+#endif
         OnAfterInitElectronicFormats();
     end;
 

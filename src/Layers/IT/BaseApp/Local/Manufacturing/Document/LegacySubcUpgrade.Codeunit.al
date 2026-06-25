@@ -1,4 +1,4 @@
-#if not CLEAN29
+#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -15,7 +15,7 @@ codeunit 99008502 "Legacy Subc. Upgrade"
     Subtype = Upgrade;
     ObsoleteReason = 'Legacy Subcontracting will be discontinued, environments should move to the Subcontracting App.';
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '28.0';
 
     trigger OnUpgradePerCompany()
     var

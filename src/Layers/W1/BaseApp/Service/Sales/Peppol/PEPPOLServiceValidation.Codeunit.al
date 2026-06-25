@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -11,6 +12,9 @@ using Microsoft.Service.History;
 codeunit 1621 "PEPPOL Service Validation"
 {
     TableNo = "Service Header";
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by PEPPOL App';
+    ObsoleteTag = '29.0';
 
     trigger OnRun()
     begin
@@ -107,3 +111,4 @@ codeunit 1621 "PEPPOL Service Validation"
     begin
     end;
 }
+#endif

@@ -287,20 +287,6 @@
     ]
   },
   {
-    "name": "Tests-Data Exchange",
-    "groups": [
-      {
-        "name": "Base"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "OnPrem"
-      }
-    ]
-  },
-  {
     "name": "Tests-Dimension",
     "groups": [
       {
@@ -371,20 +357,6 @@
     ]
   },
   {
-    "name": "Tests-Integration",
-    "groups": [
-      {
-        "name": "Base"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "OnPrem"
-      }
-    ]
-  },
-  {
     "name": "Tests-Job",
     "groups": [
       {
@@ -399,35 +371,7 @@
     ]
   },
   {
-    "name": "Tests-Local",
-    "groups": [
-      {
-        "name": "Base"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "OnPrem"
-      }
-    ]
-  },
-  {
     "name": "Tests-Marketing",
-    "groups": [
-      {
-        "name": "Base"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "OnPrem"
-      }
-    ]
-  },
-  {
-    "name": "Tests-Misc",
     "groups": [
       {
         "name": "Base"
@@ -788,20 +732,6 @@
   },
   {
     "name": "Tests-DotNet-Internal",
-    "groups": [
-      {
-        "name": "Base"
-      },
-      {
-        "name": "Financials"
-      },
-      {
-        "name": "OnPrem"
-      }
-    ]
-  },
-  {
-    "name": "Tests-MOCKSERVICETESTS-Internal",
     "groups": [
       {
         "name": "Base"
@@ -5343,14 +5273,16 @@
         "name": "AllExtensions"
       },
       {
+        "name": "Base"
+      },
+      {
         "name": "Financials"
       },
       {
         "name": "FinancialsExtensions"
       },
       {
-        "name": "OnPrem",
-        "doNotInstall": true
+        "name": "OnPrem"
       },
       {
         "name": "OnPremExtensions",
@@ -5391,6 +5323,9 @@
     "groups": [
       {
         "name": "AllExtensions"
+      },
+      {
+        "name": "Base"
       },
       {
         "name": "Financials"
@@ -5471,6 +5406,76 @@
       {
         "name": "OnPremExtensions",
         "doNotInstall": true
+      }
+    ]
+  },
+  {
+    "name": "Tests-MOCKSERVICETESTS-Internal",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
+    "name": "Tests-Integration",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
+    "name": "Tests-Misc",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
+    "name": "Tests-Data Exchange",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
+    "name": "Tests-Local",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
       }
     ]
   },

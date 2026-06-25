@@ -134,7 +134,7 @@ page 5749 "Transfer Lines"
                     trigger OnAction()
                     var
                         TransferHeader: Record "Transfer Header";
-#if not CLEAN29
+#if not CLEAN28
                         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif
                     begin

@@ -774,6 +774,11 @@ table 31004 "Sales Adv. Letter Header CZZ"
             Caption = 'VAT Date Filter';
             FieldClass = FlowFilter;
         }
+        field(120; "External Document No."; Code[35])
+        {
+            Caption = 'External Document No.';
+            ToolTip = 'Specifies a document number that refers to the customer''s numbering system.';
+        }
 #pragma warning disable AA0232
         field(200; "Amount Including VAT"; Decimal)
 #pragma warning restore AA0232

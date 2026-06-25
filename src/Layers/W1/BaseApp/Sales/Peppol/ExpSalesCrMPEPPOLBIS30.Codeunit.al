@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13,6 +14,9 @@ using System.IO;
 codeunit 1611 "Exp. Sales CrM. PEPPOL BIS3.0"
 {
     TableNo = "Record Export Buffer";
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by PEPPOL App';
+    ObsoleteTag = '29.0';
 
     trigger OnRun()
     var
@@ -47,4 +51,4 @@ codeunit 1611 "Exp. Sales CrM. PEPPOL BIS3.0"
         SalesCrMemoPEPPOLBIS30.Export();
     end;
 }
-
+#endif

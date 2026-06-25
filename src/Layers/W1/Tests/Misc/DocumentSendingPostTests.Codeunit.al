@@ -41,8 +41,8 @@ codeunit 139197 DocumentSendingPostTests
         IT_ReportNoServiceCrMemoHdrTxt: Label 'No_ServiceCrMemoHeader';
         NA_ReportNoServiceCrMemoHdrTxt: Label 'No_ServCrMemoHdr';
         ReportNoPurchaseOrderHdrTxt: Label 'No_PurchHeader';
-        PeppolFormatNameTxt: Label 'PEPPOL', Locked = true;
-        ElectronicDocFormatNotFoundErr: Label 'The electronic document format PEPPOL does not exist for the document type Sales Invoice.';
+        PeppolFormatNameTxt: Label 'PEPPOL30', Locked = true;
+        ElectronicDocFormatNotFoundErr: Label 'The electronic document format PEPPOL30 does not exist for the document type Sales Invoice.';
         DocExchServiceNotEnabledErr: Label 'The document exchange service is not enabled.';
         ElementNameErr: Label 'Element with name ''%1'' was not found', Comment = '%1 = Element Name';
         EmailSubjectCapTxt: Label '%1 - %2 %3', Comment = '%1 = Customer Name. %2 = Document Type %3 = Invoice No.';
@@ -4865,27 +4865,27 @@ codeunit 139197 DocumentSendingPostTests
     begin
         ElectronicDocumentFormat.DeleteAll();
         ElectronicDocumentFormat.InsertElectronicFormat(
-          PeppolFormatNameTxt, PeppolFormatNameTxt, CODEUNIT::"Exp. Sales Inv. PEPPOL BIS3.0", 0,
+          PeppolFormatNameTxt, PeppolFormatNameTxt, CODEUNIT::"Exp. Sales Inv. PEPPOL30", 0,
           ElectronicDocumentFormat.Usage::"Sales Invoice".AsInteger());
 
         ElectronicDocumentFormat.InsertElectronicFormat(
-          PeppolFormatNameTxt, PeppolFormatNameTxt, CODEUNIT::"Exp. Sales CrM. PEPPOL BIS3.0", 0,
+          PeppolFormatNameTxt, PeppolFormatNameTxt, CODEUNIT::"Exp. Sales CrM. PEPPOL30", 0,
           ElectronicDocumentFormat.Usage::"Sales Credit Memo".AsInteger());
 
         ElectronicDocumentFormat.InsertElectronicFormat(
-          PeppolFormatNameTxt, PeppolFormatNameTxt, CODEUNIT::"Exp. Serv.Inv. PEPPOL BIS3.0", 0,
+          PeppolFormatNameTxt, PeppolFormatNameTxt, CODEUNIT::"Exp. Serv.Inv. PEPPOL30", 0,
           ElectronicDocumentFormat.Usage::"Service Invoice".AsInteger());
 
         ElectronicDocumentFormat.InsertElectronicFormat(
-          PeppolFormatNameTxt, PeppolFormatNameTxt, CODEUNIT::"Exp. Serv.CrM. PEPPOL BIS3.0", 0,
+          PeppolFormatNameTxt, PeppolFormatNameTxt, CODEUNIT::"Exp. Serv.CrM. PEPPOL30", 0,
           ElectronicDocumentFormat.Usage::"Service Credit Memo".AsInteger());
 
         ElectronicDocumentFormat.InsertElectronicFormat(
-          PeppolFormatNameTxt, PeppolFormatNameTxt, CODEUNIT::"PEPPOL Validation", 0,
+          PeppolFormatNameTxt, PeppolFormatNameTxt, CODEUNIT::"PEPPOL30 Sales Validation", 0,
           ElectronicDocumentFormat.Usage::"Sales Validation".AsInteger());
 
         ElectronicDocumentFormat.InsertElectronicFormat(
-          PeppolFormatNameTxt, PeppolFormatNameTxt, CODEUNIT::"PEPPOL Service Validation", 0,
+          PeppolFormatNameTxt, PeppolFormatNameTxt, CODEUNIT::"PEPPOL30 Service Validation", 0,
           ElectronicDocumentFormat.Usage::"Service Validation".AsInteger());
 
         CountryRegion.SetRange("VAT Scheme", '');

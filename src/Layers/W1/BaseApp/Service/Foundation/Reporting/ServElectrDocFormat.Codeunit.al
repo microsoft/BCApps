@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting;
 
+#if not CLEAN29
 using Microsoft.Sales.Peppol;
+#endif
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 
@@ -116,7 +118,8 @@ codeunit 6464 "Serv. Electr. Doc. Format"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Electronic Document Format", 'OnAfterShouldLogUptake', '', true, false)]
+#if not CLEAN29
+    [EventSubscriber(ObjectType::Table, Database::"Electronic Document Format", OnAfterShouldLogUptake, '', true, false)]
     local procedure OnAfterShouldLogUptake(var ElectronicDocumentFormat: Record "Electronic Document Format"; var Result: Boolean)
     begin
         if ElectronicDocumentFormat."Codeunit ID" in [
@@ -124,4 +127,5 @@ codeunit 6464 "Serv. Electr. Doc. Format"
         then
             Result := true;
     end;
+#endif
 }

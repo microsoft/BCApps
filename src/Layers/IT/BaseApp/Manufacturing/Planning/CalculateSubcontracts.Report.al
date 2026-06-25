@@ -1,4 +1,4 @@
-﻿#if not CLEAN29
+﻿#if not CLEAN28
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -26,7 +26,7 @@ report 99001015 "Calculate Subcontracts"
     ProcessingOnly = true;
     ObsoleteReason = 'Will be replaced by Report "Subc. Calculate Subcontracts" in the Subcontracting App.';
     ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '28.0';
 
     dataset
     {

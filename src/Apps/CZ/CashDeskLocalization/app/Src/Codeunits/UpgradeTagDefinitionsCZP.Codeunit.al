@@ -22,6 +22,7 @@ codeunit 31106 "Upgrade Tag Definitions CZP"
         PerCompanyUpgradeTags.Add(GetDataVersion173PerCompanyUpgradeTag());
         PerCompanyUpgradeTags.Add(GetDataVersion174PerCompanyUpgradeTag());
         PerCompanyUpgradeTags.Add(GetDataVersion180PerCompanyUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetUseReportSelectionsUpgradeTag());
     end;
 
     procedure GetDataVersion173PerDatabaseUpgradeTag(): Code[250]
@@ -52,5 +53,10 @@ codeunit 31106 "Upgrade Tag Definitions CZP"
     procedure GetDataVersion180PerCompanyUpgradeTag(): Code[250]
     begin
         exit('CZP-UpgradeCashDeskLocalizationForCzech-PerCompany-18.0');
+    end;
+
+    internal procedure GetUseReportSelectionsUpgradeTag(): Code[250]
+    begin
+        exit('CZP-639499-UseReportSelections-20260618');
     end;
 }

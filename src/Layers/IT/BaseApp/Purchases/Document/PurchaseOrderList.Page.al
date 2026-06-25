@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -948,12 +948,12 @@ page 9307 "Purchase Order List"
     trigger OnOpenPage()
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
-#if not CLEAN29
+#if not CLEAN28
         LegacySubcFeatureHandler: Codeunit Microsoft.Manufacturing.Setup."Legacy Subc. Feature Handler";
         BackedupFiltergroup: Integer;
 #endif
     begin
-#if not CLEAN29
+#if not CLEAN28
         if LegacySubcFeatureHandler.IsLegacySubcontractingEnabled() then begin
             BackedupFiltergroup := Rec.FilterGroup;
             Rec.FilterGroup(2); // Set table view

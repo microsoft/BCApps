@@ -471,6 +471,7 @@ codeunit 11724 "Cash Desk Management CZP"
     var
         CashDocumentPostCZP: Codeunit "Cash Document-Post CZP";
         CashDocumentPostPrintCZP: Codeunit "Cash Document-Post + Print CZP";
+        CashDocumentPostSendCZP: Codeunit "Cash Document-Post + Send CZP";
     begin
         if (CashDocumentAction = CashDocumentAction::"Post and Print") and PreviewMode then
             CashDocumentAction := CashDocumentAction::Post;
@@ -487,7 +488,11 @@ codeunit 11724 "Cash Desk Management CZP"
             CashDocumentAction::"Release and Print":
                 Codeunit.Run(Codeunit::"Cash Document-ReleasePrint CZP", CashDocumentHeaderCZP);
             CashDocumentAction::"Post and Print":
-                CashDocumentPostPrintCZP.PostWithoutConfirmation(CashDocumentHeaderCZP)
+                CashDocumentPostPrintCZP.PostWithoutConfirmation(CashDocumentHeaderCZP);
+            CashDocumentAction::"Release and Send":
+                Codeunit.Run(Codeunit::"Cash Document-Release Send CZP", CashDocumentHeaderCZP);
+            CashDocumentAction::"Post and Send":
+                CashDocumentPostSendCZP.PostWithoutConfirmation(CashDocumentHeaderCZP);
         end;
     end;
 
@@ -522,13 +527,13 @@ codeunit 11724 "Cash Desk Management CZP"
         case ActionType of
             ActionType::Create:
                 CashDeskUserCZP.SetRange(Create, true);
-            ActionType::Release, ActionType::"Release and Print":
+            ActionType::Release, ActionType::"Release and Print", ActionType::"Release and Send":
                 begin
                     CashDeskUserCZP.SetRange(Issue, true);
                     if (CashDeskCZP."Responsibility ID (Release)" <> '') and (CashDeskCZP."Responsibility ID (Release)" <> UserId) then
                         Error(NotPermToIssueErr, CashDocumentHeaderCZP.TableCaption);
                 end;
-            ActionType::Post, ActionType::"Post and Print":
+            ActionType::Post, ActionType::"Post and Print", ActionType::"Post and Send":
                 begin
                     CashDeskUserCZP.SetRange(Post, true);
                     if EETTransaction then
@@ -544,9 +549,9 @@ codeunit 11724 "Cash Desk Management CZP"
             case ActionType of
                 ActionType::Create:
                     Error(NotPermToCreateErr, CashDocumentHeaderCZP.TableCaption);
-                ActionType::Release, ActionType::"Release and Print":
+                ActionType::Release, ActionType::"Release and Print", ActionType::"Release and Send":
                     Error(NotPermToIssueErr, CashDocumentHeaderCZP.TableCaption);
-                ActionType::Post, ActionType::"Post and Print":
+                ActionType::Post, ActionType::"Post and Print", ActionType::"Post and Send":
                     Error(NotPermToPostErr, CashDocumentHeaderCZP.TableCaption);
             end;
     end;

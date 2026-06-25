@@ -1,5 +1,5 @@
 ﻿namespace System.Environment.Configuration;
-#if not CLEAN29
+#if not CLEAN28
 using Microsoft.Manufacturing.Setup;
 #endif
 
@@ -16,7 +16,7 @@ codeunit 9181 "Application Area Localization"
         TempApplicationAreaSetup."Basic IT" := true;
     end;
 
-#if not CLEAN29
+#if not CLEAN28
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Application Area Mgmt.", 'OnGetPremiumExperienceAppAreas', '', false, false)]
     local procedure OnGetPremiumExperienceAppAreas(var TempApplicationAreaSetup: Record "Application Area Setup" temporary)
     begin

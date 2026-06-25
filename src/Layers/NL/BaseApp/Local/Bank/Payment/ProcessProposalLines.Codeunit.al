@@ -626,7 +626,7 @@ codeunit 11000000 "Process Proposal Lines"
 
         FinancialInterfaceTelebank.PostPaymReceived(GenJnlLine, PaymentHistoryLine, PaymentHistory);
 
-        OnAfterCreatePaymentHistoryLine(ProposalLine, PaymentHistory, PaymentHistoryLine);
+        OnAfterCreatePaymentHistoryLine(ProposalLine, PaymentHistory, PaymentHistoryLine, GenJnlLine);
     end;
 
     [Scope('OnPrem')]
@@ -691,7 +691,7 @@ codeunit 11000000 "Process Proposal Lines"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCreatePaymentHistoryLine(var ProposalLine: Record "Proposal Line"; var PaymentHistory: Record "Payment History"; PaymentHistoryLine: Record "Payment History Line")
+    local procedure OnAfterCreatePaymentHistoryLine(var ProposalLine: Record "Proposal Line"; var PaymentHistory: Record "Payment History"; PaymentHistoryLine: Record "Payment History Line"; var TempGenJournalLine: Record "Gen. Journal Line" temporary)
     begin
     end;
 
