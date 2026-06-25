@@ -361,6 +361,51 @@ function Invoke-GitCommand {
     return $output
 }
 
+function Invoke-WithGitHubFetchAuth {
+    <#
+    Runs $Action with an ephemeral GitHub credential injected via GIT_CONFIG_*
+    environment variables, so the trusted checkout's base/PR-head fetches succeed
+    against a PRIVATE repository.
+
+    The trusted checkout deliberately uses persist-credentials:false so the
+    tool-enabled Copilot CLI (which later processes untrusted PR content) can
+    never read a token from .git/config. That is fine for a PUBLIC repo, where
+    the base/PR-head refs fetch anonymously — but this reviewer also runs on
+    PRIVATE repos/ports, where an unauthenticated fetch fails with
+    "could not read Username for 'https://github.com'". We bridge the gap by
+    supplying the workflow's GH_TOKEN only for the duration of these pre-CLI
+    discovery fetches, and never persisting it:
+      - GIT_CONFIG_* keeps the Authorization header out of .git/config, so it is
+        gone the instant the fetches finish and is never available to the CLI.
+      - Passing via env (not `git -c http...extraheader=...`) keeps the token off
+        the command line, out of the process table, and out of the error text
+        Invoke-GitCommand throws on failure.
+    When no token is present the fetch proceeds unauthenticated, preserving the
+    original public-repo behaviour.
+    #>
+    param([Parameter(Mandatory)] [scriptblock] $Action)
+
+    $token = if ($env:GH_TOKEN) { $env:GH_TOKEN } else { $env:GITHUB_TOKEN }
+    if (-not $token) { return & $Action }
+
+    $basic = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("x-access-token:$token"))
+    $keys  = 'GIT_CONFIG_COUNT', 'GIT_CONFIG_KEY_0', 'GIT_CONFIG_VALUE_0'
+    $saved = @{}
+    foreach ($k in $keys) { $saved[$k] = (Get-Item "env:$k" -ErrorAction SilentlyContinue).Value }
+    try {
+        $env:GIT_CONFIG_COUNT   = '1'
+        $env:GIT_CONFIG_KEY_0   = 'http.https://github.com/.extraheader'
+        $env:GIT_CONFIG_VALUE_0 = "AUTHORIZATION: basic $basic"
+        return & $Action
+    }
+    finally {
+        foreach ($k in $keys) {
+            if ($null -eq $saved[$k]) { Remove-Item "env:$k" -ErrorAction SilentlyContinue }
+            else { Set-Item "env:$k" -Value $saved[$k] }
+        }
+    }
+}
+
 function Get-GitChangedFiles {
     $output = Invoke-GitCommand -Arguments @('-C', $AnalysisWorkspace, 'diff', '--name-only', "origin/$BaseBranch...HEAD")
     return @($output | Where-Object { $_ -and $_.Trim() })
@@ -373,13 +418,19 @@ function Get-GitFilePatch {
 }
 
 function Checkout-PrBranch {
-    Write-Host "Fetching base branch origin/$BaseBranch"
-    $null = Invoke-GitCommand -Arguments @('-C', $TrustedWorkspace, 'fetch', 'origin', $BaseBranch, '--no-tags')
-
     $prRef = "refs/pull/$PrNumber/head"
     $remoteRef = "refs/remotes/origin/pr/$PrNumber"
-    Write-Host "Fetching PR head $prRef"
-    $null = Invoke-GitCommand -Arguments @('-C', $TrustedWorkspace, 'fetch', 'origin', "$prRef`:$remoteRef", '--no-tags')
+
+    # The base and PR-head fetches hit the remote and need auth on a private
+    # repo; the worktree operations below are local-only. Scope the ephemeral
+    # credential to just these two fetches.
+    Invoke-WithGitHubFetchAuth {
+        Write-Host "Fetching base branch origin/$BaseBranch"
+        $null = Invoke-GitCommand -Arguments @('-C', $TrustedWorkspace, 'fetch', 'origin', $BaseBranch, '--no-tags')
+
+        Write-Host "Fetching PR head $prRef"
+        $null = Invoke-GitCommand -Arguments @('-C', $TrustedWorkspace, 'fetch', 'origin', "$prRef`:$remoteRef", '--no-tags')
+    }
 
     $analysisParent = Split-Path -Parent $AnalysisWorkspace
     if (-not (Test-Path $analysisParent)) {
