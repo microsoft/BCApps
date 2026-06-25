@@ -26,7 +26,7 @@ bcquality:
   # Git ref (branch, tag, or SHA) to clone. Pinned to a specific BCQuality
   # main commit for reproducible reviews; bump deliberately as BCQuality
   # advances (or switch to a release tag once BCQuality cuts releases).
-  ref: 822cae1b2771ac25f665f73369f69093bd4fd630
+  ref: 8904ce583b1db8a5fb714d7ebae8368bd0a7ac14
 
 # Which BCQuality layers an agent may consume during this review.
 # Allowed values: microsoft, community, custom.

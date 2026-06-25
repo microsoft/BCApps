@@ -113,13 +113,18 @@ $BCQualitySeverityMap = @{ blocker = 'Critical'; major = 'High'; minor = 'Medium
 # labels (used for inline-comment metadata and per-domain counts in the
 # summary). New sub-skills land in 'Other' until added here.
 $DomainMap = @{
-    'al-security-review'     = 'Security'
-    'al-privacy-review'      = 'Privacy'
-    'al-performance-review'  = 'Performance'
-    'al-style-review'        = 'Style'
-    'al-ui-review'           = 'Accessibility'
-    'al-upgrade-review'      = 'Upgrade'
-    'al-code-review'         = 'Other'  # super-skill rollups with no nested origin
+    'al-security-review'         = 'Security'
+    'al-privacy-review'          = 'Privacy'
+    'al-performance-review'      = 'Performance'
+    'al-style-review'            = 'Style'
+    'al-ui-review'               = 'Accessibility'
+    'al-upgrade-review'          = 'Upgrade'
+    'al-breaking-changes-review' = 'Breaking Changes'
+    'al-error-handling-review'   = 'Error Handling'
+    'al-events-review'           = 'Events'
+    'al-interfaces-review'       = 'Interfaces'
+    'al-web-services-review'     = 'Web Services'
+    'al-code-review'             = 'Other'  # super-skill rollups with no nested origin
     # Findings the agent surfaced from its own judgement when no BCQuality
     # knowledge article directly backs the issue. BCQuality is an additive
     # knowledge layer, not the sole source of findings; the agent may emit
