@@ -69,12 +69,17 @@ backed gate.
 ## Domain labels
 
 Inline-comment headers and the per-PR summary group findings by *domain*.
-A finding's domain is derived from its `from-sub-skill` field (set by the
-super-skill at rollup time) — for example, a finding produced by
-`al-security-review` is labelled **Security**. Findings with
-`from-sub-skill: "agent"` (or `knowledge-backed: false`) land in the
-**Agent** domain. New BCQuality sub-skills land in **Other** until added
-to the `$DomainMap` in `Invoke-CopilotPRReview.ps1`.
+A finding's domain label is emitted by BCQuality on each finding (the leaf
+skill sets it; the super-skill preserves it on rollup), and the orchestrator
+renders it verbatim — so adding a BCQuality domain needs no change here. For
+example, a finding produced by `al-security-review` is labelled **Security**.
+Findings with `from-sub-skill: "agent"` (or `knowledge-backed: false`) land in
+the **Agent** domain.
+
+For findings from older BCQuality pins that predate the `domain` field, the
+orchestrator falls back to a static `$DomainMap` in
+`Invoke-CopilotPRReview.ps1` keyed on `from-sub-skill`; unmapped sub-skills
+fall back to **Other**.
 
 ## What each PR comment carries
 

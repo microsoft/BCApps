@@ -109,9 +109,10 @@ $AgentOutputFile  = 'agent-output.txt'
 $SeverityOrder = @{ Critical = 0; High = 1; Medium = 2; Low = 3 }
 $BCQualitySeverityMap = @{ blocker = 'Critical'; major = 'High'; minor = 'Medium'; info = 'Low' }
 
-# Mapping of BCQuality sub-skill ids to the orchestrator's existing domain
-# labels (used for inline-comment metadata and per-domain counts in the
-# summary). New sub-skills land in 'Other' until added here.
+# Legacy fallback mapping of BCQuality sub-skill ids to domain labels, used
+# only for findings that do not carry an explicit `domain` field (BCQuality
+# pins predating that field). Findings now generally arrive pre-labelled via
+# Resolve-FindingDomain, so this map no longer needs an entry per new domain.
 $DomainMap = @{
     'al-security-review'     = 'Security'
     'al-privacy-review'      = 'Privacy'
@@ -870,6 +871,22 @@ function Convert-BCQualitySeverity {
 
 function Resolve-FindingDomain {
     param([object] $Finding)
+
+    # Preferred: BCQuality emits an explicit, human-readable domain label on
+    # every finding (the leaf skill sets it; the super-skill preserves it on
+    # rollup). When present we render it verbatim, so the orchestrator holds no
+    # BCQuality domain taxonomy and new domains need no change here.
+    if ($Finding -and $Finding.PSObject) {
+        foreach ($prop in @('domain', 'Domain')) {
+            if ($Finding.PSObject.Properties.Match($prop).Count -gt 0 -and $null -ne $Finding.$prop) {
+                $label = ([string]$Finding.$prop).Trim()
+                if ($label) { return $label }
+            }
+        }
+    }
+
+    # Legacy fallback for BCQuality pins that predate the `domain` field: derive
+    # the label from the finding's sub-skill id via the static map below.
     $fromSub = $null
     if ($Finding -and $Finding.PSObject -and $Finding.PSObject.Properties.Match('from-sub-skill').Count -gt 0) {
         $fromSub = [string]$Finding.'from-sub-skill'
@@ -1589,9 +1606,16 @@ function Get-AgentLabelMetadata {
     return "<!-- agent_label: $AgentLabel -->"
 }
 
+function ConvertTo-DomainSlug {
+    param([string] $Domain)
+    return (("$Domain").ToLowerInvariant() -replace '[^a-z0-9]+', '-').Trim('-')
+}
+
 function Get-AgentDomainMetadata {
     param([string] $Domain)
-    return "<!-- agent_domain: $($Domain.ToLowerInvariant()) -->"
+    # Slug-encode so multi-word labels (e.g. "Breaking Changes") survive the
+    # metadata round-trip used by the dedup logic on later iterations.
+    return "<!-- agent_domain: $(ConvertTo-DomainSlug $Domain) -->"
 }
 
 function Get-AgentFindingMetadata {
@@ -1772,8 +1796,9 @@ function Get-ExistingCommentKeys {
     $keys = [System.Collections.Generic.HashSet[string]]::new()
     $locations = [System.Collections.Generic.List[object]]::new()
     $metadataPattern = '<!-- agent_domain:\s*([a-z0-9_-]+)\s*-->'
-    $newHeadingPattern = '^#{1,6}\s+(?:🔴|🟠|🟡|🟢|⚪)?\s*(Critical|High|Medium|Low)\s+([A-Za-z0-9_-]+)\s+-'
-    $oldHeadingPattern = '^#{1,6}\s+([A-Za-z0-9_-]+)\s+-\s+(Critical|High|Medium|Low)\s+Severity'
+    $newHeadingPattern = '^#{1,6}\s+(?:🔴|🟠|🟡|🟢|⚪)?\s*(Critical|High|Medium|Low)\s+(.+?)\s+-'
+    $oldHeadingPattern = '^#{1,6}\s+(.+?)\s+-\s+(Critical|High|Medium|Low)\s+Severity'
+    $targetDomain = ConvertTo-DomainSlug $Domain
 
     foreach ($comment in (Get-ReviewComments)) {
         $body = $comment.body ?? ''
@@ -1782,12 +1807,12 @@ function Get-ExistingCommentKeys {
         if ($body -match $metadataPattern) {
             $commentDomain = $Matches[1].ToLower()
         } elseif ($body -match $newHeadingPattern) {
-            $commentDomain = $Matches[2].ToLower()
+            $commentDomain = ConvertTo-DomainSlug $Matches[2]
         } elseif ($body -match $oldHeadingPattern) {
-            $commentDomain = $Matches[1].ToLower()
+            $commentDomain = ConvertTo-DomainSlug $Matches[1]
         }
 
-        if ($commentDomain -ne $Domain.ToLower()) { continue }
+        if ($commentDomain -ne $targetDomain) { continue }
         $path = $comment.path ?? ''
         $line = $comment.line ?? $comment.original_line ?? 0
         $side = $comment.side ?? 'RIGHT'
