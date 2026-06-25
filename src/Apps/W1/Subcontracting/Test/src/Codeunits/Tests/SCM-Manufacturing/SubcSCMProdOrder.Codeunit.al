@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Enums;
@@ -325,7 +326,7 @@ codeunit 149920 "Subc SCM Prod. Order"
         Initialize();
 
         // [GIVEN] Released Production Order with Subcontracting
-        LibraryInventory.CreateItem(Item);
+        CreateItem(Item);
         CreateRoutingAndUpdateItemSubc(Item, WorkCenter, true);
         CreateAndRefreshReleasedProductionOrder(ProductionOrder, Item."No.", LibraryRandom.RandDec(100, 2), '', '');
 
@@ -483,7 +484,7 @@ codeunit 149920 "Subc SCM Prod. Order"
         // Exercise: Purchase document is posted
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        PostPurchaseDocumentWithSetup(PurchaseHeader, true, true);
 
         // Verify: Item ledger quantity is rounded
         FindItemLedgerEntry(ItemLedgerEntry, ItemLedgerEntry."Entry Type"::Output, Item."No.");
@@ -551,7 +552,7 @@ codeunit 149920 "Subc SCM Prod. Order"
         PurchaseHeader.Modify();
 
         // [WHEN] Receive and invoice the purchase order.
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        PostPurchaseDocumentWithSetup(PurchaseHeader, true, true);
 
         // [THEN] Posted cost amount = 4000 * 6 = 24000.00 sharp.
         ValueEntry.SetRange(Type, ValueEntry.Type::"Work Center");
@@ -660,7 +661,7 @@ codeunit 149920 "Subc SCM Prod. Order"
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         PurchaseLine.Validate("Qty. to Receive", FirstReceiptQty);
         PurchaseLine.Modify(true);
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        PostPurchaseDocumentWithSetup(PurchaseHeader, true, false);
 
         // [GIVEN] Verify Prod. Order Line after first receipt.
         VerifyReleasedProdOrderLine(Item."No.", TotalQuantity, FirstReceiptQty);
@@ -670,7 +671,7 @@ codeunit 149920 "Subc SCM Prod. Order"
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
         PurchaseLine.Validate("Qty. to Receive", SecondReceiptQty);
         PurchaseLine.Modify(true);
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        PostPurchaseDocumentWithSetup(PurchaseHeader, true, false);
 
         // [GIVEN] Verify Prod. Order Line after second receipt.
         VerifyReleasedProdOrderLine(Item."No.", TotalQuantity, TotalQuantity);
@@ -757,7 +758,7 @@ codeunit 149920 "Subc SCM Prod. Order"
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         PurchaseLine.Validate("Qty. to Receive", FirstReceiptQty);
         PurchaseLine.Modify(true);
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        PostPurchaseDocumentWithSetup(PurchaseHeader, true, false);
 
         // [GIVEN] Verify Prod. Order Line after first receipt.
         VerifyReleasedProdOrderLine(Item."No.", TotalQuantity, FirstReceiptQty);
@@ -771,7 +772,7 @@ codeunit 149920 "Subc SCM Prod. Order"
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
         PurchaseLine.Validate("Qty. to Receive", SecondReceiptQty);
         PurchaseLine.Modify(true);
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        PostPurchaseDocumentWithSetup(PurchaseHeader, true, false);
         VerifyReleasedProdOrderLine(Item."No.", TotalQuantity, TotalQuantity);
 
         // [WHEN] Undo the selected first receipt
@@ -863,7 +864,7 @@ codeunit 149920 "Subc SCM Prod. Order"
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         PurchaseLine.Validate("Qty. to Receive", FirstReceiptQty);
         PurchaseLine.Modify(true);
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        PostPurchaseDocumentWithSetup(PurchaseHeader, true, false);
 
         // [GIVEN] Verify Prod. Order Line after first receipt.
         VerifyReleasedProdOrderLine(Item."No.", TotalQuantity, FirstReceiptQty);
@@ -877,7 +878,7 @@ codeunit 149920 "Subc SCM Prod. Order"
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
         PurchaseLine.Validate("Qty. to Receive", SecondReceiptQty);
         PurchaseLine.Modify(true);
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        PostPurchaseDocumentWithSetup(PurchaseHeader, true, false);
         VerifyReleasedProdOrderLine(Item."No.", TotalQuantity, TotalQuantity);
 
         // [WHEN] Undo the selected second receipt
@@ -993,8 +994,13 @@ codeunit 149920 "Subc SCM Prod. Order"
     end;
 
     local procedure CreateItem(var Item: Record Item)
+    var
+        InventoryPostingGroup: Record "Inventory Posting Group";
     begin
         LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateInventoryPostingGroup(InventoryPostingGroup);
+        Item.Validate("Inventory Posting Group", InventoryPostingGroup.Code);
+        EnsureInventoryPostingSetups(InventoryPostingGroup.Code);
         Item.Validate("Unit Cost", LibraryRandom.RandDec(100, 2));
         Item.Modify(true);
     end;
@@ -1031,8 +1037,7 @@ codeunit 149920 "Subc SCM Prod. Order"
 
     local procedure CreateItemWithItemTrackingCode(var Item: Record Item)
     begin
-        LibraryInventory.CreateItem(Item);
-        Item.Validate("Unit Cost", LibraryRandom.RandDec(100, 2));
+        CreateItem(Item);
         Item.Validate("Item Tracking Code", CreateItemTrackingCode());
         Item.Validate("Lot Nos.", LibraryUtility.GetGlobalNoSeriesCode());
         Item.Modify(true);
@@ -1114,7 +1119,7 @@ codeunit 149920 "Subc SCM Prod. Order"
         NonBaseQtyPerUOM: Decimal;
         QtyRoundingPrecision: Decimal)
     begin
-        LibraryInventory.CreateItem(Item);
+        CreateItem(Item);
         LibraryInventory.CreateUnitOfMeasureCode(BaseUOM);
         LibraryInventory.CreateItemUnitOfMeasure(ItemUOM, Item."No.", BaseUOM.Code, 1);
         ItemUOM."Qty. Rounding Precision" := QtyRoundingPrecision;
@@ -1285,7 +1290,7 @@ codeunit 149920 "Subc SCM Prod. Order"
     begin
         FindPurchaseOrderLine(PurchaseLine, ItemNo);
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);  // Post as Ship only.
+        PostPurchaseDocumentWithSetup(PurchaseHeader, true, false);  // Post as Ship only.
     end;
 
     local procedure PostPurchaseOrder(ItemNo: Code[20]; ShipReceive: Boolean; Invoice: Boolean)
@@ -1297,7 +1302,7 @@ codeunit 149920 "Subc SCM Prod. Order"
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         if Invoice and (PurchaseHeader."Vendor Invoice No." = '') then
             PurchaseHeader."Vendor Invoice No." := LibraryUtility.GenerateGUID();
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, ShipReceive, Invoice);
+        PostPurchaseDocumentWithSetup(PurchaseHeader, ShipReceive, Invoice);
     end;
 
     local procedure FindAndUndoPurcReceiptLine(ItemNo: Code[20]): Code[20]
@@ -1329,7 +1334,67 @@ codeunit 149920 "Subc SCM Prod. Order"
         PurchaseHeader.Modify();
         PurchaseLine."Direct Unit Cost" := LibraryRandom.RandInt(5);
         PurchaseLine.Modify();
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        PostPurchaseDocumentWithSetup(PurchaseHeader, true, true);
+    end;
+
+    local procedure PostPurchaseDocumentWithSetup(var PurchaseHeader: Record "Purchase Header"; ShipReceive: Boolean; Invoice: Boolean)
+    begin
+        EnsurePurchasePostingSetup(PurchaseHeader);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, ShipReceive, Invoice);
+    end;
+
+    local procedure EnsurePurchasePostingSetup(PurchaseHeader: Record "Purchase Header")
+    var
+        PurchaseLine: Record "Purchase Line";
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        if PurchaseLine.FindSet() then
+            repeat
+                if not GeneralPostingSetup.Get(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group") then
+                    LibraryERM.CreateGeneralPostingSetup(
+                      GeneralPostingSetup, PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+                UpdateGeneralPostingSetupWithPostingAccounts(GeneralPostingSetup);
+            until PurchaseLine.Next() = 0;
+    end;
+
+    local procedure UpdateGeneralPostingSetupWithPostingAccounts(var GeneralPostingSetup: Record "General Posting Setup")
+    begin
+        GeneralPostingSetup.Validate("Purch. Account", GetPostingGLAccountNo(GeneralPostingSetup."Purch. Account"));
+        GeneralPostingSetup.Validate("COGS Account", GetPostingGLAccountNo(GeneralPostingSetup."COGS Account"));
+        GeneralPostingSetup.Validate("COGS Account (Interim)", GetPostingGLAccountNo(GeneralPostingSetup."COGS Account (Interim)"));
+        GeneralPostingSetup.Validate("Inventory Adjmt. Account", GetPostingGLAccountNo(GeneralPostingSetup."Inventory Adjmt. Account"));
+        GeneralPostingSetup.Validate("Direct Cost Applied Account", GetPostingGLAccountNo(GeneralPostingSetup."Direct Cost Applied Account"));
+        GeneralPostingSetup.Validate("Overhead Applied Account", GetPostingGLAccountNo(GeneralPostingSetup."Overhead Applied Account"));
+        GeneralPostingSetup.Validate("Purchase Variance Account", GetPostingGLAccountNo(GeneralPostingSetup."Purchase Variance Account"));
+        GeneralPostingSetup.Modify(true);
+    end;
+
+    local procedure GetPostingGLAccountNo(AccountNo: Code[20]): Code[20]
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        if (AccountNo <> '') and GLAccount.Get(AccountNo) and (GLAccount."Account Type" = GLAccount."Account Type"::Posting) then
+            exit(AccountNo);
+
+        exit(LibraryERM.CreateGLAccountNo());
+    end;
+
+    local procedure EnsureInventoryPostingSetups(InventoryPostingGroupCode: Code[20])
+    var
+        BlankLocation: Record Location;
+    begin
+        LibraryInventory.UpdateInventoryPostingSetup(BlankLocation, InventoryPostingGroupCode);
+        if LocationRed.Code <> '' then
+            LibraryInventory.UpdateInventoryPostingSetup(LocationRed, InventoryPostingGroupCode);
+        if LocationBlue.Code <> '' then
+            LibraryInventory.UpdateInventoryPostingSetup(LocationBlue, InventoryPostingGroupCode);
+        if LocationWhite.Code <> '' then
+            LibraryInventory.UpdateInventoryPostingSetup(LocationWhite, InventoryPostingGroupCode);
+        if LocationSilver.Code <> '' then
+            LibraryInventory.UpdateInventoryPostingSetup(LocationSilver, InventoryPostingGroupCode);
     end;
 
     local procedure UndoPurchReceiptWithProductionSubcontracting(ItemWithTracking: Boolean; DoInvoiceSubcontracting: Boolean; DoConsumeOutputBeforeUndo: Boolean)

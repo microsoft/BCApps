@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
@@ -260,7 +261,7 @@ codeunit 149919 "Subc SCM Mfg. 70"
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
         PurchaseHeader.Modify(true);
-        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        PostPurchaseDocumentWithSetup(PurchaseHeader, true, true);
 
         // Verify: Verify Capacity Ledger Entry.
         VerifyCapacityLedgerEntry(WorkCenter, Quantity);
@@ -895,8 +896,13 @@ codeunit 149919 "Subc SCM Mfg. 70"
     end;
 
     local procedure CreateItem(var Item: Record Item; ReplenishmentSystem: Enum "Replenishment System"; ReorderingPolicy: Enum "Reordering Policy"; IncludeInventory: Boolean; ReorderPoint: Decimal; ReorderQuantity: Decimal; MaximumInventory: Decimal; RoutingNo: Code[20])
+    var
+        InventoryPostingGroup: Record "Inventory Posting Group";
     begin
         LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateInventoryPostingGroup(InventoryPostingGroup);
+        Item.Validate("Inventory Posting Group", InventoryPostingGroup.Code);
+        EnsureInventoryPostingSetup(InventoryPostingGroup.Code);
         Item.Validate("Replenishment System", ReplenishmentSystem);
         Item.Validate("Reordering Policy", ReorderingPolicy);
         Item.Validate("Include Inventory", IncludeInventory);
@@ -937,6 +943,60 @@ codeunit 149919 "Subc SCM Mfg. 70"
         CreateItem(Item, Item."Replenishment System"::"Prod. Order", Item."Reordering Policy"::" ", false, 0, 0, 0, '');
         ChildItemNo2 := Item."No.";
         UpdateItemInventory(ChildItemNo, ChildItemNo2);
+    end;
+
+    local procedure PostPurchaseDocumentWithSetup(var PurchaseHeader: Record "Purchase Header"; ShipReceive: Boolean; Invoice: Boolean)
+    begin
+        EnsurePurchasePostingSetup(PurchaseHeader);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, ShipReceive, Invoice);
+    end;
+
+    local procedure EnsurePurchasePostingSetup(PurchaseHeader: Record "Purchase Header")
+    var
+        PurchaseLine: Record "Purchase Line";
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        if PurchaseLine.FindSet() then
+            repeat
+                if not GeneralPostingSetup.Get(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group") then
+                    LibraryERM.CreateGeneralPostingSetup(
+                      GeneralPostingSetup, PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+                UpdateGeneralPostingSetupWithPostingAccounts(GeneralPostingSetup);
+            until PurchaseLine.Next() = 0;
+    end;
+
+    local procedure UpdateGeneralPostingSetupWithPostingAccounts(var GeneralPostingSetup: Record "General Posting Setup")
+    begin
+        GeneralPostingSetup.Validate("Purch. Account", GetPostingGLAccountNo(GeneralPostingSetup."Purch. Account"));
+        GeneralPostingSetup.Validate("COGS Account", GetPostingGLAccountNo(GeneralPostingSetup."COGS Account"));
+        GeneralPostingSetup.Validate("COGS Account (Interim)", GetPostingGLAccountNo(GeneralPostingSetup."COGS Account (Interim)"));
+        GeneralPostingSetup.Validate("Inventory Adjmt. Account", GetPostingGLAccountNo(GeneralPostingSetup."Inventory Adjmt. Account"));
+        GeneralPostingSetup.Validate("Direct Cost Applied Account", GetPostingGLAccountNo(GeneralPostingSetup."Direct Cost Applied Account"));
+        GeneralPostingSetup.Validate("Overhead Applied Account", GetPostingGLAccountNo(GeneralPostingSetup."Overhead Applied Account"));
+        GeneralPostingSetup.Validate("Purchase Variance Account", GetPostingGLAccountNo(GeneralPostingSetup."Purchase Variance Account"));
+        GeneralPostingSetup.Modify(true);
+    end;
+
+    local procedure GetPostingGLAccountNo(AccountNo: Code[20]): Code[20]
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        if (AccountNo <> '') and GLAccount.Get(AccountNo) and (GLAccount."Account Type" = GLAccount."Account Type"::Posting) then
+            exit(AccountNo);
+
+        exit(LibraryERM.CreateGLAccountNo());
+    end;
+
+    local procedure EnsureInventoryPostingSetup(InventoryPostingGroupCode: Code[20])
+    var
+        BlankLocation: Record Location;
+    begin
+        LibraryInventory.UpdateInventoryPostingSetup(BlankLocation, InventoryPostingGroupCode);
+        if LocationGreen.Code <> '' then
+            LibraryInventory.UpdateInventoryPostingSetup(LocationGreen, InventoryPostingGroupCode);
     end;
 
     local procedure UpdateItemInventory(ChildItemNo: Code[20]; ChildItemNo2: Code[20])
