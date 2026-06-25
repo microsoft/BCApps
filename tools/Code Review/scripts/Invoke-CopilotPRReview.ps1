@@ -1039,19 +1039,9 @@ function Remove-StructuralFences {
 }
   
 function Repair-ResumeFenceJson {
-    <#
-    Sometimes the agent stops in the middle of a JSON string and starts over on
-    a new ```json line. That leaves a half-finished string, so the whole JSON
-    fails to parse and all findings are lost.
-
-    This removes that stray fence. To stay safe it only acts when the line
-    before the fence is a property with a half-open string (an odd number of
-    unescaped quotes) and the line after the fence repeats the same key. The
-    other two repairs don't cover this: Remove-StructuralFences keeps fences
-    that are inside strings, and Repair-InterruptedAgentJson needs a
-    "Placeholder" marker that isn't here. Callers parse the original text
-    first, so clean output is never changed.
-    #>
+    # Removes a stray ```json fence the agent leaves when it restarts a property
+    # mid-string. Only acts when the line before has a half-open string and the
+    # line after repeats the same key.
     param([string] $Output)
     if (-not $Output) { return $Output }
 
