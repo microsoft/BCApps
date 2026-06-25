@@ -1039,9 +1039,13 @@ function Remove-StructuralFences {
 }
   
 function Repair-ResumeFenceJson {
-    # Removes a stray ```json fence the agent leaves when it restarts a property
-    # mid-string. Only acts when the line before has a half-open string and the
-    # line after repeats the same key.
+    # The agent sometimes cuts off mid-value and restarts the line after a stray
+    # ```json fence, like:
+    #     "suggested-code": "    ODataKey        <- string never closed
+    #     ```json
+    #     "suggested-code": "    ODataKey = SystemId;"   <- same field, retried
+    # The unclosed string breaks the whole report. This drops the fence and the
+    # broken half, keeping the retried line.
     param([string] $Output)
     if (-not $Output) { return $Output }
 
