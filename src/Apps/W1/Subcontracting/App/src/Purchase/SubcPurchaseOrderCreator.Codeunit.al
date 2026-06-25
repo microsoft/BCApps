@@ -212,8 +212,12 @@ codeunit 99001557 "Subc. Purchase Order Creator"
                 GuiAllowed()
             then begin
                 CreatedPurchaseHeader.MarkedOnly(true);
-                if CreatedPurchaseHeader.FindFirst() then
-                    PageManagement.PageRun(CreatedPurchaseHeader);
+                if CreatedPurchaseHeader.Count() > 1 then
+                    Page.Run(Page::"Purchase Order List", CreatedPurchaseHeader)
+                else
+                    if CreatedPurchaseHeader.FindFirst() then
+                        PageManagement.PageRun(CreatedPurchaseHeader);
+                CreatedPurchaseHeader.MarkedOnly(false);
             end;
     end;
 
