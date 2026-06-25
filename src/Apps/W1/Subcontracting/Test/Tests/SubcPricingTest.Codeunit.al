@@ -13,6 +13,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.TestLibraries.Utilities;
 
@@ -534,6 +535,51 @@ codeunit 139982 "Subc. Pricing Test"
         RequisitionLine.Quantity := 1;
     end;
 
+    [Test]
+    procedure FactboxCountsBlankUoMPriceWhenPurchLineHasUoM()
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcontractorPrice: Record "Subcontractor Price";
+        PurchaseLine: Record "Purchase Line";
+        SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+    begin
+        // [SCENARIO] A subcontractor price with a blank Unit of Measure Code must be counted
+        // in the Purchase Order FactBox when the purchase line specifies a Unit of Measure Code.
+        // Previously, the FactBox used SetRange on Unit of Measure Code (exact match), so a
+        // blank-UoM price was invisible whenever the purchase line had a specific UoM.
+        Initialize();
+
+        // [GIVEN] An item, vendor, and work center linked as a subcontractor.
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryManufacturing.CreateWorkCenter(WorkCenter);
+        WorkCenter.Validate("Subcontractor No.", Vendor."No.");
+        WorkCenter.Modify(true);
+
+        // [GIVEN] A subcontractor price recorded with a blank Unit of Measure Code.
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), '', 0, '');
+
+        // [GIVEN] A purchase line for the same item/vendor/work center with a specific UoM.
+        PurchaseLine.Init();
+        PurchaseLine.Type := PurchaseLine.Type::Item;
+        PurchaseLine."No." := Item."No.";
+        PurchaseLine."Buy-from Vendor No." := Vendor."No.";
+        PurchaseLine."Work Center No." := WorkCenter."No.";
+        PurchaseLine."Unit of Measure Code" := Item."Base Unit of Measure";
+        PurchaseLine."Currency Code" := '';
+        PurchaseLine."Variant Code" := '';
+
+        // [WHEN] The FactBox counts applicable subcontractor prices.
+        // [THEN] The blank-UoM price is counted even though the purchase line has a specific UoM.
+        Assert.AreEqual(
+            1, SubcPurchFactboxMgmt.CalcNoOfPurchasePrices(PurchaseLine),
+            'A subcontractor price with blank Unit of Measure must appear in the FactBox when the purchase line has a specific UoM.');
+    end;
+
+ 
     local procedure CreateUOMCodeSortingAfter(BaseUOMCode: Code[10]): Code[10]
     var
         UnitOfMeasure: Record "Unit of Measure";

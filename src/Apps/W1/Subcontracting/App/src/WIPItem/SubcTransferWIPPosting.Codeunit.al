@@ -253,7 +253,7 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
 #endif
         WarehouseReceiptLine."Transfer WIP Item" := TransferLine."Transfer WIP Item";
         if WarehouseReceiptLine."Transfer WIP Item" then begin
-            WarehouseReceiptLine.Validate(WarehouseReceiptLine."Qty. Received", TransferLine."Quantity Received");
+            WarehouseReceiptLine.Validate("Qty. Received", TransferLine."Quantity Received");
             TransferLine.CalcFields("Whse. Inbnd. Otsdg. Qty");
             WarehouseReceiptLine.Quantity := TransferLine."Quantity Received" + TransferLine."Qty. in Transit" - TransferLine."Whse. Inbnd. Otsdg. Qty";
             WarehouseReceiptLine."Qty. (Base)" := 0;
