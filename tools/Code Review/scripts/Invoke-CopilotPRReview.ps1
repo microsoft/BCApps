@@ -1038,6 +1038,109 @@ function Remove-StructuralFences {
     return $sb.ToString()
 }
 
+function Repair-ResumeFenceJson {
+    <#
+    Repairs the interrupted-emission shape where the agent breaks off
+    mid-string — leaving an UNTERMINATED JSON string — and resumes by
+    re-opening a fresh ```json fence WITHOUT emitting a "Placeholder ..."
+    marker. Observed in production (run 28168894037), inside a
+    `suggested-code` value:
+
+        "confidence": "high",
+        "suggested-code": "    ODataKeyFields =
+                                             <- raw newline(s) inside the string
+        ```json                              <- bare resume fence, no marker
+              "suggested-code": "    ODataKeyFields = SystemId;"
+
+    A raw newline inside a string literal is always invalid JSON, so this
+    shape is unambiguous. A single malformed value like this makes
+    ConvertFrom-Json reject the ENTIRE document, discarding every finding
+    (the run above found 42 issues across 11 sub-skills and posted 0). The
+    broken partial line is discarded and the post-fence resumption spliced in
+    its place; because the agent re-emits the field from its start, the
+    splice de-duplicates naturally.
+
+    This is the third repair path, filling the gap between the other two:
+      - Repair-InterruptedAgentJson keys off the "Placeholder ..." marker,
+        which is absent here.
+      - Remove-StructuralFences removes whole-line fences that sit OUTSIDE a
+        string literal, and deliberately PRESERVES fences inside a string
+        (e.g. a ```al code sample in suggested-code). Here the resume fence
+        sits inside an *unterminated* string, so the conservative
+        fence-stripper must leave it alone — only a string-aware splice keyed
+        off the malformed newline can clear it without harming legitimate
+        in-string fences.
+
+    Conservative by construction: it acts only on a bare ```-fence line that is
+    immediately preceded by a JSON property whose string value was left
+    unterminated (`"key": "...` with an odd count of unescaped quotes) and
+    immediately followed by a re-emission of that SAME `"key":`. That triple
+    signature is what distinguishes the interrupted-emission resume from
+    ordinary CLI transcript noise (shell echoes, tool-call boxes), which also
+    contain stray quotes and fences but never re-emit a matching JSON key
+    across a fence. Callers try the unmodified candidates first, so well-formed
+    output is never altered.
+    #>
+    param([string] $Output)
+    if (-not $Output) { return $Output }
+
+    # Count quotes that are not backslash-escaped. An odd count on a line that
+    # opens a JSON property means the string value was left unterminated.
+    $unescapedQuoteCount = {
+        param([string] $s)
+        $n = 0; $esc = $false
+        foreach ($c in $s.ToCharArray()) {
+            if ($esc) { $esc = $false; continue }
+            if ($c -eq '\') { $esc = $true; continue }
+            if ($c -eq '"') { $n++ }
+        }
+        return $n
+    }
+
+    $result = $Output
+    $maxPasses = 50
+    for ($pass = 0; $pass -lt $maxPasses; $pass++) {
+        $lines = $result -split "`n"
+        $repaired = $false
+
+        for ($li = 0; $li -lt $lines.Count; $li++) {
+            if (($lines[$li].Trim()) -notmatch '^```[A-Za-z0-9]*$') { continue }
+
+            # Nearest non-blank line before the fence: must be a JSON property
+            # whose string value was left unterminated (odd unescaped quotes).
+            $p = $li - 1
+            while ($p -ge 0 -and $lines[$p].Trim().Length -eq 0) { $p-- }
+            if ($p -lt 0) { continue }
+            $before = $lines[$p].Trim()
+            if ($before -notmatch '^"([^"\\]+)"\s*:') { continue }
+            $key = $Matches[1]
+            if (((& $unescapedQuoteCount $before) % 2) -eq 0) { continue }
+
+            # Nearest non-blank line after the fence: must re-emit the same key,
+            # i.e. the model resumed by restarting the interrupted property.
+            $a = $li + 1
+            while ($a -lt $lines.Count -and $lines[$a].Trim().Length -eq 0) { $a++ }
+            if ($a -ge $lines.Count) { continue }
+            $after = $lines[$a].Trim()
+            if ($after -notmatch ('^"' + [regex]::Escape($key) + '"\s*:')) { continue }
+
+            # Discard the broken partial line, the blank lines, and the fence;
+            # keep the re-emission onward. The re-emission re-includes the field
+            # from its start, so the splice de-duplicates naturally.
+            $newLines = [System.Collections.Generic.List[string]]::new()
+            if ($p -gt 0) { for ($x = 0; $x -lt $p; $x++) { $newLines.Add($lines[$x]) | Out-Null } }
+            for ($x = $a; $x -lt $lines.Count; $x++) { $newLines.Add($lines[$x]) | Out-Null }
+            $result = ($newLines -join "`n")
+            $repaired = $true
+            break
+        }
+
+        if (-not $repaired) { break }
+    }
+
+    return $result
+}
+
 function Parse-BCQualityReport {
     <#
     Parses Copilot CLI output into a findings-report. Returns a PSCustomObject:
@@ -1090,19 +1193,64 @@ function Parse-BCQualityReport {
     }
     foreach ($clean in $defenced) { $candidates.Add($clean) | Out-Null }
 
+    # Resume-fence repair: handles the interrupted-emission shape where the
+    # agent breaks off mid-string (leaving an unterminated JSON string) and
+    # resumes by re-opening a bare ```json fence with NO Placeholder marker.
+    # Because the break sits inside an unterminated string, Remove-StructuralFences
+    # (which preserves in-string fences) cannot clear it. Extract candidates from
+    # the repaired text and append them AFTER the originals so clean output is
+    # never disturbed.
+    $resumeRepaired = Repair-ResumeFenceJson -Output $stripped
+    if ($resumeRepaired -ne $stripped) {
+        $resumeCandidates = [System.Collections.Generic.List[string]]::new()
+        foreach ($m in [regex]::Matches($resumeRepaired, '```(?:json)?\s*([\s\S]*?)\s*```')) { $resumeCandidates.Add($m.Groups[1].Value) | Out-Null }
+        foreach ($balanced in (Find-BalancedJsonCandidates -Text $resumeRepaired)) { $resumeCandidates.Add($balanced) | Out-Null }
+        foreach ($candidate in $resumeCandidates) {
+            $candidates.Add($candidate) | Out-Null
+            $clean = Remove-StructuralFences -Text $candidate
+            if ($clean -ne $candidate) { $candidates.Add($clean) | Out-Null }
+        }
+    }
+
+    # A candidate can parse cleanly yet be the WRONG fragment. The transcript
+    # echoes every sub-skill's own JSON report inside ```json fences, and the
+    # top-level findings-report's `findings[]` is itself a large balanced JSON
+    # array. When the full document is unparseable (e.g. a corrupt value deep in
+    # sub-results) the scan happily parses one of those fragments first: a bare
+    # sub-skill report has `findings` but no `sub-results`, and a bare array has
+    # neither — either way the real report is silently dropped (observed in run
+    # 28168894037: 42 findings recovered to 0). Prefer the orchestrator report
+    # shape (exposes `sub-results` or a `dispatch`), then a findings-bearing
+    # object, then any parseable candidate, so leniency is preserved while the
+    # correct fragment always wins.
     $report = $null
+    $shapedReport = $null
+    $fallbackReport = $null
     foreach ($candidate in $candidates) {
         $trimmed = $candidate.Trim()
         if (-not $trimmed) { continue }
+        $parsed = $null
         try {
-            $report = $trimmed | ConvertFrom-Json -ErrorAction Stop
-            break
+            $parsed = $trimmed | ConvertFrom-Json -ErrorAction Stop
         } catch {
             $preview = $trimmed
             if ($preview.Length -gt 200) { $preview = $preview.Substring(0, 200) + '...' }
             $parseErrors.Add("$($_.Exception.Message) | candidate: $preview") | Out-Null
+            continue
         }
+
+        $isObject = $parsed -is [System.Management.Automation.PSCustomObject]
+        $isOrchestratorShaped = $isObject -and (
+            $parsed.PSObject.Properties.Match('sub-results').Count -gt 0 -or
+            $parsed.PSObject.Properties.Match('dispatch').Count -gt 0)
+        if ($isOrchestratorShaped) { $report = $parsed; break }
+        if ($null -eq $shapedReport -and $isObject -and $parsed.PSObject.Properties.Match('findings').Count -gt 0) {
+            $shapedReport = $parsed
+        }
+        if ($null -eq $fallbackReport) { $fallbackReport = $parsed }
     }
+    if ($null -eq $report) { $report = $shapedReport }
+    if ($null -eq $report) { $report = $fallbackReport }
 
     $script:LastParsingErrors = $parseErrors
 
