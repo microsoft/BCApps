@@ -194,6 +194,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         InstructionMgt: Codeunit "Instruction Mgt.";
         SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
         IsHandled: Boolean;
+        NoOfMarkedPurchaseOrders: Integer;
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -205,20 +206,24 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         if IsHandled then
             exit;
 
-        if NoOfCreatedPurchOrder = 0 then
+        CreatedPurchaseHeader.MarkedOnly(true);
+        NoOfMarkedPurchaseOrders := CreatedPurchaseHeader.Count();
+        if NoOfMarkedPurchaseOrders = 0 then begin
+            CreatedPurchaseHeader.MarkedOnly(false);
             exit;
+        end;
+
         if InstructionMgt.IsEnabled(SubcNotificationMgmt.GetShowCreatedSubContPurchOrderCode()) then
-            if InstructionMgt.ShowConfirm(GetPurchOrderCreatedMessage(NoOfCreatedPurchOrder), SubcNotificationMgmt.GetShowCreatedSubContPurchOrderCode()) and
+            if InstructionMgt.ShowConfirm(GetPurchOrderCreatedMessage(NoOfMarkedPurchaseOrders), SubcNotificationMgmt.GetShowCreatedSubContPurchOrderCode()) and
                 GuiAllowed()
-            then begin
-                CreatedPurchaseHeader.MarkedOnly(true);
-                if CreatedPurchaseHeader.Count() > 1 then
+            then
+                if NoOfMarkedPurchaseOrders > 1 then
                     Page.Run(Page::"Purchase Order List", CreatedPurchaseHeader)
                 else
                     if CreatedPurchaseHeader.FindFirst() then
                         PageManagement.PageRun(CreatedPurchaseHeader);
-                CreatedPurchaseHeader.MarkedOnly(false);
-            end;
+
+        CreatedPurchaseHeader.MarkedOnly(false);
     end;
 
     local procedure GetPurchOrderCreatedMessage(NoOfCreatedPurchOrder: Integer): Text
@@ -400,9 +405,8 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         // mark it so the confirmation prompt can still open the affected order.
         if PurchaseLine.FindSet() then
             repeat
-                if PurchaseLine."Quantity Received" = 0 then
-                    if CreatedPurchaseHeader.Get("Purchase Document Type"::Order, PurchaseLine."Document No.") then
-                        CreatedPurchaseHeader.Mark(true);
+                if CreatedPurchaseHeader.Get("Purchase Document Type"::Order, PurchaseLine."Document No.") then
+                    CreatedPurchaseHeader.Mark(true);
             until PurchaseLine.Next() = 0;
     end;
 
@@ -417,7 +421,9 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         PurchaseLine.SetRange("Routing No.", ProdOrderRoutingLine."Routing No.");
         PurchaseLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
         PurchaseLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
-        PurchaseLine.SetLoadFields("Document No.", "Quantity Received");
+        PurchaseLine.SetRange("Planning Flexibility", "Reservation Planning Flexibility"::Unlimited);
+        PurchaseLine.SetRange("Quantity Received", 0);
+        PurchaseLine.SetLoadFields("Document No.");
     end;
 
     local procedure FilterReqLineWithProdOrderAndRtngLine(var RequisitionLine: Record "Requisition Line"; ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line")
