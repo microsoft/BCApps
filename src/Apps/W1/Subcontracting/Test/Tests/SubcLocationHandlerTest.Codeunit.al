@@ -499,6 +499,9 @@ codeunit 139981 "Subc. Location Handler Test"
         PurchaseLine."Routing No." := ProdOrderRtngLine."Routing No.";
         PurchaseLine."Operation No." := ProdOrderRtngLine."Operation No.";
         PurchaseLine."Routing Reference No." := ProdOrderRtngLine."Routing Reference No.";
+        // Mirror SetSubcontractingLineType() since fields are assigned directly (no Validate trigger).
+        // The single routing line created here is the last operation, so the type is LastOperation.
+        PurchaseLine."Subc. Purchase Line Type" := PurchaseLine."Subc. Purchase Line Type"::LastOperation;
         PurchaseLine.Modify();
     end;
 
