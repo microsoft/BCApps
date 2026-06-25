@@ -139,8 +139,8 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         TransferLine.SetCurrentKey("Subc. Purch. Order No.");
         TransferLine.SetRange("Subc. Purch. Order No.", PurchOrderNo);
         TransferLine.SetRange("Subc. Purch. Order Line No.", PurchOrderLineNo);
-        TransferLine.SetFilter("Subc. Operation No.", '%1', '');
-        TransferLine.SetFilter("Subc. Routing No.", '%1', '');
+        TransferLine.SetRange("Subc. Return Order", true);
+        TransferLine.SetRange("Derived From Line No.", 0);
         TransferLine.SetLoadFields(SystemId);
         if TransferLine.IsEmpty() then
             exit('');
@@ -626,7 +626,7 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         SubcontractorPrice.SetRange("Item No.", PurchaseLine."No.");
         SubcontractorPrice.SetRange("Work Center No.", PurchaseLine."Work Center No.");
         SubcontractorPrice.SetRange("Variant Code", PurchaseLine."Variant Code");
-        SubcontractorPrice.SetRange("Unit of Measure Code", PurchaseLine."Unit of Measure Code");
+        SubcontractorPrice.SetFilter("Unit of Measure Code", '%1|%2', PurchaseLine."Unit of Measure Code", '');
         SubcontractorPrice.SetRange("Currency Code", PurchaseLine."Currency Code");
     end;
 
@@ -635,7 +635,7 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         TransferLine.SetCurrentKey("Subc. Purch. Order No.");
         TransferLine.SetRange("Subc. Purch. Order No.", PurchOrderNo);
         TransferLine.SetRange("Subc. Purch. Order Line No.", PurchOrderLineNo);
-        TransferLine.SetFilter("Subc. Operation No.", '<>%1', '');
-        TransferLine.SetFilter("Subc. Routing No.", '<>%1', '');
+        TransferLine.SetRange("Subc. Return Order", false);
+        TransferLine.SetRange("Derived From Line No.", 0);
     end;
 }
