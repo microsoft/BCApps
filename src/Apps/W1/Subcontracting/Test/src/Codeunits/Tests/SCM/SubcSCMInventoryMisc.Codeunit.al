@@ -259,7 +259,7 @@ codeunit 149912 "Subc SCM Inventory Misc."
         UnitOfMeasure: Record "Unit of Measure";
     begin
         LibraryInventory.CreateUnitOfMeasureCode(UnitOfMeasure);
-        UnitOfMeasure.Validate(Description, LibraryUtility.GenerateRandomText(MaxStrLen(UnitOfMeasure.Description)));
+        UnitOfMeasure.Validate(Description, CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(UnitOfMeasure.Description)), 1, MaxStrLen(UnitOfMeasure.Description)));
         UnitOfMeasure.Modify(true);
         LibraryInventory.CreateItemUnitOfMeasure(ItemUnitOfMeasure, ItemNo, UnitOfMeasure.Code, UOMQtyPer);
     end;

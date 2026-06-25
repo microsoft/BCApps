@@ -1030,7 +1030,7 @@ codeunit 149922 "Subc SCM Supply Planning"
     local procedure CalculateSubcontractingWorksheetForBatch(RequisitionWkshName: Record "Requisition Wksh. Name"; WorkCenter: Record "Work Center")
     var
         RequisitionLine: Record "Requisition Line";
-        CalculateSubcontracts: Report Microsoft.Manufacturing.Planning."Subc. Calculate Subcontracts";
+        CalculateSubcontracts: Report Microsoft.Manufacturing.Subcontracting."Subc. Calculate Subcontracts";
     begin
         RequisitionLine.Init();
         RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
