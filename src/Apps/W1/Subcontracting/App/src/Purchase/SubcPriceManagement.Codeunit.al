@@ -118,7 +118,7 @@ codeunit 99001508 "Subc. Price Management"
           RequisitionLine."Qty. per Unit of Measure",
           RequisitionLine."Quantity (Base)");
 
-        PlanningRoutingLine.Validate(PlanningRoutingLine."Direct Unit Cost");
+        PlanningRoutingLine.Validate("Direct Unit Cost");
 
         PlanningRoutingLine.UpdateDatetime();
     end;
@@ -367,8 +367,8 @@ codeunit 99001508 "Subc. Price Management"
 
     local procedure GetPriceByUOM(var SubcontractorPrice: Record "Subcontractor Price"; PriceListQty: Decimal; var PriceListCost: Decimal)
     begin
-        SubcontractorPrice.SetRange(SubcontractorPrice."Minimum Quantity", 0, PriceListQty);
-        SubcontractorPrice.SetRange(SubcontractorPrice."Unit of Measure Code", SubcontractorPrice."Unit of Measure Code");
+        SubcontractorPrice.SetRange("Minimum Quantity", 0, PriceListQty);
+        SubcontractorPrice.SetRange("Unit of Measure Code", SubcontractorPrice."Unit of Measure Code");
         if SubcontractorPrice.FindLast() then begin
             PriceListCost := SubcontractorPrice."Direct Unit Cost";
             if PriceListCost <> 0 then

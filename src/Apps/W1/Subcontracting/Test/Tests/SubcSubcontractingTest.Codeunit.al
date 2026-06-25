@@ -3844,6 +3844,61 @@ codeunit 139989 "Subc. Subcontracting Test"
         CreateItem(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", RoutingHeader."No.", ProductionBOMHeader."No.");
     end;
 
+    local procedure CreateItemWithNonLastSubcontractingOperation(var Item: Record Item; var SubcWorkCenter: Record "Work Center")
+    var
+        CapacityUnitOfMeasure: Record "Capacity Unit of Measure";
+        ComponentItem1: Record Item;
+        ComponentItem2: Record Item;
+        LastWorkCenter: Record "Work Center";
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        ShopCalendarCode: Code[10];
+        LastWorkCenterNo: Code[20];
+        WorkCenterNo: Code[20];
+    begin
+        LibraryManufacturing.CreateCapacityUnitOfMeasure(CapacityUnitOfMeasure, "Capacity Unit of Measure"::Minutes);
+        ShopCalendarCode := LibraryManufacturing.UpdateShopCalendarWorkingDays();
+
+        // Subcontracting work center for the first operation, which must not be the last operation so the item charge is
+        // posted against the work center capacity (capacity ledger entry) instead of the produced item's output entry.
+        CreateWorkCenter(WorkCenterNo, ShopCalendarCode, "Flushing Method"::"Pick + Manual", true, UnitCostCalculation, '');
+        SubcWorkCenter.Get(WorkCenterNo);
+        LibraryManufacturing.CalculateWorkCenterCalendar(SubcWorkCenter, CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+
+        // Regular (non-subcontracting) work center for the last operation
+        CreateWorkCenter(LastWorkCenterNo, ShopCalendarCode, "Flushing Method"::"Pick + Manual", false, UnitCostCalculation, '');
+        LastWorkCenter.Get(LastWorkCenterNo);
+        LibraryManufacturing.CalculateWorkCenterCalendar(LastWorkCenter, CalcDate('<-CY-1Y>', WorkDate()), CalcDate('<CM>', WorkDate()));
+
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+
+        // Operation 10 - subcontracting work center (not the last operation)
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '10', RoutingLine.Type::"Work Center", SubcWorkCenter."No.");
+        RoutingLine.Validate("Setup Time", LibraryRandom.RandInt(5));
+        RoutingLine.Validate("Run Time", LibraryRandom.RandInt(5));
+        RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
+        RoutingLine.Validate("Setup Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
+        RoutingLine.Modify(true);
+
+        // Operation 20 - regular work center (the last operation)
+        LibraryManufacturing.CreateRoutingLine(RoutingHeader, RoutingLine, '', '20', RoutingLine.Type::"Work Center", LastWorkCenter."No.");
+        RoutingLine.Validate("Setup Time", LibraryRandom.RandInt(5));
+        RoutingLine.Validate("Run Time", LibraryRandom.RandInt(5));
+        RoutingLine.Validate("Run Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
+        RoutingLine.Validate("Setup Time Unit of Meas. Code", CapacityUnitOfMeasure.Code);
+        RoutingLine.Modify(true);
+
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        LibraryInventory.CreateItem(ComponentItem1);
+        LibraryInventory.CreateItem(ComponentItem2);
+        LibraryManufacturing.CreateCertifProdBOMWithTwoComp(ProductionBOMHeader, ComponentItem1."No.", ComponentItem2."No.", 1);
+
+        CreateItem(Item, "Costing Method"::FIFO, "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual", RoutingHeader."No.", ProductionBOMHeader."No.");
+    end;
+
     local procedure UpdateVendorWithSubcontractingLocationCode(WorkCenter: Record "Work Center")
     var
         Location: Record Location;
@@ -4475,34 +4530,29 @@ codeunit 139989 "Subc. Subcontracting Test"
     procedure CancelInvoiceWithSubcontractingItemChargeIsBlocked()
     var
         Item: Record Item;
-        RegularItem: Record Item;
         ProductionOrder: Record "Production Order";
         SubcWorkCenter: Record "Work Center";
         SubcPurchaseHeader: Record "Purchase Header";
         SubcPurchaseLine: Record "Purchase Line";
-        RegularPurchaseHeader: Record "Purchase Header";
-        RegularPurchaseLine: Record "Purchase Line";
         SubcPurchRcptLine: Record "Purch. Rcpt. Line";
-        RegPurchRcptLine: Record "Purch. Rcpt. Line";
         ItemCharge: Record "Item Charge";
         ItemChargeInvHeader: Record "Purchase Header";
         ItemChargeInvLine: Record "Purchase Line";
         PurchInvHeader: Record "Purch. Inv. Header";
         CorrectPostedPurchInvoice: Codeunit "Correct Posted Purch. Invoice";
         PostedInvoiceNo: Code[20];
-        SubcVendorNo: Code[20];
     begin
-        // [SCENARIO 637502] Cancelling a Posted Purchase Invoice whose Item Charge is split between a regular item receipt
-        // line and a subcontracting service receipt line must be blocked. Letting the cancel run today silently skips the
-        // capacity portion (Value Entry has Item Ledger Entry No. = 0) and redistributes it to inventory, corrupting cost.
-        // Until a proper reversal path exists, the Subcontracting App blocks the cancel with a clear error so the user
-        // creates a corrective credit memo manually.
+        // [SCENARIO 637502] Cancelling a Posted Purchase Invoice whose Item Charge is assigned to a subcontracting service
+        // receipt line must be blocked. Letting the cancel run today silently skips the capacity portion (Value Entry has
+        // Item Ledger Entry No. = 0) and redistributes it to inventory, corrupting cost. Until a proper reversal path exists,
+        // the Subcontracting App blocks the cancel with a clear error so the user creates a corrective credit memo manually.
 
-        // [GIVEN] Subcontracting setup with a single-operation subcontracting routing on Item
+        // [GIVEN] Subcontracting setup with a routing whose subcontracting operation is not the last operation, so the
+        // item charge is booked against the work center capacity
         Initialize();
         Subcontracting := true;
         UnitCostCalculation := UnitCostCalculation::Units;
-        CreateItemWithSingleSubcontractingOperation(Item, SubcWorkCenter);
+        CreateItemWithNonLastSubcontractingOperation(Item, SubcWorkCenter);
         SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(SubcWorkCenter);
 
         // [GIVEN] Released production order and a subcontracting purchase order received in full
@@ -4519,7 +4569,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcPurchaseLine.FindFirst();
         SubcPurchaseHeader.Get(SubcPurchaseLine."Document Type", SubcPurchaseLine."Document No.");
         EnsureGeneralPostingSetupIsValid(SubcPurchaseLine."Gen. Bus. Posting Group", SubcPurchaseLine."Gen. Prod. Posting Group");
-        SubcVendorNo := SubcPurchaseHeader."Buy-from Vendor No.";
 
         LibraryPurchase.PostPurchaseDocument(SubcPurchaseHeader, true, false);
 
@@ -4527,28 +4576,14 @@ codeunit 139989 "Subc. Subcontracting Test"
         SubcPurchRcptLine.SetRange("Order Line No.", SubcPurchaseLine."Line No.");
         SubcPurchRcptLine.FindFirst();
 
-        // [GIVEN] A separate regular purchase order for the same vendor that receives a normal inventory item
-        LibraryInventory.CreateItem(RegularItem);
-        LibraryPurchase.CreatePurchHeader(RegularPurchaseHeader, RegularPurchaseHeader."Document Type"::Order, SubcVendorNo);
-        LibraryPurchase.CreatePurchaseLineWithUnitCost(
-            RegularPurchaseLine, RegularPurchaseHeader, RegularItem."No.",
-            LibraryRandom.RandDecInRange(50, 100, 2), LibraryRandom.RandIntInRange(2, 5));
-        EnsureGeneralPostingSetupIsValid(RegularPurchaseLine."Gen. Bus. Posting Group", RegularPurchaseLine."Gen. Prod. Posting Group");
-        LibraryPurchase.PostPurchaseDocument(RegularPurchaseHeader, true, false);
-
-        RegPurchRcptLine.SetRange("Order No.", RegularPurchaseHeader."No.");
-        RegPurchRcptLine.SetRange("Order Line No.", RegularPurchaseLine."Line No.");
-        RegPurchRcptLine.FindFirst();
-
-        // [GIVEN] A purchase invoice with a single Item Charge line of quantity 2 allocated 1:1 across both receipt lines
+        // [GIVEN] A separate purchase invoice with a single Item Charge line assigned to the subcontracting receipt line
         LibraryInventory.CreateItemCharge(ItemCharge);
-        LibraryPurchase.CreatePurchHeader(ItemChargeInvHeader, ItemChargeInvHeader."Document Type"::Invoice, SubcVendorNo);
-        LibraryPurchase.CreatePurchaseLine(ItemChargeInvLine, ItemChargeInvHeader, ItemChargeInvLine.Type::"Charge (Item)", ItemCharge."No.", 2);
+        LibraryPurchase.CreatePurchHeader(ItemChargeInvHeader, ItemChargeInvHeader."Document Type"::Invoice, '');
+        LibraryPurchase.CreatePurchaseLine(ItemChargeInvLine, ItemChargeInvHeader, ItemChargeInvLine.Type::"Charge (Item)", ItemCharge."No.", 1);
         ItemChargeInvLine.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(100, 200, 2));
         ItemChargeInvLine.Modify(true);
         EnsureGeneralPostingSetupIsValid(ItemChargeInvLine."Gen. Bus. Posting Group", ItemChargeInvLine."Gen. Prod. Posting Group");
 
-        AssignItemChargeToReceiptLine(ItemChargeInvLine, RegPurchRcptLine, 1);
         AssignItemChargeToReceiptLine(ItemChargeInvLine, SubcPurchRcptLine, 1);
 
         // [GIVEN] The invoice is posted
@@ -4561,6 +4596,81 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [THEN] The Subcontracting App blocks the cancel with the dedicated error
         Assert.ExpectedError('contains item charges assigned to a subcontracting order receipt');
+    end;
+
+    [Test]
+    procedure GetReceiptLinesBlocksSubcontractingReceiptLine()
+    var
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        InvoiceHeader: Record "Purchase Header";
+        Vendor: Record Vendor;
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+    begin
+        // [SCENARIO 632785] Copying a subcontracting service receipt line into a separate purchase document is not
+        // supported (Direct Unit Cost, Gen. Prod. Posting Group, etc. are not transferred) and must be blocked.
+
+        // [GIVEN] A purchase invoice and a posted subcontracting receipt line linked to a production order
+        Initialize();
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
+        MockSubcontractingPurchRcptLine(PurchRcptLine, false);
+
+        // [WHEN] Getting the subcontracting receipt line into the invoice
+        PurchRcptLine.SetRecFilter();
+        PurchGetReceipt.SetPurchHeader(InvoiceHeader);
+        asserterror PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
+        // [THEN] It is blocked
+        Assert.ExpectedError('subcontracting receipt lines');
+    end;
+
+    [Test]
+    procedure AssignItemChargeToUndoneSubcontractingReceiptIsBlocked()
+    var
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
+        ItemChargeAssgntPurch: Codeunit "Item Charge Assgnt. (Purch.)";
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        // [SCENARIO 637503] Assigning an item charge to a subcontracting receipt line that has been undone must be blocked,
+        // otherwise posting it would book the capacity cost onto the original entry while the undo entry stays at 0.
+
+        // [GIVEN] An undone subcontracting receipt line
+        Initialize();
+        MockSubcontractingPurchRcptLine(PurchRcptLine, true);
+
+        // [GIVEN] An item charge assignment context on a purchase invoice line
+        ItemChargeAssignmentPurch."Document Type" := ItemChargeAssignmentPurch."Document Type"::Invoice;
+        ItemChargeAssignmentPurch."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ItemChargeAssignmentPurch."Document No."));
+        ItemChargeAssignmentPurch."Document Line No." := 10000;
+        ItemChargeAssignmentPurch."Line No." := 10000;
+
+        // [WHEN] Assigning the item charge to the undone receipt line
+        PurchRcptLine.SetRecFilter();
+        asserterror ItemChargeAssgntPurch.CreateRcptChargeAssgnt(PurchRcptLine, ItemChargeAssignmentPurch);
+
+        // [THEN] It is blocked
+        Assert.ExpectedError('has been undone');
+    end;
+
+    local procedure MockSubcontractingPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; Undone: Boolean)
+    var
+        Item: Record Item;
+        LibraryUtility: Codeunit "Library - Utility";
+    begin
+        LibraryInventory.CreateItem(Item);
+        PurchRcptLine.Init();
+        PurchRcptLine."Document No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchRcptLine."Document No."));
+        PurchRcptLine."Line No." := 10000;
+        PurchRcptLine.Type := PurchRcptLine.Type::Item;
+        PurchRcptLine."No." := Item."No.";
+        PurchRcptLine."Prod. Order No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchRcptLine."Prod. Order No."));
+        PurchRcptLine."Routing No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(PurchRcptLine."Routing No."));
+        PurchRcptLine."Operation No." := '10';
+        PurchRcptLine.Quantity := LibraryRandom.RandIntInRange(5, 10);
+        PurchRcptLine."Qty. Rcd. Not Invoiced" := PurchRcptLine.Quantity;
+        PurchRcptLine.Correction := Undone;
+        PurchRcptLine.Insert();
     end;
 
     local procedure Initialize()
