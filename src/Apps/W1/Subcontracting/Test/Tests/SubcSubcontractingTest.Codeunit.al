@@ -3323,13 +3323,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         end;
     end;
 
-    [ModalPageHandler]
-    procedure GetOrderLinesPurchaseLinesPageHandler(var PurchaseLines: TestPage "Purchase Lines")
-    begin
-        Assert.IsFalse(PurchaseLines.First(), 'Subcontracting purchase order lines must be excluded from the Get Order Lines selection.');
-        PurchaseLines.Cancel().Invoke();
-    end;
-
     [ConfirmHandler]
     procedure RoutingLinkCodeDuplicateConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
@@ -4219,41 +4212,6 @@ codeunit 139989 "Subc. Subcontracting Test"
 
         // [THEN] It is blocked
         Assert.ExpectedError('subcontracting receipt lines');
-    end;
-
-    [Test]
-    [HandlerFunctions('GetOrderLinesPurchaseLinesPageHandler')]
-    procedure GetOrderLinesExcludesSubcontractingPurchaseOrderLines()
-    var
-        OrderHeader: Record "Purchase Header";
-        OrderLine: Record "Purchase Line";
-        InvoiceHeader: Record "Purchase Header";
-        InvoiceLine: Record "Purchase Line";
-        Item: Record Item;
-        Vendor: Record Vendor;
-        MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
-        LibraryUtility: Codeunit "Library - Utility";
-    begin
-        // [SCENARIO 632785] Subcontracting purchase order lines must not appear in the Get Order Lines selection on a
-        // separate purchase invoice, because invoicing them there is not supported.
-
-        // [GIVEN] A purchase order line linked to a production order, received but not invoiced
-        Initialize();
-        LibraryPurchase.CreateVendor(Vendor);
-        LibraryInventory.CreateItem(Item);
-        LibraryPurchase.CreatePurchHeader(OrderHeader, OrderHeader."Document Type"::Order, Vendor."No.");
-        LibraryPurchase.CreatePurchaseLine(OrderLine, OrderHeader, OrderLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(5, 10));
-        OrderLine."Qty. Rcd. Not Invoiced" := OrderLine.Quantity;
-        OrderLine."Prod. Order No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(OrderLine."Prod. Order No."));
-        OrderLine.Modify();
-
-        // [GIVEN] A separate purchase invoice for the same vendor
-        LibraryPurchase.CreatePurchHeader(InvoiceHeader, InvoiceHeader."Document Type"::Invoice, Vendor."No.");
-        InvoiceLine."Document Type" := InvoiceHeader."Document Type";
-        InvoiceLine."Document No." := InvoiceHeader."No.";
-
-        // [WHEN] Running Get Order Lines [THEN] the page handler verifies the subcontracting order line is not offered
-        MatchedOrderLineMgmt.GetPurchaseOrderLines(InvoiceLine);
     end;
 
     [Test]

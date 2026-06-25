@@ -53,18 +53,6 @@ codeunit 99001535 "Subc. Purch. Post Ext"
             Error(GetSubcontractingRcptNotSupportedErr);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Matched Order Line Mgmt.", OnGetPurchaseOrderLinesOnAfterSetPurchaseLineOrderFilters, '', false, false)]
-    local procedure ExcludeSubcontractingLinesOnGetPurchaseOrderLines(var PurchaseLineOrder: Record "Purchase Line"; PurchaseHeaderInvoice: Record "Purchase Header")
-    begin
-#if not CLEAN29
-#pragma warning disable AL0432
-        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-#pragma warning restore AL0432
-            exit;
-#endif
-        PurchaseLineOrder.SetRange("Prod. Order No.", '');
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch. Invoice", OnAfterTestCorrectInvoiceIsAllowed, '', false, false)]
     local procedure BlockCancelIfHasSubcontractingItemChargeValueEntry(var PurchInvHeader: Record "Purch. Inv. Header"; Cancelling: Boolean)
     var
