@@ -17,6 +17,7 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 
 codeunit 99001508 "Subc. Price Management"
 {
@@ -564,6 +565,8 @@ codeunit 99001508 "Subc. Price Management"
     end;
 
     local procedure SetSubcontractorPriceForPriceCalculation(var SubcontractorPrice: Record "Subcontractor Price"; VendorNo: Code[20]; ItemNo: Code[20]; VariantCode: Code[10]; StandardTaskCode: Code[10]; WorkCenterNo: Code[20]; UoM: Code[10]; StartingDate: Date)
+    var
+        Vendor: Record Vendor;
     begin
         SubcontractorPrice."Vendor No." := VendorNo;
         SubcontractorPrice."Item No." := ItemNo;
@@ -572,7 +575,11 @@ codeunit 99001508 "Subc. Price Management"
         SubcontractorPrice."Variant Code" := VariantCode;
         SubcontractorPrice."Unit of Measure Code" := UoM;
         SubcontractorPrice."Starting Date" := StartingDate;
-        SubcontractorPrice."Currency Code" := '';
+        Vendor.SetLoadFields("Currency Code");
+        if Vendor.Get(VendorNo) then
+            SubcontractorPrice."Currency Code" := Vendor."Currency Code"
+        else
+            SubcontractorPrice."Currency Code" := '';
     end;
 
     local procedure GetQuantityBase(var PurchaseLine: Record "Purchase Line"): Decimal

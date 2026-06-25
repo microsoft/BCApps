@@ -54,11 +54,14 @@ The `DownloadProjectDependencies` action now downloads only artifacts from depen
 
 ### Issues
 
+- Issue 2277 Auto-exclude the `copilot` GitHub environment from CI/CD deployments. When the GitHub Copilot coding agent is enabled on a repository, GitHub auto-creates an environment named `copilot`. AL-Go now treats it the same way as `github-pages` and never attempts to deploy to it.
+- Issue 2236 - `GetDependencies` `buildMode` prefix leaks across dependency iterations, causing incorrect artifact mask names when multiple `appDependencyProbingPaths` entries use different build modes
 - Incremental builds (`modifiedApps` mode) now correctly identify unmodified apps for projects whose `appFolders` reference paths outside the project directory (e.g. using `../`)
 - Issue 2204 - Workspace compilation ignores vsixFile setting
 - Issue 2211 - Cannot create a release if a project contains only test apps
 - Issue 2214 - Workspace compilation not working with external dependencies
 - Issue 2235 - Workspace compilation: only the first `customCodeCops` entry resolved when multiple relative paths were configured. Relative `customCodeCops` paths are now resolved against the project folder before being passed to the compiler.
+- Issue 2265 - Creating a Performance Test App fails on Linux due to case-sensitive path lookup for the Performance Toolkit sample app
 
 ## v9.0
 

@@ -40,7 +40,8 @@ codeunit 99001541 "Subc. Transfer WIP Posting"
             exit;
 #endif
         if TempTransferLine."Transfer WIP Item" then begin
-            TransferLine.Validate("Transfer WIP Item", TempTransferLine."Transfer WIP Item");
+            if not TransferLine."Transfer WIP Item" then
+                TransferLine.Validate("Transfer WIP Item", TempTransferLine."Transfer WIP Item");
             TransferLine.UpdateDescriptions();
         end;
     end;
