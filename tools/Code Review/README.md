@@ -93,6 +93,16 @@ Every inline finding includes:
   `agent_domain`, `agent_finding`) used by the dedup logic on
   subsequent iterations.
 
+When a finding carries a concrete fix, the orchestrator renders it as a
+GitHub ```suggestion``` block. Because such a block replaces *exactly* the
+line(s) its comment is anchored to, the suggested code is matched against the
+PR-head file to re-derive the correct RIGHT-side span: a single-line fix is
+snapped onto the line it actually rewrites, and a fix that edits a multi-line
+construct is posted as a multi-line comment over the whole span (so an
+inserted property lands in place instead of duplicating the surrounding
+lines). If the fix cannot be anchored with confidence the applicable block is
+dropped and the change is shown as a manual, non-applicable snippet.
+
 ## Per-PR summary comment
 
 Marker: `<!-- copilot-pr-review-summary -->`. Upserted once per
