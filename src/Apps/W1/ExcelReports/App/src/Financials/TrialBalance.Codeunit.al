@@ -263,7 +263,9 @@ codeunit 4410 "Trial Balance"
             TrialBalanceData.SetRange("G/L Account No.", EXRTrialBalanceQuery.AccountNumber);
             TrialBalanceData.SetRange("Dimension 1 Code", EXRTrialBalanceQuery.DimensionValue1Code);
             TrialBalanceData.SetRange("Dimension 2 Code", EXRTrialBalanceQuery.DimensionValue2Code);
-            if not TrialBalanceData.FindFirst() then begin // This shouldn't happen, but we consider it regardless
+            if not TrialBalanceData.FindFirst() then begin
+                // The combination nets to zero at the end date, so the first pass skipped it as All Zero, but it still has an opening balance here.
+                TrialBalanceData.Init();
                 TrialBalanceData."G/L Account No." := EXRTrialBalanceQuery.AccountNumber;
                 TrialBalanceData."Dimension 1 Code" := EXRTrialBalanceQuery.DimensionValue1Code;
                 TrialBalanceData."Dimension 2 Code" := EXRTrialBalanceQuery.DimensionValue2Code;
@@ -333,6 +335,8 @@ codeunit 4410 "Trial Balance"
             TrialBalanceData.SetRange("Dimension 2 Code", EXRTrialBalanceBUQuery.DimensionValue2Code);
             TrialBalanceData.SetRange("Business Unit Code", EXRTrialBalanceBUQuery.BusinessUnitCode);
             if not TrialBalanceData.FindFirst() then begin
+                // The combination nets to zero at the end date, so the first pass skipped it as All Zero, but it still has an opening balance here.
+                TrialBalanceData.Init();
                 TrialBalanceData."G/L Account No." := EXRTrialBalanceBUQuery.AccountNumber;
                 TrialBalanceData."Dimension 1 Code" := EXRTrialBalanceBUQuery.DimensionValue1Code;
                 TrialBalanceData."Dimension 2 Code" := EXRTrialBalanceBUQuery.DimensionValue2Code;
