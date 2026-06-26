@@ -5,9 +5,7 @@
 namespace Microsoft.eServices.EDocument;
 
 using Microsoft.Bank.Reconciliation;
-#if not CLEAN26
 using Microsoft.eServices.EDocument.Processing.Import;
-#endif
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -433,19 +431,26 @@ codeunit 6109 "E-Document Import Helper"
     /// <returns>Vendor number if exists or empty string.</returns>
     procedure FindVendor(VendorNoText: Code[20]; GLN: Code[13]; VATRegistrationNo: Text[20]): Code[20]
     var
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         VendorNo: Code[20];
     begin
         VendorNo := FindVendorByNo(VendorNoText);
-        if VendorNo <> '' then
+        if VendorNo <> '' then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'No');
             exit(VendorNo);
+        end;
 
         VendorNo := FindVendorByGLN(GLN);
-        if VendorNo <> '' then
+        if VendorNo <> '' then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'GLN');
             exit(VendorNo);
+        end;
 
         VendorNo := FindVendorByVATRegistrationNo(VATRegistrationNo);
-        if VendorNo <> '' then
+        if VendorNo <> '' then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'VAT Id');
             exit(VendorNo);
+        end;
     end;
 
     /// <summary>
@@ -566,9 +571,11 @@ codeunit 6109 "E-Document Import Helper"
         Vendor: Record Vendor;
         RecordMatchMgt: Codeunit "Record Match Mgt.";
         EDocumentNotification: Codeunit "E-Document Notification";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         NameNearness: Integer;
         AddressNearness: Integer;
         MatchedByAddress: Boolean;
+        NameOnlyCandidateFound: Boolean;
     begin
         Vendor.SetCurrentKey(Blocked);
         Vendor.SetLoadFields(Name, Address);
@@ -583,10 +590,14 @@ codeunit 6109 "E-Document Import Helper"
                     MatchedByAddress := AddressNearness >= RequiredNearness();
                     if MatchedByAddress then
                         exit(Vendor."No.");
+                    NameOnlyCandidateFound := true;
                     if EDocEntryNoForNotification <> 0 then
                         EDocumentNotification.AddVendorMatchedByNameNotAddressNotification(EDocEntryNoForNotification);
                 end;
             until Vendor.Next() = 0;
+
+        if NameOnlyCandidateFound then
+            EDocImpSessionTelemetry.SetBool('Vendor Matched By Name Not Address', true);
     end;
 
     /// <summary>
