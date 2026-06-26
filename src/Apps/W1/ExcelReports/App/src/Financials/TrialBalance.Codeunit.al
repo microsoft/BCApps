@@ -247,9 +247,11 @@ codeunit 4410 "Trial Balance"
             TrialBalanceData."Net Change (ACY)" := EXRTrialBalanceQuery.ACYAmount;
             TrialBalanceData."Net Change (Debit) (ACY)" := EXRTrialBalanceQuery.ACYDebitAmount;
             TrialBalanceData."Net Change (Credit) (ACY)" := EXRTrialBalanceQuery.ACYCreditAmount;
-            // Insert every combination the query returns, including ones that net to zero at the end date, so their
-            // debit/credit splits survive for the second pass to adjust. All-zero rows are removed at the end.
+            // Every combination the query returns has entries, so it represents real activity and is kept even when it
+            // nets to zero. The second pass adjusts any that also have an opening balance.
             TrialBalanceData.Insert(true);
+            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
+            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
         end;
         EXRTrialBalanceQuery.Close();
 
@@ -283,9 +285,9 @@ codeunit 4410 "Trial Balance"
             TrialBalanceData."Net Change (Debit) (ACY)" := TrialBalanceData."Net Change (Debit) (ACY)" - EXRTrialBalanceQuery.ACYDebitAmount;
             TrialBalanceData."Net Change (Credit) (ACY)" := TrialBalanceData."Net Change (Credit) (ACY)" - EXRTrialBalanceQuery.ACYCreditAmount;
             TrialBalanceData.Modify();
+            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
+            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
         end;
-
-        RemoveAllZeroRowsAndRegisterDimensions(TrialBalanceData, Dimension1Values, Dimension2Values);
     end;
 
     local procedure InsertTrialBalanceFromBUQuery(var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer"; StartDate: Date; EndDate: Date; AccountNoFilter: Text)
@@ -314,9 +316,11 @@ codeunit 4410 "Trial Balance"
             TrialBalanceData."Net Change (ACY)" := EXRTrialBalanceBUQuery.ACYAmount;
             TrialBalanceData."Net Change (Debit) (ACY)" := EXRTrialBalanceBUQuery.ACYDebitAmount;
             TrialBalanceData."Net Change (Credit) (ACY)" := EXRTrialBalanceBUQuery.ACYCreditAmount;
-            // Insert every combination the query returns, including ones that net to zero at the end date, so their
-            // debit/credit splits survive for the second pass to adjust. All-zero rows are removed at the end.
+            // Every combination the query returns has entries, so it represents real activity and is kept even when it
+            // nets to zero. The second pass adjusts any that also have an opening balance.
             TrialBalanceData.Insert(true);
+            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
+            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
         end;
         EXRTrialBalanceBUQuery.Close();
 
@@ -350,32 +354,9 @@ codeunit 4410 "Trial Balance"
             TrialBalanceData."Net Change (Debit) (ACY)" := TrialBalanceData."Net Change (Debit) (ACY)" - EXRTrialBalanceBUQuery.ACYDebitAmount;
             TrialBalanceData."Net Change (Credit) (ACY)" := TrialBalanceData."Net Change (Credit) (ACY)" - EXRTrialBalanceBUQuery.ACYCreditAmount;
             TrialBalanceData.Modify();
+            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
+            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
         end;
-
-        RemoveAllZeroRowsAndRegisterDimensions(TrialBalanceData, Dimension1Values, Dimension2Values);
-    end;
-
-    local procedure RemoveAllZeroRowsAndRegisterDimensions(var TrialBalanceData: Record "EXR Trial Balance Buffer"; var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary)
-    begin
-        // The first query pass inserts every combination that has entries (so the debit/credit splits survive the
-        // second pass), including ones that net to zero. Now that the net change is final, drop the combinations with
-        // no activity and register the dimension values used by the rows we keep.
-        TrialBalanceData.Reset();
-        if TrialBalanceData.FindSet() then
-            repeat
-                TrialBalanceData.CheckAllZero();
-                TrialBalanceData.Modify();
-            until TrialBalanceData.Next() = 0;
-
-        TrialBalanceData.SetRange("All Zero", true);
-        TrialBalanceData.DeleteAll();
-        TrialBalanceData.SetRange("All Zero");
-
-        if TrialBalanceData.FindSet() then
-            repeat
-                InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
-                InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
-            until TrialBalanceData.Next() = 0;
     end;
 
     local procedure BuildAccountToTotalsMap(AccountNoFilter: Text; var AccountToTotals: Dictionary of [Code[20], List of [Code[20]]])

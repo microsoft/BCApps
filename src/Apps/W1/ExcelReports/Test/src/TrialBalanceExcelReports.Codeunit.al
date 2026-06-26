@@ -641,24 +641,27 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
     [Test]
-    procedure QueryPathSkipsAllZeroRecords()
+    procedure QueryPathIncludesAccountsThatNetToZero()
     var
         GLAccount: Record "G/L Account";
         TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
         TrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         ZeroAccount, NonZeroAccount : Code[20];
+        GrossAmount: Decimal;
     begin
-        // [SCENARIO] Accounts with entries that sum to zero are not included in the buffer.
-        // [GIVEN] One account with cancelling entries (net zero) and another with a non-zero balance
+        // [SCENARIO] Accounts that have entries are included even when they net to zero. The query only returns
+        // accounts with activity, so a zero net change still represents real (offsetting) turnover worth showing.
+        // [GIVEN] One account with cancelling entries (net zero, gross turnover) and another with a non-zero balance
         Initialize();
         LibraryERM.CreateGLAccount(GLAccount);
         ZeroAccount := GLAccount."No.";
         LibraryERM.CreateGLAccount(GLAccount);
         NonZeroAccount := GLAccount."No.";
 
-        CreateGLEntryWithAmount(ZeroAccount, '', '', '', WorkDate(), 500);
-        CreateGLEntryWithAmount(ZeroAccount, '', '', '', WorkDate(), -500);
+        GrossAmount := 500;
+        CreateGLEntryWithAmount(ZeroAccount, '', '', '', WorkDate(), GrossAmount);
+        CreateGLEntryWithAmount(ZeroAccount, '', '', '', WorkDate(), -GrossAmount);
         CreateGLEntryWithAmount(NonZeroAccount, '', '', '', WorkDate(), 100);
 
         // [WHEN] Running the trial balance
@@ -667,49 +670,46 @@ codeunit 139544 "Trial Balance Excel Reports"
         TrialBalance.ConfigureTrialBalance(false, false);
         TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
-        // [THEN] Only the non-zero account appears
-        Assert.AreEqual(1, TrialBalanceData.Count(), 'Only the non-zero account should be in the buffer');
-        TrialBalanceData.FindFirst();
-        Assert.AreEqual(NonZeroAccount, TrialBalanceData."G/L Account No.", 'The non-zero account should be the one returned');
+        // [THEN] Both accounts are in the buffer
+        Assert.AreEqual(2, TrialBalanceData.Count(), 'Both accounts with entries should be in the buffer');
+        // [THEN] The net-zero account is present with zero net change and balance, but its gross turnover is reported
+        TrialBalanceData.SetRange("G/L Account No.", ZeroAccount);
+        Assert.IsTrue(TrialBalanceData.FindFirst(), 'The net-zero account should be included');
+        Assert.AreEqual(0, TrialBalanceData."Net Change", 'Net Change should be zero');
+        Assert.AreEqual(0, TrialBalanceData.Balance, 'Balance should be zero');
+        Assert.AreEqual(GrossAmount, TrialBalanceData."Net Change (Debit)", 'Gross debit turnover should be reported');
+        Assert.AreEqual(GrossAmount, TrialBalanceData."Net Change (Credit)", 'Gross credit turnover should be reported');
     end;
 
     [Test]
     procedure QueryPathReportsCorrectDebitCreditSplitsForZeroEndBalance()
     var
-        GLAccount, KeptAccount, DroppedAccount : Record "G/L Account";
+        GLAccount, KeptAccount : Record "G/L Account";
         TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
         TempTrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
-        OpeningDebit, OffsettingAmount : Decimal;
+        OpeningDebit: Decimal;
         PriorYear: Integer;
     begin
-        // [SCENARIO] Combinations that net to zero at the end date are inserted by the first pass (instead of being
-        // dropped as All Zero) so the second pass can produce correct debit/credit splits. Combinations with no net
-        // activity at all are then removed, while those with period activity are kept with correct gross columns.
+        // [SCENARIO] A combination that nets to zero at the end date but has period activity keeps correct debit/credit
+        // splits: the first pass inserts it (carrying the end-date totals) so the second pass can subtract the opening.
         Initialize();
         PriorYear := Date2DMY(WorkDate(), 3) - 1;
         OpeningDebit := 1000;
-        OffsettingAmount := 500;
 
         // [GIVEN] An account whose opening debit is fully reversed by a credit within the period (net-zero end, period activity)
         CreateGLAccount(KeptAccount);
         CreateGLEntryWithAmount(KeptAccount."No.", '', '', '', DMY2Date(15, 6, PriorYear), OpeningDebit);
         CreateGLEntryWithAmount(KeptAccount."No.", '', '', '', DMY2Date(15, 6, Date2DMY(WorkDate(), 3)), -OpeningDebit);
 
-        // [GIVEN] An account with only offsetting opening turnover and no period activity (net-zero everything)
-        CreateGLAccount(DroppedAccount);
-        CreateGLEntryWithAmount(DroppedAccount."No.", '', '', '', DMY2Date(15, 6, PriorYear), OffsettingAmount);
-        CreateGLEntryWithAmount(DroppedAccount."No.", '', '', '', DMY2Date(15, 6, PriorYear), -OffsettingAmount);
-
         // [WHEN] Running the query-based trial balance for the current year
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
         TrialBalance.ConfigureTrialBalance(false, false);
         TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
 
-        // [THEN] The active combination is kept with correct net AND gross debit/credit columns
-        TempTrialBalanceData.Reset();
+        // [THEN] The combination is present with correct net AND gross debit/credit columns
         TempTrialBalanceData.SetRange("G/L Account No.", KeptAccount."No.");
-        Assert.IsTrue(TempTrialBalanceData.FindFirst(), 'Buffer record should exist; the combination has period activity');
+        Assert.IsTrue(TempTrialBalanceData.FindFirst(), 'Buffer record should exist for the net-zero-at-end combination');
         Assert.AreEqual(OpeningDebit, TempTrialBalanceData."Starting Balance", 'Starting Balance should equal the opening debit');
         Assert.AreEqual(-OpeningDebit, TempTrialBalanceData."Net Change", 'Net Change should reverse the opening');
         Assert.AreEqual(0, TempTrialBalanceData.Balance, 'Balance should net to zero at the end date');
@@ -718,11 +718,6 @@ codeunit 139544 "Trial Balance Excel Reports"
         Assert.AreEqual(OpeningDebit, TempTrialBalanceData."Net Change (Credit)", 'Period credit turnover equals the reversal');
         Assert.AreEqual(OpeningDebit, TempTrialBalanceData."Balance (Debit)", 'Cumulative debit at the end date');
         Assert.AreEqual(OpeningDebit, TempTrialBalanceData."Balance (Credit)", 'Cumulative credit at the end date');
-
-        // [THEN] The inactive combination is dropped entirely (previously it surfaced as a phantom stale row)
-        TempTrialBalanceData.Reset();
-        TempTrialBalanceData.SetRange("G/L Account No.", DroppedAccount."No.");
-        Assert.IsTrue(TempTrialBalanceData.IsEmpty(), 'A combination with no net activity should be dropped');
     end;
 
     [Test]
