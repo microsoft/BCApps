@@ -86,6 +86,123 @@ function Reset-AlPackageCache {
     New-Item -ItemType File -Path $cacheCleanedMarker | Out-Null
 }
 
+function Get-GitHubWorkflowArtifacts {
+    param(
+        [Parameter(Mandatory)]
+        [string] $WorkflowRunId,
+
+        [Parameter(Mandatory)]
+        [hashtable] $Headers
+    )
+
+    $apiUrl = if ($env:GITHUB_API_URL) { $env:GITHUB_API_URL } else { 'https://api.github.com' }
+    $artifacts = @()
+    $page = 1
+
+    do {
+        $artifactsUrl = "$apiUrl/repos/$env:GITHUB_REPOSITORY/actions/runs/$WorkflowRunId/artifacts?per_page=100&page=$page"
+        $response = Invoke-CommandWithRetry -ScriptBlock { Invoke-RestMethod -Uri $artifactsUrl -Headers $Headers -TimeoutSec 300 }
+        $artifacts += @($response.artifacts)
+        $page++
+    } while ($response.artifacts.Count -eq 100)
+
+    return $artifacts
+}
+
+function Copy-DefaultAppsArtifactToBaselineCache {
+    param(
+        [Parameter(Mandatory)]
+        [string] $PackageCachePath,
+
+        [Parameter(Mandatory)]
+        [string] $Project,
+
+        [string[]] $CurrentBuildBaselineAppNames = @()
+    )
+
+    $buildMode = if ($env:BuildMode) { $env:BuildMode } else { $env:_buildMode }
+    $baselineWorkflowRunId = if ($env:BaselineWorkflowRunId) { $env:BaselineWorkflowRunId } else { $env:_baselineWorkflowRunId }
+    if ($buildMode -ne 'Clean' -or -not $baselineWorkflowRunId -or $baselineWorkflowRunId -eq '0') {
+        return $PackageCachePath
+    }
+
+    if (-not $CurrentBuildBaselineAppNames) {
+        Write-Host "PreCompileApp: no incremental baseline apps were staged; using the existing package cache for baseline compilation"
+        return $PackageCachePath
+    }
+
+    $githubToken = if ($env:_token) { $env:_token } else { $env:GITHUB_TOKEN }
+    if (-not $githubToken) {
+        throw "GitHub token is required to download the Default Apps artifact for CLEAN baseline compilation."
+    }
+
+    if (-not $env:GITHUB_REPOSITORY) {
+        throw "GITHUB_REPOSITORY is required to download the Default Apps artifact for CLEAN baseline compilation."
+    }
+
+    $baselinePackageCachePath = Join-Path (Split-Path $PackageCachePath -Parent) 'symbols-baseline'
+    $baselineCacheReadyMarker = Join-Path $baselinePackageCachePath '.default_apps_downloaded'
+    if (Test-Path $baselineCacheReadyMarker) {
+        return $baselinePackageCachePath
+    }
+
+    New-Item -ItemType Directory -Path $baselinePackageCachePath -Force | Out-Null
+
+    $systemAppPath = Join-Path $PackageCachePath 'System.app'
+    if (Test-Path $systemAppPath) {
+        Copy-Item -Path $systemAppPath -Destination $baselinePackageCachePath -Force -ErrorAction Stop
+    }
+    else {
+        throw "System.app was not found in package cache '$PackageCachePath'."
+    }
+
+    $headers = @{
+        Authorization = "Bearer $githubToken"
+        Accept = 'application/vnd.github+json'
+        'X-GitHub-Api-Version' = '2022-11-28'
+    }
+
+    $artifactProjectName = $Project.Replace('\', '_').Replace('/', '_')
+    Write-Host "PreCompileApp: downloading Default Apps artifact for '$artifactProjectName' from baseline workflow run $baselineWorkflowRunId into '$baselinePackageCachePath'"
+
+    $artifactNamePattern = "$artifactProjectName-*-Apps-*"
+    $artifacts = @(Get-GitHubWorkflowArtifacts -WorkflowRunId $baselineWorkflowRunId -Headers $headers |
+        Where-Object { $_.name -like $artifactNamePattern })
+
+    if ($artifacts.Count -eq 0) {
+        throw "Could not find Default Apps artifact matching '$artifactNamePattern' in baseline workflow run $baselineWorkflowRunId."
+    }
+
+    if ($artifacts.Count -gt 1) {
+        throw "Found multiple Default Apps artifacts matching '$artifactNamePattern' in baseline workflow run ${baselineWorkflowRunId}: $($artifacts.Name -join ', ')"
+    }
+
+    $artifact = $artifacts[0]
+
+    $tempFolder = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid().ToString())
+    New-Item -ItemType Directory -Path $tempFolder | Out-Null
+
+    try {
+        $zipPath = Join-Path $tempFolder 'default-apps.zip'
+        Invoke-CommandWithRetry -ScriptBlock { Invoke-WebRequest -Uri $artifact.archive_download_url -Headers $headers -OutFile $zipPath -TimeoutSec 600 } | Out-Null
+        Expand-Archive -Path $zipPath -DestinationPath $tempFolder -Force
+
+        $downloadedApps = @(Get-ChildItem -Path $tempFolder -Recurse -Filter '*.app' -File | Where-Object { $CurrentBuildBaselineAppNames -contains $_.Name })
+        if ($downloadedApps.Count -eq 0) {
+            throw "Default Apps artifact '$($artifact.name)' did not contain any of the staged baseline app dependencies."
+        }
+
+        $downloadedApps | Copy-Item -Destination $baselinePackageCachePath -Force -ErrorAction Stop
+        Write-Host "PreCompileApp: copied $($downloadedApps.Count) Default app(s) into baseline package cache"
+    }
+    finally {
+        Remove-Item -Path $tempFolder -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
+    New-Item -ItemType File -Path $baselineCacheReadyMarker -Force | Out-Null
+    return $baselinePackageCachePath
+}
+
 # Clean the package cache on the first invocation, keeping only System.app and any
 # baseline apps that AL-Go downloaded for incremental builds. When incremental builds
 # are active, AL-Go populates <projectFolder>\.buildartifacts\Apps and \TestApps with
@@ -137,7 +254,23 @@ if($appType -eq 'app')
 
                 $tempParameters = $parameters.Value.Clone()
                 $tempParameters["PreprocessorSymbols"] = @() # Wipe the preprocessor symbols to ensure that the baseline is generated without any preprocessor symbols
-                $tempParameters["OutFolder"] = $tempParameters["PackageCachePath"] # Output the baseline app into the package cache folder
+                $incrementalBaselineAppNames = @()
+                if ($outFolder) {
+                    $baselineAppsFolder = Join-Path (Split-Path -Path $outFolder -Parent) 'Apps'
+                    if (Test-Path $baselineAppsFolder) {
+                        $incrementalBaselineAppNames = @(Get-ChildItem -Path $baselineAppsFolder -Filter '*.app' -File | ForEach-Object { $_.Name })
+                    }
+                }
+
+                $project = if ($env:_project) { $env:_project } else { $env:ALGoProject }
+                if (-not $project) {
+                    throw "Project name is required (neither _project nor ALGoProject is set) to locate the Default Apps artifact for CLEAN baseline compilation."
+                }
+                $tempParameters["PackageCachePath"] = Copy-DefaultAppsArtifactToBaselineCache `
+                    -PackageCachePath $parameters.Value["PackageCachePath"] `
+                    -Project $project `
+                    -CurrentBuildBaselineAppNames $incrementalBaselineAppNames
+                $tempParameters["OutFolder"] = $parameters.Value["PackageCachePath"] # Output the baseline app into the package cache folder used by the breaking changes check
 
                 $baselineAppFiles = CompileAppsInWorkspace @tempParameters
 
