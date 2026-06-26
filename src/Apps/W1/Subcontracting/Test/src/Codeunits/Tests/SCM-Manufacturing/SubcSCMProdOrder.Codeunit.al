@@ -1345,6 +1345,8 @@ codeunit 149920 "Subc SCM Prod. Order"
 
     local procedure EnsurePurchasePostingSetup(PurchaseHeader: Record "Purchase Header")
     var
+        Item: Record Item;
+        LineLocation: Record Location;
         PurchaseLine: Record "Purchase Line";
         GeneralPostingSetup: Record "General Posting Setup";
     begin
@@ -1357,6 +1359,11 @@ codeunit 149920 "Subc SCM Prod. Order"
                     LibraryERM.CreateGeneralPostingSetup(
                       GeneralPostingSetup, PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
                 UpdateGeneralPostingSetupWithPostingAccounts(GeneralPostingSetup);
+                if Item.Get(PurchaseLine."No.") then begin
+                    EnsureInventoryPostingSetups(Item."Inventory Posting Group");
+                    if (PurchaseLine."Location Code" <> '') and LineLocation.Get(PurchaseLine."Location Code") then
+                        LibraryInventory.UpdateInventoryPostingSetup(LineLocation, Item."Inventory Posting Group");
+                end;
             until PurchaseLine.Next() = 0;
     end;
 

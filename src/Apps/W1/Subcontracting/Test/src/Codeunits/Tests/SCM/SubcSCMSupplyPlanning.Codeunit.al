@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting.Test;
 
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
@@ -20,6 +21,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
+using Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
@@ -171,6 +173,7 @@ codeunit 149922 "Subc SCM Supply Planning"
         PurchCreditMemo.Validate("Vendor Cr. Memo No.", PurchCreditMemo."No.");
         PurchCreditMemo.Validate("Reason Code", ReasonCode.Code);
         PurchCreditMemo.Modify(true);
+        EnsurePurchasePostingSetup(PurchCreditMemo);
         asserterror LibraryPurchase.PostPurchaseDocument(PurchCreditMemo, true, true);
         Assert.ExpectedError(AppliesToEntryMissingErr);
     end;
@@ -628,6 +631,7 @@ codeunit 149922 "Subc SCM Supply Planning"
         // [WHEN] Post and Receive Purchase Order
         SelectPurchaseOrderLine(PurchaseLine, Item."No.");
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        EnsurePurchasePostingSetup(PurchaseHeader);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
 
         // [THEN] Verify Purchase Order is received with warehouse entry.
@@ -793,8 +797,13 @@ codeunit 149922 "Subc SCM Supply Planning"
     end;
 
     local procedure CreateItem(var Item: Record Item)
+    var
+        InventoryPostingGroup: Record "Inventory Posting Group";
     begin
         LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateInventoryPostingGroup(InventoryPostingGroup);
+        Item.Validate("Inventory Posting Group", InventoryPostingGroup.Code);
+        EnsureInventoryPostingSetups(InventoryPostingGroup.Code);
         Item.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
         Item.Modify(true);
     end;
@@ -813,7 +822,7 @@ codeunit 149922 "Subc SCM Supply Planning"
 
     local procedure CreateAndUpdateItem(var Item: Record Item; ReplenishmentSystem: Enum "Replenishment System"; ReorderingPolicy: Enum "Reordering Policy"; ManufacturingPolicy: Enum "Manufacturing Policy"; VendorNo: Code[20])
     begin
-        LibraryInventory.CreateItem(Item);
+        CreateItem(Item);
         Item.Validate("Replenishment System", ReplenishmentSystem);
         Item.Validate("Reordering Policy", ReorderingPolicy);
         Item.Validate("Manufacturing Policy", ManufacturingPolicy);
@@ -968,7 +977,67 @@ codeunit 149922 "Subc SCM Supply Planning"
         PurchaseHeader.Get(PurchaseLine."Document Type"::Order, PurchaseLine."Document No.");
         PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
         PurchaseHeader.Modify(true);
+        EnsurePurchasePostingSetup(PurchaseHeader);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, ToInvoice);
+    end;
+
+    local procedure EnsurePurchasePostingSetup(PurchaseHeader: Record "Purchase Header")
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        Item: Record Item;
+        LineLocation: Record Location;
+        PurchaseLine: Record "Purchase Line";
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        if PurchaseLine.FindSet() then
+            repeat
+                if not GeneralPostingSetup.Get(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group") then
+                    LibraryERM.CreateGeneralPostingSetup(
+                      GeneralPostingSetup, PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+                UpdateGeneralPostingSetupWithPostingAccounts(GeneralPostingSetup);
+                if Item.Get(PurchaseLine."No.") then begin
+                    EnsureInventoryPostingSetups(Item."Inventory Posting Group");
+                    if (PurchaseLine."Location Code" <> '') and LineLocation.Get(PurchaseLine."Location Code") then
+                        LibraryInventory.UpdateInventoryPostingSetup(LineLocation, Item."Inventory Posting Group");
+                end;
+            until PurchaseLine.Next() = 0;
+    end;
+
+    local procedure UpdateGeneralPostingSetupWithPostingAccounts(var GeneralPostingSetup: Record "General Posting Setup")
+    begin
+        GeneralPostingSetup.Validate("Purch. Account", GetPostingGLAccountNo(GeneralPostingSetup."Purch. Account"));
+        GeneralPostingSetup.Validate("COGS Account", GetPostingGLAccountNo(GeneralPostingSetup."COGS Account"));
+        GeneralPostingSetup.Validate("COGS Account (Interim)", GetPostingGLAccountNo(GeneralPostingSetup."COGS Account (Interim)"));
+        GeneralPostingSetup.Validate("Inventory Adjmt. Account", GetPostingGLAccountNo(GeneralPostingSetup."Inventory Adjmt. Account"));
+        GeneralPostingSetup.Validate("Direct Cost Applied Account", GetPostingGLAccountNo(GeneralPostingSetup."Direct Cost Applied Account"));
+        GeneralPostingSetup.Validate("Overhead Applied Account", GetPostingGLAccountNo(GeneralPostingSetup."Overhead Applied Account"));
+        GeneralPostingSetup.Validate("Purchase Variance Account", GetPostingGLAccountNo(GeneralPostingSetup."Purchase Variance Account"));
+        GeneralPostingSetup.Modify(true);
+    end;
+
+    local procedure GetPostingGLAccountNo(AccountNo: Code[20]): Code[20]
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        if (AccountNo <> '') and GLAccount.Get(AccountNo) and (GLAccount."Account Type" = GLAccount."Account Type"::Posting) then
+            exit(AccountNo);
+
+        exit(LibraryERM.CreateGLAccountNo());
+    end;
+
+    local procedure EnsureInventoryPostingSetups(InventoryPostingGroupCode: Code[20])
+    var
+        BlankLocation: Record Location;
+    begin
+        LibraryInventory.UpdateInventoryPostingSetup(BlankLocation, InventoryPostingGroupCode);
+        if LocationBlue.Code <> '' then
+            LibraryInventory.UpdateInventoryPostingSetup(LocationBlue, InventoryPostingGroupCode);
+        if LocationSilver.Code <> '' then
+            LibraryInventory.UpdateInventoryPostingSetup(LocationSilver, InventoryPostingGroupCode);
+        if LocationInTransit.Code <> '' then
+            LibraryInventory.UpdateInventoryPostingSetup(LocationInTransit, InventoryPostingGroupCode);
     end;
 
     local procedure UpdateProdOrderLineUnitOfMeasureCode(ItemNo: Code[20]; UnitOfMeasureCode: Code[10])
@@ -1030,7 +1099,7 @@ codeunit 149922 "Subc SCM Supply Planning"
     local procedure CalculateSubcontractingWorksheetForBatch(RequisitionWkshName: Record "Requisition Wksh. Name"; WorkCenter: Record "Work Center")
     var
         RequisitionLine: Record "Requisition Line";
-        CalculateSubcontracts: Report Microsoft.Manufacturing.Subcontracting."Subc. Calculate Subcontracts";
+        CalculateSubcontracts: Report "Subc. Calculate Subcontracts";
     begin
         RequisitionLine.Init();
         RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
