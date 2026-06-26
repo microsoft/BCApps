@@ -131,7 +131,6 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         PurchaseHeader.SetRange("Buy-from Vendor No.", EDocumentPurchaseHeader."[BC] Vendor No."); // Setting the filter, so that the insert trigger assigns the right vendor to the purchase header
         PurchaseHeader."Document Type" := "Purchase Document Type"::Invoice;
         PurchaseHeader."Pay-to Vendor No." := EDocumentPurchaseHeader."[BC] Vendor No.";
-        PurchaseHeader."Posting Description" := EDocumentPurchaseHeader."Posting Description";
         if EDocumentPurchaseHeader."Document Date" <> 0D then
             PurchaseHeader.Validate("Document Date", EDocumentPurchaseHeader."Document Date");
         if EDocumentPurchaseHeader."Due Date" <> 0D then
@@ -150,6 +149,8 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         PurchaseHeader.Insert(true);
 
         PurchaseHeader."Invoice Received Date" := PurchaseHeader."Document Date";
+        if EDocumentPurchaseHeader."Posting Description" <> '' then
+            PurchaseHeader."Posting Description" := EDocumentPurchaseHeader."Posting Description";
         PurchaseHeader.Modify();
 
         // Validate of currency has to happen after insert.
