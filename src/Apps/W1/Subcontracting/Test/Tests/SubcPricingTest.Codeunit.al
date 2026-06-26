@@ -652,6 +652,7 @@ codeunit 139982 "Subc. Pricing Test"
     end;
 
     [Test]
+    [HandlerFunctions('DetailedCalculationRequestPageHandler')]
     procedure DetailedCalculationReportUsesSubcontractorPricing()
     var
         Item: Record Item;
@@ -707,7 +708,6 @@ codeunit 139982 "Subc. Pricing Test"
 
         // [THEN] The ProdUnitCost in the report dataset equals the subcontractor price (200),
         // not the Work Center's generic Direct Unit Cost (50).
-        LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementWithValueExists('ProdUnitCost', SubcPriceAmount);
     end;
 
@@ -735,6 +735,12 @@ codeunit 139982 "Subc. Pricing Test"
         Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Subc. Pricing Test");
+    end;
+
+    [RequestPageHandler]
+    procedure DetailedCalculationRequestPageHandler(var DetailedCalculationRequestPage: TestRequestPage "Detailed Calculation")
+    begin
+        // Empty handler used to close the request page. We use default settings.
     end;
 
     var
