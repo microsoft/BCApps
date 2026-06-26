@@ -316,13 +316,23 @@ function Get-ReviewComments { return Get-AllPages "/pulls/$PrNumber/comments" }
 function Get-IssueComments  { return Get-AllPages "/issues/$PrNumber/comments" }
 
 function New-ReviewComment {
-    param([string] $Body, [string] $Path, [int] $Line, [string] $Side)
+    param(
+        [string] $Body, [string] $Path, [int] $Line, [string] $Side,
+        [int] $StartLine = 0, [string] $StartSide = ''
+    )
 
     if (-not $Line -or -not $Side) {
         throw 'Inline review comments require both line and side.'
     }
 
     $payload = @{ body = $Body; commit_id = $PrHeadSha; path = $Path; line = $Line; side = $Side }
+    # Multi-line comment: GitHub anchors the range over [start_line, line] so a
+    # ```suggestion``` block replaces every spanned line in place (a single-line
+    # comment would otherwise replace just $Line, duplicating context).
+    if ($StartLine -gt 0 -and $StartLine -lt $Line) {
+        $payload.start_line = $StartLine
+        $payload.start_side = if ($StartSide) { $StartSide } else { $Side }
+    }
     Invoke-GitHubApi -Method POST -Endpoint "/pulls/$PrNumber/comments" -Body $payload
 }
 
@@ -416,6 +426,139 @@ function Build-LineMap {
     return $map
 }
 
+# ---------------------------------------------------------------------------
+# Suggestion placement (anchor validation for ```suggestion``` blocks)
+#
+# A GitHub suggestion block replaces *exactly* the line(s) its comment is
+# anchored to. The model reports a single semantic `location.line` for a
+# finding, which often is not the line (or full span) the suggested code is
+# meant to replace — e.g. it anchors a procedure declaration while the fix
+# rewrites a statement two lines below, or anchors one line of a multi-line
+# field while the suggestion is the whole field plus an inserted property.
+# Posting such a suggestion verbatim corrupts the file when applied. These
+# helpers re-derive the correct RIGHT-side span by matching the suggested
+# code against the actual PR-head file content, so the block lands in place.
+# ---------------------------------------------------------------------------
+
+# Cache of PR-head file contents (relative path -> string[] lines) so a file is
+# read at most once across all of its findings.
+$script:PrHeadFileCache = @{}
+
+function Get-PrHeadFileLines {
+    param([string] $RelativePath)
+
+    if ($script:PrHeadFileCache.ContainsKey($RelativePath)) {
+        return $script:PrHeadFileCache[$RelativePath]
+    }
+
+    $lines = $null
+    $full = Join-Path $AnalysisWorkspace $RelativePath
+    if (Test-Path -LiteralPath $full) {
+        try {
+            $lines = @(Get-Content -LiteralPath $full -ErrorAction Stop)
+        } catch {
+            Write-Warning "Could not read PR-head file for suggestion placement: $RelativePath ($_)"
+            $lines = $null
+        }
+    }
+
+    $script:PrHeadFileCache[$RelativePath] = $lines
+    return $lines
+}
+
+# Whitespace-insensitive comparison key. Indentation and inter-token spacing
+# frequently differ between the suggested fix and the original line (the fix is
+# often *about* whitespace, e.g. 'exit (X)' -> 'exit(X)'), so boundary/context
+# matching collapses all whitespace to find the line a fix corresponds to.
+function ConvertTo-LooseLine {
+    param([string] $Line)
+    if ($null -eq $Line) { return '' }
+    return ($Line -replace '\s+', '')
+}
+
+# True when every line of $FileSpan appears, in order, somewhere in
+# $Suggestion (loose comparison). This holds when the suggestion is the file
+# span with extra lines inserted (and/or boundary-preserving edits) — the only
+# shape we can safely apply as an in-place multi-line replacement.
+function Test-OrderedSubsequence {
+    param([string[]] $FileSpan, [string[]] $Suggestion)
+
+    $sug = @($Suggestion | ForEach-Object { ConvertTo-LooseLine $_ })
+    $j = 0
+    foreach ($f in $FileSpan) {
+        $fl = ConvertTo-LooseLine $f
+        $found = $false
+        while ($j -lt $sug.Count) {
+            $cur = $sug[$j]; $j++
+            if ($cur -eq $fl) { $found = $true; break }
+        }
+        if (-not $found) { return $false }
+    }
+    return $true
+}
+
+# Resolve the RIGHT-side file span a suggestion should replace.
+# Returns @{ startLine; endLine } (1-based, inclusive) or $null when the
+# suggestion cannot be placed with confidence (caller drops the block).
+function Resolve-SuggestionPlacement {
+    param([string[]] $FileLines, [int] $AnchorLine, [string[]] $SuggestedLines)
+
+    if (-not $FileLines -or $FileLines.Count -eq 0) { return $null }
+    if (-not $SuggestedLines -or $SuggestedLines.Count -eq 0) { return $null }
+
+    $fileCount = $FileLines.Count
+    if ($AnchorLine -lt 1) { $AnchorLine = 1 }
+    if ($AnchorLine -gt $fileCount) { $AnchorLine = $fileCount }
+
+    $sCount    = $SuggestedLines.Count
+    $firstLoose = ConvertTo-LooseLine $SuggestedLines[0]
+    $lastLoose  = ConvertTo-LooseLine $SuggestedLines[$sCount - 1]
+
+    # --- Single-line suggestion: snap to the nearest unique content match. ---
+    if ($sCount -eq 1) {
+        if ((ConvertTo-LooseLine $FileLines[$AnchorLine - 1]) -eq $firstLoose) {
+            return [pscustomobject]@{ startLine = $AnchorLine; endLine = $AnchorLine }
+        }
+        for ($d = 1; $d -le 8; $d++) {
+            $hits = @()
+            foreach ($cand in @(($AnchorLine - $d), ($AnchorLine + $d))) {
+                if ($cand -ge 1 -and $cand -le $fileCount -and
+                    (ConvertTo-LooseLine $FileLines[$cand - 1]) -eq $firstLoose) {
+                    $hits += $cand
+                }
+            }
+            if ($hits.Count -eq 1) { return [pscustomobject]@{ startLine = $hits[0]; endLine = $hits[0] } }
+            if ($hits.Count -gt 1) { break }   # ambiguous at this distance
+        }
+        # No content match found: a one-line replacement of the model's anchor
+        # is still safe (it cannot duplicate context), so trust the anchor.
+        return [pscustomobject]@{ startLine = $AnchorLine; endLine = $AnchorLine }
+    }
+
+    # --- Multi-line suggestion: find an additive span [s,e] near the anchor. ---
+    $best = $null
+    $bestInserted = [int]::MaxValue
+    $lo = [math]::Max(1, $AnchorLine - $sCount - 4)
+    $hi = [math]::Min($fileCount, $AnchorLine + $sCount + 4)
+    for ($s = $lo; $s -le $hi; $s++) {
+        if ((ConvertTo-LooseLine $FileLines[$s - 1]) -ne $firstLoose) { continue }
+        # An additive replacement never spans more lines than the suggestion.
+        $eMax = [math]::Min($fileCount, $s + $sCount - 1)
+        for ($e = $s; $e -le $eMax; $e++) {
+            if ((ConvertTo-LooseLine $FileLines[$e - 1]) -ne $lastLoose) { continue }
+            if ($AnchorLine -lt ($s - 1) -or $AnchorLine -gt ($e + 1)) { continue }
+            $span = @($FileLines[($s - 1)..($e - 1)])
+            if (-not (Test-OrderedSubsequence -FileSpan $span -Suggestion $SuggestedLines)) { continue }
+            $inserted = $sCount - ($e - $s + 1)
+            if ($inserted -lt $bestInserted) {
+                $bestInserted = $inserted
+                $best = [pscustomobject]@{ startLine = $s; endLine = $e }
+            }
+        }
+    }
+    return $best
+}
+
 function Test-GlobMatch {
     param([string] $Filename, [string] $Pattern)
     $f = $Filename -replace '\\', '/'
@@ -493,9 +636,9 @@ The base branch is: origin/$BaseBranch
 The repository is: $Repository (PR #$PrNumber)
 
 Use git commands to analyze the changes:
-- git -C "$prWorktree" diff origin/$BaseBranch to see all changes
-- git -C "$prWorktree" diff origin/$BaseBranch -- <file> to see changes in a specific file
-- git -C "$prWorktree" diff --name-only origin/$BaseBranch to list changed files
+- git -C "$prWorktree" diff origin/$BaseBranch...HEAD to see all changes
+- git -C "$prWorktree" diff origin/$BaseBranch...HEAD -- <file> to see changes in a specific file
+- git -C "$prWorktree" diff --name-only origin/$BaseBranch...HEAD to list changed files
 
 CONTRACT:
 The current working directory is a BCQuality checkout. BCQuality is the
@@ -894,6 +1037,70 @@ function Remove-StructuralFences {
 
     return $sb.ToString()
 }
+  
+function Repair-ResumeFenceJson {
+    # The agent sometimes cuts off mid-value and restarts the line after a stray
+    # ```json fence, like:
+    #     "suggested-code": "    ODataKey        <- string never closed
+    #     ```json
+    #     "suggested-code": "    ODataKey = SystemId;"   <- same field, retried
+    # The unclosed string breaks the whole report. This drops the fence and the
+    # broken half, keeping the retried line.
+    param([string] $Output)
+    if (-not $Output) { return $Output }
+
+    # An odd number of unescaped quotes means the string was never closed.
+    $unescapedQuoteCount = {
+        param([string] $s)
+        $n = 0; $esc = $false
+        foreach ($c in $s.ToCharArray()) {
+            if ($esc) { $esc = $false; continue }
+            if ($c -eq '\') { $esc = $true; continue }
+            if ($c -eq '"') { $n++ }
+        }
+        return $n
+    }
+
+    $result = $Output
+    $maxPasses = 50
+    for ($pass = 0; $pass -lt $maxPasses; $pass++) {
+        $lines = $result -split "`n"
+        $repaired = $false
+
+        for ($li = 0; $li -lt $lines.Count; $li++) {
+            if (($lines[$li].Trim()) -notmatch '^```[A-Za-z0-9]*$') { continue }
+
+            # The line before the fence must be a property whose string is still open.
+            $p = $li - 1
+            while ($p -ge 0 -and $lines[$p].Trim().Length -eq 0) { $p-- }
+            if ($p -lt 0) { continue }
+            $before = $lines[$p].Trim()
+            if ($before -notmatch '^"([^"\\]+)"\s*:') { continue }
+            $key = $Matches[1]
+            if (((& $unescapedQuoteCount $before) % 2) -eq 0) { continue }
+
+            # The line after the fence must start the same key again.
+            $a = $li + 1
+            while ($a -lt $lines.Count -and $lines[$a].Trim().Length -eq 0) { $a++ }
+            if ($a -ge $lines.Count) { continue }
+            $after = $lines[$a].Trim()
+            if ($after -notmatch ('^"' + [regex]::Escape($key) + '"\s*:')) { continue }
+
+            # Drop the broken line and the fence, and keep the restart. The agent
+            # rewrites the field from scratch, so nothing is duplicated.
+            $newLines = [System.Collections.Generic.List[string]]::new()
+            if ($p -gt 0) { for ($x = 0; $x -lt $p; $x++) { $newLines.Add($lines[$x]) | Out-Null } }
+            for ($x = $a; $x -lt $lines.Count; $x++) { $newLines.Add($lines[$x]) | Out-Null }
+            $result = ($newLines -join "`n")
+            $repaired = $true
+            break
+        }
+
+        if (-not $repaired) { break }
+    }
+
+    return $result
+}
 
 function Parse-BCQualityReport {
     <#
@@ -947,19 +1154,54 @@ function Parse-BCQualityReport {
     }
     foreach ($clean in $defenced) { $candidates.Add($clean) | Out-Null }
 
+    # Repair the resume-fence shape (a stray ```json fence inside an open
+    # string, which Remove-StructuralFences leaves alone), then add its
+    # candidates after the originals so clean output stays untouched.
+    $resumeRepaired = Repair-ResumeFenceJson -Output $stripped
+    if ($resumeRepaired -ne $stripped) {
+        $resumeCandidates = [System.Collections.Generic.List[string]]::new()
+        foreach ($m in [regex]::Matches($resumeRepaired, '```(?:json)?\s*([\s\S]*?)\s*```')) { $resumeCandidates.Add($m.Groups[1].Value) | Out-Null }
+        foreach ($balanced in (Find-BalancedJsonCandidates -Text $resumeRepaired)) { $resumeCandidates.Add($balanced) | Out-Null }
+        foreach ($candidate in $resumeCandidates) {
+            $candidates.Add($candidate) | Out-Null
+            $clean = Remove-StructuralFences -Text $candidate
+            if ($clean -ne $candidate) { $candidates.Add($clean) | Out-Null }
+        }
+    }
+
+    # A fragment can parse fine but still be the wrong one. The output repeats
+    # each sub-skill report and the findings[] array as separate JSON, so if the
+    # full document won't parse, one of those can win and the real report is
+    # lost. Pick the orchestrator report first (it has sub-results or dispatch),
+    # then any object with findings, then any fragment that parses.
     $report = $null
+    $shapedReport = $null
+    $fallbackReport = $null
     foreach ($candidate in $candidates) {
         $trimmed = $candidate.Trim()
         if (-not $trimmed) { continue }
+        $parsed = $null
         try {
-            $report = $trimmed | ConvertFrom-Json -ErrorAction Stop
-            break
+            $parsed = $trimmed | ConvertFrom-Json -ErrorAction Stop
         } catch {
             $preview = $trimmed
             if ($preview.Length -gt 200) { $preview = $preview.Substring(0, 200) + '...' }
             $parseErrors.Add("$($_.Exception.Message) | candidate: $preview") | Out-Null
+            continue
         }
+
+        $isObject = $parsed -is [System.Management.Automation.PSCustomObject]
+        $isOrchestratorShaped = $isObject -and (
+            $parsed.PSObject.Properties.Match('sub-results').Count -gt 0 -or
+            $parsed.PSObject.Properties.Match('dispatch').Count -gt 0)
+        if ($isOrchestratorShaped) { $report = $parsed; break }
+        if ($null -eq $shapedReport -and $isObject -and $parsed.PSObject.Properties.Match('findings').Count -gt 0) {
+            $shapedReport = $parsed
+        }
+        if ($null -eq $fallbackReport) { $fallbackReport = $parsed }
     }
+    if ($null -eq $report) { $report = $shapedReport }
+    if ($null -eq $report) { $report = $fallbackReport }
 
     $script:LastParsingErrors = $parseErrors
 
@@ -1522,7 +1764,7 @@ function Build-ReferenceLink {
 }
 
 function Build-CommentBody {
-    param([object] $Finding)
+    param([object] $Finding, [switch] $SuppressSuggestion)
 
     $domain   = $Finding.domain
     $severity = $Finding.severity
@@ -1567,9 +1809,19 @@ function Build-CommentBody {
         }
     }
 
-    if ($suggested) {
+    if ($suggested -and -not $SuppressSuggestion) {
         $lines.Add('') | Out-Null
         $lines.Add('```suggestion') | Out-Null
+        $lines.Add($suggested) | Out-Null
+        $lines.Add('```') | Out-Null
+    } elseif ($suggested -and $SuppressSuggestion) {
+        # A concrete fix was identified but its target line(s) could not be
+        # matched against the PR-head file, so an applicable suggestion block
+        # would risk corrupting the file. Surface the intended change as a
+        # non-applicable code snippet instead.
+        $lines.Add('') | Out-Null
+        $lines.Add('**Suggested fix** (apply manually — could not be anchored as a one-click suggestion):') | Out-Null
+        $lines.Add('```al') | Out-Null
         $lines.Add($suggested) | Out-Null
         $lines.Add('```') | Out-Null
     }
@@ -1701,6 +1953,46 @@ function Post-Findings {
             $location = $LineMaps[$filePath][$lineNumber]
         }
 
+        # Validate / re-anchor the ```suggestion``` block against the PR-head
+        # file so it replaces the correct line(s). When the finding carries a
+        # suggested fix we re-derive its RIGHT-side span and post the comment
+        # over that span (single- or multi-line). When the fix cannot be placed
+        # confidently we suppress the applicable block (Build-CommentBody falls
+        # back to a manual snippet) and keep the comment at the model's anchor.
+        $suppressSuggestion = $false
+        $commentStartLine = 0
+        $commentStartSide = ''
+        if ($finding.suggestedCode) {
+            $suggested = ([string]$finding.suggestedCode).TrimEnd()
+            $suggLines = [string[]]@($suggested -split "`r?`n")
+            $placement = $null
+            $fileLines = Get-PrHeadFileLines -RelativePath $filePath
+            if ($fileLines -and $suggLines.Count -gt 0) {
+                $placement = Resolve-SuggestionPlacement -FileLines $fileLines -AnchorLine $lineNumber -SuggestedLines $suggLines
+            }
+
+            $placed = $false
+            if ($placement) {
+                $map = if ($LineMaps.ContainsKey($filePath)) { $LineMaps[$filePath] } else { @{} }
+                $spanOk = $true
+                for ($ln = [int]$placement.startLine; $ln -le [int]$placement.endLine; $ln++) {
+                    if (-not ($map.ContainsKey($ln) -and $map[$ln].side -eq 'RIGHT')) { $spanOk = $false; break }
+                }
+                if ($spanOk) {
+                    $location = @{ line = [int]$placement.endLine; side = 'RIGHT' }
+                    if ([int]$placement.startLine -lt [int]$placement.endLine) {
+                        $commentStartLine = [int]$placement.startLine
+                        $commentStartSide = 'RIGHT'
+                    }
+                    $placed = $true
+                }
+            }
+            if (-not $placed) {
+                $suppressSuggestion = $true
+                Write-Host "Suggestion for $($filePath):$lineNumber could not be anchored to the diff; posting as a manual snippet."
+            }
+        }
+
         if ($location) {
             $key = "$($filePath):$($location.line):$($location.side)"
             if ($existingKeys.Contains($key)) {
@@ -1711,11 +2003,11 @@ function Post-Findings {
             }
         }
 
-        $body = Build-CommentBody -Finding $finding
+        $body = Build-CommentBody -Finding $finding -SuppressSuggestion:$suppressSuggestion
 
         try {
             if ($location) {
-                $null = New-ReviewComment -Body $body -Path $filePath -Line $location.line -Side $location.side
+                $null = New-ReviewComment -Body $body -Path $filePath -Line $location.line -Side $location.side -StartLine $commentStartLine -StartSide $commentStartSide
                 $existingKeys.Add("$($filePath):$($location.line):$($location.side)") | Out-Null
                 $existingLocations.Add([pscustomobject]@{ path = $filePath; line = [int]$location.line; side = $location.side }) | Out-Null
                 $postedInline++

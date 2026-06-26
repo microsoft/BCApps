@@ -368,7 +368,7 @@ codeunit 139982 "Subc. Pricing Test"
         Initialize();
 
         // [GIVEN] A subcontracting item with a single-operation routing on a subcontracting work center.
-        CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter);
+        CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter, '');
 
         // [GIVEN] A foreign currency with a non-LCY exchange rate whose code sorts after blank/LCY.
         ForeignCurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 15, 15);
@@ -417,7 +417,7 @@ codeunit 139982 "Subc. Pricing Test"
         Initialize();
 
         // [GIVEN] A subcontracting item with a single-operation routing on a subcontracting work center.
-        CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter);
+        CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter, '');
 
         // [GIVEN] Two foreign currencies with non-LCY exchange rates.
         FirstForeignCurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 15, 15);
@@ -453,6 +453,55 @@ codeunit 139982 "Subc. Pricing Test"
             'Prod. Order Routing Unit Cost per must use the LCY price even among multiple foreign-currency prices.');
     end;
 
+    [Test]
+    procedure ProdOrderRoutingUnitCostUsesVendorCurrencyPriceWhenVendorHasCurrency()
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        SubcontractorPrice: Record "Subcontractor Price";
+        ProductionOrder: Record "Production Order";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        VendorCurrencyCode: Code[10];
+        LCYPrice: Decimal;
+        VendorCurrencyPrice: Decimal;
+    begin
+        // [SCENARIO 638367] When the subcontractor vendor has a foreign Currency Code and a Subcontractor Price
+        // exists in that currency, the Prod. Order Routing line must be priced from the vendor-currency price
+        // (converted to LCY) so it stays consistent with the purchase order, not from the blank/LCY price.
+        Initialize();
+
+        // [GIVEN] A subcontractor vendor with a foreign currency (1:1 exchange rate) and a subcontracting item.
+        VendorCurrencyCode := LibraryERM.CreateCurrencyWithExchangeRate(WorkDate(), 1, 1);
+        CreateSubcontractingItemWithSingleOperationRouting(Item, Vendor, WorkCenter, VendorCurrencyCode);
+
+        // [GIVEN] Two subcontractor prices — LCY = 10 (blank currency) and vendor-currency = 20.
+        LCYPrice := 10;
+        VendorCurrencyPrice := 20;
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), Item."Base Unit of Measure", 0, '');
+        SubcontractorPrice.Validate("Direct Unit Cost", LCYPrice);
+        SubcontractorPrice.Modify(true);
+        SubcontractingMgmtLibrary.CreateSubContractingPrice(
+            SubcontractorPrice, WorkCenter."No.", Vendor."No.", Item."No.", '', '', WorkDate(), Item."Base Unit of Measure", 0, VendorCurrencyCode);
+        SubcontractorPrice.Validate("Direct Unit Cost", VendorCurrencyPrice);
+        SubcontractorPrice.Modify(true);
+
+        // [WHEN] A Released Production Order for the item is created and refreshed.
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, "Prod. Order Source Type"::Item, Item."No.", 1);
+
+        // [THEN] The Prod. Order Routing line resolves to the vendor-currency price (20), converted 1:1 to LCY.
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.FindFirst();
+        Assert.AreEqual(
+            VendorCurrencyPrice, ProdOrderRoutingLine."Direct Unit Cost",
+            'Prod. Order Routing Direct Unit Cost must use the vendor-currency subcontractor price, not the blank/LCY one.');
+        Assert.AreEqual(
+            VendorCurrencyPrice, ProdOrderRoutingLine."Unit Cost per",
+            'Prod. Order Routing Unit Cost per must use the vendor-currency subcontractor price, not the blank/LCY one.');
+    end;
+
     local procedure CreateItemVendorAndSubcontractingWorkCenter(var Item: Record Item; var Vendor: Record Vendor; var WorkCenter: Record "Work Center")
     begin
         LibraryInventory.CreateItem(Item);
@@ -464,11 +513,11 @@ codeunit 139982 "Subc. Pricing Test"
         WorkCenter.Modify(true);
     end;
 
-    local procedure CreateSubcontractingItemWithSingleOperationRouting(var Item: Record Item; var Vendor: Record Vendor; var WorkCenter: Record "Work Center")
+    local procedure CreateSubcontractingItemWithSingleOperationRouting(var Item: Record Item; var Vendor: Record Vendor; var WorkCenter: Record "Work Center"; VendorCurrencyCode: Code[10])
     var
         RoutingNo: Code[20];
     begin
-        Vendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(''));
+        Vendor.Get(LibraryMfgManagement.CreateSubcontractorWithCurrency(VendorCurrencyCode));
 
         LibraryMfgManagement.CreateWorkCenterWithCalendar(WorkCenter, 0);
         WorkCenter.Validate("Subcontractor No.", Vendor."No.");
