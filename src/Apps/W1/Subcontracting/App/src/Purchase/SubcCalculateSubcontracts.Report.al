@@ -114,7 +114,6 @@ report 99001505 "Subc. Calculate Subcontracts"
         GLSetup: Record "General Ledger Setup";
         PurchLine: Record "Purchase Line";
         Item: Record Item;
-        ItemVariant: Record "Item Variant";
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
         MfgCostCalcMgt: Codeunit "Mfg. Cost Calculation Mgt.";
 #if not CLEAN28
@@ -123,6 +122,7 @@ report 99001505 "Subc. Calculate Subcontracts"
 #pragma warning restore AL0432
 #endif
         UOMMgt: Codeunit "Unit of Measure Management";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
         Window: Dialog;
         BaseQtyToPurch: Decimal;
         QtyToPurch: Decimal;
@@ -130,8 +130,6 @@ report 99001505 "Subc. Calculate Subcontracts"
 
         ProcessingWorkCentersLbl: Label 'Processing Work Centers   #1##########\', Comment = '#1 = current work center number being processed';
         ProcessingOrdersLbl: Label 'Processing Orders         #2########## ', Comment = '#2 = current order number being processed';
-        ProductionBlockedOutputItemQst: Label 'Item %1 is blocked for production output and cannot be calculated. Do you want to continue?', Comment = '%1 Item No.';
-        ProductionBlockedOutputItemVariantQst: Label 'Variant %1 for item %2 is blocked for production output and cannot be calculated. Do you want to continue?', Comment = '%1 - Item Variant Code, %2 - Item No.';
 
     procedure SetWkShLine(NewReqLine: Record "Requisition Line")
     begin
@@ -156,13 +154,15 @@ report 99001505 "Subc. Calculate Subcontracts"
         if IsHandled then
             exit;
 
+        if ProdOrderRoutingLine.Type = ProdOrderRoutingLine.Type::"Work Center" then
+            SubcontractingManagement.CheckSubcontractingWorkCenter(ProdOrderRoutingLine."No.");
+
         ProdOrderLine.CalcFields("Total Exp. Oper. Output (Qty.)");
 
         ReqLine.SetSubcontracting(true);
         ReqLine.BlockDynamicTracking(true);
 
-        if not CanCreateRequisitionLineFromProdOrderLine(ProdOrderLine."Item No.", ProdOrderLine."Variant Code") then
-            exit;
+        SubcontractingManagement.CheckProdNotBlockedForOutput(ProdOrderLine."Item No.", ProdOrderLine."Variant Code");
 
         ReqLine.Init();
         ReqLine."Line No." := ReqLine."Line No." + 10000;
@@ -177,20 +177,18 @@ report 99001505 "Subc. Calculate Subcontracts"
         if not IsHandled then
             if ReqLine.Quantity <> 0 then begin
                 if WorkCenter."Unit Cost Calculation" = WorkCenter."Unit Cost Calculation"::Units then
-                    ReqLine.Validate(
-                        ReqLine."Direct Unit Cost",
+                    ReqLine.Validate("Direct Unit Cost",
                         Round(
                             ProdOrderRoutingLine."Direct Unit Cost" * ProdOrderLine."Qty. per Unit of Measure",
                             GLSetup."Unit-Amount Rounding Precision"))
                 else
-                    ReqLine.Validate(
-                        ReqLine."Direct Unit Cost",
+                    ReqLine.Validate("Direct Unit Cost",
                         Round(
                             (ProdOrderRoutingLine."Expected Operation Cost Amt." - ProdOrderRoutingLine."Expected Capacity Ovhd. Cost") /
                             ProdOrderLine."Total Exp. Oper. Output (Qty.)",
                             GLSetup."Unit-Amount Rounding Precision"));
             end else
-                ReqLine.Validate(ReqLine."Direct Unit Cost", 0);
+                ReqLine.Validate("Direct Unit Cost", 0);
         ReqLine."Qty. per Unit of Measure" := 0;
         ReqLine."Quantity (Base)" := 0;
         ReqLine."Qty. Rounding Precision" := ProdOrderLine."Qty. Rounding Precision";
@@ -205,7 +203,7 @@ report 99001505 "Subc. Calculate Subcontracts"
         ReqLine."Routing No." := ProdOrderRoutingLine."Routing No.";
         ReqLine."Operation No." := ProdOrderRoutingLine."Operation No.";
         ReqLine."Work Center No." := ProdOrderRoutingLine."Work Center No.";
-        ReqLine.Validate(ReqLine."Vendor No.", WorkCenter."Subcontractor No.");
+        ReqLine.Validate("Vendor No.", WorkCenter."Subcontractor No.");
         ReqLine.Description := ProdOrderRoutingLine.Description;
         ReqLine."Description 2" := ProdOrderRoutingLine."Description 2";
         SetVendorItemNo();
@@ -222,7 +220,7 @@ report 99001505 "Subc. Calculate Subcontracts"
         PurchLine.SetRange("Planning Flexibility", PurchLine."Planning Flexibility"::Unlimited);
         PurchLine.SetRange("Quantity Received", 0);
         if PurchLine.FindFirst() then begin
-            ReqLine.Validate(ReqLine.Quantity, ReqLine.Quantity + PurchLine."Outstanding Quantity");
+            ReqLine.Validate(Quantity, ReqLine.Quantity + PurchLine."Outstanding Quantity");
             ReqLine."Quantity (Base)" := 0;
             ReqLine."Replenishment System" := ReqLine."Replenishment System"::Purchase;
             ReqLine."Ref. Order No." := PurchLine."Document No.";
@@ -290,42 +288,6 @@ report 99001505 "Subc. Calculate Subcontracts"
         OnAfterSetVendorItemNo(ReqLine, ItemVendor, Item);
     end;
 
-    local procedure CanCreateRequisitionLineFromProdOrderLine(ItemNo: Code[20]; VariantCode: Code[20]): Boolean
-    begin
-        if not GuiAllowed() then
-            exit;
-
-        if ItemNo <> '' then begin
-            if Item."No." <> ItemNo then begin
-                Item.SetLoadFields("Production Blocked");
-                Item.Get(ItemNo);
-            end;
-            case Item."Production Blocked" of
-                Item."Production Blocked"::Output:
-                    begin
-                        ShowProdBlockedForItemConfirmation(ItemNo);
-                        exit(false);
-                    end;
-            end;
-        end;
-
-        if (ItemNo <> '') and (VariantCode <> '') then begin
-            if (ItemVariant."Item No." <> ItemNo) or (ItemVariant.Code <> VariantCode) then begin
-                ItemVariant.SetLoadFields("Production Blocked");
-                ItemVariant.Get(ItemNo, VariantCode);
-            end;
-            case ItemVariant."Production Blocked" of
-                ItemVariant."Production Blocked"::Output:
-                    begin
-                        ShowProdBlockedForItemVariantConfirmation(ItemNo, VariantCode);
-                        exit(false);
-                    end;
-            end;
-        end;
-
-        exit(true);
-    end;
-
     local procedure CalculateSubContractRequirements()
     begin
         OnProdOrderRoutingLineOnBeforeCalculateSubContractRequirements(TempProdOrderRoutingLine);
@@ -360,18 +322,6 @@ report 99001505 "Subc. Calculate Subcontracts"
                     until ProdOrderLine.Next() = 0;
                 end;
             until TempProdOrderRoutingLine.Next() = 0;
-    end;
-
-    local procedure ShowProdBlockedForItemConfirmation(ItemNo: Code[20])
-    begin
-        if not Confirm(StrSubstNo(ProductionBlockedOutputItemQst, ItemNo)) then
-            Error('');
-    end;
-
-    local procedure ShowProdBlockedForItemVariantConfirmation(ItemNo: Code[20]; VariantCode: Code[20])
-    begin
-        if not Confirm(StrSubstNo(ProductionBlockedOutputItemVariantQst, VariantCode, ItemNo)) then
-            Error('');
     end;
 
     [IntegrationEvent(false, false)]

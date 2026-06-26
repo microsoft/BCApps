@@ -5,6 +5,7 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Foundation.Company;
+using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Planning;
 using Microsoft.Inventory.Requisition;
@@ -31,6 +32,8 @@ codeunit 99001505 "Subcontracting Management"
         UpdateIsCancelledErr: Label 'The update is cancelled.';
         WorkCenterVendorDoesntExistErr: Label 'Subcontractor %1 on Work Center %2 does not exist.', Comment = 'Parameter %1 - subcontractor/vendor number, %2 - work center number.';
         PurchOrderExistErr: Label 'The currently selected component %1 is already used in Purchase Order %2. Therefore, it is not permitted to change the %3 field.', Comment = '%1=Item No, %2=Purchase Order No, %3=Field Caption';
+        ProductionBlockedOutputItemErr: Label 'You cannot produce %1 %2 because the %3 is %4 on the %1 card.', Comment = '%1 - Table Caption (Item), %2 - Item No., %3 - Field Caption, %4 - Field Value';
+        ProductionBlockedOutputItemVariantErr: Label 'You cannot produce variant %1 for %2 %3 because it is blocked for production output.', Comment = '%1 - Item Variant Code, %2 - Table Caption (Item), %3 - Item No.';
         HasManufacturingSetup: Boolean;
 
     procedure ChangeLocationOnProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component"; VendorSubcontrLocation: Code[10]; OriginalLocationCode: Code[10]; OriginalBinCode: Code[20])
@@ -160,6 +163,37 @@ codeunit 99001505 "Subcontracting Management"
         exit(false);
     end;
 
+    internal procedure CheckSubcontractingWorkCenter(WorkCenterNo: Code[20])
+    var
+        WorkCenter: Record "Work Center";
+    begin
+        WorkCenter.SetLoadFields("Subcontractor No.", "Gen. Prod. Posting Group");
+        WorkCenter.Get(WorkCenterNo);
+        WorkCenter.TestField("Subcontractor No.");
+        WorkCenter.TestField("Gen. Prod. Posting Group");
+    end;
+
+    internal procedure CheckProdNotBlockedForOutput(ItemNo: Code[20]; VariantCode: Code[20])
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+    begin
+        if ItemNo = '' then
+            exit;
+
+        Item.SetLoadFields("Production Blocked");
+        Item.Get(ItemNo);
+        if Item."Production Blocked" = Item."Production Blocked"::Output then
+            Error(ProductionBlockedOutputItemErr, Item.TableCaption(), ItemNo, Item.FieldCaption("Production Blocked"), Item."Production Blocked");
+
+        if VariantCode <> '' then begin
+            ItemVariant.SetLoadFields("Production Blocked");
+            ItemVariant.Get(ItemNo, VariantCode);
+            if ItemVariant."Production Blocked" = ItemVariant."Production Blocked"::Output then
+                Error(ProductionBlockedOutputItemVariantErr, VariantCode, Item.TableCaption(), ItemNo);
+        end;
+    end;
+
     procedure UpdateSubcontractorPriceForRequisitionLine(var RequisitionLine: Record "Requisition Line")
     begin
 #if not CLEAN28
@@ -280,7 +314,7 @@ codeunit 99001505 "Subcontracting Management"
                     end;
                 until (PurchaseLine.Next() = 0) or ProdOrderCompFound;
             if ProdOrderCompFound then
-                Error(PurchOrderExistErr, ProdOrderComponent."Item No.", PurchOrderNo, ProdOrderComponent.FieldCaption(ProdOrderComponent."Component Supply Method"));
+                Error(PurchOrderExistErr, ProdOrderComponent."Item No.", PurchOrderNo, ProdOrderComponent.FieldCaption("Component Supply Method"));
 
             if ProdOrderRoutingLine.Type = "Capacity Type"::"Work Center" then begin
                 if not GetSubcontractor(ProdOrderRoutingLine."No.", Vendor) then
