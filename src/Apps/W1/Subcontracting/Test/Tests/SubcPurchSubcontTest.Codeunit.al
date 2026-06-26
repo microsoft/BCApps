@@ -511,6 +511,93 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
     end;
 
     [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder,MessageHandler')]
+    procedure SecondReturnTransferSucceedsAfterPartialReceiptAndReturn()
+    var
+        Item: Record Item;
+        HomeLocation: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReturnTransferHeader: Record "Transfer Header";
+        ReturnTransferLine: Record "Transfer Line";
+        TransferHeader: Record "Transfer Header";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseOrderPage: TestPage "Purchase Order";
+        ProductionQty: Decimal;
+        FirstReceiptQty: Decimal;
+        SecondReceiptQty: Decimal;
+    begin
+        // [SCENARIO 638694] Creating a second return transfer order after partial receipts must not fail
+        // with "Transfer-to Code must have a value" when Subc. Original Location Code was cleared
+        // by a previous return cycle.
+        Initialize();
+        ProductionQty := 10;
+        FirstReceiptQty := 4;
+        SecondReceiptQty := 3;
+
+        // [GIVEN] A subcontracting purchase order with qty=10 and transfer-to-vendor components
+        SetupSubContractingProdOrder(Item, HomeLocation, WorkCenter, MachineCenter, ProductionOrder, "Component Supply Method"::"Transfer to Vendor", ProductionQty);
+        CreateSubcontractingPurchaseOrderForProdOrder(PurchaseHeader, PurchaseLine, Item, WorkCenter, ProductionOrder);
+
+        // [GIVEN] Outbound transfer order is created and posted (components sent to subcontractor)
+        CreateTransferOrderForPurchaseOrder(PurchaseHeader);
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine);
+        PostDirectTransferOrder(TransferHeader);
+
+        // [GIVEN] First partial purchase receipt (4 of 10)
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        PurchaseLine.Validate("Qty. to Receive", FirstReceiptQty);
+        PurchaseLine.Modify(true);
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [GIVEN] First return transfer order is created and posted (returns remaining components)
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        CreateReturnTransferOrderForPurchaseOrder(PurchaseHeader);
+        ReturnTransferLine.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
+        ReturnTransferLine.SetRange("Subc. Purch. Order Line No.", PurchaseLine."Line No.");
+        ReturnTransferLine.SetRange("Subc. Return Order", true);
+        ReturnTransferLine.FindFirst();
+        ReturnTransferHeader.Get(ReturnTransferLine."Document No.");
+        PostDirectTransferOrder(ReturnTransferHeader);
+
+        // [GIVEN] A new outbound transfer for the remaining outstanding qty is created and posted
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        CreateTransferOrderForPurchaseOrder(PurchaseHeader);
+        FindTransferOrderForPurchaseLine(TransferHeader, PurchaseLine);
+        PostDirectTransferOrder(TransferHeader);
+
+        // [GIVEN] Second partial purchase receipt (3 of remaining 6)
+        PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
+        PurchaseLine.Validate("Qty. to Receive", SecondReceiptQty);
+        PurchaseLine.Modify(true);
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [WHEN] Second return transfer order is created
+        PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        PurchaseOrderPage.OpenView();
+        PurchaseOrderPage.GoToRecord(PurchaseHeader);
+        PurchaseOrderPage.CreateReturnFromSubcontractor.Invoke();
+        PurchaseOrderPage.Close();
+
+        // [THEN] No error occurs and a return transfer line is created with correct Transfer-to Code
+        ReturnTransferLine.Reset();
+        ReturnTransferLine.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
+        ReturnTransferLine.SetRange("Subc. Purch. Order Line No.", PurchaseLine."Line No.");
+        ReturnTransferLine.SetRange("Subc. Return Order", true);
+        ReturnTransferLine.FindLast();
+        ReturnTransferHeader.Get(ReturnTransferLine."Document No.");
+        Assert.AreNotEqual('', ReturnTransferHeader."Transfer-to Code",
+            'Transfer-to Code must be populated on the second return transfer order.');
+        Assert.AreEqual(HomeLocation.Code, ReturnTransferHeader."Transfer-to Code",
+            'Transfer-to Code should be the original (home) location.');
+    end;
+
+    [Test]
     [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess,HandleTransferOrder')]
     procedure CannotModifyOrDeleteRoutingLineWhenTransferOrderExistsWithTransferToVendor()
     var
@@ -707,6 +794,84 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         Assert.RecordIsEmpty(PurchaseLine);
     end;
 
+    [Test]
+    [HandlerFunctions('DoConfirmCreateProdOrderForSubcontractingProcess')]
+    procedure SubcOrderFlowFieldIsTrueAfterCreatingSubcontractingPurchaseOrder()
+    var
+        FinishedItem: Record Item;
+        Location: Record Location;
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        ProductionBOMHeader: Record "Production BOM Header";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        Vendor: Record Vendor;
+        WorkCenter: Record "Work Center";
+        ReleasedProdOrderRtng: TestPage "Prod. Order Routing";
+    begin
+        // [SCENARIO 640115] After creating a subcontracting purchase order from a Prod. Order Routing Line,
+        // the "Subc. Order" FlowField on the Purchase Header must evaluate to true so the order is visible
+        // in the "Subcontracting Orders" view of the Purchase Order List.
+
+        Initialize();
+
+        // [GIVEN] A subcontracting work center with vendor and location
+        CreateAndCalculateNeededWorkCenter(WorkCenter, true);
+        Vendor.Get(WorkCenter."Subcontractor No.");
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor.Modify();
+
+        // [GIVEN] A routing with a single subcontracting operation
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingLineSetup(
+            RoutingLine, RoutingHeader, WorkCenter."No.", '100',
+            LibraryRandom.RandInt(5), LibraryRandom.RandInt(5));
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+
+        // [GIVEN] A finished good item with the routing
+        LibraryManufacturing.CreateItemManufacturing(
+            FinishedItem, "Costing Method"::FIFO, LibraryRandom.RandInt(10),
+            "Reordering Policy"::"Lot-for-Lot", "Flushing Method"::"Pick + Manual",
+            RoutingHeader."No.", '');
+        LibraryManufacturing.CreateProductionBOMHeader(ProductionBOMHeader, FinishedItem."Base Unit of Measure");
+        ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
+        ProductionBOMHeader.Modify(true);
+        FinishedItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        FinishedITem.Validate("Routing No.", RoutingHeader."No.");
+        FinishedItem.Modify(true);
+
+        // [GIVEN] A released production order
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, FinishedItem."No.", LibraryRandom.RandInt(10), Location.Code);
+
+        // [GIVEN] Requisition worksheet template for subcontracting
+        LibraryMfgManagement.CreateSubcontractingReqWkshTemplateAndNameAndUpdateSetup();
+
+        // [WHEN] Create subcontracting purchase order from Prod. Order Routing
+        ProdOrderRtngLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderRtngLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRtngLine.SetRange(Type, ProdOrderRtngLine.Type::"Work Center");
+        ProdOrderRtngLine.SetRange("Work Center No.", WorkCenter."No.");
+        ProdOrderRtngLine.FindFirst();
+        ReleasedProdOrderRtng.OpenView();
+        ReleasedProdOrderRtng.GoToRecord(ProdOrderRtngLine);
+        ReleasedProdOrderRtng.CreateSubcontracting.Invoke();
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+
+        // [THEN] A purchase order was created and the "Subc. Order" FlowField is true
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseHeader.CalcFields("Subc. Order");
+        Assert.IsTrue(PurchaseHeader."Subc. Order",
+            'The Subc. Order FlowField must be true for a subcontracting purchase order');
+    end;
     [ModalPageHandler]
     procedure ItemTrackingLinesSimpleHandler(var ItemTrackingLines: TestPage "Item Tracking Lines")
     begin

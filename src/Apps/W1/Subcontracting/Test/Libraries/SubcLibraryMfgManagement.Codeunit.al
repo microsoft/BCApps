@@ -45,12 +45,12 @@ codeunit 139984 "Subc. Library Mfg. Management"
     begin
         if not MfgSetup.Get() then
             MfgSetup.Insert();
-        MfgSetup.Validate(MfgSetup."Normal Starting Time", 080000T);
-        MfgSetup.Validate(MfgSetup."Normal Ending Time", 230000T);
-        MfgSetup.Validate(MfgSetup."Doc. No. Is Prod. Order No.", true);
-        MfgSetup.Validate(MfgSetup."Cost Incl. Setup", true);
-        MfgSetup.Validate(MfgSetup."Planning Warning", true);
-        MfgSetup.Validate(MfgSetup."Dynamic Low-Level Code", true);
+        MfgSetup.Validate("Normal Starting Time", 080000T);
+        MfgSetup.Validate("Normal Ending Time", 230000T);
+        MfgSetup.Validate("Doc. No. Is Prod. Order No.", true);
+        MfgSetup.Validate("Cost Incl. Setup", true);
+        MfgSetup.Validate("Planning Warning", true);
+        MfgSetup.Validate("Dynamic Low-Level Code", true);
         MfgSetup."Simulated Order Nos." := LibraryERM.CreateNoSeriesCode();
         MfgSetup."Planned Order Nos." := LibraryERM.CreateNoSeriesCode();
         MfgSetup."Firm Planned Order Nos." := LibraryERM.CreateNoSeriesCode();
@@ -300,11 +300,10 @@ codeunit 139984 "Subc. Library Mfg. Management"
         ProdOrderRtngCommentLine."Routing No." := RoutingNo;
         ProdOrderRtngCommentLine."Operation No." := OperationNo;
         RecRef.GetTable(ProdOrderRtngCommentLine);
-        ProdOrderRtngCommentLine.Validate(ProdOrderRtngCommentLine."Line No.", LibraryUtility.GetNewLineNo(RecRef, ProdOrderRtngCommentLine.FieldNo("Line No.")));
+        ProdOrderRtngCommentLine.Validate("Line No.", LibraryUtility.GetNewLineNo(RecRef, ProdOrderRtngCommentLine.FieldNo("Line No.")));
         ProdOrderRtngCommentLine.Insert(true);
 
-        ProdOrderRtngCommentLine.Validate(
-            ProdOrderRtngCommentLine.Comment,
+        ProdOrderRtngCommentLine.Validate(Comment,
             Format(ProdOrderRtngCommentLine."Prod. Order No.") + Format(ProdOrderRtngCommentLine."Routing Reference No.") + Format(ProdOrderRtngCommentLine."Line No."));
         ProdOrderRtngCommentLine.Modify(true);
     end;

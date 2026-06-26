@@ -81,11 +81,11 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
             exit(0);
 
 #endif
-        PurchaseLine.SetRange(PurchaseLine."Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange(PurchaseLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchaseLine.SetRange(PurchaseLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
-        PurchaseLine.SetRange(PurchaseLine."Operation No.", ProdOrderRoutingLine."Operation No.");
-        PurchaseLine.CalcSums(PurchaseLine.Quantity);
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        PurchaseLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchaseLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchaseLine.CalcSums(Quantity);
         exit(PurchaseLine.Quantity);
     end;
 
@@ -103,10 +103,10 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
 #pragma warning restore AL0432
             exit;
 #endif
-        PurchaseLine.SetRange(PurchaseLine."Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange(PurchaseLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchaseLine.SetRange(PurchaseLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
-        PurchaseLine.SetRange(PurchaseLine."Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        PurchaseLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchaseLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
 
         Page.Run(Page::"Purchase Lines", PurchaseLine);
     end;
@@ -127,10 +127,10 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
             exit(0);
 
 #endif
-        PurchRcptLine.SetRange(PurchRcptLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchRcptLine.SetRange(PurchRcptLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
-        PurchRcptLine.SetRange(PurchRcptLine."Operation No.", ProdOrderRoutingLine."Operation No.");
-        PurchRcptLine.CalcSums(PurchRcptLine.Quantity);
+        PurchRcptLine.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        PurchRcptLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchRcptLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchRcptLine.CalcSums(Quantity);
         exit(PurchRcptLine.Quantity);
     end;
 
@@ -148,9 +148,9 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
 #pragma warning restore AL0432
             exit;
 #endif
-        PurchRcptLine.SetRange(PurchRcptLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchRcptLine.SetRange(PurchRcptLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
-        PurchRcptLine.SetRange(PurchRcptLine."Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchRcptLine.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        PurchRcptLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchRcptLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
 
         Page.Run(Page::"Purch. Receipt Lines", PurchRcptLine);
     end;
@@ -171,10 +171,10 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
             exit(0);
 
 #endif
-        PurchInvLine.SetRange(PurchInvLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchInvLine.SetRange(PurchInvLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
-        PurchInvLine.SetRange(PurchInvLine."Operation No.", ProdOrderRoutingLine."Operation No.");
-        PurchInvLine.CalcSums(PurchInvLine.Quantity);
+        PurchInvLine.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        PurchInvLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchInvLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchInvLine.CalcSums(Quantity);
         exit(PurchInvLine.Quantity);
     end;
 
@@ -192,10 +192,10 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
 #pragma warning restore AL0432
             exit;
 #endif
-        PurchInvLine.SetCurrentKey(PurchInvLine.Type, PurchInvLine."Prod. Order No.", PurchInvLine."Prod. Order Line No.");
-        PurchInvLine.SetRange(PurchInvLine."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchInvLine.SetRange(PurchInvLine."Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
-        PurchInvLine.SetRange(PurchInvLine."Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchInvLine.SetCurrentKey(Type, "Prod. Order No.", "Prod. Order Line No.");
+        PurchInvLine.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        PurchInvLine.SetRange("Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchInvLine.SetRange("Operation No.", ProdOrderRoutingLine."Operation No.");
 
         Page.Run(Page::"Posted Purchase Invoice Lines", PurchInvLine);
     end;
@@ -216,11 +216,11 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
             exit(0);
 
 #endif
-        TransferLine.SetCurrentKey(TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Routing Reference No.", TransferLine."Subc. Routing No.", TransferLine."Subc. Operation No.");
-        TransferLine.SetRange(TransferLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        TransferLine.SetRange(TransferLine."Subc. Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
-        TransferLine.SetRange(TransferLine."Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
-        TransferLine.SetRange(TransferLine."Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
+        TransferLine.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        TransferLine.SetRange("Subc. Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        TransferLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
+        TransferLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
         TransferLine.SetRange("Subc. Return Order", false);
         TransferLine.SetRange("Derived From Line No.", 0);
         exit(TransferLine.Count());
@@ -242,10 +242,10 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
             exit(0);
 
 #endif
-        TransferLine.SetCurrentKey(TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Routing Reference No.", TransferLine."Subc. Operation No.");
-        TransferLine.SetRange(TransferLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        TransferLine.SetRange(TransferLine."Subc. Routing Reference No.", 0);
-        TransferLine.SetRange(TransferLine."Subc. Operation No.", '');
+        TransferLine.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Operation No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        TransferLine.SetRange("Subc. Routing Reference No.", 0);
+        TransferLine.SetRange("Subc. Operation No.", '');
         TransferLine.SetRange("Derived From Line No.", 0);
         TransferLine.SetRange("Subc. Return Order", true);
         exit(TransferLine.Count());
@@ -265,11 +265,11 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
 #pragma warning restore AL0432
             exit;
 #endif
-        TransferLine.SetCurrentKey(TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Routing Reference No.", TransferLine."Subc. Routing No.", TransferLine."Subc. Operation No.");
-        TransferLine.SetRange(TransferLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        TransferLine.SetRange(TransferLine."Subc. Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
-        TransferLine.SetRange(TransferLine."Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
-        TransferLine.SetRange(TransferLine."Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
+        TransferLine.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        TransferLine.SetRange("Subc. Routing Reference No.", ProdOrderRoutingLine."Routing Reference No.");
+        TransferLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
+        TransferLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
         TransferLine.SetRange("Derived From Line No.", 0);
         Page.Run(Page::"Transfer Lines", TransferLine);
     end;
@@ -288,10 +288,10 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
 #pragma warning restore AL0432
             exit;
 #endif
-        TransferLine.SetCurrentKey(TransferLine."Subc. Prod. Order No.", TransferLine."Subc. Prod. Order Line No.", TransferLine."Subc. Routing Reference No.", TransferLine."Subc. Operation No.");
-        TransferLine.SetRange(TransferLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        TransferLine.SetRange(TransferLine."Subc. Routing Reference No.", 0);
-        TransferLine.SetRange(TransferLine."Subc. Operation No.", '');
+        TransferLine.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Operation No.");
+        TransferLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        TransferLine.SetRange("Subc. Routing Reference No.", 0);
+        TransferLine.SetRange("Subc. Operation No.", '');
         TransferLine.SetRange("Derived From Line No.", 0);
         Page.Run(Page::"Transfer Lines", TransferLine);
     end;
@@ -314,10 +314,10 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
 #endif
         if ProdOrderRoutingLine."Routing Link Code" = '' then
             exit(0);
-        ProdOrderComponent.SetRange(ProdOrderComponent.Status, ProdOrderRoutingLine.Status);
-        ProdOrderComponent.SetRange(ProdOrderComponent."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        ProdOrderComponent.SetRange(ProdOrderComponent."Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
-        ProdOrderComponent.SetRange(ProdOrderComponent."Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
+        ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
         exit(ProdOrderComponent.Count());
     end;
 
@@ -335,10 +335,10 @@ codeunit 99001561 "Subc. Routing Factbox Mgmt."
 #pragma warning restore AL0432
             exit;
 #endif
-        ProdOrderComponent.SetRange(ProdOrderComponent.Status, ProdOrderRoutingLine.Status);
-        ProdOrderComponent.SetRange(ProdOrderComponent."Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        ProdOrderComponent.SetRange(ProdOrderComponent."Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
-        ProdOrderComponent.SetRange(ProdOrderComponent."Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
+        ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
         Page.Run(Page::"Subc. Prod. Order Components", ProdOrderComponent);
     end;
 }
