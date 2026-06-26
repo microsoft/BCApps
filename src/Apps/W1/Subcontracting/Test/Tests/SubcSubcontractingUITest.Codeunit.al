@@ -553,12 +553,12 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [SCENARIO 638458] Subcontracting actions on Item Ledger Entries are disabled when the entry has no subcontracting production order or purchase order.
         Initialize();
 
-        // [GIVEN] An Item Ledger Entry that is NOT related to subcontracting (no Subc. Prod. Order No. or Subc. Purch. Order No.)
+        // [GIVEN] An Item Ledger Entry that is NOT related to subcontracting (no production order or Subc. Purch. Order No.)
         ItemLedgerEntry.Init();
         ItemLedgerEntry."Entry No." := GetNextItemLedgerEntryNo();
         ItemLedgerEntry."Item No." := 'TEST-ITEM';
         ItemLedgerEntry."Entry Type" := ItemLedgerEntry."Entry Type"::Purchase;
-        ItemLedgerEntry."Subc. Prod. Order No." := '';
+        ItemLedgerEntry."Order No." := '';
         ItemLedgerEntry."Subc. Purch. Order No." := '';
         ItemLedgerEntry.Insert();
 
@@ -595,8 +595,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ItemLedgerEntry."Entry No." := GetNextItemLedgerEntryNo();
         ItemLedgerEntry."Item No." := 'TEST-ITEM';
         ItemLedgerEntry."Entry Type" := ItemLedgerEntry."Entry Type"::Purchase;
-        ItemLedgerEntry."Subc. Prod. Order No." := 'PO-SUBC-001';
-        ItemLedgerEntry."Subc. Prod. Order Line No." := 10000;
+        ItemLedgerEntry."Order Type" := ItemLedgerEntry."Order Type"::Production;
+        ItemLedgerEntry."Order No." := 'PO-SUBC-001';
+        ItemLedgerEntry."Order Line No." := 10000;
         ItemLedgerEntry."Subc. Purch. Order No." := 'PURCH-SUBC-001';
         ItemLedgerEntry."Subc. Purch. Order Line No." := 10000;
         ItemLedgerEntry.Insert();
