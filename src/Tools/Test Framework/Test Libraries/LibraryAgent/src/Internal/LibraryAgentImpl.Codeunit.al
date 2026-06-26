@@ -516,6 +516,7 @@ codeunit 130561 "Library - Agent Impl."
         MessageValue: Text;
         FileName: Text[250];
         MIMEType: Text[100];
+        Timeout: Duration;
         HasTitle, HasFrom, HasMessage, HasAttachments, HasFile, HasActionType, HasTimeout : Boolean;
         I: Integer;
     begin
