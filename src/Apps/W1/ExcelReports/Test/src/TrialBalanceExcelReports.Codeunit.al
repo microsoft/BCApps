@@ -674,6 +674,51 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
     [Test]
+    procedure QueryPathDoesNotInheritStaleAmountsForZeroNetCombination()
+    var
+        GLAccount: Record "G/L Account";
+        TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalance: Codeunit "Trial Balance";
+        ZeroNetAccountNo, StaleSourceAccountNo : Code[20];
+        OpeningAmount, StaleBalance : Decimal;
+        PeriodStart: Date;
+    begin
+        // [SCENARIO] A combination that nets to zero at the end date but still has an opening balance is dropped by the first
+        // query pass (All Zero) and re-created by the second (opening-balance) pass. That re-created record must be
+        // Init()'d, otherwise it inherits the stale amounts left on the shared buffer record by the previous account.
+        Initialize();
+        PeriodStart := DMY2Date(1, 1, Date2DMY(WorkDate(), 3));
+
+        // [GIVEN] A zero-net posting account (10000) read first in the second pass, and a stale-source posting account
+        //         (20000) read last in the first pass so it leaves a non-zero balance on the shared buffer record.
+        ZeroNetAccountNo := CreateGLAccountWithNo('10000', Enum::"G/L Account Type"::Posting, '');
+        StaleSourceAccountNo := CreateGLAccountWithNo('20000', Enum::"G/L Account Type"::Posting, '');
+
+        OpeningAmount := 1000;
+        StaleBalance := 777;
+        // [GIVEN] 10000 has an opening balance before the period that is fully reversed within the period -> end balance 0
+        CreateGLEntryWithAmount(ZeroNetAccountNo, '', '', '', DMY2Date(15, 6, Date2DMY(WorkDate(), 3) - 1), OpeningAmount);
+        CreateGLEntryWithAmount(ZeroNetAccountNo, '', '', '', DMY2Date(15, 6, Date2DMY(WorkDate(), 3)), -OpeningAmount);
+        // [GIVEN] 20000 has only in-period activity (non-zero end balance, no opening balance), so it is absent from the second pass
+        CreateGLEntryWithAmount(StaleSourceAccountNo, '', '', '', DMY2Date(15, 6, Date2DMY(WorkDate(), 3)), StaleBalance);
+
+        // [WHEN] Running the query-based trial balance for the current year
+        GLAccount.SetRange("Date Filter", PeriodStart, DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
+        TrialBalance.ConfigureTrialBalance(false, false);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
+
+        // [THEN] The zero-net account reports its own amounts (Starting Balance = opening, Net Change = -opening, Balance = 0),
+        // not the stale source account's balance carried over from the previous record.
+        TempTrialBalanceData.Reset();
+        TempTrialBalanceData.SetRange("G/L Account No.", ZeroNetAccountNo);
+        Assert.IsTrue(TempTrialBalanceData.FindFirst(), 'Buffer record should exist for the zero-net account');
+        Assert.AreEqual(OpeningAmount, TempTrialBalanceData."Starting Balance", 'Starting Balance should equal the opening balance');
+        Assert.AreEqual(-OpeningAmount, TempTrialBalanceData."Net Change", 'Net Change should reverse the opening balance, not inherit a stale net change');
+        Assert.AreEqual(0, TempTrialBalanceData.Balance, 'Balance should be zero, not the stale source account balance');
+    end;
+
+    [Test]
     procedure QueryPathStartingBalanceIncludesClosingDateEntries()
     var
         GLAccount: Record "G/L Account";
