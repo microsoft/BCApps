@@ -636,9 +636,9 @@ The base branch is: origin/$BaseBranch
 The repository is: $Repository (PR #$PrNumber)
 
 Use git commands to analyze the changes:
-- git -C "$prWorktree" diff origin/$BaseBranch to see all changes
-- git -C "$prWorktree" diff origin/$BaseBranch -- <file> to see changes in a specific file
-- git -C "$prWorktree" diff --name-only origin/$BaseBranch to list changed files
+- git -C "$prWorktree" diff origin/$BaseBranch...HEAD to see all changes
+- git -C "$prWorktree" diff origin/$BaseBranch...HEAD -- <file> to see changes in a specific file
+- git -C "$prWorktree" diff --name-only origin/$BaseBranch...HEAD to list changed files
 
 CONTRACT:
 The current working directory is a BCQuality checkout. BCQuality is the
