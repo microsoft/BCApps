@@ -686,7 +686,7 @@ codeunit 139544 "Trial Balance Excel Reports"
     var
         GLAccount, KeptAccount : Record "G/L Account";
         TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
-        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         OpeningDebit: Decimal;
         PriorYear: Integer;
@@ -705,19 +705,19 @@ codeunit 139544 "Trial Balance Excel Reports"
         // [WHEN] Running the query-based trial balance for the current year
         GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
         TrialBalance.ConfigureTrialBalance(false, false);
-        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
         // [THEN] The combination is present with correct net AND gross debit/credit columns
-        TempTrialBalanceData.SetRange("G/L Account No.", KeptAccount."No.");
-        Assert.IsTrue(TempTrialBalanceData.FindFirst(), 'Buffer record should exist for the net-zero-at-end combination');
-        Assert.AreEqual(OpeningDebit, TempTrialBalanceData."Starting Balance", 'Starting Balance should equal the opening debit');
-        Assert.AreEqual(-OpeningDebit, TempTrialBalanceData."Net Change", 'Net Change should reverse the opening');
-        Assert.AreEqual(0, TempTrialBalanceData.Balance, 'Balance should net to zero at the end date');
-        Assert.AreEqual(OpeningDebit, TempTrialBalanceData."Starting Balance (Debit)", 'Opening debit split');
-        Assert.AreEqual(0, TempTrialBalanceData."Net Change (Debit)", 'No period debit turnover');
-        Assert.AreEqual(OpeningDebit, TempTrialBalanceData."Net Change (Credit)", 'Period credit turnover equals the reversal');
-        Assert.AreEqual(OpeningDebit, TempTrialBalanceData."Balance (Debit)", 'Cumulative debit at the end date');
-        Assert.AreEqual(OpeningDebit, TempTrialBalanceData."Balance (Credit)", 'Cumulative credit at the end date');
+        TrialBalanceData.SetRange("G/L Account No.", KeptAccount."No.");
+        Assert.IsTrue(TrialBalanceData.FindFirst(), 'Buffer record should exist for the net-zero-at-end combination');
+        Assert.AreEqual(OpeningDebit, TrialBalanceData."Starting Balance", 'Starting Balance should equal the opening debit');
+        Assert.AreEqual(-OpeningDebit, TrialBalanceData."Net Change", 'Net Change should reverse the opening');
+        Assert.AreEqual(0, TrialBalanceData.Balance, 'Balance should net to zero at the end date');
+        Assert.AreEqual(OpeningDebit, TrialBalanceData."Starting Balance (Debit)", 'Opening debit split');
+        Assert.AreEqual(0, TrialBalanceData."Net Change (Debit)", 'No period debit turnover');
+        Assert.AreEqual(OpeningDebit, TrialBalanceData."Net Change (Credit)", 'Period credit turnover equals the reversal');
+        Assert.AreEqual(OpeningDebit, TrialBalanceData."Balance (Debit)", 'Cumulative debit at the end date');
+        Assert.AreEqual(OpeningDebit, TrialBalanceData."Balance (Credit)", 'Cumulative credit at the end date');
     end;
 
     [Test]
