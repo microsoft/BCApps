@@ -370,21 +370,21 @@ codeunit 139555 "Aged Accounts Excel Reports"
     [RequestPageHandler]
     procedure EXRAgedAccPayableExcelHandler(var EXRAgedAccPayableExcel: TestRequestPage "EXR Aged Acc Payable Excel")
     begin
-        EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate() + 30);
         EXRAgedAccPayableExcel.OK().Invoke();
     end;
 
     [RequestPageHandler]
     procedure EXRAgedAccountsRecExcelHandler(var EXRAgedAccountsRecExcel: TestRequestPage "EXR Aged Accounts Rec Excel")
     begin
-        EXRAgedAccountsRecExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccountsRecExcel.AgedAsOfOption.SetValue(WorkDate() + 30);
         EXRAgedAccountsRecExcel.OK().Invoke();
     end;
 
     [RequestPageHandler]
     procedure EXRAgedAccPayablePostingDateHandler(var EXRAgedAccPayableExcel: TestRequestPage "EXR Aged Acc Payable Excel")
     begin
-        EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate() + 30);
         EXRAgedAccPayableExcel.AgingbyOption.SetValue('Posting Date');
         EXRAgedAccPayableExcel.OK().Invoke();
     end;
