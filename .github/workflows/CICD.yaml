@@ -29,7 +29,7 @@ env:
 jobs:
   Initialization:
     needs: [ ]
-    runs-on: [ windows-latest ]
+    runs-on: [ GitHub-BCAppsPL ]
     outputs:
       telemetryScopeJson: ${{ steps.init.outputs.telemetryScopeJson }}
       environmentsMatrixJson: ${{ steps.DetermineDeploymentEnvironments.outputs.EnvironmentsMatrixJson }}
@@ -152,7 +152,7 @@ jobs:
 
   CheckForUpdates:
     needs: [ Initialization ]
-    runs-on: [ windows-latest ]
+    runs-on: [ GitHub-BCAppsPL ]
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -193,7 +193,7 @@ jobs:
     secrets: inherit
     with:
       shell: ${{ matrix.githubRunnerShell }}
-      runsOn: ${{ matrix.githubRunner }}
+      runsOn: GitHub-BCAppsPL
       project: ${{ matrix.project }}
       projectName: ${{ matrix.projectName }}
       buildMode: ${{ matrix.buildMode }}
@@ -218,7 +218,7 @@ jobs:
     secrets: inherit
     with:
       shell: ${{ matrix.githubRunnerShell }}
-      runsOn: ${{ matrix.githubRunner }}
+      runsOn: GitHub-BCAppsPL
       project: ${{ matrix.project }}
       projectName: ${{ matrix.projectName }}
       buildMode: ${{ matrix.buildMode }}
@@ -234,7 +234,7 @@ jobs:
   CodeAnalysisUpload:
     needs: [ Initialization, Build ]
     if: (!cancelled()) && (needs.Initialization.outputs.trackALAlertsInGitHub == 'True')
-    runs-on: [ windows-latest ]
+    runs-on: [ GitHub-BCAppsPL ]
     name: Code Analysis Processing
     steps:
       - name: Checkout
@@ -267,7 +267,7 @@ jobs:
   DeployALDoc:
     needs: [ Initialization, Build ]
     if: (!cancelled()) && (needs.Build.result == 'success' || needs.Build.result == 'skipped') && needs.Initialization.outputs.generateALDocArtifact == 1 && github.ref_name == 'main'
-    runs-on: [ windows-latest ]
+    runs-on: [ GitHub-BCAppsPL ]
     name: Deploy Reference Documentation
     permissions:
       contents: read
@@ -397,7 +397,7 @@ jobs:
       matrix:
         deliveryTarget: ${{ fromJson(needs.Initialization.outputs.deliveryTargetsJson) }}
       fail-fast: false
-    runs-on: [ windows-latest ]
+    runs-on: [ GitHub-BCAppsPL ]
     name: Deliver to ${{ matrix.deliveryTarget }}
     steps:
       - name: Checkout
@@ -437,7 +437,7 @@ jobs:
   PostProcess:
     needs: [ Initialization, Build1, Build, Deploy, Deliver, DeployALDoc, CodeAnalysisUpload ]
     if: (!cancelled())
-    runs-on: [ windows-latest ]
+    runs-on: [ GitHub-BCAppsPL ]
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
