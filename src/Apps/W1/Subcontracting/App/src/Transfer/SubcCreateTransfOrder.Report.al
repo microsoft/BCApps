@@ -322,6 +322,7 @@ report 99001501 "Subc. Create Transf. Order"
         WIPPreviousOperationNoDict: Dictionary of [Code[10], Code[10]];
         WIPSourceQtyDict: Dictionary of [Code[10], Decimal];
         WIPSourceLocationList: List of [Code[10]];
+        OpenWIPLineQtyBase: Decimal;
     begin
         if not ProdOrderLine.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
             exit(false);
@@ -332,7 +333,7 @@ report 99001501 "Subc. Create Transf. Order"
         if not ProdOrderRoutingLine."Transfer WIP Item" then
             exit(false);
 
-        if not CheckCreateWIPTransfer(PurchaseLine) then
+        if not CheckCreateWIPTransfer(PurchaseLine, OpenWIPLineQtyBase) then
             exit(false);
 
         PurchLineQtyBase := CalcPurchLineQtyBase(PurchaseLine, ProdOrderLine);
@@ -347,7 +348,7 @@ report 99001501 "Subc. Create Transf. Order"
 
         if WIPSourceLocationList.Count() = 1 then begin
             GetTransferToLocationCodeForPurchaseHeader("Purchase Header", Vendor, TransferToLocCode);
-            PostedWIPQtyBase := GetWIPQtyBase(PurchaseLine, TransferToLocCode) + GetOpenWIPTransferLineQtyBase(PurchaseLine);
+            PostedWIPQtyBase := GetWIPQtyBase(PurchaseLine, TransferToLocCode) + OpenWIPLineQtyBase;
         end;
 
         Item.SetLoadFields("Base Unit of Measure");
@@ -503,7 +504,7 @@ report 99001501 "Subc. Create Transf. Order"
             WIPQtyBase := WIPLedgerEntry."Quantity (Base)";
     end;
 
-    local procedure CheckCreateWIPTransfer(PurchaseLine: Record "Purchase Line"): Boolean
+    local procedure CheckCreateWIPTransfer(PurchaseLine: Record "Purchase Line"; var OpenWIPLineQtyBase: Decimal): Boolean
     var
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
@@ -514,11 +515,11 @@ report 99001501 "Subc. Create Transf. Order"
         TransferToLocationCode: Code[10];
         ExpectedQtyBase: Decimal;
         PostedWIPQtyBase: Decimal;
-        OpenWIPLineQtyBase: Decimal;
         WIPPreviousOperationNoDict: Dictionary of [Code[10], Code[10]];
         WIPSourceQtyDict: Dictionary of [Code[10], Decimal];
         WIPSourceLocationList: List of [Code[10]];
     begin
+        OpenWIPLineQtyBase := 0;
         if not ProdOrderLine.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
             exit(false);
 
