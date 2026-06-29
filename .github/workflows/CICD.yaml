@@ -193,7 +193,7 @@ jobs:
     secrets: inherit
     with:
       shell: ${{ matrix.githubRunnerShell }}
-      runsOn: GitHub-BCAppsPL
+      runsOn: '[ "GitHub-BCAppsPL" ]'
       project: ${{ matrix.project }}
       projectName: ${{ matrix.projectName }}
       buildMode: ${{ matrix.buildMode }}
@@ -218,7 +218,7 @@ jobs:
     secrets: inherit
     with:
       shell: ${{ matrix.githubRunnerShell }}
-      runsOn: GitHub-BCAppsPL
+      runsOn: '[ "GitHub-BCAppsPL" ]'
       project: ${{ matrix.project }}
       projectName: ${{ matrix.projectName }}
       buildMode: ${{ matrix.buildMode }}
