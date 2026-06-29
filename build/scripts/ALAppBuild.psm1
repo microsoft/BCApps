@@ -118,7 +118,7 @@ class BuildMetadataProvider
     {
         if (![BuildMetadataProvider]::ApplicationBuildInfo)
         {
-            # BCAppsPrivate uses build\projects.json and build\groups.json
+            # BCApps uses build\projects.json and build\groups.json
             [BuildMetadataProvider]::ApplicationBuildInfo = Get-Content -Path "$ENV:INETROOT\build\projects.json" -Raw | ConvertFrom-Json
             [BuildMetadataProvider]::ApplicationGroupInfo = Get-Content -Path "$ENV:INETROOT\build\groups.json" -Raw | ConvertFrom-Json
         }
