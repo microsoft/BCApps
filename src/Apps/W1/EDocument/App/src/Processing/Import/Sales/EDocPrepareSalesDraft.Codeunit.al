@@ -28,14 +28,11 @@ codeunit 6428 "EDoc Prepare Sales Draft"
         EDocumentSalesLine: Record "E-Document Sales Line";
         UnitOfMeasure: Record "Unit of Measure";
         Customer: Record Customer;
-        EDocActivityLogSession: Codeunit "E-Doc. Activity Log Session";
         IUnitOfMeasureProvider: Interface IUnitOfMeasureProvider;
         ISalesLineProvider: Interface ISalesLineProvider;
     begin
         IUnitOfMeasureProvider := EDocImportParameters."Processing Customizations";
         ISalesLineProvider := EDocImportParameters."Processing Customizations";
-
-        if EDocActivityLogSession.CreateSession() then;
 
         EDocumentSalesHeader.GetFromEDocument(EDocument);
         EDocumentSalesHeader.TestField("E-Document Entry No.");
@@ -46,8 +43,6 @@ codeunit 6428 "EDoc Prepare Sales Draft"
         end;
         EDocumentSalesHeader.Modify();
 
-        EDocImpSessionTelemetry.SetBool('Customer', EDocumentSalesHeader."[BC] Customer No." <> '');
-
         EDocumentSalesLine.SetRange("E-Document Entry No.", EDocument."Entry No");
         if EDocumentSalesLine.FindSet() then
             repeat
@@ -56,17 +51,6 @@ codeunit 6428 "EDoc Prepare Sales Draft"
                 ISalesLineProvider.GetSalesLine(EDocumentSalesLine);
                 EDocumentSalesLine.Modify();
             until EDocumentSalesLine.Next() = 0;
-
-        Clear(EDocumentSalesLine);
-        EDocumentSalesLine.SetRange("E-Document Entry No.", EDocument."Entry No");
-        if EDocumentSalesLine.FindSet() then
-            repeat
-                EDocImpSessionTelemetry.SetLine(EDocumentSalesLine.SystemId);
-            until EDocumentSalesLine.Next() = 0;
-
-        LogAllActivitySessionChanges(EDocActivityLogSession);
-
-        if EDocActivityLogSession.EndSession() then;
     end;
 
     procedure GetCustomer(EDocument: Record "E-Document"; Customizations: Enum "E-Doc. Proc. Customizations") Customer: Record Customer
