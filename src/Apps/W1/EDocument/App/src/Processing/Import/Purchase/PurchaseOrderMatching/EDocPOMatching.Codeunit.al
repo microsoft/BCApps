@@ -627,55 +627,6 @@ codeunit 6196 "E-Doc. PO Matching"
             Error(ReceiptLinesDontCoverErr);
     end;
 
-    /// <summary>
-    /// If the E-Document has been matched to an order line without specifying receipts, we match with receipt lines for that order line that can cover the E-Document line quantity.
-    /// </summary>
-    /// <param name="EDocumentPurchaseHeader"></param>
-    procedure SuggestReceiptsForMatchedOrderLines(EDocumentPurchaseHeader: Record "E-Document Purchase Header") // TODO: I think this is no longer needed? wdyt if instead of suggesting a receipt, we rely on the create invoice and the default functionality? now that we can have in baseapp PO-line level-only matches
-    var
-        EDocumentPurchaseLine: Record "E-Document Purchase Line";
-        EDocPurchaseLinePOMatch: Record "E-Doc. Purchase Line PO Match";
-        PurchaseOrderLine: Record "Purchase Line";
-        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
-        TempPurchaseReceiptLine: Record "Purch. Rcpt. Line" temporary;
-        EDocLineQuantity: Decimal;
-        NullGuid: Guid;
-    begin
-        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentPurchaseHeader."E-Document Entry No.");
-        if EDocumentPurchaseLine.FindSet() then
-            repeat
-                Clear(EDocPurchaseLinePOMatch);
-                EDocPurchaseLinePOMatch.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
-                EDocPurchaseLinePOMatch.SetRange("Receipt Line SystemId", NullGuid);
-                if not EDocPurchaseLinePOMatch.FindFirst() then
-                    continue; // No PO lines matched, so no receipt can be suggested
-                if not PurchaseOrderLine.GetBySystemId(EDocPurchaseLinePOMatch."Purchase Line SystemId") then
-                    continue; // Should not happen, but we skip in case it does, this procedure doesn't error out
-                EDocPurchaseLinePOMatch.SetRange("Purchase Line SystemId", PurchaseOrderLine.SystemId);
-                EDocPurchaseLinePOMatch.SetFilter("Receipt Line SystemId", '<> %1', NullGuid);
-                if not EDocPurchaseLinePOMatch.IsEmpty() then
-                    continue; // There's already at least one receipt line matched, so no suggestion is needed
-                Session.LogMessage('0000QQI', 'Suggesting receipt line for draft line matched to PO line', Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
-                PurchaseReceiptLine.SetRange("Order No.", PurchaseOrderLine."Document No.");
-                PurchaseReceiptLine.SetRange("Order Line No.", PurchaseOrderLine."Line No.");
-                PurchaseReceiptLine.SetFilter(Quantity, '> 0');
-                if PurchaseReceiptLine.FindSet() then
-                    repeat
-                        if GetEDocumentLineQuantityInBaseUoM(EDocumentPurchaseLine, EDocLineQuantity) then
-                            if PurchaseReceiptLine.Quantity >= EDocLineQuantity then begin
-                                // We suggest the first receipt line that can cover the full quantity of the E-Document line 
-                                Session.LogMessage('0000QQJ', 'Suggested covering receipt line for draft line matched to PO line', Verbosity::Verbose, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
-                                Clear(TempPurchaseReceiptLine);
-                                TempPurchaseReceiptLine.DeleteAll();
-                                TempPurchaseReceiptLine.Copy(PurchaseReceiptLine);
-                                TempPurchaseReceiptLine.Insert();
-                                MatchReceiptLinesToEDocumentLine(TempPurchaseReceiptLine, EDocumentPurchaseLine);
-                                break; // We only suggest a single receipt line
-                            end;
-                    until PurchaseReceiptLine.Next() = 0;
-            until EDocumentPurchaseLine.Next() = 0;
-    end;
-
     local procedure GetEDocumentLineQuantityInBaseUoM(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var Quantity: Decimal): Boolean
     var
         Item: Record Item;
@@ -708,6 +659,8 @@ codeunit 6196 "E-Doc. PO Matching"
         InvoicePurchaseLine: Record "Purchase Line";
         OrderPurchaseLine: Record "Purchase Line";
         PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+        ExistingReceiptLine: Record "Purch. Rcpt. Line";
+        TempConsumedReceipt: Record "Purch. Rcpt. Line" temporary;
         MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
         UnitOfMeasureMgt: Codeunit "Unit of Measure Management";
         QtyToInvoice, QtyToInvoiceBase, RemainingBaseToDistribute, AutoReceive, AutoReceiveBase, QtyPerUoM : Decimal;
@@ -729,6 +682,13 @@ codeunit 6196 "E-Doc. PO Matching"
                     if EDocPurchaseLinePOMatch.FindSet() then
                         repeat
                             if OrderPurchaseLine.GetBySystemId(EDocPurchaseLinePOMatch."Purchase Line SystemId") then begin
+                                TempConsumedReceipt.Reset();
+                                TempConsumedReceipt.DeleteAll();
+
+                                QtyPerUoM := OrderPurchaseLine."Qty. per Unit of Measure";
+                                if QtyPerUoM = 0 then
+                                    QtyPerUoM := 1;
+
                                 // First we transfer the receipts specified for this order line: each one invoices its received-not-invoiced quantity, which we take out of what is left to distribute.
                                 ReceiptPOMatches.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
                                 ReceiptPOMatches.SetRange("Purchase Line SystemId", OrderPurchaseLine.SystemId);
@@ -742,8 +702,34 @@ codeunit 6196 "E-Doc. PO Matching"
                                             MatchedOrderLineMgmt.CreateMatchedOrderLine(InvoicePurchaseLine.SystemId, OrderPurchaseLine.SystemId, PurchaseReceiptLine.SystemId, QtyToInvoice, QtyToInvoiceBase, false);
                                             // From the remaining quantity to distribute, we take out the quantity that is now assigned to be invoiced for this order line
                                             RemainingBaseToDistribute -= QtyToInvoiceBase;
+                                            // Remember the explicitly matched receipt so we do not invoice it again when soaking up the remaining receipts below.
+                                            TempConsumedReceipt := PurchaseReceiptLine;
+                                            if TempConsumedReceipt.Insert() then;
                                         end;
                                     until ReceiptPOMatches.Next() = 0;
+
+                                // We prefer invoicing against existing receipts before receiving on invoice: soak up any received-not-invoiced
+                                // receipt on this order line that was not explicitly matched, up to what is left to distribute.
+                                if RemainingBaseToDistribute > 0 then begin
+                                    ExistingReceiptLine.Reset();
+                                    ExistingReceiptLine.SetRange("Order No.", OrderPurchaseLine."Document No.");
+                                    ExistingReceiptLine.SetRange("Order Line No.", OrderPurchaseLine."Line No.");
+                                    ExistingReceiptLine.SetFilter("Qty. Rcd. Not Invoiced", '>0');
+                                    if ExistingReceiptLine.FindSet() then
+                                        repeat
+                                            if not TempConsumedReceipt.Get(ExistingReceiptLine."Document No.", ExistingReceiptLine."Line No.") then begin
+                                                QtyToInvoiceBase := OrderPurchaseLine.CalcBaseQty(ExistingReceiptLine."Qty. Rcd. Not Invoiced", OrderPurchaseLine.FieldCaption("Qty. to Invoice"), OrderPurchaseLine.FieldCaption("Qty. to Invoice (Base)"));
+                                                // We never invoice more than what is left to distribute, so the last receipt may be invoiced only partially.
+                                                if QtyToInvoiceBase > RemainingBaseToDistribute then
+                                                    QtyToInvoiceBase := RemainingBaseToDistribute;
+                                                if QtyToInvoiceBase > 0 then begin
+                                                    QtyToInvoice := UnitOfMeasureMgt.CalcQtyFromBase(QtyToInvoiceBase, QtyPerUoM);
+                                                    MatchedOrderLineMgmt.CreateMatchedOrderLine(InvoicePurchaseLine.SystemId, OrderPurchaseLine.SystemId, ExistingReceiptLine.SystemId, QtyToInvoice, QtyToInvoiceBase, false);
+                                                    RemainingBaseToDistribute -= QtyToInvoiceBase;
+                                                end;
+                                            end;
+                                        until (ExistingReceiptLine.Next() = 0) or (RemainingBaseToDistribute <= 0);
+                                end;
 
                                 // What is left of the e-document quantity is received on invoice for this order line, capped at what is still outstanding on it.
                                 AutoReceiveBase := RemainingBaseToDistribute;
@@ -753,9 +739,6 @@ codeunit 6196 "E-Doc. PO Matching"
                                     AutoReceiveBase := 0;
                                 RemainingBaseToDistribute -= AutoReceiveBase;
 
-                                QtyPerUoM := OrderPurchaseLine."Qty. per Unit of Measure";
-                                if QtyPerUoM = 0 then
-                                    QtyPerUoM := 1;
                                 AutoReceive := UnitOfMeasureMgt.CalcQtyFromBase(AutoReceiveBase, QtyPerUoM);
                                 MatchedOrderLineMgmt.CreateMatchedOrderLine(InvoicePurchaseLine.SystemId, OrderPurchaseLine.SystemId, NullGuid, AutoReceive, AutoReceiveBase, OrderPurchaseLine."Receipt on Invoice");
                             end;
