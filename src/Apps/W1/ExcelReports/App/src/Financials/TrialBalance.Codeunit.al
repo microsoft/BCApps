@@ -247,12 +247,11 @@ codeunit 4410 "Trial Balance"
             TrialBalanceData."Net Change (ACY)" := EXRTrialBalanceQuery.ACYAmount;
             TrialBalanceData."Net Change (Debit) (ACY)" := EXRTrialBalanceQuery.ACYDebitAmount;
             TrialBalanceData."Net Change (Credit) (ACY)" := EXRTrialBalanceQuery.ACYCreditAmount;
-            TrialBalanceData.CheckAllZero();
-            if not TrialBalanceData."All Zero" then begin
-                TrialBalanceData.Insert(true);
-                InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
-                InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
-            end;
+            // Every combination the query returns has entries, so it represents real activity and is kept even when it
+            // nets to zero. The second pass adjusts any that also have an opening balance.
+            TrialBalanceData.Insert(true);
+            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
+            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
         end;
         EXRTrialBalanceQuery.Close();
 
@@ -263,7 +262,9 @@ codeunit 4410 "Trial Balance"
             TrialBalanceData.SetRange("G/L Account No.", EXRTrialBalanceQuery.AccountNumber);
             TrialBalanceData.SetRange("Dimension 1 Code", EXRTrialBalanceQuery.DimensionValue1Code);
             TrialBalanceData.SetRange("Dimension 2 Code", EXRTrialBalanceQuery.DimensionValue2Code);
-            if not TrialBalanceData.FindFirst() then begin // This shouldn't happen, but we consider it regardless
+            if not TrialBalanceData.FindFirst() then begin
+                // This shouldn't happen now that the first pass inserts every combination with entries up to the ending date, but we Init() and consider it regardless.
+                TrialBalanceData.Init();
                 TrialBalanceData."G/L Account No." := EXRTrialBalanceQuery.AccountNumber;
                 TrialBalanceData."Dimension 1 Code" := EXRTrialBalanceQuery.DimensionValue1Code;
                 TrialBalanceData."Dimension 2 Code" := EXRTrialBalanceQuery.DimensionValue2Code;
@@ -315,12 +316,11 @@ codeunit 4410 "Trial Balance"
             TrialBalanceData."Net Change (ACY)" := EXRTrialBalanceBUQuery.ACYAmount;
             TrialBalanceData."Net Change (Debit) (ACY)" := EXRTrialBalanceBUQuery.ACYDebitAmount;
             TrialBalanceData."Net Change (Credit) (ACY)" := EXRTrialBalanceBUQuery.ACYCreditAmount;
-            TrialBalanceData.CheckAllZero();
-            if not TrialBalanceData."All Zero" then begin
-                TrialBalanceData.Insert(true);
-                InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
-                InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
-            end;
+            // Every combination the query returns has entries, so it represents real activity and is kept even when it
+            // nets to zero. The second pass adjusts any that also have an opening balance.
+            TrialBalanceData.Insert(true);
+            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
+            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
         end;
         EXRTrialBalanceBUQuery.Close();
 
@@ -333,6 +333,8 @@ codeunit 4410 "Trial Balance"
             TrialBalanceData.SetRange("Dimension 2 Code", EXRTrialBalanceBUQuery.DimensionValue2Code);
             TrialBalanceData.SetRange("Business Unit Code", EXRTrialBalanceBUQuery.BusinessUnitCode);
             if not TrialBalanceData.FindFirst() then begin
+                // This shouldn't happen now that the first pass inserts every combination with entries up to the ending date, but we Init() and consider it regardless.
+                TrialBalanceData.Init();
                 TrialBalanceData."G/L Account No." := EXRTrialBalanceBUQuery.AccountNumber;
                 TrialBalanceData."Dimension 1 Code" := EXRTrialBalanceBUQuery.DimensionValue1Code;
                 TrialBalanceData."Dimension 2 Code" := EXRTrialBalanceBUQuery.DimensionValue2Code;
