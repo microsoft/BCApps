@@ -1,0 +1,442 @@
+[
+  {
+    "codeunitId": 134392,
+    "codeunitName": "ERM Cost Accounting Rep - Test",
+    "method": "CostAcctgBalanceBudgetRep"
+  },
+  {
+    "codeunitId": 134392,
+    "codeunitName": "ERM Cost Accounting Rep - Test",
+    "method": "CostAcctgStmtBudgetReportBlankCC"
+  },
+  {
+    "codeunitId": 134392,
+    "codeunitName": "ERM Cost Accounting Rep - Test",
+    "method": "CostAcctgStmtBudgetReportBlankCO"
+  },
+  {
+    "codeunitId": 134812,
+    "codeunitName": "ERM CA GL Transfer",
+    "method": "GLTransferWithCCAndCODimension"
+  },
+  {
+    "codeunitId": 134812,
+    "codeunitName": "ERM CA GL Transfer",
+    "method": "GLTransferWithCCDimension"
+  },
+  {
+    "codeunitId": 134812,
+    "codeunitName": "ERM CA GL Transfer",
+    "method": "GLTransferWithCODimension"
+  },
+  {
+    "codeunitId": 134812,
+    "codeunitName": "ERM CA GL Transfer",
+    "method": "TransferMultipleGLEntries"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "AllocSrcFromCostCenToCostCen"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "AllocSrcFromCostCenToCostObj"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "AllocSrcUseAsStaticAllocTarget"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "CalcAllocKeysUpdateDynShare"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "CostAllocationWithMultipleLevel"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "CostAllocationWithSingleLevel"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "CreateAllocSourceAutoGenID"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "CreateAllocSourceCustomID"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DeleteAllocatedCostBudgetEntries"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DeleteAllocatedCostBudgetEntriesWhenDeleteCostBugdetRegister"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DeleteAllocatedCostEntries"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DeleteAllocSrcNoAllocTargets"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DeleteAllocSrcWithAllocTargets"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DeleteAllocTargetOfAllocSource"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DynAllocNumOfEmployeesFiltered"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DynAllocNumOfEmployeesNoFilter"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DynAllocTargetBaseCostBudgetEntries"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DynAllocTargetBaseCostTypeEntries"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DynAllocTargetBaseGLBudgetEntries"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DynAllocTargetBaseGLEntries"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DynAllocTargetBaseItemsPurchAmount"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DynAllocTargetBaseItemsPurchQty"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DynAllocTargetBaseItemsSoldAmount"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DynAllocTargetBaseItemsSoldQty"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DynAllocTargetDateFilterLastMonth"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DynAllocTargetDateFilterLastPeriod"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DynAllocTargetDateFilterPeriod"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DynAllocTargetDateFilterWeek"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "DynAllocTargetDateFilterYear"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "ErrorIfAllocSourceHasCCAndCO"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "ErrorIfAllocTargetHasCCAndCO"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "RunAllocateCostsForBudget"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "RunAllocateCostsForDateRange"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "RunAllocateCostsForLevels"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "RunAllocateCostsForVariant"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "StaticAllocTargetAmountPercent"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "StaticAllocTargetBaseAndWeight"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "StaticAllocTargetPercentValue"
+  },
+  {
+    "codeunitId": 134813,
+    "codeunitName": "ERM Cost Acc. Allocations",
+    "method": "StaticAllocTargetSharePercent"
+  },
+  {
+    "codeunitId": 134814,
+    "codeunitName": "ERM CA Budget",
+    "method": "CompressBudgetEntries"
+  },
+  {
+    "codeunitId": 134814,
+    "codeunitName": "ERM CA Budget",
+    "method": "CopyCABudgetAmtRatio"
+  },
+  {
+    "codeunitId": 134814,
+    "codeunitName": "ERM CA Budget",
+    "method": "CopyCABudgetDateFormulaMonth"
+  },
+  {
+    "codeunitId": 134814,
+    "codeunitName": "ERM CA Budget",
+    "method": "CopyCABudgetDateFormulaMonthNoOfCopiesMoreThanOne"
+  },
+  {
+    "codeunitId": 134814,
+    "codeunitName": "ERM CA Budget",
+    "method": "CopyCABudgetDateFormulaYear"
+  },
+  {
+    "codeunitId": 134814,
+    "codeunitName": "ERM CA Budget",
+    "method": "CopyCABudgetDefault"
+  },
+  {
+    "codeunitId": 134814,
+    "codeunitName": "ERM CA Budget",
+    "method": "CopyCABudgetToGLNoDimension"
+  },
+  {
+    "codeunitId": 134814,
+    "codeunitName": "ERM CA Budget",
+    "method": "CopyCABudgetToGLWithBudgetDim"
+  },
+  {
+    "codeunitId": 134814,
+    "codeunitName": "ERM CA Budget",
+    "method": "CopyCABudgetToGLWithCCDim"
+  },
+  {
+    "codeunitId": 134814,
+    "codeunitName": "ERM CA Budget",
+    "method": "CopyCABudgetToGLWithCODim"
+  },
+  {
+    "codeunitId": 134814,
+    "codeunitName": "ERM CA Budget",
+    "method": "CopyGLBudgetGlobalDim"
+  },
+  {
+    "codeunitId": 134814,
+    "codeunitName": "ERM CA Budget",
+    "method": "CopyGLBudgetGlobalDimWithDate"
+  },
+  {
+    "codeunitId": 134814,
+    "codeunitName": "ERM CA Budget",
+    "method": "CopyGLBudgetNoCostTypeLinkAcc"
+  },
+  {
+    "codeunitId": 134814,
+    "codeunitName": "ERM CA Budget",
+    "method": "DeleteCostBudgetName"
+  },
+  {
+    "codeunitId": 134814,
+    "codeunitName": "ERM CA Budget",
+    "method": "InsertCostBudgetEntryManually"
+  },
+  {
+    "codeunitId": 134814,
+    "codeunitName": "ERM CA Budget",
+    "method": "InsertFirstCostBudgetEntryMan"
+  },
+  {
+    "codeunitId": 134818,
+    "codeunitName": "ERM CA G/L Autotransfer",
+    "method": "TestAutotransferFromGLOn"
+  },
+  {
+    "codeunitId": 134819,
+    "codeunitName": "ERM Cost Accounting - Tables",
+    "method": "CostAccSetupValidateAutotransferFromGLConfirmYes"
+  },
+  {
+    "codeunitId": 134819,
+    "codeunitName": "ERM Cost Accounting - Tables",
+    "method": "CostAccSetupValidateStartingDateAfterFirstGLTransfer"
+  },
+  {
+    "codeunitId": 134819,
+    "codeunitName": "ERM Cost Accounting - Tables",
+    "method": "CostAccSetupValidateStartingDateConfirmNo"
+  },
+  {
+    "codeunitId": 134819,
+    "codeunitName": "ERM Cost Accounting - Tables",
+    "method": "CostAccSetupValidateStartingDateConfirmYes"
+  },
+  {
+    "codeunitId": 134819,
+    "codeunitName": "ERM Cost Accounting - Tables",
+    "method": "TestCostBudgetEntryGetFirstDateHiddenDate"
+  },
+  {
+    "codeunitId": 134819,
+    "codeunitName": "ERM Cost Accounting - Tables",
+    "method": "TestCostBudgetEntryGetFirstDatePeriodDate"
+  },
+  {
+    "codeunitId": 134819,
+    "codeunitName": "ERM Cost Accounting - Tables",
+    "method": "TransferGLEntriesToCAWithCombinedCostCenterAndCostObjectDimensions"
+  },
+  {
+    "codeunitId": 134820,
+    "codeunitName": "ERM Cost Accounting - Codeunit",
+    "method": "TestCAJnlPostMultipleLines"
+  },
+  {
+    "codeunitId": 134820,
+    "codeunitName": "ERM Cost Accounting - Codeunit",
+    "method": "TestCAJnlPostPrintConfirmYes"
+  },
+  {
+    "codeunitId": 134820,
+    "codeunitName": "ERM Cost Accounting - Codeunit",
+    "method": "TestCAJnlPostSingleLine"
+  },
+  {
+    "codeunitId": 134820,
+    "codeunitName": "ERM Cost Accounting - Codeunit",
+    "method": "TestCalcAllocationKeyBothAllocTargets"
+  },
+  {
+    "codeunitId": 134820,
+    "codeunitName": "ERM Cost Accounting - Codeunit",
+    "method": "TestCalcAllocationKeyDynamicAllocTarget"
+  },
+  {
+    "codeunitId": 134820,
+    "codeunitName": "ERM Cost Accounting - Codeunit",
+    "method": "TestCalcAllocationKeyForDifferentCostCenterFilter"
+  },
+  {
+    "codeunitId": 134820,
+    "codeunitName": "ERM Cost Accounting - Codeunit",
+    "method": "TestCalcAllocationKeysBothAllocTargets"
+  },
+  {
+    "codeunitId": 134820,
+    "codeunitName": "ERM Cost Accounting - Codeunit",
+    "method": "TestCalcAllocationKeysDynamicAllocTarget"
+  },
+  {
+    "codeunitId": 134820,
+    "codeunitName": "ERM Cost Accounting - Codeunit",
+    "method": "TestTransferGLEntriesToCACheckCAEntriesByCostCenter"
+  },
+  {
+    "codeunitId": 134820,
+    "codeunitName": "ERM Cost Accounting - Codeunit",
+    "method": "TestTransferGLEntriesToCACheckCAEntriesByCostObject"
+  },
+  {
+    "codeunitId": 134820,
+    "codeunitName": "ERM Cost Accounting - Codeunit",
+    "method": "TestTransferGLEntriesToCALinkCostTypesToGLAccountsConfirmYes"
+  },
+  {
+    "codeunitId": 134820,
+    "codeunitName": "ERM Cost Accounting - Codeunit",
+    "method": "TestTransferGLEntriesToCALinkCostTypesToGLAccountsConfirmYNo"
+  },
+  {
+    "codeunitId": 134820,
+    "codeunitName": "ERM Cost Accounting - Codeunit",
+    "method": "VerifyCostEntryAllocatedWithRegisterNo"
+  },
+  {
+    "codeunitId": 134821,
+    "codeunitName": "ERM Cost Accounting - Pages",
+    "method": "TestCostBudgetByCostCenterAmountTypeNetChangeForPeriodMonth"
+  },
+  {
+    "codeunitId": 134821,
+    "codeunitName": "ERM Cost Accounting - Pages",
+    "method": "TestCostTypeBalanceBudgetCalcBudgetPctForBudgetAmountNonZero"
+  },
+  {
+    "codeunitId": 134821,
+    "codeunitName": "ERM Cost Accounting - Pages",
+    "method": "TestCostTypeBalanceRoundingFactor"
+  },
+  {
+    "method": "GLTransferWithNoCostTypeLink",
+    "codeunitId": 134812,
+    "codeunitName": "ERM CA GL Transfer"
+  },
+  {
+    "codeunitId": 134812,
+    "codeunitName": "ERM CA GL Transfer",
+    "method": "GLTransferWithNoDimensions"
+  }
+]

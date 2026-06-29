@@ -1,0 +1,48 @@
+{
+  "id": "6d51d1f2-2b87-4e3a-bf5e-c27682fa0320",
+  "name": "Subcontracting Migration for IT",
+  "publisher": "Microsoft",
+  "description": "Provides migration tools and resources for IT Subcontracting data when upgrading from italian legacy subcontracting solution to the new subcontracting solution.",
+  "brief": "Subcontracting Migration for IT",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "logo": "ExtensionLogo.png",
+  "version": "29.0.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2104024",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "propagateDependencies": true,
+  "dependencies": [
+    {
+      "id": "1f32a50d-0057-4b95-b5df-cc04d7e89470",
+      "name": "Subcontracting",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    }
+  ],
+  "internalsVisibleTo": [
+    {
+      "id": "24099a81-b0ad-4b04-9669-3b2f7def7736",
+      "name": "Subcontracting Migration for IT - Test",
+      "publisher": "Microsoft"
+    }
+  ],
+  "platform": "29.0.0.0",
+  "application": "29.0.0.0",
+  "idRanges": [
+    {
+      "from": 149951,
+      "to": 149955
+    }
+  ],
+  "target": "Cloud",
+  "features": [
+    "NoImplicitWith",
+    "TranslationFile"
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  }
+}
