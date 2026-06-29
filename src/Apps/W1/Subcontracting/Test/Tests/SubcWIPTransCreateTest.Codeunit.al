@@ -1401,9 +1401,9 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseLine: Record "Purchase Line";
         TransferLine: Record "Transfer Line";
         WorkCenter: array[2] of Record "Work Center";
+        PurchaseHeaderPage: TestPage "Purchase Order";
         FullQty: Decimal;
         ReducedQty: Decimal;
-        PurchaseHeaderPage: TestPage "Purchase Order";
     begin
         // [SCENARIO 639382] When an open (unposted) WIP transfer line had its quantity reduced,
         // re-running "Create Transfer Order to Subcontractor" must create the remaining quantity
