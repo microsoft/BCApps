@@ -1435,6 +1435,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         PurchaseHeaderPage.OpenView();
         PurchaseHeaderPage.GoToRecord(PurchaseHeader);
         PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+        PurchaseHeaderPage.Close();
 
         // [GIVEN] Reduce the open WIP transfer line quantity (do not post it)
         TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
