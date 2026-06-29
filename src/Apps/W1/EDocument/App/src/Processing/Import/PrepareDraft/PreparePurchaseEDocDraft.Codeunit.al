@@ -39,6 +39,8 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
         LineAmount: Decimal;
         LineVATAmount: Decimal;
         TotalLineVATAmount: Decimal;
+        VendorAlreadyAssigned: Boolean;
+        VendorFoundByProvider: Boolean;
     begin
         IUnitOfMeasureProvider := EDocImportParameters."Processing Customizations";
         IPurchaseLineProvider := EDocImportParameters."Processing Customizations";
@@ -48,10 +50,12 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
 
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         EDocumentPurchaseHeader.TestField("E-Document Entry No.");
-        if EDocumentPurchaseHeader."[BC] Vendor No." = '' then begin
+        VendorAlreadyAssigned := EDocumentPurchaseHeader."[BC] Vendor No." <> '';
+        if not VendorAlreadyAssigned then begin
             Vendor := GetVendor(EDocument, EDocImportParameters."Processing Customizations");
             EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
         end;
+        VendorFoundByProvider := (not VendorAlreadyAssigned) and (EDocumentPurchaseHeader."[BC] Vendor No." <> '');
 
         PurchaseOrder := IPurchaseOrderProvider.GetPurchaseOrder(EDocumentPurchaseHeader);
         if PurchaseOrder."No." <> '' then begin
@@ -65,6 +69,17 @@ codeunit 6125 "Prepare Purchase E-Doc. Draft" implements IProcessStructuredData
 
         // If we can't find a vendor 
         EDocImpSessionTelemetry.SetBool('Vendor', EDocumentPurchaseHeader."[BC] Vendor No." <> '');
+
+        case true of
+            VendorAlreadyAssigned:
+                EDocImpSessionTelemetry.SetText('Vendor Assignment Source', 'Already Assigned');
+            VendorFoundByProvider:
+                EDocImpSessionTelemetry.SetText('Vendor Assignment Source', 'Provider');
+            EDocumentPurchaseHeader."[BC] Vendor No." <> '':
+                EDocImpSessionTelemetry.SetText('Vendor Assignment Source', 'History');
+            else
+                EDocImpSessionTelemetry.SetText('Vendor Assignment Source', 'None');
+        end;
         if EDocumentPurchaseHeader."[BC] Vendor No." <> '' then begin
 
             // Get all purchase lines for the document
