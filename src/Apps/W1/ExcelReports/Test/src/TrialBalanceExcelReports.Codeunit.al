@@ -591,7 +591,7 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
     [Test]
-    procedure QueryPathSkipsAllZeroRecords()
+    procedure QueryPathIncludesAccountsThatNetToZero()
     var
         GLAccount: Record "G/L Account";
         TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
@@ -599,7 +599,8 @@ codeunit 139544 "Trial Balance Excel Reports"
         TrialBalance: Codeunit "Trial Balance";
         ZeroAccount, NonZeroAccount : Code[20];
     begin
-        // [SCENARIO] Accounts with entries that sum to zero are not included in the buffer.
+        // [SCENARIO] Accounts that have entries are included even when they net to zero. The query only returns
+        // accounts with activity, so a zero net change still represents real (offsetting) turnover worth showing.
         // [GIVEN] One account with cancelling entries (net zero) and another with a non-zero balance
         Initialize();
         LibraryERM.CreateGLAccount(GLAccount);
@@ -617,10 +618,13 @@ codeunit 139544 "Trial Balance Excel Reports"
         TrialBalance.ConfigureTrialBalance(false, false);
         TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TrialBalanceData);
 
-        // [THEN] Only the non-zero account appears
-        Assert.AreEqual(1, TrialBalanceData.Count(), 'Only the non-zero account should be in the buffer');
-        TrialBalanceData.FindFirst();
-        Assert.AreEqual(NonZeroAccount, TrialBalanceData."G/L Account No.", 'The non-zero account should be the one returned');
+        // [THEN] Both accounts with entries appear in the buffer
+        Assert.AreEqual(2, TrialBalanceData.Count(), 'Both accounts with entries should be in the buffer');
+        // [THEN] The net-zero account is present with zero net change and balance
+        TrialBalanceData.SetRange("G/L Account No.", ZeroAccount);
+        Assert.IsTrue(TrialBalanceData.FindFirst(), 'The net-zero account should be included');
+        Assert.AreEqual(0, TrialBalanceData."Net Change", 'Net Change should be zero');
+        Assert.AreEqual(0, TrialBalanceData.Balance, 'Balance should be zero');
     end;
 
     local procedure CreateSampleBusinessUnits(HowMany: Integer)
