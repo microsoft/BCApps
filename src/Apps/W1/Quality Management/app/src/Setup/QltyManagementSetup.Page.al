@@ -11,8 +11,8 @@ using Microsoft.QualityManagement.Configuration.SourceConfiguration;
 using Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.QualityManagement.Configuration.Template.Test;
 using Microsoft.QualityManagement.Setup.ApplicationAreas;
+using Microsoft.QualityManagement.Telemetry;
 using System.Environment;
-using System.Telemetry;
 
 page 20400 "Qlty. Management Setup"
 {
@@ -50,7 +50,6 @@ page 20400 "Qlty. Management Setup"
                         ApplicationArea = All;
                         AboutTitle = 'Inspection creation option';
                         AboutText = 'Control if new quality inspections should be created when similar inspections already exist.';
-
                     }
                     field("Inspection Search Criteria"; Rec."Inspection Search Criteria")
                     {
@@ -215,7 +214,7 @@ page 20400 "Qlty. Management Setup"
             {
                 ApplicationArea = All;
                 Caption = 'Inspection Templates';
-                ToolTip = 'View a list of Quality Inspection Templates. A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.';
+                ToolTip = 'Quality inspection templates are inspection plans that contain a set of tests to perform.';
                 Image = BreakpointsList;
                 RunObject = Page "Qlty. Inspection Template List";
                 RunPageMode = Edit;
@@ -224,7 +223,7 @@ page 20400 "Qlty. Management Setup"
             {
                 ApplicationArea = All;
                 Caption = 'Inspection Generation Rules';
-                ToolTip = 'Specifies a Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect it to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template. When there are multiple matches, it will use the first template it finds, based on the sort order.';
+                ToolTip = 'Quality inspection generation rules specify when quality inspections are automatically generated and which template is used, such as during receiving, production, or warehouse activities. You link a template to a source table and define filter criteria that determine when an inspection is created. When the criteria are met, the system generates a quality inspection based on the linked template. If multiple rules match, the system uses the first rule according to the sort order.';
                 Image = CopyFromTask;
                 RunObject = Page "Qlty. Inspection Gen. Rules";
                 RunPageMode = Edit;
@@ -233,7 +232,7 @@ page 20400 "Qlty. Management Setup"
             {
                 ApplicationArea = All;
                 Caption = 'Results';
-                ToolTip = 'View the Quality Inspection Results. Results are effectively the incomplete/pass/fail state of an inspection. It is typical to have three results (incomplete, fail, pass), however you can configure as many results as you want, and in what circumstances. The results with a lower number for the priority field are evaluated first. If you are not sure what to configure here then use the three defaults.';
+                ToolTip = 'Quality inspection results represent the outcome of an inspection or test, such as incomplete, fail, or pass. You can configure multiple results and define their evaluation order based on priority. The system evaluates results with lower priority numbers first.';
                 Image = ViewRegisteredOrder;
                 RunObject = Page "Qlty. Inspection Result List";
                 RunPageMode = Edit;
@@ -242,7 +241,7 @@ page 20400 "Qlty. Management Setup"
             {
                 ApplicationArea = All;
                 Caption = 'Tests';
-                ToolTip = 'View the Quality Tests. Tests define data points, questions, measurements, and entries with their allowable values and default passing thresholds. You can later use these tests in Quality Inspection Templates.';
+                ToolTip = 'Quality tests are defined data points, checks, questions or measurements used to evaluate quality. Tests can be configured with allowable values and default passing thresholds, and are used in quality inspection templates.';
                 Image = TaskQualityMeasure;
                 RunObject = Page "Qlty. Tests";
                 RunPageMode = Edit;
@@ -255,7 +254,7 @@ page 20400 "Qlty. Management Setup"
                 {
                     ApplicationArea = QualityManagement;
                     Caption = 'Source Configurations';
-                    ToolTip = 'View the Quality Inspection Source Configurations. This page defines how data is automatically populated into quality inspections from other tables, including how records are linked between source and target tables. It is read-only in most scenarios and intended for advanced configuration.';
+                    ToolTip = 'View the quality inspection source configurations. This page defines how data is automatically populated into quality inspections from other tables, including how records are linked between source and target tables. It is read-only in most scenarios and intended for advanced configuration.';
                     Image = Relationship;
                     RunObject = Page "Qlty. Ins. Source Config. List";
                     RunPageMode = View;
@@ -284,21 +283,21 @@ page 20400 "Qlty. Management Setup"
 
     var
         QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-        QualityManagementTok: Label 'Quality Management', Locked = true;
         IsSaaS: Boolean;
 
     trigger OnOpenPage()
     var
         EnvironmentInformation: Codeunit "Environment Information";
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
     begin
         IsSaaS := EnvironmentInformation.IsSaaS();
 
-        FeatureTelemetry.LogUptake('0000QID', QualityManagementTok, Enum::"Feature Uptake Status"::Discovered);
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeDiscovered(ObjectType::Page, Page::"Qlty. Management Setup");
+
         if not Rec.Get() then begin
             QltyAutoConfigure.EnsureBasicSetupExists(false);
             if Rec.Get() then;
-            FeatureTelemetry.LogUptake('0000QIE', QualityManagementTok, Enum::"Feature Uptake Status"::"Set up");
+            QltyMgmtFeatureTelemetry.LogFeatureUptakeSetUp(ObjectType::Page, Page::"Qlty. Management Setup");
         end;
     end;
 

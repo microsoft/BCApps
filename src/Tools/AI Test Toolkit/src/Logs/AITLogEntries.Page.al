@@ -186,6 +186,14 @@ page 149033 "AIT Log Entries"
                 }
             }
         }
+        area(FactBoxes)
+        {
+            part(TestOutcome; "AIT Log Entry Outcome Part")
+            {
+                ApplicationArea = All;
+                SubPageLink = "Entry No." = field("Entry No.");
+            }
+        }
     }
     actions
     {

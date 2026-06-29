@@ -7,7 +7,7 @@ namespace Microsoft.QualityManagement.Configuration.Template;
 using Microsoft.Foundation.Attachment;
 using Microsoft.QualityManagement.Configuration.GenerationRule;
 using Microsoft.QualityManagement.Document;
-using System.Telemetry;
+using Microsoft.QualityManagement.Telemetry;
 
 /// <summary>
 /// A Quality Inspection Template is an inspection plan containing a set of questions and data points that you want to collect.
@@ -131,7 +131,7 @@ page 20402 "Qlty. Inspection Template"
             {
                 AccessByPermission = tabledata "Qlty. Inspection Header" = I;
                 Caption = 'Create Inspection';
-                ToolTip = 'Specifies to create a new Quality Inspection using this template.';
+                ToolTip = 'Create a new quality inspection from this template.';
                 Image = BulletList;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -150,7 +150,7 @@ page 20402 "Qlty. Inspection Template"
             {
                 Image = Copy;
                 Caption = 'Copy Template';
-                ToolTip = 'Copy an existing template.';
+                ToolTip = 'Copy an existing quality inspection template.';
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
@@ -170,9 +170,9 @@ page 20402 "Qlty. Inspection Template"
             action(ViewRules)
             {
                 Caption = 'Inspection Generation Rules';
-                ToolTip = 'View existing Quality Inspection Generation Rules related to this template. A Quality Inspection generation rule defines when you want to ask a set of questions defined in a template. You connect a template to a source table, and set the criteria to use that template with the table filter. When these filter criteria is met, then it will choose that template.';
+                ToolTip = 'View existing quality inspection generation rules related to this template.';
                 AboutTitle = 'Inspection Generation Rules';
-                AboutText = 'View inspection generation rules for this template. These rules define when the questions in the template are asked.';
+                AboutText = 'View inspection generation rules for this template. Quality inspection generation rules specify when quality inspections are automatically generated and which template is used, such as during receiving, production, or warehouse activities. You link a template to a source table and define filter criteria that determine when an inspection is created. When the criteria are met, the system generates a quality inspection based on the linked template. If multiple rules match, the system uses the first rule according to the sort order.';
                 Image = CopyFromTask;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -185,7 +185,7 @@ page 20402 "Qlty. Inspection Template"
             action(ExistingInspection)
             {
                 Caption = 'Existing Inspections';
-                ToolTip = 'Review existing inspections created using this template.';
+                ToolTip = 'Review existing quality inspections created using this template.';
                 Image = CheckList;
                 Promoted = true;
                 PromotedCategory = Process;
@@ -201,7 +201,6 @@ page 20402 "Qlty. Inspection Template"
     var
         ShowSampleSizeFixedQuantity: Boolean;
         ShowSampleSizePercentage: Boolean;
-        QualityManagementTok: Label 'Quality Management', Locked = true;
 
     local procedure GetDataCaptionExpression(): Text
     begin
@@ -209,11 +208,15 @@ page 20402 "Qlty. Inspection Template"
     end;
 
     trigger OnAfterGetRecord()
-    var
-        FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
-        FeatureTelemetry.LogUptake('0000QIA', QualityManagementTok, Enum::"Feature Uptake Status"::Used);
         UpdateControls();
+    end;
+
+    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
+    var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
+    begin
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeSetup(ObjectType::Page, Page::"Qlty. Inspection Template");
     end;
 
     local procedure UpdateControls()
