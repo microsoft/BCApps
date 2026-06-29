@@ -1,0 +1,81 @@
+name: Add Unstable Tests From Run
+run-name: "Add failing tests from run ${{ inputs.runId }} to the unstable tests list for ${{ inputs.branch }}"
+
+# Manually adds the failing tests from a specific CI/CD (or PR Build) run to the per-branch
+# unstable-tests artifact.
+#
+# Unlike the scheduled UpdateUnstableTests workflow (which fully recomputes the list from a sliding
+# window of recent runs), this workflow is additive: it downloads the existing unstable-tests
+# artifact, appends the failing tests from the run you specify, and re-publishes the artifact.
+#
+# Use this to immediately tolerate a known-unstable test that failed in a specific run, without
+# waiting for the sliding-window heuristic to pick it up.
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Comma-separated filter selecting which official branches to update (e.g. main, releases/*)'
+        required: true
+        type: string
+        default: 'main, releases/*'
+      runId:
+        description: 'CI/CD or PR Build run ID to pull failing tests from'
+        required: true
+        type: string
+
+permissions: read-all
+
+jobs:
+  GetBranches:
+    name: Get Official Branches
+    if: github.repository_owner == 'microsoft'
+    runs-on: ubuntu-latest
+    outputs:
+      updateBranches: ${{ steps.ensureArray.outputs.branchesJson }}
+    steps:
+      - name: Build branch filter
+        id: filter
+        shell: pwsh
+        run: |
+          # Convert the comma-separated branch filter into the JSON array that GetGitBranches expects.
+          $patterns = '${{ inputs.branch }}'.Split(',') | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+          $json = ConvertTo-Json @($patterns) -Compress
+          Write-Host "Branch filter: $json"
+          Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "includeJson=$json"
+
+      - name: Get Official Branches
+        id: getOfficialBranches
+        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
+        with:
+          include: ${{ steps.filter.outputs.includeJson }}
+
+      - name: Ensure JSON array
+        id: ensureArray
+        shell: pwsh
+        run: |
+          # PowerShell's ConvertTo-Json emits a bare string for single-element arrays.
+          # Wrap it in an array if needed so the matrix strategy always receives a JSON array.
+          $raw = '${{ steps.getOfficialBranches.outputs.branchesJson }}'
+          $parsed = $raw | ConvertFrom-Json
+          if ($parsed -is [string]) { $parsed = @($parsed) }
+          $json = ConvertTo-Json @($parsed) -Compress
+          Write-Host "Branches: $json"
+          Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "branchesJson=$json"
+
+  AddUnstableTests:
+    name: "[${{ matrix.branch }}] Add Unstable Tests From Run ${{ inputs.runId }}"
+    if: github.repository_owner == 'microsoft'
+    runs-on: windows-latest
+    needs: GetBranches
+    strategy:
+      matrix:
+        branch: ${{ fromJson(needs.GetBranches.outputs.updateBranches) }}
+      fail-fast: false
+    steps:
+      - name: Add unstable tests from run
+        uses: microsoft/BCAppsPrivate/.github/actions/UpdateUnstableTests@main #TODO - point to public repo when action is published
+        with:
+          branch: ${{ matrix.branch }}
+          run-id: ${{ inputs.runId }}
+          additive: true
