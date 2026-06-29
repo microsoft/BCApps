@@ -12,7 +12,7 @@ function Write-Log
     [PSObject] $Message,
     [string] $ForegroundColor = 'Gray',
     [switch] $Warning,
-    [switch] $Error,
+    [switch] $IsError,
     [switch] $NoVerbose,
     [string] $LogFolder = "${Env:INETROOT}\Logs",
     [string] $LogFile = "verbose.log",
@@ -34,25 +34,25 @@ function Write-Log
         {
             $ForegroundColor = 'Yellow'
         }
-        if($Error)
+        if($IsError)
         {
             $ForegroundColor = 'Red'
         }
     }
-    
+
     Process {
         try
         {
-            [bool] $Locked = $sem.WaitOne(5 * 1000) 
+            [bool] $Locked = $sem.WaitOne(5 * 1000)
             $LineHeading = "[$(Get-Date -Format "yyyy-MM-dd HH:mm:ss")]"
 
-            $Message | Out-String -Stream | 
+            $Message | Out-String -Stream |
             % {
                 if ($SkipLineHeader)
                 {
                     $LogLine = "$Prefix$_"
                 }
-                else 
+                else
                 {
                     $LogLine = "$LineHeading $Prefix$_"
                 }
@@ -81,10 +81,10 @@ function Write-Log
             }
        }
 
-    }    
+    }
     End {
-        
-        if($Error)
+
+        if($IsError)
         {
             throw "An error was logged."
         }
