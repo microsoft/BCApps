@@ -15,7 +15,7 @@ pageextension 99001539 "Subc. Shop S. Mfg Foundation" extends "Shop Supervisor M
         {
             action("Subc. Subcontracting Worksheets")
             {
-                ApplicationArea = Manufacturing;
+                ApplicationArea = Subcontracting;
                 Caption = 'Subcontracting Worksheets';
                 RunObject = Page "Req. Wksh. Names";
                 RunPageView = where("Template Type" = const(Subcontracting),

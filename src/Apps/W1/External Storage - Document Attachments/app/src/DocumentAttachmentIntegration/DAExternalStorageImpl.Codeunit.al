@@ -799,43 +799,52 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <param name="RunTrigger">Indicates if the trigger should run.</param>
     [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnAfterDeleteEvent, '', true, true)]
     local procedure OnAfterDeleteDocumentAttachment(var Rec: Record "Document Attachment"; RunTrigger: Boolean)
-    var
-        ExternalStorageSetup: Record "DA External Storage Setup";
     begin
         // Exit early if trigger is not running
         if not RunTrigger then
             exit;
 
-        // Temporary records are not processed
-        if Rec.IsTemporary() then
+        if not IsEligibleForExternalFileDeletionOnRecordDelete(Rec) then
             exit;
+
+        DeleteExternalFile(Rec."External File Path", Rec);
+    end;
+
+    /// <summary>
+    /// Evaluates whether the external blob backing a just-deleted Document Attachment row should be removed.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment record carrying the field values from the deleted row.</param>
+    /// <returns>True if the external file is eligible for deletion; otherwise false.</returns>
+    local procedure IsEligibleForExternalFileDeletionOnRecordDelete(var DocumentAttachment: Record "Document Attachment"): Boolean
+    var
+        ExternalStorageSetup: Record "DA External Storage Setup";
+    begin
+        if DocumentAttachment.IsTemporary() then
+            exit(false);
 
         // Check if auto delete is enabled
         if not ExternalStorageSetup.Get() then
-            exit;
+            exit(false);
 
         if not ExternalStorageSetup."Delete from External Storage" then
-            exit;
+            exit(false);
 
         // Only process files that were uploaded to external storage
-        if not Rec."Stored Externally" then
-            exit;
+        if not DocumentAttachment."Stored Externally" then
+            exit(false);
 
-        if Rec."External File Path" = '' then
-            exit;
+        if DocumentAttachment."External File Path" = '' then
+            exit(false);
 
         // Copied attachments share the source file - never delete the shared blob
-        if Rec."Skip Delete On Copy" then
-            exit;
+        if DocumentAttachment."Skip Delete On Copy" then
+            exit(false);
 
         // Files from another environment/company are managed by their owning environment
-        if IsFileFromAnotherEnvironmentOrCompany(Rec) then
-            exit;
+        if IsFileFromAnotherEnvironmentOrCompany(DocumentAttachment) then
+            exit(false);
 
-        // The Document Attachment row is already deleted at this point, so we cannot
-        // Find() or Modify() it. Delete the blob using the field values still carried
-        // on Rec, bypassing the record-based DeleteFromExternalStorage entry point.
-        DeleteExternalFile(Rec."External File Path", Rec);
+        exit(true);
     end;
 
     /// <summary>
