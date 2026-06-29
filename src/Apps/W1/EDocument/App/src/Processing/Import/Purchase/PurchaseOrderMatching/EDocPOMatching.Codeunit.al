@@ -5,11 +5,13 @@
 namespace Microsoft.eServices.EDocument.Processing.Import.Purchase;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.UOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 
 codeunit 6196 "E-Doc. PO Matching"
@@ -216,9 +218,11 @@ codeunit 6196 "E-Doc. PO Matching"
         EDocLineQuantity: Decimal;
         PurchaseLinesQuantity, PurchaseLinesQuantityInvoiced, PurchaseLinesQuantityReceived : Decimal;
         RemainingToInvoice, InvoiceableQty : Decimal;
+        EDocNetUnitCost, ExpectedPONetUnitCost, AmountPctDiff, AmountThreshold : Decimal;
         ExceedsInvoiceableQtyLbl: Label 'Invoice quantity (%1) exceeds what can be invoiced according to what has been received (%2) by %3. The order line has to be received before invoicing.', Comment = '%1 = Invoice qty, %2 = Invoiceable qty, %3 = Difference';
         ExceedsRemainingToInvoiceLbl: Label 'Invoice quantity (%1) exceeds what is missing to invoice from the order (%2) by %3.', Comment = '%1 = Invoice qty, %2 = Remaining to invoice, %3 = Difference';
         OverReceiptLbl: Label 'Invoice will close out order but there is an over-receipt of %1 units.', Comment = '%1 = Over-receipt quantity';
+        AmountMismatchLbl: Label 'Invoiced unit cost (%1) differs from the order''s unit cost (%2) by %3%, which exceeds the allowed %4%.', Comment = '%1 = Invoiced net unit cost, %2 = Order net unit cost, %3 = Actual % difference, %4 = Allowed % tolerance';
     begin
         LoadPOLinesMatchedToEDocumentLine(EDocumentPurchaseLine, TempPurchaseLine);
         PurchaseLinesQuantityInvoiced := 0;
@@ -262,13 +266,95 @@ codeunit 6196 "E-Doc. PO Matching"
             POMatchWarnings.Insert();
         end;
 
-        // I = R and I < J: Order will be closed but there is an over-receipt 
+        // I = R and I < J: Order will be closed but there is an over-receipt
         if (EDocLineQuantity = RemainingToInvoice) and (EDocLineQuantity < InvoiceableQty) then begin
             POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
             POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::OverReceipt;
             POMatchWarnings."Warning Message" := CopyStr(StrSubstNo(OverReceiptLbl, InvoiceableQty - RemainingToInvoice), 1, MaxStrLen(POMatchWarnings."Warning Message"));
             POMatchWarnings.Insert();
         end;
+
+        // Invoiced unit cost differs from the order's unit cost beyond the allowed tolerance
+        if ShouldWarnAmountMismatch(EDocumentPurchaseLine, TempPurchaseLine, EDocNetUnitCost, ExpectedPONetUnitCost, AmountPctDiff, AmountThreshold) then begin
+            POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
+            POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::AmountMismatch;
+            POMatchWarnings."Warning Message" := CopyStr(StrSubstNo(AmountMismatchLbl, EDocNetUnitCost, ExpectedPONetUnitCost, Round(AmountPctDiff, 0.1), AmountThreshold), 1, MaxStrLen(POMatchWarnings."Warning Message"));
+            POMatchWarnings.Insert();
+        end;
+    end;
+
+    /// <summary>
+    /// Determines whether the invoiced net unit cost of the e-document line differs from the matched purchase order lines' net unit cost
+    /// by more than the percentage configured in "E-Document Matching Difference" on Purchases Payables Setup.
+    /// Differences within the currency rounding precision, or when currencies don't match, never warn.
+    /// </summary>
+    /// <param name="EDocumentPurchaseLine">The e-document invoice draft line.</param>
+    /// <param name="TempPurchaseLine">Purchase order lines matched to the e-document line.</param>
+    /// <param name="EDocNetUnitCost">Out: the invoiced net unit cost (Unit Price less per-unit discount).</param>
+    /// <param name="ExpectedPONetUnitCost">Out: the quantity-weighted net unit cost of the matched order lines.</param>
+    /// <param name="PctDiff">Out: the actual percentage difference between the two unit costs.</param>
+    /// <param name="Threshold">Out: the allowed percentage difference read from setup.</param>
+    /// <returns>True if a warning should be raised.</returns>
+    local procedure ShouldWarnAmountMismatch(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var TempPurchaseLine: Record "Purchase Line" temporary; var EDocNetUnitCost: Decimal; var ExpectedPONetUnitCost: Decimal; var PctDiff: Decimal; var Threshold: Decimal): Boolean
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        WeightedNetCostNumerator, TotalPOQuantity, AbsDiff, RoundingFloor : Decimal;
+        EDocCurrencyCode: Code[10];
+    begin
+        Clear(EDocNetUnitCost);
+        Clear(ExpectedPONetUnitCost);
+        Clear(PctDiff);
+        Clear(Threshold);
+
+        // Without a quantity we can't derive a unit cost from the line amount.
+        if EDocumentPurchaseLine.Quantity = 0 then
+            exit(false);
+
+        if not TempPurchaseLine.FindSet() then
+            exit(false);
+        // A blank currency code means the local currency, so normalize both sides before comparing.
+        GeneralLedgerSetup.Get();
+        EDocCurrencyCode := NormalizeEmptyCurrencyCode(EDocumentPurchaseLine."Currency Code", GeneralLedgerSetup);
+        repeat
+            // The unit cost comparison is only meaningful within a single currency; we don't convert across currencies.
+            if EDocCurrencyCode <> NormalizeEmptyCurrencyCode(TempPurchaseLine."Currency Code", GeneralLedgerSetup) then
+                exit(false);
+            WeightedNetCostNumerator += TempPurchaseLine."Direct Unit Cost" * (1 - TempPurchaseLine."Line Discount %" / 100) * TempPurchaseLine.Quantity;
+            TotalPOQuantity += TempPurchaseLine.Quantity;
+        until TempPurchaseLine.Next() = 0;
+
+        if TotalPOQuantity = 0 then
+            exit(false);
+
+        // The draft line's discount is an absolute amount, so we net it out of the line total before dividing by quantity.
+        EDocNetUnitCost := (EDocumentPurchaseLine.Quantity * EDocumentPurchaseLine."Unit Price" - EDocumentPurchaseLine."Total Discount") / EDocumentPurchaseLine.Quantity;
+        // A non-positive invoiced unit cost means the line carries no usable price to compare; that's a missing-price situation, not a price mismatch.
+        if EDocNetUnitCost <= 0 then
+            exit(false);
+        ExpectedPONetUnitCost := WeightedNetCostNumerator / TotalPOQuantity;
+        if ExpectedPONetUnitCost <= 0 then
+            exit(false);
+
+        if PurchasesPayablesSetup.Get() then
+            Threshold := PurchasesPayablesSetup."E-Document Matching Difference";
+
+        // Differences within the currency rounding precision are noise and never warn, even when the tolerance is 0.
+        AbsDiff := Abs(ExpectedPONetUnitCost - EDocNetUnitCost);
+        RoundingFloor := EDocumentImportHelper.GetCurrencyRoundingPrecision(EDocumentPurchaseLine."Currency Code");
+        if AbsDiff <= RoundingFloor then
+            exit(false);
+
+        PctDiff := AbsDiff * 100 / ExpectedPONetUnitCost;
+        exit(PctDiff > Threshold);
+    end;
+
+    local procedure NormalizeEmptyCurrencyCode(CurrencyCode: Code[10]; GeneralLedgerSetup: Record "General Ledger Setup"): Code[10]
+    begin
+        if CurrencyCode = '' then
+            exit(GeneralLedgerSetup."LCY Code");
+        exit(CurrencyCode);
     end;
 
     /// <summary>
@@ -545,7 +631,7 @@ codeunit 6196 "E-Doc. PO Matching"
     /// If the E-Document has been matched to an order line without specifying receipts, we match with receipt lines for that order line that can cover the E-Document line quantity.
     /// </summary>
     /// <param name="EDocumentPurchaseHeader"></param>
-    procedure SuggestReceiptsForMatchedOrderLines(EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    procedure SuggestReceiptsForMatchedOrderLines(EDocumentPurchaseHeader: Record "E-Document Purchase Header") // TODO: I think this is no longer needed? wdyt if instead of suggesting a receipt, we rely on the create invoice and the default functionality? now that we can have in baseapp PO-line level-only matches
     var
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         EDocPurchaseLinePOMatch: Record "E-Doc. Purchase Line PO Match";
@@ -693,49 +779,66 @@ codeunit 6196 "E-Doc. PO Matching"
         TempPOLinesToMatch: Record "Purchase Line" temporary;
         TempReceiptLinesToMatch: Record "Purch. Rcpt. Line" temporary;
     begin
-        // TODO: consider also the old "Receipt No." for this restoring
         PurchaseInvoiceLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseInvoiceLine.SetRange("Document No.", PurchaseHeader."No.");
         if not PurchaseInvoiceLine.FindSet() then
             exit;
         repeat
             if EDocumentPurchaseLine.GetFromLinkedPurchaseLine(PurchaseInvoiceLine) then begin
-                MatchedOrderLine.SetRange("Document Line SystemId", PurchaseInvoiceLine.SystemId);
-                if not MatchedOrderLine.IsEmpty() then begin
-                    TempPOLinesToMatch.Reset();
-                    TempPOLinesToMatch.DeleteAll();
-                    TempReceiptLinesToMatch.Reset();
-                    TempReceiptLinesToMatch.DeleteAll();
+                TempPOLinesToMatch.Reset();
+                TempPOLinesToMatch.DeleteAll();
+                TempReceiptLinesToMatch.Reset();
+                TempReceiptLinesToMatch.DeleteAll();
 
-                    MatchedOrderLine.FindSet();
+                // Matches created when the draft was applied are stored as matched order lines.
+                MatchedOrderLine.SetRange("Document Line SystemId", PurchaseInvoiceLine.SystemId);
+                if MatchedOrderLine.FindSet() then
                     repeat
                         if PurchaseOrderLine.GetBySystemId(MatchedOrderLine."Matched Order Line SystemId") then
-                            if not TempPOLinesToMatch.Get(PurchaseOrderLine."Document Type", PurchaseOrderLine."Document No.", PurchaseOrderLine."Line No.") then begin
-                                TempPOLinesToMatch := PurchaseOrderLine;
-                                TempPOLinesToMatch.Insert();
-                            end;
+                            CollectPOLineToMatch(PurchaseOrderLine, TempPOLinesToMatch);
                         if not IsNullGuid(MatchedOrderLine."Matched Rcpt./Shpt. Line SysId") then
                             if PurchaseReceiptLine.GetBySystemId(MatchedOrderLine."Matched Rcpt./Shpt. Line SysId") then
-                                if not TempReceiptLinesToMatch.Get(PurchaseReceiptLine."Document No.", PurchaseReceiptLine."Line No.") then begin
-                                    TempReceiptLinesToMatch := PurchaseReceiptLine;
-                                    TempReceiptLinesToMatch.Insert();
-                                end;
+                                CollectReceiptLineToMatch(PurchaseReceiptLine, TempReceiptLinesToMatch);
                     until MatchedOrderLine.Next() = 0;
 
-                    if not TempPOLinesToMatch.IsEmpty() then
-                        MatchPOLinesToEDocumentLine(TempPOLinesToMatch, EDocumentPurchaseLine);
-                    if not TempReceiptLinesToMatch.IsEmpty() then
-                        MatchReceiptLinesToEDocumentLine(TempReceiptLinesToMatch, EDocumentPurchaseLine);
-                end;
+                // An invoice line created from a posted receipt (the classic "Get Receipt Lines" flow) is linked to
+                // it through the Receipt No. / Receipt Line No. fields rather than a matched order line.
+                if (PurchaseInvoiceLine."Receipt No." <> '') and (PurchaseInvoiceLine."Receipt Line No." <> 0) then
+                    if PurchaseReceiptLine.Get(PurchaseInvoiceLine."Receipt No.", PurchaseInvoiceLine."Receipt Line No.") then
+                        if PurchaseOrderLine.Get(PurchaseOrderLine."Document Type"::Order, PurchaseReceiptLine."Order No.", PurchaseReceiptLine."Order Line No.") then begin
+                            CollectPOLineToMatch(PurchaseOrderLine, TempPOLinesToMatch);
+                            CollectReceiptLineToMatch(PurchaseReceiptLine, TempReceiptLinesToMatch);
+                        end;
+
+                if not TempPOLinesToMatch.IsEmpty() then
+                    MatchPOLinesToEDocumentLine(TempPOLinesToMatch, EDocumentPurchaseLine);
+                if not TempReceiptLinesToMatch.IsEmpty() then
+                    MatchReceiptLinesToEDocumentLine(TempReceiptLinesToMatch, EDocumentPurchaseLine);
             end;
         until PurchaseInvoiceLine.Next() = 0;
+    end;
+
+    local procedure CollectPOLineToMatch(PurchaseOrderLine: Record "Purchase Line"; var TempPOLinesToMatch: Record "Purchase Line" temporary)
+    begin
+        if TempPOLinesToMatch.Get(PurchaseOrderLine."Document Type", PurchaseOrderLine."Document No.", PurchaseOrderLine."Line No.") then
+            exit;
+        TempPOLinesToMatch := PurchaseOrderLine;
+        TempPOLinesToMatch.Insert();
+    end;
+
+    local procedure CollectReceiptLineToMatch(PurchaseReceiptLine: Record "Purch. Rcpt. Line"; var TempReceiptLinesToMatch: Record "Purch. Rcpt. Line" temporary)
+    begin
+        if TempReceiptLinesToMatch.Get(PurchaseReceiptLine."Document No.", PurchaseReceiptLine."Line No.") then
+            exit;
+        TempReceiptLinesToMatch := PurchaseReceiptLine;
+        TempReceiptLinesToMatch.Insert();
     end;
 
     /// <summary>
     /// Returns whether we should warn the user that the specified vendor's purchase order lines are not yet received when they are matched to an invoice line.
     /// </summary>
     /// <param name="TempPurchaseLine">Purchase order lines matched to a single e-document invoice draft line.</param>
-    /// <returns></returns>
+    /// <returns>Whether a warning should be shown if any of the purchase order lines are not marked as possible to be received at invoice.</returns>
     procedure ShouldWarnIfNotYetReceived(var TempPurchaseLine: Record "Purchase Line" temporary): Boolean
     begin
         if TempPurchaseLine.IsEmpty() then

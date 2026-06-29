@@ -41,6 +41,7 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
 
         EDocPOMatching.SuggestReceiptsForMatchedOrderLines(EDocumentPurchaseHeader);
         EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
+        // Only MissingInformationForMatch is blocking by design; all other warning types (e.g. AmountMismatch) are informational and must not gate invoice creation.
         TempPOMatchWarnings.SetRange("Warning Type", "E-Doc PO Match Warning"::MissingInformationForMatch);
         if not TempPOMatchWarnings.IsEmpty() then
             Error(MissingInformationForMatchErr);

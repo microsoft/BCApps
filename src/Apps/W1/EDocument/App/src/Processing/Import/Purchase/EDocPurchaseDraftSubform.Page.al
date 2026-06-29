@@ -507,6 +507,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         ExceedsInvoiceableQtyLbl: Label 'Exceeds quantity received';
         ExceedsRemainingToInvoiceLbl: Label 'Exceeds remaining to invoice';
         OverReceiptLbl: Label 'Over-receipt';
+        PriceDifferenceLbl: Label 'Price difference';
         NoWarningsLbl: Label 'No warnings';
         MultipleWarningsLbl: Label 'Multiple warnings';
         MostSevereStyle: Text;
@@ -547,6 +548,12 @@ page 6183 "E-Doc. Purchase Draft Subform"
                             MatchWarningsCaption := OverReceiptLbl;
                             MostSevereStyle := 'Subordinate';
                         end;
+                    Enum::"E-Doc PO Match Warning"::AmountMismatch:
+                        begin
+                            CurrentSeverity := 2;
+                            MatchWarningsCaption := PriceDifferenceLbl;
+                            MostSevereStyle := 'Ambiguous';
+                        end;
                 end;
                 if CurrentSeverity > SeverityLevel then begin
                     SeverityLevel := CurrentSeverity;
@@ -573,7 +580,8 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     WarningDetails.AppendLine('• ' + MissingInfoDetailLbl);
                 Enum::"E-Doc PO Match Warning"::ExceedsInvoiceableQty,
                 Enum::"E-Doc PO Match Warning"::ExceedsRemainingToInvoice,
-                Enum::"E-Doc PO Match Warning"::OverReceipt:
+                Enum::"E-Doc PO Match Warning"::OverReceipt,
+                Enum::"E-Doc PO Match Warning"::AmountMismatch:
                     WarningDetails.AppendLine('• ' + TempEDocumentPOMatchWarnings."Warning Message");
             end;
         until TempEDocumentPOMatchWarnings.Next() = 0;

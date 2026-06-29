@@ -798,6 +798,217 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
     end;
 
     [Test]
+    procedure AmountMismatchWarningRaisedWhenUnitCostExceedsTolerance()
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
+    begin
+        Initialize();
+        // [SCENARIO] The invoiced unit cost exceeds the matched order's unit cost beyond the allowed tolerance.
+        // [GIVEN] Tolerance 5%; invoiced net unit cost 110, order net unit cost 100 -> 10% difference
+        SetMatchingDifferencePct(5);
+        CreateMatchedAmountDraftLine(EDocumentPurchaseHeader, EDocumentPurchaseLine, Item, 10, 110, 0);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseLine := AddOrderLineWithCost(PurchaseHeader, Item."No.", 10, 100, 0);
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] CalculatePOMatchWarnings is called
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
+
+        // [THEN] An AmountMismatch warning is generated for the line
+        TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::AmountMismatch);
+        Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected AmountMismatch warning when unit cost exceeds tolerance');
+        SetMatchingDifferencePct(0);
+    end;
+
+    [Test]
+    procedure NoAmountMismatchWarningWhenWithinTolerance()
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
+    begin
+        Initialize();
+        // [SCENARIO] The invoiced unit cost differs from the order's unit cost but stays within the allowed tolerance.
+        // [GIVEN] Tolerance 5%; invoiced net unit cost 103, order net unit cost 100 -> 3% difference
+        SetMatchingDifferencePct(5);
+        CreateMatchedAmountDraftLine(EDocumentPurchaseHeader, EDocumentPurchaseLine, Item, 10, 103, 0);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseLine := AddOrderLineWithCost(PurchaseHeader, Item."No.", 10, 100, 0);
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] CalculatePOMatchWarnings is called
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
+
+        // [THEN] No AmountMismatch warning is generated
+        TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::AmountMismatch);
+        Assert.IsTrue(TempPOMatchWarnings.IsEmpty(), 'Did not expect AmountMismatch warning within tolerance');
+        SetMatchingDifferencePct(0);
+    end;
+
+    [Test]
+    procedure AmountMismatchHonorsAbsoluteDiscountOnDraftLine()
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
+    begin
+        Initialize();
+        // [SCENARIO] The draft line's Total Discount is an absolute amount, so it nets the invoiced unit cost down.
+        // [GIVEN] Tolerance 1%; qty 10, unit price 100, total discount 50 -> net (1000-50)/10 = 95 vs order 100 -> 5%
+        SetMatchingDifferencePct(1);
+        CreateMatchedAmountDraftLine(EDocumentPurchaseHeader, EDocumentPurchaseLine, Item, 10, 100, 50);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseLine := AddOrderLineWithCost(PurchaseHeader, Item."No.", 10, 100, 0);
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] CalculatePOMatchWarnings is called
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
+
+        // [THEN] An AmountMismatch warning is generated because the discounted unit cost is out of tolerance
+        TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::AmountMismatch);
+        Assert.IsFalse(TempPOMatchWarnings.IsEmpty(), 'Expected AmountMismatch warning after applying the absolute discount');
+        SetMatchingDifferencePct(0);
+    end;
+
+    [Test]
+    procedure NoAmountWarningWhenThresholdZeroButOnlyRoundingNoise()
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
+    begin
+        Initialize();
+        // [SCENARIO] With a 0% tolerance, a sub-rounding-precision difference must not warn.
+        // [GIVEN] Tolerance 0%; invoiced net unit cost 100.001 vs order 100 (difference below the 0.01 rounding precision)
+        SetMatchingDifferencePct(0);
+        CreateMatchedAmountDraftLine(EDocumentPurchaseHeader, EDocumentPurchaseLine, Item, 1, 100.001, 0);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseLine := AddOrderLineWithCost(PurchaseHeader, Item."No.", 1, 100, 0);
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] CalculatePOMatchWarnings is called
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
+
+        // [THEN] No AmountMismatch warning is generated because the difference is within rounding precision
+        TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::AmountMismatch);
+        Assert.IsTrue(TempPOMatchWarnings.IsEmpty(), 'Did not expect AmountMismatch warning for sub-rounding-precision noise');
+    end;
+
+    [Test]
+    procedure NoAmountWarningWhenCurrenciesDiffer()
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
+    begin
+        Initialize();
+        // [SCENARIO] When the draft line currency differs from the order line currency, the cost comparison is skipped.
+        // [GIVEN] Tolerance 5%; a large cost gap (200 vs 100) but the draft line is in a different currency than the LCY order
+        SetMatchingDifferencePct(5);
+        CreateMatchedAmountDraftLine(EDocumentPurchaseHeader, EDocumentPurchaseLine, Item, 10, 200, 0);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseLine := AddOrderLineWithCost(PurchaseHeader, Item."No.", 10, 100, 0);
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
+        EDocumentPurchaseLine."Currency Code" := 'EUR';
+        EDocumentPurchaseLine.Modify();
+
+        // [WHEN] CalculatePOMatchWarnings is called
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
+
+        // [THEN] No AmountMismatch warning is generated because currencies differ
+        TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::AmountMismatch);
+        Assert.IsTrue(TempPOMatchWarnings.IsEmpty(), 'Did not expect AmountMismatch warning when currencies differ');
+        SetMatchingDifferencePct(0);
+    end;
+
+    [Test]
+    procedure AmountMismatchUsesQuantityWeightedAverageAcrossMultiplePOLines()
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine1: Record "Purchase Line";
+        PurchaseLine2: Record "Purchase Line";
+        TempPurchaseLine: Record "Purchase Line" temporary;
+        Item: Record Item;
+        TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
+    begin
+        Initialize();
+        // [SCENARIO] The expected order unit cost is a quantity-weighted average of all matched order lines, not a simple mean.
+        // [GIVEN] Tolerance 5%; order lines (cost 100, qty 30) and (cost 200, qty 10) -> weighted avg 125; invoiced net unit cost 125
+        SetMatchingDifferencePct(5);
+        CreateMatchedAmountDraftLine(EDocumentPurchaseHeader, EDocumentPurchaseLine, Item, 1, 125, 0);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseLine1 := AddOrderLineWithCost(PurchaseHeader, Item."No.", 30, 100, 0);
+        PurchaseLine2 := AddOrderLineWithCost(PurchaseHeader, Item."No.", 10, 200, 0);
+        TempPurchaseLine := PurchaseLine1;
+        TempPurchaseLine.Insert();
+        TempPurchaseLine := PurchaseLine2;
+        TempPurchaseLine.Insert();
+        EDocPOMatching.MatchPOLinesToEDocumentLine(TempPurchaseLine, EDocumentPurchaseLine);
+
+        // [WHEN] CalculatePOMatchWarnings is called
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
+
+        // [THEN] No AmountMismatch warning is generated; 125 matches the weighted average (a simple mean of 150 would warn)
+        TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::AmountMismatch);
+        Assert.IsTrue(TempPOMatchWarnings.IsEmpty(), 'Did not expect AmountMismatch warning when invoiced cost equals the quantity-weighted average');
+        SetMatchingDifferencePct(0);
+    end;
+
+    [Test]
+    procedure NoAmountWarningWhenDraftQuantityZero()
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        TempPOMatchWarnings: Record "E-Doc PO Match Warning" temporary;
+    begin
+        Initialize();
+        // [SCENARIO] A draft line with zero quantity has no derivable unit cost and must not warn or error.
+        // [GIVEN] Tolerance 5%; draft quantity 0 with a unit price, matched to an order line with a different cost
+        SetMatchingDifferencePct(5);
+        CreateMatchedAmountDraftLine(EDocumentPurchaseHeader, EDocumentPurchaseLine, Item, 0, 100, 0);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        PurchaseLine := AddOrderLineWithCost(PurchaseHeader, Item."No.", 10, 50, 0);
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] CalculatePOMatchWarnings is called
+        EDocPOMatching.CalculatePOMatchWarnings(EDocumentPurchaseHeader, TempPOMatchWarnings);
+
+        // [THEN] No AmountMismatch warning is generated and no error is raised
+        TempPOMatchWarnings.SetRange("E-Doc. Purchase Line SystemId", EDocumentPurchaseLine.SystemId);
+        TempPOMatchWarnings.SetRange("Warning Type", Enum::"E-Doc PO Match Warning"::AmountMismatch);
+        Assert.IsTrue(TempPOMatchWarnings.IsEmpty(), 'Did not expect AmountMismatch warning for a zero-quantity draft line');
+        SetMatchingDifferencePct(0);
+    end;
+
+    [Test]
     procedure IsPOMatchConsistentReturnsTrueWhenAllMatchesAreValid()
     var
         EDocument: Record "E-Document";
@@ -1995,8 +2206,8 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
     begin
         Initialize();
         // [SCENARIO] A vendor whose policy never receives on invoice allows matching a not-yet-received PO line and surfaces a warning
-        // [GIVEN] Vendor "Receipt on Invoice Policy" set to Never and a PO line not yet received
-        SetVendorReceiptOnInvoicePolicy(Vendor."No.", Enum::"Receipt on Invoice Policy"::Never);
+        // [GIVEN] Vendor "Receipt on Invoice Policy" set to Manual and a PO line not yet received
+        SetVendorReceiptOnInvoicePolicy(Vendor."No.", Enum::"Receipt on Invoice Policy"::Manual);
 
         LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
         EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
@@ -2044,8 +2255,8 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
     begin
         Initialize();
         // [SCENARIO] A vendor whose policy always receives on invoice allows matching a not-yet-received PO line without a warning
-        // [GIVEN] Vendor "Receipt on Invoice Policy" set to Always and a PO line not yet received
-        SetVendorReceiptOnInvoicePolicy(Vendor."No.", Enum::"Receipt on Invoice Policy"::Always);
+        // [GIVEN] Vendor "Receipt on Invoice Policy" set to Enabled and a PO line not yet received
+        SetVendorReceiptOnInvoicePolicy(Vendor."No.", Enum::"Receipt on Invoice Policy"::Enabled);
 
         LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
         EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
@@ -2270,11 +2481,13 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         // [WHEN] TransferPOMatchesFromEDocumentToInvoice is called
         EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument);
 
-        // [THEN] A matched order line links the invoice line to the order line and the receipt line
+        // [THEN] A matched order line links the invoice line to the order line and the receipt line, carrying the
+        // receipt's received-not-invoiced quantity
         MatchedOrderLine.SetRange("Document Line SystemId", PurchaseLine.SystemId);
         MatchedOrderLine.SetRange("Matched Order Line SystemId", PurchaseOrderLine.SystemId);
         MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", PurchaseReceiptLine.SystemId);
-        Assert.IsFalse(MatchedOrderLine.IsEmpty(), 'Expected a matched order line linking the invoice line to the order and receipt lines');
+        Assert.IsTrue(MatchedOrderLine.FindFirst(), 'Expected a matched order line linking the invoice line to the order and receipt lines');
+        Assert.AreEqual(10, MatchedOrderLine."Qty. to Invoice", 'The receipt match should invoice the full received quantity');
 
         // [THEN] The E-Document line no longer has any PO or receipt matches
         Assert.IsFalse(EDocPOMatching.IsEDocumentLineMatchedToAnyPOLine(EDocumentPurchaseLine), 'Expected E-Document line to have no PO matches');
@@ -2345,20 +2558,19 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         // [WHEN] TransferPOMatchesFromEDocumentToInvoice is called
         EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument);
 
-        // [THEN] Each invoice line has a matched order line linking it to its order line and receipt line
-        AssertMatchedOrderLineExists(PurchaseLine1.SystemId, PurchaseOrderLine1.SystemId, PurchaseReceiptLine1.SystemId, 'first');
-        AssertMatchedOrderLineExists(PurchaseLine2.SystemId, PurchaseOrderLine2.SystemId, PurchaseReceiptLine2.SystemId, 'second');
-        AssertMatchedOrderLineExists(PurchaseLine3.SystemId, PurchaseOrderLine3.SystemId, PurchaseReceiptLine3.SystemId, 'third');
+        // [THEN] Each invoice line has a matched order line linking it to its order line and receipt line, carrying
+        // the receipt's received-not-invoiced quantity.
+        AssertMatchedOrderLineExists(PurchaseLine1.SystemId, PurchaseOrderLine1.SystemId, PurchaseReceiptLine1.SystemId, 10, 'first');
+        AssertMatchedOrderLineExists(PurchaseLine2.SystemId, PurchaseOrderLine2.SystemId, PurchaseReceiptLine2.SystemId, 15, 'second');
+        AssertMatchedOrderLineExists(PurchaseLine3.SystemId, PurchaseOrderLine3.SystemId, PurchaseReceiptLine3.SystemId, 20, 'third');
     end;
 
-    local procedure AssertMatchedOrderLineExists(InvoiceLineSystemId: Guid; OrderLineSystemId: Guid; ReceiptLineSystemId: Guid; LineLabel: Text)
+    local procedure AssertMatchedOrderLineExists(InvoiceLineSystemId: Guid; OrderLineSystemId: Guid; ReceiptLineSystemId: Guid; ExpectedQtyToInvoice: Decimal; LineLabel: Text)
     var
         MatchedOrderLine: Record "Matched Order Line";
     begin
-        MatchedOrderLine.SetRange("Document Line SystemId", InvoiceLineSystemId);
-        MatchedOrderLine.SetRange("Matched Order Line SystemId", OrderLineSystemId);
-        MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", ReceiptLineSystemId);
-        Assert.IsFalse(MatchedOrderLine.IsEmpty(), 'Expected a matched order line for the ' + LineLabel + ' invoice line');
+        Assert.IsTrue(GetMatchedOrderLine(InvoiceLineSystemId, OrderLineSystemId, ReceiptLineSystemId, MatchedOrderLine), 'Expected a matched order line for the ' + LineLabel + ' invoice line');
+        Assert.AreEqual(ExpectedQtyToInvoice, MatchedOrderLine."Qty. to Invoice", 'Unexpected quantity to invoice on the ' + LineLabel + ' matched order line');
     end;
 
     [Test]
@@ -2401,6 +2613,49 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         Assert.IsTrue(EDocPOMatching.IsPOLineMatchedToEDocumentLine(PurchaseOrderLine, EDocumentPurchaseLine), 'Expected E-Document line to be matched to PO line');
 
         // [THEN] The E-Document line is matched back to the receipt line
+        Assert.IsTrue(EDocPOMatching.IsReceiptLineMatchedToEDocumentLine(PurchaseReceiptLine, EDocumentPurchaseLine), 'Expected E-Document line to be matched to receipt line');
+    end;
+
+    [Test]
+    procedure TransferPOMatchesFromInvoiceToEDocumentReconstructsMatchesFromLegacyReceiptNo()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseOrderHeader: Record "Purchase Header";
+        PurchaseOrderLine: Record "Purchase Line";
+        PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
+        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+        Item: Record Item;
+    begin
+        Initialize();
+        // [SCENARIO] TransferPOMatchesFromInvoiceToEDocument reconstructs the e-document matches from an invoice line linked to a posted receipt through the legacy Receipt No. fields (no matched order line)
+        // [GIVEN] An order line and a posted receipt line for it
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine, PurchaseOrderHeader, PurchaseOrderLine.Type::Item, Item."No.", 10);
+
+        CreateMockReceiptHeader(PurchaseReceiptHeader, Vendor."No.");
+        CreateMockReceiptLine(PurchaseReceiptLine, PurchaseReceiptHeader, Item."No.", 10, PurchaseOrderLine);
+
+        // [GIVEN] An invoice line linked to the receipt through Receipt No. / Receipt Line No. and no matched order line
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 10);
+        PurchaseLine."Receipt No." := PurchaseReceiptLine."Document No.";
+        PurchaseLine."Receipt Line No." := PurchaseReceiptLine."Line No.";
+        PurchaseLine.Modify();
+
+        // [GIVEN] The invoice line is linked to an E-Document line
+        CreateMockEDocumentDraftWithLine(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseLine, 10);
+        LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] TransferPOMatchesFromInvoiceToEDocument is called
+        EDocPOMatching.TransferPOMatchesFromInvoiceToEDocument(PurchaseHeader);
+
+        // [THEN] The E-Document line is matched back to the order line and the receipt line
+        Assert.IsTrue(EDocPOMatching.IsPOLineMatchedToEDocumentLine(PurchaseOrderLine, EDocumentPurchaseLine), 'Expected E-Document line to be matched to PO line');
         Assert.IsTrue(EDocPOMatching.IsReceiptLineMatchedToEDocumentLine(PurchaseReceiptLine, EDocumentPurchaseLine), 'Expected E-Document line to be matched to receipt line');
     end;
 
@@ -2523,6 +2778,259 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         IsInitialized := true;
     end;
 
+    [Test]
+    procedure TransferAutoReceivesOutstandingWhenNoReceiptMatched()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseOrderHeader: Record "Purchase Header";
+        PurchaseOrderLine: Record "Purchase Line";
+        MatchedOrderLine: Record "Matched Order Line";
+        Item: Record Item;
+        NullGuid: Guid;
+    begin
+        Initialize();
+        // [SCENARIO] An e-document line matched to an order line without receipts becomes a single receive-on-invoice match for the full quantity.
+        // [GIVEN] An e-document line of quantity 10 matched to an order line of quantity 10 flagged receipt on invoice
+        CreateMockEDocumentDraftWithLine(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseLine, 10);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine, PurchaseOrderHeader, PurchaseOrderLine.Type::Item, Item."No.", 10);
+        PurchaseOrderLine."Receipt on Invoice" := true;
+        PurchaseOrderLine.Modify();
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseOrderLine);
+
+        // [AND] The e-document line is linked to a purchase invoice line
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 10);
+        LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] TransferPOMatchesFromEDocumentToInvoice is called
+        EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument);
+
+        // [THEN] A single receive-on-invoice matched order line for the full quantity carries the order line's flag
+        MatchedOrderLine.SetRange("Document Line SystemId", PurchaseLine.SystemId);
+        Assert.AreEqual(1, MatchedOrderLine.Count(), 'Expected exactly one matched order line');
+        Assert.IsTrue(GetMatchedOrderLine(PurchaseLine.SystemId, PurchaseOrderLine.SystemId, NullGuid, MatchedOrderLine), 'Expected a receive-on-invoice matched order line');
+        Assert.AreEqual(10, MatchedOrderLine."Qty. to Invoice", 'Auto-receive quantity should be the full quantity');
+        Assert.AreEqual(10, MatchedOrderLine."Qty. to Invoice (Base)", 'Auto-receive base quantity should be the full quantity');
+        Assert.IsTrue(MatchedOrderLine."Receipt on Invoice", 'The match should carry the order line receipt on invoice flag');
+    end;
+
+    [Test]
+    procedure TransferInvoicesExistingReceiptThenAutoReceivesRemainder()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseOrderHeader: Record "Purchase Header";
+        PurchaseOrderLine: Record "Purchase Line";
+        PurchaseReceiptHeader: Record "Purch. Rcpt. Header";
+        PurchaseReceiptLine: Record "Purch. Rcpt. Line";
+        MatchedOrderLine: Record "Matched Order Line";
+        Item: Record Item;
+        NullGuid: Guid;
+    begin
+        Initialize();
+        // [SCENARIO] When a matched receipt only partly covers what is invoiced (the rest of the receipt was
+        // already invoiced), the receipt is invoiced for its received-not-invoiced quantity and the remaining
+        // e-document quantity is received on invoice, capped at the order line's outstanding quantity.
+        // [GIVEN] An order line of quantity 100 with 50 received (50 outstanding)
+        CreateMockEDocumentDraftWithLine(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseLine, 50);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine, PurchaseOrderHeader, PurchaseOrderLine.Type::Item, Item."No.", 100);
+        PurchaseOrderLine."Receipt on Invoice" := true;
+        PurchaseOrderLine.Modify();
+        SetMockOrderLineReceived(PurchaseOrderLine, 50);
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseOrderLine);
+
+        // [AND] A receipt of 50 whose quantity covers the invoice but is only 30 not-yet-invoiced
+        CreateMockReceiptHeader(PurchaseReceiptHeader, Vendor."No.");
+        CreateMockReceiptLine(PurchaseReceiptLine, PurchaseReceiptHeader, Item."No.", 50, PurchaseOrderLine);
+        PurchaseReceiptLine."Qty. Rcd. Not Invoiced" := 30;
+        PurchaseReceiptLine.Modify();
+        MatchEDocumentLineToReceiptLine(EDocumentPurchaseLine, PurchaseReceiptLine);
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 50);
+        LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] TransferPOMatchesFromEDocumentToInvoice is called
+        EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument);
+
+        // [THEN] The receipt match invoices 30 and the receive-on-invoice match covers the remaining 20
+        Assert.IsTrue(GetMatchedOrderLine(PurchaseLine.SystemId, PurchaseOrderLine.SystemId, PurchaseReceiptLine.SystemId, MatchedOrderLine), 'Expected a matched order line for the receipt');
+        Assert.AreEqual(30, MatchedOrderLine."Qty. to Invoice", 'The receipt match should invoice the received-not-invoiced quantity');
+
+        Assert.IsTrue(GetMatchedOrderLine(PurchaseLine.SystemId, PurchaseOrderLine.SystemId, NullGuid, MatchedOrderLine), 'Expected a receive-on-invoice matched order line for the remainder');
+        Assert.AreEqual(20, MatchedOrderLine."Qty. to Invoice", 'The receive-on-invoice match should cover the remaining quantity');
+    end;
+
+    [Test]
+    procedure TransferCapsAutoReceiveAtOutstandingQuantity()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseOrderHeader: Record "Purchase Header";
+        PurchaseOrderLine: Record "Purchase Line";
+        MatchedOrderLine: Record "Matched Order Line";
+        Item: Record Item;
+        NullGuid: Guid;
+    begin
+        Initialize();
+        // [SCENARIO] The receive-on-invoice quantity never exceeds the order line's outstanding quantity.
+        // [GIVEN] An e-document line of quantity 100 matched to an order line of only quantity 50
+        CreateMockEDocumentDraftWithLine(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseLine, 100);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine, PurchaseOrderHeader, PurchaseOrderLine.Type::Item, Item."No.", 50);
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseOrderLine);
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 100);
+        LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] TransferPOMatchesFromEDocumentToInvoice is called
+        EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument);
+
+        // [THEN] The receive-on-invoice match is capped at the outstanding quantity (50), the rest is dropped
+        Assert.IsTrue(GetMatchedOrderLine(PurchaseLine.SystemId, PurchaseOrderLine.SystemId, NullGuid, MatchedOrderLine), 'Expected a receive-on-invoice matched order line');
+        Assert.AreEqual(50, MatchedOrderLine."Qty. to Invoice", 'Auto-receive should be capped at the outstanding quantity');
+        MatchedOrderLine.Reset();
+        MatchedOrderLine.SetRange("Document Line SystemId", PurchaseLine.SystemId);
+        Assert.AreEqual(1, MatchedOrderLine.Count(), 'No additional matched order line should be created for the dropped remainder');
+    end;
+
+    [Test]
+    procedure TransferDistributesQuantityAcrossMatchedOrderLines()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseOrderHeader: Record "Purchase Header";
+        PurchaseOrderLine1, PurchaseOrderLine2 : Record "Purchase Line";
+        TempPurchaseLine: Record "Purchase Line" temporary;
+        MatchedOrderLine: Record "Matched Order Line";
+        Item: Record Item;
+        NullGuid: Guid;
+    begin
+        Initialize();
+        // [SCENARIO] A single e-document line matched to several order lines distributes its quantity across them, each capped at its outstanding quantity.
+        // [GIVEN] An e-document line of quantity 100 matched to two order lines (60 and 40) of the same item
+        CreateMockEDocumentDraftWithLine(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseLine, 100);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine1, PurchaseOrderHeader, PurchaseOrderLine1.Type::Item, Item."No.", 60);
+        LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine2, PurchaseOrderHeader, PurchaseOrderLine2.Type::Item, Item."No.", 40);
+        TempPurchaseLine := PurchaseOrderLine1;
+        TempPurchaseLine.Insert();
+        TempPurchaseLine := PurchaseOrderLine2;
+        TempPurchaseLine.Insert();
+        EDocPOMatching.MatchPOLinesToEDocumentLine(TempPurchaseLine, EDocumentPurchaseLine);
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 100);
+        LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] TransferPOMatchesFromEDocumentToInvoice is called
+        EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument);
+
+        // [THEN] Each order line receives on invoice up to its outstanding quantity (60 + 40 = 100)
+        Assert.IsTrue(GetMatchedOrderLine(PurchaseLine.SystemId, PurchaseOrderLine1.SystemId, NullGuid, MatchedOrderLine), 'Expected a match for the first order line');
+        Assert.AreEqual(60, MatchedOrderLine."Qty. to Invoice", 'First order line should receive on invoice its full outstanding quantity');
+        Assert.IsTrue(GetMatchedOrderLine(PurchaseLine.SystemId, PurchaseOrderLine2.SystemId, NullGuid, MatchedOrderLine), 'Expected a match for the second order line');
+        Assert.AreEqual(40, MatchedOrderLine."Qty. to Invoice", 'Second order line should receive on invoice its full outstanding quantity');
+    end;
+
+    [Test]
+    procedure TransferConvertsAutoReceiveQuantityFromBaseUsingOrderLineUoM()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseOrderHeader: Record "Purchase Header";
+        PurchaseOrderLine: Record "Purchase Line";
+        MatchedOrderLine: Record "Matched Order Line";
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        NullGuid: Guid;
+    begin
+        Initialize();
+        // [SCENARIO] The receive-on-invoice quantity is expressed in the order line's unit of measure (converted from the base quantity).
+        // [GIVEN] An item with a box unit of measure of 12, and an order line of 5 boxes (60 base)
+        CreateMockEDocumentDraftWithLine(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseLine, 5);
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", 12);
+        LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine, PurchaseOrderHeader, PurchaseOrderLine.Type::Item, Item."No.", 5);
+        PurchaseOrderLine.Validate("Unit of Measure Code", ItemUnitOfMeasure.Code);
+        PurchaseOrderLine.Modify(true);
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseOrderLine);
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 5);
+        LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] TransferPOMatchesFromEDocumentToInvoice is called
+        EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument);
+
+        // [THEN] The match carries 5 boxes (60 in base unit of measure)
+        Assert.IsTrue(GetMatchedOrderLine(PurchaseLine.SystemId, PurchaseOrderLine.SystemId, NullGuid, MatchedOrderLine), 'Expected a receive-on-invoice matched order line');
+        Assert.AreEqual(5, MatchedOrderLine."Qty. to Invoice", 'Quantity should be expressed in the order line unit of measure');
+        Assert.AreEqual(60, MatchedOrderLine."Qty. to Invoice (Base)", 'Base quantity should be the full base quantity');
+    end;
+
+    [Test]
+    procedure TransferHandlesOrderLineWithZeroQtyPerUnitOfMeasure()
+    var
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseOrderHeader: Record "Purchase Header";
+        PurchaseOrderLine: Record "Purchase Line";
+        MatchedOrderLine: Record "Matched Order Line";
+        Item: Record Item;
+        NullGuid: Guid;
+    begin
+        Initialize();
+        // [SCENARIO] An order line with no conversion factor (Qty. per Unit of Measure = 0) does not raise a division error; the base quantity is used one to one.
+        // [GIVEN] An order line whose quantity per unit of measure has been cleared
+        CreateMockEDocumentDraftWithLine(EDocument, EDocumentPurchaseHeader, EDocumentPurchaseLine, 10);
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchHeader(PurchaseOrderHeader, PurchaseOrderHeader."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseOrderLine, PurchaseOrderHeader, PurchaseOrderLine.Type::Item, Item."No.", 10);
+        PurchaseOrderLine."Qty. per Unit of Measure" := 0;
+        PurchaseOrderLine.Modify();
+        MatchEDocumentLineToPOLine(EDocumentPurchaseLine, PurchaseOrderLine);
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 10);
+        LinkEDocumentLineToPurchaseLine(EDocument, EDocumentPurchaseLine, PurchaseLine);
+
+        // [WHEN] TransferPOMatchesFromEDocumentToInvoice is called
+        EDocPOMatching.TransferPOMatchesFromEDocumentToInvoice(EDocument);
+
+        // [THEN] The transfer succeeds and the quantity equals the base quantity (one to one)
+        Assert.IsTrue(GetMatchedOrderLine(PurchaseLine.SystemId, PurchaseOrderLine.SystemId, NullGuid, MatchedOrderLine), 'Expected a receive-on-invoice matched order line');
+        Assert.AreEqual(10, MatchedOrderLine."Qty. to Invoice", 'Quantity should fall back to the base quantity when there is no conversion factor');
+        Assert.AreEqual(10, MatchedOrderLine."Qty. to Invoice (Base)", 'Base quantity should be the full quantity');
+    end;
+
     local procedure MatchEDocumentLineToPOLine(EDocumentLine: Record "E-Document Purchase Line"; PurchaseLine: Record "Purchase Line")
     var
         TempPurchaseLine: Record "Purchase Line" temporary;
@@ -2530,6 +3038,43 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         TempPurchaseLine := PurchaseLine;
         TempPurchaseLine.Insert();
         EDocPOMatching.MatchPOLinesToEDocumentLine(TempPurchaseLine, EDocumentLine);
+    end;
+
+    local procedure SetMatchingDifferencePct(Pct: Decimal)
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup."E-Document Matching Difference" := Pct;
+        PurchasesPayablesSetup.Modify();
+    end;
+
+    local procedure CreateMatchedAmountDraftLine(var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var EDocumentPurchaseLine: Record "E-Document Purchase Line"; var Item: Record Item; EDocQuantity: Decimal; EDocUnitPrice: Decimal; EDocTotalDiscount: Decimal)
+    var
+        EDocument: Record "E-Document";
+    begin
+        LibraryEDocument.CreateInboundEDocument(EDocument, EDocumentService);
+        EDocumentPurchaseHeader := LibraryEDocument.MockPurchaseDraftPrepared(EDocument);
+        EDocumentPurchaseHeader."[BC] Vendor No." := Vendor."No.";
+        EDocumentPurchaseHeader.Modify();
+
+        LibraryEDocument.GetGenericItem(Item);
+        EDocumentPurchaseLine := LibraryEDocument.InsertPurchaseDraftLine(EDocument);
+        EDocumentPurchaseLine."[BC] Purchase Line Type" := Enum::"Purchase Line Type"::Item;
+        EDocumentPurchaseLine."[BC] Purchase Type No." := Item."No.";
+        EDocumentPurchaseLine."[BC] Unit of Measure" := Item."Base Unit of Measure";
+        EDocumentPurchaseLine.Quantity := EDocQuantity;
+        EDocumentPurchaseLine."Unit Price" := EDocUnitPrice;
+        EDocumentPurchaseLine."Total Discount" := EDocTotalDiscount;
+        EDocumentPurchaseLine.Modify();
+    end;
+
+    local procedure AddOrderLineWithCost(PurchaseHeader: Record "Purchase Header"; ItemNo: Code[20]; Quantity: Decimal; DirectUnitCost: Decimal; LineDiscountPct: Decimal) PurchaseLine: Record "Purchase Line"
+    begin
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, Quantity);
+        PurchaseLine."Direct Unit Cost" := DirectUnitCost;
+        PurchaseLine."Line Discount %" := LineDiscountPct;
+        PurchaseLine.Modify();
     end;
 
     local procedure MatchEDocumentLineToReceiptLine(EDocumentLine: Record "E-Document Purchase Line"; ReceiptLine: Record "Purch. Rcpt. Line")
@@ -2568,11 +3113,34 @@ codeunit 133508 "E-Doc. PO Matching Unit Tests"
         PurchaseReceiptLine.Type := PurchaseReceiptLine.Type::Item;
         PurchaseReceiptLine."No." := ItemNo;
         PurchaseReceiptLine.Quantity := Quantity;
+        PurchaseReceiptLine."Quantity (Base)" := Quantity;
+        // A freshly posted receipt has its whole quantity received but not yet invoiced; the transfer uses this
+        // field as the quantity to invoice for each matched receipt.
+        PurchaseReceiptLine."Qty. Rcd. Not Invoiced" := Quantity;
         PurchaseReceiptLine."Order No." := PurchaseLine."Document No.";
         PurchaseReceiptLine."Order Line No." := PurchaseLine."Line No.";
         PurchaseReceiptLine."Buy-from Vendor No." := PurchaseReceiptHeader."Buy-from Vendor No.";
         PurchaseReceiptLine."Pay-to Vendor No." := PurchaseReceiptHeader."Pay-to Vendor No.";
         PurchaseReceiptLine.Insert();
+    end;
+
+    local procedure SetMockOrderLineReceived(var PurchaseOrderLine: Record "Purchase Line"; ReceivedQuantity: Decimal)
+    begin
+        // Mark part of the order line as already received (base unit of measure = item unit of measure in these tests).
+        PurchaseOrderLine."Quantity Received" := ReceivedQuantity;
+        PurchaseOrderLine."Qty. Received (Base)" := ReceivedQuantity;
+        PurchaseOrderLine."Outstanding Quantity" := PurchaseOrderLine.Quantity - ReceivedQuantity;
+        PurchaseOrderLine."Outstanding Qty. (Base)" := PurchaseOrderLine."Quantity (Base)" - ReceivedQuantity;
+        PurchaseOrderLine.Modify();
+    end;
+
+    local procedure GetMatchedOrderLine(InvoiceLineSystemId: Guid; OrderLineSystemId: Guid; ReceiptLineSystemId: Guid; var MatchedOrderLine: Record "Matched Order Line"): Boolean
+    begin
+        MatchedOrderLine.Reset();
+        MatchedOrderLine.SetRange("Document Line SystemId", InvoiceLineSystemId);
+        MatchedOrderLine.SetRange("Matched Order Line SystemId", OrderLineSystemId);
+        MatchedOrderLine.SetRange("Matched Rcpt./Shpt. Line SysId", ReceiptLineSystemId);
+        exit(MatchedOrderLine.FindFirst());
     end;
 
     local procedure LinkEDocumentLineToPurchaseLine(EDocument: Record "E-Document"; EDocumentPurchaseLine: Record "E-Document Purchase Line"; PurchaseLine: Record "Purchase Line")

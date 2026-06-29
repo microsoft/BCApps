@@ -93,7 +93,8 @@ page 6116 "E-Doc. Select PO Lines"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the amount on the purchase order line.';
-                    // AutoFormatType?
+                    AutoFormatType = 1;
+                    AutoFormatExpression = Rec."Currency Code";
                 }
                 field("Expected Receipt Date"; Rec."Expected Receipt Date")
                 {
