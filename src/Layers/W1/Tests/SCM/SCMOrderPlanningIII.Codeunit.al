@@ -50,8 +50,8 @@ codeunit 137088 "SCM Order Planning - III"
         RequisitionLineQuantityMismatchErr: Label 'Mismatch in Requisition Line Quantity';
         RequisitionLinesShouldBeEmptyErr: Label 'Requisition lines should be empty.';
         NotAllItemsWerePlannedMsg: Label 'Not all items were planned. A total of %1 items were not planned.', Comment = '%1 = Number of items not planned';
-        PlanningParametersTakenFromItemCardTxt: Label 'Planning Parameters were taken from Item card because %1 is %2 but SKU does not exist for Item %3 at Location %4', Comment = '%1: Field Caption, %2: Missing SKU Policy, %3: Item No., %4: Location Code';
-        SKUNotPlannedTxt: Label 'Item %1 at Location %2 was not planned because SKU does not exist and %3 at Location is %4', Comment = '%1: Item No., %2: Location Code, %3: Field Caption, %4: Missing SKU Policy';
+        PlanningParametersTakenFromItemCardTxt: Label 'Item %3 at Location %4 was planned using the planning parameters from the Item Card, because no stockkeeping unit exists and %1 is set to %2.', Comment = '%1: Field Caption, %2: Missing SKU Policy, %3: Item No., %4: Location Code';
+        SKUNotPlannedTxt: Label 'Item %1 at Location %2 was not planned, because no stockkeeping unit exists and %3 is set to %4.', Comment = '%1: Item No., %2: Location Code, %3: Field Caption, %4: Missing SKU Policy';
         SerialNoErr: Label 'Serial No. %1 must exist in reservation entries';
         ReservationEntryCountErr: Label 'Expected reservation entries with serial tracking on purchase line are %1';
         MinTotalQuantityMismatchErr: Label 'Expected total quantity >= %1, but got %2', Comment = '%1 = minimum expected quantity, %2 = actual summed quantity';
@@ -4733,7 +4733,7 @@ codeunit 137088 "SCM Order Planning - III"
         Assert.RecordCount(RequisitionLine, ExpectedRecordCount);
         Assert.AreEqual(ExpectedRequisitionQuantity, RequisitionLine.Quantity, RequisitionLineQuantityMismatchErr);
     end;
-    
+
     local procedure VerifyMinTotalQuantityInRequisitionLine(ItemNoFilter: Text; LocationCode: Code[10]; MinExpectedQuantity: Decimal)
     var
         RequisitionLine: Record "Requisition Line";
