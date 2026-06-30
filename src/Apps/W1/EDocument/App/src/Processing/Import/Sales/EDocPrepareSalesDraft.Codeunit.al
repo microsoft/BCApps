@@ -9,7 +9,6 @@ using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Foundation.UOM;
 using Microsoft.Sales.Customer;
-using System.Log;
 
 /// <summary>
 /// Shared logic for preparing sales order drafts. Resolves customer and sales lines
@@ -70,17 +69,5 @@ codeunit 6428 "EDoc Prepare Sales Draft"
         EDocumentSalesLine.SetRange("E-Document Entry No.", EDocument."Entry No");
         if not EDocumentSalesLine.IsEmpty() then
             EDocumentSalesLine.DeleteAll(true);
-    end;
-
-    local procedure Log(EDocActivityLogSession: Codeunit "E-Doc. Activity Log Session"; ActivityLogName: Text)
-    var
-        ActivityLog: Codeunit "Activity Log Builder";
-        ActivityLogList: List of [Codeunit "Activity Log Builder"];
-        Found: Boolean;
-    begin
-        Clear(ActivityLogList);
-        EDocActivityLogSession.GetAll(ActivityLogName, ActivityLogList, Found);
-        foreach ActivityLog in ActivityLogList do
-            ActivityLog.Log();
     end;
 }
