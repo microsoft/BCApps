@@ -398,13 +398,13 @@ Describe "TestTolerance" {
                 'ext-1::300::t1' = [pscustomobject]@{ ExtensionId = 'ext-1'; CodeunitId = 300; CodeunitName = 'A'; TestMethod = 'T1'; FailureMessage = 'm1'; FailureDetail = 's1'; SourceRunId = '999' }
             }
 
-            $merged = @(Add-FailedTestsToUnstableTests -ExistingTests @() -FailedTests $failed -Repository 'microsoft/BCAppsPrivate')
+            $merged = @(Add-FailedTestsToUnstableTests -ExistingTests @() -FailedTests $failed -Repository 'microsoft/BCApps')
             $merged.Count | Should -Be 1
             $merged[0].extensionId | Should -Be 'ext-1'
             $merged[0].codeunitId | Should -Be 300
             $merged[0].testMethod | Should -Be 'T1'
             $merged[0].reason | Should -Match '999'
-            $merged[0].sourceRunUrl | Should -Be 'https://github.com/microsoft/BCAppsPrivate/actions/runs/999'
+            $merged[0].sourceRunUrl | Should -Be 'https://github.com/microsoft/BCApps/actions/runs/999'
         }
 
         It "preserves existing entries verbatim and only appends new ones" {
