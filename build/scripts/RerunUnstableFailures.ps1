@@ -6,7 +6,7 @@ param(
     [Parameter(Mandatory = $true)]
     [long] $RunId,
     [Parameter(Mandatory = $false)]
-    [int] $MaxFailedJobs = 3,
+    [int] $MaxFailedJobs = 10,
     [Parameter(Mandatory = $false)]
     [int] $MinTotalJobs = 10,
     [Parameter(Mandatory = $false)]

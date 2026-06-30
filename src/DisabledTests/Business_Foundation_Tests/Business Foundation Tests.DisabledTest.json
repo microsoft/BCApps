@@ -1,0 +1,417 @@
+[
+  {
+    "codeunitId": 133689,
+    "codeunitName": "No. Series Copilot Accu. Tests",
+    "method": "*"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "ChangeIncrementWithGaps"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "NoSeriesPage_DrillDown"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "NoSeriesPage_FieldsValues_WithGoodLines"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "NoSeriesPage_FieldsValues_WithoutGoodLines"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "NoSeriesPage_FieldsValues_WithoutLines"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "NoSeriesThatCanGenerateNextNoSucceedsValidation"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "NoSeriesValidationDoesNotChangeTheNextNoGenerated"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "NoSeriesWithNoSeriesLineOnLaterStartingDateFailsValidation"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "NoSeriesWithoutNoSeriesLineFailsValidation"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "PageNoSeriesChangeImplementationFalseMultiple"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "PageNoSeriesChangeImplementationFalseOne"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "PageNoSeriesChangeImplementationTrueMultiple"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "PageNoSeriesChangeImplementationTrueOne"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "SettingDefaultNosFalseWhenManualNosIsFalseForcesManualNosToTrue"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "SettingManualNosFalseWhenDefaultNosIsFalseForcesDefaultNosToTrue"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "TestChangingStartNoAfterUsingNoSeriesTooLongWithSequence"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "TestChangingStartNoAfterUsingSequenceNoSeries"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "TestChangingToSequence"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "TestChangingToSequenceDateOrder"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "TestCurrentAndNextDifferWithGaps"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "TestCurrentAndNextDifferWithOutGaps"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "TestInsertFromExternalWithSequence"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "TestLookupNoSeries"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "TestModifyNoGetNextWithGaps"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "TestModifyNoGetNextWithoutGaps"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "TestSaveNoSeriesWithGaps"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "TestSaveNoSeriesWithOutGaps"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "TestStartingNoNoGaps"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "TestStartingNoWithGaps"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "TheLastNoUsedCanBeUpdatedWhenImplementationSequenceIsUsed"
+  },
+  {
+    "codeunitId": 134370,
+    "codeunitName": "ERM No. Series Tests",
+    "method": "TheLastNoUsedDidNotChangeAfterUsingSequenceImplementationInNos"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestCreateNewNoSeriesFromUI"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetLastNoUsedCodeRunOut"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetLastNoUsedCodeRunOut_Sequence"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetLastNoUsedRecordRunOut"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetLastNoUsedRecordRunOut_Sequence"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetNextNo"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetNextNo_Sequence"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetNextNoAdvancedOverFlow"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetNextNoAdvancedOverFlow_Sequence"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetNextNoDefaultOverFlow"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetNextNoDefaultOverFlow_Sequence"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetNextNoDefaultRunOut"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetNextNoDefaultRunOut_Sequence"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetNextNoOverflowOutsideDate"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetNextNoOverflowOutsideDate_Sequence"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetNextNoWithIncompleteLine"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetNextNoWithLastNoUsed"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetNextNoWithLastNoUsed_Sequence"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetNextNoWithLine"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetNextNoWithLine_Sequence"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetNextNoWithMultipleLinesExhaustClosedLine"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestGetNextNoWithMultipleLinesExhaustClosedLine_Sequence"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestNoSeriesEmptyCodeInLine"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestOpenNoSeriesPageWithFilterCharacters"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestPeekNextNoDefaultRunOut"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestPeekNextNoDefaultRunOut_Sequence"
+  },
+  {
+    "codeunitId": 134530,
+    "codeunitName": "No. Series Tests",
+    "method": "TestSequenceTempCurrentSequenceNoField"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetLastNoUsedCodeRunOut"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetLastNoUsedCodeRunOut_Sequence"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetLastNoUsedRecordRunOut"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetLastNoUsedRecordRunOut_Sequence"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetNextNo"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetNextNo_Sequence"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetNextNoAdvancedOverFlow"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetNextNoAdvancedOverFlow_Sequence"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetNextNoDefaultOverFlow"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetNextNoDefaultOverFlow_Sequence"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetNextNoDefaultRunOut"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetNextNoDefaultRunOut_Sequence"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetNextNoOverflowOutsideDate"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetNextNoOverflowOutsideDate_Sequence"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetNextNoWithIncompleteLine"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetNextNoWithLastNoUsed"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetNextNoWithLastNoUsed_Sequence"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetNextNoWithLine"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestGetNextNoWithLine_Sequence"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestPeekNextNoDefaultRunOut"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestPeekNextNoDefaultRunOut_Sequence"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestSequenceTempCurrentSequenceNoField"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestSimulateGetNextNoNormalDatabaseNotUpdated"
+  },
+  {
+    "codeunitId": 134531,
+    "codeunitName": "No. Series Batch Tests",
+    "method": "TestSimulateGetNextNoSequenceDatabaseNotUpdated"
+  }
+]
