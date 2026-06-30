@@ -433,6 +433,22 @@ codeunit 5611 "Calculate Normal Depreciation"
         exit(false);
     end;
 
+    local procedure StraightLineBonusBaseReduction(): Decimal
+    begin
+        // Bonus depreciation reduces the book value but not the depreciable basis, so the straight-line base must be lowered by it.
+        // Skip the database lookups below for the majority of assets that do not use bonus depreciation.
+        if not FADeprBook."Use Bonus Depreciation" then
+            exit(0);
+
+        if FADeprBook.BonusDepreciationApplied() then begin
+            // Depreciation has already been posted: the posted bonus depreciation in the ledger is the source of truth.
+            FADeprBook.CalcFields("Bonus Depr. Applied Amount");
+            exit(DepreciationCalc.GetMinusBookValue(FA."No.", DeprBookCode, 0D, 0D) - FADeprBook."Bonus Depr. Applied Amount");
+        end;
+        // First depreciation: the bonus depreciation line is created together with this line and is not posted yet.
+        exit(DepreciationCalc.GetMinusBookValue(FA."No.", DeprBookCode, 0D, 0D) + DepreciationCalc.GetUnpostedBonusDepreciationForCalc(FADeprBook, 0D, 0D));
+    end;
+
     local procedure CalcSLAmount(): Decimal
     var
         RemainingLife: Decimal;
@@ -443,7 +459,7 @@ codeunit 5611 "Calculate Normal Depreciation"
             exit(TempDeprAmount);
 
         if SLPercent > 0 then begin
-            Result := (-SLPercent / 100) * (NumberOfDays / DaysInFiscalYear) * DeprBasis;
+            Result := (-SLPercent / 100) * (NumberOfDays / DaysInFiscalYear) * (DeprBasis - StraightLineBonusBaseReduction());
             OnCalcSLAmountOnAfterCalcFromSLPercent(FA, FADeprBook, BookValue, DeprBasis, DaysInFiscalYear, NumberOfDays, SLPercent, Result);
             exit(Result);
         end;
