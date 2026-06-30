@@ -1,3 +1,35 @@
+function Enable-BreakingChangesCheckForWorkspace {
+    Param(
+        [Parameter(Mandatory = $true)]
+        [string] $AppSymbolsFolder,
+        [Parameter(Mandatory = $true)]
+        [string] $WorkspaceFile,
+        [Parameter(Mandatory = $true)]
+        [string] $BuildMode,
+        [Parameter(Mandatory = $false)]
+        [string] $CountryCode = "W1"
+    )
+
+    if ($CountryCode -eq "RU") {
+        Write-Host "Breaking changes check is disabled for RU"
+        return
+    }
+
+    # Load the workspace file
+    $workspace = Get-Content -Path $WorkspaceFile -Raw | ConvertFrom-Json
+    $projects = $workspace.folders
+    $workspaceDir = Split-Path -Path $WorkspaceFile
+    foreach ($project in $projects) {
+        if ([System.IO.Path]::IsPathRooted($project.path)) {
+            $projectPath = $project.path
+        } else {
+            $projectPath = Join-Path -Path $workspaceDir -ChildPath $project.path
+        }
+        Write-Host "Enabling breaking changes check for project: $($project.name) with path: $projectPath"
+        Enable-BreakingChangesCheck -AppSymbolsFolder $AppSymbolsFolder -AppProjectFolder $projectPath -BuildMode $BuildMode -CountryCode $CountryCode | Out-Null
+    }
+}
+
 <#
 .Synopsis
     Configure breaking changes check
@@ -11,6 +43,8 @@
     Local AppProject folder
 .Parameter BuildMode
     Build mode
+.Parameter CountryCode
+    Country code for the baseline. Default is "W1"
 #>
 function Enable-BreakingChangesCheck {
     Param(
@@ -19,13 +53,21 @@ function Enable-BreakingChangesCheck {
         [Parameter(Mandatory = $true)]
         [string] $AppProjectFolder,
         [Parameter(Mandatory = $true)]
-        [string] $BuildMode
+        [string] $BuildMode,
+        [Parameter(Mandatory = $false)]
+        [string] $CountryCode = "W1"
     )
+
+    if ($CountryCode -eq "RU") {
+        Write-Host "Breaking changes check is disabled for RU"
+        return
+    }
 
     # Load the app.json
     $appJsonFilePath = Join-Path $AppProjectFolder "app.json"
     $appJson = Get-Content -Path $appJsonFilePath -Raw | ConvertFrom-Json
     $appName = $appJson.name
+    $appPublisher = $appJson.publisher
 
     Write-Host "Enabling breaking changes check for app: $appName, build mode: $BuildMode"
 
@@ -36,7 +78,7 @@ function Enable-BreakingChangesCheck {
         'Clean' {
             Write-Host "Looking for baseline app to use in the baseline folder: $baselineFolder"
 
-            $baselineAppFile = Get-ChildItem -Path $baselineFolder -Filter "$($appName)_clean.app"
+            $baselineAppFile = Get-ChildItem -Path $baselineFolder -Filter "$($appPublisher)_$($appName)_*_clean.app"
 
             if(-not ($baselineAppFile)) {
                 throw "Unable to find baseline app in $baselineFolder"
@@ -48,17 +90,17 @@ function Enable-BreakingChangesCheck {
             Import-Module -Name $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
             $majorMinor = Get-ConfigValue -Key "repoVersion" -ConfigType "AL-GO"
-            $strictModeVersion = ((Get-BCArtifactUrl -type Sandbox -country W1 -version $majorMinor -select Latest) -split "/")[-2]
+            $strictModeVersion = ((Get-BCArtifactUrl -type Sandbox -country $CountryCode -version $majorMinor -select Latest) -split "/")[-2]
 
             if (-not $strictModeVersion) {
                 Write-Host "::Warning:: Unable to find baseline version for Strict Mode"
                 break
             }
 
-            $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $AppSymbolsFolder -AppName $appName -BaselineVersion $strictModeVersion
+            $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $AppSymbolsFolder -AppName $appName -BaselineVersion $strictModeVersion -CountryCode $CountryCode
         }
         Default {
-            $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $AppSymbolsFolder -AppName $appName
+            $baselineVersion = Restore-BaselinesFromArtifacts -TargetFolder $AppSymbolsFolder -AppName $appName -CountryCode $CountryCode
         }
     }
 
@@ -78,6 +120,10 @@ function Enable-BreakingChangesCheck {
     Name of the app
 .Parameter TargetFolder
     Folder where to restore the baseline
+.Parameter BaselineVersion
+    Version of the baseline to restore. If not provided, it will be read from Packages.json
+.Parameter CountryCode
+    Country code for the baseline. Default is "W1"
 .Returns
     The version of the baseline that was restored. If no baseline was restored, returns null
 #>
@@ -88,7 +134,9 @@ function Restore-BaselinesFromArtifacts {
         [Parameter(Mandatory = $true)]
         [string] $TargetFolder,
         [Parameter(Mandatory = $false)]
-        [string] $BaselineVersion
+        [string] $BaselineVersion,
+        [Parameter(Mandatory = $false)]
+        [string] $CountryCode = "W1"
     )
     Import-Module -Name $PSScriptRoot\EnlistmentHelperFunctions.psm1
 
@@ -109,12 +157,12 @@ function Restore-BaselinesFromArtifacts {
     $baselineFolder = Join-Path (Get-BaseFolder) "out/baselineartifacts/$BaselineVersion"
 
     if (-not (Test-Path $baselineFolder)) {
-        $baselineURL = Get-BCArtifactUrl -type Sandbox -country W1 -version $BaselineVersion
+        $baselineURL = Get-BCArtifactUrl -type Sandbox -country $CountryCode -version $BaselineVersion
 
         # TODO: temporary workaround for baselines not being available in bcartifacts
         if(-not $baselineURL) {
             #Fallback to bcinsider
-            $baselineURL = Get-BCArtifactUrl -type Sandbox -country W1 -version $BaselineVersion -storageAccount bcinsider -accept_insiderEula
+            $baselineURL = Get-BCArtifactUrl -type Sandbox -country $CountryCode -version $BaselineVersion -storageAccount bcinsider -accept_insiderEula
         }
 
         if (-not $baselineURL) {
@@ -124,7 +172,7 @@ function Restore-BaselinesFromArtifacts {
         Download-Artifacts -artifactUrl $baselineURL -basePath $baselineFolder | Out-Null
 
         # Copy all the files from the sandbox folder to the baseline folder
-        Get-ChildItem -Path "$baselineFolder/sandbox/$BaselineVersion/W1/Extensions" -Filter "*_$($BaselineVersion).app" -Recurse | ForEach-Object {
+        Get-ChildItem -Path "$baselineFolder/sandbox/$BaselineVersion/$CountryCode/Extensions" -Filter "*_$($BaselineVersion).app" -Recurse | ForEach-Object {
             Write-Host "Copying $($_.FullName) to $TargetFolder"
             Copy-Item -Path $_.FullName -Destination $TargetFolder -Force | Out-Null
         }
@@ -174,7 +222,7 @@ function Update-AppSourceCopVersion
     }
 
     if (-not ($BaselineVersion -and $BaselineVersion -match "^([0-9]+\.){3}[0-9]+$" )) {
-        throw "Extension Compatibile Version cannot be null or invalid format. Valid format should be like '1.0.2.0'"
+        throw "Extension Compatible Version cannot be null or invalid format. Valid format should be like '1.0.2.0'"
     }
 
     $appSourceCopJsonPath = Join-Path $AppProjectFolder AppSourceCop.json
@@ -185,7 +233,7 @@ function Update-AppSourceCopVersion
         $appSourceJson = @{version = '' }
     }
     else {
-        $appSourceJson = Get-Content $appSourceCopJsonPath -Raw | ConvertFrom-Json
+        $appSourceJson = Get-Content $appSourceCopJsonPath -Raw | ConvertFrom-Json -AsHashtable
     }
 
     Write-Host "Setting 'version:$BaselineVersion' in AppSourceCop.json" -ForegroundColor Yellow

@@ -1,0 +1,49 @@
+name: Update Unstable Tests
+author: Microsoft Corporation
+description: >
+  Updates the per-branch unstable-tests artifact from a set of CI/CD runs. By default the list is
+  recomputed from the supplied runs; when additive is set, their failing tests are merged into the
+  existing artifact instead. The runs to read are computed by the calling workflow.
+inputs:
+  branch:
+    description: Target branch (e.g. 'main', 'releases/26.0')
+    required: true
+  run-id:
+    description: Comma-separated CI/CD (or PR Build) run IDs to read failing tests from.
+    required: true
+  additive:
+    description: >
+      When 'true', merge the runs' failing tests into the existing per-branch artifact (preserving
+      every existing entry) instead of recomputing the list from scratch.
+    required: false
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - name: Update Unstable Tests
+      id: update
+      shell: pwsh
+      env:
+        GH_TOKEN: ${{ github.token }}
+        _branch: ${{ inputs.branch }}
+        _runId: ${{ inputs.run-id }}
+        _additive: ${{ inputs.additive }}
+      run: |
+        ${{ github.action_path }}/action.ps1 `
+          -branch $env:_branch `
+          -runId $env:_runId `
+          -additive:($env:_additive -eq 'true')
+
+    - name: Upload unstable tests artifact
+      if: steps.update.outputs.artifactName != ''
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      env:
+        ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
+      with:
+        name: ${{ steps.update.outputs.artifactName }}
+        path: .unstable-tests/unstable-tests.json
+        if-no-files-found: warn
+        retention-days: 90
+branding:
+  icon: terminal
+  color: blue
