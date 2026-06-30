@@ -41,7 +41,7 @@ page 6116 "E-Doc. Select PO Lines"
                 {
                     ApplicationArea = All;
                     Caption = 'Amount';
-                    ToolTip = 'Specified the amount of the e-document line.';
+                    ToolTip = 'Specifies the amount of the e-document line.';
                 }
             }
             repeater(Lines)
