@@ -1492,15 +1492,24 @@ table 20405 "Qlty. Inspection Header"
     local procedure UpdateSampleSize()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        CalculatedSampleSize: Decimal;
+        MaxSampleSize: Integer;
     begin
         if not QltyInspectionTemplateHdr.Get(Rec."Template Code") then
             exit;
+
+        MaxSampleSize := 2147483647; // Maximum value of an Integer field; protects the "Sample Size" field against overflow.
 
         case QltyInspectionTemplateHdr."Sample Source" of
             QltyInspectionTemplateHdr."Sample Source"::"Fixed Quantity":
                 Rec.Validate("Sample Size", QltyInspectionTemplateHdr."Sample Fixed Amount");
             QltyInspectionTemplateHdr."Sample Source"::"Percent of Quantity":
-                Rec.Validate("Sample Size", Round(Rec."Source Quantity (Base)" * QltyInspectionTemplateHdr."Sample Percentage" / 100.0, 1, '>'));
+                begin
+                    CalculatedSampleSize := Round(Rec."Source Quantity (Base)" * QltyInspectionTemplateHdr."Sample Percentage" / 100.0, 1, '>');
+                    if CalculatedSampleSize > MaxSampleSize then
+                        CalculatedSampleSize := MaxSampleSize;
+                    Rec.Validate("Sample Size", CalculatedSampleSize);
+                end;
         end;
     end;
 

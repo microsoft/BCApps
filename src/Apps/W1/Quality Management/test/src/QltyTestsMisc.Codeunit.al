@@ -139,6 +139,23 @@ codeunit 139964 "Qlty. Tests - Misc."
     end;
 
     [Test]
+    procedure SampleSizeCalculationDoesNotOverflowForLargeSourceQuantity()
+    var
+        SampleSize: Integer;
+    begin
+        // [SCENARIO] Calculating the sample size from a percentage of a very large source quantity does not overflow the Integer "Sample Size" field.
+
+        Initialize();
+
+        // [GIVEN] A template using "Percent of Quantity" at 100% and an inspection whose source quantity exceeds the maximum Integer value
+        // [WHEN] The sample size is recalculated from the source quantity
+        SampleSize := QltyInspectionUtility.CalculateSampleSizeUsingPercentSource(100, 3000000000.0);
+
+        // [THEN] The sample size is clamped to the maximum Integer value instead of raising an overflow error
+        LibraryAssert.AreEqual(2147483647, SampleSize, 'Sample size should be clamped to the maximum integer value to avoid overflow.');
+    end;
+
+    [Test]
     procedure GetArbitraryMaximumRecursion()
     begin
         // [SCENARIO] Verify the maximum recursion depth limit
