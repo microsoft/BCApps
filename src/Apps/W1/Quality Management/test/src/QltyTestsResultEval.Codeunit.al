@@ -178,8 +178,8 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         QltyInspectionUtility: Codeunit "Qlty. Inspection Utility";
         CaseOption: Enum "Qlty. Case Sensitivity";
     begin
-        // [SCENARIO] Option/Table Lookup conditions are matched literally, so predefined values containing
-        // special filter characters such as parentheses do not raise a filter error (bug 640910).
+        // [SCENARIO 639903] Option/Table Lookup conditions are matched literally, so predefined values containing
+        // special filter characters such as parentheses do not raise a filter error.
 
         // [GIVEN] An option test with values that contain parentheses 'Test(1),Test(2)'
         // [WHEN] Evaluating a selected option value against a comma separated pass condition
