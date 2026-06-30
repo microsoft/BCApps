@@ -9,7 +9,6 @@ using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Payables;
-using Microsoft.Utilities;
 using System.Automation;
 using System.Email;
 using System.Globalization;
@@ -140,12 +139,7 @@ table 288 "Vendor Bank Account"
             ToolTip = 'Specifies the number used by the bank for the bank account.';
 
             trigger OnValidate()
-            var
-                LocalFunctionalityMgt: Codeunit "Local Functionality Mgt.";
             begin
-                if not LocalFunctionalityMgt.CheckBankAccNo("Bank Account No.", "Country/Region Code", "Bank Account No.") then
-                    Message(Text1000001, "Bank Account No.");
-
                 OnValidateBankAccount(Rec, 'Bank Account No.');
             end;
         }
@@ -309,7 +303,6 @@ table 288 "Vendor Bank Account"
     var
         PostCode: Record "Post Code";
         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-        Text1000001: Label 'Bank Account No. %1 may be incorrect.';
         BankAccIdentifierIsEmptyErr: Label 'You must specify either a Bank Account No. or an IBAN.';
         BankAccDeleteErr: Label 'You cannot delete this bank account because it is associated with one or more open ledger entries.';
 

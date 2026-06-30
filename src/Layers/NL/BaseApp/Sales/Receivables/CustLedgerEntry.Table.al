@@ -1097,23 +1097,23 @@ table 21 "Cust. Ledger Entry"
         key(Key17; "Customer No.", "Applies-to ID", Open, Positive, "Due Date")
         {
         }
-        key(Key19; "Document Type", "Posting Date")
+        key(Key18; "Document Type", "Posting Date")
         {
             SumIndexFields = "Sales (LCY)";
         }
-        key(Key20; "Document Type", "Customer No.", Open, "Due Date")
+        key(Key19; "Document Type", "Customer No.", Open, "Due Date")
         {
         }
-        key(Key21; "Customer Posting Group")
+        key(Key20; "Customer Posting Group")
         {
         }
-        key(Key22; "Document Type", Open, "Posting Date", "Closed at Date")
+        key(Key21; "Document Type", Open, "Posting Date", "Closed at Date")
         {
         }
-        key(Key23; "Salesperson Code")
+        key(Key22; "Salesperson Code")
         {
         }
-        key(Key24; SystemModifiedAt)
+        key(Key23; SystemModifiedAt)
         {
         }
         key(Key35; "Customer No.", "Posting Date", "Applies-to ID")
@@ -1139,11 +1139,6 @@ table 21 "Cust. Ledger Entry"
         {
         }
     }
-
-    trigger OnInsert()
-    begin
-        TestField("G/L Register No.");
-    end;
 
     var
 #pragma warning disable AA0074

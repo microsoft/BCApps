@@ -266,7 +266,6 @@ table 38 "Purchase Header"
                 "Prepmt. Payment Terms Code" := Vend."Payment Terms Code";
                 "Payment Method Code" := Vend."Payment Method Code";
                 "Price Calculation Method" := Vend.GetPriceCalculationMethod();
-
                 if "Buy-from Vendor No." = Vend."No." then
                     "Shipment Method Code" := Vend."Shipment Method Code";
                 "Vendor Posting Group" := Vend."Vendor Posting Group";

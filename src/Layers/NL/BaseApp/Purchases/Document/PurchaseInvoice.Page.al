@@ -1817,7 +1817,6 @@ page 51 "Purchase Invoice"
         JobQueuesUsed := PurchSetup.JobQueueActive();
         SetExtDocNoMandatoryCondition();
         ShowShippingOptionsWithLocation := ApplicationAreaMgmtFacade.IsLocationEnabled() or ApplicationAreaMgmtFacade.IsAllDisabled();
-
         IsPowerAutomatePrivacyNoticeApproved := PrivacyNotice.GetPrivacyNoticeApprovalState(FlowServiceManagement.GetPowerAutomatePrivacyNoticeId()) = "Privacy Notice Approval State"::Agreed;
     end;
 

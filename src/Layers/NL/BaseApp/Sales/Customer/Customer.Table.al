@@ -6,7 +6,6 @@ namespace Microsoft.Sales.Customer;
 
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.DirectDebit;
-using Microsoft.Bank.Payment;
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.CRM.Campaign;
 using Microsoft.CRM.Contact;
@@ -121,8 +120,6 @@ table 18 Customer
                 if ("Search Name" = UpperCase(xRec.Name)) or ("Search Name" = '') then
                     "Search Name" := Name;
 
-                UpdateCustomerBankAccounts(FieldCaption(Name));
-
                 UpdateMyCustomer(FieldNo(Name));
             end;
         }
@@ -152,11 +149,6 @@ table 18 Customer
             Caption = 'Address';
             OptimizeForTextSearch = true;
             ToolTip = 'Specifies the customer''s address. This address will appear on all sales documents for the customer.';
-
-            trigger OnValidate()
-            begin
-                UpdateCustomerBankAccounts(FieldCaption(Address));
-            end;
         }
         /// <summary>
         /// Specifies additional address details such as suite or building information.
@@ -197,7 +189,6 @@ table 18 Customer
                 OnBeforeValidateCity(Rec, PostCode, CurrFieldNo, IsHandled);
                 if not IsHandled then
                     PostCode.ValidateCity(City, "Post Code", County, "Country/Region Code", (CurrFieldNo <> 0) and GuiAllowed);
-                UpdateCustomerBankAccounts(FieldCaption(City));
 
                 AltCustVATRegFacade.CheckCustomerConsistency(Rec);
 
@@ -540,7 +531,6 @@ table 18 Customer
 
             trigger OnValidate()
             begin
-                UpdateCustomerBankAccounts(FieldCaption("Country/Region Code"));
                 PostCode.CheckClearPostCodeCityCounty(City, "Post Code", County, "Country/Region Code", xRec."Country/Region Code");
 
                 if "Country/Region Code" <> xRec."Country/Region Code" then
@@ -1207,8 +1197,6 @@ table 18 Customer
                 if not IsHandled then
                     PostCode.ValidatePostCode(City, "Post Code", County, "Country/Region Code", (CurrFieldNo <> 0) and GuiAllowed);
 
-                UpdateCustomerBankAccounts(FieldCaption("Post Code"));
-
                 AltCustVATRegFacade.CheckCustomerConsistency(Rec);
 
                 OnAfterValidatePostCode(Rec, xRec);
@@ -1729,22 +1717,6 @@ table 18 Customer
         {
             Caption = 'Partner Type';
             ToolTip = 'Specifies for direct debit collections if the customer that the payment is collected from is a person or a company.';
-
-            trigger OnValidate()
-            var
-                AccountType: Option Customer,Vendor,Employee;
-                TransactionMode: Record "Transaction Mode";
-                IsHandled: Boolean;
-            begin
-                IsHandled := false;
-                OnBeforeValidatePartnerType(IsHandled);
-                if IsHandled then
-                    exit;
-
-                if not TransactionMode.CheckTransactionModePartnerType(AccountType::Customer, "Transaction Mode Code", "Partner Type") then
-                    if not Confirm(PartnerTypeMismatchMsg, false) then
-                        Error('')
-            end;
         }
         /// <summary>
         /// Specifies whether the customer is a person or company for Intrastat reporting.
@@ -2494,15 +2466,11 @@ table 18 Customer
     end;
 
     trigger OnModify()
-    var
-        AccountType: Option Customer,Vendor,Employee;
-        TransactionMode: Record "Transaction Mode";
     begin
         UpdateReferencedIds();
         SetLastModifiedDateTime();
         if IsContactUpdateNeeded() then begin
-            if not TransactionMode.CheckTransactionModePartnerType(AccountType::Customer, "Transaction Mode Code", "Partner Type") then
-                Error(PartnerTypeMismatchErr);
+            OnBeforeModifyContactUpdate(Rec);
             Modify();
             UpdateContFromCust.OnModify(Rec);
             if not Find() then begin
@@ -2510,6 +2478,11 @@ table 18 Customer
                 if Find() then;
             end;
         end;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeModifyContactUpdate(var Customer: Record Customer)
+    begin
     end;
 
     trigger OnRename()
@@ -2573,13 +2546,10 @@ table 18 Customer
         Text011: Label 'Reconciling IC transactions may be difficult if you change IC Partner Code because this %1 has ledger entries in a fiscal year that has not yet been closed.\ Do you still want to change the IC Partner Code?';
         Text012: Label 'You cannot change the contents of the %1 field because this %2 has one or more open ledger entries.';
         Text015: Label 'You cannot delete %1 %2 because there is at least one %3 associated to this customer.';
-        Text11000000: Label 'Do you want to update the bank accounts for this customer to reflect the new value of %1?';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         AllowPaymentToleranceQst: Label 'Do you want to allow payment tolerance for entries that are currently open?';
         RemovePaymentRoleranceQst: Label 'Do you want to remove payment tolerance from entries that are currently open?';
-        PartnerTypeMismatchMsg: Label 'The Partner Type does not match the Partner Type defined in Transaction Mode. Do you still want to change the Partner Type?';
-        PartnerTypeMismatchErr: Label 'The Partner Type does not match the Partner Type defined in Transaction Mode.';
         CreateNewCustTxt: Label 'Create a new customer card for %1', Comment = '%1 is the name to be used to create the customer. ';
         SelectCustErr: Label 'You must select an existing customer.';
         CustNotRegisteredTxt: Label 'This customer is not registered. To continue, choose one of the following options:';
@@ -3139,30 +3109,6 @@ table 18 Customer
 
         if CustLedgEntryRemainAmtQuery.Read() then
             OverDueBalance := CustLedgEntryRemainAmtQuery.Sum_Remaining_Amt_LCY;
-    end;
-
-    local procedure UpdateCustomerBankAccounts(UseFieldCaption: Text[250])
-    var
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeUpdateCustomerBankAccounts(Rec, IsHandled);
-        if (not GuiAllowed) or IsHandled then
-            exit;
-        CustBankAcc.SetRange("Customer No.", "No.");
-        if CustBankAcc.Find('-') then begin
-            if not Confirm(StrSubstNo(Text11000000, UseFieldCaption)) then
-                exit;
-            repeat
-                CustBankAcc."Account Holder Name" := Name;
-                CustBankAcc."Account Holder Address" := Address;
-                CustBankAcc."Account Holder Post Code" := "Post Code";
-                CustBankAcc."Account Holder City" := City;
-                CustBankAcc."Acc. Hold. Country/Region Code" := "Country/Region Code";
-                CustBankAcc.Modify();
-            until CustBankAcc.Next() = 0;
-            Modify();
-        end;
     end;
 
     /// <summary>
@@ -4863,11 +4809,6 @@ table 18 Customer
     /// <param name="CurrentFieldNo">The current field number being validated.</param>
     /// <param name="IsHandled">Set to true to skip the default validation.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateCustomerBankAccounts(var Customer: Record Customer; var IsHandled: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateCity(var Customer: Record Customer; var PostCodeRec: Record "Post Code"; CurrentFieldNo: Integer; var IsHandled: Boolean)
     begin
     end;
@@ -4974,11 +4915,6 @@ table 18 Customer
     /// <param name="Customer">The customer record.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeValidateContact(var IsHandled: Boolean; var Customer: Record Customer)
-    begin
-    end;
-
-    [IntegrationEvent(true, false)]
-    local procedure OnBeforeValidatePartnerType(var IsHandled: Boolean)
     begin
     end;
 

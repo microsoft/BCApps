@@ -123,6 +123,14 @@ page 423 "Customer Bank Account Card"
                     ApplicationArea = Basic, Suite;
                     MaskType = Concealed;
                 }
+                field("Bank Clearing Standard"; Rec."Bank Clearing Standard")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
+                field("Bank Clearing Code"; Rec."Bank Clearing Code")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
             }
         }
         area(factboxes)

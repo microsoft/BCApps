@@ -298,7 +298,6 @@ codeunit 442 "Sales-Post Prepayments"
             TempPrepmtInvLineBuffer.Modify();
         until TempPrepmtInvLineBuffer.Next() = 0;
 
-
         if (TotalPrepmtInvLineBuffer."VAT Amount" <> 0) and (SalesLine."VAT %" = 0) then
             SalesAssertPrepmtAmountNotMoreThanDocAmountBeforePost(TotalPrepmtInvLineBuffer, SalesHeader);
 
@@ -432,6 +431,7 @@ codeunit 442 "Sales-Post Prepayments"
         PrepaymentMgt.AssertPrepmtAmountNotMoreThanDocAmount(
              SalesPrepmtAmount, PrepmtAmountInclVAT, SalesHeader."Currency Code", SalesSetup."Invoice Rounding");
     end;
+
     /// <summary>
     /// Validates the sales order and prepayment settings before posting a prepayment document.
     /// </summary>

@@ -177,13 +177,7 @@ table 287 "Customer Bank Account"
             ToolTip = 'Specifies the number used by the bank for the bank account.';
 
             trigger OnValidate()
-            var
-                LocalFunctionalityMgt: Codeunit "Local Functionality Mgt.";
             begin
-                if not LocalFunctionalityMgt.CheckBankAccNo("Bank Account No.", "Country/Region Code", "Bank Account No.") then
-                    Message(Text1000001, "Bank Account No.");
-
-                UpdateBankAccountNo();
                 OnValidateBankAccount(Rec, 'Bank Account No.');
             end;
         }

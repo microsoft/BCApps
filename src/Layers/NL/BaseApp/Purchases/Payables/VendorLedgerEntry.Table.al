@@ -770,13 +770,13 @@ table 25 "Vendor Ledger Entry"
         key(Key15; "Vendor No.", "Applies-to ID", Open, Positive, "Due Date")
         {
         }
-        key(Key17; "Vendor Posting Group")
+        key(Key16; "Vendor Posting Group")
         {
         }
-        key(Key18; "Pmt. Discount Date")
+        key(Key17; "Pmt. Discount Date")
         {
         }
-        key(Key19; "Document Type", "Due Date", Open)
+        key(Key18; "Document Type", "Due Date", Open)
         {
         }
         key(Key25; "Vendor No.", "Posting Date", "Applies-to ID")

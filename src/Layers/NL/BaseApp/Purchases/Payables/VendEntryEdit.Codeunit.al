@@ -42,7 +42,6 @@ codeunit 113 "Vend. Entry-Edit"
             VendLedgEntry.Validate("Payment Method Code", Rec."Payment Method Code");
             VendLedgEntry.Validate("Payment Reference", Rec."Payment Reference");
             VendLedgEntry.Validate("Remaining Pmt. Disc. Possible", Rec."Remaining Pmt. Disc. Possible");
-            VendLedgEntry."Recipient Bank Account" := Rec."Recipient Bank Account";
             VendLedgEntry."Pmt. Disc. Tolerance Date" := Rec."Pmt. Disc. Tolerance Date";
             VendLedgEntry.Validate("Max. Payment Tolerance", Rec."Max. Payment Tolerance");
             VendLedgEntry.Validate("Accepted Payment Tolerance", Rec."Accepted Payment Tolerance");

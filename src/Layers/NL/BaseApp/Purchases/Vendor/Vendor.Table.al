@@ -104,7 +104,6 @@ table 23 Vendor
             begin
                 if ("Search Name" = UpperCase(xRec.Name)) or ("Search Name" = '') then
                     "Search Name" := Name;
-                UpdateVendorBankAccounts(FieldCaption(Name));
 
                 UpdateMyVendor(FieldNo(Name));
             end;
@@ -126,11 +125,6 @@ table 23 Vendor
             Caption = 'Address';
             ToolTip = 'Specifies the vendor street address.';
             OptimizeForTextSearch = true;
-
-            trigger OnValidate()
-            begin
-                UpdateVendorBankAccounts(FieldCaption(Address));
-            end;
         }
         field(6; "Address 2"; Text[50])
         {
@@ -165,7 +159,6 @@ table 23 Vendor
                 OnBeforeValidateCity(Rec, PostCode, CurrFieldNo, IsHandled);
                 if not IsHandled then
                     PostCode.ValidateCity(City, "Post Code", County, "Country/Region Code", (CurrFieldNo <> 0) and GuiAllowed);
-                UpdateVendorBankAccounts(FieldCaption(City));
 
                 OnAfterValidateCity(Rec, xRec);
             end;
@@ -382,7 +375,6 @@ table 23 Vendor
 
             trigger OnValidate()
             begin
-                UpdateVendorBankAccounts(FieldCaption("Country/Region Code"));
                 PostCode.CheckClearPostCodeCityCounty(City, "Post Code", County, "Country/Region Code", xRec."Country/Region Code");
 
                 if "Country/Region Code" <> xRec."Country/Region Code" then
@@ -860,7 +852,6 @@ table 23 Vendor
                 OnBeforeValidatePostCode(Rec, PostCode, CurrFieldNo, IsHandled);
                 if not IsHandled then
                     PostCode.ValidatePostCode(City, "Post Code", County, "Country/Region Code", (CurrFieldNo <> 0) and GuiAllowed);
-                UpdateVendorBankAccounts(FieldCaption("Post Code"));
 
                 OnAfterValidatePostCode(Rec, xRec);
             end;
@@ -1865,6 +1856,15 @@ table 23 Vendor
     begin
         UpdateReferencedIds();
         SetLastModifiedDateTime();
+
+        if IsContactUpdateNeeded() then begin
+            Modify();
+            UpdateContFromVend.OnModify(Rec);
+            if not Find() then begin
+                Reset();
+                if Find() then;
+            end;
+        end;
     end;
 
     trigger OnRename()
@@ -2163,35 +2163,6 @@ table 23 Vendor
 
         if VendLedgEntryRemainAmtQuery.Read() then
             OverDueBalance := -VendLedgEntryRemainAmtQuery.Sum_Remaining_Amt_LCY;
-    end;
-
-    [Scope('OnPrem')]
-    procedure UpdateVendorBankAccounts(UseFieldCaption: Text[250])
-    var
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeUpdateVendorBankAccounts(IsHandled, VendBankAcc);
-        if not GuiAllowed or IsHandled then
-            exit;
-
-        VendBankAcc.SetRange("Vendor No.", "No.");
-        if VendBankAcc.Find('-') then begin
-            IsHandled := false;
-            OnUpdateVendorBankAccountsOnBeforeConfirm(Rec, IsHandled);
-            if not IsHandled then
-                if not Confirm(StrSubstNo(Text11000000, UseFieldCaption)) then
-                    exit;
-            repeat
-                VendBankAcc."Account Holder Name" := Name;
-                VendBankAcc."Account Holder Address" := Address;
-                VendBankAcc."Account Holder Post Code" := "Post Code";
-                VendBankAcc."Account Holder City" := City;
-                VendBankAcc."Acc. Hold. Country/Region Code" := "Country/Region Code";
-                VendBankAcc.Modify();
-            until VendBankAcc.Next() = 0;
-            Modify();
-        end;
     end;
 
     procedure GetInvoicedPrepmtAmountLCY() InvoicedPrepmtAmountLCY: Decimal
@@ -3052,11 +3023,6 @@ table 23 Vendor
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnUpdateVendorBankAccountsOnBeforeConfirm(var Vendor: Record Vendor; var IsHandled: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
     local procedure OnGetBalanceAsCustomerOnBeforeCalcBalance(var Customer: Record Customer)
     begin
     end;
@@ -3074,11 +3040,6 @@ table 23 Vendor
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateRegistrationNumber(var Vendor: Record Vendor; var IsHandled: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(true, false)]
-    local procedure OnBeforeUpdateVendorBankAccounts(var IsHandled: Boolean; var VendorBankAccount: Record "Vendor Bank Account")
     begin
     end;
 
