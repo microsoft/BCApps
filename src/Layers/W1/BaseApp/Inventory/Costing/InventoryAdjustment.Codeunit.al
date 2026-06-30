@@ -2995,7 +2995,7 @@ codeunit 5895 "Inventory Adjustment" implements "Inventory Adjustment", "Cost Ad
         TelemetryDimensions.Add('IsOnlineAdjmt', Format(IsOnlineAdjmt, 0, 9));
         TelemetryDimensions.Add('PostToGL', Format(PostToGL, 0, 9));
         TelemetryDimensions.Add('ItemByItemCommit', Format(CommitAdjustedItems, 0, 9));
-        FeatureTelemetry.LogUsage('', CostAdjmtCommitFeatureNameTok, CostAdjmtCommitEventNameTok, TelemetryDimensions);
+        FeatureTelemetry.LogUsage('0000MEQ', CostAdjmtCommitFeatureNameTok, CostAdjmtCommitEventNameTok, TelemetryDimensions);
     end;
 
     local procedure FindLastDate(DateFilter: Text): Date

@@ -4976,6 +4976,20 @@ codeunit 22 "Item Jnl.-Post Line"
         PostToGL := NewPostToGL;
     end;
 
+    /// <summary>
+    /// Resets the transaction-scoped state of the downstream G/L posting codeunits
+    /// (Codeunit "Inventory Posting To G/L" -> Codeunit "Gen. Jnl.-Post Line") so the
+    /// next G/L posting call re-takes the G/L Entry table lock and re-reads the last
+    /// entry number from disk. Must be called by any caller that issues an explicit
+    /// Commit() while keeping a long-lived reference to this codeunit (for example
+    /// Codeunit 5895 "Inventory Adjustment".CheckAndCommit). The configuration set via
+    /// SetCalledFromAdjustment / SetCalledFromInvtPutawayPick / etc. is preserved.
+    /// </summary>
+    procedure ResetGLPostingState()
+    begin
+        InventoryPostingToGL.ResetGLPostingState();
+    end;
+
     internal procedure GetPostToGL(): Boolean
     begin
         exit(PostToGL);
