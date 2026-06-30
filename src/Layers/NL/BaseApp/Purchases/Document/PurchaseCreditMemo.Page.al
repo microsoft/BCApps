@@ -1611,8 +1611,6 @@ page 52 "Purchase Credit Memo"
     begin
         JobQueueUsed := PurchSetup.JobQueueActive();
         SetExtDocNoMandatoryCondition();
-        PurchSetup.GetRecordOnce();
-
         IsPowerAutomatePrivacyNoticeApproved := PrivacyNotice.GetPrivacyNoticeApprovalState(FlowServiceManagement.GetPowerAutomatePrivacyNoticeId()) = "Privacy Notice Approval State"::Agreed;
     end;
 

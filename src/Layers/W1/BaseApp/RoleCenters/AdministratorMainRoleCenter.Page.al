@@ -326,12 +326,6 @@ page 8900 "Administrator Main Role Center"
                         Caption = 'Code Coverage';
                         RunObject = page "Code Coverage";
                     }
-                    // action("Sessions")
-                    // {
-                    //	 ApplicationArea = All;
-                    //	 Caption = 'Sessions';
-                    //	 RunObject = codeunit 9500;
-                    // }
                 }
                 action("Feature Management")
                 {
@@ -572,12 +566,6 @@ page 8900 "Administrator Main Role Center"
                     Caption = 'User Setup';
                     RunObject = page "User Setup";
                 }
-                // action("Change Password")
-                // {
-                //     ApplicationArea = Basic, Suite;
-                //     Caption = 'Change Password';
-                //     RunObject = page ;
-                // }
                 action("User Security Status")
                 {
                     ApplicationArea = Basic, Suite;
@@ -774,14 +762,14 @@ page 8900 "Administrator Main Role Center"
                     action("Dynamic Request page Entities")
                     {
                         ApplicationArea = Basic, Suite;
-                        Caption = 'Dynamic Request page Entities';
-                        RunObject = page "Dynamic Request page Entities";
+                        Caption = 'Dynamic Request Page Entities';
+                        RunObject = page "Dynamic Request Page Entities";
                     }
                     action("Dynamic Request page Fields")
                     {
                         ApplicationArea = Basic, Suite;
-                        Caption = 'Dynamic Request page Fields';
-                        RunObject = page "Dynamic Request page Fields";
+                        Caption = 'Dynamic Request Page Fields';
+                        RunObject = page "Dynamic Request Page Fields";
                     }
                 }
             }

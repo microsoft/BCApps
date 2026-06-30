@@ -180,12 +180,6 @@ page 8900 "Administrator Main Role Center"
                         Caption = 'Customer/Vendor/Item Templates';
                         RunObject = page "Config Templates";
                     }
-                    // action("Setup and Help Resources")
-                    // {
-                    //     ApplicationArea = Basic, Suite;
-                    //     Caption = 'Setup and Help Resources';
-                    //     RunObject = page 1822;
-                    // }
                     action("Transformation Rules")
                     {
                         ApplicationArea = Basic, Suite;
@@ -332,12 +326,6 @@ page 8900 "Administrator Main Role Center"
                         Caption = 'Code Coverage';
                         RunObject = page "Code Coverage";
                     }
-                    // action("Sessions")
-                    // {
-                    //     ApplicationArea = All;
-                    //     Caption = 'Sessions';
-                    //     RunObject = codeunit 9500;
-                    // }
                 }
                 action("Feature Management")
                 {
@@ -579,12 +567,6 @@ page 8900 "Administrator Main Role Center"
                     Caption = 'User Setup';
                     RunObject = page "User Setup";
                 }
-                // action("Change Password")
-                // {
-                //     ApplicationArea = Basic, Suite;
-                //     Caption = 'Change Password';
-                //     RunObject = page 9809;
-                // }
                 action("User Security Status")
                 {
                     ApplicationArea = Basic, Suite;
@@ -801,12 +783,6 @@ page 8900 "Administrator Main Role Center"
                     Caption = 'Web Services';
                     RunObject = page "Web Services";
                 }
-                // action("Bank Data Conv. Service Setup")
-                // {
-                // 	ApplicationArea = Basic,Suite;
-                // 	Caption = 'Bank Data Conv. Service Setup';
-                // 	RunObject = page 1260;
-                // }
                 action("Microsoft Dynamics 365 Connection Setup")
                 {
                     ApplicationArea = Suite;

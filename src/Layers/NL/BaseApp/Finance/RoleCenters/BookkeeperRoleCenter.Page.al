@@ -237,7 +237,7 @@ page 9004 "Bookkeeper Role Center"
             }
             action("G/L - VAT Reconciliation")
             {
-                ApplicationArea = Basic, Suite;
+                ApplicationArea = VAT;
                 Caption = 'G/L - VAT Reconciliation';
                 Image = "Report";
                 RunObject = Report "G/L - VAT Reconciliation";

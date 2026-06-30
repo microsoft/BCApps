@@ -243,6 +243,5 @@ table 256 "VAT Statement Line"
         Text000: Label 'must not be %1';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
-
 }
 

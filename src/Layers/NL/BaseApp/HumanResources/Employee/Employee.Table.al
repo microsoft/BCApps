@@ -455,6 +455,7 @@ table 5200 Employee
             Caption = 'Bank Account No.';
             MaskType = Concealed;
             ToolTip = 'Specifies the number used by the bank for the bank account.';
+
             trigger OnValidate()
             var
                 LocalFunctionalityMgt: Codeunit "Local Functionality Mgt.";

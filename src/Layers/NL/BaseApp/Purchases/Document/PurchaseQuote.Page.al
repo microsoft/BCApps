@@ -60,6 +60,7 @@ page 49 "Purchase Quote"
 
                     trigger OnValidate()
                     begin
+                        IsPurchaseLinesEditable := Rec.PurchaseLinesEditable();
                         Rec.OnAfterValidateBuyFromVendorNo(Rec, xRec);
                         CurrPage.Update();
                     end;

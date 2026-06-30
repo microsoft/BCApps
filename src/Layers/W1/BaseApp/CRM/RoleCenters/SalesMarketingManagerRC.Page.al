@@ -853,6 +853,7 @@ page 8907 "Sales & Marketing Manager RC"
                     ApplicationArea = RelationshipMgmt;
                     Caption = 'Customer Templates';
                     RunObject = page "Customer Templ. List";
+                    Tooltip = 'Open the Customer Templates page.';
                 }
                 group("Group17")
                 {

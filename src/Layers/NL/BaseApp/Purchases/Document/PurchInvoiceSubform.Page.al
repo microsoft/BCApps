@@ -349,7 +349,6 @@ page 55 "Purch. Invoice Subform"
                 field("Tax Area Code"; Rec."Tax Area Code")
                 {
                     ApplicationArea = SalesTax;
-                    Visible = false;
 
                     trigger OnValidate()
                     begin

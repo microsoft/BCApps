@@ -10,7 +10,6 @@ using Microsoft.Finance.Currency;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Receivables;
-using Microsoft.Utilities;
 using System.Email;
 using System.Globalization;
 
@@ -369,7 +368,6 @@ table 287 "Customer Bank Account"
 
     var
         PostCode: Record "Post Code";
-        Text1000001: Label 'Bank Account No. %1 may be incorrect.';
         BankAccIdentifierIsEmptyErr: Label 'You must specify either a Bank Account No. or an IBAN.';
         BankAccDeleteErr: Label 'You cannot delete this bank account because it is associated with one or more open ledger entries.';
 
@@ -387,14 +385,6 @@ table 287 "Customer Bank Account"
     begin
         if FindProposalLines(ProposalLine) then
             ProposalLine.ModifyAll("SWIFT Code", "SWIFT Code")
-    end;
-
-    local procedure UpdateBankAccountNo()
-    var
-        ProposalLine: Record "Proposal Line";
-    begin
-        if FindProposalLines(ProposalLine) then
-            ProposalLine.ModifyAll("Bank Account No.", "Bank Account No.")
     end;
 
     local procedure FindProposalLines(var ProposalLine: Record "Proposal Line"): Boolean

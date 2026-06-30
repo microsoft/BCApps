@@ -922,6 +922,14 @@ table 15 "G/L Account"
             TableRelation = "IC G/L Account"."No.";
         }
         /// <summary>
+        /// Excludes default account name description from journal entries when posting transactions.
+        /// </summary>
+        field(70; "Omit Default Descr. in Jnl."; Boolean)
+        {
+            Caption = 'Omit Default Descr. in Jnl.';
+            ToolTip = 'Specifies if the default description is automatically inserted in the Description field on journal lines created for this general ledger account.';
+        }
+        /// <summary>
         /// Net change amount in source currency for the account within the specified date filters.
         /// </summary>
         field(75; "Source Currency Net Change"; Decimal)
@@ -1057,10 +1065,6 @@ table 15 "G/L Account"
         {
             Caption = 'API Account Type';
             Editable = false;
-        }
-        field(11400; "Omit Default Descr. in Jnl."; Boolean)
-        {
-            Caption = 'Omit Default Descr. in Jnl.';
         }
     }
 

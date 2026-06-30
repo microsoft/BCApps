@@ -2116,18 +2116,21 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Adjust Item Costs/Prices';
                         RunObject = report "Adjust Item Costs/Prices";
+                        Tooltip = 'Run the Adjust Item Costs/Prices report.';
                     }
                     action("Adjust Cost - Item Entries")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Adjust Cost - Item Entries...';
                         RunObject = report "Adjust Cost - Item Entries";
+                        Tooltip = 'Run the Adjust Cost - Item Entries report.';
                     }
                     action("Post Inventory Cost to G/L")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Post Inventory Cost to G/L';
                         RunObject = report "Post Inventory Cost to G/L";
+                        Tooltip = 'Run the Post Inventory Cost to G/L report.';
                     }
                 }
                 group("Group52")
@@ -2177,18 +2180,21 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Inventory Valuation';
                         RunObject = report "Inventory Valuation";
+                        Tooltip = 'Run the Inventory Valuation report.';
                     }
                     action("Inventory - List")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Inventory - List';
                         RunObject = report "Inventory - List";
+                        Tooltip = 'Run the Inventory - List report.';
                     }
                     action("Invt. Valuation - Cost Spec.")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Invt. Valuation - Cost Spec.';
                         RunObject = report "Invt. Valuation - Cost Spec.";
+                        Tooltip = 'Run the Invt. Valuation - Cost Spec. report.';
                     }
                     action("Item Age Composition - Value")
                     {
@@ -2202,12 +2208,14 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Item Register - Value';
                         RunObject = report "Item Register - Value";
+                        Tooltip = 'Run the Item Register - Value report.';
                     }
                     action("Physical Inventory List")
                     {
                         ApplicationArea = Warehouse;
                         Caption = 'Physical Inventory List';
                         RunObject = report "Phys. Inventory List";
+                        Tooltip = 'Run the Physical Inventory List report.';
                     }
                     action("Status")
                     {
@@ -2221,18 +2229,21 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Item Register - Quantity';
                         RunObject = report "Item Register - Quantity";
+                        Tooltip = 'Run the Item Register - Quantity report.';
                     }
                     action("Item Dimensions - Detail")
                     {
                         ApplicationArea = Dimensions;
                         Caption = 'Item Dimensions - Detail';
                         RunObject = report "Item Dimensions - Detail";
+                        Tooltip = 'Run the Item Dimensions - Detail report.';
                     }
                     action("Item Dimensions - Total")
                     {
                         ApplicationArea = Dimensions;
                         Caption = 'Item Dimensions - Total';
                         RunObject = report "Item Dimensions - Total";
+                        Tooltip = 'Run the Item Dimensions - Total report.';
                     }
                     action("Inventory - G/L Reconciliation")
                     {
@@ -2307,12 +2318,14 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = InventoryAnalysis;
                         Caption = 'Invt. Analysis Column Templates';
                         RunObject = report "Run Invt. Analysis Col. Temp.";
+                        Tooltip = 'Run the Invt. Analysis Column Templates report.';
                     }
                     action("Analysis Line Templates")
                     {
                         ApplicationArea = InventoryAnalysis;
                         Caption = 'Invt. Analysis Line Templates';
                         RunObject = report "Run Invt. Analysis Line Temp.";
+                        Tooltip = 'Run the Invt. Analysis Line Templates report.';
                     }
                 }
             }

@@ -203,7 +203,7 @@ page 20 "General Ledger Entries"
                 }
                 field("VAT Amount"; Rec."VAT Amount")
                 {
-                    ApplicationArea = Basic, Suite;
+                    ApplicationArea = VAT;
                     Editable = false;
                     Visible = false;
                 }
