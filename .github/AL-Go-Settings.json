@@ -31,6 +31,16 @@
           "CLEAN29"
         ]
       }
+    },
+    {
+      "projects": [
+        "."
+      ],
+      "settings": {
+        "appFolders": [
+          "src/Layers/W1/DemoTool"
+        ]
+      }
     }
   ],
   "customALGoFiles": {
