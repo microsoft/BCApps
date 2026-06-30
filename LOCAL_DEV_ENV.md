@@ -58,12 +58,12 @@ Import-Module .\build\scripts\GDLDevelopment\GDLDevelopment.psm1
 ### Create a view
 
 ```powershell
-New-GDLView -CountryCode US -ContainerName 'BCApps-Dev'
+New-GDLView -CountryCode US -skipSetupDevelopmentSettings
 ```
 
-This composes the layers for the given country/region into `src/Views/US` and configures the VSCode `launch.json`/`settings.json` for each project in the view, pointing them at the given dev container. The settings are read from the container, so create a container first (see above) and pass its name with `-ContainerName`. If you only want the composed view without touching VSCode settings, add `-skipSetupDevelopmentSettings` (in which case `-ContainerName` is not needed).
+This composes the layers for the given country/region into `src/Views/US`. Open the resulting `src/Views/US` folder in VSCode and develop as you would in any AL project.
 
-Open the resulting `src/Views/US` folder in VSCode and develop as you would in any AL project.
+> **Note:** Automatic configuration of the VSCode `launch.json`/`settings.json` (i.e. running `New-GDLView` without `-skipSetupDevelopmentSettings`) is currently broken and will be fixed later. For now, pass `-skipSetupDevelopmentSettings` and configure the projects manually if needed.
 
 ### Synchronize your changes back to the layers
 
@@ -90,3 +90,34 @@ Remove-GDLView -CountryCode US
 ```
 
 `Remove-GDLView` first verifies the view has no unsynchronized changes. To discard any unsynchronized files and remove the view anyway, add `-Force`. To remove every view at once, use `Remove-AllGDLViews` (optionally with `-Force`).
+
+## Miapp (propagating changes across layers)
+
+When you change a file in the `W1` (worldwide) base layer, the same change often needs to be applied to the country-specific layers that build on top of it. **Miapp** (Micro Application Integration) is a PowerShell tool that automates this propagation: it finds the files you changed in `W1` and merges them into each dependent country layer (`AT`, `AU`, `BE`, `DE`, `US`, ...), resolving conflicts automatically or with a merge tool.
+
+Import the module and run `Invoke-Miapp` from the repository root:
+
+```powershell
+Import-Module .\build\scripts\Miapp\MicroApp.psm1
+Invoke-Miapp
+```
+
+`Invoke-Miapp` validates the repository state, discovers the files that need integrating, merges them into every dependent layer, and stages the result. Commonly used options:
+
+```powershell
+# Only propagate to a single country layer
+Invoke-Miapp -Country DE
+
+# Only propagate files matching a regex
+Invoke-Miapp -FileNameFilter '\.al$'
+
+# Resolve conflicts automatically, preferring the W1 (source) version
+Invoke-Miapp -AutoResolve theirs
+
+# Prompt before propagating each file
+Invoke-Miapp -Interactive
+```
+
+> **Tip:** Run Miapp after committing your `W1` changes — it compares against the base branch (`origin/HEAD`, typically `main`) to determine what to propagate.
+
+For the full list of parameters, the integration workflow, configuration, and troubleshooting, see the [Miapp README](build/scripts/Miapp/README.md).
