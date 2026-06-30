@@ -122,6 +122,7 @@
     "maxReleases": 0,
     "continuousDeployment": false,
     "groupByProject": false,
+    "deployToGitHubPages": false,
     "excludeProjects": [
       "build_projects_System Application Modules"
     ]
