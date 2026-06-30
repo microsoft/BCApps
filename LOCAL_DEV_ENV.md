@@ -10,12 +10,12 @@
 ## Create a development environment
 
 The development environment is a docker container running Business Central locally.
-In order to create it, simply run `.\build\scripts\DevEnv\NewDevEnv.ps1` with the desired parameters.
+In order to create it, simply run `.\eng\DevTools\NewDevEnv.ps1` with the desired parameters.
 
 
 ### Example - Set up a container and VSCode
 ```
-.\build\scripts\DevEnv\NewDevEnv.ps1 -ContainerName 'BCApps-Dev'
+.\eng\DevTools\NewDevEnv.ps1 -ContainerName 'BCApps-Dev'
 ```
 
 Running the above will
@@ -25,7 +25,7 @@ Running the above will
 
 ### Example - Set up a container, VSCode and publish a new system app
 ```
-.\build\scripts\DevEnv\NewDevEnv.ps1 -ContainerName 'BCApps-Dev' -ProjectPaths '.\src\System Application\App'
+.\eng\DevTools\NewDevEnv.ps1 -ContainerName 'BCApps-Dev' -ProjectPaths '.\src\System Application\App'
 ```
 Running the above will
 * Create a new container (if one doesn't already exist)
@@ -34,7 +34,7 @@ Running the above will
 
 ### Example - Set up a container, VSCode and publish a new system app and tests
 ```
-.\build\scripts\DevEnv\NewDevEnv.ps1 -ContainerName 'BCApps-Dev' -ProjectPaths '.\src\System Application\*'
+.\eng\DevTools\NewDevEnv.ps1 -ContainerName 'BCApps-Dev' -ProjectPaths '.\src\System Application\*'
 ```
 Running the above will
 * Create a new container (if one doesn't already exist)

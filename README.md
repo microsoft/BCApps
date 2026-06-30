@@ -37,7 +37,7 @@ All source lives under `src`, organized by application area. Anything that ships
 | `src/DemoTool` | The tool that generates Business Central demonstration data. |
 | `src/DisabledTests` | Test apps that are temporarily disabled. |
 | `src/rulesets` | Code-analysis rulesets used when building the apps. |
-| `build` | Build orchestration. `build/projects` defines the AL-Go projects and `build/scripts` the supporting automation; `build.ps1` builds the repo locally. |
+| `build` | Build orchestration. `eng/projects` defines the AL-Go projects and `eng/CI` the supporting automation; `build.ps1` builds the repo locally. |
 | `tools` | Repository-level agent tooling and developer plugins, including the [Copilot PR review](tools/Code%20Review/README.md) integration. |
 | `docs` | Repository and feature documentation. |
 

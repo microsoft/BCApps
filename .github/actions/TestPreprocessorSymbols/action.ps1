@@ -1,8 +1,8 @@
 # Current path is .github/actions/VerifyAppChanges
 
-Import-Module "$PSScriptRoot\..\..\..\build\scripts\DevEnv\EnlistmentHelperFunctions.psm1" -DisableNameChecking
-Import-Module "$PSScriptRoot\..\..\..\build\scripts\GuardingV2ExtensionsHelper.psm1" -DisableNameChecking
-Import-Module "$PSScriptRoot\..\..\..\build\scripts\TestPreprocessorSymbols.psm1" -Force
+Import-Module "$PSScriptRoot\..\..\..\eng\Shared\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot\..\..\..\eng\CI\GuardingV2ExtensionsHelper.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot\..\..\..\eng\CI\TestPreprocessorSymbols.psm1" -Force
 
 # Get the major build version from the main branch
 $mainVersion = Get-MaxAllowedObsoleteVersion

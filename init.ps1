@@ -3,8 +3,8 @@
     BCApps enlistment initialization script.
 
 .DESCRIPTION
-    Loads all PowerShell modules (.psm1) found under build\scripts\DevEnv into
-    the current session. New modules added to that folder are picked up automatically.
+    Loads shared utilities and developer tool modules into the current session.
+    Modules under eng\Shared and eng\DevTools are auto-discovered.
 
 .EXAMPLE
     . .\init.ps1
@@ -13,15 +13,23 @@
 $ErrorActionPreference = "Stop"
 
 $repoRoot = $PSScriptRoot
-$devEnvRoot = Join-Path $repoRoot "build\scripts\DevEnv"
 
 Write-Host "Initializing BCApps enlistment..." -ForegroundColor Cyan
 
-# Auto-discover and load all .psm1 modules under build\scripts\DevEnv
-$modules = Get-ChildItem -Path $devEnvRoot -Filter "*.psm1" -Recurse
-foreach ($module in $modules) {
+# Load shared utilities first (dependencies for DevTools)
+$sharedRoot = Join-Path $repoRoot "eng\Shared"
+$sharedModules = Get-ChildItem -Path $sharedRoot -Filter "*.psm1" -Recurse
+foreach ($module in $sharedModules) {
     Import-Module $module.FullName -DisableNameChecking -Global
 }
 
-Write-Host "BCApps enlistment initialized. Loaded $($modules.Count) module(s) from build\scripts\DevEnv." -ForegroundColor Green
+# Load developer tools
+$devToolsRoot = Join-Path $repoRoot "eng\DevTools"
+$devToolsModules = Get-ChildItem -Path $devToolsRoot -Filter "*.psm1" -Recurse
+foreach ($module in $devToolsModules) {
+    Import-Module $module.FullName -DisableNameChecking -Global
+}
+
+$totalModules = $sharedModules.Count + $devToolsModules.Count
+Write-Host "BCApps enlistment initialized. Loaded $totalModules module(s)." -ForegroundColor Green
 Write-Host "Run 'Get-Command -Module <module>' or 'Get-Help <command>' for usage information." -ForegroundColor Gray
