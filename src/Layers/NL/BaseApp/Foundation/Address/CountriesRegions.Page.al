@@ -37,11 +37,6 @@ page 10 "Countries/Regions"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("SEPA Allowed"; Rec."SEPA Allowed")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if the Single Euro Payments Area (SEPA) function is active for the country/region.';
-                }
                 field("Address Format"; Rec."Address Format")
                 {
                     ApplicationArea = Basic, Suite;

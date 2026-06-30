@@ -66,7 +66,7 @@ table 11000003 "Detail Line"
                                 Description :=
                                   CopyStr(
                                     StrSubstNo(
-                                      Text1000001,
+                                      Text1000001Lbl,
                                       CustLedgEntry."Document Type",
                                       CustLedgEntry."Document No.",
                                       Cust."Our Account No."), 1, MaxStrLen(Description))
@@ -284,7 +284,7 @@ table 11000003 "Detail Line"
                 ShowExceedMessage := (Abs(Difference) > Abs(CalculateVariation())) and IsDifferentSign("Remaining Amount", Difference);
                 OnValidateAmountEntryOnAfterCalcShowExceedMessage(Rec, Difference, "Remaining Amount", ShowExceedMessage);
                 if ShowExceedMessage then
-                    Message(Text1000004, DelChr(Format(Abs(Difference)) + ' ' + "Currency Code (Entry)", '<>', ' '));
+                    Message(Text1000004Lbl, DelChr(Format(Abs(Difference)) + ' ' + "Currency Code (Entry)", '<>', ' '));
 
                 if not AmountValidate then begin
                     AmountValidate := true;
@@ -353,18 +353,18 @@ table 11000003 "Detail Line"
 
     trigger OnRename()
     begin
-        Error(Text1000000, TableCaption);
+        Error(Text1000000Err, TableCaption);
     end;
 
     var
-        Text1000000: Label '%1 cannot be renamed';
-        Text1000001: Label '%1 %2 vendor no. %3';
-        Text1000002: Label '%1 %2 customer no. %3';
-        Text1000004: Label 'The outstanding amount is exceeded by %1.';
         CurrencyExchangeRate: Record "Currency Exchange Rate";
-        AmountValidate: Boolean;
         EntryCurrency: Record Currency;
         BankCur: Record Currency;
+        AmountValidate: Boolean;
+        Text1000000Err: Label '%1 cannot be renamed', Comment = '%1 - table caption';
+        Text1000001Lbl: Label '%1 %2 vendor no. %3', Comment = '%1 - table caption, %2 - field caption, %3 - vendor number';
+        Text1000002Lbl: Label '%1 %2 customer no. %3', Comment = '%1 - table caption, %2 - field caption, %3 - customer number';
+        Text1000004Lbl: Label 'The outstanding amount is exceeded by %1.', Comment = '%1 - amount';
         AmountSignErr: Label 'The sign does not correspond with the outstanding %1 %2 %3.', Comment = '%1 - table caption, %2 - field caption, %3 - field value';
 
     protected var
@@ -433,7 +433,7 @@ table 11000003 "Detail Line"
             Description :=
               CopyStr(
                 StrSubstNo(
-                  Text1000002,
+                  Text1000002Lbl,
                   VendLedgEntry."Document Type",
                   VendLedgEntry."External Document No.",
                   Vendor."Our Account No."), 1, MaxStrLen(Description))

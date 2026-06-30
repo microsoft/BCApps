@@ -29,7 +29,7 @@ report 11000000 "Get Proposal Entries"
             dataitem("Cust. Ledger Entry"; "Cust. Ledger Entry")
             {
                 DataItemLink = "Transaction Mode Code" = field(Code);
-                DataItemTableView = sorting(Open, "On Hold", "Transaction Mode Code") where(Open = const(true), "On Hold" = const(''));
+                DataItemTableView = sorting("Transaction Mode Code") where(Open = const(true), "On Hold" = const(''));
                 RequestFilterFields = "Customer No.", "Recipient Bank Account";
 
                 trigger OnAfterGetRecord()
@@ -75,7 +75,7 @@ report 11000000 "Get Proposal Entries"
             dataitem("Vendor Ledger Entry"; "Vendor Ledger Entry")
             {
                 DataItemLink = "Transaction Mode Code" = field(Code);
-                DataItemTableView = sorting(Open, "On Hold", "Transaction Mode Code") where(Open = const(true), "On Hold" = const(''));
+                DataItemTableView = sorting("Transaction Mode Code") where(Open = const(true), "On Hold" = const(''));
                 RequestFilterFields = "Vendor No.", "Recipient Bank Account";
 
                 trigger OnAfterGetRecord()
@@ -277,16 +277,16 @@ report 11000000 "Get Proposal Entries"
                     if ProposalLine."Description 1" = '' then
                         ProposalLine."Description 1" := Text1000015;
                     if StrLen(ProposalLine."Description 1" + ' ' + UseDocumentNo) < MaxStrLen(ProposalLine."Description 1") then
-                        ProposalLine."Description 1" := DelChr(ProposalLine."Description 1" + ' ' + UseDocumentNo, '<>')
+                        ProposalLine."Description 1" := CopyStr(DelChr(ProposalLine."Description 1" + ' ' + UseDocumentNo, '<>'), 1, MaxStrLen(ProposalLine."Description 1"))
                     else
                         if StrLen(ProposalLine."Description 2" + ' ' + UseDocumentNo) < MaxStrLen(ProposalLine."Description 2") then
-                            ProposalLine."Description 2" := DelChr(ProposalLine."Description 2" + ' ' + UseDocumentNo, '<>')
+                            ProposalLine."Description 2" := CopyStr(DelChr(ProposalLine."Description 2" + ' ' + UseDocumentNo, '<>'), 1, MaxStrLen(ProposalLine."Description 2"))
                         else
                             if StrLen(ProposalLine."Description 3" + ' ' + UseDocumentNo) < MaxStrLen(ProposalLine."Description 3") then
-                                ProposalLine."Description 3" := DelChr(ProposalLine."Description 3" + ' ' + UseDocumentNo, '<>')
+                                ProposalLine."Description 3" := CopyStr(DelChr(ProposalLine."Description 3" + ' ' + UseDocumentNo, '<>'), 1, MaxStrLen(ProposalLine."Description 3"))
                             else
                                 if StrLen(ProposalLine."Description 4" + ' ' + UseDocumentNo) < MaxStrLen(ProposalLine."Description 4") then
-                                    ProposalLine."Description 4" := DelChr(ProposalLine."Description 4" + ' ' + UseDocumentNo, '<>')
+                                    ProposalLine."Description 4" := CopyStr(DelChr(ProposalLine."Description 4" + ' ' + UseDocumentNo, '<>'), 1, MaxStrLen(ProposalLine."Description 4"))
                                 else
                                     ProposalLine.Docket := true;
                 end;
@@ -295,8 +295,8 @@ report 11000000 "Get Proposal Entries"
 
                 if ProposalLine.Identification = '' then begin
                     TrMode.TestField("Identification No. Series");
-                        ProposalLine."Identification No. Series" := TrMode."Identification No. Series";
-                        ProposalLine.Identification := NoSeries.GetNextNo(ProposalLine."Identification No. Series", ProposalLine."Transaction Date");
+                    ProposalLine."Identification No. Series" := TrMode."Identification No. Series";
+                    ProposalLine.Identification := NoSeries.GetNextNo(ProposalLine."Identification No. Series", ProposalLine."Transaction Date");
                 end;
 
                 ProposalLine."Foreign Currency" := DetailLine."Currency Code (Entry)";
@@ -357,7 +357,7 @@ report 11000000 "Get Proposal Entries"
                                 "Value Date" := PmtDiscExpiryDate;
                         end;
                     }
-                    field(PartnerType; PartnerType)
+                    field(PartnerTypeReq; PartnerType)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Partner Type';
@@ -458,6 +458,24 @@ report 11000000 "Get Proposal Entries"
     end;
 
     var
+        DetailLine: Record "Detail Line";
+        ProposalLine: Record "Proposal Line";
+        TrMode: Record "Transaction Mode";
+        CompanyInfo: Record "Company Information";
+        ProcessProposalLines: Codeunit "Process Proposal Lines";
+        NumberOfEntries: Integer;
+        NumeratorPostings: Integer;
+        NumberOfDetailLines: Integer;
+        NumeratorDetailLines: Integer;
+        BatchStatus: Dialog;
+        Found: Boolean;
+        IsHandled: Boolean;
+        NoOfErrors: Integer;
+        NumberOfWarnings: Integer;
+        "Value Date": Date;
+        PmtDiscExpiryDate: Date;
+        PartnerType: Enum "Partner Type";
+
         Text1000000: Label 'The currency date cannot be in the past.';
         Text1000001: Label 'CRONUS';
         Text1000002: Label 'The currency date will be reached in %1 days,';
@@ -476,23 +494,6 @@ report 11000000 "Get Proposal Entries"
         Text1000015: Label 'Invoice';
         Text1000016: Label 'Collection order, see docket';
         Text1000017: Label 'Account No. %1';
-        DetailLine: Record "Detail Line";
-        ProposalLine: Record "Proposal Line";
-        TrMode: Record "Transaction Mode";
-        CompanyInfo: Record "Company Information";
-        ProcessProposalLines: Codeunit "Process Proposal Lines";
-        NumberOfEntries: Integer;
-        NumeratorPostings: Integer;
-        NumberOfDetailLines: Integer;
-        NumeratorDetailLines: Integer;
-        BatchStatus: Dialog;
-        Found: Boolean;
-        IsHandled: Boolean;
-        NoOfErrors: Integer;
-        NumberOfWarnings: Integer;
-        "Value Date": Date;
-        PmtDiscExpiryDate: Date;
-        PartnerType: Enum "Partner Type";
         EmployeeNoMsg: Label 'Employee No. %1', Comment = '%1=Employee number;';
 
     local procedure FillDescription()
@@ -506,24 +507,24 @@ report 11000000 "Get Proposal Entries"
                 DetailLine."Account Type"::Customer:
                     begin
                         Cust.Get(DetailLine."Account No.");
-                        UpdatePropLineDescription(ProposalLine, Cust."Our Account No.", Text1000017);
+                        UpdatePropLineDescription(Cust."Our Account No.", Text1000017);
                     end;
                 DetailLine."Account Type"::Vendor:
                     begin
                         Vend.Get(DetailLine."Account No.");
-                        UpdatePropLineDescription(ProposalLine, Vend."Our Account No.", Text1000017);
+                        UpdatePropLineDescription(Vend."Our Account No.", Text1000017);
                     end;
                 DetailLine."Account Type"::Employee:
                     begin
                         Empl.Get(DetailLine."Account No.");
-                        UpdatePropLineDescription(ProposalLine, Empl."No.", EmployeeNoMsg);
+                        UpdatePropLineDescription(Empl."No.", EmployeeNoMsg);
                     end;
             end;
 
         OnAfterFillDescription(ProposalLine, DetailLine);
     end;
 
-    local procedure UpdatePropLineDescription(var ProposalLine: Record "Proposal Line"; OurAccountNo: Text[20]; CVDescriptionFormat: Text)
+    local procedure UpdatePropLineDescription(OurAccountNo: Text[20]; CVDescriptionFormat: Text)
     begin
         if ProposalLine.Docket then begin
             if ProposalLine."Description 1" <> Text1000016 then

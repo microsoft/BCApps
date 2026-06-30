@@ -244,11 +244,6 @@ page 118 "General Ledger Setup"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
-                field("Local SEPA Instr. Priority"; Rec."Local SEPA Instr. Priority")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if you want to use the local SEPA functionality to generate the InstrPrty XML element in documents. Otherwise, the generic functionality will be used';
-                }
                 field("Journal Templ. Name Mandatory"; Rec."Journal Templ. Name Mandatory")
                 {
                     ApplicationArea = BasicBE;
@@ -540,20 +535,6 @@ page 118 "General Ledger Setup"
                 field("App. Dimension Posting"; Rec."App. Dimension Posting")
                 {
                     ApplicationArea = Basic, Suite;
-                }
-            }
-            group(Telebanking)
-            {
-                Caption = 'Telebanking';
-                field("Local Currency"; Rec."Local Currency")
-                {
-                    ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies whether Euro currency is used as the local currency (LCY).';
-                }
-                field("Currency Euro"; Rec."Currency Euro")
-                {
-                    ApplicationArea = BasicEU;
-                    ToolTip = 'Specifies what currency in the Currency table represents the Euro currency.';
                 }
             }
             group("Gen. Journal Templates")

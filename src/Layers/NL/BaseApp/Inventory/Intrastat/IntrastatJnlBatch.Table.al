@@ -74,6 +74,4 @@ table 262 "Intrastat Jnl. Batch"
     {
     }
 }
-
- 
 #endif

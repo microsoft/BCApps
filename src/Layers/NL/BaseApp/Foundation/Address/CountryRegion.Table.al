@@ -112,10 +112,6 @@ table 9 "Country/Region"
             Caption = 'County Name';
             ToolTip = 'Specifies the name of the county.';
         }
-        field(11400; "SEPA Allowed"; Boolean)
-        {
-            Caption = 'SEPA Allowed';
-        }
     }
 
     keys

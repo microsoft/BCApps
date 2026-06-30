@@ -1423,47 +1423,6 @@ table 98 "General Ledger Setup"
             Caption = 'Use Concurrent Posting';
             ToolTip = 'Specifies whether to use concurrent posting when posting journals. Concurrent posting can reduce the time it takes to post journals by allowing multiple batches to be posted at the same time. Enabling this option requires additional configuration and setup, such as setting up a batch job to run the concurrent posting process and ensuring that your system has the necessary resources to support concurrent processing.';
         }
-        field(11400; "Local SEPA Instr. Priority"; Boolean)
-        {
-            Caption = 'Local SEPA Instr. Priority';
-            InitValue = true;
-        }
-#if not CLEANSCHEMA28
-        field(11401; "Use New Apply G/L Entries Page"; Boolean)
-        {
-            Caption = 'Use New Apply G/L Entries Page';
-            ObsoleteReason = 'New page 11310 will unconditionally replace the old 11309.';
-            ObsoleteTag = '22.0';
-            ObsoleteState = Removed;
-        }
-#endif
-        field(11000000; "Local Currency"; Option)
-        {
-            Caption = 'Local Currency';
-            OptionCaption = ',Euro,Other';
-            OptionMembers = ,Euro,Other;
-
-            trigger OnValidate()
-            begin
-                if "Local Currency" = "Local Currency"::Euro then
-                    "Currency Euro" := '';
-            end;
-        }
-        field(11000002; "Currency Euro"; Code[10])
-        {
-            Caption = 'Currency Euro';
-            TableRelation = Currency;
-
-            trigger OnValidate()
-            begin
-                if "Local Currency" = "Local Currency"::Euro then
-                    Error(
-                      Text1000001,
-                      FieldCaption("Currency Euro"),
-                      FieldCaption("Local Currency"),
-                      "Local Currency");
-            end;
-        }
     }
 
     keys
@@ -1519,7 +1478,6 @@ table 98 "General Ledger Setup"
 #pragma warning restore AA0074
 #pragma warning disable AA0470
         DependentFieldActivatedErr: Label 'You cannot change %1 because %2 is selected.';
-        Text1000001: Label 'It is not allowed to specify %1 when %2 is %3.';
 #pragma warning restore AA0470
         AccSchedObsoleteErr: Label 'This field is obsolete and it has been replaced by Table 88 Financial Report';
         VATDateFeatureTok: Label 'VAT Date', Locked = true;
