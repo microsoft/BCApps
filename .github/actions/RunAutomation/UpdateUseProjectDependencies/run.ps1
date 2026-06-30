@@ -4,7 +4,7 @@ param (
     $runParameters
 )
 
-Import-Module $PSScriptRoot/../../../..\eng/Shared/EnlistmentHelperFunctions.psm1
+. "$env:GITHUB_WORKSPACE/init.ps1"
 $appExtensionsSettings = Join-Path (Get-BaseFolder) "eng/projects/Apps (W1)/.AL-Go/settings.json" -Resolve
 $settings = Get-Content -Path $appExtensionsSettings -Raw | ConvertFrom-Json
 

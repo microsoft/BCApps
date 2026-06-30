@@ -1,5 +1,7 @@
-Import-Module "$PSScriptRoot/../../../eng/CI\AppObjectValidation.psm1" -Force
-Import-Module "$PSScriptRoot/../../../eng/Shared/EnlistmentHelperFunctions.psm1" -DisableNameChecking
+# Initialize enlistment (sets $repoRoot and loads shared modules)
+. "$env:GITHUB_WORKSPACE/init.ps1"
+
+Import-Module "$repoRoot/eng/CI/AppObjectValidation.psm1" -Force
 
 $sourceCodeFolder = Join-Path (Get-BaseFolder) "src" -Resolve
 

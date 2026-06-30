@@ -29,6 +29,9 @@ param(
 
 $ErrorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-StrictMode -Version 2.0
 
+# Initialize enlistment (sets $repoRoot and loads shared modules)
+. "$env:GITHUB_WORKSPACE/init.ps1"
+
 function RunAutomation {
     param(
         [Parameter(Mandatory=$true)]
@@ -155,7 +158,7 @@ foreach ($automationName in $automationNames) {
 $availableUpdates = $automationRuns | Where-Object { $_.Status -eq "Update available" }
 if($availableUpdates) { # Only open PR if there are updates
     Write-Host "::group::Create PR for available updates"
-    Import-Module $PSScriptRoot/../../../eng/CI\AutomatedSubmission.psm1 -DisableNameChecking
+    Import-Module $repoRoot/eng/CI/AutomatedSubmission.psm1 -DisableNameChecking
 
     $prLink = OpenPR -AvailableUpdates $availableUpdates -Category $($automationNames[0]) -Repository $Repository -TargetBranch $TargetBranch -Actor $Actor
 

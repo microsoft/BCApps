@@ -253,7 +253,7 @@ function Get-PackageLatestVersion() {
 
             $latestArtifactUrl = Get-LatestBCArtifactUrl -minimumVersion $minimumVersion -storageAccountOrder $storageAccountOrder
 
-            if ($latestArtifactUrl -and ($latestArtifactUrl -match "\d+/./d+/./d+/./d+")) {
+            if ($latestArtifactUrl -and ($latestArtifactUrl -match "\d+\.\d+\.\d+\.\d+")) {
                 $latestVersion = $Matches[0]
             } else {
                 throw "Could not find BCArtifact version (for min version: $minimumVersion)"
@@ -317,13 +317,13 @@ function Get-LatestBCArtifactUrl
     }
 
     # Extract the version number from the URL
-    if ($artifactUrl -notmatch "\d+/./d+/./d+/./d+") {
+    if ($artifactUrl -notmatch "\d+\.\d+\.\d+\.\d+") {
         throw "Could not find version number in artifact url: $artifactUrl"
     }
     [System.Version] $newBcartifactVersion = $Matches[0]
 
     # Determine which version to use in the pattern
-    if ((Get-ConfigValue -Key "artifact" -ConfigType AL-Go) -match "\d+/./d+/./d+/./d+") {
+    if ((Get-ConfigValue -Key "artifact" -ConfigType AL-Go) -match "\d+\.\d+\.\d+\.\d+") {
         # If the current artifact setting has a full version, use that
         $artifactVersion = "$($newBcartifactVersion.Major).$($newBcartifactVersion.Minor).$($newBcartifactVersion.Build).$($newBcartifactVersion.Revision)"
     } else {
@@ -354,7 +354,7 @@ function Get-CurrentBCArtifactUrl() {
     }
 
     # Else, extract the version from the pattern
-    if ($artifactSetting -notmatch "\d+/./d+/./d+/./d+") {
+    if ($artifactSetting -notmatch "\d+\.\d+\.\d+\.\d+") {
         $currentRepoVersion = Get-ConfigValue -Key "repoVersion" -ConfigType AL-Go
         Write-Host "Could not find version number in artifact pattern: $artifactSetting. Using repoVersion $currentRepoVersion as minimum version."
         return Get-LatestBCArtifactUrl -minimumVersion $currentRepoVersion

@@ -294,7 +294,7 @@ function Test-IsStrictModeEnabled
         $BranchName = Get-CurrentBranch
     }
 
-    if ($BranchName -NotMatch "^releases\/\d+/./d+$")
+    if ($BranchName -NotMatch "^releases\/\d+\.\d+$")
     {
         return $false
     }

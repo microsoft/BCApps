@@ -9,7 +9,7 @@ param (
 Install-Module -Name BcContainerHelper -AllowPrerelease -Force
 Import-Module BcContainerHelper -DisableNameChecking
 
-Import-Module $PSScriptRoot/../../../..\eng/Shared/EnlistmentHelperFunctions.psm1
+. "$env:GITHUB_WORKSPACE/init.ps1"
 
 $newArtifactUrl = Update-BCArtifactVersion
 
@@ -21,7 +21,7 @@ $result = @{
 if ($newArtifactUrl) {
     $result.Files = @(Get-ALGoSettingsPath -Relative)
 
-    if ($newArtifactUrl -match "\d+/./d+/./d+/./d+") {
+    if ($newArtifactUrl -match "\d+\.\d+\.\d+\.\d+") {
         $result.Message = "Update BCArtifact version. New value: $($Matches[0])"
     } else {
         $result.Message = "Update BCArtifact version. New value: $newArtifactUrl"

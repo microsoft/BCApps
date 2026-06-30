@@ -1,8 +1,10 @@
 # Current path is .github/actions/VerifyAppChanges
 
-Import-Module "$PSScriptRoot/../../../eng/Shared/EnlistmentHelperFunctions.psm1" -DisableNameChecking
-Import-Module "$PSScriptRoot/../../../eng/CI\GuardingV2ExtensionsHelper.psm1" -DisableNameChecking
-Import-Module "$PSScriptRoot/../../../eng/CI\TestPreprocessorSymbols.psm1" -Force
+# Initialize enlistment (sets $repoRoot and loads shared modules)
+. "$env:GITHUB_WORKSPACE/init.ps1"
+
+Import-Module "$repoRoot/eng/AL-Go/scripts/GuardingV2ExtensionsHelper.psm1" -DisableNameChecking
+Import-Module "$repoRoot/eng/CI/TestPreprocessorSymbols.psm1" -Force
 
 # Get the major build version from the main branch
 $mainVersion = Get-MaxAllowedObsoleteVersion

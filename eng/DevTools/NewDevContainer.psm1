@@ -205,7 +205,7 @@ function Setup-ContainerForDevelopment() {
         # If they are, we can skip the rest of the script
         if (-not ($installedApps | Where-Object { $_.Scope -eq 'Global' })) {
             Write-Host "All apps are already in the Dev Scope" -ForegroundColor Yellow
-            if (-not ($installedApps | Where-Object { $_.Version -notmatch "\d+/./d+\.0\.0" })) {
+            if (-not ($installedApps | Where-Object { $_.Version -notmatch "\d+\.\d+\.0\.0" })) {
                 Write-Host "All apps are already at version $($RepoVersion).0.0" -ForegroundColor Yellow
                 return
             }

@@ -26,7 +26,9 @@ $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 Set-StrictMode -Version 2.0
 
-$scriptsRoot = Join-Path $PSScriptRoot '..' '..' '..' 'build' 'scripts' 'TestTolerance'
+. "$env:GITHUB_WORKSPACE/init.ps1"
+
+$scriptsRoot = Join-Path $repoRoot 'eng' 'AL-Go' 'scripts' 'TestTolerance'
 Import-Module (Join-Path $scriptsRoot 'TestTolerance.psm1') -Force
 
 # Parse the comma-separated run ids.

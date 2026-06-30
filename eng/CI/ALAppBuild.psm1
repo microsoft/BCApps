@@ -1410,7 +1410,7 @@ function GetApplicationPackageImpl(
 
     # Only get the latest package so that this can be used when setting up the application developer database.
     $package = Get-ChildItem ($configuration.GetPackageOutputFolder()) -Recurse -Filter "Microsoft_$ApplicationName*" |
-    Where-Object { $_.Name -match "$([regex]::Escape($ApplicationName))`_\d+/./d+/./d+/./d+" } |
+    Where-Object { $_.Name -match "$([regex]::Escape($ApplicationName))`_\d+\.\d+\.\d+\.\d+" } |
     Sort-Object LastWriteTime |
     Select-Object -Last 1
 
@@ -1907,7 +1907,7 @@ function CopyArtifactsToFolder([string]$CountryCode, [string]$ApplicationName, [
     Write-Log "Copying artifacts for '$ApplicationName' to $TargetFolder"
 
     $appPackagePath = Get-ApplicationPackage -CountryCode $CountryCode -ApplicationName $ApplicationName
-    $appFileName = (Get-Item $appPackagePath).Name -replace "_\d+/./d+/./d+/./d+", ""
+    $appFileName = (Get-Item $appPackagePath).Name -replace "_\d+\.\d+\.\d+\.\d+", ""
     Copy-Item $appPackagePath "$folder\$appFileName"
 
     $sourceArchivePath = Get-SourceArchive -CountryCode $CountryCode -ApplicationName $ApplicationName
