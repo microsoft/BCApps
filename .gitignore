@@ -350,6 +350,7 @@ TestResults.xml
 .copilot/agents/
 .copilot/instructions/
 .github/agents/
+.github/agents/*
 !.github/agents/EngSys-VersionChange.agent.md
 .github/prompts/
 .github/instructions/
