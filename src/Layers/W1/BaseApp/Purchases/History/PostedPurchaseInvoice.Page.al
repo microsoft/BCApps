@@ -196,6 +196,13 @@ page 138 "Posted Purchase Invoice"
                     Editable = false;
                     Importance = Promoted;
                 }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    Importance = Additional;
+                    ToolTip = 'Specifies the spend request that this purchase document relates to.';
+                }
                 field("Vendor Order No."; Rec."Vendor Order No.")
                 {
                     ApplicationArea = Basic, Suite;

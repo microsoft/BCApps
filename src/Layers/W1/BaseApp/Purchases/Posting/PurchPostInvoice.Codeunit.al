@@ -706,6 +706,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         GenJnlLine.CopyFromPurchHeader(PurchHeader);
         GenJnlLine.SetCurrencyFactor(PurchHeader."Currency Code", PurchHeader."Currency Factor");
         GenJnlLine."System-Created Entry" := true;
+        GenJnlLine."Spend Request No." := PurchHeader."Spend Request No.";
+        GenJnlLine."Spend Request Close" := PurchHeader."Spend Request Close";
 
         GenJnlLine.CopyFromPurchHeaderApplyTo(PurchHeader);
         GenJnlLine.CopyFromPurchHeaderPayment(PurchHeader);

@@ -18,6 +18,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
@@ -1109,18 +1110,17 @@ codeunit 12 "Gen. Jnl.-Post Line"
     var
         TempFAGLPostingBuffer: Record "FA G/L Posting Buffer" temporary;
         FAJnlPostLine: Codeunit "FA Jnl.-Post Line";
-        GLBalanceAmount: Decimal;
-        IsLastDepreciationEntry: Boolean;
     begin
         if not NonDeductibleVAT.UseNonDeductibleVATAmountForFixedAssetCost() then
             exit;
         GenJnlLine."Non-Ded. VAT FA Cost" := true;
         FAJnlPostLine.GenJnlPostLine(GenJnlLine, VATPostingParameters."Non-Deductible VAT Amount", 0, NextTransactionNo, LastNextEntryNo, GLReg."No.");
         GenJnlLine."Non-Ded. VAT FA Cost" := false;
-        if FAJnlPostLine.FindFirstGLAcc(TempFAGLPostingBuffer) then
-            repeat
-                PostFAGLPostingBuffer(GenJnlLine, TempFAGLPostingBuffer, GLBalanceAmount, IsLastDepreciationEntry);
-            until FAJnlPostLine.GetNextGLAcc(TempFAGLPostingBuffer) = 0;
+        if FAJnlPostLine.FindFirstGLAcc(TempFAGLPostingBuffer) then begin
+            TempGLEntryBuf."FA Entry Type" := TempFAGLPostingBuffer."FA Entry Type";
+            TempGLEntryBuf."FA Entry No." := TempFAGLPostingBuffer."FA Entry No.";
+            TempGLEntryBuf.Modify();
+        end;
     end;
 
     /// <summary>
@@ -2050,8 +2050,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     InsertGLAccountSourceCurrency(GlobalGLEntry);
                 GlobalGLTransaction.InsertFromGLEntry(GlobalGLEntry, GLReg);
                 OnAfterInsertGlobalGLEntry(GlobalGLEntry, TempGLEntryBuf, NextEntryNo, GenJournalLine);
-
                 GlobalGLEntry.CopyLinks(GenJournalLine);
+                if GenJournalLine."Spend Request No." <> '' then
+                    UpdateSpendRequest(GlobalGLEntry, GenJournalLine);
             until TempGLEntryBuf.Next() = 0;
 
             GLReg."To VAT Entry No." := NextVATEntryNo - 1;
@@ -2117,6 +2118,43 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 end;
             until TempCustLedgEntry.Next() = 0;
             TempCustLedgEntry.DeleteAll();
+        end;
+    end;
+
+    local procedure UpdateSpendRequest(var GLEntry: Record "G/L Entry"; GenJnlLine: Record "Gen. Journal Line")
+    var
+        SpendReqToGLLink: Record "Spend Request To G/L Link";
+        SpendRequest: Record "Spend Request";
+        SpendRequestDetail: Record "Spend Request Detail";
+    begin
+        if GenJnlLine."Spend Request No." = '' then
+            exit;
+
+        // for dual-entry journal lines we only record the expense side
+        if (GenJnlLine."Account No." <> '') and (GenJnlLine."Bal. Account No." <> '') and (GLEntry.Amount < 0) then
+            exit;
+
+        SpendRequestDetail.SetRange("Spend Request No.", GenJnlLine."Spend Request No.");
+        SpendRequestDetail.SetRange("G/L Account No.", GLEntry."G/L Account No.");
+        if SpendRequestDetail.FindFirst() then;
+
+        SpendReqToGLLink.Init();
+        SpendReqToGLLink."Spend Request No." := GenJnlLine."Spend Request No.";
+        SpendReqToGLLink."Spend Request Detail No." := SpendRequestDetail."Line No.";
+        SpendReqToGLLink."G/L Entry No." := GLEntry."Entry No.";
+        SpendReqToGLLink."G/L Account No." := GLEntry."G/L Account No.";
+        SpendReqToGLLink."Posting Date" := GLEntry."Posting Date";
+        SpendReqToGLLink.Amount := GLEntry.Amount;
+        SpendReqToGLLink.Insert();
+
+        if GenJnlLine."Spend Request Close" then begin
+            SpendRequest.SetLoadFields(Status);
+            SpendRequest.ReadIsolation(IsolationLevel::UpdLock);
+            SpendRequest.Get(GenJnlLine."Spend Request No.");
+            if SpendRequest.Status = SpendRequest.Status::Approved then begin
+                SpendRequest.Status := SpendRequest.Status::Closed;
+                SpendRequest.Modify();
+            end;
         end;
     end;
 
@@ -8537,68 +8575,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             exit(GetVendorPayablesAccount(GenJournalLine, VendPostingGr));
         end else
             exit(GetVendorPayablesAccount(GenJournalLine, VendPostingGr));
-    end;
-
-    local procedure PostFAGLPostingBuffer(GenJnlLine: Record "Gen. Journal Line"; TempFAGLPostingBuffer: Record "FA G/L Posting Buffer"; var GLBalanceAmount: Decimal; var IsLastDepreciationEntry: Boolean)
-    var
-        GLEntry: Record "G/L Entry";
-        GLEntry2: Record "G/L Entry";
-        FALedgerEntry: Record "FA Ledger Entry";
-        FAAutomaticEntry: Codeunit "FA Automatic Entry";
-        NetDisposalNo: Integer;
-    begin
-        if (TempFAGLPostingBuffer."Entry No." = TempGLEntryBuf."Entry No.") and
-           (TempFAGLPostingBuffer."Account No." = TempGLEntryBuf."G/L Account No.") then begin
-            TempGLEntryBuf."FA Entry Type" := TempFAGLPostingBuffer."FA Entry Type";
-            TempGLEntryBuf."FA Entry No." := TempFAGLPostingBuffer."FA Entry No.";
-            TempGLEntryBuf.Modify();
-            exit;
-        end;
-
-        FALedgerEntry.SetLoadFields("FA Posting Type");
-        if not FALedgerEntry.Get(TempFAGLPostingBuffer."FA Entry No.") and (GLBalanceAmount = 0) then
-            exit;
-        if (FALedgerEntry."FA Posting Type" <> FALedgerEntry."FA Posting Type"::Depreciation) and (GLBalanceAmount = 0) then
-            exit;
-        if not IsLastDepreciationEntry and (GLBalanceAmount <> 0) then
-            exit;
-
-        InitGLEntry(
-            GenJnlLine, GLEntry, '', GenJnlLine."Amount (LCY)", GenJnlLine."Source Currency Amount", true, GenJnlLine."System-Created Entry",
-            CalcAmountSrcCurr(GenJnlLine, GenJnlLine."Amount (LCY)"));
-        GLEntry."Gen. Posting Type" := GenJnlLine."Gen. Posting Type";
-        GLEntry."Bal. Account Type" := GenJnlLine."Bal. Account Type";
-        GLEntry."Bal. Account No." := GenJnlLine."Bal. Account No.";
-        GLEntry2 := GLEntry;
-        if TempFAGLPostingBuffer."Original General Journal Line" then
-            InitGLEntry(
-                GenJnlLine, GLEntry, TempFAGLPostingBuffer."Account No.", TempFAGLPostingBuffer.Amount, GLEntry2."Additional-Currency Amount", true, true,
-                CalcAmountSrcCurr(GenJnlLine, TempFAGLPostingBuffer.Amount))
-        else begin
-            CheckNonAddCurrCodeOccurred('');
-            InitGLEntry(
-                GenJnlLine, GLEntry, TempFAGLPostingBuffer."Account No.", TempFAGLPostingBuffer.Amount, 0, false, true,
-                CalcAmountSrcCurr(GenJnlLine, TempFAGLPostingBuffer.Amount));
-        end;
-        FADimAlreadyChecked := false;
-        GLEntry.CopyPostingGroupsFromGLEntry(GLEntry);
-        GLEntry."FA Entry Type" := TempFAGLPostingBuffer."FA Entry Type";
-        GLEntry."FA Entry No." := TempFAGLPostingBuffer."FA Entry No.";
-        if TempFAGLPostingBuffer."Net Disposal" then
-            NetDisposalNo := NetDisposalNo + 1
-        else
-            NetDisposalNo := 0;
-        if TempFAGLPostingBuffer."Automatic Entry" and not TempFAGLPostingBuffer."Net Disposal" then
-            FAAutomaticEntry.AdjustGLEntry(GLEntry);
-        if NetDisposalNo > 1 then
-            GLEntry."VAT Amount" := 0;
-        InsertGLEntry(GenJnlLine, GLEntry, true);
-
-        GLBalanceAmount += TempFAGLPostingBuffer.Amount;
-        if GLBalanceAmount = 0 then
-            IsLastDepreciationEntry := false
-        else
-            IsLastDepreciationEntry := true;
     end;
 
     procedure IncreaseTaxEntryNo()

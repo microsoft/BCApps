@@ -259,6 +259,11 @@ page 39 "General Journal"
                     Editable = false;
                     ToolTip = 'Specifies the account name that the entry on the journal line will be posted to.';
                 }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
                 field(GenJnlLineApprovalStatus; GenJnlLineApprovalStatus)
                 {
                     ApplicationArea = Basic, Suite;

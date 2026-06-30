@@ -23,6 +23,7 @@ using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Setup;
@@ -2560,6 +2561,44 @@ table 81 "Gen. Journal Line"
             if ("Bal. Account Type" = const("IC Partner"), "IC Account Type" = const("Bank Account")) "IC Bank Account" where("IC Partner Code" = field("Bal. Account No."), Blocked = const(false));
         }
         /// <summary>
+        /// Specifies the spend request that this journal line relates to.
+        /// </summary>
+        field(145; "Spend Request No."; Code[20])
+        {
+            Caption = 'Spend Request No.';
+            ToolTip = 'Specifies the spend request that this journal line relates to.';
+            TableRelation = "Spend Request";
+            DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            var
+                SpendRequest: Record "Spend Request";
+                NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+                AlreadyAllocatedNotification: Notification;
+            begin
+                if not GuiAllowed() then
+                    exit;
+                SpendRequest.SetAutoCalcFields("Total Spent Amount");
+                SpendRequest.Get(Rec."Spend Request No.");
+                SpendRequest.TestField(Status, SpendRequest.Status::Approved);
+                if SpendRequest."Total Spent Amount" > 0 then begin
+                    AlreadyAllocatedNotification.Scope := AlreadyAllocatedNotification.Scope::LocalScope;
+                    AlreadyAllocatedNotification.Message := StrSubstNo(SpendRequestIsUsedMsg, SpendRequest."No.", SpendRequest."Total Expected Amount", SpendRequest."Total Spent Amount");
+                    NotificationLifecycleMgt.SendNotification(AlreadyAllocatedNotification, SpendRequest.RecordId);
+                end;
+                Rec."Spend Request Close" := Confirm(SpendRequestCloseQst, true, SpendRequest."No.");
+            end;
+        }
+        /// <summary>
+        /// Specifies that the spend request will be closed when the journal line is posted.
+        /// </summary>
+        field(146; "Spend Request Close"; Boolean)
+        {
+            Caption = 'Spend Request Close';
+            ToolTip = 'Specifies that the spend request will be closed when the journal line is posted.';
+            DataClassification = CustomerContent;
+        }
+        /// <summary>
         /// Job queue processing status for batch posting operations and automated journal processing.
         /// </summary>
         field(160; "Job Queue Status"; Enum "Document Job Queue Status")
@@ -4102,6 +4141,8 @@ table 81 "Gen. Journal Line"
         CannotChangePostingGroupForAccountTypeErr: Label 'Posting group cannot be changed for Account Type %1.', Comment = '%1 - account type';
         RestrictLineUsageDetailsTxt: Label 'The restriction was imposed because the line requires approval.';
         RestrictBatchUsageDetailsTxt: Label 'The restriction was imposed because the journal batch requires approval.';
+        SpendRequestIsUsedMsg: Label 'Spend request %1 was approved for %2 and current allocation is %3.', Comment = '%1 is a document no., %2 and %3 are amounts in local currency.';
+        SpendRequestCloseQst: Label 'Do you want to close spend request %1 after posting this entry?', Comment = '%1 is a document no.';
 
     protected var
         Currency: Record Currency;
@@ -7157,6 +7198,8 @@ table 81 "Gen. Journal Line"
         "Ship-to/Order Address Code" := PurchHeader."Order Address Code";
         "Salespers./Purch. Code" := PurchHeader."Purchaser Code";
         "On Hold" := PurchHeader."On Hold";
+        "Spend Request No." := PurchHeader."Spend Request No.";
+        "Spend Request Close" := PurchHeader."Spend Request Close";
         if "Account Type" = "Account Type"::Vendor then
             "Posting Group" := PurchHeader."Vendor Posting Group";
         ReadGLSetup();
