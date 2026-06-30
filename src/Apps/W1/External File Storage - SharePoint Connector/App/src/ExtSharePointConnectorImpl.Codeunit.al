@@ -7,6 +7,7 @@ namespace System.ExternalFileStorage;
 
 using System.DataAdministration;
 using System.Integration.Sharepoint;
+using System.RestClient;
 using System.Text;
 using System.Utilities;
 
@@ -207,15 +208,13 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     /// <param name="Path">The directory path inside the file account.</param>
     procedure CreateDirectory(AccountId: Guid; Path: Text)
     var
-        SharePointFolder: Record "SharePoint Folder";
-        SharePointClient: Codeunit "SharePoint Client";
+        SharePointAccount: Record "Ext. SharePoint Account";
+        SharePointAuthorization: Interface "SharePoint Authorization";
     begin
         InitPath(AccountId, Path);
-        InitSharePointClient(AccountId, SharePointClient);
-        if SharePointClient.CreateFolder(Path, SharePointFolder) then
-            exit;
-
-        ShowError(SharePointClient);
+        SharePointAccount.Get(AccountId);
+        BuildSharePointAuthorization(SharePointAccount, SharePointAuthorization);
+        CreateFolderSiteScoped(SharePointAccount."SharePoint Url", Path, SharePointAuthorization);
     end;
 
     /// <summary>
@@ -386,12 +385,19 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     local procedure InitSharePointClient(var AccountId: Guid; var SharePointClient: Codeunit "SharePoint Client")
     var
         SharePointAccount: Record "Ext. SharePoint Account";
-        SharePointAuth: Codeunit "SharePoint Auth.";
         SharePointAuthorization: Interface "SharePoint Authorization";
+    begin
+        SharePointAccount.Get(AccountId);
+        BuildSharePointAuthorization(SharePointAccount, SharePointAuthorization);
+        SharePointClient.Initialize(SharePointAccount."SharePoint Url", SharePointAuthorization);
+    end;
+
+    local procedure BuildSharePointAuthorization(SharePointAccount: Record "Ext. SharePoint Account"; var SharePointAuthorization: Interface "SharePoint Authorization")
+    var
+        SharePointAuth: Codeunit "SharePoint Auth.";
         Scopes: List of [Text];
         AccountDisabledErr: Label 'The account "%1" is disabled.', Comment = '%1 - Account Name';
     begin
-        SharePointAccount.Get(AccountId);
         if SharePointAccount.Disabled then
             Error(AccountDisabledErr, SharePointAccount.Name);
 
@@ -412,8 +418,6 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
                     SharePointAccount.GetCertificatePassword(SharePointAccount."Certificate Password Key"),
                     Scopes);
         end;
-
-        SharePointClient.Initialize(SharePointAccount."SharePoint Url", SharePointAuthorization);
     end;
 
     local procedure PathSeparator(): Text
@@ -495,6 +499,77 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
     begin
         ParentPath := Path.TrimEnd(PathSeparator()).Substring(1, Path.LastIndexOf(PathSeparator()));
         FileName := Path.TrimEnd(PathSeparator()).Substring(Path.LastIndexOf(PathSeparator()) + 1);
+    end;
+
+    local procedure CreateFolderSiteScoped(SharePointUrl: Text; ServerRelativeUrl: Text; SharePointAuthorization: Interface "SharePoint Authorization")
+    var
+        RestClient: Codeunit "Rest Client";
+        DigestRequest: Codeunit "Http Request Message";
+        FolderRequest: Codeunit "Http Request Message";
+        FolderContent: Codeunit "Http Content";
+        DigestResponse: Codeunit "Http Response Message";
+        FolderResponse: Codeunit "Http Response Message";
+        FolderBody: JsonObject;
+        FolderMetadata: JsonObject;
+        RawRequest: HttpRequestMessage;
+        RequestDigest: Text;
+        ODataVerboseTxt: Label 'application/json;odata=verbose', Locked = true;
+        ContextInfoUrlTxt: Label '%1/_api/contextinfo', Comment = '%1 = SharePoint site URL', Locked = true;
+        FoldersUrlTxt: Label '%1/_api/web/folders/', Comment = '%1 = SharePoint site URL', Locked = true;
+        ContextInfoFailedErr: Label 'Failed to retrieve SharePoint request digest. Status code: %1.', Comment = '%1 = HTTP status code';
+        CreateFolderFailedErr: Label 'Failed to create SharePoint folder. Status code: %1.', Comment = '%1 = HTTP status code';
+    begin
+        RestClient.Initialize();
+        RestClient.SetDefaultRequestHeader('Accept', ODataVerboseTxt);
+
+        // Fetch site-scoped request digest. Posting to the tenant-root /_api/contextinfo
+        // fails under Sites.Selected; scoping it to the site URL resolves the permission.
+        DigestRequest.SetHttpMethod("Http Method"::POST);
+        DigestRequest.SetRequestUri(StrSubstNo(ContextInfoUrlTxt, SharePointUrl));
+        RawRequest := DigestRequest.GetHttpRequestMessage();
+        SharePointAuthorization.Authorize(RawRequest);
+        DigestRequest.SetHttpRequestMessage(RawRequest);
+
+        DigestResponse := RestClient.Send(DigestRequest);
+        if not DigestResponse.GetIsSuccessStatusCode() then
+            Error(ContextInfoFailedErr, DigestResponse.GetHttpStatusCode());
+
+        RequestDigest := ParseFormDigest(DigestResponse.GetContent().AsText());
+
+        // Create the folder using the site-scoped digest.
+        FolderMetadata.Add('type', 'SP.Folder');
+        FolderBody.Add('__metadata', FolderMetadata);
+        FolderBody.Add('ServerRelativeUrl', ServerRelativeUrl);
+        FolderContent.Create(FolderBody);
+        FolderContent.SetContentTypeHeader(ODataVerboseTxt);
+
+        FolderRequest.SetHttpMethod("Http Method"::POST);
+        FolderRequest.SetRequestUri(StrSubstNo(FoldersUrlTxt, SharePointUrl));
+        FolderRequest.SetHeader('X-RequestDigest', RequestDigest);
+        FolderRequest.SetContent(FolderContent);
+        RawRequest := FolderRequest.GetHttpRequestMessage();
+        SharePointAuthorization.Authorize(RawRequest);
+        FolderRequest.SetHttpRequestMessage(RawRequest);
+
+        FolderResponse := RestClient.Send(FolderRequest);
+        if not FolderResponse.GetIsSuccessStatusCode() then
+            Error(CreateFolderFailedErr, FolderResponse.GetHttpStatusCode());
+    end;
+
+    local procedure ParseFormDigest(ResponseText: Text): Text
+    var
+        Context: JsonToken;
+        ParseDigestFailedErr: Label 'Could not parse SharePoint form digest response.';
+    begin
+        if not Context.ReadFrom(ResponseText) then
+            Error(ParseDigestFailedErr);
+        if not Context.AsObject().Get('d', Context) then
+            Error(ParseDigestFailedErr);
+        if not Context.AsObject().Get('GetContextWebInformation', Context) then
+            Error(ParseDigestFailedErr);
+        if not Context.AsObject().Get('FormDigestValue', Context) then
+            Error(ParseDigestFailedErr);
+        exit(Context.AsValue().AsText());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Cleanup", OnClearCompanyConfig, '', false, false)]
