@@ -112,6 +112,31 @@ codeunit 134991 "ERM  G/L - VAT Reconciliation"
         VerifyGLAccountNoInVATEntries(VATEntry, GLAccountNo);
     end;
 
+    [Test]
+    procedure SetGLAccountNoEventPreApprovalSkipsConfirm()
+    var
+        VATEntry: Record 254;
+        GLVATReconAdjustSubs: Codeunit "GL VAT Recon. Adjust Subs.";
+        GLAccountNo: array[4] of Code[20];
+    begin
+        // [SCENARIO 640489] When a subscriber to OnBeforeSetGLAccountNo pre-approves the adjustment, the confirm is skipped and processing continues, so the report can run unattended
+        Initialize();
+
+        // [GIVEN] 4 G/L Entry - VAT Entry Links, where two of them refer to VAT Entries whose G/L Account Number field is blank
+        CreateVATEntriesGLEntriesWithLink(GLAccountNo, TransactionNo);
+        VATEntry.SetRange("Transaction No.", TransactionNo);
+
+        // [GIVEN] A subscriber that pre-approves the adjustment via OnBeforeSetGLAccountNo (Response := true)
+        BindSubscription(GLVATReconAdjustSubs);
+
+        // [WHEN] The SetGLAccountNo function is called with WithUI set to true (which also requests a confirm) and no ConfirmHandler is registered
+        VATEntry.SetGLAccountNo(true);
+        UnbindSubscription(GLVATReconAdjustSubs);
+
+        // [THEN] The G/L Account Number field is correctly set for all the test VAT Entries, without any confirm being raised
+        VerifyGLAccountNoInVATEntries(VATEntry, GLAccountNo);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ERM  G/L - VAT Reconciliation");
