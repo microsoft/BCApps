@@ -21,6 +21,7 @@
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryUtility: Codeunit "Library - Utility";
         CopyFromToPriceListLine: Codeunit CopyFromToPriceListLine;
         LibraryNonDeductibleVAT: Codeunit "Library - NonDeductible VAT";
         DocumentNo2: Code[20];
@@ -1487,6 +1488,48 @@
         // [THEN] Verify Amount Posted to Inventory Account of GL Entry.
         Assert.AreEqual(CostAmountActual[2], ActualAmount[4],
             StrSubstNo(FieldErrDetLbl, GLEntry.FieldCaption(Amount), -CostAmountActual[2], GLEntry.TableCaption()));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ContactEmailDisplayedOnNewPurchaseCRMemo()
+    var
+        Contact: Record Contact;
+        ContactBusinessRelation: Record "Contact Business Relation";
+        CompanyContact: Record Contact;
+        Vendor: Record Vendor;
+        PurchaseHeader: record "Purchase Header";
+        PurchCreditMemo: TestPage "Purchase Credit Memo";
+        ContactEmail: Text[80];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 625599] Contact email is displayed on a new Purchase Credit Memo created from Vendor Card when Vendor "V" has a primary Contact "CO" with email
+        Initialize();
+
+        // [GIVEN] Vendor "V" with a primary Contact "CO" that has an email address
+        ContactEmail := CopyStr(LibraryUtility.GenerateRandomEmail(), 1, MaxStrLen(ContactEmail));
+        LibraryPurchase.CreateVendor(Vendor);
+        ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Vendor);
+        ContactBusinessRelation.SetRange("No.", Vendor."No.");
+        ContactBusinessRelation.FindFirst();
+        CompanyContact.Get(ContactBusinessRelation."Contact No.");
+        Contact.Init();
+        Contact.Type := Contact.Type::Person;
+        Contact.Validate("Company No.", CompanyContact."No.");
+        Contact.Insert(true);
+        Contact.Validate("E-Mail", ContactEmail);
+        Contact.Modify(true);
+        Vendor.Validate("Primary Contact No.", Contact."No.");
+        Vendor.Modify(true);
+
+        // [WHEN] Purchase Credit Memo is created from Vendor Card
+        LibraryPurchase.CreatePurchHeader(
+           PurchaseHeader, PurchaseHeader."Document Type"::"Credit Memo", Vendor."No.");
+
+        // [THEN] Buy-from Contact email is Contact "CO" email
+        PurchCreditMemo.OpenView();
+        PurchCreditMemo.FILTER.SetFilter("No.", PurchaseHeader."No.");
+        PurchCreditMemo.BuyFromContactEmail.AssertEquals(ContactEmail);
     end;
 
     local procedure Initialize()
