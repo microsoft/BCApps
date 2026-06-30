@@ -1,6 +1,6 @@
 # Current path is .github/actions/VerifyAppChanges
 
-Import-Module "$PSScriptRoot\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot\..\..\..\build/scripts/DevEnv/EnlistmentHelperFunctions.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\..\..\..\build\scripts\GuardingV2ExtensionsHelper.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\..\..\..\build\scripts\TestPreprocessorSymbols.psm1" -Force
 

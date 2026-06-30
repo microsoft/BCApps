@@ -3,7 +3,7 @@ Param(
 )
 
 Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
-Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
+Import-Module $PSScriptRoot\DevEnv\EnlistmentHelperFunctions.psm1
 
 <#
 .SYNOPSIS

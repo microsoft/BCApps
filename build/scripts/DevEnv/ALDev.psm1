@@ -1,4 +1,4 @@
-Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot\EnlistmentHelperFunctions.psm1" -DisableNameChecking
 
 function GetAssemblyProbingPaths($ContainerName) {
     $netPackages = @()

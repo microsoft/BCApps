@@ -9,7 +9,7 @@ param(
     [switch] $ManagedIdentityAuth
 )
 
-Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
+Import-Module $PSScriptRoot\DevEnv\EnlistmentHelperFunctions.psm1
 
 function Get-AccessToken {
     param(

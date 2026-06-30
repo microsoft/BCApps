@@ -56,7 +56,7 @@ $script:countriesNeedingUpdate = @()
 
 $ErrorActionPreference = "Stop"
 
-Import-Module (Join-Path $PSScriptRoot "EnlistmentHelperFunctions.psm1") -Force
+Import-Module (Join-Path $PSScriptRoot "DevEnv\EnlistmentHelperFunctions.psm1") -Force
 $RepoRoot = Get-BaseFolder
 
 $ErrorActionPreference = "Stop"

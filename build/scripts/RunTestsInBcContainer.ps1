@@ -8,7 +8,7 @@ Param(
     [string[]] $AppNamesToTest = @()
 )
 
-Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
+Import-Module $PSScriptRoot\DevEnv\EnlistmentHelperFunctions.psm1
 Import-Module $PSScriptRoot\TestTolerance\TestTolerance.psm1 -Force
 
 function Get-DisabledTests

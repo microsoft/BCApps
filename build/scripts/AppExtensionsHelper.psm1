@@ -44,7 +44,7 @@ function GetSourceCodeFromArtifact() {
             $artifact = $env:artifact
         } else {
             Write-Host "No artifact found. Using default artifact version."
-            Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
+            Import-Module $PSScriptRoot\DevEnv\EnlistmentHelperFunctions.psm1
             $artifact = Get-CurrentBCArtifactUrl
         }
         # Test that artifact is a url
@@ -126,7 +126,7 @@ function Build-App() {
     # If we are using project dependencies we will try to find the source code within the repository
     if ($alGoSettings.useProjectDependencies) {
         Write-Host "Get source code for $AppName"
-        Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
+        Import-Module $PSScriptRoot\DevEnv\EnlistmentHelperFunctions.psm1
         $sourceCodeFolder = Get-ChildItem -Path (Get-BaseFolder) -Filter "app.json" -Recurse | ForEach-Object {
             $appJsonName = (Get-Content -Path $_.FullName | ConvertFrom-Json).Name
             if ($appJsonName -eq $AppName) {
@@ -324,7 +324,7 @@ function Get-ExternalDependencies() {
         [switch] $AppDependencies,
         [switch] $TestAppDependencies
     )
-    Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
+    Import-Module $PSScriptRoot\DevEnv\EnlistmentHelperFunctions.psm1
     $appExtensionsSettings = Join-Path (Get-BaseFolder) "build/projects/Apps (W1)/.AL-Go/customSettings.json" -Resolve
     $customSettings = Get-Content -Path $appExtensionsSettings | ConvertFrom-Json
 

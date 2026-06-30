@@ -12,7 +12,7 @@ $ProgressPreference = "SilentlyContinue"
 Set-StrictMode -Version 2.0
 
 # Import EnlistmentHelperFunctions module
-Import-Module "$PSScriptRoot/../../../build/scripts/EnlistmentHelperFunctions.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot/../../../build/scripts/DevEnv/EnlistmentHelperFunctions.psm1" -DisableNameChecking
 
 if ($WhatIf) {
     Write-Host "::notice::Running in WhatIf mode - no workflow runs will be deleted and no comments will be added"

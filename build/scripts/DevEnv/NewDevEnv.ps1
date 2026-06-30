@@ -38,7 +38,7 @@ param(
     [switch] $RebuildApps
 )
 
-Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot\EnlistmentHelperFunctions.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\ALDev.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\NewDevEnv.psm1" -DisableNameChecking
 Import-Module BcContainerHelper

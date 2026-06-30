@@ -1,6 +1,6 @@
 Describe "BuildOptimization" {
     BeforeAll {
-        Import-Module "$PSScriptRoot\..\EnlistmentHelperFunctions.psm1" -Force
+        Import-Module "$PSScriptRoot\..\DevEnv\EnlistmentHelperFunctions.psm1" -Force
         Import-Module "$PSScriptRoot\..\BuildOptimization.psm1" -Force
         $baseFolder = Get-BaseFolder
         $graph = Get-AppDependencyGraph -BaseFolder $baseFolder
