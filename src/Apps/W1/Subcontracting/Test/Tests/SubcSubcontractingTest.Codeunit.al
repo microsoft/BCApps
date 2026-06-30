@@ -478,6 +478,71 @@ codeunit 139989 "Subc. Subcontracting Test"
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
+    procedure CreateSubcOrderFromRtngLineIgnoresOtherLineComponentsAtSubcLocation()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        SubcPurchaseOrderCreator: Codeunit "Subc. Purchase Order Creator";
+    begin
+        // [SCENARIO 639568] Creating a Subcontracting Purchase Order from a Prod. Order Routing Line must only
+        // consider the components of that line. Components belonging to a different Prod. Order Line that have
+        // already been moved to the vendor's Subcontracting Location must not trigger a false location-conflict warning.
+
+        // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        // [GIVEN] Item with routing link and a Transfer to Vendor component, and a vendor with a Subc. Location Code
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Transfer to Vendor");
+        UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] Released production order whose current line component sits at a normal (non-blank, non-Subc.) location
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcontractingMgmtLibrary.UpdateProdOrderCompWithLocationCode(ProductionOrder."No.");
+
+        // [GIVEN] The routing line we want to create the subcontracting order for
+        ProdOrderRoutingLine.SetRange("Routing No.", Item."Routing No.");
+        ProdOrderRoutingLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        ProdOrderRoutingLine.FindFirst();
+
+        // [GIVEN] A component belonging to ANOTHER Prod. Order Line (same Routing Link Code) has already been moved to
+        // the vendor's Subcontracting Location - mirroring the first line whose components are already in transit.
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
+        ProdOrderComponent.FindLast();
+        MockTransferToVendorCompOnOtherLine(
+            ProdOrderComponent, ProdOrderComponent."Prod. Order Line No." + 10000, Vendor."Subc. Location Code");
+
+        // [WHEN] Create the subcontracting purchase order from the current routing line
+        SubcPurchaseOrderCreator.CreateSubcontractingPurchaseOrderFromRoutingLine(ProdOrderRoutingLine);
+
+        // [THEN] No false "same as Subcontracting Location" confirmation is raised for the current line
+        Assert.AreEqual(
+            0, LibraryVariableStorage.Length(),
+            'No location-conflict confirmation should be raised: the current line components are not at the Subc. Location.');
+
+        // [THEN] The subcontracting purchase order is created (the other line components at the Subc. Location are ignored)
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        Assert.AreEqual(false, PurchaseLine.IsEmpty(), 'Subcontracting purchase order should have been created.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
     procedure TestCreationOfPurchOrderFromRtngLineWithSubcontractorWithAddLine()
     var
         Item: Record Item;
@@ -3739,6 +3804,20 @@ codeunit 139989 "Subc. Subcontracting Test"
                 ProdOrderComp.Validate("Location Code", LocationCode);
                 ProdOrderComp.Modify(true);
             until ProdOrderComp.Next() = 0;
+    end;
+
+    local procedure MockTransferToVendorCompOnOtherLine(TemplateComponent: Record "Prod. Order Component"; NewProdOrderLineNo: Integer; LocationCode: Code[10])
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        // Simulate a Transfer to Vendor component that belongs to a different Prod. Order Line and whose
+        // Location Code has already been set to the vendor's Subcontracting Location (already in transit).
+        ProdOrderComponent := TemplateComponent;
+        ProdOrderComponent."Prod. Order Line No." := NewProdOrderLineNo;
+        ProdOrderComponent."Line No." := TemplateComponent."Line No." + 10000;
+        ProdOrderComponent."Location Code" := LocationCode;
+        ProdOrderComponent."Bin Code" := '';
+        ProdOrderComponent.Insert();
     end;
 
     local procedure UpdateProdBomAndRoutingWithRoutingLink(Item: Record Item; WorkCenterNo: Code[20])
