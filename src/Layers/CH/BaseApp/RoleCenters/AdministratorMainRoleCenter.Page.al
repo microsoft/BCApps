@@ -105,7 +105,7 @@ page 8900 "Administrator Main Role Center"
                     }
                     action("Control Add-ins")
                     {
-                        ApplicationArea = Basic, Suite;
+                        ApplicationArea = All;
                         Caption = 'Control Add-ins';
                         RunObject = page "Control Add-ins";
                     }
@@ -326,12 +326,6 @@ page 8900 "Administrator Main Role Center"
                         Caption = 'Code Coverage';
                         RunObject = page "Code Coverage";
                     }
-                    // action("Sessions")
-                    // {
-                    //	 ApplicationArea = All;
-                    //	 Caption = 'Sessions';
-                    //	 RunObject = codeunit 9500;
-                    // }
                 }
                 action("Feature Management")
                 {
@@ -397,7 +391,7 @@ page 8900 "Administrator Main Role Center"
                     }
                     action("Responsibility Centers")
                     {
-                        ApplicationArea = All;
+                        ApplicationArea = Basic, Suite;
                         Caption = 'Responsibility Centers';
                         RunObject = page "Responsibility Center List";
                     }
@@ -410,7 +404,6 @@ page 8900 "Administrator Main Role Center"
                         ApplicationArea = All;
                         Caption = 'Data Encryption Management';
                         RunObject = page "Data Encryption Management";
-                        // AccessByPermission = system 5420 = X;
                     }
                     action("Data Classification Worksheet")
                     {

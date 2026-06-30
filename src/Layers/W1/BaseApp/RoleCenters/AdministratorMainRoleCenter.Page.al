@@ -404,7 +404,6 @@ page 8900 "Administrator Main Role Center"
                         ApplicationArea = All;
                         Caption = 'Data Encryption Management';
                         RunObject = page "Data Encryption Management";
-                        //AccessByPermission = System 5420=X;
                     }
                     action("Data Classification Worksheet")
                     {

@@ -105,7 +105,7 @@ page 8900 "Administrator Main Role Center"
                     }
                     action("Control Add-ins")
                     {
-                        ApplicationArea = Basic, Suite;
+                        ApplicationArea = All;
                         Caption = 'Control Add-ins';
                         RunObject = page "Control Add-ins";
                     }
@@ -326,12 +326,6 @@ page 8900 "Administrator Main Role Center"
                         Caption = 'Code Coverage';
                         RunObject = page "Code Coverage";
                     }
-                    // action("Sessions")
-                    // {
-                    //	 ApplicationArea = All;
-                    //	 Caption = 'Sessions';
-                    //	 RunObject = codeunit 9500;
-                    // }
                 }
                 action("Feature Management")
                 {
@@ -397,7 +391,7 @@ page 8900 "Administrator Main Role Center"
                     }
                     action("Responsibility Centers")
                     {
-                        ApplicationArea = All;
+                        ApplicationArea = Basic, Suite;
                         Caption = 'Responsibility Centers';
                         RunObject = page "Responsibility Center List";
                     }
@@ -410,7 +404,6 @@ page 8900 "Administrator Main Role Center"
                         ApplicationArea = All;
                         Caption = 'Data Encryption Management';
                         RunObject = page "Data Encryption Management";
-                        //AccessByPermission = System 5420 = X;
                     }
                     action("Data Classification Worksheet")
                     {
@@ -572,12 +565,6 @@ page 8900 "Administrator Main Role Center"
                     Caption = 'User Setup';
                     RunObject = page "User Setup";
                 }
-                // action("Change Password")
-                // {
-                //     ApplicationArea = Basic, Suite;
-                //     Caption = 'Change Password';
-                //     RunObject = page 9809;
-                // }
                 action("User Security Status")
                 {
                     ApplicationArea = Basic, Suite;
@@ -774,14 +761,14 @@ page 8900 "Administrator Main Role Center"
                     action("Dynamic Request page Entities")
                     {
                         ApplicationArea = Basic, Suite;
-                        Caption = 'Dynamic Request page Entities';
-                        RunObject = page "Dynamic Request page Entities";
+                        Caption = 'Dynamic Request Page Entities';
+                        RunObject = page "Dynamic Request Page Entities";
                     }
                     action("Dynamic Request page Fields")
                     {
                         ApplicationArea = Basic, Suite;
-                        Caption = 'Dynamic Request page Fields';
-                        RunObject = page "Dynamic Request page Fields";
+                        Caption = 'Dynamic Request Page Fields';
+                        RunObject = page "Dynamic Request Page Fields";
                     }
                 }
             }
@@ -943,8 +930,8 @@ page 8900 "Administrator Main Role Center"
                         Caption = 'Exchange Sync. Setup';
                         RunObject = page "Exchange Sync. Setup";
                     }
-#endif             
-       }
+#endif
+                }
                 group("GroupOneDrive")
                 {
                     Caption = 'OneDrive for Business';
