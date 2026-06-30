@@ -556,17 +556,20 @@ function Resolve-SuggestionPlacement {
     # A one-line suggestion almost always *edits* a line, so it is NOT equal to
     # the line it replaces (e.g. inserting 'this.' for CodeCop AA0248). Exact
     # equality therefore fails for the common case and the model's reported
-    # anchor is unreliable (it frequently points at a neighbouring comment or
-    # blank line). We instead score every file line in a window around the
-    # anchor by similarity to the suggested line and take the clear winner.
-    # When no candidate is similar enough, or the best is ambiguous against the
-    # runner-up, we return $null so the caller suppresses the ```suggestion```
-    # block (posting a manual snippet) rather than corrupting the file by
-    # trusting the wrong anchor.
+    # anchor is unreliable: it frequently points at a neighbouring statement
+    # inside the same procedure (observed off by 10+ lines), a comment, or a
+    # blank line. We score the file lines in a window around the anchor by
+    # similarity to the suggested line and take the clear winner. The window is
+    # wide enough to recover a target elsewhere in the same procedure, while the
+    # similarity floor, ambiguity margin, and proximity tie-break keep an
+    # unrelated look-alike from being chosen. When no candidate is similar
+    # enough, or the best is ambiguous against the runner-up, we return $null so
+    # the caller suppresses the ```suggestion``` block (posting a manual
+    # snippet) rather than corrupting the file by trusting the wrong anchor.
     if ($sCount -eq 1) {
         $minSimilarity   = 0.5   # absolute confidence floor for a re-anchor
         $ambiguityMargin = 0.1   # winner must beat the runner-up by this much
-        $window          = 8
+        $window          = 40    # lines either side of the anchor to consider
 
         $lo = [math]::Max(1, $AnchorLine - $window)
         $hi = [math]::Min($fileCount, $AnchorLine + $window)
