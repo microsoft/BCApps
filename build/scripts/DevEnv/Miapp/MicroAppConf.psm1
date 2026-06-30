@@ -114,7 +114,7 @@ ExclusionPatterns = @("*.docx");
 
 DepotRoot = (git rev-parse --show-toplevel 2>$null);
 
-ExclusionDir = "build/scripts/Miapp/.miappsnap/";
+ExclusionDir = "build/scripts/DevEnv/Miapp/.miappsnap/";
 ExclusionExt = ".json";
 
 NoteLineId = 'miapp: ';
