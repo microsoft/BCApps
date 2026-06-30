@@ -20,6 +20,8 @@ using System.Utilities;
 codeunit 9660 "Report Layouts Impl."
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
     Permissions = tabledata "Tenant Report Layout" = rimd,
                   tabledata "Tenant Report Layout Selection" = rimd;
 
@@ -119,7 +121,12 @@ codeunit 9660 "Report Layouts Impl."
         Report.RunModal(SelectedReportLayoutList."Report ID");
     end;
 
-    local procedure AddLayoutSelection(SelectedReportLayoutList: Record "Report Layout List"; UserId: Guid): Boolean
+    procedure AddLayoutSelection(SelectedReportLayoutList: Record "Report Layout List")
+    begin
+        AddLayoutSelection(SelectedReportLayoutList, EmptyGuid);
+    end;
+
+    procedure AddLayoutSelection(SelectedReportLayoutList: Record "Report Layout List"; UserId: Guid)
     begin
         TenantReportLayoutSelection.Init();
         TenantReportLayoutSelection."App ID" := SelectedReportLayoutList."Application ID";
@@ -183,17 +190,17 @@ codeunit 9660 "Report Layouts Impl."
         CustomDimensions: Dictionary of [Text, Text];
     begin
         // Add to TenantReportLayoutSelection table with an Empty Guid.
-        AddLayoutSelection(SelectedReportLayoutList, EmptyGuid);
+        AddLayoutSelection(SelectedReportLayoutList);
 
         // Add to the report layout selection table
-        if ReportLayoutSelection.get(SelectedReportLayoutList."Report ID", SelectedCompany) then begin
-            ReportLayoutSelection.Type := GetReportLayoutSelectionCorrespondingEnum(SelectedReportLayoutList);
+        if ReportLayoutSelection.Get(SelectedReportLayoutList."Report ID", SelectedCompany) then begin
+            ReportLayoutSelection.Type := GetReportLayoutSelectionCorrespondingEnum(SelectedReportLayoutList."Layout Format");
             ReportLayoutSelection.Modify(true);
         end else begin
             ReportLayoutSelection."Report ID" := SelectedReportLayoutList."Report ID";
             ReportLayoutSelection."Company Name" := SelectedCompany;
             ReportLayoutSelection."Custom Report Layout Code" := '';
-            ReportLayoutSelection.Type := GetReportLayoutSelectionCorrespondingEnum(SelectedReportLayoutList);
+            ReportLayoutSelection.Type := GetReportLayoutSelectionCorrespondingEnum(SelectedReportLayoutList."Layout Format");
             ReportLayoutSelection.Insert(true);
         end;
 
@@ -260,19 +267,21 @@ codeunit 9660 "Report Layouts Impl."
         end;
     end;
 
-    local procedure GetReportLayoutSelectionCorrespondingEnum(SelectedReportLayoutList: Record "Report Layout List"): Integer
+    procedure GetReportLayoutSelectionCorrespondingEnum(LayoutFormat: Option): Option
+    var
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutSelection: Record "Report Layout Selection";
     begin
-        case SelectedReportLayoutList."Layout Format" of
-
-            SelectedReportLayoutList."Layout Format"::RDLC:
-                exit(0);
-            SelectedReportLayoutList."Layout Format"::Word:
-                exit(1);
-            SelectedReportLayoutList."Layout Format"::Excel:
-                exit(3);
-            SelectedReportLayoutList."Layout Format"::Custom:
-                exit(4);
-        end
+        case LayoutFormat of
+            ReportLayoutList."Layout Format"::RDLC:
+                exit(ReportLayoutSelection.Type::"RDLC (built-in)");
+            ReportLayoutList."Layout Format"::Word:
+                exit(ReportLayoutSelection.Type::"Word (built-in)");
+            ReportLayoutList."Layout Format"::Excel:
+                exit(ReportLayoutSelection.Type::"Excel Layout");
+            ReportLayoutList."Layout Format"::Custom:
+                exit(ReportLayoutSelection.Type::"External Layout");
+        end;
     end;
 
     internal procedure InsertNewLayout(ReportID: Integer; LayoutName: Text[250]; LayoutDescription: Text[250]; LayoutFormat: Option; LayoutIsGlobal: Boolean; CreateEmptyLayout: Boolean; ExcelSheetConfiguration: enum "Excel Sheet Configuration"; var ReturnReportID: Integer; var ReturnLayoutName: Text)
@@ -446,14 +455,26 @@ codeunit 9660 "Report Layouts Impl."
 
     internal procedure ValidateLayout(SelectedReportLayoutList: Record "Report Layout List")
     var
+        ErrorMessage: Text;
+        ValidLayoutLbl: Label 'The report layout is valid.';
+    begin
+        if ValidateReportLayout(SelectedReportLayoutList, ErrorMessage) then
+            Message(ValidLayoutLbl)
+        else
+            Error(ErrorMessage);
+    end;
+
+    internal procedure ValidateReportLayout(SelectedReportLayoutList: Record "Report Layout List"; var ErrorMessage: Text): Boolean
+    var
         RdlcReportManager: DotNet RdlcReportManager;
         WordReportManager: DotNet WordReportManager;
         ExcelReportManager: DotNet ExcelReportManager;
+        ReportLayouts: Codeunit "Report Layouts";
+        IsHandled: Boolean;
         IsValid: Boolean;
-        ErrorMessage: Text;
-        ValidLayoutLbl: Label 'The report layout is valid.';
         LayoutFormatNotSupportedLbl: Label 'Layout validation is not supported for this layout format.';
     begin
+        Clear(ErrorMessage);
         case SelectedReportLayoutList."Layout Format" of
             SelectedReportLayoutList."Layout Format"::RDLC:
                 IsValid := RdlcReportManager.ValidateReportLayout(SelectedReportLayoutList."Report ID", SelectedReportLayoutList.SystemId, ErrorMessage);
@@ -462,15 +483,16 @@ codeunit 9660 "Report Layouts Impl."
             SelectedReportLayoutList."Layout Format"::Excel:
                 IsValid := ExcelReportManager.ValidateReportLayout(SelectedReportLayoutList."Report ID", SelectedReportLayoutList.SystemId, ErrorMessage);
             else begin
-                IsValid := false;
-                ErrorMessage := LayoutFormatNotSupportedLbl;
+                IsHandled := false;
+                ReportLayouts.OnValidateLayoutOnElseCase(SelectedReportLayoutList, IsValid, ErrorMessage, IsHandled);
+                if not IsHandled then begin
+                    IsValid := false;
+                    ErrorMessage := LayoutFormatNotSupportedLbl;
+                end;
             end;
         end;
 
-        if IsValid then
-            Message(ValidLayoutLbl)
-        else
-            Error(ErrorMessage);
+        exit(IsValid);
     end;
 
     local procedure CreateLayoutMime(FileNameWithExtension: Text) MimeType: Text[255]
@@ -574,19 +596,32 @@ codeunit 9660 "Report Layouts Impl."
 
     internal procedure ExportReportLayout(SelectedReportLayoutList: Record "Report Layout List"; UpdateOnOnexport: Boolean): Text
     var
-        SourceTempBlob: Codeunit "Temp Blob";
-        TargetTempBlob: Codeunit "Temp Blob";
+        LayoutTempBlob: Codeunit "Temp Blob";
         FileManagement: Codeunit "File Management";
         FileName: Text;
+    begin
+        FileName := GetFileName(SelectedReportLayoutList);
+
+        ExportReportLayout(SelectedReportLayoutList, UpdateOnOnexport, false, LayoutTempBlob);
+
+        exit(FileManagement.BLOBExportWithEncoding(LayoutTempBlob, FileName, true, TextEncoding::UTF8));
+    end;
+
+
+    internal procedure ExportReportLayout(SelectedReportLayoutList: Record "Report Layout List"; UpdateOnOnexport: Boolean; HideMessage: Boolean; var LayoutTempBlob: Codeunit "Temp Blob")
+    var
+        SourceTempBlob: Codeunit "Temp Blob";
+        TargetTempBlob: Codeunit "Temp Blob";
         MediaOutStream: OutStream;
         LayoutSourceStream: InStream;
         LayoutTargetStream: InStream;
         LayoutTargetOutStream: OutStream;
         CustomDimensions: Dictionary of [Text, Text];
     begin
+        Clear(LayoutTempBlob);
+
         MediaOutStream := SourceTempBlob.CreateOutStream(TextEncoding::UTF8);
         SelectedReportLayoutList."Layout".ExportStream(MediaOutStream);
-        FileName := GetFileName(SelectedReportLayoutList);
 
         if UpdateOnOnexport then begin
             LayoutSourceStream := SourceTempBlob.CreateInStream(TextEncoding::UTF8);
@@ -594,10 +629,14 @@ codeunit 9660 "Report Layouts Impl."
             LayoutTargetOutStream := TargetTempBlob.CreateOutStream(TextEncoding::UTF8);
             if Report.ValidateAndPrepareLayout(SelectedReportLayoutList."Report ID", LayoutSourceStream, LayoutTargetStream, GetLayoutType(SelectedReportLayoutList)) then begin
                 CopyStream(LayoutTargetOutStream, LayoutTargetStream);
-                exit(FileManagement.BLOBExportWithEncoding(TargetTempBlob, FileName, true, TextEncoding::UTF8));
-            end else
-                Message(CannotUpdateLayoutTxt);
-        end;
+                LayoutTempBlob := TargetTempBlob;
+            end else begin
+                LayoutTempBlob := SourceTempBlob;
+                if not HideMessage then
+                    Message(CannotUpdateLayoutTxt);
+            end;
+        end else
+            LayoutTempBlob := SourceTempBlob;
 
         InitReportLayoutListDimensions(selectedReportLayoutList, CustomDimensions);
         if (UpdateOnOnexport) then
@@ -606,8 +645,6 @@ codeunit 9660 "Report Layouts Impl."
             AddReportLayoutDimensionsAction('Export', CustomDimensions);
 
         Log('0000N0I', 'Report layout exported by user', CustomDimensions);
-
-        exit(FileManagement.BLOBExport(SourceTempBlob, FileName, true));
     end;
 
     internal procedure ShowInfoDialog(SelectedReportLayoutList: Record "Report Layout List")
