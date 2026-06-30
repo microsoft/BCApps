@@ -47,7 +47,7 @@ codeunit 7314 "Warehouse Availability Mgt."
     begin
         // Returns the reserved quantity against ILE for the demand line
         case SourceType of
-            Database::Job:
+            Database::Job, Database::"Job Planning Line":
                 begin
                     ReservEntry.SetSourceFilter(
                       Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), SourceNo, SourceLineNo, true);

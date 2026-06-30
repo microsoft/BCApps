@@ -1184,6 +1184,10 @@ codeunit 7307 "Whse.-Activity-Register"
                     Database::Job:
                         TempTrackingSpecification.SetSource(
                               Database::"Job Planning Line", 2, WhseActivLine2."Source No.", WhseActivLine2."Source Line No.", '', 0);
+                    Database::"Job Planning Line":
+                        // New format: Use the actual Source Subtype (Status)
+                        TempTrackingSpecification.SetSource(
+                              WhseActivLine2."Source Type", WhseActivLine2."Source Subtype", WhseActivLine2."Source No.", WhseActivLine2."Source Line No.", '', 0);
                     else
                         TempTrackingSpecification.SetSource(
                           WhseActivLine2."Source Type", WhseActivLine2."Source Subtype", WhseActivLine2."Source No.",
@@ -1632,9 +1636,9 @@ codeunit 7307 "Whse.-Activity-Register"
         OnCalcQtyPickedNotShippedOnAfterReservEntrySetFilters(ReservEntry, WhseActivLine);
         if ReservEntry.Find('-') then
             repeat
-                if WhseActivLine."Source Type" = Database::Job then begin
+                if WhseActivLine."Source Type" in [Database::Job, Database::"Job Planning Line"] then begin
                     if not ((ReservEntry."Source Type" = Database::"Job Planning Line") and
-                                                    (ReservEntry."Source Subtype" = 2) and
+                                                    (ReservEntry."Source Subtype" = "Job Planning Line Status"::Order.AsInteger()) and
                                                     (ReservEntry."Source ID" = WhseActivLine."Source No.") and
                                                     ((ReservEntry."Source Ref. No." = WhseActivLine."Source Line No.") or
                                                      (ReservEntry."Source Ref. No." = WhseActivLine."Source Subline No."))) and

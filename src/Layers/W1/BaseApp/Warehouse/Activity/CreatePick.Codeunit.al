@@ -2006,7 +2006,7 @@ codeunit 7312 "Create Pick"
             CreatePickParameters."Whse. Document"::Job:
                 LineReservedQty :=
                   WarehouseAvailabilityMgt.CalcLineReservedQtyOnInvt(
-                    Database::Job, Enum::"Job Planning Line Status"::Order.AsInteger(), CurrJobPlanningLine."Job No.",
+                    Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), CurrJobPlanningLine."Job No.",
                     CurrJobPlanningLine."Job Contract Entry No.",
                     CurrJobPlanningLine."Line No.", true, TempWarehouseActivityLine);
             else

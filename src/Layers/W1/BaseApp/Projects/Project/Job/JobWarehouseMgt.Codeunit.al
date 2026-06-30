@@ -52,30 +52,63 @@ codeunit 5998 "Job Warehouse Mgt."
 
     procedure JobPlanningLineVerifyChange(var NewJobPlanningLine: Record "Job Planning Line"; var OldJobPlanningLine: Record "Job Planning Line"; FieldNo: Integer)
     var
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
         NewRecordRef: RecordRef;
         OldRecordRef: RecordRef;
+        UseWhseWorksheetLineError: Boolean;
     begin
+        // Check for warehouse activity lines (both old Database::Job and new Database::"Job Planning Line" formats)
+        // Use Order.AsInteger() for new format since warehouse operations only apply to Order status
+        UseWhseWorksheetLineError := false;
         if not WhseValidateSourceLine.WhseLinesExist(
              Database::Job, 0, NewJobPlanningLine."Job No.", NewJobPlanningLine."Job Contract Entry No.", NewJobPlanningLine."Line No.", NewJobPlanningLine.Quantity)
         then
-            if not WhseValidateSourceLine.WhseWorkSheetLinesExist(
-                Database::Job, 0, NewJobPlanningLine."Job No.", NewJobPlanningLine."Job Contract Entry No.", NewJobPlanningLine."Line No.", NewJobPlanningLine.Quantity)
-            then
-                exit;
+            if not WhseValidateSourceLine.WhseLinesExist(
+                 Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), NewJobPlanningLine."Job No.", NewJobPlanningLine."Job Contract Entry No.", NewJobPlanningLine."Line No.", NewJobPlanningLine.Quantity)
+            then begin
+                // Check for WhseWorksheetLines using flexible filter that handles both old and new formats
+                WhseWorksheetLine.SetCurrentKey("Source Type", "Source Subtype", "Source No.", "Source Line No.", "Source Subline No.");
+                WhseWorksheetLine.SetFilter("Source Type", '%1|%2', Database::Job, Database::"Job Planning Line");
+                WhseWorksheetLine.SetRange("Source No.", NewJobPlanningLine."Job No.");
+                WhseWorksheetLine.SetRange("Source Line No.", NewJobPlanningLine."Job Contract Entry No.");
+                WhseWorksheetLine.SetRange("Source Subline No.", NewJobPlanningLine."Line No.");
+                if WhseWorksheetLine.IsEmpty() then
+                    exit;
+                UseWhseWorksheetLineError := true;
+            end;
 
         NewRecordRef.GetTable(NewJobPlanningLine);
         OldRecordRef.GetTable(OldJobPlanningLine);
-        WhseValidateSourceLine.VerifyFieldNotChanged(NewRecordRef, OldRecordRef, FieldNo);
+        if UseWhseWorksheetLineError then
+            WhseValidateSourceLine.VerifyFieldNotChanged(NewRecordRef, OldRecordRef, FieldNo, StrSubstNo(CannotChangeFieldWithWhseWorksheetErr, WhseWorksheetLine.TableCaption(), NewJobPlanningLine.TableCaption()))
+        else
+            WhseValidateSourceLine.VerifyFieldNotChanged(NewRecordRef, OldRecordRef, FieldNo);
     end;
 
     procedure JobPlanningLineDelete(var JobPlanningLine: Record "Job Planning Line")
+    var
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
     begin
+        // Check for warehouse activity lines (both old Database::Job and new Database::"Job Planning Line" formats)
         if WhseValidateSourceLine.WhseLinesExist(Database::Job, 0, JobPlanningLine."Job No.", JobPlanningLine."Job Contract Entry No.", JobPlanningLine."Line No.", JobPlanningLine.Quantity) then
             WhseValidateSourceLine.RaiseCannotBeDeletedErr(JobPlanningLine.TableCaption());
 
-        if WhseValidateSourceLine.WhseWorkSheetLinesExist(Database::Job, 0, JobPlanningLine."Job No.", JobPlanningLine."Job Contract Entry No.", JobPlanningLine."Line No.", JobPlanningLine.Quantity) then
+        if WhseValidateSourceLine.WhseLinesExist(Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), JobPlanningLine."Job No.", JobPlanningLine."Job Contract Entry No.", JobPlanningLine."Line No.", JobPlanningLine.Quantity) then
             WhseValidateSourceLine.RaiseCannotBeDeletedErr(JobPlanningLine.TableCaption());
+
+        // Check for WhseWorksheetLines using flexible filter for both old and new formats
+        WhseWorksheetLine.SetCurrentKey("Source Type", "Source Subtype", "Source No.", "Source Line No.", "Source Subline No.");
+        WhseWorksheetLine.SetFilter("Source Type", '%1|%2', Database::Job, Database::"Job Planning Line");
+        WhseWorksheetLine.SetRange("Source No.", JobPlanningLine."Job No.");
+        WhseWorksheetLine.SetRange("Source Line No.", JobPlanningLine."Job Contract Entry No.");
+        WhseWorksheetLine.SetRange("Source Subline No.", JobPlanningLine."Line No.");
+        if not WhseWorksheetLine.IsEmpty() then
+            Error(CannotDeleteWithWhseWorksheetErr, JobPlanningLine.TableCaption(), WhseWorksheetLine.TableCaption());
     end;
+
+    var
+        CannotChangeFieldWithWhseWorksheetErr: Label 'must not be changed when a %1 for this %2 exists: ', Comment = '%1 = Whse. Worksheet Line table caption, %2 = Job Planning Line table caption';
+        CannotDeleteWithWhseWorksheetErr: Label 'The %1 cannot be deleted when a related %2 exists.', Comment = '%1 = Table 1 caption, %2 = Table 2 caption';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Management", 'OnAfterGetSrcDocLineQtyOutstanding', '', false, false)]
     local procedure OnAfterGetSrcDocLineQtyOutstanding(SourceType: Integer; SourceSubType: Integer; SourceNo: Code[20]; SourceLineNo: Integer; var QtyBaseOutstanding: Decimal; var QtyOutstanding: Decimal)
@@ -129,7 +162,7 @@ codeunit 5998 "Job Warehouse Mgt."
     local procedure WhseManagementOnBeforeGetSourceType(WhseWorksheetLine: Record "Whse. Worksheet Line"; var SourceType: Integer; var IsHandled: Boolean)
     begin
         if WhseWorksheetLine."Whse. Document Type" = WhseWorksheetLine."Whse. Document Type"::Job then begin
-            SourceType := Database::Job;
+            SourceType := Database::"Job Planning Line";
             IsHandled := true;
         end;
     end;

@@ -1905,8 +1905,8 @@ page 88 "Job Card"
 
         WarehouseActivityLine.Reset();
         WarehouseActivityLine.SetCurrentKey("Source Type", "Source Subtype", "Source No.", "Source Line No.", "Source Subline No.", "Unit of Measure Code", "Action Type", "Breakbulk No.", "Original Breakbulk");
-        WarehouseActivityLine.SetRange("Source Type", Database::Job);
-        WarehouseActivityLine.SetRange("Source Subtype", 0);
+        WarehouseActivityLine.SetFilter("Source Type", '%1|%2', Database::Job, Database::"Job Planning Line");
+        WarehouseActivityLine.SetFilter("Source Subtype", '%1|%2', 0, "Job Planning Line Status"::Order.AsInteger());
         WarehouseActivityLine.SetRange("Source No.", Rec."No.");
         if WarehouseActivityLine.FindSet() then
             repeat
