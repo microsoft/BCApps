@@ -136,10 +136,6 @@ page 6841 "Spend Request Card"
                     Image = Reject;
 
                     trigger OnAction()
-                    begin
-                        if Rec.Status = Rec.Status::Rejected then
-                            exit;
-                    trigger OnAction()
                     var
                         Employee: Record Employee;
                     begin
@@ -148,9 +144,6 @@ page 6841 "Spend Request Card"
                         Rec.TestField(Status, Rec.Status::Released);
                         Rec.Status := Rec.Status::Rejected;
                         Rec."Approved/Rejected At" := CurrentDateTime();
-                        Rec."Approved/Rejected by User ID" := UserId();
-                        Rec.Modify();
-                    end;
                         Rec."Approved/Rejected by User ID" := UserId();
                         Rec.Modify();
                     end;
@@ -166,18 +159,12 @@ page 6841 "Spend Request Card"
                     begin
                         if Rec.Status = Rec.Status::Open then
                             exit;
-                    trigger OnAction()
-                    begin
-                        if Rec.Status = Rec.Status::Open then
-                            exit;
                         if Rec.Status = Rec.Status::Closed then
                             Error('A closed spend request cannot be reopened.');
                         Rec.CalcFields("Total Spent Amount");
                         if Rec."Total Spent Amount" <> 0 then
                             Error('A spend request with posted expenses cannot be reopened.');
                         Rec.Status := Rec.Status::Open;
-                        Rec.Modify();
-                    end;
                         Rec.Modify();
                     end;
                 }
