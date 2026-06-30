@@ -1,3 +1,5 @@
+using Microsoft.Finance.VAT.Ledger;
+
 codeunit 134991 "ERM  G/L - VAT Reconciliation"
 {
     Subtype = Test;
@@ -115,7 +117,7 @@ codeunit 134991 "ERM  G/L - VAT Reconciliation"
     [Test]
     procedure SetGLAccountNoEventPreApprovalSkipsConfirm()
     var
-        VATEntry: Record 254;
+        VATEntry: Record "VAT Entry";
         GLVATReconAdjustSubs: Codeunit "GL VAT Recon. Adjust Subs.";
         GLAccountNo: array[4] of Code[20];
     begin
