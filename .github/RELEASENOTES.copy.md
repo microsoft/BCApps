@@ -107,7 +107,7 @@ Add a `projectsToTest` setting to the project-level `.AL-Go/settings.json` of an
 
 ```json
 {
-  "projectsToTest": ["eng/projects/MyProject"]
+  "projectsToTest": ["build/projects/MyProject"]
 }
 ```
 
@@ -121,7 +121,7 @@ AL-Go will automatically:
 
 - A test project must **not** contain buildable code (no `appFolders`, `testFolders`, or `bcptTestFolders`). AL-Go will fail with a clear error if it detects both `projectsToTest` and buildable folders.
 - A test project cannot depend on another test project.
-- You can target multiple projects: `"projectsToTest": ["eng/projects/ProjectA", "eng/projects/ProjectB"]`.
+- You can target multiple projects: `"projectsToTest": ["build/projects/ProjectA", "build/projects/ProjectB"]`.
 - Use full project paths as they appear in the repository.
 
 ### Improving error detection and build reliability when downloading project dependencies
