@@ -199,6 +199,11 @@ codeunit 139963 "Qlty. Tests - Result Eval."
         LibraryAssert.IsFalse(QltyInspectionUtility.CheckIfValueIsInPredefinedList('', 'C|D', CaseOption::Sensitive), 'Option empty value');
         LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsInPredefinedList('A', '', CaseOption::Sensitive), 'Option empty condition');
 
+        // [THEN] Empty tokens from a malformed list (trailing or doubled delimiters) do not match an empty value
+        LibraryAssert.IsFalse(QltyInspectionUtility.CheckIfValueIsInPredefinedList('', 'A,', CaseOption::Sensitive), 'Option empty token trailing delimiter');
+        LibraryAssert.IsFalse(QltyInspectionUtility.CheckIfValueIsInPredefinedList('', 'A||B', CaseOption::Sensitive), 'Option empty token doubled delimiter');
+        LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsInPredefinedList('B', 'A||B', CaseOption::Sensitive), 'Option doubled delimiter still matches real value');
+
         // [THEN] Case insensitive comparison matches values that differ only by case
         LibraryAssert.IsTrue(QltyInspectionUtility.CheckIfValueIsInPredefinedList('test(1)', 'Test(1),Test(2)', CaseOption::Insensitive), 'Option special chars case insensitive');
     end;

@@ -898,7 +898,7 @@ codeunit 139940 "Qlty. Inspection Utility"
     /// Wrapper for internal procedure CheckIfValueIsInPredefinedList from Qlty. Result Evaluation codeunit.
     /// </summary>
     /// <param name="ValueToCheck">The value to check.</param>
-    /// <param name="AcceptableValue">The acceptable value condition (comma or pipe separated literal values).</param>
+    /// <param name="AcceptableValue">The acceptable value condition (comma or pipe separated literal values; '' means no condition; '&lt;&gt;''''/&lt;&gt;0' means any non-empty value).</param>
     /// <param name="QltyCaseSensitivity">The case sensitivity option.</param>
     /// <returns>True if the value matches one of the listed literal values, false otherwise.</returns>
     internal procedure CheckIfValueIsInPredefinedList(ValueToCheck: Text; AcceptableValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Boolean

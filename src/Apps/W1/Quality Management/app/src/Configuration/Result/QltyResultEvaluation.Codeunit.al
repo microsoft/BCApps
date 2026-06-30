@@ -721,9 +721,13 @@ codeunit 20410 "Qlty. Result Evaluation"
         end;
 
         AcceptableValue := AcceptableValue.Replace('|', ',');
-        foreach SingleAcceptableValue in AcceptableValue.Split(',') do
-            if ValueToCheck = SingleAcceptableValue.Trim() then
+        foreach SingleAcceptableValue in AcceptableValue.Split(',') do begin
+            SingleAcceptableValue := SingleAcceptableValue.Trim();
+            if SingleAcceptableValue = '' then
+                continue;
+            if ValueToCheck = SingleAcceptableValue then
                 exit(true);
+        end;
 
         exit(false);
     end;
