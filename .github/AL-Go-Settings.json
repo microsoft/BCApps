@@ -112,7 +112,7 @@
   "rulesetFile": "../../../src/rulesets/base.ruleset.json",
   "skipUpgrade": true,
   "fullBuildPatterns": [
-    "build/*",
+    "eng/*",
     "src/rulesets/*",
     ".github/workflows/PullRequestHandler.yaml",
     ".github/workflows/_BuildALGoProject.yaml"

@@ -91,7 +91,7 @@ jobs:
           _filterWorkflowDispatch: ${{ inputs.filterWorkflowDispatch || true }}
         run: |
           # Discover the recent window of completed runs that produced test result artifacts.
-          Import-Module ./eng/CI/TestTolerance/TestTolerance.psm1 -Force
+          Import-Module ./eng/AL-Go/scripts/TestTolerance/TestTolerance.psm1 -Force
           $runIds = Find-UnstableTestRunIds `
             -Branch $env:_branch `
             -Repository $env:_repository `

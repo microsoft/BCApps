@@ -118,9 +118,9 @@ class BuildMetadataProvider
     {
         if (![BuildMetadataProvider]::ApplicationBuildInfo)
         {
-            # BCApps uses eng/projects.json and eng/groups.json
-            [BuildMetadataProvider]::ApplicationBuildInfo = Get-Content -Path "$ENV:INETROOT\eng/projects.json" -Raw | ConvertFrom-Json
-            [BuildMetadataProvider]::ApplicationGroupInfo = Get-Content -Path "$ENV:INETROOT\eng/groups.json" -Raw | ConvertFrom-Json
+            # BCApps uses eng/AL-Go/projects.json and eng/AL-Go/groups.json
+            [BuildMetadataProvider]::ApplicationBuildInfo = Get-Content -Path "$ENV:INETROOT\eng/AL-Go/projects.json" -Raw | ConvertFrom-Json
+            [BuildMetadataProvider]::ApplicationGroupInfo = Get-Content -Path "$ENV:INETROOT\eng/AL-Go/groups.json" -Raw | ConvertFrom-Json
         }
 
         if (![BuildMetadataProvider]::ContextDetected)
@@ -212,7 +212,7 @@ class BuildMetadataProvider
 
         if ($result.Length -eq 0)
         {
-            throw "The group '$GroupName' could not be found. Have you updated eng/Core\eng/groups.json ?"
+            throw "The group '$GroupName' could not be found. Have you updated eng/AL-Go/groups.json ?"
         }
 
         return $result
