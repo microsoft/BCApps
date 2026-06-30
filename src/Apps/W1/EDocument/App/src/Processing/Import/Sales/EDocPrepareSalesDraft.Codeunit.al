@@ -19,9 +19,6 @@ codeunit 6428 "EDoc Prepare Sales Draft"
 {
     Access = Internal;
 
-    var
-        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
-
     procedure PrepareDraft(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters")
     var
         EDocumentSalesHeader: Record "E-Document Sales Header";
@@ -73,14 +70,6 @@ codeunit 6428 "EDoc Prepare Sales Draft"
         EDocumentSalesLine.SetRange("E-Document Entry No.", EDocument."Entry No");
         if not EDocumentSalesLine.IsEmpty() then
             EDocumentSalesLine.DeleteAll(true);
-    end;
-
-    local procedure LogAllActivitySessionChanges(EDocActivityLogSession: Codeunit "E-Doc. Activity Log Session")
-    begin
-        Log(EDocActivityLogSession, EDocActivityLogSession.SellerItemIdTok());
-        Log(EDocActivityLogSession, EDocActivityLogSession.GtinTok());
-        Log(EDocActivityLogSession, EDocActivityLogSession.StandardItemIdTok());
-        Log(EDocActivityLogSession, EDocActivityLogSession.BuyerItemRefTok());
     end;
 
     local procedure Log(EDocActivityLogSession: Codeunit "E-Doc. Activity Log Session"; ActivityLogName: Text)
