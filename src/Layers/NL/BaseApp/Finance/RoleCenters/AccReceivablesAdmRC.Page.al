@@ -7,7 +7,6 @@ namespace Microsoft.Finance.RoleCenters;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Deposit;
 using Microsoft.Bank.DirectDebit;
-using Microsoft.Bank.Journal;
 using Microsoft.Bank.Payment;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -244,22 +243,6 @@ page 9003 "Acc. Receivables Adm. RC"
                 RunPageView = where("Template Type" = const(General),
                                     Recurring = const(false));
                 ToolTip = 'Post financial transactions directly to general ledger accounts and other accounts, such as bank, customer, vendor, and employee accounts. Posting with a general journal always creates entries on general ledger accounts. This is true even when, for example, you post a journal line to a customer account, because an entry is posted to a general ledger receivables account through a posting group.';
-            }
-            action("Bank/Giro Journals")
-            {
-                ApplicationArea = Advanced;
-                Caption = 'Bank/Giro Journals';
-                RunObject = Page "Bank/Giro Journal List";
-                RunPageView = where(Type = const("Bank/Giro"));
-                ToolTip = 'Reconcile a bank account by comparing incoming and outgoing bank transactions to a physical bank statement or by importing an electronic bank statement file, and apply the related payments to open customer or vendor documents.';
-            }
-            action("Cash Journals")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Cash Journals';
-                RunObject = Page "Cash Journal List";
-                RunPageView = where(Type = const(Cash));
-                ToolTip = 'Post transactions to the cash account in the general ledger.';
             }
             action("Direct Debit Collections")
             {

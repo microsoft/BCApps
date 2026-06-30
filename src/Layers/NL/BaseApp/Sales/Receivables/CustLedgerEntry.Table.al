@@ -6,7 +6,6 @@ namespace Microsoft.Sales.Receivables;
 
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.DirectDebit;
-using Microsoft.Bank.Payment;
 using Microsoft.CRM.Team;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Currency;
@@ -1058,46 +1057,6 @@ table 21 "Cust. Ledger Entry"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the date on which the customer have promised to pay this invoice.';
         }
-        field(11000000; "Transaction Mode Code"; Code[20])
-        {
-            Caption = 'Transaction Mode Code';
-            TableRelation = "Transaction Mode".Code where("Account Type" = const(Customer));
-
-            trigger OnValidate()
-            var
-            begin
-            end;
-        }
-        field(11000002; "Payments in Process"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = Rec."Currency Code";
-            BlankZero = true;
-            CalcFormula = sum("Detail Line"."Amount (Entry)" where("Serial No. (Entry)" = field("Entry No."),
-                                                                    Status = const("In process"),
-                                                                    "Account Type" = const(Customer),
-                                                                    "Connect Batches" = field("Connect Batches Filter"),
-                                                                    "Connect Lines" = field("Connect Lines Filter"),
-                                                                    "Our Bank" = field("Our Bank Filter")));
-            Caption = 'Payments in Process';
-            Editable = false;
-            FieldClass = FlowField;
-        }
-        field(11000003; "Connect Batches Filter"; Code[20])
-        {
-            Caption = 'Connect Batches Filter';
-            FieldClass = FlowFilter;
-        }
-        field(11000004; "Connect Lines Filter"; Integer)
-        {
-            Caption = 'Connect Lines Filter';
-            FieldClass = FlowFilter;
-        }
-        field(11000005; "Our Bank Filter"; Code[20])
-        {
-            Caption = 'Our Bank Filter';
-            FieldClass = FlowFilter;
-        }
     }
 
     keys
@@ -1136,9 +1095,6 @@ table 21 "Cust. Ledger Entry"
         {
         }
         key(Key17; "Customer No.", "Applies-to ID", Open, Positive, "Due Date")
-        {
-        }
-        key(Key18; Open, "On Hold", "Transaction Mode Code")
         {
         }
         key(Key19; "Document Type", "Posting Date")
@@ -1522,7 +1478,6 @@ table 21 "Cust. Ledger Entry"
         "Payment Method Code" := GenJnlLine."Payment Method Code";
         "Payment Reference" := GenJnlLine."Payment Reference";
         "Exported to Payment File" := GenJnlLine."Exported to Payment File";
-        "Transaction Mode Code" := GenJnlLine."Transaction Mode Code";
 
         OnAfterCopyCustLedgerEntryFromGenJnlLine(Rec, GenJnlLine);
     end;

@@ -162,12 +162,6 @@ page 8900 "Administrator Main Role Center"
                         Caption = 'Electronic Document Formats';
                         RunObject = page "Electronic Document Format";
                     }
-                    action("Post Code Updates")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Post Code Updates';
-                        RunObject = page "Post Code Updates";
-                    }
                     action("Assisted Setup")
                     {
                         ApplicationArea = Basic, Suite;

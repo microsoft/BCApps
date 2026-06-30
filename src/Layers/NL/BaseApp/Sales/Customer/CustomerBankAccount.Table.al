@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Customer;
 
-using Microsoft.Bank.DirectDebit;
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
 using Microsoft.Finance.Currency;
@@ -338,64 +337,6 @@ table 287 "Customer Bank Account"
             TableRelation = "Bank Clearing Standard";
             ToolTip = 'Specifies the format standard to be used in bank transfers if you use the Bank Clearing Code field to identify you as the sender.';
         }
-        field(11000000; "Account Holder Name"; Text[100])
-        {
-            Caption = 'Account Holder Name';
-        }
-        field(11000001; "Account Holder Address"; Text[100])
-        {
-            Caption = 'Account Holder Address';
-        }
-        field(11000002; "Account Holder Post Code"; Code[20])
-        {
-            Caption = 'Account Holder Post Code';
-            TableRelation = if ("Acc. Hold. Country/Region Code" = const('')) "Post Code"
-            else
-            if ("Acc. Hold. Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Acc. Hold. Country/Region Code"));
-            ValidateTableRelation = false;
-
-            trigger OnValidate()
-            begin
-                PostCode.ValidatePostCode("Account Holder City", "Account Holder Post Code", County, "Acc. Hold. Country/Region Code", (CurrFieldNo <> 0) and GuiAllowed);
-            end;
-        }
-        field(11000003; "Account Holder City"; Text[30])
-        {
-            Caption = 'Account Holder City';
-            TableRelation = if ("Acc. Hold. Country/Region Code" = const('')) "Post Code".City
-            else
-            if ("Acc. Hold. Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Acc. Hold. Country/Region Code"));
-            ValidateTableRelation = false;
-
-            trigger OnValidate()
-            begin
-                PostCode.ValidateCity("Account Holder City", "Account Holder Post Code", County, "Acc. Hold. Country/Region Code", (CurrFieldNo <> 0) and GuiAllowed);
-            end;
-        }
-        field(11000004; "Acc. Hold. Country/Region Code"; Code[10])
-        {
-            Caption = 'Acc. Hold. Country/Region Code';
-            TableRelation = "Country/Region";
-        }
-        field(11000005; "National Bank Code"; Code[10])
-        {
-            Caption = 'National Bank Code';
-        }
-        field(11000007; "Abbrev. National Bank Code"; Code[3])
-        {
-            Caption = 'Abbrev. National Bank Code';
-        }
-        field(11000008; "Direct Debit Mandate ID"; Code[35])
-        {
-            Caption = 'Direct Debit Mandate ID';
-            TableRelation = "SEPA Direct Debit Mandate" where("Customer No." = field("Customer No."),
-                                                               "Customer Bank Account Code" = field(Code));
-
-            trigger OnValidate()
-            begin
-                UpdateMandateID();
-            end;
-        }
     }
 
     keys
@@ -428,34 +369,15 @@ table 287 "Customer Bank Account"
         UpdateCustPreferredBankAccountCode();
     end;
 
-    trigger OnInsert()
-    begin
-        Cust.Get("Customer No.");
-        "Account Holder Name" := Cust.Name;
-        "Account Holder Address" := Cust.Address;
-        "Account Holder Post Code" := Cust."Post Code";
-        "Account Holder City" := Cust.City;
-        "Acc. Hold. Country/Region Code" := Cust."Country/Region Code";
-    end;
-
     trigger OnRename()
     begin
     end;
 
     var
         PostCode: Record "Post Code";
-        Cust: Record Customer;
         Text1000001: Label 'Bank Account No. %1 may be incorrect.';
         BankAccIdentifierIsEmptyErr: Label 'You must specify either a Bank Account No. or an IBAN.';
         BankAccDeleteErr: Label 'You cannot delete this bank account because it is associated with one or more open ledger entries.';
-
-    local procedure UpdateMandateID()
-    var
-        ProposalLine: Record "Proposal Line";
-    begin
-        if FindProposalLines(ProposalLine) then
-            ProposalLine.ModifyAll("Direct Debit Mandate ID", "Direct Debit Mandate ID")
-    end;
 
     local procedure UpdateIBAN()
     var

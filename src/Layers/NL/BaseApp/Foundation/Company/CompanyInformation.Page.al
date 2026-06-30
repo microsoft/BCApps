@@ -126,11 +126,6 @@ page 1 "Company Information"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
-                field("Fiscal Entity No."; Rec."Fiscal Entity No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the fiscal entity number is the VAT number assigned to a group of companies to report one consolidated VAT declaration.';
-                }
                 field("Registration No."; Rec."Registration No.")
                 {
                     ApplicationArea = Basic, Suite;

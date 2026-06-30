@@ -328,7 +328,6 @@ table 36 "Sales Header"
                 Validate("Payment Terms Code");
                 Validate("Prepmt. Payment Terms Code");
                 Validate("Payment Method Code");
-                Validate("Transaction Mode Code");
                 Validate("Prepayment %");
 
                 if (xRec."Sell-to Customer No." = "Sell-to Customer No.") and
@@ -3646,29 +3645,6 @@ table 36 "Sales Header"
                       Text061, "Assigned User ID",
                       RespCenter.TableCaption(), UserSetupMgt.GetSalesFilter("Assigned User ID"));
             end;
-        }
-        field(11000000; "Transaction Mode Code"; Code[20])
-        {
-            Caption = 'Transaction Mode Code';
-            TableRelation = "Transaction Mode".Code where("Account Type" = const(Customer));
-
-            trigger OnValidate()
-            var
-                TrMode: Record "Transaction Mode";
-            begin
-                if "Transaction Mode Code" <> '' then begin
-                    TrMode.Get(TrMode."Account Type"::Customer, "Transaction Mode Code");
-                    if TrMode."Payment Method Code" <> '' then
-                        Validate("Payment Method Code", TrMode."Payment Method Code");
-                    if TrMode."Payment Terms Code" <> '' then
-                        Validate("Payment Terms Code", TrMode."Payment Terms Code");
-                end;
-            end;
-        }
-        field(11000001; "Bank Account Code"; Code[20])
-        {
-            Caption = 'Bank Account Code';
-            TableRelation = "Customer Bank Account".Code where("Customer No." = field("Bill-to Customer No."));
         }
     }
 
@@ -8016,8 +7992,6 @@ table 36 "Sales Header"
         "Tax Area Code" := BillToCustomer."Tax Area Code";
         if ("Ship-to Code" = '') or ("Sell-to Customer No." <> BillToCustomer."No.") then
             "Tax Liable" := BillToCustomer."Tax Liable";
-        "Transaction Mode Code" := BillToCustomer."Transaction Mode Code";
-        "Bank Account Code" := BillToCustomer."Preferred Bank Account Code";
 
         OnAfterSetFieldsBilltoCustomer(Rec, BillToCustomer, xRec, SkipBillToContact, CurrFieldNo);
     end;

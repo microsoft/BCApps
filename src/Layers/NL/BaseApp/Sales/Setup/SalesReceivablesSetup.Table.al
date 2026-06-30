@@ -1005,10 +1005,6 @@ table 311 "Sales & Receivables Setup"
             Caption = 'Posting Date Check on Posting';
             ToolTip = 'Specifies if you want the program to warn you when you post a sales document with a posting date that is different from the Work Date.';
         }
-        field(11316; Orders; Boolean)
-        {
-            Caption = 'Orders';
-        }
     }
 
     keys

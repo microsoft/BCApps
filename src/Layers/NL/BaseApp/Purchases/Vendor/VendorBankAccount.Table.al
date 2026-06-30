@@ -254,53 +254,6 @@ table 288 "Vendor Bank Account"
             ToolTip = 'Specifies the format standard to be used in bank transfers if you use the Bank Clearing Code field to identify you as the sender.';
             TableRelation = "Bank Clearing Standard";
         }
-        field(11000000; "Account Holder Name"; Text[100])
-        {
-            Caption = 'Account Holder Name';
-        }
-        field(11000001; "Account Holder Address"; Text[100])
-        {
-            Caption = 'Account Holder Address';
-        }
-        field(11000002; "Account Holder Post Code"; Code[20])
-        {
-            Caption = 'Account Holder Post Code';
-            TableRelation = if ("Acc. Hold. Country/Region Code" = const('')) "Post Code"
-            else
-            if ("Acc. Hold. Country/Region Code" = filter(<> '')) "Post Code" where("Country/Region Code" = field("Acc. Hold. Country/Region Code"));
-            ValidateTableRelation = false;
-
-            trigger OnValidate()
-            begin
-                PostCode.ValidatePostCode("Account Holder City", "Account Holder Post Code", County, "Acc. Hold. Country/Region Code", (CurrFieldNo <> 0) and GuiAllowed);
-            end;
-        }
-        field(11000003; "Account Holder City"; Text[30])
-        {
-            Caption = 'Account Holder City';
-            TableRelation = if ("Acc. Hold. Country/Region Code" = const('')) "Post Code".City
-            else
-            if ("Acc. Hold. Country/Region Code" = filter(<> '')) "Post Code".City where("Country/Region Code" = field("Acc. Hold. Country/Region Code"));
-            ValidateTableRelation = false;
-
-            trigger OnValidate()
-            begin
-                PostCode.ValidateCity("Account Holder City", "Account Holder Post Code", County, "Acc. Hold. Country/Region Code", (CurrFieldNo <> 0) and GuiAllowed);
-            end;
-        }
-        field(11000004; "Acc. Hold. Country/Region Code"; Code[10])
-        {
-            Caption = 'Acc. Hold. Country/Region Code';
-            TableRelation = "Country/Region";
-        }
-        field(11000005; "National Bank Code"; Code[10])
-        {
-            Caption = 'National Bank Code';
-        }
-        field(11000007; "Abbrev. National Bank Code"; Code[3])
-        {
-            Caption = 'Abbrev. National Bank Code';
-        }
     }
 
     keys
@@ -340,16 +293,6 @@ table 288 "Vendor Bank Account"
         end;
     end;
 
-    trigger OnInsert()
-    begin
-        Vend.Get("Vendor No.");
-        "Account Holder Name" := Vend.Name;
-        "Account Holder Address" := Vend.Address;
-        "Account Holder Post Code" := Vend."Post Code";
-        "Account Holder City" := Vend.City;
-        "Acc. Hold. Country/Region Code" := Vend."Country/Region Code";
-    end;
-
     trigger OnRename()
     var
         IsHandled: Boolean;
@@ -365,7 +308,6 @@ table 288 "Vendor Bank Account"
 
     var
         PostCode: Record "Post Code";
-        Vend: Record Vendor;
         ApprovalsMgmt: Codeunit "Approvals Mgmt.";
         Text1000001: Label 'Bank Account No. %1 may be incorrect.';
         BankAccIdentifierIsEmptyErr: Label 'You must specify either a Bank Account No. or an IBAN.';

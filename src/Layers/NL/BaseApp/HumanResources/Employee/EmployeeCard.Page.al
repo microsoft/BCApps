@@ -313,10 +313,6 @@ page 5200 "Employee Card"
                 {
                     ApplicationArea = BasicHR;
                 }
-                field("Transaction Mode Code"; Rec."Transaction Mode Code")
-                {
-                    ApplicationArea = BasicHR;
-                }
                 field("Bank Branch No."; Rec."Bank Branch No.")
                 {
                     ApplicationArea = BasicHR;
@@ -326,14 +322,6 @@ page 5200 "Employee Card"
                 {
                     ApplicationArea = BasicHR;
                     MaskType = Concealed;
-                }
-                field("Bank Name"; Rec."Bank Name")
-                {
-                    ApplicationArea = BasicHR;
-                }
-                field("Bank City"; Rec."Bank City")
-                {
-                    ApplicationArea = BasicHR;
                 }
                 field(IBAN; Rec.IBAN)
                 {

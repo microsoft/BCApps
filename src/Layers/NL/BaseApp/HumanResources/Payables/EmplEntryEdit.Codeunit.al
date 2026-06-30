@@ -17,7 +17,6 @@ codeunit 114 "Empl. Entry-Edit"
         EmplLedgEntry.Find();
         if EmplLedgEntry.Open then begin
             EmplLedgEntry."Applies-to ID" := Rec."Applies-to ID";
-            EmplLedgEntry."Transaction Mode Code" := Rec."Transaction Mode Code";
             EmplLedgEntry.Validate("Payment Method Code", Rec."Payment Method Code");
             EmplLedgEntry.Validate("Amount to Apply", Rec."Amount to Apply");
             EmplLedgEntry.Validate("Applying Entry", Rec."Applying Entry");

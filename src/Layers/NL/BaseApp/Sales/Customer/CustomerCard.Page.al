@@ -541,11 +541,6 @@ page 21 "Customer Card"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
-                field("Transaction Mode Code"; Rec."Transaction Mode Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the transaction mode commonly used in telebanking for this customer.';
-                }
                 field("Preferred Bank Account Code"; Rec."Preferred Bank Account Code")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1302,15 +1297,6 @@ page 21 "Customer Card"
                                   "Global Dimension 2 Filter" = field("Global Dimension 2 Filter");
                     ShortCutKey = 'F7';
                     ToolTip = 'View statistical information, such as the value of posted entries, for the record.';
-                }
-                action(SalesPerPeriod)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Sales Per Period';
-                    Image = Sales;
-                    RunObject = Page "Sales Stats. Per Period";
-                    RunPageLink = "Customer No. Filter" = field("No.");
-                    ToolTip = 'View sales information for the customer by period.';
                 }
                 action("S&ales")
                 {

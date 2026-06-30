@@ -289,11 +289,6 @@ page 1386 "Vendor Templ. Card"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("Transaction Mode Code"; Rec."Transaction Mode Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the transaction mode commonly used in telebanking for this vendor.';
-                }
                 field("Partner Type"; Rec."Partner Type")
                 {
                     ApplicationArea = Basic, Suite;

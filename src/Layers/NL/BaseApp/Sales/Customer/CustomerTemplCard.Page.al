@@ -347,11 +347,6 @@ page 1382 "Customer Templ. Card"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                 }
-                field("Transaction Mode Code"; Rec."Transaction Mode Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the transaction mode commonly used in telebanking for this customer.';
-                }
             }
             group(Shipping)
             {

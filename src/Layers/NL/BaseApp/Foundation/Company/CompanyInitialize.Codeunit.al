@@ -7,7 +7,6 @@ namespace Microsoft.Foundation.Company;
 using Microsoft.Assembly.Setup;
 using Microsoft.Bank.Check;
 using Microsoft.Bank.DirectDebit;
-using Microsoft.Bank.Journal;
 using Microsoft.Bank.Ledger;
 using Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Setup;
@@ -262,8 +261,6 @@ codeunit 2 "Company-Initialize"
         InvtReceiptsTxt: Label 'INVTRCPT', Comment = 'INVENTORY RECEIPTS';
         InvtShipmentsTxt: Label 'INVTSHPT', Comment = 'INVENTORY SHIPMENTS';
         InvtOrderTxt: Label 'INVTORDER', Comment = 'INVENTORY ORDERS';
-        Text1000000: Label 'CASHJNL';
-        Text1000001: Label 'BANKJNL';
         ElecTaxDeclarationSetup: Record "Elec. Tax Declaration Setup";
 #if not CLEAN29
         PEPPOLBIS3_ElectronicFormatTxt: Label 'PEPPOL BIS3', Locked = true;
@@ -525,8 +522,6 @@ codeunit 2 "Company-Initialize"
             InsertSourceCode(SourceCodeSetup."Sales Deferral", SourceCodeSalesDeferralLbl, SourceCodeSalesDeferralTxt);
             InsertSourceCode(SourceCodeSetup."Purchase Deferral", SourceCodePurchaseDeferralLbl, SourceCodePurchaseDeferralTxt);
             InsertSourceCode(SourceCodeSetup."Production Order", ProductionOrderLbl, ProductionOrderTxt);
-            InsertSourceCode(SourceCodeSetup."Cash Journal", Text1000000, PageName(PAGE::"Cash Journal"));
-            InsertSourceCode(SourceCodeSetup."Bank Journal", Text1000001, PageName(PAGE::"Bank/Giro Journal"));
             OnBeforeSourceCodeSetupInsert(SourceCodeSetup);
             SourceCodeSetup.Insert();
         end;

@@ -5,7 +5,6 @@
 namespace Microsoft.Purchases.Vendor;
 
 using Microsoft.Bank.BankAccount;
-using Microsoft.Bank.Payment;
 using Microsoft.CRM.BusinessRelation;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Outlook;
@@ -1246,16 +1245,6 @@ table 23 Vendor
         {
             Caption = 'Partner Type';
             ToolTip = 'Specifies if the vendor is a person or a company.';
-
-            trigger OnValidate()
-            var
-                AccountType: Option Customer,Vendor,Employee;
-                TransactionMode: Record "Transaction Mode";
-            begin
-                if not TransactionMode.CheckTransactionModePartnerType(AccountType::Vendor, "Transaction Mode Code", "Partner Type") then
-                    if not Confirm(PartnerTypeMismatchMsg, false) then
-                        Error('')
-            end;
         }
         field(133; "Intrastat Partner Type"; Enum "Partner Type")
         {
@@ -1707,24 +1696,6 @@ table 23 Vendor
             ToolTip = 'Specifies the policy that will be used for the vendor if more items than ordered are received.';
             TableRelation = "Over-Receipt Code";
         }
-        field(11000000; "Transaction Mode Code"; Code[20])
-        {
-            Caption = 'Transaction Mode Code';
-            TableRelation = "Transaction Mode".Code where("Account Type" = const(Vendor));
-
-            trigger OnValidate()
-            var
-                TrMode: Record "Transaction Mode";
-            begin
-                if "Transaction Mode Code" <> '' then begin
-                    TrMode.Get(TrMode."Account Type"::Vendor, "Transaction Mode Code");
-                    if TrMode."Payment Method Code" <> '' then
-                        "Payment Method Code" := TrMode."Payment Method Code";
-                    if TrMode."Payment Terms Code" <> '' then
-                        "Payment Terms Code" := TrMode."Payment Terms Code";
-                end;
-            end;
-        }
     }
 
     keys
@@ -1891,23 +1862,9 @@ table 23 Vendor
     end;
 
     trigger OnModify()
-    var
-        AccountType: Option Customer,Vendor,Employee;
-        TransactionMode: Record "Transaction Mode";
     begin
         UpdateReferencedIds();
         SetLastModifiedDateTime();
-
-        if IsContactUpdateNeeded() then begin
-            if not TransactionMode.CheckTransactionModePartnerType(AccountType::Vendor, "Transaction Mode Code", "Partner Type") then
-                Error(PartnerTypeMismatchErr);
-            Modify();
-            UpdateContFromVend.OnModify(Rec);
-            if not Find() then begin
-                Reset();
-                if Find() then;
-            end;
-        end;
     end;
 
     trigger OnRename()
@@ -1964,8 +1921,6 @@ table 23 Vendor
         Text009: Label 'Reconciling IC transactions may be difficult if you change IC Partner Code because this %1 has ledger entries in a fiscal year that has not yet been closed.\ Do you still want to change the IC Partner Code?';
         Text010: Label 'You cannot change the contents of the %1 field because this %2 has one or more open ledger entries.';
         Text11000000: Label 'Do you want to update the bank accounts for this vendor to reflect the new value of %1?';
-        PartnerTypeMismatchMsg: Label 'The Partner Type does not match the Partner Type defined in Transaction Mode.  Do you still want to change the Partner Type?';
-        PartnerTypeMismatchErr: Label 'The Partner Type does not match the Partner Type defined in Transaction Mode.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         SelectVendorErr: Label 'You must select an existing vendor.';

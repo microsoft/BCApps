@@ -49,7 +49,6 @@ codeunit 103 "Cust. Entry-Edit"
             CustLedgEntry.Validate("Payment Reference", Rec."Payment Reference");
             CustLedgEntry.Validate("Your Reference", Rec."Your Reference");
             CustLedgEntry.Validate("Remaining Pmt. Disc. Possible", Rec."Remaining Pmt. Disc. Possible");
-            CustLedgEntry."Transaction Mode Code" := Rec."Transaction Mode Code";
             CustLedgEntry."Pmt. Disc. Tolerance Date" := Rec."Pmt. Disc. Tolerance Date";
             CustLedgEntry.Validate("Max. Payment Tolerance", Rec."Max. Payment Tolerance");
             CustLedgEntry.Validate("Accepted Payment Tolerance", Rec."Accepted Payment Tolerance");

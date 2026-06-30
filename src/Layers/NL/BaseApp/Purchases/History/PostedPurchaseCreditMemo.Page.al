@@ -290,18 +290,6 @@ page 140 "Posted Purchase Credit Memo"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                 }
-                field("Transaction Mode"; Rec."Transaction Mode")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the transaction mode used in telebanking.';
-                }
-                field("Bank Account"; Rec."Bank Account")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the vendor''s bank account used for payments and collections through telebanking.';
-                }
                 field(Correction; Rec.Correction)
                 {
                     ApplicationArea = Basic, Suite;

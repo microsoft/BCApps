@@ -266,8 +266,6 @@ table 38 "Purchase Header"
                 "Prepmt. Payment Terms Code" := Vend."Payment Terms Code";
                 "Payment Method Code" := Vend."Payment Method Code";
                 "Price Calculation Method" := Vend.GetPriceCalculationMethod();
-                "Transaction Mode Code" := Vend."Transaction Mode Code";
-                "Bank Account Code" := Vend."Preferred Bank Account Code";
 
                 if "Buy-from Vendor No." = Vend."No." then
                     "Shipment Method Code" := Vend."Shipment Method Code";
@@ -290,7 +288,6 @@ table 38 "Purchase Header"
                 Validate("Payment Terms Code");
                 Validate("Prepmt. Payment Terms Code");
                 Validate("Payment Method Code");
-                Validate("Transaction Mode Code");
                 Validate("Currency Code");
                 Validate("Creditor No.", Vend."Creditor No.");
                 OnValidatePurchaseHeaderPayToVendorNoOnBeforeCheckDocType(Vend, Rec, xRec, SkipPayToContact);
@@ -2838,29 +2835,6 @@ table 38 "Purchase Header"
                                 true,
                                 Rec));
             end;
-        }
-        field(11000000; "Transaction Mode Code"; Code[20])
-        {
-            Caption = 'Transaction Mode Code';
-            TableRelation = "Transaction Mode".Code where("Account Type" = const(Vendor));
-
-            trigger OnValidate()
-            var
-                TrMode: Record "Transaction Mode";
-            begin
-                if "Transaction Mode Code" <> '' then begin
-                    TrMode.Get(TrMode."Account Type"::Vendor, "Transaction Mode Code");
-                    if TrMode."Payment Method Code" <> '' then
-                        Validate("Payment Method Code", TrMode."Payment Method Code");
-                    if TrMode."Payment Terms Code" <> '' then
-                        Validate("Payment Terms Code", TrMode."Payment Terms Code");
-                end;
-            end;
-        }
-        field(11000001; "Bank Account Code"; Code[20])
-        {
-            Caption = 'Bank Account Code';
-            TableRelation = "Vendor Bank Account".Code where("Vendor No." = field("Pay-to Vendor No."));
         }
     }
 

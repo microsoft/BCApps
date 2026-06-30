@@ -398,16 +398,6 @@ page 6640 "Purchase Return Order"
                     Importance = Additional;
                     Visible = IsPaymentMethodCodeVisible;
                 }
-                field("Transaction Mode Code"; Rec."Transaction Mode Code")
-                {
-                    ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the transaction mode used in telebanking.';
-                }
-                field("Bank Account Code"; Rec."Bank Account Code")
-                {
-                    ApplicationArea = PurchReturnOrder;
-                    ToolTip = 'Specifies the vendor''s bank account that is used for payments and collections through telebanking.';
-                }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;

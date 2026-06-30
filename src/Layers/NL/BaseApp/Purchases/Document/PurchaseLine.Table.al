@@ -3836,11 +3836,6 @@ table 39 "Purchase Line"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(11303; "Suggested Line"; Boolean)
-        {
-            Caption = 'Suggested Line';
-            Editable = false;
-        }
         field(12100; "No. of Fixed Asset Cards"; Integer)
         {
             BlankZero = true;

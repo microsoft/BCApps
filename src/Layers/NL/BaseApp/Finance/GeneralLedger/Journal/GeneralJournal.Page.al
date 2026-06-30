@@ -576,16 +576,6 @@ page 39 "General Journal"
                     ToolTip = 'Specifies the reason code that has been entered on the journal lines.';
                     Visible = false;
                 }
-                field("Transaction Mode Code"; Rec."Transaction Mode Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the transaction mode used in telebanking.';
-                }
-                field("Recipient Bank Account"; Rec."Recipient Bank Account")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the bank account that the amount will be transferred to after it has been exported from the payment journal.';
-                }
                 field(Correction; Rec.Correction)
                 {
                     ApplicationArea = Basic, Suite;

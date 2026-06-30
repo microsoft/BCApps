@@ -69,12 +69,4 @@ enum 89 "Gen. Journal Template Type"
     {
         Caption = 'Projects';
     }
-    value(11; Cash)
-    {
-        Caption = 'Cash';
-    }
-    value(12; Bank)
-    {
-        Caption = 'Bank';
-    }
 }

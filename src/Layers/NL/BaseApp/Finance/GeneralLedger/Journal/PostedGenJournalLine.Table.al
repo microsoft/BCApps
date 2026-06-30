@@ -7,7 +7,6 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Check;
 using Microsoft.Bank.DirectDebit;
-using Microsoft.Bank.Payment;
 using Microsoft.CRM.Campaign;
 using Microsoft.CRM.Team;
 using Microsoft.EServices.EDocument;
@@ -1787,21 +1786,6 @@ table 181 "Posted Gen. Journal Line"
         field(8011; Indentation; Integer)
         {
             Caption = 'Indentation';
-        }
-        field(11000000; "Transaction Mode Code"; Code[20])
-        {
-            Caption = 'Transaction Mode Code';
-            TableRelation = if ("Account Type" = const(Customer)) "Transaction Mode".Code where("Account Type" = const(Customer))
-            else
-            if ("Account Type" = const(Vendor)) "Transaction Mode".Code where("Account Type" = const(Vendor))
-            else
-            if ("Account Type" = const(Employee)) "Transaction Mode".Code where("Account Type" = const(Employee))
-            else
-            if ("Bal. Account Type" = const(Customer)) "Transaction Mode".Code where("Account Type" = const(Customer))
-            else
-            if ("Bal. Account Type" = const(Vendor)) "Transaction Mode".Code where("Account Type" = const(Vendor))
-            else
-            if ("Bal. Account Type" = const(Employee)) "Transaction Mode".Code where("Account Type" = const(Employee));
         }
     }
 

@@ -297,11 +297,6 @@ page 233 "Apply Vendor Entries"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                 }
-                field("Payments in Process"; Rec."Payments in Process")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total amount of payments/collections in process.';
-                }
                 field("Remit-to Code"; Rec."Remit-to Code")
                 {
                     ApplicationArea = Basic, Suite;

@@ -687,7 +687,7 @@ codeunit 442 "Sales-Post Prepayments"
                     TempSalesLine.Insert();
                 end;
             until SalesLine.Next() = 0;
-UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineBuf, HasInvoiceDiscount);
+        UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineBuf, HasInvoiceDiscount);
 
         if SalesSetup."Invoice Rounding" then
             if InsertInvoiceRounding(
@@ -1471,8 +1471,6 @@ UpdateDifferenceAmount(SalesHeader, TotalPrepmtInvLineBuffer, TempPrepmtInvLineB
             GenJnlLine.CopyDocumentFields(DocType, DocNo, ExtDocNo, SrcCode, PostingNoSeriesCode);
 
             GenJnlLine.CopyFromSalesHeaderPrepmtPost(SalesHeader, (DocumentType = DocumentType::Invoice) or CalcPmtDisc);
-            GenJnlLine."Transaction Mode Code" := SalesHeader."Transaction Mode Code";
-            GenJnlLine."Recipient Bank Account" := SalesHeader."Bank Account Code";
 
             GenJnlLine.Amount := -TotalPrepmtInvLineBuffer."Amount Incl. VAT";
             GenJnlLine."Source Currency Amount" := -TotalPrepmtInvLineBuffer."Amount Incl. VAT";

@@ -446,16 +446,6 @@ page 51 "Purchase Invoice"
                     Editable = IsPostingGroupEditable;
                     Importance = Additional;
                 }
-                field("Transaction Mode Code"; Rec."Transaction Mode Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the transaction mode used in telebanking.';
-                }
-                field("Bank Account Code"; Rec."Bank Account Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the vendor''s bank account that is used for payments and collections through telebanking.';
-                }
                 field("Payment Terms Code"; Rec."Payment Terms Code")
                 {
                     ApplicationArea = Basic, Suite;

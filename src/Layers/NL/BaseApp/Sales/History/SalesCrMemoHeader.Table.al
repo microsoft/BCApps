@@ -1142,16 +1142,6 @@ table 114 "Sales Cr.Memo Header"
             Caption = 'Draft Cr. Memo System Id';
             DataClassification = SystemMetadata;
         }
-        field(11000000; "Transaction Mode"; Code[20])
-        {
-            Caption = 'Transaction Mode';
-            TableRelation = "Transaction Mode".Code where("Account Type" = const(Customer));
-        }
-        field(11000001; "Bank Account"; Code[20])
-        {
-            Caption = 'Bank Account';
-            TableRelation = "Customer Bank Account".Code where("Customer No." = field("Sell-to Customer No."));
-        }
     }
 
     keys

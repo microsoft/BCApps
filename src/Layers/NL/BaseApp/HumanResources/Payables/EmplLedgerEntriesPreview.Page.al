@@ -154,10 +154,6 @@ page 5239 "Empl. Ledger Entries Preview"
                 {
                     ApplicationArea = BasicHR;
                 }
-                field("Transaction Mode Code"; Rec."Transaction Mode Code")
-                {
-                    ApplicationArea = BasicHR;
-                }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = BasicHR;

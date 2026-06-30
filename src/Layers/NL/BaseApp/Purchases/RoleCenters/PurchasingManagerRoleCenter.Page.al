@@ -104,12 +104,6 @@ page 8905 "Purchasing Manager Role Center"
                     Caption = 'Purchase Credit Memos';
                     RunObject = page "Purchase Credit Memos";
                 }
-                action("CMR - Return Shipment")
-                {
-                    ApplicationArea = Suite;
-                    Caption = 'CMR - Return Shipment';
-                    RunObject = report "CMR - Return Shipment";
-                }
                 action("Certificates of Supply")
                 {
                     ApplicationArea = Basic, Suite;

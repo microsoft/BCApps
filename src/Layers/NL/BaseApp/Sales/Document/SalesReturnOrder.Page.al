@@ -430,16 +430,6 @@ page 6630 "Sales Return Order"
                     Importance = Additional;
                     Visible = IsPaymentMethodCodeVisible;
                 }
-                field("Transaction Mode Code"; Rec."Transaction Mode Code")
-                {
-                    ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the transaction mode used in telebanking.';
-                }
-                field("Bank Account Code"; Rec."Bank Account Code")
-                {
-                    ApplicationArea = SalesReturnOrder;
-                    ToolTip = 'Specifies the customer''s bank account that is used for payments and collections through telebanking.';
-                }
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;
@@ -1947,7 +1937,7 @@ page 6630 "Sales Return Order"
     [IntegrationEvent(false, false)]
     local procedure OnPostDocumentOnAfterCalcDocumentIsScheduledForPosting(var SalesHeader: Record "Sales Header"; var DocumentIsScheduledForPosting: Boolean; var DocumentIsPosted: Boolean)
     begin
-     end;
+    end;
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLookupBillToName(var Customer: Record Customer; SalesHeader: Record "Sales Header")

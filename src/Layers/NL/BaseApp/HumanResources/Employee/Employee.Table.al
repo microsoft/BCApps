@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.HumanResources.Employee;
 
-using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
 using Microsoft.CostAccounting.Account;
 using Microsoft.CRM.Team;
@@ -15,7 +14,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
-using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Absence;
@@ -639,27 +637,6 @@ table 5200 Employee
             Caption = 'Cost Object Code';
             TableRelation = "Cost Object";
         }
-        field(11000000; "Transaction Mode Code"; Code[20])
-        {
-            Caption = 'Transaction Mode Code';
-            TableRelation = "Transaction Mode".Code where("Account Type" = const(Employee));
-
-            trigger OnValidate()
-            var
-                TransactionMode: Record "Transaction Mode";
-            begin
-                if "Transaction Mode Code" <> '' then
-                    TransactionMode.Get(TransactionMode."Account Type"::Employee, "Transaction Mode Code");
-            end;
-        }
-        field(11000001; "Bank Name"; Text[100])
-        {
-            Caption = 'Bank Name';
-        }
-        field(11000002; "Bank City"; Text[30])
-        {
-            Caption = 'Bank City';
-        }
     }
 
     keys
@@ -773,8 +750,6 @@ table 5200 Employee
     trigger OnModify()
     var
         Resource: Record Resource;
-        TransactionMode: Record "Transaction Mode";
-        AccountType: Option Customer,Vendor,Employee;
         IsHandled: Boolean;
     begin
         "Last Modified Date Time" := CurrentDateTime;
@@ -785,9 +760,6 @@ table 5200 Employee
         if not IsHandled then
             if Resource.ReadPermission() then
                 EmployeeResUpdate.HumanResToRes(xRec, Rec);
-
-        if not TransactionMode.CheckTransactionModePartnerType(AccountType::Employee, "Transaction Mode Code", Enum::"Partner Type"::" ") then
-            Error(PartnerTypeMismatchErr);
 
         IsHandled := false;
         OnModifyOnBeforeEmployeeSalespersonUpdate(Rec, xRec, IsHandled);
@@ -824,7 +796,6 @@ table 5200 Employee
         BlockedEmplForJnrlErr: Label 'You cannot create this document because employee %1 is blocked due to privacy.', Comment = '%1 = employee no.';
         BlockedEmplForJnrlPostingErr: Label 'You cannot post this document because employee %1 is blocked due to privacy.', Comment = '%1 = employee no.';
         EmployeeLinkedToResourceErr: Label 'You cannot link multiple employees to the same resource. Employee %1 is already linked to that resource.', Comment = '%1 = employee no.';
-        PartnerTypeMismatchErr: Label 'The Partner Type field must be blank because the transaction is related to an employee.';
         BankAccNoMsg: Label 'Bank Account No. %1 may be incorrect.', Comment = '%1 - bank account no';
         EmployeeHasLedgerDeleteErr: Label 'You cannot delete Employee %1 because it has ledger entries in a fiscal year that has not been closed yet.', Comment = '%1 = employee no.';
 

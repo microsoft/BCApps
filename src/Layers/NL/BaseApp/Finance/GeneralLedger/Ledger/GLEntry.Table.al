@@ -784,35 +784,6 @@ table 17 "G/L Entry"
             Caption = 'Last Modified DateTime';
             Editable = false;
         }
-        field(11301; Open; Boolean)
-        {
-            Caption = 'Open';
-            InitValue = true;
-        }
-        field(11302; "Remaining Amount"; Decimal)
-        {
-            AutoFormatExpression = '';
-            AutoFormatType = 1;
-            Caption = 'Remaining Amount';
-        }
-        field(11303; "Closed by Entry No."; Integer)
-        {
-            Caption = 'Closed by Entry No.';
-        }
-        field(11304; "Closed at Date"; Date)
-        {
-            Caption = 'Closed at Date';
-        }
-        field(11305; "Closed by Amount"; Decimal)
-        {
-            AutoFormatExpression = '';
-            AutoFormatType = 1;
-            Caption = 'Closed by Amount';
-        }
-        field(11306; "Applies-to ID"; Code[50])
-        {
-            Caption = 'Applies-to ID';
-        }
     }
 
     keys
@@ -864,10 +835,7 @@ table 17 "G/L Entry"
         key(Key12; "VAT Bus. Posting Group", "VAT Prod. Posting Group")
         {
         }
-        key(Key13; "Closed by Entry No.")
-        {
-        }
-        key(Key14; "Dimension Set ID")
+        key(Key13; "Dimension Set ID")
         {
         }
     }
@@ -1004,9 +972,6 @@ table 17 "G/L Entry"
             "Debit Amount" := 0;
             "Credit Amount" := -Amount;
         end;
-
-        if Open then
-            "Remaining Amount" := Amount;
 
         if (("Additional-Currency Amount" > 0) and (not Correction)) or
            (("Additional-Currency Amount" < 0) and Correction)

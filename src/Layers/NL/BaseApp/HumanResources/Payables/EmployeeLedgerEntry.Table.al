@@ -5,7 +5,6 @@
 namespace Microsoft.HumanResources.Payables;
 
 using Microsoft.Bank.BankAccount;
-using Microsoft.Bank.Payment;
 using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
@@ -509,41 +508,6 @@ table 5222 "Employee Ledger Entry"
             CalcFormula = lookup("Dimension Set Entry"."Dimension Value Code" where("Dimension Set ID" = field("Dimension Set ID"),
                                                                                     "Global Dimension No." = const(8)));
         }
-        field(11000000; "Transaction Mode Code"; Code[20])
-        {
-            Caption = 'Transaction Mode Code';
-            TableRelation = "Transaction Mode".Code where("Account Type" = const(Employee));
-        }
-        field(11000002; "Payments in Process"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = Rec."Currency Code";
-            BlankZero = true;
-            CalcFormula = sum("Detail Line"."Amount (Entry)" where("Serial No. (Entry)" = field("Entry No."),
-                                                                    Status = const("In process"),
-                                                                    "Account Type" = const(Employee),
-                                                                    "Connect Batches" = field("Connect Batches Filter"),
-                                                                    "Connect Lines" = field("Connect Lines Filter"),
-                                                                    "Our Bank" = field("Our Bank Filter")));
-            Caption = 'Payments in Process';
-            Editable = false;
-            FieldClass = FlowField;
-        }
-        field(11000003; "Connect Batches Filter"; Code[20])
-        {
-            Caption = 'Connect Batches Filter';
-            FieldClass = FlowFilter;
-        }
-        field(11000004; "Connect Lines Filter"; Integer)
-        {
-            Caption = 'Connect Lines Filter';
-            FieldClass = FlowFilter;
-        }
-        field(11000005; "Our Bank Filter"; Code[20])
-        {
-            Caption = 'Our Bank Filter';
-            FieldClass = FlowFilter;
-        }
     }
 
     keys
@@ -589,7 +553,6 @@ table 5222 "Employee Ledger Entry"
         "Applies-to Doc. Type" := GenJnlLine."Applies-to Doc. Type";
         "Applies-to Doc. No." := GenJnlLine."Applies-to Doc. No.";
         "Applies-to ID" := GenJnlLine."Applies-to ID";
-        "Transaction Mode Code" := GenJnlLine."Transaction Mode Code";
 
         OnAfterCopyEmployeeLedgerEntryFromGenJnlLine(Rec, GenJnlLine);
     end;

@@ -341,18 +341,6 @@ page 138 "Posted Purchase Invoice"
                     ApplicationArea = SalesTax;
                     Editable = false;
                 }
-                field("Transaction Mode"; Rec."Transaction Mode")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the transaction mode used in telebanking.';
-                }
-                field("Bank Account"; Rec."Bank Account")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the vendor''s bank account used for payments and collections through telebanking.';
-                }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;

@@ -78,7 +78,6 @@ table 256 "VAT Statement Line"
                     "Row No." := xRec."Row No.";
                     Description := xRec.Description;
                     Type := TempType;
-                    UpdateElecTaxDeclCategoryCode();
                 end;
             end;
         }
@@ -221,11 +220,6 @@ table 256 "VAT Statement Line"
             Caption = 'Box No.';
             ToolTip = 'Specifies the number on the box that the VAT statement applies to.';
         }
-        field(11400; "Elec. Tax Decl. Category Code"; Code[10])
-        {
-            Caption = 'Elec. Tax Decl. Category Code';
-            TableRelation = "Elec. Tax Decl. VAT Category";
-        }
     }
 
     keys
@@ -233,9 +227,6 @@ table 256 "VAT Statement Line"
         key(Key1; "Statement Template Name", "Statement Name", "Line No.")
         {
             Clustered = true;
-        }
-        key(Key2; "Elec. Tax Decl. Category Code")
-        {
         }
     }
 
@@ -253,21 +244,5 @@ table 256 "VAT Statement Line"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
-    local procedure UpdateElecTaxDeclCategoryCode()
-    var
-        IsHandled: Boolean;
-    begin
-        IsHandled := false;
-        OnBeforeUpdateElecTaxDeclCategoryCode(Rec, IsHandled);
-        if IsHandled then
-            exit;
-
-        "Elec. Tax Decl. Category Code" := xRec."Elec. Tax Decl. Category Code";
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeUpdateElecTaxDeclCategoryCode(var VATStatementLine: Record "VAT Statement Line"; var IsHandled: Boolean)
-    begin
-    end;
 }
 

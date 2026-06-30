@@ -5,7 +5,6 @@
 namespace Microsoft.Sales.Customer;
 
 using Microsoft.Bank.BankAccount;
-using Microsoft.Bank.Payment;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
@@ -791,11 +790,6 @@ table 1381 "Customer Templ."
         {
             Caption = 'Validate EU VAT Reg. No.';
             ToolTip = 'Specifies if the VAT registration number will be specified in the EU VAT Registration No. Check page so that it is validated against the VAT registration number validation service.';
-        }
-        field(11000000; "Transaction Mode Code"; Code[20])
-        {
-            Caption = 'Transaction Mode Code';
-            TableRelation = "Transaction Mode".Code where("Account Type" = const(Customer));
         }
     }
 

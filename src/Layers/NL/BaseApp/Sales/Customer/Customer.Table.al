@@ -2346,24 +2346,6 @@ table 18 Customer
             Caption = 'Contact Graph Id';
             OptimizeForTextSearch = true;
         }
-        field(11000000; "Transaction Mode Code"; Code[20])
-        {
-            Caption = 'Transaction Mode Code';
-            TableRelation = "Transaction Mode".Code where("Account Type" = const(Customer));
-
-            trigger OnValidate()
-            var
-                TrMode: Record "Transaction Mode";
-            begin
-                if "Transaction Mode Code" <> '' then begin
-                    TrMode.Get(TrMode."Account Type"::Customer, "Transaction Mode Code");
-                    if TrMode."Payment Method Code" <> '' then
-                        "Payment Method Code" := TrMode."Payment Method Code";
-                    if TrMode."Payment Terms Code" <> '' then
-                        "Payment Terms Code" := TrMode."Payment Terms Code";
-                end;
-            end;
-        }
     }
 
     keys

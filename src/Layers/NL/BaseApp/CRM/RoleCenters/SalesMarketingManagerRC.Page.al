@@ -383,12 +383,6 @@ page 8907 "Sales & Marketing Manager RC"
                     Caption = 'Sales Credit Memos';
                     RunObject = page "Sales Credit Memos";
                 }
-                action("CMR - Sales Shipment")
-                {
-                    ApplicationArea = Warehouse;
-                    Caption = 'CMR - Sales Shipment';
-                    RunObject = report "CMR - Sales Shipment";
-                }
                 action("Certificates of Supply")
                 {
                     ApplicationArea = Basic, Suite;

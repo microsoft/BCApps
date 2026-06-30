@@ -216,15 +216,6 @@ page 26 "Vendor Card"
                     {
                         ApplicationArea = Basic, Suite;
                     }
-                    group(Control198)
-                    {
-                        ShowCaption = false;
-                        Visible = IsCountyVisible;
-                        field(County; Rec.County)
-                        {
-                            ApplicationArea = Basic, Suite;
-                        }
-                    }
                     field("Post Code"; Rec."Post Code")
                     {
                         ApplicationArea = Basic, Suite;
@@ -457,11 +448,6 @@ page 26 "Vendor Card"
                             if ConfirmManagement.GetResponseOrDefault(Text001, true) then
                                 PaymentToleranceMgt.CalcTolVendLedgEntry(Rec);
                     end;
-                }
-                field("Transaction Mode Code"; Rec."Transaction Mode Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the transaction mode commonly used in telebanking for this vendor.';
                 }
                 field("Preferred Bank Account Code"; Rec."Preferred Bank Account Code")
                 {

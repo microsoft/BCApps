@@ -213,13 +213,6 @@ page 20 "General Ledger Entries"
                     Editable = false;
                     Visible = false;
                 }
-                field("Remaining Amount"; Rec."Remaining Amount")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the amount that remains to be applied to before the entry is fully applied.';
-                    Visible = false;
-                }
                 field("Bal. Account Type"; Rec."Bal. Account Type")
                 {
                     ApplicationArea = Basic, Suite;
@@ -318,13 +311,6 @@ page 20 "General Ledger Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                }
-                field(Open; Rec.Open)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies if the general ledger entry is open.';
-                    Visible = false;
                 }
                 field("Dimension Set ID"; Rec."Dimension Set ID")
                 {

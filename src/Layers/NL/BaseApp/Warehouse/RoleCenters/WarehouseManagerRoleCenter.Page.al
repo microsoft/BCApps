@@ -657,12 +657,6 @@ page 8909 "Warehouse Manager Role Center"
                         Caption = 'Whse. Shipment';
                         RunObject = report "Whse. - Shipment";
                     }
-                    action("CMR - Transfer Shipment")
-                    {
-                        ApplicationArea = Warehouse;
-                        Caption = 'CMR - Transfer Shipment';
-                        RunObject = report "CMR - Transfer Shipment";
-                    }
                 }
             }
             group("Group14")

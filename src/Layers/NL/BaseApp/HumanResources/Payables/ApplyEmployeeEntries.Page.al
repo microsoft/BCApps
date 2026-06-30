@@ -225,11 +225,6 @@ page 234 "Apply Employee Entries"
                 {
                     ApplicationArea = Dimensions;
                 }
-                field("Payments in Process"; Rec."Payments in Process")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total amount of payments/collections in process.';
-                }
             }
             group(Control41)
             {

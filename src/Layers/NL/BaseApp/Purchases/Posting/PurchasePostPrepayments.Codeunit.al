@@ -1303,8 +1303,6 @@ codeunit 444 "Purchase-Post Prepayments"
         GenJnlLine.CopyDocumentFields(DocType, DocNo, ExtDocNo, SrcCode, PostingNoSeriesCode);
 
         GenJnlLine.CopyFromPurchHeaderPrepmtPost(PurchHeader, (DocumentType = DocumentType::Invoice) or CalcPmtDisc);
-        GenJnlLine."Transaction Mode Code" := PurchHeader."Transaction Mode Code";
-        GenJnlLine."Recipient Bank Account" := PurchHeader."Bank Account Code";
 
         GenJnlLine.Amount := -TotalPrepmtInvLineBuffer."Amount Incl. VAT";
         GenJnlLine."Source Currency Amount" := -TotalPrepmtInvLineBuffer."Amount Incl. VAT";
@@ -1970,7 +1968,7 @@ codeunit 444 "Purchase-Post Prepayments"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCodeOnAfterUpdateHeaderAndLines(var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";DocumentType: Option Invoice,"Credit Memo"; PreviewMode: Boolean)
+    local procedure OnCodeOnAfterUpdateHeaderAndLines(var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; DocumentType: Option Invoice,"Credit Memo"; PreviewMode: Boolean)
     begin
     end;
 

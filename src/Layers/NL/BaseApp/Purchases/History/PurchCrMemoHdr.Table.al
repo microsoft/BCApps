@@ -657,21 +657,6 @@ table 124 "Purch. Cr. Memo Hdr."
             Caption = 'Draft Cr. Memo System Id';
             DataClassification = SystemMetadata;
         }
-        field(11000000; "Transaction Mode"; Code[20])
-        {
-            Caption = 'Transaction Mode';
-            TableRelation = "Transaction Mode".Code where("Account Type" = const(Vendor));
-
-            trigger OnValidate()
-            var
-            begin
-            end;
-        }
-        field(11000001; "Bank Account"; Code[20])
-        {
-            Caption = 'Bank Account';
-            TableRelation = "Vendor Bank Account".Code where("Vendor No." = field("Buy-from Vendor No."));
-        }
     }
 
     keys

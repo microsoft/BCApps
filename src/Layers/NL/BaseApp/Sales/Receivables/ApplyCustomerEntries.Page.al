@@ -305,11 +305,6 @@ page 232 "Apply Customer Entries"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                 }
-                field("Payments in Process"; Rec."Payments in Process")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total amount of payments/collections in process.';
-                }
                 field("Global Dimension 1 Code"; Rec."Global Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;

@@ -549,16 +549,6 @@ page 43 "Sales Invoice"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("Transaction Mode Code"; Rec."Transaction Mode Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the transaction mode used in telebanking.';
-                }
-                field("Bank Account Code"; Rec."Bank Account Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the customer''s bank account that is used for payments and collections through telebanking.';
-                }
                 field("Location Code"; Rec."Location Code")
                 {
                     ApplicationArea = Location;

@@ -386,16 +386,6 @@ page 49 "Purchase Quote"
                     Importance = Additional;
                     Visible = IsPaymentMethodCodeVisible;
                 }
-                field("Transaction Mode Code"; Rec."Transaction Mode Code")
-                {
-                    ApplicationArea = Advanced;
-                    ToolTip = 'Specifies the transaction mode used in telebanking.';
-                }
-                field("Bank Account Code"; Rec."Bank Account Code")
-                {
-                    ApplicationArea = Advanced;
-                    ToolTip = 'Specifies the vendor''s bank account that is used for payments and collections through telebanking.';
-                }
                 field("Transaction Type"; Rec."Transaction Type")
                 {
                     ApplicationArea = Basic, Suite;

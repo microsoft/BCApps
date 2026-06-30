@@ -5,8 +5,6 @@
 namespace Microsoft.Finance.GeneralLedger.Journal;
 
 using Microsoft.Bank.BankAccount;
-using Microsoft.Bank.Journal;
-using Microsoft.Bank.Statement;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.FixedAssets.FixedAsset;
@@ -140,20 +138,6 @@ table 80 "Gen. Journal Template"
                         begin
                             "Source Code" := SourceCodeSetup."Fixed Asset G/L Journal";
                             "Page ID" := PAGE::"Fixed Asset G/L Journal";
-                        end;
-                    Type::Cash:
-                        begin
-                            "Source Code" := SourceCodeSetup."Cash Journal";
-                            "Page ID" := PAGE::"Cash Journal";
-                            "Posting Report ID" := REPORT::"CBG Posting - Test";
-                            "Test Report ID" := REPORT::"CBG Posting - Test";
-                        end;
-                    Type::Bank:
-                        begin
-                            "Source Code" := SourceCodeSetup."Bank Journal";
-                            "Page ID" := PAGE::"Bank/Giro Journal";
-                            "Posting Report ID" := REPORT::"CBG Posting - Test";
-                            "Test Report ID" := REPORT::"CBG Posting - Test";
                         end;
                     Type::Intercompany:
                         begin
@@ -520,13 +504,6 @@ table 80 "Gen. Journal Template"
                     CheckDateRange();
                 end;
             end;
-        }
-        field(11402; "No. of CBG Statements"; Integer)
-        {
-            CalcFormula = count("CBG Statement" where("Journal Template Name" = field(Name)));
-            Caption = 'No. of CBG Statements';
-            Editable = false;
-            FieldClass = FlowField;
         }
     }
 

@@ -441,18 +441,6 @@ page 132 "Posted Sales Invoice"
                     Editable = false;
                     Importance = Additional;
                 }
-                field("Transaction Mode"; Rec."Transaction Mode")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the transaction mode used in telebanking.';
-                }
-                field("Bank Account"; Rec."Bank Account")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the customer''s bank account used for payments and collections through telebanking.';
-                }
             }
             group("Shipping and Billing")
             {

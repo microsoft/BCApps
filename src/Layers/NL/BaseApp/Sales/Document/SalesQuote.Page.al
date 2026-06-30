@@ -447,16 +447,6 @@ page 41 "Sales Quote"
                     ApplicationArea = Basic, Suite;
                     Importance = Promoted;
                 }
-                field("Transaction Mode Code"; Rec."Transaction Mode Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the transaction mode used in telebanking.';
-                }
-                field("Bank Account Code"; Rec."Bank Account Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the customer''s bank account that is used for payments and collections through telebanking.';
-                }
                 field("Payment Method Code"; Rec."Payment Method Code")
                 {
                     ApplicationArea = Basic, Suite;
@@ -2000,13 +1990,13 @@ page 41 "Sales Quote"
     local procedure OnBeforeLookupBillToName(var Customer: Record Customer; SalesHeader: Record "Sales Header")
     begin
     end;
- 
+
     [IntegrationEvent(false, false)]
     local procedure OnOnNewRecordOnAfterSetResponsibilityCenter(var SalesHeader: Record "Sales Header")
     begin
     end;
 
-   [IntegrationEvent(true, false)]
+    [IntegrationEvent(true, false)]
     local procedure OnAfterOnAfterGetRecord(var SalesHeader: Record "Sales Header")
     begin
     end;

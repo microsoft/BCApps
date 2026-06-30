@@ -210,11 +210,6 @@ page 29 "Vendor Ledger Entries"
                     Editable = false;
                     ToolTip = 'Specifies the amount that remains to be applied to before the entry is totally applied to.';
                 }
-                field("Payments in Process"; Rec."Payments in Process")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the total amount of payments/collections in process.';
-                }
                 field("Bal. Account Type"; Rec."Bal. Account Type")
                 {
                     ApplicationArea = Basic, Suite;
@@ -323,16 +318,6 @@ page 29 "Vendor Ledger Entries"
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
-                }
-                field("Transaction Mode Code"; Rec."Transaction Mode Code")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies in what way a ledger entry can be paid, or collected through telebanking.';
-                }
-                field("Recipient Bank Account"; Rec."Recipient Bank Account")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the bank account that the amount will be transferred to after it has been exported from the payment journal.';
                 }
                 field("Exported to Payment File"; Rec."Exported to Payment File")
                 {

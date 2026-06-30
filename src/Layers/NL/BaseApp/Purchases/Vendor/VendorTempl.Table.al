@@ -5,7 +5,6 @@
 namespace Microsoft.Purchases.Vendor;
 
 using Microsoft.Bank.BankAccount;
-using Microsoft.Bank.Payment;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Team;
 using Microsoft.Finance.Currency;
@@ -467,11 +466,6 @@ table 1383 "Vendor Templ."
             Caption = 'Over-Receipt Code';
             ToolTip = 'Specifies the policy that will be used for the vendor if more items than ordered are received.';
             TableRelation = "Over-Receipt Code";
-        }
-        field(11000000; "Transaction Mode Code"; Code[20])
-        {
-            Caption = 'Transaction Mode Code';
-            TableRelation = "Transaction Mode".Code where("Account Type" = const(Vendor));
         }
     }
 

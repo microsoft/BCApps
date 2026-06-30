@@ -139,10 +139,6 @@ page 5237 "Employee Ledger Entries"
                     ToolTip = 'Specifies the payment of the employee document.';
                     Visible = false;
                 }
-                field("Transaction Mode Code"; Rec."Transaction Mode Code")
-                {
-                    ApplicationArea = BasicHR;
-                }
                 field("Entry No."; Rec."Entry No.")
                 {
                     ApplicationArea = BasicHR;
@@ -221,7 +217,7 @@ page 5237 "Employee Ledger Entries"
                 Visible = false;
             }
         }
-   }
+    }
 
     actions
     {

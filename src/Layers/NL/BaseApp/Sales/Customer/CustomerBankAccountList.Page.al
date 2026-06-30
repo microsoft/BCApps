@@ -71,13 +71,6 @@ page 424 "Customer Bank Account List"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
-                field("Direct Debit Mandate ID"; Rec."Direct Debit Mandate ID")
-                {
-                    ApplicationArea = Basic, Suite;
-                    LookupPageID = "SEPA Direct Debit Mandates";
-                    ToolTip = 'Specifies the direct debit mandate of the customer that this bank account is for.';
-                    Visible = false;
-                }
                 field("Currency Code"; Rec."Currency Code")
                 {
                     ApplicationArea = Suite;
