@@ -1049,7 +1049,6 @@ codeunit 139204 "FS Integration Test"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure UpdateWorkOrderServiceEstimated20MinDurationRaisesNoErrorWithRoundingPrecision()
     var
         WorkOrderService: Record "FS Work Order Service";
@@ -1083,7 +1082,6 @@ codeunit 139204 "FS Integration Test"
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     procedure UpdateWorkOrderServiceEstimated20MinDurationRaisesNoErrorWithoutRoundingPrecision()
     var
         WorkOrderService: Record "FS Work Order Service";
