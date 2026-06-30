@@ -1,0 +1,43 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.4.0/schema.json",
+  "name": "84bf09a17f9cee57dbe7",
+  "position": {
+    "x": 29.09090909090914,
+    "y": 242.85714285714286,
+    "z": 1000,
+    "height": 77.4025974025974,
+    "width": 588.66419294990726,
+    "tabOrder": 9250
+  },
+  "visualGroup": {
+    "displayName": "Connect Your Data Group",
+    "groupMode": "ScaleMode",
+    "objects": {
+      "background": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "color": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "ThemeDataColor": {
+                      "ColorId": 0,
+                      "Percent": 0
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
