@@ -294,6 +294,40 @@ codeunit 134389 "ERM Customer Statistics"
     end;
 
     [Test]
+    procedure OverdueBalanceUsesWorkDateWhenCustomerCardOpenedWithExistingDateFilter()
+    var
+        Customer: Record Customer;
+        CustomerCard: TestPage "Customer Card";
+        OverdueAmount: Decimal;
+        NotOverdueAmount: Decimal;
+    begin
+        // [FEATURE] [UI] [Overdue Balance]
+        // [SCENARIO 638790] Overdue Balance (LCY) on Customer Card uses 0D..WORKDATE even when the page is opened from a document or journal that already applied a "Date Filter".
+        Initialize();
+
+        // [GIVEN] Customer with two posted sales invoices.
+        LibrarySales.CreateCustomer(Customer);
+        // [GIVEN] Invoice "A" is overdue: Due Date < WORKDATE, Amount = "X".
+        OverdueAmount := CreateAndPostInvoiceWithDueDate(Customer."No.", CalcDate('<-2M>', WorkDate()), CalcDate('<-1M>', WorkDate()));
+        // [GIVEN] Invoice "B" is not yet due: Due Date > WORKDATE, Amount = "Y".
+        NotOverdueAmount := CreateAndPostInvoiceWithDueDate(Customer."No.", WorkDate(), CalcDate('<2M>', WorkDate()));
+
+        // [GIVEN] Customer Card is opened on the customer.
+        CustomerCard.OpenView();
+        CustomerCard.GotoRecord(Customer);
+
+        // [WHEN] A "Date Filter" covering both due dates is applied to the record, simulating opening the card from a document or journal.
+        CustomerCard.FILTER.SetFilter("Date Filter", Format(CalcDate('<3M>', WorkDate())));
+
+        // [THEN] Overdue Balance (LCY) shows only the overdue invoice amount "X".
+        CustomerCard."Balance Due (LCY)".AssertEquals(OverdueAmount);
+        // [THEN] Balance (LCY) shows the total of both invoices "X" + "Y".
+        CustomerCard."Balance (LCY)".AssertEquals(OverdueAmount + NotOverdueAmount);
+
+        CustomerCard.Close();
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure UTCheckEmptyBilltoCustomer()
     var
@@ -1239,6 +1273,21 @@ codeunit 134389 "ERM Customer Statistics"
           SalesLine, SalesHeader, SalesLine.Type::Item, CreateItemWithUnitPrice(), LibraryRandom.RandDec(10, 2));
         LibrarySales.ReleaseSalesDocument(SalesHeader);
         SalesHeader.CalcFields("Amount Including VAT");
+        exit(SalesHeader."Amount Including VAT");
+    end;
+
+    local procedure CreateAndPostInvoiceWithDueDate(CustomerNo: Code[20]; PostingDate: Date; DueDate: Date): Decimal
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo, PostingDate);
+        SalesHeader.Validate("Due Date", DueDate);
+        SalesHeader.Modify(true);
+        LibrarySales.CreateSalesLine(
+          SalesLine, SalesHeader, SalesLine.Type::Item, CreateItemWithUnitPrice(), LibraryRandom.RandDec(10, 2));
+        SalesHeader.CalcFields("Amount Including VAT");
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
         exit(SalesHeader."Amount Including VAT");
     end;
 
