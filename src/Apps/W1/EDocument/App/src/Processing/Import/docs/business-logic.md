@@ -84,11 +84,10 @@ Each step commits before invoking the next to isolate failures. Deferral matchin
 `IEDocumentFinishDraft.ApplyDraftToBC()` creates the actual BC document. The default implementation (`EDocCreatePurchaseInvoice.Codeunit.al`) performs:
 
 1. **Validation**: Checks that all draft lines have a type and number. Verifies PO match validity -- matched lines must be receivable and have UOM info.
-2. **Receipt suggestion**: For lines matched to PO lines, `SuggestReceiptsForMatchedOrderLines()` proposes receipt lines.
-3. **Invoice creation**: Creates a `Purchase Header` (type Invoice), sets vendor, dates, currency, and vendor invoice number. Checks for duplicate external document numbers. Inserts lines without PO matches first, then lines grouped by receipt number with comment-line separators.
-4. **PO match transfer**: `TransferPOMatchesFromEDocumentToInvoice()` moves match records from the E-Document to the purchase invoice.
-5. **Traceability**: `EDocRecordLink.InsertEDocumentHeaderLink()` and `InsertEDocumentLineLink()` create `E-Doc. Record Link` entries linking draft records to their BC counterparts via SystemId.
-6. **Post-creation**: Copies document attachments from the E-Document to the purchase header, applies invoice discount, sets `E-Document Link` GUID on the purchase header, and validates document totals.
+2. **Invoice creation**: Creates a `Purchase Header` (type Invoice), sets vendor, dates, currency, and vendor invoice number. Checks for duplicate external document numbers. Inserts lines without PO matches first, then lines grouped by receipt number with comment-line separators.
+3. **PO match transfer**: `TransferPOMatchesFromEDocumentToInvoice()` moves match records from the E-Document to the purchase invoice as BaseApp `"Matched Order Line"` records. It distributes the e-document line quantity (in base UoM) across the matched order lines: each explicitly matched receipt is invoiced for its received-not-invoiced quantity, then any remaining budget soaks up other received-not-invoiced receipts on the order line (preferring existing receipts before receiving on invoice), and whatever is still left is received on invoice -- capped at the order line's outstanding quantity, so existing receipts and a receive-on-invoice remainder can coexist on one order line.
+4. **Traceability**: `EDocRecordLink.InsertEDocumentHeaderLink()` and `InsertEDocumentLineLink()` create `E-Doc. Record Link` entries linking draft records to their BC counterparts via SystemId.
+5. **Post-creation**: Copies document attachments from the E-Document to the purchase header, applies invoice discount, sets `E-Document Link` GUID on the purchase header, and validates document totals.
 
 Alternatively, if `EDocImportParameters."Existing Doc. RecordId"` is set, no new invoice is created -- the E-Document is linked to an existing purchase document instead.
 
