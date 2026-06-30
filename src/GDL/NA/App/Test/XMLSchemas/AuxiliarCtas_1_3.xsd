@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:AuxiliarCtas="http://www.sat.gob.mx/esquemas/ContabilidadE/1_3/AuxiliarCtas" xmlns:xs="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.sat.gob.mx/esquemas/ContabilidadE/1_3/AuxiliarCtas" elementFormDefault="qualified" attributeFormDefault="unqualified">
+	<xs:element name="AuxiliarCtas">
+		<xs:annotation>
+			<xs:documentation>Estándar de auxiliar de la cuenta o subcuenta del periodo que se entrega como parte de la contabilidad electrónica</xs:documentation>
+		</xs:annotation>
+		<xs:complexType>
+			<xs:sequence maxOccurs="unbounded">
+				<xs:element name="Cuenta" maxOccurs="unbounded">
+					<xs:annotation>
+						<xs:documentation>Nodo obligatorio para expresar los movimientos del periodo de cada uno de los auxiliares de la cuenta y/o subcuenta.</xs:documentation>
+					</xs:annotation>
+					<xs:complexType>
+						<xs:sequence maxOccurs="unbounded">
+							<xs:element name="DetalleAux" maxOccurs="unbounded">
+								<xs:annotation>
+									<xs:documentation>Nodo obligatorio para expresar el detalle de los movimientos del periodo de cada uno de los auxiliares</xs:documentation>
+								</xs:annotation>
+								<xs:complexType>
+									<xs:attribute name="Fecha" type="xs:date" use="required">
+										<xs:annotation>
+											<xs:documentation>Atributo requerido para expresar la fecha de registro de la transacción que afecta la cuenta o subcuenta que integra el auxiliar.</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="NumUnIdenPol" use="required">
+										<xs:annotation>
+											<xs:documentation>Atributo requerido para expresar el número único de identificación de la póliza. El campo deberá contener la clave o nombre utilizado por el contribuyente para diferenciar, el tipo de póliza y el número correspondiente. En un mes ordinario no debe repetirse un mismo número de póliza con la clave o nombre asignado por el contribuyente.</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+												<xs:maxLength value="50"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="Concepto" use="required">
+										<xs:annotation>
+											<xs:documentation>Atributo requerido para expresar el concepto de la transacción  que integra el auxiliar.</xs:documentation>
+										</xs:annotation>
+										<xs:simpleType>
+											<xs:restriction base="xs:string">
+												<xs:minLength value="1"/>
+												<xs:maxLength value="200"/>
+											</xs:restriction>
+										</xs:simpleType>
+									</xs:attribute>
+									<xs:attribute name="Debe" type="AuxiliarCtas:t_importe" use="required">
+										<xs:annotation>
+											<xs:documentation>Atributo requerido para expresar el monto del cargo de la cuenta o subcuenta de la transacción que integra el auxiliar. En caso de no existir dato, colocar cero (0)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+									<xs:attribute name="Haber" type="AuxiliarCtas:t_importe" use="required">
+										<xs:annotation>
+											<xs:documentation>Atributo requerido para expresar el monto del abono de la cuenta o subcuenta de la transacción que integra el auxiliar. En caso de no existir dato, colocar cero (0)</xs:documentation>
+										</xs:annotation>
+									</xs:attribute>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+						<xs:attribute name="NumCta" use="required">
+							<xs:annotation>
+								<xs:documentation>Atributo requerido para expresar la clave con que se distingue  la cuenta o subcuenta que se afecta por la transacción que integra el auxiliar.</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+									<xs:maxLength value="100"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="DesCta" use="required">
+							<xs:annotation>
+								<xs:documentation>Atributo requerido para expresar el concepto de la cuenta o subcuenta que se afecta por la transacción que integra el auxiliar.</xs:documentation>
+							</xs:annotation>
+							<xs:simpleType>
+								<xs:restriction base="xs:string">
+									<xs:minLength value="1"/>
+									<xs:maxLength value="100"/>
+								</xs:restriction>
+							</xs:simpleType>
+						</xs:attribute>
+						<xs:attribute name="SaldoIni" type="AuxiliarCtas:t_importe" use="required">
+							<xs:annotation>
+								<xs:documentation>Atributo requerido para expresar el monto del saldo inicial de la cuenta o subcuenta del periodo del auxiliar. En caso de no existir dato, colocar cero (0)</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+						<xs:attribute name="SaldoFin" type="AuxiliarCtas:t_importe" use="required">
+							<xs:annotation>
+								<xs:documentation>Atributo requerido para expresar el monto del saldo final de la cuenta o subcuenta del periodo del auxiliar. En caso de no existir dato, colocar cero (0)</xs:documentation>
+							</xs:annotation>
+						</xs:attribute>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+			<xs:attribute name="Version" type="xs:string" use="required" fixed="1.3">
+				<xs:annotation>
+					<xs:documentation>Atributo requerido para expresar la versión del formato.</xs:documentation>
+				</xs:annotation>
+			</xs:attribute>
+			<xs:attribute name="RFC" use="required">
+				<xs:annotation>
+					<xs:documentation>Atributo requerido para expresar el RFC del contribuyente que envía los datos.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:minLength value="12"/>
+						<xs:maxLength value="13"/>
+						<xs:pattern value="[A-ZÑ&amp;]{3,4}[0-9]{2}[0-1][0-9][0-3][0-9][A-Z0-9]?[A-Z0-9]?[0-9A-Z]?"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="Mes" use="required">
+				<xs:annotation>
+					<xs:documentation>Atributo requerido para expresar el mes en que inicia la vigencia del auxiliar de la cuenta o subcuenta.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="01"/>
+						<xs:enumeration value="02"/>
+						<xs:enumeration value="03"/>
+						<xs:enumeration value="04"/>
+						<xs:enumeration value="05"/>
+						<xs:enumeration value="06"/>
+						<xs:enumeration value="07"/>
+						<xs:enumeration value="08"/>
+						<xs:enumeration value="09"/>
+						<xs:enumeration value="10"/>
+						<xs:enumeration value="11"/>
+						<xs:enumeration value="12"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="Anio" use="required">
+				<xs:annotation>
+					<xs:documentation>Atributo requerido para expresar el año al que inicia la vigencia del auxiliar de la cuenta o subcuenta.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:int">
+						<xs:minInclusive value="2015"/>
+						<xs:maxInclusive value="2099"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="TipoSolicitud" use="required">
+				<xs:annotation>
+					<xs:documentation>Atributo requerido para expresar el tipo de envío del auxiliar de la cuenta o subcuenta ( AF - Acto de Fiscalización; FC - Fiscalización Compulsa; DE - Devolución; CO - Compensación )</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:pattern value="AF|FC|DE|CO"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="NumOrden" use="optional">
+				<xs:annotation>
+					<xs:documentation>Atributo opcional para expresar el número de orden asignado al acto de fiscalización al que hace referencia la solicitud del auxiliar de la cuenta o subcuenta. Requerido para tipo de solicitud = AF y FC. Se convierte en requerido cuando se cuente con la información.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:length value="13"/>
+						<xs:pattern value="[A-Z]{3}[0-9]{7}(/)[0-9]{2}"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="NumTramite" use="optional">
+				<xs:annotation>
+					<xs:documentation>Atributo opcional para expresar el número de trámite asignado a la solicitud de devolución o compensación al que hace referencia el auxiliar de la cuenta o subcuenta. Requerido para tipo de solicitud  = DE  o CO. Se convierte en requerido cuando se cuente con la información.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:length value="14"/>
+						<xs:pattern value="[A-Z]{2}[0-9]{12}"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="Sello" use="optional">
+				<xs:annotation>
+					<xs:documentation>Atributo opcional para contener el sello digital del archivo de contabilidad electrónica. El sello deberá ser expresado cómo una cadena de texto en formato Base 64</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:whiteSpace value="collapse"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="noCertificado" use="optional">
+				<xs:annotation>
+					<xs:documentation>Atributo opcional para expresar el número de serie del certificado de sello digital que ampara el archivo de contabilidad electrónica, de acuerdo al acuse correspondiente a 20 posiciones otorgado por el sistema del SAT.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:length value="20"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="Certificado" use="optional">
+				<xs:annotation>
+					<xs:documentation>Atributo opcional que sirve para expresar el certificado de sello digital que ampara al archivo de contabilidad electrónica como texto, en formato base 64.</xs:documentation>
+				</xs:annotation>
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:whiteSpace value="collapse"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+		</xs:complexType>
+	</xs:element>
+	<xs:simpleType name="t_importe">
+		<xs:restriction base="xs:decimal">
+			<xs:fractionDigits value="2"/>
+			<xs:minInclusive value="-9999999999999999999999.99"/>
+			<xs:maxInclusive value="9999999999999999999999.99"/>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

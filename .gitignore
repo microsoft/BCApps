@@ -330,6 +330,13 @@ TestResults.xml
 
 # Exceptions
 !src/System Application/Test/Extension Management/testArtifacts/*.app
+!src/Apps/IN/INTaxBase/app/Translations/India Tax Base.en-US.xlf
+!src/Apps/W1/EDocumentConnectors/Avalara/App/Translations/E-Document Connector - Avalara.g.xlf
+!src/Apps/W1/Shopify/App/Translations/Shopify Connector.g.xlf
+!src/Apps/W1/Subscription Billing/App/Translations/Subscription Billing.g.xlf
+!src/Business Foundation/App/Translations/Business Foundation.g.xlf
+!src/Tools/Test Framework/Test Libraries/Any/Translations/Any.g.xlf
+!src/GDL/NL/App/Automation/MicrosoftDynamicsNAV.BAPIWrapper.tlb
 
 # Personal AI tooling symlinked from bc-agentic-workspace (managed by Sync-AIInstructions)
 # Claude Code

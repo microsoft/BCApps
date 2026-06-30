@@ -36,14 +36,14 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
 #endif
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
-        ItemLedgerEntry.SetCurrentKey(ItemLedgerEntry."Order Type", ItemLedgerEntry."Order No.", ItemLedgerEntry."Order Line No.", ItemLedgerEntry."Entry Type", ItemLedgerEntry."Prod. Order Comp. Line No.");
-        ItemLedgerEntry.SetRange(ItemLedgerEntry."Order Type", ItemLedgerEntry."Order Type"::Production);
-        ItemLedgerEntry.SetRange(ItemLedgerEntry."Order No.", ProdOrderComponent."Prod. Order No.");
-        ItemLedgerEntry.SetRange(ItemLedgerEntry."Order Line No.", ProdOrderComponent."Prod. Order Line No.");
-        ItemLedgerEntry.SetRange(ItemLedgerEntry."Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
-        ItemLedgerEntry.SetRange(ItemLedgerEntry."Prod. Order Comp. Line No.", ProdOrderComponent."Line No.");
-        ItemLedgerEntry.SetRange(ItemLedgerEntry."Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
-        ItemLedgerEntry.CalcSums(ItemLedgerEntry.Quantity);
+        ItemLedgerEntry.SetCurrentKey("Order Type", "Order No.", "Order Line No.", "Entry Type", "Prod. Order Comp. Line No.");
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", ProdOrderComponent."Prod. Order No.");
+        ItemLedgerEntry.SetRange("Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
+        ItemLedgerEntry.SetRange("Prod. Order Comp. Line No.", ProdOrderComponent."Line No.");
+        ItemLedgerEntry.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
+        ItemLedgerEntry.CalcSums(Quantity);
 
         exit(Abs(ItemLedgerEntry.Quantity));
     end;
@@ -65,13 +65,13 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
 #endif
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
-        ItemLedgerEntry.SetCurrentKey(ItemLedgerEntry."Order Type", ItemLedgerEntry."Order No.", ItemLedgerEntry."Order Line No.", ItemLedgerEntry."Entry Type", ItemLedgerEntry."Prod. Order Comp. Line No.");
-        ItemLedgerEntry.SetRange(ItemLedgerEntry."Order Type", ItemLedgerEntry."Order Type"::Production);
-        ItemLedgerEntry.SetRange(ItemLedgerEntry."Order No.", ProdOrderComponent."Prod. Order No.");
-        ItemLedgerEntry.SetRange(ItemLedgerEntry."Order Line No.", ProdOrderComponent."Prod. Order Line No.");
-        ItemLedgerEntry.SetRange(ItemLedgerEntry."Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
-        ItemLedgerEntry.SetRange(ItemLedgerEntry."Prod. Order Comp. Line No.", ProdOrderComponent."Line No.");
-        ItemLedgerEntry.SetRange(ItemLedgerEntry."Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
+        ItemLedgerEntry.SetCurrentKey("Order Type", "Order No.", "Order Line No.", "Entry Type", "Prod. Order Comp. Line No.");
+        ItemLedgerEntry.SetRange("Order Type", ItemLedgerEntry."Order Type"::Production);
+        ItemLedgerEntry.SetRange("Order No.", ProdOrderComponent."Prod. Order No.");
+        ItemLedgerEntry.SetRange("Order Line No.", ProdOrderComponent."Prod. Order Line No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Consumption);
+        ItemLedgerEntry.SetRange("Prod. Order Comp. Line No.", ProdOrderComponent."Line No.");
+        ItemLedgerEntry.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
         Page.Run(Page::"Item Ledger Entries", ItemLedgerEntry);
     end;
 
@@ -99,14 +99,14 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
 
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
-        PurchaseLine.SetRange(PurchaseLine."Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange(PurchaseLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchaseLine.SetRange(PurchaseLine."Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
-        PurchaseLine.SetRange(PurchaseLine."Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
-        PurchaseLine.SetRange(PurchaseLine."Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
-        PurchaseLine.SetRange(PurchaseLine."Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
-        PurchaseLine.SetRange(PurchaseLine."No.", ProdOrderComponent."Item No.");
-        PurchaseLine.CalcSums(PurchaseLine."Outstanding Qty. (Base)");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchaseLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
+        PurchaseLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchaseLine.SetRange("Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
+        PurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
+        PurchaseLine.CalcSums("Outstanding Qty. (Base)");
         exit(PurchaseLine."Outstanding Qty. (Base)");
     end;
 
@@ -132,13 +132,13 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
 
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
-        PurchaseLine.SetRange(PurchaseLine."Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange(PurchaseLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchaseLine.SetRange(PurchaseLine."Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
-        PurchaseLine.SetRange(PurchaseLine."Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
-        PurchaseLine.SetRange(PurchaseLine."Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
-        PurchaseLine.SetRange(PurchaseLine."Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
-        PurchaseLine.SetRange(PurchaseLine."No.", ProdOrderComponent."Item No.");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchaseLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
+        PurchaseLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchaseLine.SetRange("Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
+        PurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
         Page.Run(Page::"Purchase Lines", PurchaseLine);
     end;
 
@@ -166,14 +166,14 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
 
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
-        PurchaseLine.SetRange(PurchaseLine."Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange(PurchaseLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchaseLine.SetRange(PurchaseLine."Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
-        PurchaseLine.SetRange(PurchaseLine."Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
-        PurchaseLine.SetRange(PurchaseLine."Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
-        PurchaseLine.SetRange(PurchaseLine."Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
-        PurchaseLine.SetRange(PurchaseLine."No.", ProdOrderComponent."Item No.");
-        PurchaseLine.CalcSums(PurchaseLine."Qty. Received (Base)");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchaseLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
+        PurchaseLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchaseLine.SetRange("Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
+        PurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
+        PurchaseLine.CalcSums("Qty. Received (Base)");
         exit(PurchaseLine."Qty. Received (Base)");
     end;
 
@@ -198,13 +198,13 @@ codeunit 99001562 "Subc. Comp. Factbox Mgmt."
             exit;
         GetProdOrderRtngLineFromProdOrderComp(ProdOrderRoutingLine, ProdOrderComponent);
 
-        PurchaseLine.SetRange(PurchaseLine."Document Type", PurchaseLine."Document Type"::Order);
-        PurchaseLine.SetRange(PurchaseLine."Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
-        PurchaseLine.SetRange(PurchaseLine."Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
-        PurchaseLine.SetRange(PurchaseLine."Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
-        PurchaseLine.SetRange(PurchaseLine."Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
-        PurchaseLine.SetRange(PurchaseLine."Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
-        PurchaseLine.SetRange(PurchaseLine."No.", ProdOrderComponent."Item No.");
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Subc. Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        PurchaseLine.SetRange("Subc. Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
+        PurchaseLine.SetRange("Subc. Routing No.", ProdOrderRoutingLine."Routing No.");
+        PurchaseLine.SetRange("Subc. Operation No.", ProdOrderRoutingLine."Operation No.");
+        PurchaseLine.SetRange("Subc. Work Center No.", ProdOrderRoutingLine."Work Center No.");
+        PurchaseLine.SetRange("No.", ProdOrderComponent."Item No.");
         Page.Run(Page::"Purchase Lines", PurchaseLine);
     end;
 

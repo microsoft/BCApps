@@ -1,0 +1,3 @@
+Code,Description,PayablesAccount,ServiceChargeAcc,PaymentDiscDebitAcc,InvoiceRoundingAccount,DebitCurrApplnRndgAcc,CreditCurrApplnRndgAcc,DebitRoundingAccount,CreditRoundingAccount,PaymentDiscCreditAcc,PaymentToleranceDebitAcc,PaymentToleranceCreditAcc
+TVPG1,Test Vend Posting Grp 1,,,,,,,,,,,
+TVPG2,Test Vend Posting Grp 2,,,,,,,,,,,
