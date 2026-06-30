@@ -294,6 +294,14 @@ codeunit 8889 "Email Account Impl."
             ValidatedEmailAddress := EmailAddress;
             if not ConvertEmailAddress(ValidatedEmailAddress) then
                 Error(InvalidEmailAddressErr, EmailAddress);
+
+            // Check that there is a top domain
+            if StrPos(CopyStr(ValidatedEmailAddress, StrPos(ValidatedEmailAddress, '@') + 2), '.') = 0 then
+                Error(InvalidEmailAddressErr, EmailAddress);
+
+            // Check that the top domain is at least 2 characters long
+            if (ValidatedEmailAddress[StrLen(ValidatedEmailAddress)] = '.') or (ValidatedEmailAddress[StrLen(ValidatedEmailAddress) - 1] = '.') then
+                Error(InvalidEmailAddressErr, EmailAddress);
         end;
 
         EmailAccount.OnAfterValidateEmailAddress(EmailAddress, AllowEmptyValue);

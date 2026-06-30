@@ -1,0 +1,9 @@
+No.,Name,Address,City,Post Code,Country/Region Code,Phone No.,E-Mail,Vendor Posting Group,Gen. Bus. Posting Group,Payment Terms Code,Currency Code,Language Code,Blocked
+V00001,Adatum Corp.,10 Vendor Way,Bellevue,98004,US,555-1100,info@adatum.test,DOMESTIC,DOMESTIC,30 DAYS,,ENU,0
+V00002,Litware Inc.,20 Vendor Ave,Kirkland,98033,US,555-1200,info@litware.test,DOMESTIC,DOMESTIC,14 DAYS,USD,ENU,0
+V00003,Margies Travel,30 Park Pl,Redmond,98052,US,555-1300,book@margies.test,DOMESTIC,DOMESTIC,30 DAYS,USD,ENU,1
+V00004,Proseware Ltd.,5 Tech Park,Cambridge,CB1 2AA,GB,01223-555-2000,sales@proseware.test,EU,EU,14 DAYS,GBP,ENG,0
+V00005,Trey Research,12 Lab Rd,Seattle,98101,US,,,DOMESTIC,DOMESTIC,COD,,ENU,0
+V00006,Coho Winery,77 Vineyard Way,Napa,94558,US,555-1600,orders@coho.test,DOMESTIC,DOMESTIC,30 DAYS,USD,ENU,2
+V00007,Fourth Coffee,8 Roastery Ln,Munich,80331,DE,089-555-1700,info@fourthcoffee.test,EU,EU,30 DAYS,EUR,DEU,0
+V00008,Graphic Design Institute,45 Studio Ave,Toronto,M5V 2T6,CA,416-555-1800,hello@gdi.test,EXPORT,EU,30 DAYS,USD,ENU,3
