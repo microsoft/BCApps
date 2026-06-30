@@ -2,8 +2,8 @@ Param(
     [Hashtable]$parameters
 )
 
-Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
-Import-Module $PSScriptRoot\..\Shared\EnlistmentHelperFunctions.psm1
+Import-Module $PSScriptRoot/AppExtensionsHelper.psm1
+Import-Module $PSScriptRoot/../Shared/EnlistmentHelperFunctions.psm1
 
 <#
 .SYNOPSIS
@@ -659,7 +659,7 @@ function Install-BaseAppsForDemoTool() {
             Write-Host $Message
         }
     }
-    Import-Module (Join-Path $repoRoot "eng\CI\ALAppBuild.psm1") -Force
+    Import-Module (Join-Path $repoRoot "eng/CI\ALAppBuild.psm1") -Force
 
     $baseAppNames = @()
     foreach ($groupName in @('Base', 'TestFramework', 'LocalBaseExtensions')) {

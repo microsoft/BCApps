@@ -1,6 +1,6 @@
 Describe "TestTolerance" {
     BeforeAll {
-        Import-Module "$PSScriptRoot\TestTolerance.psm1" -Force
+        Import-Module "$PSScriptRoot/TestTolerance.psm1" -Force
 
         $script:tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("TestTolerance-Tests-" + [System.Guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $script:tempRoot -Force | Out-Null

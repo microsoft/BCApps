@@ -1,5 +1,5 @@
-Import-Module "$PSScriptRoot\GDLDevelopmentHelpers.psm1" -DisableNameChecking
-Import-Module "$PSScriptRoot\..\..\Shared\Logger.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot/GDLDevelopmentHelpers.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot/../../Shared/Logger.psm1" -DisableNameChecking
 
 <#
 .SYNOPSIS
@@ -661,7 +661,7 @@ function SetupDevelopmentSettings
     }
 
     # We load the settings for all projects once. These are used to get the configuration of each project, e.g. analyzers and rulesets used. The same definition is used in ALAppBuild.
-    $projectsSettings = (Get-Content -Path "$ENV:INETROOT\Eng\Core\eng\projects.json" -Raw | ConvertFrom-Json).projects
+    $projectsSettings = (Get-Content -Path "$ENV:INETROOT\eng/Core\eng/projects.json" -Raw | ConvertFrom-Json).projects
 
     $vscodeSettingFolders | ForEach-Object {
         $ConfigureALProjectParams = @{

@@ -4,7 +4,7 @@ Param(
     [string[]] $dependenciesToInstall = @()
 )
 
-Import-Module $PSScriptRoot\AppExtensionsHelper.psm1
+Import-Module $PSScriptRoot/AppExtensionsHelper.psm1
 
 # Step 1: If the app is published to the container then we can install it from there
 $remainingDependenciesToInstall = Install-AppInContainer -ContainerName $containerName -AppsToInstall $dependenciesToInstall

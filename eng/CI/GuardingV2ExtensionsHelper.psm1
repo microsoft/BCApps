@@ -87,7 +87,7 @@ function Enable-BreakingChangesCheck {
         }
         'Strict' {
             Write-Host "Getting baseline for Strict Mode"
-            Import-Module -Name $PSScriptRoot\..\Shared\EnlistmentHelperFunctions.psm1
+            Import-Module -Name $PSScriptRoot/../Shared/EnlistmentHelperFunctions.psm1
 
             $majorMinor = Get-ConfigValue -Key "repoVersion" -ConfigType "AL-GO"
             $strictModeVersion = ((Get-BCArtifactUrl -type Sandbox -country $CountryCode -version $majorMinor -select Latest) -split "/")[-2]
@@ -138,7 +138,7 @@ function Restore-BaselinesFromArtifacts {
         [Parameter(Mandatory = $false)]
         [string] $CountryCode = "W1"
     )
-    Import-Module -Name $PSScriptRoot\..\Shared\EnlistmentHelperFunctions.psm1
+    Import-Module -Name $PSScriptRoot/../Shared/EnlistmentHelperFunctions.psm1
 
     if (-not $BaselineVersion) {
         $baselinePackage = Get-ConfigValue -Key "AppBaselines-BCArtifacts" -ConfigType Packages
@@ -214,7 +214,7 @@ function Update-AppSourceCopVersion
     [Parameter(Mandatory = $false)]
     [string] $BuildMode
 ) {
-    Import-Module $PSScriptRoot\..\Shared\EnlistmentHelperFunctions.psm1
+    Import-Module $PSScriptRoot/../Shared/EnlistmentHelperFunctions.psm1
 
     if ($BaselineVersion -match "^(\d+)\.(\d+)\.(\d+)$") {
         Write-Host "Baseline version is missing revision number. Adding revision number 0 to the baseline version" -ForegroundColor Yellow
@@ -284,7 +284,7 @@ function Update-AppSourceCopVersion
 
 function Test-IsStrictModeEnabled
 {
-    Import-Module $PSScriptRoot\..\Shared\EnlistmentHelperFunctions.psm1
+    Import-Module $PSScriptRoot/../Shared/EnlistmentHelperFunctions.psm1
     $StrictModeString = "/StrictMode"
 
     # If the build is a pull request we check the target branch, otherwise we check the current branch
@@ -294,7 +294,7 @@ function Test-IsStrictModeEnabled
         $BranchName = Get-CurrentBranch
     }
 
-    if ($BranchName -NotMatch "^releases\/\d+\.\d+$")
+    if ($BranchName -NotMatch "^releases\/\d+/./d+$")
     {
         return $false
     }
@@ -310,7 +310,7 @@ function Test-IsStrictModeEnabled
 }
 
 function Get-MaxAllowedObsoleteVersion() {
-    Import-Module -Name $PSScriptRoot\..\Shared\EnlistmentHelperFunctions.psm1
+    Import-Module -Name $PSScriptRoot/../Shared/EnlistmentHelperFunctions.psm1
 
     Invoke-CommandWithRetry -ScriptBlock { RunAndCheck git fetch origin main }
     $alGoSettings = $(RunAndCheck git show origin/main:.github/AL-Go-Settings.json) | ConvertFrom-Json

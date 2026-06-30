@@ -2,7 +2,7 @@ using module .\AppProjectInfo.class.psm1
 using module .\ALGoProjectInfo.class.psm1
 
 Import-Module "BCContainerHelper" -DisableNameChecking
-Import-Module "$PSScriptRoot\..\Shared\EnlistmentHelperFunctions.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot/../Shared/EnlistmentHelperFunctions.psm1" -DisableNameChecking
 
 $script:allApps = @()
 function GetRootedFolder {
@@ -54,8 +54,8 @@ function Create-BCContainer {
         )
         Set-Location $baseFolder
 
-        Import-Module "$baseFolder\eng\Shared\EnlistmentHelperFunctions.psm1" -DisableNameChecking
-        Import-Module "$baseFolder\eng\CI\DevEnv\NewDevContainer.psm1" -DisableNameChecking
+        Import-Module "$baseFolder\eng/Shared/EnlistmentHelperFunctions.psm1" -DisableNameChecking
+        Import-Module "$baseFolder\eng/CI\DevEnv\NewDevContainer.psm1" -DisableNameChecking
         Import-Module BcContainerHelper
 
         # Get artifactUrl from branch

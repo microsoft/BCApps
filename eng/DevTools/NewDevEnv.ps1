@@ -38,9 +38,9 @@ param(
     [switch] $RebuildApps
 )
 
-Import-Module "$PSScriptRoot\..\Shared\EnlistmentHelperFunctions.psm1" -DisableNameChecking
-Import-Module "$PSScriptRoot\ALDev.psm1" -DisableNameChecking
-Import-Module "$PSScriptRoot\NewDevEnv.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot/../Shared/EnlistmentHelperFunctions.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot/ALDev.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot/NewDevEnv.psm1" -DisableNameChecking
 Import-Module BcContainerHelper
 
 $baseFolder = (Get-BaseFolderForPath -Path $PSScriptRoot)

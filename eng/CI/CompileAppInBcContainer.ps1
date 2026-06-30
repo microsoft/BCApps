@@ -10,7 +10,7 @@ $appType = switch ($true) {
     Default { "app" }
 }
 
-$PreCompileApp = (Get-Command "$PSScriptRoot\PreCompileApp.ps1" | Select-Object -ExpandProperty ScriptBlock)
+$PreCompileApp = (Get-Command "$PSScriptRoot/PreCompileApp.ps1" | Select-Object -ExpandProperty ScriptBlock)
 Invoke-Command -ScriptBlock $PreCompileApp -ArgumentList $appType, ([ref] $parameters)
 
 $appFile = Compile-AppInBcContainer @parameters

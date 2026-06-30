@@ -1,4 +1,4 @@
-Import-Module (Join-Path $PSScriptRoot "..\Shared\EnlistmentHelperFunctions.psm1" -Resolve)
+Import-Module (Join-Path $PSScriptRoot "../Shared/EnlistmentHelperFunctions.psm1" -Resolve)
 
 # ALAppBuild.psm1 expects $env:INETROOT to point at the repo root and uses Write-Log
 # internally. Set both up before importing so its functions work in CI runners that don't
@@ -50,7 +50,7 @@ function Get-CachedTestRunResult {
 .SYNOPSIS
     Returns the names of test apps that are both expected for a country and installed in the container.
 .DESCRIPTION
-    Combines the project metadata in eng\projects.json (via Get-ApplicationGroup) with
+    Combines the project metadata in eng/projects.json (via Get-ApplicationGroup) with
     Get-BcContainerAppInfo so we only ever try to dispatch apps that actually exist in the
     container. The country defaults to "w1" when unset or set to the repo-level "base" sentinel.
 #>
@@ -98,7 +98,7 @@ function Get-AppNamesForBucket {
         [int]$BucketNumber = 0
     )
 
-    $testConfigPath = Join-Path (Get-BaseFolder) "eng\CI\TestConfiguration.json"
+    $testConfigPath = Join-Path (Get-BaseFolder) "eng/CI\TestConfiguration.json"
     if (-not (Test-Path $testConfigPath)) {
         return @($InstalledTestAppNames)
     }

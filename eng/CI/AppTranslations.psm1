@@ -12,7 +12,7 @@ function Restore-TranslationsForApp {
         [Parameter(Mandatory=$true)]
         [string] $AppProjectFolder
     )
-    Import-Module $PSScriptRoot\..\Shared\EnlistmentHelperFunctions.psm1 -DisableNameChecking
+    Import-Module $PSScriptRoot/../Shared/EnlistmentHelperFunctions.psm1 -DisableNameChecking
 
     # Translations need to be restored in the Translations folder in the app folder
     $appTranslationsFolder = Join-Path $AppProjectFolder "Translations"

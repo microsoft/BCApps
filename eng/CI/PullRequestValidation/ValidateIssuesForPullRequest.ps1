@@ -1,5 +1,5 @@
-using module ..\GitHub\GitHubPullRequest.class.psm1
-using module ..\GitHub\GitHubIssue.class.psm1
+using module ../GitHub/GitHubPullRequest.class.psm1
+using module ../GitHub/GitHubIssue.class.psm1
 
 param(
     [Parameter(Mandatory = $true)]

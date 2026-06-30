@@ -118,9 +118,9 @@ class BuildMetadataProvider
     {
         if (![BuildMetadataProvider]::ApplicationBuildInfo)
         {
-            # BCApps uses eng\projects.json and eng\groups.json
-            [BuildMetadataProvider]::ApplicationBuildInfo = Get-Content -Path "$ENV:INETROOT\eng\projects.json" -Raw | ConvertFrom-Json
-            [BuildMetadataProvider]::ApplicationGroupInfo = Get-Content -Path "$ENV:INETROOT\eng\groups.json" -Raw | ConvertFrom-Json
+            # BCApps uses eng/projects.json and eng/groups.json
+            [BuildMetadataProvider]::ApplicationBuildInfo = Get-Content -Path "$ENV:INETROOT\eng/projects.json" -Raw | ConvertFrom-Json
+            [BuildMetadataProvider]::ApplicationGroupInfo = Get-Content -Path "$ENV:INETROOT\eng/groups.json" -Raw | ConvertFrom-Json
         }
 
         if (![BuildMetadataProvider]::ContextDetected)
@@ -212,7 +212,7 @@ class BuildMetadataProvider
 
         if ($result.Length -eq 0)
         {
-            throw "The group '$GroupName' could not be found. Have you updated Eng\Core\eng\groups.json ?"
+            throw "The group '$GroupName' could not be found. Have you updated eng/Core\eng/groups.json ?"
         }
 
         return $result
@@ -620,7 +620,7 @@ class ApplicationBuildConfiguration
             {
                 # If the project is part of the BCApps repository, we can stamp in the commit hash for the bcapps submodule
                 if ($this.BuildMetadata.RepositoryUrl -match "github.com/microsoft/BCApps") {
-                    . "$($ENV:INETROOT)\Eng\Core\Helpers\SourceControl-GIT.ps1"
+                    . "$($ENV:INETROOT)\eng/Core\Helpers\SourceControl-GIT.ps1"
                     $compilationParams += @{
                         SourceRepositoryUrl = $this.BuildMetadata.RepositoryUrl
                         SourceCommit = (Get-BCAppsReference)
@@ -779,7 +779,7 @@ class ApplicationBuildConfiguration
         }
 
         # Should we restore this package outside this?
-        Import-Module "$($ENV:INETROOT)\Eng\Core\Helpers\ExtensionsV2\GuardingV2ExtensionsHelper.psm1"
+        Import-Module "$($ENV:INETROOT)\eng/Core\Helpers\ExtensionsV2\GuardingV2ExtensionsHelper.psm1"
 
         $analyzerList = @("AppSourceCop", "CodeCop", "UICop", "PTECop")
         if ($EnableCLEANPreProcessorSymbols)
@@ -845,7 +845,7 @@ class ApplicationBuildConfiguration
         }
 
         # Should we restore this package outside this?
-        Import-Module "$($ENV:INETROOT)\Eng\Core\Helpers\ExtensionsV2\GuardingV2ExtensionsHelper.psm1"
+        Import-Module "$($ENV:INETROOT)\eng/Core\Helpers\ExtensionsV2\GuardingV2ExtensionsHelper.psm1"
         $referenceAppsDir = Get-LazyExtensionsPackagePath
 
         $referenceApplicationPaths = $this.GetReferenceApplicationPathsForCodeAnalysis($referenceAppsDir)
@@ -1410,7 +1410,7 @@ function GetApplicationPackageImpl(
 
     # Only get the latest package so that this can be used when setting up the application developer database.
     $package = Get-ChildItem ($configuration.GetPackageOutputFolder()) -Recurse -Filter "Microsoft_$ApplicationName*" |
-    Where-Object { $_.Name -match "$([regex]::Escape($ApplicationName))`_\d+\.\d+\.\d+\.\d+" } |
+    Where-Object { $_.Name -match "$([regex]::Escape($ApplicationName))`_\d+/./d+/./d+/./d+" } |
     Sort-Object LastWriteTime |
     Select-Object -Last 1
 
@@ -1907,7 +1907,7 @@ function CopyArtifactsToFolder([string]$CountryCode, [string]$ApplicationName, [
     Write-Log "Copying artifacts for '$ApplicationName' to $TargetFolder"
 
     $appPackagePath = Get-ApplicationPackage -CountryCode $CountryCode -ApplicationName $ApplicationName
-    $appFileName = (Get-Item $appPackagePath).Name -replace "_\d+\.\d+\.\d+\.\d+", ""
+    $appFileName = (Get-Item $appPackagePath).Name -replace "_\d+/./d+/./d+/./d+", ""
     Copy-Item $appPackagePath "$folder\$appFileName"
 
     $sourceArchivePath = Get-SourceArchive -CountryCode $CountryCode -ApplicationName $ApplicationName

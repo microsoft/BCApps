@@ -4,7 +4,7 @@
 
 .DESCRIPTION
     Loads shared utilities and developer tool modules into the current session.
-    Modules under eng\Shared and eng\DevTools are auto-discovered.
+    Modules under eng/Shared and eng/DevTools are auto-discovered.
 
 .EXAMPLE
     . .\init.ps1
@@ -17,14 +17,14 @@ $repoRoot = $PSScriptRoot
 Write-Host "Initializing BCApps enlistment..." -ForegroundColor Cyan
 
 # Load shared utilities first (dependencies for DevTools)
-$sharedRoot = Join-Path $repoRoot "eng\Shared"
+$sharedRoot = Join-Path $repoRoot "eng/Shared"
 $sharedModules = Get-ChildItem -Path $sharedRoot -Filter "*.psm1" -Recurse
 foreach ($module in $sharedModules) {
     Import-Module $module.FullName -DisableNameChecking -Global
 }
 
 # Load developer tools
-$devToolsRoot = Join-Path $repoRoot "eng\DevTools"
+$devToolsRoot = Join-Path $repoRoot "eng/DevTools"
 $devToolsModules = Get-ChildItem -Path $devToolsRoot -Filter "*.psm1" -Recurse
 foreach ($module in $devToolsModules) {
     Import-Module $module.FullName -DisableNameChecking -Global

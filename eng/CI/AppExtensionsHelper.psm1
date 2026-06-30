@@ -44,7 +44,7 @@ function GetSourceCodeFromArtifact() {
             $artifact = $env:artifact
         } else {
             Write-Host "No artifact found. Using default artifact version."
-            Import-Module $PSScriptRoot\..\Shared\EnlistmentHelperFunctions.psm1
+            Import-Module $PSScriptRoot/../Shared/EnlistmentHelperFunctions.psm1
             $artifact = Get-CurrentBCArtifactUrl
         }
         # Test that artifact is a url
@@ -126,7 +126,7 @@ function Build-App() {
     # If we are using project dependencies we will try to find the source code within the repository
     if ($alGoSettings.useProjectDependencies) {
         Write-Host "Get source code for $AppName"
-        Import-Module $PSScriptRoot\..\Shared\EnlistmentHelperFunctions.psm1
+        Import-Module $PSScriptRoot/../Shared/EnlistmentHelperFunctions.psm1
         $sourceCodeFolder = Get-ChildItem -Path (Get-BaseFolder) -Filter "app.json" -Recurse | ForEach-Object {
             $appJsonName = (Get-Content -Path $_.FullName | ConvertFrom-Json).Name
             if ($appJsonName -eq $AppName) {
@@ -193,7 +193,7 @@ function Install-AppFromFile() {
         })
 
         # Find the app file by looking for an app file with the base name "Microsoft_AppName_Major.Minor.Build.Revision" pattern
-        $AppFilePath = $countryApps | Where-Object { $($_.BaseName) -match "^Microsoft_$($AppName)_\d+\.\d+\.\d+\.\d+$" } | Select-Object -First 1 | ForEach-Object { $_.FullName }
+        $AppFilePath = $countryApps | Where-Object { $($_.BaseName) -match "^Microsoft_$($AppName)_\d+/./d+/./d+/./d+$" } | Select-Object -First 1 | ForEach-Object { $_.FullName }
 
         # If not found in country-specific folders, fall back to the main Applications folder
         if (-not $AppFilePath) {
@@ -324,8 +324,8 @@ function Get-ExternalDependencies() {
         [switch] $AppDependencies,
         [switch] $TestAppDependencies
     )
-    Import-Module $PSScriptRoot\..\Shared\EnlistmentHelperFunctions.psm1
-    $appExtensionsSettings = Join-Path (Get-BaseFolder) "eng\projects/Apps (W1)/.AL-Go/customSettings.json" -Resolve
+    Import-Module $PSScriptRoot/../Shared/EnlistmentHelperFunctions.psm1
+    $appExtensionsSettings = Join-Path (Get-BaseFolder) "eng/projects/Apps (W1)/.AL-Go/customSettings.json" -Resolve
     $customSettings = Get-Content -Path $appExtensionsSettings | ConvertFrom-Json
 
     if ($AppDependencies) {

@@ -1,7 +1,7 @@
 Describe "BuildOptimization" {
     BeforeAll {
-        Import-Module "$PSScriptRoot\..\..\Shared\EnlistmentHelperFunctions.psm1" -Force
-        Import-Module "$PSScriptRoot\..\BuildOptimization.psm1" -Force
+        Import-Module "$PSScriptRoot/../../Shared/EnlistmentHelperFunctions.psm1" -Force
+        Import-Module "$PSScriptRoot/../BuildOptimization.psm1" -Force
         $baseFolder = Get-BaseFolder
         $graph = Get-AppDependencyGraph -BaseFolder $baseFolder
     }
@@ -44,7 +44,7 @@ Describe "BuildOptimization" {
         }
 
         It "returns null for non-app file" {
-            $result = Get-AppForFile -FilePath 'eng\CI\BuildOptimization.psm1' -BaseFolder $baseFolder
+            $result = Get-AppForFile -FilePath 'eng/CI\BuildOptimization.psm1' -BaseFolder $baseFolder
             $result | Should -BeNullOrEmpty
         }
 
@@ -81,7 +81,7 @@ Describe "BuildOptimization" {
 
         It "ignores non-src unmapped files" {
             $affected = Get-AffectedApps -ChangedFiles @(
-                'eng\CI\SomeNewScript.ps1',
+                'eng/CI\SomeNewScript.ps1',
                 'src/Apps/W1/EDocument/App/src/SomeFile.al'
             ) -BaseFolder $baseFolder -Graph $graph
             $affected.Count | Should -BeLessThan $graph.Count
@@ -233,7 +233,7 @@ Describe "BuildOptimization" {
 
     Context "Test-FullBuildPatternsMatch" {
         It "returns true when a changed file matches build/* pattern" {
-            $result = Test-FullBuildPatternsMatch -ChangedFiles @('eng\CI\RunTestsInBcContainer.ps1') -BaseFolder $baseFolder
+            $result = Test-FullBuildPatternsMatch -ChangedFiles @('eng/CI\RunTestsInBcContainer.ps1') -BaseFolder $baseFolder
             $result | Should -BeTrue
         }
 
@@ -260,18 +260,18 @@ Describe "BuildOptimization" {
         It "returns true when only one of multiple files matches" {
             $result = Test-FullBuildPatternsMatch -ChangedFiles @(
                 'src/Apps/W1/EDocument/App/src/SomeFile.al',
-                'eng\CI\SomeNewScript.ps1'
+                'eng/CI\SomeNewScript.ps1'
             ) -BaseFolder $baseFolder
             $result | Should -BeTrue
         }
 
         It "handles backslash paths by normalizing to forward slashes" {
-            $result = Test-FullBuildPatternsMatch -ChangedFiles @('eng\CI\RunTestsInBcContainer.ps1') -BaseFolder $baseFolder
+            $result = Test-FullBuildPatternsMatch -ChangedFiles @('eng/CI\RunTestsInBcContainer.ps1') -BaseFolder $baseFolder
             $result | Should -BeTrue
         }
 
         It "returns false when settings file is missing" {
-            $result = Test-FullBuildPatternsMatch -ChangedFiles @('eng\CI\foo.ps1') -BaseFolder 'C:\nonexistent\path'
+            $result = Test-FullBuildPatternsMatch -ChangedFiles @('eng/CI\foo.ps1') -BaseFolder 'C:\nonexistent\path'
             $result | Should -BeFalse
         }
     }
@@ -281,13 +281,13 @@ Describe "BuildOptimization" {
             # The old RunTestsInBcContainer.ps1 code computed BaseFolder as:
             #   Join-Path $PSScriptRoot "../../.." from .AL-Go/ → resolves to build/
             # This is wrong because app.json files live under src/ at the repo root.
-            $buildFolder = (Resolve-Path "$PSScriptRoot\..\..").Path  # build/
+            $buildFolder = (Resolve-Path "$PSScriptRoot/../..").Path  # build/
             $wrongGraph = Get-AppDependencyGraph -BaseFolder $buildFolder
             $wrongGraph.Count | Should -Be 0 -Because 'build/ contains no app.json files; BaseFolder must be the repo root'
         }
 
         It "affected apps returns empty array with wrong BaseFolder, causing silent full-build" {
-            $buildFolder = (Resolve-Path "$PSScriptRoot\..\..").Path  # build/
+            $buildFolder = (Resolve-Path "$PSScriptRoot/../..").Path  # build/
             $wrongGraph = Get-AppDependencyGraph -BaseFolder $buildFolder
 
             $changedFiles = @(
@@ -314,7 +314,7 @@ Describe "BuildOptimization" {
         }
 
         It "RunTestsInBcContainer scripts delegate to Invoke-PerProjectTestRun, not relative path resolution" {
-            $scripts = Get-ChildItem -Path (Resolve-Path "$PSScriptRoot\..\..\projects").Path -Recurse -Filter 'RunTestsInBcContainer.ps1'
+            $scripts = Get-ChildItem -Path (Resolve-Path "$PSScriptRoot/../..\projects").Path -Recurse -Filter 'RunTestsInBcContainer.ps1'
             $scripts.Count | Should -BeGreaterOrEqual 4
 
             foreach ($script in $scripts) {
@@ -324,7 +324,7 @@ Describe "BuildOptimization" {
             }
 
             # The shared module that the per-project scripts delegate to must use Get-BaseFolder for repo root
-            $module = Get-Content (Resolve-Path "$PSScriptRoot\..\ParallelTestExecution.psm1").Path -Raw
+            $module = Get-Content (Resolve-Path "$PSScriptRoot/../ParallelTestExecution.psm1").Path -Raw
             $module | Should -Match 'Get-BaseFolder' -Because 'ParallelTestExecution.psm1 must resolve repo root via Get-BaseFolder'
         }
     }
@@ -384,7 +384,7 @@ Describe "BuildOptimization" {
                 $env:GITHUB_ACTIONS = 'true'
                 $env:GITHUB_EVENT_NAME = 'pull_request'
                 $env:BUILD_OPTIMIZATION_DISABLED = $null
-                Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { return @('eng\CI\SomeScript.ps1') }
+                Mock -ModuleName BuildOptimization Get-ChangedFilesForCI { return @('eng/CI\SomeScript.ps1') }
                 Test-ShouldSkipTestApp -AppName 'Shopify' -BaseFolder $baseFolder -CacheFile $cacheFile | Should -BeFalse
             } finally {
                 $env:GITHUB_ACTIONS = $savedActions

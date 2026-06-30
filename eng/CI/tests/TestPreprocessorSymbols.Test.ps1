@@ -1,6 +1,6 @@
 Describe "Test-PreprocessorSymbols" {
     BeforeAll {
-        Import-Module "$PSScriptRoot\..\..\..\eng\CI\TestPreprocessorSymbols.psm1" -Force
+        Import-Module "$PSScriptRoot/../../../eng/CI\TestPreprocessorSymbols.psm1" -Force
     }
 
     It 'returns $null when the filepath extension is not .al' {

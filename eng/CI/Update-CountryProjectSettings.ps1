@@ -12,7 +12,7 @@
 .PARAMETER CountryCode
     Optional. If specified, only updates the settings for this country.
     If not specified, updates all country projects (including the W1 base
-    project at eng\projects/Apps W1).
+    project at eng/projects/Apps W1).
 
     For the W1 base project, both "W1" and "WW" are accepted (case-insensitive)
     and normalized to "W1" internally, which is the identifier used in
@@ -33,7 +33,7 @@
     Updates only the GB (Great Britain) project settings.
 .EXAMPLE
     .\Update-CountryProjectSettings.ps1 -CountryCode "W1"
-    Updates only the W1 base project (eng\projects/Apps W1). "WW" is accepted
+    Updates only the W1 base project (eng/projects/Apps W1). "WW" is accepted
     as an alias.
 .EXAMPLE
     .\Update-CountryProjectSettings.ps1 -WhatIf
@@ -56,7 +56,7 @@ $script:countriesNeedingUpdate = @()
 
 $ErrorActionPreference = "Stop"
 
-Import-Module (Join-Path $PSScriptRoot "..\Shared\EnlistmentHelperFunctions.psm1") -Force
+Import-Module (Join-Path $PSScriptRoot "../Shared/EnlistmentHelperFunctions.psm1") -Force
 $RepoRoot = Get-BaseFolder
 
 $ErrorActionPreference = "Stop"
@@ -82,7 +82,7 @@ $AdditionalAppFolders = @(
 # groups.json / projects.json (supportedCountries / unsupportedCountries).
 $W1CountryCode = "W1"
 
-$countryProjectsPath = Join-Path $RepoRoot "eng\projects"
+$countryProjectsPath = Join-Path $RepoRoot "eng/projects"
 
 function ConvertTo-NormalizedCountryCode {
     <#

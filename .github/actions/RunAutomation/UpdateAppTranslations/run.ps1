@@ -4,7 +4,7 @@ param (
     $runParameters
 )
 
-Import-Module $PSScriptRoot\..\..\..\..\eng\Shared\EnlistmentHelperFunctions.psm1
+Import-Module $PSScriptRoot/../../../..\eng/Shared/EnlistmentHelperFunctions.psm1
 
 $newVersion = Update-PackageVersion -PackageName "Microsoft.Dynamics.BusinessCentral.Translations"
 

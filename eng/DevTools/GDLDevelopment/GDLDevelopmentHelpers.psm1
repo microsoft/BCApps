@@ -1,5 +1,5 @@
-Import-Module "$PSScriptRoot\..\..\Shared\EnlistmentHelperFunctions.psm1" -DisableNameChecking
-Import-Module "$PSScriptRoot\..\Logger.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot/../../Shared/EnlistmentHelperFunctions.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot/../../Shared/Logger.psm1" -DisableNameChecking
 
 $env:GDLViewsRoot = Join-Path $(Get-BaseFolder) "src\Views\"
 $env:GDLLayersRoot = Join-Path $(Get-BaseFolder) "src\Layers\"

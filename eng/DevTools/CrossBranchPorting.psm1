@@ -25,7 +25,7 @@ function New-BCAppsBackport() {
         [Parameter(Mandatory=$false, DontShow=$true)]
         [switch] $ReuseWorkItem
     )
-    Import-Module $PSScriptRoot\..\Shared\EnlistmentHelperFunctions.psm1
+    Import-Module $PSScriptRoot/../Shared/EnlistmentHelperFunctions.psm1
 
     # Change to the base folder of the repository
     Push-Location (Get-BaseFolderForPath -Path $PSScriptRoot)

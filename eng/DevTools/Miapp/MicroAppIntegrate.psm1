@@ -1,5 +1,5 @@
-Import-Module "$PSScriptRoot\MicroAppConf.psm1"
-Import-Module "$PSScriptRoot\MicroAppGitHelper.psm1"
+Import-Module "$PSScriptRoot/MicroAppConf.psm1"
+Import-Module "$PSScriptRoot/MicroAppGitHelper.psm1"
 
 Set-StrictMode -Version 2
 $ErrorActionPreference = "Stop"
