@@ -1,5 +1,6 @@
 Import-Module "$PSScriptRoot\GDLDevelopmentHelpers.psm1" -DisableNameChecking
 Import-Module "$PSScriptRoot\..\Logger.psm1" -DisableNameChecking
+Import-Module "$PSScriptRoot\..\DevEnv\ALDev.psm1" -DisableNameChecking
 
 <#
 .SYNOPSIS
@@ -632,6 +633,8 @@ function New-GDLView(
     [Parameter(Mandatory = $true)]
     [ValidateScript( { $_ -in (GetAllGDLCountryCodes) })]
     [string]$CountryCode,
+    [string] $ContainerName,
+    [string] $Authentication,
     [switch] $skipSetupDevelopmentSettings
 )
 {
@@ -641,13 +644,15 @@ function New-GDLView(
 
     if (!$skipSetupDevelopmentSettings)
     {
-        SetupDevelopmentSettings $gdlViewConfiguration
+        SetupDevelopmentSettings -GdlViewConfiguration $gdlViewConfiguration -ContainerName $ContainerName -Authentication $Authentication
     }
 }
 
 function SetupDevelopmentSettings
 (
-    [GDLViewConfiguration] $GdlViewConfiguration
+    [GDLViewConfiguration] $GdlViewConfiguration,
+    [string] $ContainerName,
+    [string] $Authentication
 )
 {
     # The recursion is needed for the Tests. We should find a better way of setting up the settings for these.
@@ -655,26 +660,22 @@ function SetupDevelopmentSettings
     Where-Object { Test-Path (Join-Path $_.FullName app.json) } |
     ForEach-Object { return $_.FullName }
 
-    # Reading the server settings is expensive so we do it once and use the value for all projects
-    $defaultLaunchSettings = @{
-        "serverInstance" = (Get-NavServerInstanceNameForPublishing -CountryCode $GdlViewConfiguration.CountryCode)
-    }
+    # Resolving the launch and project settings is expensive (it inspects the container), so we do it once and reuse it for all projects.
+    $defaultLaunchSettings = Get-LaunchSettings -ContainerName $ContainerName -Authentication $Authentication
+    $defaultProjectSettings = Get-ProjectSettings -ContainerName $ContainerName
 
     # We load the settings for all projects once. These are used to get the configuration of each project, e.g. analyzers and rulesets used. The same definition is used in ALAppBuild.
-    $projectsSettings = (Get-Content -Path "$ENV:INETROOT\Eng\Core\Build\projects.json" -Raw | ConvertFrom-Json).projects
+    $projectsSettings = (Get-Content -Path (Join-Path (Get-BaseFolder) "build\projects.json") -Raw | ConvertFrom-Json).projects
 
     $vscodeSettingFolders | ForEach-Object {
-        $ConfigureALProjectParams = @{
-            ProjectFolder       = $_
-            CountryCode         = $GdlViewConfiguration.CountryCode
-            ResetConfiguration  = $true
-            LaunchSettings      = $defaultLaunchSettings
+        # Start from the shared project settings and overlay any project-specific configuration (analyzers, rulesets).
+        $projectSettings = $defaultProjectSettings.Clone()
+        $projectSpecificSettings = GetProjectSettings $projectsSettings $(Join-Path $_ app.json)
+        foreach ($key in $projectSpecificSettings.Keys) {
+            $projectSettings[$key] = $projectSpecificSettings[$key]
         }
-        $projectSettings = GetProjectSettings $projectsSettings $(Join-Path $_ app.json)
-        if ($projectSettings.Count -ne 0) {
-            $ConfigureALProjectParams."ProjectSettings" = $projectSettings
-        }
-        Configure-ALProject @ConfigureALProjectParams
+
+        Configure-ALProject -ProjectFolder $_ -LaunchSettings $defaultLaunchSettings -ProjectSettings $projectSettings
     }
 }
 
