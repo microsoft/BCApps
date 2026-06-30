@@ -493,6 +493,7 @@ codeunit 4400 "SOA Setup"
         end;
 
         if SOASetup.GetBasedOnAgentUserSecurityID(TempSOASetup."User Security ID", false) then begin
+            SOASetup.CalcFields("Email Template");
             TempSOASetup := SOASetup;
             TempSOASetup.Insert();
         end
