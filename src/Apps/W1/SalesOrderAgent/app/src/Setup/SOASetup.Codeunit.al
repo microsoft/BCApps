@@ -547,7 +547,8 @@ codeunit 4400 "SOA Setup"
     internal procedure CheckMailboxUnique(SOASetup: Record "SOA Setup")
     var
         OtherSOASetup: Record "SOA Setup";
-        MailboxAlreadyUsedErr: Label 'This email account is already used by another Sales Order Agent instance.';
+        MailboxAlreadyUsedWithoutFolderErr: Label 'This email account is already used by Sales Order Agent "%1" (%2).', Comment = '%1 = agent name, %2 = agent initials';
+        MailboxAndFolderAlreadyUsedErr: Label 'This email account and folder combination is already used by Sales Order Agent "%1" (%2).', Comment = '%1 = agent name, %2 = agent initials';
     begin
         if IsNullGuid(SOASetup."Email Account ID") then
             exit;
@@ -555,8 +556,19 @@ codeunit 4400 "SOA Setup"
         OtherSOASetup.SetRange("Email Account ID", SOASetup."Email Account ID");
         OtherSOASetup.SetRange("Email Connector", SOASetup."Email Connector");
         OtherSOASetup.SetFilter(ID, '<>%1', SOASetup.ID);
-        if not OtherSOASetup.IsEmpty() then
-            Error(MailboxAlreadyUsedErr);
+
+        if SOASetup."Email Folder Id" = '' then begin
+            OtherSOASetup.SetRange("Email Folder Id", '');
+            if OtherSOASetup.FindFirst() then
+                Error(MailboxAlreadyUsedWithoutFolderErr, OtherSOASetup."Agent Name", OtherSOASetup."Agent Initials");
+            exit;
+        end;
+
+        if SOASetup."Email Folder Id" <> '' then begin
+            OtherSOASetup.SetRange("Email Folder Id", SOASetup."Email Folder Id");
+            if OtherSOASetup.FindFirst() then
+                Error(MailboxAndFolderAlreadyUsedErr, OtherSOASetup."Agent Name", OtherSOASetup."Agent Initials");
+        end;
     end;
 
     internal procedure GetEmailAccount(var SOASetup: Record "SOA Setup"; var TempEmailAccount: Record "Email Account" temporary)
