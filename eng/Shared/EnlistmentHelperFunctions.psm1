@@ -92,7 +92,7 @@ function Get-ALGoSettingsPath([switch] $Relative) {
     System.String - The path to the Packages file
 #>
 function Get-PackagesFilePath([switch] $Relative) {
-    return GetPath "eng/AL-Go/Packages.json" $Relative
+    return GetPath "eng/packages.json" $Relative
 }
 
 <#
@@ -187,7 +187,7 @@ function Set-ConfigValue() {
             $ConfigPath = Join-Path (Get-BaseFolder) ".github/AL-Go-Settings.json" -Resolve
         }
         "Packages" {
-            $ConfigPath = Join-Path (Get-BaseFolder) "eng/AL-Go/Packages.json" -Resolve
+            $ConfigPath = Join-Path (Get-BaseFolder) "eng/packages.json" -Resolve
         }
     }
 

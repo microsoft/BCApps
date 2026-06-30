@@ -2,7 +2,7 @@ Param(
     [Hashtable]$parameters
 )
 
-Import-Module $PSScriptRoot/AppExtensionsHelper.psm1
+Import-Module $PSScriptRoot/../../CI/AppExtensionsHelper.psm1
 Import-Module $PSScriptRoot/../../Shared/EnlistmentHelperFunctions.psm1
 
 <#

@@ -9,7 +9,7 @@ Param(
 )
 
 Import-Module $PSScriptRoot/../../Shared/EnlistmentHelperFunctions.psm1
-Import-Module $PSScriptRoot/TestTolerance/TestTolerance.psm1 -Force
+Import-Module $PSScriptRoot/../../CI/TestTolerance/TestTolerance.psm1 -Force
 
 function Get-DisabledTests
 {
@@ -135,7 +135,7 @@ $parameters["renewClientContextBetweenTests"] = $true
 # circuit. When invoked from inside a background job (Start-TestJob), $AppNamesToTest is empty
 # and we fall through to the sequential single-app path below.
 if ($AppNamesToTest.Count -gt 0) {
-    Import-Module $PSScriptRoot/ParallelTestExecution.psm1
+    Import-Module $PSScriptRoot/../../CI/ParallelTestExecution.psm1
     return Invoke-ParallelTestExecution -parameters $parameters -scriptPath $PSCommandPath -testType $TestType -appNamesToTest $AppNamesToTest
 }
 

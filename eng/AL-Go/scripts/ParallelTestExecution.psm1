@@ -50,7 +50,7 @@ function Get-CachedTestRunResult {
 .SYNOPSIS
     Returns the names of test apps that are both expected for a country and installed in the container.
 .DESCRIPTION
-    Combines the project metadata in eng/AL-Go/projects.json (via Get-ApplicationGroup) with
+    Combines the project metadata in eng/projects.json (via Get-ApplicationGroup) with
     Get-BcContainerAppInfo so we only ever try to dispatch apps that actually exist in the
     container. The country defaults to "w1" when unset or set to the repo-level "base" sentinel.
 #>

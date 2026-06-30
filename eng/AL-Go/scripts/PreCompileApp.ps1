@@ -8,7 +8,7 @@ Param(
 )
 
 Import-Module $PSScriptRoot/../../Shared/EnlistmentHelperFunctions.psm1
-Import-Module $PSScriptRoot/AppExtensionsHelper.psm1
+Import-Module $PSScriptRoot/../../CI/AppExtensionsHelper.psm1
 
 function Get-IncrementalBuildBaselineAppNames {
     <#
@@ -247,7 +247,7 @@ if($appType -eq 'app')
     if($ENV:CI) {
         if ($analyzersEnabled) {
             Write-Host "Analyzers are enabled. Setting up the baseline app and analyzers for breaking changes check."
-            Import-Module $PSScriptRoot/GuardingV2ExtensionsHelper.psm1
+            Import-Module $PSScriptRoot/../../CI/GuardingV2ExtensionsHelper.psm1
 
             if($appBuildMode -eq 'Clean') {
                 Write-Host "Compile the app without any preprocessor symbols to generate a baseline app to use for breaking changes check"

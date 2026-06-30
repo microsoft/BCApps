@@ -661,7 +661,7 @@ function SetupDevelopmentSettings
     }
 
     # We load the settings for all projects once. These are used to get the configuration of each project, e.g. analyzers and rulesets used. The same definition is used in ALAppBuild.
-    $projectsSettings = (Get-Content -Path "$ENV:INETROOT/eng/AL-Go/projects.json" -Raw | ConvertFrom-Json).projects
+    $projectsSettings = (Get-Content -Path "$ENV:INETROOT/eng/projects.json" -Raw | ConvertFrom-Json).projects
 
     $vscodeSettingFolders | ForEach-Object {
         $ConfigureALProjectParams = @{
