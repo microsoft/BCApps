@@ -24,6 +24,10 @@ codeunit 134420 "ERM Journal Posting"
         MinRange: Decimal;
         MiddleRange: Decimal;
         MaxRange: Decimal;
+        SetIgnoreCommitToFalse: Boolean;
+        RaiseErrorAfterCommit: Boolean;
+        CommitTestMarkerID: Guid;
+        TestRollbackAfterCommitErr: Label 'Test error to trigger rollback after Commit() call.';
 
     [Test]
     [Scope('OnPrem')]
@@ -464,11 +468,88 @@ codeunit 134420 "ERM Journal Posting"
         LibraryAssert.AreEqual('', NoSeriesLine."Last No. Used", 'Last No. Used must be empty.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostGenJnlLineCommitBySubscriberIsSuppressed()
+    var
+        GenJnlBatch: Record "Gen. Journal Batch";
+        GenJnlLine: Record "Gen. Journal Line";
+        ActivityLog: Record "Activity Log";
+    begin
+        // [FEATURE] [General Journal] [Posting] [CommitBehavior]
+        // [SCENARIO 637261] A Commit() called by a posting subscriber is suppressed during Gen. Jnl.-Post Line.
+        Initialize();
+
+        // [GIVEN] General journal line.
+        LibraryJournals.CreateGenJournalBatch(GenJnlBatch);
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(
+            GenJnlLine, GenJnlBatch."Journal Template Name", GenJnlBatch.Name, GenJnlLine."Document Type"::" ",
+            GenJnlLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(),
+            GenJnlLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), LibraryRandom.RandDec(1000, 2));
+        Commit();
+
+        // [GIVEN] Subscriber inserts a marker record, calls Commit(), and raises an error inside the posting scope.
+        CommitTestMarkerID := CreateGuid();
+        RaiseErrorAfterCommit := true;
+        BindSubscription(this);
+
+        // [WHEN] Post the journal line (posting fails because subscriber raises an error).
+        asserterror LibraryERM.PostGeneralJnlLine(GenJnlLine);
+        UnbindSubscription(this);
+
+        // [THEN] The marker record does not exist because Commit() was suppressed and the error rolled back all changes.
+        ActivityLog.SetRange("Activity Message", Format(CommitTestMarkerID));
+        Assert.RecordIsEmpty(ActivityLog);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostGenJnlLineCommitBehaviorOptOutRestoresCommit()
+    var
+        GenJnlBatch: Record "Gen. Journal Batch";
+        GenJnlLine: Record "Gen. Journal Line";
+        ActivityLog: Record "Activity Log";
+    begin
+        // [FEATURE] [General Journal] [Posting] [CommitBehavior]
+        // [SCENARIO 637261] Setting IgnoreCommit := false via OnSetCommitBehavior restores old commit behavior.
+        Initialize();
+
+        // [GIVEN] General journal line.
+        LibraryJournals.CreateGenJournalBatch(GenJnlBatch);
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(
+            GenJnlLine, GenJnlBatch."Journal Template Name", GenJnlBatch.Name, GenJnlLine."Document Type"::" ",
+            GenJnlLine."Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(),
+            GenJnlLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(), LibraryRandom.RandDec(1000, 2));
+        Commit();
+
+        // [GIVEN] Subscriber sets IgnoreCommit := false to opt out of commit suppression.
+        SetIgnoreCommitToFalse := true;
+
+        // [GIVEN] Subscriber inserts a marker record, calls Commit(), and raises an error inside the posting scope.
+        CommitTestMarkerID := CreateGuid();
+        RaiseErrorAfterCommit := true;
+        BindSubscription(this);
+
+        // [WHEN] Post the journal line (posting fails because subscriber raises an error).
+        asserterror LibraryERM.PostGeneralJnlLine(GenJnlLine);
+        UnbindSubscription(this);
+
+        // [THEN] The marker record exists because Commit() was not suppressed and persisted before the error.
+        ActivityLog.SetRange("Activity Message", Format(CommitTestMarkerID));
+        Assert.RecordIsNotEmpty(ActivityLog);
+
+        // Cleanup: Remove test marker.
+        ActivityLog.DeleteAll();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Journal Posting");
+        SetIgnoreCommitToFalse := false;
+        RaiseErrorAfterCommit := false;
+        Clear(CommitTestMarkerID);
         if isInitialized then
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(CODEUNIT::"ERM Journal Posting");
@@ -596,5 +677,37 @@ codeunit 134420 "ERM Journal Posting"
         GenJournalBatch.Validate("No. Series", NoSeriesCode);
         GenJournalBatch.Validate("Posting No. Series", '');
         GenJournalBatch.Modify(true);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnSetCommitBehavior, '', false, false)]
+    local procedure OnSetCommitBehaviorHandler(var IgnoreCommit: Boolean)
+    begin
+        if SetIgnoreCommitToFalse then
+            IgnoreCommit := false;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnBeforePostGenJnlLine, '', false, false)]
+    local procedure OnBeforePostGenJnlLineHandler(var GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean)
+    var
+        ActivityLog: Record "Activity Log";
+    begin
+        if not RaiseErrorAfterCommit then
+            exit;
+        if IsNullGuid(CommitTestMarkerID) then
+            exit;
+
+        // Insert a marker record
+        ActivityLog.Init();
+        ActivityLog."Activity Date" := CurrentDateTime();
+        ActivityLog."User ID" := CopyStr(UserId(), 1, MaxStrLen(ActivityLog."User ID"));
+        ActivityLog."Activity Message" := Format(CommitTestMarkerID);
+        ActivityLog.Status := ActivityLog.Status::Success;
+        ActivityLog.Insert(true);
+
+        // Call Commit() - this should be suppressed by CommitBehavior::Ignore
+        Commit();
+
+        // Raise an error to abort the transaction
+        Error(TestRollbackAfterCommitErr);
     end;
 }
