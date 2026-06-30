@@ -497,6 +497,44 @@ function Test-OrderedSubsequence {
     return $true
 }
 
+# Character-level longest-common-subsequence length between two strings.
+# Used to score how close a suggested (edited) line is to a candidate file
+# line. O(n*m) with a rolling two-row buffer; lines are short so this is cheap.
+function Get-LcsLength {
+    param([string] $A, [string] $B)
+
+    if ([string]::IsNullOrEmpty($A) -or [string]::IsNullOrEmpty($B)) { return 0 }
+    $n = $A.Length; $m = $B.Length
+    $prev = New-Object 'int[]' ($m + 1)
+    $curr = New-Object 'int[]' ($m + 1)
+    for ($i = 1; $i -le $n; $i++) {
+        $ai = $A[$i - 1]
+        for ($j = 1; $j -le $m; $j++) {
+            if ($ai -eq $B[$j - 1]) {
+                $curr[$j] = $prev[$j - 1] + 1
+            } else {
+                $curr[$j] = [math]::Max($prev[$j], $curr[$j - 1])
+            }
+        }
+        $tmp = $prev; $prev = $curr; $curr = $tmp
+        [Array]::Clear($curr, 0, $curr.Length)
+    }
+    return $prev[$m]
+}
+
+# Similarity in [0,1] between two already-loosened lines (whitespace stripped),
+# based on character LCS over max length. 1.0 == identical; pure insertions
+# (e.g. adding 'this.') stay high because the shorter line is almost entirely a
+# subsequence of the longer one, while unrelated lines score low.
+function Get-LooseLineSimilarity {
+    param([string] $A, [string] $B)
+
+    if ($A -eq $B) { return 1.0 }
+    $maxLen = [math]::Max($A.Length, $B.Length)
+    if ($maxLen -eq 0) { return 1.0 }
+    return ((Get-LcsLength -A $A -B $B) / $maxLen)
+}
+
 # Resolve the RIGHT-side file span a suggestion should replace.
 # Returns @{ startLine; endLine } (1-based, inclusive) or $null when the
 # suggestion cannot be placed with confidence (caller drops the block).
@@ -514,25 +552,50 @@ function Resolve-SuggestionPlacement {
     $firstLoose = ConvertTo-LooseLine $SuggestedLines[0]
     $lastLoose  = ConvertTo-LooseLine $SuggestedLines[$sCount - 1]
 
-    # --- Single-line suggestion: snap to the nearest unique content match. ---
+    # --- Single-line suggestion: re-anchor to the file line the edit targets. ---
+    # A one-line suggestion almost always *edits* a line, so it is NOT equal to
+    # the line it replaces (e.g. inserting 'this.' for CodeCop AA0248). Exact
+    # equality therefore fails for the common case and the model's reported
+    # anchor is unreliable (it frequently points at a neighbouring comment or
+    # blank line). We instead score every file line in a window around the
+    # anchor by similarity to the suggested line and take the clear winner.
+    # When no candidate is similar enough, or the best is ambiguous against the
+    # runner-up, we return $null so the caller suppresses the ```suggestion```
+    # block (posting a manual snippet) rather than corrupting the file by
+    # trusting the wrong anchor.
     if ($sCount -eq 1) {
-        if ((ConvertTo-LooseLine $FileLines[$AnchorLine - 1]) -eq $firstLoose) {
-            return [pscustomobject]@{ startLine = $AnchorLine; endLine = $AnchorLine }
-        }
-        for ($d = 1; $d -le 8; $d++) {
-            $hits = @()
-            foreach ($cand in @(($AnchorLine - $d), ($AnchorLine + $d))) {
-                if ($cand -ge 1 -and $cand -le $fileCount -and
-                    (ConvertTo-LooseLine $FileLines[$cand - 1]) -eq $firstLoose) {
-                    $hits += $cand
-                }
+        $minSimilarity   = 0.5   # absolute confidence floor for a re-anchor
+        $ambiguityMargin = 0.1   # winner must beat the runner-up by this much
+        $window          = 8
+
+        $lo = [math]::Max(1, $AnchorLine - $window)
+        $hi = [math]::Min($fileCount, $AnchorLine + $window)
+
+        $cands = for ($i = $lo; $i -le $hi; $i++) {
+            [pscustomobject]@{
+                line  = $i
+                score = Get-LooseLineSimilarity (ConvertTo-LooseLine $FileLines[$i - 1]) $firstLoose
+                dist  = [math]::Abs($i - $AnchorLine)
             }
-            if ($hits.Count -eq 1) { return [pscustomobject]@{ startLine = $hits[0]; endLine = $hits[0] } }
-            if ($hits.Count -gt 1) { break }   # ambiguous at this distance
         }
-        # No content match found: a one-line replacement of the model's anchor
-        # is still safe (it cannot duplicate context), so trust the anchor.
-        return [pscustomobject]@{ startLine = $AnchorLine; endLine = $AnchorLine }
+        # Best score first; ties broken by proximity to the model anchor.
+        $ranked = @($cands | Sort-Object @{ Expression = 'score'; Descending = $true }, @{ Expression = 'dist'; Descending = $false })
+        $top = $ranked[0]
+
+        # An exact loose match is always safe to apply (the replaced text is
+        # identical), so accept it regardless of the ambiguity margin.
+        if ($top.score -ge 1.0) {
+            return [pscustomobject]@{ startLine = $top.line; endLine = $top.line }
+        }
+
+        $runnerScore = if ($ranked.Count -gt 1) { $ranked[1].score } else { -1.0 }
+        if ($top.score -ge $minSimilarity -and ($top.score - $runnerScore) -ge $ambiguityMargin) {
+            return [pscustomobject]@{ startLine = $top.line; endLine = $top.line }
+        }
+
+        # No confident, unambiguous target — let the caller fall back to a
+        # manual snippet instead of posting an auto-applicable wrong anchor.
+        return $null
     }
 
     # --- Multi-line suggestion: find an additive span [s,e] near the anchor. ---
