@@ -9,7 +9,7 @@
   "artifact": "bcinsider/Sandbox/28.3//latest",
   "country": "base",
   "useProjectDependencies": true,
-  "repoVersion": "28.3",
+  "repoVersion": "28.4",
   "conditionalSettings": [
     {
       "buildModes": [
