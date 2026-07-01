@@ -277,7 +277,7 @@ codeunit 139555 "Aged Accounts Excel Reports"
 
         // [THEN] The exported data does not exists.
         LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
-        Assert.AreEqual(0, LibraryReportDataset.RowCount(), 'One aging entry should be exported');
+        Assert.AreEqual(0, LibraryReportDataset.RowCount(), 'No aging entry should be exported');
     end;
 
     local procedure InitializeAgingData()
