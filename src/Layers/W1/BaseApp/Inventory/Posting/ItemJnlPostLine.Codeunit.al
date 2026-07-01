@@ -2740,17 +2740,21 @@ codeunit 22 "Item Jnl.-Post Line"
     var
         CalcUnitCost: Boolean;
         IsHandled: Boolean;
+        ShouldCalculateCostPerUnit: Boolean;
     begin
         OnBeforeCalcCostPerUnitForPositiveValuedQty(ItemJournalLine, ValueEntry, IsHandled);
         if IsHandled then
             exit;
 
-        if (ValueEntry."Valued Quantity" > 0) and
+        ShouldCalculateCostPerUnit :=
+            (ValueEntry."Valued Quantity" > 0) and
             (ValueEntry."Item Ledger Entry Type" in [ValueEntry."Item Ledger Entry Type"::Purchase,
                                                     ValueEntry."Item Ledger Entry Type"::"Assembly Output"]) and
             (ValueEntry."Entry Type" = ValueEntry."Entry Type"::"Direct Cost") and
-            not ItemJnlLine.Adjustment
-        then begin
+            not ItemJnlLine.Adjustment;
+        OnCalcCostPerUnitForPositiveValuedQtyOnBeforeCheckShouldCalculateCostPerUnit(ValueEntry, ItemJournalLine, ShouldCalculateCostPerUnit);
+
+        if ShouldCalculateCostPerUnit then begin
             if Item."Costing Method" = Item."Costing Method"::Standard then
                 ItemJnlLine."Unit Cost" := ValueEntry."Cost per Unit";
             CalcPosShares(
@@ -8858,6 +8862,11 @@ codeunit 22 "Item Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcCostPerUnitForPositiveValuedQty(var ItemJournalLine: Record "Item Journal Line"; var ValueEntry: Record "Value Entry"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcCostPerUnitForPositiveValuedQtyOnBeforeCheckShouldCalculateCostPerUnit(ValueEntry: Record "Value Entry"; ItemJournalLine: Record "Item Journal Line"; var ShouldCalculateCostPerUnit: Boolean)
     begin
     end;
 }
