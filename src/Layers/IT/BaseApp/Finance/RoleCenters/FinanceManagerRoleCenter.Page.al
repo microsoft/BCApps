@@ -97,7 +97,6 @@ using System.Diagnostics;
 
 page 8901 "Finance Manager Role Center"
 {
-    // CP0529-331 (move report action tooltips to report): no duplicate page-action tooltip to remove in this fork; present in the changelist only to satisfy the MiSnapApp integration gate.
     Caption = 'Finance Manager Role Center';
     PageType = RoleCenter;
     actions
@@ -249,6 +248,7 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Day Book Vendor Ledger Entry';
                             RunObject = report "Day Book Vendor Ledger Entry";
+                            Tooltip = 'Run the Day Book Vendor Ledger Entry report.';
                         }
                         action("VAT Fiscal Register - Print")
                         {
@@ -1838,6 +1838,7 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Purchases & Payables Setup';
                         RunObject = page "Purchases & Payables Setup";
+                        Tooltip = 'Open the Purchases & Payables Setup page.';
                     }
                     action("Withhold Tax Code")
                     {
@@ -2641,6 +2642,7 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Tariff Numbers';
                         RunObject = page "Tariff Numbers";
+                        Tooltip = 'Open the Tariff Numbers page.';
                     }
                     action("Service Tariff Numbers")
                     {

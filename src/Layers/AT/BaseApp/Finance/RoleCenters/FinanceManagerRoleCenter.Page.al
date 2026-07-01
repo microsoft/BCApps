@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -2678,7 +2678,7 @@ page 8901 "Finance Manager Role Center"
                     action("General Business")
                     {
                         ApplicationArea = Basic, Suite;
-                        Caption = 'Gen. Business Posting Groups';
+                        Caption = 'General Business Posting Groups';
                         RunObject = page "Gen. Business Posting Groups";
                         Tooltip = 'Open the Gen. Business Posting Groups page.';
                     }

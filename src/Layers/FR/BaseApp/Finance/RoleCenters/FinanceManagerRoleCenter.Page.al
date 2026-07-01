@@ -97,7 +97,6 @@ using System.Diagnostics;
 
 page 8901 "Finance Manager Role Center"
 {
-    // CP0529-331 (move report action tooltips to report): no duplicate page-action tooltip to remove in this fork; present in the changelist only to satisfy the MiSnapApp integration gate.
     Caption = 'Finance Manager Role Center';
     PageType = RoleCenter;
     actions
@@ -461,6 +460,7 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Financial Report';
                             RunObject = report "Account Schedule";
+                            Tooltip = 'Run the Account Schedule report.';
                         }
                         action("FR Account Schedule")
                         {
@@ -946,6 +946,7 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Cash Flow Ledger Entries';
                         RunObject = page "Cash Flow Forecast Entries";
+                        Tooltip = 'Open the Cash Flow Ledger Entries page.';
                     }
 #if not CLEAN28
                     action("Payment Slip Archive")
@@ -1645,6 +1646,7 @@ page 8901 "Finance Manager Role Center"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Purchase Credit Memos';
                     RunObject = page "Purchase Credit Memos";
+                    Tooltip = 'Open the Purchase Credit Memos page.';
                 }
 #if not CLEAN28
                 action("Payment Slips2")
@@ -1911,6 +1913,7 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Purchases & Payables Setup';
                         RunObject = page "Purchases & Payables Setup";
+                        Tooltip = 'Open the Purchases & Payables Setup page.';
                     }
                 }
             }
@@ -2779,7 +2782,7 @@ page 8901 "Finance Manager Role Center"
                     action("General Business")
                     {
                         ApplicationArea = Basic, Suite;
-                        Caption = 'Gen. Business Posting Groups';
+                        Caption = 'General Business Posting Groups';
                         RunObject = page "Gen. Business Posting Groups";
                         Tooltip = 'Open the Gen. Business Posting Groups page.';
                     }

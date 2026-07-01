@@ -97,7 +97,6 @@ using System.Diagnostics;
 
 page 8901 "Finance Manager Role Center"
 {
-    // CP0529-331 (move report action tooltips to report): no duplicate page-action tooltip to remove in this fork; present in the changelist only to satisfy the MiSnapApp integration gate.
     Caption = 'Finance Manager Role Center';
     PageType = RoleCenter;
     actions
@@ -307,6 +306,7 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Suite;
                         Caption = 'Business Units';
                         RunObject = page "Business Unit List";
+                        Tooltip = 'Open the Business Units page.';
                     }
                     action("BAS Business Units")
                     {
@@ -466,6 +466,7 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'G/L Register';
                             RunObject = report "G/L Register";
+                            Tooltip = 'Run the G/L Register report.';
                         }
                         action("G/L Journal")
                         {
@@ -1450,6 +1451,7 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer Statement';
                         RunObject = codeunit "Customer Layout - Statement";
+                        Tooltip = 'Run the Customer Statement codeunit.';
                     }
                     action("AU/NZ Statement")
                     {
