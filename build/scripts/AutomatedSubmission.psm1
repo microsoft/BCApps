@@ -152,7 +152,7 @@ function New-GitHubPullRequest
 
     Write-Host "gh pr create $parameters"
     $prLink = Invoke-Expression "gh pr create $parameters"
-    gh pr merge --auto --squash --delete-branch | Out-Null
+    gh pr merge --auto --squash | Out-Null
 
     return $prLink
 }
