@@ -150,8 +150,6 @@ function Get-AppFoldersForCountry {
     $testFolders = @()
 
     foreach ($metadata in $allApps) {
-        if ($metadata.IsInternal) { continue }
-
         # For GDL projects use AppJsonPath's parent (ProjectFolder points to the generated dir)
         if ($metadata.IsGDLProject) {
             $sourcePath = Split-Path $metadata.AppJsonPath -Parent
