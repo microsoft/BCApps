@@ -286,7 +286,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     /// <summary>
-    /// A wrapper procedure to delegate to PostLines in order to ignore commits.
+    /// A wrapper procedure to delegate to PostLine in order to ignore commits.
     /// While this procedure is on the call stack, the platform turns every Commit() into a no-op,
     /// preventing intermittent duplicate-key errors on G/L Entry (table 17).
     /// </summary>
