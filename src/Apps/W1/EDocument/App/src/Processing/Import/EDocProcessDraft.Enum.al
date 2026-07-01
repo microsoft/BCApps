@@ -40,9 +40,4 @@ enum 6107 "E-Doc. Process Draft" implements IProcessStructuredData
         Caption = 'Sales Order';
         Implementation = IProcessStructuredData = "Prepare Sales E-Doc. Draft";
     }
-    value(4; "E-Document Message")
-    {
-        Caption = 'E-Document Message';
-        Implementation = IProcessStructuredData = "E-Doc. Message Draft Handler";
-    }
 }
