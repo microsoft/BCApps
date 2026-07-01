@@ -249,31 +249,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     local procedure "Code"(var GenJnlLine: Record "Gen. Journal Line"; CheckLine: Boolean)
     var
-        IgnoreCommit: Boolean;
-    begin
-        // The G/L Entry "Entry No." is allocated by InitNextEntryNo (LockTable + GetLastEntry + 1) inside
-        // StartPosting and is only physically written to the table in FinishPosting. Any Commit() that fires in
-        // between releases the G/L Entry table lock while NextEntryNo is still cached, which lets a concurrent
-        // session read the same last entry number and produce a duplicate-key error on insert.
-        // Guard the whole per-line posting (allocation -> insert) so that a direct Commit() raised from a
-        // subscriber to any in-window event is ignored, mirroring the existing guard in Sales-Post (CU80).
-        IgnoreCommit := true;
-        OnSetCommitBehavior(IgnoreCommit);
-
-        if IgnoreCommit then
-            CodeCommitBehaviorIgnore(GenJnlLine, CheckLine)
-        else
-            RunPostingLine(GenJnlLine, CheckLine);
-    end;
-
-    [CommitBehavior(CommitBehavior::Ignore)]
-    local procedure CodeCommitBehaviorIgnore(var GenJnlLine: Record "Gen. Journal Line"; CheckLine: Boolean)
-    begin
-        RunPostingLine(GenJnlLine, CheckLine);
-    end;
-
-    local procedure RunPostingLine(var GenJnlLine: Record "Gen. Journal Line"; CheckLine: Boolean)
-    var
         xGLEntryNo: Integer;
         Balancing: Boolean;
         IsTransactionConsistent: Boolean;
@@ -8668,18 +8643,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCode(var GenJnlLine: Record "Gen. Journal Line"; CheckLine: Boolean; var IsPosted: Boolean; var GLReg: Record "G/L Register"; var GLEntryNo: Integer)
-    begin
-    end;
-
-    /// <summary>
-    /// Raised before posting a single general journal line. Set IgnoreCommit to false to opt out of the
-    /// CommitBehavior::Ignore guard that protects the G/L Entry "Entry No." allocation window. Only do this if an
-    /// extension genuinely requires a Commit() to be honored from inside the per-line posting path; doing so
-    /// re-exposes the G/L Entry duplicate-key race.
-    /// </summary>
-    /// <param name="IgnoreCommit">In/out: true (default) ignores commits during per-line posting.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnSetCommitBehavior(var IgnoreCommit: Boolean)
     begin
     end;
 
