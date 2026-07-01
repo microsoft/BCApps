@@ -8,7 +8,7 @@ using Microsoft.Peppol.Response;
 
 enumextension 6410 "E-Doc. Response Type Core Ext" extends "E-Doc. Response Type"
 {
-    value(0; None)
+    value(6410; None)
     {
         Caption = 'None';
     }
