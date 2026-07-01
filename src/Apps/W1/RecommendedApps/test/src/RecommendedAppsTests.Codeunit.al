@@ -14,7 +14,7 @@ codeunit 139527 "Recommended Apps Tests"
         RecommendedApps: Codeunit "Recommended Apps";
         AppRecommandedBy: Enum "App Recommended By";
         AppId: Guid;
-        Err1Msg: Label 'Cannot add the recommended app with ID %1. The URL https://appsource.microsoft.com/en-us/product/dynamics-365-business-central/PUBID.thetasystemslimitedWRONG|AID.bc_excel_importer|PAPPID.24466323-aee9-4049-a66d-a1af24466323?tab=Overview cannot be reached, and the HTTP status code is 404. Are you sure that the information about the app is correct?', Comment = '%1 = App ID';
+        Err1Msg: Label 'Cannot add the recommended app with ID %1. The Marketplace Catalog API cannot be reached, and the HTTP status code is ', Comment = '%1 = App ID';
 #pragma warning disable AA0470
         Err2Msg: Label 'Cannot add the recommended app with ID %1. The URL https://appsource.microsoft.com/en-us/product/dynamics-365-business-central/pu.thetasystemslimitedWRONG%7CAID.bc_excel_importer%7CPAPPID.24466323-aee9-4049-a66d-a1af24466323?tab=Overview is not formatted correctly. Are you sure that the information about the app is correct?', Comment = '%1 = App ID';
 #pragma warning restore AA0470

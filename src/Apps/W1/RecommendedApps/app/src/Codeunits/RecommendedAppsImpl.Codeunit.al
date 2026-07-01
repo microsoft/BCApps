@@ -5,6 +5,7 @@
 namespace System.Environment.Configuration;
 
 using System;
+using System.Azure.KeyVault;
 using System.Telemetry;
 using System.Utilities;
 
@@ -17,13 +18,12 @@ codeunit 4751 "Recommended Apps Impl."
         AppSourceURLLbl: Label 'https://appsource.microsoft.com/%1/product/dynamics-365-business-central/PUBID.%2|AID.%3|PAPPID.%4?tab=Overview', Locked = true;
         URLNotWellFormattedErrLbl: Label 'Cannot add the recommended app with ID %1. The URL %2 is not formatted correctly. Are you sure that the information about the app is correct?',
             Comment = '%1 = App Id; %2 = App Source URL created with app info provided by the partner';
-        URLNotReachableErrLbl: Label 'Cannot add the recommended app with ID %1. The URL %2 cannot be reached, and the HTTP status code is %3. Are you sure that the information about the app is correct?',
-            Comment = '%1 = App Id; %2 = App Source URL created with app info provided by the partner; %3 = Http StatusCode';
-        LogoDoesNotExistErrLbl: Label 'Cannot add the recommended app with ID %1. The logo image cannot be downloaded, and the HTTP status code is %2.',
+        CatalogApiUrlNotReachableErrLbl: Label 'Cannot add the recommended app with ID %1. The Marketplace Catalog API cannot be reached, and the HTTP status code is %2. Are you sure that the information about the app is correct?',
             Comment = '%1 = App Id; %2 = Http StatusCode';
-        AppExistURLLbl: Label 'https://appsource.microsoft.com/view/app/pubid.%1|aid.%2|pappid.%3/?version=2017-04-24', Locked = true;
+        CatalogApiUrlLbl: Label 'https://catalogapi.azure.com/products/%1?market=US&api-version=2023-05-01-preview&language=en', Locked = true;
         AppSourceURLNotFoundErrLbl: Label 'Cannot get the AppSource URL.';
-        UserAgentLbl: Label 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36', Locked = true;
+        CatalogApiKeyVaultSecretNameLbl: Label 'MarketplaceCatalogApi-Key', Locked = true;
+        CannotGetApiKeyFromKeyVaultErrLbl: Label 'Cannot retrieve the Marketplace Catalog API key from Azure Key Vault.', Locked = true;
 
     [NonDebuggable]
     procedure InsertApp(Id: Guid; SortingId: Integer; Name: Text[250]; Publisher: Text[250]; ShortDescription: Text[250]; LongDescription: Text[2048];
@@ -169,12 +169,6 @@ codeunit 4751 "Recommended Apps Impl."
     end;
 
     [NonDebuggable]
-    local procedure GetAppURL(LanguageCode: Text; PubId: Text; AId: Text; PAppId: Text): Text
-    begin
-        exit(StrSubstNo(AppSourceURLLbl, LanguageCode, PubId, AId, PAppId));
-    end;
-
-    [NonDebuggable]
     local procedure GetAppURLParametersFromAppSourceURL(Id: Guid; AppSourceURL: Text; var LanguageCode: Text[5]; var PubId: Text[100]; var AId: Text[100]; var PAppId: Text[100])
     var
         Matches: Record Matches;
@@ -202,6 +196,7 @@ codeunit 4751 "Recommended Apps Impl."
     [NonDebuggable]
     local procedure CheckIfURLExistsAndDownloadLogo(Id: Guid; LanguageCode: Text; PubId: Text; AId: Text; PAppId: Text; var MemoryStream: DotNet MemoryStream)
     var
+        AzureKeyVault: Codeunit "Azure Key Vault";
         WebClient: DotNet WebClient;
         HttpClient: HttpClient;
         HttpResponseMessage: HttpResponseMessage;
@@ -211,29 +206,27 @@ codeunit 4751 "Recommended Apps Impl."
         HttpResponseBodyText: Text;
         LogoURL: Text;
         ErrMsg: Text;
+        ApiKey: SecretText;
     begin
-        HttpClient.DefaultRequestHeaders().Add('User-Agent', UserAgentLbl);
-        HttpClient.Get(StrSubstNo(AppExistURLLbl, PubId, AId, PAppId), HttpResponseMessage);
+        if not AzureKeyVault.GetAzureKeyVaultSecret(CatalogApiKeyVaultSecretNameLbl, ApiKey) then
+            Error(CannotGetApiKeyFromKeyVaultErrLbl);
+
+        HttpClient.DefaultRequestHeaders().Add('X-API-Key', ApiKey);
+        HttpClient.Get(StrSubstNo(CatalogApiUrlLbl, PubId), HttpResponseMessage);
         StatusCode := HttpResponseMessage.HttpStatusCode();
 
         if (StatusCode = 200) then begin
             HttpResponseMessage.Content().ReadAs(HttpResponseBodyText);
             JsonObj.ReadFrom(HttpResponseBodyText);
-            JsonObj.Get('detailInformation', JsonTok);
-            JsonObj := JsonTok.AsObject();
-            JsonObj.Get('LargeIconUri', JsonTok);
+            JsonObj.Get('largeIconUri', JsonTok);
             LogoURL := JsonTok.AsValue().AsText();
 
-            if (StatusCode = 200) then begin
-                WebClient := WebClient.WebClient();
-                MemoryStream := MemoryStream.MemoryStream(WebClient.DownloadData(LogoURL));
-                exit;
-            end;
+            WebClient := WebClient.WebClient();
+            MemoryStream := MemoryStream.MemoryStream(WebClient.DownloadData(LogoURL));
+            exit;
+        end;
 
-            ErrMsg := StrSubstNo(LogoDoesNotExistErrLbl, Id, StatusCode);
-        end else
-            ErrMsg := StrSubstNo(URLNotReachableErrLbl, Id, GetAppURL(LanguageCode, PubId, AId, PAppId), StatusCode);
-
+        ErrMsg := StrSubstNo(CatalogApiUrlNotReachableErrLbl, Id, StatusCode);
         Error(ErrMsg);
     end;
 }
