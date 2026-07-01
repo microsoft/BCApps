@@ -190,6 +190,13 @@ codeunit 1751 "Data Classification Eval. Data"
 
         DataClassEvalDataCountry.ClassifyCountrySpecificTables();
 
+        // All unclassified CustomerContent fields on system tables default to Company Confidential
+        DataSensitivity.SetRange("Data Sensitivity", DataSensitivity."Data Sensitivity"::Unclassified);
+        DataSensitivity.SetFilter("Table No", '%1..', 2000000000);
+        DataSensitivity.SetRange("Data Classification", DataSensitivity."Data Classification"::CustomerContent);
+        DataSensitivity.ModifyAll("Data Sensitivity", DataSensitivity."Data Sensitivity"::"Company Confidential");
+        DataSensitivity.Reset();
+
         // All EUII and EUPI Fields are set to Personal
         DataSensitivity.SetFilter("Data Classification", '%1|%2',
             DataSensitivity."Data Classification"::EndUserIdentifiableInformation,

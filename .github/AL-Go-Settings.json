@@ -120,7 +120,7 @@
   "PullRequestTrigger": "pull_request",
   "ALDoc": {
     "maxReleases": 0,
-    "continuousDeployment": true,
+    "continuousDeployment": false,
     "groupByProject": false,
     "excludeProjects": [
       "build_projects_System Application Modules"
