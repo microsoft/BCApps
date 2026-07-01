@@ -1063,9 +1063,7 @@ table 38 "Purchase Header"
                     if "Applies-to Bill No." <> '' then
                         VendLedgEntry.SetRange("Bill No.", "Applies-to Bill No.");
                     if VendLedgEntry.FindFirst() then;
-                    VendLedgEntry.SetRange("Document Type");
-                    VendLedgEntry.SetRange("Document No.");
-                    VendLedgEntry.SetRange("Bill No.");
+                    VendLedgEntry.ClearDocumentFilters();
                 end else
                     if "Applies-to Doc. Type" <> "Applies-to Doc. Type"::" " then begin
                         VendLedgEntry.SetRange("Document Type", "Applies-to Doc. Type");

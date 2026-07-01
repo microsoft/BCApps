@@ -1090,12 +1090,6 @@ page 50 "Purchase Order"
                 SubPageLink = "No." = field("Pay-to Vendor No."),
                               "Date Filter" = field("Date Filter");
             }
-            part(Control1903433907; "Cartera Payables Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("Pay-to Vendor No.");
-                Visible = true;
-            }
             part(IncomingDocAttachFactBox; "Incoming Doc. Attach. FactBox")
             {
                 ApplicationArea = Suite;

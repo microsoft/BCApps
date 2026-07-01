@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Receivables;
 
-using Microsoft;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.DirectDebit;
 using Microsoft.CRM.Team;
@@ -362,7 +361,6 @@ table 21 "Cust. Ledger Entry"
                 ReminderIssue: Codeunit "Reminder-Issue";
             begin
                 TestField(Open, true);
-                CheckBillSituation();
                 if PaymentTerms.Get("Payment Terms Code") then
                     PaymentTerms.VerifyMaxNoDaysTillDueDate("Due Date", "Document Date", FieldCaption("Due Date"));
 
@@ -374,8 +372,6 @@ table 21 "Cust. Ledger Entry"
                     if ReminderEntry.FindLast() then
                         ReminderIssue.ChangeDueDate(ReminderEntry, "Due Date", xRec."Due Date");
                 end;
-                if "Document Situation" <> "Document Situation"::" " then
-                    DocMisc.UpdateReceivableDueDate(Rec);
             end;
         }
         /// <summary>
@@ -803,8 +799,6 @@ table 21 "Cust. Ledger Entry"
                 CalcFields("Remaining Amount");
                 OnValidateAmounttoApplyBeforeFieldError(Rec);
 
-                CheckBillSituation();
-
                 if AreOppositeSign("Amount to Apply", "Remaining Amount") then
                     FieldError("Amount to Apply", StrSubstNo(Text000, FieldCaption("Remaining Amount")));
 
@@ -870,6 +864,7 @@ table 21 "Cust. Ledger Entry"
             Caption = 'Payment Terms Code';
             Editable = false;
             TableRelation = "Payment Terms";
+            ToolTip = 'Specifies the payment terms that determine the due date and payment discount date for the entry.';
         }
         field(95; "G/L Register No."; Integer)
         {
@@ -884,6 +879,7 @@ table 21 "Cust. Ledger Entry"
         field(171; "Payment Reference"; Code[50])
         {
             Caption = 'Payment Reference';
+            ToolTip = 'Specifies the payment reference number used by banks to identify and track the payment.';
         }
         /// <summary>
         /// Specifies the payment method used or expected for this transaction, such as bank transfer, cash, or check.
@@ -895,15 +891,8 @@ table 21 "Cust. Ledger Entry"
             ToolTip = 'Specifies how to make payment, such as with bank transfer, cash, or check.';
 
             trigger OnValidate()
-            var
-                CarteraDoc: Record "Cartera Doc.";
             begin
                 TestField(Open, true);
-                if "Payment Method Code" <> xRec."Payment Method Code" then begin
-                    ValidatePaymentMethod();
-                    CarteraDoc.UpdatePaymentMethodCode(
-                      "Document No.", "Customer No.", "Bill No.", "Payment Method Code")
-                end;
             end;
         }
         /// <summary>
@@ -1088,34 +1077,6 @@ table 21 "Cust. Ledger Entry"
         {
             Caption = 'VAT Date';
         }
-        field(7000000; "Bill No."; Code[20])
-        {
-            Caption = 'Bill No.';
-        }
-        field(7000001; "Document Situation"; Enum "ES Document Situation")
-        {
-            Caption = 'Document Situation';
-        }
-        field(7000002; "Applies-to Bill No."; Code[20])
-        {
-            Caption = 'Applies-to Bill No.';
-        }
-        field(7000003; "Document Status"; Enum "ES Document Status")
-        {
-            Caption = 'Document Status';
-        }
-        field(7000005; "Remaining Amount (LCY) stats."; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            Caption = 'Remaining Amount (LCY) stats.';
-        }
-        field(7000006; "Amount (LCY) stats."; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            Caption = 'Amount (LCY) stats.';
-        }
     }
 
     keys
@@ -1187,16 +1148,6 @@ table 21 "Cust. Ledger Entry"
         {
             IncludedFields = "Accepted Payment Tolerance";
         }
-        key(Key7000000; "Document No.", "Bill No.")
-        {
-        }
-        key(Key7000001; "Customer No.", "Document Type", "Document Situation", "Document Status")
-        {
-            SumIndexFields = "Remaining Amount (LCY) stats.", "Amount (LCY) stats.";
-        }
-        key(Key7000002; "Applies-to ID", "Document Type", "Document Situation", "Document Status")
-        {
-        }
     }
 
     fieldgroups
@@ -1216,10 +1167,6 @@ table 21 "Cust. Ledger Entry"
         Text001: Label 'must not be larger than %1';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
-        DocMisc: Codeunit "Document-Misc";
-        CannotChangePmtMethodErr: Label 'For Cartera-based bills and invoices, you cannot change the Payment Method Code to this value.';
-        CheckBillSituationGroupErr: Label '%1 cannot be applied because it is included in a bill group. To apply the document, remove it from the bill group and try again.', Comment = '%1 - document type and number';
-        CheckBillSituationPostedErr: Label '%1 cannot be applied because it is included in a posted bill group.', Comment = '%1 - document type and number';
         NetBalanceOnHoldErr: Label 'General journal line number %3 on template name %1 batch name %2 is applied. Do you want to change On Hold value anyway?', Comment = '%1 - template name, %2 - batch name, %3 - line number';
 
     /// <summary>
@@ -1421,39 +1368,6 @@ table 21 "Cust. Ledger Entry"
         DimMgt.ShowDimensionSet("Dimension Set ID", StrSubstNo('%1 %2', TableCaption(), "Entry No."));
     end;
 
-    [Scope('OnPrem')]
-    procedure PrintBill(ShowRequestForm: Boolean)
-    var
-        CarteraReportSelection: Record "Cartera Report Selections";
-        CustLedgEntry: Record "Cust. Ledger Entry";
-    begin
-        CustLedgEntry.Copy(Rec);
-        CarteraReportSelection.SetRange(Usage, CarteraReportSelection.Usage::Bill);
-        CarteraReportSelection.SetFilter("Report ID", '<>0');
-        CarteraReportSelection.Find('-');
-        repeat
-            REPORT.RunModal(CarteraReportSelection."Report ID", ShowRequestForm, false, CustLedgEntry);
-        until CarteraReportSelection.Next() = 0;
-    end;
-
-    [Scope('OnPrem')]
-    procedure CheckBillSituation()
-    var
-        CarteraDoc: Record "Cartera Doc.";
-        PostedCarteraDoc: Record "Posted Cartera Doc.";
-    begin
-        OnBeforeCheckBillSituation(Rec);
-
-        case true of
-            CarteraDoc.Get(CarteraDoc.Type::Receivable, "Entry No."):
-                if CarteraDoc."Bill Gr./Pmt. Order No." <> '' then
-                    Error(CheckBillSituationGroupErr, Description);
-            PostedCarteraDoc.Get(PostedCarteraDoc.Type::Receivable, "Entry No."):
-                if PostedCarteraDoc."Bill Gr./Pmt. Order No." <> '' then
-                    Error(CheckBillSituationPostedErr, Description);
-        end;
-    end;
-
     /// <summary>
     /// Determines the visual style for displaying this entry based on its payment status.
     /// </summary>
@@ -1475,37 +1389,6 @@ table 21 "Cust. Ledger Entry"
         exit('');
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by W1 version of procedure', '27.0')]
-    procedure SetApplyToFilters(CustomerNo: Code[20]; ApplyDocType: Option; ApplyDocNo: Code[20]; ApplyBillNo: Code[20]; ApplyAmount: Decimal)
-    begin
-        SetCurrentKey("Customer No.", Open, Positive, "Due Date");
-        SetRange("Customer No.", CustomerNo);
-        SetRange(Open, true);
-        SetFilter("Document Situation", '<>%1', "Document Situation"::"Posted BG/PO");
-        if ApplyDocNo <> '' then begin
-            SetRange("Document Type", ApplyDocType);
-            SetRange("Document No.", ApplyDocNo);
-            if ApplyBillNo <> '' then
-                SetRange("Bill No.", ApplyBillNo);
-            if FindFirst() then;
-            SetRange("Document Type");
-            SetRange("Document No.");
-            SetRange("Bill No.");
-        end else
-            if ApplyDocType <> 0 then begin
-                SetRange("Document Type", ApplyDocType);
-                if FindFirst() then;
-                SetRange("Document Type");
-            end else
-                if ApplyAmount <> 0 then begin
-                    SetRange(Positive, ApplyAmount < 0);
-                    if FindFirst() then;
-                    SetRange(Positive);
-                end;
-    end;
-#endif
-
     /// <summary>
     /// Sets filters on the record to show entries that can be applied based on the specified criteria.
     /// </summary>
@@ -1518,14 +1401,12 @@ table 21 "Cust. Ledger Entry"
         SetCurrentKey("Customer No.", Open, Positive, "Due Date");
         SetRange("Customer No.", CustomerNo);
         SetRange(Open, true);
-        SetFilter("Document Situation", '<>%1', "Document Situation"::"Posted BG/PO");
+        OnSetApplyToFiltersOnBeforeSetFilters(Rec);
         if ApplyDocNo <> '' then begin
             SetRange("Document Type", ApplyDocType);
             SetRange("Document No.", ApplyDocNo);
             if FindFirst() then;
-            SetRange("Document Type");
-            SetRange("Document No.");
-            SetRange("Bill No.");
+            ClearDocumentFilters();
         end else
             if ApplyDocType <> 0 then begin
                 SetRange("Document Type", ApplyDocType);
@@ -1539,14 +1420,21 @@ table 21 "Cust. Ledger Entry"
                 end;
     end;
 
-#if not CLEAN27
-    [Obsolete('Replaced by W1 version of procedure', '27.0')]
-    procedure SetAmountToApply(AppliesToDocNo: Code[20]; CustomerNo: Code[20]; var AppliesToBillNo: Code[20])
+    procedure SetAppliesToDocFilters(var GenJnlLine: Record "Gen. Journal Line")
     begin
-        SetAmountToApply(AppliesToDocNo, CustomerNo);
-        AppliesToBillNo := "Bill No.";
+        SetRange("Document Type", GenJnlLine."Applies-to Doc. Type");
+        SetRange("Document No.", GenJnlLine."Applies-to Doc. No.");
+
+        OnAfterSetAppliesToDocFilters(Rec, GenJnlLine);
     end;
-#endif
+
+    procedure ClearDocumentFilters()
+    begin
+        SetRange("Document Type");
+        SetRange("Document No.");
+
+        OnAfterClearDocumentFilters(Rec);
+    end;
 
     /// <summary>
     /// Toggles the Amount to Apply field between the remaining amount and zero for the specified document.
@@ -1622,8 +1510,6 @@ table 21 "Cust. Ledger Entry"
         "Payment Reference" := GenJnlLine."Payment Reference";
         "Exported to Payment File" := GenJnlLine."Exported to Payment File";
         "Payment Terms Code" := GenJnlLine."Payment Terms Code";
-        "Bill No." := GenJnlLine."Bill No.";
-        "Applies-to Bill No." := GenJnlLine."Applies-to Bill No.";
         "VAT Reporting Date" := GenJnlLine."VAT Reporting Date";
 
         OnAfterCopyCustLedgerEntryFromGenJnlLine(Rec, GenJnlLine);
@@ -1673,19 +1559,6 @@ table 21 "Cust. Ledger Entry"
               CurrExchRate.ExchangeAmount("Amount to Apply", FromCurrencyCode, ToCurrencyCode, PostingDate);
         end;
         OnAfterRecalculateAmounts(Rec, FromCurrencyCode, ToCurrencyCode, PostingDate);
-    end;
-
-    local procedure ValidatePaymentMethod()
-    var
-        PaymentMethod: Record "Payment Method";
-    begin
-        PaymentMethod.Get("Payment Method Code");
-        if (("Document Type" = "Document Type"::Bill) and not PaymentMethod."Create Bills") or
-           (("Document Type" = "Document Type"::Invoice) and
-            ("Document Situation" <> "Document Situation"::" ") and
-            not PaymentMethod."Invoices to Cartera")
-        then
-            Error(CannotChangePmtMethodErr);
     end;
 
     /// <summary>
@@ -1975,7 +1848,17 @@ table 21 "Cust. Ledger Entry"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCheckBillSituation(var CustLedgerEntry: Record "Cust. Ledger Entry")
+    local procedure OnAfterSetAppliesToDocFilters(var Rec: Record "Cust. Ledger Entry"; var GenJnlLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterClearDocumentFilters(var Rec: Record "Cust. Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSetApplyToFiltersOnBeforeSetFilters(var Rec: Record "Cust. Ledger Entry")
     begin
     end;
 }

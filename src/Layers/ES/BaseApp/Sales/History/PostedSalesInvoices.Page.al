@@ -798,7 +798,6 @@ page 143 "Posted Sales Invoices"
         if HasFilters and not Rec.Find() then
             if Rec.FindFirst() then;
         IsOfficeAddin := OfficeMgt.IsAvailable();
-
         SalesInvoiceHeader.CopyFilters(Rec);
         SalesInvoiceHeader.SetFilter("Document Exchange Status", '<>%1', Rec."Document Exchange Status"::"Not Sent");
         DocExchStatusVisible := not SalesInvoiceHeader.IsEmpty();

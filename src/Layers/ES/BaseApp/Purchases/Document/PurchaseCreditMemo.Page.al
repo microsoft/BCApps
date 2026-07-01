@@ -811,11 +811,6 @@ page 52 "Purchase Credit Memo"
                 {
                     ApplicationArea = Basic, Suite;
                 }
-                field("Applies-to Bill No."; Rec."Applies-to Bill No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies if you want to settle an open payable bill with a credit memo from a vendor.';
-                }
                 field("Applies-to ID"; Rec."Applies-to ID")
                 {
                     ApplicationArea = Basic, Suite;
@@ -867,12 +862,6 @@ page 52 "Purchase Credit Memo"
                 ApplicationArea = Basic, Suite;
                 SubPageLink = "No." = field("Pay-to Vendor No."),
                               "Date Filter" = field("Date Filter");
-            }
-            part(Control1903433907; "Cartera Payables Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("Pay-to Vendor No.");
-                Visible = true;
             }
             part(Control1903435607; "Vendor Hist. Buy-from FactBox")
             {

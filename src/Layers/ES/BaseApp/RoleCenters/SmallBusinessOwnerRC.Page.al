@@ -8,7 +8,6 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Deposit;
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Reconciliation;
-using Microsoft.Bank.Reports;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Task;
 using Microsoft.CRM.Team;
@@ -19,7 +18,6 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.RoleCenters;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Reporting;
@@ -44,7 +42,6 @@ using Microsoft.Projects.Resources.Ledger;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
-using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Reports;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Analysis;
@@ -53,7 +50,6 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Pricing;
-using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Reports;
 using Microsoft.Sales.RoleCenters;
@@ -354,61 +350,6 @@ page 9020 "Small Business Owner RC"
                 RunObject = Report "Customer - Due Payments";
                 ToolTip = 'View a list of payments due from a particular customer sorted by due date.';
             }
-            group("Cartera Bill Groups")
-            {
-                Caption = 'Cartera Bill Groups';
-                action("Closed Bill Group Listing")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Closed Bill Group Listing';
-                    Image = "Report";
-                    RunObject = Report "Closed Bill Group Listing";
-                    ToolTip = 'View the list of completed bill groups.';
-                }
-                action("Posted Bill Group Listing")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Bill Group Listing';
-                    Image = "Report";
-                    RunObject = Report "Posted Bill Group Listing";
-                    ToolTip = 'View the list of posted bill groups. When a bill group has been posted, the related documents are available for settlement, rejection, or recirculation.';
-                }
-                action("Bill Group Listing")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Bill Group Listing';
-                    Image = "Report";
-                    RunObject = Report "Bill Group Listing";
-                    ToolTip = 'View or edit a bill group. Bill groups are receivables documents that are grouped together to submit to a bank for collection. For example, you may want to group documents for the same customer or group documents with the same due date.';
-                }
-            }
-            action("Bank - Summ. Bill Group")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Bank - Summ. Bill Group';
-                Image = "Report";
-                RunObject = Report "Bank - Summ. Bill Group";
-                ToolTip = 'View a detailed summary for existing bill groups.';
-            }
-            action("Bank - Risk")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Bank - Risk';
-                Image = "Report";
-                RunObject = Report "Bank - Risk";
-                ToolTip = 'View the risk status for discounting bills with the selected bank.';
-            }
-            action("Notice Assignment Credits")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Notice Assignment Credits';
-                Image = "Report";
-                RunObject = Report "Notice Assignment Credits";
-                ToolTip = 'Define how your company decides to administer its billing using a factoring (factor) entity. You send your customers a notification letter, telling them that it is going to assign its billing to another entity. As of that moment, the client will no longer have to pay the company, they will pay the factoring entity instead.';
-            }
-            separator(Action1100023)
-            {
-            }
             action("Vendor - Due Payments")
             {
                 ApplicationArea = Basic, Suite;
@@ -416,34 +357,6 @@ page 9020 "Small Business Owner RC"
                 Image = "Report";
                 RunObject = Report "Vendor - Due Payments";
                 ToolTip = 'View a list of payments to be made to a particular vendor sorted by due date.';
-            }
-            group("Cartera Payment Orders")
-            {
-                Caption = 'Cartera Payment Orders';
-                action("Closed Payment Order Listing")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Closed Payment Order Listing';
-                    Image = "Report";
-                    RunObject = Report "Closed Payment Order Listing";
-                    ToolTip = 'View the list of completed payment orders.';
-                }
-                action("Posted Payment Order Listing")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Payment Order Listing';
-                    Image = "Report";
-                    RunObject = Report "Posted Payment Order Listing";
-                    ToolTip = 'View posted payment orders that represent payables to submit to the bank as a file for electronic payment.';
-                }
-                action("Payment Order Listing")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Payment Order Listing';
-                    Image = "Report";
-                    RunObject = Report "Payment Order Listing";
-                    ToolTip = 'View or edit payment orders that represent payables to submit to the bank as a file for electronic payment.';
-                }
             }
         }
         area(embedding)
@@ -463,20 +376,6 @@ page 9020 "Small Business Owner RC"
                 Image = "Order";
                 RunObject = Page "Sales Order List";
                 ToolTip = 'Record your agreements with customers to sell certain products on certain delivery and payment terms. Sales orders, unlike sales invoices, allow you to ship partially, deliver directly from your vendor to your customer, initiate warehouse handling, and print various customer-facing documents. Sales invoicing is integrated in the sales order process.';
-            }
-            action("Bill Groups List")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Bill Groups List';
-                RunObject = Page "Bill Groups List";
-                ToolTip = 'View or edit a bill group. Bill groups are receivables documents that are grouped together to submit to a bank for collection. For example, you may want to group documents for the same customer or group documents with the same due date.';
-            }
-            action("Posted Bill Groups List")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Posted Bill Groups List';
-                RunObject = Page "Posted Bill Groups List";
-                ToolTip = 'View the list of posted bill groups. When a bill group has been posted, the related documents are available for settlement, rejection, or recirculation.';
             }
             action("Sales Orders - Microsoft Dynamics 365 for Sales")
             {
@@ -508,20 +407,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'Purchase Orders';
                 RunObject = Page "Purchase Order List";
                 ToolTip = 'Create purchase orders to mirror sales documents that vendors send to you. This enables you to record the cost of purchases and to track accounts payable. Posting purchase orders dynamically updates inventory levels so that you can minimize inventory costs and provide better customer service. Purchase orders allow partial receipts, unlike with purchase invoices, and enable drop shipment directly from your vendor to your customer. Purchase orders can be created automatically from PDF or image files from your vendors by using the Incoming Documents feature.';
-            }
-            action("Payment Orders List")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Payment Orders List';
-                RunObject = Page "Payment Orders List";
-                ToolTip = 'View or edit payment orders that represent payables to submit to the bank as a file for electronic payment.';
-            }
-            action("Posted Payment Orders List")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Posted Payment Orders List';
-                RunObject = Page "Posted Payment Orders List";
-                ToolTip = 'View posted payment orders that represent payables to submit to the bank as a file for electronic payment.';
             }
             action(Vendors)
             {
@@ -628,14 +513,6 @@ page 9020 "Small Business Owner RC"
                                         Recurring = const(false));
                     ToolTip = 'Post financial transactions directly to general ledger accounts and other accounts, such as bank, customer, vendor, and employee accounts. Posting with a general journal always creates entries on general ledger accounts. This is true even when, for example, you post a journal line to a customer account, because an entry is posted to a general ledger receivables account through a posting group.';
                 }
-                action("Cartera Journal")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Cartera Journal';
-                    RunObject = Page "General Journal Batches";
-                    RunPageView = where("Template Type" = const(Cartera));
-                    ToolTip = 'Prepare to post entries for Cartera documents, which are bills and invoices for customers and vendors. There are two types of bills: receivable bills and payable bills. Receivable bills are sent to a customer to be credited after their due date arrives. Payable bills are sent to a customer from a vendor in order to receive payment when the due date arrives.';
-                }
                 action(RecurringJournals)
                 {
                     ApplicationArea = Basic, Suite;
@@ -688,20 +565,6 @@ page 9020 "Small Business Owner RC"
                     RunObject = Page "Posted Sales Credit Memos";
                     ToolTip = 'Open the list of posted sales credit memos.';
                 }
-                action("Receivable Closed Cartera Docs")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Receivable Closed Cartera Docs';
-                    RunObject = Page "Receivable Closed Cartera Docs";
-                    ToolTip = 'View the customer bills and invoices that are in the closed bill groups.';
-                }
-                action("Closed Bill Groups List")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Closed Bill Groups List';
-                    RunObject = Page "Closed Bill Groups List";
-                    ToolTip = 'View the list of completed bill groups.';
-                }
                 action("Posted Purchase Receipts")
                 {
                     ApplicationArea = Basic, Suite;
@@ -722,20 +585,6 @@ page 9020 "Small Business Owner RC"
                     Caption = 'Posted Purchase Credit Memos';
                     RunObject = Page "Posted Purchase Credit Memos";
                     ToolTip = 'Open the list of posted purchase credit memos.';
-                }
-                action("Payable Closed Cartera Docs")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Payable Closed Cartera Docs';
-                    RunObject = Page "Payable Closed Cartera Docs";
-                    ToolTip = 'View the vendor bills and invoices that are in closed bill groups.';
-                }
-                action("Closed Payment Orders List")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Closed Payment Orders List';
-                    RunObject = Page "Closed Payment Orders List";
-                    ToolTip = 'View the list of completed payment orders.';
                 }
                 action("Issued Reminders")
                 {
@@ -1049,21 +898,6 @@ page 9020 "Small Business Owner RC"
                 RunPageMode = Create;
                 ToolTip = 'Create a new sales credit memo to revert a posted sales invoice.';
             }
-            action("Bill Group")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Bill Group';
-                Image = VoucherGroup;
-                RunObject = Page "Bill Groups";
-                ToolTip = 'View or edit a bill group. Bill groups are receivables documents that are grouped together to submit to a bank for collection. For example, you may want to group documents for the same customer or group documents with the same due date.';
-            }
-            action("Payment Order")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Payment Order';
-                RunObject = Page "Payment Orders";
-                ToolTip = 'Create a new payment order to submit payables as a file to the bank for electronic payment.';
-            }
             action("&Sales Reminder")
             {
                 ApplicationArea = Basic, Suite;
@@ -1163,33 +997,6 @@ page 9020 "Small Business Owner RC"
                 RunObject = Page "Bank Acc. Reconciliation";
                 ToolTip = 'Reconcile entries in your bank account ledger entries with the actual transactions in your bank account, according to the latest bank statement. ';
             }
-            action("Posted Bill Group Select.")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Posted Bill Group Select.';
-                RunObject = Page "Posted Bill Group Select.";
-                ToolTip = 'View or edit where ledger entries are posted when you post a bill group.';
-            }
-            group("Bill Group - Export Formats")
-            {
-                Caption = 'Bill Group - Export Formats';
-                action("Payment Order - Export N34")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Payment Order - Export N34';
-                    Image = "Report";
-                    RunObject = Report "Payment order - Export N34";
-                    ToolTip = 'Send the payment orders to magnetic media, following the Higher Banking Council''s (CSB) guidelines (Norm 34).';
-                }
-                action("Bill Group - Export Factoring")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Bill Group - Export Factoring';
-                    Image = "Report";
-                    RunObject = Report "Bill group - Export factoring";
-                    ToolTip = 'Send the factoring bill groups to a magnetic media.';
-                }
-            }
             action("Payment Registration")
             {
                 ApplicationArea = Basic, Suite;
@@ -1258,13 +1065,6 @@ page 9020 "Small Business Owner RC"
                 Image = Setup;
                 RunObject = Page "Sales & Receivables Setup";
                 ToolTip = 'Define your general policies for sales invoicing and returns, such as when to show credit and stockout warnings and how to post sales discounts. Set up your number series for creating customers and different sales documents.';
-            }
-            action("Cartera Setup")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Cartera Setup';
-                RunObject = Page "Cartera Setup";
-                ToolTip = 'Configure your company''s policies for bill groups and payment orders.';
             }
             separator(History)
             {

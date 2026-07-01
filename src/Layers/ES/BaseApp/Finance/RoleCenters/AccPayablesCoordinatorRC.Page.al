@@ -175,14 +175,6 @@ page 9002 "Acc. Payables Coordinator RC"
                     RunObject = Report "Closed Payment Order Listing";
                     ToolTip = 'View the list of completed payment orders.';
                 }
-                action("Posted Payment Order Listing")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Payment Order Listing';
-                    Image = "Report";
-                    RunObject = Report "Posted Payment Order Listing";
-                    ToolTip = 'View posted payment orders that represent payables to submit to the bank as a file for electronic payment.';
-                }
                 action("Payment Order Listing")
                 {
                     ApplicationArea = Basic, Suite;
@@ -233,13 +225,6 @@ page 9002 "Acc. Payables Coordinator RC"
                 Caption = 'Payment Orders List';
                 RunObject = Page "Payment Orders List";
                 ToolTip = 'View or edit payment orders that represent payables to submit to the bank as a file for electronic payment.';
-            }
-            action("Posted Payment Orders List")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Posted Payment Orders List';
-                RunObject = Page "Posted Payment Orders List";
-                ToolTip = 'View posted payment orders that represent payables to submit to the bank as a file for electronic payment.';
             }
             action("Purchase Return Orders")
             {
@@ -414,6 +399,9 @@ page 9002 "Acc. Payables Coordinator RC"
                 RunObject = Page "Payment Orders";
                 ToolTip = 'Create a new payment order to submit payables as a file to the bank for electronic payment.';
             }
+        }
+        area(processing)
+        {
             separator(Tasks)
             {
                 Caption = 'Tasks';
