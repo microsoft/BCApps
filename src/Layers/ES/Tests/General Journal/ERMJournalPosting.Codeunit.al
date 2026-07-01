@@ -687,8 +687,8 @@ codeunit 134420 "ERM Journal Posting"
             IgnoreCommit := false;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnBeforePostGenJnlLine, '', false, false)]
-    local procedure OnBeforePostGenJnlLineHandler(var GenJournalLine: Record "Gen. Journal Line"; Balancing: Boolean)
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnAfterGLFinishPosting, '', false, false)]
+    local procedure OnAfterGLFinishPostingHandler(GLEntry: Record "G/L Entry"; var GenJnlLine: Record "Gen. Journal Line")
     var
         ActivityLog: Record "Activity Log";
     begin
