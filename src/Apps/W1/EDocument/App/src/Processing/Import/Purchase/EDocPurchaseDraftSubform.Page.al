@@ -467,7 +467,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
             Page.Run(Page::"Purchase Order", PurchaseOrder);
             exit;
         end;
-        Page.Run(Page::"Purchase Orders", TempPurchaseOrders);
+        Page.Run(Page::"Purchase Order List", TempPurchaseOrders);
     end;
 
     local procedure UpdatePOMatching()

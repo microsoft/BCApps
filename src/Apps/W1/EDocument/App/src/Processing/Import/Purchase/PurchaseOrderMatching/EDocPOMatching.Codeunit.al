@@ -45,7 +45,7 @@ codeunit 6196 "E-Doc. PO Matching"
         PurchaseLine.SetRange("Pay-to Vendor No.", Vendor."No.");
         if EDocumentPurchaseLine."[BC] Unit of Measure" <> '' then
             PurchaseLine.SetRange("Unit of Measure Code", EDocumentPurchaseLine."[BC] Unit of Measure");
-        PurchaseLine.SetLoadFields("Document No.", "Line No.", Description, Quantity, "Qty. Invoiced (Base)", "Qty. Received (Base)", Type, "No.", "Quantity Received", "Quantity Invoiced");
+        PurchaseLine.SetLoadFields("Document No.", "Line No.", Description, Quantity, "Qty. Invoiced (Base)", "Qty. Received (Base)", Type, "No.", "Quantity Received", "Quantity Invoiced", "Direct Unit Cost", Amount, "Currency Code", "Expected Receipt Date");
         if PurchaseLine.FindSet() then
             repeat
                 // We exclude lines that have already been matched unless they were matched to the current line
@@ -330,10 +330,14 @@ codeunit 6196 "E-Doc. PO Matching"
 
         // The draft line's discount is an absolute amount, so we net it out of the line total before dividing by quantity.
         EDocNetUnitCost := (EDocumentPurchaseLine.Quantity * EDocumentPurchaseLine."Unit Price" - EDocumentPurchaseLine."Total Discount") / EDocumentPurchaseLine.Quantity;
-        // A non-positive invoiced unit cost means the line carries no usable price to compare; that's a missing-price situation, not a price mismatch.
-        if EDocNetUnitCost <= 0 then
-            exit(false);
         ExpectedPONetUnitCost := WeightedNetCostNumerator / TotalPOQuantity;
+
+        // A non-positive invoiced unit cost means the e-document line carries no usable price. That's only a mismatch
+        // when the order does expect a price (e.g. e-doc unit cost 0 but the order says 10); if the order is also
+        // unpriced (both 0) there is nothing to flag.
+        if EDocNetUnitCost <= 0 then
+            exit(ExpectedPONetUnitCost > 0);
+        // The e-document has a price but the order lines don't, so there's no usable unit cost to compare against.
         if ExpectedPONetUnitCost <= 0 then
             exit(false);
 

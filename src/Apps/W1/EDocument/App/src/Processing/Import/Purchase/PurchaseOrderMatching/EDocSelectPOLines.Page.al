@@ -37,11 +37,11 @@ page 6116 "E-Doc. Select PO Lines"
                     Caption = 'Quantity';
                     ToolTip = 'Specifies the quantity of the e-document line.';
                 }
-                field(EDocumentPurchaseLineSubTotal; EDocumentPurchaseLine."Sub Total")
+                field(EDocumentPurchaseLineUnitPrice; EDocumentPurchaseLine."Unit Price")
                 {
                     ApplicationArea = All;
-                    Caption = 'Amount';
-                    ToolTip = 'Specifies the amount of the e-document line.';
+                    Caption = 'Unit Price';
+                    ToolTip = 'Specifies the unit price of the e-document line.';
                 }
             }
             repeater(Lines)
@@ -89,11 +89,12 @@ page 6116 "E-Doc. Select PO Lines"
                     ToolTip = 'Specifies the quantity that has already been invoiced.';
                     AutoFormatType = 0;
                 }
-                field("Amount"; Rec.Amount)
+                field("Direct Unit Cost"; Rec."Direct Unit Cost")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the amount on the purchase order line.';
-                    AutoFormatType = 1;
+                    Caption = 'Unit Price';
+                    ToolTip = 'Specifies the unit price (direct unit cost) of the purchase order line.';
+                    AutoFormatType = 2;
                     AutoFormatExpression = Rec."Currency Code";
                 }
                 field("Expected Receipt Date"; Rec."Expected Receipt Date")
