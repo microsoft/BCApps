@@ -29,10 +29,10 @@ codeunit 5860 "Invt. Ledger Sales Source"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Invt. Ledger Source Mgt.", OnGetSourceOrderNo, '', false, false)]
-    local procedure OnGetSourceOrderNo(DocType: Enum "Item Ledger Document Type"; DocNo: Code[20]; var SourceOrderNo: Code[20])
+    local procedure OnGetSourceOrderNo(DocType: Enum "Item Ledger Document Type"; DocNo: Code[20]; DocLineNo: Integer; var SourceOrderNo: Code[20])
     var
         SalesShptHdr: Record "Sales Shipment Header";
-        SalesInvHdr: Record "Sales Invoice Header";
+        SalesInvLine: Record "Sales Invoice Line";
         SalesCrMemoHdr: Record "Sales Cr.Memo Header";
         ReturnRcptHdr: Record "Return Receipt Header";
     begin
@@ -48,9 +48,9 @@ codeunit 5860 "Invt. Ledger Sales Source"
                 end;
             DocType::"Sales Invoice":
                 begin
-                    SalesInvHdr.SetLoadFields("Order No.");
-                    if SalesInvHdr.Get(DocNo) then
-                        SourceOrderNo := SalesInvHdr."Order No.";
+                    SalesInvLine.SetLoadFields("Order No.");
+                    if SalesInvLine.Get(DocNo, DocLineNo) then
+                        SourceOrderNo := SalesInvLine."Order No.";
                 end;
             DocType::"Sales Return Receipt":
                 begin
