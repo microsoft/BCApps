@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -8,6 +9,9 @@ enum 6113 "E-Doc. PO M. Configuration"
 {
     Access = Internal;
     Extensible = false;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Replaced by the per-line "Receipt on Invoice" field on Purchase Line and the "Receipt on Invoice Policy" field on Vendor.';
+    ObsoleteTag = '29.0';
     value(0; "Always ask")
     {
         Caption = 'Always ask';
@@ -29,3 +33,4 @@ enum 6113 "E-Doc. PO M. Configuration"
         Caption = 'Receive at posting except for certain vendors';
     }
 }
+#endif

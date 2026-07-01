@@ -1,3 +1,4 @@
+#if not CLEANSCHEMA32
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -9,6 +10,14 @@ using Microsoft.Purchases.Vendor;
 table 6116 "E-Doc. PO Matching Setup"
 {
     Access = Internal;
+    ObsoleteReason = 'Replaced by the per-line "Receipt on Invoice" field on Purchase Line and the "Receipt on Invoice Policy" field on Vendor.';
+#if not CLEAN29
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '32.0';
+#endif
     InherentEntitlements = RID;
     InherentPermissions = RID;
     ReplicateData = false;
@@ -20,10 +29,12 @@ table 6116 "E-Doc. PO Matching Setup"
             AutoIncrement = true;
             DataClassification = SystemMetadata;
         }
+        #pragma warning disable AS0105
         field(2; "PO Matching Config. Receipt"; Enum "E-Doc. PO M. Config. Receipt")
         {
             DataClassification = CustomerContent;
         }
+        #pragma warning restore AS0105
         field(3; "Vendor No."; Code[20])
         {
             DataClassification = CustomerContent;
@@ -61,6 +72,7 @@ table 6116 "E-Doc. PO Matching Setup"
     /// Sets the current record to the setup applicable if there is no specific override
     /// </summary>
     /// <returns></returns>
+    #pragma warning disable AS0105
     procedure GetSetup()
     begin
         Clear(Rec);
@@ -70,5 +82,7 @@ table 6116 "E-Doc. PO Matching Setup"
         Rec."PO Matching Config. Receipt" := "E-Doc. PO M. Config. Receipt"::"Always ask";
         Rec."Receive G/L Account Lines" := true;
     end;
+    #pragma warning restore AS0105
 
 }
+#endif

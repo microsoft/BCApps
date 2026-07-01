@@ -10,7 +10,6 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.Integration.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Import;
-using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.EServices.EDocumentConnector.Microsoft365;
 using Microsoft.Purchases.History;
 using System.Agents;
@@ -84,7 +83,6 @@ codeunit 3307 "Payables Agent Setup"
         EnvironmentInformation: Codeunit "Environment Information";
         PADemoGuide: Codeunit "PA Demo Guide";
         PAValidateSetup: Codeunit "PA Validate Setup";
-        EDocPOMatching: Codeunit "E-Doc. PO Matching";
         ConsentManager: Interface IConsentManager;
         ErrorAccountNotConnecting: ErrorInfo;
         OutlookSetupExistedPreviously, EmailAccountChanged : Boolean;
@@ -166,7 +164,6 @@ codeunit 3307 "Payables Agent Setup"
         PayablesAgentSetup."E-Document Service Code" := ApplyEDocumentServiceSetup(PASetupConfiguration, EmailAccountChanged);
         PayablesAgentSetup.Modify();
 
-        EDocPOMatching.ConfigureDefaultPOMatchingSettings();
         PADemoGuide.SendDemoEmail(PASetupConfiguration);
 
         InsertAccessControlForEligibleUsers(PayablesAgentSetup."User Security Id");
