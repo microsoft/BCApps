@@ -2165,7 +2165,6 @@ codeunit 7307 "Whse.-Activity-Register"
     local procedure RemoveNonSpecificreservations(WhseActivLine: Record "Warehouse Activity Line"; WhseItemTrackingSetup: Record "Item Tracking Setup"; QtyToRelease: Decimal)
     var
         ReservationEntry: Record "Reservation Entry";
-        SalesLine: Record "Sales Line";
         QtyToPick: Decimal;
     begin
         if not WhseItemTrackingSetup.TrackingRequired() then
@@ -2174,27 +2173,64 @@ codeunit 7307 "Whse.-Activity-Register"
             exit;
 
         QtyToPick := QtyToRelease;
-        SalesLine.Get(WhseActivLine."Source Subtype", WhseActivLine."Source No.", WhseActivLine."Source Line No.");
         ReservationEntry.SetSourceFilter(WhseActivLine."Source Type", WhseActivLine."Source Subtype", WhseActivLine."Source No.", WhseActivLine."Source Line No.", true);
         ReservationEntry.SetRange(Positive, false);
         if ReservationEntry.FindSet() then
             repeat
-                DeleteNonSpecificReservationEntries(ReservationEntry, SalesLine, QtyToPick);
-            until (ReservationEntry.Next() = 0) or (QtyToPick >= 0);
+                DeleteNonSpecificReservationEntries(ReservationEntry, WhseActivLine, QtyToPick);
+            until (ReservationEntry.Next() = 0) or (QtyToPick <= 0);
     end;
 
-    local procedure DeleteNonSpecificReservationEntries(ReservationEntry: Record "Reservation Entry"; SalesLine: Record "Sales Line"; var QtyToPick: Decimal)
+    local procedure DeleteNonSpecificReservationEntries(var ReservationEntry: Record "Reservation Entry"; WhseActivLine: Record "Warehouse Activity Line"; var QtyToPick: Decimal)
     var
-        ReservationManagement: Codeunit "Reservation Management";
+        PairedReservationEntry: Record "Reservation Entry";
+        ReleaseQtyBase: Decimal;
     begin
         if ReservationEntry.TrackingExists() then
             exit;
 
-        ReservationManagement.SetReservSource(SalesLine);
-        ReservationManagement.DeleteReservEntries(false, ReservationEntry."Quantity (Base)");
-        QtyToPick += ReservationEntry."Quantity (Base)"
+        if not PairedReservationEntry.Get(ReservationEntry."Entry No.", not ReservationEntry.Positive) then
+            exit;
+
+        // Release only the reservation on the paired lot that this order will not pick itself. The freed
+        // quantity becomes surplus that Late Binding Management can move the blocking reservations of
+        // other documents onto, while keeping this order's reservation on each lot it picks from.
+        ReleaseQtyBase := Abs(ReservationEntry."Quantity (Base)") - CalcQtyToPickOnLotBase(WhseActivLine, PairedReservationEntry."Lot No.");
+        if ReleaseQtyBase <= 0 then
+            exit;
+        if ReleaseQtyBase > QtyToPick then
+            ReleaseQtyBase := QtyToPick;
+
+        if ReleaseQtyBase >= Abs(ReservationEntry."Quantity (Base)") then begin
+            ReservationEntry.Delete();
+            PairedReservationEntry.Delete();
+        end else begin
+            ReservationEntry.Validate("Quantity (Base)", ReservationEntry."Quantity (Base)" + ReleaseQtyBase);
+            ReservationEntry.Modify();
+            PairedReservationEntry.Validate("Quantity (Base)", PairedReservationEntry."Quantity (Base)" - ReleaseQtyBase);
+            PairedReservationEntry.Modify();
+        end;
+
+        QtyToPick := QtyToPick - ReleaseQtyBase;
     end;
 
+    local procedure CalcQtyToPickOnLotBase(WhseActivLine: Record "Warehouse Activity Line"; LotNo: Code[50]): Decimal
+    var
+        WhseActivLine2: Record "Warehouse Activity Line";
+    begin
+        if LotNo = '' then
+            exit(0);
+
+        WhseActivLine2.SetRange("Activity Type", WhseActivLine."Activity Type");
+        WhseActivLine2.SetRange("No.", WhseActivLine."No.");
+        WhseActivLine2.SetSourceFilter(
+          WhseActivLine."Source Type", WhseActivLine."Source Subtype", WhseActivLine."Source No.",
+          WhseActivLine."Source Line No.", WhseActivLine."Source Subline No.", false);
+        WhseActivLine2.SetRange("Action Type", WhseActivLine2."Action Type"::Take);
+        WhseActivLine2.SetRange("Lot No.", LotNo);
+        WhseActivLine2.CalcSums("Qty. to Handle (Base)");
+        exit(WhseActivLine2."Qty. to Handle (Base)");
+    end;
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCode(var WarehouseActivityLine: Record "Warehouse Activity Line")
