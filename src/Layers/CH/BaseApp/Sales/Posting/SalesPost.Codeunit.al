@@ -355,6 +355,8 @@ codeunit 80 "Sales-Post"
 
         ProcessPosting(SalesHeader, SalesHeader2, TempDropShptPostBuffer, CustLedgEntry, EverythingInvoiced);
 
+        Clear(GenJnlPostLine);
+
         UpdateLastPostingNos(SalesHeader);
 
         OnRunOnBeforeFinalizePosting(
@@ -372,7 +374,7 @@ codeunit 80 "Sales-Post"
 
         // Date-ordered No. Series require that number allocation and the posted document are in the same
         // transaction to prevent gaps. At this point FinalizePosting has completed, so both the allocated
-        // number and the posted document exist in the current transaction â€” committing is safe.
+        // number and the posted document exist in the current transaction — committing is safe.
         // Restore SuppressCommit to the caller's original value so that the date-order guard
         // no longer blocks the final commit.
         if DateOrderSeriesUsed and SuppressCommit then
@@ -555,6 +557,8 @@ codeunit 80 "Sales-Post"
         OnRunOnBeforeMakeInventoryAdjustment(SalesHeader, SalesInvHeader, GenJnlPostLine, ItemJnlPostLine, PreviewMode, SkipInventoryAdjustment);
         if not SkipInventoryAdjustment then
             MakeInventoryAdjustment();
+
+        OnAfterProcessPostingLines(SalesHeader, TotalSalesLine, CustLedgEntry, InvoicePostingParameters, SuppressCommit, EverythingInvoiced, Window, HideProgressWindow);
     end;
 
     /// <summary>
@@ -949,7 +953,7 @@ codeunit 80 "Sales-Post"
             repeat
                 ErrorMessageMgt.PushContext(ErrorContextElement, TempSalesLineGlobal.RecordId(), 0, CheckSalesLineMsg);
                 TestSalesLine(SalesHeader, TempSalesLineGlobal);
-                if (SalesHeader.Ship or SalesHeader.Receive or SalesHeader.Invoice) and (TempSalesLineGlobal.Type = TempSalesLineGlobal.Type::Item) and (TempSalesLineGlobal."Qty. to Ship" <> 0) then 
+                if (SalesHeader.Ship or SalesHeader.Receive or SalesHeader.Invoice) and (TempSalesLineGlobal.Type = TempSalesLineGlobal.Type::Item) and (TempSalesLineGlobal."Qty. to Ship" <> 0) then
                     NoOfItemLines += 1;
             until TempSalesLineGlobal.Next() = 0;
         ErrorMessageMgt.PopContext(ErrorContextElement);
@@ -2587,7 +2591,7 @@ codeunit 80 "Sales-Post"
                 OnCheckItemTrackingQuantityOnDocumentTypeCaseElse(SalesHeader, SalesLine);
         end;
     end;
-    
+
     local procedure TestSalesLineItemCharge(SalesLine: Record "Sales Line")
     var
         IsHandled: Boolean;
@@ -6290,6 +6294,8 @@ codeunit 80 "Sales-Post"
         if SalesHeader."Bill-to Contact No." <> '' then
             if Contact.Get(SalesHeader."Bill-to Contact No.") then
                 Contact.CheckIfPrivacyBlocked(true);
+
+        OnAfterCheckPostRestrictions(SalesHeader);
     end;
 
     local procedure CheckCustBlockage(SalesHeader: Record "Sales Header"; CustCode: Code[20]; ExecuteDocCheck: Boolean)
@@ -11728,7 +11734,7 @@ codeunit 80 "Sales-Post"
                 DimensionMgt.GetCombinedDimensionSetID(DimSetID, ItemJnlLine2."Shortcut Dimension 1 Code", ItemJnlLine2."Shortcut Dimension 2 Code");
         end;
     end;
-    
+
     local procedure UpdateSalesLineDimSetIDFromAppliedEntry(var SalesLineToPost: Record "Sales Line"; SalesLine: Record "Sales Line")
     var
         ItemLedgEntry: Record "Item Ledger Entry";
@@ -14103,6 +14109,20 @@ codeunit 80 "Sales-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnSyncSurPlusItemTrackingOnBeforeModifyQtyToHandleInvoice(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var ReservationEntry: Record "Reservation Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterProcessPostingLines(var SalesHeader: Record "Sales Header"; var TotalSalesLine: Record "Sales Line"; var CustLedgEntry: Record "Cust. Ledger Entry"; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean; EverythingInvoiced: Boolean; var Window: Dialog; HideProgressWindow: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after checking posting restrictions
+    /// </summary>
+    /// <param name="SalesHeader"></param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCheckPostRestrictions(var SalesHeader: Record "Sales Header")
     begin
     end;
 }
