@@ -528,31 +528,45 @@ table 1304 "Sales Price and Line Disc Buff"
         LoadedLines := 0;
         if MaxNoOfLines > 0 then
             RemainingLinesToLoad := MaxNoOfLines - LoadedLines;
-        if EnoughLoaded(LoadedLines, MaxNoOfLines, RemainingLinesToLoad) then
+        if EnoughLoaded(LoadedLines, MaxNoOfLines, RemainingLinesToLoad) then begin
+            OnLoadDataForCustomerOnAfterCalcLoadedLines(LoadedLines, RemainingLinesToLoad, Rec, Customer, MaxNoOfLines);
             exit(LoadedLines);
+        end;
 
         "Loaded Customer No." := Customer."No.";
         "Loaded Disc. Group" := Customer."Customer Disc. Group";
         "Loaded Price Group" := Customer."Customer Price Group";
+        OnLoadDataForCustomerOnAfterSetLoadedCustomerFields(Customer, MaxNoOfLines, Rec);
 
         LoadedLines += LoadSalesPriceForCustomer(RemainingLinesToLoad);
 
         LoadedLines += LoadSalesPriceForAllCustomers(RemainingLinesToLoad);
-        if EnoughLoaded(LoadedLines, MaxNoOfLines, RemainingLinesToLoad) then
+        if EnoughLoaded(LoadedLines, MaxNoOfLines, RemainingLinesToLoad) then begin
+            OnLoadDataForCustomerOnAfterCalcLoadedLines(LoadedLines, RemainingLinesToLoad, Rec, Customer, MaxNoOfLines);
             exit(LoadedLines);
+        end;
         LoadedLines += LoadSalesPriceForCustPriceGr(RemainingLinesToLoad);
-        if EnoughLoaded(LoadedLines, MaxNoOfLines, RemainingLinesToLoad) then
+        if EnoughLoaded(LoadedLines, MaxNoOfLines, RemainingLinesToLoad) then begin
+            OnLoadDataForCustomerOnAfterCalcLoadedLines(LoadedLines, RemainingLinesToLoad, Rec, Customer, MaxNoOfLines);
             exit(LoadedLines);
+        end;
         LoadedLines += LoadSalesLineDiscForCustomer(RemainingLinesToLoad);
-        if EnoughLoaded(LoadedLines, MaxNoOfLines, RemainingLinesToLoad) then
+        if EnoughLoaded(LoadedLines, MaxNoOfLines, RemainingLinesToLoad) then begin
+            OnLoadDataForCustomerOnAfterCalcLoadedLines(LoadedLines, RemainingLinesToLoad, Rec, Customer, MaxNoOfLines);
             exit(LoadedLines);
+        end;
         LoadedLines += LoadSalesLineDiscForAllCustomers(RemainingLinesToLoad);
-        if EnoughLoaded(LoadedLines, MaxNoOfLines, RemainingLinesToLoad) then
+        if EnoughLoaded(LoadedLines, MaxNoOfLines, RemainingLinesToLoad) then begin
+            OnLoadDataForCustomerOnAfterCalcLoadedLines(LoadedLines, RemainingLinesToLoad, Rec, Customer, MaxNoOfLines);
             exit(LoadedLines);
+        end;
         LoadedLines += LoadSalesLineDiscForCustDiscGr(RemainingLinesToLoad);
-        if EnoughLoaded(LoadedLines, MaxNoOfLines, RemainingLinesToLoad) then
+        if EnoughLoaded(LoadedLines, MaxNoOfLines, RemainingLinesToLoad) then begin
+            OnLoadDataForCustomerOnAfterCalcLoadedLines(LoadedLines, RemainingLinesToLoad, Rec, Customer, MaxNoOfLines);
             exit(LoadedLines);
+        end;
         LoadedLines += GetCustomerCampaignSalesPrice(RemainingLinesToLoad);
+        OnLoadDataForCustomerOnAfterCalcLoadedLines(LoadedLines, RemainingLinesToLoad, Rec, Customer, MaxNoOfLines);
 
         Session.LogMessage('0000AI3', StrSubstNo(PricesAndDiscountsCountMsg, Count), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', PricesAndDiscountsCountLbl);
         exit(LoadedLines);
@@ -1067,6 +1081,16 @@ table 1304 "Sales Price and Line Disc Buff"
 
     [IntegrationEvent(false, false)]
     local procedure OnLoadSalesPriceOnBeforeInsert(var SalesPriceAndLineDiscBuff: Record "Sales Price and Line Disc Buff"; SalesPrice: Record "Sales Price")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnLoadDataForCustomerOnAfterSetLoadedCustomerFields(var Customer: Record Customer; MaxNoOfLines: Integer; var SalesPriceAndLineDiscBuff: Record "Sales Price and Line Disc Buff")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnLoadDataForCustomerOnAfterCalcLoadedLines(var LoadedLines: Integer; var RemainingLinesToLoad: Integer; var SalesPriceAndLineDiscBuff: Record "Sales Price and Line Disc Buff"; var Customer: Record Customer; MaxNoOfLines: Integer)
     begin
     end;
 
