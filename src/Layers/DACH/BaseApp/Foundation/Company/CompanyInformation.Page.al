@@ -514,9 +514,9 @@ page 1 "Company Information"
                     end;
                 }
             }
-            group(ReportLayoutDefaults)
+            group(Reporting)
             {
-                Caption = 'Report Layout Defaults';
+                Caption = 'Reporting';
                 Visible = DocumentReportExperienceEnabled;
 
                 field(DefaultThemePart; ThemePartDisplay)

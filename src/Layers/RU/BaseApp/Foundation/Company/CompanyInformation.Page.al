@@ -599,35 +599,11 @@ page 1 "Company Information"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the first four digits of the VAT registration number for the administrative tax authority code.';
                 }
-            }
-            group("User Experience")
-            {
-                Caption = 'User Experience';
-                field(Experience; Experience)
-                {
-                    ApplicationArea = All;
-                    AssistEdit = true;
-                    Caption = 'Experience';
-                    Editable = false;
-                    ToolTip = 'Specifies which UI elements are displayed and  which features are available. The setting applies to all users. Essential: Shows all actions and fields for all common business functionality. Premium: Shows all actions and fields for all business functionality, including Manufacturing and Service Management.';
-
-                    trigger OnAssistEdit()
-                    var
-                        ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
-                    begin
-                        ApplicationAreaMgmtFacade.LookupExperienceTier(Experience);
-                    end;
-                }
-            }
-            group(ReportLayoutDefaults)
-            {
-                Caption = 'Report Layout Defaults';
-                Visible = DocumentReportExperienceEnabled;
-
                 field(DefaultThemePart; ThemePartDisplay)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Default Theme';
+                    Visible = DocumentReportExperienceEnabled;
                     ToolTip = 'Specifies the default theme applied to this company''s Word report layouts when no more specific configuration applies. Use the assist-edit to pick a theme; clear the value to remove it.';
 
                     trigger OnAssistEdit()
@@ -646,6 +622,7 @@ page 1 "Company Information"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Default Header/Footer';
+                    Visible = DocumentReportExperienceEnabled;
                     ToolTip = 'Specifies the default header/footer applied to this company''s Word report layouts when no more specific configuration applies. Use the assist-edit to pick a part; clear the value to remove it.';
 
                     trigger OnAssistEdit()
@@ -658,6 +635,25 @@ page 1 "Company Information"
                     begin
                         if HeaderPartDisplay = '' then
                             LookupHelper.ClearCompanyDefaultPart(Enum::"Report Layout Subtype"::HeaderFooter);
+                    end;
+                }
+            }
+            group("User Experience")
+            {
+                Caption = 'User Experience';
+                field(Experience; Experience)
+                {
+                    ApplicationArea = All;
+                    AssistEdit = true;
+                    Caption = 'Experience';
+                    Editable = false;
+                    ToolTip = 'Specifies which UI elements are displayed and  which features are available. The setting applies to all users. Essential: Shows all actions and fields for all common business functionality. Premium: Shows all actions and fields for all business functionality, including Manufacturing and Service Management.';
+
+                    trigger OnAssistEdit()
+                    var
+                        ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
+                    begin
+                        ApplicationAreaMgmtFacade.LookupExperienceTier(Experience);
                     end;
                 }
             }
