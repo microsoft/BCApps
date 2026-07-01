@@ -341,11 +341,17 @@ report 4402 "EXR Aged Accounts Rec Excel"
     local procedure InsertAgingData(var Customer: Record Customer)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
+        EarliestPeriodStart: Date;
     begin
+        EarliestPeriodStart := PeriodStarts.Get(PeriodStarts.Count());
         CustLedgerEntry.SetCurrentKey("Customer No.", Open, Positive, "Due Date", "Currency Code");
         CustLedgerEntry.SetRange("Customer No.", Customer."No.");
         CustLedgerEntry.SetRange("Posting Date", 0D, EndingDate);
         CustLedgerEntry.SetRange("Date Filter", 0D, EndingDate);
+
+        if (TempEXRAgingReportBuffer."Aged By" = TempEXRAgingReportBuffer."Aged By"::"Due Date") and (PeriodCount <> 0) then
+            CustLedgerEntry.SetRange("Due Date", EarliestPeriodStart, EndingDate);
+
         CustLedgerEntry.SetAutoCalcFields("Remaining Amt. (LCY)", "Remaining Amount", "Original Amount", "Original Amt. (LCY)");
         CustLedgerEntry.SetFilter("Remaining Amt. (LCY)", '<>0');
         if CustLedgerEntry.FindSet() then

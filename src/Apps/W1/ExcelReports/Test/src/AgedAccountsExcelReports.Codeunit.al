@@ -252,6 +252,34 @@ codeunit 139555 "Aged Accounts Excel Reports"
         Assert.IsTrue(LcyRowSeen, 'LCY row should be present');
     end;
 
+    [Test]
+    [HandlerFunctions('EXRAgedAccountsRecExcelHandlerWorkdate')]
+    procedure AgedAccountsReceivableExcelReportExportsAsPerPeriodCount()
+    var
+        Customer: Record Customer;
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 640052] Aged Accounts Receivable Excel report exports as per Period count.
+        InitializeAgingData();
+
+        // [GIVEN] Customer "C" with an open customer ledger entry of type Invoice
+        // Create customer directly to avoid VAT posting setup requirements in some localizations
+        CreateMinimalCustomer(Customer);
+        CreateCustLedgerEntry(CustLedgerEntry, Customer."No.", "Gen. Journal Document Type"::Invoice);
+        Commit();
+
+        // [WHEN] Running the Aged Accounts Receivable Excel report
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Accounts Rec Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Accounts Rec Excel", Variant, RequestPageXml);
+
+        // [THEN] The exported data does not exists.
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
+        Assert.AreEqual(0, LibraryReportDataset.RowCount(), 'One aging entry should be exported');
+    end;
+
     local procedure InitializeAgingData()
     var
         Vendor: Record Vendor;
@@ -370,22 +398,29 @@ codeunit 139555 "Aged Accounts Excel Reports"
     [RequestPageHandler]
     procedure EXRAgedAccPayableExcelHandler(var EXRAgedAccPayableExcel: TestRequestPage "EXR Aged Acc Payable Excel")
     begin
-        EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate() + 30);
         EXRAgedAccPayableExcel.OK().Invoke();
     end;
 
     [RequestPageHandler]
     procedure EXRAgedAccountsRecExcelHandler(var EXRAgedAccountsRecExcel: TestRequestPage "EXR Aged Accounts Rec Excel")
     begin
-        EXRAgedAccountsRecExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccountsRecExcel.AgedAsOfOption.SetValue(WorkDate() + 30);
         EXRAgedAccountsRecExcel.OK().Invoke();
     end;
 
     [RequestPageHandler]
     procedure EXRAgedAccPayablePostingDateHandler(var EXRAgedAccPayableExcel: TestRequestPage "EXR Aged Acc Payable Excel")
     begin
-        EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate() + 30);
         EXRAgedAccPayableExcel.AgingbyOption.SetValue('Posting Date');
         EXRAgedAccPayableExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRAgedAccountsRecExcelHandlerWorkdate(var EXRAgedAccountsRecExcel: TestRequestPage "EXR Aged Accounts Rec Excel")
+    begin
+        EXRAgedAccountsRecExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccountsRecExcel.OK().Invoke();
     end;
 }
