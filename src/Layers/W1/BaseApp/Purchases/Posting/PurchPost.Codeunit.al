@@ -325,6 +325,10 @@ codeunit 90 "Purch.-Post"
         OnRunOnBeforeMakeInventoryAdjustment(PurchHeader, GenJnlPostLine, ItemJnlPostLine, PreviewMode, PurchRcptHeader, PurchInvHeader, IsHandled);
         if not IsHandled then
             MakeInventoryAdjustment();
+
+        Clear(GenJnlPostLine);
+
+        OnAfterProcessPostingLines(PurchHeader, TotalPurchLine, VendLedgEntry, InvoicePostingParameters, SuppressCommit, EverythingInvoiced, Window);
     end;
 
     var
@@ -844,6 +848,7 @@ codeunit 90 "Purch.-Post"
     begin
         if not DocumentIsReadyToBeChecked then
             PrepareCheckDocument(PurchHeader);
+
         ErrorMessageMgt.PushContext(ErrorContextElement, PurchHeader.RecordId, 0, CheckPurchHeaderMsg);
         CheckMandatoryHeaderFields(PurchHeader);
         GetGLSetup();
@@ -4051,6 +4056,8 @@ codeunit 90 "Purch.-Post"
         if PurchaseHeader."Pay-to Contact No." <> '' then
             if Contact.Get(PurchaseHeader."Pay-to Contact No.") then
                 Contact.CheckIfPrivacyBlocked(true);
+
+        OnAfterCheckPostRestrictions(PurchaseHeader);
     end;
 
     local procedure CheckFAPostingPossibility(PurchaseHeader: Record "Purchase Header")
@@ -5318,7 +5325,7 @@ codeunit 90 "Purch.-Post"
         if PurchHeader."Prices Including VAT" then
             PrepmtVATBaseToDeduct :=
               Round(
-                (TotalPrepmtAmtToDeduct + PurchLine."Prepmt Amt to Deduct") / (1 + PurchLine."Prepayment VAT %" / 100),
+                (TotalPrepmtAmtToDeduct + PurchLine."Prepmt Amt to Deduct") / (1 + PurchLine.GetPrepaymentVATPct() / 100),
                 Currency."Amount Rounding Precision") -
               Round(
                 TotalPrepmtAmtToDeduct / (1 + PurchLine.GetPrepaymentVATPct() / 100),
@@ -11518,6 +11525,19 @@ codeunit 90 "Purch.-Post"
     local procedure OnSetCommitBehavior(var IgnoreCommit: Boolean)
     begin
     end;
-}
 
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterProcessPostingLines(var PurchHeader: Record "Purchase Header"; var TotalPurchLine: Record "Purchase Line"; var VendLedgEntry: Record "Vendor Ledger Entry"; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean; EverythingInvoiced: Boolean; var Window: Dialog)
+    begin
+    end;
+
+    /// <summary>
+    /// Event is raised after the <c>CheckPostRestrictions</c> function is executed
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header record that was checked for post restrictions.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCheckPostRestrictions(var PurchaseHeader: Record "Purchase Header")
+    begin
+    end;
+}
 

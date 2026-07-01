@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -18,6 +18,7 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
@@ -851,6 +852,13 @@ table 21 "Cust. Ledger Entry"
             Caption = 'Prepayment';
             ToolTip = 'Specifies if the related payment is a prepayment.';
         }
+        field(91; "Payment Terms Code"; Code[10])
+        {
+            Caption = 'Payment Terms Code';
+            Editable = false;
+            TableRelation = "Payment Terms";
+            ToolTip = 'Specifies the payment terms that determine the due date and payment discount date for the entry.';
+        }
         field(95; "G/L Register No."; Integer)
         {
             Caption = 'G/L Register No.';
@@ -864,6 +872,7 @@ table 21 "Cust. Ledger Entry"
         field(171; "Payment Reference"; Code[50])
         {
             Caption = 'Payment Reference';
+            ToolTip = 'Specifies the payment reference number used by banks to identify and track the payment.';
         }
         /// <summary>
         /// Specifies the payment method used or expected for this transaction, such as bank transfer, cash, or check.
@@ -1097,23 +1106,23 @@ table 21 "Cust. Ledger Entry"
         key(Key17; "Customer No.", "Applies-to ID", Open, Positive, "Due Date")
         {
         }
-        key(Key23; "Document Type", "Posting Date")
+        key(Key18; "Document Type", "Posting Date")
         {
             SumIndexFields = "Sales (LCY)";
         }
-        key(Key24; "Document Type", "Customer No.", Open, "Due Date")
+        key(Key19; "Document Type", "Customer No.", Open, "Due Date")
         {
         }
-        key(Key25; "Customer Posting Group")
+        key(Key20; "Customer Posting Group")
         {
         }
-        key(Key26; "Document Type", Open, "Posting Date", "Closed at Date")
+        key(Key21; "Document Type", Open, "Posting Date", "Closed at Date")
         {
         }
-        key(Key27; "Salesperson Code")
+        key(Key22; "Salesperson Code")
         {
         }
-        key(Key28; SystemModifiedAt)
+        key(Key23; SystemModifiedAt)
         {
         }
         key(Key35; "Customer No.", "Posting Date", "Applies-to ID")
@@ -1139,11 +1148,6 @@ table 21 "Cust. Ledger Entry"
         {
         }
     }
-
-    trigger OnInsert()
-    begin
-        TestField("G/L Register No.");
-    end;
 
     var
 #pragma warning disable AA0074
@@ -1386,12 +1390,12 @@ table 21 "Cust. Ledger Entry"
         SetCurrentKey("Customer No.", Open, Positive, "Due Date");
         SetRange("Customer No.", CustomerNo);
         SetRange(Open, true);
+        OnSetApplyToFiltersOnBeforeSetFilters(Rec);
         if ApplyDocNo <> '' then begin
             SetRange("Document Type", ApplyDocType);
             SetRange("Document No.", ApplyDocNo);
             if FindFirst() then;
-            SetRange("Document Type");
-            SetRange("Document No.");
+            ClearDocumentFilters();
         end else
             if ApplyDocType <> 0 then begin
                 SetRange("Document Type", ApplyDocType);
@@ -1403,6 +1407,22 @@ table 21 "Cust. Ledger Entry"
                     if FindFirst() then;
                     SetRange(Positive);
                 end;
+    end;
+
+    procedure SetAppliesToDocFilters(var GenJnlLine: Record "Gen. Journal Line")
+    begin
+        SetRange("Document Type", GenJnlLine."Applies-to Doc. Type");
+        SetRange("Document No.", GenJnlLine."Applies-to Doc. No.");
+
+        OnAfterSetAppliesToDocFilters(Rec, GenJnlLine);
+    end;
+
+    procedure ClearDocumentFilters()
+    begin
+        SetRange("Document Type");
+        SetRange("Document No.");
+
+        OnAfterClearDocumentFilters(Rec);
     end;
 
     /// <summary>
@@ -1478,6 +1498,7 @@ table 21 "Cust. Ledger Entry"
         "Payment Method Code" := GenJnlLine."Payment Method Code";
         "Payment Reference" := GenJnlLine."Payment Reference";
         "Exported to Payment File" := GenJnlLine."Exported to Payment File";
+        "Payment Terms Code" := GenJnlLine."Payment Terms Code";
 
         OnAfterCopyCustLedgerEntryFromGenJnlLine(Rec, GenJnlLine);
     end;
@@ -1811,6 +1832,21 @@ table 21 "Cust. Ledger Entry"
     /// <param name="CustLedgerEntry">The customer ledger entry being validated.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateMaxPaymentToleranceOnBeforeFieldError(var CustLedgerEntry: Record "Cust. Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetAppliesToDocFilters(var Rec: Record "Cust. Ledger Entry"; var GenJnlLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterClearDocumentFilters(var Rec: Record "Cust. Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSetApplyToFiltersOnBeforeSetFilters(var Rec: Record "Cust. Ledger Entry")
     begin
     end;
 }

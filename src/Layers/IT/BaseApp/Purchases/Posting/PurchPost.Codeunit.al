@@ -191,10 +191,7 @@ codeunit 90 "Purch.-Post"
     /// <param name="PurchHeader">The purchase header of the document that is being posted.</param>
     /// <param name="TempDropShptPostBuffer">Accumulates drop-shipment buffer records during posting.</param>
     /// <param name="EverythingInvoiced">Set to false during posting if any line is partially invoiced.</param>
-    local procedure ProcessPosting(
-        var PurchHeader: Record "Purchase Header";
-        var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary;
-        var EverythingInvoiced: Boolean)
+    local procedure ProcessPosting(var PurchHeader: Record "Purchase Header"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var EverythingInvoiced: Boolean)
     var
         IgnoreCommit: Boolean;
     begin
@@ -335,6 +332,10 @@ codeunit 90 "Purch.-Post"
         OnRunOnBeforeMakeInventoryAdjustment(PurchHeader, GenJnlPostLine, ItemJnlPostLine, PreviewMode, PurchRcptHeader, PurchInvHeader, IsHandled);
         if not IsHandled then
             MakeInventoryAdjustment();
+
+        Clear(GenJnlPostLine);
+
+        OnAfterProcessPostingLines(PurchHeader, TotalPurchLine, VendLedgEntry, InvoicePostingParameters, SuppressCommit, EverythingInvoiced, Window);
     end;
 
     var
@@ -924,6 +925,7 @@ codeunit 90 "Purch.-Post"
     begin
         if not DocumentIsReadyToBeChecked then
             PrepareCheckDocument(PurchHeader);
+
         ErrorMessageMgt.PushContext(ErrorContextElement, PurchHeader.RecordId, 0, CheckPurchHeaderMsg);
         CheckMandatoryHeaderFields(PurchHeader);
         GetGLSetup();
@@ -1197,7 +1199,6 @@ codeunit 90 "Purch.-Post"
                 end;
             IsHandled := false;
             OnPostPurchLineOnBeforeDivideAmount(PurchHeader, PurchLine, TempVATAmountLine, TempVATAmountLineRemainder, IsHandled);
-            // <-- NEW EVENT
             if not IsHandled then
                 DivideAmount(PurchHeader, PurchLine, 1, PurchLine."Qty. to Invoice", TempVATAmountLine, TempVATAmountLineRemainder);
         end else
@@ -3130,6 +3131,7 @@ codeunit 90 "Purch.-Post"
                     if NoSeriesCodeunit.IsNoSeriesInDateOrder(PurchHeader."Receiving No. Series") then
                         DateOrderSeriesUsed := true;
                     ModifyHeader := true;
+
                     // Check for posting conflicts.
                     if PurchRcptHeader.Get(PurchHeader."Receiving No.") then
                         Error(PurchRcptHeaderConflictErr, PurchHeader."Receiving No.");
@@ -3147,6 +3149,7 @@ codeunit 90 "Purch.-Post"
                         DateOrderSeriesUsed := true;
                     ModifyHeader := true;
                     OnUpdatePostingNosOnAfterSetReturnShipmentNoFromNos(PurchHeader);
+
                     // Check for posting conflicts.
                     if ReturnShptHeader.Get(PurchHeader."Return Shipment No.") then
                         Error(ReturnShptHeaderConflictErr, PurchHeader."Return Shipment No.");
@@ -4236,6 +4239,8 @@ codeunit 90 "Purch.-Post"
         if PurchaseHeader."Pay-to Contact No." <> '' then
             if Contact.Get(PurchaseHeader."Pay-to Contact No.") then
                 Contact.CheckIfPrivacyBlocked(true);
+
+        OnAfterCheckPostRestrictions(PurchaseHeader);
     end;
 
     local procedure CheckFAPostingPossibility(PurchaseHeader: Record "Purchase Header")
@@ -7538,7 +7543,7 @@ codeunit 90 "Purch.-Post"
             exit;
 
         if PurchHeader."Send IC Document" and (PurchHeader."IC Status" = PurchHeader."IC Status"::New) and (PurchHeader."IC Direction" = PurchHeader."IC Direction"::Outgoing) and
-           (PurchHeader."Document Type" in [PurchHeader."Document Type"::Order, PurchHeader."Document Type"::"Return Order"])
+            (PurchHeader."Document Type" in [PurchHeader."Document Type"::Order, PurchHeader."Document Type"::"Return Order"])
         then begin
             ICInboxOutboxMgt.SendPurchDoc(PurchHeader, true);
             PurchHeader."IC Status" := PurchHeader."IC Status"::Pending;
@@ -11934,6 +11939,20 @@ codeunit 90 "Purch.-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnSetCommitBehavior(var IgnoreCommit: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterProcessPostingLines(var PurchHeader: Record "Purchase Header"; var TotalPurchLine: Record "Purchase Line"; var VendLedgEntry: Record "Vendor Ledger Entry"; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean; EverythingInvoiced: Boolean; var Window: Dialog)
+    begin
+    end;
+
+    /// <summary>
+    /// Event is raised after the <c>CheckPostRestrictions</c> function is executed
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header record that was checked for post restrictions.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCheckPostRestrictions(var PurchaseHeader: Record "Purchase Header")
     begin
     end;
 }

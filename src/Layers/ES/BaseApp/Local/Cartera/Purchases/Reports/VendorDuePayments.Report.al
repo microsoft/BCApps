@@ -12,7 +12,7 @@ using System.Utilities;
 report 7000007 "Vendor - Due Payments"
 {
     DefaultLayout = RDLC;
-    RDLCLayout = './Local/Purchases/Reports/VendorDuePayments.rdlc';
+    RDLCLayout = './Local/Cartera/Purchases/Reports/VendorDuePayments.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor - Due Payments';
     UsageCategory = ReportsAndAnalysis;

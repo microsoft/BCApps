@@ -7,7 +7,6 @@ namespace Microsoft.Sales.Posting;
 using Microsoft.Assembly.Document;
 using Microsoft.Assembly.History;
 using Microsoft.Assembly.Posting;
-using Microsoft.Bank.BankAccount;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Opportunity;
 using Microsoft.CRM.Outlook;
@@ -260,11 +259,8 @@ codeunit 80 "Sales-Post"
         CalledBy: Integer;
         PreviewMode: Boolean;
         TotalInvoiceAmountNegativeErr: Label 'The total amount for the invoice must be 0 or greater.';
-        PaymentMethod: Record "Payment Method";
-        SplitPayment: Codeunit "Invoice-Split Payment";
         Text1100000: Label 'The Credit Memo doesn''t have a Corrected Invoice No. Do you want to continue?';
         Text1100011: Label 'The posting process has been cancelled by the user.';
-        CannotCreateCarteraDocErr: Label 'You do not have permissions to create Documents in Cartera.\Please, change the Payment Method.';
         Text1100102: Label 'Posting to bal. account    #5######\';
         Text1100103: Label 'Creating documents         #6######';
         Text1100104: Label 'Corrective Invoice';
@@ -307,7 +303,6 @@ codeunit 80 "Sales-Post"
         SalesHeader: Record "Sales Header";
         CustLedgEntry: Record "Cust. Ledger Entry";
         TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary;
-        CarteraSetup: Record "Cartera Setup";
         DisableAggregateTableUpdate: Codeunit "Disable Aggregate Table Update";
         UpdateAnalysisView: Codeunit "Update Analysis View";
         UpdateItemAnalysisView: Codeunit "Update Item Analysis View";
@@ -363,20 +358,6 @@ codeunit 80 "Sales-Post"
         CheckAndUpdate(SalesHeader);
 
         ProcessPosting(SalesHeader, SalesHeader2, TempDropShptPostBuffer, CustLedgEntry, EverythingInvoiced);
-
-        // Create Bills
-        if PaymentMethod.Get(SalesHeader."Payment Method Code") then
-            if (PaymentMethod."Create Bills" or PaymentMethod."Invoices to Cartera") and
-               (not CarteraSetup.ReadPermission) and SalesHeader.Invoice
-            then
-                Error(CannotCreateCarteraDocErr);
-
-        if SalesHeader.Invoice and (SalesHeader."Bal. Account No." = '') and
-           (not SalesHeader.IsCreditDocType()) and CarteraSetup.ReadPermission
-        then begin
-            OnBeforeCreateCarteraBills(SalesHeader, CustLedgEntry, TotalSalesLine);
-            SplitPayment.SplitSalesInv(SalesHeader, CustLedgEntry, Window, SrcCode, GenJnlLineExtDocNo, GenJnlLineDocNo, -(TotalSalesLine."Amount Including VAT" - TotalSalesLine.Amount), HideProgressWindow);
-        end;
 
         Clear(GenJnlPostLine);
 
@@ -568,6 +549,8 @@ codeunit 80 "Sales-Post"
         OnRunOnBeforeMakeInventoryAdjustment(SalesHeader, SalesInvHeader, GenJnlPostLine, ItemJnlPostLine, PreviewMode, SkipInventoryAdjustment);
         if not SkipInventoryAdjustment then
             MakeInventoryAdjustment();
+
+        OnAfterProcessPostingLines(SalesHeader, TotalSalesLine, CustLedgEntry, InvoicePostingParameters, SuppressCommit, EverythingInvoiced, Window, HideProgressWindow);
     end;
 
     /// <summary>
@@ -6340,6 +6323,8 @@ codeunit 80 "Sales-Post"
         if SalesHeader."Bill-to Contact No." <> '' then
             if Contact.Get(SalesHeader."Bill-to Contact No.") then
                 Contact.CheckIfPrivacyBlocked(true);
+
+        OnAfterCheckPostRestrictions(SalesHeader);
     end;
 
     local procedure CheckCustBlockage(SalesHeader: Record "Sales Header"; CustCode: Code[20]; ExecuteDocCheck: Boolean)
@@ -7854,47 +7839,16 @@ codeunit 80 "Sales-Post"
         OnAfterFindNotShippedLines(SalesHeader, TempSalesLine);
     end;
 
+#if not CLEAN29
+    [Obsolete('Not used anywhere now. New version of this preocedure moved to codeunit CRTSalesPost', '29.0')]
     [Scope('OnPrem')]
     procedure TestSalesEfects(SalesHeader: Record "Sales Header"; Cust: Record Customer)
     var
-        CustLedgEntry: Record "Cust. Ledger Entry";
-        Text1100000: Label 'At least one document of %1 No. %2 is closed or in a Bill Group.';
-        Text1100001: Label 'This will avoid the document to be settled.\';
-        Text1100002: Label 'The posting process of %3 No. %4 will not settle any document.\';
-        ShowError: Boolean;
-        Text1100003: Label 'Please remove the lines for the Bill Group before posting.';
+        CRTSalesPost: Codeunit "CRT Sales-Post";
     begin
-        ShowError := false;
-        if SalesHeader."Document Type" = SalesHeader."Document Type"::"Credit Memo" then begin
-            CustLedgEntry.SetCurrentKey("Document No.", "Document Type", "Customer No.");
-            CustLedgEntry.SetFilter("Document Type", '%1|%2', CustLedgEntry."Document Type"::Invoice,
-              CustLedgEntry."Document Type"::Bill);
-            CustLedgEntry.SetFilter("Document Situation", '<>%1', CustLedgEntry."Document Situation"::" ");
-            CustLedgEntry.SetRange("Customer No.", SalesHeader."Bill-to Customer No.");
-            CustLedgEntry.SetRange(Open, true);
-
-            if CustLedgEntry.Find('-') then
-                repeat
-                    if CustLedgEntry."Document Situation" <> CustLedgEntry."Document Situation"::Cartera then
-                        if not ((CustLedgEntry."Document Situation" in
-                                 [CustLedgEntry."Document Situation"::"Closed Documents",
-                                  CustLedgEntry."Document Situation"::"Closed BG/PO"]) and
-                                (CustLedgEntry."Document Status" = CustLedgEntry."Document Status"::Rejected))
-                        then
-                            ShowError := true;
-                until CustLedgEntry.Next() = 0;
-
-            if ShowError then
-                Error(Text1100000 +
-                  Text1100001 +
-                  Text1100002 +
-                  Text1100003,
-                  Format(CustLedgEntry."Document Type"),
-                  Format(CustLedgEntry."Document No."),
-                  Format(SalesHeader."Document Type"),
-                  Format(SalesHeader."No."));
-        end;
+        CRTSalesPost.TestSalesEffects(SalesHeader);
     end;
+#endif
 
     local procedure CheckTrackingAndWarehouseForShip(SalesHeader: Record "Sales Header") Ship: Boolean
     var
@@ -10440,6 +10394,19 @@ codeunit 80 "Sales-Post"
     begin
     end;
 
+#if not CLEAN29
+    internal procedure RunOnBeforeCreateCarteraBills(SalesHeader: Record "Sales Header"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var TotalSalesLine: Record "Sales Line")
+    begin
+        OnBeforeCreateCarteraBills(SalesHeader, CustLedgerEntry, TotalSalesLine);
+    end;
+
+    [Obsolete('Moved to codeunit "CRT Sales-Post"', '29.0')]
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCreateCarteraBills(SalesHeader: Record "Sales Header"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var TotalSalesLine: Record "Sales Line")
+    begin
+    end;
+#endif
+
     /// <summary>
     /// Raised before posting the job contract line for a sales document.
     /// </summary>
@@ -10451,11 +10418,6 @@ codeunit 80 "Sales-Post"
     /// <param name="SalesLineACY">The sales line in additional currency.</param>
     /// <param name="SalesInvHeader">The posted sales invoice header.</param>
     /// <param name="SalesCrMemoHeader">The posted sales credit memo header.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCreateCarteraBills(SalesHeader: Record "Sales Header"; var CustLedgerEntry: Record "Cust. Ledger Entry"; var TotalSalesLine: Record "Sales Line")
-    begin
-    end;
-
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostJobContractLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var IsHandled: Boolean; var JobContractLine: Boolean; var InvoicePostingInterface: Interface "Invoice Posting"; SalesLineACY: Record "Sales Line"; SalesInvHeader: Record "Sales Invoice Header"; SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
@@ -14155,6 +14117,20 @@ codeunit 80 "Sales-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnSyncSurPlusItemTrackingOnBeforeModifyQtyToHandleInvoice(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var ReservationEntry: Record "Reservation Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterProcessPostingLines(var SalesHeader: Record "Sales Header"; var TotalSalesLine: Record "Sales Line"; var CustLedgEntry: Record "Cust. Ledger Entry"; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean; EverythingInvoiced: Boolean; var Window: Dialog; HideProgressWindow: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after checking posting restrictions
+    /// </summary>
+    /// <param name="SalesHeader"></param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCheckPostRestrictions(var SalesHeader: Record "Sales Header")
     begin
     end;
 }

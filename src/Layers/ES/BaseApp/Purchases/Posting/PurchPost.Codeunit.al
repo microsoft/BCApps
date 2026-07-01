@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Posting;
 
-using Microsoft.Bank.BankAccount;
 using Microsoft.CRM.Contact;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Analysis;
@@ -187,10 +186,7 @@ codeunit 90 "Purch.-Post"
     /// <param name="PurchHeader">The purchase header of the document that is being posted.</param>
     /// <param name="TempDropShptPostBuffer">Accumulates drop-shipment buffer records during posting.</param>
     /// <param name="EverythingInvoiced">Set to false during posting if any line is partially invoiced.</param>
-    local procedure ProcessPosting(
-        var PurchHeader: Record "Purchase Header";
-        var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary;
-        var EverythingInvoiced: Boolean)
+    local procedure ProcessPosting(var PurchHeader: Record "Purchase Header"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var EverythingInvoiced: Boolean)
     var
         IgnoreCommit: Boolean;
     begin
@@ -235,8 +231,6 @@ codeunit 90 "Purch.-Post"
     var
         TempVATAmountLine: Record "VAT Amount Line" temporary;
         TempVATAmountLineRemainder: Record "VAT Amount Line" temporary;
-        PaymentMethod: Record "Payment Method";
-        CarteraSetup: Record "Cartera Setup";
         ErrorContextElementProcessLines: Codeunit "Error Context Element";
         ErrorContextElementPostLine: Codeunit "Error Context Element";
         ZeroPurchLineRecID: RecordId;
@@ -334,23 +328,9 @@ codeunit 90 "Purch.-Post"
         if not IsHandled then
             MakeInventoryAdjustment();
 
-        // Create Bills
-        if PaymentMethod.Get(PurchHeader."Payment Method Code") then
-            if (PaymentMethod."Create Bills" or PaymentMethod."Invoices to Cartera") and
-               (not CarteraSetup.ReadPermission) and PurchHeader.Invoice
-            then
-                Error(CannotCreateCarteraDocErr);
-
-        if PurchHeader.Invoice and (PurchHeader."Bal. Account No." = '') and
-           not PurchHeader.IsCreditDocType() and CarteraSetup.ReadPermission
-        then begin
-            OnBeforeCreateCarteraBills(PurchHeader, VendLedgEntry, TotalPurchLine, SuppressCommit);
-            SplitPayment.SplitPurchInv(
-              PurchHeader, VendLedgEntry, Window, SrcCode, GenJnlLineExtDocNo, GenJnlLineDocNo,
-              -(TotalPurchLine."Amount Including VAT" - TotalPurchLine.Amount));
-        end;
-
         Clear(GenJnlPostLine);
+
+        OnAfterProcessPostingLines(PurchHeader, TotalPurchLine, VendLedgEntry, InvoicePostingParameters, SuppressCommit, EverythingInvoiced, Window);
     end;
 
     var
@@ -446,7 +426,6 @@ codeunit 90 "Purch.-Post"
         UOMMgt: Codeunit "Unit of Measure Management";
         ApplicationAreaMgmt: Codeunit "Application Area Mgmt.";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
-        SplitPayment: Codeunit "Invoice-Split Payment";
         MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
         InvoicePostingInterface: Interface "Invoice Posting";
         IsInterfaceInitialized: Boolean;
@@ -510,7 +489,6 @@ codeunit 90 "Purch.-Post"
 #pragma warning disable AA0470
         Text1100000: Label 'The Credit Memo doesn''t have a Corrected Invoice No. Do you want to continue?';
         Text1100011: Label 'The posting process has been cancelled by the user.';
-        CannotCreateCarteraDocErr: Label 'You do not have permissions to create Documents in Cartera.\Please, change the Payment Method.';
         Text1100102: Label 'Posting to bal. account    #5######\';
         Text1100103: Label 'Creating documents         #6######';
         Text1100104: Label 'Corrective Invoice';
@@ -781,7 +759,7 @@ codeunit 90 "Purch.-Post"
     begin
         OnBeforeCheckAndUpdate(PurchHeader, ModifyHeader);
         DocumentIsReadyToBeChecked := true;
-        
+
         CheckPurchDocument(PurchHeader);
 
         if GuiAllowed() and not HideProgressWindow then
@@ -3096,6 +3074,7 @@ codeunit 90 "Purch.-Post"
                     if NoSeries.IsNoSeriesInDateOrder(PurchHeader."Receiving No. Series") then
                         DateOrderSeriesUsed := true;
                     ModifyHeader := true;
+
                     // Check for posting conflicts.
                     if PurchRcptHeader.Get(PurchHeader."Receiving No.") then
                         Error(PurchRcptHeaderConflictErr, PurchHeader."Receiving No.");
@@ -3113,6 +3092,7 @@ codeunit 90 "Purch.-Post"
                         DateOrderSeriesUsed := true;
                     ModifyHeader := true;
                     OnUpdatePostingNosOnAfterSetReturnShipmentNoFromNos(PurchHeader);
+
                     // Check for posting conflicts.
                     if ReturnShptHeader.Get(PurchHeader."Return Shipment No.") then
                         Error(ReturnShptHeaderConflictErr, PurchHeader."Return Shipment No.");
@@ -4172,6 +4152,8 @@ codeunit 90 "Purch.-Post"
         if PurchaseHeader."Pay-to Contact No." <> '' then
             if Contact.Get(PurchaseHeader."Pay-to Contact No.") then
                 Contact.CheckIfPrivacyBlocked(true);
+
+        OnAfterCheckPostRestrictions(PurchaseHeader);
     end;
 
     local procedure CheckFAPostingPossibility(PurchaseHeader: Record "Purchase Header")
@@ -6345,47 +6327,16 @@ codeunit 90 "Purch.-Post"
         exit(true);
     end;
 
+#if not CLEAN29
+    [Obsolete('Not used anywhere. Moved to codeunit CRT Purch-Post', '29.0')]
     [Scope('OnPrem')]
     procedure TestPurchEfects(PurchHeader: Record "Purchase Header"; Vend: Record Vendor)
     var
-        VendLedgEntry: Record "Vendor Ledger Entry";
-        Text1100000: Label 'At least one document of %1 No. %2 is closed or in a Payment Order.';
-        Text1100001: Label 'This will avoid the document to be settled.\';
-        Text1100002: Label 'The posting process of %3 No. %4 will not settle any document.\';
-        ShowError: Boolean;
-        Text1100003: Label 'Please remove the lines for the Payment Order before posting.';
+        CRTPurchPost: Codeunit "CRT Purch.-Post";
     begin
-        ShowError := false;
-        if PurchHeader."Document Type" = PurchHeader."Document Type"::"Credit Memo" then begin
-            VendLedgEntry.SetCurrentKey("Document No.", "Document Type", "Vendor No.");
-            VendLedgEntry.SetFilter("Document Type", '%1|%2', VendLedgEntry."Document Type"::Invoice,
-              VendLedgEntry."Document Type"::Bill);
-            VendLedgEntry.SetFilter("Document Situation", '<>%1', VendLedgEntry."Document Situation"::" ");
-            VendLedgEntry.SetRange("Vendor No.", PurchHeader."Pay-to Vendor No.");
-            VendLedgEntry.SetRange(Open, true);
-
-            if VendLedgEntry.Find('-') then
-                repeat
-                    if VendLedgEntry."Document Situation" <> VendLedgEntry."Document Situation"::Cartera then
-                        if not ((VendLedgEntry."Document Situation" in
-                                 [VendLedgEntry."Document Situation"::"Closed Documents",
-                                  VendLedgEntry."Document Situation"::"Closed BG/PO"]) and
-                                (VendLedgEntry."Document Status" = VendLedgEntry."Document Status"::Rejected))
-                        then
-                            ShowError := true;
-                until VendLedgEntry.Next() = 0;
-
-            if ShowError then
-                Error(Text1100000 +
-                  Text1100001 +
-                  Text1100002 +
-                  Text1100003,
-                  Format(VendLedgEntry."Document Type"),
-                  Format(VendLedgEntry."Document No."),
-                  Format(PurchHeader."Document Type"),
-                  Format(PurchHeader."No."));
-        end;
+        CRTPurchPost.TestPurchEffects(PurchHeader);
     end;
+#endif
 
     local procedure UpdateIncomingDocument(IncomingDocNo: Integer; PostingDate: Date; GenJnlLineDocNo: Code[20])
     var
@@ -7383,7 +7334,7 @@ codeunit 90 "Purch.-Post"
             exit;
 
         if PurchHeader."Send IC Document" and (PurchHeader."IC Status" = PurchHeader."IC Status"::New) and (PurchHeader."IC Direction" = PurchHeader."IC Direction"::Outgoing) and
-           (PurchHeader."Document Type" in [PurchHeader."Document Type"::Order, PurchHeader."Document Type"::"Return Order"])
+            (PurchHeader."Document Type" in [PurchHeader."Document Type"::Order, PurchHeader."Document Type"::"Return Order"])
         then begin
             ICInboxOutboxMgt.SendPurchDoc(PurchHeader, true);
             PurchHeader."IC Status" := PurchHeader."IC Status"::Pending;
@@ -10153,10 +10104,18 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN29
+    internal procedure RunOnBeforeCreateCarteraBills(PurchHeader: Record "Purchase Header"; var VendLedgEntry: Record "Vendor Ledger Entry"; var TotalPurchLine: Record "Purchase Line"; CommitIsSupressed: Boolean)
+    begin
+        OnBeforeCreateCarteraBills(PurchHeader, VendLedgEntry, TotalPurchLine, CommitIsSupressed);
+    end;
+
+    [Obsolete('Moved to codeunit "CRT Purch.-Post"', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateCarteraBills(PurchHeader: Record "Purchase Header"; var VendLedgEntry: Record "Vendor Ledger Entry"; var TotalPurchLine: Record "Purchase Line"; CommitIsSupressed: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateInvoicedQtyOnPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; CommitIsSupressed: Boolean; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line")
@@ -11732,6 +11691,20 @@ codeunit 90 "Purch.-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnSetCommitBehavior(var IgnoreCommit: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterProcessPostingLines(var PurchHeader: Record "Purchase Header"; var TotalPurchLine: Record "Purchase Line"; var VendLedgEntry: Record "Vendor Ledger Entry"; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean; EverythingInvoiced: Boolean; var Window: Dialog)
+    begin
+    end;
+
+    /// <summary>
+    /// Event is raised after the <c>CheckPostRestrictions</c> function is executed
+    /// </summary>
+    /// <param name="PurchaseHeader">The purchase header record that was checked for post restrictions.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCheckPostRestrictions(var PurchaseHeader: Record "Purchase Header")
     begin
     end;
 }

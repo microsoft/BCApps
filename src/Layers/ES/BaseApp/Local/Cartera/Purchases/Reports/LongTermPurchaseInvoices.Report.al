@@ -12,7 +12,7 @@ using System.Utilities;
 report 10741 "Long Term Purchase Invoices"
 {
     DefaultLayout = RDLC;
-    RDLCLayout = './Local/Purchases/Reports/LongTermPurchaseInvoices.rdlc';
+    RDLCLayout = './Local/Cartera/Purchases/Reports/LongTermPurchaseInvoices.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Long Term Purchase Invoices';
     UsageCategory = ReportsAndAnalysis;

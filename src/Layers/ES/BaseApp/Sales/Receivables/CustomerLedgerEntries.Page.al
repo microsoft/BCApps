@@ -66,23 +66,6 @@ page 25 "Customer Ledger Entries"
                     Editable = false;
                     StyleExpr = StyleTxt;
                 }
-                field("Bill No."; Rec."Bill No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the bill number related to the customer entry.';
-                }
-                field("Document Situation"; Rec."Document Situation")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the document location.';
-                }
-                field("Document Status"; Rec."Document Status")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the status of the document.';
-                }
                 field("Customer No."; Rec."Customer No.")
                 {
                     ApplicationArea = Basic, Suite;
