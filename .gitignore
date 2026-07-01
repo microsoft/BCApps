@@ -328,6 +328,9 @@ TestResults.xml
 **/.pbi/localSettings.json
 **/.pbi/cache.abf
 
+# App Views in GDL development
+src/Views/**
+
 # Exceptions
 !src/System Application/Test/Extension Management/testArtifacts/*.app
 !src/Apps/IN/INTaxBase/app/Translations/India Tax Base.en-US.xlf
