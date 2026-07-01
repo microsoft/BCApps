@@ -7,7 +7,7 @@ namespace Microsoft.eServices.EDocument.Processing.Message;
 /// <summary>
 /// Operational status of an E-Document message record.
 /// </summary>
-enum 6431 "E-Doc. Message Status"
+enum 6429 "E-Doc. Message Status"
 {
     Extensible = true;
 

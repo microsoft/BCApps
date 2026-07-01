@@ -6,9 +6,9 @@ namespace Microsoft.eServices.EDocument.Processing.Message;
 
 using Microsoft.Peppol.Response;
 
-enumextension 6410 "E-Doc. Response Type Core Ext" extends "E-Doc. Response Type"
+enumextension 6427 "E-Doc. Response Type Core Ext" extends "E-Doc. Response Type"
 {
-    value(6410; None)
+    value(6427; None)
     {
         Caption = 'None';
     }
