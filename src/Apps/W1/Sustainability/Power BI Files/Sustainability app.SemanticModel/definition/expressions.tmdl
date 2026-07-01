@@ -1,0 +1,214 @@
+expression Dimensions =
+		let
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+		    TableData = Source{[Name="dimensions",Signature="table"]}[Data],
+		    #"Changed Type" = Table.TransformColumnTypes(
+		        TableData,
+		        {
+		            {"dim1Code", type text},
+		            {"dim1Name", type text},
+		            {"dim1Caption", type text},
+		            {"dim2Code", type text},
+		            {"dim2Name", type text},
+		            {"dim2Caption", type text},
+		            {"dim3Code", type text},
+		            {"dim3Name", type text},
+		            {"dim3Caption", type text},
+		            {"dim4Code", type text},
+		            {"dim4Name", type text},
+		            {"dim4Caption", type text},
+		            {"dim5Code", type text},
+		            {"dim5Name", type text},
+		            {"dim5Caption", type text},
+		            {"dim6Code", type text},
+		            {"dim6Name", type text},
+		            {"dim6Caption", type text},
+		            {"dim7Code", type text},
+		            {"dim7Name", type text},
+		            {"dim7Caption", type text},
+		            {"dim8Code", type text},
+		            {"dim8Name", type text},
+		            {"dim8Caption", type text}
+		        }
+		    ),
+		    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"ETag"})
+		in
+		    #"Removed Columns"
+	lineageTag: 0e7242e1-6de4-4458-b6aa-e47397d3c6c0
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression DimensionSet_Blank =
+		let
+		    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WMlDSUTIEYtJQbCwA", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [dimensionSetID = _t, valueCount = _t, dimension1ValueCode = _t, dimension1ValueName = _t, dimension2ValueCode = _t, dimension2ValueName = _t, dimension3ValueCode = _t, dimension3ValueName = _t, dimension4ValueCode = _t, dimension4ValueName = _t, dimension5ValueCode = _t, dimension5ValueName = _t, dimension6ValueCode = _t, dimension6ValueName = _t, dimension7ValueCode = _t, dimension7ValueName = _t, dimension8ValueCode = _t, dimension8ValueName = _t]),
+		    #"Changed Type" = Table.TransformColumnTypes(Source,{{"dimensionSetID", Int64.Type}, {"valueCount", Int64.Type}, {"dimension1ValueCode", type text}, {"dimension1ValueName", type text}, {"dimension2ValueCode", type text}, {"dimension2ValueName", type text}, {"dimension3ValueCode", type text}, {"dimension3ValueName", type text}, {"dimension4ValueCode", type text}, {"dimension4ValueName", type text}, {"dimension5ValueCode", type text}, {"dimension5ValueName", type text}, {"dimension6ValueCode", type text}, {"dimension6ValueName", type text}, {"dimension7ValueCode", type text}, {"dimension7ValueName", type text}, {"dimension8ValueCode", type text}, {"dimension8ValueName", type text}})
+		in
+		    #"Changed Type"
+	lineageTag: b4247344-244a-48dc-9215-b6ea1325f879
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression DimensionSets_DataSource =
+		let
+		    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+		    TableData = Source{[Name="dimensionSetEntries",Signature="table"]}[Data],
+		    #"Changed Type" = Table.TransformColumnTypes(
+		        TableData,
+		        {
+		            {"dimensionSetID", Int64.Type},
+		            {"valueCount", Int64.Type},
+		            {"dimension1ValueCode", type text},
+		            {"dimension1ValueName", type text},
+		            {"dimension2ValueCode", type text},
+		            {"dimension2ValueName", type text},
+		            {"dimension3ValueCode", type text},
+		            {"dimension3ValueName", type text},
+		            {"dimension4ValueCode", type text},
+		            {"dimension4ValueName", type text},
+		            {"dimension5ValueCode", type text},
+		            {"dimension5ValueName", type text},
+		            {"dimension6ValueCode", type text},
+		            {"dimension6ValueName", type text},
+		            {"dimension7ValueCode", type text},
+		            {"dimension7ValueName", type text},
+		            {"dimension8ValueCode", type text},
+		            {"dimension8ValueName", type text}
+		        }
+		    ),
+		    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"ETag"}),
+		    #"Appended Query" = Table.Combine({#"Removed Columns", DimensionSet_Blank}),
+		    #"Filtered Rows" = Table.SelectRows(#"Appended Query", each ([dimensionSetID] <> 0))
+		in
+		    #"Filtered Rows"
+	lineageTag: 946e1eeb-d5fb-44ad-a36f-17324489be24
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression GetDimCode = ```
+		let
+		    Source = (DimNo as number) => let 
+		    Source = Dimensions,
+		    Rec = Table.First(Source),
+		    DimCaption = if
+		    DimNo = 1 then Record.Field(Rec,"Dim1Code") else if
+		    DimNo = 2 then Record.Field(Rec,"Dim2Code") else if
+		    DimNo = 3 then Record.Field(Rec,"Dim3Code") else if
+		    DimNo = 4 then Record.Field(Rec,"Dim4Code") else if
+		    DimNo = 5 then Record.Field(Rec,"Dim5Code") else if
+		    DimNo = 6 then Record.Field(Rec,"Dim6Code") else if
+		    DimNo = 7 then Record.Field(Rec,"Dim7Code") else if
+		    DimNo = 8 then Record.Field(Rec,"Dim8Code") else ""
+		in
+		    DimCaption
+		in
+		    Source
+		```
+	lineageTag: 510862c7-c25e-42da-9d78-6001e7156983
+	queryGroup: 'Parameters and Functions\Functions'
+
+	annotation PBI_ResultType = Function
+
+expression GetDimCodeCaption = ```
+		let
+		    Source = (DimNo as number) => let 
+		    Source = Dimensions,
+		    Rec = Table.First(Source),
+		    DimCaption = if
+		    DimNo = 1 then Record.Field(Rec,"Dim1Caption") else if
+		    DimNo = 2 then Record.Field(Rec,"Dim2Caption") else if
+		    DimNo = 3 then Record.Field(Rec,"Dim3Caption") else if
+		    DimNo = 4 then Record.Field(Rec,"Dim4Caption") else if
+		    DimNo = 5 then Record.Field(Rec,"Dim5Caption") else if
+		    DimNo = 6 then Record.Field(Rec,"Dim6Caption") else if
+		    DimNo = 7 then Record.Field(Rec,"Dim7Caption") else if
+		    DimNo = 8 then Record.Field(Rec,"Dim8Caption") else "N/A Code",
+		    DimCaption2 = if DimCaption="" then "N/A Code" else DimCaption,
+		    DimCaption3 = DimCaption2&" (Dim "& Number.ToText(DimNo) & ")"
+		in
+		    DimCaption3
+		in
+		    Source
+		```
+	lineageTag: bb9e9440-7a6e-4528-b25f-c8df576b848f
+	queryGroup: 'Parameters and Functions\Functions'
+
+	annotation PBI_ResultType = Function
+
+expression GetDimNameCaption = ```
+		let
+		    Source = (DimNo as number) => let 
+		    Source = Dimensions,
+		    Rec = Table.First(Source),
+		    DimCaption = if
+		    DimNo = 1 then Record.Field(Rec,"Dim1Name") else if
+		    DimNo = 2 then Record.Field(Rec,"Dim2Name") else if
+		    DimNo = 3 then Record.Field(Rec,"Dim3Name") else if
+		    DimNo = 4 then Record.Field(Rec,"Dim4Name") else if
+		    DimNo = 5 then Record.Field(Rec,"Dim5Name") else if
+		    DimNo = 6 then Record.Field(Rec,"Dim6Name") else if
+		    DimNo = 7 then Record.Field(Rec,"Dim7Name") else if
+		    DimNo = 8 then Record.Field(Rec,"Dim8Name") else "N/A Name",
+		    DimCaption2 = if DimCaption="" then "N/A Name" else DimCaption&" Name",
+		    DimCaption3 = DimCaption2&" (Dim "& Number.ToText(DimNo) & ")"
+		in
+		    DimCaption3
+		in
+		    Source
+		```
+	lineageTag: 7a06943c-0bd7-4fbb-8eb0-f507f5438d06
+	queryGroup: 'Parameters and Functions\Functions'
+
+	annotation PBI_ResultType = Function
+
+expression API_ENDPOINT = "microsoft/analytics/v1.0" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+	lineageTag: 0750104b-0db0-49f8-9dd1-0d6053b4b02b
+	queryGroup: 'Parameters and Functions\Connection Parameters'
+
+	annotation PBI_ResultType = Text
+
+	annotation PBI_NavigationStepName = Navigation
+
+expression ConvertUTC =
+		let
+		    Source = (dateTableSetup as table) =>
+		        let
+		            #"Added UTC Now" = Table.AddColumn(dateTableSetup, "UTC Now", each DateTimeZone.UtcNow()),
+		            #"Extract UTC Value" = Table.AddColumn(
+		                #"Added UTC Now", "Extract UTC", each Text.BetweenDelimiters([timeZoneDisplayName], "(", ")")
+		            ),
+		            #"Remove UTC prefix" = Table.AddColumn(
+		                #"Extract UTC Value", "Remove UTC prefix", each Text.AfterDelimiter([Extract UTC], "UTC")
+		            ),
+		            #"Extract Hour and Minutes" = Table.SplitColumn(#"Remove UTC prefix", "Remove UTC prefix", Splitter.SplitTextByDelimiter(":", QuoteStyle.None), {"UTC Hours", "UTC Minutes"}),
+		            #"Changed Type" = Table.TransformColumnTypes(#"Extract Hour and Minutes",{{"UTC Hours", Int64.Type}, {"UTC Minutes", Int64.Type}},"en-us"),
+		            #"Switch Zone" = Table.AddColumn(
+		                #"Changed Type",
+		                "UTC Offset",
+		                each if [UTC Hours] = null then [UTC Now] else DateTimeZone.SwitchZone([UTC Now], [UTC Hours], [UTC Minutes])
+		            ),
+		            #"Set Date" = Table.AddColumn(
+		                #"Switch Zone", "Today", each Date.From(DateTimeZone.RemoveZone([UTC Offset])), type date
+		            ),
+		            #"Set Last Refresh Time" = Table.AddColumn(
+		                #"Set Date", "Last Refresh Time", each Time.From(DateTimeZone.RemoveZone([UTC Offset])), type time
+		            ),
+		            #"Remove unnecessary" = Table.RemoveColumns(
+		                #"Set Last Refresh Time", {"UTC Now", "Extract UTC", "UTC Offset"}
+		            )
+		        in
+		            #"Remove unnecessary"
+		in
+		    Source
+	lineageTag: f0639757-0fce-4331-8306-962f88fd5c4a
+	queryGroup: 'Parameters and Functions\Functions'
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Function
+
