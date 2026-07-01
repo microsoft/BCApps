@@ -1,5 +1,3 @@
-using Microsoft.Finance.VAT.Ledger;
-
 codeunit 134991 "ERM  G/L - VAT Reconciliation"
 {
     Subtype = Test;

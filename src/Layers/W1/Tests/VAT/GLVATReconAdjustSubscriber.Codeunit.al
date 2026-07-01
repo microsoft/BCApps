@@ -1,5 +1,3 @@
-using Microsoft.Finance.VAT.Ledger;
-
 codeunit 134241 "GL VAT Recon. Adjust Subs."
 {
     EventSubscriberInstance = Manual;
