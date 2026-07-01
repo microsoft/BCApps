@@ -104,7 +104,7 @@ jobs:
 
       - name: Update unstable tests
         if: steps.calc.outputs.runIds != ''
-        uses: microsoft/BCAppsPrivate/.github/actions/UpdateUnstableTests@main #TODO - point to public repo when action is published
+        uses: microsoft/BCApps/.github/actions/UpdateUnstableTests@main
         with:
           branch: ${{ matrix.branch }}
           run-id: ${{ steps.calc.outputs.runIds }}
