@@ -39,6 +39,10 @@
         ValueMustBeEqualErr: Label '%1 value must be equal to %2 in %3', Comment = '%1 = Field Name, %2= Expected Value, %3 = Table Name';
         ValueMustBeNegativeErr: Label '%1 Value must be negative', Comment = '%1=FieldName';
         ValueMustBePositiveErr: Label '%1 Value must be positive', Comment = '%1=FieldName';
+        TestRollbackAfterCommitErr: Label 'Test error to trigger rollback after Commit() call.';
+        SetIgnoreCommitToFalse: Boolean;
+        RaiseErrorAfterCommit: Boolean;
+        CommitTestMarkerID: Guid;
 
     [Test]
     [Scope('OnPrem')]
@@ -2411,12 +2415,86 @@
         Assert.RecordIsEmpty(ItemLedgerEntry, '');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostItemJnlLineCommitBySubscriberIsSuppressed()
+    var
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ActivityLog: Record "Activity Log";
+        ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
+    begin
+        // [FEATURE] [Item Journal] [Posting] [CommitBehavior]
+        // [SCENARIO 641089] A Commit() called by a posting subscriber is suppressed during Item Jnl.-Post Line.
+        Initialize();
+
+        // [GIVEN] A positive adjustment item journal line.
+        LibraryInventory.CreateItem(Item);
+        CreateItemJournalLine(ItemJournalLine, Item."No.");
+        Commit();
+
+        // [GIVEN] Subscriber inserts a marker record, calls Commit(), and raises an error inside the posting scope.
+        CommitTestMarkerID := CreateGuid();
+        RaiseErrorAfterCommit := true;
+        BindSubscription(this);
+
+        // [WHEN] Post the item journal line (posting fails because the subscriber raises an error).
+        asserterror ItemJnlPostLine.Run(ItemJournalLine);
+        UnbindSubscription(this);
+
+        // [THEN] The marker record does not exist because Commit() was suppressed and the error rolled back all changes.
+        ActivityLog.SetRange("Activity Message", Format(CommitTestMarkerID));
+        Assert.RecordIsEmpty(ActivityLog);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostItemJnlLineCommitBehaviorOptOutRestoresCommit()
+    var
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ActivityLog: Record "Activity Log";
+        ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
+    begin
+        // [FEATURE] [Item Journal] [Posting] [CommitBehavior]
+        // [SCENARIO 641089] Setting IgnoreCommit := false via OnSetCommitBehavior restores old commit behavior.
+        Initialize();
+
+        // [GIVEN] A positive adjustment item journal line.
+        LibraryInventory.CreateItem(Item);
+        CreateItemJournalLine(ItemJournalLine, Item."No.");
+        Commit();
+
+        // [GIVEN] Subscriber sets IgnoreCommit := false to opt out of commit suppression.
+        SetIgnoreCommitToFalse := true;
+
+        // [GIVEN] Subscriber inserts a marker record, calls Commit(), and raises an error inside the posting scope.
+        CommitTestMarkerID := CreateGuid();
+        RaiseErrorAfterCommit := true;
+        BindSubscription(this);
+
+        // [WHEN] Post the item journal line (posting fails because the subscriber raises an error).
+        asserterror ItemJnlPostLine.Run(ItemJournalLine);
+        UnbindSubscription(this);
+
+        // [THEN] The marker record exists because Commit() was not suppressed and persisted before the error.
+        ActivityLog.SetRange("Activity Message", Format(CommitTestMarkerID));
+        Assert.RecordIsNotEmpty(ActivityLog);
+
+        // Cleanup: Remove test marker.
+        ActivityLog.DeleteAll();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Item Journal");
         LibraryRandom.Init();
+
+        SetIgnoreCommitToFalse := false;
+        RaiseErrorAfterCommit := false;
+        Clear(CommitTestMarkerID);
 
         // Lazy Setup.
         if isInitialized then
@@ -3146,6 +3224,38 @@
         ItemJournalLine.TestField("Reserved Quantity");
         ItemJournalLine.Find();
         ItemJournalLine.TestField("Reserved Quantity", 0);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnSetCommitBehavior', '', false, false)]
+    local procedure OnSetCommitBehaviorHandler(var IgnoreCommit: Boolean)
+    begin
+        if SetIgnoreCommitToFalse then
+            IgnoreCommit := false;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnPostSplitJnlLineOnAfterCode', '', false, false)]
+    local procedure OnPostSplitJnlLineOnAfterCodeHandler(var ItemJournalLine: Record "Item Journal Line"; var ItemJournalLineToPost: Record "Item Journal Line"; var PostItemJournalLine: Boolean; var TempTrackingSpecification: Record "Tracking Specification" temporary; DisableItemTracking: Boolean)
+    var
+        ActivityLog: Record "Activity Log";
+    begin
+        if not RaiseErrorAfterCommit then
+            exit;
+        if IsNullGuid(CommitTestMarkerID) then
+            exit;
+
+        // Insert a marker record.
+        ActivityLog.Init();
+        ActivityLog."Activity Date" := CurrentDateTime();
+        ActivityLog."User ID" := CopyStr(UserId(), 1, MaxStrLen(ActivityLog."User ID"));
+        ActivityLog."Activity Message" := Format(CommitTestMarkerID);
+        ActivityLog.Status := ActivityLog.Status::Success;
+        ActivityLog.Insert(true);
+
+        // Call Commit() - this should be suppressed by CommitBehavior::Ignore unless a subscriber opted out.
+        Commit();
+
+        // Raise an error to abort the transaction.
+        Error(TestRollbackAfterCommitErr);
     end;
 
     [ModalPageHandler]
