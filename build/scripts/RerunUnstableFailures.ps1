@@ -26,8 +26,20 @@ if ($run.conclusion -ne 'failure') {
     exit 0
 }
 
-if ($run.run_attempt -gt $MaxAttempts) {
-    Write-Host "Run $RunId is on attempt $($run.run_attempt) (max $MaxAttempts). Skipping."
+# For PRs from forks, the first attempt is an approval gate that runs no jobs and
+# concludes 'action_required'. This offsets the attempt numbering, so the first real
+# build is attempt 2. Discount the gate attempt to compute the effective attempt.
+$gateAttempts = 0
+if ($run.run_attempt -gt 1) {
+    $firstAttemptConclusion = gh api "/repos/$Owner/$Repo/actions/runs/$RunId/attempts/1" --jq '.conclusion' 2>&1
+    if ($LASTEXITCODE -eq 0 -and $firstAttemptConclusion -eq 'action_required') {
+        $gateAttempts = 1
+    }
+}
+$effectiveAttempt = $run.run_attempt - $gateAttempts
+
+if ($effectiveAttempt -gt $MaxAttempts) {
+    Write-Host "Run $RunId is on attempt $($run.run_attempt) (effective $effectiveAttempt, max $MaxAttempts). Skipping."
     exit 0
 }
 
