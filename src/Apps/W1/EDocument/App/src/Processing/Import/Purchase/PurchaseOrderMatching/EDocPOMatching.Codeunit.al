@@ -45,7 +45,7 @@ codeunit 6196 "E-Doc. PO Matching"
         PurchaseLine.SetRange("Pay-to Vendor No.", Vendor."No.");
         if EDocumentPurchaseLine."[BC] Unit of Measure" <> '' then
             PurchaseLine.SetRange("Unit of Measure Code", EDocumentPurchaseLine."[BC] Unit of Measure");
-        PurchaseLine.SetLoadFields("Document No.", "Line No.", Description, Quantity, "Qty. Invoiced (Base)", "Qty. Received (Base)", Type, "No.", "Quantity Received", "Quantity Invoiced");
+        PurchaseLine.SetLoadFields("Document No.", "Line No.", Description, Quantity, "Qty. Invoiced (Base)", "Qty. Received (Base)", Type, "No.", "Quantity Received", "Quantity Invoiced", "Direct Unit Cost", Amount, "Currency Code", "Expected Receipt Date");
         if PurchaseLine.FindSet() then
             repeat
                 // We exclude lines that have already been matched unless they were matched to the current line
@@ -218,9 +218,11 @@ codeunit 6196 "E-Doc. PO Matching"
         EDocLineQuantity: Decimal;
         PurchaseLinesQuantity, PurchaseLinesQuantityInvoiced, PurchaseLinesQuantityReceived : Decimal;
         RemainingToInvoice, InvoiceableQty : Decimal;
+        EDocNetUnitCost, ExpectedPONetUnitCost, AmountPctDiff, AmountThreshold : Decimal;
         ExceedsInvoiceableQtyLbl: Label 'Invoice quantity (%1) exceeds what can be invoiced according to what has been received (%2) by %3. The order line has to be received before invoicing.', Comment = '%1 = Invoice qty, %2 = Invoiceable qty, %3 = Difference';
         ExceedsRemainingToInvoiceLbl: Label 'Invoice quantity (%1) exceeds what is missing to invoice from the order (%2) by %3.', Comment = '%1 = Invoice qty, %2 = Remaining to invoice, %3 = Difference';
         OverReceiptLbl: Label 'Invoice will close out order but there is an over-receipt of %1 units.', Comment = '%1 = Over-receipt quantity';
+        AmountMismatchLbl: Label 'Invoiced unit cost (%1) differs from the order''s unit cost (%2) by %3%, which exceeds the allowed %4%.', Comment = '%1 = Invoiced net unit cost, %2 = Order net unit cost, %3 = Actual % difference, %4 = Allowed % tolerance';
     begin
         LoadPOLinesMatchedToEDocumentLine(EDocumentPurchaseLine, TempPurchaseLine);
         PurchaseLinesQuantityInvoiced := 0;
@@ -264,13 +266,99 @@ codeunit 6196 "E-Doc. PO Matching"
             POMatchWarnings.Insert();
         end;
 
-        // I = R and I < J: Order will be closed but there is an over-receipt 
+        // I = R and I < J: Order will be closed but there is an over-receipt
         if (EDocLineQuantity = RemainingToInvoice) and (EDocLineQuantity < InvoiceableQty) then begin
             POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
             POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::OverReceipt;
             POMatchWarnings."Warning Message" := CopyStr(StrSubstNo(OverReceiptLbl, InvoiceableQty - RemainingToInvoice), 1, MaxStrLen(POMatchWarnings."Warning Message"));
             POMatchWarnings.Insert();
         end;
+
+        // Invoiced unit cost differs from the order's unit cost beyond the allowed tolerance
+        if ShouldWarnAmountMismatch(EDocumentPurchaseLine, TempPurchaseLine, EDocNetUnitCost, ExpectedPONetUnitCost, AmountPctDiff, AmountThreshold) then begin
+            POMatchWarnings."E-Doc. Purchase Line SystemId" := EDocumentPurchaseLine.SystemId;
+            POMatchWarnings."Warning Type" := "E-Doc PO Match Warning"::AmountMismatch;
+            POMatchWarnings."Warning Message" := CopyStr(StrSubstNo(AmountMismatchLbl, EDocNetUnitCost, ExpectedPONetUnitCost, Round(AmountPctDiff, 0.1), AmountThreshold), 1, MaxStrLen(POMatchWarnings."Warning Message"));
+            POMatchWarnings.Insert();
+        end;
+    end;
+
+    /// <summary>
+    /// Determines whether the invoiced net unit cost of the e-document line differs from the matched purchase order lines' net unit cost
+    /// by more than the percentage configured in "E-Document Matching Difference" on Purchases Payables Setup.
+    /// Differences within the currency rounding precision, or when currencies don't match, never warn.
+    /// </summary>
+    /// <param name="EDocumentPurchaseLine">The e-document invoice draft line.</param>
+    /// <param name="TempPurchaseLine">Purchase order lines matched to the e-document line.</param>
+    /// <param name="EDocNetUnitCost">Out: the invoiced net unit cost (Unit Price less per-unit discount).</param>
+    /// <param name="ExpectedPONetUnitCost">Out: the quantity-weighted net unit cost of the matched order lines.</param>
+    /// <param name="PctDiff">Out: the actual percentage difference between the two unit costs.</param>
+    /// <param name="Threshold">Out: the allowed percentage difference read from setup.</param>
+    /// <returns>True if a warning should be raised.</returns>
+    local procedure ShouldWarnAmountMismatch(EDocumentPurchaseLine: Record "E-Document Purchase Line"; var TempPurchaseLine: Record "Purchase Line" temporary; var EDocNetUnitCost: Decimal; var ExpectedPONetUnitCost: Decimal; var PctDiff: Decimal; var Threshold: Decimal): Boolean
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        WeightedNetCostNumerator, TotalPOQuantity, AbsDiff, RoundingFloor : Decimal;
+        EDocCurrencyCode: Code[10];
+    begin
+        Clear(EDocNetUnitCost);
+        Clear(ExpectedPONetUnitCost);
+        Clear(PctDiff);
+        Clear(Threshold);
+
+        // Without a quantity we can't derive a unit cost from the line amount.
+        if EDocumentPurchaseLine.Quantity = 0 then
+            exit(false);
+
+        if not TempPurchaseLine.FindSet() then
+            exit(false);
+        // A blank currency code means the local currency, so normalize both sides before comparing.
+        GeneralLedgerSetup.Get();
+        EDocCurrencyCode := NormalizeEmptyCurrencyCode(EDocumentPurchaseLine."Currency Code", GeneralLedgerSetup);
+        repeat
+            // The unit cost comparison is only meaningful within a single currency; we don't convert across currencies.
+            if EDocCurrencyCode <> NormalizeEmptyCurrencyCode(TempPurchaseLine."Currency Code", GeneralLedgerSetup) then
+                exit(false);
+            WeightedNetCostNumerator += TempPurchaseLine."Direct Unit Cost" * (1 - TempPurchaseLine."Line Discount %" / 100) * TempPurchaseLine.Quantity;
+            TotalPOQuantity += TempPurchaseLine.Quantity;
+        until TempPurchaseLine.Next() = 0;
+
+        if TotalPOQuantity = 0 then
+            exit(false);
+
+        // The draft line's discount is an absolute amount, so we net it out of the line total before dividing by quantity.
+        EDocNetUnitCost := (EDocumentPurchaseLine.Quantity * EDocumentPurchaseLine."Unit Price" - EDocumentPurchaseLine."Total Discount") / EDocumentPurchaseLine.Quantity;
+        ExpectedPONetUnitCost := WeightedNetCostNumerator / TotalPOQuantity;
+
+        // A non-positive invoiced unit cost means the e-document line carries no usable price. That's only a mismatch
+        // when the order does expect a price (e.g. e-doc unit cost 0 but the order says 10); if the order is also
+        // unpriced (both 0) there is nothing to flag.
+        if EDocNetUnitCost <= 0 then
+            exit(ExpectedPONetUnitCost > 0);
+        // The e-document has a price but the order lines don't, so there's no usable unit cost to compare against.
+        if ExpectedPONetUnitCost <= 0 then
+            exit(false);
+
+        if PurchasesPayablesSetup.Get() then
+            Threshold := PurchasesPayablesSetup."E-Document Matching Difference";
+
+        // Differences within the currency rounding precision are noise and never warn, even when the tolerance is 0.
+        AbsDiff := Abs(ExpectedPONetUnitCost - EDocNetUnitCost);
+        RoundingFloor := EDocumentImportHelper.GetCurrencyRoundingPrecision(EDocumentPurchaseLine."Currency Code");
+        if AbsDiff <= RoundingFloor then
+            exit(false);
+
+        PctDiff := AbsDiff * 100 / ExpectedPONetUnitCost;
+        exit(PctDiff > Threshold);
+    end;
+
+    local procedure NormalizeEmptyCurrencyCode(CurrencyCode: Code[10]; GeneralLedgerSetup: Record "General Ledger Setup"): Code[10]
+    begin
+        if CurrencyCode = '' then
+            exit(GeneralLedgerSetup."LCY Code");
+        exit(CurrencyCode);
     end;
 
     /// <summary>
