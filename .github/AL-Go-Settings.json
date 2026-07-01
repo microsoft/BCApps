@@ -132,9 +132,11 @@
     "maxReleases": 0,
     "continuousDeployment": false,
     "groupByProject": false,
+    "includeProjects": [
+      "build_projects_Apps W1"
+    ],
     "excludeProjects": [
-      "build_projects_System Application Modules",
-      "build_projects_Test Apps *"
+      "build_projects_System Application Modules"
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
