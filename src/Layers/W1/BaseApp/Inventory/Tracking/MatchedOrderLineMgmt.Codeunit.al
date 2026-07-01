@@ -1265,6 +1265,21 @@ codeunit 5826 "Matched Order Line Mgmt."
         FeatureTelemetry.LogUptake('0000SIX', MatchedOrderLinesTok, Enum::"Feature Uptake Status"::"Set up");
     end;
 
+    /// <summary>
+    /// Creates a matched order line linking an invoice/credit memo line to a purchase order line and, optionally, a posted receipt/shipment line.
+    /// Public entry point for apps that build matches outside the Base Application
+    /// </summary>
+    /// <param name="InvoicePurchLineSystemId">SystemId of the invoice/credit memo purchase line.</param>
+    /// <param name="OrderPurchLineSystemId">SystemId of the matched purchase order line.</param>
+    /// <param name="ReceiptLineSystemId">SystemId of the matched posted receipt/shipment line, or a null Guid for an order-only (receive on invoice) match.</param>
+    /// <param name="QtyToInvoice">Quantity to invoice for the match.</param>
+    /// <param name="QtyToInvoiceBase">Base quantity to invoice for the match.</param>
+    /// <param name="ReceiptOnInvoice">Whether the order line is to be received automatically when the invoice is posted.</param>
+    procedure CreateMatchedOrderLine(InvoicePurchLineSystemId: Guid; OrderPurchLineSystemId: Guid; ReceiptLineSystemId: Guid; QtyToInvoice: Decimal; QtyToInvoiceBase: Decimal; ReceiptOnInvoice: Boolean)
+    begin
+        InsertMatchedOrderLine(InvoicePurchLineSystemId, OrderPurchLineSystemId, ReceiptLineSystemId, QtyToInvoice, QtyToInvoiceBase, ReceiptOnInvoice);
+    end;
+
     local procedure MaxFilterValues(): Integer
     begin
         // Business Central supports up to about 2000 filter values in a single request.
