@@ -4555,6 +4555,274 @@ codeunit 134468 "ERM Matched Order Line Tests"
     end;
 
     // ============================================================================
+    // REGION: Line-level Receipt on Invoice & coexistence with existing receipts
+    // ============================================================================
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure E2E_ReceiptOnInvoiceLineLevelDrivesAutoReceiveWithoutHeaderFlag()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineInvoice: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        MatchedOrderLine: Record "Matched Order Line";
+        Item: Record Item;
+        Vendor: Record Vendor;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO] Auto-receive is driven by the order line's Receipt on Invoice flag, even when the order
+        // header flag is not set.
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(10, 100);
+
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] An order line with Receipt on Invoice enabled on the line only (header flag stays off)
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", Quantity);
+        PurchaseLineOrder.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+        PurchaseLineOrder.Validate("Receipt on Invoice", true);
+        PurchaseLineOrder.Modify(true);
+
+        PurchaseHeaderOrder.Get(PurchaseHeaderOrder."Document Type", PurchaseHeaderOrder."No.");
+        Assert.IsFalse(PurchaseHeaderOrder."Receipt on Invoice", 'Header Receipt on Invoice should be off for this scenario');
+        Assert.AreEqual(0, PurchaseLineOrder."Qty. to Receive", 'Receipt on Invoice line should default Qty. to Receive to 0');
+
+        // [GIVEN] An invoice matched to the order line (order-level / receive-on-invoice match)
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineInvoice, PurchaseHeaderInvoice, PurchaseLineInvoice.Type::Item, Item."No.", Quantity);
+        PurchaseLineInvoice.Validate("Direct Unit Cost", PurchaseLineOrder."Direct Unit Cost");
+        PurchaseLineInvoice.Modify(true);
+
+        MatchedOrderLine.Init();
+        MatchedOrderLine."Document Line SystemId" := PurchaseLineInvoice.SystemId;
+        MatchedOrderLine."Matched Order Line SystemId" := PurchaseLineOrder.SystemId;
+        MatchedOrderLine."Matched Rcpt./Shpt. Line SysId" := EmptyGuid;
+        MatchedOrderLine."Qty. to Invoice" := Quantity;
+        MatchedOrderLine."Qty. to Invoice (Base)" := Quantity;
+        MatchedOrderLine."Receipt on Invoice" := true;
+        MatchedOrderLine.Insert();
+
+        // [WHEN] The invoice is posted
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderInvoice, false, true);
+
+        // [THEN] The order line was auto-received and invoiced even though the header flag was off
+        PurchaseLineOrder.Get(PurchaseLineOrder."Document Type", PurchaseLineOrder."Document No.", PurchaseLineOrder."Line No.");
+        Assert.AreEqual(Quantity, PurchaseLineOrder."Quantity Received", 'Order line should be auto-received');
+        Assert.AreEqual(Quantity, PurchaseLineOrder."Quantity Invoiced", 'Order line should be fully invoiced');
+
+        PurchRcptLine.SetRange("Order No.", PurchaseLineOrder."Document No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLineOrder."Line No.");
+        PurchRcptLine.FindFirst();
+        Assert.AreEqual(Quantity, PurchRcptLine.Quantity, 'Auto-posted receipt should cover the full quantity');
+        Assert.AreEqual(0, PurchRcptLine."Qty. Rcd. Not Invoiced", 'Auto-posted receipt should be fully invoiced');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure E2E_EnableReceiptOnInvoiceAllowedWhenLineAlreadyHasReceipts()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        Item: Record Item;
+        Vendor: Record Vendor;
+        TotalQuantity: Decimal;
+        ReceivedQuantity: Decimal;
+    begin
+        // [SCENARIO] Receipt on Invoice can be enabled on an order line that already has posted receipts.
+        Initialize();
+        TotalQuantity := 100;
+        ReceivedQuantity := 40;
+
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] An order line, partially received via a standalone receipt
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", TotalQuantity);
+        PurchaseLineOrder.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+        PurchaseLineOrder.Validate("Qty. to Receive", ReceivedQuantity);
+        PurchaseLineOrder.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
+
+        PurchaseLineOrder.Get(PurchaseLineOrder."Document Type", PurchaseLineOrder."Document No.", PurchaseLineOrder."Line No.");
+        Assert.AreEqual(ReceivedQuantity, PurchaseLineOrder."Quantity Received", 'Order line should be partially received');
+
+        // [WHEN] Receipt on Invoice is enabled on the line
+        // [THEN] No error is raised (the hard block against existing receipts has been removed)
+        PurchaseLineOrder.Validate("Receipt on Invoice", true);
+        PurchaseLineOrder.Modify(true);
+
+        Assert.IsTrue(PurchaseLineOrder."Receipt on Invoice", 'Receipt on Invoice should be enabled on the line');
+        Assert.AreEqual(0, PurchaseLineOrder."Qty. to Receive", 'Enabling Receipt on Invoice should reset Qty. to Receive to 0');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure E2E_ReceiptOnInvoiceCoexistsWithExistingReceiptInSingleInvoice()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineOrder: Record "Purchase Line";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineInvoice: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ExistingReceiptLine: Record "Purch. Rcpt. Line";
+        MatchedOrderLine: Record "Matched Order Line";
+        Item: Record Item;
+        Vendor: Record Vendor;
+        TotalQuantity: Decimal;
+        ReceivedQuantity: Decimal;
+        AutoReceiveQuantity: Decimal;
+    begin
+        // [SCENARIO] A single invoice line is matched to an existing receipt and auto-receives the remaining
+        // outstanding quantity. The existing receipt is invoiced and the remainder is received on invoice.
+        Initialize();
+        TotalQuantity := 100;
+        ReceivedQuantity := 30;
+        AutoReceiveQuantity := TotalQuantity - ReceivedQuantity;
+
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] An order line with a standalone partial receipt of 30
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineOrder, PurchaseHeaderOrder, PurchaseLineOrder.Type::Item, Item."No.", TotalQuantity);
+        PurchaseLineOrder.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+        PurchaseLineOrder.Validate("Qty. to Receive", ReceivedQuantity);
+        PurchaseLineOrder.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderOrder, true, false);
+
+        ExistingReceiptLine.SetRange("Order No.", PurchaseLineOrder."Document No.");
+        ExistingReceiptLine.SetRange("Order Line No.", PurchaseLineOrder."Line No.");
+        ExistingReceiptLine.FindFirst();
+
+        // [GIVEN] Receipt on Invoice is enabled on the line afterwards
+        PurchaseLineOrder.Get(PurchaseLineOrder."Document Type", PurchaseLineOrder."Document No.", PurchaseLineOrder."Line No.");
+        PurchaseLineOrder.Validate("Receipt on Invoice", true);
+        PurchaseLineOrder.Modify(true);
+
+        // [GIVEN] An invoice for the full quantity, matched to the existing receipt (30) plus an order-level
+        // receive-on-invoice row for the remaining 70 - exactly what the e-document transfer produces.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineInvoice, PurchaseHeaderInvoice, PurchaseLineInvoice.Type::Item, Item."No.", TotalQuantity);
+        PurchaseLineInvoice.Validate("Direct Unit Cost", PurchaseLineOrder."Direct Unit Cost");
+        PurchaseLineInvoice.Modify(true);
+
+        MatchedOrderLine.Init();
+        MatchedOrderLine."Document Line SystemId" := PurchaseLineInvoice.SystemId;
+        MatchedOrderLine."Matched Order Line SystemId" := PurchaseLineOrder.SystemId;
+        MatchedOrderLine."Matched Rcpt./Shpt. Line SysId" := ExistingReceiptLine.SystemId;
+        MatchedOrderLine."Qty. to Invoice" := ReceivedQuantity;
+        MatchedOrderLine."Qty. to Invoice (Base)" := ReceivedQuantity;
+        MatchedOrderLine."Receipt on Invoice" := false;
+        MatchedOrderLine.Insert();
+
+        MatchedOrderLine.Init();
+        MatchedOrderLine."Document Line SystemId" := PurchaseLineInvoice.SystemId;
+        MatchedOrderLine."Matched Order Line SystemId" := PurchaseLineOrder.SystemId;
+        MatchedOrderLine."Matched Rcpt./Shpt. Line SysId" := EmptyGuid;
+        MatchedOrderLine."Qty. to Invoice" := AutoReceiveQuantity;
+        MatchedOrderLine."Qty. to Invoice (Base)" := AutoReceiveQuantity;
+        MatchedOrderLine."Receipt on Invoice" := true;
+        MatchedOrderLine.Insert();
+
+        // [WHEN] The invoice is posted
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderInvoice, false, true);
+
+        // [THEN] The order line is fully received (30 existing + 70 received on invoice) and fully invoiced
+        PurchaseLineOrder.Get(PurchaseLineOrder."Document Type", PurchaseLineOrder."Document No.", PurchaseLineOrder."Line No.");
+        Assert.AreEqual(TotalQuantity, PurchaseLineOrder."Quantity Received", 'Order line should be fully received');
+        Assert.AreEqual(TotalQuantity, PurchaseLineOrder."Quantity Invoiced", 'Order line should be fully invoiced');
+        Assert.AreEqual(0, PurchaseLineOrder."Outstanding Quantity", 'Order line should have no outstanding quantity');
+
+        // [THEN] Two receipt lines exist (the existing one and the receive-on-invoice one), both fully invoiced
+        PurchRcptLine.SetRange("Order No.", PurchaseLineOrder."Document No.");
+        PurchRcptLine.SetRange("Order Line No.", PurchaseLineOrder."Line No.");
+        Assert.AreEqual(2, PurchRcptLine.Count(), 'There should be an existing receipt and an auto receipt');
+        PurchRcptLine.FindSet();
+        repeat
+            Assert.AreEqual(0, PurchRcptLine."Qty. Rcd. Not Invoiced", 'Each receipt line should be fully invoiced');
+        until PurchRcptLine.Next() = 0;
+
+        // [THEN] The staged matches were cleaned up
+        MatchedOrderLine.Reset();
+        MatchedOrderLine.SetRange("Document Line SystemId", PurchaseLineInvoice.SystemId);
+        Assert.RecordIsEmpty(MatchedOrderLine);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure E2E_MixedOrderReceivesOnlyInvoiceDrivenLine()
+    var
+        PurchaseHeaderOrder: Record "Purchase Header";
+        PurchaseLineReceiptOnInvoice: Record "Purchase Line";
+        PurchaseLineNormal: Record "Purchase Line";
+        PurchaseHeaderInvoice: Record "Purchase Header";
+        PurchaseLineInvoice: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        MatchedOrderLine: Record "Matched Order Line";
+        Item: Record Item;
+        Vendor: Record Vendor;
+        ReceiptOnInvoiceQty: Decimal;
+        NormalQty: Decimal;
+    begin
+        // [SCENARIO] When an invoice auto-receives one line of an order, the order's other (normal) lines are
+        // not received, and their quantity to receive is restored afterwards.
+        Initialize();
+        ReceiptOnInvoiceQty := 50;
+        NormalQty := 30;
+
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] An order with a receipt-on-invoice line and a normal line
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderOrder, PurchaseHeaderOrder."Document Type"::Order, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineReceiptOnInvoice, PurchaseHeaderOrder, PurchaseLineReceiptOnInvoice.Type::Item, Item."No.", ReceiptOnInvoiceQty);
+        PurchaseLineReceiptOnInvoice.Validate("Direct Unit Cost", LibraryRandom.RandDecInRange(10, 100, 2));
+        PurchaseLineReceiptOnInvoice.Validate("Receipt on Invoice", true);
+        PurchaseLineReceiptOnInvoice.Modify(true);
+
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineNormal, PurchaseHeaderOrder, PurchaseLineNormal.Type::Item, Item."No.", NormalQty);
+        PurchaseLineNormal.Validate("Direct Unit Cost", PurchaseLineReceiptOnInvoice."Direct Unit Cost");
+        PurchaseLineNormal.Modify(true);
+
+        // [GIVEN] An invoice matched only to the receipt-on-invoice order line
+        LibraryPurchase.CreatePurchHeader(PurchaseHeaderInvoice, PurchaseHeaderInvoice."Document Type"::Invoice, Vendor."No.");
+        LibraryPurchase.CreatePurchaseLine(PurchaseLineInvoice, PurchaseHeaderInvoice, PurchaseLineInvoice.Type::Item, Item."No.", ReceiptOnInvoiceQty);
+        PurchaseLineInvoice.Validate("Direct Unit Cost", PurchaseLineReceiptOnInvoice."Direct Unit Cost");
+        PurchaseLineInvoice.Modify(true);
+
+        MatchedOrderLine.Init();
+        MatchedOrderLine."Document Line SystemId" := PurchaseLineInvoice.SystemId;
+        MatchedOrderLine."Matched Order Line SystemId" := PurchaseLineReceiptOnInvoice.SystemId;
+        MatchedOrderLine."Matched Rcpt./Shpt. Line SysId" := EmptyGuid;
+        MatchedOrderLine."Qty. to Invoice" := ReceiptOnInvoiceQty;
+        MatchedOrderLine."Qty. to Invoice (Base)" := ReceiptOnInvoiceQty;
+        MatchedOrderLine."Receipt on Invoice" := true;
+        MatchedOrderLine.Insert();
+
+        // [WHEN] The invoice is posted
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeaderInvoice, false, true);
+
+        // [THEN] Only the receipt-on-invoice line was received
+        PurchaseLineReceiptOnInvoice.Get(PurchaseLineReceiptOnInvoice."Document Type", PurchaseLineReceiptOnInvoice."Document No.", PurchaseLineReceiptOnInvoice."Line No.");
+        Assert.AreEqual(ReceiptOnInvoiceQty, PurchaseLineReceiptOnInvoice."Quantity Received", 'The receipt-on-invoice line should be received');
+
+        PurchaseLineNormal.Get(PurchaseLineNormal."Document Type", PurchaseLineNormal."Document No.", PurchaseLineNormal."Line No.");
+        Assert.AreEqual(0, PurchaseLineNormal."Quantity Received", 'The normal line must not be received');
+        Assert.AreEqual(NormalQty, PurchaseLineNormal."Qty. to Receive", 'The normal line quantity to receive should be restored to its outstanding quantity');
+
+        // [THEN] Only one receipt line exists, for the receipt-on-invoice order line
+        PurchRcptLine.SetRange("Order No.", PurchaseHeaderOrder."No.");
+        Assert.AreEqual(1, PurchRcptLine.Count(), 'Only the receipt-on-invoice line should produce a receipt');
+        PurchRcptLine.FindFirst();
+        Assert.AreEqual(PurchaseLineReceiptOnInvoice."Line No.", PurchRcptLine."Order Line No.", 'The receipt should be for the receipt-on-invoice line');
+    end;
+
+    // ============================================================================
     // REGION: Local Helper Functions
     // ============================================================================
 
