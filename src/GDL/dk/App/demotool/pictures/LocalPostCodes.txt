@@ -1,0 +1,1138 @@
+﻿555;Scanning;DK
+800;Høje Taastrup;DK
+877;København C;DK
+900;København C;DK
+917;Københavns Pakkecenter;DK
+918;Københavns Pakke BRC;DK
+999;København C;DK
+1000;København K;DK
+1001;København K;DK
+1002;København K;DK
+1003;København K;DK
+1004;København K;DK
+1005;København K;DK
+1006;København K;DK
+1007;København K;DK
+1008;København K;DK
+1009;København K;DK
+1010;København K;DK
+1011;København K;DK
+1012;København K;DK
+1013;København K;DK
+1014;København K;DK
+1015;København K;DK
+1016;København K;DK
+1017;København K;DK
+1018;København K;DK
+1019;København K;DK
+1020;København K;DK
+1021;København K;DK
+1022;København K;DK
+1023;København K;DK
+1024;København K;DK
+1025;København K;DK
+1026;København K;DK
+1045;København K;DK
+1051;København K;DK
+1052;København K;DK
+1053;København K;DK
+1054;København K;DK
+1055;København K;DK
+1056;København K;DK
+1057;København K;DK
+1058;København K;DK
+1059;København K;DK
+1060;København K;DK
+1061;København K;DK
+1062;København K;DK
+1063;København K;DK
+1064;København K;DK
+1065;København K;DK
+1066;København K;DK
+1067;København K;DK
+1068;København K;DK
+1069;København K;DK
+1070;København K;DK
+1071;København K;DK
+1072;København K;DK
+1073;København K;DK
+1074;København K;DK
+1092;København K;DK
+1093;København K;DK
+1095;København K;DK
+1098;København K;DK
+1100;København K;DK
+1101;København K;DK
+1102;København K;DK
+1103;København K;DK
+1104;København K;DK
+1105;København K;DK
+1106;København K;DK
+1107;København K;DK
+1110;København K;DK
+1111;København K;DK
+1112;København K;DK
+1113;København K;DK
+1114;København K;DK
+1115;København K;DK
+1116;København K;DK
+1117;København K;DK
+1118;København K;DK
+1119;København K;DK
+1120;København K;DK
+1121;København K;DK
+1122;København K;DK
+1123;København K;DK
+1124;København K;DK
+1125;København K;DK
+1126;København K;DK
+1127;København K;DK
+1128;København K;DK
+1129;København K;DK
+1130;København K;DK
+1131;København K;DK
+1140;København K;DK
+1147;København K;DK
+1148;København K;DK
+1150;København K;DK
+1151;København K;DK
+1153;København K;DK
+1154;København K;DK
+1155;København K;DK
+1156;København K;DK
+1157;København K;DK
+1158;København K;DK
+1159;København K;DK
+1160;København K;DK
+1161;København K;DK
+1162;København K;DK
+1163;København K;DK
+1164;København K;DK
+1165;København K;DK
+1166;København K;DK
+1167;København K;DK
+1168;København K;DK
+1169;København K;DK
+1170;København K;DK
+1171;København K;DK
+1172;København K;DK
+1173;København K;DK
+1174;København K;DK
+1175;København K;DK
+1200;København K;DK
+1201;København K;DK
+1202;København K;DK
+1203;København K;DK
+1204;København K;DK
+1205;København K;DK
+1206;København K;DK
+1207;København K;DK
+1208;København K;DK
+1209;København K;DK
+1210;København K;DK
+1211;København K;DK
+1212;København K;DK
+1213;København K;DK
+1214;København K;DK
+1215;København K;DK
+1216;København K;DK
+1217;København K;DK
+1218;København K;DK
+1219;København K;DK
+1220;København K;DK
+1221;København K;DK
+1240;København K;DK
+1250;København K;DK
+1251;København K;DK
+1252;København K;DK
+1253;København K;DK
+1254;København K;DK
+1255;København K;DK
+1256;København K;DK
+1257;København K;DK
+1258;København K;DK
+1259;København K;DK
+1260;København K;DK
+1261;København K;DK
+1263;København K;DK
+1264;København K;DK
+1265;København K;DK
+1266;København K;DK
+1267;København K;DK
+1268;København K;DK
+1270;København K;DK
+1271;København K;DK
+1291;København K;DK
+1300;København K;DK
+1301;København K;DK
+1302;København K;DK
+1303;København K;DK
+1304;København K;DK
+1306;København K;DK
+1307;København K;DK
+1308;København K;DK
+1309;København K;DK
+1310;København K;DK
+1311;København K;DK
+1312;København K;DK
+1313;København K;DK
+1314;København K;DK
+1315;København K;DK
+1316;København K;DK
+1317;København K;DK
+1318;København K;DK
+1319;København K;DK
+1320;København K;DK
+1321;København K;DK
+1322;København K;DK
+1323;København K;DK
+1324;København K;DK
+1325;København K;DK
+1326;København K;DK
+1327;København K;DK
+1328;København K;DK
+1329;København K;DK
+1349;København K;DK
+1350;København K;DK
+1352;København K;DK
+1353;København K;DK
+1354;København K;DK
+1355;København K;DK
+1356;København K;DK
+1357;København K;DK
+1358;København K;DK
+1359;København K;DK
+1360;København K;DK
+1361;København K;DK
+1362;København K;DK
+1363;København K;DK
+1364;København K;DK
+1365;København K;DK
+1366;København K;DK
+1367;København K;DK
+1368;København K;DK
+1369;København K;DK
+1370;København K;DK
+1371;København K;DK
+1400;København K;DK
+1401;København K;DK
+1402;København K;DK
+1403;København K;DK
+1404;København K;DK
+1406;København K;DK
+1407;København K;DK
+1408;København K;DK
+1409;København K;DK
+1410;København K;DK
+1411;København K;DK
+1412;København K;DK
+1413;København K;DK
+1414;København K;DK
+1415;København K;DK
+1416;København K;DK
+1417;København K;DK
+1418;København K;DK
+1419;København K;DK
+1420;København K;DK
+1421;København K;DK
+1422;København K;DK
+1423;København K;DK
+1424;København K;DK
+1425;København K;DK
+1426;København K;DK
+1427;København K;DK
+1428;København K;DK
+1429;København K;DK
+1430;København K;DK
+1431;København K;DK
+1432;København K;DK
+1433;København K;DK
+1434;København K;DK
+1435;København K;DK
+1436;København K;DK
+1437;København K;DK
+1438;København K;DK
+1439;København K;DK
+1440;København K;DK
+1441;København K;DK
+1448;København K;DK
+1450;København K;DK
+1451;København K;DK
+1452;København K;DK
+1453;København K;DK
+1454;København K;DK
+1455;København K;DK
+1456;København K;DK
+1457;København K;DK
+1458;København K;DK
+1459;København K;DK
+1460;København K;DK
+1461;København K;DK
+1462;København K;DK
+1463;København K;DK
+1464;København K;DK
+1465;København K;DK
+1466;København K;DK
+1467;København K;DK
+1468;København K;DK
+1470;København K;DK
+1471;København K;DK
+1472;København K;DK
+1473;København K;DK
+1500;København V;DK
+1501;København V;DK
+1502;København V;DK
+1503;København V;DK
+1504;København V;DK
+1505;København V;DK
+1506;København V;DK
+1507;København V;DK
+1508;København V;DK
+1509;København V;DK
+1510;København V;DK
+1532;København V;DK
+1533;København V;DK
+1550;København V;DK
+1551;København V;DK
+1552;København V;DK
+1553;København V;DK
+1554;København V;DK
+1555;København V;DK
+1556;København V;DK
+1557;København V;DK
+1558;København V;DK
+1559;København V;DK
+1560;København V;DK
+1561;København V;DK
+1562;København V;DK
+1563;København V;DK
+1564;København V;DK
+1566;København V;DK
+1567;København V;DK
+1568;København V;DK
+1569;København V;DK
+1570;København V;DK
+1571;København V;DK
+1572;København V;DK
+1573;København V;DK
+1574;København V;DK
+1575;København V;DK
+1576;København V;DK
+1577;København V;DK
+1592;København V;DK
+1599;København V;DK
+1600;København V;DK
+1601;København V;DK
+1602;København V;DK
+1603;København V;DK
+1604;København V;DK
+1605;København V;DK
+1606;København V;DK
+1607;København V;DK
+1608;København V;DK
+1609;København V;DK
+1610;København V;DK
+1611;København V;DK
+1612;København V;DK
+1613;København V;DK
+1614;København V;DK
+1615;København V;DK
+1616;København V;DK
+1617;København V;DK
+1618;København V;DK
+1619;København V;DK
+1620;København V;DK
+1621;København V;DK
+1622;København V;DK
+1623;København V;DK
+1624;København V;DK
+1630;København V;DK
+1631;København V;DK
+1632;København V;DK
+1633;København V;DK
+1634;København V;DK
+1635;København V;DK
+1640;København V;DK
+1650;København V;DK
+1651;København V;DK
+1652;København V;DK
+1653;København V;DK
+1654;København V;DK
+1655;København V;DK
+1656;København V;DK
+1657;København V;DK
+1658;København V;DK
+1659;København V;DK
+1660;København V;DK
+1661;København V;DK
+1662;København V;DK
+1663;København V;DK
+1664;København V;DK
+1665;København V;DK
+1666;København V;DK
+1667;København V;DK
+1668;København V;DK
+1669;København V;DK
+1670;København V;DK
+1671;København V;DK
+1672;København V;DK
+1673;København V;DK
+1674;København V;DK
+1675;København V;DK
+1676;København V;DK
+1677;København V;DK
+1699;København V;DK
+1700;København V;DK
+1701;København V;DK
+1702;København V;DK
+1703;København V;DK
+1704;København V;DK
+1705;København V;DK
+1706;København V;DK
+1707;København V;DK
+1708;København V;DK
+1709;København V;DK
+1710;København V;DK
+1711;København V;DK
+1712;København V;DK
+1713;København V;DK
+1714;København V;DK
+1715;København V;DK
+1716;København V;DK
+1717;København V;DK
+1718;København V;DK
+1719;København V;DK
+1720;København V;DK
+1721;København V;DK
+1722;København V;DK
+1723;København V;DK
+1724;København V;DK
+1725;København V;DK
+1726;København V;DK
+1727;København V;DK
+1728;København V;DK
+1729;København V;DK
+1730;København V;DK
+1731;København V;DK
+1732;København V;DK
+1733;København V;DK
+1734;København V;DK
+1735;København V;DK
+1736;København V;DK
+1737;København V;DK
+1738;København V;DK
+1739;København V;DK
+1749;København V;DK
+1750;København V;DK
+1751;København V;DK
+1752;København V;DK
+1753;København V;DK
+1754;København V;DK
+1755;København V;DK
+1756;København V;DK
+1757;København V;DK
+1758;København V;DK
+1759;København V;DK
+1760;København V;DK
+1761;København V;DK
+1762;København V;DK
+1763;København V;DK
+1764;København V;DK
+1765;København V;DK
+1766;København V;DK
+1770;København V;DK
+1771;København V;DK
+1772;København V;DK
+1773;København V;DK
+1774;København V;DK
+1775;København V;DK
+1777;København V;DK
+1780;København V;DK
+1782;København V;DK
+1785;København V;DK
+1786;København V;DK
+1787;København V;DK
+1790;København V;DK
+1799;København V;DK
+1800;Frederiksberg C;DK
+1801;Frederiksberg C;DK
+1802;Frederiksberg C;DK
+1803;Frederiksberg C;DK
+1804;Frederiksberg C;DK
+1805;Frederiksberg C;DK
+1806;Frederiksberg C;DK
+1807;Frederiksberg C;DK
+1808;Frederiksberg C;DK
+1809;Frederiksberg C;DK
+1810;Frederiksberg C;DK
+1811;Frederiksberg C;DK
+1812;Frederiksberg C;DK
+1813;Frederiksberg C;DK
+1814;Frederiksberg C;DK
+1815;Frederiksberg C;DK
+1816;Frederiksberg C;DK
+1817;Frederiksberg C;DK
+1818;Frederiksberg C;DK
+1819;Frederiksberg C;DK
+1820;Frederiksberg C;DK
+1822;Frederiksberg C;DK
+1823;Frederiksberg C;DK
+1824;Frederiksberg C;DK
+1825;Frederiksberg C;DK
+1826;Frederiksberg C;DK
+1827;Frederiksberg C;DK
+1828;Frederiksberg C;DK
+1829;Frederiksberg C;DK
+1835;Frederiksberg C;DK
+1850;Frederiksberg C;DK
+1851;Frederiksberg C;DK
+1852;Frederiksberg C;DK
+1853;Frederiksberg C;DK
+1854;Frederiksberg C;DK
+1855;Frederiksberg C;DK
+1856;Frederiksberg C;DK
+1857;Frederiksberg C;DK
+1860;Frederiksberg C;DK
+1861;Frederiksberg C;DK
+1862;Frederiksberg C;DK
+1863;Frederiksberg C;DK
+1864;Frederiksberg C;DK
+1865;Frederiksberg C;DK
+1866;Frederiksberg C;DK
+1867;Frederiksberg C;DK
+1868;Frederiksberg C;DK
+1870;Frederiksberg C;DK
+1871;Frederiksberg C;DK
+1872;Frederiksberg C;DK
+1873;Frederiksberg C;DK
+1874;Frederiksberg C;DK
+1875;Frederiksberg C;DK
+1876;Frederiksberg C;DK
+1877;Frederiksberg C;DK
+1878;Frederiksberg C;DK
+1879;Frederiksberg C;DK
+1900;Frederiksberg C;DK
+1901;Frederiksberg C;DK
+1902;Frederiksberg C;DK
+1903;Frederiksberg C;DK
+1904;Frederiksberg C;DK
+1905;Frederiksberg C;DK
+1906;Frederiksberg C;DK
+1908;Frederiksberg C;DK
+1909;Frederiksberg C;DK
+1910;Frederiksberg C;DK
+1911;Frederiksberg C;DK
+1912;Frederiksberg C;DK
+1913;Frederiksberg C;DK
+1914;Frederiksberg C;DK
+1915;Frederiksberg C;DK
+1916;Frederiksberg C;DK
+1917;Frederiksberg C;DK
+1920;Frederiksberg C;DK
+1921;Frederiksberg C;DK
+1922;Frederiksberg C;DK
+1923;Frederiksberg C;DK
+1924;Frederiksberg C;DK
+1925;Frederiksberg C;DK
+1926;Frederiksberg C;DK
+1927;Frederiksberg C;DK
+1928;Frederiksberg C;DK
+1931;Frederiksberg C;DK
+1950;Frederiksberg C;DK
+1951;Frederiksberg C;DK
+1952;Frederiksberg C;DK
+1953;Frederiksberg C;DK
+1954;Frederiksberg C;DK
+1955;Frederiksberg C;DK
+1956;Frederiksberg C;DK
+1957;Frederiksberg C;DK
+1958;Frederiksberg C;DK
+1959;Frederiksberg C;DK
+1960;Frederiksberg C;DK
+1961;Frederiksberg C;DK
+1962;Frederiksberg C;DK
+1963;Frederiksberg C;DK
+1964;Frederiksberg C;DK
+1965;Frederiksberg C;DK
+1966;Frederiksberg C;DK
+1967;Frederiksberg C;DK
+1970;Frederiksberg C;DK
+1971;Frederiksberg C;DK
+1972;Frederiksberg C;DK
+1973;Frederiksberg C;DK
+1974;Frederiksberg C;DK
+2000;Frederiksberg;DK
+2150;Nordhavn;DK
+2200;København N;DK
+2400;København NV;DK
+2450;København SV;DK
+2500;Valby;DK
+2605;Brøndby;DK
+2620;Albertslund;DK
+2625;Vallensbæk;DK
+2635;Ishøj;DK
+2640;Hedehusene;DK
+2650;Hvidovre;DK
+2660;Brøndby Strand;DK
+2665;Vallensbæk Strand;DK
+2670;Greve;DK
+2680;Solrød Strand;DK
+2690;Karlslunde;DK
+2700;Brønshøj;DK
+2720;Vanløse;DK
+2740;Skovlunde;DK
+2750;Ballerup;DK
+2760;Måløv;DK
+2765;Smørum;DK
+2770;Kastrup;DK
+2791;Dragør;DK
+2800;Kongens Lyngby;DK
+2820;Gentofte;DK
+2830;Virum;DK
+2840;Holte;DK
+2850;Nærum;DK
+2870;Dyssegård;DK
+2880;Bagsværd;DK
+2900;Hellerup;DK
+2920;Charlottenlund;DK
+2930;Klampenborg;DK
+2942;Skodsborg;DK
+2960;Rungsted Kyst;DK
+2980;Kokkedal;DK
+2990;Nivå;DK
+3000;Helsingør;DK
+3050;Humlebæk;DK
+3060;Espergærde;DK
+3070;Snekkersten;DK
+3080;Tikøb;DK
+3100;Hornbæk;DK
+3120;Dronningmølle;DK
+3140;Ålsgårde;DK
+3150;Hellebæk;DK
+3200;Helsinge;DK
+3210;Vejby;DK
+3220;Tisvildeleje;DK
+3230;Græsted;DK
+3250;Gilleleje;DK
+3300;Frederiksværk;DK
+3310;Ølsted;DK
+3320;Skævinge;DK
+3330;Gørløse;DK
+3360;Liseleje;DK
+3370;Melby;DK
+3390;Hundested;DK
+3400;Hillerød;DK
+3450;Allerød;DK
+3460;Birkerød;DK
+3480;Fredensborg;DK
+3490;Kvistgård;DK
+3500;Værløse;DK
+3520;Farum;DK
+3540;Lynge;DK
+3550;Slangerup;DK
+3600;Frederikssund;DK
+3630;Jægerspris;DK
+3650;Ølstykke;DK
+3660;Stenløse;DK
+3670;Veksø Sjælland;DK
+3700;Rønne;DK
+3720;Aakirkeby;DK
+3730;Nexø;DK
+3740;Svaneke;DK
+3751;Østermarie;DK
+3760;Gudhjem;DK
+3770;Allinge;DK
+3782;Klemensker;DK
+3790;Hasle;DK
+4000;Roskilde;DK
+4030;Tune;DK
+4040;Jyllinge;DK
+4050;Skibby;DK
+4060;Kirke Såby;DK
+4070;Kirke Hyllinge;DK
+4100;Ringsted;DK
+4130;Viby Sjælland;DK
+4140;Borup;DK
+4160;Herlufmagle;DK
+4171;Glumsø;DK
+4173;Fjenneslev;DK
+4174;Jystrup Midtsj;DK
+4180;Sorø;DK
+4190;Munke Bjergby;DK
+4200;Slagelse;DK
+4220;Korsør;DK
+4230;Skælskør;DK
+4241;Vemmelev;DK
+4242;Boeslunde;DK
+4243;Rude;DK
+4250;Fuglebjerg;DK
+4261;Dalmose;DK
+4262;Sandved;DK
+4270;Høng;DK
+4281;Gørlev;DK
+4291;Ruds Vedby;DK
+4293;Dianalund;DK
+4295;Stenlille;DK
+4296;Nyrup;DK
+4320;Lejre;DK
+4330;Hvalsø;DK
+4340;Tølløse;DK
+4350;Ugerløse;DK
+4360;Kirke Eskilstrup;DK
+4370;Store Merløse;DK
+4390;Vipperød;DK
+4400;Kalundborg;DK
+4420;Regstrup;DK
+4440;Mørkøv;DK
+4450;Jyderup;DK
+4460;Snertinge;DK
+4470;Svebølle;DK
+4480;Store Fuglede;DK
+4490;Jerslev Sjælland;DK
+4500;Nykøbing Sj;DK
+4520;Svinninge;DK
+4532;Gislinge;DK
+4534;Hørve;DK
+4540;Fårevejle;DK
+4550;Asnæs;DK
+4560;Vig;DK
+4571;Grevinge;DK
+4572;Nørre Asmindrup;DK
+4573;Højby;DK
+4581;Rørvig;DK
+4583;Sjællands Odde;DK
+4591;Føllenslev;DK
+4592;Sejerø;DK
+4593;Eskebjerg;DK
+4621;Gadstrup;DK
+4622;Havdrup;DK
+4623;Lille Skensved;DK
+4632;Bjæverskov;DK
+4640;Faxe;DK
+4652;Hårlev;DK
+4653;Karise;DK
+4654;Faxe Ladeplads;DK
+4660;Store Heddinge;DK
+4671;Strøby;DK
+4672;Klippinge;DK
+4673;Rødvig Stevns;DK
+4681;Herfølge;DK
+4682;Tureby;DK
+4683;Rønnede;DK
+4690;Haslev;DK
+4700;Næstved;DK
+4720;Præstø;DK
+4733;Tappernøje;DK
+4735;Mern;DK
+4736;Karrebæksminde;DK
+4750;Lundby;DK
+4760;Vordingborg;DK
+4771;Kalvehave;DK
+4772;Langebæk;DK
+4773;Stensved;DK
+4780;Stege;DK
+4791;Borre;DK
+4792;Askeby;DK
+4793;Bogø By;DK
+4800;Nykøbing F;DK
+4840;Nørre Alslev;DK
+4850;Stubbekøbing;DK
+4862;Guldborg;DK
+4863;Eskilstrup;DK
+4871;Horbelev;DK
+4872;Idestrup;DK
+4873;Væggerløse;DK
+4874;Gedser;DK
+4880;Nysted;DK
+4891;Toreby L;DK
+4892;Kettinge;DK
+4894;Øster Ulslev;DK
+4895;Errindlev;DK
+4900;Nakskov;DK
+4912;Harpelunde;DK
+4920;Søllested;DK
+4930;Maribo;DK
+4941;Bandholm;DK
+4943;Torrig L;DK
+4944;Fejø;DK
+4951;Nørreballe;DK
+4952;Stokkemarke;DK
+4953;Vesterborg;DK
+4960;Holeby;DK
+4970;Rødby;DK
+4983;Dannemare;DK
+4990;Sakskøbing;DK
+5100;Odense C;DK
+5200;Odense V;DK
+5210;Odense NV;DK
+5220;Odense SØ;DK
+5230;Odense M;DK
+5240;Odense NØ;DK
+5250;Odense SV;DK
+5260;Odense S;DK
+5270;Odense N;DK
+5290;Marslev;DK
+5300;Kerteminde;DK
+5320;Agedrup;DK
+5330;Munkebo;DK
+5350;Rynkeby;DK
+5370;Mesinge;DK
+5380;Dalby;DK
+5390;Martofte;DK
+5450;Otterup;DK
+5462;Morud;DK
+5463;Harndrup;DK
+5464;Brenderup Fyn;DK
+5466;Asperup;DK
+5471;Søndersø;DK
+5474;Veflinge;DK
+5485;Skamby;DK
+5491;Blommenslyst;DK
+5492;Vissenbjerg;DK
+5500;Middelfart;DK
+5540;Ullerslev;DK
+5550;Langeskov;DK
+5560;Aarup;DK
+5580;Nørre Aaby;DK
+5591;Gelsted;DK
+5592;Ejby;DK
+5600;Faaborg;DK
+5610;Assens;DK
+5620;Glamsbjerg;DK
+5631;Ebberup;DK
+5642;Millinge;DK
+5672;Broby;DK
+5683;Haarby;DK
+5690;Tommerup;DK
+5700;Svendborg;DK
+5750;Ringe;DK
+5762;Vester Skerninge;DK
+5771;Stenstrup;DK
+5772;Kværndrup;DK
+5792;Årslev;DK
+5853;Ørbæk;DK
+5854;Gislev;DK
+5856;Ryslinge;DK
+5863;Ferritslev Fyn;DK
+5871;Frørup;DK
+5881;Skårup Fyn;DK
+5882;Vejstrup;DK
+5883;Oure;DK
+5884;Gudme;DK
+5892;Gudbjerg Sydfyn;DK
+5900;Rudkøbing;DK
+5932;Humble;DK
+5935;Bagenkop;DK
+5953;Tranekær;DK
+5960;Marstal;DK
+5970;Ærøskøbing;DK
+5985;Søby Ærø;DK
+6000;Kolding;DK
+6040;Egtved;DK
+6051;Almind;DK
+6052;Viuf;DK
+6064;Jordrup;DK
+6070;Christiansfeld;DK
+6091;Bjert;DK
+6092;Sønder Stenderup;DK
+6093;Sjølund;DK
+6094;Hejls;DK
+6100;Haderslev;DK
+6200;Aabenraa;DK
+6230;Rødekro;DK
+6240;Løgumkloster;DK
+6261;Bredebro;DK
+6270;Tønder;DK
+6280;Højer;DK
+6300;Gråsten;DK
+6310;Broager;DK
+6320;Egernsund;DK
+6330;Padborg;DK
+6340;Kruså;DK
+6360;Tinglev;DK
+6372;Bylderup-Bov;DK
+6392;Bolderslev;DK
+6400;Sønderborg;DK
+6430;Nordborg;DK
+6440;Augustenborg;DK
+6470;Sydals;DK
+6500;Vojens;DK
+6510;Gram;DK
+6520;Toftlund;DK
+6534;Agerskov;DK
+6535;Branderup J;DK
+6541;Bevtoft;DK
+6560;Sommersted;DK
+6580;Vamdrup;DK
+6600;Vejen;DK
+6621;Gesten;DK
+6622;Bække;DK
+6623;Vorbasse;DK
+6630;Rødding;DK
+6640;Lunderskov;DK
+6650;Brørup;DK
+6660;Lintrup;DK
+6670;Holsted;DK
+6682;Hovborg;DK
+6683;Føvling;DK
+6690;Gørding;DK
+6700;Esbjerg;DK
+6701;Esbjerg;DK
+6705;Esbjerg Ø;DK
+6710;Esbjerg V;DK
+6715;Esbjerg N;DK
+6720;Fanø;DK
+6731;Tjæreborg;DK
+6740;Bramming;DK
+6752;Glejbjerg;DK
+6753;Agerbæk;DK
+6760;Ribe;DK
+6771;Gredstedbro;DK
+6780;Skærbæk;DK
+6792;Rømø;DK
+6800;Varde;DK
+6818;Årre;DK
+6823;Ansager;DK
+6830;Nørre Nebel;DK
+6840;Oksbøl;DK
+6851;Janderup Vestj;DK
+6852;Billum;DK
+6853;Vejers Strand;DK
+6854;Henne;DK
+6855;Outrup;DK
+6857;Blåvand;DK
+6862;Tistrup;DK
+6870;Ølgod;DK
+6880;Tarm;DK
+6893;Hemmet;DK
+6900;Skjern;DK
+6920;Videbæk;DK
+6933;Kibæk;DK
+6940;Lem St;DK
+6950;Ringkøbing;DK
+6960;Hvide Sande;DK
+6971;Spjald;DK
+6973;Ørnhøj;DK
+6980;Tim;DK
+6990;Ulfborg;DK
+7000;Fredericia;DK
+7017;Taulov Pakkecenter;DK
+7080;Børkop;DK
+7100;Vejle;DK
+7120;Vejle Øst;DK
+7130;Juelsminde;DK
+7140;Stouby;DK
+7150;Barrit;DK
+7160;Tørring;DK
+7171;Uldum;DK
+7173;Vonge;DK
+7182;Bredsten;DK
+7183;Randbøl;DK
+7184;Vandel;DK
+7190;Billund;DK
+7200;Grindsted;DK
+7250;Hejnsvig;DK
+7260;Sønder Omme;DK
+7270;Stakroge;DK
+7280;Sønder Felding;DK
+7300;Jelling;DK
+7321;Gadbjerg;DK
+7323;Give;DK
+7330;Brande;DK
+7361;Ejstrupholm;DK
+7362;Hampen;DK
+7400;Herning;DK
+7430;Ikast;DK
+7441;Bording;DK
+7442;Engesvang;DK
+7451;Sunds;DK
+7470;Karup J;DK
+7480;Vildbjerg;DK
+7490;Aulum;DK
+7500;Holstebro;DK
+7540;Haderup;DK
+7550;Sørvad;DK
+7560;Hjerm;DK
+7570;Vemb;DK
+7600;Struer;DK
+7620;Lemvig;DK
+7650;Bøvlingbjerg;DK
+7660;Bækmarksbro;DK
+7673;Harboøre;DK
+7680;Thyborøn;DK
+7700;Thisted;DK
+7730;Hanstholm;DK
+7741;Frøstrup;DK
+7742;Vesløs;DK
+7752;Snedsted;DK
+7755;Bedsted Thy;DK
+7760;Hurup Thy;DK
+7770;Vestervig;DK
+7790;Thyholm;DK
+7800;Skive;DK
+7830;Vinderup;DK
+7840;Højslev;DK
+7850;Stoholm Jyll;DK
+7860;Spøttrup;DK
+7870;Roslev;DK
+7884;Fur;DK
+7900;Nykøbing M;DK
+7950;Erslev;DK
+7960;Karby;DK
+7970;Redsted M;DK
+7980;Vils;DK
+7990;Øster Assels;DK
+7996;Fakturaservice;DK
+7997;Fakturascanning;DK
+7999;Kommunepost;DK
+8100;Aarhus C;DK
+8210;Aarhus V;DK
+8220;Brabrand;DK
+8230;Åbyhøj;DK
+8240;Risskov;DK
+8245;Risskov Ø;DK
+8250;Egå;DK
+8260;Viby J;DK
+8270;Højbjerg;DK
+8300;Odder;DK
+8305;Samsø;DK
+8310;Tranbjerg J;DK
+8320;Mårslet;DK
+8330;Beder;DK
+8340;Malling;DK
+8350;Hundslund;DK
+8355;Solbjerg;DK
+8361;Hasselager;DK
+8362;Hørning;DK
+8370;Hadsten;DK
+8380;Trige;DK
+8381;Tilst;DK
+8382;Hinnerup;DK
+8400;Ebeltoft;DK
+8410;Rønde;DK
+8420;Knebel;DK
+8444;Balle;DK
+8450;Hammel;DK
+8462;Harlev J;DK
+8464;Galten;DK
+8471;Sabro;DK
+8472;Sporup;DK
+8500;Grenaa;DK
+8520;Lystrup;DK
+8530;Hjortshøj;DK
+8541;Skødstrup;DK
+8543;Hornslet;DK
+8544;Mørke;DK
+8550;Ryomgård;DK
+8560;Kolind;DK
+8570;Trustrup;DK
+8581;Nimtofte;DK
+8585;Glesborg;DK
+8586;Ørum Djurs;DK
+8592;Anholt;DK
+8600;Silkeborg;DK
+8620;Kjellerup;DK
+8632;Lemming;DK
+8641;Sorring;DK
+8643;Ans By;DK
+8653;Them;DK
+8654;Bryrup;DK
+8660;Skanderborg;DK
+8670;Låsby;DK
+8680;Ry;DK
+8700;Horsens;DK
+8721;Daugård;DK
+8722;Hedensted;DK
+8723;Løsning;DK
+8732;Hovedgård;DK
+8740;Brædstrup;DK
+8751;Gedved;DK
+8752;Østbirk;DK
+8762;Flemming;DK
+8763;Rask Mølle;DK
+8765;Klovborg;DK
+8766;Nørre Snede;DK
+8781;Stenderup;DK
+8783;Hornsyld;DK
+8800;Viborg;DK
+8830;Tjele;DK
+8831;Løgstrup;DK
+8832;Skals;DK
+8840;Rødkærsbro;DK
+8850;Bjerringbro;DK
+8860;Ulstrup;DK
+8870;Langå;DK
+8881;Thorsø;DK
+8882;Fårvang;DK
+8883;Gjern;DK
+8900;Randers C;DK
+8920;Randers NV;DK
+8930;Randers NØ;DK
+8940;Randers SV;DK
+8950;Ørsted;DK
+8960;Randers SØ;DK
+8961;Allingåbro;DK
+8963;Auning;DK
+8970;Havndal;DK
+8983;Gjerlev J;DK
+8990;Fårup;DK
+9200;Aalborg SV;DK
+9210;Aalborg SØ;DK
+9220;Aalborg Øst;DK
+9230;Svenstrup J;DK
+9240;Nibe;DK
+9260;Gistrup;DK
+9270;Klarup;DK
+9280;Storvorde;DK
+9293;Kongerslev;DK
+9300;Sæby;DK
+9310;Vodskov;DK
+9320;Hjallerup;DK
+9330;Dronninglund;DK
+9340;Asaa;DK
+9352;Dybvad;DK
+9362;Gandrup;DK
+9370;Hals;DK
+9380;Vestbjerg;DK
+9381;Sulsted;DK
+9382;Tylstrup;DK
+9400;Nørresundby;DK
+9430;Vadum;DK
+9440;Aabybro;DK
+9460;Brovst;DK
+9480;Løkken;DK
+9490;Pandrup;DK
+9492;Blokhus;DK
+9493;Saltum;DK
+9500;Hobro;DK
+9510;Arden;DK
+9520;Skørping;DK
+9530;Støvring;DK
+9541;Suldrup;DK
+9550;Mariager;DK
+9560;Hadsund;DK
+9574;Bælum;DK
+9575;Terndrup;DK
+9600;Aars;DK
+9610;Nørager;DK
+9620;Aalestrup;DK
+9631;Gedsted;DK
+9632;Møldrup;DK
+9640;Farsø;DK
+9670;Løgstør;DK
+9681;Ranum;DK
+9690;Fjerritslev;DK
+9700;Brønderslev;DK
+9740;Jerslev J;DK
+9750;Østervrå;DK
+9760;Vrå;DK
+9800;Hjørring;DK
+9830;Tårs;DK
+9850;Hirtshals;DK
+9870;Sindal;DK
+9881;Bindslev;DK
+9940;Læsø;DK
+9970;Strandby;DK
+9981;Jerup;DK
+9982;Ålbæk;DK
+9990;Skagen;DK
