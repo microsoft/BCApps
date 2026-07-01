@@ -120,22 +120,47 @@ codeunit 5826 "Matched Order Line Mgmt."
                     repeat
                         PurchaseLineOrder.GetBySystemId(MatchedOrderLine."Matched Order Line SystemId");
 
+                        PurchaseLineOrder.TestField("Receipt on Invoice");
+                        CheckLineReceiptOnInvoiceAllowed(PurchaseLineOrder);
                         PurchaseHeaderOrder.Get(PurchaseLineOrder."Document Type", PurchaseLineOrder."Document No.");
-                        PurchaseHeaderOrder.TestField("Receipt on Invoice");
                         TempPurchaseHeader := PurchaseHeaderOrder;
                         if TempPurchaseHeader.Insert() then;
 
-                        PurchaseLineOrder.Validate("Qty. to Receive", MatchedOrderLine."Qty. to Invoice");
+                        // Receive only what the invoice needs beyond what the order line already has received but not
+                        // invoiced, so quantity already on hand (e.g. a prior manual receipt) is not received again.
+                        // The matcher filters ensure the order line shares the invoice line's unit of measure.
+                        QtyToReceive := PurchaseLine.Quantity - PurchaseLineOrder."Qty. Rcd. Not Invoiced";
+                        if QtyToReceive < 0 then
+                            QtyToReceive := 0;
+                        if QtyToReceive > PurchaseLineOrder."Outstanding Quantity" then
+                            QtyToReceive := PurchaseLineOrder."Outstanding Quantity";
+                        PurchaseLineOrder.Validate("Qty. to Receive", QtyToReceive);
 
                         // used to store from which purchase invoice line the order line is auto-received
                         PurchaseLineOrder."Invoicing From Line SystemId" := PurchaseLine.SystemId;
                         PurchaseLineOrder.Modify(true);
                     until MatchedOrderLine.Next() = 0;
             until PurchaseLine.Next() = 0;
+        MatchedOrderContext.StopReceivingMatchedOrderLines();
 
         if TempPurchaseHeader.FindSet() then
             repeat
                 PurchaseHeaderOrder.Get(TempPurchaseHeader."Document Type", TempPurchaseHeader."No.");
+
+                // Receive only the lines this invoice posting drives (marked above). Suppress the rest; the posting
+                // routine re-initializes their quantity to receive afterwards.
+                PurchaseLineOrder.Reset();
+                PurchaseLineOrder.SetRange("Document Type", PurchaseHeaderOrder."Document Type");
+                PurchaseLineOrder.SetRange("Document No.", PurchaseHeaderOrder."No.");
+                PurchaseLineOrder.SetRange("Invoicing From Line SystemId", NullGuid);
+                PurchaseLineOrder.SetFilter("Qty. to Receive", '<>%1', 0);
+                if PurchaseLineOrder.FindSet() then
+                    repeat
+                        PurchaseLineOrder."Qty. to Receive" := 0;
+                        PurchaseLineOrder."Qty. to Receive (Base)" := 0;
+                        PurchaseLineOrder.Modify();
+                    until PurchaseLineOrder.Next() = 0;
+
                 PurchaseHeaderOrder.Receive := true;
                 PurchaseHeaderOrder.Invoice := false;
 
@@ -143,6 +168,7 @@ codeunit 5826 "Matched Order Line Mgmt."
                 PurchPost.Run(PurchaseHeaderOrder);
                 Clear(PurchPost);
 
+                PurchaseLineOrder.Reset();
                 PurchaseLineOrder.SetRange("Document Type", TempPurchaseHeader."Document Type");
                 PurchaseLineOrder.SetRange("Document No.", TempPurchaseHeader."No.");
                 PurchaseLineOrder.ModifyAll("Invoicing From Line SystemId", NullGuid);
@@ -177,10 +203,6 @@ codeunit 5826 "Matched Order Line Mgmt."
     begin
         if not (PurchaseHeader."Document Type" in [PurchaseHeader."Document Type"::Invoice, PurchaseHeader."Document Type"::Order]) then
             exit;
-
-        if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Order then
-            if PurchaseHeader."Receipt on Invoice" and IsNullGuid(PurchaseLine."Invoicing From Line SystemId") then
-                Error(ReceiptOnInvoicePostFromMatchedInvoiceErr, PurchaseHeader.FieldCaption("Receipt on Invoice"));
 
         if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Invoice then begin
             if not PurchaseLine.IsMatchedToOrder() then
@@ -1268,10 +1290,6 @@ codeunit 5826 "Matched Order Line Mgmt."
         MustBeMatchedToReceiptErr: Label 'Line No. %1 must be matched to at least one receipt or shipment line.', Comment = ' %1 = Line No.';
         ReceiptOnInvoiceLocationErr: Label 'You cannot use %1 Directed Put-away and Pick Location %2 on Line %3.', Comment = '%1 = Receipt on Invoice field name, %2 = Location Code, %3 = Line No.';
         ReceiptOnInvoiceItemTrackingErr: Label 'You cannot use %1 because Item %2 on Line %3 requires item tracking.', Comment = '%1 = Receipt on Invoice field name, %2 = Item No., %3 = Line No.';
-        ReceiptOnInvoiceLocationLineValidationErr: Label 'You cannot use Directed Put-away and Pick location %1 on purchase orders with %2 enabled.', Comment = '%1 = Location Code, %2 = Receipt on Invoice field name';
-        ReceiptOnInvoiceItemTrackingLineValidationErr: Label 'You cannot use item %1 with specific tracking on purchase orders with %2 enabled.', Comment = '%1 = Item No., %2 = Receipt on Invoice field name';
-        ReceiptOnInvoicePostedReceiptErr: Label 'You cannot use %1 because Line %2 already has posted receipts.', Comment = '%1 = Receipt on Invoice field name, %2 = Line No.';
-        ReceiptOnInvoicePostFromMatchedInvoiceErr: Label 'Purchase Order with %1 selected can only be posted from matched purchase invoice', Comment = '%1 = Receipt on Invoice field name';
         DeletePostedLinesErr: Label 'You cannot delete posted document lines.';
         LocationRequiresReceiveErr: Label 'You cannot delete the last matched order line because %1 location requires Directed Put-away and Pick. Please delete the document line.', Comment = '%1 - Location Code';
         NullGuid: Guid;

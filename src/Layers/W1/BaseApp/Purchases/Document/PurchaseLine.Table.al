@@ -4342,6 +4342,7 @@ table 39 "Purchase Line"
     /// </summary>
     procedure InitQtyToReceive()
     var
+        MatchedOrderContext: Codeunit "Matched Order Context";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -4362,6 +4363,13 @@ table 39 "Purchase Line"
         OnAfterInitQtyToReceive(Rec, CurrFieldNo);
 
         InitQtyToInvoice();
+
+        // Force receipt-on-invoice order lines back to zero by default, but honor an explicit user edit of the
+        // field (full or partial) so the quantity can be received manually when desired.
+        if MatchedOrderContext.ShouldResetQtyToReceive(Rec) and (CurrFieldNo <> FieldNo("Qty. to Receive")) then begin
+            Rec."Qty. to Receive" := 0;
+            Rec."Qty. to Receive (Base)" := 0;
+        end;
     end;
 
     /// <summary>
@@ -8171,9 +8179,11 @@ table 39 "Purchase Line"
 
     /// <summary>
     /// Initializes the quantity to receive and invoice.
-    /// Additionally, claculates the invoice discount and prepayment amounts.
+    /// Additionally, calculates the invoice discount and prepayment amounts.
     /// </summary>
     procedure InitQtyToReceive2()
+    var
+        MatchedOrderContext: Codeunit "Matched Order Context";
     begin
         "Qty. to Receive" := "Outstanding Quantity";
         "Qty. to Receive (Base)" := "Outstanding Qty. (Base)";
@@ -8182,6 +8192,12 @@ table 39 "Purchase Line"
 
         "Qty. to Invoice" := MaxQtyToInvoice();
         "Qty. to Invoice (Base)" := MaxQtyToInvoiceBase();
+
+        if MatchedOrderContext.ShouldResetQtyToReceive(Rec) then begin
+            Rec."Qty. to Receive" := 0;
+            Rec."Qty. to Receive (Base)" := 0;
+        end;
+
         "VAT Difference" := 0;
         NonDeductibleVAT.InitNonDeductibleVATDiff(Rec);
 
