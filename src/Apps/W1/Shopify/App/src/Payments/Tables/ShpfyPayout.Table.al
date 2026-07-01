@@ -117,6 +117,12 @@ table 30125 "Shpfy Payout"
             Caption = 'External Trace Id';
             DataClassification = CustomerContent;
         }
+        field(101; "Shop Code"; Code[20])
+        {
+            Caption = 'Shop Code';
+            DataClassification = SystemMetadata;
+            TableRelation = "Shpfy Shop";
+        }
     }
     keys
     {
