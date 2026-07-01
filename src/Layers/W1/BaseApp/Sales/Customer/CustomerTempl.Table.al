@@ -894,4 +894,5 @@ table 1381 "Customer Templ."
     local procedure OnCopyTemplateOnBeforeModify(SourceCustomerTempl: Record "Customer Templ."; SavedCustomerTempl: Record "Customer Templ."; var CustomerTempl: Record "Customer Templ.")
     begin
     end;
+
 }
