@@ -1707,6 +1707,11 @@ table 23 Vendor
             ToolTip = 'Specifies the policy that will be used for the vendor if more items than ordered are received.';
             TableRelation = "Over-Receipt Code";
         }
+        field(8551; "Receipt on Invoice Policy"; Enum "Receipt on Invoice Policy")
+        {
+            Caption = 'Receipt on Invoice Policy';
+            ToolTip = 'Specifies the policy that will be used for Purchase Orders that this vendor has; if an invoice is posted against this purchase order and it can be received, a receipt will be posted automatically.';
+        }
         field(11000000; "Transaction Mode Code"; Code[20])
         {
             Caption = 'Transaction Mode Code';
@@ -1726,7 +1731,6 @@ table 23 Vendor
             end;
         }
     }
-
     keys
     {
         key(Key1; "No.")

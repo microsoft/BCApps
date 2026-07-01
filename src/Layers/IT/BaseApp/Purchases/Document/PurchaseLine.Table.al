@@ -434,7 +434,8 @@ table 39 "Purchase Line"
 
                 GetDefaultBin();
                 CheckWMS();
-                MatchedOrderLineMgmt.CheckReceiptOnInvoiceAllowedForLocation("Location Code", GetPurchHeader());
+                if Rec."Receipt on Invoice" and (not MatchedOrderLineMgmt.IsReceiptOnInvoiceAllowedForLocation("Location Code")) then
+                    Rec.Validate("Receipt on Invoice", false);
 
                 if "Document Type" = "Document Type"::"Return Order" then
                     ValidateReturnReasonCode(FieldNo("Location Code"));
@@ -3891,6 +3892,24 @@ table 39 "Purchase Line"
             Editable = false;
             FieldClass = FlowField;
         }
+        field(8513; "Receipt on Invoice"; Boolean)
+        {
+            Caption = 'Receipt on Invoice';
+            ToolTip = 'Specifies whether the receipt is posted automatically with the invoice.';
+
+            trigger OnValidate()
+            var
+                MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
+            begin
+                if "Receipt on Invoice" then
+                    MatchedOrderLineMgmt.CheckLineReceiptOnInvoiceAllowed(Rec);
+
+                if "Document Type" = "Document Type"::Order then
+                    InitQtyToReceive();
+
+                MatchedOrderLineMgmt.ApplyPurchaseLineReceiptSettingToMatches(Rec);
+            end;
+        }
         field(12100; "No. of Fixed Asset Cards"; Integer)
         {
             BlankZero = true;
@@ -4592,6 +4611,7 @@ table 39 "Purchase Line"
     /// </summary>
     procedure InitQtyToReceive()
     var
+        MatchedOrderContext: Codeunit "Matched Order Context";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -4612,6 +4632,13 @@ table 39 "Purchase Line"
         OnAfterInitQtyToReceive(Rec, CurrFieldNo);
 
         InitQtyToInvoice();
+
+        // Force receipt-on-invoice order lines back to zero by default, but honor an explicit user edit of the
+        // field (full or partial) so the quantity can be received manually when desired.
+        if MatchedOrderContext.ShouldResetQtyToReceive(Rec) and (CurrFieldNo <> FieldNo("Qty. to Receive")) then begin
+            Rec."Qty. to Receive" := 0;
+            Rec."Qty. to Receive (Base)" := 0;
+        end;
     end;
 
     /// <summary>
@@ -4731,6 +4758,7 @@ table 39 "Purchase Line"
         "Promised Receipt Date" := PurchHeader."Promised Receipt Date";
         "Inbound Whse. Handling Time" := PurchHeader."Inbound Whse. Handling Time";
         "Order Date" := PurchHeader."Order Date";
+        Rec."Receipt on Invoice" := PurchHeader."Receipt on Invoice";
 
         OnAfterInitHeaderDefaults(Rec, PurchHeader, TempPurchLine);
     end;
@@ -5013,7 +5041,8 @@ table 39 "Purchase Line"
                 Item.TestField("Inventory Posting Group");
                 "Posting Group" := Item."Inventory Posting Group";
             end;
-            MatchedOrderLineMgmt.CheckReceiptOnInvoiceAllowedForItem(Item, GetPurchHeader());
+            if Rec."Receipt on Invoice" and not MatchedOrderLineMgmt.IsReceiptOnInvoiceAllowedForItem(Item) then
+                Rec.Validate("Receipt on Invoice", false);
         end;
 
         OnCopyFromItemOnAfterCheck(Rec, Item, CurrFieldNo);
@@ -8417,9 +8446,11 @@ table 39 "Purchase Line"
 
     /// <summary>
     /// Initializes the quantity to receive and invoice.
-    /// Additionally, claculates the invoice discount and prepayment amounts.
+    /// Additionally, calculates the invoice discount and prepayment amounts.
     /// </summary>
     procedure InitQtyToReceive2()
+    var
+        MatchedOrderContext: Codeunit "Matched Order Context";
     begin
         "Qty. to Receive" := "Outstanding Quantity";
         "Qty. to Receive (Base)" := "Outstanding Qty. (Base)";
@@ -8428,6 +8459,12 @@ table 39 "Purchase Line"
 
         "Qty. to Invoice" := MaxQtyToInvoice();
         "Qty. to Invoice (Base)" := MaxQtyToInvoiceBase();
+
+        if MatchedOrderContext.ShouldResetQtyToReceive(Rec) then begin
+            Rec."Qty. to Receive" := 0;
+            Rec."Qty. to Receive (Base)" := 0;
+        end;
+
         "VAT Difference" := 0;
         NonDeductibleVAT.InitNonDeductibleVATDiff(Rec);
 

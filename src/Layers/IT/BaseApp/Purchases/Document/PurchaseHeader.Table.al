@@ -92,6 +92,7 @@ table 38 "Purchase Header"
 #if not CLEAN28
                 LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
 #endif
+                MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
                 IsHandled: Boolean;
             begin
                 IsHandled := false;
@@ -229,6 +230,8 @@ table 38 "Purchase Header"
 
                 if xRec."Buy-from Vendor No." = "Buy-from Vendor No." then
                     UpdatePurchLinesByFieldNo(FieldNo("Buy-from Vendor No."), CurrFieldNo <> 0);
+
+                MatchedOrderLineMgmt.ApplyVendorsReceiptOnInvoicePolicy(Rec);
             end;
         }
         field(3; "No."; Code[20])
@@ -2812,10 +2815,7 @@ table 38 "Purchase Header"
             var
                 MatchedOrderLineMgmt: Codeunit "Matched Order Line Mgmt.";
             begin
-                if "Receipt on Invoice" then
-                    MatchedOrderLineMgmt.CheckReceiptOnInvoiceAllowed(Rec);
-
-                MatchedOrderLineMgmt.RefreshMatchedOrderLineReceipt(Rec);
+                MatchedOrderLineMgmt.ApplyReceiptOnInvoiceToLines(Rec);
             end;
         }
         field(7000; "Price Calculation Method"; Enum "Price Calculation Method")
