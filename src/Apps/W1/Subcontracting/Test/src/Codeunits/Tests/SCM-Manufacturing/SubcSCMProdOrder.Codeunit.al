@@ -1390,18 +1390,60 @@ codeunit 149920 "Subc SCM Prod. Order"
     end;
 
     local procedure EnsureInventoryPostingSetups(InventoryPostingGroupCode: Code[20])
-    var
-        BlankLocation: Record Location;
     begin
-        LibraryInventory.UpdateInventoryPostingSetup(BlankLocation, InventoryPostingGroupCode);
+        EnsureInventoryPostingSetup('', InventoryPostingGroupCode);
         if LocationRed.Code <> '' then
-            LibraryInventory.UpdateInventoryPostingSetup(LocationRed, InventoryPostingGroupCode);
+            EnsureInventoryPostingSetup(LocationRed.Code, InventoryPostingGroupCode);
         if LocationBlue.Code <> '' then
-            LibraryInventory.UpdateInventoryPostingSetup(LocationBlue, InventoryPostingGroupCode);
+            EnsureInventoryPostingSetup(LocationBlue.Code, InventoryPostingGroupCode);
         if LocationWhite.Code <> '' then
-            LibraryInventory.UpdateInventoryPostingSetup(LocationWhite, InventoryPostingGroupCode);
+            EnsureInventoryPostingSetup(LocationWhite.Code, InventoryPostingGroupCode);
         if LocationSilver.Code <> '' then
-            LibraryInventory.UpdateInventoryPostingSetup(LocationSilver, InventoryPostingGroupCode);
+            EnsureInventoryPostingSetup(LocationSilver.Code, InventoryPostingGroupCode);
+    end;
+
+    local procedure EnsureInventoryPostingSetup(LocationCode: Code[10]; InventoryPostingGroupCode: Code[20])
+    var
+        InventoryPostingSetup: Record "Inventory Posting Setup";
+        Location: Record Location;
+    begin
+        InventoryPostingSetup.SetRange("Location Code", LocationCode);
+        InventoryPostingSetup.SetRange("Invt. Posting Group Code", InventoryPostingGroupCode);
+        if not InventoryPostingSetup.FindFirst() then begin
+            if LocationCode <> '' then
+                Location.Get(LocationCode)
+            else
+                Clear(Location);
+            LibraryInventory.UpdateInventoryPostingSetup(Location, InventoryPostingGroupCode);
+            exit;
+        end;
+
+        if HasValidInventoryPostingSetup(InventoryPostingSetup) then
+            exit;
+
+        InventoryPostingSetup.Validate("Inventory Account", GetPostingGLAccountNo(InventoryPostingSetup."Inventory Account"));
+        InventoryPostingSetup.Validate("Inventory Account (Interim)", GetPostingGLAccountNo(InventoryPostingSetup."Inventory Account (Interim)"));
+        InventoryPostingSetup.Validate("WIP Account", GetPostingGLAccountNo(InventoryPostingSetup."WIP Account"));
+        InventoryPostingSetup.Validate("Material Variance Account", GetPostingGLAccountNo(InventoryPostingSetup."Material Variance Account"));
+        InventoryPostingSetup.Validate("Capacity Variance Account", GetPostingGLAccountNo(InventoryPostingSetup."Capacity Variance Account"));
+        InventoryPostingSetup.Modify(true);
+    end;
+
+    local procedure HasValidInventoryPostingSetup(InventoryPostingSetup: Record "Inventory Posting Setup"): Boolean
+    begin
+        exit(
+          IsPostingGLAccount(InventoryPostingSetup."Inventory Account") and
+          IsPostingGLAccount(InventoryPostingSetup."Inventory Account (Interim)") and
+          IsPostingGLAccount(InventoryPostingSetup."WIP Account") and
+          IsPostingGLAccount(InventoryPostingSetup."Material Variance Account") and
+          IsPostingGLAccount(InventoryPostingSetup."Capacity Variance Account"));
+    end;
+
+    local procedure IsPostingGLAccount(AccountNo: Code[20]): Boolean
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        exit((AccountNo <> '') and GLAccount.Get(AccountNo) and (GLAccount."Account Type" = GLAccount."Account Type"::Posting));
     end;
 
     local procedure UndoPurchReceiptWithProductionSubcontracting(ItemWithTracking: Boolean; DoInvoiceSubcontracting: Boolean; DoConsumeOutputBeforeUndo: Boolean)
