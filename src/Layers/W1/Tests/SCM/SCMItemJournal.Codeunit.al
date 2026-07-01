@@ -1661,7 +1661,6 @@
         BaseUOM: Record "Unit of Measure";
         NonBaseQtyPerUOM: Decimal;
         QtyRoundingPrecision: Decimal;
-        QtyToSet: Decimal;
     begin
         // [FEATURE] [Item Journal - Rounding Precision]
         // [SCENARIO] Quantity (Base) is rounded with the specified rounding precision.
@@ -1670,7 +1669,6 @@
         // [GIVEN] An item with 2 unit of measures and qty. rounding precision on the base item unit of measure set.
         QtyRoundingPrecision := Round(1 / LibraryRandom.RandIntInRange(2, 10), 0.00001);
         NonBaseQtyPerUOM := Round(LibraryRandom.RandIntInRange(5, 10), QtyRoundingPrecision);
-        QtyToSet := LibraryRandom.RandDecInRange(2, 10, 7);
 
         LibraryInventory.CreateItem(Item);
         LibraryInventory.CreateUnitOfMeasureCode(BaseUOM);
@@ -2907,7 +2905,7 @@
         // Verify Standard Item Journal line record exists.
         StandardItemJournal.SetRange(Code, StandardItemJournalCode);
         StandardItemJournal.SetRange("Journal Template Name", JournalTemplateName);
-        StandardItemJournal.FindFirst();
+        Assert.RecordIsNotEmpty(StandardItemJournal, 'Standard Item Journal record is not created.');
     end;
 
     local procedure VerifyItemLedgerEntry(var TempItemJournalLine: Record "Item Journal Line" temporary)
@@ -3003,7 +3001,7 @@
         UpdateBlockMovementOnBin(Bin2, Location.Code, 2, BlockMovement2);
     end;
 
-    local procedure CreateItemReclassJournaLine(TemplateName: Code[10]; BatchName: Code[10]; ItemNo: Code[20]; OldLocationCode: Code[10]; NewLocationCode: Code[10]; OldBinCode: Code[20]; NewBinCode: Code[20]; Qty: Integer): Code[10]
+    local procedure CreateItemReclassJournaLine(TemplateName: Code[10]; BatchName: Code[10]; ItemNo: Code[20]; OldLocationCode: Code[10]; NewLocationCode: Code[10]; OldBinCode: Code[20]; NewBinCode: Code[20]; Qty: Integer): Code[20]
     var
         ItemJournalLine: Record "Item Journal Line";
     begin

@@ -371,12 +371,6 @@ codeunit 22 "Item Jnl.-Post Line"
     var
         IgnoreCommit: Boolean;
     begin
-        // In legacy posting the Item Ledger Entry / Value Entry "Entry No." is allocated by LockTable + GetLastEntryNo
-        // (+1) and is only physically written to the table later in the same posting. Any Commit() that fires in
-        // between releases the table lock while the next entry number is still cached, which lets a concurrent session
-        // read the same last entry number and produce a duplicate-key error on insert.
-        // Guard the whole (multi-line) split posting (allocation -> insert) so that a direct Commit() raised from a
-        // subscriber to any in-window event is ignored, mirroring the existing guard in Gen. Jnl.-Post Line (CU12).
         IgnoreCommit := true;
         OnSetCommitBehavior(IgnoreCommit);
 
@@ -6298,13 +6292,6 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
     end;
 
-    /// <summary>
-    /// Raised before posting a single item journal line. Set IgnoreCommit to false to opt out of the
-    /// CommitBehavior::Ignore guard that protects the Item Ledger Entry / Value Entry "Entry No." allocation window.
-    /// Only do this if an extension genuinely requires a Commit() to be honored from inside the per-line posting path;
-    /// doing so re-exposes the inventory ledger duplicate-key race.
-    /// </summary>
-    /// <param name="IgnoreCommit">In/out: true (default) ignores commits during per-line posting.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSetCommitBehavior(var IgnoreCommit: Boolean)
     begin
