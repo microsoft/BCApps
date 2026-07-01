@@ -92,7 +92,7 @@ jobs:
           maxBuildDepth: ${{ env.workflowDepth }}
 
   Build1:
-    needs: [ Initialization ]
+    needs: [ Initialization, CustomJob-VerifyAppChanges ]
     if: (!failure()) && (!cancelled()) && fromJson(needs.Initialization.outputs.buildOrderJson)[0].projectsCount > 0
     strategy:
       matrix:
@@ -118,7 +118,7 @@ jobs:
       useArtifactCache: true
 
   Build:
-    needs: [ Initialization, Build1 ]
+    needs: [ Initialization, Build1, CustomJob-VerifyAppChanges ]
     if: (!failure()) && (!cancelled()) && (needs.Build1.result == 'success' || needs.Build1.result == 'skipped') && fromJson(needs.Initialization.outputs.buildOrderJson)[1].projectsCount > 0
     strategy:
       matrix:
@@ -204,3 +204,23 @@ jobs:
           shell: powershell
           telemetryScopeJson: ${{ needs.Initialization.outputs.telemetryScopeJson }}
           currentJobContext: ${{ toJson(job) }}
+
+  CustomJob-VerifyAppChanges:
+    needs: [ PregateCheck ]
+    if: (!failure() && !cancelled())
+    runs-on: windows-latest
+    name: Verify App Changes
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+  
+      - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main
+  
+      - uses: microsoft/BCApps/.github/actions/TestObjectIdsAndManifests@main
+  
+      - uses: microsoft/BCApps/.github/actions/VerifyMiappSync@main
+  
+      - uses: microsoft/BCApps/.github/actions/ValidateCountryProjects@main

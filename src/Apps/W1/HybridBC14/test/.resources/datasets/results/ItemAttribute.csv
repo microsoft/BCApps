@@ -1,0 +1,3 @@
+ID,Name,Type,UnitOfMeasure,Blocked
+1001,Test Attribute 1,Option,,false
+1002,Test Attribute 2,Text,,false

@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ChartDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:schemas-microsoft-com:dynamics:NAV:MetaObjects" Type="Column" >
+	<Title>
+    <Text ID="ENU">Registered Pick and Put-away Lines</Text>
+  </Title>
+  <Table ID="5773">
+    <Filters>
+		<Filter>
+			<Field Name="Starting Date" />
+			<Value>010107..w</Value>
+		</Filter>
+		<Filter>
+			<Field Name="Zone Code" />
+			<Value>RECEIVE|SHIP</Value>
+		</Filter>
+    </Filters>
+  </Table>
+  <XAxis ShowTitle="true">
+    <Title>
+      <Text ID="ENU">Registered Put-away (from Receipt) and Pick (to Ship) Lines - this year</Text>
+    </Title>
+    <Field Name="Zone Code" />
+  </XAxis>
+  <YAxis ShowTitle="false">
+    <Measures>
+      <Measure Operator="Count">
+		  <Field Name="RECEIPT" />
+	  </Measure>
+	</Measures>
+  </YAxis>
+</ChartDefinition>
