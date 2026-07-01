@@ -410,6 +410,14 @@ table 6121 "E-Document"
         exit(EDocumentPurchaseHeader.Total);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"E-Document", 'd')]
+    internal procedure DeleteOrphanedImport()
+    begin
+        CleanupDocument();
+        Rec.Delete(false);
+        Commit();
+    end;
+
     procedure CleanupDocument()
     var
         DocumentAttachment: Record "Document Attachment";

@@ -42,6 +42,11 @@ page 6434 "E-Document Messages FactBox"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the current status of the message.';
                 }
+                field("Response Type"; Rec."Response Type")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the response type, for example Accepted or Rejected.';
+                }
                 field("Created At"; Rec."Created At")
                 {
                     ApplicationArea = Basic, Suite;
