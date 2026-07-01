@@ -2,6 +2,10 @@
 
 Note that when using the preview version of AL-Go for GitHub, we recommend you Update your AL-Go system files, as soon as possible when informed that an update is available.
 
+### Resilient Pull Request Status Check for large builds
+
+The Pull Request Status Check action no longer fails on builds with more than one page of jobs (more than 100 jobs). The jobs API call now uses `--slurp` so multi-page responses are parsed as a single JSON array (previously `gh api --paginate | ConvertFrom-Json` failed with "Invalid JSON primitive" when more than one page was returned). The call is also retried, and requests a smaller page size, to tolerate the intermittent HTTP 502 responses that the GitHub jobs endpoint returns for large builds.
+
 ### Use artifact manifest to pick .NET runtime for assembly probing
 
 When compiling apps with the workspace compiler, AL-Go now reads the `dotNetVersion` from the BC artifact's `manifest.json` (copied into the compiler folder by BcContainerHelper) and selects an installed .NET runtime whose major version matches. This avoids version drift between the build agent's highest installed runtime and the platform the artifact was built against. If the manifest does not declare a `dotNetVersion`, or no installed runtime matches the required major, versioned .NET assembly probing paths are omitted (a warning is logged in the latter case).
@@ -54,6 +58,7 @@ The `DownloadProjectDependencies` action now downloads only artifacts from depen
 
 ### Issues
 
+- Issue 2276 - Mitigate intermittent artifact action failures caused by the runner Node Maglev issue by setting `ACTIONS_RUNNER_DISABLE_NODE_MAGLEV` on generated artifact download and upload steps.
 - Issue 2277 Auto-exclude the `copilot` GitHub environment from CI/CD deployments. When the GitHub Copilot coding agent is enabled on a repository, GitHub auto-creates an environment named `copilot`. AL-Go now treats it the same way as `github-pages` and never attempts to deploy to it.
 - Issue 2236 - `GetDependencies` `buildMode` prefix leaks across dependency iterations, causing incorrect artifact mask names when multiple `appDependencyProbingPaths` entries use different build modes
 - Incremental builds (`modifiedApps` mode) now correctly identify unmodified apps for projects whose `appFolders` reference paths outside the project directory (e.g. using `../`)
