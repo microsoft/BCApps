@@ -23,6 +23,7 @@ codeunit 134991 "ERM  G/L - VAT Reconciliation"
         ConfirmAdjustQst: Label 'Do you want to fill the G/L Account No. field in VAT entries that are linked to G/L Entries?';
 
 
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Test]
     procedure VATEntrySetGLAccountNumberWithoutUI()
     var
@@ -67,6 +68,7 @@ codeunit 134991 "ERM  G/L - VAT Reconciliation"
         VerifyGLAccountNoInVATEntries(VATEntry, GLAccountNo);
     end;
 
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Test]
     [HandlerFunctions('ConfirmHandlerSetGLAccountNo')]
     procedure VATEntrySetGLAccountNumberWithUIConfirmYes()
@@ -89,6 +91,7 @@ codeunit 134991 "ERM  G/L - VAT Reconciliation"
         VerifyGLAccountNoInVATEntries(VATEntry, GLAccountNo);
     end;
 
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Test]
     procedure CallSetGLAccountNumberFromVATEntriesPage()
     var
@@ -114,6 +117,7 @@ codeunit 134991 "ERM  G/L - VAT Reconciliation"
         VerifyGLAccountNoInVATEntries(VATEntry, GLAccountNo);
     end;
 
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Test]
     procedure SetGLAccountNoEventPreApprovalSkipsConfirm()
     var
