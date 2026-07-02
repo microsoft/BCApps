@@ -1504,11 +1504,8 @@ table 20405 "Qlty. Inspection Header"
         MaxSampleSize := 2147483647; // Maximum value of an Integer field; protects the "Sample Size" field against overflow.
         EffectiveMaxSampleSize := MaxSampleSize;
 
-        if Rec."Source Quantity (Base)" > 0 then begin
+        if (Rec."Source Quantity (Base)" > 0) and (Rec."Source Quantity (Base)" < MaxSampleSize) then
             EffectiveMaxSampleSize := Math.Truncate(Rec."Source Quantity (Base)");
-            if EffectiveMaxSampleSize > MaxSampleSize then
-                EffectiveMaxSampleSize := MaxSampleSize;
-        end;
 
         case QltyInspectionTemplateHdr."Sample Source" of
             QltyInspectionTemplateHdr."Sample Source"::"Fixed Quantity":

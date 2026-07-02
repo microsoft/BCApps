@@ -157,20 +157,20 @@ codeunit 139964 "Qlty. Tests - Misc."
     end;
 
     [Test]
-    procedure SampleSizeCalculationRespectsSourceQuantityWhenPercentExceedsIntegerMax()
+    procedure SampleSizeCalculationSupportsIntegerMaxBoundary()
     var
         SampleSize: Integer;
     begin
-        // [SCENARIO] Calculating sample size with a very high percentage does not exceed source quantity when source quantity is below Integer maximum.
+        // [SCENARIO] Calculating sample size at the Integer maximum boundary returns a valid value without overflow.
 
         Initialize();
 
-        // [GIVEN] A template using "Percent of Quantity" with a percentage that would exceed Integer maximum and a source quantity below Integer maximum.
+        // [GIVEN] A template using "Percent of Quantity" at 100% and a source quantity at Integer maximum.
         // [WHEN] The sample size is recalculated from the source quantity.
-        SampleSize := QltyInspectionUtility.CalculateSampleSizeUsingPercentSource(5000, 100000000.0);
+        SampleSize := QltyInspectionUtility.CalculateSampleSizeUsingPercentSource(100, 2147483647.0);
 
-        // [THEN] The sample size is limited to the source quantity.
-        LibraryAssert.AreEqual(100000000, SampleSize, 'Sample size should be limited to source quantity when source quantity is below Integer maximum.');
+        // [THEN] The sample size is exactly Integer maximum.
+        LibraryAssert.AreEqual(2147483647, SampleSize, 'Sample size should remain at Integer maximum at the exact boundary.');
     end;
 
     [MessageHandler]
