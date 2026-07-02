@@ -753,18 +753,6 @@ table 25 "Vendor Ledger Entry"
             Caption = 'Autodocument No.';
             Editable = false;
         }
-        field(7000005; "Remaining Amount (LCY) stats."; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            Caption = 'Remaining Amount (LCY) stats.';
-        }
-        field(7000006; "Amount (LCY) stats."; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            Caption = 'Amount (LCY) stats.';
-        }
     }
 
     keys

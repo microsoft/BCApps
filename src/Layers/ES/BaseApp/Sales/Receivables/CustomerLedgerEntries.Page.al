@@ -537,14 +537,14 @@ page 25 "Customer Ledger Entries"
                         Customer: Record "Customer";
                         ReminderHeader: Record "Reminder Header";
                     begin
-                        ReminderHeader.setrange("Customer No.", Rec."Customer No.");
+                        ReminderHeader.SetRange("Customer No.", Rec."Customer No.");
                         if ReminderHeader.FindFirst() then begin
                             page.RunModal(Page::Reminder, ReminderHeader);
                             exit
                         end;
-                        Customer.setrange("No.", Rec."Customer No.");
+                        Customer.SetRange("No.", Rec."Customer No.");
                         REPORT.RunModal(REPORT::"Create Reminders", true, true, Customer);
-                        ReminderHeader.setrange("Customer No.", Rec."Customer No.");
+                        ReminderHeader.SetRange("Customer No.", Rec."Customer No.");
                         if ReminderHeader.FindFirst() then begin
                             commit();
                             page.RunModal(Page::Reminder, ReminderHeader);
@@ -566,16 +566,16 @@ page 25 "Customer Ledger Entries"
                         Customer: Record "Customer";
                         FinanceChargeMemoHeader: Record "Finance Charge Memo Header";
                     begin
-                        FinanceChargeMemoHeader.setrange("Customer No.", Rec."Customer No.");
+                        FinanceChargeMemoHeader.SetRange("Customer No.", Rec."Customer No.");
                         if FinanceChargeMemoHeader.FindFirst() then begin
                             page.RunModal(Page::"Finance Charge Memo", FinanceChargeMemoHeader);
                             exit
                         end;
-                        Customer.setrange("No.", Rec."Customer No.");
+                        Customer.SetRange("No.", Rec."Customer No.");
                         REPORT.RunModal(REPORT::"Create Finance Charge Memos", true, true, Customer);
-                        FinanceChargeMemoHeader.setrange("Customer No.", Rec."Customer No.");
+                        FinanceChargeMemoHeader.SetRange("Customer No.", Rec."Customer No.");
                         if FinanceChargeMemoHeader.FindFirst() then begin
-                            commit();
+                            Commit();
                             page.RunModal(Page::"Finance Charge Memo", FinanceChargeMemoHeader);
                             exit
                         end;

@@ -33,6 +33,20 @@ tableextension 7000006 "CRT Vendor Ledger Entry" extends "Vendor Ledger Entry"
             Caption = 'Document Status';
             DataClassification = CustomerContent;
         }
+        field(7000005; "Remaining Amount (LCY) stats."; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            DataClassification = CustomerContent;
+            Caption = 'Remaining Amount (LCY) stats.';
+        }
+        field(7000006; "Amount (LCY) stats."; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            DataClassification = CustomerContent;
+            Caption = 'Amount (LCY) stats.';
+        }
     }
 
     var

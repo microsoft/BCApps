@@ -34,21 +34,27 @@ page 233 "Apply Vendor Entries"
             group(General)
             {
                 Caption = 'General';
+#pragma warning disable AA0100
                 field("ApplyingVendLedgEntry.""Posting Date"""; TempApplyingVendLedgEntry."Posting Date")
+#pragma warning restore AA0100
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Posting Date';
                     Editable = false;
                     ToolTip = 'Specifies the posting date of the entry to be applied. This date is used to find the correct exchange rate when applying entries in different currencies.';
                 }
+#pragma warning disable AA0100
                 field("ApplyingVendLedgEntry.""Document Type"""; TempApplyingVendLedgEntry."Document Type")
+#pragma warning restore AA0100
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Document Type';
                     Editable = false;
                     ToolTip = 'Specifies the document type of the entry to be applied.';
                 }
+#pragma warning disable AA0100
                 field("ApplyingVendLedgEntry.""Document No."""; TempApplyingVendLedgEntry."Document No.")
+#pragma warning restore AA0100
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Document No.';
@@ -79,7 +85,9 @@ page 233 "Apply Vendor Entries"
                     ToolTip = 'Specifies the description of the entry to be applied.';
                     Visible = false;
                 }
+#pragma warning disable AA0100
                 field("ApplyingVendLedgEntry.""Currency Code"""; TempApplyingVendLedgEntry."Currency Code")
+#pragma warning restore AA0100
                 {
                     ApplicationArea = Suite;
                     Caption = 'Currency Code';
@@ -93,7 +101,9 @@ page 233 "Apply Vendor Entries"
                     Editable = false;
                     ToolTip = 'Specifies the amount on the entry to be applied.';
                 }
+#pragma warning disable AA0100
                 field("ApplyingVendLedgEntry.""Remaining Amount"""; TempApplyingVendLedgEntry."Remaining Amount")
+#pragma warning restore AA0100
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Remaining Amount';
@@ -141,24 +151,6 @@ page 233 "Apply Vendor Entries"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     StyleExpr = StyleTxt;
-                }
-                field("Bill No."; Rec."Bill No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the bill number related to the vendor ledger entry.';
-                }
-                field("Document Status"; Rec."Document Status")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the status of the document.';
-                }
-                field("Document Situation"; Rec."Document Situation")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Editable = false;
-                    ToolTip = 'Specifies the document location.';
                 }
                 field("External Document No."; Rec."External Document No.")
                 {
@@ -211,7 +203,9 @@ page 233 "Apply Vendor Entries"
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                 }
+#pragma warning disable AA0100
                 field("CalcApplnRemainingAmount(""Remaining Amount"")"; CalcApplnRemainingAmount(Rec."Remaining Amount"))
+#pragma warning restore AA0100
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatExpression = ApplnCurrencyCode;
@@ -284,7 +278,9 @@ page 233 "Apply Vendor Entries"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the payment discount that has been received, in LCY.';
                 }
+#pragma warning disable AA0100
                 field("CalcApplnRemainingAmount(""Remaining Pmt. Disc. Possible"")"; CalcApplnRemainingAmount(Rec."Remaining Pmt. Disc. Possible"))
+#pragma warning restore AA0100
                 {
                     ApplicationArea = Basic, Suite;
                     AutoFormatExpression = ApplnCurrencyCode;
@@ -1306,7 +1302,7 @@ page 233 "Apply Vendor Entries"
         if IsHandled then
             exit;
 
-        if not AppliedVendLedgEntry.FindSet(false, false) then
+        if not AppliedVendLedgEntry.FindSet(false) then
             exit;
 
         repeat
