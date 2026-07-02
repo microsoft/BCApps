@@ -139,6 +139,7 @@ codeunit 139964 "Qlty. Tests - Misc."
     end;
 
     [Test]
+    [HandlerFunctions('SampleSizeCappedMessageHandler')]
     procedure SampleSizeCalculationDoesNotOverflowForLargeSourceQuantity()
     var
         SampleSize: Integer;
@@ -153,6 +154,12 @@ codeunit 139964 "Qlty. Tests - Misc."
 
         // [THEN] The sample size is clamped to the maximum Integer value instead of raising an overflow error
         LibraryAssert.AreEqual(2147483647, SampleSize, 'Sample size should be clamped to the maximum integer value to avoid overflow.');
+    end;
+
+    [MessageHandler]
+    procedure SampleSizeCappedMessageHandler(Message: Text[1024])
+    begin
+        // [THEN] A message informs the user that the calculated sample size was reduced
     end;
 
     [Test]

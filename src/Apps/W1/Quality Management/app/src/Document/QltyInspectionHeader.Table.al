@@ -625,6 +625,7 @@ table 20405 "Qlty. Inspection Header"
         IsChangingStatus: Boolean;
         TrackingCannotChangeForFinishedInspectionErr: Label 'You cannot change item tracking on a finished inspection. %1-%2 is finished. Reopen this inspection to change the tracking.', Comment = '%1=Quality Inspection No., %2=Re-inspection No.';
         SampleSizeInvalidMsg: Label 'The sample size %1 is not valid on the inspection %2 because it exceeds the Source Quantity of %3. The sample size will be changed on this inspection to be the source quantity.', Comment = '%1=original sample size, %2=the inspection, %3=the source quantity';
+        SampleSizeCappedMsg: Label 'The calculated sample size on inspection %1 was reduced to the maximum allowed value of %2 because the source quantity is too large.', Comment = '%1=the inspection, %2=the maximum sample size';
         YouCannotChangeTheAssignmentOfTheInspectionErr: Label '%1 does not have permission to change the assigned user field on %2-%3. Permissions can be altered on the Quality Inspection function permissions.', Comment = '%1=the user, %2=the inspection no, %3=the re-inspection';
         UnableToSetTestValueErr: Label 'Unable to set the test field [%1] on the inspection [%2], there should be one matching inspection line, there are %3', Comment = '%1=the field being set, %2=the record id of the inspection, %3=the count.';
         ItemIsTrackingErr: Label 'The item [%1] is %2 tracked. Please define a %2 number before finishing the inspection. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Item tracking token';
@@ -1506,8 +1507,11 @@ table 20405 "Qlty. Inspection Header"
             QltyInspectionTemplateHdr."Sample Source"::"Percent of Quantity":
                 begin
                     CalculatedSampleSize := Round(Rec."Source Quantity (Base)" * QltyInspectionTemplateHdr."Sample Percentage" / 100.0, 1, '>');
-                    if CalculatedSampleSize > MaxSampleSize then
+                    if CalculatedSampleSize > MaxSampleSize then begin
                         CalculatedSampleSize := MaxSampleSize;
+                        if GuiAllowed() and not Rec.GetIsCreating() and (not Rec.IsTemporary()) then
+                            Message(SampleSizeCappedMsg, Rec."No.", MaxSampleSize);
+                    end;
                     Rec.Validate("Sample Size", CalculatedSampleSize);
                 end;
         end;
