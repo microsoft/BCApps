@@ -114,6 +114,7 @@
   "fullBuildPatterns": [
     "build/*",
     "src/rulesets/*",
+    "src/Layers/*",
     ".github/workflows/PullRequestHandler.yaml",
     ".github/workflows/_BuildALGoProject.yaml"
   ],
