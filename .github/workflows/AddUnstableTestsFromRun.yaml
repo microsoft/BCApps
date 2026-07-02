@@ -46,7 +46,7 @@ jobs:
 
       - name: Get Official Branches
         id: getOfficialBranches
-        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
+        uses: ./.github/actions/GetGitBranches
         with:
           include: ${{ steps.filter.outputs.includeJson }}
 
@@ -74,7 +74,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Add unstable tests from run
-        uses: microsoft/BCApps/.github/actions/UpdateUnstableTests@main
+        uses: ./.github/actions/UpdateUnstableTests
         with:
           branch: ${{ matrix.branch }}
           run-id: ${{ inputs.runId }}

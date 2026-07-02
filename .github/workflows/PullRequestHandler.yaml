@@ -217,10 +217,10 @@ jobs:
           ref: ${{ github.sha }}
           fetch-depth: 0
   
-      - uses: microsoft/BCApps/.github/actions/TestPreprocessorSymbols@main
+      - uses: ./.github/actions/TestPreprocessorSymbols
   
-      - uses: microsoft/BCApps/.github/actions/TestObjectIdsAndManifests@main
+      - uses: ./.github/actions/TestObjectIdsAndManifests
   
-      - uses: microsoft/BCApps/.github/actions/VerifyMiappSync@main
+      - uses: ./.github/actions/VerifyMiappSync
   
-      - uses: microsoft/BCApps/.github/actions/ValidateCountryProjects@main
+      - uses: ./.github/actions/ValidateCountryProjects
