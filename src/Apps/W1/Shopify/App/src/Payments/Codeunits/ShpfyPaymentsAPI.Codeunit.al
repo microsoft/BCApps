@@ -140,6 +140,8 @@ codeunit 30385 "Shpfy Payments API"
         Id := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JPayout, 'id'));
         if Payout.Get(Id) then begin
             Payout.Status := ConvertToPayoutStatus(JsonHelper.GetValueAsText(JPayout, 'status'));
+            if (Payout."Shop Code" = '') and (Shop.Code <> '') then
+                Payout."Shop Code" := Shop.Code;
             Payout.Modify();
         end else begin
             RecordRef.Open(Database::"Shpfy Payout");
@@ -161,6 +163,7 @@ codeunit 30385 "Shpfy Payments API"
             RecordRef.SetTable(Payout);
             RecordRef.Close();
             Payout.Id := Id;
+            Payout."Shop Code" := Shop.Code;
             Payout.Status := ConvertToPayoutStatus(JsonHelper.GetValueAsText(JPayout, 'status'));
             Payout.Insert();
         end;
