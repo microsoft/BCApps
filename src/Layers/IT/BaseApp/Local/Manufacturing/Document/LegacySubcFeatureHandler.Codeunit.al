@@ -112,8 +112,6 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
     end;
 
     internal procedure SetLegacySubcontracting(var ManufacturingSetup: Record "Manufacturing Setup"; Enabled: Boolean)
-    var
-        ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
     begin
         if ManufacturingSetup."Legacy Subcontracting" = Enabled then
             exit;
@@ -128,8 +126,21 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
         ManufacturingSetup."Legacy Subcontracting" := Enabled;
         ManufacturingSetup.Modify(true);
 
-        ApplicationAreaMgmtFacade.RefreshExperienceTierCurrentCompany();
+        RefreshApplicationAreaSetup();
         RestartSession();
+    end;
+
+    local procedure RefreshApplicationAreaSetup()
+    var
+        ExperienceTierSetup: Record "Experience Tier Setup";
+        ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
+        ExperienceTier: Text;
+    begin
+        if ApplicationAreaMgmtFacade.GetExperienceTierCurrentCompany(ExperienceTier) then
+            if ExperienceTier = ExperienceTierSetup.FieldCaption(Custom) then
+                exit;
+
+        ApplicationAreaMgmtFacade.RefreshExperienceTierCurrentCompany();
     end;
 
     local procedure IsSubcontractingAppInstalled() Result: Boolean
