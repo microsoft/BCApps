@@ -156,6 +156,23 @@ codeunit 139964 "Qlty. Tests - Misc."
         LibraryAssert.AreEqual(2147483647, SampleSize, 'Sample size should be clamped to the maximum integer value to avoid overflow.');
     end;
 
+    [Test]
+    procedure SampleSizeCalculationRespectsSourceQuantityWhenPercentExceedsIntegerMax()
+    var
+        SampleSize: Integer;
+    begin
+        // [SCENARIO] Calculating sample size with a very high percentage does not exceed source quantity when source quantity is below Integer maximum.
+
+        Initialize();
+
+        // [GIVEN] A template using "Percent of Quantity" with a percentage that would exceed Integer maximum and a source quantity below Integer maximum.
+        // [WHEN] The sample size is recalculated from the source quantity.
+        SampleSize := QltyInspectionUtility.CalculateSampleSizeUsingPercentSource(5000, 100000000.0);
+
+        // [THEN] The sample size is limited to the source quantity.
+        LibraryAssert.AreEqual(100000000, SampleSize, 'Sample size should be limited to source quantity when source quantity is below Integer maximum.');
+    end;
+
     [MessageHandler]
     procedure SampleSizeCappedMessageHandler(Message: Text[1024])
     begin

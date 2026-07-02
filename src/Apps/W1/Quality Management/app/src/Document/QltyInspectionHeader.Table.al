@@ -1493,13 +1493,22 @@ table 20405 "Qlty. Inspection Header"
     local procedure UpdateSampleSize()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        Math: Codeunit Math;
         MaxSampleSize: Integer;
+        EffectiveMaxSampleSize: Integer;
         CalculatedSampleSize: Decimal;
     begin
         if not QltyInspectionTemplateHdr.Get(Rec."Template Code") then
             exit;
 
         MaxSampleSize := 2147483647; // Maximum value of an Integer field; protects the "Sample Size" field against overflow.
+        EffectiveMaxSampleSize := MaxSampleSize;
+
+        if Rec."Source Quantity (Base)" > 0 then begin
+            EffectiveMaxSampleSize := Math.Truncate(Rec."Source Quantity (Base)");
+            if EffectiveMaxSampleSize > MaxSampleSize then
+                EffectiveMaxSampleSize := MaxSampleSize;
+        end;
 
         case QltyInspectionTemplateHdr."Sample Source" of
             QltyInspectionTemplateHdr."Sample Source"::"Fixed Quantity":
@@ -1507,10 +1516,11 @@ table 20405 "Qlty. Inspection Header"
             QltyInspectionTemplateHdr."Sample Source"::"Percent of Quantity":
                 begin
                     CalculatedSampleSize := Round(Rec."Source Quantity (Base)" * QltyInspectionTemplateHdr."Sample Percentage" / 100.0, 1, '>');
-                    if CalculatedSampleSize > MaxSampleSize then begin
-                        CalculatedSampleSize := MaxSampleSize;
+                    if CalculatedSampleSize > EffectiveMaxSampleSize then begin
+                        CalculatedSampleSize := EffectiveMaxSampleSize;
                         if GuiAllowed() and not Rec.GetIsCreating() and (not Rec.IsTemporary()) then
-                            Message(SampleSizeCappedMsg, Rec."No.", MaxSampleSize);
+                            if EffectiveMaxSampleSize = MaxSampleSize then
+                                Message(SampleSizeCappedMsg, Rec."No.", MaxSampleSize);
                     end;
                     Rec.Validate("Sample Size", CalculatedSampleSize);
                 end;
