@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Shared.Report;
 
-using System.Utilities;
 using System.Reflection;
+using System.Utilities;
 
 codeunit 9661 "Report Layouts"
 {
