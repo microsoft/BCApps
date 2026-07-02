@@ -9,8 +9,9 @@ name: AI Issue Triage (dispatch)
 #      GITHUB_TOKEN.
 #
 # No PAT is used, and no GitHub App is installed on this repo. The only stored
-# secrets are the App id + private key, which can ONLY start a run and read an
-# artifact in the private agent repo — they cannot write here.
+# secret is the App private key; the App id is non-sensitive and kept as a plain
+# repo variable. Together they can ONLY start a run and read an artifact in the
+# private agent repo — they cannot write here.
 
 on:
   issues:
@@ -43,8 +44,9 @@ jobs:
         github.event.label.name == 'ai-triage'
       )
     runs-on: ubuntu-latest
-    # The App id + private key are stored as ENVIRONMENT secrets (not repo-level)
-    # so a deployment branch policy can restrict them to the default branch.
+    # The App PRIVATE KEY is an ENVIRONMENT secret in the `triage` environment,
+    # gated by a deployment branch policy to the default branch. The App id is
+    # non-sensitive, so it lives in a plain repo variable (vars.TRIAGE_APP_ID).
     # `issues` events always run on the default branch, so this never blocks a run.
     # NOTE: do NOT add "Required reviewers" to this environment — it would pause
     # every triage run waiting for a manual approval.
@@ -58,7 +60,7 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@v2
         with:
-          app-id: ${{ secrets.TRIAGE_APP_ID }}
+          app-id: ${{ vars.TRIAGE_APP_ID }}
           private-key: ${{ secrets.TRIAGE_APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: ${{ env.AGENT_REPO_NAME }}
