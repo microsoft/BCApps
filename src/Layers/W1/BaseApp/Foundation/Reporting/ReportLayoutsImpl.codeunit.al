@@ -550,11 +550,17 @@ codeunit 9660 "Report Layouts Impl."
     var
         ReportLayoutList: Record "Report Layout List";
         LookupHelper: Codeunit "Composite Layout Lookup Helper";
+        AppId: Guid;
         LayoutName: Text;
     begin
         LayoutName := LookupHelper.DecodeLayoutName(CompositeName);
+        AppId := LookupHelper.DecodeAppId(CompositeName);
         ReportLayoutList.SetRange("Name", LayoutName);
         ReportLayoutList.SetRange("Layout Subtype", ExpectedSubtype);
+        // The composite reference identifies the part by app as well as name; filter on the App ID too so a
+        // same-named part of the same subtype in a different app is not matched by mistake.
+        if not IsNullGuid(AppId) then
+            ReportLayoutList.SetRange("Application ID", AppId);
         if not ReportLayoutList.FindFirst() then begin
             if Warnings.Length > 0 then
                 Warnings.Append('\');

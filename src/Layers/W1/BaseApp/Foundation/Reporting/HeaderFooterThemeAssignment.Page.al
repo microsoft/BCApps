@@ -19,6 +19,7 @@ page 9667 "Header/Footer Theme Assignment"
     Caption = 'Assign Theme and Header/Footer';
     PageType = StandardDialog;
     SourceTable = "Tenant Report Layout Cfg";
+    SourceTableTemporary = true;
     InsertAllowed = false;
     DeleteAllowed = false;
     Extensible = false;
@@ -79,19 +80,25 @@ page 9667 "Header/Footer Theme Assignment"
 
     trigger OnOpenPage()
     var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
         FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
         if not FeatureKeyManagement.IsDocumentReportExperienceEnabled() then
             Error(FeatureNotEnabledErr);
 
-        // Get-or-create the report-level configuration row (empty Layout Name and Company Name). This page declares
-        // RIMD on the Cfg table, so the privileged insert happens here rather than in the calling page.
-        if not Rec.Get(ReportID, CopyStr(LayoutName, 1, MaxStrLen(Rec."Layout Name")), '') then begin
-            Rec.Init();
-            Rec."Report ID" := ReportID;
-            Rec."Layout Name" := CopyStr(LayoutName, 1, MaxStrLen(Rec."Layout Name"));
-            Rec.Insert(true);
+        // Stage the current report-level configuration (empty Layout Name and Company Name) in a temporary record.
+        // Nothing is written to the persisted Tenant Report Layout Cfg table until the dialog is closed with OK
+        // (see OnQueryClosePage), so cancelling never changes the effective theme/header-footer.
+        Rec.Reset();
+        Rec.DeleteAll();
+        Rec.Init();
+        Rec."Report ID" := ReportID;
+        Rec."Layout Name" := CopyStr(LayoutName, 1, MaxStrLen(Rec."Layout Name"));
+        if TenantReportLayoutCfg.Get(ReportID, Rec."Layout Name", '') then begin
+            Rec."Header Part Name" := TenantReportLayoutCfg."Header Part Name";
+            Rec."Theme Part Name" := TenantReportLayoutCfg."Theme Part Name";
         end;
+        Rec.Insert();
 
         // Pin the card to exactly this report/layout configuration row so it opens on it and shows no prev/next navigation.
         Rec.SetRecFilter();
@@ -104,11 +111,34 @@ page 9667 "Header/Footer Theme Assignment"
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        BothPartsEmpty: Boolean;
     begin
-        // Do not leave an empty per-report configuration row behind if the user cleared both parts.
-        if (Rec."Header Part Name" = '') and (Rec."Theme Part Name" = '') then
-            if Rec.Find() then
-                Rec.Delete(true);
+        // Persist the staged selection only when the dialog is confirmed. On Cancel the temporary record is
+        // discarded and the effective configuration is left unchanged.
+        if CloseAction <> Action::OK then
+            exit(true);
+
+        BothPartsEmpty := (Rec."Header Part Name" = '') and (Rec."Theme Part Name" = '');
+        if TenantReportLayoutCfg.Get(ReportID, CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name")), '') then begin
+            // Do not leave an empty per-report configuration row behind if the user cleared both parts.
+            if BothPartsEmpty then
+                TenantReportLayoutCfg.Delete(true)
+            else begin
+                TenantReportLayoutCfg."Header Part Name" := Rec."Header Part Name";
+                TenantReportLayoutCfg."Theme Part Name" := Rec."Theme Part Name";
+                TenantReportLayoutCfg.Modify(true);
+            end;
+        end else
+            if not BothPartsEmpty then begin
+                TenantReportLayoutCfg.Init();
+                TenantReportLayoutCfg."Report ID" := ReportID;
+                TenantReportLayoutCfg."Layout Name" := CopyStr(LayoutName, 1, MaxStrLen(TenantReportLayoutCfg."Layout Name"));
+                TenantReportLayoutCfg."Header Part Name" := Rec."Header Part Name";
+                TenantReportLayoutCfg."Theme Part Name" := Rec."Theme Part Name";
+                TenantReportLayoutCfg.Insert(true);
+            end;
         exit(true);
     end;
 
@@ -120,7 +150,7 @@ page 9667 "Header/Footer Theme Assignment"
             exit;
         Rec."Header Part Name" := CopyStr(Composite, 1, MaxStrLen(Rec."Header Part Name"));
         HeaderPartDisplay := LookupHelper.DecodeLayoutName(Composite);
-        CurrPage.Update(true);
+        CurrPage.Update(false);
     end;
 
     local procedure SetThemePart()
@@ -131,7 +161,7 @@ page 9667 "Header/Footer Theme Assignment"
             exit;
         Rec."Theme Part Name" := CopyStr(Composite, 1, MaxStrLen(Rec."Theme Part Name"));
         ThemePartDisplay := LookupHelper.DecodeLayoutName(Composite);
-        CurrPage.Update(true);
+        CurrPage.Update(false);
     end;
 
     internal procedure SetLayout(NewReportID: Integer; NewLayoutName: Text)

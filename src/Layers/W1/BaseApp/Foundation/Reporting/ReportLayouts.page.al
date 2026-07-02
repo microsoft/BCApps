@@ -414,6 +414,11 @@ page 9660 "Report Layouts"
                 Caption = 'Composite Layout';
                 Image = Document;
                 Visible = DocumentReportExperienceEnabled;
+                // The assignment page and lookup helper declare RIMD on Tenant Report Layout Cfg (indirect
+                // permission) so the tenant-wide write can happen there. Each action below is gated with
+                // AccessByPermission so only a user who actually holds Modify on that configuration can reach it;
+                // otherwise anyone able to open Report Layouts could change tenant/company report branding defaults
+                // without permission to that table.
 
                 action(AssignReportDefaults)
                 {
@@ -421,6 +426,7 @@ page 9660 "Report Layouts"
                     Caption = 'Manage theme/header-footer';
                     Image = Setup;
                     Enabled = WordLayoutSelected;
+                    AccessByPermission = tabledata "Tenant Report Layout Cfg" = M;
                     ToolTip = 'Assign the theme and header/footer applied to the selected Word layout. Themes and header/footer parts apply to Word documents only. The assignment is stored per company/tenant for this layout, not per user.';
 
                     trigger OnAction()
@@ -437,6 +443,7 @@ page 9660 "Report Layouts"
                     Caption = 'Manage all themes/header-footers';
                     Image = ViewDetails;
                     Enabled = LayoutIsSelected;
+                    AccessByPermission = tabledata "Tenant Report Layout Cfg" = M;
                     ToolTip = 'Show every layout of this report with the theme and header/footer that apply to each, and change them per layout. Inherited company and global defaults are shown with their source.';
 
                     trigger OnAction()
@@ -457,6 +464,7 @@ page 9660 "Report Layouts"
                     Caption = 'Layout configuration';
                     Image = Setup;
                     Enabled = LayoutIsSelected;
+                    AccessByPermission = tabledata "Tenant Report Layout Cfg" = M;
                     ToolTip = 'View the Tenant Report Layout Configuration defaults for the selected report. These defaults specify the header/footer and theme parts applied when no per-user selection override is present.';
 
                     trigger OnAction()
@@ -780,12 +788,15 @@ page 9660 "Report Layouts"
         TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
         CompositeName: Text;
     begin
+        // Filter with the same stored-length value the assignment/clear paths use (CopyStr to the field length),
+        // otherwise a composite name longer than the field would never match the truncated stored value and the
+        // "part is still referenced" warning would be skipped even though the part is assigned.
         CompositeName := LookupHelper.EncodeCompositeName(ReportLayoutList."Application ID", ReportLayoutList.Name);
-        TenantReportLayoutCfg.SetRange("Header Part Name", CompositeName);
+        TenantReportLayoutCfg.SetRange("Header Part Name", CopyStr(CompositeName, 1, MaxStrLen(TenantReportLayoutCfg."Header Part Name")));
         if not TenantReportLayoutCfg.IsEmpty() then
             exit(true);
         TenantReportLayoutCfg.SetRange("Header Part Name");
-        TenantReportLayoutCfg.SetRange("Theme Part Name", CompositeName);
+        TenantReportLayoutCfg.SetRange("Theme Part Name", CopyStr(CompositeName, 1, MaxStrLen(TenantReportLayoutCfg."Theme Part Name")));
         exit(not TenantReportLayoutCfg.IsEmpty());
     end;
 

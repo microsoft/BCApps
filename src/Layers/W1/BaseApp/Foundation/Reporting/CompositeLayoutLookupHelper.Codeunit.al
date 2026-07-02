@@ -60,6 +60,29 @@ codeunit 9665 "Composite Layout Lookup Helper"
     end;
 
     /// <summary>
+    /// Returns the application ID embedded in a composite reference (the <c>&lt;guid&gt;</c> before the <c>::</c>
+    /// separator). Returns an empty GUID when there is no separator or the segment is not a valid GUID, so callers
+    /// can fall back to matching by name alone.
+    /// </summary>
+    internal procedure DecodeAppId(CompositeName: Text) AppId: Guid
+    var
+        SeparatorPos: Integer;
+        GuidPart: Text;
+    begin
+        SeparatorPos := StrPos(CompositeName, '::');
+        if SeparatorPos <= 1 then
+            exit;
+        GuidPart := CopyStr(CompositeName, 1, SeparatorPos - 1);
+        // EncodeCompositeName writes the GUID in the dashed, braceless form; accept the braced form too in case a
+        // value was hand-edited. On failure AppId stays the empty GUID.
+        if Evaluate(AppId, GuidPart) then
+            exit;
+        if Evaluate(AppId, '{' + GuidPart + '}') then
+            exit;
+        Clear(AppId);
+    end;
+
+    /// <summary>
     /// Counts how many Tenant Report Layout Cfg entries currently assign the given part (matched by its composite
     /// reference in the Header Part Name column for header/footer parts, or the Theme Part Name column for theme parts).
     /// </summary>
