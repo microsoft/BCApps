@@ -78,6 +78,12 @@ $AdditionalAppFolders = @(
     "../../../src/Layers/W1/DemoTool"
 )
 
+# Exclude apps in these folders. The two apps here depends on internal, non released libraries
+$ExcludedAppFolders = @(
+    "../../../src/Layers/W1/Tests/Performance-Internal",
+    "../../../src/Layers/W1/Tests/SINGLESERVER-Internal"
+)
+
 # Country code used for the W1 base project. Matches the identifier used in
 # groups.json / projects.json (supportedCountries / unsupportedCountries).
 $W1CountryCode = "W1"
@@ -162,9 +168,9 @@ function Get-AppFoldersForCountry {
 
         $relativePath = ConvertTo-SettingsRelativePath $sourcePath
 
-        if ($metadata.IsTest -and $metadata.ApplicationName -notin $appsNotPublished) {
+        if ($metadata.IsTest -and $metadata.ApplicationName -notin $appsNotPublished -and $relativePath -notin $ExcludedAppFolders) {
             $testFolders += $relativePath
-        } else {
+        } elseif ($relativePath -notin $ExcludedAppFolders) {
             $appFolders += $relativePath
         }
     }
