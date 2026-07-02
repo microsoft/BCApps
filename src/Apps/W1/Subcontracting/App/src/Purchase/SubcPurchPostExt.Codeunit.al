@@ -25,6 +25,45 @@ codeunit 99001535 "Subc. Purch. Post Ext"
 #pragma warning restore AL0432
 #endif
         CancelNotSupportedErr: Label 'You cannot cancel or correct posted purchase invoice %1 because it contains item charges assigned to a subcontracting order receipt.\Use the ''Create Corrective Credit Memo'' action to create a credit memo for this invoice.', Comment = '%1 = Posted Purchase Invoice No.';
+        ItemChargeAgainstUndoneRcptErr: Label 'You cannot post the item charge because it is assigned to subcontracting receipt %1, line %2, which has been undone.\Remove the item charge assignment from the undone receipt line.', Comment = '%1 = Posted Receipt No., %2 = Posted Receipt Line No.';
+        GetSubcontractingRcptNotSupportedErr: Label 'You cannot copy subcontracting receipt lines into this document. Subcontracting purchase orders must be invoiced from the subcontracting order itself, not by getting the receipt lines into a separate document.';
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Get Receipt", OnAfterPurchRcptLineSetFilters, '', false, false)]
+    local procedure ExcludeSubcontractingLinesOnAfterPurchRcptLineSetFilters(var PurchRcptLine: Record "Purch. Rcpt. Line"; PurchaseHeader: Record "Purchase Header")
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        PurchRcptLine.SetRange("Prod. Order No.", '');
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Get Receipt", OnCreateInvLinesOnBeforeInsertLineIteration, '', false, false)]
+    local procedure BlockSubcontractingLinesOnCreateInvLinesOnBeforeInsertLineIteration(var PurchRcptLine2: Record "Purch. Rcpt. Line"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var TransferLine: Boolean; var IsHandled: Boolean)
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if PurchRcptLine2."Prod. Order No." <> '' then
+            Error(GetSubcontractingRcptNotSupportedErr);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Matched Order Line Mgmt.", OnGetPurchaseOrderLinesOnAfterSetPurchaseLineOrderFilters, '', false, false)]
+    local procedure ExcludeSubcontractingLinesOnGetPurchaseOrderLines(var PurchaseLineOrder: Record "Purchase Line"; PurchaseHeaderInvoice: Record "Purchase Header")
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        PurchaseLineOrder.SetRange("Prod. Order No.", '');
+    end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Correct Posted Purch. Invoice", OnAfterTestCorrectInvoiceIsAllowed, '', false, false)]
     local procedure BlockCancelIfHasSubcontractingItemChargeValueEntry(var PurchInvHeader: Record "Purch. Inv. Header"; Cancelling: Boolean)
@@ -83,6 +122,58 @@ codeunit 99001535 "Subc. Purch. Post Ext"
         SetQuantityBaseOnSubcontractingServiceLine(PurchLine, PurchRcptLine);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforePostItemChargePerRcpt, '', false, false)]
+    local procedure StorePurchRcptLineForItemCharge(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var TempItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)" temporary; var IsHandled: Boolean)
+    var
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        SubcSessionState: Codeunit "Subc. Session State";
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        SubcSessionState.ClearAllDictionariesForKey('PurchRcptLineForItemCharge');
+        if not PurchRcptLine.Get(TempItemChargeAssgntPurch."Applies-to Doc. No.", TempItemChargeAssgntPurch."Applies-to Doc. Line No.") then
+            exit;
+        if not PurchRcptLineHasProdOrder(PurchRcptLine) then
+            exit;
+        if PurchRcptLineIsLastOperation(PurchRcptLine) then
+            exit;
+        SubcSessionState.SetRecordID('PurchRcptLineForItemCharge', PurchRcptLine.RecordId);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnBeforeUpdatePurchLineDimSetIDFromAppliedEntry, '', false, false)]
+    local procedure UpdatePurchLineDimSetIDFromCapLedgEntryForNonLastOperations(var PurchaseLineToPost: Record "Purchase Line"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        SubcSessionState: Codeunit "Subc. Session State";
+        StoredRecordID: RecordId;
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if PurchaseLineToPost."Appl.-to Item Entry" = 0 then
+            exit;
+        SubcSessionState.GetRecordID('PurchRcptLineForItemCharge', StoredRecordID);
+        SubcSessionState.ClearAllDictionariesForKey('PurchRcptLineForItemCharge');
+        if StoredRecordID.TableNo() = 0 then
+            exit;
+        PurchRcptLine.SetLoadFields("Item Rcpt. Entry No.");
+        PurchRcptLine.Get(StoredRecordID);
+        if PurchRcptLine."Item Rcpt. Entry No." <> PurchaseLineToPost."Appl.-to Item Entry" then
+            exit;
+        CapacityLedgerEntry.SetLoadFields("Dimension Set ID");
+        if CapacityLedgerEntry.Get(PurchaseLineToPost."Appl.-to Item Entry") then
+            PurchaseLineToPost."Dimension Set ID" := CapacityLedgerEntry."Dimension Set ID";
+        IsHandled := true;
+    end;
+
     local procedure FillItemJnlLineForSubcontractingItemCharge(var ItemJournalLine: Record "Item Journal Line"; TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary)
     var
         PurchRcptLine: Record "Purch. Rcpt. Line";
@@ -93,6 +184,8 @@ codeunit 99001535 "Subc. Purch. Post Ext"
             exit;
         if not PurchRcptLineHasProdOrder(PurchRcptLine) then
             exit;
+        if PurchRcptLine.Correction then
+            Error(ItemChargeAgainstUndoneRcptErr, PurchRcptLine."Document No.", PurchRcptLine."Line No.");
 
         CopySubcontractingProdOrderFieldsToItemJnlLine(ItemJournalLine, PurchRcptLine);
     end;
@@ -119,16 +212,35 @@ codeunit 99001535 "Subc. Purch. Post Ext"
     var
         Item: Record Item;
     begin
+        Item.SetLoadFields("Inventory Posting Group", "Item Tracking Code");
+        Item.Get(ItemJournalLine."Item No.");
+        ItemJournalLine."Inventory Posting Group" := Item."Inventory Posting Group";
+        ItemJournalLine."Subc. Item Charge Assign." := true;
+        if PurchRcptLineIsLastOperation(PurchRcptLine) then begin
+            if Item."Item Tracking Code" <> '' then begin
+                ItemJournalLine.Subcontracting := false;
+                ItemJournalLine."Entry Type" := "Item Ledger Entry Type"::Purchase;
+            end else begin
+                ItemJournalLine.Subcontracting := true;
+                ItemJournalLine."Order Type" := "Inventory Order Type"::Production;
+                ItemJournalLine."Order No." := PurchRcptLine."Prod. Order No.";
+                ItemJournalLine."Order Line No." := PurchRcptLine."Prod. Order Line No.";
+                ItemJournalLine."Entry Type" := "Item Ledger Entry Type"::Output;
+                ItemJournalLine.Type := "Capacity Type Journal"::"Work Center";
+                ItemJournalLine."No." := PurchRcptLine."Subc. Work Center No.";
+                ItemJournalLine."Routing No." := PurchRcptLine."Routing No.";
+                ItemJournalLine."Routing Reference No." := PurchRcptLine."Routing Reference No.";
+                ItemJournalLine."Operation No." := PurchRcptLine."Operation No.";
+                ItemJournalLine."Work Center No." := PurchRcptLine."Work Center No.";
+                ItemJournalLine."Unit Cost Calculation" := ItemJournalLine."Unit Cost Calculation"::Units;
+            end;
+            exit;
+        end;
+
         ItemJournalLine.Subcontracting := true;
         ItemJournalLine."Order Type" := "Inventory Order Type"::Production;
         ItemJournalLine."Order No." := PurchRcptLine."Prod. Order No.";
         ItemJournalLine."Order Line No." := PurchRcptLine."Prod. Order Line No.";
-        Item.SetLoadFields("Inventory Posting Group");
-        Item.Get(ItemJournalLine."Item No.");
-        ItemJournalLine."Inventory Posting Group" := Item."Inventory Posting Group";
-        ItemJournalLine."Subc. Item Charge Assign." := true;
-        if PurchRcptLineIsLastOperation(PurchRcptLine) then
-            exit;
         ItemJournalLine."Entry Type" := "Item Ledger Entry Type"::Output;
         ItemJournalLine.Type := "Capacity Type Journal"::"Work Center";
         ItemJournalLine."No." := PurchRcptLine."Subc. Work Center No.";
