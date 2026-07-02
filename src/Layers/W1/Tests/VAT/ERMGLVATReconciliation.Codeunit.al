@@ -21,6 +21,7 @@ codeunit 134991 "ERM  G/L - VAT Reconciliation"
         ConfirmAdjustQst: Label 'Do you want to fill the G/L Account No. field in VAT entries that are linked to G/L Entries?';
 
 
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Test]
     procedure VATEntrySetGLAccountNumberWithoutUI()
     var
@@ -65,6 +66,7 @@ codeunit 134991 "ERM  G/L - VAT Reconciliation"
         VerifyGLAccountNoInVATEntries(VATEntry, GLAccountNo);
     end;
 
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Test]
     [HandlerFunctions('ConfirmHandlerSetGLAccountNo')]
     procedure VATEntrySetGLAccountNumberWithUIConfirmYes()
@@ -87,6 +89,7 @@ codeunit 134991 "ERM  G/L - VAT Reconciliation"
         VerifyGLAccountNoInVATEntries(VATEntry, GLAccountNo);
     end;
 
+    [TransactionModel(TransactionModel::AutoCommit)]
     [Test]
     procedure CallSetGLAccountNumberFromVATEntriesPage()
     var
@@ -109,6 +112,32 @@ codeunit 134991 "ERM  G/L - VAT Reconciliation"
 
         // [then] The G/L Account Number field is correctly set for all the test VAT Entries
         VATEntry.SetRange("Transaction No.", TransactionNo);
+        VerifyGLAccountNoInVATEntries(VATEntry, GLAccountNo);
+    end;
+
+    [TransactionModel(TransactionModel::AutoCommit)]
+    [Test]
+    procedure SetGLAccountNoEventPreApprovalSkipsConfirm()
+    var
+        VATEntry: Record "VAT Entry";
+        GLVATReconAdjustSubs: Codeunit "GL VAT Recon. Adjust Subs.";
+        GLAccountNo: array[4] of Code[20];
+    begin
+        // [SCENARIO 640489] When a subscriber to OnBeforeSetGLAccountNo pre-approves the adjustment, the confirm is skipped and processing continues, so the report can run unattended
+        Initialize();
+
+        // [GIVEN] 4 G/L Entry - VAT Entry Links, where two of them refer to VAT Entries whose G/L Account Number field is blank
+        CreateVATEntriesGLEntriesWithLink(GLAccountNo, TransactionNo);
+        VATEntry.SetRange("Transaction No.", TransactionNo);
+
+        // [GIVEN] A subscriber that pre-approves the adjustment via OnBeforeSetGLAccountNo (Response := true)
+        BindSubscription(GLVATReconAdjustSubs);
+
+        // [WHEN] The SetGLAccountNo function is called with WithUI set to true (which also requests a confirm) and no ConfirmHandler is registered
+        VATEntry.SetGLAccountNo(true);
+        UnbindSubscription(GLVATReconAdjustSubs);
+
+        // [THEN] The G/L Account Number field is correctly set for all the test VAT Entries, without any confirm being raised
         VerifyGLAccountNoInVATEntries(VATEntry, GLAccountNo);
     end;
 
