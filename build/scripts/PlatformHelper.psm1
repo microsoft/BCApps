@@ -1,3 +1,5 @@
+Import-Module (Join-Path $PSScriptRoot 'EnlistmentHelperFunctions.psm1') -DisableNameChecking
+
 $script:PlatformCdnUrl = 'https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net'
 $script:PlatformIndexUrl = "$script:PlatformCdnUrl/platform/indexes/platform.json"
 $script:PlatformVersionsCache = $null
@@ -158,6 +160,34 @@ function Resolve-PlatformVersion {
 
 <#
 .SYNOPSIS
+    Gets the platform artifact URL for the BCPlatform version configured in Packages.json.
+.DESCRIPTION
+    Reads the BCPlatform version from the Packages configuration file, resolves it to a
+    full platform version (in case a major.minor pattern is configured) and returns the
+    platform artifact URL that can be passed to New-BcContainer / New-BcCompilerFolder as
+    the -platformArtifactUrl parameter.
+.OUTPUTS
+    The platform artifact URL string, or $null if no BCPlatform version is configured.
+.EXAMPLE
+    Get-BCPlatformArtifactUrl
+    Returns: https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/29.0.49913.0/platform
+#>
+function Get-BCPlatformArtifactUrl {
+    [CmdletBinding()]
+    param()
+
+    $platformVersion = (Get-ConfigValue -Key "BCPlatform" -ConfigType Packages).Version
+    if (-not $platformVersion) {
+        return $null
+    }
+
+    $platformVersion = Resolve-PlatformVersion -Version $platformVersion
+    $platformUrl = Get-PlatformVersionUrl -Version $platformVersion
+    return "$platformUrl/platform"
+}
+
+<#
+.SYNOPSIS
     Clears the cached platform version index.
 .DESCRIPTION
     Clears the in-memory cache of the platform version index, forcing a
@@ -175,5 +205,6 @@ Export-ModuleMember -Function @(
     'Get-PlatformVersionUrl',
     'Get-LatestPlatformVersion',
     'Resolve-PlatformVersion',
+    'Get-BCPlatformArtifactUrl',
     'Clear-PlatformVersionCache'
 )

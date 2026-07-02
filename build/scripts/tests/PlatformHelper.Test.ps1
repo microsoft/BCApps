@@ -120,6 +120,43 @@ Describe "PlatformHelper" {
         }
     }
 
+    Describe "Get-BCPlatformArtifactUrl" {
+        BeforeEach {
+            Mock -ModuleName PlatformHelper -CommandName Invoke-WebRequest -MockWith {
+                return @{
+                    Content = $script:testVersions | ConvertTo-Json
+                }
+            }
+        }
+
+        It "Should return the platform artifact URL for a full BCPlatform version" {
+            Mock -ModuleName PlatformHelper -CommandName Get-ConfigValue -MockWith {
+                return [PSCustomObject]@{ Version = '29.0.49913.0' }
+            }
+
+            $url = Get-BCPlatformArtifactUrl
+            $url | Should -Be 'https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/29.0.49913.0/platform'
+        }
+
+        It "Should resolve a major.minor BCPlatform version to the latest full version" {
+            Mock -ModuleName PlatformHelper -CommandName Get-ConfigValue -MockWith {
+                return [PSCustomObject]@{ Version = '29.0' }
+            }
+
+            $url = Get-BCPlatformArtifactUrl
+            $url | Should -Be 'https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/29.0.49914.0/platform'
+        }
+
+        It "Should return null when no BCPlatform version is configured" {
+            Mock -ModuleName PlatformHelper -CommandName Get-ConfigValue -MockWith {
+                return [PSCustomObject]@{ Version = $null }
+            }
+
+            $url = Get-BCPlatformArtifactUrl
+            $url | Should -BeNullOrEmpty
+        }
+    }
+
     Describe "Clear-PlatformVersionCache" {
         It "Should clear the cache and force re-fetch" {
             Mock -ModuleName PlatformHelper -CommandName Invoke-WebRequest -MockWith {

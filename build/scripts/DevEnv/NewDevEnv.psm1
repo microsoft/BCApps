@@ -56,14 +56,34 @@ function Create-BCContainer {
 
         Import-Module "$baseFolder\build\scripts\EnlistmentHelperFunctions.psm1" -DisableNameChecking
         Import-Module "$baseFolder\build\scripts\DevEnv\NewDevContainer.psm1" -DisableNameChecking
+        Import-Module "$baseFolder\build\scripts\PlatformHelper.psm1" -DisableNameChecking
         Import-Module BcContainerHelper
 
         # Get artifactUrl from branch
         $artifactUrl = Get-CurrentBCArtifactUrl
 
+        # Get the platform artifact URL from the BCPlatform version in Packages.json (if specified)
+        $platformArtifactUrl = Get-BCPlatformArtifactUrl
+
         # Create a new container with a single tenant
         $bcContainerHelperConfig.sandboxContainersAreMultitenantByDefault = $false
-        New-BcContainer -artifactUrl $artifactUrl -accept_eula -accept_insiderEula -containerName $ContainerName -auth $Authentication -Credential $Credential -includeAL -additionalParameters @("--volume ""$($baseFolder):c:\sources""")
+
+        $newContainerParameters = @{
+            artifactUrl          = $artifactUrl
+            containerName        = $ContainerName
+            auth                 = $Authentication
+            Credential           = $Credential
+            includeAL            = $true
+            additionalParameters = @("--volume ""$($baseFolder):c:\sources""")
+        }
+
+        # Use the platform version from Packages.json when specified
+        if ($platformArtifactUrl) {
+            Write-Host "Using platform artifact URL: $platformArtifactUrl"
+            $newContainerParameters.platformArtifactUrl = $platformArtifactUrl
+        }
+
+        New-BcContainer @newContainerParameters -accept_eula -accept_insiderEula
 
         # Move all installed apps to the dev scope
         # By default, the container is created with the global scope. We need to move all installed apps to the dev scope.
@@ -321,7 +341,21 @@ function CreateCompilerFolder {
     # Create compiler folder using the AL-Go artifact URL
     $bcArtifactUrl = Get-CurrentBCArtifactUrl
     Write-Host "Creating compiler folder $compilerFolder" -ForegroundColor Yellow
-    New-BcCompilerFolder -artifactUrl $bcArtifactUrl -cacheFolder $compilerFolder | Out-Null
+
+    $newCompilerFolderParameters = @{
+        artifactUrl = $bcArtifactUrl
+        cacheFolder = $compilerFolder
+    }
+
+    # Use the platform version from Packages.json when specified
+    Import-Module "$PSScriptRoot\..\PlatformHelper.psm1" -DisableNameChecking
+    $platformArtifactUrl = Get-BCPlatformArtifactUrl
+    if ($platformArtifactUrl) {
+        Write-Host "Using platform artifact URL: $platformArtifactUrl" -ForegroundColor Yellow
+        $newCompilerFolderParameters.platformArtifactUrl = $platformArtifactUrl
+    }
+
+    New-BcCompilerFolder @newCompilerFolderParameters | Out-Null
     return $compilerFolder
 }
 
