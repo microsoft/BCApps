@@ -9,6 +9,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.VAT.Reporting;
 using System.Environment;
 using System.Telemetry;
+using System.Utilities;
 
 tableextension 4701 "VAT Report Setup Extension" extends "VAT Report Setup"
 {
@@ -259,12 +260,26 @@ tableextension 4701 "VAT Report Setup Extension" extends "VAT Report Setup"
 
     internal procedure ValidateGroupRepresentativeAPIURL(): Boolean
     begin
-        if Rec."Group Representative API URL" <> '' then
-            if not Lowercase(Rec."Group Representative API URL").StartsWith('https://api.businesscentral.dynamics.com') then
-                if not Lowercase(Rec."Group Representative API URL").StartsWith('https://api.businesscentral.dynamics-tie.com') then
-                    exit(false);
+        if Rec."Group Representative API URL" = '' then
+            exit(true);
 
-        exit(true);
+        exit(IsAllowedGroupRepresentativeAPIURL(Rec."Group Representative API URL"));
+    end;
+
+    internal procedure IsAllowedGroupRepresentativeAPIURL(ApiUrl: Text): Boolean
+    var
+        Uri: Codeunit Uri;
+        Host: Text;
+    begin
+        // Parse the URL and match the host exactly against the allowlist. A prefix/suffix string check can be
+        // bypassed with crafted hosts such as https://api.businesscentral.dynamics.com.attacker.com/ or
+        // https://api.businesscentral.dynamics.com@attacker.com/ where the real host is attacker.com.
+        Uri.Init(ApiUrl);
+        if LowerCase(Uri.GetScheme()) <> 'https' then
+            exit(false);
+
+        Host := LowerCase(Uri.GetHost());
+        exit((Host = 'api.businesscentral.dynamics.com') or (Host = 'api.businesscentral.dynamics-tie.com'));
     end;
 
     var
