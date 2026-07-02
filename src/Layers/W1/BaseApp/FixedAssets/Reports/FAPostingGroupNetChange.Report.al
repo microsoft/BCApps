@@ -9,7 +9,6 @@ using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
-using System.Utilities;
 
 report 5611 "FA Posting Group - Net Change"
 {
