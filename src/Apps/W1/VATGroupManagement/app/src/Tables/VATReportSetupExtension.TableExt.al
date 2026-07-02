@@ -269,14 +269,14 @@ tableextension 4701 "VAT Report Setup Extension" extends "VAT Report Setup"
     internal procedure IsAllowedGroupRepresentativeAPIURL(ApiUrl: Text): Boolean
     var
         Uri: Codeunit Uri;
-        Host: Text;
     begin
         Uri.Init(ApiUrl);
         if LowerCase(Uri.GetScheme()) <> 'https' then
             exit(false);
 
-        Host := LowerCase(Uri.GetHost());
-        exit((Host = 'api.businesscentral.dynamics.com') or (Host = 'api.businesscentral.dynamics-tie.com'));
+        exit(
+            Uri.AreURIsHaveSameHost(ApiUrl, 'https://api.businesscentral.dynamics.com') or
+            Uri.AreURIsHaveSameHost(ApiUrl, 'https://api.businesscentral.dynamics-tie.com'));
     end;
 
     var
