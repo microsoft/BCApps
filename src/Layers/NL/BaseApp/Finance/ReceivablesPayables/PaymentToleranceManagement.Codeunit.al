@@ -227,6 +227,7 @@ codeunit 426 "Payment Tolerance Management"
             exit(true);
 
         OnPmtTolGenJnlOnAfterCheckConditions(TempGenJnlLine, SuppressCommit, Result);
+        OnPmtTolGenJnlOnAfterCheckConditionsGenJnlLineByRef(TempGenJnlLine, SuppressCommit, Result);
 
         case true of
             (TempGenJnlLine."Account Type" = TempGenJnlLine."Account Type"::Customer) or
@@ -3059,6 +3060,18 @@ codeunit 426 "Payment Tolerance Management"
     /// <param name="Result">Result of tolerance condition checking</param>
     [IntegrationEvent(false, false)]
     local procedure OnPmtTolGenJnlOnAfterCheckConditions(GenJournalLine: Record "Gen. Journal Line"; var SuppressCommit: Boolean; var Result: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after checking conditions for payment tolerance in general journal processing.
+    /// Exposes the general journal line by reference so subscribers can modify it before standard payment tolerance processing continues.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line being processed, passed by reference</param>
+    /// <param name="SuppressCommit">Whether database commit should be suppressed</param>
+    /// <param name="Result">Result of tolerance condition checking</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnPmtTolGenJnlOnAfterCheckConditionsGenJnlLineByRef(var GenJournalLine: Record "Gen. Journal Line"; var SuppressCommit: Boolean; var Result: Boolean)
     begin
     end;
 
