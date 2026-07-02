@@ -81,6 +81,13 @@ codeunit 4301 "Agent Impl."
         exit(Agent.Substate = Agent.Substate::Archived);
     end;
 
+    // Direct Agent table changes are gated by the platform (Agent virtual data provider); this is for guarding other table modifications
+    local procedure EnsureNotArchived(AgentUserSecurityID: Guid)
+    begin
+        if IsArchived(AgentUserSecurityID) then
+            Error(AgentArchivedCannotBeModifiedErr);
+    end;
+
     procedure GetUserAccess(AgentUserSecurityID: Guid; var TempAgentAccessControl: Record "Agent Access Control" temporary)
     var
         Agent: Record Agent;
@@ -306,6 +313,8 @@ codeunit 4301 "Agent Impl."
     var
         UserPersonalization: Record "User Personalization";
     begin
+        EnsureNotArchived(NewUserSettings."User Security ID");
+
         UserPersonalization.Get(NewUserSettings."User Security ID");
 
         UserPersonalization."Language ID" := NewUserSettings."Language ID";
@@ -365,6 +374,8 @@ codeunit 4301 "Agent Impl."
     var
         AgentUtilities: Codeunit "Agent Utilities";
     begin
+        EnsureNotArchived(UserSecurityID);
+
         // Calling system codeunit to allow the assignment of permissions to Agents without SUPER or SECURITY.
         // This method ensure that the user has Configure permission for the specified agent in all the companies
         // for which permissions are modified (both removed and added).
@@ -548,6 +559,8 @@ codeunit 4301 "Agent Impl."
         SetupPageId: Integer;
         UserSecurityIdTok: Label 'User Security ID', Locked = true;
     begin
+        EnsureNotArchived(AgentUserSecurityID);
+
         AgentMetadata := AgentMetadataProvider;
         SetupPageId := AgentMetadata.GetSetupPageId(AgentUserSecurityID);
 
@@ -607,6 +620,7 @@ codeunit 4301 "Agent Impl."
 
     var
         AgentDoesNotExistErr: Label 'Agent does not exist.';
+        AgentArchivedCannotBeModifiedErr: Label 'The agent is archived and cannot be modified.';
         DeactivateBeforeArchivingErr: Label 'Deactivate the agent before archiving it.';
         AutoLbl: Label 'Auto';
         NoActiveAgentsErr: Label 'There are no active agents setup on the system.';

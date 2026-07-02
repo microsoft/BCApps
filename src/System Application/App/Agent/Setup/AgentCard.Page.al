@@ -184,6 +184,7 @@ page 4315 "Agent Card"
                 Caption = 'Agent User Settings';
                 ToolTip = 'Set up the user settings for the agent.';
                 Image = SetupLines;
+                Enabled = not AgentIsArchived;
 
                 trigger OnAction()
                 var

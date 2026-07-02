@@ -77,8 +77,7 @@ page 4337 "Agent Archive Confirmation"
     var
         Index: Integer;
     begin
-        // AL's Text equality is case-insensitive; compare character-by-character (ordinal/case-sensitive)
-        // so the user must type the display name exactly, matching the "type the exact name" design.
+        // AL Text equality is case-insensitive; compare char-by-char so the user must type the name exactly.
         if StrLen(Entered) <> StrLen(Expected) then
             exit(false);
         for Index := 1 to StrLen(Expected) do
