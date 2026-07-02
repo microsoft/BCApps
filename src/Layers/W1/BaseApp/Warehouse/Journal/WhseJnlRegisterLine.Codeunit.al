@@ -49,7 +49,7 @@ codeunit 7301 "Whse. Jnl.-Register Line"
         IsHandled: Boolean;
     begin
         xGlobalWhseEntryNo := GlobalWhseEntryNo;
-        OnBeforeCode(WhseJnlLine, GlobalWhseEntryNo, IsHandled);
+        OnBeforeCode(WhseJnlLine, GlobalWhseEntryNo, IsHandled, WhseReg);
         ValidateSequenceNo(GlobalWhseEntryNo, xGlobalWhseEntryNo, Database::"Warehouse Entry");
         if IsHandled then
             exit;
@@ -653,7 +653,7 @@ codeunit 7301 "Whse. Jnl.-Register Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCode(var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseEntryNo: Integer; var IsHandled: Boolean)
+    local procedure OnBeforeCode(var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseEntryNo: Integer; var IsHandled: Boolean; var WarehouseRegister: Record "Warehouse Register")
     begin
     end;
 
