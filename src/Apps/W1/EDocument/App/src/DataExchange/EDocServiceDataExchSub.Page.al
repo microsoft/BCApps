@@ -36,6 +36,10 @@ page 6136 "E-Doc. Service Data Exch. Sub"
                 {
                     ToolTip = 'Specifies the data exchange name that is used for exporting the data.';
                 }
+                field("Use Built-in Export Subscribers"; Rec."Use Built-in Export Subscribers")
+                {
+                    ToolTip = 'Specifies whether the built-in PEPPOL export subscribers run for this data exchange definition. Disable this if you use a custom export definition and do not want the built-in PEPPOL logic to interfere.';
+                }
             }
         }
     }
