@@ -275,7 +275,7 @@ codeunit 139555 "Aged Accounts Excel Reports"
         RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Accounts Rec Excel", RequestPageXml);
         LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Accounts Rec Excel", Variant, RequestPageXml);
 
-        // [THEN] The exported data does not exists.
+        // [THEN] The exported data does not exist.
         LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
         Assert.AreEqual(0, LibraryReportDataset.RowCount(), 'No aging entry should be exported');
     end;
