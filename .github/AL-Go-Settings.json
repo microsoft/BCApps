@@ -8,7 +8,7 @@
   "UsePsSession": false,
   "gitHubRunner": "windows-latest",
   "githubRunnerShell": "pwsh",
-  "artifact": "bcinsider/Sandbox/29.0.51936.0//latest",
+  "artifact": "bcinsider/Sandbox/29.0.52169.0//latest",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "29.0",
@@ -111,12 +111,6 @@
   "enableCodeAnalyzersOnTestApps": true,
   "rulesetFile": "../../../src/rulesets/base.ruleset.json",
   "skipUpgrade": true,
-  "fullBuildPatterns": [
-    "build/*",
-    "src/rulesets/*",
-    ".github/workflows/PullRequestHandler.yaml",
-    ".github/workflows/_BuildALGoProject.yaml"
-  ],
   "PullRequestTrigger": "pull_request",
   "ALDoc": {
     "maxReleases": 0,
