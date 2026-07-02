@@ -1514,10 +1514,12 @@ table 20405 "Qlty. Inspection Header"
                 begin
                     CalculatedSampleSize := Round(Rec."Source Quantity (Base)" * QltyInspectionTemplateHdr."Sample Percentage" / 100.0, 1, '>');
                     if CalculatedSampleSize > EffectiveMaxSampleSize then begin
-                        CalculatedSampleSize := EffectiveMaxSampleSize;
                         if GuiAllowed() and not Rec.GetIsCreating() and (not Rec.IsTemporary()) then
                             if EffectiveMaxSampleSize = MaxSampleSize then
-                                Message(SampleSizeCappedMsg, Rec."No.", MaxSampleSize);
+                                Message(SampleSizeCappedMsg, Rec."No.", MaxSampleSize)
+                            else
+                                Message(SampleSizeInvalidMsg, Math.Truncate(CalculatedSampleSize), Rec."No.", Rec."Source Quantity (Base)");
+                        CalculatedSampleSize := EffectiveMaxSampleSize;
                     end;
                     Rec.Validate("Sample Size", CalculatedSampleSize);
                 end;
