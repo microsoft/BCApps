@@ -57,7 +57,7 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
         EDocumentDataExchDef: Record "E-Doc. Service Data Exch. Def.";
     begin
         EDocumentDataExchDef.SetRange("Expt. Data Exchange Def. Code", DataExchDefCode);
-        EDocumentDataExchDef.SetRange("Use Built-in Export Subscribers", true);
+        EDocumentDataExchDef.SetRange("Disable Built-in Export Sub.", false);
         exit(not EDocumentDataExchDef.IsEmpty());
     end;
 
@@ -160,13 +160,6 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                             Telephone,
                             Telefax,
                             ElectronicMail);
-
-                        OnAfterPrepareAccountingSupplierParty(
-                            SalesHeader, SupplierEndpointID, SupplierSchemeID, SupplierName,
-                            StreetName, AdditionalStreetName, CityName, PostalZone, CountrySubentity, IdentificationCode,
-                            CompanyID, CompanyIDSchemeID, TaxSchemeID,
-                            PartyLegalEntityRegName, PartyLegalEntityCompanyID, PartyLegalEntitySchemeID,
-                            ContactName, Telephone, Telefax, ElectronicMail);
                     end;
                 '/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID':
                     xmlNodeValue := SupplierEndpointID;
@@ -225,13 +218,6 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                             CustContactTelephone,
                             CustContactTelefax,
                             CustContactElectronicMail);
-
-                        OnAfterPrepareAccountingCustomerParty(
-                            SalesHeader, CustomerEndpointID, CustomerSchemeID,
-                            CustomerPartyIdentificationID, CustomerPartyIDSchemeID, CustomerName,
-                            CustPartyTaxSchemeCompanyID, CustPartyTaxSchemeCompIDSchID, CustTaxSchemeID,
-                            CustPartyLegalEntityRegName, CustPartyLegalEntityCompanyID, CustPartyLegalEntityIDSchemeID,
-                            CustContactName, CustContactTelephone, CustContactTelefax, CustContactElectronicMail);
                     end;
                 '/cac:AccountingCustomerParty/cac:Party/cbc:EndpointID':
                     xmlNodeValue := CustomerEndpointID;
@@ -254,17 +240,11 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                 '/cac:AccountingCustomerParty/cac:Party/cac:Contact/cbc:ElectronicMail':
                     xmlNodeValue := CustContactElectronicMail;
                 '/cac:TaxRepresentativeParty':
-                    begin
-                        PEPPOLMgt.GetTaxRepresentativePartyInfo(
-                            TaxRepPartyNameName,
-                            PayeePartyTaxSchemeCompanyID,
-                            PayeePartyTaxSchCompIDSchemeID,
-                            PayeePartyTaxSchemeTaxSchemeID);
-
-                        OnAfterPrepareTaxRepresentativeParty(
-                            SalesHeader, TaxRepPartyNameName,
-                            PayeePartyTaxSchemeCompanyID, PayeePartyTaxSchCompIDSchemeID, PayeePartyTaxSchemeTaxSchemeID);
-                    end;
+                    PEPPOLMgt.GetTaxRepresentativePartyInfo(
+                        TaxRepPartyNameName,
+                        PayeePartyTaxSchemeCompanyID,
+                        PayeePartyTaxSchCompIDSchemeID,
+                        PayeePartyTaxSchemeTaxSchemeID);
                 '/cac:TaxRepresentativeParty/cac:PartyName/cbc:Name':
                     xmlNodeValue := TaxRepPartyNameName;
                 '/cac:TaxRepresentativeParty/cac:PartyTaxScheme/cbc:CompanyID':
@@ -272,15 +252,11 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                 '/cac:TaxRepresentativeParty/cac:PartyTaxScheme/cac:TaxScheme/cbc:ID':
                     xmlNodeValue := PayeePartyTaxSchemeTaxSchemeID;
                 '/cac:Delivery':
-                    begin
-                        PEPPOLMgt.GetGLNDeliveryInfo(
-                            SalesHeader,
-                            ActualDeliveryDate,
-                            DeliveryID,
-                            DeliveryIDSchemeID);
-
-                        OnAfterPrepareDelivery(SalesHeader, ActualDeliveryDate, DeliveryID, DeliveryIDSchemeID);
-                    end;
+                    PEPPOLMgt.GetGLNDeliveryInfo(
+                        SalesHeader,
+                        ActualDeliveryDate,
+                        DeliveryID,
+                        DeliveryIDSchemeID);
                 '/cac:Delivery/cbc:ActualDeliveryDate':
                     xmlNodeValue := ActualDeliveryDate;
                 '/cac:Delivery/cac:DeliveryLocation/cbc:ID':
@@ -301,10 +277,6 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                             SalesHeader,
                             PayeeFinancialAccountID,
                             FinancialInstitutionBranchID);
-
-                        OnAfterPreparePaymentMeans(
-                            SalesHeader, PaymentMeansCode, PaymentChannelCode, PaymentID,
-                            PrimaryAccountNumberID, NetworkID, PayeeFinancialAccountID, FinancialInstitutionBranchID);
                     end;
                 '/cac:PaymentMeans/cbc:PaymentMeansCode':
                     xmlNodeValue := PaymentMeansCode;
@@ -363,15 +335,11 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                 '/cac:AllowanceCharge/cac:TaxCategory/cac:TaxScheme/cbc:ID':
                     xmlNodeValue := AllowanceChargeTaxSchemeID;
                 '/cac:TaxTotal':
-                    begin
-                        PEPPOLMgt.GetTaxTotalInfo(
-                            SalesHeader,
-                            TempVATAmtLine,
-                            TaxAmount,
-                            TaxTotalCurrencyID);
-
-                        OnAfterPrepareTaxTotal(SalesHeader, TaxAmount, TaxTotalCurrencyID);
-                    end;
+                    PEPPOLMgt.GetTaxTotalInfo(
+                        SalesHeader,
+                        TempVATAmtLine,
+                        TaxAmount,
+                        TaxTotalCurrencyID);
                 '/cac:TaxTotal/cbc:TaxAmount':
                     if TaxSubtotalLoopNumber = 1 then
                         xmlNodeValue := TaxAmount
@@ -414,39 +382,26 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                 '/cac:TaxSubtotal/cac:TaxCategory/cac:TaxScheme/cbc:ID':
                     xmlNodeValue := TaxTotalTaxSchemeID;
                 '/cac:LegalMonetaryTotal':
-                    begin
-                        PEPPOLMgt.GetLegalMonetaryInfo(
-                            SalesHeader,
-                            TempSalesLineRounding,
-                            TempVATAmtLine,
-                            LineExtensionAmount,
-                            LegalMonetaryTotalCurrencyID,
-                            TaxExclusiveAmount,
-                            TaxExclusiveAmountCurrencyID,
-                            TaxInclusiveAmount,
-                            TaxInclusiveAmountCurrencyID,
-                            AllowanceTotalAmount,
-                            AllowanceTotalAmountCurrencyID,
-                            ChargeTotalAmount,
-                            ChargeTotalAmountCurrencyID,
-                            PrepaidAmount,
-                            PrepaidCurrencyID,
-                            PayableRoundingAmount,
-                            PayableRndingAmountCurrencyID,
-                            PayableAmount,
-                            PayableAmountCurrencyID);
-
-                        OnAfterPrepareLegalMonetaryTotal(
-                            SalesHeader,
-                            LineExtensionAmount, LegalMonetaryTotalCurrencyID,
-                            TaxExclusiveAmount, TaxExclusiveAmountCurrencyID,
-                            TaxInclusiveAmount, TaxInclusiveAmountCurrencyID,
-                            AllowanceTotalAmount, AllowanceTotalAmountCurrencyID,
-                            ChargeTotalAmount, ChargeTotalAmountCurrencyID,
-                            PrepaidAmount, PrepaidCurrencyID,
-                            PayableRoundingAmount, PayableRndingAmountCurrencyID,
-                            PayableAmount, PayableAmountCurrencyID);
-                    end;
+                    PEPPOLMgt.GetLegalMonetaryInfo(
+                        SalesHeader,
+                        TempSalesLineRounding,
+                        TempVATAmtLine,
+                        LineExtensionAmount,
+                        LegalMonetaryTotalCurrencyID,
+                        TaxExclusiveAmount,
+                        TaxExclusiveAmountCurrencyID,
+                        TaxInclusiveAmount,
+                        TaxInclusiveAmountCurrencyID,
+                        AllowanceTotalAmount,
+                        AllowanceTotalAmountCurrencyID,
+                        ChargeTotalAmount,
+                        ChargeTotalAmountCurrencyID,
+                        PrepaidAmount,
+                        PrepaidCurrencyID,
+                        PayableRoundingAmount,
+                        PayableRndingAmountCurrencyID,
+                        PayableAmount,
+                        PayableAmountCurrencyID);
                 '/cac:LegalMonetaryTotal/cbc:LineExtensionAmount':
                     xmlNodeValue := LineExtensionAmount;
                 '/cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount':
@@ -508,20 +463,6 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                             SalesLine,
                             AdditionalItemPropertyName,
                             AdditionalItemPropertyValue);
-
-                        PEPPOLMgt.GetLinePriceInfo(
-                            SalesLine,
-                            SalesHeader,
-                            InvoiceLinePriceAmount,
-                            InvLinePriceAmountCurrencyID,
-                            BaseQuantity,
-                            UnitCodeBaseQty);
-
-                        OnAfterPrepareLineItem(
-                            SalesLine, SalesHeader,
-                            Description, Name, SellersItemIdentificationID, StandardItemIdentificationID, StdItemIdIDSchemeID,
-                            OriginCountryIdCode, ClassifiedTaxCategoryID, InvoiceLineTaxPercent,
-                            InvoiceLinePriceAmount, BaseQuantity, UnitCodeBaseQty);
                     end;
                 '/cac:InvoiceLine/cac:Item/cac:SellersItemIdentification/cbc:ID',
                 '/cac:CreditNoteLine/cac:Item/cac:SellersItemIdentification/cbc:ID':
@@ -547,6 +488,15 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                 '/cac:InvoiceLine/cac:Item/cac:AdditionalItemProperty/cbc:Value',
                 '/cac:CreditNoteLine/cac:Item/cac:AdditionalItemProperty/cbc:Value':
                     xmlNodeValue := AdditionalItemPropertyValue;
+                '/cac:InvoiceLine/cac:Price',
+                '/cac:CreditNoteLine/cac:Price':
+                    PEPPOLMgt.GetLinePriceInfo(
+                        SalesLine,
+                        SalesHeader,
+                        InvoiceLinePriceAmount,
+                        InvLinePriceAmountCurrencyID,
+                        BaseQuantity,
+                        UnitCodeBaseQty);
                 '/cac:InvoiceLine/cac:Price/cbc:PriceAmount',
                 '/cac:CreditNoteLine/cac:Price/cbc:PriceAmount':
                     xmlNodeValue := InvoiceLinePriceAmount;
@@ -572,10 +522,6 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                             EmbeddedDocumentBinaryObject,
                             ProcessedDocTypeInt
                         );
-
-                        OnAfterPrepareDocumentAttachment(
-                            SalesHeader, AdditionalDocumentReferenceID, AdditionalDocRefDocumentType,
-                            URI, Filename, MimeCode, EmbeddedDocumentBinaryObject);
 
                         DocumentAttachmentNumber += 1;
                     end;
@@ -837,51 +783,6 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
                 EDocServiceSupportedType.Insert();
             end;
         end;
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPrepareAccountingSupplierParty(SalesHeader: Record "Sales Header"; var SupplierEndpointID: Text; var SupplierSchemeID: Text; var SupplierName: Text; var StreetName: Text; var AdditionalStreetName: Text; var CityName: Text; var PostalZone: Text; var CountrySubentity: Text; var IdentificationCode: Text; var CompanyID: Text; var CompanyIDSchemeID: Text; var TaxSchemeID: Text; var PartyLegalEntityRegName: Text; var PartyLegalEntityCompanyID: Text; var PartyLegalEntitySchemeID: Text; var ContactName: Text; var Telephone: Text; var Telefax: Text; var ElectronicMail: Text)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPrepareAccountingCustomerParty(SalesHeader: Record "Sales Header"; var CustomerEndpointID: Text; var CustomerSchemeID: Text; var CustomerPartyIdentificationID: Text; var CustomerPartyIDSchemeID: Text; var CustomerName: Text; var CustPartyTaxSchemeCompanyID: Text; var CustPartyTaxSchemeCompIDSchID: Text; var CustTaxSchemeID: Text; var CustPartyLegalEntityRegName: Text; var CustPartyLegalEntityCompanyID: Text; var CustPartyLegalEntityIDSchemeID: Text; var CustContactName: Text; var CustContactTelephone: Text; var CustContactTelefax: Text; var CustContactElectronicMail: Text)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPrepareTaxRepresentativeParty(SalesHeader: Record "Sales Header"; var TaxRepPartyNameName: Text; var PayeePartyTaxSchemeCompanyID: Text; var PayeePartyTaxSchCompIDSchemeID: Text; var PayeePartyTaxSchemeTaxSchemeID: Text)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPrepareDelivery(SalesHeader: Record "Sales Header"; var ActualDeliveryDate: Text; var DeliveryID: Text; var DeliveryIDSchemeID: Text)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPreparePaymentMeans(SalesHeader: Record "Sales Header"; var PaymentMeansCode: Text; var PaymentChannelCode: Text; var PaymentID: Text; var PrimaryAccountNumberID: Text; var NetworkID: Text; var PayeeFinancialAccountID: Text; var FinancialInstitutionBranchID: Text)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPrepareTaxTotal(SalesHeader: Record "Sales Header"; var TaxAmount: Text; var TaxTotalCurrencyID: Text)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPrepareLegalMonetaryTotal(SalesHeader: Record "Sales Header"; var LineExtensionAmount: Text; var LegalMonetaryTotalCurrencyID: Text; var TaxExclusiveAmount: Text; var TaxExclusiveAmountCurrencyID: Text; var TaxInclusiveAmount: Text; var TaxInclusiveAmountCurrencyID: Text; var AllowanceTotalAmount: Text; var AllowanceTotalAmountCurrencyID: Text; var ChargeTotalAmount: Text; var ChargeTotalAmountCurrencyID: Text; var PrepaidAmount: Text; var PrepaidCurrencyID: Text; var PayableRoundingAmount: Text; var PayableRndingAmountCurrencyID: Text; var PayableAmount: Text; var PayableAmountCurrencyID: Text)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPrepareLineItem(SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; var Description: Text; var Name: Text; var SellersItemIdentificationID: Text; var StandardItemIdentificationID: Text; var StdItemIdIDSchemeID: Text; var OriginCountryIdCode: Text; var ClassifiedTaxCategoryID: Text; var InvoiceLineTaxPercent: Text; var InvoiceLinePriceAmount: Text; var BaseQuantity: Text; var UnitCodeBaseQty: Text)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterPrepareDocumentAttachment(SalesHeader: Record "Sales Header"; var AdditionalDocumentReferenceID: Text; var AdditionalDocRefDocumentType: Text; var URI: Text; var Filename: Text; var MimeCode: Text; var EmbeddedDocumentBinaryObject: Text)
-    begin
     end;
 
     var

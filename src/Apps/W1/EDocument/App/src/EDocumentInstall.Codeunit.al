@@ -19,7 +19,6 @@ codeunit 6161 "E-Document Install"
     begin
         InsertDataExch();
         InsertDataExchV2();
-        SetBuiltInExportSubscribersFlag();
     end;
 
     trigger OnInstallAppPerDatabase()
@@ -60,26 +59,6 @@ codeunit 6161 "E-Document Install"
         ImportCreditMemoV2XML();
 
         UpgradeTag.SetUpgradeTag(GetEDOCDataExchV2UpdateTag());
-    end;
-
-    internal procedure SetBuiltInExportSubscribersFlag()
-    var
-        EDocServiceDataExchDef: Record "E-Doc. Service Data Exch. Def.";
-        UpgradeTag: Codeunit "Upgrade Tag";
-    begin
-        if UpgradeTag.HasUpgradeTag(GetBuiltInExportSubscribersFlagTag()) then
-            exit;
-
-        EDocServiceDataExchDef.SetFilter("Expt. Data Exchange Def. Code", '<>%1', '');
-        if EDocServiceDataExchDef.FindSet() then
-            repeat
-                if not EDocServiceDataExchDef."Use Built-in Export Subscribers" then begin
-                    EDocServiceDataExchDef."Use Built-in Export Subscribers" := true;
-                    EDocServiceDataExchDef.Modify();
-                end;
-            until EDocServiceDataExchDef.Next() = 0;
-
-        UpgradeTag.SetUpgradeTag(GetBuiltInExportSubscribersFlagTag());
     end;
 
     internal procedure ImportServiceInvoiceXML()
@@ -249,7 +228,6 @@ codeunit 6161 "E-Document Install"
     begin
         PerCompanyUpgradeTags.Add(GetEDOCDataExchUpdateTag());
         PerCompanyUpgradeTags.Add(GetEDOCDataExchV2UpdateTag());
-        PerCompanyUpgradeTags.Add(GetBuiltInExportSubscribersFlagTag());
     end;
 
     local procedure GetEDOCDataExchUpdateTag(): Code[250]
@@ -260,11 +238,6 @@ codeunit 6161 "E-Document Install"
     local procedure GetEDOCDataExchV2UpdateTag(): Code[250]
     begin
         exit('MS-EDOCDataExchPEPPOLV2-20260414');
-    end;
-
-    local procedure GetBuiltInExportSubscribersFlagTag(): Code[250]
-    begin
-        exit('MS-EDOCBuiltInExportSubscribers-20260702');
     end;
 
     var

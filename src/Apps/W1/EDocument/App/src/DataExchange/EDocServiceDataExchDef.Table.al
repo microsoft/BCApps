@@ -47,10 +47,9 @@ table 6139 "E-Doc. Service Data Exch. Def."
             CalcFormula = lookup("Data Exch. Def".Name where(Code = field("Expt. Data Exchange Def. Code")));
             Editable = false;
         }
-        field(7; "Use Built-in Export Subscribers"; Boolean)
+        field(7; "Disable Built-in Export Sub."; Boolean)
         {
-            Caption = 'Use Built-in Export Subscribers';
-            InitValue = true;
+            Caption = 'Disable Built-in Export Subscribers';
         }
     }
 
