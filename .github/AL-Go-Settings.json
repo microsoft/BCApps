@@ -132,6 +132,7 @@
     "maxReleases": 0,
     "continuousDeployment": true,
     "groupByProject": false,
+    "deployToGitHubPages": false,
     "includeProjects": [
       "build_projects_Apps W1"
     ],
