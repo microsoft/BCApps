@@ -49,7 +49,7 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
                     RunPageLink = "Work Center No." = field("No.");
                     ToolTip = 'View the Subcontracting WIP Entries that track work-in-progress quantities at this work center''s subcontracting location.';
                 }
-                action("Subcontractor - Dispatch List")
+                action("Subcontractor Dispatch List")
                 {
                     ApplicationArea = Subcontracting;
                     Caption = 'Subcontractor - Dispatch List';
