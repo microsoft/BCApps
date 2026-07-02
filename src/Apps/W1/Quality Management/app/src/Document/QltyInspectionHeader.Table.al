@@ -1493,8 +1493,8 @@ table 20405 "Qlty. Inspection Header"
     local procedure UpdateSampleSize()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
-        CalculatedSampleSize: Decimal;
         MaxSampleSize: Integer;
+        CalculatedSampleSize: Decimal;
     begin
         if not QltyInspectionTemplateHdr.Get(Rec."Template Code") then
             exit;
