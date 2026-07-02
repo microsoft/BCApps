@@ -141,5 +141,8 @@
     "onPull_Request": true,
     "onSchedule": false,
     "mode": "modifiedApps"
-  }
+  },
+  "fullBuildPatterns": [
+    "src/Layers/*"
+  ]
 }
