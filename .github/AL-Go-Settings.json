@@ -31,6 +31,16 @@
           "CLEAN29"
         ]
       }
+    },
+    {
+      "projects": [
+        "."
+      ],
+      "settings": {
+        "appFolders": [
+          "src/Layers/W1/DemoTool"
+        ]
+      }
     }
   ],
   "customALGoFiles": {
@@ -121,8 +131,11 @@
   "PullRequestTrigger": "pull_request",
   "ALDoc": {
     "maxReleases": 0,
-    "continuousDeployment": false,
+    "continuousDeployment": true,
     "groupByProject": false,
+    "includeProjects": [
+      "build_projects_Apps W1"
+    ],
     "excludeProjects": [
       "build_projects_System Application Modules"
     ]
