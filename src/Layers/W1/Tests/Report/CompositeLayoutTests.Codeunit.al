@@ -212,10 +212,30 @@ codeunit 134619 "Composite Layout Tests"
     end;
 
     local procedure Initialize()
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
     begin
-        // Data-agnostic: the test never wipes the whole table. CreatePart and InsertCfg delete only the exact rows
-        // they are about to (re)create, so the test touches only data it produces and is safe to re-run.
         TestReportID := 50000;
+
+        // These tests run in a non-isolated (Legacy) bucket against a shared company, so rows are not rolled back
+        // between test methods. Clear every configuration row this suite can create before each test. Without this,
+        // the layout-level row left by LayoutLevelAssignmentResolvesAsThisLayout (report 50000, layout 'Body') leaks
+        // into the report/company/global-default tests and wins resolution ahead of the row they set up, and the
+        // report-0 wildcard rows leak out as global/company defaults that affect other tests sharing the company.
+        TenantReportLayoutCfg.SetRange("Report ID", TestReportID);
+        TenantReportLayoutCfg.DeleteAll(true);
+        ClearWildcardCfg('');                                                                     // global default: report 0, all companies
+        ClearWildcardCfg(CopyStr(CompanyName(), 1, MaxStrLen(TenantReportLayoutCfg."Company Name"))); // company default: report 0, this company
+    end;
+
+    local procedure ClearWildcardCfg(CompanyFilter: Text)
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+    begin
+        // Report 0 with an empty layout name is the wildcard key the company/global-default tests use; remove only
+        // that exact key so the suite cleans up after itself without touching any unrelated configuration.
+        if TenantReportLayoutCfg.Get(0, '', CopyStr(CompanyFilter, 1, MaxStrLen(TenantReportLayoutCfg."Company Name"))) then
+            TenantReportLayoutCfg.Delete(true);
     end;
 
     local procedure CreatePart(PartName: Text; Subtype: Enum "Report Layout Subtype"): Text
