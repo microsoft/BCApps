@@ -43,6 +43,12 @@ jobs:
         github.event.label.name == 'ai-triage'
       )
     runs-on: ubuntu-latest
+    # The App id + private key are stored as ENVIRONMENT secrets (not repo-level)
+    # so a deployment branch policy can restrict them to the default branch.
+    # `issues` events always run on the default branch, so this never blocks a run.
+    # NOTE: do NOT add "Required reviewers" to this environment — it would pause
+    # every triage run waiting for a manual approval.
+    environment: triage
     steps:
       - name: Correlation token
         id: token
