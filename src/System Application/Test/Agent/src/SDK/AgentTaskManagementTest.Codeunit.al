@@ -693,6 +693,77 @@ codeunit 133962 "Agent Task Management Test"
         AgentTaskListPage.Close();
     end;
 
+    [Test]
+    procedure ArchivingAgentDoesNotArchiveItsTasksButHidesThem()
+    var
+        Task: Record "Agent Task";
+        AgentTaskListPage: TestPage "Agent Task List";
+        AgentUserId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Archiving an agent hides its tasks from the default view without archiving the tasks themselves
+
+        // [GIVEN] An active agent that owns a stopped, non-archived task
+        AgentUserId := CreateAgentWithStoppedTask(Task, 'Task of Agent To Archive');
+        Assert.IsFalse(Task.Archived, 'Task should not be archived before the agent is archived');
+
+        // [WHEN] The agent is deactivated and archived
+        DeactivateAndArchiveAgent(AgentUserId);
+
+        // [THEN] Archiving the agent must not have archived its task (no conflation of the two concepts)
+        Task.Get(Task.Id);
+        Assert.IsFalse(Task.Archived, 'Archiving the agent should not archive its task');
+
+        // [WHEN] Opening the Agent Task List page with the default filters
+        AgentTaskListPage.OpenView();
+
+        // [THEN] The task is hidden by default even though it is not archived (filtering is by agent substate, not Task.Archived)
+        Assert.IsFalse(AgentTaskListPage.GoToKey(Task.Id), 'Task of archived agent should be hidden by default');
+
+        // [WHEN] Showing tasks from all agents, including archived ones
+        AgentTaskListPage.ShowAllAgents.Invoke();
+
+        // [THEN] The task becomes reachable
+        Assert.IsTrue(AgentTaskListPage.GoToKey(Task.Id), 'Task of archived agent should be visible after showing all agents');
+
+        AgentTaskListPage.Close();
+
+        // [THEN] The task is still not archived after the whole flow
+        Task.Get(Task.Id);
+        Assert.IsFalse(Task.Archived, 'Task should remain non-archived after the whole flow');
+    end;
+
+    [Test]
+    procedure CreatingTaskForArchivedAgentIsBlocked()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        TaskTitle: Text[150];
+    begin
+        Initialize();
+
+        // [SCENARIO] A new task cannot be created for an archived agent
+
+        // [GIVEN] An agent that has been deactivated and archived
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        DeactivateAndArchiveAgent(AgentUserId);
+
+        TaskTitle := CopyStr(Any.AlphanumericText(MaxStrLen(TaskTitle)), 1, MaxStrLen(TaskTitle));
+
+        // [WHEN] Creating a task for the archived agent
+        // [THEN] The operation is rejected because the associated agent is archived
+        AgentTaskBuilder.Initialize(AgentUserId, TaskTitle);
+        asserterror AgentTaskBuilder.Create(true, false);
+        Assert.ExpectedError('is not allowed because the associated agent is archived');
+    end;
+
     local procedure CreateAgentWithStoppedTask(var AgentTaskRecord: Record "Agent Task"; TaskTitle: Text[150]) AgentUserId: Guid
     var
         AgentRecord: Record Agent;
