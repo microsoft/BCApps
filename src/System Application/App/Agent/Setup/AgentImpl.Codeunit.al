@@ -81,7 +81,7 @@ codeunit 4301 "Agent Impl."
         exit(Agent.Substate = Agent.Substate::Archived);
     end;
 
-    // Direct Agent table changes are gated by the platform (Agent virtual data provider); this is for guarding other table modifications
+    // Agent-record changes are frozen by the platform VDP; this guards the other tables.
     local procedure EnsureNotArchived(AgentUserSecurityID: Guid)
     begin
         if IsArchived(AgentUserSecurityID) then
