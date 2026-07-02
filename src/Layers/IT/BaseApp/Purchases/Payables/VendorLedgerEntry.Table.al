@@ -1297,5 +1297,15 @@ table 25 "Vendor Ledger Entry"
     local procedure OnBeforeUpdateAmountsForApplication(var VendorLedgerEntry: Record "Vendor Ledger Entry"; ApplnDate: Date; ApplnCurrencyCode: Code[10]; RoundAmounts: Boolean; UpdateMaxPaymentTolerance: Boolean; var IsHandled: Boolean)
     begin
     end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetAppliesToDocFilters(var Rec: Record "Vendor Ledger Entry"; var GenJnlLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterClearDocumentFilters(var Rec: Record "Vendor Ledger Entry")
+    begin
+    end;
 }
 

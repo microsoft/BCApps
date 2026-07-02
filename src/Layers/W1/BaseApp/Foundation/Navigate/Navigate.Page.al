@@ -1904,9 +1904,7 @@ page 344 Navigate
         ItemTrackingFilters.SetFilter("Package No. Filter", PackageNoFilter);
 
         OnAfterSetTrackingFiltersOnBeforeFindTrackingRecords(ItemTrackingFilters);
-#if not CLEAN29
         OnFindTrackingRecordsOnAfterSetTrackingFilters(ItemTrackingFilters);
-#endif
 
         Clear(ItemTrackingNavigateMgt);
         ItemTrackingNavigateMgt.FindTrackingRecords(ItemTrackingFilters);
