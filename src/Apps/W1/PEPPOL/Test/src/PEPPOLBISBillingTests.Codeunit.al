@@ -2130,6 +2130,9 @@ codeunit 139236 "PEPPOL BIS BillingTests"
         CompanyInformation.GLN := '';
         CompanyInformation."Use GLN in Electronic Document" := true;
         CompanyInformation.Validate("Country/Region Code", SECountryCode);
+        // Validating a changed Country/Region Code clears City and Post Code; restore them for the PEPPOL company checks
+        CompanyInformation.City := 'Stockholm';
+        CompanyInformation."Post Code" := '11432';
         CompanyInformation."VAT Registration No." := GetSETestVATRegNo();
         CompanyInformation.Modify();
     end;
