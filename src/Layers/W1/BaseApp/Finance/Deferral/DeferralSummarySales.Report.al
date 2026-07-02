@@ -481,8 +481,15 @@ report 1701 "Deferral Summary - Sales"
         DocumentFilter := NewDocumentNoFilter;
     end;
 
-    local procedure ReturnSalesDocTypeString(SalesDocType: Integer): Text
+    local procedure ReturnSalesDocTypeString(SalesDocType: Integer) Result: Text
+    var
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeReturnSalesDocTypeString(SalesDocType, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
+
         case SalesDocType of
             0:
                 exit(QuoteLbl);
@@ -507,5 +514,17 @@ report 1701 "Deferral Summary - Sales"
             else
                 exit('');
         end;
+    end;
+
+    /// <summary>
+    /// Integration event raised before the sales document type integer is converted to its display string.
+    /// Enables subscribers to fully replace the returned document type text by setting IsHandled.
+    /// </summary>
+    /// <param name="SalesDocType">Sales document type integer value being converted.</param>
+    /// <param name="Result">Resulting document type text, can be set by subscribers.</param>
+    /// <param name="IsHandled">Set to true by a subscriber to skip the standard conversion and use Result.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeReturnSalesDocTypeString(SalesDocType: Integer; var Result: Text; var IsHandled: Boolean)
+    begin
     end;
 }
