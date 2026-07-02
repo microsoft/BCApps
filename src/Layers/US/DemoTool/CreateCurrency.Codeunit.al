@@ -46,7 +46,7 @@ codeunit 101004 "Create Currency"
         XEuroTxt: Label 'Euro';
         XAustraliandollarTxt: Label 'Australian dollar';
         XBulgarianlevaTxt: Label 'Bulgarian leva';
-        XBruneiDarussalemdollarTxt: Label 'Brunei Darussalem dollar';
+        XBruneiDarussalemdollarTxt: Label 'Brunei Darussalam dollar';
         XBrazilianrealTxt: Label 'Brazilian real';
         XCanadiandollarTxt: Label 'Canadian dollar';
         XCroatianKunaTxt: Label 'Croatian Kuna';
@@ -89,7 +89,7 @@ codeunit 101004 "Create Currency"
         XSwazilandlilangeniTxt: Label 'Swaziland lilangeni';
         XSlovakKorunaTxt: Label 'Slovak Koruna';
         XSerbianDinarTxt: Label 'Serbian Dinar';
-        XTunesiandinarTxt: Label 'Tunesian dinar';
+        XTunisiandinarTxt: Label 'Tunisian dinar';
         XUgandanShillingTxt: Label 'Ugandan Shilling';
         XMacedonianDenarTxt: Label 'Macedonian Denar';
         XChineseYuanTxt: Label 'Chinese Yuan';
@@ -125,6 +125,7 @@ codeunit 101004 "Create Currency"
         XDobraTxt: Label 'Dobra';
         XDominicanPesoTxt: Label 'Dominican Peso';
         XDongTxt: Label 'Dong';
+        XCentralAfricaFrancTxt: Label 'Central African CFA Franc';
         XEastCaribbeanDollarTxt: Label 'East Caribbean Dollar';
         XEgyptianPoundTxt: Label 'Egyptian Pound';
         XElSalvadorColonTxt: Label 'El Salvador Colon';
@@ -397,7 +398,7 @@ codeunit 101004 "Create Currency"
             'THB':
                 exit(XThaibahtTxt);
             'TND':
-                exit(XTunesiandinarTxt);
+                exit(XTunisiandinarTxt);
             'TOP':
                 exit(XTonganPaangaTxt);
             'TRY':
@@ -622,6 +623,8 @@ codeunit 101004 "Create Currency"
                 exit(XBolivarSoberanoTxt);
             'VND':
                 exit(XDongTxt);
+            'XAF':
+                exit(XCentralAfricaFrancTxt);
             'XCD':
                 exit(XEastCaribbeanDollarTxt);
             'XCG':

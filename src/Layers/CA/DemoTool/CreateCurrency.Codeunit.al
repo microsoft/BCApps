@@ -627,7 +627,7 @@ codeunit 101004 "Create Currency"
             'VND':
                 exit(XDongTxt);
             'XAF':
-                exit(XCentralAfricaFrancTxt)
+                exit(XCentralAfricaFrancTxt);
             'XCD':
                 exit(XEastCaribbeanDollarTxt);
             'XCG':
