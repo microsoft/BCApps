@@ -192,8 +192,8 @@ table 6153 "E-Document Sales Header"
     begin
         CustomDimensions.Set('Category', FeatureName());
         CustomDimensions.Set('SystemId', EDocImpSessionTelemetry.CreateSystemIdText(Rec.SystemId));
-        Telemetry.LogMessage('', DeleteDraftPerformedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
-        FeatureTelemetry.LogUsage('', FeatureName(), 'Discard draft');
+        Telemetry.LogMessage('0000UEU', DeleteDraftPerformedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+        FeatureTelemetry.LogUsage('0000UET', FeatureName(), 'Discard draft');
     end;
 
     procedure GetFromEDocument(EDocument: Record "E-Document")

@@ -65,7 +65,7 @@ codeunit 6405 "E-Doc. Create Sales Order" implements IEDocumentFinishDraft, IEDo
         EDocSalesHeader.TestField("E-Document Entry No.");
 
         if not EDocSalesDocHelper.AllDraftLinesHaveTypeAndNumber(EDocSalesHeader) then begin
-            Telemetry.LogMessage('', 'Draft line does not contain type or number', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All);
+            Telemetry.LogMessage('0000UER', 'Draft line does not contain type or number', Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All);
             Error(DraftLineDoesNotContainTypeAndNumberErr);
         end;
 
@@ -112,7 +112,7 @@ codeunit 6405 "E-Doc. Create Sales Order" implements IEDocumentFinishDraft, IEDo
         SalesHeader.SetRange("External Document No.", EDocSalesHeader."Buyer Order No.");
         SalesHeader.SetRange("Document Type", "Sales Document Type"::Order);
         if not SalesHeader.IsEmpty() then begin
-            Telemetry.LogMessage('', StrSubstNo(DuplicateSalesOrderErr, EDocSalesHeader."Buyer Order No.", EDocSalesHeader."[BC] Customer No."), Verbosity::Error, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
+            Telemetry.LogMessage('0000UES', StrSubstNo(DuplicateSalesOrderErr, EDocSalesHeader."Buyer Order No.", EDocSalesHeader."[BC] Customer No."), Verbosity::Error, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::All);
             Error(DuplicateSalesOrderErr, EDocSalesHeader."Buyer Order No.", EDocSalesHeader."[BC] Customer No.");
         end;
     end;
