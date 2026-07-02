@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.TaxEngine.PostingHandler;
 
+using Microsoft.Finance.Deferral;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.TaxEngine.TaxTypeHandler;
@@ -53,6 +54,12 @@ codeunit 20334 "Gen. Jnl.-Post Handler"
             GenJnlLine."Line No.");
 
         OnAfterGenJnlLinePostFromTaxEngine(GenJnlLine);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Deferral Utilities", 'OnBeforeCheckDeferralConditionForGenJournal', '', false, false)]
+    local procedure OnBeforeCheckDeferralConditionForGenJournal(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
+    begin
+        IsHandled := true;
     end;
 
     [IntegrationEvent(true, false)]
