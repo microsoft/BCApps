@@ -2959,6 +2959,117 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesShowSubcontractingPurchOrders,CapturePurchaseOrderPageNo,HandlePurchaseLinesPage')]
+    procedure CreateSubcontractingPOAfterReceiptOpensNewlyCreatedDeltaPO()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+        ReceivedPurchaseOrderNo: Code[20];
+        NewPurchaseOrderNo: Code[20];
+    begin
+        // [SCENARIO 639381] After the existing subcontracting purchase order has been received and the prod. order quantity is increased,
+        // Create Subcontracting Order must open the newly created purchase order for the delta, not the old received one.
+
+        // [GIVEN] Subcontracting setup with a released production order (quantity 5)
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] A subcontracting purchase order is created and fully received
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        ReceivedPurchaseOrderNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(ReceivedPurchaseOrderNo));
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Document No.", ReceivedPurchaseOrderNo);
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.FindFirst();
+        EnsureGeneralPostingSetupIsValid(PurchaseLine."Gen. Bus. Posting Group", PurchaseLine."Gen. Prod. Posting Group");
+        PurchaseHeader.Get(PurchaseLine."Document Type", ReceivedPurchaseOrderNo);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [GIVEN] The prod. order line quantity is increased from 5 to 9
+        ProdOrderLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        ProdOrderLine.Validate(Quantity, 9);
+        ProdOrderLine.Modify(true);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+
+        // [WHEN] Create Subcontracting Order is invoked again and both prompts are confirmed
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        NewPurchaseOrderNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(NewPurchaseOrderNo));
+
+        // [THEN] The newly created (delta) purchase order is opened, not the old received one
+        Assert.AreNotEqual(ReceivedPurchaseOrderNo, NewPurchaseOrderNo, 'Create Subcontracting Order should open the newly created purchase order, not the already received one.');
+
+        // [THEN] The opened purchase order is the open one (nothing received on it yet)
+        PurchaseLine.Reset();
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Document No.", NewPurchaseOrderNo);
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.FindFirst();
+        Assert.AreEqual(0, PurchaseLine."Quantity Received", 'The opened purchase order should be the newly created one with nothing received.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmYesShowSubcontractingPurchOrders,CapturePurchaseOrderPageNo,HandlePurchaseLinesPage')]
+    procedure CreateSubcontractingPOReopensUpdatedExistingOpenPO()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        WorkCenter: array[2] of Record "Work Center";
+        ExistingPurchaseOrderNo: Code[20];
+        ReopenedPurchaseOrderNo: Code[20];
+    begin
+        // [SCENARIO 639381] When Create Subcontracting Order updates an existing open purchase order (Change Qty.) instead of
+        // creating a new one, the confirmation prompt must still open that affected purchase order.
+
+        // [GIVEN] Subcontracting setup with a released production order and an open (not received) subcontracting purchase order
+        Initialize();
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", 5);
+        UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        ExistingPurchaseOrderNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(ExistingPurchaseOrderNo));
+
+        // [GIVEN] The prod. order line quantity is increased from 5 to 9 (existing order stays open)
+        ProdOrderLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        ProdOrderLine.Validate(Quantity, 9);
+        ProdOrderLine.Modify(true);
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+
+        // [WHEN] Create Subcontracting Order is invoked again (updates the existing open order instead of creating a new one)
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+        ReopenedPurchaseOrderNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(ReopenedPurchaseOrderNo));
+
+        // [THEN] The same (updated) purchase order is opened
+        Assert.AreEqual(ExistingPurchaseOrderNo, ReopenedPurchaseOrderNo, 'Create Subcontracting Order should open the updated existing purchase order.');
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
     procedure StandardTaskCodePropagatedAndDrivesSubcPriceLookup()
     var
         Item: Record Item;
