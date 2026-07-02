@@ -19,7 +19,7 @@ jobs:
       actions: write
       contents: read
     env:
-      MAX_FAILED_JOBS: 3 # Maximum number of failed jobs in order to consider rerunning
+      MAX_FAILED_JOBS: 10 # Maximum number of failed jobs in order to consider rerunning
       MIN_TOTAL_JOBS: 10 # Minimum number of jobs that has run in order to consider rerunning
       MAX_ATTEMPTS: 1 # Maximum number of attempts to rerun a failed job
     steps:

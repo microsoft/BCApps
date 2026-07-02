@@ -187,6 +187,11 @@ function Restore-TenantDatabaseForDemoDataRetry {
         [string]$BackupFile
     )
 
+    # Restart the container to drop lingering connections to 'default' so the restore can obtain exclusive access.
+    Write-Host "Restarting container to release lingering database connections before restoring snapshot..."
+    Restart-BcContainer -containerName $ContainerName
+    Wait-ForTenantReady -ContainerName $ContainerName
+
     Write-Host "Restoring tenant database from snapshot before retrying demo data generation..."
     Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
         Stop-NAVServerInstance -ServerInstance $ServerInstance

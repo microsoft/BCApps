@@ -3,6 +3,7 @@ on:
   pull_request_target:
     types: [opened, synchronize, reopened, edited]
     branches: [ 'main', 'releases/*' ]
+  merge_group:
 
 permissions:
   contents: read
@@ -15,7 +16,7 @@ defaults:
 
 jobs:
   GitHubIssueValidation:
-    if: github.repository_owner == 'microsoft' && github.event.pull_request.state == 'open'
+    if: github.repository_owner == 'microsoft' && github.event.pull_request.state == 'open' && github.event_name != 'merge_group'
     name: 'Validate link to issues'
     runs-on: ubuntu-latest
     steps:
@@ -34,7 +35,7 @@ jobs:
           eng/CI/PullRequestValidation/ValidateIssuesForPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
 
   WorkItemValidationForMicrosoft:
-    if: github.repository_owner == 'microsoft' && github.event.pull_request.state == 'open'
+    if: github.repository_owner == 'microsoft' && github.event.pull_request.state == 'open' && github.event_name != 'merge_group'
     name: 'For Microsoft: Validate link to internal work items'
     runs-on: ubuntu-latest
     needs: GitHubIssueValidation
