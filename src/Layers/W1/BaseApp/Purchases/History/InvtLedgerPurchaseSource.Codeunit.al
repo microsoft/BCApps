@@ -30,6 +30,8 @@ codeunit 5859 "Invt. Ledger Purchase Source"
     var
         ReturnShptHdr: Record "Return Shipment Header";
         PurchRcptHdr: Record "Purch. Rcpt. Header";
+        PurchInvHdr: Record "Purch. Inv. Header";
+        PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
         PurchInvLine: Record "Purch. Inv. Line";
         PurchCrMemoLine: Record "Purch. Cr. Memo Line";
     begin
@@ -45,6 +47,12 @@ codeunit 5859 "Invt. Ledger Purchase Source"
                 end;
             DocType::"Purchase Invoice":
                 begin
+                    if DocLineNo = 0 then begin
+                        PurchInvHdr.SetLoadFields("Order No.");
+                        if PurchInvHdr.Get(DocNo) then
+                            SourceOrderNo := PurchInvHdr."Order No.";
+                        exit;
+                    end;
                     PurchInvLine.SetLoadFields("Order No.");
                     if PurchInvLine.Get(DocNo, DocLineNo) then
                         SourceOrderNo := PurchInvLine."Order No.";
@@ -57,6 +65,12 @@ codeunit 5859 "Invt. Ledger Purchase Source"
                 end;
             DocType::"Purchase Credit Memo":
                 begin
+                    if DocLineNo = 0 then begin
+                        PurchCrMemoHdr.SetLoadFields("Return Order No.");
+                        if PurchCrMemoHdr.Get(DocNo) then
+                            SourceOrderNo := PurchCrMemoHdr."Return Order No.";
+                        exit;
+                    end;
                     PurchCrMemoLine.SetLoadFields("Order No.");
                     if PurchCrMemoLine.Get(DocNo, DocLineNo) then
                         SourceOrderNo := PurchCrMemoLine."Order No.";

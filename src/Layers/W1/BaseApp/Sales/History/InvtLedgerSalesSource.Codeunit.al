@@ -32,6 +32,8 @@ codeunit 5860 "Invt. Ledger Sales Source"
     local procedure OnGetSourceOrderNo(DocType: Enum "Item Ledger Document Type"; DocNo: Code[20]; DocLineNo: Integer; var SourceOrderNo: Code[20])
     var
         SalesShptHdr: Record "Sales Shipment Header";
+        SalesInvHdr: Record "Sales Invoice Header";
+        SalesCrMemoHdr: Record "Sales Cr.Memo Header";
         ReturnRcptHdr: Record "Return Receipt Header";
         SalesInvLine: Record "Sales Invoice Line";
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
@@ -48,6 +50,12 @@ codeunit 5860 "Invt. Ledger Sales Source"
                 end;
             DocType::"Sales Invoice":
                 begin
+                    if DocLineNo = 0 then begin
+                        SalesInvHdr.SetLoadFields("Order No.");
+                        if SalesInvHdr.Get(DocNo) then
+                            SourceOrderNo := SalesInvHdr."Order No.";
+                        exit;
+                    end;
                     SalesInvLine.SetLoadFields("Order No.");
                     if SalesInvLine.Get(DocNo, DocLineNo) then
                         SourceOrderNo := SalesInvLine."Order No.";
@@ -60,6 +68,12 @@ codeunit 5860 "Invt. Ledger Sales Source"
                 end;
             DocType::"Sales Credit Memo":
                 begin
+                    if DocLineNo = 0 then begin
+                        SalesCrMemoHdr.SetLoadFields("Return Order No.");
+                        if SalesCrMemoHdr.Get(DocNo) then
+                            SourceOrderNo := SalesCrMemoHdr."Return Order No.";
+                        exit;
+                    end;
                     SalesCrMemoLine.SetLoadFields("Order No.");
                     if SalesCrMemoLine.Get(DocNo, DocLineNo) then
                         SourceOrderNo := SalesCrMemoLine."Order No.";
