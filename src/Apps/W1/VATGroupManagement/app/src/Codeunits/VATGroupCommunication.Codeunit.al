@@ -80,8 +80,6 @@ codeunit 4700 "VAT Group Communication"
         else
             RequestUri := PrepareURI(Endpoint);
 
-        // Re-validate the host right before sending so a request carrying the OAuth bearer token can never be
-        // directed to a host outside the allowlist, even if the stored URL was set through another code path.
         if EnvironmentInformation.IsSaaSInfrastructure() then
             if not VATReportSetup.IsAllowedGroupRepresentativeAPIURL(RequestUri) then
                 Error(InvalidGroupRepresentativeURLErr);

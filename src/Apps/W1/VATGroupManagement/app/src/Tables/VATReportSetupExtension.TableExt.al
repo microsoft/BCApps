@@ -271,9 +271,6 @@ tableextension 4701 "VAT Report Setup Extension" extends "VAT Report Setup"
         Uri: Codeunit Uri;
         Host: Text;
     begin
-        // Parse the URL and match the host exactly against the allowlist. A prefix/suffix string check can be
-        // bypassed with crafted hosts such as https://api.businesscentral.dynamics.com.attacker.com/ or
-        // https://api.businesscentral.dynamics.com@attacker.com/ where the real host is attacker.com.
         Uri.Init(ApiUrl);
         if LowerCase(Uri.GetScheme()) <> 'https' then
             exit(false);

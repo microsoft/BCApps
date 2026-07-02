@@ -876,14 +876,7 @@ codeunit 139520 "VAT Group Helper Funct Test"
     var
         VATReportSetup: Record "VAT Report Setup";
     begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 641094] Validate URL rejects a crafted host that only has the allowed host as a prefix
-
-        // [GIVEN] VAT Report Setup with a URL whose real host is an attacker domain that starts with the allowed host
         VATReportSetup."Group Representative API URL" := 'https://api.businesscentral.dynamics.com.attacker.com/api';
-
-        // [WHEN] ValidateURL is called
-        // [THEN] ValidateURL returns false (host is api.businesscentral.dynamics.com.attacker.com, not the allowed host)
         Assert.IsFalse(VATReportSetup.ValidateGroupRepresentativeAPIURL(), 'A suffix-host URL should not be valid');
     end;
 
@@ -892,14 +885,7 @@ codeunit 139520 "VAT Group Helper Funct Test"
     var
         VATReportSetup: Record "VAT Report Setup";
     begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 641094] Validate URL rejects a URL where the allowed host is placed in the userinfo and the real host is an attacker domain
-
-        // [GIVEN] VAT Report Setup with a URL using the userinfo trick
         VATReportSetup."Group Representative API URL" := 'https://api.businesscentral.dynamics.com@attacker.com/api';
-
-        // [WHEN] ValidateURL is called
-        // [THEN] ValidateURL returns false (real host is attacker.com)
         Assert.IsFalse(VATReportSetup.ValidateGroupRepresentativeAPIURL(), 'A userinfo-host URL should not be valid');
     end;
 
@@ -908,14 +894,7 @@ codeunit 139520 "VAT Group Helper Funct Test"
     var
         VATReportSetup: Record "VAT Report Setup";
     begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 641094] Validate URL rejects a non-https scheme even for an otherwise allowed host
-
-        // [GIVEN] VAT Report Setup with an http (not https) URL to the allowed host
         VATReportSetup."Group Representative API URL" := 'http://api.businesscentral.dynamics.com/api';
-
-        // [WHEN] ValidateURL is called
-        // [THEN] ValidateURL returns false (scheme is not https)
         Assert.IsFalse(VATReportSetup.ValidateGroupRepresentativeAPIURL(), 'A non-https URL should not be valid');
     end;
 
