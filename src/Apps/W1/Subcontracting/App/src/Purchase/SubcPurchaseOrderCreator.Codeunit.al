@@ -386,27 +386,32 @@ codeunit 99001557 "Subc. Purchase Order Creator"
     local procedure MarkNewlyCreatedSubcPurchaseOrder(ProdOrderLine: Record "Prod. Order Line"; ProdOrderRoutingLine: Record "Prod. Order Routing Line"; ExistingPurchaseOrderNos: List of [Code[20]])
     var
         PurchaseLine: Record "Purchase Line";
-        NewPurchaseOrderMarked: Boolean;
+        MarkedPurchaseOrderNos: List of [Code[20]];
     begin
         FilterSubcPurchaseLineForRoutingLine(PurchaseLine, ProdOrderLine, ProdOrderRoutingLine);
         if PurchaseLine.FindSet() then
             repeat
-                if not ExistingPurchaseOrderNos.Contains(PurchaseLine."Document No.") then
+                if (not ExistingPurchaseOrderNos.Contains(PurchaseLine."Document No.")) and
+                   (not MarkedPurchaseOrderNos.Contains(PurchaseLine."Document No."))
+                then
                     if CreatedPurchaseHeader.Get("Purchase Document Type"::Order, PurchaseLine."Document No.") then begin
                         CreatedPurchaseHeader.Mark(true);
-                        NewPurchaseOrderMarked := true;
+                        MarkedPurchaseOrderNos.Add(PurchaseLine."Document No.");
                     end;
             until PurchaseLine.Next() = 0;
 
-        if NewPurchaseOrderMarked then
+        if MarkedPurchaseOrderNos.Count() > 0 then
             exit;
 
         // Carry Out updated an existing open purchase order instead of creating a new one;
         // mark it so the confirmation prompt can still open the affected order.
         if PurchaseLine.FindSet() then
             repeat
-                if CreatedPurchaseHeader.Get("Purchase Document Type"::Order, PurchaseLine."Document No.") then
-                    CreatedPurchaseHeader.Mark(true);
+                if not MarkedPurchaseOrderNos.Contains(PurchaseLine."Document No.") then
+                    if CreatedPurchaseHeader.Get("Purchase Document Type"::Order, PurchaseLine."Document No.") then begin
+                        CreatedPurchaseHeader.Mark(true);
+                        MarkedPurchaseOrderNos.Add(PurchaseLine."Document No.");
+                    end;
             until PurchaseLine.Next() = 0;
     end;
 
