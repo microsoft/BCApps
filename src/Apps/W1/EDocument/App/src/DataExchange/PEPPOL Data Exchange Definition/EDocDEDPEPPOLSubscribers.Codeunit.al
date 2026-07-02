@@ -57,6 +57,7 @@ codeunit 6162 "E-Doc. DED PEPPOL Subscribers"
         EDocumentDataExchDef: Record "E-Doc. Service Data Exch. Def.";
     begin
         EDocumentDataExchDef.SetRange("Expt. Data Exchange Def. Code", DataExchDefCode);
+        EDocumentDataExchDef.SetRange("Use Built-in Export Subscribers", true);
         exit(not EDocumentDataExchDef.IsEmpty());
     end;
 
