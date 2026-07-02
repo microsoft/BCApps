@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace System.TestTools;
 
-using System.Reflection;
 
 page 130416 "Get Semi-Manual Test Codeunits"
 {
