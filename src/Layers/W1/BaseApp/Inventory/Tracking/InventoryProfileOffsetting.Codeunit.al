@@ -2911,6 +2911,12 @@ codeunit 99000854 "Inventory Profile Offsetting"
         ReqLine.Validate(
             Quantity,
             Round(SupplyInventoryProfile."Remaining Quantity (Base)" / SupplyInventoryProfile."Qty. per Unit of Measure", UOMMgt.QtyRndPrecision()));
+
+        if Abs(ReqLine."Quantity (Base)" - SupplyInventoryProfile."Remaining Quantity (Base)") <= UOMMgt.QtyRndPrecision() then
+            if ReqLine."Quantity (Base)" <> SupplyInventoryProfile."Remaining Quantity (Base)" then begin
+                ReqLine."Remaining Qty. (Base)" += SupplyInventoryProfile."Remaining Quantity (Base)" - ReqLine."Quantity (Base)";
+                ReqLine."Quantity (Base)" := SupplyInventoryProfile."Remaining Quantity (Base)";
+            end;
     end;
 
     local procedure UpdateReqLineOriginalQuantity(var SupplyInventoryProfile: Record "Inventory Profile")
