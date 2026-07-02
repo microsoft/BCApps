@@ -1,13 +1,42 @@
-name: Dispatch AI Triage
+name: AI Issue Triage (dispatch)
+
+# Lives in the ISSUES repo (e.g. microsoft/BCApps). It owns nothing secret about
+# the triage agent — it simply:
+#   1. mints a short-lived GitHub App token scoped to the private agent repo,
+#   2. starts the agent (workflow_dispatch) and waits for it,
+#   3. downloads the agent's `triage-result` artifact,
+#   4. applies the comment / team label / issue type using THIS repo's built-in
+#      GITHUB_TOKEN.
+#
+# No PAT is used, and no GitHub App is installed on this repo. The only stored
+# secrets are the App id + private key, which can ONLY start a run and read an
+# artifact in the private agent repo — they cannot write here.
 
 on:
   issues:
+    # Triage newly opened issues and issues that get the `ai-triage` label.
     types: [opened, labeled]
 
-permissions: {}
+permissions:
+  issues: write      # native GITHUB_TOKEN posts the comment + labels + type here
+  contents: read
+
+concurrency:
+  group: ai-triage-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+env:
+  # The private agent repository (owner/repo, for `gh -R`) and the workflow file
+  # to invoke there.
+  AGENT_REPO: microsoft/BCAppsTriage
+  AGENT_WORKFLOW: issue-triage.yml
+  # Bare repository name — the create-github-app-token `repositories` input takes
+  # names without the owner prefix when `owner` is set.
+  AGENT_REPO_NAME: BCAppsTriage
 
 jobs:
-  dispatch:
+  triage:
+    # Run for a newly opened issue, or when `ai-triage` is added to an open issue.
     if: >-
       github.event.issue.state == 'open' && (
         github.event.action == 'opened' ||
@@ -15,12 +44,141 @@ jobs:
       )
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger triage on BCAppsTriage
+      - name: Correlation token
+        id: token
+        run: echo "run_token=$(uuidgen)" >> "$GITHUB_OUTPUT"
+
+      - name: Mint token for the agent repo
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.TRIAGE_APP_ID }}
+          private-key: ${{ secrets.TRIAGE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ env.AGENT_REPO_NAME }}
+
+      - name: Start the triage agent
         env:
-          TOKEN: ${{ secrets.TRIAGE_DISPATCH_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          RUN_TOKEN: ${{ steps.token.outputs.run_token }}
         run: |
-          curl -s -X POST \
-            -H "Authorization: token $TOKEN" \
-            -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/microsoft/BCAppsTriage/dispatches \
-            -d '{"event_type":"issue-triage","client_payload":{"issue_number":${{ github.event.issue.number }}}}'
+          set -euo pipefail
+          gh workflow run "$AGENT_WORKFLOW" -R "$AGENT_REPO" \
+            -f issue_number="$ISSUE_NUMBER" \
+            -f run_token="$RUN_TOKEN"
+
+      - name: Await the agent run
+        id: await
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RUN_TOKEN: ${{ steps.token.outputs.run_token }}
+        run: |
+          set -euo pipefail
+          echo "Locating agent run tagged [$RUN_TOKEN]..."
+          run_id=""
+          # ~5 min to appear (workflow_dispatch does not return a run id)
+          for i in $(seq 1 30); do
+            run_id=$(gh run list -R "$AGENT_REPO" --workflow "$AGENT_WORKFLOW" \
+              --json databaseId,displayTitle -L 40 \
+              -q "[.[] | select(.displayTitle | contains(\"[$RUN_TOKEN]\"))][0].databaseId" || true)
+            if [ -n "$run_id" ] && [ "$run_id" != "null" ]; then break; fi
+            sleep 10
+          done
+          if [ -z "$run_id" ] || [ "$run_id" = "null" ]; then
+            echo "::error::Timed out waiting for the agent run to appear."
+            echo "run_id=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "Found agent run $run_id — waiting for completion..."
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          gh run watch "$run_id" -R "$AGENT_REPO" --interval 15 || true
+          conclusion=$(gh run view "$run_id" -R "$AGENT_REPO" --json conclusion -q .conclusion || echo unknown)
+          echo "Agent run concluded: $conclusion"
+
+      - name: Download triage result
+        id: download
+        if: steps.await.outputs.run_id != ''
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RUN_ID: ${{ steps.await.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p result
+          if gh run download "$RUN_ID" -R "$AGENT_REPO" -n triage-result -D result; then
+            echo "have_result=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "have_result=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Apply triage result
+        if: steps.download.outputs.have_result == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const r = JSON.parse(fs.readFileSync('result/triage-result.json', 'utf8'));
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const issue_number = context.issue.number;
+
+            if (r.skipped) {
+              core.info(`Agent reported nothing to apply (${r.reason || 'skipped'}).`);
+              return;
+            }
+
+            if (r.comment) {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body: r.comment });
+              core.info('Comment posted.');
+            }
+
+            if (r.teamLabel && r.teamLabel.name) {
+              for (const name of (r.teamLabelGroup || [])) {
+                if (name !== r.teamLabel.name) {
+                  try {
+                    await github.rest.issues.removeLabel({ owner, repo, issue_number, name });
+                  } catch (e) { if (e.status !== 404) throw e; }
+                }
+              }
+              try {
+                await github.rest.issues.createLabel({
+                  owner, repo, name: r.teamLabel.name,
+                  color: r.teamLabel.color, description: r.teamLabel.description,
+                });
+              } catch (e) { if (e.status !== 422) throw e; }
+              await github.rest.issues.addLabels({ owner, repo, issue_number, labels: [r.teamLabel.name] });
+              core.info(`Team label applied: ${r.teamLabel.name}`);
+            }
+
+            if (r.issueType) {
+              try {
+                const q = `query($owner:String!,$repo:String!,$number:Int!){
+                  repository(owner:$owner,name:$repo){
+                    issueTypes(first:20){ nodes{ id name } }
+                    issue(number:$number){ id }
+                  }
+                }`;
+                const res = await github.graphql(q, { owner, repo, number: issue_number });
+                const match = (res.repository.issueTypes?.nodes || [])
+                  .find(t => t.name.toLowerCase() === r.issueType.toLowerCase());
+                const issueId = res.repository.issue?.id;
+                if (match && issueId) {
+                  await github.graphql(
+                    `mutation($id:ID!,$typeId:ID!){ updateIssue(input:{id:$id, issueTypeId:$typeId}){ issue{ id } } }`,
+                    { id: issueId, typeId: match.id });
+                  core.info(`Issue type set: ${match.name}`);
+                }
+              } catch (e) { core.warning(`Issue type not set: ${e.message}`); }
+            }
+
+      - name: Report triage failure
+        if: always() && (steps.await.outputs.run_id == '' || steps.download.outputs.have_result == 'false')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: ':robot: AI triage could not be completed (the triage agent produced no result). Please remove and re-add the `ai-triage` label to retry.',
+            });
