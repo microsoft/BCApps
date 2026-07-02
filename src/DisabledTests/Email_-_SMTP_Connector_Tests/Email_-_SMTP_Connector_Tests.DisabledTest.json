@@ -1,0 +1,7 @@
+[
+  {
+    "codeunitId": 139762,
+    "codeunitName": "SMTP Account Auth Tests",
+    "method": "SMTPBasicAuthenticationObsoleteNotificationTest"
+  }
+]
