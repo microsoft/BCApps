@@ -867,9 +867,11 @@ codeunit 148160 "Service Comm. Dimensions"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,ExchangeRateSelectionModalPageHandler')]
+    [HandlerFunctions('CreateCustomerBillingDocsContractPageHandler,MessageHandler,ExchangeRateSelectionModalPageHandler')]
     procedure RespectDefaultDimensionPrioritiesOnCustomerContractCreation()
     var
+        BillingLine: Record "Billing Line";
+        BillingTemplate: Record "Billing Template";
         Customer: Record Customer;
         CustomerContract: Record "Customer Subscription Contract";
         DefaultDimension: Record "Default Dimension";
@@ -877,11 +879,12 @@ codeunit 148160 "Service Comm. Dimensions"
         CustomerDimensionValue: Record "Dimension Value";
         ItemDimensionValue: Record "Dimension Value";
         Item: Record Item;
+        SalesLine: Record "Sales Line";
         ServiceCommitment: Record "Subscription Line";
         ServiceObject: Record "Subscription Header";
         SourceCodeSetup: Record "Source Code Setup";
     begin
-        // [SCENARIO #8084] Default Dimension Priorities are respected when a Customer Subscription Contract spawns Subscription Lines
+        // [SCENARIO #8084] Default Dimension Priorities are respected when a Customer Subscription Contract spawns Subscription Lines and flow through to the billed Sales Line
         Initialize();
 
         // [GIVEN] Default Dimension Priorities for source code "Sales": Item = 1 (highest), Customer = 2
@@ -913,6 +916,21 @@ codeunit 148160 "Service Comm. Dimensions"
         ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
         ServiceCommitment.FindFirst();
         VerifyDimensionSetValue(ServiceCommitment."Dimension Set ID", Dimension.Code, ItemDimensionValue.Code);
+
+        // [WHEN] Billing documents are created for the Customer Subscription Contract
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer);
+        BillingLine.SetRange("Billing Template Code", BillingTemplate.Code);
+        BillingLine.SetRange(Partner, BillingLine.Partner::Customer);
+        BillingLine.SetRange("Subscription Contract No.", CustomerContract."No.");
+        Codeunit.Run(Codeunit::"Create Billing Documents", BillingLine);
+
+        // [THEN] The billed Sales Line carries Item's dim value as well
+        BillingLine.FindLast();
+        SalesLine.SetRange("Document Type", BillingLine.GetSalesDocumentTypeFromBillingDocumentType());
+        SalesLine.SetRange("Document No.", BillingLine."Document No.");
+        SalesLine.SetRange("Line No.", BillingLine."Document Line No.");
+        SalesLine.FindFirst();
+        VerifyDimensionSetValue(SalesLine."Dimension Set ID", Dimension.Code, ItemDimensionValue.Code);
 
         // [CLEANUP] Reset the Default Dimension Priorities we added so subsequent tests run with vanilla settings
         ResetDefaultDimensionPriority(SourceCodeSetup.Sales, Database::Item);

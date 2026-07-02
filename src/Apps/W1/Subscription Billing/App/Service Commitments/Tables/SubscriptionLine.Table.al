@@ -1130,6 +1130,7 @@ table 8059 "Subscription Line"
 
         "Dimension Set ID" :=
             DimMgt.GetCombinedDimensionSetID(DimSetIDArr, "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
+        OnAfterGetCombinedDimensionSetID(Rec);
     end;
 
     local procedure AddDefaultDimensionSources(var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; UseSource: Boolean)
