@@ -225,8 +225,7 @@ codeunit 11 "Gen. Jnl.-Check Line"
         if CostAccSetup.Get() then
             CostAccMgt.CheckValidCCAndCOInGLEntry(GenJnlLine."Dimension Set ID");
 
-        if GenJnlLine."Spend Request No." <> '' then
-            TestSpendRequest(GenJnlLine);
+        TestSpendRequest(GenJnlLine);
 
         OnAfterCheckGenJnlLine(GenJnlLine, ErrorMessageMgt);
 
@@ -292,18 +291,30 @@ codeunit 11 "Gen. Jnl.-Check Line"
     local procedure TestSpendRequest(var GenJnlLine: Record "Gen. Journal Line")
     var
         SpendRequest: Record "Spend Request";
+        GLAccount: Record "G/L Account";
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         OverspendNotification: Notification;
     begin
-        if GenJnlLine."Spend Request No." = '' then
-            exit;
-        SpendRequest.SetLoadFields(Status, "Total Expected Amount", "Total Spent Amount");
-        SpendRequest.Get(GenJnlLine."Spend Request No.");
-        SpendRequest.TestField(Status, SpendRequest.Status::Approved);
-        if Abs(GenJnlLine."Amount (LCY)") > SpendRequest."Total Expected Amount" - SpendRequest."Total Spent Amount" then begin
-            OverspendNotification.Scope := OverspendNotification.Scope::LocalScope;
-            OverspendNotification.Message := StrSubstNo(SpendRequestIsDepletedMsg, SpendRequest."No.", SpendRequest."Total Expected Amount", SpendRequest."Total Spent Amount");
-            NotificationLifecycleMgt.SendNotification(OverspendNotification, GenJnlLine.RecordId);
+        if GenJnlLine."Spend Request No." = '' then begin
+            if (GenJnlLine."Account Type" = GenJnlLine."Account Type"::"G/L Account") and (GenJnlLine."Account No." <> '') then
+                if GLAccount.Get(GenJnlLine."Account No.") then
+                    if GLAccount."Spend Request Required" = GLAccount."Spend Request Required"::Required then
+                        GenJnlLine.TestField("Spend Request No.");
+            if (GenJnlLine."Bal. Account Type" = GenJnlLine."Bal. Account Type"::"G/L Account") and (GenJnlLine."Bal. Account No." <> '') then
+                if GLAccount.Get(GenJnlLine."Bal. Account No.") then
+                    if GLAccount."Spend Request Required" = GLAccount."Spend Request Required"::Required then
+                        GenJnlLine.TestField("Spend Request No.");
+        end else begin
+            SpendRequest.SetAutoCalcFields("Total Spent Amount (LCY)");
+            SpendRequest.Get(GenJnlLine."Spend Request No.");
+            // This spend request may have been closed in a prior entry in this transaction
+            if not ((SpendRequest.Status = SpendRequest.Status::Closed) and (SpendRequest."Closed By Document No." = GenJnlLine."Document No.")) then
+                SpendRequest.TestField(Status, SpendRequest.Status::Approved);
+            if Abs(GenJnlLine."Amount (LCY)") > SpendRequest."Total Expected Amount (LCY)" - SpendRequest."Total Spent Amount (LCY)" then begin
+                OverspendNotification.Scope := OverspendNotification.Scope::LocalScope;
+                OverspendNotification.Message := StrSubstNo(SpendRequestIsDepletedMsg, SpendRequest."No.", SpendRequest."Total Expected Amount (LCY)", SpendRequest."Total Spent Amount (LCY)");
+                NotificationLifecycleMgt.SendNotification(OverspendNotification, GenJnlLine.RecordId);
+            end;
         end;
     end;
 

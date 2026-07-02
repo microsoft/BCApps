@@ -26,7 +26,13 @@ page 6842 "Spend Request Subform"
                 field(Description; Rec.Description)
                 {
                 }
-                field(Amount; Rec.Amount)
+                field("Currency Code"; Rec."Currency Code")
+                {
+                }
+                field(Amount; Rec."Expected Amount")
+                {
+                }
+                field(AmountLCY; Rec."Expected Amount (LCY)")
                 {
                 }
                 field("G/L Account No."; Rec."G/L Account No.")
@@ -35,4 +41,15 @@ page 6842 "Spend Request Subform"
             }
         }
     }
+
+    trigger OnNewRecord(BelowxRec: Boolean)
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        if Rec."Spend Request No." = '' then
+            exit;
+        SpendRequest.Get(Rec."Spend Request No.");
+        if SpendRequest.Status = SpendRequest.Status::Open then
+            Rec.Validate("Currency Code", SpendRequest."Currency Code");
+    end;
 }

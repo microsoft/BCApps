@@ -41,7 +41,6 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Setup;
-using Microsoft.Foundation.AuditCodes;
 using System.Telemetry;
 
 /// <summary>
@@ -2123,7 +2122,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         end;
     end;
 
-    local procedure UpdateSpendRequest(var GLEntry: Record "G/L Entry"; GenJnlLine: Record "Gen. Journal Line")
+    local procedure UpdateSpendRequest(var GLEntry: Record "G/L Entry"; var GenJnlLine: Record "Gen. Journal Line")
     var
         SpendReqToGLLink: Record "Spend Request To G/L Link";
         SpendRequest: Record "Spend Request";
@@ -2132,8 +2131,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if GenJnlLine."Spend Request No." = '' then
             exit;
 
-        // for dual-entry journal lines we only record the expense side
-        if (GenJnlLine."Account No." <> '') and (GenJnlLine."Bal. Account No." <> '') and (GLEntry.Amount < 0) then
+        // we only record the expense side (positive amounts), unless it's a correction
+        if not GenJnlLine.Correction and (GLEntry.Amount < 0) then
             exit;
 
         SpendRequestDetail.SetRange("Spend Request No.", GenJnlLine."Spend Request No.");
@@ -2155,6 +2154,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
             SpendRequest.Get(GenJnlLine."Spend Request No.");
             if SpendRequest.Status = SpendRequest.Status::Approved then begin
                 SpendRequest.Status := SpendRequest.Status::Closed;
+                SpendRequest."Closed At" := CurrentDateTime();
+                SpendRequest."Closed By Document No." := GLEntry."Document No.";
                 SpendRequest.Modify();
             end;
         end;

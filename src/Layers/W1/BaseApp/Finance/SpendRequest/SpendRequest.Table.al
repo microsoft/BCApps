@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.SpendRequest;
 
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.NoSeries;
@@ -76,18 +77,68 @@ table 6840 "Spend Request"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the purpose of the spend request.';
         }
-        field(9; "Total Expected Amount"; Decimal)
+        field(9; "Currency Code"; Code[10])
         {
-            Caption = 'Total Expected Amount';
-            AutoFormatExpression = '';
-            AutoFormatType = 1;
-            ToolTip = 'Specifies the total expected amount of the spend request.';
+            Caption = 'Currency Code';
+            ToolTip = 'Specifies the currency used for estimation. The currency amount will automatically be converted into Total Expected Amount (LCY)';
+            DataClassification = CustomerContent;
+            TableRelation = Currency;
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                ChangeCurrency(xRec."Currency Code");
             end;
         }
-        field(11; "Expected Start Date"; Date)
+        field(10; "Total Expected Amount"; Decimal)
+        {
+            Caption = 'Total Expected Amount';
+            AutoFormatExpression = Rec."Currency Code";
+            AutoFormatType = 1;
+            ToolTip = 'Specifies the total expected amount of the spend request in the currency specified.';
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+                Rec."Total Expected Amount (LCY)" := Round(Rec."Currency Exchange Rate" * Rec."Total Expected Amount");
+                Rec.CalcFields("Total Line Amount (LCY)");
+                if Rec."Total Expected Amount (LCY)" < Rec."Total Line Amount (LCY)" then
+                    Error(CannotBeLessThanSumOfLinesErr);
+            end;
+        }
+        field(11; "Currency Exchange Rate"; Decimal)
+        {
+            Caption = 'Currency Exchange Rate';
+            Editable = false;
+            DecimalPlaces = 0 : 5;
+            InitValue = 1;
+            ToolTip = 'Specifies the most recent exchange rate for the specified currency (1 = pari).';
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+                "Total Expected Amount (LCY)" := Round("Currency Exchange Rate" * "Total Expected Amount");
+            end;
+        }
+        field(12; "Total Expected Amount (LCY)"; Decimal)
+        {
+            Caption = 'Total Expected Amount (LCY)';
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
+            Editable = false;
+            ToolTip = 'Specifies the total expected amount of the spend request.';
+            trigger OnValidate()
+            var
+                Currency: Record Currency;
+            begin
+                TestStatusOpen();
+                if "Currency Code" = '' then
+                    Currency.InitRoundingPrecision()
+                else
+                    Currency.Get("Currency Code");
+                if "Currency Exchange Rate" = 0 then
+                    "Currency Exchange Rate" := 1;
+                "Total Expected Amount" := Round("Total Expected Amount (LCY)" / "Currency Exchange Rate", Currency."Amount Rounding Precision");
+            end;
+        }
+        field(13; "Expected Start Date"; Date)
         {
             Caption = 'Expected Start Date';
             ToolTip = 'Specifies the expected start date of the spend request.';
@@ -97,7 +148,7 @@ table 6840 "Spend Request"
                 CheckStartAndEndDate();
             end;
         }
-        field(12; "Expected End Date"; Date)
+        field(14; "Expected End Date"; Date)
         {
             Caption = 'Expected End Date';
             ToolTip = 'Specifies the expected end date of the spend request.';
@@ -107,7 +158,7 @@ table 6840 "Spend Request"
                 CheckStartAndEndDate();
             end;
         }
-        field(13; "Approved/Rejected by User ID"; Guid)
+        field(15; "Approved/Rejected by User ID"; Guid)
         {
             Caption = 'Approved/Rejected by User ID';
             DataClassification = EndUserIdentifiableInformation;
@@ -119,7 +170,7 @@ table 6840 "Spend Request"
                 TestStatusOpen();
             end;
         }
-        field(14; "Approved/Rejected by User Name"; Code[50])
+        field(16; "Approved/Rejected by User Name"; Code[50])
         {
             Caption = 'Approved/Rejected by User Name';
             DataClassification = EndUserIdentifiableInformation;
@@ -131,7 +182,7 @@ table 6840 "Spend Request"
                 TestStatusOpen();
             end;
         }
-        field(15; "Approved/Rejected At"; DateTime)
+        field(17; "Approved/Rejected At"; DateTime)
         {
             Caption = 'Approved/Rejected At';
             ToolTip = 'Specifies the time when the spend request was approved or rejected.';
@@ -141,7 +192,19 @@ table 6840 "Spend Request"
                 TestStatusOpen();
             end;
         }
-        field(20; "Total Spent Amount"; Decimal)
+        field(18; "Closed At"; DateTime)
+        {
+            Caption = 'Closed At';
+            ToolTip = 'Specifies the time when the spend request was closed.';
+            Editable = false;
+        }
+        field(19; "Closed By Document No."; Code[20])
+        {
+            Caption = 'Closed By Document No.';
+            ToolTip = 'Specifies the document no. of the transaction that closed the spend request.';
+            Editable = false;
+        }
+        field(20; "Total Spent Amount (LCY)"; Decimal)
         {
             Caption = 'Total Spent Amount';
             AutoFormatExpression = '';
@@ -151,13 +214,30 @@ table 6840 "Spend Request"
             FieldClass = FlowField;
             CalcFormula = sum("Spend Request To G/L Link".Amount where("Spend Request No." = field("No.")));
         }
+        field(21; "Total Line Amount (LCY)"; Decimal)
+        {
+            Caption = 'Total Line Amount';
+            AutoFormatExpression = '';
+            AutoFormatType = 1;
+            Editable = false;
+            ToolTip = 'Specifies the total amount in local currency for all the detail lines.';
+            FieldClass = FlowField;
+            CalcFormula = sum("Spend Request Detail"."Expected Amount (LCY)" where("Spend Request No." = field("No.")));
+        }
     }
     keys
     {
-        key(PK; "No.")
+        key(Key1; "No.")
         {
             Clustered = true;
         }
+        key(Key2; Status)
+        {
+        }
+        key(Key3; "Requested By")
+        {
+        }
+
     }
     fieldgroups
     {
@@ -183,7 +263,7 @@ table 6840 "Spend Request"
             SpendRequest.SetLoadFields("No.");
             if SpendRequest.FindLast() then;
             if SpendRequest."No." = '' then
-                SpendRequest."No." := 'RQ-00000000';
+                SpendRequest."No." := '00000000';
             Rec."No." := IncStr(SpendRequest."No.");
         end;
     end;
@@ -198,8 +278,8 @@ table 6840 "Spend Request"
         SpendRequestDetail: Record "Spend Request Detail";
         SpendReqToGLLink: Record "Spend Request To G/L Link";
     begin
-        Rec.CalcFields("Total Spent Amount");
-        if Rec."Total Spent Amount" <> 0 then
+        Rec.CalcFields("Total Spent Amount (LCY)");
+        if Rec."Total Spent Amount (LCY)" <> 0 then
             Error(CannotDeleteErr);
         SpendRequestDetail.SetRange("Spend Request No.", Rec."No.");
         SpendRequestDetail.DeleteAll();
@@ -210,6 +290,7 @@ table 6840 "Spend Request"
     var
         EndBeforeStartErr: Label 'Expected End Date cannot be before Expected Start Date.';
         CannotDeleteErr: Label 'You cannot delete a spend request that has expenses posted against it.';
+        CannotBeLessThanSumOfLinesErr: Label 'You cannot specify an amount less than the total of the lines.';
 
     local procedure CheckStartAndEndDate()
     begin
@@ -221,7 +302,7 @@ table 6840 "Spend Request"
     /// <summary>
     /// Allows the user to select a number from another no. series.
     /// </summary>
-    procedure AssistEditNo() Result: Boolean
+    internal procedure AssistEditNo() Result: Boolean
     var
         GLSetup: Record "General Ledger Setup";
         NoSeries: Codeunit "No. Series";
@@ -249,12 +330,70 @@ table 6840 "Spend Request"
     /// document currency factor. Called by detail tables (generic or layer-specific) when their amounts change.
     /// </summary>
     /// <param name="Delta">Change to apply to Total Expected Amount.</param>
-    internal procedure AddToTotalExpectedAmount(Delta: Decimal)
+    internal procedure AddToTotalExpectedAmount(DeltaLCY: Decimal)
     begin
-        if Delta = 0 then
+        if DeltaLCY = 0 then
             exit;
 
-        Rec.Validate("Total Expected Amount", Rec."Total Expected Amount" + Delta);
+        Rec.Validate("Total Expected Amount (LCY)", Rec."Total Expected Amount (LCY)" + DeltaLCY);
+        Rec.Modify();
+    end;
+
+    internal procedure ChangeCurrency(xCurrencyCode: Code[10])
+    var
+        Currency: Record Currency;
+        SpendRequestDetail: Record "Spend Request Detail";
+    begin
+        if Rec."Currency code" = xCurrencyCode then
+            exit;
+        if Rec."Currency code" = '' then begin
+            Currency.InitRoundingPrecision();
+            Rec."Currency Exchange Rate" := 1
+        end else begin
+            Currency.Get(Rec."Currency Code");
+            Rec."Currency Exchange Rate" := Currency.GetExchangeRate(Today());
+        end;
+        if Rec."Currency Exchange Rate" = 0 then
+            Rec."Currency Exchange Rate" := 1;
+
+        "Total Expected Amount" := Round(Rec."Total Expected Amount (LCY)" / Rec."Currency Exchange Rate", Currency."Amount Rounding Precision");
+
+        SpendRequestDetail.SetRange("Spend Request No.", Rec."No.");
+        SpendRequestDetail.SetRange("Currency Code", xCurrencyCode);
+        if not SpendRequestDetail.FindSet(true) then
+            exit;
+        repeat
+            SpendRequestDetail."Currency Code" := Rec."Currency Code";
+            SpendRequestDetail."Currency Exchange Rate" := Rec."Currency Exchange Rate";
+            SpendRequestDetail."Expected Amount" := Round(SpendRequestDetail."Expected Amount (LCY)" / SpendRequestDetail."Currency Exchange Rate", Currency."Amount Rounding Precision");
+            SpendRequestDetail.Modify();
+        until SpendRequestDetail.Next() = 0;
+        Rec.Modify();
+    end;
+
+    internal procedure UpdateCurrencyExchangeRate()
+    var
+        Currency: Record Currency;
+        SpendRequestDetail: Record "Spend Request Detail";
+    begin
+        if Rec."Currency code" = '' then
+            Rec."Currency Exchange Rate" := 1
+        else begin
+            Currency.Get(Rec."Currency Code");
+            Rec."Currency Exchange Rate" := Currency.GetExchangeRate(Today());
+        end;
+
+        "Total Expected Amount (LCY)" := Round("Currency Exchange Rate" * "Total Expected Amount");
+
+        SpendRequestDetail.SetRange("Spend Request No.", Rec."No.");
+        if not SpendRequestDetail.FindSet(true) then
+            exit;
+        "Total Expected Amount (LCY)" := 0;
+        repeat
+            SpendRequestDetail.UpdateCurrencyExchangeRate();
+            SpendRequestDetail.Modify();
+            Rec."Total Expected Amount (LCY)" += SpendRequestDetail."Expected Amount (LCY)";
+        until SpendRequestDetail.Next() = 0;
         Rec.Modify();
     end;
 }

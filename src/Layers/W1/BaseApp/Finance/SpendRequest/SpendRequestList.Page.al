@@ -35,7 +35,7 @@ page 6840 "Spend Request List"
                 field(Status; Rec.Status)
                 {
                 }
-                field("Total Expected Amount"; Rec."Total Expected Amount")
+                field("Total Expected Amount (LCY)"; Rec."Total Expected Amount (LCY)")
                 {
                 }
                 field("Expected Start Date"; Rec."Expected Start Date")
@@ -45,6 +45,12 @@ page 6840 "Spend Request List"
                 {
                 }
                 field("Approved by User Name"; Rec."Approved/Rejected by User Name")
+                {
+                }
+                field(ClosedAt; Rec."Closed At")
+                {
+                }
+                field(ClosedByDoc; Rec."Closed By Document No.")
                 {
                 }
             }

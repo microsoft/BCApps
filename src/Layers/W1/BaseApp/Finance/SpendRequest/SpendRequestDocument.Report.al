@@ -39,10 +39,16 @@ report 6850 "Spend Request Document"
             column(GLAccountNo; "G/L Account No.")
             {
             }
+            column(CurrencyCode; "Currency Code")
+            {
+            }
             column(TotalExpectedAmount; "Total Expected Amount")
             {
             }
-            column(TotalSpentAmount; "Total Spent Amount")
+            column(TotalExpectedAmountLCY; "Total Expected Amount (LCY)")
+            {
+            }
+            column(TotalSpentAmount; "Total Spent Amount (LCY)")
             {
             }
             column(ExpectedStartDate; "Expected Start Date")
@@ -69,7 +75,13 @@ report 6850 "Spend Request Document"
                 column(Description; Description)
                 {
                 }
-                column(Amount; Amount)
+                column(LineCurrencyCode; "Currency Code")
+                {
+                }
+                column(ExpectedAmount; "Expected Amount")
+                {
+                }
+                column(ExpectedAmountLCY; "Expected Amount (LCY)")
                 {
                 }
                 column(DetailGLAccountNo; "G/L Account No.")

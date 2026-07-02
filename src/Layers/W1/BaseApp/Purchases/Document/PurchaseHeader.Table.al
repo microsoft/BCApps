@@ -2168,7 +2168,7 @@ table 38 "Purchase Header"
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request that this purchase document relates to.';
-            TableRelation = "Spend Request";
+            TableRelation = "Spend Request" where(Status = const(Approved));
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -2179,12 +2179,16 @@ table 38 "Purchase Header"
             begin
                 if not GuiAllowed() then
                     exit;
-                SpendRequest.SetAutoCalcFields("Total Spent Amount");
+                if Rec."Spend Request No." = '' then begin
+                    Rec."Spend Request Close" := false;
+                    exit;
+                end;
+                SpendRequest.SetAutoCalcFields("Total Spent Amount (LCY)");
                 SpendRequest.Get(Rec."Spend Request No.");
                 SpendRequest.TestField(Status, SpendRequest.Status::Approved);
-                if SpendRequest."Total Spent Amount" > 0 then begin
+                if SpendRequest."Total Spent Amount (LCY)" > 0 then begin
                     AlreadyAllocatedNotification.Scope := AlreadyAllocatedNotification.Scope::LocalScope;
-                    AlreadyAllocatedNotification.Message := StrSubstNo(SpendRequestIsUsedMsg, SpendRequest."No.", SpendRequest."Total Expected Amount", SpendRequest."Total Spent Amount");
+                    AlreadyAllocatedNotification.Message := StrSubstNo(SpendRequestIsUsedMsg, SpendRequest."No.", SpendRequest."Total Expected Amount (LCY)", SpendRequest."Total Spent Amount (LCY)");
                     NotificationLifecycleMgt.SendNotification(AlreadyAllocatedNotification, SpendRequest.RecordId);
                 end;
                 Rec."Spend Request Close" := Confirm(SpendRequestCloseQst, true, SpendRequest."No.");

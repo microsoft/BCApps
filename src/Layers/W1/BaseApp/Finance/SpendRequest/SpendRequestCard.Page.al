@@ -44,12 +44,29 @@ page 6841 "Spend Request Card"
                 {
                     Importance = Promoted;
                 }
+                field(ClosedAt; Rec."Closed At")
+                {
+                    Importance = Additional;
+                }
+                field(ClosedByDoc; Rec."Closed By Document No.")
+                {
+                    Importance = Additional;
+                }
+                field("Currency Code"; Rec."Currency Code")
+                {
+                    Importance = Promoted;
+                    Editable = Rec.Status = Rec.Status::Open;
+                }
                 field("Total Expected Amount"; Rec."Total Expected Amount")
                 {
                     Importance = Promoted;
                     Editable = Rec.Status = Rec.Status::Open;
                 }
-                field(TotalSpentAmount; Rec."Total Spent Amount")
+                field("Total Expected Amount (LCY)"; Rec."Total Expected Amount (LCY)")
+                {
+                    Importance = Promoted;
+                }
+                field(TotalSpentAmount; Rec."Total Spent Amount (LCY)")
                 {
                     Importance = Promoted;
                 }
@@ -93,81 +110,120 @@ page 6841 "Spend Request Card"
     {
         area(Processing)
         {
-            group(StatusGrp)
+            action(Release)
             {
-                Caption = 'Status';
-                action(Release)
-                {
-                    Caption = 'Set status to Released';
-                    ToolTip = 'Set the status field to Released so that it can be processed for approval.';
-                    ApplicationArea = Basic, Suite;
-                    Image = ReleaseDoc;
+                Caption = 'Set status to Released';
+                ToolTip = 'Set the status field to Released so that it can be processed for approval.';
+                ApplicationArea = Basic, Suite;
+                Enabled = Rec.Status <> Rec.Status::Released;
+                Image = ReleaseDoc;
 
-                    trigger OnAction()
-                    begin
-                        if Rec.Status = Rec.Status::Released then
-                            exit;
-                        Rec.Status := Rec.Status::Released;
-                        Rec.Modify();
-                    end;
-                }
-                action(Approve)
-                {
-                    Caption = 'Set status to Approved';
-                    ToolTip = 'Manually set the status field to Approved';
-                    ApplicationArea = Basic, Suite;
-                    Image = Approve;
+                trigger OnAction()
+                begin
+                    if Rec.Status = Rec.Status::Released then
+                        exit;
+                    Rec.Status := Rec.Status::Released;
+                    Rec.Modify();
+                end;
+            }
+            action(Approve)
+            {
+                Caption = 'Set status to Approved';
+                ToolTip = 'Manually set the status field to Approved';
+                ApplicationArea = Basic, Suite;
+                Enabled = Rec.Status <> Rec.Status::Approved;
+                Image = Approve;
 
-                    trigger OnAction()
-                    begin
-                        if Rec.Status = Rec.Status::Approved then
-                            exit;
-                        Rec.Status := Rec.Status::Approved;
-                        Rec."Approved/Rejected At" := CurrentDateTime();
-                        Rec."Approved/Rejected by User ID" := UserId();
-                        Rec.Modify();
-                    end;
-                }
-                action(Reject)
-                {
-                    Caption = 'Set status to Rejected';
-                    ToolTip = 'Manually set the status field to Rejected';
-                    ApplicationArea = Basic, Suite;
-                    Image = Reject;
+                trigger OnAction()
+                begin
+                    if Rec.Status = Rec.Status::Approved then
+                        exit;
+                    Rec.Status := Rec.Status::Approved;
+                    Rec."Approved/Rejected At" := CurrentDateTime();
+                    Rec."Approved/Rejected by User ID" := UserSecurityId();
+                    Rec.Modify();
+                end;
+            }
+            action(Reject)
+            {
+                Caption = 'Set status to Rejected';
+                ToolTip = 'Manually set the status field to Rejected';
+                ApplicationArea = Basic, Suite;
+                Enabled = Rec.Status <> Rec.Status::Rejected;
+                Image = Reject;
 
-                    trigger OnAction()
-                    var
-                        Employee: Record Employee;
-                    begin
-                        if Rec.Status = Rec.Status::Rejected then
-                            exit;
-                        Rec.TestField(Status, Rec.Status::Released);
-                        Rec.Status := Rec.Status::Rejected;
-                        Rec."Approved/Rejected At" := CurrentDateTime();
-                        Rec."Approved/Rejected by User ID" := UserId();
-                        Rec.Modify();
-                    end;
-                }
-                action(ReOpen)
-                {
-                    Caption = 'Set status to Open';
-                    ToolTip = 'Set the status field to Open so that it can be edited.';
-                    ApplicationArea = Basic, Suite;
-                    Image = ReOpen;
+                trigger OnAction()
+                begin
+                    if Rec.Status = Rec.Status::Rejected then
+                        exit;
+                    Rec.TestField(Status, Rec.Status::Released);
+                    Rec.Status := Rec.Status::Rejected;
+                    Rec."Approved/Rejected At" := CurrentDateTime();
+                    Rec."Approved/Rejected by User ID" := UserSecurityId();
+                    Rec.Modify();
+                end;
+            }
+            action(Close)
+            {
+                Caption = 'Set status to Closed';
+                ToolTip = 'Set the status field to Closed so that it can be processed for approval.';
+                ApplicationArea = Basic, Suite;
+                Enabled = Rec.Status <> Rec.Status::Closed;
+                Image = CloseDocument;
 
-                    trigger OnAction()
-                    begin
-                        if Rec.Status = Rec.Status::Open then
-                            exit;
-                        if Rec.Status = Rec.Status::Closed then
-                            Error('A closed spend request cannot be reopened.');
-                        Rec.CalcFields("Total Spent Amount");
-                        if Rec."Total Spent Amount" <> 0 then
-                            Error('A spend request with posted expenses cannot be reopened.');
-                        Rec.Status := Rec.Status::Open;
-                        Rec.Modify();
-                    end;
-                }
+                trigger OnAction()
+                begin
+                    if Rec.Status = Rec.Status::Closed then
+                        exit;
+                    Rec.Status := Rec.Status::Closed;
+                    Rec.Modify();
+                end;
+            }
+            action(ReOpen)
+            {
+                Caption = 'Set status to Open';
+                ToolTip = 'Set the status field to Open so that it can be edited.';
+                ApplicationArea = Basic, Suite;
+                Enabled = Rec.Status <> Rec.Status::Open;
+                Image = ReOpen;
+
+                trigger OnAction()
+                begin
+                    if Rec.Status = Rec.Status::Open then
+                        exit;
+                    if Rec.Status = Rec.Status::Closed then
+                        Error(ClosedRequestErr);
+                    Rec.CalcFields("Total Spent Amount (LCY)");
+                    if Rec."Total Spent Amount (LCY)" <> 0 then
+                        Error(HasExpensesErr);
+                    Rec.Status := Rec.Status::Open;
+                    Rec.Modify();
+                end;
+            }
+            action(Print)
+            {
+                Caption = 'Print';
+                ToolTip = 'Prints the spend request so it can be sent to the requester.';
+                ApplicationArea = Basic, Suite;
+                Image = Print;
+                RunObject = Report "Spend Request Document";
+                RunPageOnRec = true;
+            }
+            action(RefreshCurrency)
+            {
+                Caption = 'Refresh Currency Exchange rate';
+                ToolTip = 'Updates the currency exchange rate and Total Expected Amount (LCY).';
+                Enabled = (Rec."Currency Code" <> '') and (Rec.Status <> Rec.Status::Closed);
+                ApplicationArea = Basic, Suite;
+                Image = Recalculate;
+
+                trigger OnAction()
+                begin
+                    if Rec.Status = Rec.Status::Closed then
+                        Error('A closed spend request cannot be updated.');
+                    Rec.UpdateCurrencyExchangeRate();
+                    Rec.Modify();
+                end;
             }
             group("Spend Request Approval")
             {
@@ -222,11 +278,39 @@ page 6841 "Spend Request Card"
                 }
             }
         }
+        area(Promoted)
+        {
+            group(Category_Process)
+            {
+                Caption = 'Process';
+
+                actionref(Release_Promoted; Release)
+                {
+                }
+                actionref(ReOpen_Promoted; ReOpen)
+                {
+                }
+                actionref(Approve_Promoted; Approve)
+                {
+                }
+                actionref(Reject_Promoted; Reject)
+                {
+                }
+                actionref(Close_Promoted; Close)
+                {
+                }
+                actionref(Print_Promoted; Print)
+                {
+                }
+            }
+        }
     }
 
     var
         IsSaaS: Boolean;
         IsPowerAutomatePrivacyNoticeApproved: Boolean;
+        HasExpensesErr: Label 'A spend request with posted expenses cannot be reopened.';
+        ClosedRequestErr: Label 'A closed spend request cannot be reopened.';
 
     trigger OnOpenPage()
     var
