@@ -73,7 +73,9 @@ using Microsoft.Sales.Setup;
 using Microsoft.Service.History;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Activity;
+using Microsoft.Warehouse.Request;
 using Microsoft.Warehouse.Structure;
+using Microsoft.Warehouse.Worksheet;
 using System.Automation;
 using System.Environment;
 using System.Environment.Configuration;
@@ -255,6 +257,7 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeFinancialReportAuditLogAddRetentionPolicy();
         UpgradeZeroClosedBankAccountLedgerEntries();
         UpgradeDepreciationBooksGLIntegration();
+        UpgradeWarehouseActivitySourceTypeForJobPlanningLine();
     end;
 
     local procedure ClearTemporaryTables()
@@ -4112,6 +4115,53 @@ codeunit 104000 "Upgrade - BaseApp"
         DepreciationBookDataTransfer.CopyFields();
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetDepreciationBooksGLIntegrationUpgradeTag());
+    end;
+
+    local procedure UpgradeWarehouseActivitySourceTypeForJobPlanningLine()
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WhseWorksheetLine: Record "Whse. Worksheet Line";
+        WarehouseRequest: Record "Warehouse Request";
+        UpgradeTag: Codeunit "Upgrade Tag";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        WarehouseActivityLineDataTransfer: DataTransfer;
+        WhseWorksheetLineDataTransfer: DataTransfer;
+        WarehouseRequestDataTransfer: DataTransfer;
+    begin
+        // Upgrade legacy Job-related warehouse records to use the new Source Type and Source Subtype values
+        // Old format: Source Type = Database::Job (167), Source Subtype = 0
+        // New format: Source Type = Database::"Job Planning Line" (1003), Source Subtype = Order (2)
+        if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag()) then
+            exit;
+
+        // Upgrade Warehouse Activity Line
+        WarehouseActivityLine.SetRange("Source Type", Database::Job);
+        WarehouseActivityLine.SetRange("Source Subtype", 0);
+        if not WarehouseActivityLine.IsEmpty() then begin
+            WarehouseActivityLineDataTransfer.SetTables(Database::"Warehouse Activity Line", Database::"Warehouse Activity Line");
+            WarehouseActivityLineDataTransfer.AddFieldValue(WarehouseActivityLine.FieldNo("Source Type"), WarehouseActivityLine.FieldNo("Source Subtype"));
+            WarehouseActivityLineDataTransfer.CopyFields();
+        end;
+
+        // Upgrade Whse. Worksheet Line
+        WhseWorksheetLine.SetRange("Source Type", Database::Job);
+        WhseWorksheetLine.SetRange("Source Subtype", 0);
+        if not WhseWorksheetLine.IsEmpty() then begin
+            WhseWorksheetLineDataTransfer.SetTables(Database::"Whse. Worksheet Line", Database::"Whse. Worksheet Line");
+            WhseWorksheetLineDataTransfer.AddFieldValue(WhseWorksheetLine.FieldNo("Source Type"), WhseWorksheetLine.FieldNo("Source Subtype"));
+            WhseWorksheetLineDataTransfer.CopyFields();
+        end;
+
+        // Upgrade Warehouse Request
+        WarehouseRequest.SetRange("Source Type", Database::Job);
+        WarehouseRequest.SetRange("Source Subtype", 0);
+        if not WarehouseRequest.IsEmpty() then begin
+            WarehouseRequestDataTransfer.SetTables(Database::"Warehouse Request", Database::"Warehouse Request");
+            WarehouseRequestDataTransfer.AddFieldValue(WarehouseRequest.FieldNo("Source Type"), WarehouseRequest.FieldNo("Source Subtype"));
+            WarehouseRequestDataTransfer.CopyFields();
+        end;
+
+        UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag());
     end;
 
     local procedure SEPACAMT05300108(): Code[20]
