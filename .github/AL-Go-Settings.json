@@ -124,7 +124,7 @@
     "continuousDeployment": false,
     "groupByProject": false,
     "excludeProjects": [
-      "build_projects_System Application Modules"
+      "eng_AL-Go_System Application Modules"
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",

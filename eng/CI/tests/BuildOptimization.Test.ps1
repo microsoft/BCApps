@@ -314,7 +314,7 @@ Describe "BuildOptimization" {
         }
 
         It "RunTestsInBcContainer scripts delegate to Invoke-PerProjectTestRun, not relative path resolution" {
-            $scripts = Get-ChildItem -Path (Resolve-Path "$PSScriptRoot/../../AL-Go/projects").Path -Recurse -Filter 'RunTestsInBcContainer.ps1'
+            $scripts = Get-ChildItem -Path (Resolve-Path "$PSScriptRoot/../../AL-Go").Path -Recurse -Filter 'RunTestsInBcContainer.ps1' | Where-Object { $_.FullName -match '[\\/]\.AL-Go[\\/]' }
             $scripts.Count | Should -BeGreaterOrEqual 4
 
             foreach ($script in $scripts) {
