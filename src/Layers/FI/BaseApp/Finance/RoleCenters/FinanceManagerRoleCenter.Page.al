@@ -2579,7 +2579,7 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'General Business Posting Groups';
                         RunObject = page "Gen. Business Posting Groups";
-                        Tooltip = 'Open the Gen. Business Posting Groups page.';
+                        Tooltip = 'Open the General Business Posting Groups page.';
                     }
                     action("Gen. Product Posting Groups")
                     {

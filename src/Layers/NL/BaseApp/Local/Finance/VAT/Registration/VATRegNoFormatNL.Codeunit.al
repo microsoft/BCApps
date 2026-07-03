@@ -139,6 +139,6 @@ codeunit 13381 "VAT Reg. No. Format NL"
         VATMod97NotAllowedCharErr: Label 'The VAT registration number for a natural person must have the format NLXXXXXXXXXXdd where d is a digit, and x can be a digit, an uppercase letter, ''+'', or ''*''.';
         VATMod11Err: Label 'The VAT registration number is not valid according to the Modulus-11 checksum algorithm.';
         VATMod97Err: Label 'The VAT registration number is not valid according to the Modulus-97 checksum algorithm.';
-        SummaryTwoErr: Label '%1%2', Comment = '%1, %2 - error text';
-        SummaryThreeErr: Label '%1%2 %3', Comment = '%1, %2, %3 - error text';
+        SummaryTwoErr: Label '%1%2', Comment = '%1 - VAT registration number, %2 - error text';
+        SummaryThreeErr: Label '%1%2 %3', Comment = '%1 - VAT registration number, %2 - error text, %3 - additional error text';
 }

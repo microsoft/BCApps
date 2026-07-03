@@ -16,7 +16,7 @@ codeunit 11323 PurchaseHeaderNL
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnValidatePurchaseHeaderPayToVendorNoOnBeforeCheckDocType', '', false, false)]
-    local procedure OnValidatePurchaseHeaderPayToVendorNoOnBeforeCheckDocType(Vendor: Record Vendor; var PurchaseHeader: Record "Purchase Header"; xPurchaseHeader: Record "Purchase Header"; SkipPayToContact: Boolean)
+    local procedure OnValidatePurchaseHeaderPayToVendorNoOnBeforeCheckDocType(Vendor: Record Vendor; var PurchaseHeader: Record "Purchase Header"; var xPurchaseHeader: Record "Purchase Header"; SkipPayToContact: Boolean)
     begin
         PurchaseHeader.Validate("Transaction Mode Code");
     end;
