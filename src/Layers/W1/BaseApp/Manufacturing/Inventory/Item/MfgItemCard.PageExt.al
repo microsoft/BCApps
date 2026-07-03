@@ -6,6 +6,7 @@ namespace Microsoft.Inventory.Item;
 
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.StandardCost;
+using Microsoft.Manufacturing.Wizard;
 
 pageextension 99000750 "Mfg. Item Card" extends "Item Card"
 {
@@ -141,6 +142,20 @@ pageextension 99000750 "Mfg. Item Card" extends "Item Card"
                     begin
                         Clear(CalculateStandardCost);
                         CalculateStandardCost.CalcItem(Rec."No.", false);
+                    end;
+                }
+                action(RunProdDefinition)
+                {
+                    ApplicationArea = Manufacturing;
+                    Caption = 'Production Definition';
+                    Image = ProductionSetup;
+                    ToolTip = 'Define or review the bill of materials and routing for this item using the Production Definition Wizard.';
+
+                    trigger OnAction()
+                    var
+                        ProductionDefinitionManager: Codeunit "Production Definition Manager";
+                    begin
+                        ProductionDefinitionManager.RunForSource(Rec, "Prod. Definition Mode"::DefineItemStructure);
                     end;
                 }
             }

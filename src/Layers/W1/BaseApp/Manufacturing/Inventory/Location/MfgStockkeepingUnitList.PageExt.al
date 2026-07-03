@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Inventory.Location;
 
+using Microsoft.Manufacturing.Wizard;
+
 pageextension 99000755 "Mfg. Stockkeeping Unit List" extends "Stockkeeping Unit List"
 {
     actions
@@ -36,6 +38,20 @@ pageextension 99000755 "Mfg. Stockkeeping Unit List" extends "Stockkeeping Unit 
                     trigger OnAction()
                     begin
                         Rec.OpenActiveProductionBOMForSKUItem(Rec."Production BOM No.", Rec."Item No.");
+                    end;
+                }
+                action(RunProdDefinition)
+                {
+                    ApplicationArea = Manufacturing;
+                    Caption = 'Production Definition';
+                    Image = ProductionSetup;
+                    ToolTip = 'Define or review the bill of materials and routing for the selected stockkeeping unit using the Production Definition Wizard.';
+
+                    trigger OnAction()
+                    var
+                        ProductionDefinitionManager: Codeunit "Production Definition Manager";
+                    begin
+                        ProductionDefinitionManager.RunForSource(Rec, "Prod. Definition Mode"::DefineItemStructure);
                     end;
                 }
             }

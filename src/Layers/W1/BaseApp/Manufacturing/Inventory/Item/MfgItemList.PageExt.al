@@ -10,6 +10,7 @@ using Microsoft.Inventory.Reports;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Reports;
 using Microsoft.Manufacturing.StandardCost;
+using Microsoft.Manufacturing.Wizard;
 
 pageextension 99000751 "Mfg. Item List" extends "Item List"
 {
@@ -87,6 +88,20 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
                         CalculateStandardCost: Codeunit "Calculate Standard Cost";
                     begin
                         CalculateStandardCost.CalcItem(Rec."No.", false);
+                    end;
+                }
+                action(RunProdDefinition)
+                {
+                    ApplicationArea = Manufacturing;
+                    Caption = 'Production Definition';
+                    Image = ProductionSetup;
+                    ToolTip = 'Define or review the bill of materials and routing for the selected item using the Production Definition Wizard.';
+
+                    trigger OnAction()
+                    var
+                        ProductionDefinitionManager: Codeunit "Production Definition Manager";
+                    begin
+                        ProductionDefinitionManager.RunForSource(Rec, "Prod. Definition Mode"::DefineItemStructure);
                     end;
                 }
             }
