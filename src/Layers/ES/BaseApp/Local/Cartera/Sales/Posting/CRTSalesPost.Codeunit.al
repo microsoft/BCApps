@@ -15,6 +15,7 @@ codeunit 7000096 "CRT Sales-Post"
 
     var
         CannotCreateCarteraDocErr: Label 'You do not have permissions to create Documents in Cartera.\Please, change the Payment Method.';
+        ClosedDocumentErr: Label 'At least one document of %1 No. %2 is closed or in a Bill Group. This will avoid the document to be settled.\The posting process of %3 No. %4 will not settle any document.\ Please remove the lines for the Bill Group before posting.', Comment = '%1 = Document Type, %2 = Document No., %3 = Document Type, %4 = Document No.';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterProcessPostingLines', '', true, true)]
     local procedure OnAfterProcessPostingLines(var SalesHeader: Record "Sales Header"; var TotalSalesLine: Record "Sales Line"; var CustLedgEntry: Record "Cust. Ledger Entry"; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean; EverythingInvoiced: Boolean; var Window: Dialog; HideProgressWindow: Boolean)
@@ -62,7 +63,6 @@ codeunit 7000096 "CRT Sales-Post"
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
         ShowError: Boolean;
-        ClosedDocumentErr: Label 'At least one document of %1 No. %2 is closed or in a Bill Group. This will avoid the document to be settled.\The posting process of %3 No. %4 will not settle any document.\ Please remove the lines for the Bill Group before posting.', Comment = '%1 = Document Type, %2 = Document No., %3 = Document Type, %4 = Document No.';
     begin
         ShowError := false;
         if SalesHeader."Document Type" = SalesHeader."Document Type"::"Credit Memo" then begin

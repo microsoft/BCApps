@@ -497,28 +497,28 @@ pageextension 7000185 "CRT Customer Statistics" extends "Customer Statistics"
             CustLedgEntry.CalcSums("Amount (LCY) stats.", "Remaining Amount (LCY) stats.");
             OpenAmtLCY[j] := CustLedgEntry."Amount (LCY) stats.";
             OpenRemainingAmtLCY[j] := CustLedgEntry."Remaining Amount (LCY) stats.";
-            NoOpen[j] := CustLedgEntry.Count;
+            NoOpen[j] := CustLedgEntry.Count();
             CustLedgEntry.SetRange("Document Status");
 
             CustLedgEntry.SetRange("Document Status", CustLedgEntry."Document Status"::Honored);
             CustLedgEntry.CalcSums("Amount (LCY) stats.", "Remaining Amount (LCY) stats.");
             HonoredAmtLCY[j] := CustLedgEntry."Amount (LCY) stats.";
             HonoredRemainingAmtLCY[j] := CustLedgEntry."Remaining Amount (LCY) stats.";
-            NoHonored[j] := CustLedgEntry.Count;
+            NoHonored[j] := CustLedgEntry.Count();
             CustLedgEntry.SetRange("Document Status");
 
             CustLedgEntry.SetRange("Document Status", CustLedgEntry."Document Status"::Rejected);
             CustLedgEntry.CalcSums("Amount (LCY) stats.", "Remaining Amount (LCY) stats.");
             RejectedAmtLCY[j] := CustLedgEntry."Amount (LCY) stats.";
             RejectedRemainingAmtLCY[j] := CustLedgEntry."Remaining Amount (LCY) stats.";
-            NoRejected[j] := CustLedgEntry.Count;
+            NoRejected[j] := CustLedgEntry.Count();
             CustLedgEntry.SetRange("Document Status");
 
             CustLedgEntry.SetRange("Document Status", CustLedgEntry."Document Status"::Redrawn);
             CustLedgEntry.CalcSums("Amount (LCY) stats.", "Remaining Amount (LCY) stats.");
             RedrawnAmtLCY[j] := CustLedgEntry."Amount (LCY) stats.";
             RedrawnRemainingAmtLCY[j] := CustLedgEntry."Remaining Amount (LCY) stats.";
-            NoRedrawn[j] := CustLedgEntry.Count;
+            NoRedrawn[j] := CustLedgEntry.Count();
             CustLedgEntry.SetRange("Document Status");
 
             CustLedgEntry.SetRange("Document Situation");

@@ -14,6 +14,7 @@ codeunit 7000095 "CRT Purch.-Post"
 
     var
         CannotCreateCarteraDocErr: Label 'You do not have permissions to create Documents in Cartera.\Please, change the Payment Method.';
+        ClosedDocumentErr: Label 'At least one document of %1 No. %2 is closed or in a Payment Order. This will avoid the document to be settled.\The posting process of %3 No. %4 will not settle any document.\Please remove the lines for the Payment Order before posting.', Comment = '%1 = Document Type, %2 = Document No., %3 = Purchase Document Type, %4 = Purchase No.';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterProcessPostingLines', '', true, true)]
     local procedure OnAfterProcessPostingLines(var PurchHeader: Record "Purchase Header"; var TotalPurchLine: Record "Purchase Line"; var VendLedgEntry: Record "Vendor Ledger Entry"; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean; EverythingInvoiced: Boolean; var Window: Dialog)
@@ -60,7 +61,6 @@ codeunit 7000095 "CRT Purch.-Post"
     var
         VendLedgEntry: Record "Vendor Ledger Entry";
         ShowError: Boolean;
-        ClosedDocumentErr: Label 'At least one document of %1 No. %2 is closed or in a Payment Order. This will avoid the document to be settled.\The posting process of %3 No. %4 will not settle any document.\Please remove the lines for the Payment Order before posting.', Comment = '%1 = Document Type, %2 = Document No., %3 = Purchase Document Type, %4 = Purchase No.';
     begin
         ShowError := false;
         if PurchHeader."Document Type" = PurchHeader."Document Type"::"Credit Memo" then begin

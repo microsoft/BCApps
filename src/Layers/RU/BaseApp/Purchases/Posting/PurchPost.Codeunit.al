@@ -9757,6 +9757,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnArchiveSalesOrdersOnBeforeSalesOrderLineModify.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnArchiveSalesOrdersOnBeforeSalesOrderLineModify(var SalesOrderLine: Record "Sales Line"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary)
     begin
@@ -9766,6 +9767,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterBlanketOrderPurchLineModify.
     /// </summary>
     /// <param name="BlanketOrderPurchLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="Ship">Specifies the Ship parameter.</param>
+    /// <param name="Receive">Specifies the Receive parameter.</param>
+    /// <param name="Invoice">Specifies the Invoice parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterBlanketOrderPurchLineModify(var BlanketOrderPurchLine: Record "Purchase Line"; PurchaseLine: Record "Purchase Line"; Ship: Boolean; Receive: Boolean; Invoice: Boolean)
     begin
@@ -9776,6 +9781,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterCheckPurchDoc.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="ErrorMessageMgt">Specifies the ErrorMessageMgt parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckPurchDoc(var PurchHeader: Record "Purchase Header"; CommitIsSupressed: Boolean; WhseShip: Boolean; WhseReceive: Boolean; PreviewMode: Boolean; var ErrorMessageMgt: Codeunit "Error Message Management")
     begin
@@ -9785,6 +9795,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterCheckAndUpdate.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="CommitIsSuppressed">Specifies the CommitIsSuppressed parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckAndUpdate(var PurchaseHeader: Record "Purchase Header"; CommitIsSuppressed: Boolean; PreviewMode: Boolean)
     begin
@@ -9794,6 +9806,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterCheckTrackingSpecification.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="TempItemPurchaseLine">Specifies the TempItemPurchaseLine parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterCheckTrackingSpecification(PurchaseHeader: Record "Purchase Header"; var TempItemPurchaseLine: Record "Purchase Line" temporary);
     begin
@@ -9803,6 +9816,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterCheckTrackingAndWarehouseForReceive.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="Receive">Specifies the Receive parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="TempWarehouseShipmentHeader">Specifies the TempWarehouseShipmentHeader parameter.</param>
+    /// <param name="TempWarehouseReceiptHeader">Specifies the TempWarehouseReceiptHeader parameter.</param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckTrackingAndWarehouseForReceive(var PurchaseHeader: Record "Purchase Header"; var Receive: Boolean; CommitIsSupressed: Boolean; var TempWarehouseShipmentHeader: Record "Warehouse Shipment Header" temporary; var TempWarehouseReceiptHeader: Record "Warehouse Receipt Header" temporary; var TempPurchaseLine: Record "Purchase Line" temporary)
     begin
@@ -9812,6 +9830,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterCheckTrackingAndWarehouseForShip.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="Ship">Specifies the Ship parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
+    /// <param name="TempWarehouseShipmentHeader">Specifies the TempWarehouseShipmentHeader parameter.</param>
+    /// <param name="TempWarehouseReceiptHeader">Specifies the TempWarehouseReceiptHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckTrackingAndWarehouseForShip(var PurchaseHeader: Record "Purchase Header"; var Ship: Boolean; CommitIsSupressed: Boolean; var TempPurchaseLine: Record "Purchase Line" temporary; var TempWarehouseShipmentHeader: Record "Warehouse Shipment Header" temporary; var TempWarehouseReceiptHeader: Record "Warehouse Receipt Header" temporary)
     begin
@@ -9821,6 +9844,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterCreateJobPurchLine.
     /// </summary>
     /// <param name="JobPurchaseLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateJobPurchLine(var JobPurchaseLine: Record "Purchase Line"; PurchaseLine: Record "Purchase Line")
     begin
@@ -9831,6 +9855,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterCreateWhseJnlLine.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="TempWhseJnlLine">Specifies the TempWhseJnlLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateWhseJnlLine(PurchaseLine: Record "Purchase Line"; var TempWhseJnlLine: record "Warehouse Journal Line" temporary)
     begin
@@ -9840,6 +9865,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterDeleteAfterPosting.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterDeleteAfterPosting(PurchHeader: Record "Purchase Header"; PurchInvHeader: Record "Purch. Inv. Header"; PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; CommitIsSupressed: Boolean)
     begin
@@ -9849,6 +9877,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterDeleteApprovalEntries.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterDeleteApprovalEntries(var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; PurchRcptHeader: Record "Purch. Rcpt. Header")
     begin
@@ -9858,6 +9889,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterDivideAmount.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="QtyType">Specifies the QtyType parameter.</param>
+    /// <param name="PurchLineQty">Specifies the PurchLineQty parameter.</param>
+    /// <param name="TempVATAmountLine">Specifies the TempVATAmountLine parameter.</param>
+    /// <param name="TempVATAmountLineRemainder">Specifies the TempVATAmountLineRemainder parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterDivideAmount(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; QtyType: Option General,Invoicing,Shipping; PurchLineQty: Decimal; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary)
     begin
@@ -9867,6 +9903,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterGetAmountRoundingPrecisionInLCY.
     /// </summary>
     /// <param name="DocType"></param>
+    /// <param name="DocNo">Specifies the DocNo parameter.</param>
+    /// <param name="CurrencyCode">Specifies the CurrencyCode parameter.</param>
+    /// <param name="AmountRoundingPrecision">Specifies the AmountRoundingPrecision parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetAmountRoundingPrecisionInLCY(DocType: Enum "Purchase Document Type"; DocNo: Code[20]; CurrencyCode: Code[10]; var AmountRoundingPrecision: Decimal)
     begin
@@ -9876,6 +9915,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterGetLineDataFromOrder.
     /// </summary>
     /// <param name="PurchLine"></param>
+    /// <param name="PurchOrderLine">Specifies the PurchOrderLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetLineDataFromOrder(var PurchLine: Record "Purchase Line"; PurchOrderLine: Record "Purchase Line")
     begin
@@ -9903,6 +9943,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPostPurchaseDoc.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
+    /// <param name="PurchRcpHdrNo">Specifies the PurchRcpHdrNo parameter.</param>
+    /// <param name="RetShptHdrNo">Specifies the RetShptHdrNo parameter.</param>
+    /// <param name="PurchInvHdrNo">Specifies the PurchInvHdrNo parameter.</param>
+    /// <param name="PurchCrMemoHdrNo">Specifies the PurchCrMemoHdrNo parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
     [IntegrationEvent(false, false)]
     procedure OnAfterPostPurchaseDoc(var PurchaseHeader: Record "Purchase Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; PurchRcpHdrNo: Code[20]; RetShptHdrNo: Code[20]; PurchInvHdrNo: Code[20]; PurchCrMemoHdrNo: Code[20]; CommitIsSupressed: Boolean)
     begin
@@ -9912,6 +9958,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPostPurchaseDocDropShipment.
     /// </summary>
     /// <param name="SalesShptNo"></param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostPurchaseDocDropShipment(SalesShptNo: Code[20]; CommitIsSupressed: Boolean; PreviewMode: Boolean)
     begin
@@ -9921,6 +9969,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterRetrieveInvoiceTrackingSpecificationIfExists.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="TrackingSpecificationExists">Specifies the TrackingSpecificationExists parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterRetrieveInvoiceTrackingSpecificationIfExists(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TrackingSpecificationExists: Boolean)
     begin
@@ -9930,6 +9981,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterUpdatePostingNos.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="ModifyHeader">Specifies the ModifyHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdatePostingNos(var PurchaseHeader: Record "Purchase Header"; CommitIsSupressed: Boolean; PreviewMode: Boolean; var ModifyHeader: Boolean)
     begin
@@ -9939,6 +9993,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterCheckMandatoryFields.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckMandatoryFields(var PurchaseHeader: Record "Purchase Header"; CommitIsSupressed: Boolean)
     begin
@@ -9949,6 +10004,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterFinalizePosting.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="ReturnShptHeader">Specifies the ReturnShptHeader parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFinalizePosting(var PurchHeader: Record "Purchase Header"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var ReturnShptHeader: Record "Return Shipment Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; PreviewMode: Boolean; CommitIsSupressed: Boolean)
     begin
@@ -9958,6 +10020,14 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterFinalizePostingOnBeforeCommit.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="ReturnShptHeader">Specifies the ReturnShptHeader parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="EverythingInvoiced">Specifies the EverythingInvoiced parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterFinalizePostingOnBeforeCommit(var PurchHeader: Record "Purchase Header"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var ReturnShptHeader: Record "Return Shipment Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; PreviewMode: Boolean; CommitIsSupressed: Boolean; EverythingInvoiced: Boolean)
     begin
@@ -9967,6 +10037,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterIncrAmount.
     /// </summary>
     /// <param name="TotalPurchLine"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterIncrAmount(var TotalPurchLine: Record "Purchase Line"; PurchLine: Record "Purchase Line")
     begin
@@ -9976,6 +10047,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterInitAssocItemJnlLine.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="QtyToBeShipped">Specifies the QtyToBeShipped parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitAssocItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; PurchaseHeader: Record "Purchase Header"; QtyToBeShipped: Decimal)
     begin
@@ -9994,6 +10069,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterInsertPostedHeaders.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="ReturnShptHeader">Specifies the ReturnShptHeader parameter.</param>
+    /// <param name="PurchSetup">Specifies the PurchSetup parameter.</param>
+    /// <param name="Window">Specifies the Window parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertPostedHeaders(var PurchaseHeader: Record "Purchase Header"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var ReturnShptHeader: Record "Return Shipment Header"; var PurchSetup: Record "Purchases & Payables Setup"; var Window: Dialog)
     begin
@@ -10003,6 +10084,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterInsertReceiptHeader.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="TempWhseRcptHeader">Specifies the TempWhseRcptHeader parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="CommitIsSuppressed">Specifies the CommitIsSuppressed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertReceiptHeader(var PurchHeader: Record "Purchase Header"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var TempWhseRcptHeader: Record "Warehouse Receipt Header" temporary; WhseReceive: Boolean; CommitIsSuppressed: Boolean)
     begin
@@ -10012,6 +10097,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterInsertReturnShipmentHeader.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="ReturnShptHeader">Specifies the ReturnShptHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertReturnShipmentHeader(var PurchHeader: Record "Purchase Header"; var ReturnShptHeader: Record "Return Shipment Header")
     begin
@@ -10021,6 +10107,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterInvoiceRoundingAmount.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="TotalPurchaseLine">Specifies the TotalPurchaseLine parameter.</param>
+    /// <param name="UseTempData">Specifies the UseTempData parameter.</param>
+    /// <param name="InvoiceRoundingAmount">Specifies the InvoiceRoundingAmount parameter.</param>
+    /// <param name="CommitIsSuppressed">Specifies the CommitIsSuppressed parameter.</param>
+    /// <param name="RoundingLineInserted">Specifies the RoundingLineInserted parameter.</param>
+    /// <param name="RoundingLineNo">Specifies the RoundingLineNo parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInvoiceRoundingAmount(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var TotalPurchaseLine: Record "Purchase Line"; UseTempData: Boolean; InvoiceRoundingAmount: Decimal; CommitIsSuppressed: Boolean; RoundingLineInserted: Boolean; RoundingLineNo: Integer)
     begin
@@ -10030,6 +10123,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterInsertedPrepmtVATBaseToDeduct.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="PrepmtLineNo">Specifies the PrepmtLineNo parameter.</param>
+    /// <param name="TotalPrepmtAmtToDeduct">Specifies the TotalPrepmtAmtToDeduct parameter.</param>
+    /// <param name="TempPrepmtDeductLCYPurchLine">Specifies the TempPrepmtDeductLCYPurchLine parameter.</param>
+    /// <param name="PrepmtVATBaseToDeduct">Specifies the PrepmtVATBaseToDeduct parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertedPrepmtVATBaseToDeduct(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; PrepmtLineNo: Integer; TotalPrepmtAmtToDeduct: Decimal; var TempPrepmtDeductLCYPurchLine: Record "Purchase Line" temporary; var PrepmtVATBaseToDeduct: Decimal)
     begin
@@ -10039,6 +10137,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPostAssocItemJnlLine.
     /// </summary>
     /// <param name="ItemJnlLine"></param>
+    /// <param name="ItemJnlPostLine">Specifies the ItemJnlPostLine parameter.</param>
+    /// <param name="SalesLineOrder">Specifies the SalesLineOrder parameter.</param>
+    /// <param name="SalesOrderHeader">Specifies the SalesOrderHeader parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostAssocItemJnlLine(var ItemJnlLine: Record "Item Journal Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var SalesLineOrder: Record "Sales Line"; var SalesOrderHeader: Record "Sales Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary)
     begin
@@ -10048,6 +10150,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPostCombineSalesOrderShipment.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostCombineSalesOrderShipment(var PurchaseHeader: Record "Purchase Header"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary)
     begin
@@ -10064,6 +10167,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPostItemJnlLineCopyProdOrder.
     /// </summary>
     /// <param name="ItemJnlLine"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="QtyToBeReceived">Specifies the QtyToBeReceived parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemJnlLineCopyProdOrder(var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line"; PurchRcptHeader: Record "Purch. Rcpt. Header"; QtyToBeReceived: Decimal; CommitIsSupressed: Boolean; QtyToBeInvoiced: Decimal)
     begin
@@ -10074,6 +10182,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPostItemJnlLineItemCharges.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemJnlLineItemCharges(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line")
     begin
@@ -10083,6 +10192,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPostItemChargePerOrder.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemChargePerOrder(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line")
     begin
@@ -10092,6 +10202,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPostItemTrackingLine.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="InvtPickPutaway">Specifies the InvtPickPutaway parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemTrackingLine(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; WhseReceive: Boolean; WhseShip: Boolean; InvtPickPutaway: Boolean)
     begin
@@ -10119,6 +10233,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPurchRcptHeaderInsert.
     /// </summary>
     /// <param name="PurchRcptHeader"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPurchRcptHeaderInsert(var PurchRcptHeader: Record "Purch. Rcpt. Header"; var PurchaseHeader: Record "Purchase Header"; CommitIsSupressed: Boolean; PreviewMode: Boolean)
     begin
@@ -10128,6 +10245,17 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPurchRcptLineInsert.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="PurchRcptLine">Specifies the PurchRcptLine parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="TempWhseRcptHeader">Specifies the TempWhseRcptHeader parameter.</param>
+    /// <param name="xPurchLine">Specifies the xPurchLine parameter.</param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPurchRcptLineInsert(PurchaseLine: Record "Purchase Line"; var PurchRcptLine: Record "Purch. Rcpt. Line"; ItemLedgShptEntryNo: Integer; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSupressed: Boolean; PurchInvHeader: Record "Purch. Inv. Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; PurchRcptHeader: Record "Purch. Rcpt. Header"; TempWhseRcptHeader: Record "Warehouse Receipt Header"; xPurchLine: Record "Purchase Line"; var TempPurchLineGlobal: Record "Purchase Line" temporary)
     begin
@@ -10137,6 +10265,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPurchInvHeaderInsert.
     /// </summary>
     /// <param name="PurchInvHeader"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPurchInvHeaderInsert(var PurchInvHeader: Record "Purch. Inv. Header"; var PurchHeader: Record "Purchase Header"; PreviewMode: Boolean)
     begin
@@ -10146,6 +10276,16 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPurchInvLineInsert.
     /// </summary>
     /// <param name="PurchInvLine"></param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="TempWhseRcptHeader">Specifies the TempWhseRcptHeader parameter.</param>
+    /// <param name="ItemJnlPostLine">Specifies the ItemJnlPostLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPurchInvLineInsert(var PurchInvLine: Record "Purch. Inv. Line"; PurchInvHeader: Record "Purch. Inv. Header"; PurchLine: Record "Purchase Line"; ItemLedgShptEntryNo: Integer; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSupressed: Boolean; PurchHeader: Record "Purchase Header"; PurchRcptHeader: Record "Purch. Rcpt. Header"; TempWhseRcptHeader: Record "Warehouse Receipt Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     begin
@@ -10155,6 +10295,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPurchCrMemoHeaderInsert.
     /// </summary>
     /// <param name="PurchCrMemoHdr"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPurchCrMemoHeaderInsert(var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var PurchHeader: Record "Purchase Header"; CommitIsSupressed: Boolean; PreviewMode: Boolean)
     begin
@@ -10164,6 +10307,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPurchCrMemoLineInsert.
     /// </summary>
     /// <param name="PurchCrMemoLine"></param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="RoundingLineInserted">Specifies the RoundingLineInserted parameter.</param>
+    /// <param name="ItemJnlPostLine">Specifies the ItemJnlPostLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPurchCrMemoLineInsert(var PurchCrMemoLine: Record "Purch. Cr. Memo Line"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var PurchLine: Record "Purchase Line"; CommitIsSupressed: Boolean; var PurchaseHeader: Record "Purchase Header"; GenJnlLineDocNo: Code[20]; RoundingLineInserted: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     begin
@@ -10173,6 +10323,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterReturnShptHeaderInsert.
     /// </summary>
     /// <param name="ReturnShptHeader"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterReturnShptHeaderInsert(var ReturnShptHeader: Record "Return Shipment Header"; var PurchHeader: Record "Purchase Header"; CommitIsSupressed: Boolean)
     begin
@@ -10182,6 +10334,15 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterReturnShptLineInsert.
     /// </summary>
     /// <param name="ReturnShptLine"></param>
+    /// <param name="ReturnShptHeader">Specifies the ReturnShptHeader parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="TempWhseShptHeader">Specifies the TempWhseShptHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="xPurchLine">Specifies the xPurchLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterReturnShptLineInsert(var ReturnShptLine: Record "Return Shipment Line"; ReturnShptHeader: Record "Return Shipment Header"; PurchLine: Record "Purchase Line"; ItemLedgShptEntryNo: Integer; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSupressed: Boolean; var TempWhseShptHeader: Record "Warehouse Shipment Header" temporary; PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; xPurchLine: Record "Purchase Line")
     begin
@@ -10200,6 +10361,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterSalesShptHeaderInsert.
     /// </summary>
     /// <param name="SalesShipmentHeader"></param>
+    /// <param name="SalesOrderHeader">Specifies the SalesOrderHeader parameter.</param>
+    /// <param name="CommitIsSuppressed">Specifies the CommitIsSuppressed parameter.</param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSalesShptHeaderInsert(var SalesShipmentHeader: Record "Sales Shipment Header"; SalesOrderHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; PurchHeader: Record "Purchase Header")
     begin
@@ -10209,6 +10373,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterSalesShptLineInsert.
     /// </summary>
     /// <param name="SalesShptLine"></param>
+    /// <param name="SalesShptHeader">Specifies the SalesShptHeader parameter.</param>
+    /// <param name="SalesOrderLine">Specifies the SalesOrderLine parameter.</param>
+    /// <param name="CommitIsSuppressed">Specifies the CommitIsSuppressed parameter.</param>
+    /// <param name="DropShptPostBuffer">Specifies the DropShptPostBuffer parameter.</param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSalesShptLineInsert(var SalesShptLine: Record "Sales Shipment Line"; SalesShptHeader: Record "Sales Shipment Header"; SalesOrderLine: Record "Sales Line"; CommitIsSuppressed: Boolean; DropShptPostBuffer: Record "Drop Shpt. Post. Buffer"; var TempPurchLineGlobal: Record "Purchase Line" temporary)
     begin
@@ -10218,6 +10387,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPostAccICLine.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostAccICLine(PurchaseLine: Record "Purchase Line"; CommitIsSupressed: Boolean; var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
     begin
@@ -10227,6 +10400,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPostItemLine.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToBeInvoicedBase">Specifies the RemQtyToBeInvoicedBase parameter.</param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterPostItemLine(PurchaseLine: Record "Purchase Line"; CommitIsSupressed: Boolean; PurchaseHeader: Record "Purchase Header"; RemQtyToBeInvoiced: Decimal; RemQtyToBeInvoicedBase: Decimal; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary)
     begin
@@ -10236,6 +10414,14 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPostItemJnlLine.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="ItemJnlPostLine">Specifies the ItemJnlPostLine parameter.</param>
+    /// <param name="WhseJnlRegisterLine">Specifies the WhseJnlRegisterLine parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseRcptHeader">Specifies the WhseRcptHeader parameter.</param>
+    /// <param name="WhseShptHeader">Specifies the WhseShptHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line"; var WhseReceive: Boolean; var WhseShip: Boolean; var WhseRcptHeader: Record "Warehouse Receipt Header"; var WhseShptHeader: Record "Warehouse Shipment Header")
     begin
@@ -10245,6 +10431,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPostWhseJnlLine.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="ItemLedgEntryNo">Specifies the ItemLedgEntryNo parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostWhseJnlLine(var PurchaseLine: Record "Purchase Line"; ItemLedgEntryNo: Integer; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSupressed: Boolean)
     begin
@@ -10254,6 +10444,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPostUpdateOrderLine.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostUpdateOrderLine(var PurchaseLine: Record "Purchase Line"; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSupressed: Boolean)
     begin
@@ -10263,6 +10456,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPostInvoice.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
+    /// <param name="TotalPurchLine">Specifies the TotalPurchLine parameter.</param>
+    /// <param name="TotalPurchLineLCY">Specifies the TotalPurchLineLCY parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="VendorLedgerEntry">Specifies the VendorLedgerEntry parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostInvoice(var PurchHeader: Record "Purchase Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; TotalPurchLine: Record "Purchase Line"; TotalPurchLineLCY: Record "Purchase Line"; CommitIsSupressed: Boolean; var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
@@ -10272,6 +10470,18 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPostPurchLine.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="PurchInvLine">Specifies the PurchInvLine parameter.</param>
+    /// <param name="PurchCrMemoLine">Specifies the PurchCrMemoLine parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="PurchLineACY">Specifies the PurchLineACY parameter.</param>
+    /// <param name="GenJnlLineDocType">Specifies the GenJnlLineDocType parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="GenJnlLineExtDocNo">Specifies the GenJnlLineExtDocNo parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
+    /// <param name="xPurchaseLine">Specifies the xPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostPurchLine(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; CommitIsSupressed: Boolean; var PurchInvLine: Record "Purch. Inv. Line"; var PurchCrMemoLine: Record "Purch. Cr. Memo Line"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var PurchLineACY: Record "Purchase Line"; GenJnlLineDocType: Enum "Gen. Journal Document Type"; GenJnlLineDocNo: Code[20]; GenJnlLineExtDocNo: Code[35]; SrcCode: Code[10]; xPurchaseLine: Record "Purchase Line")
     begin
@@ -10281,6 +10491,15 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterProcessPurchLines.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="ReturnShipmentHeader">Specifies the ReturnShipmentHeader parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="PurchLinesProcessed">Specifies the PurchLinesProcessed parameter.</param>
+    /// <param name="CommitIsSuppressed">Specifies the CommitIsSuppressed parameter.</param>
+    /// <param name="EverythingInvoiced">Specifies the EverythingInvoiced parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessPurchLines(var PurchHeader: Record "Purchase Header"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var ReturnShipmentHeader: Record "Return Shipment Header"; WhseShip: Boolean; WhseReceive: Boolean; var PurchLinesProcessed: Boolean; CommitIsSuppressed: Boolean; EverythingInvoiced: Boolean)
     begin
@@ -10290,6 +10509,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterProcessAssocItemJnlLine.
     /// </summary>
     /// <param name="PurchLine"></param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessAssocItemJnlLine(var PurchLine: Record "Purchase Line"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary)
     begin
@@ -10326,6 +10546,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterRestorePurchaseHeader.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseHeaderCopy">Specifies the PurchaseHeaderCopy parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterRestorePurchaseHeader(var PurchaseHeader: Record "Purchase Header"; PurchaseHeaderCopy: Record "Purchase Header")
     begin
@@ -10344,6 +10565,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterRoundAmount.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="PurchLineQty">Specifies the PurchLineQty parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterRoundAmount(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; PurchLineQty: Decimal)
     begin
@@ -10353,6 +10576,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterSaveTempWhseSplitSpec.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSaveTempWhseSplitSpec(PurchaseLine: Record "Purchase Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary)
     begin
@@ -10372,6 +10596,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterTestPurchLine.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterTestPurchLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; WhseReceive: Boolean; WhseShip: Boolean)
     begin
@@ -10381,6 +10608,14 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterUpdateInvoicedQtyOnPurchRcptLine.
     /// </summary>
     /// <param name="PurchInvHeader"></param>
+    /// <param name="PurchRcptLine">Specifies the PurchRcptLine parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="TrackingSpecificationExists">Specifies the TrackingSpecificationExists parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="CommitIsSuppressed">Specifies the CommitIsSuppressed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateInvoicedQtyOnPurchRcptLine(var PurchInvHeader: Record "Purch. Inv. Header"; var PurchRcptLine: Record "Purch. Rcpt. Line"; var PurchaseLine: Record "Purchase Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; TrackingSpecificationExists: Boolean; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; var PurchaseHeader: Record "Purchase Header"; CommitIsSuppressed: Boolean)
     begin
@@ -10390,6 +10625,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterUpdateInvoicedQtyOnReturnShptLine.
     /// </summary>
     /// <param name="PurchCrMemoHdr"></param>
+    /// <param name="ReturnShipmentLine">Specifies the ReturnShipmentLine parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="TrackingSpecificationExists">Specifies the TrackingSpecificationExists parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateInvoicedQtyOnReturnShptLine(PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var ReturnShipmentLine: Record "Return Shipment Line"; PurchaseLine: Record "Purchase Line"; TempTrackingSpecification: Record "Tracking Specification" temporary; TrackingSpecificationExists: Boolean; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal)
     begin
@@ -10408,6 +10649,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterUpdatePurchLineBeforePost.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="RoundingLineInserted">Specifies the RoundingLineInserted parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdatePurchLineBeforePost(var PurchaseLine: Record "Purchase Line"; WhseShip: Boolean; WhseReceive: Boolean; PurchaseHeader: Record "Purchase Header"; RoundingLineInserted: Boolean)
     begin
@@ -10417,6 +10662,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterUpdatePrepmtPurchLineWithRounding.
     /// </summary>
     /// <param name="PrepmtPurchLine"></param>
+    /// <param name="TotalRoundingAmount">Specifies the TotalRoundingAmount parameter.</param>
+    /// <param name="TotalPrepmtAmount">Specifies the TotalPrepmtAmount parameter.</param>
+    /// <param name="FinalInvoice">Specifies the FinalInvoice parameter.</param>
+    /// <param name="PricesInclVATRoundingAmount">Specifies the PricesInclVATRoundingAmount parameter.</param>
+    /// <param name="TotalPurchLine">Specifies the TotalPurchLine parameter.</param>
+    /// <param name="TotalPurchLineLCY">Specifies the TotalPurchLineLCY parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdatePrepmtPurchLineWithRounding(var PrepmtPurchLine: Record "Purchase Line"; TotalRoundingAmount: array[2] of Decimal; TotalPrepmtAmount: array[2] of Decimal; FinalInvoice: Boolean; PricesInclVATRoundingAmount: array[2] of Decimal; var TotalPurchLine: Record "Purchase Line"; var TotalPurchLineLCY: Record "Purchase Line")
     begin
@@ -10426,6 +10677,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterUpdatePurchaseHeader.
     /// </summary>
     /// <param name="VendorLedgerEntry"></param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="GenJnlLineDocType">Specifies the GenJnlLineDocType parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdatePurchaseHeader(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; GenJnlLineDocType: Integer; GenJnlLineDocNo: Code[20]; PreviewMode: Boolean; var PurchaseHeader: Record "Purchase Header")
     begin
@@ -10435,6 +10692,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterUpdatePurchLineDimSetIDFromAppliedEntry.
     /// </summary>
     /// <param name="PurchLineToPost"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdatePurchLineDimSetIDFromAppliedEntry(var PurchLineToPost: Record "Purchase Line"; PurchLine: Record "Purchase Line")
     begin
@@ -10444,6 +10702,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterValidatePostingAndDocumentDate.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="CommitIsSuppressed">Specifies the CommitIsSuppressed parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidatePostingAndDocumentDate(var PurchaseHeader: Record "Purchase Header"; CommitIsSuppressed: Boolean; PreviewMode: Boolean)
     begin
@@ -10453,6 +10713,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeAddAssociatedOrderLineToBuffer.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="SalesOrderLine">Specifies the SalesOrderLine parameter.</param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAddAssociatedOrderLineToBuffer(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; SalesOrderLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary; var IsHandled: Boolean)
     begin
@@ -10471,6 +10735,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnModifyTempLineOnBeforeTransferFields.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnModifyTempLineOnBeforeTransferFields(var PurchaseLine: Record "Purchase Line"; var TempPurchaseLine: Record "Purchase Line" temporary)
     begin
@@ -10480,6 +10745,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeAdjustQuantityRoundingForReceipt.
     /// </summary>
     /// <param name="PurchRcptLine"></param>
+    /// <param name="RemQtyToInvoiceCurrLine">Specifies the RemQtyToInvoiceCurrLine parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToInvoiceCurrLineBase">Specifies the RemQtyToInvoiceCurrLineBase parameter.</param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAdjustQuantityRoundingForReceipt(PurchRcptLine: Record "Purch. Rcpt. Line"; RemQtyToInvoiceCurrLine: Decimal; var QtyToBeInvoiced: Decimal; RemQtyToInvoiceCurrLineBase: Decimal; QtyToBeInvoicedBase: Decimal; var IsHandled: Boolean)
     begin
@@ -10489,6 +10759,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeArchiveUnpostedOrder.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="OrderArchived">Specifies the OrderArchived parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeArchiveUnpostedOrder(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean; var OrderArchived: Boolean; PreviewMode: Boolean)
     begin
@@ -10498,6 +10771,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeArchiveSalesOrders.
     /// </summary>
     /// <param name="TempDropShptPostBuffer"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeArchiveSalesOrders(var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var IsHandled: Boolean)
     begin
@@ -10507,6 +10781,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeBlanketOrderPurchLineModify.
     /// </summary>
     /// <param name="BlanketOrderPurchLine"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="Ship">Specifies the Ship parameter.</param>
+    /// <param name="Receive">Specifies the Receive parameter.</param>
+    /// <param name="Invoice">Specifies the Invoice parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeBlanketOrderPurchLineModify(var BlanketOrderPurchLine: Record "Purchase Line"; PurchLine: Record "Purchase Line"; Ship: Boolean; Receive: Boolean; Invoice: Boolean)
     begin
@@ -10516,6 +10794,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCalcInvoice.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="NewInvoice">Specifies the NewInvoice parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcInvoice(var PurchHeader: Record "Purchase Header"; var NewInvoice: Boolean; var IsHandled: Boolean)
     begin
@@ -10526,6 +10806,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCalculateAmountsInclVAT.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="TempVATAmountLine">Specifies the TempVATAmountLine parameter.</param>
+    /// <param name="TempVATAmountLineRemainder">Specifies the TempVATAmountLineRemainder parameter.</param>
+    /// <param name="Currency">Specifies the Currency parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalculateAmountsInclVAT(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary; Currency: Record Currency; var IsHandled: Boolean)
     begin
@@ -10535,6 +10820,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCalculateInvoiceEverything.
     /// </summary>
     /// <param name="TempPurchaseLine"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="InvoiceEverything">Specifies the InvoiceEverything parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalculateInvoiceEverything(var TempPurchaseLine: Record "Purchase Line" temporary; PurchaseHeader: Record "Purchase Header"; var InvoiceEverything: Boolean; var IsHandled: Boolean)
     begin
@@ -10545,6 +10833,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCalcLineAmountAndLineDiscountAmount.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="PurchLineQty">Specifies the PurchLineQty parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="Currency">Specifies the Currency parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCalcLineAmountAndLineDiscountAmount(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; PurchLineQty: Decimal; var IsHandled: Boolean; Currency: Record Currency)
     begin
@@ -10556,6 +10848,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckDropShipmentReceiveInvoice.
     /// </summary>
     /// <param name="PurchLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckDropShipmentReceiveInvoice(PurchLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -10566,6 +10859,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckDocumentTotalAmounts.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeCheckDocumentTotalAmounts(PurchHeader: Record "Purchase Header"; PreviewMode: Boolean; var IsHandled: Boolean)
     begin
@@ -10575,6 +10870,16 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckExternalDocumentNumber.
     /// </summary>
     /// <param name="VendorLedgerEntry"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="Handled">Specifies the Handled parameter.</param>
+    /// <param name="DocType">Specifies the DocType parameter.</param>
+    /// <param name="ExtDocNo">Specifies the ExtDocNo parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
+    /// <param name="GenJnlLineDocType">Specifies the GenJnlLineDocType parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
+    /// <param name="TotalPurchLine">Specifies the TotalPurchLine parameter.</param>
+    /// <param name="TotalPurchLineLCY">Specifies the TotalPurchLineLCY parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckExternalDocumentNumber(VendorLedgerEntry: Record "Vendor Ledger Entry"; PurchaseHeader: Record "Purchase Header"; var Handled: Boolean; DocType: Option; ExtDocNo: Text[35]; SrcCode: Code[10]; GenJnlLineDocType: Enum "Gen. Journal Document Type"; GenJnlLineDocNo: Code[20]; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var TotalPurchLine: Record "Purchase Line"; var TotalPurchLineLCY: Record "Purchase Line")
     begin
@@ -10584,6 +10889,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckExtDocNo.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="DocumentType">Specifies the DocumentType parameter.</param>
+    /// <param name="ExtDocNo">Specifies the ExtDocNo parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckExtDocNo(PurchaseHeader: Record "Purchase Header"; DocumentType: Enum "Gen. Journal Document Type"; ExtDocNo: Text[35]; var IsHandled: Boolean)
     begin
@@ -10593,6 +10901,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckGLAccDirectPosting.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckGLAccDirectPosting(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -10602,6 +10911,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckICDocumentDuplicatePosting.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckICDocumentDuplicatePosting(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -10611,6 +10921,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckIfInvPutawayExists.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckIfInvPutawayExists(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -10620,6 +10931,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckHeaderPostingType.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckHeaderPostingType(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -10629,6 +10941,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckFieldsOnReturnShipmentLine.
     /// </summary>
     /// <param name="ReturnShipmentLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckFieldsOnReturnShipmentLine(var ReturnShipmentLine: Record "Return Shipment Line"; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -10638,6 +10952,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterCheckFieldsOnReturnShipmentLine.
     /// </summary>
     /// <param name="ReturnShipmentLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckFieldsOnReturnShipmentLine(ReturnShipmentLine: Record "Return Shipment Line"; PurchaseLine: Record "Purchase Line")
     begin
@@ -10647,6 +10962,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckPrepmtAmtToDeduct.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPrepmtAmtToDeduct(PurchaseHeader: Record "Purchase Header"; var TempPurchaseLine: Record "Purchase Line" temporary; var IsHandled: Boolean)
     begin
@@ -10656,6 +10973,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckPurchRcptLine.
     /// </summary>
     /// <param name="PurchRcptLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -10665,6 +10984,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckTrackingSpecification.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TempItemPurchLine">Specifies the TempItemPurchLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckTrackingSpecification(PurchHeader: Record "Purchase Header"; var TempItemPurchLine: Record "Purchase Line" temporary);
     begin
@@ -10674,6 +10994,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckTrackingAndWarehouseForShip.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
+    /// <param name="Ship">Specifies the Ship parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckTrackingAndWarehouseForShip(PurchHeader: Record "Purchase Header"; var TempPurchLineGlobal: Record "Purchase Line" temporary; var Ship: Boolean; var IsHandled: Boolean);
     begin
@@ -10683,6 +11006,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckWarehouse.
     /// </summary>
     /// <param name="TempItemPurchLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckWarehouse(var TempItemPurchLine: Record "Purchase Line" temporary; var IsHandled: Boolean)
     begin
@@ -10692,6 +11016,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckWhseRcptLineQtyToReceive.
     /// </summary>
     /// <param name="WhseRcptLine"></param>
+    /// <param name="PurchRcptLine">Specifies the PurchRcptLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckWhseRcptLineQtyToReceive(var WhseRcptLine: Record "Warehouse Receipt Line"; var PurchRcptLine: Record "Purch. Rcpt. Line"; var IsHandled: Boolean)
     begin
@@ -10701,6 +11027,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeClearRemAmt.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="ItemJnlRollRndg">Specifies the ItemJnlRollRndg parameter.</param>
+    /// <param name="RemAmt">Specifies the RemAmt parameter.</param>
+    /// <param name="RemDiscAmt">Specifies the RemDiscAmt parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeClearRemAmt(PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean; ItemJnlRollRndg: Boolean; var RemAmt: Decimal; var RemDiscAmt: Decimal)
     begin
@@ -10710,6 +11040,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCreatePositiveEntry.
     /// </summary>
     /// <param name="WarehouseJournalLine"></param>
+    /// <param name="JobNo">Specifies the JobNo parameter.</param>
+    /// <param name="Result">Specifies the Result parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreatePositiveEntry(var WarehouseJournalLine: Record "Warehouse Journal Line"; JobNo: Code[20]; var Result: Boolean; var IsHandled: Boolean)
     begin
@@ -10719,6 +11052,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCreatePostedWhseRcptHeader.
     /// </summary>
     /// <param name="PostedWhseReceiptHeader"></param>
+    /// <param name="WarehouseReceiptHeader">Specifies the WarehouseReceiptHeader parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreatePostedWhseRcptHeader(var PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; PurchaseHeader: Record "Purchase Header")
     begin
@@ -10728,6 +11063,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCreatePostedWhseShptHeader.
     /// </summary>
     /// <param name="PostedWhseShipmentHeader"></param>
+    /// <param name="WarehouseShipmentHeader">Specifies the WarehouseShipmentHeader parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreatePostedWhseShptHeader(var PostedWhseShipmentHeader: Record "Posted Whse. Shipment Header"; WarehouseShipmentHeader: Record "Warehouse Shipment Header"; PurchaseHeader: Record "Purchase Header")
     begin
@@ -10737,6 +11074,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCreatePostedWhseShptLine.
     /// </summary>
     /// <param name="PurchLine"></param>
+    /// <param name="ReturnShptLine">Specifies the ReturnShptLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreatePostedWhseShptLine(PurchLine: Record "Purchase Line"; ReturnShptLine: Record "Return Shipment Line"; var IsHandled: Boolean)
     begin
@@ -10746,6 +11085,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCreatePostedRcptLine.
     /// </summary>
     /// <param name="PurchLine"></param>
+    /// <param name="ReturnShptLine">Specifies the ReturnShptLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreatePostedRcptLine(PurchLine: Record "Purchase Line"; ReturnShptLine: Record "Return Shipment Line"; var IsHandled: Boolean)
     begin
@@ -10755,6 +11096,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCreateWhseLineFromReturnShptLine.
     /// </summary>
     /// <param name="ReturnShptLine"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="CostBaseAmount">Specifies the CostBaseAmount parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateWhseLineFromReturnShptLine(var ReturnShptLine: Record "Return Shipment Line"; PurchLine: Record "Purchase Line"; CostBaseAmount: Decimal; var IsHandled: Boolean)
     begin
@@ -10764,6 +11108,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCommitAndUpdateAnalysisVeiw.
     /// </summary>
     /// <param name="InvtPickPutaway"></param>
+    /// <param name="SuppressCommit">Specifies the SuppressCommit parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCommitAndUpdateAnalysisVeiw(InvtPickPutaway: Boolean; SuppressCommit: Boolean; PreviewMode: Boolean; var IsHandled: Boolean)
     begin
@@ -10773,6 +11120,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCopyAndCheckItemChargeTempPurchLine.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="TempPrepmtPurchaseLine">Specifies the TempPrepmtPurchaseLine parameter.</param>
+    /// <param name="TempItemChargeAssgntPurch">Specifies the TempItemChargeAssgntPurch parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="AssignError">Specifies the AssignError parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopyAndCheckItemChargeTempPurchLine(PurchaseHeader: Record "Purchase Header"; var TempPrepmtPurchaseLine: Record "Purchase Line" temporary; var TempItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)" temporary; var IsHandled: Boolean; var AssignError: Boolean)
     begin
@@ -10782,6 +11133,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCreatePrepmtLines.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="TempPrepmtPurchaseLine">Specifies the TempPrepmtPurchaseLine parameter.</param>
+    /// <param name="CompleteFunctionality">Specifies the CompleteFunctionality parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreatePrepmtLines(PurchaseHeader: Record "Purchase Header"; var TempPrepmtPurchaseLine: Record "Purchase Line" temporary; CompleteFunctionality: Boolean; var IsHandled: Boolean; var TempPurchLineGlobal: Record "Purchase Line" temporary)
     begin
@@ -10791,6 +11146,14 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeDeleteAfterPosting.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="SkipDelete">Specifies the SkipDelete parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="TempPurchLine">Specifies the TempPurchLine parameter.</param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteAfterPosting(var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var SkipDelete: Boolean; CommitIsSupressed: Boolean; var TempPurchLine: Record "Purchase Line" temporary; var TempPurchLineGlobal: Record "Purchase Line" temporary; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
@@ -10800,6 +11163,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeDeleteApprovalEntries.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteApprovalEntries(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean; PurchInvHeader: Record "Purch. Inv. Header"; PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
     begin
@@ -10809,6 +11175,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeDivideAmount.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="QtyType">Specifies the QtyType parameter.</param>
+    /// <param name="PurchLineQty">Specifies the PurchLineQty parameter.</param>
+    /// <param name="TempVATAmountLine">Specifies the TempVATAmountLine parameter.</param>
+    /// <param name="TempVATAmountLineRemainder">Specifies the TempVATAmountLineRemainder parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDivideAmount(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; QtyType: Option General,Invoicing,Shipping; var PurchLineQty: Decimal; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary; var IsHandled: Boolean)
     begin
@@ -10819,6 +11191,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeFinalizePosting.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
+    /// <param name="EverythingInvoiced">Specifies the EverythingInvoiced parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFinalizePosting(var PurchaseHeader: Record "Purchase Header"; var TempPurchLineGlobal: Record "Purchase Line" temporary; var EverythingInvoiced: Boolean; CommitIsSupressed: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
@@ -10828,6 +11204,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeGetInvoicePostingSetup.
     /// </summary>
     /// <param name="InvoicePostingInterface"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetInvoicePostingSetup(var InvoicePostingInterface: Interface "Invoice Posting"; var IsHandled: Boolean)
     begin
@@ -10837,6 +11214,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeInitAssocItemJnlLine.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInitAssocItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; PurchaseHeader: Record "Purchase Header")
     begin
@@ -10848,6 +11228,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeInvoiceRoundingAmount.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TotalAmountIncludingVAT">Specifies the TotalAmountIncludingVAT parameter.</param>
+    /// <param name="UseTempData">Specifies the UseTempData parameter.</param>
+    /// <param name="InvoiceRoundingAmount">Specifies the InvoiceRoundingAmount parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInvoiceRoundingAmount(PurchHeader: Record "Purchase Header"; TotalAmountIncludingVAT: Decimal; UseTempData: Boolean; var InvoiceRoundingAmount: Decimal; CommitIsSupressed: Boolean; var PurchaseLine: Record "Purchase Line")
     begin
@@ -10857,6 +11242,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeInsertICGenJnlLine.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="ICGenJnlLineNo">Specifies the ICGenJnlLineNo parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertICGenJnlLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer; var IsHandled: Boolean)
     begin
@@ -10866,6 +11254,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeInsertPostedHeaders.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="WarehouseReceiptHeader">Specifies the WarehouseReceiptHeader parameter.</param>
+    /// <param name="WarehouseShipmentHeader">Specifies the WarehouseShipmentHeader parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertPostedHeaders(var PurchaseHeader: Record "Purchase Header"; var WarehouseReceiptHeader: Record "Warehouse Receipt Header"; var WarehouseShipmentHeader: Record "Warehouse Shipment Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var IsHandled: Boolean)
     begin
@@ -10875,6 +11268,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeInsertRcptEntryRelation.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="PurchRcptLine">Specifies the PurchRcptLine parameter.</param>
+    /// <param name="TempHandlingSpecification">Specifies the TempHandlingSpecification parameter.</param>
+    /// <param name="TempTrackingSpecificationInv">Specifies the TempTrackingSpecificationInv parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
+    /// <param name="Result">Specifies the Result parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertRcptEntryRelation(PurchaseLine: Record "Purchase Line"; var PurchRcptLine: Record "Purch. Rcpt. Line"; var TempHandlingSpecification: Record "Tracking Specification" temporary; TempTrackingSpecificationInv: Record "Tracking Specification" temporary; ItemLedgShptEntryNo: Integer; var Result: Integer; var IsHandled: Boolean)
     begin
@@ -10884,6 +11283,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeInsertReceiptHeader.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="CommitIsSuppressed">Specifies the CommitIsSuppressed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertReceiptHeader(var PurchHeader: Record "Purchase Header"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var IsHandled: Boolean; CommitIsSuppressed: Boolean)
     begin
@@ -10894,6 +11296,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeInsertReceiptLine.
     /// </summary>
     /// <param name="PurchRcptHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="CostBaseAmount">Specifies the CostBaseAmount parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertReceiptLine(var PurchRcptHeader: Record "Purch. Rcpt. Header"; var PurchLine: Record "Purchase Line"; var CostBaseAmount: Decimal; var IsHandled: Boolean);
     begin
@@ -10903,6 +11308,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeInsertReturnShipmentLine.
     /// </summary>
     /// <param name="ReturnShptHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="CostBaseAmount">Specifies the CostBaseAmount parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertReturnShipmentLine(var ReturnShptHeader: Record "Return Shipment Header"; var PurchLine: Record "Purchase Line"; var CostBaseAmount: Decimal; var IsHandled: Boolean)
     begin
@@ -10912,6 +11320,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeInsertTrackingSpecification.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertTrackingSpecification(PurchHeader: Record "Purchase Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean)
     begin
@@ -10921,6 +11331,16 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeItemJnlPostLine.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="WhseReceiptHeader">Specifies the WhseReceiptHeader parameter.</param>
+    /// <param name="WhseShipmentHeader">Specifies the WhseShipmentHeader parameter.</param>
+    /// <param name="TempItemChargeAssignmentPurch">Specifies the TempItemChargeAssignmentPurch parameter.</param>
+    /// <param name="TempWarehouseReceiptHeader">Specifies the TempWarehouseReceiptHeader parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHeader">Specifies the PurchCrMemoHeader parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeItemJnlPostLine(var ItemJournalLine: Record "Item Journal Line"; PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; CommitIsSupressed: Boolean; var IsHandled: Boolean; WhseReceiptHeader: Record "Warehouse Receipt Header"; WhseShipmentHeader: Record "Warehouse Shipment Header"; TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary; TempWarehouseReceiptHeader: Record "Warehouse Receipt Header" temporary; PurchInvHeader: Record "Purch. Inv. Header"; PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.")
     begin
@@ -10930,6 +11350,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeIsEndLoopForShippedNotInvoiced.
     /// </summary>
     /// <param name="RemQtyToBeInvoiced"></param>
+    /// <param name="TrackingSpecificationExists">Specifies the TrackingSpecificationExists parameter.</param>
+    /// <param name="ReturnShptLine">Specifies the ReturnShptLine parameter.</param>
+    /// <param name="InvoicingTrackingSpecification">Specifies the InvoicingTrackingSpecification parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="EndLoop">Specifies the EndLoop parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsEndLoopForShippedNotInvoiced(RemQtyToBeInvoiced: Decimal; TrackingSpecificationExists: Boolean; var ReturnShptLine: Record "Return Shipment Line"; var InvoicingTrackingSpecification: Record "Tracking Specification"; PurchLine: Record "Purchase Line"; var EndLoop: Boolean; var IsHandled: Boolean)
     begin
@@ -10939,6 +11365,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeIsEndLoopForReceivedNotInvoiced.
     /// </summary>
     /// <param name="RemQtyToBeInvoiced"></param>
+    /// <param name="TrackingSpecificationExists">Specifies the TrackingSpecificationExists parameter.</param>
+    /// <param name="PurchRcptLine">Specifies the PurchRcptLine parameter.</param>
+    /// <param name="InvoicingTrackingSpecification">Specifies the InvoicingTrackingSpecification parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="EndLoop">Specifies the EndLoop parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsEndLoopForReceivedNotInvoiced(RemQtyToBeInvoiced: Decimal; TrackingSpecificationExists: Boolean; var PurchRcptLine: Record "Purch. Rcpt. Line"; var InvoicingTrackingSpecification: Record "Tracking Specification"; PurchLine: Record "Purchase Line"; var EndLoop: Boolean; var IsHandled: Boolean)
     begin
@@ -10948,6 +11380,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeGetPurchRcptLineFromTrackingOrUpdateItemEntryRelation.
     /// </summary>
     /// <param name="PurchRcptLine"></param>
+    /// <param name="TrackingSpecification">Specifies the TrackingSpecification parameter.</param>
+    /// <param name="ItemEntryRelation">Specifies the ItemEntryRelation parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetPurchRcptLineFromTrackingOrUpdateItemEntryRelation(var PurchRcptLine: Record "Purch. Rcpt. Line"; var TrackingSpecification: Record "Tracking Specification"; var ItemEntryRelation: Record "Item Entry Relation"; var IsHandled: Boolean)
     begin
@@ -10966,6 +11401,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeLockTables.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="CommitIsSuppressed">Specifies the CommitIsSuppressed parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="TempPurchaseLineGlobal">Specifies the TempPurchaseLineGlobal parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeLockTables(var PurchHeader: Record "Purchase Header"; PreviewMode: Boolean; CommitIsSuppressed: Boolean; var IsHandled: Boolean; var TempPurchaseLineGlobal: Record "Purchase Line" temporary)
     begin
@@ -10975,6 +11414,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostLines.
     /// </summary>
     /// <param name="PurchLine"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
+    /// <param name="TempWarehouseShipmentHeader">Specifies the TempWarehouseShipmentHeader parameter.</param>
+    /// <param name="TempWarehouseReceiptHeader">Specifies the TempWarehouseReceiptHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostLines(var PurchLine: Record "Purchase Line"; PurchHeader: Record "Purchase Header"; PreviewMode: Boolean; CommitIsSupressed: Boolean; var TempPurchLineGlobal: Record "Purchase Line" temporary; var TempWarehouseShipmentHeader: Record "Warehouse Shipment Header" temporary; var TempWarehouseReceiptHeader: Record "Warehouse Receipt Header" temporary)
     begin
@@ -10984,6 +11429,14 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostDistributeItemCharge.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="TempItemLedgerEntry">Specifies the TempItemLedgerEntry parameter.</param>
+    /// <param name="NonDistrQuantity">Specifies the NonDistrQuantity parameter.</param>
+    /// <param name="NonDistrQtyToAssign">Specifies the NonDistrQtyToAssign parameter.</param>
+    /// <param name="NonDistrAmountToAssign">Specifies the NonDistrAmountToAssign parameter.</param>
+    /// <param name="Sign">Specifies the Sign parameter.</param>
+    /// <param name="IndirectCostPct">Specifies the IndirectCostPct parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostDistributeItemCharge(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var TempItemLedgerEntry: Record "Item Ledger Entry"; NonDistrQuantity: Decimal; NonDistrQtyToAssign: Decimal; NonDistrAmountToAssign: Decimal; Sign: Decimal; IndirectCostPct: Decimal; var IsHandled: Boolean)
     begin
@@ -10993,6 +11446,20 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostInvoice.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="Window">Specifies the Window parameter.</param>
+    /// <param name="HideProgressWindow">Specifies the HideProgressWindow parameter.</param>
+    /// <param name="TotalPurchLine">Specifies the TotalPurchLine parameter.</param>
+    /// <param name="TotalPurchLineLCY">Specifies the TotalPurchLineLCY parameter.</param>
+    /// <param name="InvoicePostingInterface">Specifies the InvoicePostingInterface parameter.</param>
+    /// <param name="InvoicePostingParameters">Specifies the InvoicePostingParameters parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="GenJnlLineExtDocNo">Specifies the GenJnlLineExtDocNo parameter.</param>
+    /// <param name="GenJnlLineDocType">Specifies the GenJnlLineDocType parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostInvoice(var PurchHeader: Record "Purchase Header"; PreviewMode: Boolean; CommitIsSupressed: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var IsHandled: Boolean; var Window: Dialog; HideProgressWindow: Boolean; var TotalPurchLine: Record "Purchase Line"; var TotalPurchLineLCY: Record "Purchase Line"; var InvoicePostingInterface: Interface "Invoice Posting"; var InvoicePostingParameters: Record "Invoice Posting Parameters"; GenJnlLineDocNo: Code[20]; GenJnlLineExtDocNo: Code[35]; GenJnlLineDocType: Enum "Gen. Journal Document Type"; SrcCode: Code[10])
     begin
@@ -11002,6 +11469,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostGLAccICLine.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="ICGenJnlLineNo">Specifies the ICGenJnlLineNo parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostGLAccICLine(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var ICGenJnlLineNo: Integer; var IsHandled: Boolean)
     begin
@@ -11011,6 +11481,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemChargePerSalesShpt.
     /// </summary>
     /// <param name="TempItemChargeAssgntPurch"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemChargePerSalesShpt(var TempItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -11027,6 +11499,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemJnlLineCopyProdOrder.
     /// </summary>
     /// <param name="PurchLine"></param>
+    /// <param name="ItemJnlLine">Specifies the ItemJnlLine parameter.</param>
+    /// <param name="QtyToBeReceived">Specifies the QtyToBeReceived parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostItemJnlLineCopyProdOrder(PurchLine: Record "Purchase Line"; var ItemJnlLine: Record "Item Journal Line"; QtyToBeReceived: Decimal; QtyToBeInvoiced: Decimal; CommitIsSupressed: Boolean; var IsHandled: Boolean)
     begin
@@ -11037,6 +11514,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostPurchaseDoc.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="HideProgressWindow">Specifies the HideProgressWindow parameter.</param>
+    /// <param name="ItemJnlPostLine">Specifies the ItemJnlPostLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostPurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; CommitIsSupressed: Boolean; var HideProgressWindow: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var IsHandled: Boolean)
     begin
@@ -11046,6 +11528,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostCommitPurchaseDoc.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="ModifyHeader">Specifies the ModifyHeader parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostCommitPurchaseDoc(var PurchaseHeader: Record "Purchase Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; PreviewMode: Boolean; var ModifyHeader: Boolean; var CommitIsSupressed: Boolean; var TempPurchLineGlobal: Record "Purchase Line" temporary)
     begin
@@ -11056,6 +11543,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeProcessAssocItemJnlLine.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
+    /// <param name="ItemJnlPostLine">Specifies the ItemJnlPostLine parameter.</param>
+    /// <param name="SourceCode">Specifies the SourceCode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProcessAssocItemJnlLine(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var TempTrackingSpecification: Record "Tracking Specification" temporary; ItemLedgShptEntryNo: Integer; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; SourceCode: Code[10])
     begin
@@ -11074,6 +11567,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePurchLineDeleteAll.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="TempPurchLine">Specifies the TempPurchLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePurchLineDeleteAll(var PurchaseLine: Record "Purchase Line"; CommitIsSupressed: Boolean; var TempPurchLine: Record "Purchase Line" temporary)
     begin
@@ -11083,6 +11578,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePurchRcptHeaderInsert.
     /// </summary>
     /// <param name="PurchRcptHeader"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="WarehouseReceiptHeader">Specifies the WarehouseReceiptHeader parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="WarehouseShipmentHeader">Specifies the WarehouseShipmentHeader parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePurchRcptHeaderInsert(var PurchRcptHeader: Record "Purch. Rcpt. Header"; var PurchaseHeader: Record "Purchase Header"; CommitIsSupressed: Boolean; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; WhseReceive: Boolean; WarehouseShipmentHeader: Record "Warehouse Shipment Header"; WhseShip: Boolean)
     begin
@@ -11092,6 +11593,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePurchRcptLineInsert.
     /// </summary>
     /// <param name="PurchRcptLine"></param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="PostedWhseRcptLine">Specifies the PostedWhseRcptLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePurchRcptLineInsert(var PurchRcptLine: Record "Purch. Rcpt. Line"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var PurchLine: Record "Purchase Line"; CommitIsSupressed: Boolean; PostedWhseRcptLine: Record "Posted Whse. Receipt Line"; var IsHandled: Boolean; ItemLedgShptEntryNo: Integer)
     begin
@@ -11101,6 +11608,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePurchInvHeaderInsert.
     /// </summary>
     /// <param name="PurchInvHeader"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePurchInvHeaderInsert(var PurchInvHeader: Record "Purch. Inv. Header"; var PurchHeader: Record "Purchase Header"; CommitIsSupressed: Boolean)
     begin
@@ -11110,6 +11619,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePurchInvLineInsert.
     /// </summary>
     /// <param name="PurchInvLine"></param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="xPurchaseLine">Specifies the xPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePurchInvLineInsert(var PurchInvLine: Record "Purch. Inv. Line"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchaseLine: Record "Purchase Line"; CommitIsSupressed: Boolean; var xPurchaseLine: Record "Purchase Line")
     begin
@@ -11119,6 +11632,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePurchCrMemoHeaderInsert.
     /// </summary>
     /// <param name="PurchCrMemoHdr"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePurchCrMemoHeaderInsert(var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var PurchHeader: Record "Purchase Header"; CommitIsSupressed: Boolean)
     begin
@@ -11128,6 +11643,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePurchCrMemoLineInsert.
     /// </summary>
     /// <param name="PurchCrMemoLine"></param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="xPurchaseLine">Specifies the xPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePurchCrMemoLineInsert(var PurchCrMemoLine: Record "Purch. Cr. Memo Line"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var PurchLine: Record "Purchase Line"; CommitIsSupressed: Boolean; var xPurchaseLine: Record "Purchase Line")
     begin
@@ -11137,6 +11656,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeReleasePurchDoc.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReleasePurchDoc(var PurchHeader: Record "Purchase Header"; PreviewMode: Boolean);
     begin
@@ -11146,6 +11666,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeReturnShptHeaderInsert.
     /// </summary>
     /// <param name="ReturnShptHeader"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="WarehouseReceiptHeader">Specifies the WarehouseReceiptHeader parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="WarehouseShipmentHeader">Specifies the WarehouseShipmentHeader parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReturnShptHeaderInsert(var ReturnShptHeader: Record "Return Shipment Header"; var PurchHeader: Record "Purchase Header"; CommitIsSupressed: Boolean; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; WhseReceive: Boolean; WarehouseShipmentHeader: Record "Warehouse Shipment Header"; WhseShip: Boolean)
     begin
@@ -11155,6 +11681,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeReturnShptLineInsert.
     /// </summary>
     /// <param name="ReturnShptLine"></param>
+    /// <param name="ReturnShptHeader">Specifies the ReturnShptHeader parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeReturnShptLineInsert(var ReturnShptLine: Record "Return Shipment Line"; var ReturnShptHeader: Record "Return Shipment Header"; var PurchLine: Record "Purchase Line"; CommitIsSupressed: Boolean)
     begin
@@ -11164,6 +11693,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeRoundAmount.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="PurchLineQty">Specifies the PurchLineQty parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRoundAmount(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; PurchLineQty: Decimal)
     begin
@@ -11173,6 +11704,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeSalesShptHeaderInsert.
     /// </summary>
     /// <param name="SalesShptHeader"></param>
+    /// <param name="SalesOrderHeader">Specifies the SalesOrderHeader parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesShptHeaderInsert(var SalesShptHeader: Record "Sales Shipment Header"; SalesOrderHeader: Record "Sales Header"; CommitIsSupressed: Boolean; var PurchaseHeader: Record "Purchase Header")
     begin
@@ -11182,6 +11716,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeSalesShptLineInsert.
     /// </summary>
     /// <param name="SalesShptLine"></param>
+    /// <param name="SalesShptHeader">Specifies the SalesShptHeader parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="DropShptPostBuffer">Specifies the DropShptPostBuffer parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSalesShptLineInsert(var SalesShptLine: Record "Sales Shipment Line"; SalesShptHeader: Record "Sales Shipment Header"; SalesLine: Record "Sales Line"; CommitIsSupressed: Boolean; DropShptPostBuffer: Record "Drop Shpt. Post. Buffer"; var IsHandled: Boolean)
     begin
@@ -11191,6 +11730,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeSetCheckApplToItemEntry.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="Result">Specifies the Result parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="ItemJournalLine">Specifies the ItemJournalLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetCheckApplToItemEntry(var PurchaseLine: Record "Purchase Line"; var Result: Boolean; var IsHandled: Boolean; PurchaseHeader: Record "Purchase Header"; ItemJournalLine: Record "Item Journal Line")
     begin
@@ -11202,6 +11745,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostCombineSalesOrderShipment.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
+    /// <param name="SalesShipmentHeader">Specifies the SalesShipmentHeader parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
+    /// <param name="ItemJnlPostLine">Specifies the ItemJnlPostLine parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="TempHandlingSpecification">Specifies the TempHandlingSpecification parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostCombineSalesOrderShipment(var PurchaseHeader: Record "Purchase Header"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var SalesShipmentHeader: Record "Sales Shipment Header"; var ItemLedgShptEntryNo: Integer; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TempHandlingSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean)
     begin
@@ -11213,6 +11763,19 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemJnlLine.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="QtyToBeReceived">Specifies the QtyToBeReceived parameter.</param>
+    /// <param name="QtyToBeReceivedBase">Specifies the QtyToBeReceivedBase parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
+    /// <param name="ItemChargeNo">Specifies the ItemChargeNo parameter.</param>
+    /// <param name="TrackingSpecification">Specifies the TrackingSpecification parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="ItemJnlPostLine">Specifies the ItemJnlPostLine parameter.</param>
+    /// <param name="Result">Specifies the Result parameter.</param>
+    /// <param name="WarehouseReceiptHeader">Specifies the WarehouseReceiptHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemJnlLine(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var QtyToBeReceived: Decimal; var QtyToBeReceivedBase: Decimal; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; var ItemLedgShptEntryNo: Integer; var ItemChargeNo: Code[20]; var TrackingSpecification: Record "Tracking Specification"; CommitIsSupressed: Boolean; var IsHandled: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var Result: Integer; var WarehouseReceiptHeader: Record "Warehouse Receipt Header")
     begin
@@ -11222,6 +11785,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemJnlLineItemCharges.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemJnlLineItemCharges(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -11231,6 +11796,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostAssocItemJnlLine.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostAssocItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; var SalesLine: Record "Sales Line"; CommitIsSupressed: Boolean; var PurchaseLine: Record "Purchase Line")
     begin
@@ -11240,6 +11808,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemChargePerOrder.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="ItemJnlLine2">Specifies the ItemJnlLine2 parameter.</param>
+    /// <param name="ItemChargePurchLine">Specifies the ItemChargePurchLine parameter.</param>
+    /// <param name="TempTrackingSpecificationChargeAssmt">Specifies the TempTrackingSpecificationChargeAssmt parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="TempItemChargeAssgntPurch">Specifies the TempItemChargeAssgntPurch parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemChargePerOrder(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var ItemJnlLine2: Record "Item Journal Line"; var ItemChargePurchLine: Record "Purchase Line"; var TempTrackingSpecificationChargeAssmt: Record "Tracking Specification" temporary; CommitIsSupressed: Boolean; var TempItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)" temporary; var IsHandled: Boolean)
     begin
@@ -11249,6 +11824,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemChargeLineProcedure.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemChargeLineProcedure(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -11258,6 +11835,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemLine.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
+    /// <param name="RemQtyToBeInvoicedBase">Specifies the RemQtyToBeInvoicedBase parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemLine(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; PurchRcptHeader: Record "Purch. Rcpt. Header"; var RemQtyToBeInvoiced: Decimal; var TempPurchLineGlobal: Record "Purchase Line" temporary; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var RemQtyToBeInvoicedBase: Decimal; var IsHandled: Boolean)
     begin
@@ -11267,6 +11851,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemJnlLineJobConsumption.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
+    /// <param name="SourceCode">Specifies the SourceCode parameter.</param>
+    /// <param name="PostJobConsumptionBeforePurch">Specifies the PostJobConsumptionBeforePurch parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostItemJnlLineJobConsumption(var ItemJournalLine: Record "Item Journal Line"; var PurchaseLine: Record "Purchase Line"; PurchInvHeader: Record "Purch. Inv. Header"; PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; SourceCode: Code[10]; var PostJobConsumptionBeforePurch: Boolean)
     begin
@@ -11276,6 +11867,15 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemTracking.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="TrackingSpecificationExists">Specifies the TrackingSpecificationExists parameter.</param>
+    /// <param name="PreciseTotalChargeAmt">Specifies the PreciseTotalChargeAmt parameter.</param>
+    /// <param name="PreciseTotalChargeAmtACY">Specifies the PreciseTotalChargeAmtACY parameter.</param>
+    /// <param name="RoundedPrevTotalChargeAmt">Specifies the RoundedPrevTotalChargeAmt parameter.</param>
+    /// <param name="RoundedPrevTotalChargeAmtACY">Specifies the RoundedPrevTotalChargeAmtACY parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostItemTracking(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TrackingSpecificationExists: Boolean; var PreciseTotalChargeAmt: Decimal; var PreciseTotalChargeAmtACY: Decimal; var RoundedPrevTotalChargeAmt: Decimal; var RoundedPrevTotalChargeAmtACY: Decimal; var IsHandled: Boolean; RemQtyToBeInvoiced: Decimal)
     begin
@@ -11285,6 +11885,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemTrackingCheckReceipt.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemTrackingCheckReceipt(PurchaseLine: Record "Purchase Line"; RemQtyToBeInvoiced: Decimal; var IsHandled: Boolean)
     begin
@@ -11294,6 +11896,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemTrackingCheckShipment.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemTrackingCheckShipment(PurchaseLine: Record "Purchase Line"; RemQtyToBeInvoiced: Decimal; var IsHandled: Boolean)
     begin
@@ -11303,6 +11907,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemTrackingForReceiptCondition.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="PurchRcptLine">Specifies the PurchRcptLine parameter.</param>
+    /// <param name="Condition">Specifies the Condition parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemTrackingForReceiptCondition(PurchaseLine: Record "Purchase Line"; PurchRcptLine: Record "Purch. Rcpt. Line"; var Condition: Boolean)
     begin
@@ -11312,6 +11918,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemTrackingItemChargePerOrder.
     /// </summary>
     /// <param name="TempTrackingSpecificationChargeAssmt"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="ItemJnlLine2">Specifies the ItemJnlLine2 parameter.</param>
+    /// <param name="TempTrackingSpecificationChargeAssmtCorrect">Specifies the TempTrackingSpecificationChargeAssmtCorrect parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemTrackingItemChargePerOrder(var TempTrackingSpecificationChargeAssmt: Record "Tracking Specification" temporary; var IsHandled: Boolean; var ItemJnlLine2: Record "Item Journal Line"; var TempTrackingSpecificationChargeAssmtCorrect: Record "Tracking Specification" temporary)
     begin
@@ -11321,6 +11930,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemTrackingLineOnPostPurchLine.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToBeInvoicedBase">Specifies the RemQtyToBeInvoicedBase parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostItemTrackingLineOnPostPurchLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; TempTrackingSpecification: Record "Tracking Specification" temporary; PurchInvHeader: Record "Purch. Inv. Header"; PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var RemQtyToBeInvoiced: Decimal; var RemQtyToBeInvoicedBase: Decimal)
     begin
@@ -11330,6 +11946,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemTrackingForShipmentCondition.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="ReturnShipmentLine">Specifies the ReturnShipmentLine parameter.</param>
+    /// <param name="Condition">Specifies the Condition parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemTrackingForShipmentCondition(PurchaseLine: Record "Purchase Line"; ReturnShipmentLine: Record "Return Shipment Line"; var Condition: Boolean)
     begin
@@ -11339,6 +11957,14 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostResourceLine.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
+    /// <param name="GenJnlLineExtDocNo">Specifies the GenJnlLineExtDocNo parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHeader">Specifies the PurchCrMemoHeader parameter.</param>
+    /// <param name="JobPurchLine">Specifies the JobPurchLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostResourceLine(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; SrcCode: Code[10]; GenJnlLineExtDocNo: Code[35]; GenJnlLineDocNo: Code[20]; PurchInvHeader: Record "Purch. Inv. Header"; PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; JobPurchLine: Record "Purchase Line")
     begin
@@ -11348,6 +11974,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostUpdateOrderLine.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
+    /// <param name="CommitIsSuppressed">Specifies the CommitIsSuppressed parameter.</param>
+    /// <param name="PurchSetup">Specifies the PurchSetup parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostUpdateOrderLine(PurchHeader: Record "Purchase Header"; var TempPurchLineGlobal: Record "Purchase Line" temporary; CommitIsSuppressed: Boolean; PurchSetup: Record "Purchases & Payables Setup")
     begin
@@ -11357,6 +11986,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostUpdateOrderLineModifyTempLine.
     /// </summary>
     /// <param name="TempPurchaseLine"></param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="CommitIsSuppressed">Specifies the CommitIsSuppressed parameter.</param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostUpdateOrderLineModifyTempLine(var TempPurchaseLine: Record "Purchase Line" temporary; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSuppressed: Boolean; PurchHeader: Record "Purchase Header")
     begin
@@ -11366,6 +11999,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeRevertWarehouseEntry.
     /// </summary>
     /// <param name="WarehouseJournalLine"></param>
+    /// <param name="JobNo">Specifies the JobNo parameter.</param>
+    /// <param name="PostJobConsumption">Specifies the PostJobConsumption parameter.</param>
+    /// <param name="Result">Specifies the Result parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeRevertWarehouseEntry(var WarehouseJournalLine: Record "Warehouse Journal Line"; JobNo: Code[20]; PostJobConsumption: Boolean; var Result: Boolean; var IsHandled: Boolean)
     begin
@@ -11375,6 +12012,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeSendICDocument.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="ModifyHeader">Specifies the ModifyHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSendICDocument(var PurchHeader: Record "Purchase Header"; var ModifyHeader: Boolean; var IsHandled: Boolean)
     begin
@@ -11384,6 +12023,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeSumPurchLines2.
     /// </summary>
     /// <param name="QtyType"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="VATAmountLine">Specifies the VATAmountLine parameter.</param>
+    /// <param name="InsertPurchLine">Specifies the InsertPurchLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeSumPurchLines2(QtyType: Option; var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var VATAmountLine: Record "VAT Amount Line"; InsertPurchLine: Boolean; var IsHandled: Boolean)
     begin
@@ -11402,6 +12046,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeTempDropShptPostBufferInsert.
     /// </summary>
     /// <param name="TempDropShptPostBuffer"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTempDropShptPostBufferInsert(var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; PurchaseLine: Record "Purchase Line"; var ItemLedgShptEntryNo: Integer)
     begin
@@ -11411,6 +12057,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeTempPrepmtPurchLineInsert.
     /// </summary>
     /// <param name="TempPrepmtPurchLine"></param>
+    /// <param name="TempPurchLine">Specifies the TempPurchLine parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="CompleteFunctionality">Specifies the CompleteFunctionality parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTempPrepmtPurchLineInsert(var TempPrepmtPurchLine: Record "Purchase Line" temporary; var TempPurchLine: Record "Purchase Line" temporary; PurchaseHeader: Record "Purchase Header"; CompleteFunctionality: Boolean)
     begin
@@ -11420,6 +12069,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeTempPrepmtPurchLineModify.
     /// </summary>
     /// <param name="TempPrepmtPurchLine"></param>
+    /// <param name="TempPurchLine">Specifies the TempPurchLine parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="CompleteFunctionality">Specifies the CompleteFunctionality parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTempPrepmtPurchLineModify(var TempPrepmtPurchLine: Record "Purchase Line" temporary; var TempPurchLine: Record "Purchase Line" temporary; PurchaseHeader: Record "Purchase Header"; CompleteFunctionality: Boolean)
     begin
@@ -11429,6 +12081,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeTransferReservToItemJnlLine.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="ItemJnlLine">Specifies the ItemJnlLine parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="QtyToBeShippedBase">Specifies the QtyToBeShippedBase parameter.</param>
+    /// <param name="ApplySpecificItemTracking">Specifies the ApplySpecificItemTracking parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTransferReservToItemJnlLine(var SalesOrderLine: Record "Sales Line"; var ItemJnlLine: Record "Item Journal Line"; PurchLine: Record "Purchase Line"; QtyToBeShippedBase: Decimal; var ApplySpecificItemTracking: Boolean; var IsHandled: Boolean)
     begin
@@ -11438,6 +12095,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdateAssocOrder.
     /// </summary>
     /// <param name="TempDropShptPostBuffer"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SuppressCommit">Specifies the SuppressCommit parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforeUpdateAssocOrder(var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var IsHandled: Boolean; SuppressCommit: Boolean; var PurchaseHeader: Record "Purchase Header")
     begin
@@ -11447,6 +12107,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdateBlanketOrderLine.
     /// </summary>
     /// <param name="PurchLine"></param>
+    /// <param name="Receive">Specifies the Receive parameter.</param>
+    /// <param name="Ship">Specifies the Ship parameter.</param>
+    /// <param name="Invoice">Specifies the Invoice parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateBlanketOrderLine(PurchLine: Record "Purchase Line"; Receive: Boolean; Ship: Boolean; Invoice: Boolean; var IsHandled: Boolean)
     begin
@@ -11456,6 +12120,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdatePostingNos.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="ModifyHeader">Specifies the ModifyHeader parameter.</param>
+    /// <param name="SuppressCommit">Specifies the SuppressCommit parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="DateOrderSeriesUsed">Specifies the DateOrderSeriesUsed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePostingNos(var PurchHeader: Record "Purchase Header"; var ModifyHeader: Boolean; SuppressCommit: Boolean; var IsHandled: Boolean; var DateOrderSeriesUsed: Boolean)
     begin
@@ -11465,6 +12133,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdatePurchaseHeader.
     /// </summary>
     /// <param name="VendorLedgerEntry"></param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="GenJnlLineDocType">Specifies the GenJnlLineDocType parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePurchaseHeader(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; GenJnlLineDocType: Option; var IsHandled: Boolean; var PurchaseHeader: Record "Purchase Header"; GenJnlLineDocNo: Code[20]; PreviewMode: Boolean)
     begin
@@ -11474,6 +12149,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdatePurchLineBeforePost.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="RoundingLineInserted">Specifies the RoundingLineInserted parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePurchLineBeforePost(var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header"; WhseShip: Boolean; WhseReceive: Boolean; RoundingLineInserted: Boolean; CommitIsSupressed: Boolean)
     begin
@@ -11483,6 +12163,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdateInvoicedQtyOnPurchRcptLine.
     /// </summary>
     /// <param name="PurchRcptLine"></param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateInvoicedQtyOnPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; CommitIsSupressed: Boolean; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line")
     begin
@@ -11492,6 +12178,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdatePrepmtPurchLineWithRounding.
     /// </summary>
     /// <param name="PrepmtPurchLine"></param>
+    /// <param name="TotalRoundingAmount">Specifies the TotalRoundingAmount parameter.</param>
+    /// <param name="TotalPrepmtAmount">Specifies the TotalPrepmtAmount parameter.</param>
+    /// <param name="FinalInvoice">Specifies the FinalInvoice parameter.</param>
+    /// <param name="PricesInclVATRoundingAmount">Specifies the PricesInclVATRoundingAmount parameter.</param>
+    /// <param name="TotalPurchLine">Specifies the TotalPurchLine parameter.</param>
+    /// <param name="TotalPurchLineLCY">Specifies the TotalPurchLineLCY parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePrepmtPurchLineWithRounding(var PrepmtPurchLine: Record "Purchase Line"; TotalRoundingAmount: array[2] of Decimal; TotalPrepmtAmount: array[2] of Decimal; FinalInvoice: Boolean; PricesInclVATRoundingAmount: array[2] of Decimal; var TotalPurchLine: Record "Purchase Line"; var TotalPurchLineLCY: Record "Purchase Line")
     begin
@@ -11501,6 +12193,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdateQtyToInvoiceForOrder.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TempPurchLine">Specifies the TempPurchLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateQtyToInvoiceForOrder(var PurchHeader: Record "Purchase Header"; TempPurchLine: Record "Purchase Line" temporary; var IsHandled: Boolean)
     begin
@@ -11510,6 +12204,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdateQtyToInvoiceForReturnOrder.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TempPurchLine">Specifies the TempPurchLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateQtyToInvoiceForReturnOrder(var PurchHeader: Record "Purchase Header"; TempPurchLine: Record "Purchase Line" temporary; var IsHandled: Boolean)
     begin
@@ -11519,6 +12215,14 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdateQtyToBeInvoicedForReceipt.
     /// </summary>
     /// <param name="QtyToBeInvoiced"></param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
+    /// <param name="TrackingSpecificationExists">Specifies the TrackingSpecificationExists parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="PurchRcptLine">Specifies the PurchRcptLine parameter.</param>
+    /// <param name="InvoicingTrackingSpecification">Specifies the InvoicingTrackingSpecification parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToBeInvoicedBase">Specifies the RemQtyToBeInvoicedBase parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateQtyToBeInvoicedForReceipt(var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; TrackingSpecificationExists: Boolean; PurchLine: Record "Purchase Line"; PurchRcptLine: Record "Purch. Rcpt. Line"; InvoicingTrackingSpecification: Record "Tracking Specification"; RemQtyToBeInvoiced: Decimal; RemQtyToBeInvoicedBase: Decimal; var IsHandled: Boolean)
     begin
@@ -11528,6 +12232,14 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdateQtyToBeInvoicedForReturnShipment.
     /// </summary>
     /// <param name="QtyToBeInvoiced"></param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
+    /// <param name="TrackingSpecificationExists">Specifies the TrackingSpecificationExists parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="ReturnShipmentLine">Specifies the ReturnShipmentLine parameter.</param>
+    /// <param name="InvoicingTrackingSpecification">Specifies the InvoicingTrackingSpecification parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToBeInvoicedBase">Specifies the RemQtyToBeInvoicedBase parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateQtyToBeInvoicedForReturnShipment(var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; TrackingSpecificationExists: Boolean; PurchLine: Record "Purchase Line"; ReturnShipmentLine: Record "Return Shipment Line"; InvoicingTrackingSpecification: Record "Tracking Specification"; RemQtyToBeInvoiced: Decimal; RemQtyToBeInvoicedBase: Decimal; var IsHandled: Boolean)
     begin
@@ -11537,6 +12249,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdateJobConsumptionReservationApplToItemEntry.
     /// </summary>
     /// <param name="TempReservEntryJobCons"></param>
+    /// <param name="ItemJournalLine">Specifies the ItemJournalLine parameter.</param>
+    /// <param name="IsNonInventoriableItem">Specifies the IsNonInventoriableItem parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateJobConsumptionReservationApplToItemEntry(var TempReservEntryJobCons: Record "Reservation Entry" temporary; var ItemJournalLine: Record "Item Journal Line"; IsNonInventoriableItem: Boolean; var IsHandled: Boolean)
     begin
@@ -11546,6 +12261,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeTestPurchLine.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestPurchLine(var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header"; CommitIsSupressed: Boolean; var IsHandled: Boolean)
     begin
@@ -11555,6 +12273,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeTestPurchLineFixedAsset.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestPurchLineFixedAsset(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -11564,6 +12283,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeTestPurchLineItemCharge.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestPurchLineItemCharge(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -11573,6 +12293,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeTestPurchLineJob.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestPurchLineJob(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -11582,6 +12303,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeTestPurchLineOthers.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestPurchLineOthers(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -11591,6 +12313,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeTestStatusRelease.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestStatusRelease(PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -11600,6 +12323,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdateItemChargeAssgnt.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateItemChargeAssgnt(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -11609,6 +12333,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdateHandledICInboxTransaction.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateHandledICInboxTransaction(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -11618,6 +12343,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeValidatePostingAndDocumentDate.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidatePostingAndDocumentDate(var PurchaseHeader: Record "Purchase Header"; CommitIsSupressed: Boolean)
     begin
@@ -11627,6 +12353,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnValidatePostingAndDocumentDateOnSetPostingDateExists.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="PostingDateExists">Specifies the PostingDateExists parameter.</param>
+    /// <param name="ReplacePostingDate">Specifies the ReplacePostingDate parameter.</param>
+    /// <param name="PostingDate">Specifies the PostingDate parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePostingAndDocumentDateOnSetPostingDateExists(var PurchaseHeader: Record "Purchase Header"; CommitIsSupressed: Boolean; var PostingDateExists: Boolean; var ReplacePostingDate: Boolean; var PostingDate: Date; var IsHandled: Boolean)
     begin
@@ -11636,6 +12367,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeWhseHandlingRequired.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="Required">Specifies the Required parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeWhseHandlingRequired(PurchaseLine: Record "Purchase Line"; var Required: Boolean; var IsHandled: Boolean)
     begin
@@ -11647,6 +12380,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeGetCountryCode.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="CountryRegionCode">Specifies the CountryRegionCode parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetCountryCode(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var CountryRegionCode: Code[10]; var IsHandled: Boolean)
     begin
@@ -11656,6 +12392,14 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeShouldPostWhseJnlLine.
     /// </summary>
     /// <param name="PurchLine"></param>
+    /// <param name="Result">Specifies the Result parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="ItemJnlLine">Specifies the ItemJnlLine parameter.</param>
+    /// <param name="TempWhseJnlLine">Specifies the TempWhseJnlLine parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="InvtPickPutaway">Specifies the InvtPickPutaway parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShouldPostWhseJnlLine(PurchLine: Record "Purchase Line"; var Result: Boolean; var IsHandled: Boolean; var ItemJnlLine: Record "Item Journal Line"; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; WhseReceive: Boolean; WhseShip: Boolean; InvtPickPutaway: Boolean; SrcCode: Code[10])
     begin
@@ -11666,6 +12410,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCalcInvDiscountSetFilter.
     /// </summary>
     /// <param name="PurchLine"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcInvDiscountSetFilter(var PurchLine: Record "Purchase Line"; PurchHeader: Record "Purchase Header")
     begin
@@ -11675,6 +12420,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckAndUpdateOnAfterClearPostingFromWhseRef.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="InvtPickPutaway">Specifies the InvtPickPutaway parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnAfterClearPostingFromWhseRef(var PurchHeader: Record "Purchase Header"; var InvtPickPutaway: Boolean)
     begin
@@ -11684,6 +12430,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckAndUpdateOnAfterSetPostingFlags.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnAfterSetPostingFlags(var PurchHeader: Record "Purchase Header"; var TempPurchLineGlobal: Record "Purchase Line" temporary);
     begin
@@ -11693,6 +12440,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckAndUpdateOnBeforeSetPostingFlags.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnBeforeSetPostingFlags(var PurchHeader: Record "Purchase Header"; var TempPurchLineGlobal: Record "Purchase Line" temporary)
     begin
@@ -11702,6 +12450,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckAndUpdateOnAfterSetSourceCode.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="SourceCodeSetup">Specifies the SourceCodeSetup parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnAfterSetSourceCode(var PurchHeader: Record "Purchase Header"; SourceCodeSetup: Record "Source Code Setup"; var SrcCode: Code[10]);
     begin
@@ -11711,6 +12461,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckAndUpdateOnAfterArchiveUnpostedOrder.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="Currency">Specifies the Currency parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnAfterArchiveUnpostedOrder(var PurchHeader: Record "Purchase Header"; Currency: Record "Currency"; PreviewMode: Boolean)
     begin
@@ -11720,6 +12472,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckAndUpdateOnBeforeCalcInvDiscount.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="WarehouseReceiptHeader">Specifies the WarehouseReceiptHeader parameter.</param>
+    /// <param name="WarehouseShipmentHeader">Specifies the WarehouseShipmentHeader parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="RefreshNeeded">Specifies the RefreshNeeded parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnBeforeCalcInvDiscount(var PurchaseHeader: Record "Purchase Header"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; WarehouseShipmentHeader: Record "Warehouse Shipment Header"; WhseReceive: Boolean; WhseShip: Boolean; var RefreshNeeded: Boolean)
     begin
@@ -11729,6 +12486,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckAndUpdateAssocOrderPostingDateOnBeforeValidateDocumentDate.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="OriginalDocumentDate">Specifies the OriginalDocumentDate parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateAssocOrderPostingDateOnBeforeValidateDocumentDate(var SalesHeader: Record "Sales Header"; var OriginalDocumentDate: Date)
     begin
@@ -11738,6 +12496,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckAssociatedOrderLinesOnAfterSetFilters.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAssociatedOrderLinesOnAfterSetFilters(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean);
     begin
@@ -11747,6 +12507,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckAssociatedOrderLinesOnAfterCheckDimensions.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAssociatedOrderLinesOnAfterCheckDimensions(PurchaseHeader: Record "Purchase Header"; SalesHeader: Record "Sales Header"; var PurchaseLine: Record "Purchase Line"; TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -11758,6 +12521,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckAssocOrderLinesOnBeforeCheckOrderLine.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SalesOrderLine">Specifies the SalesOrderLine parameter.</param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAssocOrderLinesOnBeforeCheckOrderLine(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; SalesOrderLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -11768,6 +12535,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckExternalDocumentNumberOnAfterSetFilters.
     /// </summary>
     /// <param name="VendLedgEntry"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckExternalDocumentNumberOnAfterSetFilters(var VendLedgEntry: Record "Vendor Ledger Entry"; PurchaseHeader: Record "Purchase Header")
     begin
@@ -11777,6 +12545,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckTrackingAndWarehouseForShipOnAfterTempPurchLineSetFilters.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckTrackingAndWarehouseForShipOnAfterTempPurchLineSetFilters(PurchaseHeader: Record "Purchase Header"; var TempPurchaseLine: Record "Purchase Line" temporary)
     begin
@@ -11786,6 +12555,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckTrackingAndWarehouseForReceiveOnAfterTempPurchLineSetFilters.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckTrackingAndWarehouseForReceiveOnAfterTempPurchLineSetFilters(PurchaseHeader: Record "Purchase Header"; var TempPurchaseLine: Record "Purchase Line" temporary)
     begin
@@ -11804,6 +12574,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCopyAndCheckItemChargeOnBeforeLoop.
     /// </summary>
     /// <param name="TempPurchLine"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCopyAndCheckItemChargeOnBeforeLoop(var TempPurchLine: Record "Purchase Line" temporary; PurchHeader: Record "Purchase Header")
     begin
@@ -11822,6 +12593,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCopyToTempLinesOnAfterSetFilters.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCopyToTempLinesOnAfterSetFilters(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header")
     begin
@@ -11849,6 +12621,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCreatePrepmtLinesOnAfterTempPrepmtPurchLineSetFilters.
     /// </summary>
     /// <param name="TempPrepmtPurchLine"></param>
+    /// <param name="TempPurchLine">Specifies the TempPurchLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePrepmtLinesOnAfterTempPrepmtPurchLineSetFilters(var TempPrepmtPurchLine: Record "Purchase Line" temporary; var TempPurchLine: Record "Purchase Line" temporary)
     begin
@@ -11858,6 +12631,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnDivideAmountOnAfterClearAmounts.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="PurchLineQty">Specifies the PurchLineQty parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDivideAmountOnAfterClearAmounts(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var PurchLineQty: Decimal)
     begin
@@ -11867,6 +12642,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnDivideAmountOnAfterCalcLineAmountAndLineDiscountAmount.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="PurchaseLineQty">Specifies the PurchaseLineQty parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDivideAmountOnAfterCalcLineAmountAndLineDiscountAmount(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; PurchaseLineQty: Decimal)
     begin
@@ -11876,6 +12653,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnDivideAmountOnBeforeTempVATAmountLineRemainderModify.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="TempVATAmountLine">Specifies the TempVATAmountLine parameter.</param>
+    /// <param name="TempVATAmountLineRemainder">Specifies the TempVATAmountLineRemainder parameter.</param>
+    /// <param name="Currency">Specifies the Currency parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDivideAmountOnBeforeTempVATAmountLineRemainderModify(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary; Currency: Record Currency)
     begin
@@ -11890,6 +12671,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnGetItemChargeLineOnAfterGet.
     /// </summary>
     /// <param name="ItemChargePurchLine"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetItemChargeLineOnAfterGet(var ItemChargePurchLine: Record "Purchase Line"; PurchHeader: Record "Purchase Header")
     begin
@@ -11899,6 +12681,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnGetPurchLinesOnAfterFillTempLines.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="QtyType">Specifies the QtyType parameter.</param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetPurchLinesOnAfterFillTempLines(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; QtyType: Option; var TempPurchaseLine: Record "Purchase Line" temporary)
     begin
@@ -11908,6 +12693,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnInsertICGenJnlLineOnAfterCopyDocumentFields.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="TempICGenJournalLine">Specifies the TempICGenJournalLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertICGenJnlLineOnAfterCopyDocumentFields(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var TempICGenJournalLine: Record "Gen. Journal Line")
     begin
@@ -11917,6 +12704,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnInsertAssocOrderChargeOnBeforeInsert.
     /// </summary>
     /// <param name="TempItemChargeAssignmentPurch"></param>
+    /// <param name="NewItemChargeAssignmentPurch">Specifies the NewItemChargeAssignmentPurch parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertAssocOrderChargeOnBeforeInsert(TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)"; var NewItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)")
     begin
@@ -11926,6 +12714,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnInsertICGenJnlLineOnBeforeICGenJnlLineInsert.
     /// </summary>
     /// <param name="TempICGenJournalLine"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="CommitIsSuppressed">Specifies the CommitIsSuppressed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertICGenJnlLineOnBeforeICGenJnlLineInsert(var TempICGenJournalLine: Record "Gen. Journal Line" temporary; PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; CommitIsSuppressed: Boolean)
     begin
@@ -11935,6 +12726,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnInsertReceiptLineOnAfterGetWhseRcptLine.
     /// </summary>
     /// <param name="WhseRcptLine"></param>
+    /// <param name="PurchRcptLine">Specifies the PurchRcptLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertReceiptLineOnAfterGetWhseRcptLine(var WhseRcptLine: Record "Warehouse Receipt Line"; PurchRcptLine: Record "Purch. Rcpt. Line")
     begin
@@ -11944,6 +12736,14 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnInsertReceiptLineOnAfterInitPurchRcptLine.
     /// </summary>
     /// <param name="PurchRcptLine"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
+    /// <param name="xPurchLine">Specifies the xPurchLine parameter.</param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="CostBaseAmount">Specifies the CostBaseAmount parameter.</param>
+    /// <param name="PostedWhseRcptHeader">Specifies the PostedWhseRcptHeader parameter.</param>
+    /// <param name="WhseRcptHeader">Specifies the WhseRcptHeader parameter.</param>
+    /// <param name="WhseRcptLine">Specifies the WhseRcptLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertReceiptLineOnAfterInitPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; PurchLine: Record "Purchase Line"; ItemLedgShptEntryNo: Integer; xPurchLine: Record "Purchase Line"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var CostBaseAmount: Decimal; PostedWhseRcptHeader: Record "Posted Whse. Receipt Header"; WhseRcptHeader: Record "Warehouse Receipt Header"; var WhseRcptLine: Record "Warehouse Receipt Line")
     begin
@@ -11953,6 +12753,15 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnInsertReceiptLineOnAfterCalcShouldGetWhseRcptLine.
     /// </summary>
     /// <param name="PurchRcptHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="PostedWhseRcptHeader">Specifies the PostedWhseRcptHeader parameter.</param>
+    /// <param name="WhseRcptHeader">Specifies the WhseRcptHeader parameter.</param>
+    /// <param name="CostBaseAmount">Specifies the CostBaseAmount parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="ShouldGetWhseRcptLine">Specifies the ShouldGetWhseRcptLine parameter.</param>
+    /// <param name="xPurchLine">Specifies the xPurchLine parameter.</param>
+    /// <param name="PurchRcptLine">Specifies the PurchRcptLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertReceiptLineOnAfterCalcShouldGetWhseRcptLine(PurchRcptHeader: Record "Purch. Rcpt. Header"; PurchLine: Record "Purchase Line"; PostedWhseRcptHeader: Record "Posted Whse. Receipt Header"; WhseRcptHeader: Record "Warehouse Receipt Header"; CostBaseAmount: Decimal; WhseReceive: Boolean; WhseShip: Boolean; var ShouldGetWhseRcptLine: Boolean; xPurchLine: Record "Purchase Line"; var PurchRcptLine: Record "Purch. Rcpt. Line")
     begin
@@ -11962,6 +12771,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnInsertReceiptLineOnAfterCalcShouldGetWhseShptLine.
     /// </summary>
     /// <param name="PurchRcptHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="PostedWhseShptHeader">Specifies the PostedWhseShptHeader parameter.</param>
+    /// <param name="WhseShptHeader">Specifies the WhseShptHeader parameter.</param>
+    /// <param name="CostBaseAmount">Specifies the CostBaseAmount parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="ShouldGetWhseShptLine">Specifies the ShouldGetWhseShptLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertReceiptLineOnAfterCalcShouldGetWhseShptLine(PurchRcptHeader: Record "Purch. Rcpt. Header"; PurchLine: Record "Purchase Line"; PostedWhseShptHeader: Record "Posted Whse. Shipment Header"; WhseShptHeader: Record "Warehouse Shipment Header"; CostBaseAmount: Decimal; WhseReceive: Boolean; WhseShip: Boolean; var ShouldGetWhseShptLine: Boolean)
     begin
@@ -11971,6 +12787,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnInsertReturnShipmentLineOnAfterGetWhseShptLine.
     /// </summary>
     /// <param name="WhseShptLine"></param>
+    /// <param name="ReturnShptLine">Specifies the ReturnShptLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertReturnShipmentLineOnAfterGetWhseShptLine(var WhseShptLine: Record "Warehouse Shipment Line"; ReturnShptLine: Record "Return Shipment Line")
     begin
@@ -11980,6 +12797,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnInsertReturnShipmentLineOnAfterReturnShptLineInit.
     /// </summary>
     /// <param name="ReturnShptHeader"></param>
+    /// <param name="ReturnShptLine">Specifies the ReturnShptLine parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="xPurchLine">Specifies the xPurchLine parameter.</param>
+    /// <param name="CostBaseAmount">Specifies the CostBaseAmount parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertReturnShipmentLineOnAfterReturnShptLineInit(var ReturnShptHeader: Record "Return Shipment Header"; var ReturnShptLine: Record "Return Shipment Line"; var PurchLine: Record "Purchase Line"; var xPurchLine: Record "Purchase Line"; var CostBaseAmount: Decimal; WhseShip: Boolean; WhseReceive: Boolean);
     begin
@@ -11989,6 +12812,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostAssocItemJnlLineOnBeforePost.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="SalesOrderLine">Specifies the SalesOrderLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostAssocItemJnlLineOnBeforePost(var ItemJournalLine: Record "Item Journal Line"; SalesOrderLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -11998,6 +12823,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostCombineSalesOrderShipmentOnAfterUpdateBlanketOrderLine.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
+    /// <param name="SalesOrderLine">Specifies the SalesOrderLine parameter.</param>
+    /// <param name="SalesOrderHeader">Specifies the SalesOrderHeader parameter.</param>
+    /// <param name="SalesShptLine">Specifies the SalesShptLine parameter.</param>
+    /// <param name="SalesShptHeader">Specifies the SalesShptHeader parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
+    /// <param name="Currency">Specifies the Currency parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostCombineSalesOrderShipmentOnAfterUpdateBlanketOrderLine(var PurchaseHeader: Record "Purchase Header"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer"; var SalesOrderLine: Record "Sales Line"; var SalesOrderHeader: record "Sales Header"; var SalesShptLine: record "Sales Shipment Line"; SalesShptHeader: Record "Sales Shipment Header"; SrcCode: Code[10]; Currency: Record Currency)
     begin
@@ -12007,6 +12839,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostCombineSalesOrderShipmentOnBeforeUpdateBlanketOrderLine.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="SalesShptLine">Specifies the SalesShptLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostCombineSalesOrderShipmentOnBeforeUpdateBlanketOrderLine(var SalesOrderLine: Record "Sales Line"; SalesShptLine: Record "Sales Shipment Line")
     begin
@@ -12016,6 +12849,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostCombineSalesOrderShipmentOnAfterProcessDropShptPostBuffer.
     /// </summary>
     /// <param name="TempDropShptPostBuffer"></param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="SalesShptLine">Specifies the SalesShptLine parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostCombineSalesOrderShipmentOnAfterProcessDropShptPostBuffer(var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; PurchRcptHeader: Record "Purch. Rcpt. Header"; SalesShptLine: Record "Sales Shipment Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary);
     begin
@@ -12025,6 +12861,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostDistributeItemChargeOnAfterCalcAmountToAssign.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="TempItemLedgerEntry">Specifies the TempItemLedgerEntry parameter.</param>
+    /// <param name="QtyToAssign">Specifies the QtyToAssign parameter.</param>
+    /// <param name="AmountToAssign">Specifies the AmountToAssign parameter.</param>
+    /// <param name="Sign">Specifies the Sign parameter.</param>
+    /// <param name="Factor">Specifies the Factor parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostDistributeItemChargeOnAfterCalcAmountToAssign(var PurchaseLine: Record "Purchase Line"; TempItemLedgerEntry: Record "Item Ledger Entry"; QtyToAssign: Decimal; AmountToAssign: Decimal; Sign: Decimal; Factor: Decimal)
     begin
@@ -12035,6 +12876,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargeOnAfterPostItemJnlLine.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="ItemChargeAssignmentPurch">Specifies the ItemChargeAssignmentPurch parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnPostItemChargeOnAfterPostItemJnlLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)")
     begin
@@ -12044,6 +12887,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargeLineOnAfterPostItemCharge.
     /// </summary>
     /// <param name="TempItemChargeAssgntPurch"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
+    /// <param name="PurchaseLineBackup">Specifies the PurchaseLineBackup parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnPostItemChargeLineOnAfterPostItemCharge(var TempItemChargeAssgntPurch: record "Item Charge Assignment (Purch)" temporary; PurchHeader: Record "Purchase Header"; PurchaseLineBackup: Record "Purchase Line"; PurchLine: Record "Purchase Line")
     begin
@@ -12053,6 +12899,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargeLineOnBeforePostItemCharge.
     /// </summary>
     /// <param name="TempItemChargeAssgntPurch"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargeLineOnBeforePostItemCharge(var TempItemChargeAssgntPurch: record "Item Charge Assignment (Purch)" temporary; PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; var GenJnlLineDocNo: Code[20])
     begin
@@ -12062,6 +12911,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargeOnBeforePostItemJnlLine.
     /// </summary>
     /// <param name="PurchaseLineToPost"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="QtyToAssign">Specifies the QtyToAssign parameter.</param>
+    /// <param name="TempItemChargeAssgntPurch">Specifies the TempItemChargeAssgntPurch parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargeOnBeforePostItemJnlLine(var PurchaseLineToPost: Record "Purchase Line"; var PurchaseLine: Record "Purchase Line"; QtyToAssign: Decimal; var TempItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)" temporary; PurchInvHeader: Record "Purch. Inv. Header")
     begin
@@ -12071,6 +12924,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargePerOrderOnAfterCopyToItemJnlLine.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="GeneralLedgerSetup">Specifies the GeneralLedgerSetup parameter.</param>
+    /// <param name="QtyToInvoice">Specifies the QtyToInvoice parameter.</param>
+    /// <param name="TempItemChargeAssignmentPurch">Specifies the TempItemChargeAssignmentPurch parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerOrderOnAfterCopyToItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; var PurchaseLine: Record "Purchase Line"; GeneralLedgerSetup: Record "General Ledger Setup"; QtyToInvoice: Decimal; var TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary; PurchLine: Record "Purchase Line")
     begin
@@ -12080,6 +12938,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargePerRetRcptOnAfterCalcDistributeCharge.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="ReturnRcptLine">Specifies the ReturnRcptLine parameter.</param>
+    /// <param name="TempItemLedgEntry">Specifies the TempItemLedgEntry parameter.</param>
+    /// <param name="DistributeCharge">Specifies the DistributeCharge parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerRetRcptOnAfterCalcDistributeCharge(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var ReturnRcptLine: Record "Return Receipt Line"; var TempItemLedgEntry: Record "Item Ledger Entry" temporary; var DistributeCharge: Boolean)
     begin
@@ -12089,6 +12951,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargePerSalesRetRcptOnBeforeTestJobNo.
     /// </summary>
     /// <param name="ReturnReceiptLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerSalesRetRcptOnBeforeTestJobNo(ReturnReceiptLine: Record "Return Receipt Line"; var IsHandled: Boolean; var PurchaseLine: Record "Purchase Line")
     begin
@@ -12098,6 +12962,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargePerSalesShptOnAfterCalcDistributeCharge.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="SalesShptLine">Specifies the SalesShptLine parameter.</param>
+    /// <param name="TempItemLedgEntry">Specifies the TempItemLedgEntry parameter.</param>
+    /// <param name="DistributeCharge">Specifies the DistributeCharge parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerSalesShptOnAfterCalcDistributeCharge(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var SalesShptLine: Record "Sales Shipment Line"; var TempItemLedgEntry: Record "Item Ledger Entry" temporary; var DistributeCharge: Boolean)
     begin
@@ -12107,6 +12975,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargePerSalesShptOnBeforeTestJobNo.
     /// </summary>
     /// <param name="SalesShipmentLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerSalesShptOnBeforeTestJobNo(SalesShipmentLine: Record "Sales Shipment Line"; var IsHandled: Boolean; var PurchaseLine: Record "Purchase Line")
     begin
@@ -12116,6 +12986,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargePerRetShptOnAfterCalcDistributeCharge.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="ReturnShptLine">Specifies the ReturnShptLine parameter.</param>
+    /// <param name="TempItemLedgEntry">Specifies the TempItemLedgEntry parameter.</param>
+    /// <param name="DistributeCharge">Specifies the DistributeCharge parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerRetShptOnAfterCalcDistributeCharge(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var ReturnShptLine: Record "Return Shipment Line"; var TempItemLedgEntry: Record "Item Ledger Entry" temporary; var DistributeCharge: Boolean)
     begin
@@ -12125,6 +12999,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargePerRetShptOnBeforeTestJobNo.
     /// </summary>
     /// <param name="ReturnShipmentLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerRetShptOnBeforeTestJobNo(ReturnShipmentLine: Record "Return Shipment Line"; var IsHandled: Boolean; var PurchaseLine: Record "Purchase Line")
     begin
@@ -12134,6 +13010,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargePerRcptOnAfterCalcDistributeCharge.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="PurchRcptLine">Specifies the PurchRcptLine parameter.</param>
+    /// <param name="TempItemLedgEntry">Specifies the TempItemLedgEntry parameter.</param>
+    /// <param name="DistributeCharge">Specifies the DistributeCharge parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerRcptOnAfterCalcDistributeCharge(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; var PurchRcptLine: record "Purch. Rcpt. Line"; var TempItemLedgEntry: Record "Item Ledger Entry" temporary; var DistributeCharge: Boolean)
     begin
@@ -12143,6 +13023,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargePerRcptOnAfterPurchRcptLineGet.
     /// </summary>
     /// <param name="PurchRcptLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerRcptOnAfterPurchRcptLineGet(PurchRcptLine: Record "Purch. Rcpt. Line"; var PurchaseLine: Record "Purchase Line")
     begin
@@ -12152,6 +13033,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargePerTransferOnAfterInitPurchLine2.
     /// </summary>
     /// <param name="TransferReceiptLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerTransferOnAfterInitPurchLine2(TransferReceiptLine: Record "Transfer Receipt Line"; var PurchaseLine: Record "Purchase Line")
     begin
@@ -12161,6 +13043,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargePerTransferOnBeforePostItemJnlLine.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="ItemApplnEntry">Specifies the ItemApplnEntry parameter.</param>
+    /// <param name="TransferReceiptLine">Specifies the TransferReceiptLine parameter.</param>
+    /// <param name="ItemChargeAssignmentPurch">Specifies the ItemChargeAssignmentPurch parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerTransferOnBeforePostItemJnlLine(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; ItemApplnEntry: Record "Item Application Entry"; TransferReceiptLine: Record "Transfer Receipt Line"; ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)")
     begin
@@ -12170,6 +13056,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargePerITTransferOnAfterCollectItemEntryRelation.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="TransRcptLine">Specifies the TransRcptLine parameter.</param>
+    /// <param name="TempItemLedgEntry">Specifies the TempItemLedgEntry parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerITTransferOnAfterCollectItemEntryRelation(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; TransRcptLine: Record "Transfer Receipt Line"; var TempItemLedgEntry: Record "Item Ledger Entry" temporary)
     begin
@@ -12179,6 +13068,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineWhseLineOnBeforeTempWhseJnlLine2Find.
     /// </summary>
     /// <param name="TempWarehouseJournalLine2"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="InvtPickPutaway">Specifies the InvtPickPutaway parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineWhseLineOnBeforeTempWhseJnlLine2Find(var TempWarehouseJournalLine2: Record "Warehouse Journal Line" temporary; PurchaseLine: Record "Purchase Line"; WhseReceive: Boolean; WhseShip: Boolean; InvtPickPutaway: Boolean)
     begin
@@ -12188,6 +13081,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineOnAfterCopyDocumentFields.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="WarehouseReceiptHeader">Specifies the WarehouseReceiptHeader parameter.</param>
+    /// <param name="WarehouseShipmentHeader">Specifies the WarehouseShipmentHeader parameter.</param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="GenJnlLineExtDocNo">Specifies the GenJnlLineExtDocNo parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnAfterCopyDocumentFields(var ItemJournalLine: Record "Item Journal Line"; PurchaseLine: Record "Purchase Line"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; WarehouseShipmentHeader: Record "Warehouse Shipment Header"; PurchRcptHeader: Record "Purch. Rcpt. Header"; GenJnlLineExtDocNo: Code[35]; QtyToBeInvoiced: Decimal)
     begin
@@ -12197,6 +13096,14 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineOnBeforePostItemJnlLineCopyDocumentFields.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToBeReceived">Specifies the QtyToBeReceived parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="InvtPickPutaway">Specifies the InvtPickPutaway parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnBeforePostItemJnlLineCopyDocumentFields(var ItemJournalLine: Record "Item Journal Line"; PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; QtyToBeInvoiced: Decimal; QtyToBeReceived: Decimal; WhseReceive: Boolean; WhseShip: Boolean; InvtPickPutaway: Boolean; var IsHandled: Boolean)
     begin
@@ -12206,6 +13113,16 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineOnAfterPostItemJnlLineJobConsumption.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="OriginalItemJnlLine">Specifies the OriginalItemJnlLine parameter.</param>
+    /// <param name="TempReservationEntry">Specifies the TempReservationEntry parameter.</param>
+    /// <param name="TrackingSpecification">Specifies the TrackingSpecification parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToBeReceived">Specifies the QtyToBeReceived parameter.</param>
+    /// <param name="PostJobConsumptionBeforePurch">Specifies the PostJobConsumptionBeforePurch parameter.</param>
+    /// <param name="ItemJnlPostLine">Specifies the ItemJnlPostLine parameter.</param>
+    /// <param name="TempWhseTrackingSpecification">Specifies the TempWhseTrackingSpecification parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnAfterPostItemJnlLineJobConsumption(var ItemJournalLine: Record "Item Journal Line"; PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; OriginalItemJnlLine: Record "Item Journal Line"; var TempReservationEntry: Record "Reservation Entry" temporary; var TrackingSpecification: Record "Tracking Specification" temporary; QtyToBeInvoiced: Decimal; QtyToBeReceived: Decimal; var PostJobConsumptionBeforePurch: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var TempWhseTrackingSpecification: Record "Tracking Specification" temporary)
     begin
@@ -12215,6 +13132,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineOnAfterCopyItemCharge.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="TempItemChargeAssgntPurch">Specifies the TempItemChargeAssgntPurch parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnPostItemJnlLineOnAfterCopyItemCharge(var ItemJournalLine: Record "Item Journal Line"; var TempItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)" temporary)
     begin
@@ -12224,6 +13142,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineOnBeforeCopyDocumentFields.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="InvtPickPutaway">Specifies the InvtPickPutaway parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnBeforeCopyDocumentFields(var ItemJournalLine: Record "Item Journal Line"; PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; WhseReceive: Boolean; WhseShip: Boolean; InvtPickPutaway: Boolean)
     begin
@@ -12233,6 +13156,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineOnBeforePostWhseJnlLine.
     /// </summary>
     /// <param name="TempHandlingSpecification"></param>
+    /// <param name="TempWhseJnlLine">Specifies the TempWhseJnlLine parameter.</param>
+    /// <param name="ItemJnlLine">Specifies the ItemJnlLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnBeforePostWhseJnlLine(TempHandlingSpecification: Record "Tracking Specification"; var TempWhseJnlLine: Record "Warehouse Journal Line"; ItemJnlLine: Record "Item Journal Line")
     begin
@@ -12242,6 +13167,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineJobConsumptionOnBeforeRunItemJnlPostLineWithReservation.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="TempReservationEntry">Specifies the TempReservationEntry parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnPostItemJnlLineJobConsumptionOnBeforeRunItemJnlPostLineWithReservation(var ItemJournalLine: Record "Item Journal Line"; var TempReservationEntry: Record "Reservation Entry" temporary; var PurchaseLine: Record "Purchase Line")
     begin
@@ -12251,6 +13178,18 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineJobConsumption.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="ItemJournalLine">Specifies the ItemJournalLine parameter.</param>
+    /// <param name="TempPurchReservEntry">Specifies the TempPurchReservEntry parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToBeReceived">Specifies the QtyToBeReceived parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="PurchItemLedgEntryNo">Specifies the PurchItemLedgEntryNo parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="ItemJnlPostLine">Specifies the ItemJnlPostLine parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHeader">Specifies the PurchCrMemoHeader parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineJobConsumption(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; ItemJournalLine: Record "Item Journal Line"; var TempPurchReservEntry: Record "Reservation Entry" temporary; QtyToBeInvoiced: Decimal; QtyToBeReceived: Decimal; var TempTrackingSpecification: Record "Tracking Specification" temporary; PurchItemLedgEntryNo: Integer; var IsHandled: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; SrcCode: Code[10])
     begin
@@ -12260,6 +13199,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineOnAfterSetFactor.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="Factor">Specifies the Factor parameter.</param>
+    /// <param name="GenJnlLineExtDocNo">Specifies the GenJnlLineExtDocNo parameter.</param>
+    /// <param name="ItemJournalLine">Specifies the ItemJournalLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnAfterSetFactor(var PurchaseLine: Record "Purchase Line"; var Factor: Decimal; var GenJnlLineExtDocNo: Code[35]; var ItemJournalLine: Record "Item Journal Line")
     begin
@@ -12269,6 +13211,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineOnAfterPrepareItemJnlLine.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="TrackingSpecification">Specifies the TrackingSpecification parameter.</param>
+    /// <param name="QtyToBeReceived">Specifies the QtyToBeReceived parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnAfterPrepareItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var GenJnlLineDocNo: code[20]; TrackingSpecification: Record "Tracking Specification"; QtyToBeReceived: Decimal; QtyToBeInvoiced: Decimal)
     begin
@@ -12278,6 +13227,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineOnCopyProdOrder.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="QtyToBeReceived">Specifies the QtyToBeReceived parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="SuppressCommit">Specifies the SuppressCommit parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnCopyProdOrder(var ItemJournalLine: Record "Item Journal Line"; PurchaseLine: Record "Purchase Line"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; QtyToBeReceived: Decimal; QtyToBeInvoiced: Decimal; SuppressCommit: Boolean)
     begin
@@ -12287,6 +13241,15 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineJobConsumptionOnBeforeJobPost.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHeader">Specifies the PurchCrMemoHeader parameter.</param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="ReturnShptHeader">Specifies the ReturnShptHeader parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
+    /// <param name="QtyToBeReceived">Specifies the QtyToBeReceived parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineJobConsumptionOnBeforeJobPost(
         var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
@@ -12299,6 +13262,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineWhseLineOnAfterPostRevert.
     /// </summary>
     /// <param name="TempWhseJnlLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineWhseLineOnAfterPostRevert(var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; PurchaseLine: Record "Purchase Line")
     begin
@@ -12308,6 +13272,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineWhseLineOnBeforePostSingleLine.
     /// </summary>
     /// <param name="WhseShip"></param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="InvtPickPutaway">Specifies the InvtPickPutaway parameter.</param>
+    /// <param name="TempWhseJnlLine">Specifies the TempWhseJnlLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineWhseLineOnBeforePostSingleLine(WhseShip: Boolean; WhseReceive: Boolean; InvtPickPutaway: Boolean; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary)
     begin
@@ -12317,6 +13284,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineOnAfterItemJnlPostLineRunWithCheck.
     /// </summary>
     /// <param name="ItemJnlLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="QtyToBeReceived">Specifies the QtyToBeReceived parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="TempWhseRcptHeader">Specifies the TempWhseRcptHeader parameter.</param>
+    /// <param name="QtyToBeReceivedBase">Specifies the QtyToBeReceivedBase parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnAfterItemJnlPostLineRunWithCheck(var ItemJnlLine: Record "Item Journal Line"; var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header"; QtyToBeReceived: Decimal; WhseReceive: Boolean; var TempWhseRcptHeader: Record "Warehouse Receipt Header" temporary; QtyToBeReceivedBase: Decimal)
     begin
@@ -12326,6 +13299,15 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineOnBeforeItemJnlPostLineRunWithCheck.
     /// </summary>
     /// <param name="ItemJnlLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="DropShipOrder">Specifies the DropShipOrder parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="QtyToBeReceived">Specifies the QtyToBeReceived parameter.</param>
+    /// <param name="QtyToBeReceivedBase">Specifies the QtyToBeReceivedBase parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnBeforeItemJnlPostLineRunWithCheck(var ItemJnlLine: Record "Item Journal Line"; var PurchaseLine: Record "Purchase Line"; DropShipOrder: Boolean; PurchaseHeader: Record "Purchase Header"; WhseReceive: Boolean; QtyToBeReceived: Decimal; QtyToBeReceivedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; var IsHandled: Boolean)
     begin
@@ -12335,6 +13317,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineOnBeforeInitAmount.
     /// </summary>
     /// <param name="ItemJnlLine"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnBeforeInitAmount(var ItemJnlLine: Record "Item Journal Line"; PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line")
     begin
@@ -12344,6 +13328,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineItemChargesOnAfterGetItemChargeLine.
     /// </summary>
     /// <param name="ItemChargePurchaseLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineItemChargesOnAfterGetItemChargeLine(var ItemChargePurchaseLine: Record "Purchase Line"; PurchaseLine: Record "Purchase Line")
     begin
@@ -12353,6 +13338,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemLineOnBeforePostShipReceive.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToBeInvoicedBase">Specifies the RemQtyToBeInvoicedBase parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemLineOnBeforePostShipReceive(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var RemQtyToBeInvoiced: Decimal; var RemQtyToBeInvoicedBase: Decimal)
     begin
@@ -12362,6 +13351,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemTrackingForReceiptOnBeforeReceiptInvoiceErr.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingForReceiptOnBeforeReceiptInvoiceErr(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -12371,6 +13361,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemTrackingForReceiptOnBeforePostItemTrackingForReceiptCondition.
     /// </summary>
     /// <param name="PurchInvHeader"></param>
+    /// <param name="PurchRcptLine">Specifies the PurchRcptLine parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingForReceiptOnBeforePostItemTrackingForReceiptCondition(var PurchInvHeader: Record "Purch. Inv. Header"; var PurchRcptLine: Record "Purch. Rcpt. Line"; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal)
     begin
@@ -12380,6 +13373,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemTrackingForReceiptOnAfterPurchRcptLineTestFields.
     /// </summary>
     /// <param name="PurchRcptLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingForReceiptOnAfterPurchRcptLineTestFields(var PurchRcptLine: Record "Purch. Rcpt. Line"; PurchaseLine: Record "Purchase Line")
     begin
@@ -12389,6 +13383,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemTrackingForReceiptOnAfterPurchRcptLineSetFilters.
     /// </summary>
     /// <param name="PurchRcptLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingForReceiptOnAfterPurchRcptLineSetFilters(var PurchRcptLine: Record "Purch. Rcpt. Line"; PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header")
     begin
@@ -12398,6 +13394,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemTrackingForShipmentOnBeforeReturnShipmentInvoiceErr.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingForShipmentOnBeforeReturnShipmentInvoiceErr(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -12407,6 +13404,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostPurchLineOnAfterSetEverythingInvoiced.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="EverythingInvoiced">Specifies the EverythingInvoiced parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="TempVATAmountLine">Specifies the TempVATAmountLine parameter.</param>
+    /// <param name="TempVATAmountLineRemainder">Specifies the TempVATAmountLineRemainder parameter.</param>
+    /// <param name="AmountsOnly">Specifies the AmountsOnly parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostPurchLineOnAfterSetEverythingInvoiced(var PurchaseLine: Record "Purchase Line"; var EverythingInvoiced: Boolean; PurchaseHeader: Record "Purchase Header"; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary; var AmountsOnly: Boolean)
     begin
@@ -12416,6 +13418,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostPurchLineOnAfterPostByType.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="GenJnlLineExtDocNo">Specifies the GenJnlLineExtDocNo parameter.</param>
+    /// <param name="GenJnlLineDocType">Specifies the GenJnlLineDocType parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostPurchLineOnAfterPostByType(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; GenJnlLineDocNo: Code[20]; GenJnlLineExtDocNo: Code[35]; GenJnlLineDocType: Enum "Gen. Journal Document Type"; SrcCode: Code[10])
     begin
@@ -12425,6 +13433,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterCollectPurchaseLineReservEntries.
     /// </summary>
     /// <param name="JobReservationEntry"></param>
+    /// <param name="ItemJournalLine">Specifies the ItemJournalLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCollectPurchaseLineReservEntries(var JobReservationEntry: Record "Reservation Entry"; ItemJournalLine: Record "Item Journal Line")
     begin
@@ -12434,6 +13443,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterGetPurchOrderLine.
     /// </summary>
     /// <param name="PurchaseLineOrder"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="PurchRcptLine">Specifies the PurchRcptLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetPurchOrderLine(var PurchaseLineOrder: Record "Purchase Line"; PurchaseLine: Record "Purchase Line"; PurchRcptLine: Record "Purch. Rcpt. Line")
     begin
@@ -12443,6 +13454,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostPurchLineOnBeforePostByType.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="PurchLineACY">Specifies the PurchLineACY parameter.</param>
+    /// <param name="Sourcecode">Specifies the Sourcecode parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnPostPurchLineOnBeforePostByType(PurchHeader: Record "Purchase Header"; PurchInvHeader: Record "Purch. Inv. Header"; PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; PurchLine: Record "Purchase Line"; PurchLineACY: Record "Purchase Line"; Sourcecode: Code[10])
     begin
@@ -12452,6 +13468,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostPurchLineOnBeforeInsertCrMemoLine.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="PurchCrMemoLine">Specifies the PurchCrMemoLine parameter.</param>
+    /// <param name="xPurchaseLine">Specifies the xPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostPurchLineOnBeforeInsertCrMemoLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; var PurchCrMemoLine: Record "Purch. Cr. Memo Line"; xPurchaseLine: Record "Purchase Line");
     begin
@@ -12461,6 +13481,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostPurchLineOnBeforeInsertInvoiceLine.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="PurchInvLine">Specifies the PurchInvLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostPurchLineOnBeforeInsertInvoiceLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; var PurchInvLine: Record "Purch. Inv. Line");
     begin
@@ -12470,6 +13493,22 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostPurchLineOnBeforeInsertReceiptLine.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="RoundingLineInserted">Specifies the RoundingLineInserted parameter.</param>
+    /// <param name="CostBaseAmount">Specifies the CostBaseAmount parameter.</param>
+    /// <param name="xPurchaseLine">Specifies the xPurchaseLine parameter.</param>
+    /// <param name="ReturnShipmentHeader">Specifies the ReturnShipmentHeader parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="WarehouseReceiptHeader">Specifies the WarehouseReceiptHeader parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnPostPurchLineOnBeforeInsertReceiptLine(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; PurchRcptHeader: Record "Purch. Rcpt. Header"; RoundingLineInserted: Boolean; CostBaseAmount: Decimal; xPurchaseLine: Record "Purchase Line"; var ReturnShipmentHeader: Record "Return Shipment Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var ItemLedgShptEntryNo: Integer; SrcCode: Code[10]; PreviewMode: Boolean; var WarehouseReceiptHeader: Record "Warehouse Receipt Header"; WhseReceive: Boolean; WhseShip: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; GenJnlLineDocNo: Code[20]);
     begin
@@ -12479,6 +13518,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostPurchLineOnBeforeInsertReturnShipmentLine.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="ReturnShptHeader">Specifies the ReturnShptHeader parameter.</param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
+    /// <param name="RoundingLineInserted">Specifies the RoundingLineInserted parameter.</param>
+    /// <param name="xPurchaseLine">Specifies the xPurchaseLine parameter.</param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostPurchLineOnBeforeInsertReturnShipmentLine(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; ReturnShptHeader: Record "Return Shipment Header"; TempPurchLineGlobal: Record "Purchase Line"; RoundingLineInserted: Boolean; xPurchaseLine: Record "Purchase Line"; var PurchRcptHeader: Record "Purch. Rcpt. Header");
     begin
@@ -12488,6 +13534,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostPurchLineOnBeforeRoundAmount.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHeader">Specifies the PurchCrMemoHeader parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostPurchLineOnBeforeRoundAmount(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; SrcCode: Code[10])
     begin
@@ -12497,6 +13547,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostPurchLineOnTypeCaseElse.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHeader">Specifies the PurchCrMemoHeader parameter.</param>
+    /// <param name="SourceCode">Specifies the SourceCode parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostPurchLineOnTypeCaseElse(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; PurchInvHeader: Record "Purch. Inv. Header"; PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; SourceCode: Code[10]; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary);
     begin
@@ -12506,6 +13562,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostPurchLineOnAfterCreatePostedDeferralScheduleFromPurchDoc.
     /// </summary>
     /// <param name="PurchInvLine"></param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="xPurchaseLine">Specifies the xPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostPurchLineOnAfterCreatePostedDeferralScheduleFromPurchDoc(var PurchInvLine: Record "Purch. Inv. Line"; PurchInvHeader: Record "Purch. Inv. Header"; PurchLine: Record "Purchase Line"; ItemLedgShptEntryNo: Integer; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSupressed: Boolean; xPurchaseLine: Record "Purchase Line")
     begin
@@ -12515,6 +13578,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostPurchLineOnAfterCreatePostedDeferralScheduleFromPurchDocCrMemo.
     /// </summary>
     /// <param name="PurchCrMemoLine"></param>
+    /// <param name="PurchCrMemoHeader">Specifies the PurchCrMemoHeader parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="CommitIsSupressed">Specifies the CommitIsSupressed parameter.</param>
+    /// <param name="xPurchaseLine">Specifies the xPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostPurchLineOnAfterCreatePostedDeferralScheduleFromPurchDocCrMemo(var PurchCrMemoLine: Record "Purch. Cr. Memo Line"; PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; PurchLine: Record "Purchase Line"; ItemLedgShptEntryNo: Integer; WhseShip: Boolean; WhseReceive: Boolean; CommitIsSupressed: Boolean; xPurchaseLine: Record "Purchase Line")
     begin
@@ -12524,6 +13594,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostUpdateCreditMemoLineOnAfterPurchOrderLineModify.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
+    /// <param name="ReturnShptLine">Specifies the ReturnShptLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateCreditMemoLineOnAfterPurchOrderLineModify(var PurchaseLine: Record "Purchase Line"; var TempPurchaseLine: Record "Purchase Line" temporary; var ReturnShptLine: Record "Return Shipment Line")
     begin
@@ -12533,6 +13605,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostUpdateCreditMemoLineOnAfterResetTempLines.
     /// </summary>
     /// <param name="TempPurchLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateCreditMemoLineOnAfterResetTempLines(var TempPurchLine: Record "Purchase Line" temporary; var IsHandled: Boolean; var PurchaseHeader: Record "Purchase Header")
     begin
@@ -12542,6 +13616,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostUpdateCreditMemoLineOnBeforeInitQtyToInvoice.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateCreditMemoLineOnBeforeInitQtyToInvoice(var PurchaseLine: Record "Purchase Line"; var TempPurchaseLine: Record "Purchase Line" temporary)
     begin
@@ -12551,6 +13626,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostUpdateInvoiceLineOnAfterPurchOrderLineGet.
     /// </summary>
     /// <param name="TempPurchLine"></param>
+    /// <param name="PurchRcptLine">Specifies the PurchRcptLine parameter.</param>
+    /// <param name="PurchOrderLine">Specifies the PurchOrderLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateInvoiceLineOnAfterPurchOrderLineGet(var TempPurchLine: Record "Purchase Line" temporary; PurchRcptLine: Record "Purch. Rcpt. Line"; PurchOrderLine: Record "Purchase Line")
     begin
@@ -12560,6 +13637,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostUpdateInvoiceLineOnAfterPurchOrderLineModify.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
+    /// <param name="PurchOrderLine">Specifies the PurchOrderLine parameter.</param>
+    /// <param name="TempPurchLine">Specifies the TempPurchLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateInvoiceLineOnAfterPurchOrderLineModify(var PurchaseLine: Record "Purchase Line"; var TempPurchaseLine: Record "Purchase Line" temporary; var PurchOrderLine: Record "Purchase Line"; var TempPurchLine: Record "Purchase Line" temporary)
     begin
@@ -12569,6 +13649,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostUpdateInvoiceLineOnBeforeInitQtyToInvoice.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateInvoiceLineOnBeforeInitQtyToInvoice(var PurchaseLine: Record "Purchase Line"; var TempPurchaseLine: Record "Purchase Line" temporary)
     begin
@@ -12578,6 +13659,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostUpdateOrderLineOnAfterInitQtyToReceiveOrShip.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineOnAfterInitQtyToReceiveOrShip(var PurchaseHeader: Record "Purchase Header"; var TempPurchaseLine: Record "Purchase Line" temporary)
     begin
@@ -12587,6 +13669,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostUpdateOrderLineOnBeforeUpdateBlanketOrderLine.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineOnBeforeUpdateBlanketOrderLine(var PurchaseHeader: Record "Purchase Header"; var TempPurchaseLine: Record "Purchase Line" temporary)
     begin
@@ -12596,6 +13679,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostUpdateOrderLineOnBeforeInitOutstanding.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineOnBeforeInitOutstanding(var PurchaseHeader: Record "Purchase Header"; var TempPurchaseLine: Record "Purchase Line" temporary)
     begin
@@ -12605,6 +13689,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostUpdateOrderLineOnBeforeInitQtyToInvoice.
     /// </summary>
     /// <param name="TempPurchaseLine"></param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineOnBeforeInitQtyToInvoice(var TempPurchaseLine: Record "Purchase Line" temporary; WhseShip: Boolean; WhseReceive: Boolean)
     begin
@@ -12614,6 +13700,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostUpdateOrderLineOnBeforeLoop.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TempPurchLine">Specifies the TempPurchLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineOnBeforeLoop(PurchHeader: Record "Purchase Header"; var TempPurchLine: Record "Purchase Line" temporary)
     begin
@@ -12623,6 +13710,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostUpdateOrderLineOnPurchHeaderReceive.
     /// </summary>
     /// <param name="TempPurchLine"></param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineOnPurchHeaderReceive(var TempPurchLine: Record "Purchase Line"; PurchRcptHeader: Record "Purch. Rcpt. Header")
     begin
@@ -12632,6 +13720,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostUpdateOrderLineOnSetDefaultQtyBlank.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
+    /// <param name="PurchPost">Specifies the PurchPost parameter.</param>
+    /// <param name="SetDefaultQtyBlank">Specifies the SetDefaultQtyBlank parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnPostUpdateOrderLineOnSetDefaultQtyBlank(var PurchaseHeader: Record "Purchase Header"; var TempPurchaseLine: Record "Purchase Line" temporary; PurchPost: Record "Purchases & Payables Setup"; var SetDefaultQtyBlank: Boolean)
     begin
@@ -12643,6 +13734,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnProcessAssocItemJnlLineOnAfterInitTempDropShptPostBuffer.
     /// </summary>
     /// <param name="PurchLine"></param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnProcessAssocItemJnlLineOnAfterInitTempDropShptPostBuffer(var PurchLine: Record "Purchase Line"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary)
     begin
@@ -12652,6 +13744,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnReleasePurchDocumentOnBeforeSetStatus.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnReleasePurchDocumentOnBeforeSetStatus(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -12661,6 +13754,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnRoundAmountOnBeforeCalculateLCYAmounts.
     /// </summary>
     /// <param name="xPurchLine"></param>
+    /// <param name="PurchLineACY">Specifies the PurchLineACY parameter.</param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="TotalPurchaseLine">Specifies the TotalPurchaseLine parameter.</param>
+    /// <param name="TotalPurchaseLineLCY">Specifies the TotalPurchaseLineLCY parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRoundAmountOnBeforeCalculateLCYAmounts(var xPurchLine: Record "Purchase Line"; var PurchLineACY: Record "Purchase Line"; PurchHeader: Record "Purchase Header"; var IsHandled: Boolean; TotalPurchaseLine: Record "Purchase Line"; TotalPurchaseLineLCY: Record "Purchase Line"; var PurchaseLine: Record "Purchase Line")
     begin
@@ -12670,6 +13769,15 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnRoundAmountOnBeforeIncrAmount.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="PurchLineQty">Specifies the PurchLineQty parameter.</param>
+    /// <param name="TotalPurchLine">Specifies the TotalPurchLine parameter.</param>
+    /// <param name="TotalPurchLineLCY">Specifies the TotalPurchLineLCY parameter.</param>
+    /// <param name="xPurchaseLine">Specifies the xPurchaseLine parameter.</param>
+    /// <param name="CurrExchRate">Specifies the CurrExchRate parameter.</param>
+    /// <param name="NoVAT">Specifies the NoVAT parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="NonDeductibleVAT">Specifies the NonDeductibleVAT parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRoundAmountOnBeforeIncrAmount(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; PurchLineQty: Decimal; var TotalPurchLine: Record "Purchase Line"; var TotalPurchLineLCY: Record "Purchase Line"; var xPurchaseLine: Record "Purchase Line"; var CurrExchRate: Record "Currency Exchange Rate"; var NoVAT: Boolean; var IsHandled: Boolean; var NonDeductibleVAT: Codeunit "Non-Deductible VAT")
     begin
@@ -12679,6 +13787,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnRunOnBeforeFinalizePosting.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="ReturnShipmentHeader">Specifies the ReturnShipmentHeader parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
+    /// <param name="CommitIsSuppressed">Specifies the CommitIsSuppressed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeFinalizePosting(var PurchaseHeader: Record "Purchase Header"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var ReturnShipmentHeader: Record "Return Shipment Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; CommitIsSuppressed: Boolean)
     begin
@@ -12688,6 +13802,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnRunOnBeforeMakeInventoryAdjustment.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
+    /// <param name="ItemJnlPostLine">Specifies the ItemJnlPostLine parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeMakeInventoryAdjustment(var PurchaseHeader: Record "Purchase Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; PreviewMode: Boolean; PurchRcptHeader: Record "Purch. Rcpt. Header"; PurchInvHeader: Record "Purch. Inv. Header"; var IsHandled: Boolean)
     begin
@@ -12697,6 +13817,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnSumPurchLines2OnAfterSetFilters.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSumPurchLines2OnAfterSetFilters(var PurchaseLine: Record "Purchase Line"; PurchaseHeader: Record "Purchase Header")
     begin
@@ -12706,6 +13827,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnSumPurchLines2OnAfterDivideAmount.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="QtyType">Specifies the QtyType parameter.</param>
+    /// <param name="PurchLineQty">Specifies the PurchLineQty parameter.</param>
+    /// <param name="TempVATAmountLine">Specifies the TempVATAmountLine parameter.</param>
+    /// <param name="TempVATAmountLineRemainder">Specifies the TempVATAmountLineRemainder parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSumPurchLines2OnAfterDivideAmount(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; QtyType: Option General,Invoicing,Shipping; PurchLineQty: Decimal; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary)
     begin
@@ -12715,6 +13841,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnSumPurchLines2OnBeforeDivideAmount.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="QtyType">Specifies the QtyType parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSumPurchLines2OnBeforeDivideAmount(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; QtyType: Option General,Invoicing,Shipping)
     begin
@@ -12724,6 +13852,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnUpdateAssocOrderOnAfterSalesOrderHeaderModify.
     /// </summary>
     /// <param name="SalesOrderHeader"></param>
+    /// <param name="SalesSetup">Specifies the SalesSetup parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAssocOrderOnAfterSalesOrderHeaderModify(var SalesOrderHeader: Record "Sales Header"; var SalesSetup: Record "Sales & Receivables Setup")
     begin
@@ -12742,6 +13871,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnUpdateAssocOrderOnAfterSalesOrderLineModify.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
+    /// <param name="SalesOrderHeader">Specifies the SalesOrderHeader parameter.</param>
+    /// <param name="SalesShptHeader">Specifies the SalesShptHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAssocOrderOnAfterSalesOrderLineModify(var SalesOrderLine: Record "Sales Line"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; SalesOrderHeader: Record "Sales Header"; SalesShptHeader: Record "Sales Shipment Header")
     begin
@@ -12760,6 +13892,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnUpdateAssocOrderOnBeforeSalesOrderLineModify.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
+    /// <param name="SalesOrderHeader">Specifies the SalesOrderHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAssocOrderOnBeforeSalesOrderLineModify(var SalesOrderLine: Record "Sales Line"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; SalesOrderHeader: Record "Sales Header")
     begin
@@ -12769,6 +13903,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnUpdateBlanketOrderLineOnBeforeCheck.
     /// </summary>
     /// <param name="BlanketOrderPurchLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="Ship">Specifies the Ship parameter.</param>
+    /// <param name="Receive">Specifies the Receive parameter.</param>
+    /// <param name="Invoice">Specifies the Invoice parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateBlanketOrderLineOnBeforeCheck(var BlanketOrderPurchLine: Record "Purchase Line"; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean; Ship: Boolean; Receive: Boolean; Invoice: Boolean)
     begin
@@ -12778,6 +13917,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnUpdateBlanketOrderLineOnBeforeInitOutstanding.
     /// </summary>
     /// <param name="BlanketOrderPurchaseLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="Ship">Specifies the Ship parameter.</param>
+    /// <param name="Receive">Specifies the Receive parameter.</param>
+    /// <param name="Invoice">Specifies the Invoice parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateBlanketOrderLineOnBeforeInitOutstanding(var BlanketOrderPurchaseLine: Record "Purchase Line"; PurchaseLine: Record "Purchase Line"; Ship: Boolean; Receive: Boolean; Invoice: Boolean)
     begin
@@ -12787,6 +13930,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnUpdateBlanketOrderLineOnAfterCheckBlanketOrderPurchLine.
     /// </summary>
     /// <param name="BlanketOrderPurchaseLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateBlanketOrderLineOnAfterCheckBlanketOrderPurchLine(var BlanketOrderPurchaseLine: Record "Purchase Line"; PurchaseLine: Record "Purchase Line")
     begin
@@ -12796,6 +13940,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnUpdatePurchLineBeforePostOnAfterCalcInitQtyToInvoiceNeeded.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="InitQtyToInvoiceNeeded">Specifies the InitQtyToInvoiceNeeded parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdatePurchLineBeforePostOnAfterCalcInitQtyToInvoiceNeeded(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var InitQtyToInvoiceNeeded: Boolean)
     begin
@@ -12842,6 +13988,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckAndUpdateOnAfterCalcCopyAndCheckItemChargeNeeded.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="CopyAndCheckItemChargeNeeded">Specifies the CopyAndCheckItemChargeNeeded parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnCheckAndUpdateOnAfterCalcCopyAndCheckItemChargeNeeded(var PurchHeader: Record "Purchase Header"; var CopyAndCheckItemChargeNeeded: Boolean)
     begin
@@ -12851,6 +13998,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnUpdatePostingNosOnBeforeUpdatePostingNo.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="ModifyHeader">Specifies the ModifyHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdatePostingNosOnBeforeUpdatePostingNo(PurchHeader: Record "Purchase Header"; PreviewMode: Boolean; var ModifyHeader: Boolean; var IsHandled: Boolean)
     begin
@@ -12860,6 +14010,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnUpdatePostingNosOnAfterCalcShouldUpdateReceivingNo.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="ModifyHeader">Specifies the ModifyHeader parameter.</param>
+    /// <param name="ShouldUpdateReceivingNo">Specifies the ShouldUpdateReceivingNo parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdatePostingNosOnAfterCalcShouldUpdateReceivingNo(PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var ModifyHeader: Boolean; var ShouldUpdateReceivingNo: Boolean)
     begin
@@ -12878,6 +14031,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCreatePostedWhseShptLineOnBeforeCreatePostedShptLine.
     /// </summary>
     /// <param name="ReturnShipmentLine"></param>
+    /// <param name="WarehouseShipmentLine">Specifies the WarehouseShipmentLine parameter.</param>
+    /// <param name="PostedWhseShipmentHeader">Specifies the PostedWhseShipmentHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePostedWhseShptLineOnBeforeCreatePostedShptLine(var ReturnShipmentLine: Record "Return Shipment Line"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; PostedWhseShipmentHeader: Record "Posted Whse. Shipment Header")
     begin
@@ -12887,6 +14042,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCreatePostedRcptLineOnBeforeCreatePostedRcptLine.
     /// </summary>
     /// <param name="ReturnShipmentLine"></param>
+    /// <param name="WarehouseReceiptLine">Specifies the WarehouseReceiptLine parameter.</param>
+    /// <param name="PostedWhseReceiptHeader">Specifies the PostedWhseReceiptHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePostedRcptLineOnBeforeCreatePostedRcptLine(var ReturnShipmentLine: Record "Return Shipment Line"; var WarehouseReceiptLine: Record "Warehouse Receipt Line"; PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header")
     begin
@@ -12896,6 +14053,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnSaveInvoiceSpecificationOnAfterUpdateTempTrackingSpecification.
     /// </summary>
     /// <param name="TempTrackingSpecification"></param>
+    /// <param name="TempInvoicingSpecification">Specifies the TempInvoicingSpecification parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSaveInvoiceSpecificationOnAfterUpdateTempTrackingSpecification(var TempTrackingSpecification: Record "Tracking Specification" temporary; var TempInvoicingSpecification: Record "Tracking Specification" temporary)
     begin
@@ -12905,6 +14063,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnSaveInvoiceSpecificationOnBeforeTempTrackingSpecificationModify.
     /// </summary>
     /// <param name="TempTrackingSpecification"></param>
+    /// <param name="TempInvoicingSpecification">Specifies the TempInvoicingSpecification parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSaveInvoiceSpecificationOnBeforeTempTrackingSpecificationModify(var TempTrackingSpecification: Record "Tracking Specification" temporary; var TempInvoicingSpecification: Record "Tracking Specification" temporary)
     begin
@@ -12923,6 +14082,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostUpdateInvoiceLine.
     /// </summary>
     /// <param name="TempPurchLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostUpdateInvoiceLine(var TempPurchLine: Record "Purchase Line" temporary; var IsHandled: Boolean; var PurchaseHeader: Record "Purchase Header")
     begin
@@ -12934,6 +14095,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckAssociatedSalesOrderLine.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckAssociatedSalesOrderLine(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -12953,6 +14115,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckReceiveInvoiceShip.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckReceiveInvoiceShip(var PurchHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -12962,6 +14125,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemTrackingItemChargePerOrderOnAfterCalcFactor.
     /// </summary>
     /// <param name="NonDistrItemJnlLine"></param>
+    /// <param name="ItemJnlLine2">Specifies the ItemJnlLine2 parameter.</param>
+    /// <param name="TempTrackingSpecificationChargeAssmt">Specifies the TempTrackingSpecificationChargeAssmt parameter.</param>
+    /// <param name="SignFactor">Specifies the SignFactor parameter.</param>
+    /// <param name="Factor">Specifies the Factor parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingItemChargePerOrderOnAfterCalcFactor(var NonDistrItemJnlLine: Record "Item Journal Line"; var ItemJnlLine2: Record "Item Journal Line"; var TempTrackingSpecificationChargeAssmt: Record "Tracking Specification"; SignFactor: Integer; Factor: Decimal)
     begin
@@ -12980,6 +14147,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemTrackingForShipmentOnAfterReturnShptLineReset.
     /// </summary>
     /// <param name="ReturnShptLine"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingForShipmentOnAfterReturnShptLineReset(var ReturnShptLine: Record "Return Shipment Line"; PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line")
     begin
@@ -12989,6 +14158,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemTrackingForShipmentOnBeforeSetItemEntryRelationForShipment.
     /// </summary>
     /// <param name="ItemEntryRelation"></param>
+    /// <param name="ReturnShptLine">Specifies the ReturnShptLine parameter.</param>
+    /// <param name="InvoicingTrackingSpecification">Specifies the InvoicingTrackingSpecification parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingForShipmentOnBeforeSetItemEntryRelationForShipment(var ItemEntryRelation: Record "Item Entry Relation"; var ReturnShptLine: Record "Return Shipment Line"; var InvoicingTrackingSpecification: Record "Tracking Specification"; var IsHandled: Boolean)
     begin
@@ -12998,6 +14170,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemTrackingForShipmentOnBeforeAdjustQuantityRounding.
     /// </summary>
     /// <param name="ReturnShptLine"></param>
+    /// <param name="RemQtyToInvoiceCurrLine">Specifies the RemQtyToInvoiceCurrLine parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToInvoiceCurrLineBase">Specifies the RemQtyToInvoiceCurrLineBase parameter.</param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingForShipmentOnBeforeAdjustQuantityRounding(ReturnShptLine: Record "Return Shipment Line"; RemQtyToInvoiceCurrLine: Decimal; var QtyToBeInvoiced: Decimal; RemQtyToInvoiceCurrLineBase: Decimal; QtyToBeInvoicedBase: Decimal; var IsHandled: Boolean)
     begin
@@ -13016,6 +14193,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnRunOnAfterInvoiceRounding.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnRunOnAfterInvoiceRounding(var PurchHeader: Record "Purchase Header"; var TempPurchLineGlobal: Record "Purchase Line" temporary)
     begin
@@ -13025,6 +14203,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnRunOnBeforeFillTempLines.
     /// </summary>
     /// <param name="PreviewMode"></param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnRunOnBeforeFillTempLines(PreviewMode: Boolean; var GenJnlLineDocNo: Code[20])
     begin
@@ -13034,6 +14213,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnRunOnAfterPostPurchLine.
     /// </summary>
     /// <param name="TempPurchLineGlobal"></param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="ReturnShipmentHeader">Specifies the ReturnShipmentHeader parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnRunOnAfterPostPurchLine(var TempPurchLineGlobal: Record "Purchase Line" temporary; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var ReturnShipmentHeader: Record "Return Shipment Header")
     begin
@@ -13043,6 +14226,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterCalcInvDiscount.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterCalcInvDiscount(PurchHeader: Record "Purchase Header"; var TempPurchLineGlobal: Record "Purchase Line" temporary)
     begin
@@ -13052,6 +14236,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostGLAccICLineOnBeforeCheckAndInsertICGenJnlLine.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="xPurchaseLine">Specifies the xPurchaseLine parameter.</param>
+    /// <param name="ICGenJnlLineNo">Specifies the ICGenJnlLineNo parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostGLAccICLineOnBeforeCheckAndInsertICGenJnlLine(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; xPurchaseLine: Record "Purchase Line"; ICGenJnlLineNo: Integer)
     begin
@@ -13070,6 +14257,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineTrackingOnBeforeTempHandlingSpecificationFind.
     /// </summary>
     /// <param name="PurchLine"></param>
+    /// <param name="TempHandlingSpecification">Specifies the TempHandlingSpecification parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnPostItemJnlLineTrackingOnBeforeTempHandlingSpecificationFind(PurchLine: Record "Purchase Line"; var TempHandlingSpecification: Record "Tracking Specification" temporary)
     begin
@@ -13079,6 +14267,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnFinalizePostingOnAfterUpdateItemChargeAssgnt.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
+    /// <param name="EverythingInvoiced">Specifies the EverythingInvoiced parameter.</param>
+    /// <param name="TempPurchLine">Specifies the TempPurchLine parameter.</param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnFinalizePostingOnAfterUpdateItemChargeAssgnt(var PurchHeader: Record "Purchase Header"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var EverythingInvoiced: Boolean; var TempPurchLine: Record "Purchase Line" temporary; var TempPurchLineGlobal: Record "Purchase Line" temporary; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
@@ -13088,6 +14281,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnFinalizePostingOnBeforeInsertValueEntryRelation.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnFinalizePostingOnBeforeInsertValueEntryRelation(var PurchHeader: Record "Purchase Header"; PurchInvHeader: Record "Purch. Inv. Header"; PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
     begin
@@ -13097,6 +14292,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnFinalizePostingOnBeforeInsertTrackingSpecification.
     /// </summary>
     /// <param name="TempDropShptPostBuffer"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="EverythingInvoiced">Specifies the EverythingInvoiced parameter.</param>
+    /// <param name="TempPurchLine">Specifies the TempPurchLine parameter.</param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnFinalizePostingOnBeforeInsertTrackingSpecification(var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; PurchHeader: Record "Purchase Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; EverythingInvoiced: Boolean; var TempPurchLine: Record "Purchase Line"; var TempPurchLineGlobal: Record "Purchase Line")
     begin
@@ -13106,6 +14306,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnFinalizePostingOnBeforeUpdateWhseDocuments.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="WarehouseReceiptHeader">Specifies the WarehouseReceiptHeader parameter.</param>
+    /// <param name="TempWarehouseReceiptHeader">Specifies the TempWarehouseReceiptHeader parameter.</param>
+    /// <param name="WarehouseShipmentHeader">Specifies the WarehouseShipmentHeader parameter.</param>
+    /// <param name="TempWarehouseShipmentHeader">Specifies the TempWarehouseShipmentHeader parameter.</param>
+    /// <param name="WarehouseReceive">Specifies the WarehouseReceive parameter.</param>
+    /// <param name="WarehouseShip">Specifies the WarehouseShip parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFinalizePostingOnBeforeUpdateWhseDocuments(var PurchaseHeader: Record "Purchase Header"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; TempWarehouseReceiptHeader: Record "Warehouse Receipt Header" temporary;
         WarehouseShipmentHeader: Record "Warehouse Shipment Header"; TempWarehouseShipmentHeader: Record "Warehouse Shipment Header" temporary; WarehouseReceive: Boolean; WarehouseShip: Boolean; var IsHandled: Boolean)
@@ -13119,6 +14326,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnFinalizePostingOnBeforeCommit.
     /// </summary>
     /// <param name="PreviewMode"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFinalizePostingOnBeforeCommit(PreviewMode: Boolean; var IsHandled: Boolean)
     begin
@@ -13128,6 +14336,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnInsertReceiptLineOnBeforeCreatePostedRcptLine.
     /// </summary>
     /// <param name="PurchRcptLine"></param>
+    /// <param name="WarehouseReceiptLine">Specifies the WarehouseReceiptLine parameter.</param>
+    /// <param name="PostedWhseReceiptHeader">Specifies the PostedWhseReceiptHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertReceiptLineOnBeforeCreatePostedRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; var WarehouseReceiptLine: Record "Warehouse Receipt Line"; PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header")
     begin
@@ -13137,6 +14347,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnInsertReceiptLineOnBeforeCreatePostedShptLine.
     /// </summary>
     /// <param name="PurchRcptLine"></param>
+    /// <param name="WarehouseShipmentLine">Specifies the WarehouseShipmentLine parameter.</param>
+    /// <param name="PostedWhseShipmentHeader">Specifies the PostedWhseShipmentHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertReceiptLineOnBeforeCreatePostedShptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; var WarehouseShipmentLine: Record "Warehouse Shipment Line"; PostedWhseShipmentHeader: Record "Posted Whse. Shipment Header")
     begin
@@ -13146,6 +14358,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnInsertReceiptLineOnBeforeProcessWhseShptRcpt.
     /// </summary>
     /// <param name="PurchLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="CostBaseAmount">Specifies the CostBaseAmount parameter.</param>
+    /// <param name="PurchRcptLine">Specifies the PurchRcptLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertReceiptLineOnBeforeProcessWhseShptRcpt(var PurchLine: Record "Purchase Line"; var IsHandled: Boolean; var CostBaseAmount: Decimal; PurchRcptLine: Record "Purch. Rcpt. Line")
     begin
@@ -13156,6 +14371,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckAndUpdateOnBeforeArchiveUnpostedOrder.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnBeforeArchiveUnpostedOrder(var PurchHeader: Record "Purchase Header"; PreviewMode: Boolean; var IsHandled: Boolean)
     begin
@@ -13174,6 +14391,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnUpdateAssosOrderPostingNosOnBeforeReleaseSalesHeader.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="SalesOrderHeader">Specifies the SalesOrderHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAssosOrderPostingNosOnBeforeReleaseSalesHeader(var PurchHeader: Record "Purchase Header"; var SalesOrderHeader: Record "Sales Header")
     begin
@@ -13183,6 +14401,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnUpdateAssosOrderPostingNosOnAfterReleaseSalesHeader.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="SalesOrderHeader">Specifies the SalesOrderHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAssosOrderPostingNosOnAfterReleaseSalesHeader(var PurchHeader: Record "Purchase Header"; var SalesOrderHeader: Record "Sales Header")
     begin
@@ -13201,6 +14420,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnUpdatePostingNosOnInvoiceOnBeforeSetPostingNo.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdatePostingNosOnInvoiceOnBeforeSetPostingNo(var PurchHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -13210,6 +14430,14 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnValidatePostingAndDocumentDateOnAfterCalcPostingDateExists.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PostingDateExists">Specifies the PostingDateExists parameter.</param>
+    /// <param name="ReplacePostingDate">Specifies the ReplacePostingDate parameter.</param>
+    /// <param name="PostingDate">Specifies the PostingDate parameter.</param>
+    /// <param name="ReplaceDocumentDate">Specifies the ReplaceDocumentDate parameter.</param>
+    /// <param name="ModifyHeader">Specifies the ModifyHeader parameter.</param>
+    /// <param name="VATDateExists">Specifies the VATDateExists parameter.</param>
+    /// <param name="ReplaceVATDate">Specifies the ReplaceVATDate parameter.</param>
+    /// <param name="VATDate">Specifies the VATDate parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePostingAndDocumentDateOnAfterCalcPostingDateExists(var PurchHeader: Record "Purchase Header"; var PostingDateExists: Boolean; var ReplacePostingDate: Boolean; var PostingDate: Date; var ReplaceDocumentDate: Boolean; var ModifyHeader: Boolean; var VATDateExists: Boolean; var ReplaceVATDate: Boolean; var VATDate: Date)
     begin
@@ -13219,6 +14447,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnNeedUpdateGenProdPostingGroupOnItemChargeOnPurchaseLine.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="NeedUpdate">Specifies the NeedUpdate parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnNeedUpdateGenProdPostingGroupOnItemChargeOnPurchaseLine(PurchaseLine: Record "Purchase Line"; var NeedUpdate: Boolean; var IsHandled: Boolean)
     begin
@@ -13228,6 +14458,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnNeedUpdateGenProdPostingGroupOnItemChargeOnPurchRcptLine.
     /// </summary>
     /// <param name="PurchRcptLine"></param>
+    /// <param name="NeedUpdate">Specifies the NeedUpdate parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnNeedUpdateGenProdPostingGroupOnItemChargeOnPurchRcptLine(PurchRcptLine: Record "Purch. Rcpt. Line"; var NeedUpdate: Boolean; var IsHandled: Boolean)
     begin
@@ -13237,6 +14469,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnNeedUpdateGenProdPostingGroupOnItemChargeOnReturnShipmentLine.
     /// </summary>
     /// <param name="ReturnShipmentLine"></param>
+    /// <param name="NeedUpdate">Specifies the NeedUpdate parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnNeedUpdateGenProdPostingGroupOnItemChargeOnReturnShipmentLine(ReturnShipmentLine: Record "Return Shipment Line"; var NeedUpdate: Boolean; var IsHandled: Boolean)
     begin
@@ -13246,6 +14480,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeInsertReturnShipmentHeader.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="ReturnShptHeader">Specifies the ReturnShptHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertReturnShipmentHeader(var PurchHeader: Record "Purchase Header"; var ReturnShptHeader: Record "Return Shipment Header"; var IsHandled: Boolean)
     begin
@@ -13255,6 +14491,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeInsertInvoiceHeader.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="Window">Specifies the Window parameter.</param>
+    /// <param name="HideProgressWindow">Specifies the HideProgressWindow parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
+    /// <param name="PurchCommentLine">Specifies the PurchCommentLine parameter.</param>
+    /// <param name="RecordLinkManagement">Specifies the RecordLinkManagement parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertInvoiceHeader(var PurchHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var IsHandled: Boolean; var Window: Dialog; var HideProgressWindow: Boolean; var SrcCode: Code[10]; var PurchCommentLine: Record "Purch. Comment Line"; var RecordLinkManagement: Codeunit "Record Link Management")
     begin
@@ -13264,6 +14507,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeInserCrMemoHeader.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="HideProgressWindow">Specifies the HideProgressWindow parameter.</param>
+    /// <param name="Window">Specifies the Window parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
+    /// <param name="PurchCrMemoHeader">Specifies the PurchCrMemoHeader parameter.</param>
+    /// <param name="PurchCommentLine">Specifies the PurchCommentLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInserCrMemoHeader(var PurchHeader: Record "Purchase Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var HideProgressWindow: Boolean; var Window: Dialog; var IsHandled: Boolean; SrcCode: Code[10]; PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; var PurchCommentLine: Record "Purch. Comment Line")
     begin
@@ -13273,6 +14523,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostCombineSalesOrderShipmentOnBeforeCopyComments.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
+    /// <param name="SalesShptHeader">Specifies the SalesShptHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostCombineSalesOrderShipmentOnBeforeCopyComments(var PurchHeader: Record "Purchase Header"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var SalesShptHeader: Record "Sales Shipment Header"; var IsHandled: Boolean)
     begin
@@ -13283,6 +14536,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostInvoiceOnBeforePostBalancingEntry.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="LineCount">Specifies the LineCount parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostInvoiceOnBeforePostBalancingEntry(var PurchHeader: Record "Purchase Header"; var LineCount: Integer)
     begin
@@ -13292,6 +14546,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostUpdateOrderLineOnAfterReceive.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TempPurchLine">Specifies the TempPurchLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineOnAfterReceive(var PurchHeader: Record "Purchase Header"; var TempPurchLine: Record "Purchase Line" temporary)
     begin
@@ -13301,6 +14556,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdateAssosOrderPostingNos.
     /// </summary>
     /// <param name="TempPurchLine"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
+    /// <param name="DropShipment">Specifies the DropShipment parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateAssosOrderPostingNos(var TempPurchLine: Record "Purchase Line" temporary; var PurchHeader: Record "Purchase Header"; var DropShipment: Boolean; var IsHandled: Boolean; PreviewMode: Boolean)
     begin
@@ -13310,6 +14569,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnFinalizePostingOnBeforeUpdateAfterPosting.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
+    /// <param name="EverythingInvoiced">Specifies the EverythingInvoiced parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="TempPurchLine">Specifies the TempPurchLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFinalizePostingOnBeforeUpdateAfterPosting(var PurchHeader: Record "Purchase Header"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var EverythingInvoiced: Boolean; var IsHandled: Boolean; var TempPurchLine: Record "Purchase Line" temporary)
     begin
@@ -13328,6 +14591,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostPurchLine.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostPurchLine(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -13337,6 +14602,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostUpdateOrderLineOnBeforeFindTempPurchLine.
     /// </summary>
     /// <param name="TempPurchaseLine"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineOnBeforeFindTempPurchLine(var TempPurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header");
     begin
@@ -13346,6 +14612,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCalcInvoiceOnAfterResetTempLines.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TempPurchLine">Specifies the TempPurchLine parameter.</param>
+    /// <param name="NewInvoice">Specifies the NewInvoice parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcInvoiceOnAfterResetTempLines(var PurchHeader: Record "Purchase Header"; var TempPurchLine: Record "Purchase Line" temporary; var NewInvoice: Boolean; var IsHandled: Boolean)
     begin
@@ -13355,6 +14624,16 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnRunOnAfterPostInvoice.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="ReturnShipmentHeader">Specifies the ReturnShipmentHeader parameter.</param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="Window">Specifies the Window parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
+    /// <param name="GenJnlLineDocType">Specifies the GenJnlLineDocType parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterPostInvoice(var PurchaseHeader: Record "Purchase Header"; var PurchRcptHeader: Record "Purch. Rcpt. Header"; var ReturnShipmentHeader: Record "Return Shipment Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var PreviewMode: Boolean; var Window: Dialog; SrcCode: Code[10]; GenJnlLineDocType: Enum "Gen. Journal Document Type"; GenJnlLineDocNo: Code[20]; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
@@ -13373,6 +14652,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnRunOnBeforePostPurchLine.
     /// </summary>
     /// <param name="PurchLine"></param>
+    /// <param name="PurchHeader">Specifies the PurchHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforePostPurchLine(var PurchLine: Record "Purchase Line"; var PurchHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -13382,6 +14663,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeValidateICPartnerBusPostingGroups.
     /// </summary>
     /// <param name="TempICGenJnlLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateICPartnerBusPostingGroups(var TempICGenJnlLine: Record "Gen. Journal Line" temporary; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -13391,6 +14674,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterGetCurrency.
     /// </summary>
     /// <param name="CurrencyCode"></param>
+    /// <param name="Currency">Specifies the Currency parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetCurrency(CurrencyCode: Code[10]; var Currency: Record Currency)
     begin
@@ -13400,6 +14684,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCreatePrepaymentLinesOnBeforeInsertedPrepmtVATBaseToDeduct.
     /// </summary>
     /// <param name="TempPrepmtPurchLine"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePrepaymentLinesOnBeforeInsertedPrepmtVATBaseToDeduct(var TempPrepmtPurchLine: Record "Purchase Line" temporary; var PurchaseHeader: Record "Purchase Header"; var TempPurchaseLine: Record "Purchase Line" temporary)
     begin
@@ -13409,6 +14695,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCreatePrepaymentLinesOnAfterGetPurchPrepmtAccount.
     /// </summary>
     /// <param name="GLAcc"></param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="CompleteFunctionality">Specifies the CompleteFunctionality parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePrepaymentLinesOnAfterGetPurchPrepmtAccount(var GLAcc: Record "G/L Account"; var TempPurchaseLine: Record "Purchase Line" temporary; PurchaseHeader: Record "Purchase Header"; CompleteFunctionality: Boolean)
     begin
@@ -13418,6 +14707,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCreatePrepaymentLinesOnBeforeGetPurchPrepmtAccount.
     /// </summary>
     /// <param name="GLAcc"></param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="GenPostingSetup">Specifies the GenPostingSetup parameter.</param>
+    /// <param name="CompleteFunctionality">Specifies the CompleteFunctionality parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePrepaymentLinesOnBeforeGetPurchPrepmtAccount(var GLAcc: Record "G/L Account"; var TempPurchaseLine: Record "Purchase Line" temporary; PurchaseHeader: Record "Purchase Header"; var GenPostingSetup: Record "General Posting Setup"; CompleteFunctionality: Boolean; var IsHandled: Boolean)
     begin
@@ -13427,6 +14721,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeInsertReturnEntryRelation.
     /// </summary>
     /// <param name="ReturnShptLine"></param>
+    /// <param name="Result">Specifies the Result parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertReturnEntryRelation(var ReturnShptLine: Record "Return Shipment Line"; var Result: Integer; var IsHandled: Boolean)
     begin
@@ -13436,6 +14732,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnTestPurchLineOnBeforeTestFieldQtyToReceive.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTestPurchLineOnBeforeTestFieldQtyToReceive(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -13445,6 +14742,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnTestPurchLineOnBeforeTestFieldReturnQtyToShip.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTestPurchLineOnBeforeTestFieldReturnQtyToShip(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -13454,6 +14752,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnRunOnAfterCalcVATAmountLines.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
+    /// <param name="TempVATAmountLine">Specifies the TempVATAmountLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnAfterCalcVATAmountLines(var PurchaseHeader: Record "Purchase Header"; var TempPurchLineGlobal: Record "Purchase Line" temporary; var TempVATAmountLine: Record "VAT Amount Line" temporary)
     begin
@@ -13463,6 +14763,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostAssocItemJnlLineOnBeforeInitAssocItemJnlLine.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="ItemShptEntryNo">Specifies the ItemShptEntryNo parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostAssocItemJnlLineOnBeforeInitAssocItemJnlLine(var SalesOrderLine: Record "Sales Line"; var ItemShptEntryNo: Integer; var IsHandled: Boolean)
     begin
@@ -13472,6 +14774,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckTrackingSpecificationOnBeforeGetItemTrackingSetup.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="ItemTrackingSetup">Specifies the ItemTrackingSetup parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckTrackingSpecificationOnBeforeGetItemTrackingSetup(var PurchaseLine: Record "Purchase Line"; var ItemTrackingSetup: Record "Item Tracking Setup"; var IsHandled: Boolean)
     begin
@@ -13481,6 +14785,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCalcItemJnlLineToBeReceivedAmounts.
     /// </summary>
     /// <param name="ItemJnlLine"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="QtyToBeReceived">Specifies the QtyToBeReceived parameter.</param>
+    /// <param name="RemAmt">Specifies the RemAmt parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcItemJnlLineToBeReceivedAmounts(var ItemJnlLine: Record "Item Journal Line"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; QtyToBeReceived: Decimal; var RemAmt: Decimal; var IsHandled: Boolean)
     begin
@@ -13490,6 +14799,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostAssocItemJnlLineOnBeforeExit.
     /// </summary>
     /// <param name="SalesOrderHeader"></param>
+    /// <param name="ItemShptEntryNo">Specifies the ItemShptEntryNo parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostAssocItemJnlLineOnBeforeExit(SalesOrderHeader: Record "Sales Header"; var ItemShptEntryNo: Integer; var IsHandled: Boolean)
     begin
@@ -13499,6 +14810,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostUpdateInvoiceLineOnBeforeCalcQty.
     /// </summary>
     /// <param name="TempPurchLine"></param>
+    /// <param name="PurchOrderLine">Specifies the PurchOrderLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateInvoiceLineOnBeforeCalcQty(var TempPurchLine: Record "Purchase Line" temporary; var PurchOrderLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -13508,6 +14821,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostCombineSalesOrderShipmentOnBeforeInsertSalesShptHeader.
     /// </summary>
     /// <param name="TempDropShptPostBuffer"></param>
+    /// <param name="SalesOrderHeader">Specifies the SalesOrderHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostCombineSalesOrderShipmentOnBeforeInsertSalesShptHeader(var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var SalesOrderHeader: Record "Sales Header")
     begin
@@ -13517,6 +14831,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCreatePrepmtLinesOnAfterShouldCalcAmounts.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="ShouldCalcAmounts">Specifies the ShouldCalcAmounts parameter.</param>
+    /// <param name="TempPurchaseLine">Specifies the TempPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePrepmtLinesOnAfterShouldCalcAmounts(PurchHeader: Record "Purchase Header"; var ShouldCalcAmounts: Boolean; var TempPurchaseLine: Record "Purchase Line" temporary)
     begin
@@ -13526,6 +14842,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostPurchLineOnBeforeDivideAmount.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="TempVATAmountLine">Specifies the TempVATAmountLine parameter.</param>
+    /// <param name="TempVATAmountLineRemainder">Specifies the TempVATAmountLineRemainder parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostPurchLineOnBeforeDivideAmount(PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary; var IsHandled: Boolean)
     begin
@@ -13535,6 +14855,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostCombineSalesOrderShipmentOnAfterUpdateSalesOrderLine.
     /// </summary>
     /// <param name="SalesShptHeader"></param>
+    /// <param name="SalesOrderHeader">Specifies the SalesOrderHeader parameter.</param>
+    /// <param name="SalesOrderLine">Specifies the SalesOrderLine parameter.</param>
+    /// <param name="SalesShipmentLine">Specifies the SalesShipmentLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostCombineSalesOrderShipmentOnAfterUpdateSalesOrderLine(SalesShptHeader: Record "Sales Shipment Header"; SalesOrderHeader: Record "Sales Header"; var SalesOrderLine: Record "Sales Line"; SalesShipmentLine: Record "Sales Shipment Line")
     begin
@@ -13544,6 +14867,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckPosted.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="ShouldCheckPosted">Specifies the ShouldCheckPosted parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckPosted(PurchHeader: Record "Purchase Header"; var ShouldCheckPosted: Boolean)
     begin
@@ -13553,6 +14877,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckUnposted.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="ShouldCheckUnposted">Specifies the ShouldCheckUnposted parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckICDocumentDuplicatePostingOnAfterCalcShouldCheckUnposted(PurchHeader: Record "Purchase Header"; var ShouldCheckUnposted: Boolean)
     begin
@@ -13562,6 +14887,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterCopyToTempLines.
     /// </summary>
     /// <param name="TempPurchLine"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCopyToTempLines(var TempPurchLine: Record "Purchase Line" temporary; var PurchaseHeader: Record "Purchase Header")
     begin
@@ -13580,6 +14906,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemTrackingForShipment.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemTrackingForShipment(var PurchHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -13589,6 +14917,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostGLAccICLineOnBeforeCreateJobPurchLine.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostGLAccICLineOnBeforeCreateJobPurchLine(var PurchHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -13598,6 +14928,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeIsItemChargeLineWithQuantityToInvoice.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="Result">Specifies the Result parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeIsItemChargeLineWithQuantityToInvoice(PurchHeader: Record "Purchase Header"; PurchLine: Record "Purchase Line"; var Result: Boolean; var IsHandled: Boolean)
     begin
@@ -13607,6 +14940,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemChargePerRcpt.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="TempItemChargeAssgntPurch">Specifies the TempItemChargeAssgntPurch parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemChargePerRcpt(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var TempItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)" temporary; var IsHandled: Boolean)
     begin
@@ -13616,6 +14952,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterGetAppliedOutboundItemLedgEntryNo.
     /// </summary>
     /// <param name="ItemJnlLine"></param>
+    /// <param name="ItemApplicationEntry">Specifies the ItemApplicationEntry parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetAppliedOutboundItemLedgEntryNo(var ItemJnlLine: Record "Item Journal Line"; var ItemApplicationEntry: Record "Item Application Entry")
     begin
@@ -13625,6 +14962,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterGetGeneralPostingSetup.
     /// </summary>
     /// <param name="GeneralPostingSetup"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetGeneralPostingSetup(var GeneralPostingSetup: Record "General Posting Setup"; PurchLine: Record "Purchase Line");
     begin
@@ -13634,6 +14972,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeConfirmJobLineType.
     /// </summary>
     /// <param name="PurchLine"></param>
+    /// <param name="HideDialog">Specifies the HideDialog parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmJobLineType(PurchLine: Record "Purchase Line"; var HideDialog: Boolean; var IsHandled: Boolean)
     begin
@@ -13643,6 +14983,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeConfirmJobPlanningLineNo.
     /// </summary>
     /// <param name="PurchLine"></param>
+    /// <param name="HideDialog">Specifies the HideDialog parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeConfirmJobPlanningLineNo(PurchLine: Record "Purchase Line"; var HideDialog: Boolean; var IsHandled: Boolean)
     begin
@@ -13652,6 +14994,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemTrackingOnAfterCalcShouldProcessShipment.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="ShouldProcessShipment">Specifies the ShouldProcessShipment parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingOnAfterCalcShouldProcessShipment(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; var ShouldProcessShipment: Boolean)
     begin
@@ -13661,6 +15005,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckItemReservDisruptionOnAfterInsertTempSKU.
     /// </summary>
     /// <param name="Item"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckItemReservDisruptionOnAfterInsertTempSKU(var Item: Record Item; var IsHandled: Boolean)
     begin
@@ -13706,6 +15051,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnInsertInvoiceHeaderOnBeforeCopyLinks.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertInvoiceHeaderOnBeforeCopyLinks(var PurchHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var IsHandled: Boolean)
     begin
@@ -13715,6 +15062,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckAndUpdateOnBeforeUpdateIncomingDocument.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnBeforeUpdateIncomingDocument(var PurchHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -13724,6 +15072,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineJobConsumptionOnAfterItemLedgEntrySetFilters.
     /// </summary>
     /// <param name="ItemLedgEntry"></param>
+    /// <param name="PurchLine">Specifies the PurchLine parameter.</param>
+    /// <param name="ItemJournalLine">Specifies the ItemJournalLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineJobConsumptionOnAfterItemLedgEntrySetFilters(var ItemLedgEntry: Record "Item Ledger Entry"; var PurchLine: Record "Purchase Line"; var ItemJournalLine: Record "Item Journal Line")
     begin
@@ -13733,6 +15083,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnTestPurchLineOnTypeCaseOnDocumentTypeCaseElse.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTestPurchLineOnTypeCaseOnDocumentTypeCaseElse(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line")
     begin
@@ -13742,6 +15093,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterDecrementPrepmtAmtInvLCY.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="PrepmtAmountInvLCY">Specifies the PrepmtAmountInvLCY parameter.</param>
+    /// <param name="PrepmtVATAmountInvLCY">Specifies the PrepmtVATAmountInvLCY parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterDecrementPrepmtAmtInvLCY(PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; var PrepmtAmountInvLCY: Decimal; var PrepmtVATAmountInvLCY: Decimal)
     begin
@@ -13772,6 +15126,11 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnInsertPostedHeadersOnAfterInvoice.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="GenJournalLine">Specifies the GenJournalLine parameter.</param>
+    /// <param name="GenJnlLineDocType">Specifies the GenJnlLineDocType parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="GenJnlLineExtDocNo">Specifies the GenJnlLineExtDocNo parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertPostedHeadersOnAfterInvoice(var PurchaseHeader: Record "Purchase Header"; var GenJournalLine: Record "Gen. Journal Line"; var GenJnlLineDocType: Enum "Gen. Journal Document Type"; var GenJnlLineDocNo: Code[20]; var GenJnlLineExtDocNo: Code[35]; var IsHandled: Boolean)
     begin
@@ -13781,6 +15140,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterSumPurchLines2.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="OldPurchaseLine">Specifies the OldPurchaseLine parameter.</param>
+    /// <param name="NewPurchaseLine">Specifies the NewPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSumPurchLines2(var PurchaseHeader: Record "Purchase Header"; var OldPurchaseLine: Record "Purchase Line"; var NewPurchaseLine: Record "Purchase Line")
     begin
@@ -13790,6 +15151,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnUpdateBlanketOrderLineOnTypeCaseElse.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="Sign">Specifies the Sign parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateBlanketOrderLineOnTypeCaseElse(var PurchaseLine: Record "Purchase Line"; var Sign: Decimal)
     begin
@@ -13799,6 +15161,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnSumPurchLines2OnAfterIsRoundingLineInserted.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="OldPurchaseLine">Specifies the OldPurchaseLine parameter.</param>
+    /// <param name="RoundingLineInserted">Specifies the RoundingLineInserted parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSumPurchLines2OnAfterIsRoundingLineInserted(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var OldPurchaseLine: Record "Purchase Line"; RoundingLineInserted: Boolean)
     begin
@@ -13808,6 +15173,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckICPartnerBlocked.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckICPartnerBlocked(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -13817,6 +15183,15 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostInvoiceOnAfterPostLines.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
+    /// <param name="GenJnlLineDocType">Specifies the GenJnlLineDocType parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="GenJnlLineExtDocNo">Specifies the GenJnlLineExtDocNo parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
+    /// <param name="TotalPurchLine">Specifies the TotalPurchLine parameter.</param>
+    /// <param name="TotalPurchLineLCY">Specifies the TotalPurchLineLCY parameter.</param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
+    /// <param name="TotalAmount">Specifies the TotalAmount parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostInvoiceOnAfterPostLines(var PurchaseHeader: Record "Purchase Header"; SrcCode: Code[10]; GenJnlLineDocType: Enum "Gen. Journal Document Type"; GenJnlLineDocNo: Code[20]; GenJnlLineExtDocNo: Code[35]; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var TotalPurchLine: Record "Purchase Line"; var TotalPurchLineLCY: Record "Purchase Line"; var TempPurchLineGlobal: Record "Purchase Line" temporary; TotalAmount: Decimal)
     begin
@@ -13826,6 +15201,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnValidatePostingAndDocumentDateOnBeforePurchaseHeaderModify.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="ModifyHeader">Specifies the ModifyHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePostingAndDocumentDateOnBeforePurchaseHeaderModify(var PurchaseHeader: Record "Purchase Header"; var ModifyHeader: Boolean)
     begin
@@ -13835,6 +15211,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdatePurchLineDimSetIDFromAppliedEntry.
     /// </summary>
     /// <param name="PurchaseLineToPost"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdatePurchLineDimSetIDFromAppliedEntry(var PurchaseLineToPost: Record "Purchase Line"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -13853,6 +15231,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemChargePerRetRcpt.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="TempItemChargeAssignmentPurch">Specifies the TempItemChargeAssignmentPurch parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemChargePerRetRcpt(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary; var IsHandled: Boolean)
     begin
@@ -13863,6 +15244,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemChargePerITTransfer.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="TransRcptLine">Specifies the TransRcptLine parameter.</param>
+    /// <param name="TempItemChargeAssignmentPurch">Specifies the TempItemChargeAssignmentPurch parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemChargePerITTransfer(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; TransRcptLine: Record "Transfer Receipt Line"; var TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary; var IsHandled: Boolean)
     begin
@@ -13872,6 +15257,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemChargePerRetShpt.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="TempItemChargeAssignmentPurch">Specifies the TempItemChargeAssignmentPurch parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemChargePerRetShpt(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary; var IsHandled: Boolean)
     begin
@@ -13881,6 +15269,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCreatePrepaymentLinesOnBeforeShouldTestGetReceiptPPmtAmtToDeduct.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="CompleteFunctionality">Specifies the CompleteFunctionality parameter.</param>
+    /// <param name="ShouldTestGetReceiptPPmtAmtToDeduct">Specifies the ShouldTestGetReceiptPPmtAmtToDeduct parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePrepaymentLinesOnBeforeShouldTestGetReceiptPPmtAmtToDeduct(PurchaseHeader: Record "Purchase Header"; CompleteFunctionality: Boolean; var ShouldTestGetReceiptPPmtAmtToDeduct: Boolean)
     begin
@@ -13890,6 +15280,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnDivideAmountOnBeforeAmountIncludingVATAmountRound.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="TempVATAmountLineRemainder">Specifies the TempVATAmountLineRemainder parameter.</param>
+    /// <param name="Currency">Specifies the Currency parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDivideAmountOnBeforeAmountIncludingVATAmountRound(var PurchaseLine: Record "Purchase Line"; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary; Currency: Record Currency; var IsHandled: Boolean)
     begin
@@ -13899,6 +15292,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnDivideAmountOnBeforeCalcAmountsForFullVAT.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDivideAmountOnBeforeCalcAmountsForFullVAT(var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -13908,6 +15303,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckMandatoryFields.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckMandatoryFields(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -13917,6 +15313,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckPostingDate.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPostingDate(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -13926,6 +15323,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterInsertCrMemoHeader.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertCrMemoHeader(var PurchaseHeader: Record "Purchase Header"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.")
     begin
@@ -13935,6 +15333,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterInsertInvoiceHeader.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchInvHeader">Specifies the PurchInvHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertInvoiceHeader(var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header")
     begin
@@ -13944,6 +15343,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckAndUpdateOnBeforeOnBeforeDoCommit.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnBeforeOnBeforeDoCommit(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -13953,6 +15353,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnReleasePurchDocumentOnBeforeDoCommit.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnReleasePurchDocumentOnBeforeDoCommit(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -13962,6 +15363,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnUpdateAssociatedSalesOrderBeforeInitOutstanding.
     /// </summary>
     /// <param name="TempDropShptPostBuffer"></param>
+    /// <param name="SalesOrderLine">Specifies the SalesOrderLine parameter.</param>
+    /// <param name="SalesOrderHeader">Specifies the SalesOrderHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAssociatedSalesOrderBeforeInitOutstanding(var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var SalesOrderLine: Record "Sales Line"; SalesOrderHeader: Record "Sales Header")
     begin
@@ -13971,6 +15374,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnRunOnBeforePostInvoice.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="EverythingInvoiced">Specifies the EverythingInvoiced parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforePostInvoice(PurchaseHeader: Record "Purchase Header"; var EverythingInvoiced: Boolean)
     begin
@@ -13980,6 +15384,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCheckPurchDocumentOnBeforeCheckPurchDim.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="TempPurchLineGlobal">Specifies the TempPurchLineGlobal parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckPurchDocumentOnBeforeCheckPurchDim(var PurchaseHeader: Record "Purchase Header"; var TempPurchLineGlobal: Record "Purchase Line" temporary; var IsHandled: Boolean);
     begin
@@ -13989,6 +15395,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnCalcInvDiscountOnBeforeDoCommit.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcInvDiscountOnBeforeDoCommit(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -13998,6 +15405,10 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnValidatePostingAndDocumentDateOnBeforeSetReplaceDocumentDate.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PostingDate">Specifies the PostingDate parameter.</param>
+    /// <param name="ReplaceDocumentDate">Specifies the ReplaceDocumentDate parameter.</param>
+    /// <param name="ModifyHeader">Specifies the ModifyHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePostingAndDocumentDateOnBeforeSetReplaceDocumentDate(var PurchaseHeader: Record "Purchase Header"; var PostingDate: Date; var ReplaceDocumentDate: Boolean; var ModifyHeader: Boolean; var IsHandled: Boolean)
     begin
@@ -14007,6 +15418,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnDivideAmountOnBeforeTempVATAmountLineGet.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="TempVATAmountLine">Specifies the TempVATAmountLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDivideAmountOnBeforeTempVATAmountLineGet(PurchaseLine: Record "Purchase Line"; var TempVATAmountLine: Record "VAT Amount Line" temporary; var IsHandled: Boolean)
     begin
@@ -14016,6 +15429,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckFAPostingPossibility.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckFAPostingPossibility(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -14025,6 +15439,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckPostRestrictions.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPostRestrictions(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -14034,6 +15449,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostPurchLineOnBeforeTestGeneralPostingGroups.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostPurchLineOnBeforeTestGeneralPostingGroups(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -14043,6 +15459,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnUpdateAssosOrderPostingNosOnBeforeTestFieldBilltoCustomerNo.
     /// </summary>
     /// <param name="SalesOrderHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAssosOrderPostingNosOnBeforeTestFieldBilltoCustomerNo(var SalesOrderHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
@@ -14062,6 +15479,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdateAfterPosting.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="SuppressCommit">Specifies the SuppressCommit parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateAfterPosting(var PurchaseHeader: Record "Purchase Header"; SuppressCommit: Boolean; var IsHandled: Boolean)
     begin
@@ -14071,6 +15490,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckAndUpdate.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="ModifyHeader">Specifies the ModifyHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckAndUpdate(var PurchaseHeader: Record "Purchase Header"; var ModifyHeader: Boolean)
     begin
@@ -14080,6 +15500,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargeOnAfterCalcTotalChargeAmt.
     /// </summary>
     /// <param name="PurchaseLineToPost"></param>
+    /// <param name="QtyToAssign">Specifies the QtyToAssign parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="xPurchaseLine">Specifies the xPurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargeOnAfterCalcTotalChargeAmt(var PurchaseLineToPost: Record "Purchase Line"; QtyToAssign: Decimal; var PurchaseLine: Record "Purchase Line"; xPurchaseLine: Record "Purchase Line")
     begin
@@ -14089,6 +15512,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostPurchLineOnAfterInsertReturnShipmentLine.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="ReturnShptHeader">Specifies the ReturnShptHeader parameter.</param>
+    /// <param name="TempPurchaseLineGlobal">Specifies the TempPurchaseLineGlobal parameter.</param>
+    /// <param name="RoundingLineInserted">Specifies the RoundingLineInserted parameter.</param>
+    /// <param name="xPurchaseLine">Specifies the xPurchaseLine parameter.</param>
+    /// <param name="PurchCrMemoHdr">Specifies the PurchCrMemoHdr parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostPurchLineOnAfterInsertReturnShipmentLine(var PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; ReturnShptHeader: Record "Return Shipment Header"; TempPurchaseLineGlobal: Record "Purchase Line"; RoundingLineInserted: Boolean; xPurchaseLine: Record "Purchase Line"; var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.");
     begin
@@ -14107,6 +15536,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckItemReservDisruption.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckItemReservDisruption(var PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean);
     begin
@@ -14116,6 +15546,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemJnlLineOnAfterSetCheckApplToItemEntry.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnAfterSetCheckApplToItemEntry(PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -14125,6 +15556,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnUpdateBlanketOrderLineOnBeforeCheckBlanketOrderPurchLine.
     /// </summary>
     /// <param name="BlanketOrderPurchaseLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateBlanketOrderLineOnBeforeCheckBlanketOrderPurchLine(var BlanketOrderPurchaseLine: Record "Purchase Line"; PurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -14134,6 +15567,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeModifyInvoicedQtyOnPurchRcptLine.
     /// </summary>
     /// <param name="PurchRcptLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeModifyInvoicedQtyOnPurchRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; var IsHandled: Boolean)
     begin
@@ -14143,6 +15577,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnValidatePostingAndDocumentDateOnBeforeTestPostingDate.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="ReplacePostingDate">Specifies the ReplacePostingDate parameter.</param>
+    /// <param name="SkipTestPostingDate">Specifies the SkipTestPostingDate parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePostingAndDocumentDateOnBeforeTestPostingDate(var PurchaseHeader: Record "Purchase Header"; ReplacePostingDate: Boolean; var SkipTestPostingDate: Boolean)
     begin
@@ -14152,6 +15588,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCheckItemCharge.
     /// </summary>
     /// <param name="ItemChargeAssignmentPurch"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckItemCharge(var ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)"; var IsHandled: Boolean)
     begin
@@ -14161,6 +15598,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeProcedurePostAssocItemJnlLine.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="TempHandlingSpecification">Specifies the TempHandlingSpecification parameter.</param>
+    /// <param name="QtyToBeShipped">Specifies the QtyToBeShipped parameter.</param>
+    /// <param name="QtyToBeShippedBase">Specifies the QtyToBeShippedBase parameter.</param>
+    /// <param name="ItemShptEntryNo">Specifies the ItemShptEntryNo parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeProcedurePostAssocItemJnlLine(var SalesOrderLine: Record "Sales Line"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var TempHandlingSpecification: Record "Tracking Specification" temporary; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal; var ItemShptEntryNo: Integer; var IsHandled: Boolean)
     begin
@@ -14170,6 +15613,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostDistributeItemChargeOnAfterSetFactor.
     /// </summary>
     /// <param name="TempItemLedgerEntry"></param>
+    /// <param name="Factor">Specifies the Factor parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostDistributeItemChargeOnAfterSetFactor(TempItemLedgerEntry: Record "Item Ledger Entry"; var Factor: Decimal)
     begin
@@ -14179,6 +15623,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeCalcItemJnlLineToBeInvoicedAmounts.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
+    /// <param name="RemAmt">Specifies the RemAmt parameter.</param>
+    /// <param name="RemDiscAmt">Specifies the RemDiscAmt parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcItemJnlLineToBeInvoicedAmounts(var ItemJournalLine: Record "Item Journal Line"; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; var RemAmt: Decimal; var RemDiscAmt: Decimal; var IsHandled: Boolean)
     begin
@@ -14188,6 +15639,9 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemJnlLineWhseLine.
     /// </summary>
     /// <param name="TempWarehouseJournalLine"></param>
+    /// <param name="TempWhseTrackingSpecification">Specifies the TempWhseTrackingSpecification parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="PostBefore">Specifies the PostBefore parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemJnlLineWhseLine(var TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary; var TempWhseTrackingSpecification: Record "Tracking Specification" temporary; PurchaseLine: Record "Purchase Line"; PostBefore: Boolean)
     begin
@@ -14197,6 +15651,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterPostItemJnlLineWhseLine.
     /// </summary>
     /// <param name="TempWarehouseJournalLine"></param>
+    /// <param name="TempWhseTrackingSpecification">Specifies the TempWhseTrackingSpecification parameter.</param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemJnlLineWhseLine(var TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary; var TempWhseTrackingSpecification: Record "Tracking Specification" temporary; PurchaseLine: Record "Purchase Line")
     begin
@@ -14206,6 +15662,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnPostItemChargePerTransferOnBeforeProcessItemApplicationEntry.
     /// </summary>
     /// <param name="PurchaseLine"></param>
+    /// <param name="ItemApplicationEntry">Specifies the ItemApplicationEntry parameter.</param>
+    /// <param name="TransferReceiptLine">Specifies the TransferReceiptLine parameter.</param>
+    /// <param name="TotalAmountToPostFCY">Specifies the TotalAmountToPostFCY parameter.</param>
+    /// <param name="AmountToPostFCY">Specifies the AmountToPostFCY parameter.</param>
+    /// <param name="GeneralLedgerSetup">Specifies the GeneralLedgerSetup parameter.</param>
+    /// <param name="PurchaseHeader">Specifies the PurchaseHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerTransferOnBeforeProcessItemApplicationEntry(PurchaseLine: Record "Purchase Line"; ItemApplicationEntry: Record "Item Application Entry"; TransferReceiptLine: Record "Transfer Receipt Line"; TotalAmountToPostFCY: Decimal; var AmountToPostFCY: Decimal; GeneralLedgerSetup: Record "General Ledger Setup"; PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
@@ -14215,6 +15678,13 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforePostItemCharge.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
+    /// <param name="ItemEntryNo">Specifies the ItemEntryNo parameter.</param>
+    /// <param name="QuantityBase">Specifies the QuantityBase parameter.</param>
+    /// <param name="AmountToAssign">Specifies the AmountToAssign parameter.</param>
+    /// <param name="QtyToAssign">Specifies the QtyToAssign parameter.</param>
+    /// <param name="IndirectCostPct">Specifies the IndirectCostPct parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemCharge(PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; ItemEntryNo: Integer; QuantityBase: Decimal; AmountToAssign: Decimal; QtyToAssign: Decimal; IndirectCostPct: Decimal; var IsHandled: Boolean)
     begin
@@ -14224,6 +15694,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnInsertedPrepmtVATBaseToDeductOnAfterSetTempPrepmtDeductLCYPurchaseLine.
     /// </summary>
     /// <param name="TempPrepmtDeductLCYPurchaseLine"></param>
+    /// <param name="PrepmtVATBaseToDeduct">Specifies the PrepmtVATBaseToDeduct parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertedPrepmtVATBaseToDeductOnAfterSetTempPrepmtDeductLCYPurchaseLine(var TempPrepmtDeductLCYPurchaseLine: Record "Purchase Line" temporary; var PrepmtVATBaseToDeduct: Decimal; var IsHandled: Boolean)
     begin
@@ -14233,6 +15705,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeAdjustPrepmtAmountLCY.
     /// </summary>
     /// <param name="PurchaseHeader"></param>
+    /// <param name="PrepmtPurchaseLine">Specifies the PrepmtPurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAdjustPrepmtAmountLCY(PurchaseHeader: Record "Purchase Header"; var PrepmtPurchaseLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -14242,6 +15716,8 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeAdjustFinalInvWith100PctPrepmt.
     /// </summary>
     /// <param name="CombinedPurchaseLine"></param>
+    /// <param name="TempPrepmtDeductLCYPurchaseLine">Specifies the TempPrepmtDeductLCYPurchaseLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAdjustFinalInvWith100PctPrepmt(var CombinedPurchaseLine: Record "Purchase Line"; var TempPrepmtDeductLCYPurchaseLine: Record "Purchase Line" temporary; var IsHandled: Boolean)
     begin
@@ -14260,6 +15736,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterCheckPurchRcptLine.
     /// </summary>
     /// <param name="PurchRcptLine"></param>
+    /// <param name="PurchaseLine">Specifies the PurchaseLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckPurchRcptLine(PurchRcptLine: Record "Purch. Rcpt. Line"; PurchaseLine: Record "Purchase Line")
     begin
@@ -14278,6 +15755,7 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnBeforeUpdateReceiptInvoicingQuantities.
     /// </summary>
     /// <param name="PurchLine"></param>
+    /// <param name="SkipQuantityUpdate">Specifies the SkipQuantityUpdate parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateReceiptInvoicingQuantities(PurchLine: Record "Purchase Line"; var SkipQuantityUpdate: Boolean)
     begin
@@ -14296,6 +15774,12 @@ codeunit 90 "Purch.-Post"
     /// Event raised by OnAfterProcessPostingLines.
     /// </summary>
     /// <param name="PurchHeader"></param>
+    /// <param name="TotalPurchLine">Specifies the TotalPurchLine parameter.</param>
+    /// <param name="VendLedgEntry">Specifies the VendLedgEntry parameter.</param>
+    /// <param name="InvoicePostingParameters">Specifies the InvoicePostingParameters parameter.</param>
+    /// <param name="SuppressCommit">Specifies the SuppressCommit parameter.</param>
+    /// <param name="EverythingInvoiced">Specifies the EverythingInvoiced parameter.</param>
+    /// <param name="Window">Specifies the Window parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessPostingLines(var PurchHeader: Record "Purchase Header"; var TotalPurchLine: Record "Purchase Line"; var VendLedgEntry: Record "Vendor Ledger Entry"; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean; EverythingInvoiced: Boolean; var Window: Dialog)
     begin

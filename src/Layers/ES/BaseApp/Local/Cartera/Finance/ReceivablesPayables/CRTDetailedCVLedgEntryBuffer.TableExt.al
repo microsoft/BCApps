@@ -14,22 +14,22 @@ tableextension 7000088 "CRT DetailedCVLedgEntryBuffer" extends "Detailed CV Ledg
         field(7000000; "Bill No."; Code[20])
         {
             Caption = 'Bill No.';
-            DataClassification = SystemMetadata;
+            DataClassification = CustomerContent;
         }
         field(7000001; "Document Situation"; Enum "ES Document Situation")
         {
             Caption = 'Document Situation';
-            DataClassification = SystemMetadata;
+            DataClassification = CustomerContent;
         }
         field(7000002; "Applies-to Bill No."; Code[20])
         {
             Caption = 'Applies-to Bill No.';
-            DataClassification = SystemMetadata;
+            DataClassification = CustomerContent;
         }
         field(7000003; "Document Status"; Enum "ES Document Status")
         {
             Caption = 'Document Status';
-            DataClassification = SystemMetadata;
+            DataClassification = CustomerContent;
         }
     }
 }

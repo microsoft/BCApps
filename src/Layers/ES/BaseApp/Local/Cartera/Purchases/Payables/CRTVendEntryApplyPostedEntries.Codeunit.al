@@ -10,8 +10,8 @@ using Microsoft.Finance.GeneralLedger.Posting;
 codeunit 7000188 "CRTVendEntryApplyPostedEntries"
 {
     var
-        ApplicationEntryDescriptionLbl: Label 'Application of %1 %2';
-        ApplicationBillDescriptionLbl: Label 'Application of %1 %2/%3';
+        ApplicationEntryDescriptionLbl: Label 'Application of %1 %2', Comment = '%1 = Document Type, %2 = Document No.';
+        ApplicationBillDescriptionLbl: Label 'Application of %1 %2/%3', Comment = '%1 = Document Type, %2 = Document No., %3 = Bill No.';
         CarteraApplyPositionErr: Label 'To apply a set of entries containing bills, the cursor should be positioned on an entry different than bill type or Invoice to cartera type.';
         UnapplyBlankedDocTypeErr: Label 'You cannot unapply the entries because one entry has a blank document type.';
 

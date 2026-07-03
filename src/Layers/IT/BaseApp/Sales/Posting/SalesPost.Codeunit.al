@@ -9619,6 +9619,7 @@ codeunit 80 "Sales-Post"
     /// <param name="ShouldPostItemJnlLine">Indicates whether the item journal line should be posted.</param>
     /// <param name="WhseShip">Indicates whether warehouse shipment is involved.</param>
     /// <param name="WhseRcptHeader">The warehouse receipt header.</param>
+    /// <param name="WarehouseShipmentHeader">Specifies the WarehouseShipmentHeader parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnAfterPostItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var WhseJnlPostLine: Codeunit "Whse. Jnl.-Register Line"; OriginalItemJnlLine: Record "Item Journal Line"; var ItemShptEntryNo: Integer; IsATO: Boolean; var TempHandlingSpecification: Record "Tracking Specification"; var TempATOTrackingSpecification: Record "Tracking Specification"; TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary; ShouldPostItemJnlLine: Boolean; WhseShip: Boolean; WhseRcptHeader: Record "Warehouse Receipt Header"; WarehouseShipmentHeader: Record "Warehouse Shipment Header")
     begin
@@ -10747,6 +10748,10 @@ codeunit 80 "Sales-Post"
     /// <param name="SalesLine">The sales line being posted.</param>
     /// <param name="JobTaskSalesLine">The job task sales line.</param>
     /// <param name="ResJnlLine">The resource journal line that was posted.</param>
+    /// <param name="GenJnlLine">Specifies the GenJnlLine parameter.</param>
+    /// <param name="SuppressCommit">Specifies the SuppressCommit parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostPayment(var GenJnlLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; SuppressCommit: Boolean; PreviewMode: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line");
     begin
@@ -10756,6 +10761,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnAfterPostResJnlLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="JobTaskSalesLine">Specifies the JobTaskSalesLine parameter.</param>
+    /// <param name="ResJnlLine">Specifies the ResJnlLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostResJnlLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; JobTaskSalesLine: Record "Sales Line"; ResJnlLine: Record "Res. Journal Line")
     begin
@@ -11293,6 +11301,10 @@ codeunit 80 "Sales-Post"
     /// <param name="SalesShptHeader">The sales shipment header.</param>
     /// <param name="ReturnRcptHeader">The return receipt header.</param>
     /// <param name="ResJnlPostLine">The resource journal post line codeunit instance.</param>
+    /// <param name="GenJnlLine">Specifies the GenJnlLine parameter.</param>
+    /// <param name="SuppressCommit">Specifies the SuppressCommit parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostPayment(var GenJnlLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header"; SuppressCommit: Boolean; PreviewMode: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line");
     begin
@@ -11302,6 +11314,15 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforePostResJnlLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="JobTaskSalesLine">Specifies the JobTaskSalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="DocNo">Specifies the DocNo parameter.</param>
+    /// <param name="ExtDocNo">Specifies the ExtDocNo parameter.</param>
+    /// <param name="SourceCode">Specifies the SourceCode parameter.</param>
+    /// <param name="SalesShptHeader">Specifies the SalesShptHeader parameter.</param>
+    /// <param name="ReturnRcptHeader">Specifies the ReturnRcptHeader parameter.</param>
+    /// <param name="ResJnlPostLine">Specifies the ResJnlPostLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostResJnlLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var JobTaskSalesLine: Record "Sales Line"; var IsHandled: Boolean; DocNo: Code[20]; ExtDocNo: Code[35]; SourceCode: Code[10]; SalesShptHeader: Record "Sales Shipment Header"; ReturnRcptHeader: Record "Return Receipt Header"; var ResJnlPostLine: Codeunit "Res. Jnl.-Post Line")
     begin
@@ -12792,6 +12813,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnSumSalesLines2OnAfterDivideAmount.
     /// </summary>
     /// <param name="OldSalesLine"></param>
+    /// <param name="SalesLineQty">Specifies the SalesLineQty parameter.</param>
+    /// <param name="QtyType">Specifies the QtyType parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSumSalesLines2OnAfterDivideAmount(var OldSalesLine: Record "Sales Line"; var SalesLineQty: Decimal; QtyType: Option General,Invoicing,Shipping)
     begin
@@ -12801,6 +12824,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnSumSalesLines2OnAfterCalcTotalAdjCostLCY.
     /// </summary>
     /// <param name="TotalAdjCostLCY"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSumSalesLines2OnAfterCalcTotalAdjCostLCY(var TotalAdjCostLCY: decimal; SalesLine: Record "Sales Line")
     begin
@@ -12810,6 +12834,11 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnSumSalesLines2OnBeforeCalcVATAmountLines.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="InsertSalesLine">Specifies the InsertSalesLine parameter.</param>
+    /// <param name="TempVATAmountLine">Specifies the TempVATAmountLine parameter.</param>
+    /// <param name="QtyType">Specifies the QtyType parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSumSalesLines2OnBeforeCalcVATAmountLines(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; InsertSalesLine: Boolean; var TempVATAmountLine: Record "VAT Amount Line" temporary; QtyType: Option General,Invoicing,Shipping; var IsHandled: Boolean)
     begin
@@ -12819,6 +12848,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnSumSalesLines2OnBeforeNewSalesLineInsert.
     /// </summary>
     /// <param name="NewSalesLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSumSalesLines2OnBeforeNewSalesLineInsert(var NewSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -12828,6 +12858,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnSumSalesLines2SetFilter.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="InsertSalesLine">Specifies the InsertSalesLine parameter.</param>
+    /// <param name="QtyType">Specifies the QtyType parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSumSalesLines2SetFilter(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; InsertSalesLine: Boolean; var QtyType: Option)
     begin
@@ -12837,6 +12870,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemJnlLineWhseLineOnBeforePostTempWhseJnlLine2.
     /// </summary>
     /// <param name="TempWarehouseJournalLine"></param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="InvtPickPutaway">Specifies the InvtPickPutaway parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineWhseLineOnBeforePostTempWhseJnlLine2(var TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary; WhseShip: Boolean; WhseReceive: Boolean; InvtPickPutaway: Boolean)
     begin
@@ -12846,6 +12882,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnAfterTestUpdatedSalesLine.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="EverythingInvoiced">Specifies the EverythingInvoiced parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnAfterTestUpdatedSalesLine(var SalesLine: Record "Sales Line"; var EverythingInvoiced: Boolean; SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
@@ -12855,6 +12894,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateOrderLineBeforeInitQtyToInvoice.
     /// </summary>
     /// <param name="TempSalesLine"></param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineBeforeInitQtyToInvoice(var TempSalesLine: Record "Sales Line" temporary; WhseShip: Boolean; WhseReceive: Boolean)
     begin
@@ -12864,6 +12905,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateOrderLineOnBeforeInitOutstanding.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineOnBeforeInitOutstanding(var SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary; var IsHandled: Boolean)
     begin
@@ -12873,6 +12916,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateOrderLineOnBeforeInitTempSalesLineQuantities.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineOnBeforeInitTempSalesLineQuantities(var SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -12882,6 +12926,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateOrderLineOnAfterUpdateInvoicedValues.
     /// </summary>
     /// <param name="TempSalesLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineOnAfterUpdateInvoicedValues(var TempSalesLine: Record "Sales Line" temporary; var SalesHeader: Record "Sales Header")
     begin
@@ -12891,6 +12936,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateInvoiceLineOnAfterModifySalesOrderLine.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateInvoiceLineOnAfterModifySalesOrderLine(var SalesOrderLine: Record "Sales Line"; TempSalesLine: Record "Sales Line")
     begin
@@ -12900,6 +12946,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateInvoiceLineOnBeforeModifySalesOrderLine.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateInvoiceLineOnBeforeModifySalesOrderLine(var SalesOrderLine: Record "Sales Line"; TempSalesLine: Record "Sales Line")
     begin
@@ -12909,6 +12956,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateInvoiceLineOnAfterInsertSalesOrderHeader.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateInvoiceLineOnAfterInsertSalesOrderHeader(var SalesOrderLine: Record "Sales Line"; TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -12918,6 +12966,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateOrderLineOnAfterInitQtyToReceiveOrShip.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineOnAfterInitQtyToReceiveOrShip(var SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary; WhseShip: Boolean; WhseReceive: Boolean)
     begin
@@ -12927,6 +12978,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateOrderLineOnBeforeUpdateInvoicedValues.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineOnBeforeUpdateInvoicedValues(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line" temporary; var IsHandled: Boolean)
     begin
@@ -12936,6 +12989,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateOrderLineOnSetDefaultQtyBlank.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
+    /// <param name="SalesSetup">Specifies the SalesSetup parameter.</param>
+    /// <param name="SetDefaultQtyBlank">Specifies the SetDefaultQtyBlank parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnPostUpdateOrderLineOnSetDefaultQtyBlank(var SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary; SalesSetup: Record "Sales & Receivables Setup"; var SetDefaultQtyBlank: Boolean)
     begin
@@ -12945,6 +13001,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCalcInvoiceOnAfterTempSalesLineSetFilters.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCalcInvoiceOnAfterTempSalesLineSetFilters(SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -12954,6 +13011,12 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckAndUpdateOnAfterCalcInvDiscount.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempWhseShptHeader">Specifies the TempWhseShptHeader parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="TempSalesLineGlobal">Specifies the TempSalesLineGlobal parameter.</param>
+    /// <param name="SuppressCommit">Specifies the SuppressCommit parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnCheckAndUpdateOnAfterCalcInvDiscount(SalesHeader: Record "Sales Header"; TempWhseShptHeader: Record "Warehouse Shipment Header" temporary; PreviewMode: Boolean; var TempSalesLineGlobal: Record "Sales Line" temporary; SuppressCommit: Boolean; WhseReceive: Boolean; WhseShip: Boolean);
     begin
@@ -12963,6 +13026,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckAndUpdateOnAfterReleaseSalesDocument.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnAfterReleaseSalesDocument(SalesHeader: Record "Sales Header"; PreviewMode: Boolean)
     begin
@@ -12972,6 +13036,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckAndUpdateOnBeforeSetPostingFlags.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLineGlobal">Specifies the TempSalesLineGlobal parameter.</param>
+    /// <param name="ModifyHeader">Specifies the ModifyHeader parameter.</param>
+    /// <param name="HideProgressWindow">Specifies the HideProgressWindow parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnCheckAndUpdateOnBeforeSetPostingFlags(var SalesHeader: Record "Sales Header"; var TempSalesLineGlobal: Record "Sales Line" temporary; var ModifyHeader: Boolean; var HideProgressWindow: Boolean);
     begin
@@ -12981,6 +13048,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckAndUpdateOnAfterSetPostingFlags.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLineGlobal">Specifies the TempSalesLineGlobal parameter.</param>
+    /// <param name="ModifyHeader">Specifies the ModifyHeader parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnCheckAndUpdateOnAfterSetPostingFlags(var SalesHeader: Record "Sales Header"; var TempSalesLineGlobal: Record "Sales Line" temporary; var ModifyHeader: Boolean);
     begin
@@ -12990,6 +13059,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckAndUpdateOnAfterSetSourceCode.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SourceCodeSetup">Specifies the SourceCodeSetup parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnAfterSetSourceCode(var SalesHeader: Record "Sales Header"; SourceCodeSetup: Record "Source Code Setup"; var SrcCode: Code[10]);
     begin
@@ -12999,6 +13070,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckAndUpdateOnAfterSetPoszingFromWhseRef.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="InvtPickPutaway">Specifies the InvtPickPutaway parameter.</param>
+    /// <param name="PostingFromWhseRef">Specifies the PostingFromWhseRef parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnAfterSetPoszingFromWhseRef(var SalesHeader: Record "Sales Header"; var InvtPickPutaway: Boolean; var PostingFromWhseRef: Integer);
     begin
@@ -13008,6 +13081,11 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckAndUpdateOnBeforeCalcInvDiscount.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="WarehouseReceiptHeader">Specifies the WarehouseReceiptHeader parameter.</param>
+    /// <param name="WarehouseShipmentHeader">Specifies the WarehouseShipmentHeader parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="RefreshNeeded">Specifies the RefreshNeeded parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnBeforeCalcInvDiscount(var SalesHeader: Record "Sales Header"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; WarehouseShipmentHeader: Record "Warehouse Shipment Header"; WhseReceive: Boolean; WhseShip: Boolean; var RefreshNeeded: Boolean)
     begin
@@ -13017,6 +13095,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckAndUpdateOnBeforeCheckPostRestrictions.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnBeforeCheckPostRestrictions(var SalesHeader: Record "Sales Header"; PreviewMode: Boolean)
     begin
@@ -13026,6 +13105,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckAssosOrderLinesOnAfterSetFilters.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAssosOrderLinesOnAfterSetFilters(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header")
     begin
@@ -13035,6 +13115,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckSalesDocumentOnAfterCalcShouldCheckItemCharge.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="ShouldCheckItemCharge">Specifies the ShouldCheckItemCharge parameter.</param>
+    /// <param name="ModifyHeader">Specifies the ModifyHeader parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnCheckSalesDocumentOnAfterCalcShouldCheckItemCharge(var SalesHeader: Record "Sales Header"; WhseReceive: Boolean; WhseShip: Boolean; var ShouldCheckItemCharge: Boolean; var ModifyHeader: Boolean)
     begin
@@ -13044,6 +13128,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckTrackingAndWarehouseForShipOnBeforeCheck.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempWhseShipmentHeader">Specifies the TempWhseShipmentHeader parameter.</param>
+    /// <param name="TempWhseReceiptHeader">Specifies the TempWhseReceiptHeader parameter.</param>
+    /// <param name="Ship">Specifies the Ship parameter.</param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckTrackingAndWarehouseForShipOnBeforeCheck(var SalesHeader: Record "Sales Header"; var TempWhseShipmentHeader: Record "Warehouse Shipment Header" temporary; var TempWhseReceiptHeader: Record "Warehouse Receipt Header" temporary; var Ship: Boolean; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -13053,6 +13141,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckTrackingAndWarehouseForReceiveOnBeforeCheck.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempWhseShipmentHeader">Specifies the TempWhseShipmentHeader parameter.</param>
+    /// <param name="TempWhseReceiptHeader">Specifies the TempWhseReceiptHeader parameter.</param>
+    /// <param name="Receive">Specifies the Receive parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnCheckTrackingAndWarehouseForReceiveOnBeforeCheck(var SalesHeader: Record "Sales Header"; var TempWhseShipmentHeader: Record "Warehouse Shipment Header" temporary; var TempWhseReceiptHeader: Record "Warehouse Receipt Header" temporary; var Receive: Boolean)
     begin
@@ -13071,6 +13162,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckCustBlockageOnAfterTempLinesSetFilters.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckCustBlockageOnAfterTempLinesSetFilters(SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary);
     begin
@@ -13080,6 +13172,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCreatePrepaymentLinesOnAfterTempPrepmtSalesLineSetFilters.
     /// </summary>
     /// <param name="TempPrepmtSalesLine"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePrepaymentLinesOnAfterTempPrepmtSalesLineSetFilters(var TempPrepmtSalesLine: Record "Sales Line" temporary; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -13089,6 +13182,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCreatePrepaymentLinesOnAfterGetSalesPrepmtAccount.
     /// </summary>
     /// <param name="GLAcc"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="CompleteFunctionality">Specifies the CompleteFunctionality parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePrepaymentLinesOnAfterGetSalesPrepmtAccount(var GLAcc: Record "G/L Account"; var TempSalesLine: Record "Sales Line" temporary; SalesHeader: Record "Sales Header"; CompleteFunctionality: Boolean)
     begin
@@ -13098,6 +13194,11 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCreatePrepaymentLinesOnBeforeGetSalesPrepmtAccount.
     /// </summary>
     /// <param name="GLAcc"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="GenPostingSetup">Specifies the GenPostingSetup parameter.</param>
+    /// <param name="CompleteFunctionality">Specifies the CompleteFunctionality parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePrepaymentLinesOnBeforeGetSalesPrepmtAccount(var GLAcc: Record "G/L Account"; var TempSalesLine: Record "Sales Line" temporary; SalesHeader: Record "Sales Header"; var GenPostingSetup: Record "General Posting Setup"; CompleteFunctionality: Boolean; var IsHandled: Boolean)
     begin
@@ -13107,6 +13208,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCreatePrepaymentLinesOnAfterTempSalesLineSetFilters.
     /// </summary>
     /// <param name="TempSalesLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="TempPrepmtSalesLine">Specifies the TempPrepmtSalesLine parameter.</param>
+    /// <param name="NextLineNo">Specifies the NextLineNo parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePrepaymentLinesOnAfterTempSalesLineSetFilters(var TempSalesLine: Record "Sales Line" temporary; var SalesHeader: Record "Sales Header"; var TempPrepmtSalesLine: Record "Sales Line" temporary; var NextLineNo: Integer)
     begin
@@ -13117,6 +13221,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnFinalizePostingOnAfterUpdateItemChargeAssgnt.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFinalizePostingOnAfterUpdateItemChargeAssgnt(var SalesHeader: Record "Sales Header"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
@@ -13126,6 +13232,13 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnFinalizePostingOnBeforeInsertTrackingSpecification.
     /// </summary>
     /// <param name="TempDropShptPostBuffer"></param>
+    /// <param name="TempItemChargeAssignmentSales">Specifies the TempItemChargeAssignmentSales parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="EverythingInvoiced">Specifies the EverythingInvoiced parameter.</param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
+    /// <param name="TempSalesLineGlobal">Specifies the TempSalesLineGlobal parameter.</param>
+    /// <param name="SalesPost">Specifies the SalesPost parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFinalizePostingOnBeforeInsertTrackingSpecification(var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var TempItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)" temporary; SalesHeader: Record "Sales Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; EverythingInvoiced: Boolean; var TempSalesLine: Record "Sales Line" temporary; var TempSalesLineGlobal: Record "Sales Line" temporary; SalesPost: Codeunit "Sales-Post")
     begin
@@ -13135,6 +13248,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnFinalizePostingOnBeforeCreateOutboxSalesTrans.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="EverythingInvoiced">Specifies the EverythingInvoiced parameter.</param>
+    /// <param name="SalesInvoiceHeader">Specifies the SalesInvoiceHeader parameter.</param>
+    /// <param name="SalesCrMemoHeader">Specifies the SalesCrMemoHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFinalizePostingOnBeforeCreateOutboxSalesTrans(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; EverythingInvoiced: Boolean; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
@@ -13144,6 +13261,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnFinalizePostingOnBeforeDeleteApprovalEntries.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="EverythingInvoiced">Specifies the EverythingInvoiced parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFinalizePostingOnBeforeDeleteApprovalEntries(var SalesHeader: Record "Sales Header"; var EverythingInvoiced: Boolean)
     begin
@@ -13153,6 +13271,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnFinalizePostingOnBeforeGenJnlPostPreviewThrowError.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesInvHeader">Specifies the SalesInvHeader parameter.</param>
+    /// <param name="SalesCrMemoHeader">Specifies the SalesCrMemoHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnFinalizePostingOnBeforeGenJnlPostPreviewThrowError(SalesHeader: Record "Sales Header"; SalesInvHeader: Record "Sales Invoice Header"; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var IsHandled: Boolean)
     begin
@@ -13162,6 +13283,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnInsertPostedPaymentOnBeforeInsertPostedPayments.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="PaymentTermsLine">Specifies the PaymentTermsLine parameter.</param>
+    /// <param name="PostedPayments">Specifies the PostedPayments parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertPostedPaymentOnBeforeInsertPostedPayments(SalesHeader: Record "Sales Header"; PaymentTermsLine: Record "Payment Lines"; var PostedPayments: Record "Posted Payment Lines")
     begin
@@ -13171,6 +13294,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnInsertPostedPaymentOnBeforeInsertPaymentJournalLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="PaymentTermsLine">Specifies the PaymentTermsLine parameter.</param>
+    /// <param name="PaymentJournalLine">Specifies the PaymentJournalLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertPostedPaymentOnBeforeInsertPaymentJournalLine(SalesHeader: Record "Sales Header"; PaymentTermsLine: Record "Payment Lines"; var PaymentJournalLine: Record "Payment Lines")
     begin
@@ -13180,6 +13305,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostAssocItemJnlLineOnBeforePost.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="PurchOrderLine">Specifies the PurchOrderLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostAssocItemJnlLineOnBeforePost(var ItemJournalLine: Record "Item Journal Line"; PurchOrderLine: Record "Purchase Line"; var IsHandled: Boolean)
     begin
@@ -13189,6 +13316,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostATOOnBeforePostedATOLinkInsert.
     /// </summary>
     /// <param name="PostedATOLink"></param>
+    /// <param name="AssemblyHeader">Specifies the AssemblyHeader parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostATOOnBeforePostedATOLinkInsert(var PostedATOLink: Record "Posted Assemble-to-Order Link"; var AssemblyHeader: Record "Assembly Header"; var SalesLine: Record "Sales Line")
     begin
@@ -13198,6 +13327,11 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostATOAssocItemJnlLineOnBeforeRemainingPost.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="PostedATOLink">Specifies the PostedATOLink parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToBeInvoicedBase">Specifies the RemQtyToBeInvoicedBase parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostATOAssocItemJnlLineOnBeforeRemainingPost(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var PostedATOLink: Record "Posted Assemble-to-Order Link"; var RemQtyToBeInvoiced: Decimal; var RemQtyToBeInvoicedBase: Decimal; var ItemLedgShptEntryNo: Integer)
     begin
@@ -13208,6 +13342,13 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostDropOrderShipmentOnAfterUpdateBlanketOrderLine.
     /// </summary>
     /// <param name="PurchOrderHeader"></param>
+    /// <param name="PurchOrderLine">Specifies the PurchOrderLine parameter.</param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
+    /// <param name="SalesShptHeader">Specifies the SalesShptHeader parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="PurchRcptHeader">Specifies the PurchRcptHeader parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostDropOrderShipmentOnAfterUpdateBlanketOrderLine(PurchOrderHeader: Record "Purchase Header"; PurchOrderLine: Record "Purchase Line"; TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; SalesShptHeader: Record "Sales Shipment Header"; SalesHeader: Record "Sales Header"; PurchRcptHeader: Record "Purch. Rcpt. Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; SrcCode: Code[10])
     begin
@@ -13217,6 +13358,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemJnlLineOnAfterCopyDocumentFields.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="WarehouseReceiptHeader">Specifies the WarehouseReceiptHeader parameter.</param>
+    /// <param name="WarehouseShipmentHeader">Specifies the WarehouseShipmentHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnAfterCopyDocumentFields(var ItemJournalLine: Record "Item Journal Line"; SalesLine: Record "Sales Line"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; WarehouseShipmentHeader: Record "Warehouse Shipment Header")
     begin
@@ -13226,6 +13370,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemJnlLineOnAfterCalcShouldPostItemJnlLineItemCharges.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="ShouldPostItemJnlLineItemCharges">Specifies the ShouldPostItemJnlLineItemCharges parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnAfterCalcShouldPostItemJnlLineItemCharges(SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; var ShouldPostItemJnlLineItemCharges: Boolean)
     begin
@@ -13235,6 +13381,17 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemJnlLineOnAfterPrepareItemJnlLine.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="ItemJnlPostLine">Specifies the ItemJnlPostLine parameter.</param>
+    /// <param name="QtyToBeShipped">Specifies the QtyToBeShipped parameter.</param>
+    /// <param name="TrackingSpecification">Specifies the TrackingSpecification parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
+    /// <param name="QtyToBeShippedBase">Specifies the QtyToBeShippedBase parameter.</param>
+    /// <param name="RemAmt">Specifies the RemAmt parameter.</param>
+    /// <param name="RemDiscAmt">Specifies the RemDiscAmt parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnAfterPrepareItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; WhseShip: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var QtyToBeShipped: Decimal; TrackingSpecification: Record "Tracking Specification"; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; var QtyToBeShippedBase: Decimal; var RemAmt: Decimal; var RemDiscAmt: Decimal)
     begin
@@ -13244,6 +13401,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemJnlLineOnAfterCopyItemCharge.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="TempItemChargeAssgntSales">Specifies the TempItemChargeAssgntSales parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnAfterCopyItemCharge(var ItemJournalLine: Record "Item Journal Line"; var TempItemChargeAssgntSales: Record "Item Charge Assignment (Sales)" temporary)
     begin
@@ -13253,6 +13411,11 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemJnlLineOnBeforeIsJobContactLineCheck.
     /// </summary>
     /// <param name="ItemJnlLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="ShouldPostItemJnlLine">Specifies the ShouldPostItemJnlLine parameter.</param>
+    /// <param name="ItemJnlPostLine">Specifies the ItemJnlPostLine parameter.</param>
+    /// <param name="QtyToBeShipped">Specifies the QtyToBeShipped parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnBeforeIsJobContactLineCheck(var ItemJnlLine: Record "Item Journal Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var ShouldPostItemJnlLine: Boolean; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; QtyToBeShipped: Decimal)
     begin
@@ -13262,6 +13425,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemJnlLineOnAfterItemJnlPostLineRunWithCheck.
     /// </summary>
     /// <param name="ItemJnlPostLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnAfterItemJnlPostLineRunWithCheck(var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; SalesLine: Record "Sales Line")
     begin
@@ -13271,6 +13435,11 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemJnlLineOnBeforePostItemJnlLineWhseLine.
     /// </summary>
     /// <param name="ItemJnlLine"></param>
+    /// <param name="TempWhseJnlLine">Specifies the TempWhseJnlLine parameter.</param>
+    /// <param name="TempWhseTrackingSpecification">Specifies the TempWhseTrackingSpecification parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnBeforePostItemJnlLineWhseLine(var ItemJnlLine: Record "Item Journal Line"; var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; var TempWhseTrackingSpecification: Record "Tracking Specification" temporary; var TempTrackingSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean; SalesLine: Record "Sales Line")
     begin
@@ -13280,6 +13449,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemJnlLineOnBeforeTransferReservToItemJnlLine.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="ItemJnlLine">Specifies the ItemJnlLine parameter.</param>
+    /// <param name="CheckApplFromItemEntry">Specifies the CheckApplFromItemEntry parameter.</param>
+    /// <param name="TrackingSpecification">Specifies the TrackingSpecification parameter.</param>
+    /// <param name="QtyToBeShippedBase">Specifies the QtyToBeShippedBase parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnBeforeTransferReservToItemJnlLine(SalesLine: Record "Sales Line"; ItemJnlLine: Record "Item Journal Line"; var CheckApplFromItemEntry: Boolean; var TrackingSpecification: Record "Tracking Specification"; QtyToBeShippedBase: Decimal)
     begin
@@ -13289,6 +13462,12 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemJnlLineOnBeforeCopyTrackingFromSpec.
     /// </summary>
     /// <param name="TrackingSpecification"></param>
+    /// <param name="ItemJnlLine">Specifies the ItemJnlLine parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="SalesInvHeader">Specifies the SalesInvHeader parameter.</param>
+    /// <param name="SalesCrMemoHeader">Specifies the SalesCrMemoHeader parameter.</param>
+    /// <param name="IsATO">Specifies the IsATO parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnBeforeCopyTrackingFromSpec(TrackingSpecification: Record "Tracking Specification"; var ItemJnlLine: Record "Item Journal Line"; SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; SalesInvHeader: Record "Sales Invoice Header"; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; IsATO: Boolean)
     begin
@@ -13298,6 +13477,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemJnlLineItemChargesOnAfterGetItemChargeLine.
     /// </summary>
     /// <param name="ItemChargeSalesLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineItemChargesOnAfterGetItemChargeLine(var ItemChargeSalesLine: Record "Sales Line"; SalesLine: Record "Sales Line")
     begin
@@ -13307,6 +13487,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemJnlLinePrepareJournalLineOnBeforeCalcItemJnlAmounts.
     /// </summary>
     /// <param name="ItemJnlLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsATO">Specifies the IsATO parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLinePrepareJournalLineOnBeforeCalcItemJnlAmounts(var ItemJnlLine: Record "Item Journal Line"; SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; IsATO: Boolean)
     begin
@@ -13316,6 +13499,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemChargeOnBeforePostItemJnlLine.
     /// </summary>
     /// <param name="SalesLineToPost"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="QtyToAssign">Specifies the QtyToAssign parameter.</param>
+    /// <param name="TempItemChargeAssgntSales">Specifies the TempItemChargeAssgntSales parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargeOnBeforePostItemJnlLine(var SalesLineToPost: Record "Sales Line"; var SalesLine: Record "Sales Line"; QtyToAssign: Decimal; var TempItemChargeAssgntSales: Record "Item Charge Assignment (Sales)" temporary)
     begin
@@ -13325,6 +13511,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemChargePerOrderOnAfterCopyToItemJnlLine.
     /// </summary>
     /// <param name="ItemJournalLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="GeneralLedgerSetup">Specifies the GeneralLedgerSetup parameter.</param>
+    /// <param name="QtyToInvoice">Specifies the QtyToInvoice parameter.</param>
+    /// <param name="TempItemChargeAssignmentSales">Specifies the TempItemChargeAssignmentSales parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerOrderOnAfterCopyToItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; var SalesLine: Record "Sales Line"; GeneralLedgerSetup: Record "General Ledger Setup"; QtyToInvoice: Decimal; var TempItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)" temporary)
     begin
@@ -13334,6 +13524,12 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemChargePerOrderOnAfterTempTrackingSpecificationInvSetFilters.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="ItemJnlLine2">Specifies the ItemJnlLine2 parameter.</param>
+    /// <param name="TempTrackingSpecificationInv">Specifies the TempTrackingSpecificationInv parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="TotalSalesLineLCY">Specifies the TotalSalesLineLCY parameter.</param>
+    /// <param name="TotalSalesLine">Specifies the TotalSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerOrderOnAfterTempTrackingSpecificationInvSetFilters(SalesHeader: record "Sales Header"; var ItemJnlLine2: record "Item Journal Line"; var TempTrackingSpecificationInv: Record "Tracking Specification" temporary; SalesLine: Record "Sales Line"; var IsHandled: Boolean; var TotalSalesLineLCY: Record "Sales Line"; var TotalSalesLine: Record "Sales Line")
     begin
@@ -13343,6 +13539,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemChargePerOrderOnBeforeTestJobNo.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="SkipTestJobNo">Specifies the SkipTestJobNo parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerOrderOnBeforeTestJobNo(SalesLine: Record "Sales Line"; var SkipTestJobNo: Boolean)
     begin
@@ -13352,6 +13549,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemChargePerOrderOnBeforeLastRunWithCheck.
     /// </summary>
     /// <param name="NonDistrItemJnlLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerOrderOnBeforeLastRunWithCheck(NonDistrItemJnlLine: Record "Item Journal Line"; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -13361,6 +13560,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemChargePerOrderOnBeforeRunWithCheck.
     /// </summary>
     /// <param name="ItemJnlLine2"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerOrderOnBeforeRunWithCheck(ItemJnlLine2: Record "Item Journal Line"; var IsHandled: Boolean; var SalesLine: Record "Sales Line")
     begin
@@ -13370,6 +13571,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemChargePerShptOnBeforeTestJobNo.
     /// </summary>
     /// <param name="SalesShipmentLine"></param>
+    /// <param name="SkipTestJobNo">Specifies the SkipTestJobNo parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerShptOnBeforeTestJobNo(SalesShipmentLine: Record "Sales Shipment Line"; var SkipTestJobNo: Boolean; var SalesLine: Record "Sales Line")
     begin
@@ -13379,6 +13582,11 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemChargePerShptOnAfterCheckItemChargePerShpt.
     /// </summary>
     /// <param name="SalesShipmentLine"></param>
+    /// <param name="TempItemChargeAssgntSales">Specifies the TempItemChargeAssgntSales parameter.</param>
+    /// <param name="DistributeCharge">Specifies the DistributeCharge parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerShptOnAfterCheckItemChargePerShpt(SalesShipmentLine: Record "Sales Shipment Line"; var TempItemChargeAssgntSales: Record "Item Charge Assignment (Sales)" temporary; DistributeCharge: Boolean; var IsHandled: Boolean; SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     begin
@@ -13388,6 +13596,12 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemChargePerShptOnAfterCalcDistributeCharge.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="SalesShptLine">Specifies the SalesShptLine parameter.</param>
+    /// <param name="TempItemLedgEntry">Specifies the TempItemLedgEntry parameter.</param>
+    /// <param name="TempItemChargeAssgntSales">Specifies the TempItemChargeAssgntSales parameter.</param>
+    /// <param name="DistributeCharge">Specifies the DistributeCharge parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerShptOnAfterCalcDistributeCharge(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; SalesShptLine: Record "Sales Shipment Line"; TempItemLedgEntry: Record "Item Ledger Entry" temporary; var TempItemChargeAssgntSales: Record "Item Charge Assignment (Sales)" temporary; var DistributeCharge: Boolean; var IsHandled: Boolean)
     begin
@@ -13397,6 +13611,12 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemChargePerRetRcptOnAfterCalcDistributeCharge.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="ReturnRcptLine">Specifies the ReturnRcptLine parameter.</param>
+    /// <param name="TempItemLedgEntry">Specifies the TempItemLedgEntry parameter.</param>
+    /// <param name="TempItemChargeAssgntSales">Specifies the TempItemChargeAssgntSales parameter.</param>
+    /// <param name="DistributeCharge">Specifies the DistributeCharge parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerRetRcptOnAfterCalcDistributeCharge(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ReturnRcptLine: Record "Return Receipt Line"; TempItemLedgEntry: Record "Item Ledger Entry" temporary; var TempItemChargeAssgntSales: Record "Item Charge Assignment (Sales)" temporary; var DistributeCharge: Boolean; var IsHandled: Boolean)
     begin
@@ -13406,6 +13626,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemChargePerRetRcptOnBeforeTestFieldJobNo.
     /// </summary>
     /// <param name="ReturnReceiptLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargePerRetRcptOnBeforeTestFieldJobNo(ReturnReceiptLine: Record "Return Receipt Line"; var IsHandled: Boolean; var SalesLine: Record "Sales Line")
     begin
@@ -13415,6 +13637,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemTrackingLineOnAfterRetrieveInvoiceSpecification.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="TempInvoicingSpecification">Specifies the TempInvoicingSpecification parameter.</param>
+    /// <param name="TrackingSpecificationExists">Specifies the TrackingSpecificationExists parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingLineOnAfterRetrieveInvoiceSpecification(var SalesLine: Record "Sales Line"; var TempInvoicingSpecification: Record "Tracking Specification" temporary; var TrackingSpecificationExists: Boolean)
     begin
@@ -13424,6 +13648,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemTrackingForShipmentOnAfterSetFilters.
     /// </summary>
     /// <param name="SalesShipmentLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingForShipmentOnAfterSetFilters(var SalesShipmentLine: Record "Sales Shipment Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
     begin
@@ -13433,6 +13659,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemTrackingForShipmentOnAfterUpdateSalesShptLineFields.
     /// </summary>
     /// <param name="SalesShipmentLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingForShipmentOnAfterUpdateSalesShptLineFields(var SalesShipmentLine: Record "Sales Shipment Line"; var SalesLine: Record "Sales Line")
     begin
@@ -13442,6 +13669,13 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemTrackingForShipmentOnBeforeAdjustQuantityRounding.
     /// </summary>
     /// <param name="SalesShptLine"></param>
+    /// <param name="RemQtyToInvoiceCurrLine">Specifies the RemQtyToInvoiceCurrLine parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToInvoiceCurrLineBase">Specifies the RemQtyToInvoiceCurrLineBase parameter.</param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
+    /// <param name="TrackingSpecificationExists">Specifies the TrackingSpecificationExists parameter.</param>
+    /// <param name="HasATOShippedNotInvoiced">Specifies the HasATOShippedNotInvoiced parameter.</param>
+    /// <param name="ShouldAdjustQuantityRounding">Specifies the ShouldAdjustQuantityRounding parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingForShipmentOnBeforeAdjustQuantityRounding(SalesShptLine: Record "Sales Shipment Line"; RemQtyToInvoiceCurrLine: Decimal; var QtyToBeInvoiced: Decimal; RemQtyToInvoiceCurrLineBase: Decimal; QtyToBeInvoicedBase: Decimal; TrackingSpecificationExists: Boolean; HasATOShippedNotInvoiced: Boolean; var ShouldAdjustQuantityRounding: Boolean)
     begin
@@ -13451,6 +13685,13 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemTrackingForShipmentOnBeforeShipmentInvoiceErr.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="ItemJnlRollRndg">Specifies the ItemJnlRollRndg parameter.</param>
+    /// <param name="TrackingSpecificationExists">Specifies the TrackingSpecificationExists parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToBeInvoicedBase">Specifies the RemQtyToBeInvoicedBase parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnPostItemTrackingForShipmentOnBeforeShipmentInvoiceErr(SalesLine: Record "Sales Line"; var IsHandled: Boolean; SalesHeader: Record "Sales Header"; var ItemJnlRollRndg: Boolean; TrackingSpecificationExists: Boolean; var TempTrackingSpecification: Record "Tracking Specification" temporary; var RemQtyToBeInvoiced: Decimal; var RemQtyToBeInvoicedBase: Decimal)
     begin
@@ -13460,6 +13701,13 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemTrackingForShipmentOnBeforeReturnReceiptInvoiceErr.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="ItemJnlRollRndg">Specifies the ItemJnlRollRndg parameter.</param>
+    /// <param name="TrackingSpecificationExists">Specifies the TrackingSpecificationExists parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToBeInvoicedBase">Specifies the RemQtyToBeInvoicedBase parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnPostItemTrackingForShipmentOnBeforeReturnReceiptInvoiceErr(SalesLine: Record "Sales Line"; var IsHandled: Boolean; SalesHeader: Record "Sales Header"; var ItemJnlRollRndg: Boolean; TrackingSpecificationExists: Boolean; var TempTrackingSpecification: Record "Tracking Specification" temporary; var RemQtyToBeInvoiced: Decimal; var RemQtyToBeInvoicedBase: Decimal)
     begin
@@ -13469,6 +13717,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemTrackingForReceiptOnAfterSetFilters.
     /// </summary>
     /// <param name="ReturnReceiptLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingForReceiptOnAfterSetFilters(var ReturnReceiptLine: Record "Return Receipt Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
     begin
@@ -13479,6 +13729,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnBeforeInsertCrMemoLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="xSalesLine">Specifies the xSalesLine parameter.</param>
+    /// <param name="SalesCrMemoHeader">Specifies the SalesCrMemoHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnBeforeInsertCrMemoLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var IsHandled: Boolean; xSalesLine: Record "Sales Line"; SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
@@ -13488,6 +13742,11 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnBeforeInsertInvoiceLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="xSalesLine">Specifies the xSalesLine parameter.</param>
+    /// <param name="SalesInvHeader">Specifies the SalesInvHeader parameter.</param>
+    /// <param name="ShouldInsertInvoiceLine">Specifies the ShouldInsertInvoiceLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnBeforeInsertInvoiceLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var IsHandled: Boolean; xSalesLine: Record "Sales Line"; SalesInvHeader: Record "Sales Invoice Header"; var ShouldInsertInvoiceLine: Boolean)
     begin
@@ -13497,6 +13756,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnBeforeInsertReturnReceiptLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnBeforeInsertReturnReceiptLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -13506,6 +13767,12 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnBeforeInsertShipmentLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SalesLineACY">Specifies the SalesLineACY parameter.</param>
+    /// <param name="DocType">Specifies the DocType parameter.</param>
+    /// <param name="DocNo">Specifies the DocNo parameter.</param>
+    /// <param name="ExtDocNo">Specifies the ExtDocNo parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnBeforeInsertShipmentLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var IsHandled: Boolean; SalesLineACY: Record "Sales Line"; DocType: Option; DocNo: Code[20]; ExtDocNo: Code[35])
     begin
@@ -13515,6 +13782,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnAfterSetEverythingInvoiced.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="EverythingInvoiced">Specifies the EverythingInvoiced parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnAfterSetEverythingInvoiced(SalesLine: Record "Sales Line"; var EverythingInvoiced: Boolean; var IsHandled: Boolean; SalesHeader: Record "Sales Header")
     begin
@@ -13524,6 +13794,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnAfterRoundAmount.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="SalesInvHeader">Specifies the SalesInvHeader parameter.</param>
+    /// <param name="SalesCrMemoHeader">Specifies the SalesCrMemoHeader parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnAfterRoundAmount(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; SalesInvHeader: Record "Sales Invoice Header"; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; GenJnlLineDocNo: Code[20])
     begin
@@ -13533,6 +13807,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnBeforeTestJobNo.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnBeforeTestJobNo(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -13542,6 +13817,12 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnAfterPostItemTrackingLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="InvtPickPutaway">Specifies the InvtPickPutaway parameter.</param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
+    /// <param name="TempPostedATOLink">Specifies the TempPostedATOLink parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnPostSalesLineOnAfterPostItemTrackingLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; WhseShip: Boolean; WhseReceive: Boolean; InvtPickPutaway: Boolean; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var TempPostedATOLink: Record "Posted Assemble-to-Order Link" temporary)
     begin
@@ -13551,6 +13832,11 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnAfterTestSalesLine.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="WhseShptHeader">Specifies the WhseShptHeader parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="CostBaseAmount">Specifies the CostBaseAmount parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnAfterTestSalesLine(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var WhseShptHeader: Record "Warehouse Shipment Header"; WhseShip: Boolean; PreviewMode: Boolean; var CostBaseAmount: Decimal)
     begin
@@ -13560,6 +13846,18 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnBeforePostItemTrackingLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="InvtPickPutaway">Specifies the InvtPickPutaway parameter.</param>
+    /// <param name="SalesInvHeader">Specifies the SalesInvHeader parameter.</param>
+    /// <param name="SalesCrMemoHeader">Specifies the SalesCrMemoHeader parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToBeInvoicedBase">Specifies the RemQtyToBeInvoicedBase parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
+    /// <param name="ItemJnlPostLine">Specifies the ItemJnlPostLine parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnPostSalesLineOnBeforePostItemTrackingLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; WhseShip: Boolean; WhseReceive: Boolean; InvtPickPutaway: Boolean; SalesInvHeader: Record "Sales Invoice Header"; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var ItemLedgShptEntryNo: Integer; var RemQtyToBeInvoiced: Decimal; var RemQtyToBeInvoicedBase: Decimal; GenJnlLineDocNo: Code[20]; SrcCode: Code[10]; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     begin
@@ -13569,6 +13867,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnBeforeTestUnitOfMeasureCode.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="TempSalesLineGlobal">Specifies the TempSalesLineGlobal parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnBeforeTestUnitOfMeasureCode(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempSalesLineGlobal: Record "Sales Line" temporary; var IsHandled: Boolean)
     begin
@@ -13578,6 +13879,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnAfterAdjustPrepmtAmountLCY.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="xSalesLine">Specifies the xSalesLine parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnAfterAdjustPrepmtAmountLCY(var SalesLine: record "Sales Line"; var xSalesLine: record "Sales Line"; TempTrackingSpecification: record "Tracking Specification" temporary; SalesHeader: record "Sales Header")
     begin
@@ -13587,6 +13891,13 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnAfterInsertReturnReceiptLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="xSalesLine">Specifies the xSalesLine parameter.</param>
+    /// <param name="ReturnRcptHeader">Specifies the ReturnRcptHeader parameter.</param>
+    /// <param name="RoundingLineInserted">Specifies the RoundingLineInserted parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
+    /// <param name="SalesShipmentHeader">Specifies the SalesShipmentHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnAfterInsertReturnReceiptLine(var SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var xSalesLine: Record "Sales Line"; ReturnRcptHeader: Record "Return Receipt Header"; RoundingLineInserted: Boolean; var TempTrackingSpecification: Record "Tracking Specification" temporary; var ItemLedgShptEntryNo: Integer; SalesShipmentHeader: Record "Sales Shipment Header")
     begin
@@ -13596,6 +13907,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateInvoiceLineOnAfterGetSalesOrderLine.
     /// </summary>
     /// <param name="TempSalesLine"></param>
+    /// <param name="SalesShptLine">Specifies the SalesShptLine parameter.</param>
+    /// <param name="SalesOrderLine">Specifies the SalesOrderLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateInvoiceLineOnAfterGetSalesOrderLine(var TempSalesLine: Record "Sales Line" temporary; SalesShptLine: Record "Sales Shipment Line"; SalesOrderLine: Record "Sales Line")
     begin
@@ -13605,6 +13918,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateInvoiceLineOnBeforeInitQtyToInvoice.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateInvoiceLineOnBeforeInitQtyToInvoice(var SalesOrderLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -13614,6 +13928,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateInvoiceLineOnBeforeCalcQuantityInvoiced.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateInvoiceLineOnBeforeCalcQuantityInvoiced(var SalesOrderLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary; var IsHandled: Boolean)
     begin
@@ -13623,6 +13939,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateReturnReceiptLineOnAfterGetSalesOrderLine.
     /// </summary>
     /// <param name="TempSalesLine"></param>
+    /// <param name="ReturnRcptLine">Specifies the ReturnRcptLine parameter.</param>
+    /// <param name="SalesOrderLine">Specifies the SalesOrderLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateReturnReceiptLineOnAfterGetSalesOrderLine(var TempSalesLine: Record "Sales Line" temporary; ReturnRcptLine: Record "Return Receipt Line"; SalesOrderLine: Record "Sales Line")
     begin
@@ -13632,6 +13950,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateReturnReceiptLineOnBeforeInitQtyToInvoice.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateReturnReceiptLineOnBeforeInitQtyToInvoice(var SalesOrderLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -13641,6 +13960,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateReturnReceiptLineOnAfterModifySalesOrderLine.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateReturnReceiptLineOnAfterModifySalesOrderLine(var SalesOrderLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -13650,6 +13970,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateReturnReceiptLineOnBeforeModifySalesOrderLine.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateReturnReceiptLineOnBeforeModifySalesOrderLine(var SalesOrderLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -13659,6 +13980,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateReturnReceiptLineOnBeforeCalcQuantityInvoiced.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateReturnReceiptLineOnBeforeCalcQuantityInvoiced(var SalesOrderLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary; var IsHandled: Boolean)
     begin
@@ -13668,6 +13991,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnProcessAssocItemJnlLineOnBeforeTempDropShptPostBufferInsert.
     /// </summary>
     /// <param name="TempDropShptPostBuffer"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnProcessAssocItemJnlLineOnBeforeTempDropShptPostBufferInsert(var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; SalesLine: Record "Sales Line")
     begin
@@ -13677,6 +14001,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnProcessAssocItemJnlLineOnBeforePostAssocItemJnlLine.
     /// </summary>
     /// <param name="TempDropShptPostBuffer"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnProcessAssocItemJnlLineOnBeforePostAssocItemJnlLine(var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; SalesLine: Record "Sales Line")
     begin
@@ -13686,6 +14011,12 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnRoundAmountOnBeforeIncrAmount.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="SalesLineQty">Specifies the SalesLineQty parameter.</param>
+    /// <param name="TotalSalesLine">Specifies the TotalSalesLine parameter.</param>
+    /// <param name="TotalSalesLineLCY">Specifies the TotalSalesLineLCY parameter.</param>
+    /// <param name="xSalesLine">Specifies the xSalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRoundAmountOnBeforeIncrAmount(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; SalesLineQty: Decimal; var TotalSalesLine: Record "Sales Line"; var TotalSalesLineLCY: Record "Sales Line"; var xSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -13695,6 +14026,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnRunOnBeforeCheckTotalInvoiceAmount.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeCheckTotalInvoiceAmount(var SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -13704,6 +14036,17 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnRunOnBeforeFinalizePosting.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesShipmentHeader">Specifies the SalesShipmentHeader parameter.</param>
+    /// <param name="SalesInvoiceHeader">Specifies the SalesInvoiceHeader parameter.</param>
+    /// <param name="SalesCrMemoHeader">Specifies the SalesCrMemoHeader parameter.</param>
+    /// <param name="ReturnReceiptHeader">Specifies the ReturnReceiptHeader parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
+    /// <param name="CommitIsSuppressed">Specifies the CommitIsSuppressed parameter.</param>
+    /// <param name="GenJnlLineExtDocNo">Specifies the GenJnlLineExtDocNo parameter.</param>
+    /// <param name="EverythingInvoiced">Specifies the EverythingInvoiced parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeFinalizePosting(var SalesHeader: Record "Sales Header"; var SalesShipmentHeader: Record "Sales Shipment Header"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var ReturnReceiptHeader: Record "Return Receipt Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; CommitIsSuppressed: Boolean; GenJnlLineExtDocNo: Code[35]; var EverythingInvoiced: Boolean; GenJnlLineDocNo: Code[20]; SrcCode: Code[10]; PreviewMode: Boolean)
     begin
@@ -13713,6 +14056,14 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnRunOnBeforePostSalesLineEndLoop.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="LastLineRetrieved">Specifies the LastLineRetrieved parameter.</param>
+    /// <param name="SalesInvHeader">Specifies the SalesInvHeader parameter.</param>
+    /// <param name="SalesCrMemoHeader">Specifies the SalesCrMemoHeader parameter.</param>
+    /// <param name="RecSalesHeader">Specifies the RecSalesHeader parameter.</param>
+    /// <param name="xSalesLine">Specifies the xSalesLine parameter.</param>
+    /// <param name="SalesShipmentHeader">Specifies the SalesShipmentHeader parameter.</param>
+    /// <param name="ReturnReceiptHeader">Specifies the ReturnReceiptHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforePostSalesLineEndLoop(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var LastLineRetrieved: Boolean; SalesInvHeader: Record "Sales Invoice Header"; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; RecSalesHeader: Record "Sales Header"; xSalesLine: Record "Sales Line"; var SalesShipmentHeader: Record "Sales Shipment Header"; var ReturnReceiptHeader: Record "Return Receipt Header")
     begin
@@ -13731,6 +14082,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnGetPostedDocumentRecordElseCase.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="PostedSalesDocumentVariant">Specifies the PostedSalesDocumentVariant parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetPostedDocumentRecordElseCase(SalesHeader: Record "Sales Header"; var PostedSalesDocumentVariant: Variant; var IsHandled: Boolean)
     begin
@@ -13740,6 +14093,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnGetSalesLinesOnAfterFillTempLines.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetSalesLinesOnAfterFillTempLines(var SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -13749,6 +14103,11 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemLineOnAfterMakeSalesLineToShip.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
+    /// <param name="TempPostedATOLink">Specifies the TempPostedATOLink parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToBeInvoicedBase">Specifies the RemQtyToBeInvoicedBase parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemLineOnAfterMakeSalesLineToShip(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var TempPostedATOLink: Record "Posted Assemble-to-Order Link" temporary; var RemQtyToBeInvoiced: Decimal; var RemQtyToBeInvoicedBase: Decimal)
     begin
@@ -13758,6 +14117,16 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemLineOnBeforeMakeSalesLineToShip.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="TempPostedATOLink">Specifies the TempPostedATOLink parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="GenJnlLineExtDocNo">Specifies the GenJnlLineExtDocNo parameter.</param>
+    /// <param name="ReturnReceiptHeader">Specifies the ReturnReceiptHeader parameter.</param>
+    /// <param name="TempHandlingSpecification">Specifies the TempHandlingSpecification parameter.</param>
+    /// <param name="TempHandlingSpecificationInv">Specifies the TempHandlingSpecificationInv parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemLineOnBeforeMakeSalesLineToShip(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempPostedATOLink: Record "Posted Assemble-to-Order Link" temporary; var ItemLedgShptEntryNo: Integer; var IsHandled: Boolean; var GenJnlLineDocNo: Code[20]; var GenJnlLineExtDocNo: Code[35]; ReturnReceiptHeader: Record "Return Receipt Header"; var TempHandlingSpecification: Record "Tracking Specification" temporary; var TempHandlingSpecificationInv: Record "Tracking Specification" temporary; var TempTrackingSpecification: Record "Tracking Specification" temporary)
     begin
@@ -13767,6 +14136,11 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemLineOnBeforePostItemInvoiceLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
+    /// <param name="TempPostedATOLink">Specifies the TempPostedATOLink parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToBeInvoicedBase">Specifies the RemQtyToBeInvoicedBase parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemLineOnBeforePostItemInvoiceLine(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var TempPostedATOLink: Record "Posted Assemble-to-Order Link" temporary; var RemQtyToBeInvoiced: Decimal; var RemQtyToBeInvoicedBase: Decimal)
     begin
@@ -13776,6 +14150,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemChargeOnAfterPostItemJnlLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargeOnAfterPostItemJnlLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
     begin
@@ -13785,6 +14160,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemChargeLineOnAfterTempItemChargeAssgntSalesLoop.
     /// </summary>
     /// <param name="TempItemChargeAssgntSales"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="SalesLineParam">Specifies the SalesLineParam parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnPostItemChargeLineOnAfterTempItemChargeAssgntSalesLoop(var TempItemChargeAssgntSales: Record "Item Charge Assignment (Sales)" temporary; SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; SalesLineParam: Record "Sales Line")
     begin
@@ -13794,6 +14172,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemChargeLineOnBeforePostItemCharge.
     /// </summary>
     /// <param name="TempItemChargeAssgntSales"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargeLineOnBeforePostItemCharge(var TempItemChargeAssgntSales: Record "Item Charge Assignment (Sales)" temporary; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
     begin
@@ -13803,6 +14183,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemTrackingForReceiptOnBeforeReturnRcptLineModify.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="ReturnRcptLine">Specifies the ReturnRcptLine parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingForReceiptOnBeforeReturnRcptLineModify(SalesHeader: Record "Sales Header"; var ReturnRcptLine: Record "Return Receipt Line"; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -13812,6 +14195,12 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemTrackingForReceiptOnBeforeAdjustQuantityRounding.
     /// </summary>
     /// <param name="ReturnRcptLine"></param>
+    /// <param name="RemQtyToInvoiceCurrLine">Specifies the RemQtyToInvoiceCurrLine parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToInvoiceCurrLineBase">Specifies the RemQtyToInvoiceCurrLineBase parameter.</param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
+    /// <param name="TrackingSpecificationExists">Specifies the TrackingSpecificationExists parameter.</param>
+    /// <param name="ShouldAdjustQuantityRounding">Specifies the ShouldAdjustQuantityRounding parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingForReceiptOnBeforeAdjustQuantityRounding(ReturnRcptLine: Record "Return Receipt Line"; RemQtyToInvoiceCurrLine: Decimal; var QtyToBeInvoiced: Decimal; RemQtyToInvoiceCurrLineBase: Decimal; QtyToBeInvoicedBase: Decimal; TrackingSpecificationExists: Boolean; var ShouldAdjustQuantityRounding: Boolean)
     begin
@@ -13821,6 +14210,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnReleaseSalesDocumentOnBeforeSetStatus.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SavedStatus">Specifies the SavedStatus parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="SuppressCommit">Specifies the SuppressCommit parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnReleaseSalesDocumentOnBeforeSetStatus(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; SavedStatus: Enum "Sales Document Status"; PreviewMode: Boolean; SuppressCommit: Boolean);
     begin
@@ -13830,6 +14223,12 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnRoundAmountOnAfterAssignSalesLines.
     /// </summary>
     /// <param name="xSalesLine"></param>
+    /// <param name="SalesLineACY">Specifies the SalesLineACY parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="TotalSalesLines">Specifies the TotalSalesLines parameter.</param>
+    /// <param name="TotalSalesLineLCY">Specifies the TotalSalesLineLCY parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRoundAmountOnAfterAssignSalesLines(var xSalesLine: Record "Sales Line"; var SalesLineACY: Record "Sales Line"; SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var TotalSalesLines: Record "Sales Line"; var TotalSalesLineLCY: Record "Sales Line"; var SalesLine: Record "Sales Line");
     begin
@@ -13839,6 +14238,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnSaveInvoiceSpecificationOnAfterUpdateTempTrackingSpecification.
     /// </summary>
     /// <param name="TempTrackingSpecification"></param>
+    /// <param name="TempInvoicingSpecification">Specifies the TempInvoicingSpecification parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSaveInvoiceSpecificationOnAfterUpdateTempTrackingSpecification(var TempTrackingSpecification: Record "Tracking Specification" temporary; var TempInvoicingSpecification: Record "Tracking Specification" temporary)
     begin
@@ -13857,6 +14257,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnSendICDocumentOnBeforeSetICStatus.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSendICDocumentOnBeforeSetICStatus(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
@@ -13866,6 +14267,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnSendPostedDocumentRecordElseCase.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="DocumentSendingProfile">Specifies the DocumentSendingProfile parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSendPostedDocumentRecordElseCase(SalesHeader: Record "Sales Header"; var DocumentSendingProfile: Record "Document Sending Profile"; var IsHandled: Boolean)
     begin
@@ -13884,6 +14287,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnTestSalesLineOnAfterCalcShouldTestReturnQty.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="ShouldTestReturnQty">Specifies the ShouldTestReturnQty parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTestSalesLineOnAfterCalcShouldTestReturnQty(SalesLine: Record "Sales Line"; var ShouldTestReturnQty: Boolean)
     begin
@@ -13893,6 +14297,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeTestGenPostingGroups.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeTestGenPostingGroups(var SalesLine: record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -13902,6 +14307,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnUpdateSalesLineBeforePostOnAfterPostJobContractLine.
     /// </summary>
     /// <param name="SalesInvoiceHeader"></param>
+    /// <param name="SalesCrMemoHeader">Specifies the SalesCrMemoHeader parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSalesLineBeforePostOnAfterPostJobContractLine(SalesInvoiceHeader: Record "Sales Invoice Header"; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
     begin
@@ -13920,6 +14328,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnUpdateAssocOrderOnAfterModifyPurchLine.
     /// </summary>
     /// <param name="PurchOrderLine"></param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAssocOrderOnAfterModifyPurchLine(var PurchOrderLine: Record "Purchase Line"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary)
     begin
@@ -13929,6 +14338,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnUpdateAssocOrderOnBeforeModifyPurchLine.
     /// </summary>
     /// <param name="PurchOrderLine"></param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAssocOrderOnBeforeModifyPurchLine(var PurchOrderLine: Record "Purchase Line"; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary)
     begin
@@ -13938,6 +14348,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnUpdateAssosOrderPostingNosOnAfterReleasePurchaseDocument.
     /// </summary>
     /// <param name="PurchOrderHeader"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAssosOrderPostingNosOnAfterReleasePurchaseDocument(var PurchOrderHeader: Record "Purchase Header"; var SalesHeader: Record "Sales Header")
     begin
@@ -13947,6 +14358,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnUpdateAssosOrderPostingNosOnBeforeReleasePurchaseDocument.
     /// </summary>
     /// <param name="PurchOrderHeader"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAssosOrderPostingNosOnBeforeReleasePurchaseDocument(var PurchOrderHeader: Record "Purchase Header"; var SalesHeader: Record "Sales Header")
     begin
@@ -13956,6 +14368,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnUpdateAfterPostingOnBeforeFindSetForUpdate.
     /// </summary>
     /// <param name="TempSalesLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAfterPostingOnBeforeFindSetForUpdate(var TempSalesLine: Record "Sales Line" temporary; SalesHeader: Record "Sales Header")
     begin
@@ -13965,6 +14378,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnUpdateBlanketOrderLineOnBeforeCheck.
     /// </summary>
     /// <param name="BlanketOrderSalesLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateBlanketOrderLineOnBeforeCheck(var BlanketOrderSalesLine: Record "Sales Line"; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -13974,6 +14389,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnUpdateBlanketOrderLineOnBeforeCheckSellToCustomerNo.
     /// </summary>
     /// <param name="BlanketOrderSalesLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateBlanketOrderLineOnBeforeCheckSellToCustomerNo(var BlanketOrderSalesLine: Record "Sales Line"; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -13983,6 +14400,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnUpdateBlanketOrderLineOnBeforeInitOutstanding.
     /// </summary>
     /// <param name="BlanketOrderSalesLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="Ship">Specifies the Ship parameter.</param>
+    /// <param name="Receive">Specifies the Receive parameter.</param>
+    /// <param name="Invoice">Specifies the Invoice parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateBlanketOrderLineOnBeforeInitOutstanding(var BlanketOrderSalesLine: Record "Sales Line"; SalesLine: Record "Sales Line"; Ship: Boolean; Receive: Boolean; Invoice: Boolean)
     begin
@@ -13992,6 +14413,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnUpdateInvoicedQtyOnShipmentLineOnBeforeModifySalesShptLine.
     /// </summary>
     /// <param name="SalesShptLine"></param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateInvoicedQtyOnShipmentLineOnBeforeModifySalesShptLine(var SalesShptLine: Record "Sales Shipment Line"; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal)
     begin
@@ -14001,6 +14424,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnDivideAmountOnAfterInitAmount.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="SalesLineQty">Specifies the SalesLineQty parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDivideAmountOnAfterInitAmount(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; SalesLineQty: Decimal)
     begin
@@ -14010,6 +14435,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnDivideAmountOnAfterInitLineDiscountAmount.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="SalesLineQty">Specifies the SalesLineQty parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDivideAmountOnAfterInitLineDiscountAmount(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; SalesLineQty: Decimal)
     begin
@@ -14019,6 +14446,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnDivideAmountOnBeforeTempVATAmountLineRemainderModify.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="TempVATAmountLine">Specifies the TempVATAmountLine parameter.</param>
+    /// <param name="TempVATAmountLineRemainder">Specifies the TempVATAmountLineRemainder parameter.</param>
+    /// <param name="Currency">Specifies the Currency parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDivideAmountOnBeforeTempVATAmountLineRemainderModify(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary; Currency: Record Currency)
     begin
@@ -14028,6 +14459,11 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeCalcVATBaseAmount.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="TempVATAmountLine">Specifies the TempVATAmountLine parameter.</param>
+    /// <param name="TempVATAmountLineRemainder">Specifies the TempVATAmountLineRemainder parameter.</param>
+    /// <param name="Currency">Specifies the Currency parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcVATBaseAmount(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary; Currency: Record Currency; var IsHandled: Boolean)
     begin
@@ -14037,6 +14473,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforePostUpdateInvoiceLine.
     /// </summary>
     /// <param name="TempSalesLineGlobal"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostUpdateInvoiceLine(var TempSalesLineGlobal: Record "Sales Line" temporary; var IsHandled: Boolean)
     begin
@@ -14046,6 +14483,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforePostUpdateReturnReceiptLine.
     /// </summary>
     /// <param name="TempSalesLineGlobal"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnBeforePostUpdateReturnReceiptLine(var TempSalesLineGlobal: Record "Sales Line" temporary; var IsHandled: Boolean)
     begin
@@ -14055,6 +14493,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeInsertTrackingSpecification.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertTrackingSpecification(SalesHeader: Record "Sales Header"; var TempTrackingSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean)
     begin
@@ -14064,6 +14504,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeSendPostedDocumentRecord.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="DocumentSendingProfile">Specifies the DocumentSendingProfile parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSendPostedDocumentRecord(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var DocumentSendingProfile: Record "Document Sending Profile")
     begin
@@ -14073,6 +14515,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeInsertPostedPayment.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SalesInvoiceHeader">Specifies the SalesInvoiceHeader parameter.</param>
+    /// <param name="SalesCrMemoHeader">Specifies the SalesCrMemoHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertPostedPayment(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; SalesInvoiceHeader: Record "Sales Invoice Header"; SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
@@ -14082,6 +14527,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnAfterPostItemChargeLine.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="SalesLineACY">Specifies the SalesLineACY parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemChargeLine(var SalesLine: Record "Sales Line"; SalesLineACY: Record "Sales Line")
     begin
@@ -14109,6 +14555,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnDeleteAfterPostingOnBeforeDeleteLinks.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteAfterPostingOnBeforeDeleteLinks(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
@@ -14127,6 +14574,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnUpdateWonOpportunitiesOnBeforeOpportunityModify.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesInvoiceHeader">Specifies the SalesInvoiceHeader parameter.</param>
+    /// <param name="Opportunity">Specifies the Opportunity parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateWonOpportunitiesOnBeforeOpportunityModify(var SalesHeader: Record "Sales Header"; SalesInvoiceHeader: Record "Sales Invoice Header"; var Opportunity: Record Opportunity)
     begin
@@ -14136,6 +14585,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckAndUpdateOnBeforeCheckShip.
     /// </summary>
     /// <param name="IsHandled"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckAndUpdateOnBeforeCheckShip(var IsHandled: Boolean; var SalesHeader: Record "Sales Header")
     begin
@@ -14145,6 +14595,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeUpdateReceiveAndCheckIfInvPutawayExists.
     /// </summary>
     /// <param name="IsHandled"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateReceiveAndCheckIfInvPutawayExists(var IsHandled: Boolean; var SalesHeader: Record "Sales Header")
     begin
@@ -14163,6 +14614,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnModifyTempLineOnBeforeTransferFields.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnModifyTempLineOnBeforeTransferFields(var SalesLine: Record "Sales Line"; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -14181,6 +14633,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnNeedUpdateGenProdPostingGroupOnItemChargeOnSalesLine.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="NeedUpdate">Specifies the NeedUpdate parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnNeedUpdateGenProdPostingGroupOnItemChargeOnSalesLine(SalesLine: Record "Sales Line"; var NeedUpdate: Boolean; var IsHandled: Boolean)
     begin
@@ -14190,6 +14644,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnNeedUpdateGenProdPostingGroupOnItemChargeOnSalesShipmentLine.
     /// </summary>
     /// <param name="SalesShipmentLine"></param>
+    /// <param name="NeedUpdate">Specifies the NeedUpdate parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnNeedUpdateGenProdPostingGroupOnItemChargeOnSalesShipmentLine(SalesShipmentLine: Record "Sales Shipment Line"; var NeedUpdate: Boolean; var IsHandled: Boolean)
     begin
@@ -14199,6 +14655,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnNeedUpdateGenProdPostingGroupOnItemChargeOnReturnReceiptLine.
     /// </summary>
     /// <param name="ReturnReceiptLine"></param>
+    /// <param name="NeedUpdate">Specifies the NeedUpdate parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnNeedUpdateGenProdPostingGroupOnItemChargeOnReturnReceiptLine(ReturnReceiptLine: Record "Return Receipt Line"; var NeedUpdate: Boolean; var IsHandled: Boolean)
     begin
@@ -14208,6 +14666,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnAfterUpdateSalesLineDimSetIDFromAppliedEntry.
     /// </summary>
     /// <param name="SalesLineToPost"></param>
+    /// <param name="ItemLedgEntry">Specifies the ItemLedgEntry parameter.</param>
+    /// <param name="DimSetID">Specifies the DimSetID parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateSalesLineDimSetIDFromAppliedEntry(var SalesLineToPost: Record "Sales Line"; var ItemLedgEntry: Record "Item Ledger Entry"; DimSetID: array[10] of Integer)
     begin
@@ -14217,6 +14677,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnDeleteAfterPostingOnAfterSetupSalesHeader.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteAfterPostingOnAfterSetupSalesHeader(var SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -14226,6 +14687,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnDeleteAfterPostingOnAfterSalesLineDeleteAll.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesInvoiceHeader">Specifies the SalesInvoiceHeader parameter.</param>
+    /// <param name="SalesCrMemoHeader">Specifies the SalesCrMemoHeader parameter.</param>
+    /// <param name="CommitIsSuppressed">Specifies the CommitIsSuppressed parameter.</param>
+    /// <param name="EverythingInvoiced">Specifies the EverythingInvoiced parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDeleteAfterPostingOnAfterSalesLineDeleteAll(SalesHeader: Record "Sales Header"; SalesInvoiceHeader: Record "Sales Invoice Header"; SalesCrMemoHeader: Record "Sales Cr.Memo Header"; CommitIsSuppressed: Boolean; EverythingInvoiced: Boolean)
     begin
@@ -14235,6 +14700,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemTrackingForShipmentConditionOnBeforeUpdateBlanketOrderLine.
     /// </summary>
     /// <param name="TempSalesLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingForShipmentConditionOnBeforeUpdateBlanketOrderLine(var TempSalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header")
     begin
@@ -14244,6 +14710,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostResJnlLineOnAfterInit.
     /// </summary>
     /// <param name="ResJnlLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostResJnlLineOnAfterInit(var ResJnlLine: Record "Res. Journal Line"; var SalesLine: Record "Sales Line")
     begin
@@ -14253,6 +14720,14 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnValidatePostingAndDocumentDateOnAfterCalcPostingDateExists.
     /// </summary>
     /// <param name="PostingDateExists"></param>
+    /// <param name="ReplacePostingDate">Specifies the ReplacePostingDate parameter.</param>
+    /// <param name="ReplaceDocumentDate">Specifies the ReplaceDocumentDate parameter.</param>
+    /// <param name="PostingDate">Specifies the PostingDate parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="ModifyHeader">Specifies the ModifyHeader parameter.</param>
+    /// <param name="VATDateExists">Specifies the VATDateExists parameter.</param>
+    /// <param name="ReplaceVATDate">Specifies the ReplaceVATDate parameter.</param>
+    /// <param name="VATDate">Specifies the VATDate parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePostingAndDocumentDateOnAfterCalcPostingDateExists(var PostingDateExists: Boolean; var ReplacePostingDate: Boolean; var ReplaceDocumentDate: Boolean; var PostingDate: Date; var SalesHeader: Record "Sales Header"; var ModifyHeader: Boolean; var VATDateExists: Boolean; var ReplaceVATDate: Boolean; var VATDate: Date)
     begin
@@ -14262,6 +14737,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnValidateIncludeInVATReportAfterValidate.
     /// </summary>
     /// <param name="SalesHeaderParam"></param>
+    /// <param name="InclInVATReportErrorLogTemp">Specifies the InclInVATReportErrorLogTemp parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidateIncludeInVATReportAfterValidate(SalesHeaderParam: Record "Sales Header"; var InclInVATReportErrorLogTemp: Record "Incl. in VAT Report Error Log" temporary)
     begin
@@ -14271,6 +14747,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeValidateICPartnerBusPostingGroups.
     /// </summary>
     /// <param name="TempICGenJnlLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateICPartnerBusPostingGroups(var TempICGenJnlLine: Record "Gen. Journal Line" temporary; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -14280,6 +14758,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnAfterGetCurrency.
     /// </summary>
     /// <param name="CurrencyCode"></param>
+    /// <param name="Currency">Specifies the Currency parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetCurrency(CurrencyCode: Code[10]; var Currency: Record Currency)
     begin
@@ -14289,6 +14768,13 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforePostItemLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="TempSalesLineGlobal">Specifies the TempSalesLineGlobal parameter.</param>
+    /// <param name="TempDropShptPostBuffer">Specifies the TempDropShptPostBuffer parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToBeInvoicedBase">Specifies the RemQtyToBeInvoicedBase parameter.</param>
+    /// <param name="ItemJnlPostLine">Specifies the ItemJnlPostLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemLine(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var IsHandled: Boolean; var TempSalesLineGlobal: Record "Sales Line" temporary; var TempDropShptPostBuffer: Record "Drop Shpt. Post. Buffer" temporary; var RemQtyToBeInvoiced: Decimal; var RemQtyToBeInvoicedBase: Decimal; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line")
     begin
@@ -14298,6 +14784,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforePostItemChargeLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemChargeLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -14307,6 +14795,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCreatePrepaymentLinesOnBeforeInsertedPrepmtVATBaseToDeduct.
     /// </summary>
     /// <param name="TempPrepmtSalesLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePrepaymentLinesOnBeforeInsertedPrepmtVATBaseToDeduct(var TempPrepmtSalesLine: Record "Sales Line" temporary; var SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -14316,6 +14806,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnAfterInsertReturnReceiptHeader.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="ReturnReceiptHeader">Specifies the ReturnReceiptHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertReturnReceiptHeader(var SalesHeader: Record "Sales Header"; var ReturnReceiptHeader: Record "Return Receipt Header")
     begin
@@ -14327,6 +14818,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnAfterGetAmountsForDeferral.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="AmtToDefer">Specifies the AmtToDefer parameter.</param>
+    /// <param name="AmtToDeferACY">Specifies the AmtToDeferACY parameter.</param>
+    /// <param name="DeferralAccount">Specifies the DeferralAccount parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetAmountsForDeferral(SalesLine: Record "Sales Line"; var AmtToDefer: Decimal; var AmtToDeferACY: Decimal; var DeferralAccount: Code[20])
     begin
@@ -14336,6 +14830,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostJobContractLineBeforeTestFields.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostJobContractLineBeforeTestFields(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -14345,6 +14841,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnInsertCrMemoHeaderOnAfterCalcShouldProcessAsReturnOrder.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="ShouldProcessAsReturnOrder">Specifies the ShouldProcessAsReturnOrder parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertCrMemoHeaderOnAfterCalcShouldProcessAsReturnOrder(SalesHeader: Record "Sales Header"; var ShouldProcessAsReturnOrder: Boolean)
     begin
@@ -14354,6 +14851,12 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnUpdateQtyToBeInvoicedForShipmentOnAfterSetQtyToBeInvoiced.
     /// </summary>
     /// <param name="TrackingSpecificationExists"></param>
+    /// <param name="HasATOShippedNotInvoiced">Specifies the HasATOShippedNotInvoiced parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToBeInvoicedBase">Specifies the RemQtyToBeInvoicedBase parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateQtyToBeInvoicedForShipmentOnAfterSetQtyToBeInvoiced(TrackingSpecificationExists: Boolean; HasATOShippedNotInvoiced: Boolean; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; RemQtyToBeInvoiced: Decimal; RemQtyToBeInvoicedBase: Decimal; SalesLine: Record "Sales Line")
     begin
@@ -14363,6 +14866,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforePostItemJnlLineItemCharges.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemJnlLineItemCharges(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -14372,6 +14876,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateReturnReceiptLineOnBeforeInitOutstanding.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateReturnReceiptLineOnBeforeInitOutstanding(var SalesOrderLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -14381,6 +14886,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemTrackingForShipmentOnBeforeGetATOItemLedgEntriesNotInvoiced.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingForShipmentOnBeforeGetATOItemLedgEntriesNotInvoiced(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
@@ -14390,6 +14896,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemJnlLineTrackingOnAfterCalcShouldInsertTrkgSpecInv.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="ShouldInsertTrkgSpecInv">Specifies the ShouldInsertTrkgSpecInv parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineTrackingOnAfterCalcShouldInsertTrkgSpecInv(var SalesLine: Record "Sales Line"; QtyToBeInvoiced: Decimal; var ShouldInsertTrkgSpecInv: Boolean)
     begin
@@ -14399,6 +14907,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnUpdateSalesLineBeforePostOnBeforeGetUnitCost.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateSalesLineBeforePostOnBeforeGetUnitCost(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -14408,6 +14917,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeCalcItemJnlAmountsFromQtyToBeInvoiced.
     /// </summary>
     /// <param name="ItemJnlLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcItemJnlAmountsFromQtyToBeInvoiced(var ItemJnlLine: Record "Item Journal Line"; SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; QtyToBeInvoiced: Decimal; var IsHandled: Boolean)
     begin
@@ -14417,6 +14930,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckTrackingAndWarehouseForReceiveOnAfterSetFilters.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckTrackingAndWarehouseForReceiveOnAfterSetFilters(SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -14426,6 +14940,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnRunOnBeforeCalcVATAmountLines.
     /// </summary>
     /// <param name="TempSalesLineGlobal"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="TempVATAmountLine">Specifies the TempVATAmountLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnRunOnBeforeCalcVATAmountLines(var TempSalesLineGlobal: Record "Sales Line" temporary; var SalesHeader: Record "Sales Header"; var TempVATAmountLine: Record "VAT Amount Line" temporary; var IsHandled: Boolean)
     begin
@@ -14435,6 +14952,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnTestSalesLineOnBeforeTestFieldQtyToShip.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="ShouldTestQtyToShip">Specifies the ShouldTestQtyToShip parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnTestSalesLineOnBeforeTestFieldQtyToShip(SalesLine: Record "Sales Line"; var ShouldTestQtyToShip: Boolean)
     begin
@@ -14444,6 +14962,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeInsertShipmentLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertShipmentLine(var SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -14453,6 +14973,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnIsEndLoopForShippedNotInvoicedOnBeforeExit.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="SalesShptLine">Specifies the SalesShptLine parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="Result">Specifies the Result parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnIsEndLoopForShippedNotInvoicedOnBeforeExit(SalesLine: Record "Sales Line"; SalesShptLine: Record "Sales Shipment Line"; RemQtyToBeInvoiced: Decimal; var Result: Boolean; var IsHandled: Boolean)
     begin
@@ -14462,6 +14986,13 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemJnlLinePrepareJournalLineOnBeforeCalcQuantities.
     /// </summary>
     /// <param name="ItemJnlLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="QtyToBeShipped">Specifies the QtyToBeShipped parameter.</param>
+    /// <param name="QtyToBeShippedBase">Specifies the QtyToBeShippedBase parameter.</param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="IsATO">Specifies the IsATO parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLinePrepareJournalLineOnBeforeCalcQuantities(var ItemJnlLine: Record "Item Journal Line"; SalesLine: Record "Sales Line"; QtyToBeShipped: Decimal; QtyToBeShippedBase: Decimal; QtyToBeInvoiced: Decimal; QtyToBeInvoicedBase: Decimal; var IsHandled: Boolean; IsATO: Boolean)
     begin
@@ -14471,6 +15002,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeInvoiceRounding.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInvoiceRounding(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
@@ -14480,6 +15012,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemJnlLineOnAfterCopyTrackingFromSpec.
     /// </summary>
     /// <param name="ItemJnlLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="QtyToBeShipped">Specifies the QtyToBeShipped parameter.</param>
+    /// <param name="IsATO">Specifies the IsATO parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineOnAfterCopyTrackingFromSpec(var ItemJnlLine: Record "Item Journal Line"; SalesLine: Record "Sales Line"; QtyToBeShipped: Decimal; IsATO: Boolean)
     begin
@@ -14489,6 +15024,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCreatePrepaymentLinesOnBeforeValidateQtyToInvoice.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="ShouldValidateQtyToInvoice">Specifies the ShouldValidateQtyToInvoice parameter.</param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePrepaymentLinesOnBeforeValidateQtyToInvoice(var SalesHeader: Record "Sales Header"; var ShouldValidateQtyToInvoice: Boolean; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -14498,6 +15035,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnUpdateAssosOrderPostingNosOnAfterSetFilterTempSalesLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAssosOrderPostingNosOnAfterSetFilterTempSalesLine(var SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -14507,6 +15045,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckTrackingSpecificationOnBeforeGetItemTrackingSettings.
     /// </summary>
     /// <param name="TempItemSalesLine"></param>
+    /// <param name="ItemTrackingSetup">Specifies the ItemTrackingSetup parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckTrackingSpecificationOnBeforeGetItemTrackingSettings(var TempItemSalesLine: Record "Sales Line" temporary; var ItemTrackingSetup: Record "Item Tracking Setup"; var IsHandled: Boolean)
     begin
@@ -14516,6 +15056,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforePostItemTrackingForReceipt.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemTrackingForReceipt(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -14525,6 +15066,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemJnlLineTrackingOnBeforeInsertTempTrkgSpec.
     /// </summary>
     /// <param name="TempTrackingSpecification"></param>
+    /// <param name="TempTrackingSpec">Specifies the TempTrackingSpec parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemJnlLineTrackingOnBeforeInsertTempTrkgSpec(var TempTrackingSpecification: Record "Tracking Specification" temporary; var TempTrackingSpec: Record "Tracking Specification" temporary; SalesLine: Record "Sales Line")
     begin
@@ -14534,6 +15077,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnInsertInvoiceHeaderOnBeforeCheckDocumentType.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesInvHeader">Specifies the SalesInvHeader parameter.</param>
+    /// <param name="SalesSetup">Specifies the SalesSetup parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertInvoiceHeaderOnBeforeCheckDocumentType(SalesHeader: Record "Sales Header"; var SalesInvHeader: Record "Sales Invoice Header"; SalesSetup: Record "Sales & Receivables Setup"; var IsHandled: Boolean)
     begin
@@ -14543,6 +15089,15 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostInvoiceOnBeforePostBalancingEntry.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="TotalSalesLine">Specifies the TotalSalesLine parameter.</param>
+    /// <param name="TotalSalesLineLCY">Specifies the TotalSalesLineLCY parameter.</param>
+    /// <param name="SuppressCommit">Specifies the SuppressCommit parameter.</param>
+    /// <param name="PreviewMode">Specifies the PreviewMode parameter.</param>
+    /// <param name="InvoicePostingParameters">Specifies the InvoicePostingParameters parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
+    /// <param name="SalesInvHeader">Specifies the SalesInvHeader parameter.</param>
+    /// <param name="SalesCrMemoHeader">Specifies the SalesCrMemoHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostInvoiceOnBeforePostBalancingEntry(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var TotalSalesLine: Record "Sales Line"; var TotalSalesLineLCY: Record "Sales Line"; SuppressCommit: Boolean; PreviewMode: Boolean; InvoicePostingParameters: Record "Invoice Posting Parameters"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; SalesInvHeader: Record "Sales Invoice Header"; SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
@@ -14552,6 +15107,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeFindNotShippedLines.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindNotShippedLines(var SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary; var IsHandled: Boolean)
     begin
@@ -14561,6 +15118,14 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnBeforePostSalesLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="GenJnlLineExtDocNo">Specifies the GenJnlLineExtDocNo parameter.</param>
+    /// <param name="GenJnlLineDocType">Specifies the GenJnlLineDocType parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SalesLineACY">Specifies the SalesLineACY parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnBeforePostSalesLine(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; GenJnlLineDocNo: Code[20]; GenJnlLineExtDocNo: Code[35]; GenJnlLineDocType: Enum "Gen. Journal Document Type"; SrcCode: Code[10]; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var IsHandled: Boolean; SalesLineACY: Record "Sales Line")
     begin
@@ -14570,6 +15135,14 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnAfterUpdateInvoiceRounding.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TotalSalesLine">Specifies the TotalSalesLine parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="Currency">Specifies the Currency parameter.</param>
+    /// <param name="BiggestLineNo">Specifies the BiggestLineNo parameter.</param>
+    /// <param name="LastLineRetrieved">Specifies the LastLineRetrieved parameter.</param>
+    /// <param name="RoundingLineInserted">Specifies the RoundingLineInserted parameter.</param>
+    /// <param name="RoundingLineNo">Specifies the RoundingLineNo parameter.</param>
+    /// <param name="UseTempData">Specifies the UseTempData parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateInvoiceRounding(var SalesHeader: Record "Sales Header"; var TotalSalesLine: Record "Sales Line"; var SalesLine: Record "Sales Line"; var Currency: Record Currency; var BiggestLineNo: Integer; var LastLineRetrieved: Boolean; var RoundingLineInserted: Boolean; var RoundingLineNo: Integer; UseTempData: Boolean)
     begin
@@ -14588,6 +15161,18 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemLineOnBeforePostItemJnlLineForInvoiceDoc.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLineToShip">Specifies the SalesLineToShip parameter.</param>
+    /// <param name="Ship">Specifies the Ship parameter.</param>
+    /// <param name="ItemLedgShptEntryNo">Specifies the ItemLedgShptEntryNo parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="GenJnlLineExtDocNo">Specifies the GenJnlLineExtDocNo parameter.</param>
+    /// <param name="SalesShptHeader">Specifies the SalesShptHeader parameter.</param>
+    /// <param name="TempHandlingSpecification">Specifies the TempHandlingSpecification parameter.</param>
+    /// <param name="TempTrackingSpecificationInv">Specifies the TempTrackingSpecificationInv parameter.</param>
+    /// <param name="TempTrackingSpecification">Specifies the TempTrackingSpecification parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="QtyToInvoice">Specifies the QtyToInvoice parameter.</param>
+    /// <param name="TempAssembletoOrderLink">Specifies the TempAssembletoOrderLink parameter.</param>
     [IntegrationEvent(true, false)]
     local procedure OnPostItemLineOnBeforePostItemJnlLineForInvoiceDoc(SalesHeader: Record "Sales Header"; var SalesLineToShip: Record "Sales Line"; Ship: Boolean; var ItemLedgShptEntryNo: Integer; var GenJnlLineDocNo: Code[20]; var GenJnlLineExtDocNo: Code[35]; SalesShptHeader: Record "Sales Shipment Header"; var TempHandlingSpecification: Record "Tracking Specification" temporary; var TempTrackingSpecificationInv: Record "Tracking Specification" temporary; var TempTrackingSpecification: Record "Tracking Specification" temporary; var IsHandled: Boolean; QtyToInvoice: Decimal; TempAssembletoOrderLink: Record "Posted Assemble-to-Order Link" temporary)
     begin
@@ -14597,6 +15182,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemTrackingOnAfterCalcShouldPostItemTrackingForReceipt.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToInvoiceBaseInTrackingSpec">Specifies the QtyToInvoiceBaseInTrackingSpec parameter.</param>
+    /// <param name="ShouldPostItemTrackingForReceipt">Specifies the ShouldPostItemTrackingForReceipt parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingOnAfterCalcShouldPostItemTrackingForReceipt(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; RemQtyToBeInvoiced: Decimal; QtyToInvoiceBaseInTrackingSpec: Decimal; var ShouldPostItemTrackingForReceipt: Boolean)
     begin
@@ -14606,6 +15195,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemTrackingOnAfterCalcShouldPostItemTrackingForShipment.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToInvoiceBaseInTrackingSpec">Specifies the QtyToInvoiceBaseInTrackingSpec parameter.</param>
+    /// <param name="ShouldPostItemTrackingForShipment">Specifies the ShouldPostItemTrackingForShipment parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingOnAfterCalcShouldPostItemTrackingForShipment(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; RemQtyToBeInvoiced: Decimal; QtyToInvoiceBaseInTrackingSpec: Decimal; var ShouldPostItemTrackingForShipment: Boolean)
     begin
@@ -14615,6 +15208,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateOrderLineOnBeforeGetQuantityShipped.
     /// </summary>
     /// <param name="TempSalesLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineOnBeforeGetQuantityShipped(var TempSalesLine: Record "Sales Line"; var IsHandled: Boolean; var SalesHeader: Record "Sales Header")
     begin
@@ -14624,6 +15219,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateOrderLineOnBeforeGetReturnQtyReceived.
     /// </summary>
     /// <param name="TempSalesLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineOnBeforeGetReturnQtyReceived(var TempSalesLine: Record "Sales Line"; var IsHandled: Boolean; var SalesHeader: Record "Sales Header")
     begin
@@ -14633,6 +15230,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemTrackingOnAfterCalcShouldProcessReceipt.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="ShouldProcessReceipt">Specifies the ShouldProcessReceipt parameter.</param>
+    /// <param name="ItemJnlRollRndg">Specifies the ItemJnlRollRndg parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingOnAfterCalcShouldProcessReceipt(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var ShouldProcessReceipt: Boolean; var ItemJnlRollRndg: Boolean)
     begin
@@ -14642,6 +15242,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateInvoiceLineOnBeforeInitOutstanding.
     /// </summary>
     /// <param name="SalesOrderLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateInvoiceLineOnBeforeInitOutstanding(var SalesOrderLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -14651,6 +15252,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostInvoiceOnBeforeBalAccountNoWindowUpdate.
     /// </summary>
     /// <param name="HideProgressWindow"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostInvoiceOnBeforeBalAccountNoWindowUpdate(HideProgressWindow: Boolean; var IsHandled: Boolean; var SalesHeader: Record "Sales Header")
     begin
@@ -14660,6 +15263,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateOrderLineOnAfterCalcShouldCalcPrepmtAmounts.
     /// </summary>
     /// <param name="TempSalesLine"></param>
+    /// <param name="ShouldCalcPrepmtAmounts">Specifies the ShouldCalcPrepmtAmounts parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineOnAfterCalcShouldCalcPrepmtAmounts(var TempSalesLine: Record "Sales Line" temporary; var ShouldCalcPrepmtAmounts: Boolean)
     begin
@@ -14669,6 +15273,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnAfterGetGeneralPostingSetup.
     /// </summary>
     /// <param name="GeneralPostingSetup"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetGeneralPostingSetup(var GeneralPostingSetup: Record "General Posting Setup"; SalesLine: Record "Sales Line")
     begin
@@ -14678,6 +15283,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckItemTrackingQuantityOnDocumentTypeCaseElse.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckItemTrackingQuantityOnDocumentTypeCaseElse(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line")
     begin
@@ -14717,6 +15323,11 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostInvoiceOnAfterPostLines.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
+    /// <param name="GenJnlLineDocType">Specifies the GenJnlLineDocType parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="GenJnlLineExtDocNo">Specifies the GenJnlLineExtDocNo parameter.</param>
+    /// <param name="GenJnlPostLine">Specifies the GenJnlPostLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostInvoiceOnAfterPostLines(var SalesHeader: Record "Sales Header"; SrcCode: Code[10]; GenJnlLineDocType: Enum "Gen. Journal Document Type"; GenJnlLineDocNo: Code[20]; GenJnlLineExtDocNo: Code[35]; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
@@ -14726,6 +15337,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCopyAndCheckItemChargeOnBeforeAssignQtyToInvoice.
     /// </summary>
     /// <param name="TempSalesLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCopyAndCheckItemChargeOnBeforeAssignQtyToInvoice(var TempSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -14735,6 +15347,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeItemLedgerEntryExist.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="ShipOrReceive">Specifies the ShipOrReceive parameter.</param>
+    /// <param name="HasItemLedgerEntry">Specifies the HasItemLedgerEntry parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeItemLedgerEntryExist(var SalesLine: Record "Sales Line"; ShipOrReceive: Boolean; var HasItemLedgerEntry: Boolean; var IsHandled: Boolean)
     begin
@@ -14744,6 +15359,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnInsertPostedHeadersOnAfterCalcShouldInsertInvoiceHeader.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="ShouldInsertInvoiceHeader">Specifies the ShouldInsertInvoiceHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertPostedHeadersOnAfterCalcShouldInsertInvoiceHeader(var SalesHeader: Record "Sales Header"; var ShouldInsertInvoiceHeader: Boolean)
     begin
@@ -14753,6 +15369,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnInsertShptEntryRelationOnAfterItemEntryRelationInsert.
     /// </summary>
     /// <param name="SalesShipmentLine"></param>
+    /// <param name="ItemEntryRelation">Specifies the ItemEntryRelation parameter.</param>
+    /// <param name="xSalesLine">Specifies the xSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertShptEntryRelationOnAfterItemEntryRelationInsert(SalesShipmentLine: Record "Sales Shipment Line"; var ItemEntryRelation: Record "Item Entry Relation"; xSalesLine: Record "Sales Line")
     begin
@@ -14762,6 +15380,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforePostItemChargePerRetRcpt.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="TempItemChargeAssignmentSales">Specifies the TempItemChargeAssignmentSales parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemChargePerRetRcpt(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempItemChargeAssignmentSales: Record "Item Charge Assignment (Sales)" temporary; var IsHandled: Boolean)
     begin
@@ -14771,6 +15392,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostUpdateOrderLineOnBeforeSetInvoiceFields.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
+    /// <param name="ShouldSetInvoiceFields">Specifies the ShouldSetInvoiceFields parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateOrderLineOnBeforeSetInvoiceFields(var SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line"; var ShouldSetInvoiceFields: Boolean)
     begin
@@ -14780,6 +15403,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCopyAndCheckItemChargeOnBeforeError.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
+    /// <param name="InvoiceEverything">Specifies the InvoiceEverything parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCopyAndCheckItemChargeOnBeforeError(SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary; var InvoiceEverything: Boolean)
     begin
@@ -14789,6 +15414,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeGetSalesLineAdjCostLCY.
     /// </summary>
     /// <param name="SalesLine2"></param>
+    /// <param name="QtyType">Specifies the QtyType parameter.</param>
+    /// <param name="AdjCostLCY">Specifies the AdjCostLCY parameter.</param>
+    /// <param name="Result">Specifies the Result parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSalesLineAdjCostLCY(SalesLine2: Record "Sales Line"; QtyType: Option General,Invoicing,Shipping; AdjCostLCY: Decimal; var Result: Decimal; var IsHandled: Boolean)
     begin
@@ -14798,6 +15427,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCreatePrepaymentLinesOnBeforeShouldTestGetShipmentPPmtAmtToDeduct.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="CompleteFunctionality">Specifies the CompleteFunctionality parameter.</param>
+    /// <param name="ShouldTestGetShipmentPPmtAmtToDeduct">Specifies the ShouldTestGetShipmentPPmtAmtToDeduct parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePrepaymentLinesOnBeforeShouldTestGetShipmentPPmtAmtToDeduct(SalesHeader: Record "Sales Header"; CompleteFunctionality: Boolean; var ShouldTestGetShipmentPPmtAmtToDeduct: Boolean)
     begin
@@ -14807,6 +15438,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnAfterDeleteApprovalEntries.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesInvoiceHeader">Specifies the SalesInvoiceHeader parameter.</param>
+    /// <param name="SalesCrMemoHeader">Specifies the SalesCrMemoHeader parameter.</param>
+    /// <param name="SalesShipmentHeader">Specifies the SalesShipmentHeader parameter.</param>
+    /// <param name="ReturnReceiptHeader">Specifies the ReturnReceiptHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterDeleteApprovalEntries(var SalesHeader: Record "Sales Header"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var SalesShipmentHeader: Record "Sales Shipment Header"; var ReturnReceiptHeader: Record "Return Receipt Header")
     begin
@@ -14816,6 +15451,11 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnBeforeUpdateSalesLineBeforePost.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="RoundingLineInserted">Specifies the RoundingLineInserted parameter.</param>
+    /// <param name="CommitIsSuppressed">Specifies the CommitIsSuppressed parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnBeforeUpdateSalesLineBeforePost(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; WhseShip: Boolean; WhseReceive: Boolean; RoundingLineInserted: Boolean; CommitIsSuppressed: Boolean)
     begin
@@ -14825,6 +15465,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnAfterSumSalesLines2.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="OldSalesLine">Specifies the OldSalesLine parameter.</param>
+    /// <param name="NewSalesLine">Specifies the NewSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSumSalesLines2(var SalesHeader: Record "Sales Header"; var OldSalesLine: Record "Sales Line"; var NewSalesLine: Record "Sales Line")
     begin
@@ -14834,6 +15476,13 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckPostWhseShptLinesOnAfterWhseShptLinesFound.
     /// </summary>
     /// <param name="SalesShipmentLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="WhseShptLinesFound">Specifies the WhseShptLinesFound parameter.</param>
+    /// <param name="WarehouseShipmentHeader">Specifies the WarehouseShipmentHeader parameter.</param>
+    /// <param name="WarehouseReceiptHeader">Specifies the WarehouseReceiptHeader parameter.</param>
+    /// <param name="WhseShip">Specifies the WhseShip parameter.</param>
+    /// <param name="WhseReceive">Specifies the WhseReceive parameter.</param>
+    /// <param name="WarehouseShipmentLine">Specifies the WarehouseShipmentLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckPostWhseShptLinesOnAfterWhseShptLinesFound(var SalesShipmentLine: Record "Sales Shipment Line"; var SalesLine: Record "Sales Line"; var WhseShptLinesFound: Boolean; WarehouseShipmentHeader: Record "Warehouse Shipment Header"; WarehouseReceiptHeader: Record "Warehouse Receipt Header"; WhseShip: Boolean; WhseReceive: Boolean; var WarehouseShipmentLine: Record "Warehouse Shipment Line")
     begin
@@ -14843,6 +15492,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnAfterDecrementPrepmtAmtInvLCY.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="PrepmtAmountInvLCY">Specifies the PrepmtAmountInvLCY parameter.</param>
+    /// <param name="PrepmtVATAmountInvLCY">Specifies the PrepmtVATAmountInvLCY parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterDecrementPrepmtAmtInvLCY(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var PrepmtAmountInvLCY: Decimal; var PrepmtVATAmountInvLCY: Decimal)
     begin
@@ -14852,6 +15504,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnDivideAmountOnBeforeTempVATAmountLineGet.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="TempVATAmountLine">Specifies the TempVATAmountLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDivideAmountOnBeforeTempVATAmountLineGet(SalesLine: Record "Sales Line"; var TempVATAmountLine: Record "VAT Amount Line" temporary; var IsHandled: Boolean)
     begin
@@ -14861,6 +15515,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeAdjustPrepmtAmountLCY.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="PrepmtSalesLine">Specifies the PrepmtSalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAdjustPrepmtAmountLCY(SalesHeader: Record "Sales Header"; var PrepmtSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -14870,6 +15526,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostResJnlLineOnShouldExit.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="ShouldExit">Specifies the ShouldExit parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostResJnlLineOnShouldExit(var SalesLine: Record "Sales Line"; var ShouldExit: Boolean)
     begin
@@ -14879,6 +15536,11 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnDivideAmountOnBeforeUpdateTempVATAmountLineRemainder.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="TempVATAmountLine">Specifies the TempVATAmountLine parameter.</param>
+    /// <param name="TempVATAmountLineRemainder">Specifies the TempVATAmountLineRemainder parameter.</param>
+    /// <param name="Currency">Specifies the Currency parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnDivideAmountOnBeforeUpdateTempVATAmountLineRemainder(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; var TempVATAmountLine: Record "VAT Amount Line" temporary; var TempVATAmountLineRemainder: Record "VAT Amount Line" temporary; Currency: Record Currency; var IsHandled: Boolean)
     begin
@@ -14888,6 +15550,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemChargeOnAfterCalcTotalChargeAmt.
     /// </summary>
     /// <param name="SalesLineToPost"></param>
+    /// <param name="QtyToAssign">Specifies the QtyToAssign parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="xSalesLine">Specifies the xSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemChargeOnAfterCalcTotalChargeAmt(var SalesLineToPost: Record "Sales Line"; QtyToAssign: Decimal; var SalesLine: Record "Sales Line"; xSalesLine: Record "Sales Line")
     begin
@@ -14897,6 +15562,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeCheckPostRestrictions.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckPostRestrictions(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
@@ -14906,6 +15572,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCreatePrepaymentLinesOnBeforeValidateType.
     /// </summary>
     /// <param name="TempPrepmtSalesLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePrepaymentLinesOnBeforeValidateType(var TempPrepmtSalesLine: Record "Sales Line" temporary; var SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary)
     begin
@@ -14915,6 +15583,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnValidatePostingAndDocumentDateOnBeforeValidateDocumentDate.
     /// </summary>
     /// <param name="PostingDateExists"></param>
+    /// <param name="ReplaceDocumentDate">Specifies the ReplaceDocumentDate parameter.</param>
+    /// <param name="PostingDate">Specifies the PostingDate parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePostingAndDocumentDateOnBeforeValidateDocumentDate(var PostingDateExists: Boolean; var ReplaceDocumentDate: Boolean; var PostingDate: Date; var SalesHeader: Record "Sales Header")
     begin
@@ -14924,6 +15595,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCheckSalesDocumentOnBeforeCheckSalesDim.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLineGlobal">Specifies the TempSalesLineGlobal parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCheckSalesDocumentOnBeforeCheckSalesDim(var SalesHeader: Record "Sales Header"; var TempSalesLineGlobal: Record "Sales Line" temporary; var IsHandled: Boolean);
     begin
@@ -14933,6 +15606,10 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeCreatePrepaymentTextLines.
     /// </summary>
     /// <param name="TempPrepmtSalesLine"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="CompleteFunctionality">Specifies the CompleteFunctionality parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreatePrepaymentTextLines(var TempPrepmtSalesLine: Record "Sales Line" temporary; var TempSalesLine: Record "Sales Line" temporary; SalesHeader: Record "Sales Header"; CompleteFunctionality: Boolean; var IsHandled: Boolean)
     begin
@@ -14942,6 +15619,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeCheckAndUpdate.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="ModifyHeader">Specifies the ModifyHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckAndUpdate(var SalesHeader: Record "Sales Header"; var ModifyHeader: Boolean)
     begin
@@ -14951,6 +15629,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnBeforeCollectValueEntryRelation.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="SalesInvoiceHeader">Specifies the SalesInvoiceHeader parameter.</param>
+    /// <param name="SalesInvoiceLine">Specifies the SalesInvoiceLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnBeforeCollectValueEntryRelation(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line")
     begin
@@ -14960,6 +15641,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnBeforeCollectValueEntryRelationForCrMemo.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="SalesInvoiceHeader">Specifies the SalesInvoiceHeader parameter.</param>
+    /// <param name="SalesInvoiceLine">Specifies the SalesInvoiceLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnBeforeCollectValueEntryRelationForCrMemo(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line")
     begin
@@ -14969,6 +15653,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnAfterCollectValueEntryRelation.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="SalesInvoiceHeader">Specifies the SalesInvoiceHeader parameter.</param>
+    /// <param name="SalesInvoiceLine">Specifies the SalesInvoiceLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnAfterCollectValueEntryRelation(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesInvoiceLine: Record "Sales Invoice Line")
     begin
@@ -14978,6 +15665,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostSalesLineOnAfterCreatePostedDeferralSchedule.
     /// </summary>
     /// <param name="SalesInvLine"></param>
+    /// <param name="SalesInvHeader">Specifies the SalesInvHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostSalesLineOnAfterCreatePostedDeferralSchedule(var SalesInvLine: Record "Sales Invoice Line"; SalesInvHeader: Record "Sales Invoice Header")
     begin
@@ -14987,6 +15675,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnInvoiceRoundingOnAfterValidateQuantity.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInvoiceRoundingOnAfterValidateQuantity(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     begin
@@ -14996,6 +15685,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnInvoiceRoundingOnAfterSetLineNo.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInvoiceRoundingOnAfterSetLineNo(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line")
     begin
@@ -15016,6 +15706,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnInsertPostedHeadersOnBeforeDeleteServItemOnSaleCreditMemo.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesShipmentHeader">Specifies the SalesShipmentHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertPostedHeadersOnBeforeDeleteServItemOnSaleCreditMemo(var SalesHeader: Record "Sales Header"; var SalesShipmentHeader: Record "Sales Shipment Header"; var IsHandled: Boolean)
     begin
@@ -15025,6 +15717,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnInsertPostedHeadersOnAfterInsertInvoiceHeader.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesInvoiceHeader">Specifies the SalesInvoiceHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertPostedHeadersOnAfterInsertInvoiceHeader(var SalesHeader: Record "Sales Header"; var SalesInvoiceHeader: Record "Sales Invoice Header")
     begin
@@ -15034,6 +15727,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnInsertPostedHeadersOnAfterInsertCrMemoHeader.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesCrMemoHeader">Specifies the SalesCrMemoHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnInsertPostedHeadersOnAfterInsertCrMemoHeader(var SalesHeader: Record "Sales Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
@@ -15054,6 +15748,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnProcessPostingLinesOnBeforePostDropOrderShipment.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TotalSalesLine">Specifies the TotalSalesLine parameter.</param>
+    /// <param name="TotalSalesLineLCY">Specifies the TotalSalesLineLCY parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnProcessPostingLinesOnBeforePostDropOrderShipment(SalesHeader: Record "Sales Header"; TotalSalesLine: Record "Sales Line"; TotalSalesLineLCY: Record "Sales Line")
     begin
@@ -15063,6 +15759,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnAfterArchiveUnpostedOrder.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="OrderArchived">Specifies the OrderArchived parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterArchiveUnpostedOrder(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; OrderArchived: Boolean);
     begin
@@ -15072,6 +15770,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeCheckReturnRcptLine.
     /// </summary>
     /// <param name="ReturnReceiptLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckReturnRcptLine(var ReturnReceiptLine: Record "Return Receipt Line"; var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -15090,6 +15790,15 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeCopyAndCheckItemCharge.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TempSalesLine">Specifies the TempSalesLine parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="InvoiceEverything">Specifies the InvoiceEverything parameter.</param>
+    /// <param name="AssignError">Specifies the AssignError parameter.</param>
+    /// <param name="QtyNeeded">Specifies the QtyNeeded parameter.</param>
+    /// <param name="TempItemChargeAssgntSales">Specifies the TempItemChargeAssgntSales parameter.</param>
+    /// <param name="ItemChargeAssgntSales">Specifies the ItemChargeAssgntSales parameter.</param>
+    /// <param name="TempSalesLineGlobal">Specifies the TempSalesLineGlobal parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCopyAndCheckItemCharge(var SalesHeader: Record "Sales Header"; var TempSalesLine: Record "Sales Line" temporary; var SalesLine: Record "Sales Line"; var InvoiceEverything: Boolean; var AssignError: Boolean; var QtyNeeded: Decimal; var TempItemChargeAssgntSales: Record "Item Charge Assignment (Sales)" temporary; var ItemChargeAssgntSales: Record "Item Charge Assignment (Sales)"; var TempSalesLineGlobal: Record "Sales Line" temporary; var IsHandled: Boolean);
     begin
@@ -15099,6 +15808,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnValidatePostingAndDocumentDateOnBeforeTestPostingDate.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="ReplacePostingDate">Specifies the ReplacePostingDate parameter.</param>
+    /// <param name="SkipTestPostingDate">Specifies the SkipTestPostingDate parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePostingAndDocumentDateOnBeforeTestPostingDate(var SalesHeader: Record "Sales Header"; ReplacePostingDate: Boolean; var SkipTestPostingDate: Boolean)
     begin
@@ -15108,6 +15819,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnValidatePostingAndDocumentDateOnBeforeSalesHeaderModify.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="ModifyHeader">Specifies the ModifyHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnValidatePostingAndDocumentDateOnBeforeSalesHeaderModify(var SalesHeader: Record "Sales Header"; var ModifyHeader: Boolean)
     begin
@@ -15117,6 +15829,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostItemTrackingForShipmentOnBeforeTestLineFields.
     /// </summary>
     /// <param name="SalesShipmentLine"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostItemTrackingForShipmentOnBeforeTestLineFields(var SalesShipmentLine: Record "Sales Shipment Line"; var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -15126,6 +15840,11 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnUpdateQtyToBeInvoicedForReturnReceiptOnAfterSetQtyToBeInvoiced.
     /// </summary>
     /// <param name="TrackingSpecificationExists"></param>
+    /// <param name="QtyToBeInvoiced">Specifies the QtyToBeInvoiced parameter.</param>
+    /// <param name="QtyToBeInvoicedBase">Specifies the QtyToBeInvoicedBase parameter.</param>
+    /// <param name="RemQtyToBeInvoiced">Specifies the RemQtyToBeInvoiced parameter.</param>
+    /// <param name="RemQtyToBeInvoicedBase">Specifies the RemQtyToBeInvoicedBase parameter.</param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateQtyToBeInvoicedForReturnReceiptOnAfterSetQtyToBeInvoiced(TrackingSpecificationExists: Boolean; var QtyToBeInvoiced: Decimal; var QtyToBeInvoicedBase: Decimal; RemQtyToBeInvoiced: Decimal; RemQtyToBeInvoicedBase: Decimal; var SalesLine: Record "Sales Line")
     begin
@@ -15162,6 +15881,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeFinalizePostATO.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFinalizePostATO(var SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -15171,6 +15891,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeDeleteATOLinks.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteATOLinks(SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
@@ -15180,6 +15901,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeCheckATOLink.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckATOLink(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -15189,6 +15911,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnSumSalesLinesTempOnAfterVatAmountSet.
     /// </summary>
     /// <param name="VATAmount"></param>
+    /// <param name="TotalSalesLine">Specifies the TotalSalesLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSumSalesLinesTempOnAfterVatAmountSet(var VATAmount: Decimal; var TotalSalesLine: Record "Sales Line")
     begin
@@ -15207,6 +15930,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnUpdateAssosOrderPostingNosOnBeforeModifyPurchOrderHeader.
     /// </summary>
     /// <param name="PurchaseOrderHeader"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnUpdateAssosOrderPostingNosOnBeforeModifyPurchOrderHeader(var PurchaseOrderHeader: Record "Purchase Header"; var SalesHeader: Record "Sales Header")
     begin
@@ -15216,6 +15940,11 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnAfterPostJobContractLine.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="GenJnlLineDocType">Specifies the GenJnlLineDocType parameter.</param>
+    /// <param name="GenJnlLineDocNo">Specifies the GenJnlLineDocNo parameter.</param>
+    /// <param name="GenJnlLineExtDocNo">Specifies the GenJnlLineExtDocNo parameter.</param>
+    /// <param name="SrcCode">Specifies the SrcCode parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostJobContractLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var GenJnlLineDocType: Enum "Gen. Journal Document Type"; var GenJnlLineDocNo: Code[20]; var GenJnlLineExtDocNo: Code[35]; var SrcCode: Code[10])
     begin
@@ -15225,6 +15954,12 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforePostDistributeItemCharge.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="SalesLine">Specifies the SalesLine parameter.</param>
+    /// <param name="TempItemLedgerEntry">Specifies the TempItemLedgerEntry parameter.</param>
+    /// <param name="NonDistrQuantity">Specifies the NonDistrQuantity parameter.</param>
+    /// <param name="NonDistrQtyToAssign">Specifies the NonDistrQtyToAssign parameter.</param>
+    /// <param name="NonDistrAmountToAssign">Specifies the NonDistrAmountToAssign parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostDistributeItemCharge(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; var TempItemLedgerEntry: Record "Item Ledger Entry"; NonDistrQuantity: Decimal; NonDistrQtyToAssign: Decimal; NonDistrAmountToAssign: Decimal; var IsHandled: Boolean)
     begin
@@ -15234,6 +15969,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnPostDistributeItemChargeOnAfterSetFactor.
     /// </summary>
     /// <param name="TempItemLedgerEntry"></param>
+    /// <param name="Factor">Specifies the Factor parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnPostDistributeItemChargeOnAfterSetFactor(TempItemLedgerEntry: Record "Item Ledger Entry"; var Factor: Decimal)
     begin
@@ -15243,6 +15979,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeCalcPrepmtAmtToDeduct.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="Ship">Specifies the Ship parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="PrepmtAmtToDeduct">Specifies the PrepmtAmtToDeduct parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcPrepmtAmtToDeduct(var SalesLine: Record "Sales Line"; Ship: Boolean; var IsHandled: Boolean; var PrepmtAmtToDeduct: Decimal)
     begin
@@ -15252,6 +15991,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforePostItemJournalLineWarehouseLine.
     /// </summary>
     /// <param name="TempWarehouseJournalLine"></param>
+    /// <param name="TempWhseTrackingSpecification">Specifies the TempWhseTrackingSpecification parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemJournalLineWarehouseLine(var TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary; var TempWhseTrackingSpecification: Record "Tracking Specification" temporary)
     begin
@@ -15261,6 +16001,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnAfterPostItemJournalLineWarehouseLine.
     /// </summary>
     /// <param name="TempWarehouseJournalLine"></param>
+    /// <param name="TempWhseTrackingSpecification">Specifies the TempWhseTrackingSpecification parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterPostItemJournalLineWarehouseLine(var TempWarehouseJournalLine: Record "Warehouse Journal Line" temporary; var TempWhseTrackingSpecification: Record "Tracking Specification" temporary)
     begin
@@ -15270,6 +16011,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnAdjustPrepmtAmountLCYOnAfterGetOrderLine.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="SalesInvoiceLine">Specifies the SalesInvoiceLine parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAdjustPrepmtAmountLCYOnAfterGetOrderLine(var SalesLine: Record "Sales Line"; var SalesInvoiceLine: Record "Sales Line");
     begin
@@ -15279,6 +16021,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeGetQtyToInvoice.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="Ship">Specifies the Ship parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="QtyToInvoice">Specifies the QtyToInvoice parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetQtyToInvoice(SalesLine: Record "Sales Line"; Ship: Boolean; var IsHandled: Boolean; var QtyToInvoice: Decimal)
     begin
@@ -15288,6 +16033,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeAdjustFinalInvWith100PctPrepmt.
     /// </summary>
     /// <param name="TempPrepmtDeductLCYSalesLine"></param>
+    /// <param name="CombinedSalesLine">Specifies the CombinedSalesLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAdjustFinalInvWith100PctPrepmt(var TempPrepmtDeductLCYSalesLine: Record "Sales Line" temporary; var CombinedSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
@@ -15297,6 +16044,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeUpdateRemainingQtyToBeInvoiced.
     /// </summary>
     /// <param name="SalesShptLine"></param>
+    /// <param name="RemQtyToInvoiceCurrLine">Specifies the RemQtyToInvoiceCurrLine parameter.</param>
+    /// <param name="RemQtyToInvoiceCurrLineBase">Specifies the RemQtyToInvoiceCurrLineBase parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateRemainingQtyToBeInvoiced(SalesShptLine: Record "Sales Shipment Line"; var RemQtyToInvoiceCurrLine: Decimal; var RemQtyToInvoiceCurrLineBase: Decimal; var IsHandled: Boolean)
     begin
@@ -15306,6 +16056,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnCreatePrepaymentLineForCreditMemoOnBeforeGetSalesPrepmtAccount.
     /// </summary>
     /// <param name="GLAccount"></param>
+    /// <param name="SalesInvoiceLine">Specifies the SalesInvoiceLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnCreatePrepaymentLineForCreditMemoOnBeforeGetSalesPrepmtAccount(var GLAccount: Record "G/L Account"; var SalesInvoiceLine: Record "Sales Invoice Line"; var IsHandled: Boolean)
     begin
@@ -15315,6 +16067,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeUpdateEmailParameters.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateEmailParameters(SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
@@ -15324,6 +16077,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforePostUpdateOrderNo.
     /// </summary>
     /// <param name="SalesInvoiceHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostUpdateOrderNo(var SalesInvoiceHeader: Record "Sales Invoice Header"; var IsHandled: Boolean)
     begin
@@ -15333,6 +16087,8 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeSetInvoiceOrderNo.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="SalesInvLine">Specifies the SalesInvLine parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSetInvoiceOrderNo(SalesLine: Record "Sales Line"; var SalesInvLine: Record "Sales Invoice Line"; var IsHandled: Boolean)
     begin
@@ -15342,6 +16098,7 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnBeforeArchiveRelatedJob.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeArchiveRelatedJob(SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
@@ -15351,6 +16108,9 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnSyncSurPlusItemTrackingOnBeforeModifyQtyToHandleInvoice.
     /// </summary>
     /// <param name="SalesLine"></param>
+    /// <param name="SalesHeader">Specifies the SalesHeader parameter.</param>
+    /// <param name="IsHandled">Specifies the IsHandled parameter.</param>
+    /// <param name="ReservationEntry">Specifies the ReservationEntry parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnSyncSurPlusItemTrackingOnBeforeModifyQtyToHandleInvoice(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var ReservationEntry: Record "Reservation Entry")
     begin
@@ -15360,6 +16120,13 @@ codeunit 80 "Sales-Post"
     /// Event raised by OnAfterProcessPostingLines.
     /// </summary>
     /// <param name="SalesHeader"></param>
+    /// <param name="TotalSalesLine">Specifies the TotalSalesLine parameter.</param>
+    /// <param name="CustLedgEntry">Specifies the CustLedgEntry parameter.</param>
+    /// <param name="InvoicePostingParameters">Specifies the InvoicePostingParameters parameter.</param>
+    /// <param name="SuppressCommit">Specifies the SuppressCommit parameter.</param>
+    /// <param name="EverythingInvoiced">Specifies the EverythingInvoiced parameter.</param>
+    /// <param name="Window">Specifies the Window parameter.</param>
+    /// <param name="HideProgressWindow">Specifies the HideProgressWindow parameter.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterProcessPostingLines(var SalesHeader: Record "Sales Header"; var TotalSalesLine: Record "Sales Line"; var CustLedgEntry: Record "Cust. Ledger Entry"; InvoicePostingParameters: Record "Invoice Posting Parameters"; SuppressCommit: Boolean; EverythingInvoiced: Boolean; var Window: Dialog; HideProgressWindow: Boolean)
     begin

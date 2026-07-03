@@ -209,14 +209,14 @@ pageextension 7000184 "CRT Vendor Statistics" extends "Vendor Statistics"
             VendLedgEntry.CalcSums("Amount (LCY) stats.", "Remaining Amount (LCY) stats.");
             OpenAmtLCY[j] := VendLedgEntry."Amount (LCY) stats.";
             OpenRemainingAmtLCY[j] := VendLedgEntry."Remaining Amount (LCY) stats.";
-            NoOpen[j] := VendLedgEntry.Count;
+            NoOpen[j] := VendLedgEntry.Count();
             VendLedgEntry.SetRange("Document Status");
 
             VendLedgEntry.SetRange("Document Status", VendLedgEntry."Document Status"::Honored);
             VendLedgEntry.CalcSums("Amount (LCY) stats.", "Remaining Amount (LCY) stats.");
             HonoredAmtLCY[j] := VendLedgEntry."Amount (LCY) stats.";
             HonoredRemainingAmtLCY[j] := VendLedgEntry."Remaining Amount (LCY) stats.";
-            NoHonored[j] := VendLedgEntry.Count;
+            NoHonored[j] := VendLedgEntry.Count();
             VendLedgEntry.SetRange("Document Status");
 
             VendLedgEntry.SetRange("Document Situation");
