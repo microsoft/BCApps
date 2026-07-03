@@ -93,7 +93,6 @@ table 20404 "Qlty. Inspection Gen. Rule"
         field(12; "Source Table No."; Integer)
         {
             Caption = 'Table No.';
-            NotBlank = true;
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table),
                                                                 "Object ID" = field("Table ID Filter"));
             ToolTip = 'Specifies the table for this rule. For example for receiving to a Purchase Line, you would use table 39. For production typically 5409 for Production Order Routing Line.';
