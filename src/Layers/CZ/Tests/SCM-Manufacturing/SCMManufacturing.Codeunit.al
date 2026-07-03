@@ -208,6 +208,35 @@ codeunit 137404 "SCM Manufacturing"
         CopyProductionOrder(ProductionOrder.Status::Released);
     end;
 
+    [Test]
+    [HandlerFunctions('CopyProdOrderDocLookupRequestPageHandler,ProductionOrderListModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure CopyProductionOrderDocumentLookupExcludesTargetOrder()
+    var
+        TargetProductionOrder: Record "Production Order";
+        SourceProductionOrder: Record "Production Order";
+        CopyProductionOrderDocument: Report "Copy Production Order Document";
+    begin
+        // [FEATURE] [Copy Production Order]
+        // [SCENARIO 641331] The Copy Production Order Document lookup does not list the target production order itself.
+        Initialize();
+
+        // [GIVEN] A target Released production order and another Released production order to copy from
+        CreateReleasedProductionOrder(TargetProductionOrder);
+        CreateReleasedProductionOrder(SourceProductionOrder);
+
+        // [WHEN] Opening the Document No. lookup for the target with status Released
+        LibraryVariableStorage.Enqueue("Production Order Status"::Released);
+        LibraryVariableStorage.Enqueue(TargetProductionOrder."No.");
+        LibraryVariableStorage.Enqueue(SourceProductionOrder."No.");
+        Clear(CopyProductionOrderDocument);
+        CopyProductionOrderDocument.SetProdOrder(TargetProductionOrder);
+        CopyProductionOrderDocument.Run();
+
+        // [THEN] The target is absent from the lookup and the source can be selected (verified in the handlers)
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure CopyProductionOrder(Status: Enum "Production Order Status")
     var
         ProductionOrder: Record "Production Order";
@@ -7352,6 +7381,35 @@ codeunit 137404 "SCM Manufacturing"
         CopyProductionOrderDocument.DocumentNo.SetValue(LibraryVariableStorage.DequeueText());
         CopyProductionOrderDocument.IncludeHeader.SetValue(true);
         CopyProductionOrderDocument.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure CopyProdOrderDocLookupRequestPageHandler(var CopyProductionOrderDocument: TestRequestPage "Copy Production Order Document")
+    begin
+        CopyProductionOrderDocument.Status.SetValue(LibraryVariableStorage.DequeueInteger());
+        CopyProductionOrderDocument.DocumentNo.Lookup();
+        CopyProductionOrderDocument.Cancel().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure ProductionOrderListModalPageHandler(var ProductionOrderList: TestPage "Production Order List")
+    var
+        TargetNo: Code[20];
+        SourceNo: Code[20];
+    begin
+        TargetNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(TargetNo));
+        SourceNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(SourceNo));
+
+        // The target production order must not appear in the lookup.
+        ProductionOrderList.Filter.SetFilter("No.", TargetNo);
+        Assert.IsFalse(ProductionOrderList.First(), 'The target production order must not appear in the Copy Production Order Document lookup.');
+
+        // The source production order can be selected.
+        ProductionOrderList.Filter.SetFilter("No.", SourceNo);
+        Assert.IsTrue(ProductionOrderList.First(), 'The source production order should be selectable in the lookup.');
+        ProductionOrderList.OK().Invoke();
     end;
 
     [RequestPageHandler]
