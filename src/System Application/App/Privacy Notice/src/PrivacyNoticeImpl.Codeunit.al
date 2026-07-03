@@ -90,7 +90,7 @@ codeunit 1565 "Privacy Notice Impl."
             Session.LogMessage('0000GK9', StrSubstNo(PrivacyNoticeAutoApprovedByAdminTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit(true);
         end;
-        if PrivacyNotice.Disabled or IsMicrosoftCopilotEffectivelyAdminDisagreed(PrivacyNoticeId) then begin
+        if PrivacyNotice.Disabled then begin
             Session.LogMessage('0000GKA', StrSubstNo(PrivacyNoticeAutoRejectedByAdminTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             if CanCurrentUserApproveForOrganization() then
                 exit(ShowPrivacyNotice(PrivacyNotice)); // User is admin so show the privacy notice again for them to re-approve
@@ -149,7 +149,7 @@ codeunit 1565 "Privacy Notice Impl."
             Session.LogMessage('0000GKD', StrSubstNo(AdminPrivacyApprovalStateTelemetryTxt, PrivacyNoticeId, "Privacy Notice Approval State"::Agreed), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit("Privacy Notice Approval State"::Agreed);
         end;
-        if PrivacyNotice.Disabled or IsMicrosoftCopilotEffectivelyAdminDisagreed(PrivacyNoticeId) then begin
+        if PrivacyNotice.Disabled then begin
             Session.LogMessage('0000GKE', StrSubstNo(AdminPrivacyApprovalStateTelemetryTxt, PrivacyNoticeId, "Privacy Notice Approval State"::Disagreed), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit("Privacy Notice Approval State"::Disagreed);
         end;
@@ -382,9 +382,6 @@ codeunit 1565 "Privacy Notice Impl."
             // Trial / evaluation tenants: unconditionally auto-approve; no EUDB split and no legacy admin gates to inherit.
             if IsInTrialOrEvaluationMode() then
                 exit(true);
-            // If the admin explicitly disagreed with Microsoft Learn, that decision also blocks the Copilot auto-approval.
-            if IsMicrosoftLearnAdminDisagreed() then
-                exit(false);
             // If the pre-BizChat Chat capability was turned off, honor that choice instead of auto-approving.
             if IsChatCapabilityInactive() then
                 exit(false);
@@ -403,30 +400,6 @@ codeunit 1565 "Privacy Notice Impl."
         CopilotSettings.SetRange(Capability, Enum::"Copilot Capability"::Chat);
         CopilotSettings.SetRange(Status, Enum::"Copilot Status"::Inactive);
         exit(not CopilotSettings.IsEmpty());
-    end;
-
-    local procedure IsMicrosoftLearnAdminDisagreed(): Boolean
-    var
-        MicrosoftLearnPrivacyNotice: Record "Privacy Notice";
-        SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
-    begin
-        if not MicrosoftLearnPrivacyNotice.Get(SystemPrivacyNoticeReg.GetMicrosoftLearnID()) then
-            exit(false);
-        MicrosoftLearnPrivacyNotice.CalcFields(Disabled);
-        exit(MicrosoftLearnPrivacyNotice.Disabled);
-    end;
-
-    // The Microsoft Copilot notice inherits an admin-Disagreed decision from the Microsoft Learn notice.
-    local procedure IsMicrosoftCopilotEffectivelyAdminDisagreed(PrivacyNoticeId: Code[50]): Boolean
-    var
-        SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
-    begin
-        if not CheckIntegrationIDEquality(SystemPrivacyNoticeReg.GetMicrosoftCopilotID(), PrivacyNoticeId) then
-            exit(false);
-        // Trial / evaluation tenants do not inherit legacy admin decisions from Microsoft Learn.
-        if IsInTrialOrEvaluationMode() then
-            exit(false);
-        exit(IsMicrosoftLearnAdminDisagreed());
     end;
 
     local procedure IsInTrialOrEvaluationMode(): Boolean
