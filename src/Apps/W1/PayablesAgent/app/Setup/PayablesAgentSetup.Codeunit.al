@@ -185,6 +185,11 @@ codeunit 3307 "Payables Agent Setup"
         exit(EDocument.GetEDocumentService().Code = PayablesAgentEDocServiceTok);
     end;
 
+    procedure GetAgentEDocumentServiceCode(): Code[20]
+    begin
+        exit(PayablesAgentEDocServiceTok);
+    end;
+
     /// <summary>
     /// Retrieves the agent record if configured in the database, and ensures that the Payables Agent setup record is updated with the correct user security id. 
     /// </summary>

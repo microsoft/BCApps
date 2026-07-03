@@ -154,6 +154,32 @@ page 3304 "Payables Agent Setup"
                         Editable = false;
                         ToolTip = 'Specifies the total number of Copilot credits consumed by the Payables Agent.', Comment = 'Payables Agent is a term, and should not be translated.';
                     }
+                    field(AgentTasks; AgentTasksText)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        StyleExpr = true;
+                        Style = StandardAccent;
+                        ToolTip = 'Specifies the number of tasks completed by the Payables Agent. Choose this field to open the agent task list.', Comment = 'Payables Agent is a term, and should not be translated.';
+
+                        trigger OnDrillDown()
+                        begin
+                            DrillDownAgentTasks();
+                        end;
+                    }
+                    field(InboundEDocuments; InboundEDocumentsText)
+                    {
+                        ShowCaption = false;
+                        Editable = false;
+                        StyleExpr = true;
+                        Style = StandardAccent;
+                        ToolTip = 'Specifies the number of inbound e-documents processed by the Payables Agent. Choose this field to open the list of inbound e-documents.', Comment = 'Payables Agent is a term, and should not be translated.';
+
+                        trigger OnDrillDown()
+                        begin
+                            DrillDownInboundEDocuments();
+                        end;
+                    }
                     field(LearnMoreCost; LearnMoreCostLbl)
                     {
                         ShowCaption = false;
@@ -481,6 +507,58 @@ page 3304 "Payables Agent Setup"
     begin
         CreditsConsumed := PACostEstimate.GetCreditsConsumed();
         CostEstimateText := PACostEstimate.FormatCreditsConsumed(CreditsConsumed);
+        CalcAgentTasks();
+        CalcInboundEDocuments();
+    end;
+
+    local procedure CalcAgentTasks()
+    var
+        AgentTask: Record "Agent Task";
+        PayablesAgentSetupRec: Record "Payables Agent Setup";
+        TaskCount: Integer;
+    begin
+        PayablesAgentSetupRec.GetSetup();
+        if IsNullGuid(PayablesAgentSetupRec."User Security Id") then begin
+            AgentTasksText := StrSubstNo(AgentTasksLbl, 0);
+            exit;
+        end;
+        AgentTask.SetRange("Agent User Security ID", PayablesAgentSetupRec."User Security Id");
+        TaskCount := AgentTask.Count();
+        AgentTasksText := StrSubstNo(AgentTasksLbl, TaskCount);
+    end;
+
+    local procedure DrillDownAgentTasks()
+    var
+        AgentTask: Record "Agent Task";
+        PayablesAgentSetupRec: Record "Payables Agent Setup";
+        AgentTaskList: Page "Agent Task List";
+    begin
+        PayablesAgentSetupRec.GetSetup();
+        if not IsNullGuid(PayablesAgentSetupRec."User Security Id") then
+            AgentTask.SetRange("Agent User Security ID", PayablesAgentSetupRec."User Security Id");
+        AgentTaskList.SetTableView(AgentTask);
+        AgentTaskList.Run();
+    end;
+
+    local procedure CalcInboundEDocuments()
+    var
+        EDocument: Record "E-Document";
+        EDocCount: Integer;
+    begin
+        EDocument.SetRange(Direction, "E-Document Direction"::Incoming);
+        EDocument.SetRange(Service, PayablesAgentSetup.GetAgentEDocumentServiceCode());
+        EDocCount := EDocument.Count();
+        InboundEDocumentsText := StrSubstNo(InboundEDocumentsLbl, EDocCount);
+    end;
+
+    local procedure DrillDownInboundEDocuments()
+    var
+        EDocument: Record "E-Document";
+        InboundEDocumentsPage: Page "Inbound E-Documents";
+    begin
+        EDocument.SetRange(Service, PayablesAgentSetup.GetAgentEDocumentServiceCode());
+        InboundEDocumentsPage.SetTableView(EDocument);
+        InboundEDocumentsPage.Run();
     end;
 
     /// <summary>
@@ -542,6 +620,8 @@ page 3304 "Payables Agent Setup"
         MailboxAddress: Text;
         TrialProgressText: Text;
         CostEstimateText: Text;
+        AgentTasksText: Text;
+        InboundEDocumentsText: Text;
         TrialExperienceVisible: Boolean;
         IsEligibleForTrialVisible: Boolean;
         IsInTrialModeVisible: Boolean;
@@ -565,5 +645,7 @@ page 3304 "Payables Agent Setup"
         BenefitNoDisruptionLbl: Label '• No disruption to your current process';
         SelectFileLbl: Label 'Select file';
         PdfFileFilterLbl: Label 'PDF Files (*.pdf)|*.pdf';
+        InboundEDocumentsLbl: Label 'Based on %1 inbound e-documents', Comment = '%1 is the number of inbound e-documents processed by the agent.';
+        AgentTasksLbl: Label '%1 agent tasks', Comment = '%1 is the number of tasks completed by the agent.';
 
 }
