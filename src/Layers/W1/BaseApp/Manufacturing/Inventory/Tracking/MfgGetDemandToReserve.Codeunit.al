@@ -142,6 +142,7 @@ codeunit 99000858 "Mfg. Get Demand To Reserve"
         ReservationWkshLine: Record "Reservation Wksh. Line";
         TempProdOrderComponent: Record "Prod. Order Component" temporary;
         ReservationWorksheetMgt: Codeunit "Reservation Worksheet Mgt.";
+        DoInsertReservationWkshLine: Boolean;
         RemainingQty, RemainingQtyBase : Decimal;
         AvailableQtyBase, InventoryQtyBase, ReservedQtyBase, WarehouseQtyBase : Decimal;
         LineNo: Integer;
@@ -199,9 +200,18 @@ codeunit 99000858 "Mfg. Get Demand To Reserve"
 
             if (ReservationWkshLine."Remaining Qty. to Reserve" > 0) and
                (ReservationWkshLine."Available Qty. to Reserve" > 0)
-            then
-                ReservationWkshLine.Insert(true);
+            then begin
+                DoInsertReservationWkshLine := true;
+                OnSyncProdOrderComponentsOnBeforeInsertReservationWkshLine(ReservationWkshLine, TempProdOrderComponent, DoInsertReservationWkshLine);
+                if DoInsertReservationWkshLine then
+                    ReservationWkshLine.Insert(true);
+            end;
         until TempProdOrderComponent.Next() = 0;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSyncProdOrderComponentsOnBeforeInsertReservationWkshLine(var ReservationWkshLine: Record "Reservation Wksh. Line"; var TempProdOrderComponent: Record "Prod. Order Component" temporary; var DoInsertReservationWkshLine: Boolean)
+    begin
     end;
 
 #if not CLEAN27

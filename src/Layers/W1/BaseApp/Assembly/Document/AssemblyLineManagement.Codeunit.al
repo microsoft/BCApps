@@ -638,6 +638,10 @@ codeunit 905 "Assembly Line Management"
         CopyInventoriableItemAsmLines(TempAssemblyLine2, TempAssemblyLine);
         AvailToPromise(TempAssemblyHeader, TempAssemblyLine2, QtyAvailToMake, EarliestAvailableDateX);
         QtyAvailTooLow := QtyAvailToMake < TempAssemblyHeader."Remaining Quantity";
+        IsHandled := false;
+        OnShowAvailabilityOnAfterCalcQtyAvailTooLow(TempAssemblyHeader, TempAssemblyLine, ShowPageEvenIfEnoughComponentsAvailable, QtyAvailToMake, EarliestAvailableDateX, QtyAvailTooLow, Rollback, IsHandled);
+        if IsHandled then
+            exit(Rollback);
 
         if QtyAvailTooLow and not ShowPageEvenIfEnoughComponentsAvailable then
             Rollback := CreateAndSendNotification(TempAssemblyHeader, TempAssemblyLine)
@@ -1010,6 +1014,11 @@ codeunit 905 "Assembly Line Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeShowAvailability(var TempAssemblyHeader: Record "Assembly Header" temporary; var TempAssemblyLine: Record "Assembly Line" temporary; ShowPageEvenIfEnoughComponentsAvailable: Boolean; var IsHandled: Boolean; var RollBack: Boolean; WarningModeOff: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnShowAvailabilityOnAfterCalcQtyAvailTooLow(var TempAssemblyHeader: Record "Assembly Header" temporary; var TempAssemblyLine: Record "Assembly Line" temporary; ShowPageEvenIfEnoughComponentsAvailable: Boolean; QtyAvailToMake: Decimal; EarliestAvailableDate: Date; var QtyAvailTooLow: Boolean; var RollBack: Boolean; var IsHandled: Boolean)
     begin
     end;
 

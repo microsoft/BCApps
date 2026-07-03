@@ -555,6 +555,7 @@ page 4400 "SOA Setup"
             SOASetupCU.UpdateSOASetupActivationDT(Rec);
 
         SOASetupCU.ValidateAgentIdentity(Rec);
+        SOASetupCU.CheckMailboxUnique(Rec);
 
         SOASetupCU.UpdateAgent(TempAgentSetupBuffer, Rec, ShouldScheduleTask());
         exit(true);

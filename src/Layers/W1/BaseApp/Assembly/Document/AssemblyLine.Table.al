@@ -898,13 +898,21 @@ table 901 "Assembly Line"
     end;
 
     procedure MaxQtyToConsume(): Decimal
+    var
+        NewMaxQtyToConsume: Decimal;
     begin
-        exit("Remaining Quantity");
+        NewMaxQtyToConsume := "Remaining Quantity";
+        OnAfterMaxQtyToConsume(Rec, NewMaxQtyToConsume);
+        exit(NewMaxQtyToConsume);
     end;
 
     local procedure MaxQtyToConsumeBase(): Decimal
+    var
+        NewMaxQtyToConsumeBase: Decimal;
     begin
-        exit("Remaining Quantity (Base)");
+        NewMaxQtyToConsumeBase := "Remaining Quantity (Base)";
+        OnAfterMaxQtyToConsumeBase(Rec, NewMaxQtyToConsumeBase);
+        exit(NewMaxQtyToConsumeBase);
     end;
 
     local procedure GetSKU()
@@ -2286,6 +2294,16 @@ table 901 "Assembly Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitQtyToConsume(var AssemblyLine: Record "Assembly Line"; xAssemblyLine: Record "Assembly Line"; CurrentFieldNo: Integer);
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterMaxQtyToConsume(var AssemblyLine: Record "Assembly Line"; var MaxQuantityToConsume: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterMaxQtyToConsumeBase(var AssemblyLine: Record "Assembly Line"; var MaxQuantityToConsumeBase: Decimal)
     begin
     end;
 
