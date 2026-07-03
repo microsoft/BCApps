@@ -92,7 +92,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
         }
         field(12; "Source Table No."; Integer)
         {
-            Caption = 'Table';
+            Caption = 'Table No.';
             NotBlank = true;
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table),
                                                                 "Object ID" = field("Table ID Filter"));
