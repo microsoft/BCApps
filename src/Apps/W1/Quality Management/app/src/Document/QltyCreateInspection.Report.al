@@ -286,7 +286,7 @@ report 20400 "Qlty. Create Inspection"
         if QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectionGenRule) then
             exit(true);
 
-        if not Confirm(StrSubstNo(NoCompatibleGenRuleQst, QltInspectionTemplateToCreate)) then
+        if not Confirm(NoCompatibleGenRuleQst, false, QltInspectionTemplateToCreate) then
             exit(false);
 
         QltyInspectionGenRule.SetRange("Template Code", QltInspectionTemplateToCreate);
