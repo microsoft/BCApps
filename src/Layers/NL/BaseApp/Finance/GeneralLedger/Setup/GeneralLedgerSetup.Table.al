@@ -206,7 +206,8 @@ table 98 "General Ledger Setup"
             AutoFormatType = 1;
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                  "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                                 "Initial Entry Due Date" = field("Date Filter")));
+                                                                                 "Initial Entry Due Date" = field("Date Filter"),
+                                                                                 "Excluded from calculation" = const(false)));
             Caption = 'Cust. Balances Due';
             Editable = false;
             FieldClass = FlowField;
@@ -220,7 +221,8 @@ table 98 "General Ledger Setup"
             AutoFormatType = 1;
             CalcFormula = - sum("Detailed Vendor Ledg. Entry"."Amount (LCY)" where("Initial Entry Global Dim. 1" = field("Global Dimension 1 Filter"),
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
-                                                                                   "Initial Entry Due Date" = field("Date Filter")));
+                                                                                   "Initial Entry Due Date" = field("Date Filter"),
+                                                                                   "Excluded from calculation" = const(false)));
             Caption = 'Vendor Balances Due';
             Editable = false;
             FieldClass = FlowField;
