@@ -131,7 +131,7 @@
   "PullRequestTrigger": "pull_request",
   "ALDoc": {
     "maxReleases": 0,
-    "continuousDeployment": true,
+    "continuousDeployment": false,
     "groupByProject": false,
     "includeProjects": [
       "build_projects_Apps W1"
