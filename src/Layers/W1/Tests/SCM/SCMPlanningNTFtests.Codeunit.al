@@ -299,6 +299,50 @@ codeunit 137021 "SCM Planning - NTF tests"
         LibraryJob.CreateJobTask(Job, JobTask);
     end;
 
+    local procedure CreateItemWithNonBasePurchUoM(var Item: Record Item; var ItemUnitOfMeasure: Record "Item Unit of Measure"; QtyPerUoM: Decimal)
+    begin
+        ItemSetup(Item, Item."Replenishment System"::Purchase, '<0D>');
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::"Lot-for-Lot");
+        Item.Validate("Vendor No.", LibraryPurchase.CreateVendorNo());
+        LibraryInventory.CreateItemUnitOfMeasureCode(ItemUnitOfMeasure, Item."No.", QtyPerUoM);
+        Item.Validate("Purch. Unit of Measure", ItemUnitOfMeasure.Code);
+        Item.Modify(true);
+    end;
+
+    local procedure AcceptAndCarryOutActionMessage(ItemNo: Code[20])
+    var
+        RequisitionLine: Record "Requisition Line";
+    begin
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+        RequisitionLine.SetRange("No.", ItemNo);
+        RequisitionLine.FindSet(true);
+        repeat
+            RequisitionLine.Validate("Accept Action Message", true);
+            RequisitionLine.Modify(true);
+        until RequisitionLine.Next() = 0;
+        LibraryPlanning.CarryOutActionMsgPlanWksh(RequisitionLine);
+    end;
+
+    local procedure FindPurchaseLineByItemNo(var PurchaseLine: Record "Purchase Line"; ItemNo: Code[20])
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.SetRange("No.", ItemNo);
+        PurchaseLine.FindFirst();
+    end;
+
+    local procedure VerifyReservEntryQtyBase(SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; ExpectedQtyBase: Decimal)
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        ReservationEntry.SetRange("Source Type", SourceType);
+        ReservationEntry.SetRange("Source Subtype", SourceSubtype);
+        ReservationEntry.SetRange("Source ID", SourceID);
+        ReservationEntry.FindFirst();
+        Assert.AreEqual(ExpectedQtyBase, Abs(ReservationEntry."Quantity (Base)"),
+          'Reservation Entry Quantity (Base) must match demand.');
+    end;
+
     local procedure CreateSaleDocType(var SalesHeader: Record "Sales Header"; DocumentType: Enum "Sales Document Type"; Item: Record Item; SalesQty: Integer; ShipmentDate: Date; LocationCode: Code[10])
     var
         SalesLine: Record "Sales Line";
@@ -3645,6 +3689,44 @@ codeunit 137021 "SCM Planning - NTF tests"
           RequisitionLine."Ref. Order Type"::Transfer, LocationTwo.Code, 1);
         AssertPlanningLine(Item, RequisitionLine."Action Message"::New, 0D, WorkDate(), 0, QtyOnInventory,
           RequisitionLine."Ref. Order Type"::Transfer, LocationTwo.Code, 1);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure JobPlanLineNonBaseUoMCarryOutDeletePlanLine()
+    var
+        Item: Record Item;
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        JobTask: Record "Job Task";
+        JobPlanningLine: Record "Job Planning Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        QtyPerUoM: Decimal;
+        JobQuantity: Decimal;
+    begin
+        // [SCENARIO 640455] Cannot delete Project Planning Line due to incorrect reservation entries
+
+        Initialize();
+
+        // [GIVEN] Item "I" with non-base Purchase UoM "U" with random Qty per UoM, Reordering Policy = Lot-for-Lot, and Job Planning Line "J" with random quantity.
+        TestSetup();
+        QtyPerUoM := LibraryRandom.RandIntInRange(2, 5);
+        JobQuantity := LibraryRandom.RandIntInRange(1, 5);
+        CreateItemWithNonBasePurchUoM(Item, ItemUnitOfMeasure, QtyPerUoM);
+        CreateJobAndPlanningLine(JobTask, JobPlanningLine, Item."No.", JobQuantity, true);
+
+        // [WHEN] Calculate Regenerative Plan is run and Action Message is carried out to create a Purchase Order "P".
+        LibraryPlanning.CalcRegenPlanForPlanWksh(Item, WorkDate(), CalcDate(PlanningEndDate, WorkDate()));
+        AcceptAndCarryOutActionMessage(Item."No.");
+
+        // [THEN] Reservation entries linked to "P" have correct Quantity (Base) matching "J" quantity, and deleting "P" and then "J" succeeds without error.
+        FindPurchaseLineByItemNo(PurchaseLine, Item."No.");
+        PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, PurchaseLine."Document No.");
+        VerifyReservEntryQtyBase(
+          Database::"Purchase Line", PurchaseHeader."Document Type".AsInteger(), PurchaseHeader."No.", JobQuantity);
+        PurchaseHeader.Delete(true);
+        JobPlanningLine.Find();
+        JobPlanningLine.Delete(true);
     end;
 
     [ModalPageHandler]
