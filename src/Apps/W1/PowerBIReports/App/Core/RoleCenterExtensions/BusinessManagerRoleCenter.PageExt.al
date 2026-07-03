@@ -182,7 +182,7 @@ pageextension 36953 "Business Manager Role Center" extends "Business Manager Rol
                         RunObject = page "Inventory Valuation by Loc.";
                         Tooltip = 'Open a Power BI Report that features a Treemap that visualizes ending balance quantities by location. It also includes a table matrix providing a detailed view of ending balances and showing fluctuations in inventory over the specified period.';
                     }
-                    action("Late Payments (Receivables)")
+                    action("Late Payments (Receivables) (Power BI)")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Late Payments (Receivables)';
@@ -424,7 +424,7 @@ pageextension 36953 "Business Manager Role Center" extends "Business Manager Rol
                         Caption = 'Purchases Period-Over-Period';
                         Image = "PowerBI";
                         RunObject = page "Purchases Period-Over-Period";
-                        Tooltip = 'Open a Power BI Report that compares procurement performance across different periods, such as month-over-month or year-over-year. Completed up to here';
+                        Tooltip = 'Open a Power BI Report that compares procurement performance across different periods, such as month-over-month or year-over-year.';
                     }
                     action("Purchases Year-Over-Year")
                     {
@@ -732,7 +732,7 @@ pageextension 36953 "Business Manager Role Center" extends "Business Manager Rol
                         Caption = 'Released Production Orders';
                         Image = "PowerBI";
                         RunObject = page "PowerBI Released Prod. Orders";
-                        Tooltip = 'Open a Power BI Report to view how your released production orders are tracking by comparing Expected Quantity vs. Finished Quantity';
+                        Tooltip = 'Open a Power BI Report to view how your released production orders are tracking by comparing Expected Quantity vs. Finished Quantity.';
                     }
                     action("Work Center Load")
                     {
