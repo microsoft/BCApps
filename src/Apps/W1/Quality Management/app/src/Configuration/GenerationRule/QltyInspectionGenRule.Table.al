@@ -287,7 +287,8 @@ table 20404 "Qlty. Inspection Gen. Rule"
 
     trigger OnModify()
     begin
-        CheckSourceTableNoIsSet();
+        if xRec."Source Table No." <> 0 then
+            CheckSourceTableNoIsSet();
         UpdateSortOrder();
         if (xRec."Source Table No." <> Rec."Source Table No.") or (Rec.Intent = Rec.Intent::Unknown) or not GuiAllowed() then
             SetIntentAndDefaultTriggerValuesFromSetup();
