@@ -2165,6 +2165,7 @@ codeunit 7307 "Whse.-Activity-Register"
     local procedure RemoveNonSpecificreservations(WhseActivLine: Record "Warehouse Activity Line"; WhseItemTrackingSetup: Record "Item Tracking Setup"; QtyToRelease: Decimal)
     var
         ReservationEntry: Record "Reservation Entry";
+        QtyToKeepPerLot: Dictionary of [Code[50], Decimal];
         QtyToPick: Decimal;
     begin
         if not WhseItemTrackingSetup.TrackingRequired() then
@@ -2177,14 +2178,16 @@ codeunit 7307 "Whse.-Activity-Register"
         ReservationEntry.SetRange(Positive, false);
         if ReservationEntry.FindSet() then
             repeat
-                DeleteNonSpecificReservationEntries(ReservationEntry, WhseActivLine, QtyToPick);
+                DeleteNonSpecificReservationEntries(ReservationEntry, WhseActivLine, QtyToPick, QtyToKeepPerLot);
             until (ReservationEntry.Next() = 0) or (QtyToPick <= 0);
     end;
 
-    local procedure DeleteNonSpecificReservationEntries(var ReservationEntry: Record "Reservation Entry"; WhseActivLine: Record "Warehouse Activity Line"; var QtyToPick: Decimal)
+    local procedure DeleteNonSpecificReservationEntries(var ReservationEntry: Record "Reservation Entry"; WhseActivLine: Record "Warehouse Activity Line"; var QtyToPick: Decimal; var QtyToKeepPerLot: Dictionary of [Code[50], Decimal])
     var
         PairedReservationEntry: Record "Reservation Entry";
         ReleaseQtyBase: Decimal;
+        RemainingQtyToKeepOnLot: Decimal;
+        QtyToKeepOnLot: Decimal;
     begin
         if ReservationEntry.TrackingExists() then
             exit;
@@ -2195,7 +2198,16 @@ codeunit 7307 "Whse.-Activity-Register"
         // Release only the reservation on the paired lot that this order will not pick itself. The freed
         // quantity becomes surplus that Late Binding Management can move the blocking reservations of
         // other documents onto, while keeping this order's reservation on each lot it picks from.
-        ReleaseQtyBase := Abs(ReservationEntry."Quantity (Base)") - CalcQtyToPickOnLotBase(WhseActivLine, PairedReservationEntry."Lot No.");
+        // The quantity to keep on a lot is shared across every reservation entry pointing at that lot, so
+        // track the remaining quantity to keep per lot and consume it as each entry is processed. Otherwise
+        // a lot split across several reservation entries would keep the picked quantity once per entry.
+        RemainingQtyToKeepOnLot := GetRemainingQtyToKeepOnLot(QtyToKeepPerLot, WhseActivLine, PairedReservationEntry."Lot No.");
+        QtyToKeepOnLot := Abs(ReservationEntry."Quantity (Base)");
+        if QtyToKeepOnLot > RemainingQtyToKeepOnLot then
+            QtyToKeepOnLot := RemainingQtyToKeepOnLot;
+        QtyToKeepPerLot.Set(PairedReservationEntry."Lot No.", RemainingQtyToKeepOnLot - QtyToKeepOnLot);
+
+        ReleaseQtyBase := Abs(ReservationEntry."Quantity (Base)") - QtyToKeepOnLot;
         if ReleaseQtyBase <= 0 then
             exit;
         if ReleaseQtyBase > QtyToPick then
@@ -2212,6 +2224,18 @@ codeunit 7307 "Whse.-Activity-Register"
         end;
 
         QtyToPick := QtyToPick - ReleaseQtyBase;
+    end;
+
+    local procedure GetRemainingQtyToKeepOnLot(var QtyToKeepPerLot: Dictionary of [Code[50], Decimal]; WhseActivLine: Record "Warehouse Activity Line"; LotNo: Code[50]): Decimal
+    var
+        QtyToKeepOnLot: Decimal;
+    begin
+        if QtyToKeepPerLot.ContainsKey(LotNo) then
+            exit(QtyToKeepPerLot.Get(LotNo));
+
+        QtyToKeepOnLot := CalcQtyToPickOnLotBase(WhseActivLine, LotNo);
+        QtyToKeepPerLot.Add(LotNo, QtyToKeepOnLot);
+        exit(QtyToKeepOnLot);
     end;
 
     local procedure CalcQtyToPickOnLotBase(WhseActivLine: Record "Warehouse Activity Line"; LotNo: Code[50]): Decimal
