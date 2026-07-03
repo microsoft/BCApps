@@ -3,7 +3,7 @@ Param(
     [string[]]$AppsToUnpublish = @("All")
 )
 
-$parameters.multitenant = $false
+$parameters.multitenant = $true
 $parameters.RunSandboxAsOnPrem = $true
 $parameters.memoryLimit = "16G"
 if ("$env:GITHUB_RUN_ID" -eq "") {
@@ -12,7 +12,21 @@ if ("$env:GITHUB_RUN_ID" -eq "") {
     $parameters.shortcuts = "none"
 }
 
+Import-Module (Join-Path $PSScriptRoot 'PlatformHelper.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'EnlistmentHelperFunctions.psm1') -Force
+
+$platformVersion = (Get-ConfigValue -Key "BCPlatform" -ConfigType Packages).Version
+if ($platformVersion) {
+    $platformVersion = Resolve-PlatformVersion -Version $platformVersion
+    $platformUrl = Get-PlatformVersionUrl -Version $platformVersion
+    $parameters.platformArtifactUrl = "$platformUrl/platform"
+}
+
 New-BcContainer @parameters
+
+Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "EnforceUserPathForAlFileOperations" -keyValue "false"
+Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "UsePermissionSetsFromExtensions" -keyValue "true"
+Restart-BcContainer -containerName $parameters.ContainerName
 
 $installedApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast
 

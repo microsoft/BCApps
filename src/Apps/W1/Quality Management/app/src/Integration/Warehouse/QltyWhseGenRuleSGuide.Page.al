@@ -120,7 +120,9 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
 
                     trigger OnValidate()
                     begin
-                        UpdateFullTextRuleStringsFromFilters();
+                        ClearLastError();
+                        if not UpdateFullTextRuleStringsFromFilters() then
+                            Error(JustPutAwaysFilterErr, GetLastErrorText());
                     end;
                 }
                 field(ChooseAdvanced; 'Click here to choose advanced fields...')
@@ -371,6 +373,7 @@ page 20460 "Qlty. Whse. Gen. Rule S. Guide"
         ItemCategoryFilterErr: Label 'This Item Category filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         InventoryPostingGroupFilterErr: Label 'This Inventory Posting Group filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         VendorFilterErr: Label 'This Vendor No. filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
+        JustPutAwaysFilterErr: Label 'This Put-away filter needs an adjustment. %1', Comment = '%1 = Text of the original error message';
         YourUserDoesNotAppearToBeConfiguredAsAWarehouseEmployeeMsg: Label 'Your user id of %1 does not appear to be configured as a warehouse employee. Navigate to Warehouse Employees and create appropriate warehouse employee configuration before using this screen.', Comment = '%1=the user id.';
         YouMustChooseATemplateFirstMsg: Label 'Please choose a template before proceeding.';
         AlreadyThereQst: Label 'You already have at least one rule with these same conditions. Are you sure you want to proceed?';

@@ -1,0 +1,22 @@
+[
+  {
+    "codeunitId": 139575,
+    "codeunitName": "LP Prediction Test",
+    "method": "TestCreateMyModelWhenNotEnoughDataAvailable"
+  },
+  {
+    "codeunitId": 139575,
+    "codeunitName": "LP Prediction Test",
+    "method": "TestEvaluateMyModelSunshine"
+  },
+  {
+    "codeunitId": 139575,
+    "codeunitName": "LP Prediction Test",
+    "method": "TestBackgroundTaskOnCompanyOpen"
+  },
+  {
+    "codeunitId": 139575,
+    "codeunitName": "LP Prediction Test",
+    "method": "PredictAllPaymentsDoesNotErrorWhenAllInvoicesClosed"
+  }
+]
