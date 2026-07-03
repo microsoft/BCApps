@@ -40,7 +40,6 @@ using System.Automation;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Integration.PowerBI;
-using System.Reflection;
 using System.Text;
 
 #pragma warning disable AS0106 // Protected variable PowerBIVisible was removed before AS0106 was introduced.
@@ -869,11 +868,8 @@ page 31 "Item List"
                 trigger OnAction()
                 var
                     ItemAttributeManagement: Codeunit "Item Attribute Management";
-                    TypeHelper: Codeunit "Type Helper";
                     CloseAction: Action;
-                    FilterText: Text;
                     FilterPageID: Integer;
-                    ParameterCount: Integer;
                 begin
                     FilterPageID := PAGE::"Filter Items by Attribute";
                     if ClientTypeManagement.GetCurrentClientType() = CLIENTTYPE::Phone then
@@ -890,17 +886,7 @@ page 31 "Item List"
                     TempItemFilteredFromAttributes.Reset();
                     TempItemFilteredFromAttributes.DeleteAll();
                     ItemAttributeManagement.FindItemsByAttributes(TempFilterItemAttributesBuffer, TempItemFilteredFromAttributes);
-                    FilterText := ItemAttributeManagement.GetItemNoFilterText(TempItemFilteredFromAttributes, ParameterCount);
-
-                    if ParameterCount < TypeHelper.GetMaxNumberOfParametersInSQLQuery() - 100 then begin
-                        Rec.FilterGroup(0);
-                        Rec.MarkedOnly(false);
-                        Rec.SetFilter("No.", FilterText);
-                    end else begin
-                        RunOnTempRec := true;
-                        Rec.ClearMarks();
-                        Rec.Reset();
-                    end;
+                    RunOnTempRec := true;
                 end;
             }
             action(ClearAttributes)

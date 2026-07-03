@@ -2462,5 +2462,4 @@ page 31 "Item List"
     local procedure OnBeforeFindRecord(var Rec: Record Item; Which: Text; var CrossColumnSearchFilter: Text; var Found: Boolean; var IsHandled: Boolean)
     begin
     end;
-
 }
