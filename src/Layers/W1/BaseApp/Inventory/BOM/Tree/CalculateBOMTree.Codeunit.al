@@ -771,6 +771,8 @@ codeunit 5870 "Calculate BOM Tree"
             DueDate := StartDate
         else
             DueDate := StartDate - (CalcDate(LeadTimeOffset, StartDate) - StartDate);
+
+        OnAfterCalcCompDueDate(DueDate, DemandDate, ParentItem, LeadTimeOffset);
     end;
 
     local procedure AvailByDateExists(BOMBuffer: Record "BOM Buffer"): Boolean
@@ -832,6 +834,11 @@ codeunit 5870 "Calculate BOM Tree"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterFilterBOMBuffer(var ParentItem: Record Item; var BOMBuffer: Record "BOM Buffer"; DemandDate: Date; TreeType: Option)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCalcCompDueDate(var DueDate: Date; DemandDate: Date; ParentItem: Record Item; LeadTimeOffset: DateFormula)
     begin
     end;
 
