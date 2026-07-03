@@ -37,7 +37,7 @@ table 2000005 "Export Protocol"
                 CalcFields("Check Object Name");
             end;
         }
-        field(26; "Check Object Name"; Text[30])
+        field(26; "Check Object Name"; Text[100])
         {
             CalcFormula = lookup(AllObj."Object Name" where("Object Type" = const(Codeunit),
                                                              "Object ID" = field("Check Object ID")));

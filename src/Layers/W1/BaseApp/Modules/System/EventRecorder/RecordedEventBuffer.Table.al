@@ -43,7 +43,7 @@ table 9804 "Recorded Event Buffer"
             else
             if ("Object Type" = const(System)) AllObj."Object ID" where("Object Type" = const(System));
         }
-        field(4; "Object Name"; Text[30])
+        field(4; "Object Name"; Text[100])
         {
             CalcFormula = lookup(AllObjWithCaption."Object Name" where("Object Type" = field("Object Type"),
                                                                         "Object ID" = field("Object ID")));
@@ -85,7 +85,7 @@ table 9804 "Recorded Event Buffer"
             Caption = 'Calling Object ID';
             DataClassification = SystemMetadata;
         }
-        field(11; "Calling Object Name"; Text[30])
+        field(11; "Calling Object Name"; Text[100])
         {
             CalcFormula = lookup(AllObjWithCaption."Object Name" where("Object Type" = field("Calling Object Type"),
                                                                         "Object ID" = field("Calling Object ID")));

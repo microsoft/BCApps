@@ -39,7 +39,7 @@ table 3901 "Retention Policy Setup"
                 Rec.Validate("Table Id", RetentionPolicy.TableIdLookup(Rec."Table Id"));
             end;
         }
-        field(2; "Table Name"; Text[30])
+        field(2; "Table Name"; Text[100])
         {
             FieldClass = FlowField;
             CalcFormula = lookup(AllObjWithCaption."Object Name" where("Object Type" = const(Table), "Object ID" = field("Table Id")));
