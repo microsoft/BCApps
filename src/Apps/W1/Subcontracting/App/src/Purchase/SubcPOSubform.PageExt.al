@@ -66,6 +66,7 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
                 {
                     ApplicationArea = Subcontracting;
                     Visible = HasSubcontractingContext;
+                    Enabled = HasSubcontractingLineContext;
                     Caption = 'Subcontracting Transfer Order';
                     Image = TransferOrder;
                     ToolTip = 'View the related transfer order.';
@@ -96,10 +97,12 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
         SubcProdOrderFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
         HasSubcontractingContext: Boolean;
+        HasSubcontractingLineContext: Boolean;
 
     trigger OnAfterGetCurrRecord()
     begin
         SetSubcontractingVisibility();
+        HasSubcontractingLineContext := Rec."Subc. Purchase Line Type" <> Rec."Subc. Purchase Line Type"::None;
     end;
 
     local procedure SetSubcontractingVisibility()

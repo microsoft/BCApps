@@ -38,6 +38,8 @@ codeunit 149903 "Subc. Whse Non-Last Op."
     var
         Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryRandom: Codeunit "Library - Random";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -529,6 +531,74 @@ codeunit 149903 "Subc. Whse Non-Last Op."
 
         // [THEN] Verify error message indicates item tracking is not available for non-last operation
         Assert.ExpectedError('Item tracking lines can only be viewed for subcontracting purchase lines which are linked to a routing line which is the last operation.');
+    end;
+
+    [Test]
+    procedure TransferOrderActionEnabledOnlyForSubcontractingLine()
+    var
+        Item: Record Item;
+        NonSubcontractingItem: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        NonSubcontractingLine: Record "Purchase Line";
+        SubcontractingLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        WorkCenter: array[2] of Record "Work Center";
+        Quantity: Decimal;
+        PurchaseOrderPage: TestPage "Purchase Order";
+    begin
+        // [SCENARIO] The Subcontracting Transfer Order action is enabled only when the current purchase line is a subcontracting line
+        // [FEATURE] Subcontracting Transfer Order - action disabled on non-subcontracting lines
+
+        // [GIVEN] Complete Manufacturing Setup with subcontracting work centers, item, routing and production BOM
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(5, 10);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+
+        // [GIVEN] Routing link on the last operation (WorkCenter[2] is operation 40, the last operation / main item line)
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+
+        // [GIVEN] Simple Location and Vendor configured with the subcontracting location
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+
+        // [GIVEN] Released Production Order
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] Subcontracting Purchase Order created for the last operation (main item / subcontracting line)
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", SubcontractingLine);
+        PurchaseHeader.Get(SubcontractingLine."Document Type", SubcontractingLine."Document No.");
+        Assert.AreEqual("Subc. Purchase Line Type"::LastOperation, SubcontractingLine."Subc. Purchase Line Type",
+            'Purchase Line for the last operation should be a subcontracting line.');
+
+        // [GIVEN] A regular, non-subcontracting item line added to the same Purchase Order
+        LibraryInventory.CreateItem(NonSubcontractingItem);
+        LibraryPurchase.CreatePurchaseLine(NonSubcontractingLine, PurchaseHeader, NonSubcontractingLine.Type::Item, NonSubcontractingItem."No.", 1);
+        Assert.AreEqual("Subc. Purchase Line Type"::None, NonSubcontractingLine."Subc. Purchase Line Type",
+            'A regular purchase line should not be a subcontracting line.');
+
+        // [WHEN] Opening the Purchase Order page
+        PurchaseOrderPage.OpenEdit();
+        PurchaseOrderPage.GoToRecord(PurchaseHeader);
+
+        // [THEN] The Subcontracting Transfer Order action is enabled on the subcontracting line
+        PurchaseOrderPage.PurchLines.GoToRecord(SubcontractingLine);
+        Assert.IsTrue(PurchaseOrderPage.PurchLines."Transfer Order".Enabled(),
+            'Subcontracting Transfer Order action should be enabled on a subcontracting purchase line.');
+
+        // [THEN] The Subcontracting Transfer Order action is disabled on the non-subcontracting line
+        PurchaseOrderPage.PurchLines.GoToRecord(NonSubcontractingLine);
+        Assert.IsFalse(PurchaseOrderPage.PurchLines."Transfer Order".Enabled(),
+            'Subcontracting Transfer Order action should be disabled on a non-subcontracting purchase line.');
     end;
 
     [Test]
