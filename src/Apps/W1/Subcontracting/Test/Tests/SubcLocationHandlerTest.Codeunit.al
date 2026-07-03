@@ -198,6 +198,47 @@ codeunit 139981 "Subc. Location Handler Test"
     end;
 
     [Test]
+    procedure DirectTransferFromRequireShipmentLocationIsBlocked()
+    var
+        Item: Record Item;
+        LocationOrig: Record Location;
+        LocationSub: Record Location;
+        ProdOrder: Record "Production Order";
+        ProdOrderComp: Record "Prod. Order Component";
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderRtngLine: Record "Prod. Order Routing Line";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        CreateSubCTransfOrder: Report "Subc. Create Transf. Order";
+    begin
+        // [SCENARIO 640958] Creating a subcontracting transfer with no in-transit route from a location that
+        //                 requires a shipment is blocked with a guided error instead of a raw TestField error.
+        Initialize();
+
+        // [GIVEN] Subcontractor and Original locations; the Original location requires a shipment; no in-transit transfer route exists.
+        LibraryWarehouse.CreateLocation(LocationSub);
+        LibraryWarehouse.CreateLocation(LocationOrig);
+        LocationOrig."Require Shipment" := true;
+        LocationOrig.Modify(true);
+
+        // [GIVEN] Subcontracting Scenario Setup (component at the subcontractor location, original at the require-shipment location)
+        CreateSubcontractingSetup(
+            PurchaseHeader, PurchaseLine, ProdOrder, ProdOrderLine, ProdOrderComp, ProdOrderRtngLine, Vendor,
+            LocationSub, Item, LibraryRandom.RandInt(10), LocationSub.Code, LocationOrig.Code);
+
+        // [WHEN] Running the Create Subcontracting Transfer Order report
+        Commit(); // Report requires commit
+        PurchaseHeader.SetRecFilter();
+        CreateSubCTransfOrder.SetTableView(PurchaseHeader);
+        CreateSubCTransfOrder.UseRequestPage(false);
+
+        // [THEN] A guided error is raised instead of a raw TestField error on the location
+        asserterror CreateSubCTransfOrder.Run();
+        Assert.ExpectedError('requires a pick or shipment');
+    end;
+
+    [Test]
     [HandlerFunctions('HandleTransferOrder')]
     procedure TestTransferOrderCreation_PostAndRecreate()
     var
