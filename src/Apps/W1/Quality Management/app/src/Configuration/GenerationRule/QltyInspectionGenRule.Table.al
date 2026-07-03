@@ -96,7 +96,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
             NotBlank = true;
             TableRelation = AllObjWithCaption."Object ID" where("Object Type" = const(Table),
                                                                 "Object ID" = field("Table ID Filter"));
-            ToolTip = 'Specifies the table for this rule. For example for receiving to a purchase line, you would use table 39. For production typically 5409 for Production Order Routing Lines.';
+            ToolTip = 'Specifies the table for this rule. For example for receiving to a Purchase Line, you would use table 39. For production typically 5409 for Production Order Routing Line.';
 
             trigger OnValidate()
             begin
@@ -122,7 +122,7 @@ table 20404 "Qlty. Inspection Gen. Rule"
             Caption = 'Table';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the table for this rule. For example for receiving to a purchase line, you would use table 39. For production typically 5409 for Production Order Routing Lines.';
+            ToolTip = 'Specifies the table for this rule. For example for receiving to a Purchase Line, you would use table 39. For production typically 5409 for Production Order Routing Line.';
         }
         field(18; "Table ID Filter"; Integer)
         {

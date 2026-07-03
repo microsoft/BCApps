@@ -54,7 +54,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
                 field("Table Caption"; Rec."Table Caption")
                 {
                     AssistEdit = true;
-                    ToolTip = 'Specifies the table for this rule. For example for receiving to a purchase line, you would use table 39. For production typically 5409 for Production Order Routing Lines.';
+                    ToolTip = 'Specifies the table for this rule. For example for receiving to a Purchase Line, you would use table 39. For production typically 5409 for Production Order Routing Line.';
                     AboutTitle = 'The table for this rule';
                     AboutText = 'Here you select a table for which you want to create an inspection. For example, for receiving to a purchase line, you would use table 39. You then set criteria using a table filter to control when the rule applies. When the filter criteria are met, the template is selected. If multiple templates match, the first one found by sort order is used.';
 
