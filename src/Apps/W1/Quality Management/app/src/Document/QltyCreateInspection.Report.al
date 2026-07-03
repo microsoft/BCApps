@@ -69,26 +69,11 @@ report 20400 "Qlty. Create Inspection"
 
                         trigger OnLookup(var Text: Text): Boolean
                         var
-                            QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-                            TempCompatibleQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
                             QltyInspectSourceConfigList: Page "Qlty. Ins. Source Config. List";
-                            QltyInspectionGenRules: Page "Qlty. Inspection Gen. Rules";
                             OldTableNo: Integer;
                         begin
-                            if QltInspectionTemplateToCreate <> '' then
-                                if not QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectionGenRule) then begin
-                                    if not Confirm(StrSubstNo(NoCompatibleGenRuleQst, QltInspectionTemplateToCreate)) then
-                                        exit(false);
-
-                                    Clear(QltyInspectionGenRule);
-                                    QltyInspectionGenRule.SetRange("Template Code", QltInspectionTemplateToCreate);
-                                    Clear(QltyInspectionGenRules);
-                                    QltyInspectionGenRules.SetTableView(QltyInspectionGenRule);
-                                    QltyInspectionGenRules.RunModal();
-
-                                    if not QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectionGenRule) then
-                                        exit(false);
-                                end;
+                            if not EnsureCompatibleGenerationRuleExists() then
+                                exit(false);
 
                             OldTableNo := QltyInspectSourceConfig."From Table No.";
                             QltyInspectSourceConfig.Reset();
@@ -287,6 +272,28 @@ report 20400 "Qlty. Create Inspection"
             end;
         end;
         SetRequestPageControlVisibility();
+    end;
+
+    local procedure EnsureCompatibleGenerationRuleExists(): Boolean
+    var
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        TempCompatibleQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        QltyInspectionGenRules: Page "Qlty. Inspection Gen. Rules";
+    begin
+        if QltInspectionTemplateToCreate = '' then
+            exit(true);
+
+        if QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectionGenRule) then
+            exit(true);
+
+        if not Confirm(StrSubstNo(NoCompatibleGenRuleQst, QltInspectionTemplateToCreate)) then
+            exit(false);
+
+        QltyInspectionGenRule.SetRange("Template Code", QltInspectionTemplateToCreate);
+        QltyInspectionGenRules.SetTableView(QltyInspectionGenRule);
+        QltyInspectionGenRules.RunModal();
+
+        exit(QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectionGenRule));
     end;
 
     local procedure ClearParameters()
