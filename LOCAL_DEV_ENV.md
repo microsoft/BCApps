@@ -52,7 +52,7 @@ Because the source is split across layers, you don't edit the layer folders dire
 All commands are provided by the `GDLDevelopment` PowerShell module. Import it once per session:
 
 ```powershell
-Import-Module .\build\scripts\GDLDevelopment\GDLDevelopment.psm1
+Import-Module .\eng\DevTools\GDLDevelopment\GDLDevelopment.psm1
 ```
 
 ### Create a view
@@ -98,7 +98,7 @@ When you change a file in the `W1` (worldwide) base layer, the same change often
 Import the module and run `Invoke-Miapp` from the repository root:
 
 ```powershell
-Import-Module .\build\scripts\Miapp\MicroApp.psm1
+Import-Module .\eng\Shared\Miapp\MicroApp.psm1
 Invoke-Miapp
 ```
 
@@ -120,4 +120,4 @@ Invoke-Miapp -Interactive
 
 > **Tip:** Run Miapp after committing your `W1` changes — it compares against the base branch (`origin/HEAD`, typically `main`) to determine what to propagate.
 
-For the full list of parameters, the integration workflow, configuration, and troubleshooting, see the [Miapp README](build/scripts/Miapp/README.md).
+For the full list of parameters, the integration workflow, configuration, and troubleshooting, see the [Miapp README](eng/Shared/Miapp/README.md).
