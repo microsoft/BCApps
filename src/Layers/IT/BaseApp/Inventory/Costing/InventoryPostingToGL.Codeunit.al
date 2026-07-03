@@ -137,6 +137,18 @@ codeunit 5802 "Inventory Posting To G/L"
         NextTransactionNo := GenJnlPostLine.GetNextTransactionNo();
     end;
 
+    /// <summary>
+    /// Resets the transaction-scoped state of the underlying Codeunit "Gen. Jnl.-Post Line"
+    /// instance held by this codeunit so the next G/L posting call re-takes the G/L Entry
+    /// table lock and re-reads the last entry number from disk. Must be called by any caller
+    /// that issues an explicit Commit() while keeping a long-lived reference to this codeunit.
+    /// See Codeunit "Gen. Jnl.-Post Line".ResetTransactionState for details.
+    /// </summary>
+    procedure ResetGLPostingState()
+    begin
+        GenJnlPostLine.ResetTransactionState();
+    end;
+
     procedure BufferInvtPosting(var ValueEntry: Record "Value Entry"): Boolean
     var
         CostToPost: Decimal;
