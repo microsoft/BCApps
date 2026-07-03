@@ -69,18 +69,17 @@ table 3308 "PA Known Sender"
     end;
 
     /// <summary>
-    /// Returns the review policy configured for a sender, or false when the sender is not in the list.
+    /// Finds the known-sender record matching the e-document's sender, if any.
+    /// Returns false when the sender is empty or not in the list.
     /// </summary>
-    internal procedure TryGetPolicy(SenderEmail: Text[250]; var Policy: Enum "PA Sender Policy"): Boolean
+    internal procedure GetForEDocument(EDocument: Record "E-Document"; var KnownSender: Record "PA Known Sender"): Boolean
     var
-        KnownSender: Record "PA Known Sender";
+        SenderEmail: Text[250];
     begin
+        SenderEmail := CopyStr(EDocument."Source Details", 1, MaxStrLen(KnownSender.Email));
         if SenderEmail = '' then
             exit(false);
         KnownSender.SetRange(Email, SenderEmail);
-        if not KnownSender.FindFirst() then
-            exit(false);
-        Policy := KnownSender."Sender Policy";
-        exit(true);
+        exit(KnownSender.FindFirst());
     end;
 }

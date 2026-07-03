@@ -236,7 +236,7 @@ page 3304 "Payables Agent Setup"
                     field(MailboxFolder; TempOutlookSetup."Email Folder")
                     {
                         Caption = 'Folder';
-                        ToolTip = 'Specifies the email folder that the agent monitors. Leave blank to monitor the entire mailbox. When set, emails in this subfolder are processed without consulting the known-senders list.';
+                        ToolTip = 'Specifies the email folder that the agent monitors. Leave blank to monitor the entire mailbox. When a folder is set and email review is ''Only if untrusted'', every email in it is treated as trusted and skips review, so the known-senders list is not consulted.';
                         Editable = false;
 
                         trigger OnAssistEdit()
@@ -475,28 +475,19 @@ page 3304 "Payables Agent Setup"
 
     local procedure ConfirmPendingChanges(): Boolean
     var
-        SavedSetup: Record "Payables Agent Setup";
         Impact: Enum "PA Setup Change Impact";
         SendersCount: Integer;
-        WasMonitoring: Boolean;
     begin
-        SavedSetup.GetSetup();
-        WasMonitoring := SavedSetup."Monitor Outlook";
+        Impact := PayablesAgentSetup.ClassifyKnownSendersUnusedByChange(Rec."Email Review Policy", TempOutlookSetup."Email Folder", SendersCount);
+        if SendersCount = 0 then
+            exit(true);
 
-        Impact := PayablesAgentSetup.ClassifySetupChangeImpact(Rec."Email Review Policy", TempOutlookSetup."Email Folder", SendersCount);
-        if SendersCount > 0 then
-            case Impact of
-                Impact::KnownSendersIgnoredByFolder:
-                    if not Confirm(StrSubstNo(FolderIgnoresListConfirmLbl, SendersCount, TempOutlookSetup."Email Folder")) then
-                        exit(false);
-                Impact::KnownSendersIgnoredByPolicy:
-                    if not Confirm(StrSubstNo(PolicyIgnoresListConfirmLbl, SendersCount, PayablesAgentSetup.PolicyLabel(Rec."Email Review Policy"))) then
-                        exit(false);
-            end;
-
-        if WasMonitoring and (not Rec."Monitor Outlook") then
-            if not Confirm(MonitorOffConfirmLbl) then
-                exit(false);
+        case Impact of
+            Impact::KnownSendersIgnoredByFolder:
+                exit(Confirm(FolderIgnoresListConfirmLbl, false, SendersCount, TempOutlookSetup."Email Folder"));
+            Impact::KnownSendersIgnoredByPolicy:
+                exit(Confirm(PolicyIgnoresListConfirmLbl, false, SendersCount, PayablesAgentSetup.PolicyLabel(Rec."Email Review Policy")));
+        end;
 
         exit(true);
     end;
@@ -620,6 +611,5 @@ page 3304 "Payables Agent Setup"
         KnownSendersHintLbl: Label 'Known senders apply when the agent watches the inbox. If a subfolder is set, every email in it is treated as trusted.';
         FolderIgnoresListConfirmLbl: Label 'You have %1 known senders. With subfolder ''%2'' configured, the agent will process every email there without consulting the list. The list is kept and will be used again if you remove the subfolder. Continue?', Comment = '%1 = number of known senders, %2 = folder name';
         PolicyIgnoresListConfirmLbl: Label 'You have %1 known senders. The list won''t affect processing while review is set to ''%2''. The list is kept and will be used again if you switch back to ''Only if untrusted''. Continue?', Comment = '%1 = number of known senders, %2 = review policy';
-        MonitorOffConfirmLbl: Label 'The agent will stop processing email. Your setup is kept. Continue?';
 
 }

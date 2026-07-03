@@ -26,7 +26,7 @@ codeunit 3305 "Payables Agent Upgrade"
     begin
         AlwaysUpdateAgentInformationOnUpgrade();
         UpdatePayablesAgentSetupToUseUserSecurityId();
-        MapReviewIncomingInvoiceToEmailReviewPolicy();
+        ReviewIncomingInvoiceToEmailReviewPolicy();
     end;
 
     trigger OnUpgradePerDatabase()
@@ -108,10 +108,7 @@ codeunit 3305 "Payables Agent Upgrade"
         end;
     end;
 
-    // Preserves the behavior of existing tenants when the all-or-nothing "Review Incoming Invoice"
-    // boolean is replaced by the "Email Review Policy" enum: always-review maps to Always, while
-    // review-off adopts the new secure smart-skip default (Only if untrusted).
-    local procedure MapReviewIncomingInvoiceToEmailReviewPolicy()
+    local procedure ReviewIncomingInvoiceToEmailReviewPolicy()
     var
         PayablesAgentSetup: Record "Payables Agent Setup";
     begin
@@ -152,7 +149,7 @@ codeunit 3305 "Payables Agent Upgrade"
 
     local procedure GetMapEmailReviewPolicyTag(): Code[250]
     begin
-        exit('MS-620883-MapPayablesAgentEmailReviewPolicy-20260703');
+        exit('MS-625413-MapPayablesAgentEmailReviewPolicy-20260703');
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]

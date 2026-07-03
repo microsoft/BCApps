@@ -102,7 +102,7 @@ codeunit 3307 "Payables Agent Setup"
 
         Session.LogMessage('0000OUW', 'Setting up payables agent', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', PayablesAgentTelemetryTok);
 
-        // Secure-by-default: require an explicit review policy before monitoring can start.
+        // Require an explicit review policy before monitoring can start.
         if (PASetupConfiguration.GetAgentSetupBuffer().State = PASetupConfiguration.GetAgentSetupBuffer().State::Enabled) and
             (PASetupConfiguration.GetPayablesAgentSetup()."Monitor Outlook") and
             (PASetupConfiguration.GetPayablesAgentSetup()."Email Review Policy" = "PA Email Review Policy"::Unset) then
@@ -174,7 +174,7 @@ codeunit 3307 "Payables Agent Setup"
         PayablesAgentSetup."E-Document Service Code" := ApplyEDocumentServiceSetup(PASetupConfiguration, EmailAccountChanged);
         PayablesAgentSetup.Modify();
 
-        EDocPOMatching.ConfigureDefaultPOMatchingSettings();
+        //EDocPOMatching.ConfigureDefaultPOMatchingSettings();
         PADemoGuide.SendDemoEmail(PASetupConfiguration);
 
         InsertAccessControlForEligibleUsers(PayablesAgentSetup."User Security Id");
@@ -551,7 +551,6 @@ codeunit 3307 "Payables Agent Setup"
     var
         PayablesAgentSetup: Record "Payables Agent Setup";
         KnownSender: Record "PA Known Sender";
-        SenderPolicy: Enum "PA Sender Policy";
     begin
         // Only incoming emails are subject to email review. Manually uploaded documents
         // (e.g. the trial experience) are user-initiated and processed without review.
@@ -571,13 +570,13 @@ codeunit 3307 "Payables Agent Setup"
         if MonitoredFolderConfigured() then
             exit(false);
 
-        // Without an authenticated sender (compauth=pass) we always review.
+        // Without an authenticated sender we always review.
         if not IsSenderAuthenticated(EDocument) then
             exit(true);
 
         // Authenticated: trust only senders explicitly approved in the known-senders list.
-        if KnownSender.TryGetPolicy(CopyStr(EDocument."Source Details", 1, MaxStrLen(KnownSender.Email)), SenderPolicy) then
-            exit(SenderPolicy <> "PA Sender Policy"::Approve);
+        if KnownSender.GetForEDocument(EDocument, KnownSender) then
+            exit(KnownSender."Sender Policy" <> "PA Sender Policy"::Approve);
 
         // Authenticated but unknown sender: review.
         // (Internal-tenant senders will be trusted here in a later change.)
@@ -591,14 +590,13 @@ codeunit 3307 "Payables Agent Setup"
     procedure IsSenderRejected(EDocument: Record "E-Document"): Boolean
     var
         KnownSender: Record "PA Known Sender";
-        SenderPolicy: Enum "PA Sender Policy";
     begin
-        if KnownSender.TryGetPolicy(CopyStr(EDocument."Source Details", 1, MaxStrLen(KnownSender.Email)), SenderPolicy) then
-            exit(SenderPolicy = "PA Sender Policy"::Reject);
+        if KnownSender.GetForEDocument(EDocument, KnownSender) then
+            exit(KnownSender."Sender Policy" = "PA Sender Policy"::Reject);
         exit(false);
     end;
 
-    local procedure MonitoredFolderConfigured(): Boolean
+    local procedure MonitoredFolderConfigured(): Boolean // TODO: Fold this one
     var
         OutlookSetup: Record "Outlook Setup";
     begin
@@ -608,8 +606,11 @@ codeunit 3307 "Payables Agent Setup"
     end;
 
     /// <summary>
-    /// Reads the Authentication-Results header of the e-document's source email and returns true when
-    /// composite authentication passed (compauth=pass). Missing email or header yields false.
+    /// Returns true when the sender of the e-document's source email can be trusted as authenticated:
+    /// either composite authentication passed (compauth=pass), or the message was stamped by Exchange
+    /// as originating inside the organization (X-MS-Exchange-Organization-AuthAs = Internal). The latter
+    /// covers intra-tenant mail (e.g. same onmicrosoft.com domain), which is not stamped with compauth.
+    /// Missing email or headers yields false.
     /// </summary>
     procedure IsSenderAuthenticated(EDocument: Record "E-Document"): Boolean
     var
@@ -620,9 +621,12 @@ codeunit 3307 "Payables Agent Setup"
             exit(false);
         if not EmailMessage.Get(EDocument."Mail Message Id") then
             exit(false);
-        if not EmailMessage.GetHeader('Authentication-Results', HeaderValue) then
-            exit(false);
-        exit(CompAuthPassed(HeaderValue));
+        if EmailMessage.GetHeader('Authentication-Results', HeaderValue) then
+            if CompAuthPassed(HeaderValue) then
+                exit(true);
+        if EmailMessage.GetHeader('X-MS-Exchange-Organization-AuthAs', HeaderValue) then
+            exit(LowerCase(HeaderValue).Trim() = 'internal');
+        exit(false);
     end;
 
     /// <summary>
@@ -635,10 +639,10 @@ codeunit 3307 "Payables Agent Setup"
     end;
 
     /// <summary>
-    /// Classifies whether a pending setup change would render the known-senders list inert.
+    /// Classifies whether a pending setup change would leave the known-senders list unused.
     /// Returns None when nothing curated would be ignored (including when the list is empty).
     /// </summary>
-    procedure ClassifySetupChangeImpact(NewPolicy: Enum "PA Email Review Policy"; NewMonitoredFolder: Text; var KnownSendersCount: Integer): Enum "PA Setup Change Impact"
+    procedure ClassifyKnownSendersUnusedByChange(NewPolicy: Enum "PA Email Review Policy"; NewMonitoredFolder: Text; var KnownSendersCount: Integer): Enum "PA Setup Change Impact"
     var
         KnownSender: Record "PA Known Sender";
     begin
@@ -649,17 +653,16 @@ codeunit 3307 "Payables Agent Setup"
     end;
 
     /// <summary>
-    /// Classifies why the known-senders list is currently inert in a saved setup, regardless of
+    /// Classifies why the known-senders list is currently unused in a saved setup, regardless of
     /// whether the list has entries. Used by the Known Senders page to surface a notification.
     /// </summary>
-    procedure ClassifyKnownSendersInertReason(SavedPolicy: Enum "PA Email Review Policy"; SavedMonitoredFolder: Text): Enum "PA Setup Change Impact"
+    procedure ClassifyKnownSendersUnusedReason(SavedPolicy: Enum "PA Email Review Policy"; SavedMonitoredFolder: Text): Enum "PA Setup Change Impact"
     begin
         exit(ClassifyByPolicyAndFolder(SavedPolicy, SavedMonitoredFolder));
     end;
 
     local procedure ClassifyByPolicyAndFolder(Policy: Enum "PA Email Review Policy"; MonitoredFolder: Text): Enum "PA Setup Change Impact"
     begin
-        // Folder wins the tie-break when both apply: it's the more durable cause.
         if MonitoredFolder <> '' then
             exit("PA Setup Change Impact"::KnownSendersIgnoredByFolder);
         if Policy in [Policy::Always, Policy::Never] then

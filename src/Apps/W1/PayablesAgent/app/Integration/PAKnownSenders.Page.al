@@ -47,28 +47,28 @@ page 3313 "PA Known Senders"
         OutlookSetup: Record "Outlook Setup";
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
         Impact: Enum "PA Setup Change Impact";
-        InertNotification: Notification;
+        UnusedNotification: Notification;
         SavedFolder: Text;
     begin
         SavedSetup.GetSetup();
         if OutlookSetup.FindFirst() then
             SavedFolder := OutlookSetup."Email Folder";
 
-        Impact := PayablesAgentSetup.ClassifyKnownSendersInertReason(SavedSetup."Email Review Policy", SavedFolder);
+        Impact := PayablesAgentSetup.ClassifyKnownSendersUnusedReason(SavedSetup."Email Review Policy", SavedFolder);
         case Impact of
             Impact::KnownSendersIgnoredByFolder:
-                InertNotification.Message := StrSubstNo(IgnoredByFolderLbl, SavedFolder);
+                UnusedNotification.Message := StrSubstNo(UnusedByFolderLbl, SavedFolder);
             Impact::KnownSendersIgnoredByPolicy:
-                InertNotification.Message := StrSubstNo(IgnoredByPolicyLbl, PayablesAgentSetup.PolicyLabel(SavedSetup."Email Review Policy"));
+                UnusedNotification.Message := StrSubstNo(UnusedByPolicyLbl, PayablesAgentSetup.PolicyLabel(SavedSetup."Email Review Policy"));
             else
                 exit;
         end;
-        InertNotification.Scope := NotificationScope::LocalScope;
-        InertNotification.Send();
+        UnusedNotification.Scope := NotificationScope::LocalScope;
+        UnusedNotification.Send();
     end;
 
     var
-        IgnoredByFolderLbl: Label 'This list is currently ignored. Emails arrive through subfolder ''%1'' and are processed without consulting it.', Comment = '%1 = folder name';
-        IgnoredByPolicyLbl: Label 'This list doesn''t affect processing while review policy is set to ''%1''.', Comment = '%1 = review policy';
+        UnusedByFolderLbl: Label 'This list is currently unused. Emails arrive through subfolder ''%1'' and are processed without consulting it.', Comment = '%1 = folder name';
+        UnusedByPolicyLbl: Label 'This list doesn''t affect processing while review policy is set to ''%1''.', Comment = '%1 = review policy';
         SenderApprovedAuditLbl: Label 'Known sender %1 was set to Approve, allowing its emails to be processed without review.', Locked = true;
 }
