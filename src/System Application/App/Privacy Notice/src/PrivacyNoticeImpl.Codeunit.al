@@ -379,6 +379,9 @@ codeunit 1565 "Privacy Notice Impl."
                 exit(MicrosoftLearnServiceInGeo);
 
         if CheckIntegrationIDEquality(SystemPrivacyNoticeReg.GetMicrosoftCopilotID(), IntegrationID) then begin
+            // Trial / evaluation tenants: unconditionally auto-approve; no EUDB split and no legacy admin gates to inherit.
+            if IsInTrialOrEvaluationMode() then
+                exit(true);
             // If the admin explicitly disagreed with Microsoft Learn, that decision also blocks the Copilot auto-approval.
             if IsMicrosoftLearnAdminDisagreed() then
                 exit(false);
@@ -420,7 +423,17 @@ codeunit 1565 "Privacy Notice Impl."
     begin
         if not CheckIntegrationIDEquality(SystemPrivacyNoticeReg.GetMicrosoftCopilotID(), PrivacyNoticeId) then
             exit(false);
+        // Trial / evaluation tenants do not inherit legacy admin decisions from Microsoft Learn.
+        if IsInTrialOrEvaluationMode() then
+            exit(false);
         exit(IsMicrosoftLearnAdminDisagreed());
+    end;
+
+    local procedure IsInTrialOrEvaluationMode(): Boolean
+    var
+        TenantLicenseState: Codeunit "Tenant License State";
+    begin
+        exit(TenantLicenseState.IsTrialMode() or TenantLicenseState.IsEvaluationMode());
     end;
 
     /// <summary>
