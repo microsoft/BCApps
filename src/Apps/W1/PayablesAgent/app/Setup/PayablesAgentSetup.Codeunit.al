@@ -174,7 +174,7 @@ codeunit 3307 "Payables Agent Setup"
         PayablesAgentSetup."E-Document Service Code" := ApplyEDocumentServiceSetup(PASetupConfiguration, EmailAccountChanged);
         PayablesAgentSetup.Modify();
 
-        //EDocPOMatching.ConfigureDefaultPOMatchingSettings();
+        EDocPOMatching.ConfigureDefaultPOMatchingSettings();
         PADemoGuide.SendDemoEmail(PASetupConfiguration);
 
         InsertAccessControlForEligibleUsers(PayablesAgentSetup."User Security Id");
@@ -545,7 +545,8 @@ codeunit 3307 "Payables Agent Setup"
 
     /// <summary>
     /// Decides whether an incoming e-document's agent task must be reviewed by a human, based on the
-    /// configured review policy, the monitored folder, sender authentication (compauth) and known senders.
+    /// configured review policy, the monitored folder, sender authentication (compauth / internal),
+    /// and the known-senders list.
     /// </summary>
     procedure ShouldRequestReview(EDocument: Record "E-Document"): Boolean
     var
@@ -574,12 +575,15 @@ codeunit 3307 "Payables Agent Setup"
         if not IsSenderAuthenticated(EDocument) then
             exit(true);
 
-        // Authenticated: trust only senders explicitly approved in the known-senders list.
+        // Authenticated: trust senders explicitly approved in the known-senders list.
         if KnownSender.GetForEDocument(EDocument, KnownSender) then
             exit(KnownSender."Sender Policy" <> "PA Sender Policy"::Approve);
 
-        // Authenticated but unknown sender: review.
-        // (Internal-tenant senders will be trusted here in a later change.)
+        // Authenticated and unknown: trust internal (same-organization) senders.
+        if IsSenderInternal(EDocument) then
+            exit(false);
+
+        // Authenticated, unknown and external: review.
         exit(true);
     end;
 
@@ -607,26 +611,43 @@ codeunit 3307 "Payables Agent Setup"
 
     /// <summary>
     /// Returns true when the sender of the e-document's source email can be trusted as authenticated:
-    /// either composite authentication passed (compauth=pass), or the message was stamped by Exchange
-    /// as originating inside the organization (X-MS-Exchange-Organization-AuthAs = Internal). The latter
-    /// covers intra-tenant mail (e.g. same onmicrosoft.com domain), which is not stamped with compauth.
-    /// Missing email or headers yields false.
+    /// either composite authentication passed (compauth=pass), or the message originated inside the
+    /// organization (see IsSenderInternal). Missing email or headers yields false.
     /// </summary>
     procedure IsSenderAuthenticated(EDocument: Record "E-Document"): Boolean
     var
-        EmailMessage: Codeunit "Email Message";
         HeaderValue: Text;
+    begin
+        if TryGetSourceEmailHeader(EDocument, 'Authentication-Results', HeaderValue) then
+            if CompAuthPassed(HeaderValue) then
+                exit(true);
+        exit(IsSenderInternal(EDocument));
+    end;
+
+    /// <summary>
+    /// Returns true when the e-document's source email was stamped by Exchange as originating inside the
+    /// organization (X-MS-Exchange-Organization-AuthAs = Internal). This covers intra-tenant mail (e.g.
+    /// same onmicrosoft.com domain), which is not stamped with compauth. Exchange re-stamps this header
+    /// on inbound, so it cannot be spoofed by an external sender. Missing email or header yields false.
+    /// </summary>
+    procedure IsSenderInternal(EDocument: Record "E-Document"): Boolean
+    var
+        HeaderValue: Text;
+    begin
+        if TryGetSourceEmailHeader(EDocument, 'X-MS-Exchange-Organization-AuthAs', HeaderValue) then
+            exit(LowerCase(HeaderValue).Trim() = 'internal');
+        exit(false);
+    end;
+
+    local procedure TryGetSourceEmailHeader(EDocument: Record "E-Document"; HeaderName: Text; var HeaderValue: Text): Boolean
+    var
+        EmailMessage: Codeunit "Email Message";
     begin
         if IsNullGuid(EDocument."Mail Message Id") then
             exit(false);
         if not EmailMessage.Get(EDocument."Mail Message Id") then
             exit(false);
-        if EmailMessage.GetHeader('Authentication-Results', HeaderValue) then
-            if CompAuthPassed(HeaderValue) then
-                exit(true);
-        if EmailMessage.GetHeader('X-MS-Exchange-Organization-AuthAs', HeaderValue) then
-            exit(LowerCase(HeaderValue).Trim() = 'internal');
-        exit(false);
+        exit(EmailMessage.GetHeader(HeaderName, HeaderValue));
     end;
 
     /// <summary>
