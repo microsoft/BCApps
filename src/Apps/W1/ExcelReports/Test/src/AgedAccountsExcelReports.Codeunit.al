@@ -421,6 +421,7 @@ codeunit 139555 "Aged Accounts Excel Reports"
     procedure EXRAgedAccountsRecExcelHandlerWorkdate(var EXRAgedAccountsRecExcel: TestRequestPage "EXR Aged Accounts Rec Excel")
     begin
         EXRAgedAccountsRecExcel.AgedAsOfOption.SetValue(WorkDate());
+         EXRAgedAccountsRecExcel.PeriodCountOption.SetValue(1);
         EXRAgedAccountsRecExcel.OK().Invoke();
     end;
 }
