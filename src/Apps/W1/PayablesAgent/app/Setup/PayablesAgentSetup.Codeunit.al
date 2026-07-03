@@ -32,7 +32,8 @@ codeunit 3307 "Payables Agent Setup"
 
     Permissions =
         tabledata "Outlook Setup" = rim,
-        tabledata "Payables Agent Setup" = rmid;
+        tabledata "Payables Agent Setup" = rmid,
+        tabledata "PA Known Sender" = r;
 
     /// <summary>
     /// Retrieves all the records containing setup information for the payables agent.
@@ -94,11 +95,18 @@ codeunit 3307 "Payables Agent Setup"
         EmailConnectionMessageErr: Label 'Connection to mailbox failed. Please review the email account configuration for email %1', Comment = '%1 - Email account name';
         EmailConnectionNavigationActionLbl: Label 'Show email accounts';
         ActivateWithoutMailboxNameErr: Label 'To activate the agent with the current settings, a mailbox must be selected first.';
+        ReviewPolicyRequiredErr: Label 'Choose when the agent should review emails before turning monitoring on.';
     begin
         if AzureADGraphUser.IsUserDelegatedAdmin() or AzureADGraphUser.IsUserDelegatedHelpdesk() then
             Error(DelegatedAdminErr);
 
         Session.LogMessage('0000OUW', 'Setting up payables agent', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', PayablesAgentTelemetryTok);
+
+        // Secure-by-default: require an explicit review policy before monitoring can start.
+        if (PASetupConfiguration.GetAgentSetupBuffer().State = PASetupConfiguration.GetAgentSetupBuffer().State::Enabled) and
+            (PASetupConfiguration.GetPayablesAgentSetup()."Monitor Outlook") and
+            (PASetupConfiguration.GetPayablesAgentSetup()."Email Review Policy" = "PA Email Review Policy"::Unset) then
+            Error(ReviewPolicyRequiredErr);
 
         // If the agent is to be activated, we check if the privacy consent has been given for the email integration or trigger the consent flow
         // This has to happen before any write transactions since the consent runs modally (and will block the session)
@@ -533,6 +541,150 @@ codeunit 3307 "Payables Agent Setup"
         EDocument."Source Details" := CopyStr(FileName, 1, MaxStrLen(EDocument."Source Details"));
         EDocument.Modify();
         EDocImport.ProcessAutomaticallyIncomingEDocument(EDocument);
+    end;
+
+    /// <summary>
+    /// Decides whether an incoming e-document's agent task must be reviewed by a human, based on the
+    /// configured review policy, the monitored folder, sender authentication (compauth) and known senders.
+    /// </summary>
+    procedure ShouldRequestReview(EDocument: Record "E-Document"): Boolean
+    var
+        PayablesAgentSetup: Record "Payables Agent Setup";
+        KnownSender: Record "PA Known Sender";
+        SenderPolicy: Enum "PA Sender Policy";
+    begin
+        // Only incoming emails are subject to email review. Manually uploaded documents
+        // (e.g. the trial experience) are user-initiated and processed without review.
+        if EDocument."Outlook Mail Message Id" = '' then
+            exit(false);
+
+        PayablesAgentSetup.GetSetup();
+        case PayablesAgentSetup."Email Review Policy" of
+            "PA Email Review Policy"::Always,
+            "PA Email Review Policy"::Unset:
+                exit(true);
+            "PA Email Review Policy"::Never:
+                exit(false);
+        end;
+
+        // OnlyIfUntrusted: a configured subfolder is explicit consent, everything in it is trusted.
+        if MonitoredFolderConfigured() then
+            exit(false);
+
+        // Without an authenticated sender (compauth=pass) we always review.
+        if not IsSenderAuthenticated(EDocument) then
+            exit(true);
+
+        // Authenticated: trust only senders explicitly approved in the known-senders list.
+        if KnownSender.TryGetPolicy(CopyStr(EDocument."Source Details", 1, MaxStrLen(KnownSender.Email)), SenderPolicy) then
+            exit(SenderPolicy <> "PA Sender Policy"::Approve);
+
+        // Authenticated but unknown sender: review.
+        // (Internal-tenant senders will be trusted here in a later change.)
+        exit(true);
+    end;
+
+    /// <summary>
+    /// Returns true when the sender of the e-document is configured with the Reject policy,
+    /// meaning no agent task should be created for it.
+    /// </summary>
+    procedure IsSenderRejected(EDocument: Record "E-Document"): Boolean
+    var
+        KnownSender: Record "PA Known Sender";
+        SenderPolicy: Enum "PA Sender Policy";
+    begin
+        if KnownSender.TryGetPolicy(CopyStr(EDocument."Source Details", 1, MaxStrLen(KnownSender.Email)), SenderPolicy) then
+            exit(SenderPolicy = "PA Sender Policy"::Reject);
+        exit(false);
+    end;
+
+    local procedure MonitoredFolderConfigured(): Boolean
+    var
+        OutlookSetup: Record "Outlook Setup";
+    begin
+        if not OutlookSetup.FindFirst() then
+            exit(false);
+        exit(OutlookSetup."Email Folder" <> '');
+    end;
+
+    /// <summary>
+    /// Reads the Authentication-Results header of the e-document's source email and returns true when
+    /// composite authentication passed (compauth=pass). Missing email or header yields false.
+    /// </summary>
+    procedure IsSenderAuthenticated(EDocument: Record "E-Document"): Boolean
+    var
+        EmailMessage: Codeunit "Email Message";
+        HeaderValue: Text;
+    begin
+        if IsNullGuid(EDocument."Mail Message Id") then
+            exit(false);
+        if not EmailMessage.Get(EDocument."Mail Message Id") then
+            exit(false);
+        if not EmailMessage.GetHeader('Authentication-Results', HeaderValue) then
+            exit(false);
+        exit(CompAuthPassed(HeaderValue));
+    end;
+
+    /// <summary>
+    /// Returns true when an Authentication-Results header value indicates compauth=pass.
+    /// </summary>
+    procedure CompAuthPassed(AuthenticationResults: Text): Boolean
+    begin
+        // Case-insensitive match; tolerates surrounding tokens and a trailing reason=NNN.
+        exit(StrPos(LowerCase(AuthenticationResults), 'compauth=pass') > 0);
+    end;
+
+    /// <summary>
+    /// Classifies whether a pending setup change would render the known-senders list inert.
+    /// Returns None when nothing curated would be ignored (including when the list is empty).
+    /// </summary>
+    procedure ClassifySetupChangeImpact(NewPolicy: Enum "PA Email Review Policy"; NewMonitoredFolder: Text; var KnownSendersCount: Integer): Enum "PA Setup Change Impact"
+    var
+        KnownSender: Record "PA Known Sender";
+    begin
+        KnownSendersCount := KnownSender.Count();
+        if KnownSendersCount = 0 then
+            exit("PA Setup Change Impact"::None);
+        exit(ClassifyByPolicyAndFolder(NewPolicy, NewMonitoredFolder));
+    end;
+
+    /// <summary>
+    /// Classifies why the known-senders list is currently inert in a saved setup, regardless of
+    /// whether the list has entries. Used by the Known Senders page to surface a notification.
+    /// </summary>
+    procedure ClassifyKnownSendersInertReason(SavedPolicy: Enum "PA Email Review Policy"; SavedMonitoredFolder: Text): Enum "PA Setup Change Impact"
+    begin
+        exit(ClassifyByPolicyAndFolder(SavedPolicy, SavedMonitoredFolder));
+    end;
+
+    local procedure ClassifyByPolicyAndFolder(Policy: Enum "PA Email Review Policy"; MonitoredFolder: Text): Enum "PA Setup Change Impact"
+    begin
+        // Folder wins the tie-break when both apply: it's the more durable cause.
+        if MonitoredFolder <> '' then
+            exit("PA Setup Change Impact"::KnownSendersIgnoredByFolder);
+        if Policy in [Policy::Always, Policy::Never] then
+            exit("PA Setup Change Impact"::KnownSendersIgnoredByPolicy);
+        exit("PA Setup Change Impact"::None);
+    end;
+
+    /// <summary>
+    /// Returns the user-facing label for an "Email Review Policy" value, for interpolation into messages.
+    /// </summary>
+    procedure PolicyLabel(Policy: Enum "PA Email Review Policy"): Text
+    var
+        AlwaysLbl: Label 'Always';
+        NeverLbl: Label 'Never';
+        OnlyIfUntrustedLbl: Label 'Only if untrusted';
+    begin
+        case Policy of
+            Policy::Always:
+                exit(AlwaysLbl);
+            Policy::Never:
+                exit(NeverLbl);
+            Policy::OnlyIfUntrusted:
+                exit(OnlyIfUntrustedLbl);
+        end;
+        exit('');
     end;
 
     var

@@ -26,6 +26,7 @@ codeunit 3305 "Payables Agent Upgrade"
     begin
         AlwaysUpdateAgentInformationOnUpgrade();
         UpdatePayablesAgentSetupToUseUserSecurityId();
+        MapReviewIncomingInvoiceToEmailReviewPolicy();
     end;
 
     trigger OnUpgradePerDatabase()
@@ -107,6 +108,28 @@ codeunit 3305 "Payables Agent Upgrade"
         end;
     end;
 
+    // Preserves the behavior of existing tenants when the all-or-nothing "Review Incoming Invoice"
+    // boolean is replaced by the "Email Review Policy" enum: always-review maps to Always, while
+    // review-off adopts the new secure smart-skip default (Only if untrusted).
+    local procedure MapReviewIncomingInvoiceToEmailReviewPolicy()
+    var
+        PayablesAgentSetup: Record "Payables Agent Setup";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetMapEmailReviewPolicyTag()) then
+            exit;
+
+        if PayablesAgentSetup.FindFirst() then
+            if PayablesAgentSetup."Email Review Policy" = "PA Email Review Policy"::Unset then begin
+                if PayablesAgentSetup."Review Incoming Invoice" then
+                    PayablesAgentSetup."Email Review Policy" := "PA Email Review Policy"::Always
+                else
+                    PayablesAgentSetup."Email Review Policy" := "PA Email Review Policy"::OnlyIfUntrusted;
+                PayablesAgentSetup.Modify();
+            end;
+
+        UpgradeTag.SetUpgradeTag(GetMapEmailReviewPolicyTag());
+    end;
+
     local procedure GetRegisterPayablesAgentCapabilityTag(): Code[250]
     begin
         exit('MS-575373-PayablesAgentCapability-20251021');
@@ -127,6 +150,11 @@ codeunit 3305 "Payables Agent Upgrade"
         exit('MS-631300-MarkTrialEndedIfPayablesAgentExists-20260417');
     end;
 
+    local procedure GetMapEmailReviewPolicyTag(): Code[250]
+    begin
+        exit('MS-620883-MapPayablesAgentEmailReviewPolicy-20260703');
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
     local procedure RegisterPerDatabaseUpgradeTags(var PerDatabaseUpgradeTags: List of [Code[250]])
     begin
@@ -138,6 +166,7 @@ codeunit 3305 "Payables Agent Upgrade"
     local procedure RegisterPerCompanyUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
     begin
         PerCompanyUpgradeTags.Add(GetUpdatePayablesAgentSetupToUseUserSecurityIdTag());
+        PerCompanyUpgradeTags.Add(GetMapEmailReviewPolicyTag());
     end;
 
 }

@@ -94,6 +94,9 @@ codeunit 6385 "Outlook Processing"
         FolderConfigured := OutlookSetup."Email Folder Id" <> '';
 
         TempFilters."Load Attachments" := true;
+        // Load internet message headers so downstream consumers (e.g. Payables Agent) can read
+        // Authentication-Results/compauth to decide whether a sender is trusted.
+        TempFilters."Load Headers" := true;
         TempFilters."Max No. of Emails" := GetMaxNoOfEmails();
         // In folder mode, dedup is enforced server-side by the category-exclude filter only.
         // Applying "Earliest Email" would drop emails moved into the folder after that floor.

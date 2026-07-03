@@ -236,7 +236,7 @@ page 3304 "Payables Agent Setup"
                     field(MailboxFolder; TempOutlookSetup."Email Folder")
                     {
                         Caption = 'Folder';
-                        ToolTip = 'Specifies the email folder that the agent monitors. Leave blank to monitor the entire mailbox.';
+                        ToolTip = 'Specifies the email folder that the agent monitors. Leave blank to monitor the entire mailbox. When set, emails in this subfolder are processed without consulting the known-senders list.';
                         Editable = false;
 
                         trigger OnAssistEdit()
@@ -309,20 +309,40 @@ page 3304 "Payables Agent Setup"
                 Caption = 'Document processing';
                 group(ProcessNewTaskGroup)
                 {
-                    Caption = 'Review email';
-                    InstructionalText = 'The agent will request a review of the incoming email before creating the purchase document draft.';
+                    Caption = 'Email review';
+                    InstructionalText = 'Choose when the agent should request a human review before processing an incoming email.';
 
-                    field(ReviewEmail; Rec."Review Incoming Invoice")
+                    field(ReviewEmailPolicy; Rec."Email Review Policy")
                     {
-                        ShowCaption = false;
-                        Caption = 'Review incoming invoices';
-                        ToolTip = 'Specifies whether the agent should request a review before processing invoices.';
+                        Caption = 'Email review';
+                        ShowMandatory = true;
+                        ToolTip = 'Specifies when the agent should request human review before processing an incoming email. ''Only if untrusted'' skips review for previously approved senders and any email that arrives in a configured subfolder.';
 
                         trigger OnValidate()
                         begin
                             SetupChanged := true;
                             CurrPage.Update();
                         end;
+                    }
+                    field(ManageKnownSenders; ManageKnownSendersLbl)
+                    {
+                        ShowCaption = false;
+                        StyleExpr = true;
+                        Style = StandardAccent;
+                        Editable = false;
+                        ToolTip = 'Opens the list of senders the Payables Agent has previously processed.', Comment = 'Payables Agent is a term, and should not be translated.';
+
+                        trigger OnDrillDown()
+                        begin
+                            Page.RunModal(Page::"PA Known Senders");
+                        end;
+                    }
+                    field(KnownSendersHint; KnownSendersHintLbl)
+                    {
+                        ShowCaption = false;
+                        MultiLine = true;
+                        Editable = false;
+                        ToolTip = 'Explains how the known-senders list interacts with the monitored subfolder.';
                     }
                 }
                 group(AdditionalFields)
@@ -446,7 +466,38 @@ page 3304 "Payables Agent Setup"
         if (CloseAction = CloseAction::Cancel) or (not SetupChanged) then
             exit(true);
 
+        if not ConfirmPendingChanges() then
+            exit(false);
+
         ApplySetup();
+        exit(true);
+    end;
+
+    local procedure ConfirmPendingChanges(): Boolean
+    var
+        SavedSetup: Record "Payables Agent Setup";
+        Impact: Enum "PA Setup Change Impact";
+        SendersCount: Integer;
+        WasMonitoring: Boolean;
+    begin
+        SavedSetup.GetSetup();
+        WasMonitoring := SavedSetup."Monitor Outlook";
+
+        Impact := PayablesAgentSetup.ClassifySetupChangeImpact(Rec."Email Review Policy", TempOutlookSetup."Email Folder", SendersCount);
+        if SendersCount > 0 then
+            case Impact of
+                Impact::KnownSendersIgnoredByFolder:
+                    if not Confirm(StrSubstNo(FolderIgnoresListConfirmLbl, SendersCount, TempOutlookSetup."Email Folder")) then
+                        exit(false);
+                Impact::KnownSendersIgnoredByPolicy:
+                    if not Confirm(StrSubstNo(PolicyIgnoresListConfirmLbl, SendersCount, PayablesAgentSetup.PolicyLabel(Rec."Email Review Policy"))) then
+                        exit(false);
+            end;
+
+        if WasMonitoring and (not Rec."Monitor Outlook") then
+            if not Confirm(MonitorOffConfirmLbl) then
+                exit(false);
+
         exit(true);
     end;
 
@@ -565,5 +616,10 @@ page 3304 "Payables Agent Setup"
         BenefitNoDisruptionLbl: Label '• No disruption to your current process';
         SelectFileLbl: Label 'Select file';
         PdfFileFilterLbl: Label 'PDF Files (*.pdf)|*.pdf';
+        ManageKnownSendersLbl: Label 'Manage known senders';
+        KnownSendersHintLbl: Label 'Known senders apply when the agent watches the inbox. If a subfolder is set, every email in it is treated as trusted.';
+        FolderIgnoresListConfirmLbl: Label 'You have %1 known senders. With subfolder ''%2'' configured, the agent will process every email there without consulting the list. The list is kept and will be used again if you remove the subfolder. Continue?', Comment = '%1 = number of known senders, %2 = folder name';
+        PolicyIgnoresListConfirmLbl: Label 'You have %1 known senders. The list won''t affect processing while review is set to ''%2''. The list is kept and will be used again if you switch back to ''Only if untrusted''. Continue?', Comment = '%1 = number of known senders, %2 = review policy';
+        MonitorOffConfirmLbl: Label 'The agent will stop processing email. Your setup is kept. Continue?';
 
 }
