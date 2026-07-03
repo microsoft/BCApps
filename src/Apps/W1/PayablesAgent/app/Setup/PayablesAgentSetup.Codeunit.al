@@ -600,7 +600,7 @@ codeunit 3307 "Payables Agent Setup"
         exit(false);
     end;
 
-    local procedure MonitoredFolderConfigured(): Boolean // TODO: Fold this one
+    local procedure MonitoredFolderConfigured(): Boolean
     var
         OutlookSetup: Record "Outlook Setup";
     begin
