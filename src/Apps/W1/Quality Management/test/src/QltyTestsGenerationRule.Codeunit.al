@@ -28,7 +28,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         ItemAttributeFilterTok: Label '"%1"=Filter(1))', Comment = '%1=attribute', Locked = true;
         CouldNotFindGenerationRuleErr: Label 'Could not find any compatible inspection generation rules for the template %1. Navigate to Quality Inspection Generation Rules and create a generation rule for the template %1', Comment = '%1=the template';
         CouldNotFindSourceErr: Label 'There are generation rules for the template %1, however there is no source configuration that describes how to connect control fields. Navigate to Quality Inspection Source Configuration list and create a source configuration for table(s) %2', Comment = '%1=the template, %2=the table';
-        TableMissingErr: Label 'You must choose a Table for this generation rule before saving. Use the assist-edit button (…) on the Table column to pick one.';
+        TableMissingErr: Label 'You must choose a Table for this generation rule', Locked = true;
 
     [Test]
     procedure ActivationTriggerFindGenerationRule_ManualOnly_ManualRuleSearch()
@@ -386,7 +386,6 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
     procedure Insert_NoSourceTableNo_ShouldError()
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -413,7 +412,6 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
     procedure Modify_ClearSourceTableNo_ShouldError()
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -437,7 +435,6 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmYesHandler')]
     procedure Insert_WithSourceTableNo_Succeeds()
     var
         QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
@@ -476,11 +473,5 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionGenRule."Template Code" := TemplateCode;
         QltyInspectionGenRule."Activation Trigger" := ActivationTrigger;
         QltyInspectionGenRule.Modify();
-    end;
-
-    [ConfirmHandler]
-    procedure ConfirmYesHandler(Question: Text[1024]; var Reply: Boolean)
-    begin
-        Reply := true;
     end;
 }
