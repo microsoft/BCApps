@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.OrderMatch.Copilot;
 using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.EServices.EDocument.Processing.Import.Sales;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.GeneralLedger.Journal;
 
@@ -58,6 +59,10 @@ permissionset 6105 "E-Doc. Core - User"
 #endif
         tabledata "E-Doc. Record Link" = IMD,
     #endregion Purchase draft
+    #region Sales draft
+        tabledata "E-Document Sales Header" = IMD,
+        tabledata "E-Document Sales Line" = IMD,
+    #endregion Sales draft
         tabledata "Gen. Journal Line" = imd;
 
 }

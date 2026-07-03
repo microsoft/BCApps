@@ -1,0 +1,137 @@
+[
+  {
+    "codeunitId": 148080,
+    "codeunitName": "Gen. Prod. Post. Group SKU CZA",
+    "method": "JobJournalineChangeGenProdPostingGroupNotUseGPPGfromSKU"
+  },
+  {
+    "codeunitId": 148080,
+    "codeunitName": "Gen. Prod. Post. Group SKU CZA",
+    "method": "JobJournalLineChangeGenProdPostingGroupUseGPPGfromSKU"
+  },
+  {
+    "codeunitId": 148080,
+    "codeunitName": "Gen. Prod. Post. Group SKU CZA",
+    "method": "PurchaseLineChangeGenProdPostingGroupNotUseGPPGfromSKU"
+  },
+  {
+    "codeunitId": 148080,
+    "codeunitName": "Gen. Prod. Post. Group SKU CZA",
+    "method": "PurchaseLineChangeGenProdPostingGroupUseGPPGfromSKU"
+  },
+  {
+    "codeunitId": 148080,
+    "codeunitName": "Gen. Prod. Post. Group SKU CZA",
+    "method": "SalesLineChangeGenProdPostingGroupNotUseGPPGfromSKU"
+  },
+  {
+    "codeunitId": 148080,
+    "codeunitName": "Gen. Prod. Post. Group SKU CZA",
+    "method": "SalesLineChangeGenProdPostingGroupUseGPPGfromSKU"
+  },
+  {
+    "codeunitId": 148080,
+    "codeunitName": "Gen. Prod. Post. Group SKU CZA",
+    "method": "ServiceLineChangeGenProdPostingGroupNotUseGPPGfromSKU"
+  },
+  {
+    "codeunitId": 148080,
+    "codeunitName": "Gen. Prod. Post. Group SKU CZA",
+    "method": "ServiceLineChangeGenProdPostingGroupUseGPPGfromSKU"
+  },
+  {
+    "codeunitId": 148081,
+    "codeunitName": "Applying G/L Entries CZA",
+    "method": "ApplyingGLEntriesAutomatically"
+  },
+  {
+    "codeunitId": 148081,
+    "codeunitName": "Applying G/L Entries CZA",
+    "method": "ApplyingGLEntriesFromGeneralJournal"
+  },
+  {
+    "codeunitId": 148081,
+    "codeunitName": "Applying G/L Entries CZA",
+    "method": "ApplyingGLEntriesPartially"
+  },
+  {
+    "codeunitId": 148081,
+    "codeunitName": "Applying G/L Entries CZA",
+    "method": "ApplyingGLEntriesWithDifferentPostingDateToZero"
+  },
+  {
+    "codeunitId": 148081,
+    "codeunitName": "Applying G/L Entries CZA",
+    "method": "ApplyingGLEntriesWithNegativeBalance"
+  },
+  {
+    "codeunitId": 148081,
+    "codeunitName": "Applying G/L Entries CZA",
+    "method": "ApplyingGLEntriesWithPositiveBalance"
+  },
+  {
+    "codeunitId": 148081,
+    "codeunitName": "Applying G/L Entries CZA",
+    "method": "ApplyingGLEntriesWithSamePostingDateToZero"
+  },
+  {
+    "codeunitId": 148081,
+    "codeunitName": "Applying G/L Entries CZA",
+    "method": "ApplyingNegativeGLEntryToGLEntryWithHigherAmount"
+  },
+  {
+    "codeunitId": 148081,
+    "codeunitName": "Applying G/L Entries CZA",
+    "method": "ApplyingNegativeGLEntryToMultiplePositiveGLEntries"
+  },
+  {
+    "codeunitId": 148081,
+    "codeunitName": "Applying G/L Entries CZA",
+    "method": "ApplyingNegativeGLEntryToMultiplePositiveGLEntriesWithNegativeBalance"
+  },
+  {
+    "codeunitId": 148081,
+    "codeunitName": "Applying G/L Entries CZA",
+    "method": "ApplyingPositiveGLEntryToGLEntryWithHigherAmount"
+  },
+  {
+    "codeunitId": 148081,
+    "codeunitName": "Applying G/L Entries CZA",
+    "method": "ApplyingPositiveGLEntryToMultipleNegativeGLEntries"
+  },
+  {
+    "codeunitId": 148081,
+    "codeunitName": "Applying G/L Entries CZA",
+    "method": "ApplyingPositiveGLEntryToMultipleNegativeGLEntriesAndDiffPostingDateWithPositiveBalance"
+  },
+  {
+    "codeunitId": 148081,
+    "codeunitName": "Applying G/L Entries CZA",
+    "method": "ApplyingPositiveGLEntryToMultipleNegativeGLEntriesWithPositiveBalance"
+  },
+  {
+    "codeunitId": 148081,
+    "codeunitName": "Applying G/L Entries CZA",
+    "method": "DoubleApplyingGLEntriesWithNegativeBalance"
+  },
+  {
+    "codeunitId": 148081,
+    "codeunitName": "Applying G/L Entries CZA",
+    "method": "DoubleApplyingGLEntriesWithPositiveBalance"
+  },
+  {
+    "codeunitId": 148094,
+    "codeunitName": "Posting Groups CZA",
+    "method": "AddingDefGenBusPostGroupsForTransferOrder"
+  },
+  {
+    "codeunitId": 148094,
+    "codeunitName": "Posting Groups CZA",
+    "method": "ChangePostingGroupOnVendorWithOpenEntries"
+  },
+  {
+    "codeunitId": 148094,
+    "codeunitName": "Posting Groups CZA",
+    "method": "ChangePostingGroupOnCustomerWithOpenEntries"
+  }
+]
