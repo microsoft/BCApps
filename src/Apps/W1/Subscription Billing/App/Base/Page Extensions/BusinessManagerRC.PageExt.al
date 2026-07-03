@@ -5,6 +5,23 @@ using Microsoft.PowerBIReports;
 
 pageextension 8080 "Business Manager RC" extends "Business Manager Role Center"
 {
+#if not CLEAN26
+    layout
+    {
+        addafter(Control46)
+        {
+            part(SubBillingActivities; "Sub. Billing Activities")
+            {
+                ObsoleteReason = 'Removed as Subscription Billing is not relevant in context of Business Manager.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '26.0';
+                Visible = false;
+                ApplicationArea = All;
+                Caption = 'Subscription Billing';
+            }
+        }
+    }
+#endif
     actions
     {
         addlast("PBI Reports")
@@ -137,21 +154,4 @@ pageextension 8080 "Business Manager RC" extends "Business Manager Role Center"
             }
         }
     }
-#if not CLEAN26
-    layout
-    {
-        addafter(Control46)
-        {
-            part(SubBillingActivities; "Sub. Billing Activities")
-            {
-                ObsoleteReason = 'Removed as Subscription Billing is not relevant in context of Business Manager.';
-                ObsoleteState = Pending;
-                ObsoleteTag = '26.0';
-                Visible = false;
-                ApplicationArea = All;
-                Caption = 'Subscription Billing';
-            }
-        }
-    }
-#endif
 }
