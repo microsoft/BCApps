@@ -45,6 +45,19 @@ table 3308 "PA Known Sender"
         }
     }
 
+    trigger OnInsert()
+    begin
+        LogSenderAdded();
+        if Rec."Sender Policy" = Rec."Sender Policy"::Approve then
+            LogSenderApproved();
+    end;
+
+    trigger OnModify()
+    begin
+        if (Rec."Sender Policy" = Rec."Sender Policy"::Approve) and (xRec."Sender Policy" <> Rec."Sender Policy"::Approve) then
+            LogSenderApproved();
+    end;
+
     internal procedure InsertIfNew(EDocument: Record "E-Document")
     var
         Existing: Record "PA Known Sender";
@@ -64,8 +77,7 @@ table 3308 "PA Known Sender"
             Rec."Sender Policy" := "PA Sender Policy"::Approve
         else
             Rec."Sender Policy" := "PA Sender Policy"::Ask;
-        Rec.Insert();
-        Session.LogSecurityAudit(Rec.TableName(), SecurityOperationResult::Success, 'Added new known sender.', AuditCategory::PolicyManagement);
+        Rec.Insert(true);
     end;
 
     /// <summary>
@@ -82,4 +94,20 @@ table 3308 "PA Known Sender"
         KnownSender.SetRange(Email, SenderEmail);
         exit(KnownSender.FindFirst());
     end;
+
+    // Logs every path that adds a known sender, and separately every path that results in a sender
+    // marked Approve (which lets its emails be processed without human review).
+    local procedure LogSenderAdded()
+    begin
+        Session.LogSecurityAudit(Rec.TableName(), SecurityOperationResult::Success, StrSubstNo(SenderAddedAuditLbl, Rec.Email), AuditCategory::PolicyManagement);
+    end;
+
+    local procedure LogSenderApproved()
+    begin
+        Session.LogSecurityAudit(Rec.TableName(), SecurityOperationResult::Success, StrSubstNo(SenderApprovedAuditLbl, Rec.Email), AuditCategory::PolicyManagement);
+    end;
+
+    var
+        SenderAddedAuditLbl: Label 'Added Payables Agent known sender %1.', Locked = true;
+        SenderApprovedAuditLbl: Label 'Payables Agent known sender %1 was set to Approve, allowing its emails to be processed without review.', Locked = true;
 }

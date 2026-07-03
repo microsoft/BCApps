@@ -30,12 +30,6 @@ page 3313 "PA Known Senders"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies how an incoming email from this sender is handled. ''Ask'' requests human review. ''Approve'' processes without review (effective when overall email review is ''Only if untrusted''). ''Reject'' ignores the email.';
-
-                    trigger OnValidate()
-                    begin
-                        if Rec."Sender Policy" = Rec."Sender Policy"::Approve then
-                            Session.LogSecurityAudit(Rec.TableName(), SecurityOperationResult::Success, StrSubstNo(SenderApprovedAuditLbl, Rec.Email), AuditCategory::PolicyManagement);
-                    end;
                 }
             }
         }
@@ -70,5 +64,4 @@ page 3313 "PA Known Senders"
     var
         UnusedByFolderLbl: Label 'This list is currently unused. Emails arrive through subfolder ''%1'' and are processed without consulting it.', Comment = '%1 = folder name';
         UnusedByPolicyLbl: Label 'This list doesn''t affect processing while review policy is set to ''%1''.', Comment = '%1 = review policy';
-        SenderApprovedAuditLbl: Label 'Known sender %1 was set to Approve, allowing its emails to be processed without review.', Locked = true;
 }
