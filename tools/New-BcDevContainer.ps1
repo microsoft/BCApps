@@ -4,12 +4,24 @@
 param(
     [string] $SettingsPath = (Join-Path $PSScriptRoot '..\.github\AL-Go-Settings.json'),
     [string] $BranchName,
-    [pscredential] $Credential = (New-Object pscredential 'admin', (ConvertTo-SecureString 'Password123!' -AsPlainText -Force))
+    [pscredential] $Credential = (New-Object pscredential 'admin', (ConvertTo-SecureString '1234' -AsPlainText -Force))
 )
 
 $ErrorActionPreference = 'Stop'
 
-# Read artifact setting from AL-Go settings
+function Write-WebClientUrl {
+    param([string] $ContainerName)
+    try {
+        $portMap = (& docker port $ContainerName 80) -join ''
+        if ($portMap -match ':(\d+)') {
+            Write-Host ""
+            Write-Host "Web client: http://localhost:$($Matches[1])/BC/?tenant=default"
+            Write-Host ""
+        }
+    } catch { }
+}
+
+# Read artifact setting from AL-Go settings (needed for both create + dev-scope steps)
 $settings = Get-Content -Path $SettingsPath -Raw | ConvertFrom-Json
 $artifactSetting = $settings.artifact
 if (-not $artifactSetting) {
@@ -24,21 +36,6 @@ $version        = $parts[2]
 # Override country from settings: always use W1 for this script
 $country        = 'w1'
 $select         = if ($parts[4]) { $parts[4] } else { 'Latest' }
-
-Write-Host "Resolving artifact: account=$storageAccount type=$type version=$version country=$country select=$select"
-
-$artifactUrl = Get-BCArtifactUrl `
-    -storageAccount $storageAccount `
-    -type $type `
-    -version $version `
-    -country $country `
-    -select $select `
-    -accept_insiderEula
-
-if (-not $artifactUrl) {
-    throw "Could not resolve artifact URL for setting '$artifactSetting'"
-}
-Write-Host "Artifact URL: $artifactUrl"
 
 # Derive container name from current git branch (max 10 chars, sanitized)
 if (-not $BranchName) {
@@ -59,7 +56,23 @@ Write-Host "Container name: $containerName (from branch '$BranchName')"
 
 if (Test-BcContainer -containerName $containerName) {
     Write-Host "Container '$containerName' already exists - skipping creation."
+    Write-WebClientUrl -ContainerName $containerName
 } else {
+    Write-Host "Resolving artifact: account=$storageAccount type=$type version=$version country=$country select=$select"
+
+    $artifactUrl = Get-BCArtifactUrl `
+        -storageAccount $storageAccount `
+        -type $type `
+        -version $version `
+        -country $country `
+        -select $select `
+        -accept_insiderEula
+
+    if (-not $artifactUrl) {
+        throw "Could not resolve artifact URL for setting '$artifactSetting'"
+    }
+    Write-Host "Artifact URL: $artifactUrl"
+
     $hostPort = $env:COPILOT_PORT
     if (-not $hostPort) {
         $hostPort = Get-Random -Minimum 8000 -Maximum 9000
@@ -78,6 +91,7 @@ if (Test-BcContainer -containerName $containerName) {
         -artifactUrl $artifactUrl `
         -auth UserPassword `
         -Credential $Credential `
+        -multitenant:$false `
         -additionalParameters $additionalParameters
 
     Write-Host "Web client available at http://localhost:$hostPort/BC/?tenant=default"
@@ -119,13 +133,7 @@ foreach ($src in $cacheSources) {
 }
 Write-Host "Total .app files in cache: $((Get-ChildItem -Path $cacheTarget -Filter *.app).Count)"
 
-# Resolve the published host port for port 80 from the running container
-try {
-    $portMap = (& docker port $containerName 80) -join ''
-    if ($portMap -match ':(\d+)') {
-        Write-Host ""
-        Write-Host "Web client: http://localhost:$($Matches[1])/BC/?tenant=default"
-    }
-} catch { }
+# Final summary (also printed early if the container already existed)
+Write-WebClientUrl -ContainerName $containerName
 
 [Environment]::Exit(0)

@@ -93,10 +93,21 @@ function Set-AppVersion()
         [Parameter(Mandatory = $false)]
         [string]$Publisher = 'Microsoft',
         [Parameter(Mandatory = $false)]
-        [string]$TenantDatabaseName = 'default',
+        [string]$TenantDatabaseName,
         [Parameter(Mandatory = $false)]
         [string]$DatabaseServer = '.'
     )
+
+    # In multitenant containers the tenant tables live in a separate 'default' database.
+    # In single-tenant containers they live inside the application database itself.
+    # Auto-detect when the caller didn't pin a name explicitly.
+    if (-not $TenantDatabaseName) {
+        if (Test-Database -DatabaseName 'default' -DatabaseServer $DatabaseServer) {
+            $TenantDatabaseName = 'default'
+        } else {
+            $TenantDatabaseName = $DatabaseName
+        }
+    }
 
     Write-Host "Set version $Major.$Minor.0.0 for app $Name published by $Publisher."
 
