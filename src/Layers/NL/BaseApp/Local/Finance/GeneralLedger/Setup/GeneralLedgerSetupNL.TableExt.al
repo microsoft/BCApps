@@ -49,7 +49,7 @@ tableextension 11385 "General Ledger Setup NL" extends "General Ledger Setup"
             begin
                 if "Local Currency" = "Local Currency"::Euro then
                     Error(
-                      Text1000001,
+                      NotAllowedToSpecifyErr,
                       FieldCaption("Currency Euro"),
                       FieldCaption("Local Currency"),
                       "Local Currency");
@@ -58,6 +58,6 @@ tableextension 11385 "General Ledger Setup NL" extends "General Ledger Setup"
     }
 
     var
-        Text1000001: Label 'It is not allowed to specify %1 when %2 is %3.';
+        NotAllowedToSpecifyErr: Label 'It is not allowed to specify %1 when %2 is %3.', Comment = '%1 - Field Caption of the field causing the error, %2 - Field Caption of the Local Currency field, %3 - Value of the Local Currency field';
 }
 

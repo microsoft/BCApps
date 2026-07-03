@@ -78,7 +78,7 @@ tableextension 11300 "Vendor NL" extends Vendor
                 AccountType: Option Customer,Vendor,Employee;
             begin
                 if not TransactionMode.CheckTransactionModePartnerType(AccountType::Vendor, "Transaction Mode Code", "Partner Type") then
-                    if not Confirm(PartnerTypeMismatchMsg, false) then
+                    if not Confirm(PartnerTypeMismatchQst, false) then
                         Error('');
             end;
         }
@@ -86,7 +86,7 @@ tableextension 11300 "Vendor NL" extends Vendor
 
     var
         UpdateBankAccountsQst: Label 'Do you want to update the bank accounts for this vendor to reflect the new value of %1?', Comment = '%1 = Field Caption';
-        PartnerTypeMismatchMsg: Label 'The Partner Type does not match the Partner Type defined in Transaction Mode. Do you still want to change the Partner Type?';
+        PartnerTypeMismatchQst: Label 'The Partner Type does not match the Partner Type defined in Transaction Mode. Do you still want to change the Partner Type?';
 
     [Scope('OnPrem')]
     procedure UpdateVendorBankAccounts(UseFieldCaption: Text[250])
