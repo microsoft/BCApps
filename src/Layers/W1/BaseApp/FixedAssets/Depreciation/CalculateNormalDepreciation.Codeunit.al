@@ -28,6 +28,8 @@ codeunit 5611 "Calculate Normal Depreciation"
         DaysInFiscalYear: Integer;
         EntryAmounts: array[4] of Decimal;
         MinusBookValue: Decimal;
+        StraightLineBonusBaseReductionAmount: Decimal;
+        StraightLineBonusBaseReductionCalculated: Boolean;
         DateFromProjection: Date;
         SkipOnZero: Boolean;
         UntilDate: Date;
@@ -395,6 +397,17 @@ codeunit 5611 "Calculate Normal Depreciation"
     end;
 
     local procedure StraightLineBonusBaseReduction(): Decimal
+    begin
+        // The reduction only depends on FA/FADeprBook/DeprBookCode and the posted ledger, none of which change during a
+        // single Calculate run, so cache it to avoid repeating the CalcSums lookups on every period of the depreciation loop.
+        if not StraightLineBonusBaseReductionCalculated then begin
+            StraightLineBonusBaseReductionAmount := CalcStraightLineBonusBaseReduction();
+            StraightLineBonusBaseReductionCalculated := true;
+        end;
+        exit(StraightLineBonusBaseReductionAmount);
+    end;
+
+    local procedure CalcStraightLineBonusBaseReduction(): Decimal
     begin
         // Bonus depreciation reduces the book value but not the depreciable basis, so the straight-line base must be lowered by it.
         // Skip the database lookups below for the majority of assets that do not use bonus depreciation.
