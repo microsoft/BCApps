@@ -2413,7 +2413,6 @@ page 21 "Customer Card"
     var
         ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
     begin
-        // Set the default country code to '*' to ensure that the country code is not filtered by default when the page is opened. This allows for a more flexible view of customer records without being restricted to a specific country.
         PrevCountryCode := '*';
         FoundationOnly := ApplicationAreaMgmtFacade.IsFoundationEnabled();
 
