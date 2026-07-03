@@ -71,28 +71,34 @@ page 4358 "Agent Message Attachments"
                     Rec.Delete();
                 end;
             }
-            action(New)
+            fileuploadaction(New)
             {
                 ApplicationArea = All;
                 Caption = 'Upload';
-                ToolTip = 'Upload a new attachment';
+                ToolTip = 'Upload new attachments';
                 Image = Import;
+                AllowMultipleFiles = true;
 
-                trigger OnAction()
+                trigger OnAction(Files: List of [FileUpload])
                 var
                     TempLastAgentTaskFile: Record "Agent Task File" temporary;
+                    SingleFile: FileUpload;
+                    NextID: Integer;
                 begin
                     TempLastAgentTaskFile.Copy(Rec, true);
                     TempLastAgentTaskFile.Reset();
                     TempLastAgentTaskFile.SetCurrentKey(ID);
-                    if TempLastAgentTaskFile.FindLast() then;
+                    if TempLastAgentTaskFile.FindLast() then
+                        NextID := TempLastAgentTaskFile.ID;
 
-                    if not AgentTaskMessageBuilder.UploadAttachment() then
-                        exit;
-
-                    Rec := AgentTaskMessageBuilder.GetLastAttachment();
-                    Rec.ID := TempLastAgentTaskFile.ID + 1;
-                    Rec.Insert();
+                    foreach SingleFile in Files do
+                        if SingleFile.FileName <> '' then begin
+                            AgentTaskMessageBuilder.AddAttachment(SingleFile);
+                            NextID += 1;
+                            Rec := AgentTaskMessageBuilder.GetLastAttachment();
+                            Rec.ID := NextID;
+                            Rec.Insert();
+                        end;
                 end;
             }
         }

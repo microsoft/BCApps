@@ -12,8 +12,10 @@ $w1Layers = @(Join-Path $sourceCodeFolder "Layers\W1")
 $allApps = @(Join-Path $sourceCodeFolder "Apps")
 
 # Build path sets for different validations
-[string[]] $w1OnlyPaths = $baseFolders + $w1Apps + $w1Layers
-[string[]] $allPaths = $baseFolders + $allApps + $w1Layers
+# Some folders (e.g. Layers) only exist on main and not on release branches, so filter out
+# any paths that do not exist to avoid Get-ChildItem failing on missing directories.
+[string[]] $w1OnlyPaths = @($baseFolders + $w1Apps + $w1Layers | Where-Object { Test-Path -Path $_ })
+[string[]] $allPaths = @($baseFolders + $allApps + $w1Layers | Where-Object { Test-Path -Path $_ })
 
 # Define exceptions
 $AllowedDuplicateObjects = @(
