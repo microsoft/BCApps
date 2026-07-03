@@ -1,6 +1,7 @@
 namespace Microsoft.Service.Test;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Calendar;
@@ -736,12 +737,20 @@ codeunit 131902 "Library - Service"
     end;
 
     procedure FindServiceCost(var ServiceCost: Record "Service Cost")
+    var
+        GLAccount: Record "G/L Account";
     begin
         // Filter Service Cost so that errors are not generated due to mandatory fields.
         ServiceCost.SetFilter("Account No.", '<>''''');
         ServiceCost.SetRange("Service Zone Code", '');
 
-        ServiceCost.FindSet();
+        if ServiceCost.FindSet() then
+            repeat
+                if GLAccount.Get(ServiceCost."Account No.") and (GLAccount."VAT Prod. Posting Group" <> '') then
+                    exit;
+            until ServiceCost.Next() = 0;
+
+        CreateServiceCost(ServiceCost);
     end;
 
     procedure FindServiceItemGroup(var ServiceItemGroup: Record "Service Item Group")

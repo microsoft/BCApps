@@ -40,6 +40,53 @@ codeunit 139747 "VAT Group Http Mock Service"
                 exit;
             end;
 
+            // Single-status query responses for the MEMBER_CODE_* fixtures used by
+            // TestUpdateSingleVATReportStatus and TestButtonUpdateStatusVATReportPage.
+            if filterValue.Contains('MEMBER_CODE_1') then begin
+                HandleText('{"value": [{"no": "MEMBER_CODE_1","status": "Closed"}]}', Response, 200);
+                exit;
+            end;
+
+            if filterValue.Contains('MEMBER_CODE_2') then begin
+                HandleText('{"value": [{"no": "MEMBER_CODE_2","status": "Accepted"}]}', Response, 200);
+                exit;
+            end;
+
+            if filterValue.Contains('MEMBER_CODE_3') then begin
+                HandleText('{"value": [{"no": "MEMBER_CODE_3","status": "Canceled"}]}', Response, 200);
+                exit;
+            end;
+
+            if filterValue.Contains('MEMBER_CODE_4') then begin
+                HandleText('{"value": [{"no": "MEMBER_CODE_4","status": "Rejected"}]}', Response, 200);
+                exit;
+            end;
+
+            if filterValue.Contains('MEMBER_CODE_5') then begin
+                HandleText('{"value": [{"no": "MEMBER_CODE_5","status": "Rejected"}]}', Response, 200);
+                exit;
+            end;
+
+            if filterValue.Contains('MEMBER_CODE_6') then begin
+                HandleText('{"value": [{"no": "MEMBER_CODE_6","status": "Rejected"}]}', Response, 200);
+                exit;
+            end;
+
+            if filterValue.Contains('MEMBER_CODE_7') then begin
+                HandleText('{"value": []}', Response, 200);
+                exit;
+            end;
+
+            if filterValue.Contains('MEMBER_CODE_8') then begin
+                HandleText('{"value": []}', Response, 200);
+                exit;
+            end;
+
+            if filterValue.Contains('MEMBER_CODE_9') then begin
+                HandleText('{"value": [{"no": "MEMBER_CODE_9","status": "Canceled"}]}', Response, 200);
+                exit;
+            end;
+
         end;
 
 
@@ -111,6 +158,12 @@ codeunit 139747 "VAT Group Http Mock Service"
     local procedure Handle(ResourceText: Text; var Response: TestHttpResponseMessage; StatusCode: Integer)
     begin
         Response.Content.WriteFrom(NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8));
+        Response.HttpStatusCode := StatusCode;
+    end;
+
+    local procedure HandleText(BodyText: Text; var Response: TestHttpResponseMessage; StatusCode: Integer)
+    begin
+        Response.Content.WriteFrom(BodyText);
         Response.HttpStatusCode := StatusCode;
     end;
 

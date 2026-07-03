@@ -1419,11 +1419,26 @@ codeunit 131300 "Library - ERM"
 
     procedure CreateVATPostingSetup(var VATPostingSetup: Record "VAT Posting Setup"; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
     var
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
         Handled: Boolean;
     begin
         OnBeforeCreateVATPostingSetup(VATPostingSetup, Handled);
         if Handled then
             exit;
+
+        if (VATBusPostingGroup <> '') and not VATBusinessPostingGroup.Get(VATBusPostingGroup) then begin
+            VATBusinessPostingGroup.Init();
+            VATBusinessPostingGroup.Validate(Code, VATBusPostingGroup);
+            VATBusinessPostingGroup.Validate(Description, VATBusPostingGroup);
+            VATBusinessPostingGroup.Insert(true);
+        end;
+        if (VATProdPostingGroup <> '') and not VATProductPostingGroup.Get(VATProdPostingGroup) then begin
+            VATProductPostingGroup.Init();
+            VATProductPostingGroup.Validate(Code, VATProdPostingGroup);
+            VATProductPostingGroup.Validate(Description, VATProdPostingGroup);
+            VATProductPostingGroup.Insert(true);
+        end;
 
         VATPostingSetup.Init();
         VATPostingSetup.Validate("VAT Bus. Posting Group", VATBusPostingGroup);
@@ -2080,9 +2095,6 @@ codeunit 131300 "Library - ERM"
     end;
 
     procedure FindVATPostingSetupSales(var VATPostingSetup: Record "VAT Posting Setup")
-    var
-        VATBusPostingGroup: Record "VAT Business Posting Group";
-        VATProdPostingGroup: Record "VAT Product Posting Group";
     begin
         VATPostingSetup.SetFilter("VAT Bus. Posting Group", '<>%1', '');
         VATPostingSetup.SetFilter("VAT Prod. Posting Group", '<>%1', '');
@@ -2090,18 +2102,9 @@ codeunit 131300 "Library - ERM"
         VATPostingSetup.SetFilter("VAT Calculation Type", '<>%1', VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
         VATPostingSetup.SetFilter("Sales VAT Account", '<>%1', '');
         VATPostingSetup.SetFilter("Purchase VAT Account", '<>%1', '');
-        if not VATPostingSetup.FindFirst() then begin
-            VATPostingSetup.Init();
-            VATBusPostingGroup.FindFirst();
-            VATProdPostingGroup.FindFirst();
-            VATPostingSetup."VAT Bus. Posting Group" := VATBusPostingGroup.Code;
-            VATPostingSetup."VAT Prod. Posting Group" := VATProdPostingGroup.Code;
-            VATPostingSetup."VAT Calculation Type" := VATPostingSetup."VAT Calculation Type"::"Normal VAT";
-            VATPostingSetup."VAT %" := LibraryRandom.RandIntInRange(1, 25);
-            VATPostingSetup."Sales VAT Account" := CreateGLAccountNo();
-            VATPostingSetup."Purchase VAT Account" := CreateGLAccountNo();
-            VATPostingSetup.Insert(true);
-        end;
+        if not VATPostingSetup.FindFirst() then
+            CreateVATPostingSetupWithAccounts(VATPostingSetup,
+              VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(1, 25));
     end;
 
     procedure FindZeroVATPostingSetup(var VATPostingSetup: Record "VAT Posting Setup"; VATCalculationType: Enum "Tax Calculation Type")

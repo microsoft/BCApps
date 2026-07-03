@@ -2,6 +2,7 @@ codeunit 144002 "Report Layout - Local"
 {
     // // [FEATURE] [Report]
 
+    Permissions = TableData "G/L Entry" = i;
     Subtype = Test;
     TestPermissions = Disabled;
 

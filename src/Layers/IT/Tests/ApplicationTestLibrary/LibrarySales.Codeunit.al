@@ -4,6 +4,10 @@
 codeunit 130509 "Library - Sales"
 {
 
+    Permissions = TableData Customer = r,
+                  TableData "Sales Header" = rimd,
+                  TableData "Sales Line" = rimd;
+
     trigger OnRun()
     begin
     end;
@@ -199,6 +203,8 @@ codeunit 130509 "Library - Sales"
         LibraryERM.SetSearchGenPostingTypeSales();
         LibraryERM.FindGeneralPostingSetupInvtFull(GeneralPostingSetup);
         LibraryERM.FindVATPostingSetupSales(VATPostingSetup);
+        LibraryUtility.UpdateSetupNoSeriesCode(
+          DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Customer Nos."));
 
         Clear(Customer);
         OnCreateCustomerOnBeforeInsertCustomer(Customer);

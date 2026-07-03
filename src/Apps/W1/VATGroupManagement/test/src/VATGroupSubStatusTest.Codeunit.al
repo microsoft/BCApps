@@ -276,7 +276,8 @@ codeunit 139741 "VAT Group Sub. Status Test"
         VATReportHeader: Record "VAT Report Header";
         VATGroupSubmissionStatus: Codeunit "VAT Group Submission Status";
     begin
-        // [GIVEN] Tables that are populated only with test values 
+        // [GIVEN] Tables that are populated only with test values
+        LibraryVATGroup.EnableDefaultVATMemberSetup();
         InitVATTables();
 
         // [GIVEN] A wrong Get URL included in the batch request

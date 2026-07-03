@@ -4,6 +4,10 @@
 codeunit 130509 "Library - Sales"
 {
 
+    Permissions = TableData Customer = r,
+                  TableData "Sales Header" = rimd,
+                  TableData "Sales Line" = rimd;
+
     trigger OnRun()
     begin
     end;

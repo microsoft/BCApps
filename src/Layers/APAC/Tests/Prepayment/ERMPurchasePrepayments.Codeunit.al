@@ -466,6 +466,22 @@ codeunit 134333 "ERM Purchase Prepayments"
         Vendor.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
         Vendor.Validate("Prepayment %", PrepaymentPercentage);
         Vendor.Modify();
+
+        EnsureInvoiceRoundingVATSetup(Vendor);
+    end;
+
+    local procedure EnsureInvoiceRoundingVATSetup(Vendor: Record Vendor)
+    var
+        VendorPostingGroup: Record "Vendor Posting Group";
+        InvRoundingGLAccount: Record "G/L Account";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        VendorPostingGroup.Get(Vendor."Vendor Posting Group");
+        InvRoundingGLAccount.Get(VendorPostingGroup."Invoice Rounding Account");
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, Vendor."VAT Bus. Posting Group", InvRoundingGLAccount."VAT Prod. Posting Group");
+        VATPostingSetup.Validate("VAT Calculation Type", VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        VATPostingSetup.Validate("VAT %", 0);
+        VATPostingSetup.Modify(true);
     end;
 
     local procedure CreatePurchOrder(var PurchaseHeader: Record "Purchase Header"; Vendor: Record Vendor; Item: Record Item; CurrencyCode: Code[10])

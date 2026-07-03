@@ -221,7 +221,18 @@ codeunit 139526 "VAT Group Mock Service Test"
     var
         VATGroupHttpMockService: Codeunit "VAT Group Http Mock Service";
     begin
+        if Request.Path.Contains('/$batch') then begin
+            HandleBatchStatusRequest(Response);
+            exit(false);
+        end;
+
         VATGroupHttpMockService.HandleRequest(Request, Response);
         exit(false);
+    end;
+
+    local procedure HandleBatchStatusRequest(var Response: TestHttpResponseMessage)
+    begin
+        Response.Content.WriteFrom(StrSubstNo('{"responses":[{"id":1,"status":200,"body":{"value":[{"no":"%1","status":"Released"}]}},{"id":2,"status":200,"body":{"value":[{"no":"%2","status":"Released"}]}}]}', VATReturn1Txt, VATReturn2Txt));
+        Response.HttpStatusCode := 200;
     end;
 }

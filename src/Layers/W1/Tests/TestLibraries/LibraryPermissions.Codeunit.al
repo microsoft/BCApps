@@ -1,5 +1,8 @@
 codeunit 132214 "Library - Permissions"
 {
+    InherentEntitlements = X;
+    InherentPermissions = X;
+
     trigger OnRun()
     begin
     end;
@@ -45,20 +48,9 @@ codeunit 132214 "Library - Permissions"
 
     procedure AddPermission(RoleID: Code[20]; ObjectType: Option; ObjectID: Integer)
     var
-        Permission: Record Permission;
+        NullGuid: Guid;
     begin
-        Permission.Init();
-        Permission."Role ID" := RoleID;
-        Permission."Object Type" := ObjectType;
-        Permission."Object ID" := ObjectID;
-        if ObjectType = Permission."Object Type"::"Table Data" then begin
-            Permission."Read Permission" := Permission."Read Permission"::Yes;
-            Permission."Insert Permission" := Permission."Insert Permission"::" ";
-            Permission."Modify Permission" := Permission."Modify Permission"::" ";
-            Permission."Delete Permission" := Permission."Delete Permission"::" ";
-            Permission."Execute Permission" := Permission."Execute Permission"::" ";
-        end;
-        Permission.Insert(true);
+        AddTenantPermission(NullGuid, RoleID, ObjectType, ObjectID);
     end;
 
     procedure AddTenantPermission(AppID: Guid; RoleID: Code[20]; ObjectType: Option; ObjectID: Integer)

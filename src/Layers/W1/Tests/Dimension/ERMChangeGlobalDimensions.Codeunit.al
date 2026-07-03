@@ -389,6 +389,7 @@ codeunit 134483 "ERM Change Global Dimensions"
         SwapGlobalDimsOnPage(ChangeGlobalDimensionsPage, DimensionValue);
         // [GIVEN] Current Session is active only
         ERMChangeGlobalDimensions.SetCurrSessionIsActiveOnly();
+        MockPrepareTableListForUITests(ERMChangeGlobalDimensions);
         BindSubscription(ERMChangeGlobalDimensions);
         // [WHEN] Run Action "Prepare"
         ChangeGlobalDimensionsPage.Prepare.Invoke();
@@ -422,11 +423,16 @@ codeunit 134483 "ERM Change Global Dimensions"
     procedure T112_NewDimCodesAreRestoredOnPageReopen()
     var
         Dimension: array[2] of Record Dimension;
+        TableWithDimensionSetID: Record "Table With Dimension Set ID";
+        ERMChangeGlobalDimensions: Codeunit "ERM Change Global Dimensions";
         ChangeGlobalDimensionsPage: TestPage "Change Global Dimensions";
     begin
         // [FEATURE] [Prepare] [UI]
         LibraryLowerPermissions.SetOutsideO365Scope();
         Initialize();
+        TableWithDimensionSetID.Insert();
+        MockPrepareTableListForUITests(ERMChangeGlobalDimensions);
+        BindSubscription(ERMChangeGlobalDimensions);
         // [GIVEN] There is no other active session
         MockActiveSessions(0);
         // [GIVEN] Open page "Change Global Dimensions"
@@ -651,6 +657,7 @@ codeunit 134483 "ERM Change Global Dimensions"
         ChangeGlobalDimensionsPage."Global Dimension 1 Code".SetValue(DimensionValue."Dimension Code");
         // [GIVEN] Current Session is active only
         ERMChangeGlobalDimensions.SetCurrSessionIsActiveOnly();
+        MockPrepareTableListForUITests(ERMChangeGlobalDimensions);
         BindSubscription(ERMChangeGlobalDimensions);
 
         // [WHEN] run Action "Prepare"
@@ -4105,6 +4112,13 @@ codeunit 134483 "ERM Change Global Dimensions"
     begin
         ExpectedTaskID := CreateGuid();
         ERMChangeGlobalDimensions.SetTaskID(ExpectedTaskID, TableNo);
+    end;
+
+    local procedure MockPrepareTableListForUITests(var ERMChangeGlobalDimensions: Codeunit "ERM Change Global Dimensions")
+    begin
+        MockTaskScheduling(ERMChangeGlobalDimensions, DATABASE::"Job Task");
+        MockTaskScheduling(ERMChangeGlobalDimensions, DATABASE::"Table With Default Dim");
+        MockTaskScheduling(ERMChangeGlobalDimensions, DATABASE::"Table With Dimension Set ID");
     end;
 
     local procedure MockCompletedLogEntry(var ChangeGlobalDimLogEntry: Record "Change Global Dim. Log Entry")

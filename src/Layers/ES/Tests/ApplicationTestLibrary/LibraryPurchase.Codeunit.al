@@ -564,6 +564,8 @@ codeunit 130512 "Library - Purchase"
         LibraryERM.SetSearchGenPostingTypePurch();
         LibraryERM.FindGeneralPostingSetupInvtFull(GeneralPostingSetup);
         LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
+        LibraryUtility.UpdateSetupNoSeriesCode(
+          DATABASE::"Purchases & Payables Setup", PurchasesPayablesSetup.FieldNo("Vendor Nos."));
 
         Clear(Vendor);
         Vendor.Insert(true);

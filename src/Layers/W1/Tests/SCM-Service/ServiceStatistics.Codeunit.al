@@ -4,8 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Service.Test;
 
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Pricing;
@@ -177,6 +179,7 @@ codeunit 136130 "Service Statistics"
         CustomerNo := CreateCustomer();
         CreateCustomerInvoiceDiscount(CustomerNo);
         LibraryService.FindServiceCost(ServiceCost);
+        EnsureVATPostingSetupForServiceCost(CustomerNo, ServiceCost);
 
         // 2. Exercise: Create Item, Resource, G/L Account, Service Invoice with multiple lines, Calculate Invoice Discount
         // and open Statistics Page.
@@ -391,15 +394,18 @@ codeunit 136130 "Service Statistics"
         ServiceLine: Record "Service Line";
         ServiceCost: Record "Service Cost";
         ServiceCreditMemo: TestPage "Service Credit Memo";
+        CustomerNo: Code[20];
     begin
         // Test creation of Service Credit Memo with Cost and verify Statistics Page.
 
         // 1. Setup: Find Service Cost.
         Initialize();
         LibraryService.FindServiceCost(ServiceCost);
+        CustomerNo := CreateCustomer();
+        EnsureVATPostingSetupForServiceCost(CustomerNo, ServiceCost);
 
         // 2. Exercise: Create Customer, Service Credit Memo with Cost and open Statistics Page.
-        CreateServiceCreditMemoHeader(ServiceCreditMemo, CreateCustomer());
+        CreateServiceCreditMemoHeader(ServiceCreditMemo, CustomerNo);
         DocumentNo2 := CopyStr(ServiceCreditMemo."No.".Value(), 1, MaxStrLen(DocumentNo2));  // Assign global variable for page handler.
         DocumentType2 := ServiceLine."Document Type"::"Credit Memo";  // Assign global variable for page handler.
         CreateServiceCreditMemoLine(ServiceCreditMemo, ServiceLine.Type::Cost, ServiceCost.Code);
@@ -425,6 +431,7 @@ codeunit 136130 "Service Statistics"
         CustomerNo := CreateCustomer();
         CreateCustomerInvoiceDiscount(CustomerNo);
         LibraryService.FindServiceCost(ServiceCost);
+        EnsureVATPostingSetupForServiceCost(CustomerNo, ServiceCost);
 
         // 2. Exercise: Create Item, Resource, G/L Account, Service Credit Memo with multiple lines, Calculate Invoice Discount
         // and open Statistics Page.
@@ -450,16 +457,19 @@ codeunit 136130 "Service Statistics"
         ServiceLine: Record "Service Line";
         ServiceCost: Record "Service Cost";
         ServiceCreditMemo: TestPage "Service Credit Memo";
+        CustomerNo: Code[20];
     begin
         // Test creation of Service Credit Memo with multiple lines, Price Including Vat and verify Statistics page.
 
         // 1. Setup: Find Service Cost.
         Initialize();
         LibraryService.FindServiceCost(ServiceCost);
+        CustomerNo := CreateCustomer();
+        EnsureVATPostingSetupForServiceCost(CustomerNo, ServiceCost);
 
         // 2. Exercise: Create Customer, Item, Resource,G/L Account, Service Credit Memo with Prices Including VAT as True,
         // multiple lines, in lines Allow Invoice Discount as False and open Statistics Page.
-        CreateServiceCreditMemoHeader(ServiceCreditMemo, CreateCustomer());
+        CreateServiceCreditMemoHeader(ServiceCreditMemo, CustomerNo);
         ServiceCreditMemo."Prices Including VAT".SetValue(true);
         DocumentNo2 := CopyStr(ServiceCreditMemo."No.".Value(), 1, MaxStrLen(DocumentNo2));  // Assign global variable for page handler.
         DocumentType2 := ServiceLine."Document Type"::"Credit Memo";  // Assign global variable for page handler.
@@ -661,19 +671,22 @@ codeunit 136130 "Service Statistics"
         ServiceLine: Record "Service Line";
         ServiceCost: Record "Service Cost";
         ServiceOrder: TestPage "Service Order";
+        CustomerNo: Code[20];
     begin
         // Test creation of Service Order with Cost and verify Service Order Statistics Page.
 
         // 1. Setup: Find Service Cost.
         Initialize();
         LibraryService.FindServiceCost(ServiceCost);
+        CustomerNo := CreateCustomer();
+        EnsureVATPostingSetupForServiceCost(CustomerNo, ServiceCost);
 
         // Assign global variable for page handler.
         No2 := ServiceCost.Code;
         Type2 := Type2::Cost;
 
         // 2. Exercise: Create Customer, Service Order with Cost and open Service Order Statistics Page.
-        CreateServiceOrderHeader(ServiceOrder, CreateCustomer());
+        CreateServiceOrderHeader(ServiceOrder, CustomerNo);
         CreateServiceOrderItemLine(ServiceOrder);
         DocumentNo2 := CopyStr(ServiceOrder."No.".Value(), 1, MaxStrLen(DocumentNo2));  // Assign global variable for page handler.
         DocumentType2 := ServiceLine."Document Type"::Order;  // Assign global variable for page handler.
@@ -703,6 +716,7 @@ codeunit 136130 "Service Statistics"
         Initialize();
         LibraryService.FindServiceCost(ServiceCost);
         CustomerNo := CreateCustomer();
+        EnsureVATPostingSetupForServiceCost(CustomerNo, ServiceCost);
         CreateCustomerInvoiceDiscount(CustomerNo);
 
         // Assign global variable for page handler.
@@ -732,6 +746,7 @@ codeunit 136130 "Service Statistics"
         ServiceLine: Record "Service Line";
         ServiceCost: Record "Service Cost";
         ServiceOrder: TestPage "Service Order";
+        CustomerNo: Code[20];
     begin
         // Test creation of Service Order with multiple lines, Price Including Vat and verify Service Order Statistics page.
 
@@ -739,6 +754,8 @@ codeunit 136130 "Service Statistics"
         // Create Item, Resource and G/L Account.
         Initialize();
         LibraryService.FindServiceCost(ServiceCost);
+        CustomerNo := CreateCustomer();
+        EnsureVATPostingSetupForServiceCost(CustomerNo, ServiceCost);
 
         // Assign global variable for page handler.
         ItemNo := LibraryInventory.CreateItemNo();
@@ -748,7 +765,7 @@ codeunit 136130 "Service Statistics"
 
         // 2. Exercise: Create Service Order with Prices Including VAT as True,multiple lines,
         // in lines Allow Invoice Discount as False and open Service Order Statistics Page.
-        CreateServiceOrderHeader(ServiceOrder, CreateCustomer());
+        CreateServiceOrderHeader(ServiceOrder, CustomerNo);
         ServiceOrder."Prices Including VAT".SetValue(true);
         CreateServiceOrderItemLine(ServiceOrder);
         DocumentNo2 := CopyStr(ServiceOrder."No.".Value(), 1, MaxStrLen(DocumentNo2));  // Assign global variable for page handler.
@@ -1849,6 +1866,7 @@ codeunit 136130 "Service Statistics"
         CustomerNo := CreateCustomer();
         CreateCustomerInvoiceDiscount(CustomerNo);
         LibraryService.FindServiceCost(ServiceCost);
+        EnsureVATPostingSetupForServiceCost(CustomerNo, ServiceCost);
 
         // 2. Exercise: Create Item, Resource, G/L Account, Service Invoice with multiple lines, Calculate Invoice Discount
         // and open Statistics Page.
@@ -2063,15 +2081,18 @@ codeunit 136130 "Service Statistics"
         ServiceLine: Record "Service Line";
         ServiceCost: Record "Service Cost";
         ServiceCreditMemo: TestPage "Service Credit Memo";
+        CustomerNo: Code[20];
     begin
         // Test creation of Service Credit Memo with Cost and verify Statistics Page.
 
         // 1. Setup: Find Service Cost.
         Initialize();
         LibraryService.FindServiceCost(ServiceCost);
+        CustomerNo := CreateCustomer();
+        EnsureVATPostingSetupForServiceCost(CustomerNo, ServiceCost);
 
         // 2. Exercise: Create Customer, Service Credit Memo with Cost and open Statistics Page.
-        CreateServiceCreditMemoHeader(ServiceCreditMemo, CreateCustomer());
+        CreateServiceCreditMemoHeader(ServiceCreditMemo, CustomerNo);
         DocumentNo2 := CopyStr(ServiceCreditMemo."No.".Value(), 1, MaxStrLen(DocumentNo2));  // Assign global variable for page handler.
         DocumentType2 := ServiceLine."Document Type"::"Credit Memo";  // Assign global variable for page handler.
         CreateServiceCreditMemoLine(ServiceCreditMemo, ServiceLine.Type::Cost, ServiceCost.Code);
@@ -2097,6 +2118,7 @@ codeunit 136130 "Service Statistics"
         CustomerNo := CreateCustomer();
         CreateCustomerInvoiceDiscount(CustomerNo);
         LibraryService.FindServiceCost(ServiceCost);
+        EnsureVATPostingSetupForServiceCost(CustomerNo, ServiceCost);
 
         // 2. Exercise: Create Item, Resource, G/L Account, Service Credit Memo with multiple lines, Calculate Invoice Discount
         // and open Statistics Page.
@@ -2122,16 +2144,19 @@ codeunit 136130 "Service Statistics"
         ServiceLine: Record "Service Line";
         ServiceCost: Record "Service Cost";
         ServiceCreditMemo: TestPage "Service Credit Memo";
+        CustomerNo: Code[20];
     begin
         // Test creation of Service Credit Memo with multiple lines, Price Including Vat and verify Statistics page.
 
         // 1. Setup: Find Service Cost.
         Initialize();
         LibraryService.FindServiceCost(ServiceCost);
+        CustomerNo := CreateCustomer();
+        EnsureVATPostingSetupForServiceCost(CustomerNo, ServiceCost);
 
         // 2. Exercise: Create Customer, Item, Resource,G/L Account, Service Credit Memo with Prices Including VAT as True,
         // multiple lines, in lines Allow Invoice Discount as False and open Statistics Page.
-        CreateServiceCreditMemoHeader(ServiceCreditMemo, CreateCustomer());
+        CreateServiceCreditMemoHeader(ServiceCreditMemo, CustomerNo);
         ServiceCreditMemo."Prices Including VAT".SetValue(true);
         DocumentNo2 := CopyStr(ServiceCreditMemo."No.".Value(), 1, MaxStrLen(DocumentNo2));  // Assign global variable for page handler.
         DocumentType2 := ServiceLine."Document Type"::"Credit Memo";  // Assign global variable for page handler.
@@ -2333,19 +2358,22 @@ codeunit 136130 "Service Statistics"
         ServiceLine: Record "Service Line";
         ServiceCost: Record "Service Cost";
         ServiceOrder: TestPage "Service Order";
+        CustomerNo: Code[20];
     begin
         // Test creation of Service Order with Cost and verify Service Order Statistics Page.
 
         // 1. Setup: Find Service Cost.
         Initialize();
         LibraryService.FindServiceCost(ServiceCost);
+        CustomerNo := CreateCustomer();
+        EnsureVATPostingSetupForServiceCost(CustomerNo, ServiceCost);
 
         // Assign global variable for page handler.
         No2 := ServiceCost.Code;
         Type2 := Type2::Cost;
 
         // 2. Exercise: Create Customer, Service Order with Cost and open Service Order Statistics Page.
-        CreateServiceOrderHeader(ServiceOrder, CreateCustomer());
+        CreateServiceOrderHeader(ServiceOrder, CustomerNo);
         CreateServiceOrderItemLine(ServiceOrder);
         DocumentNo2 := CopyStr(ServiceOrder."No.".Value(), 1, MaxStrLen(DocumentNo2));  // Assign global variable for page handler.
         DocumentType2 := ServiceLine."Document Type"::Order;  // Assign global variable for page handler.
@@ -2375,6 +2403,7 @@ codeunit 136130 "Service Statistics"
         Initialize();
         LibraryService.FindServiceCost(ServiceCost);
         CustomerNo := CreateCustomer();
+        EnsureVATPostingSetupForServiceCost(CustomerNo, ServiceCost);
         CreateCustomerInvoiceDiscount(CustomerNo);
 
         // Assign global variable for page handler.
@@ -2404,6 +2433,7 @@ codeunit 136130 "Service Statistics"
         ServiceLine: Record "Service Line";
         ServiceCost: Record "Service Cost";
         ServiceOrder: TestPage "Service Order";
+        CustomerNo: Code[20];
     begin
         // Test creation of Service Order with multiple lines, Price Including Vat and verify Service Order Statistics page.
 
@@ -2411,6 +2441,8 @@ codeunit 136130 "Service Statistics"
         // Create Item, Resource and G/L Account.
         Initialize();
         LibraryService.FindServiceCost(ServiceCost);
+        CustomerNo := CreateCustomer();
+        EnsureVATPostingSetupForServiceCost(CustomerNo, ServiceCost);
 
         // Assign global variable for page handler.
         ItemNo := LibraryInventory.CreateItemNo();
@@ -2420,7 +2452,7 @@ codeunit 136130 "Service Statistics"
 
         // 2. Exercise: Create Service Order with Prices Including VAT as True,multiple lines,
         // in lines Allow Invoice Discount as False and open Service Order Statistics Page.
-        CreateServiceOrderHeader(ServiceOrder, CreateCustomer());
+        CreateServiceOrderHeader(ServiceOrder, CustomerNo);
         ServiceOrder."Prices Including VAT".SetValue(true);
         CreateServiceOrderItemLine(ServiceOrder);
         DocumentNo2 := CopyStr(ServiceOrder."No.".Value(), 1, MaxStrLen(DocumentNo2));  // Assign global variable for page handler.
@@ -3496,6 +3528,20 @@ codeunit 136130 "Service Statistics"
     local procedure CreateCustomer(): Code[20]
     begin
         exit(LibrarySales.CreateCustomerNo());
+    end;
+
+    local procedure EnsureVATPostingSetupForServiceCost(CustomerNo: Code[20]; ServiceCost: Record "Service Cost")
+    var
+        Customer: Record Customer;
+        GLAccount: Record "G/L Account";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        Customer.Get(CustomerNo);
+        GLAccount.Get(ServiceCost."Account No.");
+        if VATPostingSetup.Get(Customer."VAT Bus. Posting Group", GLAccount."VAT Prod. Posting Group") then
+            exit;
+
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, Customer."VAT Bus. Posting Group", GLAccount."VAT Prod. Posting Group");
     end;
 
     local procedure CreateCustomerInvoiceDiscount(CustomerNo: Code[20])

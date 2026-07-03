@@ -2237,6 +2237,9 @@
         Language.Validate(Code, LibraryUtility.GenerateGUID());
         Language.Insert(true);
 
+        // [GIVEN] Invoice rounding is disabled because this scenario verifies VAT clause translation only.
+        LibrarySales.SetInvoiceRounding(false);
+
         // [GIVEN] VAT Posting Setup with the VAT clause that has a translation for the language code "X". Description = "Beschreibung 1", "Description 2" ="Beschreibung 2"
         LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
         LibraryERM.CreateVATClause(VATClause);

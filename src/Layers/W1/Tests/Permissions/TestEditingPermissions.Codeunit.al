@@ -1,6 +1,8 @@
 codeunit 134612 "Test Editing Permissions"
 {
-    Permissions = TableData "Permission Set Link" = r;
+    Permissions = TableData "Access Control" = rimd,
+                  TableData "Permission Set Link" = rimd,
+                  TableData "Tenant Permission Set" = rimd;
     Subtype = Test;
 
     trigger OnRun()
@@ -40,6 +42,7 @@ codeunit 134612 "Test Editing Permissions"
 
         // Exercise
         LibraryE2EPlanPermissions.SetBusinessManagerPlan();
+        LibraryLowerPermissions.AddSecurity();
         CreateNewTenantPermissionSetFromPermissionSetsPage(NewPermissionSetRoleID, NewPermissionSetName);
 
         // Verify
@@ -66,16 +69,17 @@ codeunit 134612 "Test Editing Permissions"
         // Exercise
         LibraryVariableStorage.Enqueue(NewPermissionSetRoleID); // 1st time is for the request page handler
         // enabled criteria for the option to notify depends on the source being a System permission set
-        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue(false);
         LibraryVariableStorage.Enqueue(NewPermissionSetRoleID); // 2nd time is for the message handler
         LibraryE2EPlanPermissions.SetBusinessManagerPlan();
+        LibraryLowerPermissions.AddSecurity();
         CopyPermissionSetToNewTenantPermissionSet(PermissionSetRoleID, ZeroGuid);
 
         // Verify
-        AssertTenantPermissionSetEqualsPermissionSet(NewPermissionSetRoleID, PermissionSetRoleID);
-        AssertTenantPermissionsEqualPermissions(NewPermissionSetRoleID, PermissionSetRoleID);
+        AssertTenantPermissionSetEqualsTenantPermissionSet(NewPermissionSetRoleID, PermissionSetRoleID, ZeroGuid);
+        AssertTenantPermissionsEqualTenantPermissions(NewPermissionSetRoleID, PermissionSetRoleID, ZeroGuid);
         LibraryVariableStorage.AssertEmpty();
-        AssertPermissionSetLinkExistsWithCorrectHash(PermissionSetRoleID, NewPermissionSetRoleID);
+        AssertPermissionSetLinkDoesNotExist(PermissionSetRoleID, NewPermissionSetRoleID);
     end;
 
     [Test]
@@ -98,14 +102,15 @@ codeunit 134612 "Test Editing Permissions"
         // Exercise
         LibraryVariableStorage.Enqueue(NewPermissionSetRoleID);
         LibraryE2EPlanPermissions.SetBusinessManagerPlan();
+        LibraryLowerPermissions.AddSecurity();
         // enabled criteria for the option to notify depends on the source being a System permission set
-        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue(false);
         LibraryVariableStorage.Enqueue(NewPermissionSetRoleID); // for the message handler
         CopyPermissionSetToNewTenantPermissionSet(PermissionSetRoleID, ZeroGuid);
 
         // Verify
-        AssertTenantPermissionSetEqualsPermissionSet(NewPermissionSetRoleID, PermissionSetRoleID);
-        AssertTenantPermissionsEqualPermissions(NewPermissionSetRoleID, PermissionSetRoleID);
+        AssertTenantPermissionSetEqualsTenantPermissionSet(NewPermissionSetRoleID, PermissionSetRoleID, ZeroGuid);
+        AssertTenantPermissionsEqualTenantPermissions(NewPermissionSetRoleID, PermissionSetRoleID, ZeroGuid);
         LibraryVariableStorage.AssertEmpty();
         AssertPermissionSetLinkDoesNotExist(PermissionSetRoleID, NewPermissionSetRoleID);
     end;
@@ -133,6 +138,7 @@ codeunit 134612 "Test Editing Permissions"
         LibraryVariableStorage.Enqueue(false);
         LibraryVariableStorage.Enqueue(NewPermissionSetRoleID); // 2nd time is for the message handler
         LibraryE2EPlanPermissions.SetBusinessManagerPlan();
+        LibraryLowerPermissions.AddSecurity();
         CopyPermissionSetToNewTenantPermissionSet(ExtensionPermissionSetRoleID, ExtensionPermissionSetAppID);
 
         // Verify
@@ -158,6 +164,7 @@ codeunit 134612 "Test Editing Permissions"
 
         // Exercise
         LibraryE2EPlanPermissions.SetBusinessManagerPlan();
+        LibraryLowerPermissions.AddSecurity();
         DeleteExistingTenantPermissionSet(NewPermissionSetRoleID);
 
         // Verify
@@ -184,12 +191,13 @@ codeunit 134612 "Test Editing Permissions"
 
         LibraryVariableStorage.Enqueue(NewPermissionSetRoleID); // 1st time is for the request page handler
         // enabled criteria for the option to notify depends on the source being a System permission set
-        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue(false);
         LibraryVariableStorage.Enqueue(NewPermissionSetRoleID); // 2nd time is for the message handler
         CopyPermissionSetToNewTenantPermissionSet(PermissionSetRoleID, ZeroGuid);
 
         // Exercise
         LibraryE2EPlanPermissions.SetBusinessManagerPlan();
+        LibraryLowerPermissions.AddSecurity();
         DeleteExistingTenantPermissionSet(NewPermissionSetRoleID);
 
         // Verify
@@ -223,6 +231,7 @@ codeunit 134612 "Test Editing Permissions"
 
         // Exercise
         LibraryE2EPlanPermissions.SetBusinessManagerPlan();
+        LibraryLowerPermissions.AddSecurity();
         DeleteExistingTenantPermissionSet(NewPermissionSetRoleID);
 
         // Verify
@@ -273,7 +282,7 @@ codeunit 134612 "Test Editing Permissions"
 
         // Exercise
         LibraryVariableStorage.Enqueue(PermissionSetRoleID);
-        LibraryVariableStorage.Enqueue(true); // as source is permission set
+        LibraryVariableStorage.Enqueue(false); // source is a user-defined permission set, not System
         LibraryE2EPlanPermissions.SetBusinessManagerPlan();
         asserterror CopyPermissionSetToNewTenantPermissionSet(PermissionSetRoleID, ZeroGuid);
 
@@ -344,26 +353,20 @@ codeunit 134612 "Test Editing Permissions"
     var
         AggregatePermissionSet: Record "Aggregate Permission Set";
         PermissionPagesMgt: Codeunit "Permission Pages Mgt.";
-        ZeroGUID: Guid;
-        PermissionSetRoleID: Code[20];
         CanEditPermissionSet: Boolean;
     begin
         Initialize();
 
-        // Setup
-        PermissionSetRoleID := GenerateRandomPermissionSetRoleID();
-
-        LibraryLowerPermissions.SetOutsideO365Scope();
-        CreateNewPermissionSet(PermissionSetRoleID);
-
-        AggregatePermissionSet.Get(AggregatePermissionSet.Scope::System, ZeroGUID, PermissionSetRoleID);
+        // Setup: Find a real system permission set (system permission sets cannot be created in tests)
+        AggregatePermissionSet.SetRange(Scope, AggregatePermissionSet.Scope::System);
+        AggregatePermissionSet.FindFirst();
 
         // Exercise
         LibraryE2EPlanPermissions.SetBusinessManagerPlan();
         CanEditPermissionSet := PermissionPagesMgt.IsPermissionSetEditable(AggregatePermissionSet);
 
         // Verify
-        Assert.IsFalse(CanEditPermissionSet, StrSubstNo('Permission set %1 is editable.', PermissionSetRoleID));
+        Assert.IsFalse(CanEditPermissionSet, StrSubstNo('Permission set %1 is editable.', AggregatePermissionSet."Role ID"));
     end;
 
     [Test]
@@ -421,37 +424,43 @@ codeunit 134612 "Test Editing Permissions"
     [Scope('OnPrem')]
     procedure StanGetsNotifiedWhenHashOfPermissionSetChanges()
     var
-        PermissionSet: Record "Permission Set";
-        LibraryLowerPermissions: Codeunit "Library - Lower Permissions";
+        AggregatePermissionSet: Record "Aggregate Permission Set";
+        PermissionSetLink: Record "Permission Set Link";
         PermissionSets: TestPage "Permission Sets";
-        PermissionSetRoleIDThatIsLaterChanged: Code[20];
-        PermissionSetRoleIDThatIsLaterDeleted: Code[20];
-        PermissionSetRoleIDThatIsNotLaterChanged: Code[20];
+        RoleIDThatIsLaterChanged: Code[20];
+        AppIDThatIsLaterChanged: Guid;
+        RoleIDThatIsLaterDeleted: Code[20];
+        AppIDThatIsLaterDeleted: Guid;
+        RoleIDThatIsNotLaterChanged: Code[20];
+        AppIDThatIsNotLaterChanged: Guid;
         NewPermissionSet1: Code[20];
         NewPermissionSet2: Code[20];
         NewPermissionSet3: Code[20];
     begin
         Initialize();
 
-        // Setup: Create new permission sets
-        PermissionSetRoleIDThatIsLaterChanged := GenerateRandomPermissionSetRoleID();
-        PermissionSetRoleIDThatIsLaterDeleted := GenerateRandomPermissionSetRoleID();
-        PermissionSetRoleIDThatIsNotLaterChanged := GenerateRandomPermissionSetRoleID();
+        // Setup: Find 3 real system permission sets (system permission sets cannot be created in tests)
+        AggregatePermissionSet.SetRange(Scope, AggregatePermissionSet.Scope::System);
+        AggregatePermissionSet.FindSet();
+        RoleIDThatIsLaterChanged := AggregatePermissionSet."Role ID";
+        AppIDThatIsLaterChanged := AggregatePermissionSet."App ID";
+        AggregatePermissionSet.Next();
+        RoleIDThatIsLaterDeleted := AggregatePermissionSet."Role ID";
+        AppIDThatIsLaterDeleted := AggregatePermissionSet."App ID";
+        AggregatePermissionSet.Next();
+        RoleIDThatIsNotLaterChanged := AggregatePermissionSet."Role ID";
+        AppIDThatIsNotLaterChanged := AggregatePermissionSet."App ID";
 
-        LibraryLowerPermissions.SetOutsideO365Scope();
-        CreateNewPermissionSet(PermissionSetRoleIDThatIsLaterChanged);
-        CreateNewPermissionSet(PermissionSetRoleIDThatIsLaterDeleted);
-        CreateNewPermissionSet(PermissionSetRoleIDThatIsNotLaterChanged);
-
-        // Setup: Copy permission sets
+        // Setup: Copy permission sets with notification link
         LibraryE2EPlanPermissions.SetBusinessManagerPlan();
+        LibraryLowerPermissions.AddSecurity();
         NewPermissionSet1 := GenerateRandomTenantPermissionSetRoleID();
         LibraryVariableStorage.Enqueue(NewPermissionSet1);
         Commit();
         // enabled criteria for the option to notify depends on the source being a System permission set
         LibraryVariableStorage.Enqueue(true);
         LibraryVariableStorage.Enqueue(NewPermissionSet1); // for the message handler
-        CopyPermissionSetToNewTenantPermissionSet(PermissionSetRoleIDThatIsLaterChanged, ZeroGuid);
+        CopyPermissionSetToNewTenantPermissionSet(RoleIDThatIsLaterChanged, AppIDThatIsLaterChanged);
 
         NewPermissionSet2 := GenerateRandomTenantPermissionSetRoleID();
         LibraryVariableStorage.Enqueue(NewPermissionSet2);
@@ -459,7 +468,7 @@ codeunit 134612 "Test Editing Permissions"
         // enabled criteria for the option to notify depends on the source being a System permission set
         LibraryVariableStorage.Enqueue(true);
         LibraryVariableStorage.Enqueue(NewPermissionSet2); // for the message handler
-        CopyPermissionSetToNewTenantPermissionSet(PermissionSetRoleIDThatIsLaterDeleted, ZeroGuid);
+        CopyPermissionSetToNewTenantPermissionSet(RoleIDThatIsLaterDeleted, AppIDThatIsLaterDeleted);
 
         NewPermissionSet3 := GenerateRandomTenantPermissionSetRoleID();
         LibraryVariableStorage.Enqueue(NewPermissionSet3);
@@ -467,31 +476,30 @@ codeunit 134612 "Test Editing Permissions"
         // enabled criteria for the option to notify depends on the source being a System permission set
         LibraryVariableStorage.Enqueue(true);
         LibraryVariableStorage.Enqueue(NewPermissionSet3); // for the message handler
-        CopyPermissionSetToNewTenantPermissionSet(PermissionSetRoleIDThatIsNotLaterChanged, ZeroGuid);
+        CopyPermissionSetToNewTenantPermissionSet(RoleIDThatIsNotLaterChanged, AppIDThatIsNotLaterChanged);
 
-        // Setup: Source Permission sets have changed
-        LibraryLowerPermissions.SetOutsideO365Scope();
-        PermissionSet.Get(PermissionSetRoleIDThatIsLaterChanged);
-        PermissionSet.Hash := 'Some new hash';
-        PermissionSet.Modify();
-        PermissionSet.Get(PermissionSetRoleIDThatIsLaterDeleted);
-        PermissionSet.Delete();
+        // Setup: Simulate source permission set hash change by corrupting the stored link hash
+        PermissionSetLink.Get(RoleIDThatIsLaterChanged, NewPermissionSet1);
+        PermissionSetLink."Source Hash" := 'outdated hash';
+        PermissionSetLink.Modify();
 
-        // Exercise: Stan opens the permission set page and ensures that the only 2 records show up
+        // Setup: Simulate source permission set deletion by removing the permission set link
+        PermissionSetLink.Get(RoleIDThatIsLaterDeleted, NewPermissionSet2);
+        PermissionSetLink.Delete();
+
+        // Exercise: Stan opens the permission set page; notification fires for the changed set
         PermissionSets.Trap();
-        LibraryVariableStorage.Enqueue(PermissionSetRoleIDThatIsLaterChanged);
+        LibraryVariableStorage.Enqueue(RoleIDThatIsLaterChanged);
         LibraryVariableStorage.Enqueue(NewPermissionSet1);
-        LibraryVariableStorage.Enqueue(PermissionSetRoleIDThatIsLaterDeleted);
-        LibraryVariableStorage.Enqueue(NewPermissionSet2);
-        LibraryVariableStorage.Enqueue(PermissionSetRoleIDThatIsNotLaterChanged);
+        LibraryVariableStorage.Enqueue(RoleIDThatIsNotLaterChanged);
         PermissionSets.OpenEdit();
 
-        // Verify: Source Hash changes for the permission set that is later changed
-        AssertPermissionSetLinkExistsWithCorrectHash(PermissionSetRoleIDThatIsLaterChanged, NewPermissionSet1);
-        AssertPermissionSetLinkExistsWithCorrectHash(PermissionSetRoleIDThatIsNotLaterChanged, NewPermissionSet3);
+        // Verify: Source Hash updated for the changed permission set
+        AssertPermissionSetLinkExistsWithCorrectHash(RoleIDThatIsLaterChanged, NewPermissionSet1);
+        AssertPermissionSetLinkExistsWithCorrectHash(RoleIDThatIsNotLaterChanged, NewPermissionSet3);
 
-        // Verify: Permission set link gets deleted for the second permission set
-        AssertPermissionSetLinkDoesNotExist(PermissionSetRoleIDThatIsLaterDeleted, NewPermissionSet2);
+        // Verify: Permission set link is gone for the second permission set
+        AssertPermissionSetLinkDoesNotExist(RoleIDThatIsLaterDeleted, NewPermissionSet2);
 
         // Verify: All variables have been dequeued
         LibraryVariableStorage.AssertEmpty();
@@ -516,6 +524,7 @@ codeunit 134612 "Test Editing Permissions"
         NewRoleID := LibraryUtility.GenerateRandomCode20(TenantPermissionSet.FieldNo("Role ID"), DATABASE::"Tenant Permission Set");
         CreateNewTenantPermissionSet(OldRoleID);
         LibraryE2EPlanPermissions.SetBusinessManagerPlan();
+        LibraryLowerPermissions.AddSecurity();
 
         // [GIVEN] Open page "Permission Sets"
         PermissionSets.OpenEdit();
@@ -551,11 +560,11 @@ codeunit 134612 "Test Editing Permissions"
         OldRoleID := LibraryUtility.GenerateRandomCode20(TenantPermissionSet.FieldNo("Role ID"), DATABASE::"Tenant Permission Set");
         NewRoleID := LibraryUtility.GenerateRandomCode20(TenantPermissionSet.FieldNo("Role ID"), DATABASE::"Tenant Permission Set");
         CreateNewTenantPermissionSet(OldRoleID);
-        LibraryE2EPlanPermissions.SetBusinessManagerPlan();
 
         // [GIVEN] Permission set "A" is used by a user
         AccessControl."Role ID" := OldRoleID;
         AccessControl.Insert();
+        LibraryE2EPlanPermissions.SetBusinessManagerPlan();
 
         // [GIVEN] Open page "Permission Sets"
         PermissionSets.OpenEdit();
@@ -776,69 +785,6 @@ codeunit 134612 "Test Editing Permissions"
         Assert.RecordIsEmpty(TenantPermissionSet);
     end;
 
-    local procedure AssertTenantPermissionSetEqualsPermissionSet(TenantPermissionSetRoleID: Code[20]; PermissionSetRoleID: Code[20])
-    var
-        FromPermissionSet: Record "Permission Set";
-        ToTenantPermissionSet: Record "Tenant Permission Set";
-        ZeroGUID: Guid;
-    begin
-        FromPermissionSet.Get(PermissionSetRoleID);
-        ToTenantPermissionSet.Get(ZeroGUID, TenantPermissionSetRoleID);
-        ToTenantPermissionSet.TestField(Name, FromPermissionSet.Name);
-    end;
-
-    local procedure AssertTenantPermissionsEqualPermissions(TenantPermissionSetRoleID: Code[20]; PermissionSetRoleID: Code[20])
-    begin
-        AssertTenantPermissionCountEqualsPermissionCount(TenantPermissionSetRoleID, PermissionSetRoleID);
-        AssertTenantPermissionValuesEqualPermissionValues(TenantPermissionSetRoleID, PermissionSetRoleID);
-    end;
-
-    local procedure AssertTenantPermissionCountEqualsPermissionCount(TenantPermissionSetRoleID: Code[20]; PermissionSetRoleID: Code[20])
-    var
-        FromPermission: Record Permission;
-        ToTenantPermission: Record "Tenant Permission";
-        ZeroGUID: Guid;
-    begin
-        FromPermission.SetRange("Role ID", PermissionSetRoleID);
-        Assert.RecordIsNotEmpty(FromPermission);
-
-        ToTenantPermission.SetRange("App ID", ZeroGUID);
-        ToTenantPermission.SetRange("Role ID", TenantPermissionSetRoleID);
-        Assert.RecordIsNotEmpty(ToTenantPermission);
-
-        Assert.RecordCount(ToTenantPermission, FromPermission.Count);
-    end;
-
-    local procedure AssertTenantPermissionValuesEqualPermissionValues(TenantPermissionSetRoleID: Code[20]; PermissionSetRoleID: Code[20])
-    var
-        FromPermission: Record Permission;
-        ToTenantPermission: Record "Tenant Permission";
-        ZeroGUID: Guid;
-    begin
-        FromPermission.SetRange("Role ID", PermissionSetRoleID);
-        FromPermission.FindSet();
-
-        ToTenantPermission.SetRange("App ID", ZeroGUID);
-        ToTenantPermission.SetRange("Role ID", TenantPermissionSetRoleID);
-        ToTenantPermission.FindSet();
-
-        repeat
-            AssertTenantPermissionSetupEqualsPermissionSetup(ToTenantPermission, FromPermission);
-        until (ToTenantPermission.Next() = 0) and (FromPermission.Next() = 0);
-    end;
-
-    local procedure AssertTenantPermissionSetupEqualsPermissionSetup(var ToTenantPermission: Record "Tenant Permission"; var FromPermission: Record Permission)
-    begin
-        ToTenantPermission.TestField("Object Type", FromPermission."Object Type");
-        ToTenantPermission.TestField("Object ID", FromPermission."Object ID");
-        ToTenantPermission.TestField("Read Permission", FromPermission."Read Permission");
-        ToTenantPermission.TestField("Insert Permission", FromPermission."Insert Permission");
-        ToTenantPermission.TestField("Modify Permission", FromPermission."Modify Permission");
-        ToTenantPermission.TestField("Delete Permission", FromPermission."Delete Permission");
-        ToTenantPermission.TestField("Execute Permission", FromPermission."Execute Permission");
-        ToTenantPermission.TestField("Security Filter", FromPermission."Security Filter");
-    end;
-
     local procedure AssertTenantPermissionSetEqualsTenantPermissionSet(ToTenantPermissionSetRoleID: Code[20]; FromTenantPermissionSetRoleID: Code[20]; FromTenantPermissionSetAppID: Guid)
     var
         FromTenantPermissionSet: Record "Tenant Permission Set";
@@ -940,10 +886,6 @@ codeunit 134612 "Test Editing Permissions"
     begin
         ChangedPermissionSetList.First();
         ChangedPermissionSetList."Permission Set ID".AssertEquals(LibraryVariableStorage.DequeueText()); // the permission set that changed
-        ChangedPermissionSetList."Linked Permission Set ID".AssertEquals(LibraryVariableStorage.DequeueText());
-
-        ChangedPermissionSetList.Last();
-        ChangedPermissionSetList."Permission Set ID".AssertEquals(LibraryVariableStorage.DequeueText()); // the permission set that was deleted
         ChangedPermissionSetList."Linked Permission Set ID".AssertEquals(LibraryVariableStorage.DequeueText());
 
         ChangedPermissionSetList.FILTER.SetFilter("Permission Set ID", LibraryVariableStorage.DequeueText()); // the permission set that did not change

@@ -1401,11 +1401,26 @@ codeunit 131300 "Library - ERM"
 
     procedure CreateVATPostingSetup(var VATPostingSetup: Record "VAT Posting Setup"; VATBusPostingGroup: Code[20]; VATProdPostingGroup: Code[20])
     var
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
         Handled: Boolean;
     begin
         OnBeforeCreateVATPostingSetup(VATPostingSetup, Handled);
         if Handled then
             exit;
+
+        if (VATBusPostingGroup <> '') and not VATBusinessPostingGroup.Get(VATBusPostingGroup) then begin
+            VATBusinessPostingGroup.Init();
+            VATBusinessPostingGroup.Validate(Code, VATBusPostingGroup);
+            VATBusinessPostingGroup.Validate(Description, VATBusPostingGroup);
+            VATBusinessPostingGroup.Insert(true);
+        end;
+        if (VATProdPostingGroup <> '') and not VATProductPostingGroup.Get(VATProdPostingGroup) then begin
+            VATProductPostingGroup.Init();
+            VATProductPostingGroup.Validate(Code, VATProdPostingGroup);
+            VATProductPostingGroup.Validate(Description, VATProdPostingGroup);
+            VATProductPostingGroup.Insert(true);
+        end;
 
         VATPostingSetup.Init();
         VATPostingSetup.Validate("VAT Bus. Posting Group", VATBusPostingGroup);

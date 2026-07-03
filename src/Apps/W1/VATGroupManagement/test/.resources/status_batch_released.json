@@ -3,11 +3,11 @@
 		{
 			"id": 1,
 			"status": 200,
-			"body" : {
+			"body": {
 				"value": [
 					{
-						"no": "VAT-RETURN-1",
-						"status": "Released"
+						"no": "MEMBER_CODE_1",
+						"status": "Closed"
 					}
 				]
 			}
@@ -18,8 +18,82 @@
 			"body": {
 				"value": [
 					{
-						"no": "VAT-RETURN-2",
-						"status": "Released"
+						"no": "MEMBER_CODE_2",
+						"status": "Accepted"
+					}
+				]
+			}
+		},
+		{
+			"id": 3,
+			"status": 200,
+			"body": {
+				"value": [
+					{
+						"no": "MEMBER_CODE_3",
+						"status": "Canceled"
+					}
+				]
+			}
+		},
+		{
+			"id": 4,
+			"status": 200,
+			"body": {
+				"value": [
+					{
+						"no": "MEMBER_CODE_4",
+						"status": "Rejected"
+					}
+				]
+			}
+		},
+		{
+			"id": 5,
+			"status": 200,
+			"body": {
+				"value": [
+					{
+						"no": "MEMBER_CODE_5",
+						"status": "Rejected"
+					}
+				]
+			}
+		},
+		{
+			"id": 6,
+			"status": 200,
+			"body": {
+				"value": [
+					{
+						"no": "MEMBER_CODE_6",
+						"status": "Rejected"
+					}
+				]
+			}
+		},
+		{
+			"id": 7,
+			"status": 200,
+			"body": {
+				"value": []
+			}
+		},
+		{
+			"id": 8,
+			"status": 200,
+			"body": {
+				"value": []
+			}
+		},
+		{
+			"id": 9,
+			"status": 200,
+			"body": {
+				"value": [
+					{
+						"no": "MEMBER_CODE_9",
+						"status": "Canceled"
 					}
 				]
 			}
