@@ -981,6 +981,7 @@ codeunit 7017 "Price List Management"
         PriceWorksheetLine."Existing Direct Unit Cost" := FromPriceListLine."Direct Unit Cost";
         PriceWorksheetLine."Existing Unit Cost" := FromPriceListLine."Unit Cost";
         PriceWorksheetLine.Validate("Existing Line", not CreateNewLine);
+        PriceWorksheetLine."Line No." := 0;
         OnCopyToWorksheetLineOnBeforeInsert(PriceWorksheetLine, FromPriceListLine);
         PriceWorksheetLine.Insert(true);
     end;

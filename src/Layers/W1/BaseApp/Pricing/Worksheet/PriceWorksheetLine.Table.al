@@ -39,7 +39,6 @@ table 7022 "Price Worksheet Line"
         {
             Caption = 'Line No.';
             DataClassification = CustomerContent;
-            AutoIncrement = true;
         }
         field(3; "Source Type"; Enum "Price Source Type")
         {
@@ -693,6 +692,20 @@ table 7022 "Price Worksheet Line"
     begin
         if "Price List Code" = '' then
             "Price List Code" := PriceListManagement.GetDefaultPriceListCode("Price Type", "Source Group", false);
+        if "Line No." = 0 then
+            SetNextLineNo();
+    end;
+
+    procedure SetNextLineNo()
+    var
+        PriceWorksheetLine: Record "Price Worksheet Line";
+    begin
+        "Line No." := 10000;
+        PriceWorksheetLine.SetLoadFields("Line No.");
+        PriceWorksheetLine.SetRange("Price List Code", "Price List Code");
+        PriceWorksheetLine.SetRange("Existing Line", "Existing Line");
+        if PriceWorksheetLine.FindLast() then
+            "Line No." += PriceWorksheetLine."Line No.";
     end;
 
     protected var

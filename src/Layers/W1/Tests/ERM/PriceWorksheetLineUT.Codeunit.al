@@ -553,6 +553,47 @@ codeunit 134198 "Price Worksheet Line UT"
     end;
 
     [Test]
+    procedure T019b_LineNoAssignedPerPriceListCodeInStepsOf10000()
+    var
+        PriceListHeader: Record "Price List Header";
+        PriceWorksheetLine: Record "Price Worksheet Line";
+    begin
+        // [SCENARIO 638184] Price Worksheet Line "Line No." is assigned per Price List Code in steps of 10000 instead of a global AutoIncrement identity.
+        Initialize();
+
+        // [GIVEN] A Price List Header
+        LibraryPriceCalculation.CreatePriceHeader(
+            PriceListHeader, "Price Type"::Sale, "Price Source Type"::"All Customers", '');
+
+        // [WHEN] Inserting three worksheet lines under the header
+        // [THEN] Their "Line No." values are 10000, 20000, 30000
+        PriceWorksheetLine.Init();
+        PriceWorksheetLine."Price List Code" := PriceListHeader.Code;
+        PriceWorksheetLine.Insert(true);
+        Assert.AreEqual(10000, PriceWorksheetLine."Line No.", 'First worksheet line must be numbered 10000.');
+
+        PriceWorksheetLine.Init();
+        PriceWorksheetLine."Price List Code" := PriceListHeader.Code;
+        PriceWorksheetLine.Insert(true);
+        Assert.AreEqual(20000, PriceWorksheetLine."Line No.", 'Second worksheet line must be numbered 20000.');
+
+        PriceWorksheetLine.Init();
+        PriceWorksheetLine."Price List Code" := PriceListHeader.Code;
+        PriceWorksheetLine.Insert(true);
+        Assert.AreEqual(30000, PriceWorksheetLine."Line No.", 'Third worksheet line must be numbered 30000.');
+
+        // [WHEN] Deleting all lines and inserting again
+        PriceWorksheetLine.SetRange("Price List Code", PriceListHeader.Code);
+        PriceWorksheetLine.DeleteAll();
+        PriceWorksheetLine.Init();
+        PriceWorksheetLine."Price List Code" := PriceListHeader.Code;
+        PriceWorksheetLine.Insert(true);
+
+        // [THEN] Numbering restarts at 10000 (no global identity carry-over)
+        Assert.AreEqual(10000, PriceWorksheetLine."Line No.", 'Numbering must restart at 10000 after deleting all lines.');
+    end;
+
+    [Test]
     procedure T020_InsertNewLineDoesNotControlConsistency()
     var
         TempPriceWorksheetLine: Record "Price Worksheet Line" temporary;
