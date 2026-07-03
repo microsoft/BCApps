@@ -481,11 +481,11 @@ report 1701 "Deferral Summary - Sales"
         DocumentFilter := NewDocumentNoFilter;
     end;
 
-    local procedure ReturnSalesDocTypeString(SalesDocType: Integer) Result: Text
+    local procedure ReturnSalesDocTypeString(SalesDocType: Integer): Text
     var
+        Result: Text;
         IsHandled: Boolean;
     begin
-        IsHandled := false;
         OnBeforeReturnSalesDocTypeString(SalesDocType, Result, IsHandled);
         if IsHandled then
             exit(Result);
