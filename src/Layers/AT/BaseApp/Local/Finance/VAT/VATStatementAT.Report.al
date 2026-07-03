@@ -543,7 +543,7 @@ report 11110 "VAT Statement AT"
         then
             Error(TaxFreeBiggerErr);
 
-        if (Position[22] + Position[29] + Position[6] + Position[37] + Position[52] + Position[7] + Position[9]) <>
+        if (Position[22] + Position[29] + Position[6] + Position[37] + Position[52] + Position[7] + Position[9] + Position[124]) <>
            (Position[1000] + Position[1001] - Position[1021]) -
            (Position[1011] + Position[1012] + Position[1015] + Position[1017] +
             Position[1018] + Position[1019] + Position[1016] + Position[1020])
@@ -556,7 +556,7 @@ report 11110 "VAT Statement AT"
         if Position[71] > Position[70] then
             Error(TaxFreeECBiggerErr);
 
-        if Position[70] - Position[71] <> Position[72] + Position[73] + Position[8] + Position[88] + Position[10] then
+        if Position[70] - Position[71] <> Position[72] + Position[73] + Position[8] + Position[88] + Position[10] + Position[125] then
             Error(TaxableRevDiffersErr);
 
         if ((Position[1057] = 0) and (Position[1066] <> 0)) or ((Position[1057] <> 0) and (Position[1066] = 0)) then
@@ -816,6 +816,7 @@ report 11110 "VAT Statement AT"
 
         XMLFile.Write('<VERSTEUERT>');
         WriteXMLNodeForPosition(22, 'KZ022');
+        WriteXMLNodeForPosition(124, 'KZ124');
         WriteXMLNodeForPosition(29, 'KZ029');
         WriteXMLNodeForPosition(6, 'KZ006');
         WriteXMLNodeForPosition(37, 'KZ037');
@@ -839,6 +840,7 @@ report 11110 "VAT Statement AT"
 
         XMLFile.Write('<VERSTEUERT_IGE>');
         WriteXMLNodeForPosition(72, 'KZ072');
+        WriteXMLNodeForPosition(125, 'KZ125');
         WriteXMLNodeForPosition(73, 'KZ073');
         WriteXMLNodeForPosition(8, 'KZ008');
         WriteXMLNodeForPosition(88, 'KZ088');
