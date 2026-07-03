@@ -1,3 +1,4 @@
+#if not CLEAN28
 codeunit 144028 "ERM FA Derogatory Depreciation"
 {
     // // [FEATURE] [Fixed Asset] [Derogatory]
@@ -41,6 +42,9 @@ codeunit 144028 "ERM FA Derogatory Depreciation"
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
+    ObsoleteReason = 'Moved to W1 Base Application';
 
     trigger OnRun()
     begin
@@ -608,7 +612,7 @@ codeunit 144028 "ERM FA Derogatory Depreciation"
     [Scope('OnPrem')]
     procedure PrintFASetupFixedAssetBookValue02RequestPageHandler(var FixedAssetBookValue02: TestRequestPage "Fixed Asset - Book Value 02")
     begin
-        FixedAssetBookValue02.PrintFASetup.SetValue(true);
+        FixedAssetBookValue02.Print_FASetup.SetValue(true);
         FixedAssetBookValue02.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
@@ -623,7 +627,7 @@ codeunit 144028 "ERM FA Derogatory Depreciation"
     [Scope('OnPrem')]
     procedure PrintFASetupFixedAssetBookValue01RequestPageHandler(var FixedAssetBookValue01: TestRequestPage "Fixed Asset - Book Value 01")
     begin
-        FixedAssetBookValue01.PrintFASetup.SetValue(true);
+        FixedAssetBookValue01.Print_FASetup.SetValue(true);
         FixedAssetBookValue01.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 
@@ -644,4 +648,4 @@ codeunit 144028 "ERM FA Derogatory Depreciation"
         Reply := true;
     end;
 }
-
+#endif

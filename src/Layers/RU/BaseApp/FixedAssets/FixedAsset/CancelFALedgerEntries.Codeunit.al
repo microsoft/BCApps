@@ -22,7 +22,7 @@ codeunit 5624 "Cancel FA Ledger Entries"
         GenJnlLine: Record "Gen. Journal Line";
         FAJnlLine: Record "FA Journal Line";
         FA: Record "Fixed Asset";
-        GLIntegration: array[9] of Boolean;
+        GLIntegration: array[13] of Boolean;
         FAJnlNextLineNo: Integer;
         GenJnlNextLineNo: Integer;
         DeprBookCode: Code[10];
@@ -96,7 +96,8 @@ codeunit 5624 "Cancel FA Ledger Entries"
         if IsHandled then
             exit;
 
-        if (FALedgEntry."FA Posting Type".AsInteger() > FALedgEntry."FA Posting Type"::"Salvage Value".AsInteger()) or
+        if ((FALedgEntry."FA Posting Type".AsInteger() > FALedgEntry."FA Posting Type"::"Salvage Value".AsInteger()) and
+            (FALedgEntry."FA Posting Type".AsInteger() <> FALedgEntry."FA Posting Type"::Derogatory.AsInteger())) or
                (FALedgEntry."FA Posting Category" <> FALedgEntry."FA Posting Category"::" ")
         then begin
             FALedgEntry."FA Posting Type" := FALedgEntry."FA Posting Type"::"Proceeds on Disposal";

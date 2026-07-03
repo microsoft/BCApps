@@ -26,6 +26,40 @@ report 5692 "Calculate Depreciation"
         dataitem("Fixed Asset"; "Fixed Asset")
         {
             RequestFilterFields = "No.", "FA Class Code", "FA Subclass Code", "Budgeted Asset";
+            dataitem(CalcDerogDepr; "Fixed Asset")
+            {
+                DataItemLink = "No." = field("No.");
+                DataItemTableView = sorting("No.");
+
+                trigger OnAfterGetRecord()
+                begin
+                    if not HasDerogatorySetup then
+                        CurrReport.Skip();
+
+                    CalculateDepr.Calculate(
+                      DeprAmount, Custom1Amount, NumberOfDays, Custom1NumberOfDays,
+                      "No.", DeprBook2.Code, DeprUntilDate, EntryAmounts, 0D, DaysInPeriod);
+
+                    if DeprAmount2 <> 0 then
+                        if not DeprBook."Integration G/L - Derogatory" or "Budgeted Asset" then begin
+                            TempFAJnlLine."FA No." := "No.";
+                            TempFAJnlLine."FA Posting Type" := TempFAJnlLine."FA Posting Type"::Derogatory;
+                            TempFAJnlLine.Amount := CalcDerogDeprAmount(DeprAmount, DeprAmount2);
+                            TempFAJnlLine."No. of Depreciation Days" := NumberOfDays;
+                            TempFAJnlLine."FA Error Entry No." := ErrorNo;
+                            TempFAJnlLine."Line No." := TempFAJnlLine."Line No." + 1;
+                            TempFAJnlLine.Insert();
+                        end else begin
+                            TempGenJnlLine."Account No." := "No.";
+                            TempGenJnlLine."FA Posting Type" := TempGenJnlLine."FA Posting Type"::Derogatory;
+                            TempGenJnlLine.Amount := CalcDerogDeprAmount(DeprAmount, DeprAmount2);
+                            TempGenJnlLine."No. of Depreciation Days" := NumberOfDays;
+                            TempGenJnlLine."FA Error Entry No." := ErrorNo;
+                            TempGenJnlLine."Line No." := TempGenJnlLine."Line No." + 1;
+                            TempGenJnlLine.Insert();
+                        end;
+                end;
+            }
 
             trigger OnAfterGetRecord()
             begin
@@ -33,6 +67,12 @@ report 5692 "Calculate Depreciation"
                     CurrReport.Skip();
 
                 CalculateDepr.DepreciationBonus(DeprBonus);
+
+                HasDerogatorySetup := false;
+                FADeprBook.SetRange("FA No.", "No.");
+                FADeprBook.SetRange("Depreciation Book Code", DeprBook2.Code);
+                if FADeprBook.Find('-') then
+                    HasDerogatorySetup := true;
 
                 OnBeforeCalculateDepreciation(
                     "No.", TempGenJnlLine, TempFAJnlLine, DeprAmount, NumberOfDays, DeprBookCode, DeprUntilDate, EntryAmounts, DaysInPeriod);
@@ -106,6 +146,10 @@ report 5692 "Calculate Depreciation"
                         TempGenJnlLine."Tax Difference Code" := "Tax Difference Code";
                         TempGenJnlLine.Insert();
                     end;
+
+                if HasDerogatorySetup then
+                    DeprAmount2 := DeprAmount;
+
             end;
 
             trigger OnPostDataItem()
@@ -460,7 +504,14 @@ report 5692 "Calculate Depreciation"
         GeneralLedgerSetup.Get();
         FASetup.Get();
 
+        Clear(DeprBook2);
         DeprBook.Get(DeprBookCode);
+
+        if DeprBook."Derogatory Calc." <> '' then
+            Error(Text10800, DeprBook.Code);
+        DeprBook2.SetRange("Derogatory Calc.", DeprBookCode);
+        if DeprBook2.Find('-') then;
+
         if DeprUntilDate = 0D then
             Error(Text000, FAJnlLine.FieldCaption("FA Posting Date"));
         if PostingDate = 0D then
@@ -492,6 +543,8 @@ report 5692 "Calculate Depreciation"
         FAJnlSetup: Record "FA Journal Setup";
         GLSetup: Record "General Ledger Setup";
         GeneralLedgerSetup: Record "General Ledger Setup";
+        DeprBook2: Record "Depreciation Book";
+        FADeprBook: Record "FA Depreciation Book";
         CalculateDepr: Codeunit "Calculate Depreciation";
         FAInsertGLAcc: Codeunit "FA Insert G/L Account";
         ErrorMessageMgt: Codeunit "Error Message Management";
@@ -510,6 +563,8 @@ report 5692 "Calculate Depreciation"
         GenJnlNextLineNo: Integer;
         EntryAmounts: array[4] of Decimal;
         LineNo: Integer;
+        DeprAmount2: Decimal;
+        HasDerogatorySetup: Boolean;
         FAJnlLineCreatedCount: Integer;
         GenJnlLineCreatedCount: Integer;
         DeprUntilDateModified: Boolean;
@@ -552,7 +607,10 @@ report 5692 "Calculate Depreciation"
 #pragma warning restore AA0074
 #pragma warning disable AA0074
         Text006: Label 'Use Force No. of Days must be activated.';
-#pragma warning restore AA0074
+#pragma warning disable AA0470
+        Text10800: Label 'Depreciation cannot be posted on depreciation book %1 because it is set up as derogatory.';
+#pragma warning restore AA0074         
+#pragma warning restore AA0470
         Details: Boolean;
 #pragma warning disable AA0074
         Text12411: Label 'DP-';
@@ -623,6 +681,12 @@ report 5692 "Calculate Depreciation"
 
         if GuiAllowed then
             ErrorMessageMgt.Activate(ErrorMessageHandler);
+    end;
+
+    [Scope('OnPrem')]
+    procedure CalcDerogDeprAmount(Amount1: Decimal; Amount2: Decimal): Decimal
+    begin
+        exit(Amount1 - Amount2);
     end;
 
     procedure InitializeRequest2(NewDeprBookCode: Code[10]; NewPostingDate: Date; NewDeprUntilDate: Date; NewDocumentNo: Code[20]; NewPostingDescription: Text[100]; NewUseForceNoOfDays: Boolean; NewDaysInPeriod: Integer; NewBalAccount: Boolean; ChangeDetails: Boolean; NewDeprBonus: Boolean)
