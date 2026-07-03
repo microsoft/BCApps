@@ -2419,6 +2419,7 @@ page 21 "Customer Card"
         ActivateFields();
         SetCreditLimitStyle();
 
+        Rec.SetRange("Date Filter", 0D, WorkDate());
         if CRMIntegrationEnabled or CDSIntegrationEnabled then begin
             CRMIsCoupledToRecord := CRMCouplingManagement.IsRecordCoupledToCRM(Rec.RecordId);
             if Rec."No." <> xRec."No." then
@@ -2470,8 +2471,6 @@ page 21 "Customer Card"
     begin
         OnBeforeOnOpenPage(Rec);
 
-        if Rec.GetFilter("Date Filter") = '' then
-            Rec.SetRange("Date Filter", 0D, WorkDate());
         if GuiAllowed() then
             OnOpenPageFunc()
         else
