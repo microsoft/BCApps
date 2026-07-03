@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.OrderMatch.Copilot;
 using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.EServices.EDocument.Processing.Import.Sales;
 using Microsoft.eServices.EDocument.Service.Participant;
 
 permissionset 6101 "E-Doc. Core - Read"
@@ -55,6 +56,10 @@ permissionset 6101 "E-Doc. Core - Read"
         tabledata "EDoc Historical Matching Setup" = R,
 #pragma warning restore AL0432
 #endif
-        tabledata "E-Doc. Record Link" = R;
-    #endregion Purchase draft        
+        tabledata "E-Doc. Record Link" = R,
+    #endregion Purchase draft
+    #region Sales draft
+        tabledata "E-Document Sales Header" = R,
+        tabledata "E-Document Sales Line" = R;
+    #endregion Sales draft
 }

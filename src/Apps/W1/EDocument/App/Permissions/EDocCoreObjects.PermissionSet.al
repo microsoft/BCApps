@@ -15,6 +15,7 @@ using Microsoft.EServices.EDocument.OrderMatch;
 using Microsoft.EServices.EDocument.OrderMatch.Copilot;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.EServices.EDocument.Processing.Import.Sales;
 using Microsoft.eServices.EDocument.Service;
 using Microsoft.eServices.EDocument.Service.Participant;
 
@@ -43,6 +44,8 @@ permissionset 6100 "E-Doc. Core - Objects"
         table "E-Document Line Mapping" = X,
         table "E-Document Purchase Header" = X,
         table "E-Document Purchase Line" = X,
+        table "E-Document Sales Header" = X,
+        table "E-Document Sales Line" = X,
         table "E-Document Line - Field" = X,
         table "ED Purchase Line Field Setup" = X,
         table "E-Doc Sample Purch. Inv File" = X,
@@ -122,6 +125,8 @@ permissionset 6100 "E-Doc. Core - Objects"
         page "E-Doc. Read. Purch. Lines" = X,
         page "E-Doc. Readable Purchase Doc." = X,
         page "E-Document Purchase Draft" = X,
+        page "E-Document Sales Draft" = X,
+        page "E-Doc. Sales Draft Subform" = X,
         page "Inbound E-Doc. Factbox" = X,
         page "Inbound E-Documents" = X,
         page "Outbound E-Doc. Factbox" = X,
@@ -146,6 +151,11 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "Integration Action Status" = X,
         codeunit "Mark Fetched" = X,
         codeunit "Prepare Purchase E-Doc. Draft" = X,
+        codeunit "Prepare Sales E-Doc. Draft" = X,
+        codeunit "EDoc Prepare Sales Draft" = X,
+        codeunit "E-Doc. Sales Providers" = X,
+        codeunit "E-Doc. Create Sales Order" = X,
+        codeunit "E-Doc. Sales Doc. Helper" = X,
         codeunit "Receive Documents" = X,
         codeunit ReceiveContext = X,
         codeunit "Send Runner" = X,

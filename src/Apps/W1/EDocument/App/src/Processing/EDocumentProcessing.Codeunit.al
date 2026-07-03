@@ -242,6 +242,12 @@ codeunit 6108 "E-Document Processing"
     procedure GetLines(EDocument: Record "E-Document"; var SourceDocumentLines: RecordRef)
     begin
         case EDocument."Document Type" of
+            EDocument."Document Type"::"Sales Order":
+                begin
+                    SourceDocumentLines.Open(Database::"Sales Line");
+                    SourceDocumentLines.Field(1).SetFilter('%1|%2', "Sales Document Type"::Order, "Sales Document Type"::"Blanket Order");
+                    SourceDocumentLines.Field(2).SetRange(EDocument."Document No.");
+                end;
             EDocument."Document Type"::"Sales Invoice":
                 begin
                     SourceDocumentLines.Open(Database::"Sales Invoice Line");
