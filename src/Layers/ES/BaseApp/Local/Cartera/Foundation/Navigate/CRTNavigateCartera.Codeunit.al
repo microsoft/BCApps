@@ -12,10 +12,10 @@ using Microsoft.Finance.VAT.Ledger;
 using Microsoft.FixedAssets.Insurance;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
-using Microsoft.Inventory.Counting.History;
 using Microsoft.Projects.Project.Ledger;
 using Microsoft.Projects.Resources.Ledger;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Payables;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
@@ -150,7 +150,6 @@ codeunit 7000115 "CRTNavigateCartera"
         RemoveDocumentEntry(DocumentEntry, Database::"FA Ledger Entry");
         RemoveDocumentEntry(DocumentEntry, Database::"Maintenance Ledger Entry");
         RemoveDocumentEntry(DocumentEntry, Database::"Ins. Coverage Ledger Entry");
-        RemoveDocumentEntry(DocumentEntry, Database::"Phys. Inventory Ledger Entry");
         RemoveDocumentEntry(DocumentEntry, Database::"Res. Ledger Entry");
         RemoveDocumentEntry(DocumentEntry, Database::"Job Ledger Entry");
     end;

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sales.Receivables;
 
-pageextension 7000111 "CRTApplyCustomerEntries" extends "Apply Customer Entries"
+pageextension 7000191 "CRTApplyCustomerEntries" extends "Apply Customer Entries"
 {
     layout
     {

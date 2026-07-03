@@ -4,7 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Payables;
 
-codeunit 7000108 "CRTVendEntryApplyPostedEntries"
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Posting;
+
+codeunit 7000188 "CRTVendEntryApplyPostedEntries"
 {
     var
         ApplicationEntryDescriptionLbl: Label 'Application of %1 %2';
@@ -24,7 +27,7 @@ codeunit 7000108 "CRTVendEntryApplyPostedEntries"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"VendEntry-Apply Posted Entries", 'OnBeforePostApplyVendLedgEntry', '', false, false)]
-    local procedure OnBeforePostApplyVendLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntry: Record "Vendor Ledger Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; ApplyUnapplyParameters: Record "Apply Unapply Parameters")
+    local procedure OnBeforePostApplyVendLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntry: Record "Vendor Ledger Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
         if VendorLedgerEntry."Document Type" <> VendorLedgerEntry."Document Type"::Bill then
             GenJournalLine.Description := StrSubstNo(ApplicationEntryDescriptionLbl, VendorLedgerEntry."Document Type", VendorLedgerEntry."Document No.")

@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.RoleCenters;
 
-using Microsoft.Bank.Reports;
-using Microsoft.Sales.History;
-using Microsoft.Sales.Payables;
-using Microsoft.Sales.Reports;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Reports;
 
 pageextension 7000173 "CRT Acc. Payables Coord. RC" extends "Acc. Payables Coordinator RC"
 {
