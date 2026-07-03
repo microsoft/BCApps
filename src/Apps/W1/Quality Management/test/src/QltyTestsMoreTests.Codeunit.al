@@ -29,7 +29,6 @@ using Microsoft.Sales.Document;
 using Microsoft.Test.QualityManagement.TestLibraries;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.Ledger;
-using System.Environment.Configuration;
 using System.Reflection;
 using System.TestLibraries.Utilities;
 using System.Threading;
@@ -2116,23 +2115,13 @@ codeunit 139965 "Qlty. Tests - More Tests"
     [Test]
     procedure ApplicationAreaMgmt_IsQualityManagementApplicationAreaEnabled()
     var
-        AllProfile: Record "All Profile";
-        ApplicationAreaSetup: Record "Application Area Setup";
-        ConfPersonalizationMgt: Codeunit "Conf./Personalization Mgt.";
-        ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
     begin
         // [SCENARIO] Quality Management application area is enabled by default on Essential experience
         Initialize();
 
-        // [GIVEN] Application Area Setup exists or is created for current company and user
-        if not ApplicationAreaMgmtFacade.GetApplicationAreaSetupRecFromCompany(ApplicationAreaSetup, CompanyName()) then begin
-            ApplicationAreaSetup.Init();
-            ApplicationAreaSetup."Company Name" := CopyStr(CompanyName(), 1, MaxStrLen(ApplicationAreaSetup."Company Name"));
-            ApplicationAreaSetup."User ID" := CopyStr(UserId(), 1, MaxStrLen(ApplicationAreaSetup."User ID"));
-            ConfPersonalizationMgt.GetCurrentProfileNoError(AllProfile);
-            ApplicationAreaSetup."Profile ID" := CopyStr(AllProfile."Profile ID", 1, MaxStrLen(ApplicationAreaSetup."Profile ID"));
-            ApplicationAreaSetup.Insert();
-        end;
+        // [GIVEN] Essential experience is active for the current company
+        LibraryApplicationArea.EnableEssentialSetup();
 
         // [WHEN] Checking if Quality Management application area is enabled
         // [THEN] The application area is enabled
