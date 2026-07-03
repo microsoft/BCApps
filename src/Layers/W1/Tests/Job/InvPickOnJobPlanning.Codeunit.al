@@ -1349,7 +1349,7 @@ codeunit 136317 "Inv. Pick On Job Planning"
         OpenJobAndCreateInventoryPick(Job);
 
         // [THEN] Make sure 2 lines are created
-        WarehouseActivityLinePick.SetRange("Source Type", Database::Job);
+        WarehouseActivityLinePick.SetRange("Source Type", Database::"Job Planning Line");
         WarehouseActivityLinePick.SetRange("Source Document", WarehouseActivityLinePick."Source Document"::"Job Usage");
         WarehouseActivityLinePick.SetRange("Source No.", Job."No.");
         Assert.RecordCount(WarehouseActivityLinePick, 2);
