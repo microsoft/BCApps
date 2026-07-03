@@ -1623,6 +1623,9 @@ table 20405 "Qlty. Inspection Header"
         if not QltyInspectionResult.Get(Rec."Result Code") then
             exit;
 
+        if (Rec."Sample Size" > Rec."Source Quantity (Base)") and (Rec."Source Quantity (Base)" > 0) then
+            exit;
+
         if Rec."Sample Size" > 0 then
             QuantityToApply := Rec."Sample Size"
         else
