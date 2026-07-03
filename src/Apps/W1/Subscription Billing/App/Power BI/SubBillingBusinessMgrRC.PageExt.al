@@ -8,12 +8,12 @@ pageextension 8124 "Sub. Billing Business Mgr RC" extends "Business Manager Role
     {
         addlast("PBI Reports")
         {
-            group("Subscription Billing Reports")
+            group("Subscription Billing Reports (Power BI)")
             {
                 Caption = 'Subscription Billing';
                 Image = PowerBI;
                 ToolTip = 'Power BI reports for subscription billing.';
-                action("Subscription Billing Report")
+                action("Subscription Billing Report (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Subscription Billing Report';
@@ -21,7 +21,7 @@ pageextension 8124 "Sub. Billing Business Mgr RC" extends "Business Manager Role
                     RunObject = page "Sub. Billing Report Power BI";
                     ToolTip = 'The Subscription Billing Report offers a consolidated view of all subscription report pages, conveniently embedded into a single page for easy access.';
                 }
-                action("Subscription Overview")
+                action("Subscription Overview (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Subscription Overview';
@@ -29,7 +29,7 @@ pageextension 8124 "Sub. Billing Business Mgr RC" extends "Business Manager Role
                     RunObject = page "Subscription Overview Power BI";
                     ToolTip = 'The Subscription Overview provides a comprehensive view of subscription performance, offering insights into metrics such as Monthly Recurring Revenue, Total Contract Value, Churn and top-performing customers or vendors.';
                 }
-                action("Revenue YoY")
+                action("Revenue YoY (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Revenue YoY';
@@ -37,7 +37,7 @@ pageextension 8124 "Sub. Billing Business Mgr RC" extends "Business Manager Role
                     RunObject = page "Revenue YoY Power BI";
                     ToolTip = 'The Revenue YoY report compares Monthly Recurring Revenue performance across a year-over-year period.';
                 }
-                action("Revenue Analysis")
+                action("Revenue Analysis (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Revenue Analysis';
@@ -45,7 +45,7 @@ pageextension 8124 "Sub. Billing Business Mgr RC" extends "Business Manager Role
                     RunObject = page "Revenue Analysis Power BI";
                     ToolTip = 'The Revenue Analysis report breaks down Monthly Recurring Revenue by various dimension such as billing rhythm, contract type or customer.';
                 }
-                action("Revenue Development")
+                action("Revenue Development (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Revenue Development';
@@ -53,7 +53,7 @@ pageextension 8124 "Sub. Billing Business Mgr RC" extends "Business Manager Role
                     RunObject = page "Revenue Development Power BI";
                     ToolTip = 'The Revenue Development report shows the change in monthly recurring revenue and helps to identify its various sources such as churn, downgrades, new subscriptions or upgrades.';
                 }
-                action("Churn Analysis")
+                action("Churn Analysis (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Churn Analysis';
@@ -61,7 +61,7 @@ pageextension 8124 "Sub. Billing Business Mgr RC" extends "Business Manager Role
                     RunObject = page "Churn Analysis Power BI";
                     ToolTip = 'The Churn Analysis report breaks down churn by various dimensions such as contract term, contract type or product.';
                 }
-                action("Revenue by Item")
+                action("Revenue by Item (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Revenue by Item';
@@ -69,7 +69,7 @@ pageextension 8124 "Sub. Billing Business Mgr RC" extends "Business Manager Role
                     RunObject = page "Revenue by Item Power BI";
                     ToolTip = 'The Revenue by Item report breaks down subscription performance by item category, highlighting metrics such as Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit Amount and Monthly Net Profit %. This report provides detailed insights into which categories and items are driving subscription revenue and profitability.';
                 }
-                action("Revenue by Customer")
+                action("Revenue by Customer (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Revenue by Customer';
@@ -77,7 +77,7 @@ pageextension 8124 "Sub. Billing Business Mgr RC" extends "Business Manager Role
                     RunObject = page "Revenue by Customer Power BI";
                     ToolTip = 'The Revenue by Customer report breaks down subscription performance by customer and item, highlighting metrics such as Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit Amount and Monthly Net Profit %. This report provides detailed insights into which customers and items are driving subscription revenue and profitability.';
                 }
-                action("Revenue by Salesperson")
+                action("Revenue by Salesperson (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Revenue by Salesperson';
@@ -85,7 +85,7 @@ pageextension 8124 "Sub. Billing Business Mgr RC" extends "Business Manager Role
                     RunObject = page "Rev. by Salesperson Power BI";
                     ToolTip = 'The Revenue by Salesperson report breaks down subscription performance by Salesperson, highlighting metrics such as Monthly Recurring Revenue, Monthly Recurring Cost, Monthly Net Profit Amount and Churn.';
                 }
-                action("Total Contract Value YoY")
+                action("Total Contract Value YoY (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Total Contract Value YoY';
@@ -93,7 +93,7 @@ pageextension 8124 "Sub. Billing Business Mgr RC" extends "Business Manager Role
                     RunObject = page "Contract Value YoY Power BI";
                     ToolTip = 'The Total Contract Value YoY report compares the Total Contract Value and Active Customers across a year-over-year period.';
                 }
-                action("Total Contract Value Analysis")
+                action("Total Contract Value Analysis (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Total Contract Value Analysis';
@@ -101,7 +101,7 @@ pageextension 8124 "Sub. Billing Business Mgr RC" extends "Business Manager Role
                     RunObject = page "Contract Val Analysis Power BI";
                     ToolTip = 'The Total Contract Value Analysis report breaks down Total Contract Value by various dimension such as billing rhythm, contract type or customer.';
                 }
-                action("Customer Deferrals")
+                action("Customer Deferrals (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Customer Deferrals';
@@ -109,7 +109,7 @@ pageextension 8124 "Sub. Billing Business Mgr RC" extends "Business Manager Role
                     RunObject = page "Customer Deferrals Power BI";
                     ToolTip = 'The Customer Deferrals report provides an overview of deferred vs. released subscription sales amount.';
                 }
-                action("Vendor Deferrals")
+                action("Vendor Deferrals (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Vendor Deferrals';
@@ -117,7 +117,7 @@ pageextension 8124 "Sub. Billing Business Mgr RC" extends "Business Manager Role
                     RunObject = page "Vendor Deferrals Power BI";
                     ToolTip = 'The Vendor Deferrals report provides an overview of deferred vs. released subscription cost amount.';
                 }
-                action("Sales and Cost forecast")
+                action("Sales and Cost forecast (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Sales and Cost forecast';
@@ -125,7 +125,7 @@ pageextension 8124 "Sub. Billing Business Mgr RC" extends "Business Manager Role
                     RunObject = page "Sales Cost forecast Power BI";
                     ToolTip = 'The Sales and Cost forecast report provides the forecast of Monthly Recurring Revenue and Monthly Recurring Cost for the future months and years. This report provides detailed insights into which salespersons and customers are driving future subscription performance.';
                 }
-                action("Billing Schedule")
+                action("Billing Schedule (Power BI)")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Billing Schedule';
