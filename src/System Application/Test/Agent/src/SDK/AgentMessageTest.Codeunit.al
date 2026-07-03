@@ -193,6 +193,328 @@ codeunit 133963 "Agent Message Test"
         Assert.IsTrue(TempAgentTaskFile.IsEmpty(), 'No attachments should exist');
     end;
 
+#if not CLEAN29
+    [Test]
+    procedure UpdateTextDoesNotOverwriteUnrelatedFields()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskMessageRecord: Record "Agent Task Message";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalMessageText: Text;
+        UpdatedMessageText: Text;
+        OriginalFrom: Text[250];
+        ExternalIdTok: Label 'MSG-TEST-005', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] UpdateText with var record should only modify Content even when the caller's record has dirty field values
+
+        // [GIVEN] A test agent with a task and an output message in Sent status
+        OriginalFrom := 'Test User';
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalMessageText := Any.AlphanumericText(2048);
+
+        // Create task without message
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Update Text Test Task')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false);
+
+        // Directly insert a message with Type = Output and Status = Draft to mock agent runtime
+        AgentTaskMessageRecord."Task ID" := AgentTaskRecord.ID;
+        AgentTaskMessageRecord."Type" := AgentTaskMessageRecord."Type"::Output;
+        AgentTaskMessageRecord.Status := AgentTaskMessageRecord.Status::Draft;
+        AgentTaskMessageRecord.From := OriginalFrom;
+        AgentTaskMessageRecord.Insert();
+
+        AgentMessage.UpdateText(AgentTaskMessageRecord."Task ID", AgentTaskMessageRecord.ID, OriginalMessageText);
+
+        // Re-read the record to get the committed state
+        AgentTaskMessageRecord.Get(AgentTaskMessageRecord."Task ID", AgentTaskMessageRecord.ID);
+
+        // Modify a field on the local record variable without saving to DB
+        AgentTaskMessageRecord.From := 'Dirty Value';
+
+        // [WHEN] UpdateText is called with the dirty record via the old var-record overload
+        UpdatedMessageText := Any.AlphanumericText(2048);
+#pragma warning disable AL0432
+        AgentMessage.UpdateText(AgentTaskMessageRecord, UpdatedMessageText);
+#pragma warning restore AL0432
+
+        // [THEN] Only the Content should be updated; the dirty From value should not be persisted
+        AgentTaskMessageRecord.Get(AgentTaskMessageRecord."Task ID", AgentTaskMessageRecord.ID);
+        Assert.AreEqual(UpdatedMessageText, AgentMessage.GetText(AgentTaskMessageRecord), 'Message text should be updated');
+        Assert.AreEqual(OriginalFrom, AgentTaskMessageRecord.From, 'From field should not be overwritten by dirty record passed to UpdateText');
+    end;
+
+    [Test]
+    procedure SetStatusToSentDoesNotOverwriteUnrelatedFields()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskMessageRecord: Record "Agent Task Message";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalMessageText: Text;
+        OriginalFrom: Text[250];
+        ExternalIdTok: Label 'MSG-TEST-006', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] SetStatusToSent with var record should only modify Status even when the caller's record has dirty field values
+
+        // [GIVEN] A test agent with a task and an output message in Draft status
+        OriginalFrom := 'Test User';
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalMessageText := Any.AlphanumericText(2048);
+
+        // Create task without message
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'SetStatusToSent Test Task')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false);
+
+        // Directly insert a message with Type = Output and Status = Draft to mock agent runtime
+        AgentTaskMessageRecord."Task ID" := AgentTaskRecord.ID;
+        AgentTaskMessageRecord."Type" := AgentTaskMessageRecord."Type"::Output;
+        AgentTaskMessageRecord.Status := AgentTaskMessageRecord.Status::Draft;
+        AgentTaskMessageRecord.From := OriginalFrom;
+        AgentTaskMessageRecord.Insert();
+
+        AgentMessage.UpdateText(AgentTaskMessageRecord."Task ID", AgentTaskMessageRecord.ID, OriginalMessageText);
+        AgentTaskMessageRecord.Status := AgentTaskMessageRecord.Status::Reviewed;
+        AgentTaskMessageRecord.Modify();
+
+        // Re-read the record to get the committed state
+        AgentTaskMessageRecord.Get(AgentTaskMessageRecord."Task ID", AgentTaskMessageRecord.ID);
+
+        // Modify a field on the local record variable without saving to DB
+        AgentTaskMessageRecord.From := 'Dirty Value';
+
+        // [WHEN] SetStatusToSent is called with the dirty record via the old var-record overload
+#pragma warning disable AL0432
+        AgentMessage.SetStatusToSent(AgentTaskMessageRecord);
+#pragma warning restore AL0432
+
+        // [THEN] Only the Status should be updated; the dirty From value should not be persisted
+        AgentTaskMessageRecord.Get(AgentTaskMessageRecord."Task ID", AgentTaskMessageRecord.ID);
+        Assert.AreEqual(AgentTaskMessageRecord.Status::Sent, AgentTaskMessageRecord.Status, 'Status should be set to Sent');
+        Assert.AreEqual(OriginalFrom, AgentTaskMessageRecord.From, 'From field should not be overwritten by dirty record passed to SetStatusToSent');
+        Assert.AreEqual(OriginalMessageText, AgentMessage.GetText(AgentTaskMessageRecord), 'Message text should not be overwritten');
+    end;
+#endif
+
+    [Test]
+    procedure UpdateTextByPKDoesNotOverwriteUnrelatedFields()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskMessageRecord: Record "Agent Task Message";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalMessageText: Text;
+        UpdatedMessageText: Text;
+        OriginalFrom: Text[250];
+        ExternalIdTok: Label 'MSG-TEST-008', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] UpdateText with PK parameters should only modify Content without overwriting other fields
+
+        // [GIVEN] A test agent with a task and an output message in Draft status
+        OriginalFrom := 'Test User';
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalMessageText := Any.AlphanumericText(2048);
+
+        // Create task without message
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Update Text PK Test Task')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false);
+
+        // Directly insert a message with Type = Output and Status = Draft to mock agent runtime
+        AgentTaskMessageRecord."Task ID" := AgentTaskRecord.ID;
+        AgentTaskMessageRecord."Type" := AgentTaskMessageRecord."Type"::Output;
+        AgentTaskMessageRecord.Status := AgentTaskMessageRecord.Status::Draft;
+        AgentTaskMessageRecord.From := OriginalFrom;
+        AgentTaskMessageRecord.Insert();
+
+        AgentMessage.UpdateText(AgentTaskMessageRecord."Task ID", AgentTaskMessageRecord.ID, OriginalMessageText);
+
+        // [WHEN] UpdateText is called again via the PK-based overload
+        UpdatedMessageText := Any.AlphanumericText(2048);
+        AgentMessage.UpdateText(AgentTaskMessageRecord."Task ID", AgentTaskMessageRecord.ID, UpdatedMessageText);
+
+        // [THEN] Only the Content should be updated; From should remain unchanged
+        AgentTaskMessageRecord.Get(AgentTaskMessageRecord."Task ID", AgentTaskMessageRecord.ID);
+        Assert.AreEqual(UpdatedMessageText, AgentMessage.GetText(AgentTaskMessageRecord), 'Message text should be updated');
+        Assert.AreEqual(OriginalFrom, AgentTaskMessageRecord.From, 'From field should not be overwritten by UpdateText PK overload');
+    end;
+
+    [Test]
+    procedure UpdateTextOnNonDraftMessageFails()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskMessageRecord: Record "Agent Task Message";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalMessageText: Text;
+        OriginalFrom: Text[250];
+        ExternalIdTok: Label 'MSG-TEST-009', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] UpdateText should fail when message is not in Draft status
+
+        // [GIVEN] A test agent with a task and an output message in Reviewed status
+        OriginalFrom := 'Test User';
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalMessageText := Any.AlphanumericText(2048);
+
+        // Create task without message
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Update Text Fail Test Task')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false);
+
+        // Directly insert a message with Type = Output and Status = Reviewed
+        AgentTaskMessageRecord."Task ID" := AgentTaskRecord.ID;
+        AgentTaskMessageRecord."Type" := AgentTaskMessageRecord."Type"::Output;
+        AgentTaskMessageRecord.Status := AgentTaskMessageRecord.Status::Reviewed;
+        AgentTaskMessageRecord.From := OriginalFrom;
+        AgentTaskMessageRecord.Insert();
+
+        // [WHEN] UpdateText is called on a non-Draft message
+        // [THEN] An error should be raised
+        asserterror AgentMessage.UpdateText(AgentTaskMessageRecord."Task ID", AgentTaskMessageRecord.ID, OriginalMessageText);
+    end;
+
+    [Test]
+    procedure SetStatusToSentByPKDoesNotOverwriteUnrelatedFields()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskMessageRecord: Record "Agent Task Message";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        OriginalMessageText: Text;
+        OriginalFrom: Text[250];
+        ExternalIdTok: Label 'MSG-TEST-010', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] SetStatusToSent with PK parameters should only modify Status without overwriting other fields
+
+        // [GIVEN] A test agent with a task and an output message in Reviewed status
+        OriginalFrom := 'Test User';
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        OriginalMessageText := Any.AlphanumericText(2048);
+
+        // Create task without message
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'SetStatusToSent PK Test Task')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false);
+
+        // Directly insert a message with Type = Output and Status = Draft to mock agent runtime
+        AgentTaskMessageRecord."Task ID" := AgentTaskRecord.ID;
+        AgentTaskMessageRecord."Type" := AgentTaskMessageRecord."Type"::Output;
+        AgentTaskMessageRecord.Status := AgentTaskMessageRecord.Status::Draft;
+        AgentTaskMessageRecord.From := OriginalFrom;
+        AgentTaskMessageRecord.Insert();
+
+        AgentMessage.UpdateText(AgentTaskMessageRecord."Task ID", AgentTaskMessageRecord.ID, OriginalMessageText);
+        AgentTaskMessageRecord.Status := AgentTaskMessageRecord.Status::Reviewed;
+        AgentTaskMessageRecord.Modify();
+
+        // [WHEN] SetStatusToSent is called via the PK-based overload
+        AgentMessage.SetStatusToSent(AgentTaskMessageRecord."Task ID", AgentTaskMessageRecord.ID);
+
+        // [THEN] Only the Status should be updated; From and Content should remain unchanged
+        AgentTaskMessageRecord.Get(AgentTaskMessageRecord."Task ID", AgentTaskMessageRecord.ID);
+        Assert.AreEqual(AgentTaskMessageRecord.Status::Sent, AgentTaskMessageRecord.Status, 'Status should be set to Sent');
+        Assert.AreEqual(OriginalFrom, AgentTaskMessageRecord.From, 'From field should not be overwritten by SetStatusToSent PK overload');
+        Assert.AreEqual(OriginalMessageText, AgentMessage.GetText(AgentTaskMessageRecord), 'Message text should not be overwritten');
+    end;
+
+    [Test]
+    procedure CannotSetStatusToSentForMessageNotInDraftState()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskMessageRecord: Record "Agent Task Message";
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        TaskID: BigInteger;
+        MessageID: Guid;
+        ExternalIdTok: Label 'MSG-TEST-007', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] SetStatusToSent should fail for a message created by the builder since its status is empty (not Draft)
+
+        // [GIVEN] A test agent with a task and message created by the builder
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Cannot Set Sent Test Task')
+            .SetExternalId(ExternalIdTok)
+            .AddTaskMessage('Test User', Any.AlphanumericText(2048));
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false);
+        AgentTaskMessageRecord := AgentTaskBuilder.GetAgentTaskMessageCreated();
+
+        TaskID := AgentTaskMessageRecord."Task ID";
+        MessageID := AgentTaskMessageRecord.ID;
+
+        // [WHEN] SetStatusToSent is called on a builder-created message (status is empty, not Draft)
+        // [THEN] An error should be raised because the message is not in Draft status
+        asserterror AgentMessage.SetStatusToSent(TaskID, MessageID);
+    end;
+
     #endregion
 
     #region Agent Task Message Builder Tests
@@ -1005,6 +1327,117 @@ codeunit 133963 "Agent Message Test"
 
         // [THEN] The last attachment should be returned
         Assert.AreEqual('last-file.txt', LastAttachment."File Name", 'Last attachment file name should match');
+    end;
+
+    [Test]
+    procedure ContentTypeFromFilenameForKnownExtensions()
+    var
+        AgentTaskMsgBuilderImpl: Codeunit "Agent Task Msg. Builder Impl.";
+    begin
+        // [SCENARIO] MIME type derivation used by the FileUpload AddAttachment overload
+        // returns the expected content type for common file extensions.
+        Assert.AreEqual('application/pdf', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('invoice.pdf'), 'pdf MIME type');
+        Assert.AreEqual('text/plain', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('notes.txt'), 'txt MIME type');
+        Assert.AreEqual('application/json', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('payload.json'), 'json MIME type');
+        Assert.AreEqual(
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document(.docx)',
+            AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('report.docx'),
+            'docx MIME type');
+        Assert.AreEqual(
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet(.xlsx)',
+            AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('budget.xlsx'),
+            'xlsx MIME type');
+        Assert.AreEqual('application/png', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('logo.png'), 'png MIME type');
+        Assert.AreEqual('text/csv', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('export.csv'), 'csv MIME type');
+    end;
+
+    [Test]
+    procedure ContentTypeFromFilenameIsCaseInsensitive()
+    var
+        AgentTaskMsgBuilderImpl: Codeunit "Agent Task Msg. Builder Impl.";
+    begin
+        // [SCENARIO] FileUpload supplies file names as the user picked them, so extension
+        // matching must be case-insensitive.
+        Assert.AreEqual('application/pdf', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('REPORT.PDF'), 'uppercase pdf MIME type');
+        Assert.AreEqual('text/plain', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('Notes.TxT'), 'mixed case txt MIME type');
+        Assert.AreEqual('application/png', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('Logo.Png'), 'mixed case png MIME type');
+    end;
+
+    [Test]
+    procedure ContentTypeFromFilenameForUnknownExtensionReturnsEmpty()
+    var
+        AgentTaskMsgBuilderImpl: Codeunit "Agent Task Msg. Builder Impl.";
+    begin
+        // [SCENARIO] Unknown extensions return empty so the platform can fall back without
+        // the FileUpload overload throwing.
+        Assert.AreEqual('', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('binary.xyz'), 'unknown extension');
+        Assert.AreEqual('', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename('no-extension'), 'missing extension');
+        Assert.AreEqual('', AgentTaskMsgBuilderImpl.GetContentTypeFromFilename(''), 'empty filename');
+    end;
+
+    [Test]
+    procedure AddAttachmentChainedMultipleTimesAddsAllFiles()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskMessageRecord: Record "Agent Task Message";
+        TempAgentTaskFile: Record "Agent Task File" temporary;
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
+        TempBlob1: Codeunit "Temp Blob";
+        TempBlob2: Codeunit "Temp Blob";
+        AgentUserId: Guid;
+        InStream1: InStream;
+        InStream2: InStream;
+        OutStream1: OutStream;
+        OutStream2: OutStream;
+        ExternalIdTok: Label 'MSGBLD-TEST-018', Locked = true;
+    begin
+        Initialize();
+
+        // [SCENARIO] Chained stream-based AddAttachment calls accumulate independent files on one
+        // message - the same accumulation the FileUpload overload relies on. The FileUpload overload
+        // itself is a thin adapter that is not unit-testable (FileUpload is populated only by the runtime).
+
+        // [GIVEN] A test agent with a task
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            'MSGBLDAGENT18',
+            'Message Builder Test Agent 18',
+            'You are a test agent for chained AddAttachment testing.');
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Chained AddAttachment Test Task')
+            .SetExternalId(ExternalIdTok);
+
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false);
+
+        // [GIVEN] Two distinct payloads representing two separate attachments
+        TempBlob1.CreateOutStream(OutStream1, TextEncoding::UTF8);
+        OutStream1.WriteText('first-payload');
+        TempBlob1.CreateInStream(InStream1, TextEncoding::UTF8);
+
+        TempBlob2.CreateOutStream(OutStream2, TextEncoding::UTF8);
+        OutStream2.WriteText('second-payload');
+        TempBlob2.CreateInStream(InStream2, TextEncoding::UTF8);
+
+        // [WHEN] AddAttachment is called twice in a fluent chain
+        AgentTaskMessageBuilder
+            .Initialize('Sender', 'Two files attached')
+            .SetAgentTask(AgentTaskRecord)
+            .AddAttachment('first.txt', 'text/plain', InStream1)
+            .AddAttachment('second.pdf', 'application/pdf', InStream2);
+
+        AgentTaskMessageRecord := AgentTaskMessageBuilder.Create(false);
+
+        // [THEN] Both files are stored on the message
+        AgentMessage.GetAttachments(AgentTaskRecord.Id, AgentTaskMessageRecord.Id, TempAgentTaskFile);
+        Assert.AreEqual(2, TempAgentTaskFile.Count(), 'Both attachments should be stored');
+
+        TempAgentTaskFile.SetRange("File Name", 'first.txt');
+        Assert.IsFalse(TempAgentTaskFile.IsEmpty(), 'First attachment should exist');
+        TempAgentTaskFile.SetRange("File Name", 'second.pdf');
+        Assert.IsFalse(TempAgentTaskFile.IsEmpty(), 'Second attachment should exist');
     end;
 
     #endregion

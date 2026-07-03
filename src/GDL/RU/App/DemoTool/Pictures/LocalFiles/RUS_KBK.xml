@@ -1,0 +1,5971 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<KBKElements>
+  <KBK>
+    <Code>18210101000000000000</Code>
+    <Name1>Налог на прибыль</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101011000000000</Code>
+    <Name1>Налог на прибыль организаций, зачисляемый в федеральный бюджет</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101011011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101011012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101011013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101012000000000</Code>
+    <Name1>Налог на прибыль организаций, зачисляемый в бюджеты субъектов Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101012021000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101012022000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101012023000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101013000000000</Code>
+    <Name1>Налог на прибыль организаций для сельскохозяйственных товаропроизводителей, не перешедших на систему налогообложения для сельскохозяйственных товаропроизводителей (единый сельскохозяйственный налог), зачисляемый в федеральный бюджет</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101013011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101013012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101013013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101014000000000</Code>
+    <Name1>Налог на прибыль организаций для сельскохозяйственных товаропроизводителей, не перешедших на систему налогообложения для сельскохозяйственных товаропроизводителей (единый сельскохозяйственный налог), зачисляемый в бюджеты субъектов Российской Федерац</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101014021000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101014022000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101014023000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101020013000110</Code>
+    <Name1>Штрафы по налогу на прибыль организаций при выполнении соглашений о разделе продукции, заключенных до вступления в силу Федерального закона "О соглашениях о разделе продукции" и не предусматривающих специальные налоговые ставки для зачисления указанн</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101030000000000</Code>
+    <Name1>Налог на прибыль организаций с доходов иностранных организаций, не связанных с деятельностью в Российской Федерации через постоянное представительство, за исключением доходов, полученных в виде дивидендов и процентов по государственным и муниципальны</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101030011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101030012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101030013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101040000000000</Code>
+    <Name1>Налог на прибыль организаций с доходов, полученных в виде дивидендов от российских организаций российскими организациями</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101040011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101040012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101040013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101050000000000</Code>
+    <Name1>Налог на прибыль организаций с доходов, полученных в виде дивидендов от российских организаций иностранными организациями</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101050011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101050012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101050013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101060000000000</Code>
+    <Name1>Налог на прибыль организаций с доходов, полученных в виде дивидендов от иностранных организаций российскими организациями</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101060011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101060012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101060013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101070000000000</Code>
+    <Name1>Налог на прибыль организаций с доходов, полученных в виде процентов по государственным и муниципальным ценным бумагам</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101070011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101070012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210101070013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102000000000000</Code>
+    <Name1>Налог на доходы физических лиц</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102010000000000</Code>
+    <Name1>Налог на доходы физических лиц с доходов, полученных в виде дивидендов от долевого участия в деятельности организаций</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102010011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102010012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102010013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102021000000000</Code>
+    <Name1>Налог на доходы физических лиц с доходов, облагаемых по налоговой ставке, установленной пунктом 1 статьи 224 Налогового кодекса Российской Федерации, за исключением доходов, полученных физическими лицами, зарегистрированными в качестве индивидуальных</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102021011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102021012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102021013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102022000000000</Code>
+    <Name1>Налог на доходы физических лиц с доходов, облагаемых по налоговой ставке, установленной пунктом 1 статьи 224 Налогового кодекса Российской Федерации и полученных физическими лицами, зарегистрированными в качестве индивидуальных предпринимателей, част</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102022011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102022012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102022013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102030000000000</Code>
+    <Name1>Налог на доходы физических лиц с доходов,  полученных физическими лицами, не являющимися налоговыми резидентами Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102030011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102030012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102030013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102040000000000</Code>
+    <Name1>Налог на доходы физических лиц с доходов, полученных в виде выигрышей и призов в проводимых конкурсах, играх и других мероприятиях в целях рекламы товаров, работ и услуг, страховых выплат по договорам добровольного страхования жизни, заключенным на с</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102040011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102040012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102040013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102050000000000</Code>
+    <Name1>Налог на доходы физических лиц с доходов, полученных в виде процентов по облигациям с ипотечным покрытием, эмитированным до 1 января 2007 года, а также с доходов учредителей доверительного управления ипотечным покрытием, полученных на основании приоб</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102050011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102050012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210102050013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210301000000000000</Code>
+    <Name1>Налог на добавленную стоимость</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210301000010000000</Code>
+    <Name1>Налог на добавленную стоимость на товары (работы, услуги), реализуемые на территории Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210301000011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210301000012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210301000013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302000000000000</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302011000000000</Code>
+    <Name1>Акцизы на спирт этиловый (в том числе этиловый спирт-сырец) из пищевого сырья, производимый на территории Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302011011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302011012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302011013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302012000000000</Code>
+    <Name1>Акцизы на спирт этиловый (в том числе этиловый спирт-сырец) из всех видов сырья, за исключением пищевого, производимый на территории Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302012011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302012012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302012013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302020000000000</Code>
+    <Name1>Акцизы на спиртосодержащую продукцию, производимую на территории Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302020011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302020012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302020013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302030000000000</Code>
+    <Name1>Акцизы на табачную продукцию, производимую на территории Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302030011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302030012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302030013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302041000000000</Code>
+    <Name1>Акцизы на автомобильный бензин, производимый на территории Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302041011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302041012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302041013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302042000000000</Code>
+    <Name1>Акцизы на прямогонный бензин, производимый на территории Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302042011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302042012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302042013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302050000000000</Code>
+    <Name1>Акцизы на автомобильный бензин, дизельное топливо, моторные масла для дизельных и (или) карбюраторных (инжекторных) двигателей, производимые на территории Российской Федерации (в части погашения задолженности прошлых лет, образовавшейся до 1 января 2</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302050011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302050012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302050013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302060000000000</Code>
+    <Name1>Акцизы на автомобили легковые и мотоциклы, производимые на территории Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302060011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302060012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302060013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302070000000000</Code>
+    <Name1>Акцизы на дизельное топливо, производимое на территории Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302070011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302070012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302070013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302080000000000</Code>
+    <Name1>Акцизы на моторные масла для дизельных и (или) карбюраторных (инжекторных) двигателей, производимые на территории Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302080011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302080012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302080013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302090000000000</Code>
+    <Name1>Акцизы на вина, производимые на территории Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302090011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302090012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302090013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302100000000000</Code>
+    <Name1>Акцизы на пиво, производимое на территории Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302100011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302100012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302100013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302110000000000</Code>
+    <Name1>Акцизы на алкогольную продукцию с объемной долей спирта этилового свыше 25 процентов (за исключением вин), производимую на территории Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302110011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302110012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302110013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302120000000000</Code>
+    <Name1>Акцизы на алкогольную продукцию с объемной долей  спирта этилового свыше 9 до 25 процентов включительно (за исключением вин), производимую на территории Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302120011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302120012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302120013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302130000000000</Code>
+    <Name1>Акцизы на алкогольную продукцию с объемной долей спирта этилового до 9 процентов включительно (за исключением вин), производимую на территории Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302130011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302130012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302130013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302141000000000</Code>
+    <Name1>Акцизы на алкогольную продукцию с объемной долей  спирта этилового свыше 9 процентов (за исключением вин) при реализации производителями, за исключением реализации на акцизные склады, в части сумм по расчетам за 2003 год</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302141011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302141012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302141013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302142000000000</Code>
+    <Name1>Акцизы на алкогольную продукцию с объемной долей  спирта этилового свыше 9 процентов (за исключением вин) при реализации производителями на акцизные склады в части сумм по расчетам за 2003 год</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302142011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302142012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302142013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302143000000000</Code>
+    <Name1>Акцизы на алкогольную продукцию с объемной долей  спирта этилового свыше 9 процентов (за исключением вин) при реализации с акцизных складов в части сумм по расчетам за 2003 год</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302143011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302143012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210302143013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210401000000000000</Code>
+    <Name1>Налог на добавленную стоимость (Республика Беларусь)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210401000010000000</Code>
+    <Name1>Налог на добавленную стоимость на товары, ввозимые на территорию Российской Федерации из Республики Беларусь</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210401000011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210401000012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210401000013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402000000000000</Code>
+    <Name1>Акцизы (Республика Беларусь)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402010000000000</Code>
+    <Name1>Акцизы на спирт этиловый из всех видов сырья, ввозимый на территорию Российской Федерации из Республики Беларусь</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402010011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402010012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402010013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402020000000000</Code>
+    <Name1>Акцизы на спиртосодержащую продукцию, ввозимую на территорию Российской Федерации из Республики Беларусь</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402020011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402020012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402020013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402030000000000</Code>
+    <Name1>Акцизы на табачную продукцию, ввозимую на территорию Российской Федерации из Республики Беларусь</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402030011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402030012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402030013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402040000000000</Code>
+    <Name1>Акцизы на автомобильный бензин, ввозимый на территорию Российской Федерации из Республики Беларусь</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402040011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402040012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402040013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402060000000000</Code>
+    <Name1>Акцизы на автомобили легковые и мотоциклы, ввозимые на территорию Российской Федерации из Республики Беларусь</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402060011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402060012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402060013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402070000000000</Code>
+    <Name1>Акцизы на дизельное топливо, ввозимое на территорию Российской Федерации из Республики Беларусь</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402070011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402070012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402070013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402080000000000</Code>
+    <Name1>Акцизы на моторные масла для дизельных и (или) карбюраторных (инжекторных) двигателей, ввозимые на территорию Российской Федерации из Республики Беларусь</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402080011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402080012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402080013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402090000000000</Code>
+    <Name1>Акцизы на вина, ввозимые на территорию Российской Федерации из Республики Беларусь</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402090011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402090012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402090013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402100000000000</Code>
+    <Name1>Акцизы на пиво, ввозимое на территорию Российской Федерации из Республики Беларусь</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402100011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402100012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402100013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402110000000000</Code>
+    <Name1>Акцизы на алкогольную продукцию с объемной долей спирта этилового свыше 25 процентов (за исключением вин), ввозимую на территорию Российской Федерации из Республики Беларусь</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402110011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402110012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402110013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402120000000000</Code>
+    <Name1>Акцизы на алкогольную продукцию с объемной долей этилового спирта свыше 9 до 25 процентов включительно (за исключением вин), ввозимую на территорию Российской Федерации из Республики Беларусь</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402120011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402120012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402120013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402130000000000</Code>
+    <Name1>Акцизы на алкогольную продукцию с объемной долей этилового спирта до 9 процентов включительно (за исключением вин), ввозимую на территорию Российской Федерации из Республики Беларусь</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402130011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402130012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210402130013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210501000000000000</Code>
+    <Name1>Упрощенная система налогообложения</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210501010000000000</Code>
+    <Name1>Налог, взимаемый с налогоплательщиков, выбравших в качестве объекта налогообложения доходы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210501010011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210501010012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210501010013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210501020000000000</Code>
+    <Name1>Налог, взимаемый с налогоплательщиков, выбравших в качестве объекта налогообложения доходы, уменьшенные на величину расходов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210501020011000110</Code>
+    <Name1>Упалата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210501020012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210501020013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210501030000000000</Code>
+    <Name1>Минимальный налог, зачисляемый в бюджеты государственных внебюджетных фондов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210501030011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210501030012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210501030013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210501040000000000</Code>
+    <Name1>Доходы от выдачи патентов на осуществление предпринимательской деятельности при применении упрощенной системы налогообложения</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210501040021000110</Code>
+    <Name1>Доходы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210501040022000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210501040023000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210502000000000000</Code>
+    <Name1>Единый налог на вмененный доход (ЕНВД)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210502000020000000</Code>
+    <Name1>Единый налог на вмененный доход для отдельных видов деятельности</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210502000021000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210502000022000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210502000023000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210503000000000000</Code>
+    <Name1>Единый сельскохозяйственный налог</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210503000010000000</Code>
+    <Name1>Единый сельскохозяйственный налог</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210503000011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210503000012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210503000013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210601000000000000</Code>
+    <Name1>Налог на имущество физических лиц</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210601010000000000</Code>
+    <Name1>Налог на имущество физических лиц, взимаемый по ставкам, применяемым к объектам налогообложения, расположенным в границах внутригородских муниципальных образований городов федерального значения Москвы и Санкт-Петербурга</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210601010031000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210601010032000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210601010033000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210601020000000000</Code>
+    <Name1>Налог на имущество физических лиц, взимаемый по ставкам, применяемым к объектам налогообложения, расположенным в границах городских округов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210601020041000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210601020042000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210601020043000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210601030000000000</Code>
+    <Name1>Налог на имущество физических лиц, взимаемый по ставкам, применяемым к объектам налогообложения, расположенным в границах межселенных территорий</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210601030051000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210601030052000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210601030053000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210601030100000000</Code>
+    <Name1>Налог на имущество физических лиц, взимаемый по ставкам,  применяемым к объектам налогообложения, расположенным в границах поселений</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210601030101000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210601030102000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210601030103000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210602000000000000</Code>
+    <Name1>Налог на имущество организаций</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210602010000000000</Code>
+    <Name1>Налог на имущество организаций по имуществу, не входящему в Единую систему газоснабжения</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210602010021000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210602010022000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210602010023000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210602020000000000</Code>
+    <Name1>Налог на имущество организаций по имуществу, входящему в Единую систему газоснабжения</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210602020021000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210602020022000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210602020023000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210604000000000000</Code>
+    <Name1>Транспортный налог</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210604011000000000</Code>
+    <Name1>Транспортный налог с организаций</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210604011021000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210604011022000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210604011023000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210604012000000000</Code>
+    <Name1>Транспортный налог с физических лиц</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210604012021000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210604012022000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210604012023000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210605000000000000</Code>
+    <Name1>Налог на игорный бизнес</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210605000020000000</Code>
+    <Name1>Налог на игорный бизнес</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210605000021000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210605000022000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210605000023000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606000000000000</Code>
+    <Name1>Земельный налог</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606011000000000</Code>
+    <Name1>Земельный налог, взимаемый по ставкам, установленным в соответствии с подпунктом 1 пункта 1 статьи 394 Налогового кодекса Российской Федерации и применяемым к объектам налогообложения, расположенным в границах внутригородских муниципальных образовани</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606011031000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606011032000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606011033000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606012000000000</Code>
+    <Name1>Земельный налог, взимаемый по ставкам, установленным в соответствии с подпунктом 1 пункта 1 статьи 394 Налогового кодекса Российской Федерации и применяемым к объектам налогообложения, расположенным в границах городских округов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606012041000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606012042000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606012043000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606013000000000</Code>
+    <Name1>Земельный налог, взимаемый по ставкам, установленным в соответствии с подпунктом 1 пункта 1 статьи 394 Налогового кодекса Российской Федерации и применяемым к объектам налогообложения, расположенным в границах межселенных территорий</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606013051000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606013052000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606013053000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606013100000000</Code>
+    <Name1>Земельный налог, взимаемый по ставкам, установленным в соответствии с подпунктом 1 пункта 1 статьи 394 Налогового кодекса Российской Федерации и применяемым к объектам налогообложения, расположенным в границах поселений</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606013101000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606013102000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606013103000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606021000000000</Code>
+    <Name1>Земельный налог, взимаемый по ставкам, установленным в соответствии с подпунктом 2 пункта 1 статьи 394 Налогового кодекса Российской Федерации и применяемым к объектам налогообложения, расположенным в границах внутригородских муниципальных образовани</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606021031000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606021032000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606021033000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606022000000000</Code>
+    <Name1>Земельный налог, взимаемый по ставкам, установленным в соответствии с подпунктом 2 пункта 1 статьи 394 Налогового кодекса Российской Федерации и применяемым к объектам налогообложения, расположенным в границах городских округов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606022041000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606022042000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606022043000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606023000000000</Code>
+    <Name1>Земельный налог, взимаемый по ставкам, установленным в соответствии с подпунктом 2 пункта 1 статьи 394 Налогового кодекса Российской Федерации и применяемым к объектам налогообложения, расположенным в границах межселенных территорий</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606023051000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606023052000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606023053000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606023100000000</Code>
+    <Name1>Земельный налог, взимаемый по ставкам, установленным в соответствии с подпунктом 2 пункта 1 статьи 394 Налогового кодекса Российской Федерации и применяемым к объектам налогообложения, расположенным в границах поселений</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606023101000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606023102000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210606023103000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210607000000000000</Code>
+    <Name1>Налог на недвижимость</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210607000040000000</Code>
+    <Name1>Налог на недвижимость, взимаемый с объектов недвижимого имущества, расположенных в границах городов Великий Новгород и Тверь</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210607000041000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210607000042000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210607000043000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701000000000000</Code>
+    <Name1>Нефть, газ, полезные ископаемые, вода (налог)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701011000000000</Code>
+    <Name1>Нефть (налог)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701011011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701011012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701011013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701012000000000</Code>
+    <Name1>Газ горючий природный из всех видов месторождений углеводородного сырья (налог)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701012011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701012012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701012013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701013000000000</Code>
+    <Name1>Газовый конденсат из всех видов месторождений углеводородного сырья (налог)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701013011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701013012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701013013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701020000000000</Code>
+    <Name1>Налог на добычу общераспространенных полезных ископаемых</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701020011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701020012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701020013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701030000000000</Code>
+    <Name1>Налог на добычу прочих полезных ископаемых (за исключением полезных ископаемых в виде природных алмазов)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701030011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701030012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701030013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701040000000000</Code>
+    <Name1>Налог на добычу полезных ископаемых на континентальном шельфе Российской Федерации, в исключительной экономической зоне Российской Федерации, при добыче полезных ископаемых из недр за пределами территории Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701040011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701040012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701040013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701050000000000</Code>
+    <Name1>Налог на добычу полезных ископаемых в виде природных алмазов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701050011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701050012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210701050013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210702010000000000</Code>
+    <Name1>Регулярные платежи за добычу полезных ископаемых (роялти) при выполнении соглашений о разделе продукции в виде углеводородного сырья (газ горючий природный)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210702010011000110</Code>
+    <Name1>Регулярные платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210702010012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210702010013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210702020000000000</Code>
+    <Name1>Регулярные платежи за добычу полезных ископаемых (роялти) при выполнении соглашений о разделе продукции в виде углеводородного сырья, за исключением газа горючего природного</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210702020011000110</Code>
+    <Name1>Регулярные платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210702020012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210702020013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210702030000000000</Code>
+    <Name1>Регулярные платежи за добычу полезных ископаемых (роялти) на континентальном шельфе Российской Федерации, в исключительной экономической зоне Российской Федерации, за пределами территории Российской Федерации при выполнении соглашений о разделе проду</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210702030011000110</Code>
+    <Name1>Регулярные платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210702030012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210702030013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210703000000000000</Code>
+    <Name1>Водный налог</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210703000011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210703000012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210703000013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210704000000000000</Code>
+    <Name1>Животный мир и биологические ресурсы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210704010000000000</Code>
+    <Name1>Сбор за пользование объектами животного мира</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210704010011000110</Code>
+    <Name1>Уплата сбора</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210704010012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210704010013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210704020000000000</Code>
+    <Name1>Сбор за пользование объектами водных биологических ресурсов (исключая внутренние водные объекты)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210704020011000110</Code>
+    <Name1>Уплата сбора</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210704020012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210704020013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210704030000000000</Code>
+    <Name1>Сбор за пользование объектами водных биологических ресурсов (по внутренним водным объектам)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210704030011000110</Code>
+    <Name1>Уплата сбора</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210704030012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210704030013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210801000000000000</Code>
+    <Name1>Государственная пошлина</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210801000011000110</Code>
+    <Name1>Государственная пошлина по делам, рассматриваемым в арбитражных судах</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210802010011000110</Code>
+    <Name1>Государственная пошлина по делам, рассматриваемым Конституционным Судом Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210802020011000110</Code>
+    <Name1>Государственная пошлина по делам, рассматриваемым конституционными (уставными) судами субъектов Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210803010011000110</Code>
+    <Name1>Государственная пошлина по делам, рассматриваемым в судах общей юрисдикции, мировыми судьями (за исключением Верховного Суда Российской Федерации)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210803020011000110</Code>
+    <Name1>Государственная пошлина по делам, рассматриваемым Верховным Судом Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210807010011000110</Code>
+    <Name1>Государственная пошлина за государственную регистрацию юридического лица, физических лиц в качестве индивидуальных предпринимателей, изменений, вносимых в их учредительные документы юридического лица, за государственную регистрацию ликвидации юридиче</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210807030011000110</Code>
+    <Name1>Государственная пошлина за право использования наименований "Россия", "Российская Федерация" и образованных на их основе слов и словосочетаний в наименованиях юридических лиц</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210807081011000110</Code>
+    <Name1>Государственная пошлина за совершение действий, связанных с лицензированием, с проведением аттестации в случаях, если такая аттестация предусмотрена законодательством Российской Федерации, зачисляемая в федеральный бюджет</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210807200011000110</Code>
+    <Name1>Прочие государственные пошлины за государственную регистрацию, а также за совершение прочих юридически значимых действий </Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210901000000000000</Code>
+    <Name1>Налог на прибыль до 01.01.2005</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210901010000000000</Code>
+    <Name1>Налог на прибыль организаций, зачислявшийся до 1 января 2005 года в местные бюджеты, мобилизуемый на территориях внутригородских муниципальных образований городов федерального значения Москвы и Санкт-Петербурга</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210901010031000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210901010032000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210901010033000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210901020000000000</Code>
+    <Name1>Налог на прибыль организаций, зачислявшийся до 1 января 2005 года в местные бюджеты, мобилизуемый на территориях городских округов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210901020041000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210901020042000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210901020043000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210901030000000000</Code>
+    <Name1>Налог на прибыль организаций, зачислявшийся до 1 января 2005 года в местные бюджеты, мобилизуемый на территориях муниципальных районов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210901030051000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210901030052000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210901030053000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210902000000000000</Code>
+    <Name1>Поисковые и разведочные работы, ювелирные изделия</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210902010000000000</Code>
+    <Name1>Акцизы на природный газ</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210902010011000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210902010012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210902010013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210902020000000000</Code>
+    <Name1>Акцизы на нефть и стабильный газовый конденсат</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210902020011000110</Code>
+    <Name1>Акцизы </Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210902020012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210902020013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210902030000000000</Code>
+    <Name1>Акцизы на ювелирные изделия</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210902030021000110</Code>
+    <Name1>Акцизы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210902030022000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210902030023000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903010030000000</Code>
+    <Name1>Платежи за проведение поисковых и разведочных работ, мобилизуемые на территориях внутригородских муниципальных образований городов федерального значения Москвы и Санкт-Петербурга</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903010031000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903010032000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903010033000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903010040000000</Code>
+    <Name1>Платежи за проведение поисковых и разведочных работ, мобилизуемые на территориях городских округов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903010041000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903010042000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903010043000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903010050000000</Code>
+    <Name1>Платежи за проведение поисковых и разведочных работ, мобилизуемые на территориях муниципальных районов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903010051000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903010052000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903010053000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903020000000000</Code>
+    <Name1>Нефть, газ, полезные ископаемые, вода (платежи за добычу)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903021030000000</Code>
+    <Name1>Платежи за добычу общераспространенных полезных ископаемых, мобилизуемые на территориях внутригородских муниципальных образований городов федерального значения Москвы и Санкт-Петербурга</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903021031000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903021032000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903021033000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903021040000000</Code>
+    <Name1>Платежи за добычу общераспространенных полезных ископаемых, мобилизуемые на территориях городских округов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903021041000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903021042000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903021043000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903021050000000</Code>
+    <Name1>Платежи за добычу общераспространенных полезных ископаемых, мобилизуемые на территориях муниципальных районов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903021051000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903021052000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903021053000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903022000000000</Code>
+    <Name1>Платежи за добычу углеводородного сырья</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903022011000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903022012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903022013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903023000000000</Code>
+    <Name1>Платежи за добычу подземных вод</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903023011000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903023012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903023013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903024000000000</Code>
+    <Name1>Платежи за добычу полезных ископаемых из уникальных месторождений и групп месторождений федерального значения</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903024011000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903024012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903024013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903025000000000</Code>
+    <Name1>Платежи за добычу других полезных ископаемых</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903025011000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903025012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903025013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903030000000000</Code>
+    <Name1>Пользование недрами</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903030030000000</Code>
+    <Name1>Платежи за пользование недрами в целях, не связанных с добычей полезных ископаемых, мобилизуемые на территориях внутригородских муниципальных образований городов федерального значения Москвы и Санкт-Петербурга</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903030031000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903030032000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903030033000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903030040000000</Code>
+    <Name1>Платежи за пользование недрами в целях, не связанных с добычей полезных ископаемых, мобилизуемые на территориях городских округов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903030041000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903030042000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903030043000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903030050000000</Code>
+    <Name1>Платежи за пользование недрами в целях, не связанных с добычей полезных ископаемых, мобилизуемые на территориях муниципальных районов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903030051000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903030052000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903030053000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903040000000000</Code>
+    <Name1>Платежи за пользование недрами территориального моря Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903040011000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903040012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903040013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903050000000000</Code>
+    <Name1>Платежи за пользование недрами континентального шельфа Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903050011000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903050012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903050013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903061011000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903061012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903061013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903062000000000</Code>
+    <Name1>Ежегодные платежи за проведение поисковых и разведочных работ</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903062011000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903062012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903062013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903071000000000</Code>
+    <Name1>Платежи за пользование минеральными ресурсами</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903071011000110</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903071012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903071013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903072000000000</Code>
+    <Name1>Плата за пользование живыми ресурсами</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903072011000110</Code>
+    <Name1>Плата</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903072012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903072013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903081000000000</Code>
+    <Name1>Отчисления на воспроизводство минерально-сырьевой базы, зачисляемые в федеральный бюджет</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903081011000110</Code>
+    <Name1>Отчисления</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903081012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903081013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903082000000000</Code>
+    <Name1>Отчисления на воспроизводство минерально-сырьевой базы, зачисляемые в бюджеты субъектов Российской Федерации, за исключением уплачиваемых при добыче общераспространенных полезных ископаемых и подземных вод, используемых для местных нужд</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903082021000110</Code>
+    <Name1>Отчисления</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903082022000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903082023000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903083000000000</Code>
+    <Name1>Отчисления на воспроизводство минерально-сырьевой базы при добыче общераспространенных полезных ископаемых и подземных вод, используемых для местных нужд, зачисляемые в бюджеты субъектов Российской Федерации </Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903083021000110</Code>
+    <Name1>Отчисления</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903083022000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903083023000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903091000000000</Code>
+    <Name1>Лесные подати в части минимальных ставок платы за древесину, отпускаемую на корню (по обязательствам, возникшим до 1 января 2005 года)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903091011000110</Code>
+    <Name1>Подати</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903091012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903091013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903092000000000</Code>
+    <Name1>Арендная плата за пользование лесным фондом и лесами иных категорий в части минимальных ставок платы за древесину, отпускаемую на корню (по обязательствам, возникшим до 1 января 2005 года)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903092011000110</Code>
+    <Name1>Арендная плата</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903092012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210903092013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904000000000000</Code>
+    <Name1>Иные налоги</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904010000000000</Code>
+    <Name1>Налог на имущество предприятий</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904010021000110</Code>
+    <Name1>Уплата налога </Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904010022000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904010023000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904020000000000</Code>
+    <Name1>Налог с владельцев транспортных средств и налог на приобретение автотранспортных средств</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904020021000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904020022000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904020023000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904030000000000</Code>
+    <Name1>Налог на пользователей автомобильных дорог</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904030011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904030012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904030013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904040000000000</Code>
+    <Name1>Налог с имущества, переходящего в порядке наследования или дарения</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904040011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904040012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904040013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904050030000000</Code>
+    <Name1>Земельный налог (по обязательствам, возникшим до 1 января 2006 года), мобилизуемый на территориях  внутригородских муниципальных образований городов федерального значения Москвы и Санкт-Петербурга</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904050031000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904050032000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904050033000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904050040000000</Code>
+    <Name1>Земельный налог (по обязательствам, возникшим до 1 января 2006 года), мобилизуемый на территориях городских округов </Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904050041000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904050042000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904050043000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904050050000000</Code>
+    <Name1>Земельный налог (по обязательствам, возникшим до 1 января 2006 года), мобилизуемый на межселенных территориях</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904050051000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904050052000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904050053000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904050100000000</Code>
+    <Name1>Земельный налог (по обязательствам, возникшим до 1 января 2006 года), мобилизуемый на территориях поселений</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904050101000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904050102000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904050103000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210904061000000000</Code>
+    <Name1>Разовые платежи (бонусы), регулярные платежи (роялти)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905010000000000</Code>
+    <Name1>Налог на реализацию горюче-смазочных материалов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905010011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905010012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905010013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905020000000000</Code>
+    <Name1>Налог на операции с ценными бумагами</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905020011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905020012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905020013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905030000000000</Code>
+    <Name1>Сбор за использование наименований "Россия", "Российская Федерация" и образованных на их основе слов и словосочетаний</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905030011000110</Code>
+    <Name1>Уплата сбора</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905030012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905030013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905040000000000</Code>
+    <Name1>Налог на покупку иностранных денежных знаков и платежных документов, выраженных в иностранной валюте</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905040011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905040012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905040013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905050000000000</Code>
+    <Name1>Прочие налоги и сборы (по отмененным федеральным налогам и сборам)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905050011000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905050012000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210905050013000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210906010000000000</Code>
+    <Name1>Налог с продаж</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210906010021000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210906010022000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210906010023000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210906020000000000</Code>
+    <Name1>Сбор на нужды образовательных учреждений, взимаемый с юридических лиц</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210906020021000110</Code>
+    <Name1>Уплата сбора</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210906020022000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210906020023000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210906030000000000</Code>
+    <Name1>Прочие налоги и сборы (по отмененным региональным налогам и сборам)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210906030021000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210906030022000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210906030023000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907010030000000</Code>
+    <Name1>Налог на рекламу, мобилизуемый на территориях внутригородских муниципальных образований городов федерального значения Москвы и Санкт-Петербурга</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907010031000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907010032000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907010033000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907010040000000</Code>
+    <Name1>Налог на рекламу, мобилизуемый на территориях городских округов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907010041000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907010042000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907010043000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907010050000000</Code>
+    <Name1>Налог на рекламу, мобилизуемый на территориях муниципальных районов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907010051000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907010052000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907010053000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907020040000000</Code>
+    <Name1>Курортный сбор, мобилизуемый на территориях городских округов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907020041000110</Code>
+    <Name1>Уплата сбора</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907020042000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907020043000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907020050000000</Code>
+    <Name1>Курортный сбор, мобилизуемый на территориях муниципальных районов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907020051000110</Code>
+    <Name1>Уплата сбора</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907020052000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907020053000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907030030000000</Code>
+    <Name1>Целевые сборы с граждан и предприятий, учреждений, организаций на содержание милиции, на благоустройство территорий, на нужды образования и другие цели, мобилизуемые на территориях внутригородских муниципальных образований городов федерального значен</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907030031000110</Code>
+    <Name1>Уплата сбора</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907030032000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907030033000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907030040000000</Code>
+    <Name1>Целевые сборы с граждан и предприятий, учреждений, организаций на содержание милиции, на благоустройство территорий, на нужды образования и другие цели, мобилизуемые на территориях городских округов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907030041000110</Code>
+    <Name1>Уплата сбора</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907030042000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907030043000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907030050000000</Code>
+    <Name1>Целевые сборы с граждан и предприятий, учреждений, организаций на содержание милиции, на благоустройство территорий, на нужды образования и другие цели, мобилизуемые на территориях муниципальных районов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907030051000110</Code>
+    <Name1>Уплата сбора</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907030052000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907030053000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907040030000000</Code>
+    <Name1>Лицензионный сбор за право торговли спиртными напитками, мобилизуемый на территориях внутригородских муниципальных образований городов федерального значения Москвы и Санкт-Петербурга</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907040031000110</Code>
+    <Name1>Уплата сбора</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907040032000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907040033000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907040040000000</Code>
+    <Name1>Лицензионный сбор за право торговли спиртными напитками, мобилизуемый на территориях городских округов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907040041000110</Code>
+    <Name1>Уплата сбора</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907040042000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907040043000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907040050000000</Code>
+    <Name1>Лицензионный сбор за право торговли спиртными напитками, мобилизуемый на территориях муниципальных районов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907040051000110</Code>
+    <Name1>Уплата сбора</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907040052000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907040053000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907050030000000</Code>
+    <Name1>Прочие местные налоги и сборы, мобилизуемые на территориях внутригородских муниципальных образований городов федерального значения Москвы и Санкт-Петербурга</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907050031000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907050032000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907050033000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907050040000000</Code>
+    <Name1>Прочие местные налоги и сборы, мобилизуемые на территориях городских округов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907050041000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907050042000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907050043000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907050050000000</Code>
+    <Name1>Прочие местные налоги и сборы, мобилизуемые на территориях муниципальных районов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907050051000110</Code>
+    <Name1>Уплата налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907050052000110</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210907050053000110</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908020000000000</Code>
+    <Name1>Недоимка по взносам в Пенсионный фонд Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908020061000140</Code>
+    <Name1>Уплата недоимки</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908020062000140</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908020063000140</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908030000000000</Code>
+    <Name1>Недоимка по взносам в Фонд социального страхования Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908030071000140</Code>
+    <Name1>Уплата недоимки</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908030072000140</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908030073000140</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908040000000000</Code>
+    <Name1>Недоимка по взносам в Федеральный фонд обязательного медицинского страхования </Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908040081000140</Code>
+    <Name1>Уплата недоимки</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908040082000140</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908040083000140</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908050000000000</Code>
+    <Name1>Недоимка по взносам в территориальные фонды обязательного медицинского страхования</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908050091000140</Code>
+    <Name1>Уплата недоимки</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908050092000140</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908050093000140</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908060000000000</Code>
+    <Name1>Недоимка по взносам в Государственный фонд занятости населения Российской Федерации, а также средства указанного Фонда, возвращаемые организациями в соответствии с ранее заключенными договорами</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908060011000140</Code>
+    <Name1>Уплата недоимки</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908060012000140</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18210908060013000140</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211202030000000000</Code>
+    <Name1>Регулярные платежи за пользование недрами при пользовании недрами (ренталс) на территории Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211202030011000120</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211202030012000120</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211202030013000120</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211202080000000000</Code>
+    <Name1>Регулярные платежи за пользование недрами (ренталс) при пользовании недрами на континентальном шельфе Российской Федерации, в исключительной экономической зоне Российской Федерации и за пределами Российской Федерации на территориях, находящихся под ю</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211202080011000120</Code>
+    <Name1>Платежи</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211202080012000120</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211202080013000120</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211301020010000130</Code>
+    <Name1>Плата за предоставление информации содержащейся в Едином государственном реестре налогоплательщиков</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211301030010000130</Code>
+    <Name1>Плата за предоставление сведений, содержащихся в Едином государственном реестре юридических лиц и в Едином государственном реестре индивидуальных предпринимателей</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211302010010000130</Code>
+    <Name1>Сборы за выдачу федеральным органом исполнительной власти лицензий на осуществление видов деятельности, связанных с производством и оборотом этилового спирта, алкогольной и спиртосодержащей продукции</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211403011010000410</Code>
+    <Name1>Средства от распоряжения и реализации выморочного имущества, обращенного в доход Российской Федерации (в части реализации основных средств по указанному имуществу)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211403011010000440</Code>
+    <Name1>Средства от распоряжения и реализации выморочного имущества, обращенного в доход Российской Федерации (в части реализации материальных запасов по указанному имуществу)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211600000000000000</Code>
+    <Name1>Денежные взыскания (штрафы)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211603010010000140</Code>
+    <Name1>за нарушение законодательства о налогах и сборах, предусмотренные статьями 116, 117, 118, пунктами 1 и 2 статьи 120, статьями 125, 126, 128, 129, 1291, 132, 133, 134, 135, 1351 Налогового кодекса Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211603020020000140</Code>
+    <Name1>за нарушение законодательства о налогах и сборах, предусмотренные статьей 129.2 Налогового кодекса Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211603030010000140</Code>
+    <Name1>за административные правонарушения в области налогов и сборов, предусмотренные Кодексом Российской Федерации об административных правонарушениях</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211606000010000140</Code>
+    <Name1>за нарушение законодательства о применении контрольно-кассовой техники при осуществлении наличных денежных расчетов и (или) расчетов с использованием платежных карт</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211608000010000140</Code>
+    <Name1>за административные правонарушения в области государственного регулирования производства и оборота этилового спирта, алкогольной, спиртосодержащей и табачной продукции</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211631000010000140</Code>
+    <Name1>за нарушение порядка работы с денежной наличностью, ведения кассовых операций и невыполнение обязанностей по контролю за соблюдением правил ведения кассовых операций</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211690000000000000</Code>
+    <Name1>Прочие поступления от денежных взысканий (штрафов) и иных сумм в возмещение ущерба</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211690010010000140</Code>
+    <Name1>зачисляемые в федеральный  бюджет</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211690020020000140</Code>
+    <Name1>зачисляемые в бюджеты субъектов Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211690040040000140</Code>
+    <Name1>зачисляемые в бюджеты городских округов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>18211690050050000140</Code>
+    <Name1>зачисляемые в бюджеты муниципальных районов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210200000000000000</Code>
+    <Name1>ПФР, ФСС, ФОМС</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>0</Indentation>
+    <Header>Yes</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202010000000000</Code>
+    <Name1>Страховые взносы на обязательное пенсионное страхование, зачисляемые в Пенсионный фонд РФ на выплату страховой части трудовой пенсии</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202010061000160</Code>
+    <Name1>Уплата взносов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202010062000160</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202010063000160</Code>
+    <Name1>Штрафные санкции</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202010064000160</Code>
+    <Name1>Прочие поступления</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202020000000000</Code>
+    <Name1>Страховые взносы на обязательное пенсионное страхование, зачисляемые в Пенсионный фонд РФ на выплату накопительной части трудовой пенсии</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202020061000160</Code>
+    <Name1>Уплата взносов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202020062000160</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202020063000160</Code>
+    <Name1>Штрафные санкции</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202020064000160</Code>
+    <Name1>Прочие поступления</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202030061000160</Code>
+    <Name1>Страховые взносы в виде фиксированного платежа, зачисляемые в Пенсионный фонд РФ на выплату страховой части трудовой пенсии (для расчетов до 2010 года) (ИП, нотариусы, адвокаты)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202040061000160</Code>
+    <Name1>Страховые взносы в виде фиксированного платежа, зачисляемые в Пенсионный фонд РФ на выплату накопительной части трудовой пенсии (для расчетов до 2010 года)  (ИП, нотариусы, адвокаты)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202041060000160</Code>
+    <Name1>Дополнительные страховые взносы на накопительную часть трудовой пенсии и взносы работодателя в пользу застрахованных лиц, уплачивающих дополнительные страховые взносы на накопительную часть трудовой пенсии, зачисляемые в Пенсионный фонд РФ</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202080000000000</Code>
+    <Name1>Страховые взносы по дополнительному тарифу для работодателей-организаций, использующих труд членов летных экипажей воздушных судов гражданской авиации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202080061000160</Code>
+    <Name1>Уплата взносов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202080062000160</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202080063000160</Code>
+    <Name1>Штрафные санкции</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202080064000160</Code>
+    <Name1>Прочие поступления</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202100060000000</Code>
+    <Name1>Страховые взносы на обязательное пенсионное страхование в размере, определяемом исходя из стоимости страхового года, зачисляемые в Пенсионный фонд РФ на выплату страховой части трудовой пенсии (ИП, нотариусы, адвокаты)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202100061000160</Code>
+    <Name1>Уплата взносов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202100062000160</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202100063000160</Code>
+    <Name1>Штрафные санкции</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202100064000160</Code>
+    <Name1>Прочие поступления</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202100080000000</Code>
+    <Name1>Страховые взносы на обязательное медицинское страхование, зачисляемые в бюджет Федерального фонда обязательного медицинского страхования</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202100081000160</Code>
+    <Name1>Страховые взносы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202100082000160</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202100083000160</Code>
+    <Name1>Штрафные санкции</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202100084000160</Code>
+    <Name1>Прочие поступления</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202110060000000</Code>
+    <Name1>Страховые взносы на обязательное пенсионное страхование в размере, определяемом исходя из стоимости страхового года, зачисляемые в Пенсионный фонд РФ на выплату накопительной части трудовой пенсии (ИП, нотариусы, адвокаты)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202110061000160</Code>
+    <Name1>Уплата взносов</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202110062000160</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202110063000160</Code>
+    <Name1>Штрафные санкции</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202110064000160</Code>
+    <Name1>Прочие поступления</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202110090000000</Code>
+    <Name1>Страховые взносы на обязательное медицинское страхование, зачисляемые в бюджет территориального фонда обязательного медицинского страхования</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202110091000160</Code>
+    <Name1>Страховые взносы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202110092000160</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202110093000160</Code>
+    <Name1>Штрафные санкции</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39210202110094000160</Code>
+    <Name1>Прочие поступления</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39211102040060000120</Code>
+    <Name1>Доходы от размещения временно свободных средств Пенсионного фонда Российской Федерации, сформированных за счет сумм страховых взносов на страховую часть трудовой пенсии</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39211102050060000120</Code>
+    <Name1>Доходы от размещения средств Пенсионного фонда Российской Федерации, сформированных за счет сумм страховых взносов на накопительную часть трудовой пенсии*(1)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39211105036060000120</Code>
+    <Name1>Доходы от сдачи в аренду имущества, находящегося в оперативном управлении Пенсионного фонда Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39211109046060000120</Code>
+    <Name1>Прочие поступления от использования имущества, находящегося в оперативном управлении Пенсионного фонда Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39211303060060000130</Code>
+    <Name1>Прочие доходы Пенсионного фонда Российской Федерации от оказания платных услуг и компенсации затрат бюджета Пенсионного фонда Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39211402060060000410</Code>
+    <Name1>Прочие поступления от использования имущества, находящегося в оперативном управлении Пенсионного фонда Российской Федерации в части реализации основных средств по указанному имуществу</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39211402060060000440</Code>
+    <Name1>Прочие поступления от использования имущества, находящегося в оперативном управлении Пенсионного фонда Российской Федерации в части реализации материальных запасов по указанному имуществу</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39211620010060000140</Code>
+    <Name1>Денежные взыскания (штрафы) за нарушение законодательства Российской Федерации о государственных внебюджетных фондах и о конкретных видах обязательного социального страхования, бюджетного законодательства (в части бюджета Пенсионного фонда Российской</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39211620050010000140</Code>
+    <Name1>Денежные взыскания (штрафы), налагаемые органами ПФР в соответствии со ст. 48-51 Федерального закона от 24.07.2009 г. № 212-ФЗ</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39211621060060000140</Code>
+    <Name1>Денежные взыскания (штрафы) и иные суммы, взыскиваемые с лиц, виновных в совершении преступлений, и в возмещение ущерба имуществу, зачисляемые в бюджет Пенсионного фонда Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39211623060060000140</Code>
+    <Name1>Доходы от возмещения ущерба при возникновении страховых случаев, когда выгодоприобретателями по договорам страхования выступают получатели средств бюджета Пенсионного фонда Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39211690060060000140</Code>
+    <Name1>Прочие поступления от денежных взысканий (штрафов) и иных сумм в возмещение ущерба, зачисляемые в Пенсионный фонд Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39211706010060000180</Code>
+    <Name1>Прочие неналоговые поступления в Пенсионный фонд Российской Федерации*(1)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39310202050071000160</Code>
+    <Name1>Страховые взносы на обязательное социальное страхование от несчастных случаев на производстве и профессиональных заболеваний</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39310202090000000000</Code>
+    <Name1>Страховые взносы на обязательное социальное страхование на случай временной нетрудоспособности и в связи с материнством</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39310202090071000160</Code>
+    <Name1>Страховые взносы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39310202090072000160</Code>
+    <Name1>Пени</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39310202090073000160</Code>
+    <Name1>Штрафы</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>3</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39311102061070000120</Code>
+    <Name1>Доходы от размещения временно свободных средств Фонда социального страхования Российской Федерации сформированных за счет поступления единого социального налога</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39311102062070000120</Code>
+    <Name1>Доходы от размещения временно свободных средств Фонда социального страхования Российской Федерации сформированных за счет поступления страховых взносов на обязательное социальное страхование от несчастных случаев на производстве и профессиональных за</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39311105037070000120</Code>
+    <Name1>Доходы от сдачи в аренду имущества, находящегося в оперативном управлении Фонда социального страхования Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39311109047070000120</Code>
+    <Name1>Прочие поступления от использования имущества, находящегося в оперативном управлении Фонда социального страхования Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39311402070070000410</Code>
+    <Name1>Доходы от реализации имущества, находящегося в оперативном управлении Фонда социального страхования Российской Федерации (в части реализации основных средств по указанному имуществу)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39311402070070000440</Code>
+    <Name1>Доходы от реализации имущества, находящегося в оперативном управлении Фонда социального страхования Российской Федерации (в части реализации материальных запасов по указанному имуществу)</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39311620020070000140</Code>
+    <Name1>Денежные взыскания (штрафы) за нарушение законодательства Российской Федерации о государственных внебюджетных фондах и о конкретных видах обязательного социального страхования, бюджетного законодательства (в части бюджета Фонда социального страховани</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39311621070070000140</Code>
+    <Name1>Денежные взыскания (штрафы) и иные суммы, взыскиваемые с лиц, виновных в совершении преступлений, и в возмещение ущерба имуществу, зачисляемые в бюджет Фонда социального страхования Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39311690070070000140</Code>
+    <Name1>Прочие поступления от денежных взысканий (штрафов) и иных сумм в возмещение ущерба, зачисляемые в Фонд социального страхования Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39311704000010000180</Code>
+    <Name1>Поступления капитализированных платежей предприятий</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39311706020070000180</Code>
+    <Name1>Прочие неналоговые поступления в Фонд социального страхования Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39411102071080000120</Code>
+    <Name1>Доходы от размещения временно свободных средств Федерального фонда обязательного медицинского страхования</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39411105038080000120</Code>
+    <Name1>Доходы от сдачи в аренду имущества, находящегося в оперативном управлении Федерального фонда обязательного медицинского страхования</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39411109048080000120</Code>
+    <Name1>Прочие поступления от использования имущества, находящегося в оперативном управлении Федерального фонда обязательного медицинского страхования</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39411402080080000410</Code>
+    <Name1>Доходы от реализации имущества, находящегося в оперативном управлении Федерального фонда обязательного медицинского страхования в части реализации основных средств по указанному имуществу</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39411402080080000440</Code>
+    <Name1>Доходы от реализации имущества, находящегося в оперативном управлении Федерального фонда обязательного медицинского страхования в части реализации материальных запасов по указанному имуществу</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39411620030080000140</Code>
+    <Name1>Денежные взыскания (штрафы) за нарушение законодательства Российской Федерации о государственных внебюджетных фондах и о конкретных видах обязательного социального страхования, бюджетного законодательства (в части бюджета Федерального фонда обязатель</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39411621080080000140</Code>
+    <Name1>Денежные взыскания (штрафы) и иные суммы, взыскиваемые с лиц, виновных в совершении преступлений, и в возмещение ущерба имуществу, зачисляемые в бюджет Федерального фонда обязательного медицинского страхования</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39411690080080000140</Code>
+    <Name1>Прочие поступления от денежных взысканий (штрафов) и иных сумм в возмещение ущерба, зачисляемые в Федеральный фонд обязательного медицинского страхования</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39411706030080000180</Code>
+    <Name1>Прочие неналоговые поступления в Федеральный фонд обязательного медицинского страхования</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39510202060090000160</Code>
+    <Name1>Страховые взносы на обязательное медицинское страхование неработающего населения, уплачиваемые в территориальные фонды обязательного медицинского страхования органами исполнительной власти субъектов Российской Федерации</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39510202070090000160</Code>
+    <Name1>Недоимка и пени по страховым взносам на обязательное медицинское страхование неработающего населения</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39511102072090000120</Code>
+    <Name1>Доходы от размещения временно свободных средств территориальных фондов обязательного медицинского страхования</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39511105039090000120</Code>
+    <Name1>Доходы от сдачи в аренду имущества, находящегося в оперативном управлении территориальных фондов обязательного медицинского страхования</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39511109049090000120</Code>
+    <Name1>Прочие поступления от использования имущества, находящегося в оперативном управлении территориальных фондов обязательного медицинского страхования</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39511402090090000410</Code>
+    <Name1>Доходы от реализации имущества, находящегося в оперативном управлении территориальных фондов обязательного медицинского страхования в части реализации основных средств по указанному имуществу</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39511402090090000440</Code>
+    <Name1>Доходы от реализации имущества, находящегося в оперативном управлении территориальных фондов обязательного медицинского страхования в части реализации материальных запасов по указанному имуществу</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39511620040090000140</Code>
+    <Name1>Денежные взыскания (штрафы) за нарушение законодательства Российской Федерации о государственных внебюджетных фондах и о конкретных видах обязательного социального страхования, бюджетного законодательства (в части бюджетов территориальных фондов обяз</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39511621090090000140</Code>
+    <Name1>Денежные взыскания (штрафы) и иные суммы, взыскиваемые с лиц, виновных в совершении преступлений, и в возмещение ущерба имуществу, зачисляемые в бюджеты территориальных фондов обязательного медицинского страхования</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39511690090090000140</Code>
+    <Name1>Прочие поступления от денежных взысканий (штрафов) и иных сумм в возмещение ущерба, зачисляемые в территориальные фонды обязательного медицинского страхования</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+  <KBK>
+    <Code>39511706040090000180</Code>
+    <Name1>Прочие неналоговые поступления в территориальные фонды обязательного медицинского страхования</Name1>
+    <Name2 />
+    <Name3 />
+    <Indentation>1</Indentation>
+    <Header>No</Header>
+  </KBK>
+</KBKElements>

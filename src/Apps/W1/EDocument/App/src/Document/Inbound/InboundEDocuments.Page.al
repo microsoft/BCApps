@@ -6,6 +6,7 @@ namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.EServices.EDocument.Processing.Import.Sales;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Vendor;
 using System.Agents;
@@ -119,10 +120,20 @@ page 6105 "Inbound E-Documents"
                     ToolTip = 'Specifies the status of the agent task for this document.';
                     Editable = false;
                 }
+#if not CLEAN29
                 field("Vendor Name"; EDocumentPurchaseHeader."Vendor Company Name")
                 {
                     Caption = 'Sender';
                     ToolTip = 'Specifies the vendor name of the document.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the SenderName field.';
+                    ObsoleteTag = '29.0';
+                }
+#endif
+                field(SenderName; SenderNameTxt)
+                {
+                    Caption = 'Sender';
+                    ToolTip = 'Specifies the sender name of the document.';
                 }
                 field(SystemCreatedAt; Rec.SystemCreatedAt)
                 {
@@ -417,7 +428,7 @@ page 6105 "Inbound E-Documents"
     var
         EDocumentProcessing: Codeunit "E-Document Processing";
     begin
-        if EDocumentPurchaseHeader.Get(Rec."Entry No") then;
+        PopulateSenderName();
         RecordLinkTxt := EDocumentProcessing.GetRecordLinkText(Rec);
         PopulateDocumentNameTxt();
         PopulateConfirmedVendorNameTxt();
@@ -430,6 +441,32 @@ page 6105 "Inbound E-Documents"
 #if not CLEAN27
         SetEmailActionsVisibility();
 #endif
+    end;
+
+    local procedure PopulateSenderName()
+    begin
+        case Rec."Document Type" of
+            Rec."Document Type"::"Sales Order":
+                if EDocumentSalesHeader.Get(Rec."Entry No") then
+                    SenderNameTxt := EDocumentSalesHeader."Buyer Company Name"
+                else begin
+                    Clear(EDocumentSalesHeader);
+                    SenderNameTxt := '';
+                end;
+            Rec."Document Type"::"Purchase Invoice",
+            Rec."Document Type"::"Purchase Credit Memo":
+                if EDocumentPurchaseHeader.Get(Rec."Entry No") then
+                    SenderNameTxt := EDocumentPurchaseHeader."Vendor Company Name"
+                else begin
+                    Clear(EDocumentPurchaseHeader);
+                    SenderNameTxt := '';
+                end;
+            else begin
+                Clear(EDocumentSalesHeader);
+                Clear(EDocumentPurchaseHeader);
+                SenderNameTxt := '';
+            end;
+        end;
     end;
 
     local procedure PopulateDocumentNameTxt()
@@ -580,9 +617,11 @@ page 6105 "Inbound E-Documents"
     var
         EDocDataStorage: Record "E-Doc. Data Storage";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentSalesHeader: Record "E-Document Sales Header";
         AgentTask: Record "Agent Task";
         EDocumentHelper: Codeunit "E-Document Helper";
         RecordLinkTxt, DocumentNameTxt, DocumentTypeStyleTxt, ConfirmedVendorTxt, AgentTaskStatus : Text;
+        SenderNameTxt: Text;
         HasPdf: Boolean;
 #if not CLEAN27
         EmailVisibilityFlag: Boolean;

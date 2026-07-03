@@ -175,6 +175,45 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     end;
 
     [Scope('OnPrem')]
+    procedure AddAttachment(File: FileUpload): codeunit "Agent Task Msg. Builder Impl."
+    begin
+        AddAttachment(File, false, '');
+        exit(this);
+    end;
+
+    [Scope('OnPrem')]
+    procedure AddAttachment(File: FileUpload; Ignored: Boolean): codeunit "Agent Task Msg. Builder Impl."
+    begin
+        AddAttachment(File, Ignored, '');
+        exit(this);
+    end;
+
+    [Scope('OnPrem')]
+    procedure AddAttachment(File: FileUpload; Ignored: Boolean; IgnoredReason: Text[250]): codeunit "Agent Task Msg. Builder Impl."
+    var
+        FileInStream: InStream;
+        FileName: Text;
+        FileNameTooLongErr: Label 'File name ''%1'' exceeds the maximum allowed length of 250 characters.', Comment = '%1 = the uploaded file name';
+    begin
+        // Adapter for fileuploadaction triggers; callers loop over List of [FileUpload]
+        // to support multi-file selection from the browser file picker. MS-DOS encoding keeps
+        // binary attachments (PDF, PNG, XLSX, ...) byte-safe, matching the Email SDK precedent.
+        FileName := File.FileName;
+        if FileName = '' then
+            exit(this);
+        File.CreateInStream(FileInStream, TextEncoding::MSDos);
+        if StrLen(FileName) > 250 then
+            Error(FileNameTooLongErr, FileName);
+        AddAttachment(
+            CopyStr(FileName, 1, 250),
+            CopyStr(GetContentTypeFromFilename(FileName), 1, 100),
+            FileInStream,
+            Ignored,
+            IgnoredReason);
+        exit(this);
+    end;
+
+    [Scope('OnPrem')]
     procedure UploadAttachment(): Boolean
     var
         SelectAttachmentLbl: Label 'Select a file to upload';
