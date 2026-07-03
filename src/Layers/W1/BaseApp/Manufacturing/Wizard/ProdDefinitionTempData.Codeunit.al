@@ -576,11 +576,11 @@ codeunit 99001016 "Prod. Definition Temp Data"
     /// </summary>
     /// <param name="TempBOMHeader">The temporary BOM header to store.</param>
     /// <param name="TempBOMLines">The temporary BOM lines to store.</param>
-    internal procedure SetNewBOMInformation(var InTempBOMHeader: Record "Production BOM Header" temporary; var InTempBOMLines: Record "Production BOM Line" temporary)
+    internal procedure SetNewBOMInformation(var TempBOMHeader2: Record "Production BOM Header" temporary; var TempBOMLines2: Record "Production BOM Line" temporary)
     begin
         ClearBOMTables();
-        TempBOMHeader.Copy(InTempBOMHeader, true);
-        TempBOMLine.Copy(InTempBOMLines, true);
+        TempBOMHeader.Copy(TempBOMHeader2, true);
+        TempBOMLine.Copy(TempBOMLines2, true);
     end;
 
     /// <summary>
@@ -588,44 +588,44 @@ codeunit 99001016 "Prod. Definition Temp Data"
     /// </summary>
     /// <param name="TempRoutingHeader">The temporary routing header to store.</param>
     /// <param name="TempRoutingLines">The temporary routing lines to store.</param>
-    internal procedure SetNewRoutingInformation(var InTempRoutingHeader: Record "Routing Header" temporary; var InTempRoutingLines: Record "Routing Line" temporary)
+    internal procedure SetNewRoutingInformation(var TempRoutingHeader2: Record "Routing Header" temporary; var TempRoutingLines2: Record "Routing Line" temporary)
     begin
         ClearRoutingTables();
-        TempRoutingHeader.Copy(InTempRoutingHeader, true);
-        TempRoutingLine.Copy(InTempRoutingLines, true);
+        TempRoutingHeader.Copy(TempRoutingHeader2, true);
+        TempRoutingLine.Copy(TempRoutingLines2, true);
     end;
 
     /// <summary>
     /// Replaces the internal temporary production order components with the provided records.
     /// </summary>
     /// <param name="TempProdOrderComponent">The temporary production order component records to store.</param>
-    internal procedure SetNewProdOrderComponent(var InTempProdOrderComponent: Record "Prod. Order Component" temporary)
+    internal procedure SetNewProdOrderComponent(var TempProdOrderComponent2: Record "Prod. Order Component" temporary)
     begin
         TempProdOrderComponent.Reset();
         TempProdOrderComponent.DeleteAll();
-        TempProdOrderComponent.Copy(InTempProdOrderComponent, true);
+        TempProdOrderComponent.Copy(TempProdOrderComponent2, true);
     end;
 
     /// <summary>
     /// Replaces the internal temporary production order routing lines with the provided records.
     /// </summary>
     /// <param name="TempProdOrderRoutingLine">The temporary production order routing line records to store.</param>
-    internal procedure SetNewProdOrderRoutingLine(var InTempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary)
+    internal procedure SetNewProdOrderRoutingLine(var TempProdOrderRoutingLine2: Record "Prod. Order Routing Line" temporary)
     begin
         TempProdOrderRoutingLine.Reset();
         TempProdOrderRoutingLine.DeleteAll();
-        TempProdOrderRoutingLine.Copy(InTempProdOrderRoutingLine, true);
+        TempProdOrderRoutingLine.Copy(TempProdOrderRoutingLine2, true);
     end;
 
     /// <summary>
     /// Replaces the internal temporary production order with the provided record.
     /// </summary>
     /// <param name="TempProdOrder">The temporary production order record to store.</param>
-    internal procedure SetNewProdOrder(var InTempProdOrder: Record "Production Order" temporary)
+    internal procedure SetNewProdOrder(var TempProdOrder2: Record "Production Order" temporary)
     begin
         TempProdOrder.Reset();
         TempProdOrder.DeleteAll();
-        TempProdOrder.Copy(InTempProdOrder, true);
+        TempProdOrder.Copy(TempProdOrder2, true);
     end;
 
     /// <summary>

@@ -72,20 +72,6 @@ pageextension 99000754 "Mfg. Stockkeeping Unit Card" extends "Stockkeeping Unit 
                         Rec.OpenActiveProductionBOMForSKUItem(Rec."Production BOM No.", Rec."Item No.");
                     end;
                 }
-                action(RunProdDefinition)
-                {
-                    ApplicationArea = Manufacturing;
-                    Caption = 'Production Definition';
-                    Image = ProductionSetup;
-                    ToolTip = 'Define or review the bill of materials and routing for this stockkeeping unit using the Production Definition Wizard.';
-
-                    trigger OnAction()
-                    var
-                        ProductionDefinitionManager: Codeunit "Production Definition Manager";
-                    begin
-                        ProductionDefinitionManager.RunForSource(Rec, "Prod. Definition Mode"::DefineItemStructure);
-                    end;
-                }
             }
         }
         addafter("C&alculate Counting Period")
@@ -102,6 +88,23 @@ pageextension 99000754 "Mfg. Stockkeeping Unit Card" extends "Stockkeeping Unit 
                     CalculateStandardCost: Codeunit Microsoft.Manufacturing.StandardCost."Calculate Standard Cost";
                 begin
                     CalculateStandardCost.CalcItemSKU(Rec."Item No.", Rec."Location Code", Rec."Variant Code");
+                end;
+            }
+        }
+        addlast("F&unctions")
+        {
+            action(RunProdDefinition)
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'Production Definition';
+                Image = ProductionSetup;
+                ToolTip = 'Define or review the bill of materials and routing for this item using the Production Definition Wizard.';
+
+                trigger OnAction()
+                var
+                    ProductionDefinitionManager: Codeunit "Production Definition Manager";
+                begin
+                    ProductionDefinitionManager.RunForSource(Rec, "Prod. Definition Mode"::DefineItemStructure);
                 end;
             }
         }

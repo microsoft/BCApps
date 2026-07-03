@@ -90,20 +90,6 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
                         CalculateStandardCost.CalcItem(Rec."No.", false);
                     end;
                 }
-                action(RunProdDefinition)
-                {
-                    ApplicationArea = Manufacturing;
-                    Caption = 'Production Definition';
-                    Image = ProductionSetup;
-                    ToolTip = 'Define or review the bill of materials and routing for the selected item using the Production Definition Wizard.';
-
-                    trigger OnAction()
-                    var
-                        ProductionDefinitionManager: Codeunit "Production Definition Manager";
-                    begin
-                        ProductionDefinitionManager.RunForSource(Rec, "Prod. Definition Mode"::DefineItemStructure);
-                    end;
-                }
             }
         }
         addafter(PrintLabel)
@@ -191,6 +177,23 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
                 Caption = 'Compare Production Cost Shares';
                 Image = "Report";
                 RunObject = Report "Compare Production Cost Shares";
+            }
+        }
+        addafter("&Create Stockkeeping Unit")
+        {
+            action(RunProdDefinition)
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'Production Definition';
+                Image = ProductionSetup;
+                ToolTip = 'Define or review the bill of materials and routing for this item using the Production Definition Wizard.';
+
+                trigger OnAction()
+                var
+                    ProductionDefinitionManager: Codeunit "Production Definition Manager";
+                begin
+                    ProductionDefinitionManager.RunForSource(Rec, "Prod. Definition Mode"::DefineItemStructure);
+                end;
             }
         }
     }

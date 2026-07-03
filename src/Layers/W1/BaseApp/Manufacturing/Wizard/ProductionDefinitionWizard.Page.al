@@ -218,7 +218,7 @@ page 99001021 "Production Definition Wizard"
                     {
                         Caption = 'Production BOM Lines';
                         Enabled = EditBOMLines;
-
+                        Editable = EditBOMLines;
                     }
                 }
             }
@@ -300,6 +300,7 @@ page 99001021 "Production Definition Wizard"
                     {
                         Caption = 'Routing Lines';
                         Enabled = EditRoutingLines;
+                        Editable = EditRoutingLines;
                     }
                 }
             }
@@ -317,6 +318,7 @@ page 99001021 "Production Definition Wizard"
                     part(ComponentsPart; "Temp Prod. Order Comp. List")
                     {
                         Caption = 'Components';
+                        Enabled = ProdComponentDisplay = ProdComponentDisplay::Edit;
                         Editable = ProdComponentDisplay = ProdComponentDisplay::Edit;
                     }
                 }
@@ -335,6 +337,7 @@ page 99001021 "Production Definition Wizard"
                     part(ProdOrderRoutingPart; "Temp Prod. Ord. Rtng List")
                     {
                         Caption = 'Prod. Order Routing Lines';
+                        Enabled = ProdComponentDisplay = ProdComponentDisplay::Edit;
                         Editable = ProdComponentDisplay = ProdComponentDisplay::Edit;
                     }
                 }
@@ -539,24 +542,38 @@ page 99001021 "Production Definition Wizard"
     local procedure SetBOMDataReference()
     var
         TempBOMLines: Record "Production BOM Line" temporary;
+        TempBOMHeader: Record "Production BOM Header" temporary;
     begin
         TempData.GetGlobalBOMLines(TempBOMLines);
         CurrPage.BOMLinesPart.Page.SetTemporaryRecords(TempBOMLines);
         if TempBOMLines.FindFirst() then begin
             SelectedBOMNo := TempBOMLines."Production BOM No.";
             SelectedBOMVersion := TempBOMLines."Version Code";
+        end else begin
+            TempData.GetGlobalBOMHeader(TempBOMHeader);
+            if TempBOMHeader.FindFirst() then begin
+                SelectedBOMNo := TempBOMHeader."No.";
+                SelectedBOMVersion := '';
+            end;
         end;
     end;
 
     local procedure SetRoutingDataReference()
     var
         TempRoutingLine: Record "Routing Line" temporary;
+        TempRoutingHeader: Record "Routing Header" temporary;
     begin
         TempData.GetGlobalRoutingLines(TempRoutingLine);
         CurrPage.RoutingLinesPart.Page.SetTemporaryRecords(TempRoutingLine);
         if TempRoutingLine.FindFirst() then begin
             SelectedRoutingNo := TempRoutingLine."Routing No.";
             SelectedRoutingVersion := TempRoutingLine."Version Code";
+        end else begin
+            TempData.GetGlobalRoutingHeader(TempRoutingHeader);
+            if TempRoutingHeader.FindFirst() then begin
+                SelectedRoutingNo := TempRoutingHeader."No.";
+                SelectedRoutingVersion := '';
+            end;
         end;
     end;
 

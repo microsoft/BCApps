@@ -246,6 +246,8 @@ codeunit 99001017 "Production Definition Manager"
         BOMLine: Record "Production BOM Line";
         NoSeries: Codeunit "No. Series";
     begin
+        if TempBOMLine.IsEmpty() then
+            exit;
         if ProdDefVersionMgmt.CheckBOMExists(BOMNo, '') then
             exit;
 
@@ -279,6 +281,8 @@ codeunit 99001017 "Production Definition Manager"
         RoutingLine: Record "Routing Line";
         NoSeries: Codeunit "No. Series";
     begin
+        if TempRoutingLine.IsEmpty() then
+            exit;
         if not TempRoutingHeader.FindFirst() then
             exit;
 
