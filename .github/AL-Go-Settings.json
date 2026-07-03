@@ -31,6 +31,16 @@
           "CLEAN29"
         ]
       }
+    },
+    {
+      "projects": [
+        "."
+      ],
+      "settings": {
+        "appFolders": [
+          "src/Layers/W1/DemoTool"
+        ]
+      }
     }
   ],
   "customALGoFiles": {
@@ -114,6 +124,7 @@
   "fullBuildPatterns": [
     "build/*",
     "src/rulesets/*",
+    "src/Layers/*",
     ".github/workflows/PullRequestHandler.yaml",
     ".github/workflows/_BuildALGoProject.yaml"
   ],
@@ -122,6 +133,9 @@
     "maxReleases": 0,
     "continuousDeployment": false,
     "groupByProject": false,
+    "includeProjects": [
+      "build_projects_Apps W1"
+    ],
     "excludeProjects": [
       "build_projects_System Application Modules"
     ]
@@ -141,8 +155,5 @@
     "onPull_Request": true,
     "onSchedule": false,
     "mode": "modifiedApps"
-  },
-  "fullBuildPatterns": [
-    "src/Layers/*"
-  ]
+  }
 }
