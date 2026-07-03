@@ -10,28 +10,64 @@ codeunit 1269 "Export Mapping"
 
     trigger OnRun()
     var
+        DataExchField: Record "Data Exch. Field";
         DataExchMapping: Record "Data Exch. Mapping";
+        TempDataExchField: Record "Data Exch. Field" temporary;
         TempDataExchFlowFieldGrBuff: Record "Data Exch. FlowField Gr. Buff." temporary;
         PaymentExportMgt: Codeunit "Payment Export Mgt";
         SourceRecRef: RecordRef;
         Window: Dialog;
         LineNo: Integer;
+        RowCount: Integer;
+        Divider: Integer;
     begin
         FindMapping(DataExchMapping, Rec."Data Exch. Def Code", Rec."Data Exch. Line Def Code");
         GetSourceRecRefBuffer(SourceRecRef, TempDataExchFlowFieldGrBuff, DataExchMapping, ReadTableFilters(Rec));
-        Window.Open(ProgressMsg);
+        RowCount := SourceRecRef.Count();
+        case true of
+            RowCount > 1000:
+                Divider := 200;
+            RowCount > 100:
+                Divider := 10;
+            else
+                Divider := 1;
+        end;
+
+        Window.Open(MappingProgressMsg);
         repeat
             LineNo += 1;
-            Window.Update(1, LineNo);
-            PaymentExportMgt.ProcessColumnMapping(Rec, SourceRecRef, TempDataExchFlowFieldGrBuff, LineNo, Rec."Data Exch. Line Def Code", SourceRecRef.Number);
-        until SourceRecRef.Next() = 0;
+            if LineNo mod Divider = 0 then
+                Window.Update(1, LineNo);
 
+            PaymentExportMgt.ProcessColumnMapping(Rec, SourceRecRef, TempDataExchFlowFieldGrBuff, LineNo, Rec."Data Exch. Line Def Code", SourceRecRef.Number, TempDataExchField);
+        until SourceRecRef.Next() = 0;
+        Window.Close();
+
+        Window.Open(SavingProgressMsg);
+        TempDataExchField.Reset();
+        if TempDataExchField.FindSet() then
+            repeat
+                if TempDataExchField."Line No." <> LineNo then begin
+                    LineNo := TempDataExchField."Line No.";
+                    if LineNo mod Divider = 0 then
+                        Window.Update(1, LineNo);
+                end;
+
+                DataExchField.Init();
+                DataExchField.TransferFields(TempDataExchField);
+                if TempDataExchField."Value BLOB".HasValue() then begin
+                    TempDataExchField.CalcFields("Value BLOB");
+                    DataExchField."Value BLOB" := TempDataExchField."Value BLOB";
+                end;
+                DataExchField.Insert();
+            until TempDataExchField.Next() = 0;
         Window.Close();
     end;
 
     var
 #pragma warning disable AA0470
-        ProgressMsg: Label 'Processing line no. #1######.';
+        MappingProgressMsg: Label 'Mapping line no. #1######';
+        SavingProgressMsg: Label 'Saving line no. #1######';
         MappingNotFoundErr: Label 'No mapping was found for format definition %1 and line definition %2.';
         RecordsNotFoundErr: Label 'No records were found for source table %1 using the filters: %2.';
 #pragma warning restore AA0470
