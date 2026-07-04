@@ -1,6 +1,7 @@
-namespace Microsoft.PowerBIReports;
+namespace Microsoft.Sustainability.PowerBIReports;
 
 using Microsoft.Finance.RoleCenters;
+using Microsoft.PowerBIReports;
 
 pageextension 6347 "Sust. Business Manager RC" extends "Business Manager Role Center"
 {
