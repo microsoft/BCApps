@@ -79,7 +79,7 @@ codeunit 7000095 "CRT Purch.-Post"
                                 (VendLedgEntry."Document Status" = VendLedgEntry."Document Status"::Rejected))
                         then
                             ShowError := true;
-                until VendLedgEntry.Next() = 0;
+                until (VendLedgEntry.Next() = 0) or ShowError;
 
             if ShowError then
                 Error(

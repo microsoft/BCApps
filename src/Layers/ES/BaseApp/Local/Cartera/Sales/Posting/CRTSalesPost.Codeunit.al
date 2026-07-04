@@ -82,7 +82,7 @@ codeunit 7000096 "CRT Sales-Post"
                                 (CustLedgEntry."Document Status" = CustLedgEntry."Document Status"::Rejected))
                         then
                             ShowError := true;
-                until CustLedgEntry.Next() = 0;
+                until (CustLedgEntry.Next() = 0) or ShowError;
 
             if ShowError then
                 Error(
