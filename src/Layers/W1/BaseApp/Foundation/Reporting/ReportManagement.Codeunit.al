@@ -4,10 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting;
 
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Company;
 using System.Device;
 using System.Environment;
 using System.Environment.Configuration;
 using System.Reflection;
+using System.Text;
 using System.Utilities;
 
 codeunit 44 ReportManagement
@@ -262,6 +265,93 @@ codeunit 44 ReportManagement
             exit;
 
         OnGetFilename(ReportID, Caption, ObjectPayload, FileExtension, ReportRecordRef, Filename, Success);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", 'GetCompanyMetadata', '', false, false)]
+    local procedure GetCompanyMetadataSubscriber(ReportId: Integer; var CompanyMetadata: JsonObject)
+    begin
+        GetCompanyMetadata(CompanyMetadata);
+    end;
+
+    /// <summary>
+    /// Populates the shared CompanyMetadata payload from Company Information for the report layouts'
+    /// company block. Empty-safe: with no Company Information record the fields are emitted blank
+    /// rather than erroring. Localizations can add their own fields by subscribing to the platform
+    /// GetCompanyMetadata event as well (the payload is additive).
+    /// </summary>
+    procedure GetCompanyMetadata(var CompanyMetadata: JsonObject)
+    var
+        CompanyInfo: Record "Company Information";
+        FormatAddress: Codeunit "Format Address";
+        CompanyMetadataBuilder: Codeunit "Company Metadata Builder";
+        AddrArray: array[8] of Text[100];
+        Index: Integer;
+    begin
+        if not CompanyInfo.Get() then
+            CompanyInfo.Init();
+
+        CompanyMetadataBuilder.SetName(CompanyInfo.Name);
+        CompanyMetadataBuilder.SetDisplayName(GetCompanyDisplayName());
+
+        FormatAddress.Company(AddrArray, CompanyInfo);
+        for Index := 1 to ArrayLen(AddrArray) do
+            CompanyMetadataBuilder.AddAddressLine(AddrArray[Index]);
+
+        CompanyMetadataBuilder.SetPhone(CompanyInfo."Phone No.");
+        CompanyMetadataBuilder.SetPhoneCaption(CompanyInfo.FieldCaption("Phone No."));
+        CompanyMetadataBuilder.SetFaxNo(CompanyInfo."Fax No.");
+        CompanyMetadataBuilder.SetFaxNoCaption(CompanyInfo.FieldCaption("Fax No."));
+        CompanyMetadataBuilder.SetEmail(CompanyInfo."E-Mail");
+        CompanyMetadataBuilder.SetEmailCaption(CompanyInfo.FieldCaption("E-Mail"));
+        CompanyMetadataBuilder.SetHomePage(CompanyInfo."Home Page");
+        CompanyMetadataBuilder.SetHomePageCaption(CompanyInfo.FieldCaption("Home Page"));
+        CompanyMetadataBuilder.SetLogo(GetLogoBase64(CompanyInfo));
+        CompanyMetadataBuilder.SetVATRegistrationNo(CompanyInfo."VAT Registration No.");
+        CompanyMetadataBuilder.SetVATRegistrationNoCaption(CompanyInfo.FieldCaption("VAT Registration No."));
+        CompanyMetadataBuilder.SetRegistrationNo(CompanyInfo."Registration No.");
+        CompanyMetadataBuilder.SetRegistrationNoCaption(CompanyInfo.FieldCaption("Registration No."));
+        CompanyMetadataBuilder.SetBankName(CompanyInfo."Bank Name");
+        CompanyMetadataBuilder.SetBankNameCaption(CompanyInfo.FieldCaption("Bank Name"));
+        CompanyMetadataBuilder.SetBankAccountNo(CompanyInfo."Bank Account No.");
+        CompanyMetadataBuilder.SetBankAccountNoCaption(CompanyInfo.FieldCaption("Bank Account No."));
+        CompanyMetadataBuilder.SetBankBranchNo(CompanyInfo."Bank Branch No.");
+        CompanyMetadataBuilder.SetBankBranchNoCaption(CompanyInfo.FieldCaption("Bank Branch No."));
+        CompanyMetadataBuilder.SetIBAN(CompanyInfo.IBAN);
+        CompanyMetadataBuilder.SetIBANCaption(CompanyInfo.FieldCaption(IBAN));
+        CompanyMetadataBuilder.SetBankSWIFT(CompanyInfo."SWIFT Code");
+        CompanyMetadataBuilder.SetBankSWIFTCaption(CompanyInfo.FieldCaption("SWIFT Code"));
+        CompanyMetadataBuilder.SetGiroNo(CompanyInfo."Giro No.");
+        CompanyMetadataBuilder.SetGiroNoCaption(CompanyInfo.FieldCaption("Giro No."));
+
+        CompanyMetadataBuilder.WriteTo(CompanyMetadata);
+    end;
+
+    /// <summary>
+    /// Company display name, mirroring how the platform builds ReportRequest/CompanyDisplayName
+    /// (ReportRequestXmlRuntime): the tenant Company record's display name
+    /// (CompanyProperty.DisplayName() -> session.Company.CompanyDisplayName), falling back to the
+    /// company name when the display name is blank. NOT Company Information."Name 2".
+    /// </summary>
+    local procedure GetCompanyDisplayName(): Text
+    var
+        DisplayName: Text;
+    begin
+        DisplayName := CompanyProperty.DisplayName();
+        if DisplayName = '' then
+            DisplayName := CompanyName();
+        exit(DisplayName);
+    end;
+
+    local procedure GetLogoBase64(var CompanyInfo: Record "Company Information"): Text
+    var
+        Base64Convert: Codeunit "Base64 Convert";
+        InStr: InStream;
+    begin
+        CompanyInfo.CalcFields(Picture);
+        if not CompanyInfo.Picture.HasValue() then
+            exit('');
+        CompanyInfo.Picture.CreateInStream(InStr);
+        exit(Base64Convert.ToBase64(InStr));
     end;
 
     [IntegrationEvent(false, false)]
