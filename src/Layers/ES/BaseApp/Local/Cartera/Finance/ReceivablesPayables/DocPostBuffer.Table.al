@@ -7,25 +7,22 @@ namespace Microsoft.Finance.ReceivablesPayables;
 table 7000011 "Doc. Post. Buffer"
 {
     Caption = 'Doc. Post. Buffer';
-    DataClassification = CustomerContent;
+    DataClassification = SystemMetadata;
 
     fields
     {
         field(1; "Entry No."; Integer)
         {
             Caption = 'Entry No.';
-            DataClassification = SystemMetadata;
         }
         field(2; "No. of Days"; Integer)
         {
             Caption = 'No. of Days';
-            DataClassification = SystemMetadata;
         }
         field(3; Amount; Decimal)
         {
             AutoFormatType = 0;
             Caption = 'Amount';
-            DataClassification = SystemMetadata;
         }
     }
 

@@ -278,14 +278,14 @@ table 7000003 "Posted Cartera Doc."
     }
 
     var
-        Text1100000: Label 'untitled';
+        UntitledLbl: Label 'untitled';
 
     procedure Caption(): Text
     var
         BankAcc: Record "Bank Account";
     begin
         if "Bank Account No." = '' then
-            exit(Text1100000);
+            exit(UntitledLbl);
         BankAcc.Get("Bank Account No.");
         exit(StrSubstNo(BankAcc.Name));
     end;

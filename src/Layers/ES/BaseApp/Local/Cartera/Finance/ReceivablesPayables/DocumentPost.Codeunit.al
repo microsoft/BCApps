@@ -40,21 +40,26 @@ codeunit 7000006 "Document-Post"
 
     var
         JournalErrorsMgt: Codeunit "Journal Errors Mgt.";
-        Text1100000: Label 'must be of a type that creates bills';
-        Text1100001: Label 'A customer or vendor must be specified when a bill is created.';
-        Text1100004: Label 'Sales Bill %1/%2 already exists.';
-        Text1100005: Label 'Purchase Document %1/%2 already exists.';
-        Text1100006: Label 'Receivable %1 %2/%3 cannot be applied to, because it is included in a posted Bill Group.';
-        Text1100007: Label 'Payable %1 %2/%3 cannot be applied to, because it is included in a posted Payment Order.';
-        Text1100008: Label 'Date %1 is not within your range of allowed posting dates';
-        Text1100009: Label '%1 must be entered.';
-        Text1100010: Label '%1 must be of a type that creates bills.';
-        Text1100011: Label 'A grouped document cannot be settled from a journal. Remove it from its group or payment order and try again.';
-        Text1100012: Label 'cannot be filtered when posting recurring journals';
-        Text1100013: Label 'Do you want to post the journal lines and print the posting report?';
-        Text1100014: Label 'Do you want to post the journal lines?';
-        Text1100016: Label 'The journal lines were successfully posted.';
-        Text1100017: Label 'The journal lines were successfully posted. You are now in the %1 journal.';
+        Text1100000Err: Label 'must be of a type that creates bills';
+        Text1100001Err: Label 'A customer or vendor must be specified when a bill is created.';
+        Text1100004Err: Label 'Sales Bill %1/%2 already exists.', Comment = '%1=Bill Number,%2=Customer Number';
+        Text1100005Err: Label 'Purchase Document %1/%2 already exists.', Comment = '%1=Document Number,%2=Vendor Number';
+        Text1100006Err: Label 'Receivable %1 %2/%3 cannot be applied to, because it is included in a posted Bill Group.', Comment = '%1=Document Type,%2=Document Number,%3=Bill Group Number';
+        Text1100007Err: Label 'Payable %1 %2/%3 cannot be applied to, because it is included in a posted Payment Order.', Comment = '%1=Document Type,%2=Document Number,%3=Payment Order Number';
+        Text1100008Err: Label 'Date %1 is not within your range of allowed posting dates', Comment = '%1=Date';
+        Text1100009Err: Label '%1 must be entered.', Comment = '%1=Field Name';
+        Text1100010Err: Label '%1 must be of a type that creates bills.', Comment = '%1=Field Name';
+        Text1100011Err: Label 'A grouped document cannot be settled from a journal. Remove it from its group or payment order and try again.';
+        Text1100012Err: Label 'cannot be filtered when posting recurring journals';
+        Text1100013Err: Label 'Do you want to post the journal lines and print the posting report?';
+        Text1100014Err: Label 'Do you want to post the journal lines?';
+        Text1100016Err: Label 'The journal lines were successfully posted.';
+        Text1100017Err: Label 'The journal lines were successfully posted. You are now in the %1 journal.', Comment = '%1=Journal Name';
+        Text1100101Err: Label ' Remove it from its bill group and try again.';
+        Text1100102Err: Label '%1 cannot be unapplied, since it is included in a bill group.', Comment = '%1=Document Description';
+        Text1100103Err: Label ' Remove it from its payment order and try again.';
+        Text1100104Err: Label '%1 cannot be unapplied, since it is included in a payment order.';
+
         CarteraDocBillGroupErr: Label 'A grouped document cannot be settled from a journal.\Remove Document %1/%2 from Group/Pmt. Order %3 and try again.', Comment = '%1=Document Number,%2=Bill number,%3=Bill Group number.';
 
     procedure CheckGenJnlLine(var GenJnlLine: Record "Gen. Journal Line")
@@ -79,9 +84,9 @@ codeunit 7000006 "Document-Post"
             GenJnlLine.TestField("Payment Method Code");
             PaymentMethod.Get(GenJnlLine."Payment Method Code");
             if not PaymentMethod."Create Bills" then
-                GenJnlLine.FieldError("Payment Method Code", Text1100000);
+                GenJnlLine.FieldError("Payment Method Code", Text1100000Err);
             if not (GenJnlLine."Account Type" in [GenJnlLine."Account Type"::Customer, GenJnlLine."Account Type"::Vendor]) then
-                Error(Text1100001)
+                Error(Text1100001Err)
         end;
         if GenJnlLine."Document Type" = GenJnlLine."Document Type"::"Credit Memo" then
             SystemCreated := false
@@ -129,10 +134,8 @@ codeunit 7000006 "Document-Post"
             if GenJnlLine."Document Type" = GenJnlLine."Document Type"::Invoice then
                 OldCustLedgEntry.SetRange("Document Type", OldCustLedgEntry."Document Type"::Invoice);
         OldCustLedgEntry.SetRange("Bill No.", CVLedgEntryBuf."Bill No.");
-        if OldCustLedgEntry.FindFirst() then
-            Error(
-              Text1100004,
-              CVLedgEntryBuf."Document No.", CVLedgEntryBuf."Bill No.");
+        if not OldCustLedgEntry.IsEmpty() then
+            Error(Text1100004Err, CVLedgEntryBuf."Document No.", CVLedgEntryBuf."Bill No.");
 
         if IsFromJournal then
             CarteraDoc."From Journal" := true;
@@ -168,10 +171,8 @@ codeunit 7000006 "Document-Post"
             if GenJnlLine."Document Type" = GenJnlLine."Document Type"::Invoice then
                 OldVendLedgEntry.SetRange("Document Type", OldVendLedgEntry."Document Type"::Invoice);
         OldVendLedgEntry.SetRange("Bill No.", CVLedgEntryBuf."Bill No.");
-        if OldVendLedgEntry.FindFirst() then
-            Error(
-              Text1100005,
-              CVLedgEntryBuf."Document No.", CVLedgEntryBuf."Bill No.");
+        if not OldVendLedgEntry.IsEmpty() then
+            Error(Text1100005Err, CVLedgEntryBuf."Document No.", CVLedgEntryBuf."Bill No.");
 
         if IsFromJournal then
             CarteraDoc."From Journal" := true;
@@ -495,7 +496,7 @@ codeunit 7000006 "Document-Post"
            and not SystemCreatedEntry
         then
             Error(
-              Text1100006,
+              Text1100006Err,
               OldCustLedgEntry."Document Type", OldCustLedgEntry."Document No.",
               OldCustLedgEntry."Bill No.");
     end;
@@ -506,7 +507,7 @@ codeunit 7000006 "Document-Post"
            and not SystemCreatedEntry
         then
             Error(
-              Text1100007,
+              Text1100007Err,
               OldVendLedgEntry."Document Type", OldVendLedgEntry."Document No.",
               OldVendLedgEntry."Bill No.");
     end;
@@ -531,8 +532,7 @@ codeunit 7000006 "Document-Post"
         if AllowPostingTo = 0D then
             AllowPostingTo := 99991231D;
         if (CheckDate < AllowPostingFrom) or (CheckDate > AllowPostingTo) then
-            Error(Text1100008,
-              CheckDate);
+            Error(Text1100008Err, CheckDate);
     end;
 
     local procedure CheckCarteraDocsForBillGroups(CarteraDocType: Enum "Cartera Document Type"; DocumentNo: Code[20]; BillNo: Code[20])
@@ -644,23 +644,23 @@ codeunit 7000006 "Document-Post"
         then begin
             if GenJnlLine."Bill No." = '' then
                 AddError(
-                  StrSubstNo(Text1100009, GenJnlLine.FieldCaption("Bill No.")),
+                  StrSubstNo(Text1100009Err, GenJnlLine.FieldCaption("Bill No.")),
                   ErrorCounter,
                   ErrorText);
             if GenJnlLine."Due Date" = 0D then
                 AddError(
-                  StrSubstNo(Text1100009, GenJnlLine.FieldCaption("Due Date")),
+                  StrSubstNo(Text1100009Err, GenJnlLine.FieldCaption("Due Date")),
                   ErrorCounter,
                   ErrorText);
             if GenJnlLine."Payment Method Code" = '' then
                 AddError(
-                  StrSubstNo(Text1100009, GenJnlLine.FieldCaption("Payment Method Code")), ErrorCounter, ErrorText);
+                  StrSubstNo(Text1100009Err, GenJnlLine.FieldCaption("Payment Method Code")), ErrorCounter, ErrorText);
             PaymentMethod.Get(GenJnlLine."Payment Method Code");
             if not PaymentMethod."Create Bills" then
                 AddError(
-                  StrSubstNo(Text1100010, GenJnlLine.FieldCaption("Payment Method Code")), ErrorCounter, ErrorText);
+                  StrSubstNo(Text1100010Err, GenJnlLine.FieldCaption("Payment Method Code")), ErrorCounter, ErrorText);
             if not (GenJnlLine."Account Type" in [GenJnlLine."Account Type"::Customer, GenJnlLine."Account Type"::Vendor]) then
-                AddError(Text1100001, ErrorCounter, ErrorText);
+                AddError(Text1100001Err, ErrorCounter, ErrorText);
         end;
         if (GenJnlLine."Account Type" = GenJnlLine."Account Type"::Customer) and
            (GenJnlLine."Applies-to Doc. Type" = GenJnlLine."Applies-to Doc. Type"::Bill) and
@@ -672,7 +672,7 @@ codeunit 7000006 "Document-Post"
             CarteraDoc.SetRange("Document No.", GenJnlLine."Applies-to Doc. No.");
             CarteraDoc.SetRange("No.", GenJnlLine."Applies-to Bill No.");
             if CarteraDoc.FindFirst() and (CarteraDoc."Bill Gr./Pmt. Order No." <> '') then
-                AddError(Text1100011, ErrorCounter, ErrorText);
+                AddError(Text1100011Err, ErrorCounter, ErrorText);
         end;
     end;
 
@@ -696,22 +696,22 @@ codeunit 7000006 "Document-Post"
 
     local procedure "Code"(var GenJnlLine: Record "Gen. Journal Line"; var PostOk: Boolean; Print: Boolean)
     var
+        GLReg: Record "G/L Register";
         GenJnlTemplate: Record "Gen. Journal Template";
         GenJnlPostBatch: Codeunit "Gen. Jnl.-Post Batch";
         TempJnlBatchName: Code[10];
-        GLReg: Record "G/L Register";
         IsHandled: Boolean;
     begin
         GenJnlTemplate.Get(GenJnlLine."Journal Template Name");
         GenJnlTemplate.TestField("Force Posting Report", false);
         if GenJnlTemplate.Recurring and (GenJnlLine.GetFilter("Posting Date") <> '') then
-            GenJnlLine.FieldError("Posting Date", Text1100012);
+            GenJnlLine.FieldError("Posting Date", Text1100012Err);
 
         if Print then begin
-            if not Confirm(Text1100013, false) then
+            if not Confirm(Text1100013Err, false) then
                 exit;
         end else
-            if not Confirm(Text1100014, false) then
+            if not Confirm(Text1100014Err, false) then
                 exit;
 
         TempJnlBatchName := GenJnlLine."Journal Batch Name";
@@ -759,10 +759,10 @@ codeunit 7000006 "Document-Post"
             Message(JournalErrorsMgt.GetNothingToPostErrorMsg())
         else
             if TempJnlBatchName = GenJournalLine."Journal Batch Name" then begin
-                Message(Text1100016);
+                Message(Text1100016Err);
                 PostOk := true;
             end else
-                Message(Text1100017, GenJournalLine."Journal Batch Name");
+                Message(Text1100017Err, GenJournalLine."Journal Batch Name");
     end;
 
     procedure PostLines(var GenJnlLine2: Record "Gen. Journal Line"; var PostOk: Boolean; Print: Boolean)
@@ -856,7 +856,7 @@ codeunit 7000006 "Document-Post"
         DtldCVLedgEntryBuf."Amount (LCY)" := Amount2LCY;
         DtldCVLedgEntryBuf."Customer No." := CustLedgEntry2."Customer No.";
         DtldCVLedgEntryBuf."Currency Code" := CustLedgEntry2."Currency Code";
-        DtldCVLedgEntryBuf."User ID" := UserId;
+        DtldCVLedgEntryBuf."User ID" := CopyStr(UserId, 1, MaxStrLen(DtldCVLedgEntryBuf."User ID"));
         DtldCVLedgEntryBuf."Initial Entry Global Dim. 1" := CustLedgEntry2."Global Dimension 1 Code";
         DtldCVLedgEntryBuf."Initial Entry Global Dim. 2" := CustLedgEntry2."Global Dimension 2 Code";
         DtldCVLedgEntryBuf."Bill No." := CustLedgEntry2."Bill No.";
@@ -894,7 +894,7 @@ codeunit 7000006 "Document-Post"
         DtldCVLedgEntryBuf."Amount (LCY)" := Amount2LCY;
         DtldCVLedgEntryBuf."Vendor No." := VendLedgEntry2."Vendor No.";
         DtldCVLedgEntryBuf."Currency Code" := VendLedgEntry2."Currency Code";
-        DtldCVLedgEntryBuf."User ID" := UserId;
+        DtldCVLedgEntryBuf."User ID" := CopyStr(UserId, 1, MaxStrLen(DtldCVLedgEntryBuf."User ID"));
         DtldCVLedgEntryBuf."Initial Entry Global Dim. 1" := VendLedgEntry2."Global Dimension 1 Code";
         DtldCVLedgEntryBuf."Initial Entry Global Dim. 2" := VendLedgEntry2."Global Dimension 2 Code";
         DtldCVLedgEntryBuf."Bill No." := VendLedgEntry2."Bill No.";
@@ -922,10 +922,10 @@ codeunit 7000006 "Document-Post"
 
     procedure UpdateReceivableCurrFact(PostedCarteraDoc: Record "Posted Cartera Doc."; AppliedAmountLCY: Decimal; var DocAmountLCY: Decimal; var RejDocAmountLCY: Decimal; var DiscDocAmountLCY: Decimal; var CollDocAmountLCY: Decimal; var DiscRiskFactAmountLCY: Decimal; var DiscUnriskFactAmountLCY: Decimal; var CollFactAmountLCY: Decimal)
     var
+        CurrExchRate: Record "Currency Exchange Rate";
         SalesInvHeader: Record "Sales Invoice Header";
         PostedBillGroup: Record "Posted Bill Group";
         CurrFact: Decimal;
-        CurrExchRate: Record "Currency Exchange Rate";
     begin
         if SalesInvHeader.Get(PostedCarteraDoc."Document No.") then
             if SalesInvHeader."Currency Factor" <> 0 then begin
@@ -1007,13 +1007,9 @@ codeunit 7000006 "Document-Post"
         CarteraDoc: Record "Cartera Doc.";
         PostedCarteraDoc: Record "Posted Cartera Doc.";
         ClosedCarteraDoc: Record "Closed Cartera Doc.";
-        CarteraDoc2: Record "Cartera Doc.";
-        ClosedCarteraDoc2: Record "Closed Cartera Doc.";
-        DocLock: Boolean;
-        Text1100101: Label ' Remove it from its bill group and try again.';
-        Text1100102: Label '%1 cannot be unapplied, since it is included in a bill group.';
-        InBillGroup: Boolean;
         DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        DocLock: Boolean;
+        InBillGroup: Boolean;
         IsRejection: Boolean;
     begin
         InBillGroup := false;
@@ -1027,17 +1023,12 @@ codeunit 7000006 "Document-Post"
             if ClosedCarteraDoc."Bill Gr./Pmt. Order No." <> '' then
                 InBillGroup := true;
         if InBillGroup then
-            Error(
-              Text1100102 +
-              Text1100101,
-              CustLedgEntry.Description);
+            Error(Text1100102Err + Text1100101Err, CustLedgEntry.Description);
         CustLedgEntry.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
         if not DocLock then begin
             DocLock := true;
             CarteraDoc.LockTable();
             ClosedCarteraDoc.LockTable();
-            if CarteraDoc2.FindLast() then;
-            if ClosedCarteraDoc2.FindLast() then;
         end;
         if CustLedgEntry."Remaining Amount" = 0 then
             CustLedgEntry."Remaining Amt. (LCY)" := 0;
@@ -1103,11 +1094,7 @@ codeunit 7000006 "Document-Post"
         CarteraDoc: Record "Cartera Doc.";
         PostedCarteraDoc: Record "Posted Cartera Doc.";
         ClosedCarteraDoc: Record "Closed Cartera Doc.";
-        CarteraDoc2: Record "Cartera Doc.";
-        ClosedCarteraDoc2: Record "Closed Cartera Doc.";
-        Text1100101: Label ' Remove it from its payment order and try again.';
         InBillGroup: Boolean;
-        Text1100102: Label '%1 cannot be unapplied, since it is included in a payment order.';
     begin
         InBillGroup := false;
         if CarteraDoc.Get(CarteraDoc.Type::Payable, VendLedgEntry."Entry No.") then
@@ -1120,16 +1107,11 @@ codeunit 7000006 "Document-Post"
             if ClosedCarteraDoc."Bill Gr./Pmt. Order No." <> '' then
                 InBillGroup := true;
         if InBillGroup then
-            Error(
-              Text1100102 +
-              Text1100101,
-              VendLedgEntry.Description);
+            Error(Text1100103Err + Text1100104Err, VendLedgEntry.Description);
         VendLedgEntry.CalcFields("Remaining Amount", "Remaining Amt. (LCY)");
         if not DocLock then begin
             DocLock := true;
             CarteraDoc.LockTable();
-            if CarteraDoc2.FindLast() then;
-            if ClosedCarteraDoc2.FindLast() then;
             ClosedCarteraDoc.LockTable();
         end;
         if VendLedgEntry."Remaining Amount" = 0 then

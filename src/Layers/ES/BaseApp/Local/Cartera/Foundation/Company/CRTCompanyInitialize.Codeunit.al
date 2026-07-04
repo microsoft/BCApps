@@ -11,7 +11,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
-codeunit 7000010 "Company-Initialize Cartera"
+codeunit 7000010 "CRT Company-Initialize"
 {
 
     trigger OnRun()
@@ -32,8 +32,8 @@ codeunit 7000010 "Company-Initialize Cartera"
     var
         CarteraSetup: Record "Cartera Setup";
         CarteraReportSelection: Record "Cartera Report Selections";
-        Text1100000: Label 'CARJNL';
-        Text1100001: Label 'Cartera Journal';
+        CARJNLTok: Label 'CARJNL';
+        CarteraJournalLbl: Label 'Cartera Journal';
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", 'OnAfterInitSetupTables', '', true, false)]
     local procedure OnAfterInitSetupTables()
@@ -47,7 +47,7 @@ codeunit 7000010 "Company-Initialize Cartera"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Company-Initialize", 'OnBeforeSourceCodeSetupInsert', '', true, false)]
     local procedure OnBeforeSourceCodeSetupInsert(var SourceCodeSetup: Record "Source Code Setup"; sender: Codeunit "Company-Initialize")
     begin
-        sender.InsertSourceCode(SourceCodeSetup."Cartera Journal", Text1100000, Text1100001);
+        sender.InsertSourceCode(SourceCodeSetup."Cartera Journal", CARJNLTok, CarteraJournalLbl);
     end;
 
     local procedure InsertBGPORepSelection(ReportUsage: Enum "Report Selection Usage Cartera"; Sequence: Code[10]; ReportID: Integer)

@@ -125,7 +125,7 @@ report 7000007 "Vendor - Due Payments"
                 {
                     AutoFormatType = 1;
                 }
-                column(STRSUBSTNO_Text1100000_Date__Period_Name__DATE2DMY_Date__Period_Start__3__; StrSubstNo(Text1100000, Date."Period Name", Date2DMY(Date."Period Start", 3)))
+                column(STRSUBSTNO_Text1100000_Date__Period_Name__DATE2DMY_Date__Period_Start__3__; StrSubstNo(Text1100000Txt, Date."Period Name", Date2DMY(Date."Period Start", 3)))
                 {
                 }
                 column(Vendor_Ledger_Entry__Remaining_Amt___LCY___Control18; "Remaining Amt. (LCY)")
@@ -155,23 +155,26 @@ report 7000007 "Vendor - Due Payments"
                                 PaymentMethod := PurchInv."Payment Method Code";
                         "Document Type"::Bill:
                             begin
-                                Doc.SetCurrentKey(Type, "Document No.");
-                                Doc.SetRange(Type, Doc.Type::Payable);
-                                Doc.SetRange("Document No.", "Document No.");
-                                if Doc.FindFirst() then
-                                    PaymentMethod := Doc."Payment Method Code"
+                                CarteraDoc.SetLoadFields("Payment Method Code");
+                                CarteraDoc.SetCurrentKey(Type, "Document No.");
+                                CarteraDoc.SetRange(Type, CarteraDoc.Type::Payable);
+                                CarteraDoc.SetRange("Document No.", "Document No.");
+                                if CarteraDoc.FindFirst() then
+                                    PaymentMethod := CarteraDoc."Payment Method Code"
                                 else begin
-                                    PostedDoc.SetCurrentKey(Type, "Document No.");
-                                    PostedDoc.SetRange(Type, PostedDoc.Type::Payable);
-                                    PostedDoc.SetRange("Document No.", "Document No.");
-                                    if PostedDoc.FindFirst() then
-                                        PaymentMethod := PostedDoc."Payment Method Code"
+                                    PostedCarteraDoc.SetLoadFields("Payment Method Code");
+                                    PostedCarteraDoc.SetCurrentKey(Type, "Document No.");
+                                    PostedCarteraDoc.SetRange(Type, PostedCarteraDoc.Type::Payable);
+                                    PostedCarteraDoc.SetRange("Document No.", "Document No.");
+                                    if PostedCarteraDoc.FindFirst() then
+                                        PaymentMethod := PostedCarteraDoc."Payment Method Code"
                                     else begin
-                                        ClosedDoc.SetCurrentKey(Type, "Document No.");
-                                        ClosedDoc.SetRange(Type, ClosedDoc.Type::Payable);
-                                        ClosedDoc.SetRange("Document No.", "Document No.");
-                                        if ClosedDoc.FindFirst() then
-                                            PaymentMethod := ClosedDoc."Payment Method Code";
+                                        ClosedCarteraDoc.SetLoadFields("Payment Method Code");
+                                        ClosedCarteraDoc.SetCurrentKey(Type, "Document No.");
+                                        ClosedCarteraDoc.SetRange(Type, ClosedCarteraDoc.Type::Payable);
+                                        ClosedCarteraDoc.SetRange("Document No.", "Document No.");
+                                        if ClosedCarteraDoc.FindFirst() then
+                                            PaymentMethod := ClosedCarteraDoc."Payment Method Code";
                                     end;
                                 end;
                             end;
@@ -186,6 +189,7 @@ report 7000007 "Vendor - Due Payments"
 
                 trigger OnPreDataItem()
                 begin
+                    AddLoadFields("Due Date", Description, "Vendor No.", "Currency Code", "Document Type", "Document No.", "Entry No.");
                     FilterGroup(2);
                     SetRange("Due Date", FromDate, ToDate);
                     FilterGroup(0);
@@ -233,20 +237,21 @@ report 7000007 "Vendor - Due Payments"
     end;
 
     var
-        Text1100000: Label 'Total %1 %2';
+        CarteraDoc: Record "Cartera Doc.";
+        PostedCarteraDoc: Record "Posted Cartera Doc.";
+        ClosedCarteraDoc: Record "Closed Cartera Doc.";
         PurchInv: Record "Purch. Inv. Header";
-        DueDateFilter: Code[250];
-        VLETableFilter: Code[250];
+        DueDateFilter: Text;
+        VLETableFilter: Text;
         FromDate: Date;
         ToDate: Date;
         StartFirstMonth: Date;
         EndLastMonth: Date;
         PaymentMethod: Code[10];
-        Doc: Record "Cartera Doc.";
-        PostedDoc: Record "Posted Cartera Doc.";
-        ClosedDoc: Record "Closed Cartera Doc.";
         AccumRemainingAmtLCY: Decimal;
         AccumRemainingAmtLCYTrans: Decimal;
+
+        Text1100000Txt: Label 'Total %1 %2', Comment = '%1 = Total label, %2 = amount';
         CurrReport_PAGENOCaptionLbl: Label 'Page';
         Vendor___Due_PaymentsCaptionLbl: Label 'Vendor - Due Payments';
         PaymentMethodCaptionLbl: Label 'Pmt. Method Code';

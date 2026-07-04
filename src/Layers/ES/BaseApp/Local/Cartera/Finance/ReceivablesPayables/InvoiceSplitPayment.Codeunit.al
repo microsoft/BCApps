@@ -51,14 +51,14 @@ codeunit 7000005 "Invoice-Split Payment"
         TotalPerc: Decimal;
         ExistsVATNoReal: Boolean;
         ErrorMessage: Boolean;
-        Text001: Label 'Sales %1 no. %2 cannot be posted, because the due date field for one or more installments is more than the legal limit of %3 days after the document date %4 for the original document.';
-        Text002: Label 'Purchase %1 no. %2 cannot be posted, because the due date field for one or more installments is more than the legal limit of %3 days after the document date %4 for the original document.';
-        Text1100000: Label 'You cannot select a bill-based %1 for a Credit memo.';
-        Text1100001: Label '%1 must be 1 if %2 is True in %3';
-        Text1100002: Label 'Transfer of Invoice %1 into bills';
-        Text1100003: Label 'Unrealized VAT Type must be "Percentage" in VAT Posting Setup.';
-        Text1100004: Label 'Bill %1/%2';
-        Text1100005: Label 'The sum of %1 cannot be greater then 100 in the installments for %2 %3.';
+        Text001Err: Label 'Sales %1 no. %2 cannot be posted, because the due date field for one or more installments is more than the legal limit of %3 days after the document date %4 for the original document.', Comment = '%1 - Document Type, %2 - Document No., %3 - Max. No. of Days till Due Date, %4 - Document Date';
+        Text002Err: Label 'Purchase %1 no. %2 cannot be posted, because the due date field for one or more installments is more than the legal limit of %3 days after the document date %4 for the original document.', Comment = '%1 - Document Type, %2 - Document No., %3 - Max. No. of Days till Due Date, %4 - Document Date';
+        Text1100000Err: Label 'You cannot select a bill-based %1 for a Credit memo.', Comment = '%1 - Payment Method Code';
+        Text1100001Err: Label '%1 must be 1 if %2 is True in %3', Comment = '%1 - Payment Terms Code, %2 - Invoices to Cartera, %3 - Payment Method';
+        Text1100002Err: Label 'Transfer of Invoice %1 into bills', Comment = '%1 - Document No.';
+        Text1100003Err: Label 'Unrealized VAT Type must be "Percentage" in VAT Posting Setup.';
+        Text1100004Txt: Label 'Bill %1/%2', Comment = '%1 - Bill No., %2 - Document No.';
+        Text1100005Err: Label 'The sum of %1 cannot be greater then 100 in the installments for %2 %3.', Comment = '%1 - % of Total, %2 - Payment Terms, %3 - Payment Terms Code';
 
     procedure SplitSalesInv(var SalesHeader: Record "Sales Header"; var CustLedgEntry: Record "Cust. Ledger Entry"; var Window: Dialog; SourceCode: Code[10]; GenJnlLineExtDocNo: Code[35]; GenJnlLineDocNo: Code[20]; VATAmount: Decimal; HideProgressWindow: Boolean)
     var
@@ -75,7 +75,7 @@ codeunit 7000005 "Invoice-Split Payment"
         OnSplitSalesInvOnBeforeCheckPaymentMethod(SalesHeader, PaymentMethod, PaymentTerms, IsHandled);
         if not IsHandled then
             if PaymentMethod."Create Bills" and (SalesHeader."Document Type" = SalesHeader."Document Type"::"Credit Memo") then
-                Error(Text1100000, SalesHeader.FieldCaption("Payment Method Code"));
+                Error(Text1100000Err, SalesHeader.FieldCaption("Payment Method Code"));
 
         if SalesHeader."Currency Code" = '' then
             CurrencyFactor := 1
@@ -94,7 +94,7 @@ codeunit 7000005 "Invoice-Split Payment"
         if not IsHandled then
             if PaymentMethod."Invoices to Cartera" and (PaymentTerms."No. of Installments" > 1) then
                 Error(
-                  Text1100001,
+                  Text1100001Err,
                   PaymentTerms.FieldCaption("No. of Installments"),
                   PaymentMethod.FieldCaption("Invoices to Cartera"),
                   PaymentMethod.TableCaption());
@@ -116,7 +116,7 @@ codeunit 7000005 "Invoice-Split Payment"
             GenJnlLine.Validate("Account No.", SalesHeader."Bill-to Customer No.");
             GenJnlLine."Document Type" := GenJnlLine."Document Type"::" ";
             GenJnlLine."Document No." := GenJnlLineDocNo;
-            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100002, GenJnlLineDocNo), 1, MaxStrLen(GenJnlLine.Description));
+            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100002Err, GenJnlLineDocNo), 1, MaxStrLen(GenJnlLine.Description));
             GenJnlLine."Shortcut Dimension 1 Code" := SalesHeader."Shortcut Dimension 1 Code";
             GenJnlLine."Shortcut Dimension 2 Code" := SalesHeader."Shortcut Dimension 2 Code";
             GenJnlLine."Dimension Set ID" := SalesHeader."Dimension Set ID";
@@ -143,7 +143,7 @@ codeunit 7000005 "Invoice-Split Payment"
             if GLSetup."Unrealized VAT" then begin
                 FindCustVATSetup(VATPostingSetup, SalesHeader);
                 if ErrorMessage then
-                    Error(Text1100003);
+                    Error(Text1100003Err);
             end;
 
             OnBeforeSplitSalesInvCloseEntry(GenJnlLine, SalesHeader);
@@ -245,7 +245,7 @@ codeunit 7000005 "Invoice-Split Payment"
                     TotalPerc := TotalPerc + Installment."% of Total";
                     if TotalPerc >= 100 then
                         Error(
-                          Text1100005,
+                          Text1100005Err,
                           Installment.FieldCaption("% of Total"),
                           PaymentTerms.TableCaption(),
                           PaymentTerms.Code);
@@ -285,7 +285,7 @@ codeunit 7000005 "Invoice-Split Payment"
                 GenJnlLine."Bill No." := Format(BillNo);
                 GenJnlLine.Description :=
                   CopyStr(
-                    StrSubstNo(Text1100004, GenJnlLineDocNo, BillNo),
+                    StrSubstNo(Text1100004Txt, GenJnlLineDocNo, BillNo),
                     1,
                     MaxStrLen(GenJnlLine.Description));
                 OnSplitSalesInvOnCreateBillsOnBeforePostGenJnlLine(GenJnlLine, SalesHeader);
@@ -318,7 +318,7 @@ codeunit 7000005 "Invoice-Split Payment"
         if not IsHandled then
             if PaymentMethod."Create Bills" and (PurchHeader."Document Type" = PurchHeader."Document Type"::"Credit Memo") then
                 Error(
-                  Text1100000,
+                  Text1100000Err,
                   PurchHeader.FieldCaption("Payment Method Code"));
 
         if PurchHeader."Currency Code" = '' then
@@ -338,7 +338,7 @@ codeunit 7000005 "Invoice-Split Payment"
         if not IsHandled then
             if PaymentMethod."Invoices to Cartera" and (PaymentTerms."No. of Installments" > 1) then
                 Error(
-                  Text1100001,
+                  Text1100001Err,
                   PaymentTerms.FieldCaption("No. of Installments"),
                   PaymentMethod.FieldCaption("Invoices to Cartera"),
                   PaymentMethod.TableCaption());
@@ -359,7 +359,7 @@ codeunit 7000005 "Invoice-Split Payment"
             GenJnlLine.Validate("Account No.", PurchHeader."Pay-to Vendor No.");
             GenJnlLine."Document Type" := GenJnlLine."Document Type"::" ";
             GenJnlLine."Document No." := GenJnlLineDocNo;
-            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100002, GenJnlLineDocNo), 1, MaxStrLen(GenJnlLine.Description));
+            GenJnlLine.Description := CopyStr(StrSubstNo(Text1100002Err, GenJnlLineDocNo), 1, MaxStrLen(GenJnlLine.Description));
             GenJnlLine."Shortcut Dimension 1 Code" := PurchHeader."Shortcut Dimension 1 Code";
             GenJnlLine."Shortcut Dimension 2 Code" := PurchHeader."Shortcut Dimension 2 Code";
             GenJnlLine."Dimension Set ID" := PurchHeader."Dimension Set ID";
@@ -383,7 +383,7 @@ codeunit 7000005 "Invoice-Split Payment"
             if GLSetup."Unrealized VAT" then begin
                 FindVendVATSetup(VATPostingSetup, PurchHeader);
                 if ErrorMessage then
-                    Error(Text1100003);
+                    Error(Text1100003Err);
             end;
 
             OnBeforeSplitPurchInvCloseEntry(GenJnlLine, PurchHeader);
@@ -483,7 +483,7 @@ codeunit 7000005 "Invoice-Split Payment"
                     TotalPerc := TotalPerc + Installment."% of Total";
                     if TotalPerc >= 100 then
                         Error(
-                          Text1100005,
+                          Text1100005Err,
                           Installment.FieldCaption("% of Total"),
                           PaymentTerms.TableCaption(),
                           PaymentTerms.Code);
@@ -521,7 +521,7 @@ codeunit 7000005 "Invoice-Split Payment"
                 GenJnlLine."Bill No." := Format(BillNo);
                 GenJnlLine.Description :=
                   CopyStr(
-                    StrSubstNo(Text1100004, GenJnlLineDocNo, BillNo),
+                    StrSubstNo(Text1100004Txt, GenJnlLineDocNo, BillNo),
                     1,
                     MaxStrLen(GenJnlLine.Description));
                 OnSplitPurchInvOnCreateBillsOnBeforePostGenJnlLine(GenJnlLine, PurchHeader);
@@ -713,13 +713,13 @@ codeunit 7000005 "Invoice-Split Payment"
     local procedure CheckSalesDueDate(SalesHeader: Record "Sales Header"; NewDueDate: Date; MaxNoOfDays: Integer)
     begin
         if not CheckDueDate(NewDueDate, SalesHeader."Document Date", MaxNoOfDays) then
-            Error(Text001, SalesHeader."Document Type", SalesHeader."No.", MaxNoOfDays, SalesHeader."Document Date");
+            Error(Text001Err, SalesHeader."Document Type", SalesHeader."No.", MaxNoOfDays, SalesHeader."Document Date");
     end;
 
     local procedure CheckPurchDueDate(PurchaseHeader: Record "Purchase Header"; NewDueDate: Date; MaxNoOfDays: Integer)
     begin
         if not CheckDueDate(NewDueDate, PurchaseHeader."Document Date", MaxNoOfDays) then
-            Error(Text002, PurchaseHeader."Document Type", PurchaseHeader."No.", MaxNoOfDays, PurchaseHeader."Document Date");
+            Error(Text002Err, PurchaseHeader."Document Type", PurchaseHeader."No.", MaxNoOfDays, PurchaseHeader."Document Date");
     end;
 
     [IntegrationEvent(false, false)]

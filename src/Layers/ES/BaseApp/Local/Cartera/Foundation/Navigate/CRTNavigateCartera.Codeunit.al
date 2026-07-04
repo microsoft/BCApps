@@ -36,20 +36,20 @@ codeunit 7000115 "CRTNavigateCartera"
         exit(CarteraDocNoFilter <> '');
     end;
 
-    local procedure RemoveDocumentEntry(var DocumentEntry: Record "Document Entry" temporary; TableId: Integer)
+    local procedure RemoveDocumentEntry(var TempDocumentEntry: Record "Document Entry" temporary; TableId: Integer)
     begin
-        DocumentEntry.SetRange("Table ID", TableId);
-        DocumentEntry.DeleteAll();
-        DocumentEntry.SetRange("Table ID");
+        TempDocumentEntry.SetRange("Table ID", TableId);
+        TempDocumentEntry.DeleteAll();
+        TempDocumentEntry.SetRange("Table ID");
     end;
 
-    local procedure HasDocumentEntry(var DocumentEntry: Record "Document Entry" temporary; TableId: Integer): Boolean
+    local procedure HasDocumentEntry(var TempDocumentEntry: Record "Document Entry" temporary; TableId: Integer): Boolean
     begin
-        DocumentEntry.SetRange("Table ID", TableId);
-        exit(not DocumentEntry.IsEmpty());
+        TempDocumentEntry.SetRange("Table ID", TableId);
+        exit(not TempDocumentEntry.IsEmpty());
     end;
 
-    local procedure AddCarteraDocsByType(var DocumentEntry: Record "Document Entry" temporary; DocNoFilter: Text; PostingDateFilter: Text; AccountType: Option Receivable,Payable)
+    local procedure AddCarteraDocsByType(var TempDocumentEntry: Record "Document Entry" temporary; DocNoFilter: Text; PostingDateFilter: Text; AccountType: Option Receivable,Payable)
     var
         CarteraDoc: Record "Cartera Doc.";
         PostedCarteraDoc: Record "Posted Cartera Doc.";
@@ -65,7 +65,7 @@ codeunit 7000115 "CRTNavigateCartera"
             CarteraDoc.SetFilter("No.", CarteraDocNoFilter);
             CarteraDoc.SetFilter("Posting Date", PostingDateFilter);
             CarteraDoc.SetRange(Type, AccountType);
-            DocumentEntry.InsertIntoDocEntry(Database::"Cartera Doc.", CarteraDoc.TableCaption(), CarteraDoc.Count);
+            TempDocumentEntry.InsertIntoDocEntry(Database::"Cartera Doc.", CarteraDoc.TableCaption(), CarteraDoc.Count());
         end;
 
         if PostedCarteraDoc.ReadPermission() then begin
@@ -74,7 +74,7 @@ codeunit 7000115 "CRTNavigateCartera"
             PostedCarteraDoc.SetFilter("Original Document No.", DocNoFilter);
             PostedCarteraDoc.SetFilter("No.", CarteraDocNoFilter);
             PostedCarteraDoc.SetFilter("Posting Date", PostingDateFilter);
-            DocumentEntry.InsertIntoDocEntry(Database::"Posted Cartera Doc.", PostedCarteraDoc.TableCaption(), PostedCarteraDoc.Count);
+            TempDocumentEntry.InsertIntoDocEntry(Database::"Posted Cartera Doc.", PostedCarteraDoc.TableCaption(), PostedCarteraDoc.Count());
         end;
 
         if ClosedCarteraDoc.ReadPermission() then begin
@@ -84,7 +84,7 @@ codeunit 7000115 "CRTNavigateCartera"
             ClosedCarteraDoc.SetFilter("No.", CarteraDocNoFilter);
             ClosedCarteraDoc.SetFilter("Posting Date", PostingDateFilter);
             ClosedCarteraDoc.SetRange(Type, AccountType);
-            DocumentEntry.InsertIntoDocEntry(Database::"Closed Cartera Doc.", ClosedCarteraDoc.TableCaption(), ClosedCarteraDoc.Count);
+            TempDocumentEntry.InsertIntoDocEntry(Database::"Closed Cartera Doc.", ClosedCarteraDoc.TableCaption(), ClosedCarteraDoc.Count());
         end;
     end;
 
@@ -169,7 +169,7 @@ codeunit 7000115 "CRTNavigateCartera"
                     PostedBillGr.SetCurrentKey("No.");
                     PostedBillGr.SetFilter("No.", DocNoFilter);
                     PostedBillGr.SetFilter("Posting Date", PostingDateFilter);
-                    DocumentEntry.InsertIntoDocEntry(Database::"Posted Bill Group", PostedBillGr.TableCaption(), PostedBillGr.Count);
+                    DocumentEntry.InsertIntoDocEntry(Database::"Posted Bill Group", PostedBillGr.TableCaption(), PostedBillGr.Count());
                 end;
 
                 if ClosedBillGr.ReadPermission() then begin
@@ -177,7 +177,7 @@ codeunit 7000115 "CRTNavigateCartera"
                     ClosedBillGr.SetCurrentKey("No.");
                     ClosedBillGr.SetFilter("No.", DocNoFilter);
                     ClosedBillGr.SetFilter("Posting Date", PostingDateFilter);
-                    DocumentEntry.InsertIntoDocEntry(Database::"Closed Bill Group", ClosedBillGr.TableCaption(), ClosedBillGr.Count);
+                    DocumentEntry.InsertIntoDocEntry(Database::"Closed Bill Group", ClosedBillGr.TableCaption(), ClosedBillGr.Count());
                 end;
 
                 if PostedPmtOrd.ReadPermission() then begin
@@ -185,7 +185,7 @@ codeunit 7000115 "CRTNavigateCartera"
                     PostedPmtOrd.SetCurrentKey("No.");
                     PostedPmtOrd.SetFilter("No.", DocNoFilter);
                     PostedPmtOrd.SetFilter("Posting Date", PostingDateFilter);
-                    DocumentEntry.InsertIntoDocEntry(Database::"Posted Payment Order", PostedPmtOrd.TableCaption(), PostedPmtOrd.Count);
+                    DocumentEntry.InsertIntoDocEntry(Database::"Posted Payment Order", PostedPmtOrd.TableCaption(), PostedPmtOrd.Count());
                 end;
 
                 if ClosedPmtOrd.ReadPermission() then begin
@@ -193,7 +193,7 @@ codeunit 7000115 "CRTNavigateCartera"
                     ClosedPmtOrd.SetCurrentKey("No.");
                     ClosedPmtOrd.SetFilter("No.", DocNoFilter);
                     ClosedPmtOrd.SetFilter("Posting Date", PostingDateFilter);
-                    DocumentEntry.InsertIntoDocEntry(Database::"Closed Payment Order", ClosedPmtOrd.TableCaption(), ClosedPmtOrd.Count);
+                    DocumentEntry.InsertIntoDocEntry(Database::"Closed Payment Order", ClosedPmtOrd.TableCaption(), ClosedPmtOrd.Count());
                 end;
             end;
 

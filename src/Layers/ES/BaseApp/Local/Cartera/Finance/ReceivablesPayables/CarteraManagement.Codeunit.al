@@ -37,24 +37,23 @@ codeunit 7000000 CarteraManagement
     end;
 
     var
-        Text1100000: Label 'The Bill Group does not exist.';
-        Text1100001: Label 'This Bill Group has already been printed. Proceed anyway?';
-        Text1100002: Label 'The process has been interrupted to respect the warning.';
-        Text1100003: Label 'The Payment Order does not exist.';
-        Text1100004: Label 'This Payment Order has already been printed. Proceed anyway?';
-        Text1100005: Label 'The update has been interrupted to respect the warning.';
-        Text1100006: Label 'Document settlement %1/%2';
-        Text1100007: Label 'Bill %1/%2 settl. rev.';
-        Text1100008: Label 'Redrawing a settled bill is only possible for bills in posted or closed bill groups.';
-        Text1100009: Label 'Redrawing a settled bill is only possible for bills in posted or closed payment orders.';
         VATPostingSetup: Record "VAT Posting Setup";
-        VATEntryNo: Integer;
-        VATUnrealAcc: Code[20];
-        VATAcc: Code[20];
-        TotalVATAmount: Decimal;
-        EntryIsAppliedErr: Label 'The document %1/%2 is marked to apply.';
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         ElectPmtMgmt: Codeunit "Elect. Pmts Management";
+        VATEntryNo: Integer;
+        TotalVATAmount: Decimal;
+
+        Text1100000Err: Label 'The Bill Group does not exist.';
+        Text1100001Err: Label 'This Bill Group has already been printed. Proceed anyway?';
+        Text1100002Err: Label 'The process has been interrupted to respect the warning.';
+        Text1100003Err: Label 'The Payment Order does not exist.';
+        Text1100004Err: Label 'This Payment Order has already been printed. Proceed anyway?';
+        Text1100005Err: Label 'The update has been interrupted to respect the warning.';
+        Text1100006Err: Label 'Document settlement %1/%2', Comment = '%1 = Document No., %2 = Bill Group No.';
+        Text1100007Err: Label 'Bill %1/%2 settl. rev.', Comment = '%1 = Bill No., %2 = Bill Group No.';
+        Text1100008Err: Label 'Redrawing a settled bill is only possible for bills in posted or closed bill groups.';
+        Text1100009Err: Label 'Redrawing a settled bill is only possible for bills in posted or closed payment orders.';
+        EntryIsAppliedErr: Label 'The document %1/%2 is marked to apply.', Comment = '%1 = Document No., %2 = Bill Group No.';
 
     procedure CategorizeDocs(var Doc: Record "Cartera Doc.")
     begin
@@ -95,9 +94,9 @@ codeunit 7000000 CarteraManagement
 
     procedure NavigateDoc(var CarteraDoc: Record "Cartera Doc.")
     var
-        Navigate: Page Navigate;
         VendLedgEntry: Record "Vendor Ledger Entry";
         CustLedgEntry: Record "Cust. Ledger Entry";
+        Navigate: Page Navigate;
     begin
         case CarteraDoc.Type of
             CarteraDoc.Type::Receivable:
@@ -118,9 +117,9 @@ codeunit 7000000 CarteraManagement
 
     procedure NavigatePostedDoc(var PostedCarteraDoc: Record "Posted Cartera Doc.")
     var
-        Navigate: Page Navigate;
         VendLedgEntry: Record "Vendor Ledger Entry";
         CustLedgEntry: Record "Cust. Ledger Entry";
+        Navigate: Page Navigate;
     begin
         case PostedCarteraDoc.Type of
             PostedCarteraDoc.Type::Receivable:
@@ -141,9 +140,9 @@ codeunit 7000000 CarteraManagement
 
     procedure NavigateClosedDoc(var ClosedCarteraDoc: Record "Closed Cartera Doc.")
     var
-        Navigate: Page Navigate;
         VendLedgEntry: Record "Vendor Ledger Entry";
         CustLedgEntry: Record "Cust. Ledger Entry";
+        Navigate: Page Navigate;
     begin
         case ClosedCarteraDoc.Type of
             ClosedCarteraDoc.Type::Receivable:
@@ -172,7 +171,7 @@ codeunit 7000000 CarteraManagement
         Cust: Record Customer;
         CustLedgEntry: Record "Cust. Ledger Entry";
         CarteraDocuments: Page "Cartera Documents";
-        CheckDiscCreditLimit: Page "Check Discount Credit Limit";
+        CheckDiscountCreditLimit: Page "Check Discount Credit Limit";
         SelectedEntryNos: List of [Integer];
         EntryNo: Integer;
         SelectedAmount: Decimal;
@@ -184,10 +183,10 @@ codeunit 7000000 CarteraManagement
         CarteraDoc2.FilterGroup(0);
         GroupNo := CarteraDoc2.GetRangeMin("Bill Gr./Pmt. Order No.");
         if not BillGr.Get(GroupNo) then
-            Error(Text1100000);
+            Error(Text1100000Err);
 
         if BillGr."No. Printed" <> 0 then
-            if not Confirm(Text1100001, false) then
+            if not Confirm(Text1100001Err, false) then
                 exit;
 
         CarteraDoc.Reset();
@@ -227,11 +226,11 @@ codeunit 7000000 CarteraManagement
                 BankAcc.CalcFields("Posted Receiv. Bills Rmg. Amt.");
                 if BillGr.Amount + SelectedAmount + BankAcc."Posted Receiv. Bills Rmg. Amt." > BankAcc."Credit Limit for Discount"
                 then begin
-                    CheckDiscCreditLimit.SetRecord(BankAcc);
-                    CheckDiscCreditLimit.SetValues(BillGr.Amount, SelectedAmount);
-                    if CheckDiscCreditLimit.RunModal() <> ACTION::Yes then
-                        Error(Text1100002);
-                    Clear(CheckDiscCreditLimit);
+                    CheckDiscountCreditLimit.SetRecord(BankAcc);
+                    CheckDiscountCreditLimit.SetValues(BillGr.Amount, SelectedAmount);
+                    if CheckDiscountCreditLimit.RunModal() <> ACTION::Yes then
+                        Error(Text1100002Err);
+                    Clear(CheckDiscountCreditLimit);
                 end;
             end;
         end;
@@ -282,10 +281,10 @@ codeunit 7000000 CarteraManagement
         CarteraDoc2.FilterGroup(0);
         GroupNo := CarteraDoc2.GetRangeMin("Bill Gr./Pmt. Order No.");
         if not PmtOrd.Get(GroupNo) then
-            Error(Text1100003);
+            Error(Text1100003Err);
 
         if PmtOrd."No. Printed" <> 0 then
-            if not Confirm(Text1100004, false) then
+            if not Confirm(Text1100004Err, false) then
                 exit;
 
         CarteraSetup.Get();
@@ -444,7 +443,7 @@ codeunit 7000000 CarteraManagement
             exit(Result);
 
         if BillGr."No. Printed" <> 0 then
-            if not Confirm(Text1100001, false) then
+            if not Confirm(Text1100001Err, false) then
                 exit(false);
 
         exit(true);
@@ -484,7 +483,7 @@ codeunit 7000000 CarteraManagement
             exit(Result);
 
         if PaymentOrder."No. Printed" <> 0 then
-            if not Confirm(Text1100004, false) then
+            if not Confirm(Text1100004Err, false) then
                 exit(false);
 
         exit(true);
@@ -494,7 +493,7 @@ codeunit 7000000 CarteraManagement
     var
         CarteraSetup: Record "Cartera Setup";
         BankAcc: Record "Bank Account";
-        CheckDiscCreditLimit: Page "Check Discount Credit Limit";
+        CheckDiscountCreditLimit: Page "Check Discount Credit Limit";
     begin
         CarteraSetup.Get();
         if not CarteraSetup."Bills Discount Limit Warnings" then
@@ -503,11 +502,11 @@ codeunit 7000000 CarteraManagement
             BankAcc.CalcFields("Posted Receiv. Bills Rmg. Amt.");
             BillGr.CalcFields(Amount);
             if BillGr.Amount + BankAcc."Posted Receiv. Bills Rmg. Amt." > BankAcc."Credit Limit for Discount" then begin
-                CheckDiscCreditLimit.SetRecord(BankAcc);
-                CheckDiscCreditLimit.SetValues(BillGr.Amount, 0);
-                if CheckDiscCreditLimit.RunModal() <> ACTION::Yes then
-                    Error(Text1100005);
-                Clear(CheckDiscCreditLimit);
+                CheckDiscountCreditLimit.SetRecord(BankAcc);
+                CheckDiscountCreditLimit.SetValues(BillGr.Amount, 0);
+                if CheckDiscountCreditLimit.RunModal() <> ACTION::Yes then
+                    Error(Text1100005Err);
+                Clear(CheckDiscountCreditLimit);
             end;
         end;
     end;
@@ -522,7 +521,7 @@ codeunit 7000000 CarteraManagement
         GenJnlLine2."Document No." := CustLedgEntry."Document No.";
         GenJnlLine2."Bill No." := CustLedgEntry."Bill No.";
         GenJnlLine2.Description := StrSubstNo(
-            Text1100006,
+            Text1100006Err,
             CustLedgEntry."Document No.",
             CustLedgEntry."Bill No.");
         GenJnlLine2.Validate("Currency Code", CustLedgEntry."Currency Code");
@@ -557,7 +556,7 @@ codeunit 7000000 CarteraManagement
         GenJnlLine2."Document No." := CustLedgEntry."Document No.";
         GenJnlLine2."Bill No." := CustLedgEntry."Bill No.";
         GenJnlLine2.Description := StrSubstNo(
-            Text1100007,
+            Text1100007Err,
             CustLedgEntry."Document No.",
             CustLedgEntry."Bill No.");
         GenJnlLine2.Validate("Currency Code", CustLedgEntry."Currency Code");
@@ -572,7 +571,7 @@ codeunit 7000000 CarteraManagement
         end else
             if ClosedDoc.Get(ClosedDoc.Type::Receivable, CustLedgEntry."Entry No.") then begin
                 if ClosedDoc."Bill Gr./Pmt. Order No." = '' then
-                    Error(Text1100008);
+                    Error(Text1100008Err);
                 ClosedBillGr.Get(ClosedDoc."Bill Gr./Pmt. Order No.");
                 GenJnlLine2.Validate("Account No.", ClosedBillGr."Bank Account No.");
                 GenJnlLine2.Validate(Amount, -ClosedDoc."Amount for Collection");
@@ -596,7 +595,7 @@ codeunit 7000000 CarteraManagement
         GenJnlLine2."Document No." := VendLedgEntry."Document No.";
         GenJnlLine2."Bill No." := VendLedgEntry."Bill No.";
         GenJnlLine2.Description := StrSubstNo(
-            Text1100006,
+            Text1100006Err,
             VendLedgEntry."Document No.",
             VendLedgEntry."Bill No.");
         GenJnlLine2.Validate("Currency Code", VendLedgEntry."Currency Code");
@@ -630,7 +629,7 @@ codeunit 7000000 CarteraManagement
         GenJnlLine2."Document No." := VendLedgEntry."Document No.";
         GenJnlLine2."Bill No." := VendLedgEntry."Bill No.";
         GenJnlLine2.Description := StrSubstNo(
-            Text1100007,
+            Text1100007Err,
             VendLedgEntry."Document No.",
             VendLedgEntry."Bill No.");
         GenJnlLine2.Validate("Currency Code", VendLedgEntry."Currency Code");
@@ -645,7 +644,7 @@ codeunit 7000000 CarteraManagement
         end else
             if ClosedDoc.Get(ClosedDoc.Type::Payable, VendLedgEntry."Entry No.") then begin
                 if ClosedDoc."Bill Gr./Pmt. Order No." = '' then
-                    Error(Text1100009);
+                    Error(Text1100009Err);
                 ClosedPmtOrd.Get(ClosedDoc."Bill Gr./Pmt. Order No.");
                 GenJnlLine2.Validate("Account No.", ClosedPmtOrd."Bank Account No.");
                 GenJnlLine2.Validate(Amount, ClosedDoc."Amount for Collection");
@@ -783,8 +782,6 @@ codeunit 7000000 CarteraManagement
                             VATBase := Round(VATEntry2."Unrealized Base" * VATPart);
                         end;
 
-                        VATUnrealAcc := SalesVATUnrealAccount;
-                        VATAcc := SalesVATAccount;
                         if CustLedgEntry2."Currency Code" = '' then
                             TotalVATAmount := VATAmount
                         else
@@ -820,7 +817,7 @@ codeunit 7000000 CarteraManagement
                         VATEntry."Add.-Currency Unrealized Base" := 0;
                         VATEntry."Add.-Curr. Rem. Unreal. Amount" := 0;
                         VATEntry."Add.-Curr. Rem. Unreal. Base" := 0;
-                        VATEntry."User ID" := UserId;
+                        VATEntry."User ID" := CopyStr(UserId, 1, MaxStrLen(VATEntry."User ID"));
                         VATEntry."Source Code" := GenJnlLine."Source Code";
                         VATEntry."Reason Code" := GenJnlLine."Reason Code";
                         VATEntry."Closed by Entry No." := 0;
@@ -990,8 +987,6 @@ codeunit 7000000 CarteraManagement
                             VATBase := Round(VATEntry2."Unrealized Base" * VATPart);
                         end;
 
-                        VATUnrealAcc := PurchVATUnrealAccount;
-                        VATAcc := PurchVATAccount;
                         if VendLedgEntry2."Currency Code" = '' then
                             TotalVATAmount := VATAmount
                         else
@@ -1039,7 +1034,7 @@ codeunit 7000000 CarteraManagement
                         VATEntry."Add.-Currency Unrealized Base" := 0;
                         VATEntry."Add.-Curr. Rem. Unreal. Amount" := 0;
                         VATEntry."Add.-Curr. Rem. Unreal. Base" := 0;
-                        VATEntry."User ID" := UserId;
+                        VATEntry."User ID" := CopyStr(UserId, 1, MaxStrLen(VATEntry."User ID"));
                         VATEntry."Source Code" := GenJnlLine."Source Code";
                         VATEntry."Reason Code" := GenJnlLine."Reason Code";
                         VATEntry."Closed by Entry No." := 0;

@@ -337,23 +337,23 @@ table 7000002 "Cartera Doc."
     end;
 
     var
-        BillGr: Record "Bill Group";
-        PmtOrd: Record "Payment Order";
+        BillGroup: Record "Bill Group";
+        PaymentOrder: Record "Payment Order";
         ElectPmtMgmt: Codeunit "Elect. Pmts Management";
-        Text001: Label '%1 is more than the legal limit of %2 days after the document date %3 for the original document';
+        MoreThatLimitErr: Label '%1 is more than the legal limit of %2 days after the document date %3 for the original document', Comment = '%1 - Field Name, %2 - Max. No. of Days till Due Date, %3 - Document Date';
 
     [Scope('OnPrem')]
     procedure ResetNoPrinted()
     begin
         if "Bill Gr./Pmt. Order No." <> '' then
             if Type = Type::Receivable then begin
-                BillGr.Get("Bill Gr./Pmt. Order No.");
-                BillGr."No. Printed" := 0;
-                BillGr.Modify();
+                BillGroup.Get("Bill Gr./Pmt. Order No.");
+                BillGroup."No. Printed" := 0;
+                BillGroup.Modify();
             end else begin
-                PmtOrd.Get("Bill Gr./Pmt. Order No.");
-                PmtOrd."No. Printed" := 0;
-                PmtOrd.Modify();
+                PaymentOrder.Get("Bill Gr./Pmt. Order No.");
+                PaymentOrder."No. Printed" := 0;
+                PaymentOrder.Modify();
             end;
     end;
 
@@ -375,7 +375,7 @@ table 7000002 "Cartera Doc."
         GetDocumentDates(DocumentDate, MaxNoOfDaysTillDueDate);
 
         if not InvoiceSplitPayment.CheckDueDate("Due Date", DocumentDate, MaxNoOfDaysTillDueDate) then
-            FieldError("Due Date", StrSubstNo(Text001, "Due Date", MaxNoOfDaysTillDueDate, DocumentDate));
+            FieldError("Due Date", StrSubstNo(MoreThatLimitErr, "Due Date", MaxNoOfDaysTillDueDate, DocumentDate));
     end;
 
     local procedure GetDocumentDates(var DocumentDate: Date; var MaxNoOfDaysTillDueDate: Integer)

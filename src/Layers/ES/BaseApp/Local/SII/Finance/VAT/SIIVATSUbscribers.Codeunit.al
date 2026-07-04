@@ -65,8 +65,8 @@ codeunit 7000129 "SII VAT Subscribers"
         GenJournalLine.SetSIILastSummaryDocNo(SalesHeader.GetSIILastSummaryDocNo());
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnInsertVATOnAfterCopyVATPostingSetupFields', '', false, false)]
-    local procedure OnInsertVATOnAfterCopyVATPostingSetupFields(var VATPostingSetup: Record "VAT Posting Setup"; var VATEntry: Record "VAT Entry")
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnInsertVATOnAfterAssignVATEntryFields', '', false, false)]
+    local procedure OnInsertVATOnAfterAssignVATEntryFields(var VATPostingSetup: Record "VAT Posting Setup"; var VATEntry: Record "VAT Entry")
     begin
         VATEntry."Ignore In SII" := VATPostingSetup."Ignore In SII";
         VATEntry."One Stop Shop Reporting" := VATPostingSetup."One Stop Shop Reporting";

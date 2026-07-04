@@ -279,8 +279,8 @@ page 7000067 "Posted Bills"
 
                     trigger OnAction()
                     begin
-                        CurrPage.SetSelectionFilter(PostedDoc);
-                        CarteraManagement.CategorizePostedDocs(PostedDoc);
+                        CurrPage.SetSelectionFilter(PostedCarteraDoc);
+                        CarteraManagement.CategorizePostedDocs(PostedCarteraDoc);
                     end;
                 }
                 action(Decategorize)
@@ -292,8 +292,8 @@ page 7000067 "Posted Bills"
 
                     trigger OnAction()
                     begin
-                        CurrPage.SetSelectionFilter(PostedDoc);
-                        CarteraManagement.DecategorizePostedDocs(PostedDoc);
+                        CurrPage.SetSelectionFilter(PostedCarteraDoc);
+                        CarteraManagement.DecategorizePostedDocs(PostedCarteraDoc);
                     end;
                 }
                 separator(Action37)
@@ -308,20 +308,18 @@ page 7000067 "Posted Bills"
 
                     trigger OnAction()
                     begin
-                        CurrPage.SetSelectionFilter(PostedDoc);
-                        if not PostedDoc.Find('=><') then
+                        CurrPage.SetSelectionFilter(PostedCarteraDoc);
+                        if not PostedCarteraDoc.Find('=><') then
                             exit;
 
-                        PostedDoc.SetRange(Status, PostedDoc.Status::Open);
-                        if not PostedDoc.Find('-') then
-                            Error(
-                              Text1100000 +
-                              Text1100001);
+                        PostedCarteraDoc.SetRange(Status, PostedCarteraDoc.Status::Open);
+                        if not PostedCarteraDoc.Find('-') then
+                            Error(Text1100000Err + Text1100001Err);
 
-                        if PostedDoc.Type = PostedDoc.Type::Receivable then
-                            REPORT.RunModal(REPORT::"Settle Docs. in Post. Bill Gr.", true, false, PostedDoc)
+                        if PostedCarteraDoc.Type = PostedCarteraDoc.Type::Receivable then
+                            REPORT.RunModal(REPORT::"Settle Docs. in Post. Bill Gr.", true, false, PostedCarteraDoc)
                         else
-                            REPORT.RunModal(REPORT::"Settle Docs. in Posted PO", true, false, PostedDoc);
+                            REPORT.RunModal(REPORT::"Settle Docs. in Posted PO", true, false, PostedCarteraDoc);
                     end;
                 }
                 action(Reject)
@@ -376,7 +374,7 @@ page 7000067 "Posted Bills"
 
                 trigger OnAction()
                 begin
-                    Option := StrMenu(Text1100002);
+                    Option := StrMenu(Text1100002Err);
                     case Option of
                         0:
                             exit;
@@ -384,8 +382,8 @@ page 7000067 "Posted Bills"
                             CarteraManagement.NavigatePostedDoc(Rec);
                         2:
                             begin
-                                Navigate.SetDoc(Rec."Posting Date", Rec."Bill Gr./Pmt. Order No.");
-                                Navigate.Run();
+                                NavigatePage.SetDoc(Rec."Posting Date", Rec."Bill Gr./Pmt. Order No.");
+                                NavigatePage.Run();
                             end;
                     end;
                 end;
@@ -438,23 +436,13 @@ page 7000067 "Posted Bills"
     end;
 
     var
-        Text1100000: Label 'No bills have been found that can be settled. \';
-        Text1100001: Label 'Please check that at least one open bill was selected.';
-        Text1100002: Label 'Related to Bill,Related to Bill Group';
-        Text1100003: Label 'Open|Honored|Rejected';
-        Text1100004: Label 'Only Receivable Bills can be printed.';
-        Text1100005: Label 'Only Receivable Bills can be rejected.';
-        Text1100006: Label 'No bills have been found that can be rejected. \';
-        Text1100007: Label 'No bills have been found that can be redrawn. \';
-        Text1100008: Label 'Please check that at least one rejected or honored bill was selected.';
-        Text1100009: Label 'Only bills can be redrawn.';
-        PostedDoc: Record "Posted Cartera Doc.";
+        PostedCarteraDoc: Record "Posted Cartera Doc.";
         CustLedgEntry: Record "Cust. Ledger Entry";
         VendLedgEntry: Record "Vendor Ledger Entry";
-        Navigate: Page Navigate;
         CarteraManagement: Codeunit CarteraManagement;
-        CategoryFilter: Code[250];
-        ActiveFilter: Text[250];
+        NavigatePage: Page Navigate;
+        CategoryFilter: Text;
+        ActiveFilter: Text;
         TotalCurrAmtLCY: Decimal;
         StatusFilter: Option Open,Honored,Rejected,All;
         Option: Option "0","1","2";
@@ -462,23 +450,34 @@ page 7000067 "Posted Bills"
         ClasFilterEditable: Boolean;
         StatusFilterEditable: Boolean;
 
+        Text1100000Err: Label 'No bills have been found that can be settled. \';
+        Text1100001Err: Label 'Please check that at least one open bill was selected.';
+        Text1100002Err: Label 'Related to Bill,Related to Bill Group';
+        Text1100003Err: Label 'Open|Honored|Rejected';
+        Text1100004Err: Label 'Only Receivable Bills can be printed.';
+        Text1100005Err: Label 'Only Receivable Bills can be rejected.';
+        Text1100006Err: Label 'No bills have been found that can be rejected. \';
+        Text1100007Err: Label 'No bills have been found that can be redrawn. \';
+        Text1100008Err: Label 'Please check that at least one rejected or honored bill was selected.';
+        Text1100009Err: Label 'Only bills can be redrawn.';
+
     [Scope('OnPrem')]
     procedure UpdateStatistics()
     begin
-        PostedDoc.Reset();
-        PostedDoc.SetCurrentKey("Bank Account No.", "Bill Gr./Pmt. Order No.", Status,
+        PostedCarteraDoc.Reset();
+        PostedCarteraDoc.SetCurrentKey("Bank Account No.", "Bill Gr./Pmt. Order No.", Status,
           "Category Code", Redrawn, "Due Date", "Document Type");
-        PostedDoc.CopyFilters(Rec);
-        PostedDoc.SetRange("Document Type", PostedDoc."Document Type"::Bill);
-        PostedDoc.SetFilter("Category Code", CategoryFilter);
-        PostedDoc.CalcSums(PostedDoc."Remaining Amt. (LCY)");
-        TotalCurrAmtLCY := PostedDoc."Remaining Amt. (LCY)";
+        PostedCarteraDoc.CopyFilters(Rec);
+        PostedCarteraDoc.SetRange("Document Type", PostedCarteraDoc."Document Type"::Bill);
+        PostedCarteraDoc.SetFilter("Category Code", CategoryFilter);
+        PostedCarteraDoc.CalcSums(PostedCarteraDoc."Remaining Amt. (LCY)");
+        TotalCurrAmtLCY := PostedCarteraDoc."Remaining Amt. (LCY)";
 
         ActiveFilter := Rec.GetFilter(Status);
         case ActiveFilter of
             '':
                 StatusFilter := StatusFilter::All;
-            Text1100003:
+            Text1100003Err:
                 StatusFilter := StatusFilter::All
             else
                 StatusFilter := Rec.Status.AsInteger();
@@ -497,18 +496,18 @@ page 7000067 "Posted Bills"
     [Scope('OnPrem')]
     procedure PrintBillRec()
     begin
-        CurrPage.SetSelectionFilter(PostedDoc);
-        if not PostedDoc.Find('-') then
+        CurrPage.SetSelectionFilter(PostedCarteraDoc);
+        if not PostedCarteraDoc.Find('-') then
             exit;
 
-        if PostedDoc.Type <> PostedDoc.Type::Receivable then
-            Error(Text1100004);
+        if PostedCarteraDoc.Type <> PostedCarteraDoc.Type::Receivable then
+            Error(Text1100004Err);
 
         CustLedgEntry.Reset();
         repeat
-            CustLedgEntry.Get(PostedDoc."Entry No.");
+            CustLedgEntry.Get(PostedCarteraDoc."Entry No.");
             CustLedgEntry.Mark(true);
-        until PostedDoc.Next() = 0;
+        until PostedCarteraDoc.Next() = 0;
 
         CustLedgEntry.MarkedOnly(true);
         CustLedgEntry.PrintBill(true);
@@ -517,23 +516,21 @@ page 7000067 "Posted Bills"
     [Scope('OnPrem')]
     procedure RejectDocs()
     begin
-        CurrPage.SetSelectionFilter(PostedDoc);
-        if not PostedDoc.Find('=><') then
+        CurrPage.SetSelectionFilter(PostedCarteraDoc);
+        if not PostedCarteraDoc.Find('=><') then
             exit;
 
-        if PostedDoc.Type <> PostedDoc.Type::Receivable then
-            Error(Text1100005);
+        if PostedCarteraDoc.Type <> PostedCarteraDoc.Type::Receivable then
+            Error(Text1100005Err);
 
-        PostedDoc.SetRange(Status, PostedDoc.Status::Open);
-        if not PostedDoc.Find('-') then
-            Error(
-              Text1100006 +
-              Text1100001);
+        PostedCarteraDoc.SetRange(Status, PostedCarteraDoc.Status::Open);
+        if not PostedCarteraDoc.Find('-') then
+            Error(Text1100006Err + Text1100001Err);
         CustLedgEntry.Reset();
         repeat
-            CustLedgEntry.Get(PostedDoc."Entry No.");
+            CustLedgEntry.Get(PostedCarteraDoc."Entry No.");
             CustLedgEntry.Mark(true);
-        until PostedDoc.Next() = 0;
+        until PostedCarteraDoc.Next() = 0;
 
         CustLedgEntry.MarkedOnly(true);
         REPORT.RunModal(REPORT::"Reject Docs.", true, false, CustLedgEntry);
@@ -542,36 +539,36 @@ page 7000067 "Posted Bills"
     [Scope('OnPrem')]
     procedure RedrawDocs()
     begin
-        CurrPage.SetSelectionFilter(PostedDoc);
-        if not PostedDoc.Find('=><') then
+        CurrPage.SetSelectionFilter(PostedCarteraDoc);
+        if not PostedCarteraDoc.Find('=><') then
             exit;
 
-        PostedDoc.SetFilter(Status, '<>%1', PostedDoc.Status::Open);
-        if not PostedDoc.Find('-') then
+        PostedCarteraDoc.SetFilter(Status, '<>%1', PostedCarteraDoc.Status::Open);
+        if not PostedCarteraDoc.Find('-') then
             Error(
-              Text1100007 +
-              Text1100008);
+              Text1100007Err +
+              Text1100008Err);
 
-        PostedDoc.SetFilter("Document Type", '<>%1', PostedDoc."Document Type"::Bill);
-        if PostedDoc.Find('-') then
-            Error(Text1100009);
-        PostedDoc.SetRange("Document Type");
+        PostedCarteraDoc.SetFilter("Document Type", '<>%1', PostedCarteraDoc."Document Type"::Bill);
+        if PostedCarteraDoc.Find('-') then
+            Error(Text1100009Err);
+        PostedCarteraDoc.SetRange("Document Type");
 
         if Rec.Type = Rec.Type::Receivable then begin
             CustLedgEntry.Reset();
             repeat
-                CustLedgEntry.Get(PostedDoc."Entry No.");
+                CustLedgEntry.Get(PostedCarteraDoc."Entry No.");
                 CustLedgEntry.Mark(true);
-            until PostedDoc.Next() = 0;
+            until PostedCarteraDoc.Next() = 0;
 
             CustLedgEntry.MarkedOnly(true);
             REPORT.RunModal(REPORT::"Redraw Receivable Bills", true, false, CustLedgEntry);
         end else begin
             VendLedgEntry.Reset();
             repeat
-                VendLedgEntry.Get(PostedDoc."Entry No.");
+                VendLedgEntry.Get(PostedCarteraDoc."Entry No.");
                 VendLedgEntry.Mark(true);
-            until PostedDoc.Next() = 0;
+            until PostedCarteraDoc.Next() = 0;
 
             VendLedgEntry.MarkedOnly(true);
             REPORT.RunModal(REPORT::"Redraw Payable Bills", true, false, VendLedgEntry);

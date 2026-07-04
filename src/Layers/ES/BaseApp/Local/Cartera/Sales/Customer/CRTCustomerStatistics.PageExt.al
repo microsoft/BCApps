@@ -86,7 +86,9 @@ pageextension 7000185 "CRT Customer Statistics" extends "Customer Statistics"
                             ApplicationArea = Basic, Suite;
                             AutoFormatType = 1;
                             AutoFormatExpression = '';
+                            Caption = 'Open';
                             Editable = false;
+                            ToolTip = 'Specifies that the related payment is not processed yet. ';
 
                             trigger OnDrillDown()
                             begin

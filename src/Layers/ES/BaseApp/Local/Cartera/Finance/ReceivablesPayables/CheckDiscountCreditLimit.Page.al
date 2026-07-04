@@ -44,7 +44,7 @@ page 7000037 "Check Discount Credit Limit"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Discounted so far';
-                    ToolTip = 'Shows the amount pending from the receivables registered at this bank.';
+                    ToolTip = 'Specifies the amount pending from the receivables registered at this bank.';
                 }
                 field(CurrBillGrAmount; CurrBillGrAmount)
                 {
@@ -52,6 +52,7 @@ page 7000037 "Check Discount Credit Limit"
                     AutoFormatExpression = Rec."Currency Code";
                     AutoFormatType = 1;
                     Caption = 'Amount of this Bill Group';
+                    ToolTip = 'Specifies the amount of the current bill group.';
                 }
                 field(AmountSelected; AmountSelected)
                 {
@@ -59,6 +60,7 @@ page 7000037 "Check Discount Credit Limit"
                     AutoFormatExpression = Rec."Currency Code";
                     AutoFormatType = 1;
                     Caption = 'Amount Selected';
+                    ToolTip = 'Specifies the amount selected for the discount.';
                     Visible = AmountSelectedVisible;
                 }
                 field(TotalAmount; TotalAmount)
@@ -67,6 +69,7 @@ page 7000037 "Check Discount Credit Limit"
                     AutoFormatExpression = Rec."Currency Code";
                     AutoFormatType = 1;
                     Caption = 'Total Amount';
+                    ToolTip = 'Specifies the total amount of the receivables registered at this bank.';
                 }
                 field("Credit Limit for Discount"; Rec."Credit Limit for Discount")
                 {
@@ -101,6 +104,7 @@ page 7000037 "Check Discount Credit Limit"
                     RunPageLink = "Bank Account No." = field("No.");
                     RunPageView = sorting("Bank Account No.", "Posting Date");
                     ShortCutKey = 'Ctrl+F7';
+                    ToolTip = 'Shows the ledger entries for this bank account.';
                 }
                 action("Co&mments")
                 {
@@ -110,20 +114,20 @@ page 7000037 "Check Discount Credit Limit"
                     RunObject = Page "Comment Sheet";
                     RunPageLink = "Table Name" = const("Bank Account"),
                                   "No." = field("No.");
+                    ToolTip = 'Shows the comments for this bank account.';
                 }
                 action(Statistics)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Statistics';
                     Image = Statistics;
-                    Promoted = true;
-                    PromotedCategory = Process;
                     RunObject = Page "Bank Account Statistics";
                     RunPageLink = "No." = field("No."),
                                   "Date Filter" = field("Date Filter"),
                                   "Global Dimension 1 Filter" = field("Global Dimension 1 Filter"),
                                   "Global Dimension 2 Filter" = field("Global Dimension 2 Filter");
                     ShortCutKey = 'F7';
+                    ToolTip = 'Specifies the statistics for this bank account.';
                 }
                 action(Balance)
                 {
@@ -134,6 +138,7 @@ page 7000037 "Check Discount Credit Limit"
                     RunPageLink = "No." = field("No."),
                                   "Global Dimension 1 Filter" = field("Global Dimension 1 Filter"),
                                   "Global Dimension 2 Filter" = field("Global Dimension 2 Filter");
+                    ToolTip = 'Specifies the balance for this bank account.';
                 }
                 action("St&atements")
                 {
@@ -141,6 +146,7 @@ page 7000037 "Check Discount Credit Limit"
                     Caption = 'St&atements';
                     RunObject = Page "Bank Account Statement List";
                     RunPageLink = "Bank Account No." = field("No.");
+                    ToolTip = 'Specifies the statements for this bank account.';
                 }
                 action("Chec&k Ledger Entries")
                 {
@@ -150,6 +156,7 @@ page 7000037 "Check Discount Credit Limit"
                     RunObject = Page "Check Ledger Entries";
                     RunPageLink = "Bank Account No." = field("No.");
                     RunPageView = sorting("Bank Account No.", "Entry Status", "Check No.");
+                    ToolTip = 'Specifies the ledger entries for this bank account.';
                 }
                 separator(Action41)
                 {
@@ -161,6 +168,7 @@ page 7000037 "Check Discount Credit Limit"
                     RunObject = Page "Operation Fees";
                     RunPageLink = Code = field("Operation Fees Code"),
                                   "Currency Code" = field("Currency Code");
+                    ToolTip = 'Specifies the operation fees for this bank account.';
                 }
                 action("Customer Ratings")
                 {
@@ -170,6 +178,7 @@ page 7000037 "Check Discount Credit Limit"
                     RunObject = Page "Customer Ratings";
                     RunPageLink = Code = field("Customer Ratings Code"),
                                   "Currency Code" = field("Currency Code");
+                    ToolTip = 'Specifies the customer ratings for this bank account.';
                 }
                 separator(Action5)
                 {
@@ -183,6 +192,7 @@ page 7000037 "Check Discount Credit Limit"
                     RunObject = Page "Bill Groups List";
                     RunPageLink = "Bank Account No." = field("No.");
                     RunPageView = sorting("Bank Account No.");
+                    ToolTip = 'Specifies the bill groups for this bank account.';
                 }
                 action("Posted Bill Groups")
                 {
@@ -192,6 +202,7 @@ page 7000037 "Check Discount Credit Limit"
                     RunObject = Page "Posted Bill Groups List";
                     RunPageLink = "Bank Account No." = field("No.");
                     RunPageView = sorting("Bank Account No.");
+                    ToolTip = 'Specifies the posted bill groups for this bank account.';
                 }
                 separator(Action7)
                 {
@@ -204,6 +215,7 @@ page 7000037 "Check Discount Credit Limit"
                     RunObject = Page "Payment Orders List";
                     RunPageLink = "Bank Account No." = field("No.");
                     RunPageView = sorting("Bank Account No.");
+                    ToolTip = 'Specifies the payment orders for this bank account.';
                 }
                 action("Posted P&ayment Orders")
                 {
@@ -213,6 +225,7 @@ page 7000037 "Check Discount Credit Limit"
                     RunObject = Page "Posted Payment Orders List";
                     RunPageLink = "Bank Account No." = field("No.");
                     RunPageView = sorting("Bank Account No.");
+                    ToolTip = 'Specifies the posted payment orders for this bank account.';
                 }
                 separator(Action50)
                 {
@@ -223,6 +236,7 @@ page 7000037 "Check Discount Credit Limit"
                     Caption = 'Posted Recei&vable Bills';
                     Image = PostedReceivableVoucher;
                     RunObject = Page "Bank Cat. Posted Receiv. Bills";
+                    ToolTip = 'Specifies the posted receivable bills for this bank account.';
                 }
                 action("Posted Pa&yable Bills")
                 {
@@ -230,6 +244,7 @@ page 7000037 "Check Discount Credit Limit"
                     Caption = 'Posted Pa&yable Bills';
                     Image = PostedPayableVoucher;
                     RunObject = Page "Bank Cat. Posted Payable Bills";
+                    ToolTip = 'Specifies the posted payable bills for this bank account.';
                 }
             }
         }

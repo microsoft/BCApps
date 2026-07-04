@@ -79,24 +79,15 @@ table 7000019 "Fee Range"
     }
 
     var
-        Text1100000: Label 'untitled';
-        Text1100001: Label 'CollExpenses';
-        Text1100002: Label 'Out of Range';
-        Text1100003: Label 'DiscExpenses';
-        Text1100004: Label 'DiscInterests';
-        Text1100005: Label 'RejExpenses';
-        Text1100006: Label 'PmtOrdCollExpenses';
-        Text1100007: Label 'RiskFactExpenses';
-        Text1100008: Label 'UnriskFactExpenses';
         Currency: Record Currency;
         OperationFee: Record "Operation Fee";
-        DiscExpenses: Record "BG/PO Post. Buffer" temporary;
-        CollExpenses: Record "BG/PO Post. Buffer" temporary;
-        DiscInterests: Record "BG/PO Post. Buffer" temporary;
-        RejExpenses: Record "BG/PO Post. Buffer" temporary;
-        PmtOrdCollExpenses: Record "BG/PO Post. Buffer" temporary;
-        RiskFactExpenses: Record "BG/PO Post. Buffer" temporary;
-        UnriskFactExpenses: Record "BG/PO Post. Buffer" temporary;
+        TempDiscExpenses: Record "BG/PO Post. Buffer" temporary;
+        TempCollExpenses: Record "BG/PO Post. Buffer" temporary;
+        TempDiscInterests: Record "BG/PO Post. Buffer" temporary;
+        TempRejExpenses: Record "BG/PO Post. Buffer" temporary;
+        TempPmtOrdCollExpenses: Record "BG/PO Post. Buffer" temporary;
+        TempRiskFactExpenses: Record "BG/PO Post. Buffer" temporary;
+        TempUnriskFactExpenses: Record "BG/PO Post. Buffer" temporary;
         Initialized: Boolean;
         TotalDiscExpensesAmt: Decimal;
         InitDiscExpensesAmt: Decimal;
@@ -113,12 +104,22 @@ table 7000019 "Fee Range"
         "Sum": Decimal;
         Factor: Decimal;
 
+        UntitledLbl: Label 'untitled';
+        CollExpensesLbl: Label 'CollExpenses';
+        OutOfRangeLbl: Label 'Out of Range';
+        DiscExpensesLbl: Label 'DiscExpenses';
+        DiscInterestsLbl: Label 'DiscInterests';
+        RejExpensesLbl: Label 'RejExpenses';
+        PmtOrdCollExpensesLbl: Label 'PmtOrdCollExpenses';
+        RiskFactExpensesLbl: Label 'RiskFactExpenses';
+        UnriskFactExpensesLbl: Label 'UnriskFactExpenses';
+
     procedure Caption(): Text
     var
         BankAcc: Record "Bank Account";
     begin
         if Code = '' then
-            exit(Text1100000);
+            exit(UntitledLbl);
         BankAcc.Get(Code);
         exit(StrSubstNo('%1 %2 %3 %4', BankAcc."No.", BankAcc.Name, "Currency Code", "Type of Fee"));
     end;
@@ -146,7 +147,7 @@ table 7000019 "Fee Range"
             TotalCollExpensesAmt :=
               Round(OperationFee."Charge Amt. per Operation", Currency."Amount Rounding Precision");
 
-        CollExpenses.DeleteAll();
+        TempCollExpenses.DeleteAll();
     end;
 
     procedure CalcCollExpensesAmt(Code2: Code[20]; CurrencyCode2: Code[10]; Amount: Decimal; EntryNo: Integer)
@@ -164,17 +165,17 @@ table 7000019 "Fee Range"
                 Amount := "Minimum Amount";
             TotalCollExpensesAmt := TotalCollExpensesAmt + Amount;
         end;
-        if CollExpenses.Get(Text1100001, '', EntryNo) then begin
-            CollExpenses.Amount := CollExpenses.Amount + Amount;
-            CollExpenses.Modify();
+        if TempCollExpenses.Get(CollExpensesLbl, '', EntryNo) then begin
+            TempCollExpenses.Amount := TempCollExpenses.Amount + Amount;
+            TempCollExpenses.Modify();
         end else begin
-            CollExpenses.Init();
-            CollExpenses.Account := Text1100001;
-            CollExpenses."Entry No." := EntryNo;
-            // CollExpenses."Global Dimension 1 Code" := Dep;
-            // CollExpenses."Global Dimension 2 Code" := Proj;
-            CollExpenses.Amount := Amount;
-            CollExpenses.Insert();
+            TempCollExpenses.Init();
+            TempCollExpenses.Account := CollExpensesLbl;
+            TempCollExpenses."Entry No." := EntryNo;
+            // TempCollExpenses."Global Dimension 1 Code" := Dep;
+            // TempCollExpenses."Global Dimension 2 Code" := Proj;
+            TempCollExpenses.Amount := Amount;
+            TempCollExpenses.Insert();
         end;
     end;
 
@@ -193,7 +194,7 @@ table 7000019 "Fee Range"
               Round(OperationFee."Charge Amt. per Operation", Currency."Amount Rounding Precision");
 
         InitDiscExpensesAmt := TotalDiscExpensesAmt;
-        DiscExpenses.DeleteAll();
+        TempDiscExpenses.DeleteAll();
     end;
 
     procedure CalcDiscExpensesAmt(Code2: Code[20]; CurrencyCode2: Code[10]; Amount: Decimal; EntryNo: Integer)
@@ -213,17 +214,17 @@ table 7000019 "Fee Range"
         end else
             Amount := 0;
 
-        if DiscExpenses.Get(Text1100003, '', EntryNo) then begin
-            DiscExpenses.Amount := DiscExpenses.Amount + Amount;
-            DiscExpenses.Modify();
+        if TempDiscExpenses.Get(DiscExpensesLbl, '', EntryNo) then begin
+            TempDiscExpenses.Amount := TempDiscExpenses.Amount + Amount;
+            TempDiscExpenses.Modify();
         end else begin
-            DiscExpenses.Init();
-            DiscExpenses.Account := Text1100003;
-            DiscExpenses."Entry No." := EntryNo;
-            // DiscExpenses."Global Dimension 1 Code" := Dep;
-            // DiscExpenses."Global Dimension 2 Code" := Proj;
-            DiscExpenses.Amount := Amount;
-            DiscExpenses.Insert();
+            TempDiscExpenses.Init();
+            TempDiscExpenses.Account := DiscExpensesLbl;
+            TempDiscExpenses."Entry No." := EntryNo;
+            // TempDiscExpenses."Global Dimension 1 Code" := Dep;
+            // TempDiscExpenses."Global Dimension 2 Code" := Proj;
+            TempDiscExpenses.Amount := Amount;
+            TempDiscExpenses.Insert();
         end;
     end;
 
@@ -234,41 +235,41 @@ table 7000019 "Fee Range"
 
     procedure NoRegsDiscExpenses(): Integer
     begin
-        DiscExpenses.SetRange(Account, Text1100003);
-        if DiscExpenses.Find('-') and (InitDiscExpensesAmt <> 0) then begin
+        TempDiscExpenses.SetRange(Account, DiscExpensesLbl);
+        if TempDiscExpenses.Find('-') and (InitDiscExpensesAmt <> 0) then begin
             Sum := 0;
             repeat
-                Sum := Sum + DiscExpenses.Amount;
-            until DiscExpenses.Next() <= 0;
+                Sum := Sum + TempDiscExpenses.Amount;
+            until TempDiscExpenses.Next() <= 0;
 
             if Sum <> 0 then
                 Factor := InitDiscExpensesAmt / Sum
             else
                 Factor := 1;
-            DiscExpenses.Find('-');
+            TempDiscExpenses.Find('-');
             repeat
-                Sum := Round(DiscExpenses.Amount * Factor, Currency."Amount Rounding Precision");
-                DiscExpenses.Amount := DiscExpenses.Amount + Sum;
+                Sum := Round(TempDiscExpenses.Amount * Factor, Currency."Amount Rounding Precision");
+                TempDiscExpenses.Amount := TempDiscExpenses.Amount + Sum;
                 InitDiscExpensesAmt := InitDiscExpensesAmt - Sum;
-                DiscExpenses.Modify();
-            until DiscExpenses.Next() <= 0;
+                TempDiscExpenses.Modify();
+            until TempDiscExpenses.Next() <= 0;
             if Round(InitDiscExpensesAmt, Currency."Amount Rounding Precision") <> 0 then begin
-                DiscExpenses.Find('+');
-                DiscExpenses.Amount := DiscExpenses.Amount + Round(InitDiscExpensesAmt, Currency."Amount Rounding Precision");
+                TempDiscExpenses.Find('+');
+                TempDiscExpenses.Amount := TempDiscExpenses.Amount + Round(InitDiscExpensesAmt, Currency."Amount Rounding Precision");
                 InitDiscExpensesAmt := 0;
-                DiscExpenses.Modify();
+                TempDiscExpenses.Modify();
             end;
         end;
-        exit(DiscExpenses.Count);
+        exit(TempDiscExpenses.Count);
     end;
 
     procedure GetDiscExpensesAmt(var value: Record "BG/PO Post. Buffer"; Register: Integer)
     begin
-        DiscExpenses.SetRange(Account, Text1100003);
-        DiscExpenses.Find('-');
-        if Register <> DiscExpenses.Next(Register) then
-            Error(Text1100002);
-        value := DiscExpenses;
+        TempDiscExpenses.SetRange(Account, DiscExpensesLbl);
+        TempDiscExpenses.Find('-');
+        if Register <> TempDiscExpenses.Next(Register) then
+            Error(OutOfRangeLbl);
+        value := TempDiscExpenses;
     end;
 
     procedure InitDiscInterests(Code2: Code[20]; CurrencyCode2: Code[10])
@@ -281,7 +282,7 @@ table 7000019 "Fee Range"
               Round(OperationFee."Charge Amt. per Operation", Currency."Amount Rounding Precision");
 
         InitDiscInterestsAmt := TotalDiscInterestsAmt;
-        DiscInterests.DeleteAll();
+        TempDiscInterests.DeleteAll();
     end;
 
     procedure CalcDiscInterestsAmt(Code2: Code[20]; CurrencyCode2: Code[10]; NoOfDays: Integer; Amount: Decimal; EntryNo: Integer)
@@ -306,15 +307,15 @@ table 7000019 "Fee Range"
 
         SetRange("Type of Fee");
 
-        if DiscInterests.Get(Text1100004, '', EntryNo) then begin
-            DiscInterests.Amount := DiscInterests.Amount + Amount;
-            DiscInterests.Modify();
+        if TempDiscInterests.Get(DiscInterestsLbl, '', EntryNo) then begin
+            TempDiscInterests.Amount := TempDiscInterests.Amount + Amount;
+            TempDiscInterests.Modify();
         end else begin
-            DiscInterests.Init();
-            DiscInterests.Account := Text1100004;
-            DiscInterests."Entry No." := EntryNo;
-            DiscInterests.Amount := Amount;
-            DiscInterests.Insert();
+            TempDiscInterests.Init();
+            TempDiscInterests.Account := DiscInterestsLbl;
+            TempDiscInterests."Entry No." := EntryNo;
+            TempDiscInterests.Amount := Amount;
+            TempDiscInterests.Insert();
         end;
     end;
 
@@ -325,41 +326,41 @@ table 7000019 "Fee Range"
 
     procedure NoRegsDiscInterests(): Integer
     begin
-        DiscInterests.SetRange(Account, Text1100004);
-        if DiscInterests.Find('-') and (InitDiscInterestsAmt <> 0) then begin
+        TempDiscInterests.SetRange(Account, DiscInterestsLbl);
+        if TempDiscInterests.Find('-') and (InitDiscInterestsAmt <> 0) then begin
             Sum := 0;
             repeat
-                Sum := Sum + DiscInterests.Amount;
-            until DiscInterests.Next() <= 0;
+                Sum := Sum + TempDiscInterests.Amount;
+            until TempDiscInterests.Next() <= 0;
 
             if Sum <> 0 then
                 Factor := InitDiscInterestsAmt / Sum
             else
                 Factor := 1;
-            DiscInterests.Find('-');
+            TempDiscInterests.Find('-');
             repeat
-                Sum := Round(DiscInterests.Amount * Factor, Currency."Amount Rounding Precision");
-                DiscInterests.Amount := DiscInterests.Amount + Sum;
+                Sum := Round(TempDiscInterests.Amount * Factor, Currency."Amount Rounding Precision");
+                TempDiscInterests.Amount := TempDiscInterests.Amount + Sum;
                 InitDiscInterestsAmt := InitDiscInterestsAmt - Sum;
-                DiscInterests.Modify();
-            until DiscInterests.Next() <= 0;
+                TempDiscInterests.Modify();
+            until TempDiscInterests.Next() <= 0;
             if Round(InitDiscInterestsAmt, Currency."Amount Rounding Precision") <> 0 then begin
-                DiscInterests.Find('+');
-                DiscInterests.Amount := DiscInterests.Amount + Round(InitDiscInterestsAmt, Currency."Amount Rounding Precision");
+                TempDiscInterests.Find('+');
+                TempDiscInterests.Amount := TempDiscInterests.Amount + Round(InitDiscInterestsAmt, Currency."Amount Rounding Precision");
                 InitDiscInterestsAmt := 0;
-                DiscInterests.Modify();
+                TempDiscInterests.Modify();
             end;
         end;
-        exit(DiscInterests.Count);
+        exit(TempDiscInterests.Count);
     end;
 
     procedure GetDiscInterestsAmt(var value: Record "BG/PO Post. Buffer"; Register: Integer)
     begin
-        DiscInterests.SetRange(Account, Text1100004);
-        DiscInterests.Find('-');
-        if Register <> DiscInterests.Next(Register) then
-            Error(Text1100002);
-        value := DiscInterests;
+        TempDiscInterests.SetRange(Account, DiscInterestsLbl);
+        TempDiscInterests.Find('-');
+        if Register <> TempDiscInterests.Next(Register) then
+            Error(OutOfRangeLbl);
+        value := TempDiscInterests;
     end;
 
     procedure InitRejExpenses(Code2: Code[20]; CurrencyCode2: Code[10])
@@ -372,7 +373,7 @@ table 7000019 "Fee Range"
               Round(OperationFee."Charge Amt. per Operation", Currency."Amount Rounding Precision");
 
         InitRejExpensesAmt := TotalRejExpensesAmt;
-        RejExpenses.DeleteAll();
+        TempRejExpenses.DeleteAll();
     end;
 
     procedure CalcRejExpensesAmt(Code2: Code[20]; CurrencyCode2: Code[10]; Amount: Decimal; EntryNo: Integer)
@@ -392,15 +393,15 @@ table 7000019 "Fee Range"
         end;
         SetRange("Type of Fee");
 
-        if RejExpenses.Get(Text1100005, '', EntryNo) then begin
-            RejExpenses.Amount := RejExpenses.Amount + Amount;
-            RejExpenses.Modify();
+        if TempRejExpenses.Get(RejExpensesLbl, '', EntryNo) then begin
+            TempRejExpenses.Amount := TempRejExpenses.Amount + Amount;
+            TempRejExpenses.Modify();
         end else begin
-            RejExpenses.Init();
-            RejExpenses.Account := Text1100005;
-            RejExpenses."Entry No." := EntryNo;
-            RejExpenses.Amount := Amount;
-            RejExpenses.Insert();
+            TempRejExpenses.Init();
+            TempRejExpenses.Account := RejExpensesLbl;
+            TempRejExpenses."Entry No." := EntryNo;
+            TempRejExpenses.Amount := Amount;
+            TempRejExpenses.Insert();
         end;
     end;
 
@@ -411,41 +412,41 @@ table 7000019 "Fee Range"
 
     procedure NoRegRejExpenses(): Integer
     begin
-        RejExpenses.SetRange(Account, Text1100005);
-        if RejExpenses.Find('-') and (InitRejExpensesAmt <> 0) then begin
+        TempRejExpenses.SetRange(Account, RejExpensesLbl);
+        if TempRejExpenses.Find('-') and (InitRejExpensesAmt <> 0) then begin
             Sum := 0;
             repeat
-                Sum := Sum + RejExpenses.Amount;
-            until RejExpenses.Next() <= 0;
+                Sum := Sum + TempRejExpenses.Amount;
+            until TempRejExpenses.Next() <= 0;
 
             if Sum <> 0 then
                 Factor := InitRejExpensesAmt / Sum
             else
                 Factor := 1;
-            RejExpenses.Find('-');
+            TempRejExpenses.Find('-');
             repeat
-                Sum := Round(RejExpenses.Amount * Factor, Currency."Amount Rounding Precision");
-                RejExpenses.Amount := RejExpenses.Amount + Sum;
+                Sum := Round(TempRejExpenses.Amount * Factor, Currency."Amount Rounding Precision");
+                TempRejExpenses.Amount := TempRejExpenses.Amount + Sum;
                 InitRejExpensesAmt := InitRejExpensesAmt - Sum;
-                RejExpenses.Modify();
-            until RejExpenses.Next() <= 0;
+                TempRejExpenses.Modify();
+            until TempRejExpenses.Next() <= 0;
             if Round(InitRejExpensesAmt, Currency."Amount Rounding Precision") <> 0 then begin
-                RejExpenses.Find('+');
-                RejExpenses.Amount := RejExpenses.Amount + Round(InitRejExpensesAmt, Currency."Amount Rounding Precision");
+                TempRejExpenses.Find('+');
+                TempRejExpenses.Amount := TempRejExpenses.Amount + Round(InitRejExpensesAmt, Currency."Amount Rounding Precision");
                 InitRejExpensesAmt := 0;
-                RejExpenses.Modify();
+                TempRejExpenses.Modify();
             end;
         end;
-        exit(RejExpenses.Count);
+        exit(TempRejExpenses.Count);
     end;
 
     procedure GetRejExpensesAmt(var value: Record "BG/PO Post. Buffer"; Register: Integer)
     begin
-        RejExpenses.SetRange(Account, Text1100005);
-        RejExpenses.Find('-');
-        if Register <> RejExpenses.Next(Register) then
-            Error(Text1100002);
-        value := RejExpenses;
+        TempRejExpenses.SetRange(Account, RejExpensesLbl);
+        TempRejExpenses.Find('-');
+        if Register <> TempRejExpenses.Next(Register) then
+            Error(OutOfRangeLbl);
+        value := TempRejExpenses;
     end;
 
     procedure InitPmtOrdCollExpenses(Code2: Code[20]; CurrencyCode2: Code[10])
@@ -457,7 +458,7 @@ table 7000019 "Fee Range"
             TotalPmtOrdCollExpensesAmt :=
               Round(OperationFee."Charge Amt. per Operation", Currency."Amount Rounding Precision");
 
-        PmtOrdCollExpenses.DeleteAll();
+        TempPmtOrdCollExpenses.DeleteAll();
     end;
 
     procedure CalcPmtOrdCollExpensesAmt(Code2: Code[20]; CurrencyCode2: Code[10]; Amount: Decimal; EntryNo: Integer)
@@ -476,15 +477,15 @@ table 7000019 "Fee Range"
             TotalPmtOrdCollExpensesAmt := TotalPmtOrdCollExpensesAmt + Amount;
         end;
 
-        if PmtOrdCollExpenses.Get(Text1100006, '', EntryNo) then begin
-            PmtOrdCollExpenses.Amount := PmtOrdCollExpenses.Amount + Amount;
-            PmtOrdCollExpenses.Modify();
+        if TempPmtOrdCollExpenses.Get(PmtOrdCollExpensesLbl, '', EntryNo) then begin
+            TempPmtOrdCollExpenses.Amount := TempPmtOrdCollExpenses.Amount + Amount;
+            TempPmtOrdCollExpenses.Modify();
         end else begin
-            PmtOrdCollExpenses.Init();
-            PmtOrdCollExpenses.Account := Text1100006;
-            PmtOrdCollExpenses."Entry No." := EntryNo;
-            PmtOrdCollExpenses.Amount := Amount;
-            PmtOrdCollExpenses.Insert();
+            TempPmtOrdCollExpenses.Init();
+            TempPmtOrdCollExpenses.Account := PmtOrdCollExpensesLbl;
+            TempPmtOrdCollExpenses."Entry No." := EntryNo;
+            TempPmtOrdCollExpenses.Amount := Amount;
+            TempPmtOrdCollExpenses.Insert();
         end;
     end;
 
@@ -503,7 +504,7 @@ table 7000019 "Fee Range"
               Round(OperationFee."Charge Amt. per Operation", Currency."Amount Rounding Precision");
 
         InitRiskFactExpensesAmt := TotalRiskFactExpensesAmt;
-        RiskFactExpenses.DeleteAll();
+        TempRiskFactExpenses.DeleteAll();
     end;
 
     procedure CalcRiskFactExpensesAmt(Code2: Code[20]; CurrencyCode2: Code[10]; Amount: Decimal; EntryNo: Integer)
@@ -522,15 +523,15 @@ table 7000019 "Fee Range"
             TotalRiskFactExpensesAmt := TotalRiskFactExpensesAmt + Amount;
         end;
 
-        if RiskFactExpenses.Get(Text1100007, '', EntryNo) then begin
-            RiskFactExpenses.Amount := RiskFactExpenses.Amount + Amount;
-            RiskFactExpenses.Modify();
+        if TempRiskFactExpenses.Get(RiskFactExpensesLbl, '', EntryNo) then begin
+            TempRiskFactExpenses.Amount := TempRiskFactExpenses.Amount + Amount;
+            TempRiskFactExpenses.Modify();
         end else begin
-            RiskFactExpenses.Init();
-            RiskFactExpenses.Account := Text1100007;
-            RiskFactExpenses."Entry No." := EntryNo;
-            RiskFactExpenses.Amount := Amount;
-            RiskFactExpenses.Insert();
+            TempRiskFactExpenses.Init();
+            TempRiskFactExpenses.Account := RiskFactExpensesLbl;
+            TempRiskFactExpenses."Entry No." := EntryNo;
+            TempRiskFactExpenses.Amount := Amount;
+            TempRiskFactExpenses.Insert();
         end;
     end;
 
@@ -541,41 +542,41 @@ table 7000019 "Fee Range"
 
     procedure NoRegRiskFactExpenses(): Integer
     begin
-        RiskFactExpenses.SetRange(Account, Text1100007);
-        if RiskFactExpenses.Find('-') and (InitRiskFactExpensesAmt <> 0) then begin
+        TempRiskFactExpenses.SetRange(Account, RiskFactExpensesLbl);
+        if TempRiskFactExpenses.Find('-') and (InitRiskFactExpensesAmt <> 0) then begin
             Sum := 0;
             repeat
-                Sum := Sum + RiskFactExpenses.Amount;
-            until RiskFactExpenses.Next() <= 0;
+                Sum := Sum + TempRiskFactExpenses.Amount;
+            until TempRiskFactExpenses.Next() <= 0;
 
             if Sum <> 0 then
                 Factor := InitRiskFactExpensesAmt / Sum
             else
                 Factor := 1;
-            RiskFactExpenses.Find('-');
+            TempRiskFactExpenses.Find('-');
             repeat
-                Sum := Round(RiskFactExpenses.Amount * Factor, Currency."Amount Rounding Precision");
-                RiskFactExpenses.Amount := RiskFactExpenses.Amount + Sum;
+                Sum := Round(TempRiskFactExpenses.Amount * Factor, Currency."Amount Rounding Precision");
+                TempRiskFactExpenses.Amount := TempRiskFactExpenses.Amount + Sum;
                 InitRiskFactExpensesAmt := InitRiskFactExpensesAmt - Sum;
-                RiskFactExpenses.Modify();
-            until RiskFactExpenses.Next() <= 0;
+                TempRiskFactExpenses.Modify();
+            until TempRiskFactExpenses.Next() <= 0;
             if Round(InitRiskFactExpensesAmt, Currency."Amount Rounding Precision") <> 0 then begin
-                RiskFactExpenses.Find('+');
-                RiskFactExpenses.Amount := RiskFactExpenses.Amount + Round(InitRiskFactExpensesAmt, Currency."Amount Rounding Precision");
+                TempRiskFactExpenses.Find('+');
+                TempRiskFactExpenses.Amount := TempRiskFactExpenses.Amount + Round(InitRiskFactExpensesAmt, Currency."Amount Rounding Precision");
                 InitRiskFactExpensesAmt := 0;
-                RiskFactExpenses.Modify();
+                TempRiskFactExpenses.Modify();
             end;
         end;
-        exit(RiskFactExpenses.Count);
+        exit(TempRiskFactExpenses.Count);
     end;
 
     procedure GetRiskFactExpenses(var value: Record "BG/PO Post. Buffer"; Register: Integer)
     begin
-        RiskFactExpenses.SetRange(Account, Text1100007);
-        RiskFactExpenses.Find('-');
-        if Register <> RiskFactExpenses.Next(Register) then
-            Error(Text1100002);
-        value := RiskFactExpenses;
+        TempRiskFactExpenses.SetRange(Account, RiskFactExpensesLbl);
+        TempRiskFactExpenses.Find('-');
+        if Register <> TempRiskFactExpenses.Next(Register) then
+            Error(OutOfRangeLbl);
+        value := TempRiskFactExpenses;
     end;
 
     procedure InitUnriskFactExpenses(Code2: Code[20]; CurrencyCode2: Code[10])
@@ -588,7 +589,7 @@ table 7000019 "Fee Range"
               Round(OperationFee."Charge Amt. per Operation", Currency."Amount Rounding Precision");
 
         InitUnriskFactExpensesAmt := TotalUnriskFactExpensesAmt;
-        UnriskFactExpenses.DeleteAll();
+        TempUnriskFactExpenses.DeleteAll();
     end;
 
     procedure CalcUnriskFactExpensesAmt(Code2: Code[20]; CurrencyCode2: Code[10]; Amount: Decimal; EntryNo: Integer)
@@ -607,15 +608,15 @@ table 7000019 "Fee Range"
             TotalUnriskFactExpensesAmt := TotalUnriskFactExpensesAmt + Amount;
         end;
 
-        if UnriskFactExpenses.Get(Text1100008, '', EntryNo) then begin
-            UnriskFactExpenses.Amount := UnriskFactExpenses.Amount + Amount;
-            UnriskFactExpenses.Modify();
+        if TempUnriskFactExpenses.Get(UnriskFactExpensesLbl, '', EntryNo) then begin
+            TempUnriskFactExpenses.Amount := TempUnriskFactExpenses.Amount + Amount;
+            TempUnriskFactExpenses.Modify();
         end else begin
-            UnriskFactExpenses.Init();
-            UnriskFactExpenses.Account := Text1100008;
-            UnriskFactExpenses."Entry No." := EntryNo;
-            UnriskFactExpenses.Amount := Amount;
-            UnriskFactExpenses.Insert();
+            TempUnriskFactExpenses.Init();
+            TempUnriskFactExpenses.Account := UnriskFactExpensesLbl;
+            TempUnriskFactExpenses."Entry No." := EntryNo;
+            TempUnriskFactExpenses.Amount := Amount;
+            TempUnriskFactExpenses.Insert();
         end;
     end;
 
@@ -626,42 +627,42 @@ table 7000019 "Fee Range"
 
     procedure NoRegUnriskFactExpenses(): Integer
     begin
-        UnriskFactExpenses.SetRange(Account, Text1100008);
-        if UnriskFactExpenses.Find('-') and (InitUnriskFactExpensesAmt <> 0) then begin
+        TempUnriskFactExpenses.SetRange(Account, UnriskFactExpensesLbl);
+        if TempUnriskFactExpenses.Find('-') and (InitUnriskFactExpensesAmt <> 0) then begin
             Sum := 0;
             repeat
-                Sum := Sum + UnriskFactExpenses.Amount;
-            until UnriskFactExpenses.Next() <= 0;
+                Sum := Sum + TempUnriskFactExpenses.Amount;
+            until TempUnriskFactExpenses.Next() <= 0;
 
             if Sum <> 0 then
                 Factor := InitUnriskFactExpensesAmt / Sum
             else
                 Factor := 1;
-            UnriskFactExpenses.Find('-');
+            TempUnriskFactExpenses.Find('-');
             repeat
-                Sum := Round(UnriskFactExpenses.Amount * Factor, Currency."Amount Rounding Precision");
-                UnriskFactExpenses.Amount := UnriskFactExpenses.Amount + Sum;
+                Sum := Round(TempUnriskFactExpenses.Amount * Factor, Currency."Amount Rounding Precision");
+                TempUnriskFactExpenses.Amount := TempUnriskFactExpenses.Amount + Sum;
                 InitUnriskFactExpensesAmt := InitUnriskFactExpensesAmt - Sum;
-                UnriskFactExpenses.Modify();
-            until UnriskFactExpenses.Next() <= 0;
+                TempUnriskFactExpenses.Modify();
+            until TempUnriskFactExpenses.Next() <= 0;
             if Round(InitUnriskFactExpensesAmt, Currency."Amount Rounding Precision") <> 0 then begin
-                UnriskFactExpenses.Find('+');
-                UnriskFactExpenses.Amount := UnriskFactExpenses.Amount +
+                TempUnriskFactExpenses.Find('+');
+                TempUnriskFactExpenses.Amount := TempUnriskFactExpenses.Amount +
                   Round(InitUnriskFactExpensesAmt, Currency."Amount Rounding Precision");
                 InitUnriskFactExpensesAmt := 0;
-                UnriskFactExpenses.Modify();
+                TempUnriskFactExpenses.Modify();
             end;
         end;
-        exit(UnriskFactExpenses.Count);
+        exit(TempUnriskFactExpenses.Count);
     end;
 
     procedure GetUnriskFactExpenses(var value: Record "BG/PO Post. Buffer"; Register: Integer)
     begin
-        UnriskFactExpenses.SetRange(Account, Text1100008);
-        UnriskFactExpenses.Find('-');
-        if Register <> UnriskFactExpenses.Next(Register) then
-            Error(Text1100002);
-        value := UnriskFactExpenses;
+        TempUnriskFactExpenses.SetRange(Account, UnriskFactExpensesLbl);
+        TempUnriskFactExpenses.Find('-');
+        if Register <> TempUnriskFactExpenses.Next(Register) then
+            Error(OutOfRangeLbl);
+        value := TempUnriskFactExpenses;
     end;
 }
 
