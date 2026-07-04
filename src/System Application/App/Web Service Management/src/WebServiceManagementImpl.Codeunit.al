@@ -636,7 +636,7 @@ codeunit 9751 "Web Service Management Impl."
             TargetTenantWebServiceColumns.Validate("Data Item", DataItem);
             TargetTenantWebServiceColumns.Validate(Include, true);
             TargetTenantWebServiceColumns.Validate("Field Number", keyValuePair.Key());
-            TargetTenantWebServiceColumns.Validate("Field Name", CopyStr(keyValuePair.Value(), 1));
+            TargetTenantWebServiceColumns.Validate("Field Name", CopyStr(keyValuePair.Value(), 1, 250));
             if TargetTenantWebServiceColumns.IsTemporary() then begin
                 EntryId := EntryId + 1;
                 TargetTenantWebServiceColumns."Entry ID" := EntryId;

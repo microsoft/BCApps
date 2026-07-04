@@ -94,7 +94,7 @@ table 20406 "Qlty. Inspection Line"
             Caption = 'Test Value Type';
             Editable = false;
             FieldClass = FlowField;
-            ToolTip = 'Specifies the data type of the values you can enter or select for this test. Use Decimal for numerical measurements. Use Choice to give a list of options to choose from. If you want to choose options from an existing table, use Table Lookup.';
+            ToolTip = 'Specifies the data value type of the test. The value is automatically retrieved from the Test Value Type field on the test template.';
         }
         field(16; "Allowable Values"; Text[500])
         {
@@ -144,7 +144,7 @@ table 20406 "Qlty. Inspection Line"
             Editable = false;
             TableRelation = "Qlty. Inspection Result".Code;
             Caption = 'Result Code';
-            ToolTip = 'Specifies the result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the automatically calculated result based on the evaluation of the actual test value against the defined result conditions.';
 
             trigger OnValidate()
             var
@@ -162,13 +162,13 @@ table 20406 "Qlty. Inspection Line"
             Editable = false;
             FieldClass = FlowField;
             CalcFormula = lookup("Qlty. Inspection Result"."Description" where("Code" = field("Result Code")));
-            ToolTip = 'Specifies the result description for this test result. The result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the description of the test result. This value is automatically retrieved from the result definition based on the Result Code field.';
         }
         field(30; "Evaluation Sequence"; Integer)
         {
             Editable = false;
             Caption = 'Evaluation Sequence';
-            ToolTip = 'Specifies the associated evaluation sequence for this test result. The result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the associated evaluation sequence of the test result. The value is automatically determined based on the actual test value and result configuration.';
         }
         field(33; "Failure State"; Enum "Qlty. Line Failure State")
         {
@@ -409,6 +409,8 @@ table 20406 "Qlty. Inspection Line"
         if not GetInspection() then
             exit;
 
+        EvaluateSelfIfOnlyLineIsTextExpression();
+
         OthersInSameQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
         OthersInSameQltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
         OthersInSameQltyInspectionLine.SetFilter("Test Value Type", '%1', QltyInspectionTemplateLine."Test Value Type"::"Value Type Text Expression");
@@ -463,6 +465,21 @@ table 20406 "Qlty. Inspection Line"
                     OthersInSameQltyInspectionLine.ValidateTestValue();
 
             until OthersInSameQltyInspectionLine.Next() = 0;
+    end;
+
+    local procedure EvaluateSelfIfOnlyLineIsTextExpression()
+    var
+        OtherQltyInspectionLine: Record "Qlty. Inspection Line";
+    begin
+        Rec.CalcFields("Test Value Type");
+        if Rec."Test Value Type" <> Rec."Test Value Type"::"Value Type Text Expression" then
+            exit;
+
+        OtherQltyInspectionLine.SetRange("Inspection No.", Rec."Inspection No.");
+        OtherQltyInspectionLine.SetRange("Re-inspection No.", Rec."Re-inspection No.");
+        OtherQltyInspectionLine.SetFilter("Line No.", '<>%1', Rec."Line No.");
+        if OtherQltyInspectionLine.IsEmpty() then
+            Rec.EvaluateTextExpression(QltyInspectionHeader);
     end;
 
     internal procedure EvaluateTextExpression(var EvaluateAgainstQltyInspectionHeader: Record "Qlty. Inspection Header")

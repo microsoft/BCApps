@@ -37,6 +37,11 @@ codeunit 130561 "Library - Agent Impl."
     end;
 
     procedure CreateTaskAndWait(var AgentTaskBuilder: Codeunit "Agent Task Builder"; var AgentTask: Record "Agent Task"): Boolean
+    begin
+        exit(CreateTaskAndWait(AgentTaskBuilder, AgentTask, 0));
+    end;
+
+    procedure CreateTaskAndWait(var AgentTaskBuilder: Codeunit "Agent Task Builder"; var AgentTask: Record "Agent Task"; Timeout: Duration): Boolean
     var
         AgentTestContext: Codeunit "Agent Test Context";
     begin
@@ -44,7 +49,7 @@ codeunit 130561 "Library - Agent Impl."
         AgentTask := AgentTaskBuilder.Create(true, false); // Test tasks do not require message.
         AgentTestContext.AddTaskToLog(AgentTask.ID);
         Commit();
-        exit(WaitForTaskToComplete(AgentTask));
+        exit(WaitForTaskToComplete(AgentTask, Timeout));
     end;
 
     procedure CreateMessageAndWait(var AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder"; var AgentTask: Record "Agent Task"): Boolean
@@ -216,6 +221,11 @@ codeunit 130561 "Library - Agent Impl."
     end;
 
     procedure CreateUserInterventionAndWait(var AgentTask: Record "Agent Task"; UserInput: Text): Boolean
+    begin
+        exit(CreateUserInterventionAndWait(AgentTask, UserInput, 0));
+    end;
+
+    procedure CreateUserInterventionAndWait(var AgentTask: Record "Agent Task"; UserInput: Text; Timeout: Duration): Boolean
     var
         UserInterventionRequestEntry: Record "Agent Task Log Entry";
         AgentUserIntervention: Codeunit "Agent User Intervention";
@@ -231,10 +241,15 @@ codeunit 130561 "Library - Agent Impl."
         SelectLatestVersion();
         AgentTask.Find();
 
-        exit(WaitForTaskToComplete(AgentTask));
+        exit(WaitForTaskToComplete(AgentTask, Timeout));
     end;
 
     procedure CreateUserInterventionFromSuggestionAndWait(var AgentTask: Record "Agent Task"; SuggestionCode: Code[20]): Boolean
+    begin
+        exit(CreateUserInterventionFromSuggestionAndWait(AgentTask, SuggestionCode, 0));
+    end;
+
+    procedure CreateUserInterventionFromSuggestionAndWait(var AgentTask: Record "Agent Task"; SuggestionCode: Code[20]; Timeout: Duration): Boolean
     var
         UserInterventionRequestEntry: Record "Agent Task Log Entry";
         AgentUserIntervention: Codeunit "Agent User Intervention";
@@ -250,14 +265,22 @@ codeunit 130561 "Library - Agent Impl."
         SelectLatestVersion();
         AgentTask.Find();
 
-        exit(WaitForTaskToComplete(AgentTask));
+        exit(WaitForTaskToComplete(AgentTask, Timeout));
     end;
 
     procedure WaitForTaskToComplete(var AgentTask: Record "Agent Task"): Boolean
     var
+        BlankDuration: Duration;
+    begin
+        exit(WaitForTaskToComplete(AgentTask, BlankDuration));
+    end;
+
+    procedure WaitForTaskToComplete(var AgentTask: Record "Agent Task"; Timeout: Duration): Boolean
+    var
         AgentTestContext: Codeunit "Agent Test Context";
+        BlankDuration: Duration;
         WaitTime: Duration;
-        Timeout: Duration;
+        EffectiveTimeout: Duration;
         TaskCompleted: Boolean;
     begin
         EnsureIsTest();
@@ -265,11 +288,15 @@ codeunit 130561 "Library - Agent Impl."
         // Test can create a task by invoking UI and wait for the task.
         AgentTestContext.AddTaskToLog(AgentTask.ID);
 
-        Timeout := GetAgentTaskTimeout();
-        VerifyAgentIsActive(AgentTask."Agent User Security ID");
-        VerifyTimeout(Timeout);
+        if Timeout <> BlankDuration then
+            EffectiveTimeout := Timeout
+        else
+            EffectiveTimeout := GetAgentTaskTimeout();
 
-        while (IsAgentTaskRunning(AgentTask) and (WaitTime < Timeout))
+        VerifyTimeout(EffectiveTimeout);
+        VerifyAgentIsActive(AgentTask."Agent User Security ID");
+
+        while (IsAgentTaskRunning(AgentTask) and (WaitTime < EffectiveTimeout))
         do begin
             Sleep(GetDefaultWaitTime());
             WaitTime += GetDefaultWaitTime();
@@ -300,14 +327,17 @@ codeunit 130561 "Library - Agent Impl."
 
     local procedure VerifyTimeout(Timeout: Duration)
     var
+        EnvironmentInformation: Codeunit "Environment Information";
         MaxTimeout: Duration;
     begin
         if Timeout < 0 then
             Error(TimeoutCannotBeNegativeErr);
 
-        MaxTimeout := GetMaximumTimeout();
-        if Timeout > MaxTimeout then
-            Error(TimeoutExceedsMaximumErr, Timeout, MaxTimeout);
+        if EnvironmentInformation.IsSaaSInfrastructure() then begin
+            MaxTimeout := GetMaximumTimeout();
+            if Timeout > MaxTimeout then
+                Error(TimeoutExceedsMaximumErr, Timeout, MaxTimeout);
+        end;
     end;
 
     local procedure VerifyAgentIsActive(AgentUserSecurityId: Guid)
@@ -352,7 +382,7 @@ codeunit 130561 "Library - Agent Impl."
 
     local procedure GetMaximumTimeout(): Duration
     begin
-        exit(30 * 60 * 1000); // 30 minutes
+        exit(60 * 60 * 1000); // 1 hour
     end;
 
     local procedure GetDefaultEncoding(): TextEncoding
@@ -446,20 +476,27 @@ codeunit 130561 "Library - Agent Impl."
     var
         TempSuggestion: Record "Agent Task User Int Suggestion" temporary;
         InterventionInput: Codeunit "Test Input Json";
-        SuggestionExists, InstructionExists : Boolean;
+        TimeoutInput: Codeunit "Test Input Json";
+        Timeout: Duration;
+        SuggestionExists, InstructionExists, HasTimeout : Boolean;
     begin
+        TimeoutInput := QueryInput.ElementExists(TimeoutTok, HasTimeout);
+        if HasTimeout then
+            Timeout := TimeoutInput.ValueAsInteger();
+
         InterventionInput := QueryInput.Element(InterventionTok);
 
         InterventionInput.ElementExists(SuggestionTok, SuggestionExists);
         if SuggestionExists then
             exit(CreateUserInterventionFromSuggestionAndWait(
                 AgentTask,
-                CopyStr(InterventionInput.Element(SuggestionTok).ValueAsText(), 1, MaxStrLen(TempSuggestion.Code))));
+                CopyStr(InterventionInput.Element(SuggestionTok).ValueAsText(), 1, MaxStrLen(TempSuggestion.Code)),
+                Timeout));
 
         InterventionInput.ElementExists(InstructionTok, InstructionExists);
         if InstructionExists then
             exit(CreateUserInterventionAndWait(
-                AgentTask, InterventionInput.Element(InstructionTok).ValueAsText()));
+                AgentTask, InterventionInput.Element(InstructionTok).ValueAsText(), Timeout));
 
         Error(InvalidInterventionErr);
     end;
@@ -469,16 +506,24 @@ codeunit 130561 "Library - Agent Impl."
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
         AttachmentsInput: Codeunit "Test Input Json";
-        TitleInput, FromInput, MessageInput : Codeunit "Test Input Json";
+        AttachmentElement: Codeunit "Test Input Json";
+        AttachmentFileElement: Codeunit "Test Input Json";
+        ActionTypeElement: Codeunit "Test Input Json";
+        TitleInput, FromInput, MessageInput, TimeoutInput : Codeunit "Test Input Json";
         Assert: Codeunit "Library Assert";
         ResourceInStream: InStream;
         FromValue: Text[250];
         MessageValue: Text;
         FileName: Text[250];
         MIMEType: Text[100];
-        HasTitle, HasFrom, HasMessage, HasAttachments : Boolean;
+        Timeout: Duration;
+        HasTitle, HasFrom, HasMessage, HasAttachments, HasFile, HasActionType, HasTimeout : Boolean;
         I: Integer;
     begin
+        TimeoutInput := QueryInput.ElementExists(TimeoutTok, HasTimeout);
+        if HasTimeout then
+            Timeout := TimeoutInput.ValueAsInteger();
+
         TitleInput := QueryInput.ElementExists(TitleTok, HasTitle);
         Assert.IsTrue(HasTitle, MissingTitleErr);
 
@@ -506,14 +551,31 @@ codeunit 130561 "Library - Agent Impl."
             AttachmentsInput := QueryInput.ElementExists(AttachmentsTok, HasAttachments);
             if HasAttachments then
                 for I := 0 to AttachmentsInput.GetElementCount() - 1 do begin
-                    AgentTestResourceProvider.GetResource(
-                        AttachmentsInput.ElementAt(I).Element(FileTok).ValueAsText(),
-                        ResourceInStream, FileName, MIMEType);
+                    Clear(FileName);
+                    Clear(MIMEType);
+
+                    AttachmentElement := AttachmentsInput.ElementAt(I);
+                    AttachmentFileElement := AttachmentElement.ElementExists(FileTok, HasFile);
+
+                    if not HasFile then
+                        continue;
+
+                    ActionTypeElement := AttachmentFileElement.ElementExists(ActionTypeTok, HasActionType);
+                    if HasActionType then
+                        AgentTestResourceProvider.GenerateResource(
+                            ActionTypeElement.ValueAsText(),
+                            AttachmentFileElement.Element(ActionDataTok),
+                            ResourceInStream, FileName, MIMEType)
+                    else
+                        AgentTestResourceProvider.GetResource(
+                            AttachmentFileElement.ValueAsText(),
+                            ResourceInStream, FileName, MIMEType);
+
                     AgentTaskMessageBuilder.AddAttachment(FileName, MIMEType, ResourceInStream);
                 end;
         end;
 
-        exit(CreateTaskAndWait(AgentTaskBuilder, AgentTask));
+        exit(CreateTaskAndWait(AgentTaskBuilder, AgentTask, Timeout));
     end;
 
     procedure FinalizeTurn(var AgentTask: Record "Agent Task"; TurnSuccessful: Boolean; ErrorReason: Text) Continue: Boolean
@@ -675,8 +737,10 @@ codeunit 130561 "Library - Agent Impl."
         FromTok: Label 'from', Locked = true;
         AttachmentsTok: Label 'attachments', Locked = true;
         FileTok: Label 'file', Locked = true;
+        TimeoutTok: Label 'timeout', Locked = true;
+        ActionTypeTok: Label 'action_type', Locked = true;
+        ActionDataTok: Label 'action_data', Locked = true;
         InterventionRequestTok: Label 'intervention_request', Locked = true;
-
         SuggestionsTok: Label 'suggestions', Locked = true;
         InvalidQueryBothErr: Label 'Query cannot contain both ''title'' and ''intervention'' elements.';
         InvalidQueryNeitherErr: Label 'Query must contain either a ''title'' (task input) or ''intervention'' element.';

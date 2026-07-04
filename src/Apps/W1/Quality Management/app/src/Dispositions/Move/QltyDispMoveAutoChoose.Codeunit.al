@@ -68,6 +68,8 @@ codeunit 20442 "Qlty. Disp. Move Auto Choose" implements "Qlty. Disposition"
                 if (TempQuantityToActQltyDispositionBuffer."New Location Code" <> '') and (TempQuantityToActQltyDispositionBuffer."New Location Code" <> TempQuantityToActQltyDispositionBuffer."Location Filter") then
                     Error(UnableToChangeBinsBetweenLocationsBecauseDirectedPickAndPutErr, QltyInspectionHeader."No.", TempQuantityToActQltyDispositionBuffer."Location Filter", TempQuantityToActQltyDispositionBuffer."New Location Code");
 
+                QltyInventoryAvailability.ErrorIfFromBinIsReceiveBin(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer.GetFromLocationCode(), TempQuantityToActQltyDispositionBuffer.GetFromBinCode());
+
                 if BackwardsCompatibleFlagCallMoveInventoryFirstUseWorksheet then
                     DidSomething := QltyDispMoveWorksheet.PerformDisposition(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer)
                 else
@@ -84,7 +86,7 @@ codeunit 20442 "Qlty. Disp. Move Auto Choose" implements "Qlty. Disposition"
     end;
 
     /// <summary>
-    /// Do not use directly for net new code.  This method is an interim shim to help with obsoletions and refactoring for dispositions.
+    /// Do not use directly for net new code. This method is an interim shim to help with obsoletions and refactoring for dispositions.
     /// Instead use the new dispositions directly.
     /// </summary>
     /// <param name="QltyInspectionHeader"></param>

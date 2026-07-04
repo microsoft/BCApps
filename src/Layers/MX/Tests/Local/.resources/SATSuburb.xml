@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<data-set-c_Colonias xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <Colonia>
+        <Code>0001</Code>
+        <PostCode>01000</PostCode>
+        <Descripcion>San Ángel</Descripcion>
+    </Colonia>
+    <Colonia>
+        <Code>0001</Code>
+        <PostCode>16514</PostCode>
+        <Descripcion>Tetitla la Gallera</Descripcion>
+    </Colonia>
+    <Colonia>
+        <Code>0001</Code>
+        <PostCode>20000</PostCode>
+        <Descripcion>Zona Centro</Descripcion>
+    </Colonia>
+    <Colonia>
+        <Code>0001</Code>
+        <PostCode>20339</PostCode>
+        <Descripcion>San José (San José de los Rodríguez)</Descripcion>
+    </Colonia>
+    <Colonia>
+        <Code>0001</Code>
+        <PostCode>20406</PostCode>
+        <Descripcion>Rinconada de las Piedras</Descripcion>
+    </Colonia>
+    <Colonia>
+        <Code>0001</Code>
+        <PostCode>20656</PostCode>
+        <Descripcion>Carboneras</Descripcion>
+    </Colonia>
+    <Colonia>
+        <Code>0001</Code>
+        <PostCode>20680</PostCode>
+        <Descripcion>Las Ánimas</Descripcion>
+    </Colonia>
+    <Colonia>
+        <Code>0001</Code>
+        <PostCode>20700</PostCode>
+        <Descripcion>Guadalupe</Descripcion>
+    </Colonia>
+    <Colonia>
+        <Code>0001</Code>
+        <PostCode>20854</PostCode>
+        <Descripcion>Parque Industrial Calvillo</Descripcion>
+    </Colonia>
+    <Colonia>
+        <Code>0972</Code>
+        <PostCode>97782</PostCode>
+        <Descripcion>Santa Ana</Descripcion>
+    </Colonia>
+    <Colonia>
+        <Code>0972</Code>
+        <PostCode>98507</PostCode>
+        <Descripcion>SUTSEMOP</Descripcion>
+    </Colonia>
+    <Colonia>
+        <Code>0973</Code>
+        <PostCode>20663</PostCode>
+        <Descripcion>El Gigante</Descripcion>
+    </Colonia>
+    <Colonia>
+        <Code>0973</Code>
+        <PostCode>22116</PostCode>
+        <Descripcion>Huertas 1a. Sección</Descripcion>
+    </Colonia>
+</data-set-c_Colonias>

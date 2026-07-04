@@ -420,11 +420,14 @@ table 6121 "E-Document"
 #if not CLEAN27
         PurchaseHeader: Record "Purchase Header";
 #endif
+        EDocumentErrorHelper: Codeunit "E-Document Error Helper";
         IProcessStructuredData: Interface IProcessStructuredData;
 #if not CLEAN27
         NullGuid: Guid;
 #endif
     begin
+        EDocumentErrorHelper.ClearErrorMessages(Rec);
+
         EDocumentLog.SetRange("E-Doc. Entry No", Rec."Entry No");
         if not EDocumentLog.IsEmpty() then
             EDocumentLog.DeleteAll(true);
