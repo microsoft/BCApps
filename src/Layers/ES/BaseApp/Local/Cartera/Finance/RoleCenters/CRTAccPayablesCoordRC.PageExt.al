@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.RoleCenters;
 
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Reports;
 
@@ -35,6 +36,14 @@ pageextension 7000173 "CRT Acc. Payables Coord. RC" extends "Acc. Payables Coord
                     Image = "Report";
                     RunObject = Report "Closed Payment Order Listing";
                     ToolTip = 'View the list of completed payment orders.';
+                }
+                action("Posted Payment Order Listing")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Posted Payment Order Listing';
+                    Image = "Report";
+                    RunObject = Report "Posted Payment Order Listing";
+                    ToolTip = 'View posted payment orders that represent payables to submit to the bank as a file for electronic payment.';
                 }
                 action("Payment Order Listing")
                 {
@@ -73,6 +82,16 @@ pageextension 7000173 "CRT Acc. Payables Coord. RC" extends "Acc. Payables Coord
                 Caption = 'Closed Payment Orders List';
                 RunObject = Page "Closed Payment Orders List";
                 ToolTip = 'View the list of completed payment orders.';
+            }
+        }
+        addafter("Payment Orders List")
+        {
+            action("Posted Payment Orders List")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Posted Payment Orders List';
+                RunObject = Page "Posted Payment Orders List";
+                ToolTip = 'View posted payment orders that represent payables to submit to the bank as a file for electronic payment.';
             }
         }
     }

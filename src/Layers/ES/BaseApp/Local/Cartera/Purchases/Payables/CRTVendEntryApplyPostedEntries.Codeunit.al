@@ -38,6 +38,13 @@ codeunit 7000188 "CRTVendEntryApplyPostedEntries"
         GenJnlPostLine.SetIDInvoiceSettlement(BeAppliedToInvoice(VendorLedgerEntry));
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VendEntry-Apply Posted Entries", 'OnAfterCheckInitialDocumentType', '', false, false)]
+    local procedure OnAfterCheckInitialDocumentType(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry")
+    begin
+        if DtldVendLedgEntry."Initial Document Type" = DtldVendLedgEntry."Initial Document Type"::" " then
+            Error(UnapplyBlankedDocTypeErr);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"VendEntry-Apply Posted Entries", 'OnPostUnApplyVendorOnAfterDtldVendLedgEntrySetFilters', '', false, false)]
     local procedure OnPostUnApplyVendorOnAfterDtldVendLedgEntrySetFilters(var DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry"; DetailedVendorLedgEntry2: Record "Detailed Vendor Ledg. Entry")
     begin

@@ -41,6 +41,13 @@ codeunit 7000112 "CRTCustEntryApplyPostedEnt"
         GenJnlPostLine.SetIDBillSettlement(IsToSetIDBillSettlement(CustLedgerEntry));
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CustEntry-Apply Posted Entries", 'OnAfterCheckInitialDocumentType', '', false, false)]
+    local procedure OnAfterCheckInitialDocumentType(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    begin
+        if DtldCustLedgEntry."Initial Document Type" = DtldCustLedgEntry."Initial Document Type"::" " then
+            Error(UnapplyBlankedDocTypeErr);
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"CustEntry-Apply Posted Entries", 'OnPostUnApplyCustomerCommitOnAfterSetFilters', '', false, false)]
     local procedure OnPostUnApplyCustomerCommitOnAfterSetFilters(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; DetailedCustLedgEntry2: Record "Detailed Cust. Ledg. Entry")
     begin
