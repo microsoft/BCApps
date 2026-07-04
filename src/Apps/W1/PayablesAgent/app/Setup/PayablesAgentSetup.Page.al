@@ -608,7 +608,7 @@ page 3304 "Payables Agent Setup"
         SelectFileLbl: Label 'Select file';
         PdfFileFilterLbl: Label 'PDF Files (*.pdf)|*.pdf';
         ManageKnownSendersLbl: Label 'Manage known senders';
-        KnownSendersHintLbl: Label 'Known senders apply when the agent watches the inbox. If a subfolder is set, every email in it is treated as trusted.';
+        KnownSendersHintLbl: Label 'Add your regular senders and set the review policy for each. Approve emails automatically for senders you trust.';
         FolderIgnoresListConfirmLbl: Label 'You have %1 known senders. With subfolder ''%2'' configured, the agent will process every email there without consulting the list. The list is kept and will be used again if you remove the subfolder. Continue?', Comment = '%1 = number of known senders, %2 = folder name';
         PolicyIgnoresListConfirmLbl: Label 'You have %1 known senders. The list won''t affect processing while review is set to ''%2''. The list is kept and will be used again if you switch back to ''Only if untrusted''. Continue?', Comment = '%1 = number of known senders, %2 = review policy';
 

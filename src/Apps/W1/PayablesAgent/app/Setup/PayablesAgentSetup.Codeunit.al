@@ -95,7 +95,7 @@ codeunit 3307 "Payables Agent Setup"
         EmailConnectionMessageErr: Label 'Connection to mailbox failed. Please review the email account configuration for email %1', Comment = '%1 - Email account name';
         EmailConnectionNavigationActionLbl: Label 'Show email accounts';
         ActivateWithoutMailboxNameErr: Label 'To activate the agent with the current settings, a mailbox must be selected first.';
-        ReviewPolicyRequiredErr: Label 'Choose when the agent should review emails before turning monitoring on.';
+        ReviewPolicyRequiredErr: Label 'Select an Email review option before turning on monitoring. This sets when incoming emails need supervisor approval before the agent processes them.';
     begin
         if AzureADGraphUser.IsUserDelegatedAdmin() or AzureADGraphUser.IsUserDelegatedHelpdesk() then
             Error(DelegatedAdminErr);

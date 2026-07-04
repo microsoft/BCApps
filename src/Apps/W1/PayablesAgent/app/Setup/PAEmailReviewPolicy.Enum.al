@@ -16,7 +16,7 @@ enum 3305 "PA Email Review Policy"
     }
     value(1; OnlyIfUntrusted)
     {
-        Caption = 'Only if untrusted (recommended)';
+        Caption = 'Only untrusted senders (recommended)';
     }
     value(2; Never)
     {
