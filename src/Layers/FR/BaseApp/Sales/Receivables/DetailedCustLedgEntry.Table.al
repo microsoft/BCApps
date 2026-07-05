@@ -381,6 +381,11 @@ table 379 "Detailed Cust. Ledg. Entry"
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
+        field(7000004; "Excluded from calculation"; Boolean)
+        {
+            Caption = 'Excluded from calculation';
+            Editable = false;
+        }
         field(10801; "Curr. Adjmt. G/L Account No."; Code[20])
         {
             Caption = 'Curr. Adjmt. G/L Account No.';
@@ -436,7 +441,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         }
         key(Key14; "Customer No.", "Initial Entry Due Date")
         {
-            IncludedFields = Amount, "Amount (LCY)";
+            IncludedFields = Amount, "Amount (LCY)", "Excluded from calculation";
         }
     }
 

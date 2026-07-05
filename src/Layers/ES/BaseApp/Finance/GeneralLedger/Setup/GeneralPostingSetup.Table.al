@@ -1726,5 +1726,4 @@ table 252 "General Posting Setup"
     local procedure OnBeforeGetPurchaseVarianceAccount(var AccountNo: Code[20]; var IsHandled: Boolean)
     begin
     end;
-
 }

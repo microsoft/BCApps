@@ -380,6 +380,11 @@ table 379 "Detailed Cust. Ledg. Entry"
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
+        field(7000004; "Excluded from calculation"; Boolean)
+        {
+            Caption = 'Excluded from calculation';
+            Editable = false;
+        }
         field(12100; "Bank Receipt Issued"; Boolean)
         {
             Caption = 'Bank Receipt Issued';
