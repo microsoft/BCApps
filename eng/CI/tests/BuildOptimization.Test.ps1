@@ -324,7 +324,7 @@ Describe "BuildOptimization" {
             }
 
             # The shared module that the per-project scripts delegate to must use Get-BaseFolder for repo root
-            $module = Get-Content (Resolve-Path "$PSScriptRoot/../ParallelTestExecution.psm1").Path -Raw
+            $module = Get-Content (Resolve-Path "$PSScriptRoot/../../AL-Go/scripts/ParallelTestExecution.psm1").Path -Raw
             $module | Should -Match 'Get-BaseFolder' -Because 'ParallelTestExecution.psm1 must resolve repo root via Get-BaseFolder'
         }
     }

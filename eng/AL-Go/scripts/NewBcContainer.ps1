@@ -12,8 +12,8 @@ if ("$env:GITHUB_RUN_ID" -eq "") {
     $parameters.shortcuts = "none"
 }
 
-Import-Module (Join-Path $PSScriptRoot 'PlatformHelper.psm1') -Force
-Import-Module (Join-Path $PSScriptRoot 'DevEnv/EnlistmentHelperFunctions.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot '../../Shared/PlatformHelper.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot '../../Shared/EnlistmentHelperFunctions.psm1') -Force
 
 $platformVersion = (Get-ConfigValue -Key "BCPlatform" -ConfigType Packages).Version
 if ($platformVersion) {

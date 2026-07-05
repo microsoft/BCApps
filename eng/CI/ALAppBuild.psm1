@@ -620,7 +620,7 @@ class ApplicationBuildConfiguration
             {
                 # If the project is part of the BCApps repository, we can stamp in the commit hash for the bcapps submodule
                 if ($this.BuildMetadata.RepositoryUrl -match "github.com/microsoft/BCApps") {
-                    . "$($ENV:INETROOT)\eng/Core\Helpers\SourceControl-GIT.ps1"
+                    . "$($ENV:INETROOT)\Eng\Core\Helpers\SourceControl-GIT.ps1"
                     $compilationParams += @{
                         SourceRepositoryUrl = $this.BuildMetadata.RepositoryUrl
                         SourceCommit = (Get-BCAppsReference)
@@ -779,7 +779,7 @@ class ApplicationBuildConfiguration
         }
 
         # Should we restore this package outside this?
-        Import-Module "$($ENV:INETROOT)\eng/Core\Helpers\ExtensionsV2\GuardingV2ExtensionsHelper.psm1"
+        Import-Module "$($ENV:INETROOT)\Eng\Core\Helpers\ExtensionsV2\GuardingV2ExtensionsHelper.psm1"
 
         $analyzerList = @("AppSourceCop", "CodeCop", "UICop", "PTECop")
         if ($EnableCLEANPreProcessorSymbols)
@@ -845,7 +845,7 @@ class ApplicationBuildConfiguration
         }
 
         # Should we restore this package outside this?
-        Import-Module "$($ENV:INETROOT)\eng/Core\Helpers\ExtensionsV2\GuardingV2ExtensionsHelper.psm1"
+        Import-Module "$($ENV:INETROOT)\Eng\Core\Helpers\ExtensionsV2\GuardingV2ExtensionsHelper.psm1"
         $referenceAppsDir = Get-LazyExtensionsPackagePath
 
         $referenceApplicationPaths = $this.GetReferenceApplicationPathsForCodeAnalysis($referenceAppsDir)

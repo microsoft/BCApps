@@ -71,7 +71,7 @@ if (-not (Get-Command Write-Log -ErrorAction SilentlyContinue)) {
 }
 
 $env:INETROOT = $RepoRoot
-Import-Module (Join-Path (Join-Path $RepoRoot "build") "scripts" | Join-Path -ChildPath "ALAppBuild.psm1") -Force
+Import-Module (Join-Path (Join-Path $RepoRoot "eng") "CI" | Join-Path -ChildPath "ALAppBuild.psm1") -Force
 
 # Apps that should be included in all country projects but aren't tracked in groups.json.
 $AdditionalAppFolders = @(
