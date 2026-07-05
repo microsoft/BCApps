@@ -11,7 +11,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
-codeunit 7000010 "CRT Company-Initialize"
+codeunit 7000010 "Company-Initialize Cartera"
 {
 
     trigger OnRun()
