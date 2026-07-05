@@ -561,7 +561,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// </summary>
     /// <param name="ListId">ID of the list.</param>
     /// <param name="ItemId">ID of the item.</param>
-    /// <param name="GraphListItem">Record to store the result.</param>
+    /// <param name="GraphListItem">Record to store the result. If it already contains an item with the same ID, that item is refreshed.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure GetListItem(ListId: Text; ItemId: Text; var GraphListItem: Record "SharePoint Graph List Item" temporary): Codeunit "SharePoint Graph Response"
     var
@@ -575,7 +575,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// </summary>
     /// <param name="ListId">ID of the list.</param>
     /// <param name="ItemId">ID of the item.</param>
-    /// <param name="GraphListItem">Record to store the result.</param>
+    /// <param name="GraphListItem">Record to store the result. If it already contains an item with the same ID, that item is refreshed.</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure GetListItem(ListId: Text; ItemId: Text; var GraphListItem: Record "SharePoint Graph List Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
@@ -615,7 +615,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
             Session.LogMessage('', FailedToParseListItemErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        GraphListItem.Insert();
+        if not GraphListItem.Insert() then
+            GraphListItem.Modify();
 
         SharePointGraphResponse.SetSuccess();
         Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'GetListItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
@@ -628,8 +629,9 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <param name="ListId">ID of the list.</param>
     /// <param name="ItemId">ID of the item to update.</param>
     /// <param name="FieldsJsonObject">JSON object containing the fields to update.</param>
-    /// <param name="GraphListItem">Record to store the updated item details.</param>
+    /// <param name="GraphListItem">Record to store the updated item details. If it already contains an item with the same ID, that item is refreshed.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>The record is populated from the PATCH response and contains Id, ListId, Title, and the field values; use GetListItem to also retrieve web URL, content type, and timestamps.</remarks>
     procedure UpdateListItem(ListId: Text; ItemId: Text; FieldsJsonObject: JsonObject; var GraphListItem: Record "SharePoint Graph List Item" temporary): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
@@ -666,9 +668,12 @@ codeunit 9120 "SharePoint Graph Client Impl."
             exit(SharePointGraphResponse);
         end;
 
-        SharePointGraphResponse := GetListItem(ListId, ItemId, GraphListItem);
-        if not SharePointGraphResponse.IsSuccessful() then
-            exit(SharePointGraphResponse);
+        GraphListItem.Init();
+        GraphListItem.Id := CopyStr(ItemId, 1, MaxStrLen(GraphListItem.Id));
+        GraphListItem.ListId := CopyStr(ListId, 1, MaxStrLen(GraphListItem.ListId));
+        SharePointGraphParser.ParseListItemFieldValueSet(JsonResponse, GraphListItem);
+        if not GraphListItem.Insert() then
+            GraphListItem.Modify();
 
         SharePointGraphResponse.SetSuccess();
         Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'UpdateListItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
@@ -2179,7 +2184,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// </summary>
     /// <param name="ItemId">ID of the item to update.</param>
     /// <param name="UpdatePropertiesJsonObject">JSON object containing the properties to update.</param>
-    /// <param name="GraphDriveItem">Record to store the updated item details.</param>
+    /// <param name="GraphDriveItem">Record to store the updated item details. If it already contains an item with the same ID, that item is refreshed.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure UpdateDriveItem(ItemId: Text; UpdatePropertiesJsonObject: JsonObject; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     var
@@ -2219,7 +2224,8 @@ codeunit 9120 "SharePoint Graph Client Impl."
             Session.LogMessage('', FailedToParseUpdatedDriveItemErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
-        GraphDriveItem.Insert();
+        if not GraphDriveItem.Insert() then
+            GraphDriveItem.Modify();
 
         SharePointGraphResponse.SetSuccess();
         Session.LogMessage('', StrSubstNo(OperationSuccessTelemetryMsg, 'UpdateDriveItem'), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
@@ -2231,7 +2237,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// </summary>
     /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
     /// <param name="UpdatePropertiesJsonObject">JSON object containing the properties to update.</param>
-    /// <param name="GraphDriveItem">Record to store the updated item details.</param>
+    /// <param name="GraphDriveItem">Record to store the updated item details. If it already contains an item with the same ID, that item is refreshed.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure UpdateDriveItemByPath(ItemPath: Text; UpdatePropertiesJsonObject: JsonObject; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     var
@@ -2268,7 +2274,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// </summary>
     /// <param name="ItemId">ID of the item to rename.</param>
     /// <param name="NewName">New name for the item.</param>
-    /// <param name="GraphDriveItem">Record to store the updated item details.</param>
+    /// <param name="GraphDriveItem">Record to store the updated item details. If it already contains an item with the same ID, that item is refreshed.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure RenameDriveItem(ItemId: Text; NewName: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     var
@@ -2296,7 +2302,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// </summary>
     /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
     /// <param name="NewName">New name for the item.</param>
-    /// <param name="GraphDriveItem">Record to store the updated item details.</param>
+    /// <param name="GraphDriveItem">Record to store the updated item details. If it already contains an item with the same ID, that item is refreshed.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure RenameDriveItemByPath(ItemPath: Text; NewName: Text; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     var

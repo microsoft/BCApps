@@ -210,6 +210,7 @@ codeunit 132984 "SharePoint Graph Client Test"
         LibraryAssert.AreEqual('1', TempListItem.Id, 'Id should match');
         LibraryAssert.AreEqual('Test Item 1', TempListItem.Title, 'Title should match');
         LibraryAssert.AreEqual('Item', TempListItem.ContentType, 'ContentType should match');
+        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('?expand=fields'), 'Request URI should expand fields');
     end;
 
     [Test]
@@ -251,25 +252,23 @@ codeunit 132984 "SharePoint Graph Client Test"
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         FieldsJson: JsonObject;
     begin
-        // [GIVEN] Mock responses for UpdateListItem (PATCH fields + follow-up GET)
+        // [GIVEN] Mock response for UpdateListItem (PATCH fields)
         Initialize();
         SharePointGraphTestLibrary.ResetMockHandler();
         SharePointGraphTestLibrary.AddMockResponse(200, GetUpdateListItemFieldsResponse());
-        SharePointGraphTestLibrary.AddMockResponse(200, GetListItemResponse());
 
         // [WHEN] Calling UpdateListItem
         FieldsJson.Add('Title', 'Updated Title');
         FieldsJson.Add('Status', 'Approved');
         SharePointGraphResponse := SharePointGraphClient.UpdateListItem('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', '1', FieldsJson, TempListItem);
 
-        // [THEN] Operation should succeed and return the full item from the follow-up GET
+        // [THEN] Operation should succeed and return the updated field values from the PATCH response
         LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'UpdateListItem should succeed');
         LibraryAssert.AreEqual('1', TempListItem.Id, 'Id should match');
-        LibraryAssert.AreEqual('Test Item 1', TempListItem.Title, 'Title should match from GET response');
-        LibraryAssert.AreEqual(2, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 2 requests (PATCH + GET)');
-        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestMethod(1).Contains('PATCH'), 'First request should be PATCH');
-        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestMethod(2).Contains('GET'), 'Second request should be GET');
-        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('/fields'), 'First request URI should target /fields');
+        LibraryAssert.AreEqual('Updated Title', TempListItem.Title, 'Title should match the updated value');
+        LibraryAssert.AreEqual(1, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 1 request (PATCH)');
+        LibraryAssert.AreEqual('PATCH', SharePointGraphTestLibrary.GetMockHttpRequestMethod(1), 'Request should be PATCH');
+        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('/fields'), 'Request URI should target /fields');
     end;
 
     [Test]
@@ -326,25 +325,31 @@ codeunit 132984 "SharePoint Graph Client Test"
     end;
 
     [Test]
-    procedure TestUpdateListItem_FollowUpGetFails()
+    procedure TestUpdateListItem_BufferReusedFromGet()
     var
         TempListItem: Record "SharePoint Graph List Item" temporary;
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         FieldsJson: JsonObject;
     begin
-        // [GIVEN] Mock responses: successful PATCH, then a 404 on the follow-up GET
+        // [GIVEN] Mock responses for GetListItem followed by UpdateListItem (PATCH fields)
         Initialize();
         SharePointGraphTestLibrary.ResetMockHandler();
+        SharePointGraphTestLibrary.AddMockResponse(200, GetListItemResponse());
         SharePointGraphTestLibrary.AddMockResponse(200, GetUpdateListItemFieldsResponse());
-        SharePointGraphTestLibrary.AddMockResponse(404, GetErrorResponse());
 
-        // [WHEN] Calling UpdateListItem
+        // [WHEN] Getting an item and then updating it with the same record variable
+        SharePointGraphResponse := SharePointGraphClient.GetListItem('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', '1', TempListItem);
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'GetListItem should succeed');
+
         FieldsJson.Add('Title', 'Updated Title');
         SharePointGraphResponse := SharePointGraphClient.UpdateListItem('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', '1', FieldsJson, TempListItem);
 
-        // [THEN] Operation should fail (the GET failed), but both requests were made
-        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'UpdateListItem should fail when follow-up GET fails');
-        LibraryAssert.AreEqual(2, SharePointGraphTestLibrary.GetMockRequestCount(), 'Both PATCH and GET requests should have fired');
+        // [THEN] Update should succeed and refresh the existing record instead of failing on a duplicate insert
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'UpdateListItem should succeed when the record already contains the item');
+        LibraryAssert.AreEqual(1, TempListItem.Count(), 'Record should contain exactly one item');
+        LibraryAssert.AreEqual('1', TempListItem.Id, 'Id should match');
+        LibraryAssert.AreEqual('Updated Title', TempListItem.Title, 'Title should be refreshed from the PATCH response');
+        LibraryAssert.AreEqual(2, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 2 requests (GET + PATCH)');
     end;
 
     [Test]

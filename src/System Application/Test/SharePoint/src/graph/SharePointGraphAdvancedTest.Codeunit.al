@@ -726,10 +726,44 @@ codeunit 132985 "SharePoint Graph Advanced Test"
         SharePointGraphResponse := SharePointGraphClient.GetDriveItem('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', TempDriveItem);
         LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'First call should succeed');
 
-        asserterror SharePointGraphClient.GetDriveItem('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', TempDriveItem);
+        SharePointGraphResponse := SharePointGraphClient.GetDriveItem('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', TempDriveItem);
 
-        // [THEN] Second call should fail because the queue is exhausted
-        LibraryAssert.ExpectedError('could not be established');
+        // [THEN] Second call should fail gracefully with a diagnostic explaining the empty queue
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'Second call should fail when the queue is exhausted');
+        LibraryAssert.IsTrue(SharePointGraphResponse.GetError().Contains('No mock response queued'), 'Error should carry the mock diagnostic');
+    end;
+
+    [Test]
+    procedure TestQueuedResponsePreservesHeaders()
+    var
+        TempBlob: Codeunit "Temp Blob";
+        HttpContent: Codeunit "Http Content";
+        MockHttpContent: Codeunit "Http Content";
+        MockHttpResponseMessage: Codeunit "Http Response Message";
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        SharePointHttpDiagnostics: Interface "HTTP Diagnostics";
+        Headers: HttpHeaders;
+    begin
+        // [GIVEN] A queued 429 response with reason phrase and Retry-After header
+        InitializeMultiResponse();
+        MockHttpResponseMessage.SetHttpStatusCode(429);
+        MockHttpContent := HttpContent.Create(GetRateLimitResponse());
+        MockHttpResponseMessage.SetContent(MockHttpContent);
+        MockHttpResponseMessage.SetReasonPhrase('Too Many Requests');
+        Headers := MockHttpResponseMessage.GetHeaders();
+        Headers.Add('Retry-After', '5');
+        MockHttpResponseMessage.SetHeaders(Headers);
+        SharePointGraphTestLibrary.AddMockResponse(MockHttpResponseMessage);
+
+        // [WHEN] Calling API that is rate limited
+        SharePointGraphResponse := SharePointGraphClient.DownloadFile('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', TempBlob);
+
+        // [THEN] Diagnostics should expose the queued response's reason phrase and Retry-After header
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'Operation should fail due to rate limiting');
+        SharePointHttpDiagnostics := SharePointGraphClient.GetDiagnostics();
+        LibraryAssert.AreEqual(429, SharePointHttpDiagnostics.GetHttpStatusCode(), 'Status code should be 429');
+        LibraryAssert.AreEqual('Too Many Requests', SharePointHttpDiagnostics.GetResponseReasonPhrase(), 'Reason phrase should match');
+        LibraryAssert.AreEqual(5, SharePointHttpDiagnostics.GetHttpRetryAfter(), 'Retry-After should be 5 seconds');
     end;
 
     [Test]
@@ -782,6 +816,32 @@ codeunit 132985 "SharePoint Graph Advanced Test"
         LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('/drive/items/01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ'), 'Request URI should target the correct item');
         LibraryAssert.AreEqual('PATCH', SharePointGraphTestLibrary.GetMockHttpRequestMethod(1), 'Request method should be PATCH');
         LibraryAssert.AreEqual('RenamedReport.docx', TempDriveItem.Name, 'Item name should be updated');
+    end;
+
+    [Test]
+    procedure TestUpdateDriveItem_BufferReusedFromGet()
+    var
+        TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        UpdateProperties: JsonObject;
+    begin
+        // [GIVEN] Mock responses for GetDriveItem followed by UpdateDriveItem
+        InitializeMultiResponse();
+        SharePointGraphTestLibrary.AddMockResponse(200, GetDriveItemResponse());
+        SharePointGraphTestLibrary.AddMockResponse(200, GetUpdatedDriveItemResponse());
+
+        // [WHEN] Getting an item and then updating it with the same record variable
+        SharePointGraphResponse := SharePointGraphClient.GetDriveItem('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', TempDriveItem);
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'GetDriveItem should succeed');
+
+        UpdateProperties.Add('name', 'RenamedReport.docx');
+        SharePointGraphResponse := SharePointGraphClient.UpdateDriveItem('01EZJNRYQYENJ6SXVPCNBYA3QZRHKJWLNZ', UpdateProperties, TempDriveItem);
+
+        // [THEN] Update should succeed and refresh the existing record instead of failing on a duplicate insert
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'UpdateDriveItem should succeed when the record already contains the item');
+        LibraryAssert.AreEqual(1, TempDriveItem.Count(), 'Record should contain exactly one item');
+        LibraryAssert.AreEqual('RenamedReport.docx', TempDriveItem.Name, 'Item name should be updated');
+        LibraryAssert.AreEqual(2, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 2 requests (GET + PATCH)');
     end;
 
     [Test]

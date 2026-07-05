@@ -15,13 +15,15 @@ codeunit 132981 "SharePoint Http Client Handler" implements "Http Client Handler
     var
         LastHttpRequestMessage: Codeunit "Http Request Message";
         SingleHttpResponseMessage: Codeunit "Http Response Message";
+        QueuedHttpResponseMessages: array[25] of Codeunit "Http Response Message";
         HttpRequestUris: List of [Text];
         HttpRequestMethods: List of [Text];
-        QueuedStatusCodes: List of [Integer];
-        QueuedBodies: List of [Text];
+        QueuedResponseCount: Integer;
         CurrentResponseIndex: Integer;
         SingleResponseSet: Boolean;
         SendError: Text;
+        ResponseQueueFullErr: Label 'Cannot queue more than %1 mock responses.', Locked = true;
+        NoMockResponseTxt: Label 'No mock response queued. Request count: %1, queue size: %2', Locked = true;
 
     procedure Send(HttpClient: HttpClient; InHttpRequestMessage: Codeunit "Http Request Message"; var OutHttpResponseMessage: Codeunit "Http Response Message") Success: Boolean;
     begin
@@ -36,8 +38,8 @@ codeunit 132981 "SharePoint Http Client Handler" implements "Http Client Handler
 
     procedure SetResponse(var NewHttpResponseMessage: Codeunit "Http Response Message")
     begin
-        Clear(this.QueuedStatusCodes);
-        Clear(this.QueuedBodies);
+        Clear(this.QueuedHttpResponseMessages);
+        this.QueuedResponseCount := 0;
         this.CurrentResponseIndex := 0;
         Clear(this.HttpRequestUris);
         Clear(this.HttpRequestMethods);
@@ -51,17 +53,23 @@ codeunit 132981 "SharePoint Http Client Handler" implements "Http Client Handler
     end;
 
     procedure AddResponse(StatusCode: Integer; ResponseBody: Text)
+    var
+        HttpResponseMessage: Codeunit "Http Response Message";
+        HttpContent: Codeunit "Http Content";
     begin
-        this.QueuedStatusCodes.Add(StatusCode);
-        this.QueuedBodies.Add(ResponseBody);
+        HttpResponseMessage.SetHttpStatusCode(StatusCode);
+        HttpContent := HttpContent.Create(ResponseBody);
+        HttpResponseMessage.SetContent(HttpContent);
+        AddResponse(HttpResponseMessage);
     end;
 
     procedure AddResponse(var NewHttpResponseMessage: Codeunit "Http Response Message")
-    var
-        ResponseBody: Text;
     begin
-        ResponseBody := NewHttpResponseMessage.GetContent().AsText();
-        AddResponse(NewHttpResponseMessage.GetHttpStatusCode(), ResponseBody);
+        if this.QueuedResponseCount >= ArrayLen(this.QueuedHttpResponseMessages) then
+            Error(this.ResponseQueueFullErr, ArrayLen(this.QueuedHttpResponseMessages));
+
+        this.QueuedResponseCount += 1;
+        this.QueuedHttpResponseMessages[this.QueuedResponseCount] := NewHttpResponseMessage;
     end;
 
     procedure GetHttpRequestUri(Index: Integer): Text
@@ -83,19 +91,11 @@ codeunit 132981 "SharePoint Http Client Handler" implements "Http Client Handler
 
     procedure Reset()
     begin
-        Clear(this.HttpRequestUris);
-        Clear(this.HttpRequestMethods);
-        Clear(this.QueuedStatusCodes);
-        Clear(this.QueuedBodies);
-        this.CurrentResponseIndex := 0;
-        this.SingleResponseSet := false;
-        this.SendError := '';
+        ClearAll();
     end;
 
     [TryFunction]
     local procedure TrySend(InHttpRequestMessage: Codeunit "Http Request Message"; var OutHttpResponseMessage: Codeunit "Http Response Message")
-    var
-        HttpContent: Codeunit "Http Content";
     begin
         this.LastHttpRequestMessage := InHttpRequestMessage;
         this.HttpRequestUris.Add(InHttpRequestMessage.GetRequestUri());
@@ -104,15 +104,15 @@ codeunit 132981 "SharePoint Http Client Handler" implements "Http Client Handler
         if this.SendError <> '' then
             Error(this.SendError);
 
-        if (this.QueuedBodies.Count() > 0) and (this.CurrentResponseIndex < this.QueuedBodies.Count()) then begin
+        if this.CurrentResponseIndex < this.QueuedResponseCount then begin
             this.CurrentResponseIndex += 1;
-            OutHttpResponseMessage.SetHttpStatusCode(this.QueuedStatusCodes.Get(this.CurrentResponseIndex));
-            HttpContent := HttpContent.Create(this.QueuedBodies.Get(this.CurrentResponseIndex));
-            OutHttpResponseMessage.SetContent(HttpContent);
+            OutHttpResponseMessage := this.QueuedHttpResponseMessages[this.CurrentResponseIndex];
         end else
             if this.SingleResponseSet then
                 OutHttpResponseMessage := this.SingleHttpResponseMessage
-            else
-                Error('No mock response queued. Request count: %1, queue size: %2', this.HttpRequestUris.Count(), this.QueuedBodies.Count());
+            else begin
+                OutHttpResponseMessage.SetHttpStatusCode(500);
+                OutHttpResponseMessage.SetReasonPhrase(StrSubstNo(this.NoMockResponseTxt, this.HttpRequestUris.Count(), this.QueuedResponseCount));
+            end;
     end;
 }

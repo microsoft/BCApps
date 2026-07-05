@@ -213,6 +213,21 @@ codeunit 9122 "SharePoint Graph Parser"
     end;
 
     /// <summary>
+    /// Parses a fieldValueSet JSON object (as returned by PATCH .../items/{id}/fields) into a SharePoint Graph List Item record.
+    /// </summary>
+    /// <param name="FieldsJsonObject">The fieldValueSet JSON to parse. Column values are name/value pairs at the root, without a listItem envelope.</param>
+    /// <param name="GraphListItem">The record to populate. Id and ListId must be set by the caller.</param>
+    procedure ParseListItemFieldValueSet(FieldsJsonObject: JsonObject; var GraphListItem: Record "SharePoint Graph List Item" temporary)
+    var
+        JsonToken: JsonToken;
+    begin
+        if FieldsJsonObject.Get('Title', JsonToken) then
+            GraphListItem.Title := CopyStr(JsonToken.AsValue().AsText(), 1, MaxStrLen(GraphListItem.Title));
+
+        GraphListItem.SetFieldsJson(FieldsJsonObject);
+    end;
+
+    /// <summary>
     /// Parses a JSON response into a collection of SharePoint Graph Drive Item records.
     /// </summary>
     /// <param name="JsonResponse">The JSON response to parse.</param>
