@@ -959,8 +959,16 @@ report 790 "Calculate Inventory"
     var
         DefaultDimension: Record "Default Dimension";
     begin
-        DefaultDimension.SetFilter("No.", '%1|%2', TempQuantityOnHandBuffer."Item No.", TempQuantityOnHandBuffer."Location Code");
-        DefaultDimension.SetFilter("Table ID", '%1|%2', DATABASE::Item, DATABASE::Location);
+        DefaultDimension.SetRange("Table ID", DATABASE::Item);
+        DefaultDimension.SetRange("No.", TempQuantityOnHandBuffer."Item No.");
+        DefaultDimension.SetFilter("Dimension Value Code", '<>%1', '');
+        if DefaultDimension.FindSet() then
+            repeat
+                InsertDim(DefaultDimension."Table ID", 0, DefaultDimension."Dimension Code", DefaultDimension."Dimension Value Code");
+            until DefaultDimension.Next() = 0;
+
+        DefaultDimension.SetRange("Table ID", DATABASE::Location);
+        DefaultDimension.SetRange("No.", TempQuantityOnHandBuffer."Location Code");
         DefaultDimension.SetFilter("Dimension Value Code", '<>%1', '');
         if DefaultDimension.FindSet() then
             repeat
