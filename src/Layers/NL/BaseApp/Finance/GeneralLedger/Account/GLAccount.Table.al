@@ -924,7 +924,7 @@ table 15 "G/L Account"
         /// <summary>
         /// Excludes default account name description from journal entries when posting transactions.
         /// </summary>
-        field(70; "Omit Default Descr. in Jnl."; Boolean)
+        field(11400; "Omit Default Descr. in Jnl."; Boolean)
         {
             Caption = 'Omit Default Descr. in Jnl.';
             ToolTip = 'Specifies if the default description is automatically inserted in the Description field on journal lines created for this general ledger account.';
