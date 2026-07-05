@@ -27,7 +27,9 @@ using Microsoft.CostAccounting.Reports;
 using Microsoft.CostAccounting.Setup;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Analysis;
+#if not CLEAN28
 using Microsoft.Finance.AuditFileExport;
+#endif
 using Microsoft.Finance.Consolidation;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.Deferral;
@@ -400,16 +402,24 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "Item Budget Entries";
                         Tooltip = 'Open the Item Budget Entries page.';
                     }
+#if not CLEAN29
                     group("Group64")
                     {
                         Caption = 'Export';
+                        ObsoleteReason = 'Use Audit File Export Document with the XML format selected. The Audit File Export and XML Audit File extensions must be installed.';
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
                         action("Export G/L Entries to XML")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Export G/L Entries to XML';
                             RunObject = report "Export G/L Entries to XML";
+                            ObsoleteReason = 'Use Audit File Export Document with the XML format selected. The Audit File Export and XML Audit File extensions must be installed.';
+                            ObsoleteState = Pending;
+                            ObsoleteTag = '29.0';
                         }
                     }
+#endif                    
                 }
                 group("Group7")
                 {

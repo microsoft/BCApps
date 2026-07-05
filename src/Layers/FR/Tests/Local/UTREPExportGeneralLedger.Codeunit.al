@@ -1,4 +1,5 @@
-codeunit 144021 "UT REP Export General Ledger"
+#if not CLEAN29
+codeunit 144044 "UT REP Export General Ledger"
 {
     // 1 - 3. Purpose of the test is to verify error of Report ID - 10820 (Export G/L Entries to XML).
     // 
@@ -12,6 +13,9 @@ codeunit 144021 "UT REP Export General Ledger"
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteReason = 'Run tests in XML Audit File tests extension.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     trigger OnRun()
     begin
@@ -88,4 +92,4 @@ codeunit 144021 "UT REP Export General Ledger"
         ExportGLEntriesToXML.OK().Invoke();
     end;
 }
-
+#endif

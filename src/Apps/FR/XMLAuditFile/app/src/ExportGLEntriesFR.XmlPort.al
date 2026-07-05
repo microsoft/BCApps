@@ -1,5 +1,4 @@
-﻿#if not CLEAN29
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -7,12 +6,9 @@ namespace Microsoft.Finance.AuditFileExport;
 
 using Microsoft.Finance.GeneralLedger.Ledger;
 
-xmlport 10800 "Export G/L Entries"
+xmlport 10803 "Export G/L Entries FR"
 {
     Caption = 'Export G/L Entries';
-    ObsoleteReason = 'Use Audit File Export Document with the XML format selected. The Audit File Export and XML Audit File extensions must be installed.';
-    ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
 
     schema
     {
@@ -20,11 +16,11 @@ xmlport 10800 "Export G/L Entries"
         {
             textelement(FiltreDate)
             {
-                textelement(startingdate)
+                textelement(StartingDate)
                 {
                     XmlName = 'DateDébut';
                 }
-                textelement(endingdate)
+                textelement(EndingDate)
                 {
                     XmlName = 'DateFin';
                 }
@@ -152,8 +148,14 @@ xmlport 10800 "Export G/L Entries"
 
                 trigger OnAfterGetRecord()
                 begin
-                    Window.Update(1, "G/L Entry"."Entry No.");
-                    Window.Update(2, "G/L Entry"."Posting Date");
+                    if not GuiAllowed() then
+                        exit;
+
+                    CurrentCount += 1;
+                    if ((CurrentCount * 10) mod TotalCount = 0) then begin
+                        Window.Update(1, "G/L Entry"."Entry No.");
+                        Window.Update(2, "G/L Entry"."Posting Date");
+                    end;
                 end;
             }
         }
@@ -179,18 +181,24 @@ xmlport 10800 "Export G/L Entries"
     trigger OnPreXmlPort()
     begin
         Window.Open(
-          Text001 +
-          Text002 +
-          Text003);
+          Text001Lbl +
+          Text002Lbl +
+          Text003Lbl);
+
+        if GuiAllowed() then begin
+            CurrentCount := 0;
+            TotalCount := "g/l entry".Count;
+        end;
     end;
 
     var
-        Text001: Label 'Exporting G/L Entries to XML File...\\';
-        Text002: Label 'Entry No.           #1######\';
-        Text003: Label 'Posting Date        #2######';
+        Text001Lbl: Label 'Exporting G/L Entries to XML File...\\';
+        Text002Lbl: Label 'Entry No.           #1######\', Comment = '%1 = Value';
+        Text003Lbl: Label 'Posting Date        #2######', Comment = '%2 = Date';
         Window: Dialog;
+        CurrentCount: Integer;
+        TotalCount: Integer;
 
-    [Scope('OnPrem')]
     procedure InitializeRequest(var GLEntry: Record "G/L Entry"; StartDate: Date; EndDate: Date)
     begin
         "G/L Entry".CopyFilters(GLEntry);
@@ -198,4 +206,4 @@ xmlport 10800 "Export G/L Entries"
         EndingDate := Format(EndDate);
     end;
 }
-#endif
+

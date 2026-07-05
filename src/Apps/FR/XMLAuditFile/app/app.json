@@ -1,0 +1,47 @@
+{
+  "id": "6086ffec-252c-43fd-b862-08c689e208c2",
+  "name": "XML Audit File",
+  "publisher": "Microsoft",
+  "version": "$(app_currentVersion)",
+  "brief": "Export G/L entries to XML via Audit File Export framework.",
+  "description": "XML export for general ledger entries using the Audit File Export framework.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://learn.microsoft.com/en-us/dynamics365/business-central/localfunctionality/france/how-to-export-general-ledger-entries-for-tax-audits",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2204541",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "logo": "ExtensionLogo.png",
+  "dependencies": [
+    {
+      "id": "a41b0c3e-bf1c-4c97-ad1b-b430a3933ada",
+      "name": "Audit File Export",
+      "publisher": "Microsoft",
+      "version": "$(app_minimumVersion)"
+    }
+  ],
+  "internalsVisibleTo": [
+    {
+      "id": "86cb76b5-cdd3-4a37-809c-1c41b8bb7cab",
+      "name": "XML Audit File Tests",
+      "publisher": "Microsoft"
+    }
+  ],
+  "screenshots": [],
+  "platform": "$(app_platformVersion)",
+  "application": "$(app_minimumVersion)",
+  "idRanges": [
+    {
+      "from": 10803,
+      "to": 10813
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": false,
+    "allowDownloadingSource": false,
+    "includeSourceInSymbolFile": false
+  },
+  "target": "Cloud",
+  "features": [
+    "TranslationFile"
+  ]
+}
