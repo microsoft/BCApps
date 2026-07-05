@@ -91,6 +91,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
         FailedToParseUpdatedDriveItemErr: Label 'Failed to parse updated drive item details from response';
         InvalidNewNameErr: Label 'New name cannot be empty';
         InvalidFieldsErr: Label 'Fields JSON object cannot be empty';
+        ItemBufferCollisionErr: Label 'The record already contains item %1 from a different list. Use a separate record variable per list.', Comment = '%1 = Item ID';
         FailedToRetrieveListItemErr: Label 'Failed to retrieve list item: %1', Comment = '%1 = Error message';
         FailedToParseListItemErr: Label 'Failed to parse list item details from response';
         FailedToUpdateListItemErr: Label 'Failed to update list item: %1', Comment = '%1 = Error message';
@@ -561,7 +562,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// </summary>
     /// <param name="ListId">ID of the list.</param>
     /// <param name="ItemId">ID of the item.</param>
-    /// <param name="GraphListItem">Record to store the result. If it already contains an item with the same ID, that item is refreshed.</param>
+    /// <param name="GraphListItem">Record to store the result. If it already contains an item with the same ID from the same list, that item is refreshed; if that item belongs to a different list, the operation fails.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
     procedure GetListItem(ListId: Text; ItemId: Text; var GraphListItem: Record "SharePoint Graph List Item" temporary): Codeunit "SharePoint Graph Response"
     var
@@ -575,9 +576,10 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// </summary>
     /// <param name="ListId">ID of the list.</param>
     /// <param name="ItemId">ID of the item.</param>
-    /// <param name="GraphListItem">Record to store the result. If it already contains an item with the same ID, that item is refreshed.</param>
+    /// <param name="GraphListItem">Record to store the result. If it already contains an item with the same ID from the same list, that item is refreshed; if that item belongs to a different list, the operation fails.</param>
     /// <param name="GraphOptionalParameters">A wrapper for optional header and query parameters.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
+    /// <remarks>The fields property is expanded by default so column values are included in the response; supplying an own $expand parameter overrides this.</remarks>
     procedure GetListItem(ListId: Text; ItemId: Text; var GraphListItem: Record "SharePoint Graph List Item" temporary; GraphOptionalParameters: Codeunit "Graph Optional Parameters"): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
@@ -600,6 +602,16 @@ codeunit 9120 "SharePoint Graph Client Impl."
             Session.LogMessage('', InvalidItemIdErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
+
+        if GraphListItem.Get(CopyStr(ItemId, 1, MaxStrLen(GraphListItem.Id))) and (GraphListItem.ListId <> ListId) then begin
+            ErrorMessage := StrSubstNo(ItemBufferCollisionErr, ItemId);
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+
+        if not GraphOptionalParameters.GetODataQueryParameters().ContainsKey(Format(Enum::"Graph OData Query Parameter"::expand)) then
+            GraphOptionalParameters.SetODataQueryParameter(Enum::"Graph OData Query Parameter"::expand, 'fields');
 
         if not SharePointGraphRequestHelper.Get(SharePointGraphUriBuilder.GetListItemByIdEndpoint(ListId, ItemId), JsonResponse, GraphOptionalParameters) then begin
             ErrorMessage := StrSubstNo(FailedToRetrieveListItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
@@ -629,7 +641,7 @@ codeunit 9120 "SharePoint Graph Client Impl."
     /// <param name="ListId">ID of the list.</param>
     /// <param name="ItemId">ID of the item to update.</param>
     /// <param name="FieldsJsonObject">JSON object containing the fields to update.</param>
-    /// <param name="GraphListItem">Record to store the updated item details. If it already contains an item with the same ID, that item is refreshed.</param>
+    /// <param name="GraphListItem">Record to store the updated item details. If it already contains an item with the same ID from the same list, that item is refreshed; if that item belongs to a different list, the operation fails.</param>
     /// <returns>An operation response object containing the result of the operation.</returns>
     /// <remarks>The record is populated from the PATCH response and contains Id, ListId, Title, and the field values; use GetListItem to also retrieve web URL, content type, and timestamps.</remarks>
     procedure UpdateListItem(ListId: Text; ItemId: Text; FieldsJsonObject: JsonObject; var GraphListItem: Record "SharePoint Graph List Item" temporary): Codeunit "SharePoint Graph Response"
@@ -658,6 +670,13 @@ codeunit 9120 "SharePoint Graph Client Impl."
         if FieldsJsonObject.Keys().Count() = 0 then begin
             SharePointGraphResponse.SetError(InvalidFieldsErr);
             Session.LogMessage('', InvalidFieldsErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+
+        if GraphListItem.Get(CopyStr(ItemId, 1, MaxStrLen(GraphListItem.Id))) and (GraphListItem.ListId <> ListId) then begin
+            ErrorMessage := StrSubstNo(ItemBufferCollisionErr, ItemId);
+            SharePointGraphResponse.SetError(ErrorMessage);
+            Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
         end;
 

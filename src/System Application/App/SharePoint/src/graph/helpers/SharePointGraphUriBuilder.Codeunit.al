@@ -24,7 +24,7 @@ codeunit 9121 "SharePoint Graph Uri Builder"
         ListsLbl: Label '/sites/%1/lists', Locked = true;
         ListByIdLbl: Label '/sites/%1/lists/%2', Locked = true;
         ListItemsLbl: Label '/sites/%1/lists/%2/items', Locked = true;
-        ListItemByIdLbl: Label '/sites/%1/lists/%2/items/%3?expand=fields', Locked = true;
+        ListItemByIdLbl: Label '/sites/%1/lists/%2/items/%3', Locked = true;
         CreateListItemLbl: Label '/sites/%1/lists/%2/items', Locked = true;
         UpdateListItemFieldsLbl: Label '/sites/%1/lists/%2/items/%3/fields', Locked = true;
         SiteByHostAndPathLbl: Label '/sites/%1:%2', Locked = true;
@@ -121,7 +121,6 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     /// <param name="ListId">The list ID.</param>
     /// <param name="ItemId">The item ID.</param>
     /// <returns>The endpoint.</returns>
-    /// <remarks>Expands the fields property so column values are included in the response.</remarks>
     procedure GetListItemByIdEndpoint(ListId: Text; ItemId: Text): Text
     begin
         exit(StrSubstNo(ListItemByIdLbl, SiteId, EscapeDataString(ListId), EscapeDataString(ItemId)));

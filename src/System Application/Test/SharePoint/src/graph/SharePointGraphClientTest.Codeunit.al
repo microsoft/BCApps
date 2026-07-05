@@ -210,7 +210,7 @@ codeunit 132984 "SharePoint Graph Client Test"
         LibraryAssert.AreEqual('1', TempListItem.Id, 'Id should match');
         LibraryAssert.AreEqual('Test Item 1', TempListItem.Title, 'Title should match');
         LibraryAssert.AreEqual('Item', TempListItem.ContentType, 'ContentType should match');
-        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('?expand=fields'), 'Request URI should expand fields');
+        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('expand=fields'), 'Request URI should expand fields');
     end;
 
     [Test]
@@ -251,6 +251,7 @@ codeunit 132984 "SharePoint Graph Client Test"
         TempListItem: Record "SharePoint Graph List Item" temporary;
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         FieldsJson: JsonObject;
+        FieldValue: Text;
     begin
         // [GIVEN] Mock response for UpdateListItem (PATCH fields)
         Initialize();
@@ -269,6 +270,10 @@ codeunit 132984 "SharePoint Graph Client Test"
         LibraryAssert.AreEqual(1, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 1 request (PATCH)');
         LibraryAssert.AreEqual('PATCH', SharePointGraphTestLibrary.GetMockHttpRequestMethod(1), 'Request should be PATCH');
         LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('/fields'), 'Request URI should target /fields');
+        LibraryAssert.IsTrue(TempListItem.GetFieldValue('Status', FieldValue), 'Status field should be stored');
+        LibraryAssert.AreEqual('Approved', FieldValue, 'Status should match the updated value');
+        LibraryAssert.IsFalse(TempListItem.GetFieldValue('@odata.context', FieldValue), '@odata.context should not be stored as a field value');
+        LibraryAssert.IsTrue(TempListItem.GetFieldValue('@odata.etag', FieldValue), '@odata.etag should be kept for parity with GetListItem');
     end;
 
     [Test]
@@ -350,6 +355,56 @@ codeunit 132984 "SharePoint Graph Client Test"
         LibraryAssert.AreEqual('1', TempListItem.Id, 'Id should match');
         LibraryAssert.AreEqual('Updated Title', TempListItem.Title, 'Title should be refreshed from the PATCH response');
         LibraryAssert.AreEqual(2, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 2 requests (GET + PATCH)');
+    end;
+
+    [Test]
+    procedure TestGetListItem_SameIdFromDifferentList()
+    var
+        TempListItem: Record "SharePoint Graph List Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        // [GIVEN] A record already holding item '1' from another list
+        Initialize();
+        SharePointGraphTestLibrary.ResetMockHandler();
+        SharePointGraphTestLibrary.AddMockResponse(200, GetListItemResponse());
+        SharePointGraphResponse := SharePointGraphClient.GetListItem('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', '1', TempListItem);
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'GetListItem should succeed');
+
+        // [WHEN] Getting item '1' from a different list into the same record
+        SharePointGraphResponse := SharePointGraphClient.GetListItem('99bjtwww-5j35-426b-a4d5-608f6e2a9f99', '1', TempListItem);
+
+        // [THEN] Operation should fail before sending a request, keeping the existing item intact
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'GetListItem should fail when the record holds the same ID from a different list');
+        LibraryAssert.IsTrue(SharePointGraphResponse.GetError().Contains('from a different list'), 'Error should explain the list collision');
+        LibraryAssert.AreEqual(1, SharePointGraphTestLibrary.GetMockRequestCount(), 'No second HTTP request should be made');
+        TempListItem.Get('1');
+        LibraryAssert.AreEqual('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', TempListItem.ListId, 'Existing item should keep its original list');
+    end;
+
+    [Test]
+    procedure TestUpdateListItem_SameIdFromDifferentList()
+    var
+        TempListItem: Record "SharePoint Graph List Item" temporary;
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        FieldsJson: JsonObject;
+    begin
+        // [GIVEN] A record already holding item '1' from another list
+        Initialize();
+        SharePointGraphTestLibrary.ResetMockHandler();
+        SharePointGraphTestLibrary.AddMockResponse(200, GetListItemResponse());
+        SharePointGraphResponse := SharePointGraphClient.GetListItem('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', '1', TempListItem);
+        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'GetListItem should succeed');
+
+        // [WHEN] Updating item '1' in a different list using the same record
+        FieldsJson.Add('Title', 'Updated Title');
+        SharePointGraphResponse := SharePointGraphClient.UpdateListItem('99bjtwww-5j35-426b-a4d5-608f6e2a9f99', '1', FieldsJson, TempListItem);
+
+        // [THEN] Operation should fail before sending the PATCH request, keeping the existing item intact
+        LibraryAssert.IsFalse(SharePointGraphResponse.IsSuccessful(), 'UpdateListItem should fail when the record holds the same ID from a different list');
+        LibraryAssert.IsTrue(SharePointGraphResponse.GetError().Contains('from a different list'), 'Error should explain the list collision');
+        LibraryAssert.AreEqual(1, SharePointGraphTestLibrary.GetMockRequestCount(), 'No PATCH request should be made');
+        TempListItem.Get('1');
+        LibraryAssert.AreEqual('01bjtwww-5j35-426b-a4d5-608f6e2a9f84', TempListItem.ListId, 'Existing item should keep its original list');
     end;
 
     [Test]
@@ -929,6 +984,8 @@ codeunit 132984 "SharePoint Graph Client Test"
         ResponseText: TextBuilder;
     begin
         ResponseText.Append('{');
+        ResponseText.Append('  "@odata.context": "https://graph.microsoft.com/v1.0/$metadata#fields/$entity",');
+        ResponseText.Append('  "@odata.etag": "\"c4f7d0e2-1655-4c1b-b6ae-04b98b3f6e0a,2\"",');
         ResponseText.Append('  "Title": "Updated Title",');
         ResponseText.Append('  "Status": "Approved",');
         ResponseText.Append('  "Description": "This is a test item",');
