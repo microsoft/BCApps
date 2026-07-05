@@ -2208,8 +2208,6 @@ codeunit 9120 "SharePoint Graph Client Impl."
     procedure UpdateDriveItem(ItemId: Text; UpdatePropertiesJsonObject: JsonObject; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-        ResponseJson: JsonObject;
-        ErrorMessage: Text;
     begin
         EnsureInitialized();
         EnsureSiteId();
@@ -2229,7 +2227,50 @@ codeunit 9120 "SharePoint Graph Client Impl."
             exit(SharePointGraphResponse);
         end;
 
-        if not SharePointGraphRequestHelper.Patch(SharePointGraphUriBuilder.GetDriveItemByIdEndpoint(ItemId), UpdatePropertiesJsonObject, ResponseJson) then begin
+        exit(UpdateDriveItemAtEndpoint(SharePointGraphUriBuilder.GetDriveItemByIdEndpoint(ItemId), UpdatePropertiesJsonObject, GraphDriveItem));
+    end;
+
+    /// <summary>
+    /// Updates a drive item's properties (name, description, etc.) by path.
+    /// </summary>
+    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
+    /// <param name="UpdatePropertiesJsonObject">JSON object containing the properties to update.</param>
+    /// <param name="GraphDriveItem">Record to store the updated item details. If it already contains an item with the same ID, that item is refreshed.</param>
+    /// <returns>An operation response object containing the result of the operation.</returns>
+    procedure UpdateDriveItemByPath(ItemPath: Text; UpdatePropertiesJsonObject: JsonObject; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+    begin
+        EnsureInitialized();
+        EnsureSiteId();
+        EnsureDefaultDriveId();
+
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        if ItemPath = '' then begin
+            SharePointGraphResponse.SetError(InvalidItemPathErr);
+            Session.LogMessage('', InvalidItemPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+
+        if UpdatePropertiesJsonObject.Keys().Count() = 0 then begin
+            SharePointGraphResponse.SetError(InvalidUpdateBodyErr);
+            Session.LogMessage('', InvalidUpdateBodyErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
+            exit(SharePointGraphResponse);
+        end;
+
+        exit(UpdateDriveItemAtEndpoint(SharePointGraphUriBuilder.GetDriveItemByPathEndpoint(ItemPath), UpdatePropertiesJsonObject, GraphDriveItem));
+    end;
+
+    local procedure UpdateDriveItemAtEndpoint(Endpoint: Text; UpdatePropertiesJsonObject: JsonObject; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
+    var
+        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
+        ResponseJson: JsonObject;
+        ErrorMessage: Text;
+    begin
+        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
+
+        if not SharePointGraphRequestHelper.Patch(Endpoint, UpdatePropertiesJsonObject, ResponseJson) then begin
             ErrorMessage := StrSubstNo(FailedToUpdateDriveItemErr, SharePointGraphRequestHelper.GetDiagnostics().GetResponseReasonPhrase());
             SharePointGraphResponse.SetError(ErrorMessage);
             Session.LogMessage('', ErrorMessage, Verbosity::Error, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
@@ -2252,43 +2293,6 @@ codeunit 9120 "SharePoint Graph Client Impl."
     end;
 
     /// <summary>
-    /// Updates a drive item's properties (name, description, etc.) by path.
-    /// </summary>
-    /// <param name="ItemPath">Path to the item (e.g., 'Documents/file.docx').</param>
-    /// <param name="UpdatePropertiesJsonObject">JSON object containing the properties to update.</param>
-    /// <param name="GraphDriveItem">Record to store the updated item details. If it already contains an item with the same ID, that item is refreshed.</param>
-    /// <returns>An operation response object containing the result of the operation.</returns>
-    procedure UpdateDriveItemByPath(ItemPath: Text; UpdatePropertiesJsonObject: JsonObject; var GraphDriveItem: Record "SharePoint Graph Drive Item" temporary): Codeunit "SharePoint Graph Response"
-    var
-        TempGraphDriveItem: Record "SharePoint Graph Drive Item" temporary;
-        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-    begin
-        EnsureInitialized();
-        EnsureSiteId();
-        EnsureDefaultDriveId();
-
-        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
-
-        if ItemPath = '' then begin
-            SharePointGraphResponse.SetError(InvalidItemPathErr);
-            Session.LogMessage('', InvalidItemPathErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-
-        if UpdatePropertiesJsonObject.Keys().Count() = 0 then begin
-            SharePointGraphResponse.SetError(InvalidUpdateBodyErr);
-            Session.LogMessage('', InvalidUpdateBodyErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
-            exit(SharePointGraphResponse);
-        end;
-
-        SharePointGraphResponse := GetDriveItemByPath(ItemPath, TempGraphDriveItem);
-        if not SharePointGraphResponse.IsSuccessful() then
-            exit(SharePointGraphResponse);
-
-        exit(UpdateDriveItem(TempGraphDriveItem.Id, UpdatePropertiesJsonObject, GraphDriveItem));
-    end;
-
-    /// <summary>
     /// Renames a drive item by ID.
     /// </summary>
     /// <param name="ItemId">ID of the item to rename.</param>
@@ -2301,12 +2305,9 @@ codeunit 9120 "SharePoint Graph Client Impl."
         RequestJsonObj: JsonObject;
     begin
         EnsureInitialized();
-        EnsureSiteId();
-        EnsureDefaultDriveId();
-
-        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
 
         if NewName = '' then begin
+            SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
             SharePointGraphResponse.SetError(InvalidNewNameErr);
             Session.LogMessage('', InvalidNewNameErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);
@@ -2329,12 +2330,9 @@ codeunit 9120 "SharePoint Graph Client Impl."
         RequestJsonObj: JsonObject;
     begin
         EnsureInitialized();
-        EnsureSiteId();
-        EnsureDefaultDriveId();
-
-        SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
 
         if NewName = '' then begin
+            SharePointGraphResponse.SetRequestHelper(SharePointGraphRequestHelper);
             SharePointGraphResponse.SetError(InvalidNewNameErr);
             Session.LogMessage('', InvalidNewNameErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GraphSharePointCategoryLbl);
             exit(SharePointGraphResponse);

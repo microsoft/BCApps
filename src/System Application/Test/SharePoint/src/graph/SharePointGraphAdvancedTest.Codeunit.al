@@ -622,8 +622,12 @@ codeunit 132985 "SharePoint Graph Advanced Test"
         // [WHEN] Calling CopyItemByPath
         SharePointGraphResponse := SharePointGraphClient.CopyItemByPath('Documents/Original.txt', 'Documents/Archive', 'CopiedFile.txt');
 
-        // [THEN] Operation should succeed
+        // [THEN] Operation should succeed with 3 HTTP requests (resolve target, resolve source, POST copy)
         LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'CopyItemByPath should succeed');
+        LibraryAssert.AreEqual(3, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 3 HTTP requests');
+        LibraryAssert.AreEqual('GET', SharePointGraphTestLibrary.GetMockHttpRequestMethod(1), 'First request should be GET (resolve target folder)');
+        LibraryAssert.AreEqual('GET', SharePointGraphTestLibrary.GetMockHttpRequestMethod(2), 'Second request should be GET (resolve source item)');
+        LibraryAssert.AreEqual('POST', SharePointGraphTestLibrary.GetMockHttpRequestMethod(3), 'Third request should be POST (copy action)');
     end;
 
     [Test]
@@ -671,33 +675,11 @@ codeunit 132985 "SharePoint Graph Advanced Test"
     end;
 
     [Test]
-    procedure TestCopyItemByPath_MultiResponse()
-    var
-        SharePointGraphResponse: Codeunit "SharePoint Graph Response";
-    begin
-        // [GIVEN] Multi-response handler with queued responses for CopyItemByPath (resolve target folder, resolve source item, POST copy)
-        InitializeMultiResponse();
-        SharePointGraphTestLibrary.AddMockResponse(200, GetDriveItemResponse());
-        SharePointGraphTestLibrary.AddMockResponse(200, GetDriveItemResponse());
-        SharePointGraphTestLibrary.AddMockResponse(202, '');
-
-        // [WHEN] Calling CopyItemByPath
-        SharePointGraphResponse := SharePointGraphClient.CopyItemByPath('Documents/Original.txt', 'Documents/Archive', 'CopiedFile.txt');
-
-        // [THEN] Operation should succeed with 3 HTTP requests (resolve target, resolve source, POST copy)
-        LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'CopyItemByPath should succeed');
-        LibraryAssert.AreEqual(3, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 3 HTTP requests');
-        LibraryAssert.AreEqual('GET', SharePointGraphTestLibrary.GetMockHttpRequestMethod(1), 'First request should be GET (resolve target folder)');
-        LibraryAssert.AreEqual('GET', SharePointGraphTestLibrary.GetMockHttpRequestMethod(2), 'Second request should be GET (resolve source item)');
-        LibraryAssert.AreEqual('POST', SharePointGraphTestLibrary.GetMockHttpRequestMethod(3), 'Third request should be POST (copy action)');
-    end;
-
-    [Test]
     procedure TestMoveItemByPath_MultiResponse()
     var
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
     begin
-        // [GIVEN] Multi-response handler with queued responses for MoveItemByPath (resolve source item, PATCH move)
+        // [GIVEN] Multi-response handler with queued responses for MoveItemByPath (resolve source item, resolve target folder, PATCH move)
         InitializeMultiResponse();
         SharePointGraphTestLibrary.AddMockResponse(200, GetDriveItemResponse());
         SharePointGraphTestLibrary.AddMockResponse(200, GetDriveItemResponse());
@@ -706,10 +688,10 @@ codeunit 132985 "SharePoint Graph Advanced Test"
         // [WHEN] Calling MoveItemByPath
         SharePointGraphResponse := SharePointGraphClient.MoveItemByPath('Documents/Original.txt', 'Documents/Archive', 'MovedFile.txt');
 
-        // [THEN] Operation should succeed; final call should be PATCH
+        // [THEN] Operation should succeed with 3 HTTP requests; final should be PATCH
         LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'MoveItemByPath should succeed');
-        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockRequestCount() >= 2, 'Should have made at least 2 HTTP requests');
-        LibraryAssert.AreEqual('PATCH', SharePointGraphTestLibrary.GetMockHttpRequestMethod(SharePointGraphTestLibrary.GetMockRequestCount()), 'Last request should be PATCH (move action)');
+        LibraryAssert.AreEqual(3, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 3 HTTP requests');
+        LibraryAssert.AreEqual('PATCH', SharePointGraphTestLibrary.GetMockHttpRequestMethod(3), 'Third request should be PATCH (move action)');
     end;
 
     [Test]
@@ -888,20 +870,19 @@ codeunit 132985 "SharePoint Graph Advanced Test"
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
         UpdateProperties: JsonObject;
     begin
-        // [GIVEN] Multi-response handler: GET (resolve path) + PATCH (update)
+        // [GIVEN] Mock response for the path-addressed PATCH
         InitializeMultiResponse();
-        SharePointGraphTestLibrary.AddMockResponse(200, GetDriveItemResponse());
         SharePointGraphTestLibrary.AddMockResponse(200, GetUpdatedDriveItemResponse());
 
         // [WHEN] Calling UpdateDriveItemByPath
         UpdateProperties.Add('name', 'RenamedReport.docx');
         SharePointGraphResponse := SharePointGraphClient.UpdateDriveItemByPath('Documents/Report.docx', UpdateProperties, TempDriveItem);
 
-        // [THEN] Operation should succeed with 2 HTTP requests (GET resolve + PATCH update)
+        // [THEN] Operation should succeed with a single PATCH on the path-addressed endpoint
         LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'UpdateDriveItemByPath should succeed');
-        LibraryAssert.AreEqual(2, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 2 HTTP requests');
-        LibraryAssert.AreEqual('GET', SharePointGraphTestLibrary.GetMockHttpRequestMethod(1), 'First request should be GET (resolve path)');
-        LibraryAssert.AreEqual('PATCH', SharePointGraphTestLibrary.GetMockHttpRequestMethod(2), 'Second request should be PATCH (update)');
+        LibraryAssert.AreEqual(1, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 1 HTTP request');
+        LibraryAssert.AreEqual('PATCH', SharePointGraphTestLibrary.GetMockHttpRequestMethod(1), 'Request method should be PATCH');
+        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('/drive/root:/Documents/Report.docx'), 'Request URI should address the item by path');
         LibraryAssert.AreEqual('RenamedReport.docx', TempDriveItem.Name, 'Item name should be updated');
     end;
 
@@ -911,18 +892,18 @@ codeunit 132985 "SharePoint Graph Advanced Test"
         TempDriveItem: Record "SharePoint Graph Drive Item" temporary;
         SharePointGraphResponse: Codeunit "SharePoint Graph Response";
     begin
-        // [GIVEN] Multi-response handler: GET (resolve path) + PATCH (rename)
+        // [GIVEN] Mock response for the path-addressed PATCH
         InitializeMultiResponse();
-        SharePointGraphTestLibrary.AddMockResponse(200, GetDriveItemResponse());
         SharePointGraphTestLibrary.AddMockResponse(200, GetUpdatedDriveItemResponse());
 
         // [WHEN] Calling RenameDriveItemByPath
         SharePointGraphResponse := SharePointGraphClient.RenameDriveItemByPath('Documents/Report.docx', 'RenamedReport.docx', TempDriveItem);
 
-        // [THEN] Operation should succeed with 2 HTTP requests; final should be PATCH
+        // [THEN] Operation should succeed with a single PATCH on the path-addressed endpoint
         LibraryAssert.IsTrue(SharePointGraphResponse.IsSuccessful(), 'RenameDriveItemByPath should succeed');
-        LibraryAssert.AreEqual(2, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 2 HTTP requests');
-        LibraryAssert.AreEqual('PATCH', SharePointGraphTestLibrary.GetMockHttpRequestMethod(2), 'Second request should be PATCH (rename)');
+        LibraryAssert.AreEqual(1, SharePointGraphTestLibrary.GetMockRequestCount(), 'Should have made 1 HTTP request');
+        LibraryAssert.AreEqual('PATCH', SharePointGraphTestLibrary.GetMockHttpRequestMethod(1), 'Request method should be PATCH');
+        LibraryAssert.IsTrue(SharePointGraphTestLibrary.GetMockHttpRequestUri(1).Contains('/drive/root:/Documents/Report.docx'), 'Request URI should address the item by path');
         LibraryAssert.AreEqual('RenamedReport.docx', TempDriveItem.Name, 'Item name should be updated');
     end;
 
@@ -1012,14 +993,9 @@ codeunit 132985 "SharePoint Graph Advanced Test"
     end;
 
     local procedure InitializeMultiResponse()
-    var
-        MockHttpClientHandler: Interface "Http Client Handler";
     begin
+        Initialize();
         SharePointGraphTestLibrary.ResetMockHandler();
-        MockHttpClientHandler := SharePointGraphTestLibrary.GetMockHandler();
-        SharePointGraphClient.Initialize(SharePointUrlLbl, Enum::"Graph API Version"::"v1.0", SharePointGraphAuthMock, MockHttpClientHandler);
-        SharePointGraphClient.SetSiteIdForTesting('contoso.sharepoint.com,e6991d99-75d5-4be4-4ede-2c82b1d40cd6,1b58abad-4105-4125-a0e0-7a6d39571a5b');
-        SharePointGraphClient.SetDefaultDriveIdForTesting('b!mR2-5tV1S-RO3C82s1DNbdCrWBwFQKFUoOB6bTlXClvD9fcjLXO5TbNk5sDyD7c8');
     end;
 
     local procedure Initialize()
