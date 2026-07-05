@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -909,7 +909,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             VATEntry."Fattura Document Type" := VATPostingSetup."Fattura Document Type"
         else
             VATEntry."Fattura Document Type" := GenJnlLine."Fattura Document Type";
-        OnInsertVATOnAfterAssignVATEntryFields(GenJnlLine, VATEntry, CurrExchRate);
+        OnInsertVATOnAfterAssignVATEntryFields(GenJnlLine, VATEntry, CurrExchRate, VATPostingSetup);
 
         if GenJnlLine."VAT Difference" = 0 then
             VATDifferenceLCY := 0
@@ -10807,7 +10807,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnInsertVATOnAfterAssignVATEntryFields(GenJnlLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; CurrExchRate: Record "Currency Exchange Rate")
+    local procedure OnInsertVATOnAfterAssignVATEntryFields(var GenJnlLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; CurrExchRate: Record "Currency Exchange Rate"; var VATPostingSetup: Record "VAT Posting Setup")
     begin
     end;
 

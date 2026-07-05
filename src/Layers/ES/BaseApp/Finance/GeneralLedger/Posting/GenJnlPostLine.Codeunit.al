@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -827,7 +827,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         VATEntry.Init();
         VATEntry.CopyFromGenJnlLine(GenJnlLine);
-        VATEntry.SetVATCashRegime(VATPostingSetup, GenJnlLine."Gen. Posting Type".AsInteger());
         VATEntry."Entry No." := NextVATEntryNo;
         VATEntry."EU Service" := VATPostingSetup."EU Service";
         VATEntry."Transaction No." := NextTransactionNo;
@@ -11396,7 +11395,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnInsertVATOnAfterAssignVATEntryFields(GenJnlLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; CurrExchRate: Record "Currency Exchange Rate"; var VATPostingSetup: Record "VAT Posting Setup")
+    local procedure OnInsertVATOnAfterAssignVATEntryFields(var GenJnlLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; CurrExchRate: Record "Currency Exchange Rate"; var VATPostingSetup: Record "VAT Posting Setup")
     begin
     end;
 

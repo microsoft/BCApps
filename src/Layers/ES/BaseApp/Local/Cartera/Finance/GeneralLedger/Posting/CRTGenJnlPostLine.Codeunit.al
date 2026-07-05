@@ -12,7 +12,7 @@ codeunit 7000110 "CRT Gen. Jnl.-Post Line"
 {
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnInsertVATOnAfterAssignVATEntryFields', '', true, false)]
-    local procedure OnInsertVATOnAfterAssignVATEntryFields(var VATPostingSetup: Record "VAT Posting Setup"; var VATEntry: Record "VAT Entry"; var GenJnlLine: Record "Gen. Journal Line")
+    local procedure OnInsertVATOnAfterAssignVATEntryFields(var GenJnlLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; var VATPostingSetup: Record "VAT Posting Setup")
     var
         VATProductPostingGroup: Record "VAT Product Posting Group";
     begin
