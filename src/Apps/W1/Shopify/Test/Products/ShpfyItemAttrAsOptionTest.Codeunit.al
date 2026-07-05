@@ -32,6 +32,7 @@ codeunit 139596 "Shpfy Item Attr As Option Test"
         InitializeTest: Codeunit "Shpfy Initialize Test";
         IsInitialized: Boolean;
         UnexpectedAPICallsErr: Label 'More than expected API calls to Shopify detected.';
+        ExpMaxOptionsErr: Label 'maximum of 3 product options';
 
     trigger OnRun()
     begin
@@ -373,7 +374,6 @@ codeunit 139596 "Shpfy Item Attr As Option Test"
         Item: Record Item;
         ShopifyProductMgt: Codeunit "Shpfy Product";
         CompatibilityCheckResult: Boolean;
-        ExpFailureMessageErr: Label 'maximum of 3 product options';
     begin
         // [SCENARIO] The "Shpfy Product" facade checks item attribute compatibility and primes the shop itself.
 
@@ -388,7 +388,7 @@ codeunit 139596 "Shpfy Item Attr As Option Test"
 
         // [THEN] Returns false and skipped entry is logged about too many attributes
         VerifyResultOfCompatibilityCheck(CompatibilityCheckResult);
-        VerifySkippedEntryExists(Item.RecordId, ExpFailureMessageErr);
+        VerifySkippedEntryExists(Item.RecordId, ExpMaxOptionsErr);
     end;
     #endregion
 

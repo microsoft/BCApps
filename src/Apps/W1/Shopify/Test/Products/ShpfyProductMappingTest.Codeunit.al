@@ -18,6 +18,7 @@ codeunit 139604 "Shpfy Product Mapping Test"
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        ProductUrlTok: Label 'https://test.myshopify.com/products/test-product', Locked = true;
 
     [Test]
     procedure UnitTestFindMappingWithNoSKUMapping()
@@ -301,7 +302,6 @@ codeunit 139604 "Shpfy Product Mapping Test"
         ProductInitTest: Codeunit "Shpfy Product Init Test";
         ShopifyProductMgt: Codeunit "Shpfy Product";
         ActualUrl: Text;
-        ProductUrlTok: Label 'https://test.myshopify.com/products/test-product', Locked = true;
     begin
         // [SCENARIO] The "Shpfy Product" facade returns the Shopify product URL for an item in a shop.
 
