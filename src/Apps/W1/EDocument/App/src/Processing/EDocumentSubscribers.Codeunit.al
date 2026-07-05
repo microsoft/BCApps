@@ -546,6 +546,8 @@ codeunit 6103 "E-Document Subscribers"
 #pragma warning restore AL0432
 #endif
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc Sample Purch. Inv File");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Sales Header");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Sales Line");
     end;
 
 
