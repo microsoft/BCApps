@@ -5,7 +5,7 @@
     begin
         InsertData('AT', XAustria, '040', 'AT', 'AT', 3, 1, '0007', '');
         InsertVATRegNoFormat('AT', 10000, 'ATU########');
-        InsertData('AU', XAustralia, '036', '', '', 5, 1, '', '');
+        InsertData('AU', XAustralia, '036', '', '', 2, 1, '', '');
         InsertData('BE', XBelgium, '056', 'BE', 'BE', 0, 1, '9925', '');
         InsertVATRegNoFormat('BE', 10000, 'BE#########');
         InsertVATRegNoFormat('BE', 20000, 'BE #########');
@@ -28,6 +28,9 @@
         InsertVATRegNoFormat('CZ', 10000, 'CZ########');
         InsertVATRegNoFormat('CZ', 20000, 'CZ#########');
         InsertVATRegNoFormat('CZ', 30000, 'CZ##########');
+        InsertVATRegNoFormat('CZ', 40000, '########');
+        InsertVATRegNoFormat('CZ', 50000, '#########');
+        InsertVATRegNoFormat('CZ', 60000, '##########');
         InsertData('DE', XGermany, '276', 'DE', 'DE', 3, 1, '9930', '');
         InsertVATRegNoFormat('DE', 10000, 'DE#########');
         InsertVATRegNoFormat('DE', 20000, '#########');
@@ -63,6 +66,7 @@
         InsertVATRegNoFormat('GB', 40000, '###-####-##');
         InsertVATRegNoFormat('GB', 50000, '### #### ##');
         InsertVATRegNoFormat('GB', 60000, '#########');
+        InsertVATRegNoFormat('GB', 70000, '77########');
         InsertData('ID', XIndonesia, '360', '', '', 0, 1, '', '');
         InsertData('IN', XIndia, '356', '', '', 1, 0, '', '');
         InsertData('IS', XIceland, '352', '', '', 0, 1, '', '');
@@ -89,7 +93,7 @@
         InsertVATRegNoFormat('NO', 20000, '### ### ### MVA');
         InsertVATRegNoFormat('NO', 30000, 'NO ### ### ###');
         InsertVATRegNoFormat('NO', 40000, '#########');
-        InsertData('NZ', XNewZealand, '554', '', '', 5, 1, '', '');
+        InsertData('NZ', XNewZealand, '554', '', '', 1, 1, '', '');
         InsertData('PL', XPoland, '616', 'PL', 'PL', 0, 1, '9945', '');
         InsertVATRegNoFormat('PL', 10000, 'PL##########');
         InsertVATRegNoFormat('PL', 20000, '##########');

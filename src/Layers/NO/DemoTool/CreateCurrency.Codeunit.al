@@ -32,177 +32,67 @@ codeunit 101004 "Create Currency"
     end;
 
     var
-        TempCurrencyData: Record "Temporary Currency Data";
         DemoDataSetup: Record "Demo Data Setup";
         Currency: Record Currency;
         CA: Codeunit "Make Adjustments";
         "Create Currency Exchange Rate": Codeunit "Create Currency Exchange Rate";
         Skip: Boolean;
-        XEuroTxt: Label 'Euro';
-        XAustraliandollarTxt: Label 'Australian dollar';
-        XBulgarianlevaTxt: Label 'Bulgarian leva';
-        XBruneiDarussalemdollarTxt: Label 'Brunei Darussalam dollar';
-        XBrazilianrealTxt: Label 'Brazilian real';
-        XCanadiandollarTxt: Label 'Canadian dollar';
-        XCroatianKunaTxt: Label 'Croatian Kuna';
-        XSwissfrancTxt: Label 'Swiss franc';
-        XCzechkorunaTxt: Label 'Czech koruna';
-        XDanishkroneTxt: Label 'Danish krone';
-        XEstoniankroonTxt: Label 'Estonian kroon';
-        XFijidollarTxt: Label 'Fiji dollar';
-        XBritishpoundTxt: Label 'Pound Sterling';
-        XHongKongdollarTxt: Label 'Hong Kong dollar';
-        XIndonesianrupiahTxt: Label 'Indonesian rupiah';
-        XJapaneseyenTxt: Label 'Japanese yen';
-        XIndianrupeeTxt: Label 'Indian rupee';
-        XIcelandickronaTxt: Label 'Icelandic krona';
-        XMalaysianringgitTxt: Label 'Malaysian ringgit';
-        XMexicanpesoTxt: Label 'Mexican peso';
-        XNorwegiankroneTxt: Label 'Norwegian krone';
-        XNewZealanddollarTxt: Label 'New Zealand dollar';
-        XPhilippinespesoTxt: Label 'Philippines peso';
-        XPolishzlotyTxt: Label 'Polish zloty';
-        XRussianrubleTxt: Label 'Russian ruble';
-        XSwedishkronaTxt: Label 'Swedish krona';
-        XSingaporedollarTxt: Label 'Singapore dollar';
-        XSloveniantolarTxt: Label 'Slovenian tolar';
-        XSaudiArabianryialTxt: Label 'Saudi Arabian ryial';
-        XSolomonIslandsdollarTxt: Label 'Solomon Islands dollar';
-        XThaibahtTxt: Label 'Thai baht';
-        XUSdollarTxt: Label 'US dollar';
-        XVanuatuvatuTxt: Label 'Vanuatu vatu';
-        XWesternSamoantalaTxt: Label 'Western Samoan tala';
-        XSouthAfricanrandTxt: Label 'South African rand';
-        XUnitedArabEmiratesdirhamTxt: Label 'United Arab Emirates dirham';
-        XAlgeriandinarTxt: Label 'Algerian dinar';
-        XHungarianforintTxt: Label 'Hungarian forint';
-        XKenyanShillingTxt: Label 'Kenyan Shilling';
-        XMoroccandirhamTxt: Label 'Moroccan dirham';
-        XMozambiquemeticalTxt: Label 'Mozambique metical';
-        XNigeriannairaTxt: Label 'Nigerian naira';
-        XRomanianleuTxt: Label 'Romanian leu';
-        XSwazilandlilangeniTxt: Label 'Swaziland lilangeni';
-        XSlovakKorunaTxt: Label 'Slovak Koruna';
-        XSerbianDinarTxt: Label 'Serbian Dinar';
-        XTunisiandinarTxt: Label 'Tunisian dinar';
-        XUgandanShillingTxt: Label 'Ugandan Shilling';
+        XEuro: Label 'Euro';
+        XAustraliandollar: Label 'Australian dollar';
+        XBulgarianleva: Label 'Bulgarian leva';
+        XBruneiDarussalemdollar: Label 'Brunei Darussalem dollar';
+        XBrazilianreal: Label 'Brazilian real';
+        XCanadiandollar: Label 'Canadian dollar';
+        XCroatianKuna: Label 'Croatian Kuna';
+        XSwissfranc: Label 'Swiss franc';
+        XCzechkoruna: Label 'Czech koruna';
+        XDanishkrone: Label 'Danish krone';
+        XEstoniankroon: Label 'Estonian kroon';
+        XFijidollar: Label 'Fiji dollar';
+        XBritishpound: Label 'Pound Sterling';
+        XHongKongdollar: Label 'Hong Kong dollar';
+        XIndonesianrupiah: Label 'Indonesian rupiah';
+        XJapaneseyen: Label 'Japanese yen';
+        XIndianrupee: Label 'Indian rupee';
+        XIcelandickrona: Label 'Icelandic krona';
+        XMalaysianringgit: Label 'Malaysian ringgit';
+        XMexicanpeso: Label 'Mexican peso';
+        XNorwegiankrone: Label 'Norwegian krone';
+        XNewZealanddollar: Label 'New Zealand dollar';
+        XPhilippinespeso: Label 'Philippines peso';
+        XPolishzloty: Label 'Polish zloty';
+        XRussianruble: Label 'Russian ruble';
+        XSwedishkrona: Label 'Swedish krona';
+        XSingaporedollar: Label 'Singapore dollar';
+        XSloveniantolar: Label 'Slovenian tolar';
+        XSaudiArabianryial: Label 'Saudi Arabian ryial';
+        XSolomonIslandsdollar: Label 'Solomon Islands dollar';
+        XThaibaht: Label 'Thai baht';
+        XUSdollar: Label 'US dollar';
+        XVanuatuvatu: Label 'Vanuatu vatu';
+        XWesternSamoantala: Label 'Western Samoan tala';
+        XSouthAfricanrand: Label 'South African rand';
+        XUnitedArabEmiratesdirham: Label 'United Arab Emirates dirham';
+        XAlgeriandinar: Label 'Algerian dinar';
+        XHungarianforint: Label 'Hungarian forint';
+        XKenyanShilling: Label 'Kenyan Shilling';
+        XMoroccandirham: Label 'Moroccan dirham';
+        XMozambiquemetical: Label 'Mozambique metical';
+        XNigeriannaira: Label 'Nigerian naira';
+        XRomanianleu: Label 'Romanian leu';
+        XSwazilandlilangeni: Label 'Swaziland lilangeni';
+        XSlovakKoruna: Label 'Slovak Koruna';
+        XSerbianDinar: Label 'Serbian Dinar';
+        XTunesiandinar: Label 'Tunesian dinar';
+        XUgandanShilling: Label 'Ugandan Shilling';
         XMacedonianDenarTxt: Label 'Macedonian Denar';
         XChineseYuanTxt: Label 'Chinese Yuan';
-        XAfghaniTxt: Label 'Afghani';
-        XArgentinePesoTxt: Label 'Argentine Peso';
-        XArmenianDramTxt: Label 'Armenian Dram';
-        XArubanFlorinTxt: Label 'Aruban Florin';
-        XAzerbaijanManatTxt: Label 'Azerbaijan Manat';
-        XBahamianDollarTxt: Label 'Bahamian Dollar';
-        XBahrainiDinarTxt: Label 'Bahraini Dinar';
-        XBalboaTxt: Label 'Balboa';
-        XBarbadosDollarTxt: Label 'Barbados Dollar';
-        XBelarusianRubleTxt: Label 'Belarusian Ruble';
-        XBelizeDollarTxt: Label 'Belize Dollar';
-        XBermudianDollarTxt: Label 'Bermudian Dollar';
-        XBolivarSoberanoTxt: Label 'Bolivar Soberano';
-        XBolivianoTxt: Label 'Boliviano';
-        XBurundiFrancTxt: Label 'Burundi Franc';
-        XCaboVerdeEscudoTxt: Label 'Cabo Verde Escudo';
-        XCaribbeanGuilderTxt: Label 'Caribbean Guilder';
-        XCaymanIslandsDollarTxt: Label 'Cayman Islands Dollar';
-        XCfaFrancBceaoTxt: Label 'Cfa Franc Bceao';
-        XChileanPesoTxt: Label 'Chilean Peso';
-        XColombianPesoTxt: Label 'Colombian Peso';
-        XComorianFrancTxt: Label 'Comorian Franc';
-        XCongoleseFrancTxt: Label 'Congolese Franc';
-        XConvertibleMarkTxt: Label 'Convertible Mark';
-        XCordobaOroTxt: Label 'Cordoba Oro';
-        XCostaRicanColonTxt: Label 'Costa Rican Colon';
-        XCubanPesoTxt: Label 'Cuban Peso';
-        XDalasiTxt: Label 'Dalasi';
-        XDjiboutiFrancTxt: Label 'Djibouti Franc';
-        XDobraTxt: Label 'Dobra';
-        XDominicanPesoTxt: Label 'Dominican Peso';
-        XDongTxt: Label 'Dong';
-        XCentralAfricaFrancTxt: Label 'Central African CFA Franc';
-        XEastCaribbeanDollarTxt: Label 'East Caribbean Dollar';
-        XEgyptianPoundTxt: Label 'Egyptian Pound';
-        XElSalvadorColonTxt: Label 'El Salvador Colon';
-        XEthiopianBirrTxt: Label 'Ethiopian Birr';
-        XFalklandIslandsPoundTxt: Label 'Falkland Islands Pound';
-        XGhanaCediTxt: Label 'Ghana Cedi';
-        XGibraltarPoundTxt: Label 'Gibraltar Pound';
-        XGourdeTxt: Label 'Gourde';
-        XGuaraniTxt: Label 'Guarani';
-        XGuineanFrancTxt: Label 'Guinean Franc';
-        XGuyanaDollarTxt: Label 'Guyana Dollar';
-        XHryvniaTxt: Label 'Hryvnia';
-        XIranianRialTxt: Label 'Iranian Rial';
-        XIraqiDinarTxt: Label 'Iraqi Dinar';
-        XJamaicanDollarTxt: Label 'Jamaican Dollar';
-        XJordanianDinarTxt: Label 'Jordanian Dinar';
-        XKinaTxt: Label 'Kina';
-        XKuwaitiDinarTxt: Label 'Kuwaiti Dinar';
-        XKwanzaTxt: Label 'Kwanza';
-        XKyatTxt: Label 'Kyat';
-        XLaoKipTxt: Label 'Lao Kip';
-        XLariTxt: Label 'Lari';
-        XLebanesePoundTxt: Label 'Lebanese Pound';
-        XLekTxt: Label 'Lek';
-        XLempiraTxt: Label 'Lempira';
-        XLeoneTxt: Label 'Leone';
-        XLiberianDollarTxt: Label 'Liberian Dollar';
-        XLibyanDinarTxt: Label 'Libyan Dinar';
-        XLotiTxt: Label 'Loti';
-        XMalagasyAriaryTxt: Label 'Malagasy Ariary';
-        XMalawiKwachaTxt: Label 'Malawi Kwacha';
-        XMauritiusRupeeTxt: Label 'Mauritius Rupee';
-        XMoldovanLeuTxt: Label 'Moldovan Leu';
-        XMvdolTxt: Label 'Mvdol';
-        XNakfaTxt: Label 'Nakfa';
-        XNamibiaDollarTxt: Label 'Namibia Dollar';
-        XNepaleseRupeeTxt: Label 'Nepalese Rupee';
-        XNewIsraeliSheqelTxt: Label 'New Israeli Sheqel';
-        XNewTaiwanDollarTxt: Label 'New Taiwan Dollar';
-        XNgultrumTxt: Label 'Ngultrum';
-        XNorthKoreanWonTxt: Label 'North Korean Won';
-        XOuguiyaTxt: Label 'Ouguiya';
-        XPakistanRupeeTxt: Label 'Pakistan Rupee';
-        XPatacaTxt: Label 'Pataca';
-        XPesoUruguayoTxt: Label 'Peso Uruguayo';
-        XPlatinumTxt: Label 'Platinum';
-        XPulaTxt: Label 'Pula';
-        XQatariRialTxt: Label 'Qatari Rial';
-        XQuetzalTxt: Label 'Quetzal';
-        XRialOmaniTxt: Label 'Rial Omani';
-        XRielTxt: Label 'Riel';
-        XRufiyaaTxt: Label 'Rufiyaa';
-        XRwandaFrancTxt: Label 'Rwanda Franc';
-        XSaintHelenaPoundTxt: Label 'Saint Helena Pound';
-        XSeychellesRupeeTxt: Label 'Seychelles Rupee';
-        XSolTxt: Label 'Sol';
-        XSomTxt: Label 'Som';
-        XSomaliShillingTxt: Label 'Somali Shilling';
-        XSomoniTxt: Label 'Somoni';
-        XSouthSudanesePoundTxt: Label 'South Sudanese Pound';
-        XSriLankaRupeeTxt: Label 'Sri Lanka Rupee';
-        XSudanesePoundTxt: Label 'Sudanese Pound';
-        XSurinamDollarTxt: Label 'Surinam Dollar';
-        XSyrianPoundTxt: Label 'Syrian Pound';
-        XTakaTxt: Label 'Taka';
-        XTanzanianShillingTxt: Label 'Tanzanian Shilling';
-        XTengeTxt: Label 'Tenge';
-        XTrinidadAndTobagoDollarTxt: Label 'Trinidad And Tobago Dollar';
-        XTugrikTxt: Label 'Tugrik';
-        XTurkmenistanNewManatTxt: Label 'Turkmenistan New Manat';
-        XUnidadDeFomentoTxt: Label 'Unidad De Fomento';
-        XUnidadDeValorRealTxt: Label 'Unidad De Valor Real';
-        XUnidadPrevisionalTxt: Label 'Unidad Previsional';
-        XUzbekistanSumTxt: Label 'Uzbekistan Sum';
-        XWonTxt: Label 'Won';
-        XYemeniRialTxt: Label 'Yemeni Rial';
-        XZambianKwachaTxt: Label 'Zambian Kwacha';
-        XZimbabweGoldTxt: Label 'Zimbabwe Gold';
+        TempCurrencyData: Record "Temporary Currency Data";
         NoCurrencyFoundErr: Label 'No currency was found, can not continue.';
-        XNewTurkishliraTxt: Label 'New Turkish lira';
-        XTonganPaangaTxt: Label 'Tongan Pa anga';
-        XFrenchPacificFrancTxt: Label 'French Pacific Franc';
+        XNewTurkishlira: Label 'New Turkish lira';
+        CountryCodeDoesNotExistErr: Label 'Currency code does not exist, can not continue.';
+        XTonganPaanga: Label 'Tongan Pa anga';
+        XFrenchPacificFranc: Label 'French Pacific Franc';
         XCUSTDOM: Label 'CUSTDOM';
         XCUSTFOR: Label 'CUSTFOR';
         XVENDDOM: Label 'VENDDOM';
@@ -222,7 +112,6 @@ codeunit 101004 "Create Currency"
         Currency.Validate("EMU Currency", CurrencyData."EMU Currency");
         Currency.Validate("Amount Decimal Places", CurrencyData."Amount Decimal Places");
         Currency.Validate("Unit-Amount Decimal Places", CurrencyData."Unit-Amount Decimal Places");
-        Currency.Validate(Symbol, Currency.ResolveCurrencySymbol(Currency.Code));
         Currency.Insert(true);
     end;
 
@@ -341,339 +230,115 @@ codeunit 101004 "Create Currency"
         DemoDataSetup.Get();
         case CurrencyCode of
             'AED':
-                exit(XUnitedArabEmiratesdirhamTxt);
+                exit(XUnitedArabEmiratesdirham);
             'AUD':
-                exit(XAustraliandollarTxt);
+                exit(XAustraliandollar);
             'BGN':
-                exit(XBulgarianlevaTxt);
+                exit(XBulgarianleva);
             'BND':
-                exit(XBruneiDarussalemdollarTxt);
+                exit(XBruneiDarussalemdollar);
             'BRL':
-                exit(XBrazilianrealTxt);
+                exit(XBrazilianreal);
             'CAD':
-                exit(XCanadiandollarTxt);
+                exit(XCanadiandollar);
             'CHF':
-                exit(XSwissfrancTxt);
+                exit(XSwissfranc);
             'CNY':
                 exit(XChineseYuanTxt);
             'CZK':
-                exit(XCzechkorunaTxt);
+                exit(XCzechkoruna);
             'DKK':
-                exit(XDanishkroneTxt);
+                exit(XDanishkrone);
             'DZD':
-                exit(XAlgeriandinarTxt);
+                exit(XAlgeriandinar);
             'EEK':
-                exit(XEstoniankroonTxt);
+                exit(XEstoniankroon);
             'EUR':
-                exit(XEuroTxt);
+                exit(XEuro);
             'FJD':
-                exit(XFijidollarTxt);
+                exit(XFijidollar);
             'GBP':
-                exit(XBritishpoundTxt);
+                exit(XBritishpound);
             'HKD':
-                exit(XHongKongdollarTxt);
+                exit(XHongKongdollar);
             'HRK':
-                exit(XCroatianKunaTxt);
+                exit(XCroatianKuna);
             'HUF':
-                exit(XHungarianforintTxt);
+                exit(XHungarianforint);
             'IDR':
-                exit(XIndonesianrupiahTxt);
+                exit(XIndonesianrupiah);
             'INR':
-                exit(XIndianrupeeTxt);
+                exit(XIndianrupee);
             'ISK':
-                exit(XIcelandickronaTxt);
+                exit(XIcelandickrona);
             'JPY':
-                exit(XJapaneseyenTxt);
+                exit(XJapaneseyen);
             'KES':
-                exit(XKenyanShillingTxt);
+                exit(XKenyanShilling);
             'MAD':
-                exit(XMoroccandirhamTxt);
+                exit(XMoroccandirham);
             'MKD':
                 exit(XMacedonianDenarTxt);
             'MXN':
-                exit(XMexicanpesoTxt);
+                exit(XMexicanpeso);
             'MYR':
-                exit(XMalaysianringgitTxt);
+                exit(XMalaysianringgit);
             'MZN':
-                exit(XMozambiquemeticalTxt);
+                exit(XMozambiquemetical);
             'NGN':
-                exit(XNigeriannairaTxt);
+                exit(XNigeriannaira);
             'NOK':
-                exit(XNorwegiankroneTxt);
+                exit(XNorwegiankrone);
             'NZD':
-                exit(XNewZealanddollarTxt);
+                exit(XNewZealanddollar);
             'PHP':
-                exit(XPhilippinespesoTxt);
+                exit(XPhilippinespeso);
             'PLN':
-                exit(XPolishzlotyTxt);
+                exit(XPolishzloty);
             'RON':
-                exit(XRomanianleuTxt);
+                exit(XRomanianleu);
             'RSD':
-                exit(XSerbianDinarTxt);
+                exit(XSerbianDinar);
             'RUB':
-                exit(XRussianrubleTxt);
+                exit(XRussianruble);
             'SAR':
-                exit(XSaudiArabianryialTxt);
+                exit(XSaudiArabianryial);
             'SBD':
-                exit(XSolomonIslandsdollarTxt);
+                exit(XSolomonIslandsdollar);
             'SEK':
-                exit(XSwedishkronaTxt);
+                exit(XSwedishkrona);
             'SGD':
-                exit(XSingaporedollarTxt);
+                exit(XSingaporedollar);
             'SIT':
-                exit(XSloveniantolarTxt);
+                exit(XSloveniantolar);
             'SKK':
-                exit(XSlovakKorunaTxt);
+                exit(XSlovakKoruna);
             'SZL':
-                exit(XSwazilandlilangeniTxt);
+                exit(XSwazilandlilangeni);
             'THB':
-                exit(XThaibahtTxt);
+                exit(XThaibaht);
             'TND':
-                exit(XTunisiandinarTxt);
+                exit(XTunesiandinar);
             'TOP':
-                exit(XTonganPaangaTxt);
+                exit(XTonganPaanga);
             'TRY':
-                exit(XNewTurkishliraTxt);
+                exit(XNewTurkishlira);
             'UGX':
-                exit(XUgandanShillingTxt);
+                exit(XUgandanShilling);
             'USD':
-                exit(XUSdollarTxt);
+                exit(XUSdollar);
             'VUV':
-                exit(XVanuatuvatuTxt);
+                exit(XVanuatuvatu);
             'WST':
-                exit(XWesternSamoantalaTxt);
+                exit(XWesternSamoantala);
             'XPF':
-                exit(XFrenchPacificFrancTxt);
+                exit(XFrenchPacificFranc);
             'ZAR':
-                exit(XSouthAfricanrandTxt);
-            'AFN':
-                exit(XAfghaniTxt);
-            'ALL':
-                exit(XLekTxt);
-            'AMD':
-                exit(XArmenianDramTxt);
-            'AOA':
-                exit(XKwanzaTxt);
-            'ARS':
-                exit(XArgentinePesoTxt);
-            'AWG':
-                exit(XArubanFlorinTxt);
-            'AZN':
-                exit(XAzerbaijanManatTxt);
-            'BAM':
-                exit(XConvertibleMarkTxt);
-            'BBD':
-                exit(XBarbadosDollarTxt);
-            'BDT':
-                exit(XTakaTxt);
-            'BHD':
-                exit(XBahrainiDinarTxt);
-            'BIF':
-                exit(XBurundiFrancTxt);
-            'BMD':
-                exit(XBermudianDollarTxt);
-            'BOB':
-                exit(XBolivianoTxt);
-            'BOV':
-                exit(XMvdolTxt);
-            'BSD':
-                exit(XBahamianDollarTxt);
-            'BTN':
-                exit(XNgultrumTxt);
-            'BWP':
-                exit(XPulaTxt);
-            'BYN':
-                exit(XBelarusianRubleTxt);
-            'BZD':
-                exit(XBelizeDollarTxt);
-            'CDF':
-                exit(XCongoleseFrancTxt);
-            'CLF':
-                exit(XUnidadDeFomentoTxt);
-            'CLP':
-                exit(XChileanPesoTxt);
-            'COP':
-                exit(XColombianPesoTxt);
-            'COU':
-                exit(XUnidadDeValorRealTxt);
-            'CRC':
-                exit(XCostaRicanColonTxt);
-            'CUP':
-                exit(XCubanPesoTxt);
-            'CVE':
-                exit(XCaboVerdeEscudoTxt);
-            'DJF':
-                exit(XDjiboutiFrancTxt);
-            'DOP':
-                exit(XDominicanPesoTxt);
-            'EGP':
-                exit(XEgyptianPoundTxt);
-            'ERN':
-                exit(XNakfaTxt);
-            'ETB':
-                exit(XEthiopianBirrTxt);
-            'FKP':
-                exit(XFalklandIslandsPoundTxt);
-            'GEL':
-                exit(XLariTxt);
-            'GHS':
-                exit(XGhanaCediTxt);
-            'GIP':
-                exit(XGibraltarPoundTxt);
-            'GMD':
-                exit(XDalasiTxt);
-            'GNF':
-                exit(XGuineanFrancTxt);
-            'GTQ':
-                exit(XQuetzalTxt);
-            'GYD':
-                exit(XGuyanaDollarTxt);
-            'HNL':
-                exit(XLempiraTxt);
-            'HTG':
-                exit(XGourdeTxt);
-            'ILS':
-                exit(XNewIsraeliSheqelTxt);
-            'IQD':
-                exit(XIraqiDinarTxt);
-            'IRR':
-                exit(XIranianRialTxt);
-            'JMD':
-                exit(XJamaicanDollarTxt);
-            'JOD':
-                exit(XJordanianDinarTxt);
-            'KGS':
-                exit(XSomTxt);
-            'KHR':
-                exit(XRielTxt);
-            'KMF':
-                exit(XComorianFrancTxt);
-            'KPW':
-                exit(XNorthKoreanWonTxt);
-            'KRW':
-                exit(XWonTxt);
-            'KWD':
-                exit(XKuwaitiDinarTxt);
-            'KYD':
-                exit(XCaymanIslandsDollarTxt);
-            'KZT':
-                exit(XTengeTxt);
-            'LAK':
-                exit(XLaoKipTxt);
-            'LBP':
-                exit(XLebanesePoundTxt);
-            'LKR':
-                exit(XSriLankaRupeeTxt);
-            'LRD':
-                exit(XLiberianDollarTxt);
-            'LSL':
-                exit(XLotiTxt);
-            'LYD':
-                exit(XLibyanDinarTxt);
-            'MDL':
-                exit(XMoldovanLeuTxt);
-            'MGA':
-                exit(XMalagasyAriaryTxt);
-            'MMK':
-                exit(XKyatTxt);
-            'MNT':
-                exit(XTugrikTxt);
-            'MOP':
-                exit(XPatacaTxt);
-            'MRU':
-                exit(XOuguiyaTxt);
-            'MUR':
-                exit(XMauritiusRupeeTxt);
-            'MVR':
-                exit(XRufiyaaTxt);
-            'MWK':
-                exit(XMalawiKwachaTxt);
-            'NAD':
-                exit(XNamibiaDollarTxt);
-            'NIO':
-                exit(XCordobaOroTxt);
-            'NPR':
-                exit(XNepaleseRupeeTxt);
-            'OMR':
-                exit(XRialOmaniTxt);
-            'PAB':
-                exit(XBalboaTxt);
-            'PEN':
-                exit(XSolTxt);
-            'PGK':
-                exit(XKinaTxt);
-            'PKR':
-                exit(XPakistanRupeeTxt);
-            'PYG':
-                exit(XGuaraniTxt);
-            'QAR':
-                exit(XQatariRialTxt);
-            'RWF':
-                exit(XRwandaFrancTxt);
-            'SCR':
-                exit(XSeychellesRupeeTxt);
-            'SDG':
-                exit(XSudanesePoundTxt);
-            'SHP':
-                exit(XSaintHelenaPoundTxt);
-            'SLE':
-                exit(XLeoneTxt);
-            'SOS':
-                exit(XSomaliShillingTxt);
-            'SRD':
-                exit(XSurinamDollarTxt);
-            'SSP':
-                exit(XSouthSudanesePoundTxt);
-            'STN':
-                exit(XDobraTxt);
-            'SVC':
-                exit(XElSalvadorColonTxt);
-            'SYP':
-                exit(XSyrianPoundTxt);
-            'TJS':
-                exit(XSomoniTxt);
-            'TMT':
-                exit(XTurkmenistanNewManatTxt);
-            'TTD':
-                exit(XTrinidadAndTobagoDollarTxt);
-            'TWD':
-                exit(XNewTaiwanDollarTxt);
-            'TZS':
-                exit(XTanzanianShillingTxt);
-            'UAH':
-                exit(XHryvniaTxt);
-            'UYU':
-                exit(XPesoUruguayoTxt);
-            'UYW':
-                exit(XUnidadPrevisionalTxt);
-            'UZS':
-                exit(XUzbekistanSumTxt);
-            'VED':
-                exit(XBolivarSoberanoTxt);
-            'VES':
-                exit(XBolivarSoberanoTxt);
-            'VND':
-                exit(XDongTxt);
-            'XAF':
-                exit(XCentralAfricaFrancTxt);
-            'XCD':
-                exit(XEastCaribbeanDollarTxt);
-            'XCG':
-                exit(XCaribbeanGuilderTxt);
-            'XOF':
-                exit(XCfaFrancBceaoTxt);
-            'XPT':
-                exit(XPlatinumTxt);
-            'YER':
-                exit(XYemeniRialTxt);
-            'ZMW':
-                exit(XZambianKwachaTxt);
-            'ZWG':
-                exit(XZimbabweGoldTxt);
+                exit(XSouthAfricanrand);
             '':
                 exit('');
             else
-                exit(CurrencyCode);
+                Error(CountryCodeDoesNotExistErr);
         end;
     end;
 
@@ -741,5 +406,4 @@ codeunit 101004 "Create Currency"
             until ExchRates.Next() = 0;
     end;
 }
-
 

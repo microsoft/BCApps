@@ -11,12 +11,8 @@ codeunit 101004 "Create Currency"
         Reset();
         if FindSet() then
             repeat
-                if (DemoDataSetup."Data Type" = DemoDataSetup."Data Type"::Extended) or
-                   ((DemoDataSetup."Data Type" <> DemoDataSetup."Data Type"::Extended) and ("Currency Code" in ['USD', 'EUR', 'CAD', 'MXN']))
-                then begin
-                    InsertData(Rec);
-                    InsertExchRateData(Rec);
-                end;
+                InsertData(Rec);
+                InsertExchRateData(Rec);
             until Next() = 0
         else
             Error(NoCurrencyFoundErr);
@@ -38,7 +34,6 @@ codeunit 101004 "Create Currency"
     var
         DemoDataSetup: Record "Demo Data Setup";
         Currency: Record Currency;
-        TempCurrencyData: Record "Temporary Currency Data";
         CA: Codeunit "Make Adjustments";
         "Create Currency Exchange Rate": Codeunit "Create Currency Exchange Rate";
         Skip: Boolean;
@@ -92,6 +87,7 @@ codeunit 101004 "Create Currency"
         XUgandanShilling: Label 'Ugandan Shilling';
         XMacedonianDenarTxt: Label 'Macedonian Denar';
         XChineseYuanTxt: Label 'Chinese Yuan';
+        TempCurrencyData: Record "Temporary Currency Data";
         NoCurrencyFoundErr: Label 'No currency was found, can not continue.';
         XNewTurkishlira: Label 'New Turkish lira';
         CountryCodeDoesNotExistErr: Label 'Currency code does not exist, can not continue.';
@@ -112,7 +108,6 @@ codeunit 101004 "Create Currency"
         Currency.Validate("EMU Currency", CurrencyData."EMU Currency");
         Currency.Validate("Amount Decimal Places", CurrencyData."Amount Decimal Places");
         Currency.Validate("Unit-Amount Decimal Places", CurrencyData."Unit-Amount Decimal Places");
-        Currency.Validate(Symbol, Currency.ResolveCurrencySymbol(Currency.Code));
         Currency.Insert(true);
     end;
 
@@ -161,7 +156,6 @@ codeunit 101004 "Create Currency"
     procedure ModifyData()
     var
         "G/L Account": Record "G/L Account";
-        GetGLAccountNo: Codeunit "Get G/L Account No. and Name";
     begin
         DemoDataSetup.Get();
         Currency.Reset();
@@ -182,12 +176,6 @@ codeunit 101004 "Create Currency"
                           CA.Convert('999310'), CA.Convert('999320'), CA.Convert('999330'), CA.Convert('999340'));
                         "G/L Account".ModifyAll("Exchange Rate Adjustment", 2);
                     end;
-                end
-                else begin
-                    Currency.Validate("Unrealized Gains Acc.", GetGLAccountNo.UnrealizedFXGains());
-                    Currency.Validate("Unrealized Losses Acc.", GetGLAccountNo.UnrealizedFXLosses());
-                    Currency.Validate("Realized Gains Acc.", GetGLAccountNo.RealizedFXGains());
-                    Currency.Validate("Realized Losses Acc.", GetGLAccountNo.RealizedFXLosses());
                 end;
                 Currency.Modify();
             until Currency.Next() = 0;
