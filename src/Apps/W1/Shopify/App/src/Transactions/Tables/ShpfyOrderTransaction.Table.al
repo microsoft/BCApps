@@ -298,7 +298,7 @@ table 30133 "Shpfy Order Transaction"
         key(Key5; "Shopify Order Id", Status)
         {
         }
-        key(Idx004; "Refund Id", Type, Status)
+        key(Key6; "Refund Id", Type, Status)
         {
         }
     }
