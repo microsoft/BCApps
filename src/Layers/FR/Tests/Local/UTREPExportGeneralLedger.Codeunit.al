@@ -13,7 +13,7 @@ codeunit 144044 "UT REP Export General Ledger"
 
     Subtype = Test;
     TestPermissions = Disabled;
-    ObsoleteReason = 'Run tests in XML Audit File tests extension.';
+    ObsoleteReason = 'Run tests in XML Audit File FR tests extension.';
     ObsoleteState = Pending;
     ObsoleteTag = '29.0';
 

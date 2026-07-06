@@ -406,7 +406,7 @@ page 8901 "Finance Manager Role Center"
                     group("Group64")
                     {
                         Caption = 'Export';
-                        ObsoleteReason = 'Use Audit File Export Document with the XML format selected. The Audit File Export and XML Audit File extensions must be installed.';
+                        ObsoleteReason = 'Use Audit File Export Document with the XML format selected. The Audit File Export and XML Audit File FR extensions must be installed.';
                         ObsoleteState = Pending;
                         ObsoleteTag = '29.0';
                         action("Export G/L Entries to XML")
@@ -414,7 +414,7 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Export G/L Entries to XML';
                             RunObject = report "Export G/L Entries to XML";
-                            ObsoleteReason = 'Use Audit File Export Document with the XML format selected. The Audit File Export and XML Audit File extensions must be installed.';
+                            ObsoleteReason = 'Use Audit File Export Document with the XML format selected. The Audit File Export and XML Audit File FR extensions must be installed.';
                             ObsoleteState = Pending;
                             ObsoleteTag = '29.0';
                         }

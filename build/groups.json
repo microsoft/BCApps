@@ -7743,7 +7743,7 @@
     ]
   },
   {
-    "name": "XML Audit File",
+    "name": "XML Audit File FR",
     "groups": [
       {
         "name": "AllExtensions"
@@ -7765,7 +7765,7 @@
     ]
   },
   {
-    "name": "XML Audit File Tests",
+    "name": "XML Audit File FR Tests",
     "groups": [
       {
         "name": "AllExtensions"

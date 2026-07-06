@@ -16,7 +16,7 @@ report 10820 "Export G/L Entries to XML"
     Caption = 'Export G/L Entries to XML';
     ProcessingOnly = true;
     UsageCategory = ReportsAndAnalysis;
-    ObsoleteReason = 'Use Audit File Export Document with the XML format selected. The Audit File Export and XML Audit File extensions must be installed.';
+    ObsoleteReason = 'Use Audit File Export Document with the XML format selected. The Audit File Export and XML Audit File FR extensions must be installed.';
     ObsoleteState = Pending;
     ObsoleteTag = '29.0';
 

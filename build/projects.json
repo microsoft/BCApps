@@ -5636,7 +5636,7 @@
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
-    "XML Audit File": {
+    "XML Audit File FR": {
       "projectPath": "$env:INETROOT\\App\\Apps\\FR\\XMLAuditFile\\app",
       "dvdFolder": "Applications\\XMLAuditFile\\Source",
       "hasTranslations": true,
@@ -5649,7 +5649,7 @@
       "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\app.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json"
     },
-    "XML Audit File Tests": {
+    "XML Audit File FR Tests": {
       "projectPath": "$env:INETROOT\\App\\Apps\\FR\\XMLAuditFile\\test",
       "dvdFolder": "Applications\\XMLAuditFile\\Test",
       "supportedCountries": [
