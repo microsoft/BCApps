@@ -871,6 +871,33 @@ codeunit 139520 "VAT Group Helper Funct Test"
         Assert.IsFalse(VATReportSetup.ValidateGroupRepresentativeAPIURL(), 'The invalid API URL should not be valid');
     end;
 
+    [Test]
+    procedure ValidateURLWithSuffixHostIsRejected()
+    var
+        VATReportSetup: Record "VAT Report Setup";
+    begin
+        VATReportSetup."Group Representative API URL" := 'https://api.businesscentral.dynamics.com.attacker.com/api';
+        Assert.IsFalse(VATReportSetup.ValidateGroupRepresentativeAPIURL(), 'A suffix-host URL should not be valid');
+    end;
+
+    [Test]
+    procedure ValidateURLWithUserInfoHostIsRejected()
+    var
+        VATReportSetup: Record "VAT Report Setup";
+    begin
+        VATReportSetup."Group Representative API URL" := 'https://api.businesscentral.dynamics.com@attacker.com/api';
+        Assert.IsFalse(VATReportSetup.ValidateGroupRepresentativeAPIURL(), 'A userinfo-host URL should not be valid');
+    end;
+
+    [Test]
+    procedure ValidateURLWithNonHttpsSchemeIsRejected()
+    var
+        VATReportSetup: Record "VAT Report Setup";
+    begin
+        VATReportSetup."Group Representative API URL" := 'http://api.businesscentral.dynamics.com/api';
+        Assert.IsFalse(VATReportSetup.ValidateGroupRepresentativeAPIURL(), 'A non-https URL should not be valid');
+    end;
+
     local procedure Initialize()
     begin
         LibraryVATGroup.EnableDefaultVATMemberSetup();

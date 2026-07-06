@@ -191,7 +191,8 @@ codeunit 4410 "Trial Balance"
     #region Query-based approach
     local procedure InsertTrialBalanceReportDataFromQueries(var GLAccount: Record "G/L Account"; var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer")
     var
-        LocalGLAccount: Record "G/L Account";
+        TempTotalsBuffer: Record "EXR Trial Balance Buffer" temporary;
+        AccountToTotals: Dictionary of [Code[20], List of [Code[20]]];
         AccountNoFilter: Text;
         StartDate, EndDate : Date;
     begin
@@ -210,16 +211,12 @@ codeunit 4410 "Trial Balance"
         if GlobalIncludeBudgetData then
             InsertBudgetDataFromQuery(GLAccount, TrialBalanceData, StartDate, EndDate);
 
-        // The query will just return entries for the "Posting" G/L Accounts and nothing for the Total/End-Total accounts,
-        // to address that, we calculate the sums from the contents that we now have in the temporary TrialBalanceData table
-        LocalGLAccount.SetFilter("Account Type", '%1|%2', "G/L Account Type"::"End-Total", "G/L Account Type"::Total);
-        if AccountNoFilter <> '' then
-            LocalGLAccount.SetFilter("No.", AccountNoFilter);
-        if LocalGLAccount.FindSet() then
-            repeat
-                if LocalGLAccount.Totaling <> '' then
-                    InsertTotalAccountsFromBuffer(LocalGLAccount, TrialBalanceData);
-            until LocalGLAccount.Next() = 0;
+        // The query only returns rows for the "Posting" G/L Accounts and nothing for the Total/End-Total accounts.
+        // We synthesize them in a single pass over the buffer: first map each posting account to the totals whose
+        // Totaling range contains it, then sweep the posting rows once, adding each row to every containing total.
+        BuildAccountToTotalsMap(AccountNoFilter, AccountToTotals);
+        DistributePostingRowsToTotals(TrialBalanceData, AccountToTotals, TempTotalsBuffer);
+        MergeTotalsIntoBuffer(TempTotalsBuffer, TrialBalanceData);
     end;
 
     local procedure InsertTrialBalanceFromQuery(var Dimension1Values: Record "Dimension Value" temporary; var Dimension2Values: Record "Dimension Value" temporary; var TrialBalanceData: Record "EXR Trial Balance Buffer"; StartDate: Date; EndDate: Date; AccountNoFilter: Text)
@@ -250,23 +247,24 @@ codeunit 4410 "Trial Balance"
             TrialBalanceData."Net Change (ACY)" := EXRTrialBalanceQuery.ACYAmount;
             TrialBalanceData."Net Change (Debit) (ACY)" := EXRTrialBalanceQuery.ACYDebitAmount;
             TrialBalanceData."Net Change (Credit) (ACY)" := EXRTrialBalanceQuery.ACYCreditAmount;
-            TrialBalanceData.CheckAllZero();
-            if not TrialBalanceData."All Zero" then begin
-                TrialBalanceData.Insert(true);
-                InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
-                InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
-            end;
+            // Every combination the query returns has entries, so it represents real activity and is kept even when it
+            // nets to zero. The second pass adjusts any that also have an opening balance.
+            TrialBalanceData.Insert(true);
+            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
+            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
         end;
         EXRTrialBalanceQuery.Close();
 
         // And now we get the balances at the starting date and modify the ones we have already inserted
-        EXRTrialBalanceQuery.SetFilter(EXRTrialBalanceQuery.PostingDate, '..%1', ClosingDate(StartDate - 1));
+        EXRTrialBalanceQuery.SetFilter(EXRTrialBalanceQuery.PostingDate, '..%1', GetOpeningBalanceCutoff(StartDate));
         EXRTrialBalanceQuery.Open();
         while EXRTrialBalanceQuery.Read() do begin
             TrialBalanceData.SetRange("G/L Account No.", EXRTrialBalanceQuery.AccountNumber);
             TrialBalanceData.SetRange("Dimension 1 Code", EXRTrialBalanceQuery.DimensionValue1Code);
             TrialBalanceData.SetRange("Dimension 2 Code", EXRTrialBalanceQuery.DimensionValue2Code);
-            if not TrialBalanceData.FindFirst() then begin // This shouldn't happen, but we consider it regardless
+            if not TrialBalanceData.FindFirst() then begin
+                // This shouldn't happen now that the first pass inserts every combination with entries up to the ending date, but we Init() and consider it regardless.
+                TrialBalanceData.Init();
                 TrialBalanceData."G/L Account No." := EXRTrialBalanceQuery.AccountNumber;
                 TrialBalanceData."Dimension 1 Code" := EXRTrialBalanceQuery.DimensionValue1Code;
                 TrialBalanceData."Dimension 2 Code" := EXRTrialBalanceQuery.DimensionValue2Code;
@@ -318,17 +316,16 @@ codeunit 4410 "Trial Balance"
             TrialBalanceData."Net Change (ACY)" := EXRTrialBalanceBUQuery.ACYAmount;
             TrialBalanceData."Net Change (Debit) (ACY)" := EXRTrialBalanceBUQuery.ACYDebitAmount;
             TrialBalanceData."Net Change (Credit) (ACY)" := EXRTrialBalanceBUQuery.ACYCreditAmount;
-            TrialBalanceData.CheckAllZero();
-            if not TrialBalanceData."All Zero" then begin
-                TrialBalanceData.Insert(true);
-                InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
-                InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
-            end;
+            // Every combination the query returns has entries, so it represents real activity and is kept even when it
+            // nets to zero. The second pass adjusts any that also have an opening balance.
+            TrialBalanceData.Insert(true);
+            InsertUsedDimensionValue(1, TrialBalanceData."Dimension 1 Code", Dimension1Values);
+            InsertUsedDimensionValue(2, TrialBalanceData."Dimension 2 Code", Dimension2Values);
         end;
         EXRTrialBalanceBUQuery.Close();
 
         // And now we get the balances at the starting date and modify the ones we have already inserted
-        EXRTrialBalanceBUQuery.SetFilter(EXRTrialBalanceBUQuery.PostingDate, '..%1', ClosingDate(StartDate - 1));
+        EXRTrialBalanceBUQuery.SetFilter(EXRTrialBalanceBUQuery.PostingDate, '..%1', GetOpeningBalanceCutoff(StartDate));
         EXRTrialBalanceBUQuery.Open();
         while EXRTrialBalanceBUQuery.Read() do begin
             TrialBalanceData.SetRange("G/L Account No.", EXRTrialBalanceBUQuery.AccountNumber);
@@ -336,6 +333,8 @@ codeunit 4410 "Trial Balance"
             TrialBalanceData.SetRange("Dimension 2 Code", EXRTrialBalanceBUQuery.DimensionValue2Code);
             TrialBalanceData.SetRange("Business Unit Code", EXRTrialBalanceBUQuery.BusinessUnitCode);
             if not TrialBalanceData.FindFirst() then begin
+                // This shouldn't happen now that the first pass inserts every combination with entries up to the ending date, but we Init() and consider it regardless.
+                TrialBalanceData.Init();
                 TrialBalanceData."G/L Account No." := EXRTrialBalanceBUQuery.AccountNumber;
                 TrialBalanceData."Dimension 1 Code" := EXRTrialBalanceBUQuery.DimensionValue1Code;
                 TrialBalanceData."Dimension 2 Code" := EXRTrialBalanceBUQuery.DimensionValue2Code;
@@ -360,57 +359,108 @@ codeunit 4410 "Trial Balance"
         end;
     end;
 
-    local procedure InsertTotalAccountsFromBuffer(var TotalAccount: Record "G/L Account"; var TrialBalanceData: Record "EXR Trial Balance Buffer")
+    local procedure BuildAccountToTotalsMap(AccountNoFilter: Text; var AccountToTotals: Dictionary of [Code[20], List of [Code[20]]])
     var
-        TempDimCombinations: Record "EXR Trial Balance Buffer" temporary;
+        TotalAccount: Record "G/L Account";
+        PostingAccount: Record "G/L Account";
     begin
-        Clear(TrialBalanceData);
-        TrialBalanceData.SetFilter("G/L Account No.", TotalAccount.Totaling);
-        if not TrialBalanceData.FindSet() then begin
-            Clear(TrialBalanceData);
+        // For each Total/End-Total account we record which posting accounts fall inside its Totaling range. 
+        TotalAccount.SetFilter("Account Type", '%1|%2', "G/L Account Type"::"End-Total", "G/L Account Type"::Total);
+        if AccountNoFilter <> '' then
+            TotalAccount.SetFilter("No.", AccountNoFilter);
+        if not TotalAccount.FindSet() then
             exit;
-        end;
-
-        // Collect distinct (Dimension 1, Dimension 2, Business Unit Code) combinations from the loaded records in the totaling range
         repeat
-            TempDimCombinations."G/L Account No." := TotalAccount."No.";
-            TempDimCombinations."Dimension 1 Code" := TrialBalanceData."Dimension 1 Code";
-            TempDimCombinations."Dimension 2 Code" := TrialBalanceData."Dimension 2 Code";
-            TempDimCombinations."Business Unit Code" := TrialBalanceData."Business Unit Code";
-            if not TempDimCombinations.Insert() then;
+            if TotalAccount.Totaling <> '' then begin
+                PostingAccount.Reset();
+                PostingAccount.SetRange("Account Type", "G/L Account Type"::Posting);
+                PostingAccount.SetFilter("No.", TotalAccount.Totaling);
+                if PostingAccount.FindSet() then
+                    repeat
+                        AddTotalForAccount(AccountToTotals, PostingAccount."No.", TotalAccount."No.");
+                    until PostingAccount.Next() = 0;
+            end;
+        until TotalAccount.Next() = 0;
+    end;
+
+    local procedure AddTotalForAccount(var AccountToTotals: Dictionary of [Code[20], List of [Code[20]]]; PostingAccountNo: Code[20]; TotalAccountNo: Code[20])
+    var
+        ContainingTotals: List of [Code[20]];
+    begin
+        if AccountToTotals.Get(PostingAccountNo, ContainingTotals) then
+            ContainingTotals.Add(TotalAccountNo)
+        else begin
+            ContainingTotals.Add(TotalAccountNo);
+            AccountToTotals.Add(PostingAccountNo, ContainingTotals);
+        end;
+    end;
+
+    local procedure DistributePostingRowsToTotals(var TrialBalanceData: Record "EXR Trial Balance Buffer"; var AccountToTotals: Dictionary of [Code[20], List of [Code[20]]]; var TotalsBuffer: Record "EXR Trial Balance Buffer")
+    var
+        ContainingTotals: List of [Code[20]];
+        TotalAccountNo: Code[20];
+    begin
+        // Single sweep over the posting rows; each row is added once to every total whose range contains its account.
+        TrialBalanceData.Reset();
+        if not TrialBalanceData.FindSet() then
+            exit;
+        repeat
+            if AccountToTotals.Get(TrialBalanceData."G/L Account No.", ContainingTotals) then
+                foreach TotalAccountNo in ContainingTotals do
+                    AddRowToTotal(TotalAccountNo, TrialBalanceData, TotalsBuffer);
         until TrialBalanceData.Next() = 0;
+    end;
 
-        // For each combination, compute the sums (in memory) and insert an total record
-        if TempDimCombinations.FindSet() then
-            repeat
-                Clear(TrialBalanceData);
-                TrialBalanceData.SetFilter("G/L Account No.", TotalAccount.Totaling);
-                TrialBalanceData.SetRange("Dimension 1 Code", TempDimCombinations."Dimension 1 Code");
-                TrialBalanceData.SetRange("Dimension 2 Code", TempDimCombinations."Dimension 2 Code");
-                TrialBalanceData.SetRange("Business Unit Code", TempDimCombinations."Business Unit Code");
-                TrialBalanceData.CalcSums(
-                    // LCY
-                    "Net Change", "Net Change (Debit)", "Net Change (Credit)",
-                    Balance, "Balance (Debit)", "Balance (Credit)",
-                    "Starting Balance", "Starting Balance (Debit)", "Starting Balance (Credit)",
-                    // ACY
-                    "Net Change (ACY)", "Net Change (Debit) (ACY)", "Net Change (Credit) (ACY)",
-                    "Balance (ACY)", "Balance (Debit) (ACY)", "Balance (Credit) (ACY)",
-                    "Starting Balance (ACY)", "Starting Balance (Debit) (ACY)", "Starting Balance (Credit)(ACY)",
-                    // Budget
-                    "Budget (Net)", "Budget (Bal. at Date)"
-                );
-                TrialBalanceData."G/L Account No." := TotalAccount."No.";
-                TrialBalanceData."Dimension 1 Code" := TempDimCombinations."Dimension 1 Code";
-                TrialBalanceData."Dimension 2 Code" := TempDimCombinations."Dimension 2 Code";
-                TrialBalanceData."Business Unit Code" := TempDimCombinations."Business Unit Code";
-                TrialBalanceData.CalculateBudgetComparisons();
-                TrialBalanceData.CheckAllZero();
-                if not TrialBalanceData."All Zero" then
-                    TrialBalanceData.Insert(true);
-            until TempDimCombinations.Next() = 0;
+    local procedure AddRowToTotal(TotalAccountNo: Code[20]; var SourceRow: Record "EXR Trial Balance Buffer"; var TotalsBuffer: Record "EXR Trial Balance Buffer")
+    begin
+        if not TotalsBuffer.Get(TotalAccountNo, SourceRow."Dimension 1 Code", SourceRow."Dimension 2 Code", SourceRow."Business Unit Code", SourceRow."Period Start") then begin
+            TotalsBuffer.Init();
+            TotalsBuffer."G/L Account No." := TotalAccountNo;
+            TotalsBuffer."Dimension 1 Code" := SourceRow."Dimension 1 Code";
+            TotalsBuffer."Dimension 2 Code" := SourceRow."Dimension 2 Code";
+            TotalsBuffer."Business Unit Code" := SourceRow."Business Unit Code";
+            TotalsBuffer."Period Start" := SourceRow."Period Start";
+            TotalsBuffer.Insert();
+        end;
+        // LCY
+        TotalsBuffer."Net Change" := TotalsBuffer."Net Change" + SourceRow."Net Change";
+        TotalsBuffer."Net Change (Debit)" := TotalsBuffer."Net Change (Debit)" + SourceRow."Net Change (Debit)";
+        TotalsBuffer."Net Change (Credit)" := TotalsBuffer."Net Change (Credit)" + SourceRow."Net Change (Credit)";
+        TotalsBuffer.Balance := TotalsBuffer.Balance + SourceRow.Balance;
+        TotalsBuffer."Balance (Debit)" := TotalsBuffer."Balance (Debit)" + SourceRow."Balance (Debit)";
+        TotalsBuffer."Balance (Credit)" := TotalsBuffer."Balance (Credit)" + SourceRow."Balance (Credit)";
+        TotalsBuffer."Starting Balance" := TotalsBuffer."Starting Balance" + SourceRow."Starting Balance";
+        TotalsBuffer."Starting Balance (Debit)" := TotalsBuffer."Starting Balance (Debit)" + SourceRow."Starting Balance (Debit)";
+        TotalsBuffer."Starting Balance (Credit)" := TotalsBuffer."Starting Balance (Credit)" + SourceRow."Starting Balance (Credit)";
+        // ACY
+        TotalsBuffer."Net Change (ACY)" := TotalsBuffer."Net Change (ACY)" + SourceRow."Net Change (ACY)";
+        TotalsBuffer."Net Change (Debit) (ACY)" := TotalsBuffer."Net Change (Debit) (ACY)" + SourceRow."Net Change (Debit) (ACY)";
+        TotalsBuffer."Net Change (Credit) (ACY)" := TotalsBuffer."Net Change (Credit) (ACY)" + SourceRow."Net Change (Credit) (ACY)";
+        TotalsBuffer."Balance (ACY)" := TotalsBuffer."Balance (ACY)" + SourceRow."Balance (ACY)";
+        TotalsBuffer."Balance (Debit) (ACY)" := TotalsBuffer."Balance (Debit) (ACY)" + SourceRow."Balance (Debit) (ACY)";
+        TotalsBuffer."Balance (Credit) (ACY)" := TotalsBuffer."Balance (Credit) (ACY)" + SourceRow."Balance (Credit) (ACY)";
+        TotalsBuffer."Starting Balance (ACY)" := TotalsBuffer."Starting Balance (ACY)" + SourceRow."Starting Balance (ACY)";
+        TotalsBuffer."Starting Balance (Debit) (ACY)" := TotalsBuffer."Starting Balance (Debit) (ACY)" + SourceRow."Starting Balance (Debit) (ACY)";
+        TotalsBuffer."Starting Balance (Credit)(ACY)" := TotalsBuffer."Starting Balance (Credit)(ACY)" + SourceRow."Starting Balance (Credit)(ACY)";
+        // Budget
+        TotalsBuffer."Budget (Net)" := TotalsBuffer."Budget (Net)" + SourceRow."Budget (Net)";
+        TotalsBuffer."Budget (Bal. at Date)" := TotalsBuffer."Budget (Bal. at Date)" + SourceRow."Budget (Bal. at Date)";
+        TotalsBuffer.Modify();
+    end;
 
-        Clear(TrialBalanceData);
+    local procedure MergeTotalsIntoBuffer(var TotalsBuffer: Record "EXR Trial Balance Buffer"; var TrialBalanceData: Record "EXR Trial Balance Buffer")
+    begin
+        TrialBalanceData.Reset();
+        TotalsBuffer.Reset();
+        if not TotalsBuffer.FindSet() then
+            exit;
+        repeat
+            TrialBalanceData := TotalsBuffer;
+            TrialBalanceData.CalculateBudgetComparisons();
+            TrialBalanceData.CheckAllZero();
+            if not TrialBalanceData."All Zero" then
+                TrialBalanceData.Insert(true);
+        until TotalsBuffer.Next() = 0;
     end;
 
     local procedure InsertBudgetDataFromQuery(var GLAccount: Record "G/L Account"; var TrialBalanceData: Record "EXR Trial Balance Buffer"; StartDate: Date; EndDate: Date)
@@ -490,6 +540,14 @@ codeunit 4410 "Trial Balance"
             StartDate := WorkDate();
         if EndDate = 0D then
             EndDate := StartDate;
+    end;
+
+    local procedure GetOpeningBalanceCutoff(StartDate: Date): Date
+    begin
+        // We return the date immediately before the starting date, considering BC's date ordering and the presence of closing dates
+        if StartDate = ClosingDate(StartDate) then
+            exit(NormalDate(StartDate));
+        exit(ClosingDate(StartDate - 1));
     end;
     #endregion
 
