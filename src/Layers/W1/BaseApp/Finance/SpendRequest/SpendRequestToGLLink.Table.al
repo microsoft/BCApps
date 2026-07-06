@@ -45,14 +45,20 @@ table 6845 "Spend Request To G/L Link"
         field(5; Amount; Decimal)
         {
             Caption = 'Amount';
-            ToolTip = 'Specifies the amount of the g/l entry that this record points to.';
+            ToolTip = 'Specifies the amount of the g/l entry that this record is linked to.';
             AutoFormatExpression = '';
             AutoFormatType = 1;
         }
         field(6; "Posting Date"; Date)
         {
             Caption = 'Posting Date';
-            ToolTip = 'Specifies the posting date of the g/l entry that this record points to.';
+            ToolTip = 'Specifies the posting date of the g/l entry that this record is linked to.';
+        }
+        field(7; "Document No."; Code[20])
+        {
+            Caption = 'Document No.';
+            Editable = false;
+            ToolTip = 'Specifies the document no. from the g/l entry that this record is linked to.';
         }
         field(10; "Detail Description"; Text[100])
         {
@@ -62,19 +68,11 @@ table 6845 "Spend Request To G/L Link"
             FieldClass = FlowField;
             CalcFormula = lookup("Spend Request Detail".Description where("Spend Request No." = field("Spend Request No."), "Line No." = field("Spend Request Detail No.")));
         }
-        field(11; "Document No."; Code[20])
-        {
-            Caption = 'Document No.';
-            Editable = false;
-            ToolTip = 'Specifies the posting description from the g/l entry.';
-            FieldClass = FlowField;
-            CalcFormula = lookup("G/L Entry"."Document No." where("Entry No." = field("G/L Entry No.")));
-        }
         field(12; "Posting Description"; Text[100])
         {
             Caption = 'Posting Description';
             Editable = false;
-            ToolTip = 'Specifies the posting description from the g/l entry.';
+            ToolTip = 'Specifies the posting description from the g/l entry that this record is linked to.';
             FieldClass = FlowField;
             CalcFormula = lookup("G/L Entry".Description where("Entry No." = field("G/L Entry No.")));
         }
@@ -88,6 +86,9 @@ table 6845 "Spend Request To G/L Link"
         key(Key2; "G/L Account No.", "Posting Date")
         {
             IncludedFields = Amount;
+        }
+        key(Key3; "Document No.", "Posting Date")
+        {
         }
     }
 }

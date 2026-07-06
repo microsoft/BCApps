@@ -2135,6 +2135,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if not GenJnlLine.Correction and (GLEntry.Amount < 0) then
             exit;
 
+        SpendRequestDetail.SetLoadFields("Line No.");
         SpendRequestDetail.SetRange("Spend Request No.", GenJnlLine."Spend Request No.");
         SpendRequestDetail.SetRange("G/L Account No.", GLEntry."G/L Account No.");
         if SpendRequestDetail.FindFirst() then;
@@ -2144,12 +2145,12 @@ codeunit 12 "Gen. Jnl.-Post Line"
         SpendReqToGLLink."Spend Request Detail No." := SpendRequestDetail."Line No.";
         SpendReqToGLLink."G/L Entry No." := GLEntry."Entry No.";
         SpendReqToGLLink."G/L Account No." := GLEntry."G/L Account No.";
+        SpendReqToGLLink."Document No." := GLEntry."Document No.";
         SpendReqToGLLink."Posting Date" := GLEntry."Posting Date";
         SpendReqToGLLink.Amount := GLEntry.Amount;
         SpendReqToGLLink.Insert();
 
         if GenJnlLine."Spend Request Close" then begin
-            SpendRequest.SetLoadFields(Status);
             SpendRequest.ReadIsolation(IsolationLevel::UpdLock);
             SpendRequest.Get(GenJnlLine."Spend Request No.");
             if SpendRequest.Status = SpendRequest.Status::Approved then begin

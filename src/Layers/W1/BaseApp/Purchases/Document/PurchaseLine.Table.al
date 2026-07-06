@@ -2148,6 +2148,7 @@ table 39 "Purchase Line"
             trigger OnValidate()
             var
                 SpendRequest: Record "Spend Request";
+                DimensionSetIDArr: array[10] of Integer;
             begin
                 if not GuiAllowed() then
                     exit;
@@ -2158,6 +2159,11 @@ table 39 "Purchase Line"
                 SpendRequest.SetAutoCalcFields("Total Spent Amount (LCY)");
                 SpendRequest.Get(Rec."Spend Request No.");
                 SpendRequest.TestField(Status, SpendRequest.Status::Approved);
+                if SpendRequest."Dimension Set ID" <> 0 then begin
+                    DimensionSetIDArr[1] := Rec."Dimension Set ID";
+                    DimensionSetIDArr[2] := SpendRequest."Dimension Set ID";
+                    Rec."Dimension Set ID" := DimMgt.GetCombinedDimensionSetID(DimensionSetIDArr, Rec."Shortcut Dimension 1 Code", Rec."Shortcut Dimension 2 Code");
+                end;
                 Rec."Spend Request Close" := Confirm(SpendRequestCloseQst, true, SpendRequest."No.");
             end;
         }

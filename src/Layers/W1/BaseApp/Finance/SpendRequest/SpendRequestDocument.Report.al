@@ -107,7 +107,7 @@ report 6850 "Spend Request Document"
         layout(WordLayout)
         {
             Type = Word;
-            LayoutFile = 'SpendRequestDocument.docx';
+            LayoutFile = './Finance/SpendRequest/SpendRequestDocument.docx';
             Caption = 'Spend Request Document';
         }
     }

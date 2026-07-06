@@ -38,6 +38,15 @@ page 6840 "Spend Request List"
                 field("Total Expected Amount (LCY)"; Rec."Total Expected Amount (LCY)")
                 {
                 }
+                field("Total Spent Amount (LCY)"; Rec."Total Spent Amount (LCY)")
+                {
+                }
+                field(RemainingAmountLCY; Rec.GetRemainingAmountLCY())
+                {
+                    Caption = 'Remaining Amount (LCY)';
+                    ToolTip = 'Specifies the difference between estimated amount and actually spent amount.';
+                    Importance = Additional;
+                }
                 field("Expected Start Date"; Rec."Expected Start Date")
                 {
                 }

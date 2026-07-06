@@ -27,4 +27,11 @@ enum 332 "Column Layout Entry Type"
     {
         Caption = 'Budget Entries';
     }
+    /// <summary>
+    /// Uses budget entries for column calculations and comparisons.
+    /// </summary>
+    value(3; "Approved Spend Requests")
+    {
+        Caption = 'Approved Spend Requests';
+    }
 }

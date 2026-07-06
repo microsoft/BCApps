@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.SpendRequest;
 
 using Microsoft.Finance.Currency;
+using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.NoSeries;
@@ -56,6 +57,7 @@ table 6840 "Spend Request"
             trigger OnValidate()
             begin
                 TestStatusOpen();
+                CreateDimFromDefaultDim(FieldNo("Requested By"));
             end;
         }
         field(6; Status; Enum "Spend Request Status")
@@ -70,6 +72,12 @@ table 6840 "Spend Request"
             ToolTip = 'The G/L Account that the expenses will primarily be posted to.';
             DataClassification = CustomerContent;
             TableRelation = "G/L Account";
+
+            trigger OnValidate()
+            begin
+                TestStatusOpen();
+                CreateDimFromDefaultDim(FieldNo("Requested By"));
+            end;
         }
         field(8; Purpose; Text[1000])
         {
@@ -206,7 +214,7 @@ table 6840 "Spend Request"
         }
         field(20; "Total Spent Amount (LCY)"; Decimal)
         {
-            Caption = 'Total Spent Amount';
+            Caption = 'Total Spent Amount (LCY)';
             AutoFormatExpression = '';
             AutoFormatType = 1;
             Editable = false;
@@ -223,6 +231,59 @@ table 6840 "Spend Request"
             ToolTip = 'Specifies the total amount in local currency for all the detail lines.';
             FieldClass = FlowField;
             CalcFormula = sum("Spend Request Detail"."Expected Amount (LCY)" where("Spend Request No." = field("No.")));
+        }
+        /// <summary>
+        /// Specifies the code for the first global dimension used for analysis and reporting.
+        /// </summary>
+        field(29; "Shortcut Dimension 1 Code"; Code[20])
+        {
+            CaptionClass = '1,2,1';
+            Caption = 'Shortcut Dimension 1 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 1, which is one of two global dimension codes that you set up in the General Ledger Setup page.';
+            TableRelation = "Dimension Value".Code where("Global Dimension No." = const(1),
+                                                          Blocked = const(false));
+
+            trigger OnValidate()
+            begin
+                Rec.ValidateShortcutDimCode(1, "Shortcut Dimension 1 Code");
+            end;
+        }
+        /// <summary>
+        /// Specifies the code for the second global dimension used for analysis and reporting.
+        /// </summary>
+        field(30; "Shortcut Dimension 2 Code"; Code[20])
+        {
+            CaptionClass = '1,2,2';
+            Caption = 'Shortcut Dimension 2 Code';
+            ToolTip = 'Specifies the code for Shortcut Dimension 2, which is one of two global dimension codes that you set up in the General Ledger Setup page.';
+            TableRelation = "Dimension Value".Code where("Global Dimension No." = const(2),
+                                                          Blocked = const(false));
+
+            trigger OnValidate()
+            begin
+                Rec.ValidateShortcutDimCode(2, "Shortcut Dimension 2 Code");
+            end;
+        }
+        /// <summary>
+        /// Specifies the identifier for the combination of dimensions applied to the document.
+        /// </summary>
+        field(480; "Dimension Set ID"; Integer)
+        {
+            Caption = 'Dimension Set ID';
+            Editable = false;
+            TableRelation = "Dimension Set Entry";
+
+            trigger OnLookup()
+            begin
+                Rec.ShowDocDim();
+            end;
+
+            trigger OnValidate()
+            var
+                DimMgt: Codeunit DimensionManagement;
+            begin
+                DimMgt.UpdateGlobalDimFromDimSetID("Dimension Set ID", "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
+            end;
         }
     }
     keys
@@ -253,6 +314,8 @@ table 6840 "Spend Request"
     var
         GLSetup: Record "General Ledger Setup";
         SpendRequest: Record "Spend Request";
+        User: Record User;
+        Employee: Record Employee;
         NoSeries: Codeunit "No. Series";
     begin
         if "No." <> '' then exit;
@@ -266,6 +329,14 @@ table 6840 "Spend Request"
                 SpendRequest."No." := '00000000';
             Rec."No." := IncStr(SpendRequest."No.");
         end;
+        if Rec."Requested By" = '' then
+            if User.ReadPermission() and Employee.ReadPermission() then
+                if User.Get(UserSecurityId()) then
+                    if User."Authentication Email" <> '' then begin
+                        Employee.SetRange("Company E-Mail", User."Authentication Email");
+                        if Employee.FindFirst() then
+                            Rec."Requested By" := Employee."No.";
+                    end;
     end;
 
     trigger OnModify()
@@ -291,6 +362,16 @@ table 6840 "Spend Request"
         EndBeforeStartErr: Label 'Expected End Date cannot be before Expected Start Date.';
         CannotDeleteErr: Label 'You cannot delete a spend request that has expenses posted against it.';
         CannotBeLessThanSumOfLinesErr: Label 'You cannot specify an amount less than the total of the lines.';
+        ChangeCurrCodeOnLineQst: Label 'You have changed the currency code on the expense request. Do you also want to update the lines that had the same currency code?';
+
+    /// <summary>
+    /// Returns the difference between estimated amount and actually spent amount
+    /// </summary>
+    /// <returns></returns>
+    procedure GetRemainingAmountLCY(): Decimal
+    begin
+        exit(Rec."Total Expected Amount (LCY)" - Rec."Total Spent Amount (LCY)");
+    end;
 
     local procedure CheckStartAndEndDate()
     begin
@@ -323,6 +404,79 @@ table 6840 "Spend Request"
     procedure TestStatusOpen()
     begin
         Rec.TestField(Status, Status::Open);
+    end;
+
+    /// <summary>
+    /// Opens a page for editing dimensions for the sales header.
+    /// If dimensions are changed, they're updated on the sales lines as well.
+    /// </summary>
+    procedure ShowDocDim()
+    var
+        DimMgt: Codeunit DimensionManagement;
+        OldDimSetID: Integer;
+    begin
+        OldDimSetID := "Dimension Set ID";
+        "Dimension Set ID" := DimMgt.EditDimensionSet(Rec, "Dimension Set ID", StrSubstNo('%1 %2', Rec.TableCaption, "No."),
+            "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code");
+        if OldDimSetID <> "Dimension Set ID" then
+            Modify();
+    end;
+
+    /// <summary>
+    /// Verifies whether the provided shortcut dimension code and value are valid.
+    /// If valid, assigns it to the sales document.
+    /// </summary>
+    /// <remarks>
+    /// If sales lines exist, the dimensions are updated on the lines as well.
+    /// </remarks>
+    /// <param name="FieldNumber">Number of the shortcut dimension.</param>
+    /// <param name="ShortcutDimCode">Value of the shortcut dimension.</param>
+    procedure ValidateShortcutDimCode(FieldNumber: Integer; var ShortcutDimCode: Code[20])
+    var
+        DimMgt: Codeunit DimensionManagement;
+        OldDimSetID: Integer;
+    begin
+        OldDimSetID := "Dimension Set ID";
+        DimMgt.ValidateShortcutDimValues(FieldNumber, ShortcutDimCode, "Dimension Set ID");
+        if OldDimSetID <> "Dimension Set ID" then
+            if not IsNullGuid(Rec.SystemId) then
+                Modify();
+    end;
+
+    /// <summary>
+    /// Initializes the dimensions for the document from default dimensions for the related entry specified in the field.
+    /// </summary>
+    /// <param name="FieldNo">The field number for which to initialize the dimensions.</param>
+    procedure CreateDimFromDefaultDim(FieldNo: Integer)
+    var
+        DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];
+    begin
+        InitDefaultDimensionSources(DefaultDimSource, FieldNo);
+        CreateDim(DefaultDimSource);
+    end;
+
+    local procedure InitDefaultDimensionSources(var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer)
+    var
+        DimMgt: Codeunit DimensionManagement;
+    begin
+        DimMgt.AddDimSource(DefaultDimSource, Database::Employee, Rec."Requested By", FieldNo = Rec.FieldNo("Requested By"));
+        DimMgt.AddDimSource(DefaultDimSource, Database::"G/L Account", Rec."G/L Account No.", FieldNo = Rec.FieldNo("G/L Account No."));
+    end;
+
+    /// <summary>
+    /// Creates and assigns dimensions for the sales header based on the provided default dimension sources.
+    /// </summary>
+    /// <remarks>
+    /// If sales lines exist and the dimension set has changed the dimensions are updated on the lines as well.
+    /// </remarks>
+    /// <param name="DefaultDimSource">The list of default dimension sources.</param>
+    procedure CreateDim(DefaultDimSource: List of [Dictionary of [Integer, Code[20]]])
+    var
+        DimMgt: Codeunit DimensionManagement;
+    begin
+        "Shortcut Dimension 1 Code" := '';
+        "Shortcut Dimension 2 Code" := '';
+        "Dimension Set ID" := DimMgt.GetRecDefaultDimID(Rec, CurrFieldNo, DefaultDimSource, '', "Shortcut Dimension 1 Code", "Shortcut Dimension 2 Code", 0, 0);
     end;
 
     /// <summary>
@@ -361,6 +515,8 @@ table 6840 "Spend Request"
         SpendRequestDetail.SetRange("Spend Request No.", Rec."No.");
         SpendRequestDetail.SetRange("Currency Code", xCurrencyCode);
         if not SpendRequestDetail.FindSet(true) then
+            exit;
+        if not Confirm(ChangeCurrCodeOnLineQst) then
             exit;
         repeat
             SpendRequestDetail."Currency Code" := Rec."Currency Code";

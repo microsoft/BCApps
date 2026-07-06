@@ -2575,9 +2575,14 @@ table 81 "Gen. Journal Line"
                 SpendRequest: Record "Spend Request";
                 NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
                 AlreadyAllocatedNotification: Notification;
+                DimensionSetIDArr: array[10] of Integer;
             begin
                 if not GuiAllowed() then
                     exit;
+                if "Spend Request No." = '' then begin
+                    "Spend Request Close" := false;
+                    exit;
+                end;
                 SpendRequest.SetAutoCalcFields("Total Spent Amount (LCY)");
                 SpendRequest.Get(Rec."Spend Request No.");
                 SpendRequest.TestField(Status, SpendRequest.Status::Approved);
@@ -2585,6 +2590,11 @@ table 81 "Gen. Journal Line"
                     AlreadyAllocatedNotification.Scope := AlreadyAllocatedNotification.Scope::LocalScope;
                     AlreadyAllocatedNotification.Message := StrSubstNo(SpendRequestIsUsedMsg, SpendRequest."No.", SpendRequest."Total Expected Amount (LCY)", SpendRequest."Total Spent Amount (LCY)");
                     NotificationLifecycleMgt.SendNotification(AlreadyAllocatedNotification, SpendRequest.RecordId);
+                end;
+                if SpendRequest."Dimension Set ID" <> 0 then begin
+                    DimensionSetIDArr[1] := Rec."Dimension Set ID";
+                    DimensionSetIDArr[2] := SpendRequest."Dimension Set ID";
+                    Rec."Dimension Set ID" := DimMgt.GetCombinedDimensionSetID(DimensionSetIDArr, Rec."Shortcut Dimension 1 Code", Rec."Shortcut Dimension 2 Code");
                 end;
                 Rec."Spend Request Close" := Confirm(SpendRequestCloseQst, true, SpendRequest."No.");
             end;

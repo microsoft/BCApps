@@ -66,9 +66,23 @@ page 6841 "Spend Request Card"
                 {
                     Importance = Promoted;
                 }
-                field(TotalSpentAmount; Rec."Total Spent Amount (LCY)")
+                field(TotalSpentAmountLCY; Rec."Total Spent Amount (LCY)")
                 {
                     Importance = Promoted;
+                }
+                field(RemainingAmountLCY; Rec.GetRemainingAmountLCY())
+                {
+                    Caption = 'Remaining Amount (LCY)';
+                    ToolTip = 'Specifies the difference between estimated amount and actually spent amount.';
+                    Importance = Additional;
+                }
+                field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
+                {
+                    Importance = Additional;
+                }
+                field("Shortcut Dimension 2 Code"; Rec."Shortcut Dimension 2 Code")
+                {
+                    Importance = Additional;
                 }
             }
             part(Lines; "Spend Request Subform")
@@ -225,59 +239,27 @@ page 6841 "Spend Request Card"
                     Rec.Modify();
                 end;
             }
-            group("Spend Request Approval")
+        }
+        area(Navigation)
+        {
+            action(Dimensions)
             {
-                /*
-                                Caption = 'Request Approval';
-                                action(SendApprovalRequest)
-                                {
-                                    ApplicationArea = Basic, Suite;
-                                    Caption = 'Send Approval Request';
-                                    Image = SendApprovalRequest;
-                                    ToolTip = 'Request approval of the document.';
+                AccessByPermission = TableData Microsoft.Finance.Dimension.Dimension = R;
+                ApplicationArea = Dimensions;
+                Caption = 'Dimensions';
+                Enabled = Rec."No." <> '';
+                Image = Dimensions;
+                ShortCutKey = 'Alt+D';
+                ToolTip = 'View or edit dimensions, such as area, project, or department, that you can assign to sales and purchase documents to distribute costs and analyze transaction history.';
 
-                                    trigger OnAction()
-                                    var
-                                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-                                    begin
-                                        if ApprovalsMgmt.CheckPurchaseApprovalPossible(Rec) then
-                                            ApprovalsMgmt.OnSendPurchaseDocForApproval(Rec);
-                                    end;
-                                }
-                                action(CancelApprovalRequest)
-                                {
-                                    ApplicationArea = Basic, Suite;
-                                    Caption = 'Cancel Approval Request';
-                                    Image = CancelApprovalRequest;
-                                    ToolTip = 'Cancel the approval request.';
-
-                                    trigger OnAction()
-                                    var
-                                        ApprovalsMgmt: Codeunit "Approvals Mgmt.";
-                                        WorkflowWebhookMgt: Codeunit "Workflow Webhook Management";
-                                    begin
-                                        ApprovalsMgmt.OnCancelPurchaseApprovalRequest(Rec);
-                                        WorkflowWebhookMgt.FindAndCancel(Rec.RecordId);
-                                    end;
-                                }
-                                */
-                group(Flow)
-                {
-                    Caption = 'Power Automate';
-                    Image = Flow;
-
-                    customaction(CreateFlowFromTemplate)
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Create approval flow';
-                        ToolTip = 'Create a new flow in Power Automate from a list of relevant flow templates.';
-                        Visible = IsSaaS and IsPowerAutomatePrivacyNoticeApproved;
-                        CustomActionType = FlowTemplateGallery;
-                        FlowTemplateCategoryName = 'd365bc_approval_request';
-                    }
-                }
+                trigger OnAction()
+                begin
+                    Rec.ShowDocDim();
+                    CurrPage.SaveRecord();
+                end;
             }
         }
+
         area(Promoted)
         {
             group(Category_Process)
@@ -300,6 +282,9 @@ page 6841 "Spend Request Card"
                 {
                 }
                 actionref(Print_Promoted; Print)
+                {
+                }
+                actionref(Dimensions_Promoted; Dimensions)
                 {
                 }
             }
