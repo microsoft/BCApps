@@ -3154,6 +3154,7 @@ codeunit 139601 "Shpfy Create Product Test"
     var
         Item: Record Item;
         ShopifyProduct: Record "Shpfy Product";
+        ShopifyVariant: Record "Shpfy Variant";
         BulkOperation: Record "Shpfy Bulk Operation";
         ProductExport: Codeunit "Shpfy Product Export";
         ProductInitTest: Codeunit "Shpfy Product Init Test";
@@ -3167,6 +3168,12 @@ codeunit 139601 "Shpfy Create Product Test"
         ExportShop."UoM as Variant" := false;
         ExportShop.Modify();
         PriceUpdateHttpCallCount := 0;
+
+        // [GIVEN] No pre-existing Shopify products/variants for the shop, so only the ones created below are exported.
+        ShopifyVariant.SetRange("Shop Code", ExportShop.Code);
+        ShopifyVariant.DeleteAll(false);
+        ShopifyProduct.SetRange("Shop Code", ExportShop.Code);
+        ShopifyProduct.DeleteAll(false);
 
         // [GIVEN] A few Shopify products mapped to BC items whose prices differ from Shopify (all will change).
         ChangedVariantCount := 3;
