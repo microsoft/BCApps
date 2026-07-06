@@ -56,9 +56,10 @@ Describe "BuildOptimization" {
     }
 
     Context "Get-AffectedApps" {
-        It "returns 9 affected apps for E-Document Core change" {
+        It "returns the E-Document Core change as affecting the full connector/test/demo-data set" {
             $affected = Get-AffectedApps -ChangedFiles @('src/Apps/W1/EDocument/App/src/SomeFile.al') -BaseFolder $baseFolder -Graph $graph
-            $affected.Count | Should -Be 9
+            # E-Document Core fans out to every connector, country demo-data, format and test app that depends on it.
+            $affected.Count | Should -Be 50
             $affected | Should -Contain 'e1d97edc-c239-46b4-8d84-6368bdf67c8b'
         }
 
@@ -312,15 +313,19 @@ Describe "BuildOptimization" {
             $affectedNames | Should -Contain 'E-Document Core'
         }
 
-        It "RunTestsInBcContainer scripts use Get-BaseFolder, not relative path resolution" {
+        It "RunTestsInBcContainer scripts delegate to Invoke-PerProjectTestRun, not relative path resolution" {
             $scripts = Get-ChildItem -Path (Resolve-Path "$PSScriptRoot\..\..\projects").Path -Recurse -Filter 'RunTestsInBcContainer.ps1'
             $scripts.Count | Should -BeGreaterOrEqual 4
 
             foreach ($script in $scripts) {
                 $content = Get-Content $script.FullName -Raw
-                $content | Should -Match 'Get-BaseFolder' -Because "$($script.FullName) must use Get-BaseFolder for repo root"
+                $content | Should -Match 'Invoke-PerProjectTestRun' -Because "$($script.FullName) must delegate to Invoke-PerProjectTestRun, which resolves repo root via Get-BaseFolder"
                 $content | Should -Not -Match '\$baseFolder\s*=.*Join-Path.*\$PSScriptRoot' -Because "$($script.FullName) must not compute baseFolder via relative path"
             }
+
+            # The shared module that the per-project scripts delegate to must use Get-BaseFolder for repo root
+            $module = Get-Content (Resolve-Path "$PSScriptRoot\..\ParallelTestExecution.psm1").Path -Raw
+            $module | Should -Match 'Get-BaseFolder' -Because 'ParallelTestExecution.psm1 must resolve repo root via Get-BaseFolder'
         }
     }
 

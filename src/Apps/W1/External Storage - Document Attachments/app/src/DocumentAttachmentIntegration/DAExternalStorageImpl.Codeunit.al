@@ -364,13 +364,6 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <param name="DocumentAttachment">The document attachment record to delete from external storage.</param>
     /// <returns>True if deletion was successful, false otherwise.</returns>
     procedure DeleteFromExternalStorage(var DocumentAttachment: Record "Document Attachment"): Boolean
-    var
-        TempFileAccount: Record "File Account";
-        ExternalFileStorage: Codeunit "External File Storage";
-        FileScenarioCU: Codeunit "File Scenario";
-        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
-        FileScenario: Enum "File Scenario";
-        ExternalFilePath: Text;
     begin
         // Check if feature is enabled
         if not IsFeatureEnabled() then
@@ -395,23 +388,31 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
             exit(true);
         end;
 
-        // Use the stored external file path
-        ExternalFilePath := DocumentAttachment."External File Path";
+        if not DeleteExternalFile(DocumentAttachment."External File Path", DocumentAttachment) then
+            exit(false);
 
-        // Search for External Storage assigned File Scenario
+        DocumentAttachment.MarkAsNotUploadedToExternal();
+        exit(true);
+    end;
+
+    local procedure DeleteExternalFile(ExternalFilePath: Text; DocumentAttachmentForTelemetry: Record "Document Attachment"): Boolean
+    var
+        TempFileAccount: Record "File Account";
+        ExternalFileStorage: Codeunit "External File Storage";
+        FileScenarioCU: Codeunit "File Scenario";
+        DAFeatureTelemetry: Codeunit "DA Feature Telemetry";
+        FileScenario: Enum "File Scenario";
+    begin
         FileScenario := FileScenario::"Doc. Attach. - External Storage";
         if not FileScenarioCU.GetSpecificFileAccount(FileScenario, TempFileAccount) then
             exit(false);
 
-        // Delete the file with connector using the File Account framework
         ExternalFileStorage.Initialize(FileScenario);
-        if ExternalFileStorage.DeleteFile(ExternalFilePath) then begin
-            DocumentAttachment.MarkAsNotUploadedToExternal();
-            DAFeatureTelemetry.LogFileDeleted(DocumentAttachment);
-            exit(true);
-        end;
+        if not ExternalFileStorage.DeleteFile(ExternalFilePath) then
+            exit(false);
 
-        exit(false);
+        DAFeatureTelemetry.LogFileDeleted(DocumentAttachmentForTelemetry);
+        exit(true);
     end;
 
     /// <summary>
@@ -798,36 +799,52 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// <param name="RunTrigger">Indicates if the trigger should run.</param>
     [EventSubscriber(ObjectType::Table, Database::"Document Attachment", OnAfterDeleteEvent, '', true, true)]
     local procedure OnAfterDeleteDocumentAttachment(var Rec: Record "Document Attachment"; RunTrigger: Boolean)
-    var
-        ExternalStorageSetup: Record "DA External Storage Setup";
-        ExternalStorageImpl: Codeunit "DA External Storage Impl.";
     begin
         // Exit early if trigger is not running
         if not RunTrigger then
             exit;
 
-        // Temporary records are not processed
-        if Rec.IsTemporary() then
+        if not IsEligibleForExternalFileDeletionOnRecordDelete(Rec) then
             exit;
 
-        // Check if auto upload is enabled
+        DeleteExternalFile(Rec."External File Path", Rec);
+    end;
+
+    /// <summary>
+    /// Evaluates whether the external blob backing a just-deleted Document Attachment row should be removed.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment record carrying the field values from the deleted row.</param>
+    /// <returns>True if the external file is eligible for deletion; otherwise false.</returns>
+    local procedure IsEligibleForExternalFileDeletionOnRecordDelete(var DocumentAttachment: Record "Document Attachment"): Boolean
+    var
+        ExternalStorageSetup: Record "DA External Storage Setup";
+    begin
+        if DocumentAttachment.IsTemporary() then
+            exit(false);
+
+        // Check if auto delete is enabled
         if not ExternalStorageSetup.Get() then
-            exit;
+            exit(false);
 
         if not ExternalStorageSetup."Delete from External Storage" then
-            exit;
+            exit(false);
 
         // Only process files that were uploaded to external storage
-        if not Rec."Stored Externally" then
-            exit;
+        if not DocumentAttachment."Stored Externally" then
+            exit(false);
 
-        // Delete from external storage
-        ExternalStorageImpl.DeleteFromExternalStorage(Rec);
+        if DocumentAttachment."External File Path" = '' then
+            exit(false);
 
-        if Rec."Skip Delete On Copy" then begin
-            Rec."Skip Delete On Copy" := false;
-            Rec.Modify();
-        end;
+        // Copied attachments share the source file - never delete the shared blob
+        if DocumentAttachment."Skip Delete On Copy" then
+            exit(false);
+
+        // Files from another environment/company are managed by their owning environment
+        if IsFileFromAnotherEnvironmentOrCompany(DocumentAttachment) then
+            exit(false);
+
+        exit(true);
     end;
 
     /// <summary>
