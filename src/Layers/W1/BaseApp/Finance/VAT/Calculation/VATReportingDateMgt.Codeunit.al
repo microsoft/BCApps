@@ -58,6 +58,9 @@ codeunit 799 "VAT Reporting Date Mgt"
         VATDateNotAllowedErr: Label 'The VAT Date is not within the range of allowed VAT dates.';
         VATDateInPeriodNotAllowedErr: Label 'The specified VAT Date is in a %1 VAT Return Period which was not allowed', Comment = '%1 - VAT Return Period status';
         VATDateFromPeriodNotAllowedErr: Label 'The VAT Date is in a %1 VAT Return Period and was not allowed to change', Comment = '%1 - VAT Return Period status';
+        VATReturnPeriodWarningConfirmed: Boolean;
+        VATReturnPeriodWarningDate: Date;
+        VATReturnPeriodWarningResponse: Boolean;
 
     /// <summary>
     /// Updates linked entries when VAT entry VAT reporting date is modified.
@@ -253,7 +256,7 @@ codeunit 799 "VAT Reporting Date Mgt"
                         end;
                         VATReturnPeriod.CalcFields("VAT Return Status");
                         if VATReturnPeriod."VAT Return Status" in [VATReturnPeriod."VAT Return Status"::Released, VATReturnPeriod."VAT Return Status"::Submitted] then
-                            if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(VATReturnWarning, Format(VATReturnPeriod."VAT Return Status")), true) then
+                            if not GetVATReturnPeriodWarningResponse(VATDate, StrSubstNo(VATReturnWarning, Format(VATReturnPeriod."VAT Return Status"))) then
                                 ErrorMessageManagement.LogContextFieldError(ContextFieldNo, StrSubstNo(VATPeriodErr, VATReturnPeriod."VAT Return Status"), VATReturnPeriod, VATReturnPeriod.FieldNo(VATReturnPeriod."VAT Return Status"), ForwardLinkMgt.GetHelpCodeForAllowedVATDate());
                     end;
                 GLSetup."Control VAT Period"::"Block posting within closed period":
@@ -261,9 +264,27 @@ codeunit 799 "VAT Reporting Date Mgt"
                         ErrorMessageManagement.LogContextFieldError(ContextFieldNo, ClosedError, VATReturnPeriod, VATReturnPeriod.FieldNo(VATReturnPeriod.Status), ForwardLinkMgt.GetHelpCodeForAllowedVATDate());
                 GLSetup."Control VAT Period"::"Warn when posting in closed period":
                     if VATReturnPeriod.Status = VATReturnPeriod.Status::Closed then
-                        if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(VATReturnWarning, Format(VATReturnPeriod.Status::Closed)), true) then
+                        if not GetVATReturnPeriodWarningResponse(VATDate, StrSubstNo(VATReturnWarning, Format(VATReturnPeriod.Status::Closed))) then
                             ErrorMessageManagement.LogContextFieldError(ContextFieldNo, StrSubstNo(VATPeriodErr, VATReturnPeriod.Status), VATReturnPeriod, VATReturnPeriod.FieldNo(VATReturnPeriod.Status), ForwardLinkMgt.GetHelpCodeForAllowedVATDate());
             end;
+    end;
+
+    local procedure GetVATReturnPeriodWarningResponse(VATDate: Date; WarningMsg: Text): Boolean
+    begin
+        if VATReturnPeriodWarningConfirmed and (VATDate = VATReturnPeriodWarningDate) then
+            exit(VATReturnPeriodWarningResponse);
+
+        VATReturnPeriodWarningResponse := ConfirmManagement.GetResponseOrDefault(WarningMsg, true);
+        if VATReturnPeriodWarningResponse then begin
+            VATReturnPeriodWarningDate := VATDate;
+            VATReturnPeriodWarningConfirmed := true;
+        end;
+        exit(VATReturnPeriodWarningResponse);
+    end;
+
+    procedure ResetVATReturnPeriodWarning()
+    begin
+        VATReturnPeriodWarningConfirmed := false;
     end;
 
     local procedure UpdateGLEntries(VATEntry: Record "VAT Entry")
