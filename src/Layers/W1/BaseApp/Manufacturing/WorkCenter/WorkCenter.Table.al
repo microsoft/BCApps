@@ -554,12 +554,16 @@ table 99000754 "Work Center"
                 Location: Record Location;
                 MachineCenter: Record "Machine Center";
                 AutoUpdate: Boolean;
+                SkipErrorIfLocationIsNotBinMandatory: Boolean;
             begin
                 if "Location Code" <> xRec."Location Code" then begin
                     if "Location Code" <> '' then begin
                         Location.Get("Location Code");
-                        if not Location."Bin Mandatory" then
-                            Error(LocationMustBeBinMandatoryErr, Location.Code, "No.");
+                        SkipErrorIfLocationIsNotBinMandatory := false;
+                        OnValidateLocationCodeOnBeforeCheckBinMandatory(Rec, Location, SkipErrorIfLocationIsNotBinMandatory);
+                        if not SkipErrorIfLocationIsNotBinMandatory then
+                            if not Location."Bin Mandatory" then
+                                Error(LocationMustBeBinMandatoryErr, Location.Code, "No.");
                     end;
 
                     if "Open Shop Floor Bin Code" <> '' then
@@ -887,6 +891,11 @@ table 99000754 "Work Center"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeValidateShortcutDimCode(var WorkCenter: Record "Work Center"; var xWorkCenter: Record "Work Center"; FieldNumber: Integer; var ShortcutDimCode: Code[20])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateLocationCodeOnBeforeCheckBinMandatory(var WorkCenter: Record "Work Center"; var Location: Record Location; var SkipErrorIfLocationIsNotBinMandatory: Boolean)
     begin
     end;
 

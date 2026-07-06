@@ -1088,6 +1088,7 @@ codeunit 137402 "SCM Costing Batch"
         // [FEATURE] [AI test 0.4]
         // [FEATURE] [Post Inventory Cost to G/L] [Purchase] [Source Currency]
         // [SCENARIO 633109] G/L Entries posted from a purchase value entry must not carry a Source Currency Code/Amount, even when an Additional Reporting Currency is set. Source-currency suppression is uniform across all inventory-cost postings.
+        Initialize();
 
         // [GIVEN] Additional Reporting Currency is set on General Ledger Setup
         CurrencyCode := LibraryERM.CreateCurrencyWithGLAccountSetup();
