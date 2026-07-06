@@ -192,6 +192,7 @@ report 5802 "Inventory Valuation - WIP"
                     ValueOfInvOutput1 := 0;
                     ValueOfExpOutput1 := 0;
                     ValueOfExpOutput2 := 0;
+                    ValueOfCostPstdToGL := 0;
 
                     if (CountRecord = LengthRecord) and IsNotWIP() then begin
                         ValueEntryOnPostDataItem();
