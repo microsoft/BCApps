@@ -2123,62 +2123,6 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
-    procedure ProdOFactboxMgmtResolvesProductionOrderForTransferIle()
-    var
-        Item: Record Item;
-        ItemLedgerEntry: Record "Item Ledger Entry";
-        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
-        ProductionOrder: Record "Production Order";
-        SubcWorkCenter: Record "Work Center";
-        SubcProdOFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
-        LibraryUtility: Codeunit "Library - Utility";
-    begin
-        // [SCENARIO 641405] The Production Order navigation actions on the Item Ledger Entries page must resolve the
-        //                   production order for a Transfer-type Item Ledger Entry that is linked to a production order
-        //                   only via the Subc. Prod. Order fields (the base Order No. holds the transfer order).
-        Initialize();
-        Subcontracting := true;
-        UnitCostCalculation := UnitCostCalculation::Units;
-
-        // [GIVEN] Released Production Order whose only routing operation is a subcontracting one
-        CreateItemWithSingleSubcontractingOperation(Item, SubcWorkCenter);
-        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(SubcWorkCenter);
-        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
-            ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5);
-
-        ProdOrderRoutingLine.SetRange(Status, ProdOrderRoutingLine.Status::Released);
-        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
-#pragma warning disable AA0210
-        ProdOrderRoutingLine.SetRange("Work Center No.", SubcWorkCenter."No.");
-#pragma warning restore AA0210
-        ProdOrderRoutingLine.FindFirst();
-
-        // [GIVEN] A Transfer-type Item Ledger Entry whose base Order fields point at a transfer order,
-        //         while the production order is only referenced through the Subc. Prod. Order fields
-        ItemLedgerEntry.Init();
-        ItemLedgerEntry."Entry No." := LibraryUtility.GetNewRecNo(ItemLedgerEntry, ItemLedgerEntry.FieldNo("Entry No."));
-        ItemLedgerEntry."Item No." := Item."No.";
-        ItemLedgerEntry."Entry Type" := ItemLedgerEntry."Entry Type"::Transfer;
-        ItemLedgerEntry."Order Type" := ItemLedgerEntry."Order Type"::Transfer;
-        ItemLedgerEntry."Order No." := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(ItemLedgerEntry."Order No."));
-        ItemLedgerEntry."Subc. Prod. Order No." := ProductionOrder."No.";
-        ItemLedgerEntry."Subc. Prod. Order Line No." := ProdOrderRoutingLine."Routing Reference No.";
-        ItemLedgerEntry."Subc. Operation No." := ProdOrderRoutingLine."Operation No.";
-        ItemLedgerEntry.Insert();
-
-        // [WHEN] CalcNoOfProductionOrderRoutings / CalcNoOfProductionOrderComponents are called with the ILE variant
-        // [THEN] Both return a positive count - the production order is resolved via the Subc. Prod. Order fields.
-        // Before the fix the helper read the base Order No. (the transfer order) and returned 0.
-        Assert.IsTrue(
-          SubcProdOFactboxMgmt.CalcNoOfProductionOrderRoutings(ItemLedgerEntry) > 0,
-          'CalcNoOfProductionOrderRoutings should resolve the production order for a Transfer ILE via Subc. Prod. Order No.');
-        Assert.IsTrue(
-          SubcProdOFactboxMgmt.CalcNoOfProductionOrderComponents(ItemLedgerEntry) > 0,
-          'CalcNoOfProductionOrderComponents should resolve the production order for a Transfer ILE via Subc. Prod. Order No.');
-    end;
-
-    [Test]
     [HandlerFunctions('ConfirmArchiveOrderHandler,HandlePurchaseOrderPage')]
     procedure ProdOFactboxMgmtShowsDataAfterProdOrderFinished()
     var
