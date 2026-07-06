@@ -393,6 +393,16 @@ codeunit 130002 "Library Assert"
         ExpectedTestFieldMessage(LastErrorText, FieldCaptionTested, ExpectedValue, ActualValue, TableCaptionTested);
     end;
 
+    /// <summary>
+    /// Verifies that the given error text is a TestField/Validate error containing the expected field caption and values.
+    /// Asserts on the field caption/value substrings in the error text rather than the full message, so the test stays
+    /// resilient and keeps passing when the underlying error label wording changes.
+    /// </summary>
+    /// <param name="LastErrorText">The error text to verify (typically the value of GetLastErrorText).</param>
+    /// <param name="FieldCaptionTested">Name of the field raising the error</param>
+    /// <param name="ExpectedValue">Expected value in the error message</param>
+    /// <param name="ActualValue">Actual value in the error message</param>
+    /// <param name="TableCaptionTested">Name of the table raising the error</param>
     procedure ExpectedTestFieldMessage(LastErrorText: Text; FieldCaptionTested: Text; ExpectedValue: Text; ActualValue: Text; TableCaptionTested: Text)
     var
         IsTestFieldError: Boolean;
@@ -477,6 +487,14 @@ codeunit 130002 "Library Assert"
         ExpectedMessageCannotFind(LastErrorText, TableID, RecordIndentificationText);
     end;
 
+    /// <summary>
+    /// Verifies that the given error text is a "cannot find record" error containing the table caption and record identification.
+    /// Asserts on the table caption/record identification substrings in the error text rather than the full message, so the test
+    /// stays resilient and keeps passing when the underlying error label wording changes.
+    /// </summary>
+    /// <param name="LastErrorText">The error text to verify (typically the value of GetLastErrorText).</param>
+    /// <param name="TableID">Table ID raising the error</param>
+    /// <param name="RecordIndentificationText">Identification text of the record that it cannot find</param>
     procedure ExpectedMessageCannotFind(LastErrorText: Text; TableID: Integer; RecordIndentificationText: Text)
     var
         AllObjWithCaption: Record AllObjWithCaption;
