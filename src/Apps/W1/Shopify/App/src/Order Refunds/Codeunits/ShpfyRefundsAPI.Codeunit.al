@@ -45,6 +45,7 @@ codeunit 30228 "Shpfy Refunds API"
     var
         OrderTransaction: Record "Shpfy Order Transaction";
     begin
+        OrderTransaction.SetCurrentKey("Refund Id", Type, Status);
         OrderTransaction.SetRange("Refund Id", RefundId);
         OrderTransaction.SetRange(Type, "Shpfy Transaction Type"::Refund);
         OrderTransaction.SetRange(Status, "Shpfy Transaction Status"::Pending);
