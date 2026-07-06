@@ -493,6 +493,7 @@ codeunit 4400 "SOA Setup"
         end;
 
         if SOASetup.GetBasedOnAgentUserSecurityID(TempSOASetup."User Security ID", false) then begin
+            SOASetup.CalcFields("Email Template");
             TempSOASetup := SOASetup;
             TempSOASetup.Insert();
         end
@@ -547,7 +548,6 @@ codeunit 4400 "SOA Setup"
     internal procedure CheckMailboxUnique(SOASetup: Record "SOA Setup")
     var
         OtherSOASetup: Record "SOA Setup";
-        MailboxAlreadyUsedErr: Label 'This email account is already used by another Sales Order Agent instance.';
     begin
         if IsNullGuid(SOASetup."Email Account ID") then
             exit;
@@ -555,8 +555,17 @@ codeunit 4400 "SOA Setup"
         OtherSOASetup.SetRange("Email Account ID", SOASetup."Email Account ID");
         OtherSOASetup.SetRange("Email Connector", SOASetup."Email Connector");
         OtherSOASetup.SetFilter(ID, '<>%1', SOASetup.ID);
-        if not OtherSOASetup.IsEmpty() then
-            Error(MailboxAlreadyUsedErr);
+
+        if SOASetup."Email Folder Id" = '' then begin
+            OtherSOASetup.SetRange("Email Folder Id", '');
+            if OtherSOASetup.FindFirst() then
+                Error(MailboxAlreadyUsedWithoutFolderErr, OtherSOASetup."Agent Name", OtherSOASetup."Agent Initials");
+            exit;
+        end;
+
+        OtherSOASetup.SetRange("Email Folder Id", SOASetup."Email Folder Id");
+        if OtherSOASetup.FindFirst() then
+            Error(MailboxAndFolderAlreadyUsedErr, OtherSOASetup."Agent Name", OtherSOASetup."Agent Initials");
     end;
 
     internal procedure GetEmailAccount(var SOASetup: Record "SOA Setup"; var TempEmailAccount: Record "Email Account" temporary)
@@ -830,30 +839,58 @@ codeunit 4400 "SOA Setup"
         exit(not SOASetup.IsEmpty());
     end;
 
-    local procedure GetNextAvailableAgentName(): Text[50]
+    local procedure GetNextAvailableAgentIdentityIndex(): Integer
+    var
+        FirstAvailableNameIndex: Integer;
+        FirstAvailableInitialsIndex: Integer;
+        CandidateIndex: Integer;
+    begin
+        FirstAvailableNameIndex := GetFirstAvailableAgentNameIndex();
+        FirstAvailableInitialsIndex := GetFirstAvailableAgentInitialsIndex();
+        CandidateIndex := FirstAvailableNameIndex;
+        if FirstAvailableInitialsIndex > CandidateIndex then
+            CandidateIndex := FirstAvailableInitialsIndex;
+
+        while CandidateIndex <= MaxAgentIdentitySuffix() do begin
+            if not AgentNameExists(BuildSOAAgentName(CandidateIndex)) and
+               not InitialsExists(BuildSOAAgentInitials(CandidateIndex))
+            then
+                exit(CandidateIndex);
+
+            CandidateIndex += 1;
+        end;
+
+        // Fall back to the base identity and let explicit validation handle conflicts.
+        exit(1);
+    end;
+
+    local procedure GetFirstAvailableAgentNameIndex(): Integer
     var
         CandidateName: Text[50];
         Index: Integer;
     begin
-        CandidateName := CopyStr(SalesOrderAgentDisplayNameLbl, 1, 50);
-        if not AgentNameExists(CandidateName) then
-            exit(CandidateName);
-
-        Index := 2;
+        Index := 1;
         repeat
-            CandidateName := CopyStr(StrSubstNo('%1 %2', SalesOrderAgentDisplayNameLbl, Format(Index)), 1, 50);
+            CandidateName := BuildSOAAgentName(Index);
             if not AgentNameExists(CandidateName) then
-                exit(CandidateName);
+                exit(Index);
             Index += 1;
-        until Index > MaxSOAInstances() + 10;
+        until Index > MaxAgentIdentitySuffix();
 
-        // Fall back to base value and let validation/page edits handle conflicts explicitly.
-        exit(CopyStr(SalesOrderAgentDisplayNameLbl, 1, 50));
+        exit(1);
     end;
 
     local procedure GetDefaultSOAAgentName(): Text[50]
     begin
-        exit(GetNextAvailableAgentName());
+        exit(BuildSOAAgentName(GetNextAvailableAgentIdentityIndex()));
+    end;
+
+    local procedure BuildSOAAgentName(Index: Integer): Text[50]
+    begin
+        if Index <= 1 then
+            exit(CopyStr(SalesOrderAgentDisplayNameLbl, 1, 50));
+
+        exit(CopyStr(StrSubstNo('%1 %2', SalesOrderAgentDisplayNameLbl, Format(Index)), 1, 50));
     end;
 
     local procedure BuildSOAUserName(Index: Integer): Text[50]
@@ -876,25 +913,38 @@ codeunit 4400 "SOA Setup"
         exit(CopyStr(BaseUserName, 1, MaxBaseLength) + Suffix);
     end;
 
-    local procedure GetDefaultSOAInitials(): Text[4]
+    local procedure GetFirstAvailableAgentInitialsIndex(): Integer
     var
         CandidateInitials: Text[4];
         Index: Integer;
     begin
-        CandidateInitials := CopyStr(SalesOrderAgentInitialLbl, 1, 4);
-        if not InitialsExists(CandidateInitials) then
-            exit(CandidateInitials);
-
-        Index := 2;
+        Index := 1;
         repeat
-            CandidateInitials := CopyStr(SalesOrderAgentInitialLbl + Format(Index), 1, 4);
+            CandidateInitials := BuildSOAAgentInitials(Index);
             if not InitialsExists(CandidateInitials) then
-                exit(CandidateInitials);
+                exit(Index);
             Index += 1;
-        until Index > MaxSOAInstances();
+        until Index > MaxAgentIdentitySuffix();
 
-        // Fall back to base initials and let validation/page edits handle conflicts explicitly.
-        exit(CopyStr(SalesOrderAgentInitialLbl, 1, 4));
+        exit(1);
+    end;
+
+    local procedure GetDefaultSOAInitials(): Text[4]
+    begin
+        exit(BuildSOAAgentInitials(GetNextAvailableAgentIdentityIndex()));
+    end;
+
+    local procedure BuildSOAAgentInitials(Index: Integer): Text[4]
+    begin
+        if Index <= 1 then
+            exit(CopyStr(SalesOrderAgentInitialLbl, 1, 4));
+
+        exit(CopyStr(SalesOrderAgentInitialLbl + Format(Index), 1, 4));
+    end;
+
+    local procedure MaxAgentIdentitySuffix(): Integer
+    begin
+        exit(99);
     end;
 
     internal procedure ValidateEmailConnectionStatus(var TempSOASetup: Record "SOA Setup" temporary) ConnectionSuccess: Boolean
@@ -1070,4 +1120,6 @@ codeunit 4400 "SOA Setup"
         EmailSignatureLbl: Label '%1<div>%2</div><div><br></div><div><em>%3</em></div>', Locked = true;
         SignatureClosingLbl: Label 'Best regards';
         SignatureNoteLbl: Label 'We write mails with AI. We review and send with care.';
+        MailboxAlreadyUsedWithoutFolderErr: Label 'This email account is already used by Sales Order Agent "%1" (%2).', Comment = '%1 = agent name, %2 = agent initials';
+        MailboxAndFolderAlreadyUsedErr: Label 'This email account and folder combination is already used by Sales Order Agent "%1" (%2).', Comment = '%1 = agent name, %2 = agent initials';
 }

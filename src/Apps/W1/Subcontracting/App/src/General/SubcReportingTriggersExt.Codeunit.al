@@ -4,27 +4,49 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
+using Microsoft.Foundation.Enums;
 using Microsoft.Manufacturing.Reports;
-using System.Environment;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.WorkCenter;
 
 codeunit 99001512 "Subc. Reporting Triggers Ext"
 {
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", SubstituteReport, '', false, false)]
-    local procedure SubstituteDetailedCalculation(ReportId: Integer; var NewReportId: Integer)
-#if not CLEAN29
+    [EventSubscriber(ObjectType::Report, Report::"Detailed Calculation", OnAfterGetRecordRoutingLineOnBeforeCalcRoutingCostPerUnit, '', false, false)]
+    local procedure OnAfterGetRecordRoutingLineOnBeforeCalcCost(var RoutingLine: Record "Routing Line"; ItemNo: Code[20]; BaseUnitOfMeasure: Code[10]; StandardTaskCode: Code[10]; CalculationDate: Date; var DirectUnitCost: Decimal; var IndirectCostPct: Decimal; var OverheadRate: Decimal; var ProdUnitCost: Decimal; var UnitCostCalculation: Enum "Unit Cost Calculation Type"; var IsHandled: Boolean)
     var
-#pragma warning disable AL0432
-        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
-#pragma warning restore AL0432
-#endif
+        SubcontractorPrice: Record "Subcontractor Price";
+        WorkCenter: Record "Work Center";
+        SubcPriceManagement: Codeunit "Subc. Price Management";
     begin
-#if not CLEAN29
-#pragma warning disable AL0432
-        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
-#pragma warning restore AL0432
+        if RoutingLine.Type <> RoutingLine.Type::"Work Center" then
             exit;
-#endif
-        if ReportId = Report::"Detailed Calculation" then
-            NewReportId := Report::"Subc. Detailed Calculation";
+
+        if not WorkCenter.Get(RoutingLine."Work Center No.") then
+            exit;
+
+        if WorkCenter."Subcontractor No." = '' then
+            exit;
+
+        SubcontractorPrice."Vendor No." := WorkCenter."Subcontractor No.";
+        SubcontractorPrice."Item No." := ItemNo;
+        SubcontractorPrice."Standard Task Code" := StandardTaskCode;
+        SubcontractorPrice."Work Center No." := WorkCenter."No.";
+        SubcontractorPrice."Variant Code" := '';
+        SubcontractorPrice."Unit of Measure Code" := BaseUnitOfMeasure;
+        SubcontractorPrice."Starting Date" := CalculationDate;
+        SubcontractorPrice."Currency Code" := '';
+        SubcPriceManagement.SetRoutingPriceListCost(
+            SubcontractorPrice,
+            WorkCenter,
+            DirectUnitCost,
+            IndirectCostPct,
+            OverheadRate,
+            ProdUnitCost,
+            UnitCostCalculation,
+            1,
+            1,
+            1);
+
+        IsHandled := true;
     end;
 }
