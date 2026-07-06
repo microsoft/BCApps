@@ -1114,16 +1114,16 @@ codeunit 133961 "Agent Test"
     end;
 
     [Test]
-    procedure ArchivedAgentShownInArchivedAgentsPage()
+    procedure ArchivedAgentVisibleWhenSubstateFilteredToArchived()
     var
         AgentRecord: Record Agent;
         Any: Codeunit Any;
-        ArchivedAgentsTestPage: TestPage "Archived Agents";
+        AgentListTestPage: TestPage "Agent List";
         AgentId: Guid;
     begin
         Initialize();
 
-        // [SCENARIO] An archived agent is shown in the Archived Agents page
+        // [SCENARIO] An archived agent can be viewed on the Agent List by filtering the Substate column to Archived
 
         // [GIVEN] A deactivated, archived agent
         AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
@@ -1135,12 +1135,14 @@ codeunit 133961 "Agent Test"
         Agent.Deactivate(AgentId);
         Agent.Archive(AgentId);
 
-        // [WHEN] Opening the Archived Agents page
-        ArchivedAgentsTestPage.OpenView();
+        // [WHEN] Opening the Agent List for all companies and filtering the Substate column to Archived
+        AgentListTestPage.OpenView();
+        AgentListTestPage.ShowAllCompanies.Invoke();
+        AgentListTestPage.Substate.SetFilter(Format(AgentRecord.Substate::Archived.AsInteger()));
 
-        // [THEN] The archived agent is reachable in the Archived Agents page
-        Assert.IsTrue(ArchivedAgentsTestPage.GoToKey(AgentId), 'Archived agent should appear in the Archived Agents page');
-        ArchivedAgentsTestPage.Close();
+        // [THEN] The archived agent is reachable in the Agent List
+        Assert.IsTrue(AgentListTestPage.GoToKey(AgentId), 'Archived agent should be visible when the Substate filter is set to Archived');
+        AgentListTestPage.Close();
     end;
 
     [Test]
