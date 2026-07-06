@@ -372,7 +372,7 @@ page 99000754 "Work Center Card"
     begin
         Rec.CalcFields("Calendar Entries Available Until");
         CalendarHorizonStyleTxt := '';
-        if (Rec."Calendar Entries Available Until" <> 0D) and (Rec."Calendar Entries Available Until" < Today()) then
+        if (Rec."Calendar Entries Available Until" <> 0D) and (Rec."Calendar Entries Available Until" < WorkDate()) then
             CalendarHorizonStyleTxt := 'Unfavorable';
     end;
 
