@@ -76,7 +76,7 @@ table 6840 "Spend Request"
             trigger OnValidate()
             begin
                 TestStatusOpen();
-                CreateDimFromDefaultDim(FieldNo("Requested By"));
+                CreateDimFromDefaultDim(FieldNo("G/L Account No."));
             end;
         }
         field(8; Purpose; Text[1000])

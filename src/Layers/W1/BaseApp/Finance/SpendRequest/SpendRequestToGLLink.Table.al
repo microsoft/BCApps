@@ -10,7 +10,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 table 6845 "Spend Request To G/L Link"
 {
     Caption = 'Spend Request To G/L Link';
-    DataClassification = SystemMetadata;
+    DataClassification = CustomerContent;
     LookupPageId = "Spend Request To G/L Link";
     DrillDownPageId = "Spend Request To G/L Link";
     InherentEntitlements = rimdx;
@@ -22,7 +22,6 @@ table 6845 "Spend Request To G/L Link"
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request no. that this link points to.';
-            DataClassification = CustomerContent;
             TableRelation = "Spend Request";
         }
         field(2; "Spend Request Detail No."; Integer)

@@ -180,7 +180,7 @@ page 6841 "Spend Request Card"
             action(Close)
             {
                 Caption = 'Set status to Closed';
-                ToolTip = 'Set the status field to Closed so that it can be processed for approval.';
+                ToolTip = 'Set the status field to Closed so it cannot be used anymore.';
                 ApplicationArea = Basic, Suite;
                 Enabled = Rec.Status <> Rec.Status::Closed;
                 Image = CloseDocument;
@@ -250,7 +250,7 @@ page 6841 "Spend Request Card"
                 Enabled = Rec."No." <> '';
                 Image = Dimensions;
                 ShortCutKey = 'Alt+D';
-                ToolTip = 'View or edit dimensions, such as area, project, or department, that you can assign to sales and purchase documents to distribute costs and analyze transaction history.';
+                ToolTip = 'View or edit dimensions, such as area, project, or department, that you can assign to expenses to distribute costs and analyze transaction history.';
 
                 trigger OnAction()
                 begin

@@ -960,7 +960,7 @@ permissionset 732 "D365 BASIC ISV"
                   tabledata "Source Code Setup" = RIMD,
                   tabledata Microsoft.Finance.SpendRequest."Spend Request" = RIMD,
                   tabledata Microsoft.Finance.SpendRequest."Spend Request Detail" = RIMD,
-                  tabledata Microsoft.Finance.SpendRequest."Spend Request To G/L Link" = RIMD,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request To G/L Link" = Rimd,
                   tabledata "Standard Address" = Rimd,
                   tabledata "Standard Customer Sales Code" = RIMD,
                   tabledata "Standard General Journal" = RIMD,
