@@ -2132,6 +2132,7 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProductionOrder: Record "Production Order";
         SubcWorkCenter: Record "Work Center";
         SubcProdOFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
+        LibraryUtility: Codeunit "Library - Utility";
     begin
         // [SCENARIO 641405] The Production Order navigation actions on the Item Ledger Entries page must resolve the
         //                   production order for a Transfer-type Item Ledger Entry that is linked to a production order
