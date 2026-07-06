@@ -303,6 +303,7 @@ codeunit 5763 "Whse.-Post Shipment"
         OnPostUpdateWhseDocumentsOnBeforeUpdateWhseShptHeader(WhseShptHeaderParam);
 
         WhseShptLine2.SetRange("No.", WhseShptHeaderParam."No.");
+        OnPostUpdateWhseDocumentsOnAfterWhseShptLineSetFilters(WhseShptLine2, WhseShptHeaderParam);
         if WhseShptLine2.IsEmpty() then begin
             WhseShptHeaderParam.DeleteRelatedLines();
             WhseShptHeaderParam.Delete();
@@ -879,6 +880,11 @@ codeunit 5763 "Whse.-Post Shipment"
 
     [IntegrationEvent(false, false)]
     local procedure OnPostUpdateWhseDocumentsOnBeforeUpdateWhseShptHeader(var WhseShptHeaderParam: Record "Warehouse Shipment Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostUpdateWhseDocumentsOnAfterWhseShptLineSetFilters(var WhseShptLine2: Record "Warehouse Shipment Line"; var WhseShptHeaderParam: Record "Warehouse Shipment Header")
     begin
     end;
 

@@ -2460,6 +2460,7 @@
         GenJournalLine.Validate("FA Posting Type", "FA Posting Type");
         GenJournalLine.Validate("Depreciation Book Code", "Depreciation Book Code");
 
+        DemoDataSetup.Get();
         if DemoDataSetup."Tax Accounting" then
             if GenJournalLine."FA Posting Type" in [GenJournalLine."FA Posting Type"::"Acquisition Cost",
                                                     GenJournalLine."FA Posting Type"::Appreciation,
