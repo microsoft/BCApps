@@ -22,7 +22,7 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
     InherentEntitlements = X;
     InherentPermissions = X;
     Subtype = Install;
-    Permissions = tabledata "Payables Agent Setup" = R, tabledata User = R;
+    Permissions = tabledata "Payables Agent Setup" = R, tabledata User = R, tabledata Agent = R, tabledata "Agent Task Message" = R;
 
     trigger OnInstallAppPerDatabase()
     begin
