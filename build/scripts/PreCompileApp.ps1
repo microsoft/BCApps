@@ -296,7 +296,11 @@ if($appType -eq 'app')
                 }
             }
 
-            Enable-BreakingChangesCheckForWorkspace -AppSymbolsFolder $parameters.Value["PackageCachePath"] -WorkspaceFile $parameters.Value["WorkspaceFile"] -BuildMode $appBuildMode -CountryCode $countryCode | Out-Null
+            if ($parameters.Value["PackageCachePath"]) {
+                Enable-BreakingChangesCheckForWorkspace -AppSymbolsFolder $parameters.Value["PackageCachePath"] -WorkspaceFile $parameters.Value["WorkspaceFile"] -BuildMode $appBuildMode -CountryCode $countryCode | Out-Null
+            } else {
+                Write-Host "::Warning::PreCompileApp: PackageCachePath is not set; skipping breaking changes check."
+            }
         }
     }
 }
