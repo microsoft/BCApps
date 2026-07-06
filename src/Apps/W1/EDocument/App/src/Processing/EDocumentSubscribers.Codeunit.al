@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.OrderMatch;
 using Microsoft.EServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Import.Sales;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
