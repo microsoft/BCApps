@@ -2656,10 +2656,10 @@ codeunit 136108 "Service Posting - Invoice"
         // [WHEN] Service invoice is being posted
         LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
 
-        // [THEN] Created customer ledger entry has External Document No. = ServiceHeader."No."
+        // [THEN] Created customer ledger entry has External Document No. = ''
         CustLedgerEntry.SetRange("Customer No.", CustomerNo);
         CustLedgerEntry.FindFirst();
-        CustLedgerEntry.TestField("External Document No.", ServiceHeader."No.");
+        CustLedgerEntry.TestField("External Document No.", '');
     end;
 
     [Test]
