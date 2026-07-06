@@ -142,6 +142,6 @@
   "runNumberOffset": 60000,
   "workspaceCompilation": {
     "enabled": true,
-    "parallelism": 4
+    "parallelism": 1
   }
 }
