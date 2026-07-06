@@ -10,6 +10,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.QualityManagement.Configuration.Template;
 #endif
 using Microsoft.QualityManagement.Document;
+using Microsoft.QualityManagement.Telemetry;
 
 report 20403 "Qlty. Non-Conformance"
 {
@@ -291,6 +292,13 @@ report 20403 "Qlty. Non-Conformance"
         DateLabel = 'Date';
         LastModifiedByLabel = 'Last modified by';
     }
+
+    trigger OnPreReport()
+    var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
+    begin
+        QltyMgmtFeatureTelemetry.LogFeatureUsage(ObjectType::Report, Report::"Qlty. Non-Conformance", 'Print report Non-Conformance');
+    end;
 
     var
         Item: Record Item;

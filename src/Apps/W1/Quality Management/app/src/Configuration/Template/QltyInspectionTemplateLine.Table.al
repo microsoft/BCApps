@@ -48,6 +48,7 @@ table 20403 "Qlty. Inspection Template Line"
                     if QltyTest.Get("Test Code") then begin
                         Rec.Description := QltyTest.Description;
                         Rec."Unit of Measure Code" := QltyTest."Unit of Measure Code";
+                        Rec."Expression Formula" := QltyTest."Expression Formula";
                     end;
 
                 EnsureResultsExist(Rec."Test Code" <> xRec."Test Code");
@@ -97,7 +98,7 @@ table 20403 "Qlty. Inspection Template Line"
                 Rec.CalcFields("Test Value Type");
                 if Rec."Expression Formula" <> '' then begin
                     if not (Rec."Test Value Type" in [Rec."Test Value Type"::"Value Type Text Expression"]) then
-                        Error(OnlyFieldExpressionErr);
+                        Error(ExpressionFormulaOnlyForTextExpressionErr);
 
                     ValidateExpressionFormula();
                 end;
@@ -123,7 +124,7 @@ table 20403 "Qlty. Inspection Template Line"
     }
 
     var
-        OnlyFieldExpressionErr: Label 'The Expression Formula can only be used with fields that are a type of Expression';
+        ExpressionFormulaOnlyForTextExpressionErr: Label 'The Expression Formula can only be used with tests that are a type of Text Expression';
 
     trigger OnInsert()
     begin
@@ -176,6 +177,62 @@ table 20403 "Qlty. Inspection Template Line"
 
         OnValidateExpressionFormula(Rec);
     end;
+
+    #region Add multiple tests to template
+    internal procedure SelectMultipleTests(TemplateCode: Code[20])
+    var
+        SelectionFilter: Text;
+    begin
+        if TemplateCode = '' then
+            exit;
+
+        SelectionFilter := SelectInQltyTests();
+
+        if SelectionFilter <> '' then
+            AddSelectedTests(TemplateCode, SelectionFilter);
+    end;
+
+    local procedure SelectInQltyTests(): Text
+    var
+        QltyTests: Page "Qlty. Tests";
+    begin
+        QltyTests.LookupMode(true);
+        if QltyTests.RunModal() = Action::LookupOK then
+            exit(QltyTests.GetSelectionFilter());
+    end;
+
+    internal procedure AddSelectedTests(TemplateCode: Code[20]; SelectionFilter: Text)
+    var
+        QltyTest: Record "Qlty. Test";
+    begin
+        if (TemplateCode = '') or (SelectionFilter = '') then
+            exit;
+
+        QltyTest.SetFilter(Code, SelectionFilter);
+        if QltyTest.FindSet() then
+            repeat
+                AddTestToTemplateLine(TemplateCode, QltyTest.Code);
+            until QltyTest.Next() = 0;
+    end;
+
+    local procedure AddTestToTemplateLine(TemplateCode: Code[20]; QltyTestCode: Code[20])
+    var
+        ExistingQltyInspectionTemplateLine, NewQltyInspectionTemplateLine : Record "Qlty. Inspection Template Line";
+    begin
+        ExistingQltyInspectionTemplateLine.SetRange("Template Code", TemplateCode);
+        ExistingQltyInspectionTemplateLine.SetRange("Test Code", QltyTestCode);
+        if not ExistingQltyInspectionTemplateLine.IsEmpty() then
+            exit;
+
+        NewQltyInspectionTemplateLine.Init();
+        NewQltyInspectionTemplateLine."Template Code" := TemplateCode;
+        NewQltyInspectionTemplateLine.InitLineNoIfNeeded();
+        NewQltyInspectionTemplateLine.Validate("Test Code", QltyTestCode);
+        NewQltyInspectionTemplateLine.Insert(true);
+        NewQltyInspectionTemplateLine.EnsureResultsExist(true);
+        NewQltyInspectionTemplateLine.Modify();
+    end;
+    #endregion Add multiple tests to template
 
     /// <summary>
     /// Validates the expression formula.

@@ -20,6 +20,7 @@ using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Integration.Inventory.Transfer;
 using Microsoft.QualityManagement.Reports;
 using Microsoft.QualityManagement.Setup;
+using Microsoft.QualityManagement.Telemetry;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
 using System.Device;
@@ -839,7 +840,11 @@ table 20405 "Qlty. Inspection Header"
     /// Finishes the inspection.
     /// </summary>
     procedure FinishInspection()
+    var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
     begin
+        QltyMgmtFeatureTelemetry.LogFeatureUsage(ObjectType::Table, Database::"Qlty. Inspection Header", 'FinishInspection');
+
         FinishInspectionAndPrompt(true);
     end;
 
