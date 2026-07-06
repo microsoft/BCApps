@@ -122,9 +122,10 @@ report 2000019 "Suggest Vendor Payments EB"
 
                         trigger OnValidate()
                         begin
-                            if (IncPmtDiscount) and (PmtDiscDueDate = 0D) then
-                                PmtDiscDueDate := WorkDate()
-                            else
+                            if IncPmtDiscount then begin
+                                if PmtDiscDueDate = 0D then
+                                    PmtDiscDueDate := WorkDate();
+                            end else
                                 PmtDiscDueDate := 0D;
                         end;
                     }
@@ -160,9 +161,10 @@ report 2000019 "Suggest Vendor Payments EB"
         begin
             if DueDate = 0D then
                 DueDate := WorkDate();
-            if (IncPmtDiscount) and (PmtDiscDueDate = 0D) then
-                PmtDiscDueDate := WorkDate()
-            else
+            if IncPmtDiscount then begin
+                if PmtDiscDueDate = 0D then
+                    PmtDiscDueDate := WorkDate();
+            end else
                 PmtDiscDueDate := 0D;
             if PostingDate = 0D then
                 PostingDate := WorkDate();
