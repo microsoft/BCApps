@@ -5,7 +5,7 @@ Param(
 
 if($appType -eq 'app')
 {
-    $scriptPath = Join-Path $PSScriptRoot "../../../../CI/VerifyExecutePermissions.ps1" -Resolve
+    $scriptPath = Join-Path $PSScriptRoot "../../../CI/VerifyExecutePermissions.ps1" -Resolve
     $workspaceFilePath = (Get-Item -Path $compilationParams.Value["WorkspaceFile"])
     $workspace = Get-Content -Path $workspaceFilePath.FullName -Raw | ConvertFrom-Json
     Push-Location $workspaceFilePath.DirectoryName
