@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <AutoRefresh>0</AutoRefresh>
+  <DataSources>
+    <DataSource Name="DataSource">
+      <ConnectionProperties>
+        <DataProvider>SQL</DataProvider>
+        <ConnectString />
+      </ConnectionProperties>
+      <rd:SecurityType>None</rd:SecurityType>
+    </DataSource>
+  </DataSources>
+  <ReportSections>
+    <ReportSection>
+      <Body>
+        <Height>2in</Height>
+        <Style />
+      </Body>
+      <Width>6.5in</Width>
+      <Page>
+        <Style />
+      </Page>
+    </ReportSection>
+  </ReportSections>
+  <Code>Public Function BlankZero(ByVal Value As Decimal)
+    if Value = 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankPos(ByVal Value As Decimal)
+    if Value &gt; 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankZeroAndPos(ByVal Value As Decimal)
+    if Value &gt;= 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankNeg(ByVal Value As Decimal)
+    if Value &lt; 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+
+Public Function BlankNegAndZero(ByVal Value As Decimal)
+    if Value &lt;= 0 then
+        Return ""
+    end if
+    Return Value
+End Function
+</Code>
+  <Language>=User!Language</Language>
+  <ConsumeContainerWhitespace>true</ConsumeContainerWhitespace>
+  <rd:ReportUnitType>Inch</rd:ReportUnitType>
+  <rd:ReportID>0eeb6585-38ae-40f1-885b-8d50088d51b4</rd:ReportID>
+  <DataSets>
+    <DataSet Name="DataSet_Result">
+      <Fields>
+        <Field Name="TodayFormatted">
+          <DataField>TodayFormatted</DataField>
+        </Field>
+        <Field Name="CompanyName">
+          <DataField>CompanyName</DataField>
+        </Field>
+        <Field Name="Page">
+          <DataField>Page</DataField>
+        </Field>
+        <Field Name="PrintedBy">
+          <DataField>PrintedBy</DataField>
+        </Field>
+        <Field Name="VendLedgEntryTableCaptionFilter">
+          <DataField>VendLedgEntryTableCaptionFilter</DataField>
+        </Field>
+        <Field Name="Filter">
+          <DataField>Filter</DataField>
+        </Field>
+        <Field Name="SourceCodeTableCaptionFilter2">
+          <DataField>SourceCodeTableCaptionFilter2</DataField>
+        </Field>
+        <Field Name="Filter2">
+          <DataField>Filter2</DataField>
+        </Field>
+        <Field Name="DebitTotal">
+          <DataField>DebitTotal</DataField>
+        </Field>
+        <Field Name="DebitTotalFormat">
+          <DataField>DebitTotalFormat</DataField>
+        </Field>
+        <Field Name="CreditTotal">
+          <DataField>CreditTotal</DataField>
+        </Field>
+        <Field Name="CreditTotalFormat">
+          <DataField>CreditTotalFormat</DataField>
+        </Field>
+        <Field Name="PeriodType_Date">
+          <DataField>PeriodType_Date</DataField>
+        </Field>
+        <Field Name="PeriodStart_Date">
+          <DataField>PeriodStart_Date</DataField>
+        </Field>
+        <Field Name="VendorJnlCaption">
+          <DataField>VendorJnlCaption</DataField>
+        </Field>
+        <Field Name="PostingDateCaption">
+          <DataField>PostingDateCaption</DataField>
+        </Field>
+        <Field Name="DocNoCaption">
+          <DataField>DocNoCaption</DataField>
+        </Field>
+        <Field Name="VendorNoCaption">
+          <DataField>VendorNoCaption</DataField>
+        </Field>
+        <Field Name="DueDateCaption">
+          <DataField>DueDateCaption</DataField>
+        </Field>
+        <Field Name="PmtDiscDateCaption">
+          <DataField>PmtDiscDateCaption</DataField>
+        </Field>
+        <Field Name="PmtDiscRcdLCYCaption">
+          <DataField>PmtDiscRcdLCYCaption</DataField>
+        </Field>
+        <Field Name="DescCaption">
+          <DataField>DescCaption</DataField>
+        </Field>
+        <Field Name="CurrCodeCaption">
+          <DataField>CurrCodeCaption</DataField>
+        </Field>
+        <Field Name="DebitCaption">
+          <DataField>DebitCaption</DataField>
+        </Field>
+        <Field Name="CreditCaption">
+          <DataField>CreditCaption</DataField>
+        </Field>
+        <Field Name="DebitLCYCaption">
+          <DataField>DebitLCYCaption</DataField>
+        </Field>
+        <Field Name="CreditLCYCaption">
+          <DataField>CreditLCYCaption</DataField>
+        </Field>
+        <Field Name="GrandTotalCaption">
+          <DataField>GrandTotalCaption</DataField>
+        </Field>
+        <Field Name="DatePeriodType">
+          <DataField>DatePeriodType</DataField>
+        </Field>
+        <Field Name="DatePeriodNameYearString">
+          <DataField>DatePeriodNameYearString</DataField>
+        </Field>
+        <Field Name="DateRecNo">
+          <DataField>DateRecNo</DataField>
+        </Field>
+        <Field Name="Code_SourceCode">
+          <DataField>Code_SourceCode</DataField>
+        </Field>
+        <Field Name="Desc_SourceCode">
+          <DataField>Desc_SourceCode</DataField>
+        </Field>
+        <Field Name="PeriodTypeNo">
+          <DataField>PeriodTypeNo</DataField>
+        </Field>
+        <Field Name="SourceCode2Code">
+          <DataField>SourceCode2Code</DataField>
+        </Field>
+        <Field Name="SourceCode2Desc">
+          <DataField>SourceCode2Desc</DataField>
+        </Field>
+        <Field Name="DebitAmtLCY_VendLedgEntry">
+          <DataField>DebitAmtLCY_VendLedgEntry</DataField>
+        </Field>
+        <Field Name="DebitAmtLCY_VendLedgEntryFormat">
+          <DataField>DebitAmtLCY_VendLedgEntryFormat</DataField>
+        </Field>
+        <Field Name="CreditAmtLCY_VendLedgEntry">
+          <DataField>CreditAmtLCY_VendLedgEntry</DataField>
+        </Field>
+        <Field Name="CreditAmtLCY_VendLedgEntryFormat">
+          <DataField>CreditAmtLCY_VendLedgEntryFormat</DataField>
+        </Field>
+        <Field Name="PostingDateFormatted_VendLedgEntry">
+          <DataField>PostingDateFormatted_VendLedgEntry</DataField>
+        </Field>
+        <Field Name="DocNo_VendLedgEntry">
+          <DataField>DocNo_VendLedgEntry</DataField>
+        </Field>
+        <Field Name="VendorNo_VendLedgEntry">
+          <DataField>VendorNo_VendLedgEntry</DataField>
+        </Field>
+        <Field Name="DueDateFormatted_VendLedgEntry">
+          <DataField>DueDateFormatted_VendLedgEntry</DataField>
+        </Field>
+        <Field Name="PmtDiscountDateFormatted_VendLedgEntry">
+          <DataField>PmtDiscountDateFormatted_VendLedgEntry</DataField>
+        </Field>
+        <Field Name="PmtDiscRcdLCY_VendLedgEntry">
+          <DataField>PmtDiscRcdLCY_VendLedgEntry</DataField>
+        </Field>
+        <Field Name="PmtDiscRcdLCY_VendLedgEntryFormat">
+          <DataField>PmtDiscRcdLCY_VendLedgEntryFormat</DataField>
+        </Field>
+        <Field Name="Desc_VendLedgEntry">
+          <DataField>Desc_VendLedgEntry</DataField>
+        </Field>
+        <Field Name="CurrCode_VendLedgEntry">
+          <DataField>CurrCode_VendLedgEntry</DataField>
+        </Field>
+        <Field Name="DebitAmt_VendLedgEntry">
+          <DataField>DebitAmt_VendLedgEntry</DataField>
+        </Field>
+        <Field Name="DebitAmt_VendLedgEntryFormat">
+          <DataField>DebitAmt_VendLedgEntryFormat</DataField>
+        </Field>
+        <Field Name="CreditAmt_VendLedgEntry">
+          <DataField>CreditAmt_VendLedgEntry</DataField>
+        </Field>
+        <Field Name="CreditAmt_VendLedgEntryFormat">
+          <DataField>CreditAmt_VendLedgEntryFormat</DataField>
+        </Field>
+        <Field Name="EntryNo_VendLedgEntry">
+          <DataField>EntryNo_VendLedgEntry</DataField>
+        </Field>
+        <Field Name="SourceCode_VendLedgEntry">
+          <DataField>SourceCode_VendLedgEntry</DataField>
+        </Field>
+        <Field Name="TotalCaption">
+          <DataField>TotalCaption</DataField>
+        </Field>
+      </Fields>
+      <Query>
+        <DataSourceName>DataSource</DataSourceName>
+        <CommandText />
+      </Query>
+    </DataSet>
+  </DataSets>
+</Report>

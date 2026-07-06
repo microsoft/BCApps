@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -14,6 +15,9 @@ report 10803 "G/L Trial Balance"
     ApplicationArea = Basic, Suite;
     Caption = 'G/L Trial Balance';
     UsageCategory = ReportsAndAnalysis;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to Reports FR app';
+    ObsoleteTag = '29.0';
 
     dataset
     {
@@ -212,3 +216,4 @@ report 10803 "G/L Trial Balance"
         DebitCaptionLbl: Label 'Debit';
         CreditCaptionLbl: Label 'Credit';
 }
+#endif

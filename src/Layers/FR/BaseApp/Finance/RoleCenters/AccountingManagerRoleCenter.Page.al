@@ -10,7 +10,9 @@ using Microsoft.Bank.Deposit;
 using Microsoft.Bank.Payment;
 #endif
 using Microsoft.Bank.Reconciliation;
+#if not CLEAN28
 using Microsoft.Bank.Reports;
+#endif
 using Microsoft.CashFlow.Account;
 using Microsoft.CashFlow.Forecast;
 using Microsoft.CashFlow.Reports;
@@ -48,7 +50,9 @@ using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+#if not CLEAN28
 using Microsoft.Purchases.Reports;
+#endif
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Analysis;
@@ -57,7 +61,9 @@ using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Reminder;
+#if not CLEAN28
 using Microsoft.Sales.Reports;
+#endif
 using Microsoft.Sales.Setup;
 using System.Threading;
 
@@ -134,9 +140,8 @@ page 9001 "Accounting Manager Role Center"
                 ToolTip = 'View, print, or send a report that shows the balances for the general ledger accounts, including the debits and credits. You can use this report to ensure accurate accounting practices.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'This report has been replaced by the report Trial Balance (Excel). This report will be removed in a future release.';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
-#endif
             action("G/L Detail Trial Balance")
             {
                 ApplicationArea = Basic, Suite;
@@ -144,6 +149,9 @@ page 9001 "Accounting Manager Role Center"
                 Image = "Report";
                 RunObject = Report "G/L Detail Trial Balance";
                 ToolTip = 'View transactions for all G/L accounts with subtotals per account. Each account shows the opening balance on the first line, the list of transactions for the account, and a closing balance on the last line.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to Reports FR app';
+                ObsoleteTag = '29.0';
             }
             action("Bank Trial Balance")
             {
@@ -152,6 +160,9 @@ page 9001 "Accounting Manager Role Center"
                 Image = "Report";
                 RunObject = Report "Bank Account Trial Balance";
                 ToolTip = 'View balances for all bank accounts on six columns: Opening balance debit, Opening balance credit, Period balance debit, Period balance credit, Final balance debit, and Final balance credit.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to Reports FR app';
+                ObsoleteTag = '29.0';
             }
             action("&Bank Detail Trial Balance")
             {
@@ -160,7 +171,11 @@ page 9001 "Accounting Manager Role Center"
                 Image = "Report";
                 RunObject = Report "Bank Acc. Detail Trial Balance";
                 ToolTip = 'View, print, or send a report that shows a detailed trial balance for selected bank accounts. You can use the report at the close of an accounting period or fiscal year.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to Reports FR app';
+                ObsoleteTag = '29.0';
             }
+#endif            
             action("&Account Schedule")
             {
                 ApplicationArea = Basic, Suite;
@@ -203,7 +218,7 @@ page 9001 "Accounting Manager Role Center"
                 ToolTip = 'View a trial balance in comparison to a budget. You can choose to see a trial balance for selected dimensions. You can use the report at the close of an accounting period or fiscal year.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'This report has been replaced by the report Trial Balance/Budget (Excel). This report will be removed in a future release.';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
 #endif
             action("Trial Balance by &Period")
@@ -262,7 +277,7 @@ page 9001 "Accounting Manager Role Center"
                 ToolTip = 'View an overview of when your receivables from customers are due or overdue (divided into four periods). You must specify the date you want aging calculated from and the length of the period that each column will contain data for.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'This report has been replaced by the report Aged Accounts Receivable (Excel). This report will be removed in a future release.';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
             action("Aged Accounts Pa&yable")
             {
@@ -273,7 +288,7 @@ page 9001 "Accounting Manager Role Center"
                 ToolTip = 'View an overview of when your payables to vendors are due or overdue (divided into four periods). You must specify the date you want aging calculated from and the length of the period that each column will contain data for.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'This report has been replaced by the report Aged Accounts Payable (Excel). This report will be removed in a future release.';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
 #endif
             action("Reconcile Cus&t. and Vend. Accs")
@@ -378,8 +393,12 @@ page 9001 "Accounting Manager Role Center"
                 RunObject = Report "Cost Acctg. Analysis";
                 ToolTip = 'View balances per cost type with columns for seven fields for cost centers and cost objects. It is used as the cost distribution sheet in Cost accounting. The structure of the lines is based on the chart of cost types. You define up to seven cost centers and cost objects that appear as columns in the report.';
             }
+#if not CLEAN28
             separator(Action1120008)
             {
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to Reports FR app';
+                ObsoleteTag = '29.0';
             }
             action(Journals)
             {
@@ -388,6 +407,9 @@ page 9001 "Accounting Manager Role Center"
                 Image = "Report";
                 RunObject = Report Journals;
                 ToolTip = 'View all G/L transactions with subtotals per period. Each period shows subtotals per source code. There are several options for filtering the report. Choose the Journals option to display individual transaction amounts. Choose Centralized Journals to display amounts centralized per account. Choose Journals and Centralization to do both. You can also sort by posting date or document number.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to Reports FR app';
+                ObsoleteTag = '29.0';
             }
             action("Customer Journal")
             {
@@ -396,6 +418,9 @@ page 9001 "Accounting Manager Role Center"
                 Image = "Report";
                 RunObject = Report "Customer Journal";
                 ToolTip = 'View transactions for all customer accounts with subtotals per period. Each period shows subtotals per source code.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to Reports FR app';
+                ObsoleteTag = '29.0';
             }
             action("Vendor Journal")
             {
@@ -404,6 +429,9 @@ page 9001 "Accounting Manager Role Center"
                 Image = "Report";
                 RunObject = Report "Vendor Journal";
                 ToolTip = 'View transactions for all vendor accounts with subtotals per period. Each period shows subtotals per source code.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to Reports FR app';
+                ObsoleteTag = '29.0';
             }
             action("Bank Account Journal")
             {
@@ -412,7 +440,11 @@ page 9001 "Accounting Manager Role Center"
                 Image = "Report";
                 RunObject = Report "Bank Account Journal";
                 ToolTip = 'View transactions for all bank accounts with subtotals per period. Each period shows subtotals per source code.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to Reports FR app';
+                ObsoleteTag = '29.0';
             }
+#endif
             separator(Action1120013)
             {
             }
@@ -426,7 +458,7 @@ page 9001 "Accounting Manager Role Center"
                 ToolTip = 'View a list of payments.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
             action("GL/Cust. Ledger Reconciliation")
             {
@@ -437,7 +469,7 @@ page 9001 "Accounting Manager Role Center"
                 ToolTip = 'View or print a separate page for each customer that sums up amounts from general ledger transactions based on payments and posted invoices. This is useful when you want to reconcile general ledger entries with customer ledger entries.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
             action("GL/Vend. Ledger Reconciliation")
             {
@@ -448,7 +480,7 @@ page 9001 "Accounting Manager Role Center"
                 ToolTip = 'View or print a separate page for each vendor that sums up amounts from general ledger transactions based on payments and posted invoices. This is useful when you want to reconcile general ledger entries with vendor ledger entries.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
 #endif
         }
@@ -652,7 +684,7 @@ page 9001 "Accounting Manager Role Center"
                     ToolTip = 'View a list of payment slips.';
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                    ObsoleteTag = '28.0';
+                    ObsoleteTag = '29.0';
                 }
 #endif
             }
@@ -875,7 +907,7 @@ page 9001 "Accounting Manager Role Center"
                     ToolTip = 'View a list of payment slips that have been posted and archived.';
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                    ObsoleteTag = '28.0';
+                    ObsoleteTag = '29.0';
                 }
 #endif
                 action("Posted Bank Deposits")
@@ -1004,7 +1036,7 @@ page 9001 "Accounting Manager Role Center"
                 ToolTip = 'Use payment slips to manage customer and vendor payments. ';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
             action("Look/Edit Payment Line")
             {
@@ -1014,7 +1046,7 @@ page 9001 "Accounting Manager Role Center"
                 ToolTip = 'View and edit all payment lines that belong to a payment class. The window shows a line for each payment status. ';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
             action("Payment Report")
             {
@@ -1024,7 +1056,7 @@ page 9001 "Accounting Manager Role Center"
                 ToolTip = 'View all payment documents that belong to a payment class and have the same status.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
             action("Archive Payment Journals")
             {
@@ -1035,7 +1067,7 @@ page 9001 "Accounting Manager Role Center"
                 ToolTip = 'Archive payment journals to separate them from active journals. You can enter criteria to specify the journals to archive.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
             action("Create Payment Slips")
             {
@@ -1045,7 +1077,7 @@ page 9001 "Accounting Manager Role Center"
                 ToolTip = 'Manage information about customer and vendor payments.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
 #endif
             separator(Action67)
@@ -1210,4 +1242,3 @@ page 9001 "Accounting Manager Role Center"
         }
     }
 }
-

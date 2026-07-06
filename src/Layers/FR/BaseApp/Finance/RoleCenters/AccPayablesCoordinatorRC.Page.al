@@ -92,7 +92,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 ToolTip = 'View the list of your vendors.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
 #endif
             action("Vendor - &Balance to date")
@@ -103,6 +103,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 RunObject = Report "Vendor - Balance to Date";
                 ToolTip = 'View, print, or save a detail balance to date for selected vendors.';
             }
+#if not CLEAN28            
             action("Vendor Trial Balance")
             {
                 ApplicationArea = Basic, Suite;
@@ -110,6 +111,9 @@ page 9002 "Acc. Payables Coordinator RC"
                 Image = "Report";
                 RunObject = Report "Vendor Trial Balance FR";
                 ToolTip = 'View balances for all vendor accounts in six columns: Opening balance debit, Opening balance credit, Period balance debit, Period balance credit, Final balance debit, and Final balance credit.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to Reports FR app';
+                ObsoleteTag = '29.0';
             }
             action("Vendor Detail Trial Balance")
             {
@@ -118,7 +122,11 @@ page 9002 "Acc. Payables Coordinator RC"
                 Image = "Report";
                 RunObject = Report "Vendor Detail Trial Balance FR";
                 ToolTip = 'View transactions for all vendor accounts with subtotals per account. Each account shows the opening balance on the first line, and the list of transactions for the account and a closing balance on the last line.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to Reports FR app';
+                ObsoleteTag = '29.0';
             }
+#endif 
 #if not CLEAN28
             action("Vendor - &Summary Aging")
             {
@@ -129,7 +137,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 ToolTip = 'View a summary of the payables owed to each vendor, divided into three time periods.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
             action("Aged &Accounts Payable")
             {
@@ -140,7 +148,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 ToolTip = 'View an overview of when your payables to vendors are due or overdue (divided into four periods). You must specify the date you want aging calculated from and the length of the period that each column will contain data for.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'This report has been replaced by the report Aged Accounts Payable (Excel). This report will be removed in a future release.';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
 #endif
             action("Vendor - &Purchase List")
@@ -161,7 +169,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 ToolTip = 'View a list of all vendor ledger entries on which the On Hold field is marked.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
 #endif
             action("P&urchase Statistics")
@@ -172,6 +180,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 RunObject = Report "Purchase Statistics";
                 ToolTip = 'View a list of amounts for purchases, invoice discount and payment discount in $ for each vendor.';
             }
+#if not CLEAN28
             action("Vendor Journal")
             {
                 ApplicationArea = Basic, Suite;
@@ -179,7 +188,11 @@ page 9002 "Acc. Payables Coordinator RC"
                 Image = "Report";
                 RunObject = Report "Vendor Journal";
                 ToolTip = 'View transactions for all vendor accounts with subtotals per period. Each period shows subtotals per source code.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to Reports FR app';
+                ObsoleteTag = '29.0';
             }
+#endif
             separator(Action63)
             {
             }
@@ -196,7 +209,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 ToolTip = 'View a list of payments.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
             action("GL/Vend. Ledger Reconciliation")
             {
@@ -207,7 +220,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 ToolTip = 'View or print a separate page for each vendor that sums up amounts from general ledger transactions based on payments and posted invoices. This is useful when you want to reconcile general ledger entries with vendor ledger entries.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
 #endif
         }
@@ -303,7 +316,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 ToolTip = 'View a list of payment slips.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
 #endif
             action(GeneralJournals)
@@ -369,7 +382,7 @@ page 9002 "Acc. Payables Coordinator RC"
                     ToolTip = 'View a list of payment slips that have been posted and archived.';
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                    ObsoleteTag = '28.0';
+                    ObsoleteTag = '29.0';
                 }
 #endif
             }
@@ -437,7 +450,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 ToolTip = 'Use payment slips to manage customer and vendor payments. ';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
             action("Look/Edit Payment Line")
             {
@@ -447,7 +460,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 ToolTip = 'View and edit all payment lines that belong to a payment class. The window shows a line for each payment status. ';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
             action("Payment Report")
             {
@@ -457,7 +470,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 ToolTip = 'View all payment documents that belong to a payment class and have the same status.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
 #endif
             action("P&urchase Journal")
@@ -489,7 +502,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 ToolTip = 'Archive payment journals to separate them from active journals. You can enter criteria to specify the journals to archive.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
             action("Create Payment Slip")
             {
@@ -499,7 +512,7 @@ page 9002 "Acc. Payables Coordinator RC"
                 ToolTip = 'Manage information about customer and vendor payments.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '28.0';
+                ObsoleteTag = '29.0';
             }
 #endif
             separator(Administration)

@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -17,6 +18,9 @@ report 10801 Journals
     ApplicationArea = Basic, Suite;
     Caption = 'Journals';
     UsageCategory = ReportsAndAnalysis;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to Reports FR app';
+    ObsoleteTag = '29.0';
 
     dataset
     {
@@ -451,4 +455,4 @@ report 10801 Journals
         DocumentNoVisible := (Display = Display::Journals) or (Display = Display::"Journals and Centralization");
     end;
 }
-
+#endif

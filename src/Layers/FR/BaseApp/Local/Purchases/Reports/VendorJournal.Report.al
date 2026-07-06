@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,6 +17,9 @@ report 10814 "Vendor Journal"
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor Journal';
     UsageCategory = ReportsAndAnalysis;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to Reports FR app';
+    ObsoleteTag = '29.0';
 
     dataset
     {
@@ -344,4 +348,4 @@ report 10814 "Vendor Journal"
         GrandTotalCaptionLbl: Label 'Grand Total :';
         TotalCaptionLbl: Label 'Total';
 }
-
+#endif
