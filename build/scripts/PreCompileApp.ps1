@@ -218,7 +218,12 @@ else {
     $preserveNames += Get-IncrementalBuildBaselineAppNames -BuildArtifactsFolder (Split-Path -Path $outFolder -Parent)
 }
 
-Reset-AlPackageCache -PackageCachePath $parameters.Value["PackageCachePath"] -PreserveNames $preserveNames
+$packageCachePath = $parameters.Value["PackageCachePath"]
+if ($packageCachePath) {
+    Reset-AlPackageCache -PackageCachePath $packageCachePath -PreserveNames $preserveNames
+} else {
+    Write-Host "::Warning::PreCompileApp: PackageCachePath is not set in compilation parameters; skipping package cache reset."
+}
 
 if($GDLDevelopment) {
     Import-Module $PSScriptRoot\GDLDevelopment\GDLDevelopment.psm1
