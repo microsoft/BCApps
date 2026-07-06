@@ -31,7 +31,7 @@ function Invoke-MiSnapApp
 
         [string[]] $actualFiles = $Files | select -Unique
         [string[]] $expectedFiles = $actualFiles | % { GetBranchedObjectFileNames "$(Get-GitRoot)/$_" } | select -Unique
-        [string[]] $missingFiles = $expectedFiles | ? { $actualFiles -inotcontains $_ }
+        [string[]] $missingFiles = $expectedFiles | ? { ($actualFiles -inotcontains $_) -and (Test-GitFileDifferentFromRemote $_ "origin/$env:RepoBranchName") }
 
         if($missingFiles) {
             Throw ("The following file(s) aren't in the changelist and still need to be integrated:"`
