@@ -29,6 +29,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         CouldNotFindGenerationRuleErr: Label 'Could not find any compatible inspection generation rules for the template %1. Navigate to Quality Inspection Generation Rules and create a generation rule for the template %1', Comment = '%1=the template';
         CouldNotFindSourceErr: Label 'There are generation rules for the template %1, however there is no source configuration that describes how to connect control fields. Navigate to Quality Inspection Source Configuration list and create a source configuration for table(s) %2', Comment = '%1=the template, %2=the table';
         TableMissingErr: Label 'You must choose a Table for this generation rule', Locked = true;
+        LegacyDescriptionTok: Label 'Legacy rule', Locked = true;
 
     [Test]
     procedure ActivationTriggerFindGenerationRule_ManualOnly_ManualRuleSearch()
@@ -459,6 +460,44 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
 
         // [THEN] The rule is persisted
         LibraryAssert.IsFalse(QltyInspectionGenRule.IsEmpty(), 'The generation rule should be persisted after insert');
+    end;
+
+    [Test]
+    procedure LegacyRuleWithoutTable_CanBeModifiedAndDeleted()
+    var
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        LegacyEntryNo: Integer;
+    begin
+        // [SCENARIO] A pre-existing rule with no Source Table No. (legacy data created before the mandatory-table guard) can still be edited and deleted
+
+        // [GIVEN] Setup is initialized and a template exists
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
+
+        // [GIVEN] All existing generation rules are removed
+        QltyInspectionGenRule.DeleteAll();
+
+        // [GIVEN] A legacy rule persisted without a table, bypassing triggers (Insert(false) mimics data created before the guard existed)
+        QltyInspectionGenRule.Init();
+        QltyInspectionUtility.SetEntryNo(QltyInspectionGenRule);
+        QltyInspectionGenRule."Template Code" := QltyInspectionTemplateHdr.Code;
+        QltyInspectionGenRule."Source Table No." := 0;
+        QltyInspectionGenRule.Insert(false);
+        LegacyEntryNo := QltyInspectionGenRule."Entry No.";
+
+        // [WHEN] Editing a non-table field with triggers enabled
+        QltyInspectionGenRule.Description := LegacyDescriptionTok;
+        QltyInspectionGenRule.Modify(true);
+
+        // [THEN] The modify succeeds - the OnModify guard is skipped for rows that were already table-less
+        LibraryAssert.AreEqual(LegacyDescriptionTok, QltyInspectionGenRule.Description, 'A legacy rule without a table should remain editable');
+
+        // [WHEN] Deleting the legacy rule
+        QltyInspectionGenRule.Delete(true);
+
+        // [THEN] It is gone - legacy rows are not bricked by the mandatory-table enforcement
+        LibraryAssert.IsFalse(QltyInspectionGenRule.Get(LegacyEntryNo), 'A legacy rule without a table should be deletable');
     end;
 
     local procedure DeleteAllAndCreateOneGenerationRule(TemplateCode: Code[20]; ActivationTrigger: Enum "Qlty. Gen. Rule Act. Trigger")
