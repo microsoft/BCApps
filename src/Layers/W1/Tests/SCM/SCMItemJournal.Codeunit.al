@@ -2905,7 +2905,7 @@
         // Verify Standard Item Journal line record exists.
         StandardItemJournal.SetRange(Code, StandardItemJournalCode);
         StandardItemJournal.SetRange("Journal Template Name", JournalTemplateName);
-        Assert.RecordIsNotEmpty(StandardItemJournal, 'Standard Item Journal record is not created.');
+        StandardItemJournal.FindFirst();
     end;
 
     local procedure VerifyItemLedgerEntry(var TempItemJournalLine: Record "Item Journal Line" temporary)
