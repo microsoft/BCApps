@@ -374,34 +374,36 @@ codeunit 1001 "Job Post-Line"
         OnBeforePostJobOnPurchaseLine(
             PurchHeader, PurchInvHeader, PurchCrMemoHdr, PurchLine, JobJnlLine, IsHandled,
             TempPurchaseLineJob, TempJobJournalLine, SourceCode);
-        if IsHandled then
-            exit;
+        if not IsHandled then begin
+            ShouldSkipLine := (PurchLine.Type <> PurchLine.Type::Item) and (PurchLine.Type <> PurchLine.Type::"G/L Account");
+            OnPostJobOnPurchaseLineOnAfterCalcShouldSkipLine(PurchLine, ShouldSkipLine);
+            if ShouldSkipLine then
+                exit;
 
-        ShouldSkipLine := (PurchLine.Type <> PurchLine.Type::Item) and (PurchLine.Type <> PurchLine.Type::"G/L Account");
-        OnPostJobOnPurchaseLineOnAfterCalcShouldSkipLine(PurchLine, ShouldSkipLine);
-        if ShouldSkipLine then
-            exit;
-        Clear(JobJnlLine);
-        PurchLine.TestField("Job No.");
-        PurchLine.TestField("Job Task No.");
-        Job.LockTable();
-        JobTask.LockTable();
-        Job.Get(PurchLine."Job No.");
-        PurchLine.TestField("Job Currency Code", Job."Currency Code");
-        JobTask.Get(PurchLine."Job No.", PurchLine."Job Task No.");
-        JobTransferLine.FromPurchaseLineToJnlLine(
-          PurchHeader, PurchInvHeader, PurchCrMemoHdr, PurchLine, Sourcecode, JobJnlLine);
-        OnPostJobOnPurchaseLineOnAfterJobTransferLineFromPurchaseLineToJnlLine(PurchHeader, PurchInvHeader, PurchCrMemoHdr, PurchLine, JobJnlLine);
-        JobJnlLine."Job Posting Only" := true;
+            Clear(JobJnlLine);
+            PurchLine.TestField("Job No.");
+            PurchLine.TestField("Job Task No.");
+            Job.LockTable();
+            JobTask.LockTable();
+            Job.Get(PurchLine."Job No.");
+            PurchLine.TestField("Job Currency Code", Job."Currency Code");
+            JobTask.Get(PurchLine."Job No.", PurchLine."Job Task No.");
+            JobTransferLine.FromPurchaseLineToJnlLine(
+                PurchHeader, PurchInvHeader, PurchCrMemoHdr, PurchLine, Sourcecode, JobJnlLine);
+            OnPostJobOnPurchaseLineOnAfterJobTransferLineFromPurchaseLineToJnlLine(PurchHeader, PurchInvHeader, PurchCrMemoHdr, PurchLine, JobJnlLine);
+            JobJnlLine."Job Posting Only" := true;
 
-        if PurchLine.Type = PurchLine.Type::"G/L Account" then begin
-            TempPurchaseLineJob := PurchLine;
-            TempPurchaseLineJob.Insert();
-            InsertTempJobJournalLine(JobJnlLine, TempPurchaseLineJob."Line No.");
-        end else begin
-            JobJnlPostLine.SetCalledFromPurchase(true);
-            JobJnlPostLine.RunWithCheck(JobJnlLine);
+            if PurchLine.Type = PurchLine.Type::"G/L Account" then begin
+                TempPurchaseLineJob := PurchLine;
+                TempPurchaseLineJob.Insert();
+                InsertTempJobJournalLine(JobJnlLine, TempPurchaseLineJob."Line No.");
+            end else begin
+                JobJnlPostLine.SetCalledFromPurchase(true);
+                JobJnlPostLine.RunWithCheck(JobJnlLine);
+            end;
         end;
+
+        OnAfterPostJobOnPurchaseLine(PurchLine);
     end;
 
     procedure TestSalesLine(var SalesLine: Record "Sales Line")
@@ -658,6 +660,11 @@ codeunit 1001 "Job Post-Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterJobPlanningLineModify(var JobPlanningLine: Record "Job Planning Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterPostJobOnPurchaseLine(PurchaseLine: Record "Purchase Line")
     begin
     end;
 

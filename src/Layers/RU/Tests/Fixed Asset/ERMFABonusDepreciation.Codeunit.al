@@ -1328,3 +1328,4 @@ codeunit 134454 "ERM FA Bonus Depreciation"
         Reply := true;
     end;
 }
+
