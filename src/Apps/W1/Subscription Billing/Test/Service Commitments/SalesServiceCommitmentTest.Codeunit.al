@@ -1921,6 +1921,32 @@ codeunit 139915 "Sales Service Commitment Test"
         Assert.AreEqual(SalespersonPurchaser.Code, ServiceObject."Salesperson Code", 'Salesperson Code should be populated from Customer');
     end;
 
+    [Test]
+    procedure CheckSubscriptionLineEndDateNotSetWhenSubsequentTermIsUsed()
+    begin
+        // [SCENARIO] When posting a Sales Order for an item with both Initial Term and Subsequent Term,
+        // the resulting Subscription Line End Date must remain empty (contract auto-renews indefinitely)
+        Initialize();
+
+        // [GIVEN] A Sales Service Commitment Item with a package having Initial Term <12M> and Subsequent Term <12M>
+        // Note: InitServiceCommitmentPackageLineFields (called in Initialize) already sets both terms
+        ContractTestLibrary.SetupSalesServiceCommitmentItemAndAssignToServiceCommitmentPackage(Item, Enum::"Item Service Commitment Type"::"Sales with Service Commitment", ServiceCommitmentPackage.Code);
+
+        // [GIVEN] A Sales Order for the item
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+        LibrarySales.CreateSalesLineWithShipmentDate(SalesLine, SalesHeader, Enum::"Sales Line Type"::Item, Item."No.", WorkDate(), 1);
+
+        // [WHEN] The Sales Order is posted
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The resulting Subscription Line End Date is empty because a Subsequent Term is defined
+        ServiceObject.FilterOnItemNo(Item."No.");
+        ServiceObject.FindFirst();
+        ServiceCommitment.SetRange("Subscription Header No.", ServiceObject."No.");
+        ServiceCommitment.FindFirst();
+        ServiceCommitment.TestField("Subscription Line End Date", 0D);
+    end;
+
     #endregion Tests
 
     #region Procedures

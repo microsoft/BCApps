@@ -4,7 +4,7 @@
   "publisher": "Microsoft",
   "brief": "Test library for Payment Practices app.",
   "description": "Test library for Payment Practices app.",
-  "version": "28.3.0.0",
+  "version": "28.4.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
   "help": "https://go.microsoft.com/fwlink/?LinkId=724011",
@@ -16,13 +16,13 @@
       "id": "64977288-facd-4b48-aaaa-bb0e288edfb3",
       "name": "Payment Practices",
       "publisher": "Microsoft",
-      "version": "28.3.0.0"
+      "version": "28.4.0.0"
     },
     {
       "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
       "name": "Tests-TestLibraries",
       "publisher": "Microsoft",
-      "version": "28.3.0.0"
+      "version": "28.4.0.0"
     }
   ],
   "screenshots": [],
@@ -38,7 +38,7 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "application": "28.3.0.0",
+  "application": "28.4.0.0",
   "target": "Cloud",
   "features": [
     "TranslationFile"

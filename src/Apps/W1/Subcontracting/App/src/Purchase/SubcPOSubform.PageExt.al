@@ -1,0 +1,130 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Manufacturing.Subcontracting;
+
+using Microsoft.Purchases.Document;
+
+pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
+{
+    layout
+    {
+        addlast(Control1)
+        {
+            field("Transfer WIP Item"; Rec."Transfer WIP Item")
+            {
+                ApplicationArea = Subcontracting;
+                Visible = false;
+                Editable = false;
+            }
+        }
+    }
+    actions
+    {
+        addafter("F&unctions")
+        {
+            group(Production)
+            {
+                Caption = 'Production';
+                action("Production Order")
+                {
+                    ApplicationArea = Subcontracting;
+                    Visible = HasSubcontractingContext;
+                    Caption = 'Production Order';
+                    Image = Production;
+                    ToolTip = 'View the related production order.';
+                    trigger OnAction()
+                    begin
+                        ShowProductionOrder(Rec);
+                    end;
+                }
+                action("Production Order Routing")
+                {
+                    ApplicationArea = Subcontracting;
+                    Visible = HasSubcontractingContext;
+                    Caption = 'Production Order Routing';
+                    Image = Route;
+                    ToolTip = 'View the related production order routing.';
+                    trigger OnAction()
+                    begin
+                        ShowProductionOrderRouting(Rec);
+                    end;
+                }
+                action("Production Order Components")
+                {
+                    ApplicationArea = Subcontracting;
+                    Visible = HasSubcontractingContext;
+                    Caption = 'Production Order Components';
+                    Image = Components;
+                    ToolTip = 'View the related production order components.';
+                    trigger OnAction()
+                    begin
+                        ShowProductionOrderComponents(Rec);
+                    end;
+                }
+                action("Transfer Order")
+                {
+                    ApplicationArea = Subcontracting;
+                    Visible = HasSubcontractingContext;
+                    Caption = 'Subcontracting Transfer Order';
+                    Image = TransferOrder;
+                    ToolTip = 'View the related transfer order.';
+                    trigger OnAction()
+                    begin
+                        SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
+                    end;
+                }
+                action("Return Transfer Order")
+                {
+                    ApplicationArea = Subcontracting;
+                    Visible = HasSubcontractingContext;
+                    Caption = 'Subcontracting Return Transfer Order';
+                    Image = ReturnRelated;
+                    ToolTip = 'View the related return transfer order.';
+                    trigger OnAction()
+                    begin
+                        SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
+                    end;
+                }
+            }
+        }
+    }
+
+    var
+        PurchaseHeader: Record "Purchase Header";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
+        SubcProdOrderFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
+        SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+        HasSubcontractingContext: Boolean;
+
+    trigger OnAfterGetCurrRecord()
+    begin
+        SetSubcontractingVisibility();
+    end;
+
+    local procedure SetSubcontractingVisibility()
+    begin
+        if (Rec."Document No." = PurchaseHeader."No.") and (Rec."Document Type" = PurchaseHeader."Document Type") then
+            exit;
+        if PurchaseHeader.Get(Rec."Document Type", Rec."Document No.") then
+            HasSubcontractingContext := SubcontractingManagement.IsSubcontractingPurchaseDocument(PurchaseHeader)
+        else
+            HasSubcontractingContext := false;
+    end;
+
+    local procedure ShowProductionOrder(RecRelatedVariant: Variant)
+    begin
+        SubcProdOrderFactboxMgmt.ShowProductionOrder(RecRelatedVariant);
+    end;
+
+    local procedure ShowProductionOrderComponents(RecRelatedVariant: Variant)
+    begin
+        SubcProdOrderFactboxMgmt.ShowProductionOrderComponents(RecRelatedVariant);
+    end;
+
+    local procedure ShowProductionOrderRouting(RecRelatedVariant: Variant)
+    begin
+        SubcProdOrderFactboxMgmt.ShowProductionOrderRouting(RecRelatedVariant);
+    end;
+}

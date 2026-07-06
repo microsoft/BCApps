@@ -1,0 +1,33 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Manufacturing.Subcontracting;
+
+using Microsoft.Inventory.Transfer;
+
+codeunit 99001543 "Subc. Trans Shpt Header Ext"
+{
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Shipment Header", OnAfterCopyFromTransferHeader, '', false, false)]
+    local procedure OnAfterCopyFromTransferHeader(var TransferShipmentHeader: Record "Transfer Shipment Header"; TransferHeader: Record "Transfer Header")
+#if not CLEAN28
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        TransferShipmentHeader."Subc. Source Type" := TransferHeader."Subc. Source Type";
+        TransferShipmentHeader."Source ID" := TransferHeader."Source ID";
+        TransferShipmentHeader."Source Ref. No." := TransferHeader."Source Ref. No.";
+        TransferShipmentHeader."Subc. Return Order" := TransferHeader."Subc. Return Order";
+        TransferShipmentHeader."Subcontr. Purch. Order No." := TransferHeader."Subcontr. Purch. Order No.";
+        TransferShipmentHeader."Subcontr. PO Line No." := TransferHeader."Subcontr. PO Line No.";
+    end;
+}

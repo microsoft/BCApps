@@ -1,0 +1,33 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Manufacturing.Subcontracting;
+
+using Microsoft.Inventory.Transfer;
+
+codeunit 99001542 "Subc. Trans Rcpt Header Ext"
+{
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Receipt Header", OnAfterCopyFromTransferHeader, '', false, false)]
+    local procedure OnAfterCopyFromTransferHeader(var TransferReceiptHeader: Record "Transfer Receipt Header"; TransferHeader: Record "Transfer Header")
+#if not CLEAN28
+    var
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        TransferReceiptHeader."Subc. Source Type" := TransferHeader."Subc. Source Type";
+        TransferReceiptHeader."Source ID" := TransferHeader."Source ID";
+        TransferReceiptHeader."Source Ref. No." := TransferHeader."Source Ref. No.";
+        TransferReceiptHeader."Subc. Return Order" := TransferHeader."Subc. Return Order";
+        TransferReceiptHeader."Subcontr. Purch. Order No." := TransferHeader."Subcontr. Purch. Order No.";
+        TransferReceiptHeader."Subcontr. PO Line No." := TransferHeader."Subcontr. PO Line No.";
+    end;
+}

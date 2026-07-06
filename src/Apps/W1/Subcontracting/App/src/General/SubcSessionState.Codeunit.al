@@ -1,0 +1,117 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Manufacturing.Subcontracting;
+
+codeunit 99001500 "Subc. Session State"
+{
+    SingleInstance = true;
+
+    var
+#if not CLEAN28
+#pragma warning disable AL0432
+        SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
+#pragma warning restore AL0432
+#endif
+        CodeDictionary: Dictionary of [Text, Code[1024]];
+        DateDictionary: Dictionary of [Text, Date];
+        RecordIDDictionary: Dictionary of [Text, RecordId];
+
+    procedure ClearAllDictionariesForKey(StoredKey: Text)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if CodeDictionary.ContainsKey(StoredKey) then
+            CodeDictionary.Remove(StoredKey);
+
+        if DateDictionary.ContainsKey(StoredKey) then
+            DateDictionary.Remove(StoredKey);
+
+        if RecordIDDictionary.ContainsKey(StoredKey) then
+            RecordIDDictionary.Remove(StoredKey);
+    end;
+
+    procedure SetCode(KeyToStore: Text; CodeToStore: Code[1024])
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if CodeDictionary.ContainsKey(KeyToStore) then
+            CodeDictionary.Set(KeyToStore, CodeToStore)
+        else
+            CodeDictionary.Add(KeyToStore, CodeToStore);
+    end;
+
+    procedure SetDate(KeyToStore: Text; DateToStore: Date)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if DateDictionary.ContainsKey(KeyToStore) then
+            DateDictionary.Set(KeyToStore, DateToStore)
+        else
+            DateDictionary.Add(KeyToStore, DateToStore);
+    end;
+
+    procedure SetRecordID(KeyToStore: Text; RecordIDToStore: RecordId)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if RecordIDDictionary.ContainsKey(KeyToStore) then
+            RecordIDDictionary.Set(KeyToStore, RecordIDToStore)
+        else
+            RecordIDDictionary.Add(KeyToStore, RecordIDToStore);
+    end;
+
+    procedure GetCode(StoredKey: Text): Code[1024]
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if CodeDictionary.ContainsKey(StoredKey) then
+            exit(CodeDictionary.Get(StoredKey));
+    end;
+
+    procedure GetDate(StoredKey: Text): Date
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if DateDictionary.ContainsKey(StoredKey) then
+            exit(DateDictionary.Get(StoredKey));
+    end;
+
+    procedure GetRecordID(StoredKey: Text; var ReturnRecordID: RecordId)
+    begin
+#if not CLEAN28
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        Clear(ReturnRecordID);
+        if RecordIDDictionary.ContainsKey(StoredKey) then
+            ReturnRecordID := RecordIDDictionary.Get(StoredKey);
+    end;
+}
