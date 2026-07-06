@@ -657,7 +657,7 @@ table 7200 "CDS Connection Setup"
     procedure SetDataverseCloud(NewDataverseCloud: Enum "Dataverse Cloud")
     begin
         if not Get() then
-            exit;
+            Error(SetupMissingErr);
         Validate("Dataverse Cloud", NewDataverseCloud);
         Modify(true);
     end;
@@ -686,6 +686,7 @@ table 7200 "CDS Connection Setup"
         CRMConnEnabledErr: Label 'To set up the connection with Dataverse, you must first disable the existing connection with Dynamics 365 Sales.';
         CRMConnEnabledTelemetryErr: Label 'User is trying to set up the connection with Dataverse, while the existing connection with Dynamics 365 Sales is enabled.', Locked = true;
         CannotDisableCDSErr: Label 'To disable the connection with Dataverse, you must first disable the existing connection with Dynamics 365 Sales.';
+        SetupMissingErr: Label 'The Dataverse cloud cannot be set because the Dataverse Connection Setup does not exist. Set up the Dataverse connection before choosing a cloud.';
         TransferringConnectionValuesFromCRMConnectionsetupTxt: Label 'Transferring connection string values from Dynamics 365 sales connection setup to Dataverse connection setup', Locked = true;
         TestServerAddressTok: Label '@@test@@', Locked = true;
         DefaultingToDataverseServiceClientTxt: Label 'Defaulting to DataverseServiceClient', Locked = true;

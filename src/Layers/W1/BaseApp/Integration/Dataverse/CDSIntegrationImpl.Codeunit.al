@@ -3398,14 +3398,13 @@ codeunit 7201 "CDS Integration Impl."
     end;
 
 
-    internal procedure GetDataverseCloudEndpoints() Endpoints: Interface "Dataverse Cloud Endpoints"
+    internal procedure GetDataverseCloudEndpoints(): Interface "Dataverse Cloud Endpoints"
     var
         CDSConnectionSetup: Record "CDS Connection Setup";
-        DataverseCloud: Enum "Dataverse Cloud";
     begin
-        if CDSConnectionSetup.Get() then
-            DataverseCloud := CDSConnectionSetup."Dataverse Cloud";
-        exit(DataverseCloud);
+        if not CDSConnectionSetup.Get() then
+            CDSConnectionSetup.Init();
+        exit(CDSConnectionSetup.GetDataverseCloudEndpoints());
     end;
 
     [Scope('OnPrem')]

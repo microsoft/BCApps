@@ -48,7 +48,7 @@ codeunit 139196 "CDS Connection Setup Test"
     [Scope('OnPrem')]
     procedure DataverseCloudDefaultsToCommercialEndpoints()
     var
-        CDSConnectionSetup: Record "CDS Connection Setup" temporary;
+        TempCDSConnectionSetup: Record "CDS Connection Setup" temporary;
         DataverseCloud: Enum "Dataverse Cloud";
         Endpoints: Interface "Dataverse Cloud Endpoints";
     begin
@@ -57,13 +57,13 @@ codeunit 139196 "CDS Connection Setup Test"
         Initialize();
 
         // [GIVEN] A Dataverse Connection Setup with the default Dataverse Cloud
-        CDSConnectionSetup.Init();
+        TempCDSConnectionSetup.Init();
 
         // [THEN] The Dataverse Cloud is Commercial
-        Assert.AreEqual(DataverseCloud::Commercial, CDSConnectionSetup."Dataverse Cloud", 'Dataverse Cloud should default to Commercial.');
+        Assert.AreEqual(DataverseCloud::Commercial, TempCDSConnectionSetup."Dataverse Cloud", 'Dataverse Cloud should default to Commercial.');
 
         // [THEN] The resolved endpoints are the worldwide commercial endpoints
-        Endpoints := CDSConnectionSetup.GetDataverseCloudEndpoints();
+        Endpoints := TempCDSConnectionSetup.GetDataverseCloudEndpoints();
         Assert.AreEqual(CommercialOAuthAuthorityUrlTxt, Endpoints.GetOAuthAuthorityUrl(), 'Unexpected OAuth authority URL.');
         Assert.AreEqual(CommercialClientCredentialsAuthorityUrlTxt, Endpoints.GetClientCredentialsTokenAuthorityUrl(), 'Unexpected client credentials authority URL.');
         Assert.AreEqual(CommercialGlobalDiscoveryScopeTxt, Endpoints.GetGlobalDiscoveryScope(), 'Unexpected Global Discovery scope.');
@@ -74,7 +74,7 @@ codeunit 139196 "CDS Connection Setup Test"
     [Scope('OnPrem')]
     procedure DataverseCloudOverrideReturnsPartnerEndpoints()
     var
-        CDSConnectionSetup: Record "CDS Connection Setup" temporary;
+        TempCDSConnectionSetup: Record "CDS Connection Setup" temporary;
         DataverseCloud: Enum "Dataverse Cloud";
         Endpoints: Interface "Dataverse Cloud Endpoints";
     begin
@@ -83,11 +83,11 @@ codeunit 139196 "CDS Connection Setup Test"
         Initialize();
 
         // [GIVEN] A Dataverse Connection Setup pointed at a partner (test) sovereign cloud
-        CDSConnectionSetup.Init();
-        CDSConnectionSetup."Dataverse Cloud" := DataverseCloud::TestSovereign;
+        TempCDSConnectionSetup.Init();
+        TempCDSConnectionSetup."Dataverse Cloud" := DataverseCloud::TestSovereign;
 
         // [THEN] The resolved endpoints come from the partner implementation, not the commercial defaults
-        Endpoints := CDSConnectionSetup.GetDataverseCloudEndpoints();
+        Endpoints := TempCDSConnectionSetup.GetDataverseCloudEndpoints();
         Assert.AreEqual(SovereignOAuthAuthorityUrlTxt, Endpoints.GetOAuthAuthorityUrl(), 'Unexpected OAuth authority URL.');
         Assert.AreEqual(SovereignGlobalDiscoveryApiUrlTxt, Endpoints.GetGlobalDiscoveryApiUrl(), 'Unexpected Global Discovery API URL.');
     end;
@@ -115,6 +115,27 @@ codeunit 139196 "CDS Connection Setup Test"
         // [THEN] The selection is persisted
         CDSConnectionSetupReread.Get();
         Assert.AreEqual(DataverseCloud::TestSovereign, CDSConnectionSetupReread."Dataverse Cloud", 'SetDataverseCloud should persist the selected cloud.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SetDataverseCloudErrorsWhenSetupMissing()
+    var
+        CDSConnectionSetup: Record "CDS Connection Setup";
+        DataverseCloud: Enum "Dataverse Cloud";
+    begin
+        // [FEATURE] [Dataverse Cloud]
+        // [SCENARIO] SetDataverseCloud raises an error, instead of silently doing nothing, when no setup record exists.
+        Initialize();
+
+        // [GIVEN] No Dataverse Connection Setup record
+        CDSConnectionSetup.DeleteAll();
+
+        // [WHEN] A partner selects a sovereign cloud through SetDataverseCloud
+        asserterror CDSConnectionSetup.SetDataverseCloud(DataverseCloud::TestSovereign);
+
+        // [THEN] An error is raised so the no-op is not silent
+        Assert.ExpectedError('does not exist');
     end;
 
     [Test]
