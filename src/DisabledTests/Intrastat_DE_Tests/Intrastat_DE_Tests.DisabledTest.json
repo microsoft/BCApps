@@ -1,0 +1,22 @@
+[
+  {
+    "codeunitId": 148700,
+    "codeunitName": "Intrastat Report Test DE",
+    "method": "ExportXMLWithCoreChannelSucceeds"
+  },
+  {
+    "codeunitId": 148700,
+    "codeunitName": "Intrastat Report Test DE",
+    "method": "ExportXMLWithIDEVKeepsMaterialNoInId"
+  },
+  {
+    "codeunitId": 148700,
+    "codeunitName": "Intrastat Report Test DE",
+    "method": "ExportXMLWithIDEVAndNoMaterialNoFails"
+  },
+  {
+    "codeunitId": 148700,
+    "codeunitName": "Intrastat Report Test DE",
+    "method": "ExportXMLWithCoreIgnoresMaterialNo"
+  }
+]
