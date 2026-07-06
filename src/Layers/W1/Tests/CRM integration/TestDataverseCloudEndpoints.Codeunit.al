@@ -6,7 +6,7 @@
 // Test double simulating a partner-supplied sovereign-cloud implementation of the
 // "Dataverse Cloud Endpoints" interface. Returns US Government (GCC High) style endpoints so tests
 // can assert that a partner override flows through the CDS connection code.
-codeunit 139197 "Test Dataverse Cloud Endpoints" implements "Dataverse Cloud Endpoints"
+codeunit 139201 "Test Dataverse Cloud Endpoints" implements "Dataverse Cloud Endpoints"
 {
     var
         OAuthAuthorityUrlTxt: Label 'https://login.microsoftonline.us/common/oauth2', Locked = true;

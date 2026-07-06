@@ -5,9 +5,9 @@
 
 // Test-only extension of the "Dataverse Cloud" enum, simulating a partner adding support for a
 // sovereign cloud with its own "Dataverse Cloud Endpoints" implementation.
-enumextension 139200 "Dataverse Cloud Test" extends "Dataverse Cloud"
+enumextension 139202 "Dataverse Cloud Test" extends "Dataverse Cloud"
 {
-    value(139200; TestSovereign)
+    value(139202; TestSovereign)
     {
         Caption = 'Test Sovereign';
         Implementation = "Dataverse Cloud Endpoints" = "Test Dataverse Cloud Endpoints";
