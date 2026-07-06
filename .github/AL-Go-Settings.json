@@ -139,5 +139,9 @@
       "Automation"
     ]
   },
-  "runNumberOffset": 60000
+  "runNumberOffset": 60000,
+  "workspaceCompilation": {
+    "enabled": true,
+    "parallelism": -1
+  }
 }
