@@ -8,6 +8,7 @@
     "../../../src/Apps/BE/HybridBCLast_BE/app",
     "../../../src/Apps/BE/IntrastatBE/app",
     "../../../src/Apps/BE/PEPPOLBE/App",
+    "../../../src/Apps/BE/ShopifyBE/App",
     "../../../src/Apps/W1/AMCBanking365Fundamentals/app",
     "../../../src/Apps/W1/APIReportsFinance/App",
     "../../../src/Apps/W1/APIV1/app",
@@ -116,6 +117,7 @@
     "../../../src/Tools/Test Framework/Test Stability Tools/Prevent Metadata Updates"
   ],
   "testFolders": [
+    "../../../src/Apps/BE/ShopifyBE/Test",
     "../../../src/Apps/W1/AMCBanking365Fundamentals/test",
     "../../../src/Apps/W1/APIV1/test",
     "../../../src/Apps/W1/APIV2/test",
