@@ -68,32 +68,32 @@ page 8352 "MCP Config Tool List"
                 }
                 field("Allow Read"; Rec."Allow Read")
                 {
-                    ToolTip = 'Specifies whether read operations are allowed for this tool.';
+                    ToolTip = 'Specifies whether read operations are allowed for this API.';
                 }
                 field("Allow Create"; Rec."Allow Create")
                 {
-                    ToolTip = 'Specifies whether create operations are allowed for this tool.';
+                    ToolTip = 'Specifies whether create operations are allowed for this API.';
                     Editable = AllowCreateEditable and AllowCreateUpdateDeleteTools and (Rec."Object Type" = Rec."Object Type"::Page);
                 }
                 field("Allow Modify"; Rec."Allow Modify")
                 {
-                    ToolTip = 'Specifies whether modify operations are allowed for this tool.';
+                    ToolTip = 'Specifies whether modify operations are allowed for this API.';
                     Editable = AllowModifyEditable and AllowCreateUpdateDeleteTools and (Rec."Object Type" = Rec."Object Type"::Page);
                 }
                 field("Allow Delete"; Rec."Allow Delete")
                 {
-                    ToolTip = 'Specifies whether delete operations are allowed for this tool.';
+                    ToolTip = 'Specifies whether delete operations are allowed for this API.';
                     Editable = AllowDeleteEditable and AllowCreateUpdateDeleteTools and (Rec."Object Type" = Rec."Object Type"::Page);
                 }
                 field("Allow Bound Actions"; Rec."Allow Bound Actions")
                 {
-                    ToolTip = 'Specifies whether bound actions are allowed for this tool.';
+                    ToolTip = 'Specifies whether bound actions are allowed for this API.';
                     Editable = AllowCreateUpdateDeleteTools and (Rec."Object Type" = Rec."Object Type"::Page);
                 }
                 field("API Version"; Rec."API Version")
                 {
                     Caption = 'API Version';
-                    ToolTip = 'Specifies the API version of the tool.';
+                    ToolTip = 'Specifies the API version.';
 
                     trigger OnLookup(var Text: Text): Boolean
                     var

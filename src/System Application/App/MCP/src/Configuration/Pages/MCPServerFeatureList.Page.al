@@ -37,9 +37,11 @@ page 8368 "MCP Server Feature List"
                 }
                 field("Description"; Rec."Description")
                 {
+                    ToolTip = 'Specifies the description of the server feature.';
                 }
                 field("Status"; Rec."Status")
                 {
+                    ToolTip = 'Specifies whether the server feature is active or inactive.';
                     StyleExpr = StatusStyleExpr;
                 }
             }
