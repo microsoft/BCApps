@@ -35,6 +35,11 @@
         "justification": "Needed to allow for BigInteger entry nos."
     },
     {
+      "id": "AL1085",
+      "action": "Warning",
+      "justification": "Allows compilation to pass with file locking issues."
+    },
+    {
       "id": "AS0077",
       "action": "None",
       "justification": "Adding a var modifier in events should be allowed in main, as it only will break the runtime behavior of extensions subscribing to it when used in hotfix scenarios."
@@ -83,6 +88,11 @@
         "id": "AL0920",
         "action": "None",
         "justification": "TODO(#632280) - This will be enabled after a few violations are fixed."
+    },
+    {
+        "id":  "AW0017",
+        "action":  "Warning",
+        "justification": "MaskType is not yet implemented for repeater controls, but it does not break the UI. It is informational that the value will not be visible in the repeater."
     }
   ]
 }
