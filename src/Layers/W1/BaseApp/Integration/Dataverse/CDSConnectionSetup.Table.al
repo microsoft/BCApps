@@ -656,10 +656,8 @@ table 7200 "CDS Connection Setup"
     /// <param name="NewDataverseCloud">The cloud to use for OAuth authority and Global Discovery endpoints.</param>
     procedure SetDataverseCloud(NewDataverseCloud: Enum "Dataverse Cloud")
     begin
-        if not Get() then begin
-            "Primary Key" := '';
-            Insert(); // TODONAT: not a fan. if not exists then just exit.
-        end;
+        if not Get() then
+            exit;
         Validate("Dataverse Cloud", NewDataverseCloud);
         Modify(true);
     end;
