@@ -1120,8 +1120,10 @@ codeunit 139883 "E-Doc Process Test"
         // Set a currency that can be used across all localizations
         Currency.Init();
         Currency.Validate(Code, 'XYZ');
-        if Currency.Insert(true) then
+        if Currency.Insert(true) then begin
             LibraryERM.CreateExchangeRate(Currency.Code, Today(), 1.0, 1.0);
+            LibraryERM.CreateExchangeRate(Currency.Code, 20260122D, 1.0, 1.0);
+        end;
 
         EDocument.DeleteAll();
         EDocumentServiceStatus.DeleteAll();
