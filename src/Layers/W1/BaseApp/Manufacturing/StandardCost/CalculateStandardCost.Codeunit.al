@@ -1285,13 +1285,17 @@ codeunit 5812 "Calculate Standard Cost"
         OvhdRate: Decimal;
         CostTime: Decimal;
         UnitCostCalculation: Enum "Unit Cost Calculation Type";
+        IsHandled: Boolean;
     begin
         OnBeforeCalcRtngLineCost(RoutingLine, MfgItemQtyBase, ParentItem);
         if (RoutingLine.Type = RoutingLine.Type::"Work Center") and (RoutingLine."No." <> '') then
             WorkCenter.Get(RoutingLine."No.");
 
         UnitCost := RoutingLine."Unit Cost per";
-        CalcRoutingCostPerUnit(RoutingLine.Type, RoutingLine."No.", DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation);
+        IsHandled := false;
+        OnCalcRtngLineCostOnBeforeCalcRoutingCostPerUnit(RoutingLine, MfgItemQtyBase, WorkCenter, DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation, ParentItem, IsHandled);
+        if not IsHandled then
+            CalcRoutingCostPerUnit(RoutingLine.Type, RoutingLine."No.", DirUnitCost, IndirCostPct, OvhdRate, UnitCost, UnitCostCalculation);
         OnCalcRtngLineCostOnAfterCalcRoutingCostPerUnit(RoutingLine, WorkCenter, MfgItemQtyBase, UnitCostCalculation);
         CostTime :=
           MfgCostCalcMgt.CalculateCostTime(
@@ -1577,6 +1581,11 @@ codeunit 5812 "Calculate Standard Cost"
 
     [IntegrationEvent(false, false)]
     local procedure OnCalcRtngLineCostOnAfterCalcRoutingCostPerUnit(RoutingLine: Record "Routing Line"; WorkCenter: Record "Work Center"; var MfgItemQtyBase: Decimal; var UnitCostCalculation: Enum "Unit Cost Calculation Type")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcRtngLineCostOnBeforeCalcRoutingCostPerUnit(var RoutingLine: Record "Routing Line"; MfgItemQtyBase: Decimal; var WorkCenter: Record "Work Center"; var DirUnitCost: Decimal; var IndirCostPct: Decimal; var OvhdRate: Decimal; var UnitCost: Decimal; var UnitCostCalculation: Enum "Unit Cost Calculation Type"; var ParentItem: Record Item; var IsHandled: Boolean)
     begin
     end;
 

@@ -262,8 +262,15 @@ report 7304 "Get Outbound Source Documents"
                 Location.Get(LocationCode2);
     end;
 
-    local procedure IsPickToBeMadeForAsmLine(AsmLine: Record "Assembly Line"): Boolean
+    local procedure IsPickToBeMadeForAsmLine(AsmLine: Record "Assembly Line") Result: Boolean
+    var
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeIsPickToBeMadeForAsmLine(AsmLine, Result, IsHandled);
+        if IsHandled then
+            exit(Result);
+
         if not AsmLine.IsInventoriableItem() then
             exit(false);
 
@@ -305,6 +312,11 @@ report 7304 "Get Outbound Source Documents"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterWarehouseShipmentLineOnPreDataItem(var WhseShipmentLine: record "Warehouse Shipment Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeIsPickToBeMadeForAsmLine(AssemblyLine: Record "Assembly Line"; var Result: Boolean; var IsHandled: Boolean)
     begin
     end;
 
