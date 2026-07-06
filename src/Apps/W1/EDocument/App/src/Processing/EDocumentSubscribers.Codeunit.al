@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.OrderMatch;
 using Microsoft.EServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Import.Sales;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
@@ -521,6 +522,8 @@ codeunit 6103 "E-Document Subscribers"
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Line Mapping");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Purchase Header");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Purchase Line");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Sales Header");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Sales Line");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Imported Line");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Order Match");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc. Service Supported Type");
