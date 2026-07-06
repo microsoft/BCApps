@@ -100,6 +100,12 @@ page 99000761 "Machine Center List"
                     ApplicationArea = Manufacturing;
                     Visible = false;
                 }
+                field("Calendar Entries Available Until"; Rec."Calendar Entries Available Until")
+                {
+                    ApplicationArea = Manufacturing;
+                    Editable = false;
+                    StyleExpr = CalendarHorizonStyleTxt;
+                }
             }
         }
         area(factboxes)
@@ -294,5 +300,16 @@ page 99000761 "Machine Center List"
             }
         }
     }
+
+    trigger OnAfterGetRecord()
+    begin
+        Rec.CalcFields("Calendar Entries Available Until");
+        CalendarHorizonStyleTxt := '';
+        if (Rec."Calendar Entries Available Until" <> 0D) and (Rec."Calendar Entries Available Until" < Today()) then
+            CalendarHorizonStyleTxt := 'Unfavorable';
+    end;
+
+    var
+        CalendarHorizonStyleTxt: Text;
 }
 

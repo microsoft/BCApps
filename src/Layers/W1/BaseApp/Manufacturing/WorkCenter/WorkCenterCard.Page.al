@@ -146,6 +146,12 @@ page 99000754 "Work Center Card"
                     ApplicationArea = Planning;
                     Importance = Promoted;
                 }
+                field("Calendar Entries Available Until"; Rec."Calendar Entries Available Until")
+                {
+                    ApplicationArea = Manufacturing;
+                    Editable = false;
+                    StyleExpr = CalendarHorizonStyleTxt;
+                }
                 field("Calendar Rounding Precision"; Rec."Calendar Rounding Precision")
                 {
                     ApplicationArea = Manufacturing;
@@ -362,6 +368,14 @@ page 99000754 "Work Center Card"
         UpdateEnabled();
     end;
 
+    trigger OnAfterGetRecord()
+    begin
+        Rec.CalcFields("Calendar Entries Available Until");
+        CalendarHorizonStyleTxt := '';
+        if (Rec."Calendar Entries Available Until" <> 0D) and (Rec."Calendar Entries Available Until" < Today()) then
+            CalendarHorizonStyleTxt := 'Unfavorable';
+    end;
+
     trigger OnInit()
     begin
         FromProductionBinCodeEnable := true;
@@ -378,6 +392,7 @@ page 99000754 "Work Center Card"
         OpenShopFloorBinCodeEnable: Boolean;
         ToProductionBinCodeEnable: Boolean;
         FromProductionBinCodeEnable: Boolean;
+        CalendarHorizonStyleTxt: Text;
 
     local procedure UpdateEnabled()
     var
