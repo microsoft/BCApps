@@ -2012,6 +2012,125 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
+    [HandlerFunctions('MakeSupplyOrdersPageHandler')]
+    procedure VendorSuppliedPlanningComponentNotPlannedSeparately()
+    var
+        ComponentItem: Record Item;
+        Item: Record Item;
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ManufacturingUserTemplate: Record "Manufacturing User Template";
+        PlanningComponent: Record "Planning Component";
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProductionBOMLine: Record "Production BOM Line";
+        ProductionOrder: Record "Production Order";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        WorkCenter: array[2] of Record "Work Center";
+        ReqWkshTemplateName: Code[10];
+        Direction: Option Forward,Backward;
+    begin
+        // [SCENARIO] Planning Components with Component Supply Method = Vendor-Supplied must not
+        // generate separate demand when CalcRegenPlan is run for the component item, because
+        // vendor-supplied components are purchased through the subcontracting purchase order.
+
+        // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Item
+        Initialize();
+        SubcontractingMgmtLibrary.SetupInventorySetup();
+
+        Subcontracting := true;
+        UnitCostCalculation := UnitCostCalculation::Units;
+
+        CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter);
+
+        // [GIVEN] Create Item for Production include Routing and Prod. BOM
+        CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+
+        // [GIVEN] Assign Routing Link Code between subcontracting routing line and last BOM line
+        UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+
+        // [GIVEN] Set Component Supply Method = Vendor-Supplied on the linked BOM line
+        SubcontractingMgmtLibrary.UpdateProdBomWithComponentSupplyMethod(Item, "Component Supply Method"::"Vendor-Supplied");
+
+        // [GIVEN] Set up vendor with subcontracting location
+        SubcontractingMgmtLibrary.UpdateVendorWithSubcontractingLocationCode(WorkCenter[2]);
+
+        // [GIVEN] A Planning Worksheet line for the parent item is refreshed, creating Planning Components
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location);
+        ReqWkshTemplateName := LibraryPlanning.SelectRequisitionTemplateName();
+        LibraryPlanning.CreateRequisitionWkshName(RequisitionWkshName, ReqWkshTemplateName);
+        LibraryPlanning.CreateRequisitionLine(RequisitionLine, ReqWkshTemplateName, RequisitionWkshName.Name);
+        RequisitionLine.Validate(Type, RequisitionLine.Type::Item);
+        RequisitionLine.Validate("No.", Item."No.");
+        RequisitionLine.Validate(Quantity, LibraryRandom.RandInt(10) + 5);
+        RequisitionLine.Validate("Location Code", Location.Code);
+        RequisitionLine.Validate("Ending Date", WorkDate());
+        RequisitionLine.Modify(true);
+        LibraryPlanning.RefreshPlanningLine(RequisitionLine, Direction::Backward, true, true);
+
+        // [GIVEN] The component item from the BOM with Vendor-Supplied supply method
+        ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
+        ProductionBOMLine.FindLast();
+        ComponentItem.Get(ProductionBOMLine."No.");
+
+        // [WHEN] Run Regenerative Plan for the component item
+        ComponentItem.SetRecFilter();
+        LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
+
+        // [THEN] No requisition line is suggested for the Vendor-Supplied component
+        RequisitionLine.SetRange("No.", ComponentItem."No.");
+        Assert.RecordIsEmpty(RequisitionLine);
+
+        // [THEN] The Vendor-Supplied Planning Component still exists in the planning worksheet (the planning
+        // run must not remove it — it is needed for consumption registration in the production order)
+        PlanningComponent.SetRange("Item No.", ComponentItem."No.");
+        Assert.RecordIsNotEmpty(PlanningComponent);
+        PlanningComponent.FindFirst();
+        PlanningComponent.TestField("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+
+        // [WHEN] Carry out the parent item's planning line to create a planned production order
+        if not ManufacturingUserTemplate.Get(CopyStr(UserId(), 1, 50)) then
+            LibraryPlanning.CreateManufUserTemplate(
+                ManufacturingUserTemplate, CopyStr(UserId(), 1, 50),
+                ManufacturingUserTemplate."Make Orders"::"All Lines",
+                ManufacturingUserTemplate."Create Purchase Order"::"Make Purch. Orders",
+                ManufacturingUserTemplate."Create Production Order"::"Firm Planned",
+                ManufacturingUserTemplate."Create Transfer Order"::"Make Trans. Orders");
+        RequisitionLine.Reset();
+        RequisitionLine.SetRange("Worksheet Template Name", ReqWkshTemplateName);
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        RequisitionLine.SetRange("No.", Item."No.");
+        RequisitionLine.FindFirst();
+        LibraryPlanning.MakeSupplyOrders(ManufacturingUserTemplate, RequisitionLine);
+
+        // [THEN] The created planned production order contains the Vendor-Supplied component
+        // (carrying out the planning line must not strip the component from the production order)
+        ProductionOrder.SetRange("Source No.", Item."No.");
+        ProductionOrder.SetRange(Status, "Production Order Status"::"Firm Planned");
+        ProductionOrder.FindFirst();
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Item No.", ComponentItem."No.");
+        Assert.RecordIsNotEmpty(ProdOrderComponent);
+        ProdOrderComponent.FindFirst();
+        ProdOrderComponent.TestField("Component Supply Method", "Component Supply Method"::"Vendor-Supplied");
+
+        // [WHEN] Changing the Prod. Order Component's supply method to Empty
+        // (Planning Components are gone after carry-out; use the Prod. Order Component)
+        ProdOrderComponent."Component Supply Method" := "Component Supply Method"::Empty;
+        ProdOrderComponent.Modify();
+
+        // [WHEN] Run Regenerative Plan again for the component item
+        LibraryPlanning.CalcRegenPlanForPlanWksh(ComponentItem, CalcDate('<-1M>', WorkDate()), CalcDate('<+1M>', WorkDate()));
+
+        // [THEN] Requisition line is now suggested for the component
+        RequisitionLine.SetRange("No.", ComponentItem."No.");
+        Assert.RecordIsNotEmpty(RequisitionLine);
+        RequisitionLine.FindFirst();
+        RequisitionLine.TestField("No.", ComponentItem."No.");
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmHandler')]
     procedure SubcontractingFieldsPopulatedOnIleAfterSubcontractingPurchaseReceipt()
     var
@@ -3543,6 +3662,12 @@ codeunit 139989 "Subc. Subcontracting Test"
             else
                 Reply := false;
         end;
+    end;
+
+    [ModalPageHandler]
+    procedure MakeSupplyOrdersPageHandler(var MakeSupplyOrders: Page "Make Supply Orders"; var Response: Action)
+    begin
+        Response := ACTION::LookupOK;
     end;
 
     [ModalPageHandler]
