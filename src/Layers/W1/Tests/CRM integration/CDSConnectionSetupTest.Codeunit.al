@@ -36,7 +36,86 @@ codeunit 139196 "CDS Connection Setup Test"
         ClientIdTok: Label '{CLIENTID}', Locked = true;
         ClientSecretTok: Label '{CLIENTSECRET}', Locked = true;
         CertificateTok: Label '{CERTIFICATE}', Locked = true;
+        CommercialOAuthAuthorityUrlTxt: Label 'https://login.microsoftonline.com/common/oauth2', Locked = true;
+        CommercialClientCredentialsAuthorityUrlTxt: Label 'https://login.microsoftonline.com/organizations/oauth2/v2.0/token', Locked = true;
+        CommercialGlobalDiscoveryScopeTxt: Label 'https://globaldisco.crm.dynamics.com/user_impersonation', Locked = true;
+        CommercialGlobalDiscoveryApiUrlTxt: Label 'https://globaldisco.crm.dynamics.com/api/discovery/v2.0/Instances', Locked = true;
+        SovereignOAuthAuthorityUrlTxt: Label 'https://login.microsoftonline.us/common/oauth2', Locked = true;
+        SovereignGlobalDiscoveryApiUrlTxt: Label 'https://globaldisco.crm.microsoftdynamics.us/api/discovery/v2.0/Instances', Locked = true;
         IsInitialized: Boolean;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DataverseCloudDefaultsToCommercialEndpoints()
+    var
+        CDSConnectionSetup: Record "CDS Connection Setup" temporary;
+        DataverseCloud: Enum "Dataverse Cloud";
+        Endpoints: Interface "Dataverse Cloud Endpoints";
+    begin
+        // [FEATURE] [Dataverse Cloud]
+        // [SCENARIO] A new Dataverse Connection Setup uses the worldwide (commercial) endpoints by default.
+        Initialize();
+
+        // [GIVEN] A Dataverse Connection Setup with the default Dataverse Cloud
+        CDSConnectionSetup.Init();
+
+        // [THEN] The Dataverse Cloud is Commercial
+        Assert.AreEqual(DataverseCloud::Commercial, CDSConnectionSetup."Dataverse Cloud", 'Dataverse Cloud should default to Commercial.');
+
+        // [THEN] The resolved endpoints are the worldwide commercial endpoints
+        Endpoints := CDSConnectionSetup.GetDataverseCloudEndpoints();
+        Assert.AreEqual(CommercialOAuthAuthorityUrlTxt, Endpoints.GetOAuthAuthorityUrl(), 'Unexpected OAuth authority URL.');
+        Assert.AreEqual(CommercialClientCredentialsAuthorityUrlTxt, Endpoints.GetClientCredentialsTokenAuthorityUrl(), 'Unexpected client credentials authority URL.');
+        Assert.AreEqual(CommercialGlobalDiscoveryScopeTxt, Endpoints.GetGlobalDiscoveryScope(), 'Unexpected Global Discovery scope.');
+        Assert.AreEqual(CommercialGlobalDiscoveryApiUrlTxt, Endpoints.GetGlobalDiscoveryApiUrl(), 'Unexpected Global Discovery API URL.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure DataverseCloudOverrideReturnsPartnerEndpoints()
+    var
+        CDSConnectionSetup: Record "CDS Connection Setup" temporary;
+        DataverseCloud: Enum "Dataverse Cloud";
+        Endpoints: Interface "Dataverse Cloud Endpoints";
+    begin
+        // [FEATURE] [Dataverse Cloud]
+        // [SCENARIO] A partner-supplied Dataverse Cloud implementation overrides the endpoints used to connect.
+        Initialize();
+
+        // [GIVEN] A Dataverse Connection Setup pointed at a partner (test) sovereign cloud
+        CDSConnectionSetup.Init();
+        CDSConnectionSetup."Dataverse Cloud" := DataverseCloud::TestSovereign;
+
+        // [THEN] The resolved endpoints come from the partner implementation, not the commercial defaults
+        Endpoints := CDSConnectionSetup.GetDataverseCloudEndpoints();
+        Assert.AreEqual(SovereignOAuthAuthorityUrlTxt, Endpoints.GetOAuthAuthorityUrl(), 'Unexpected OAuth authority URL.');
+        Assert.AreEqual(SovereignGlobalDiscoveryApiUrlTxt, Endpoints.GetGlobalDiscoveryApiUrl(), 'Unexpected Global Discovery API URL.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SetDataverseCloudPersistsSelection()
+    var
+        CDSConnectionSetup: Record "CDS Connection Setup";
+        CDSConnectionSetupReread: Record "CDS Connection Setup";
+        DataverseCloud: Enum "Dataverse Cloud";
+    begin
+        // [FEATURE] [Dataverse Cloud]
+        // [SCENARIO] SetDataverseCloud persists the selected cloud on the Dataverse Connection Setup.
+        Initialize();
+
+        // [GIVEN] A Dataverse Connection Setup record
+        CDSConnectionSetup.DeleteAll();
+        CDSConnectionSetup.Init();
+        CDSConnectionSetup.Insert();
+
+        // [WHEN] A partner selects a sovereign cloud through SetDataverseCloud
+        CDSConnectionSetup.SetDataverseCloud(DataverseCloud::TestSovereign);
+
+        // [THEN] The selection is persisted
+        CDSConnectionSetupReread.Get();
+        Assert.AreEqual(DataverseCloud::TestSovereign, CDSConnectionSetupReread."Dataverse Cloud", 'SetDataverseCloud should persist the selected cloud.');
+    end;
 
     [Test]
     [HandlerFunctions('AssistedSetupModalHandler,ConfirmYes')]
