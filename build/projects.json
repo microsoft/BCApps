@@ -2106,6 +2106,29 @@
       ],
       "owningteam": "\\AI Business Solutions\\Integrations"
     },
+    "Shopify Connector BE": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\BE\\ShopifyBE\\App",
+      "dvdFolder": "Applications\\ShopifyBE\\Source",
+      "hasTranslations": true,
+      "installOnEnvironmentUpdate": true,
+      "supportedCountries": "BE",
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Integrations"
+    },
+    "Shopify Connector BE Test": {
+      "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\BE\\ShopifyBE\\Test",
+      "dvdFolder": "Applications\\ShopifyBE\\Test",
+      "supportedCountries": "BE",
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Integrations"
+    },
     "Company Hub": {
       "projectPath": "$env:INETROOT\\App\\Apps\\W1\\CompanyHub\\app",
       "dvdFolder": "Applications\\CompanyHub\\Source",
