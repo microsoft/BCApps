@@ -287,23 +287,41 @@ table 6101 "E-Document Purchase Line"
 
         case Rec."[BC] Purchase Line Type" of
             "Purchase Line Type"::Item:
-                if Item.Get(Rec."[BC] Purchase Type No.") then
-                    EntityName := Item.Description;
+                begin
+                    Item.SetLoadFields(Description);
+                    if Item.Get(Rec."[BC] Purchase Type No.") then
+                        EntityName := Item.Description;
+                end;
             "Purchase Line Type"::"G/L Account":
-                if GLAccount.Get(Rec."[BC] Purchase Type No.") then
-                    EntityName := GLAccount.Name;
+                begin
+                    GLAccount.SetLoadFields(Name);
+                    if GLAccount.Get(Rec."[BC] Purchase Type No.") then
+                        EntityName := GLAccount.Name;
+                end;
             "Purchase Line Type"::"Allocation Account":
-                if AllocationAccount.Get(Rec."[BC] Purchase Type No.") then
-                    EntityName := AllocationAccount.Name;
+                begin
+                    AllocationAccount.SetLoadFields(Name);
+                    if AllocationAccount.Get(Rec."[BC] Purchase Type No.") then
+                        EntityName := AllocationAccount.Name;
+                end;
             "Purchase Line Type"::"Fixed Asset":
-                if FixedAsset.Get(Rec."[BC] Purchase Type No.") then
-                    EntityName := FixedAsset.Description;
+                begin
+                    FixedAsset.SetLoadFields(Description);
+                    if FixedAsset.Get(Rec."[BC] Purchase Type No.") then
+                        EntityName := FixedAsset.Description;
+                end;
             "Purchase Line Type"::Resource:
-                if Resource.Get(Rec."[BC] Purchase Type No.") then
-                    EntityName := Resource.Name;
+                begin
+                    Resource.SetLoadFields(Name);
+                    if Resource.Get(Rec."[BC] Purchase Type No.") then
+                        EntityName := Resource.Name;
+                end;
             "Purchase Line Type"::"Charge (Item)":
-                if ItemCharge.Get(Rec."[BC] Purchase Type No.") then
-                    EntityName := ItemCharge.Description;
+                begin
+                    ItemCharge.SetLoadFields(Description);
+                    if ItemCharge.Get(Rec."[BC] Purchase Type No.") then
+                        EntityName := ItemCharge.Description;
+                end;
         end;
 
         OnAfterGetMatchedEntityName(Rec, EntityName);
