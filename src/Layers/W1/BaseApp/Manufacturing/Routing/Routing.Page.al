@@ -40,6 +40,11 @@ page 99000766 Routing
                 field(Type; Rec.Type)
                 {
                     ApplicationArea = Manufacturing;
+
+                    trigger OnValidate()
+                    begin
+                        UpdateRoutingLineParallelFieldsVisibility();
+                    end;
                 }
                 field(Status; Rec.Status)
                 {
@@ -241,6 +246,7 @@ page 99000766 Routing
     trigger OnAfterGetRecord()
     begin
         RefreshActiveVersionCode();
+        UpdateRoutingLineParallelFieldsVisibility();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean
@@ -280,6 +286,11 @@ page 99000766 Routing
     local procedure LastDateModifiedOnAfterValidate()
     begin
         CurrPage.Update();
+    end;
+
+    local procedure UpdateRoutingLineParallelFieldsVisibility()
+    begin
+        CurrPage.RoutingLine.Page.SetParallelFieldsVisible(Rec.Type = Rec.Type::Parallel);
     end;
 
     local procedure RefreshActiveVersionCode()

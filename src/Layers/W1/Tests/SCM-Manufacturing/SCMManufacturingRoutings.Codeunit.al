@@ -104,6 +104,71 @@ codeunit 137082 "SCM Manufacturing - Routings"
 
     [Test]
     [Scope('OnPrem')]
+    procedure NextPrevOperationNoVisibleOnlyForParallelRouting()
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingPage: TestPage Routing;
+    begin
+        // [FEATURE] [Routing] [UI]
+        // [SCENARIO 641489] Next/Previous Operation No. on the Routing Lines subform are visible only when Type = Parallel.
+        Initialize();
+
+        // [GIVEN] A serial routing opened on the Routing card
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        RoutingPage.OpenEdit();
+        RoutingPage.GoToRecord(RoutingHeader);
+
+        // [THEN] The Next/Previous Operation No. fields are hidden for a serial routing
+        Assert.IsFalse(RoutingPage.RoutingLine."Next Operation No.".Visible(), 'Next Operation No. should be hidden for a serial routing.');
+        Assert.IsFalse(RoutingPage.RoutingLine."Previous Operation No.".Visible(), 'Previous Operation No. should be hidden for a serial routing.');
+
+        // [WHEN] The routing Type is changed to Parallel
+        RoutingPage.Type.SetValue(RoutingHeader.Type::Parallel);
+
+        // [THEN] The Next/Previous Operation No. fields become visible
+        Assert.IsTrue(RoutingPage.RoutingLine."Next Operation No.".Visible(), 'Next Operation No. should be visible for a parallel routing.');
+        Assert.IsTrue(RoutingPage.RoutingLine."Previous Operation No.".Visible(), 'Previous Operation No. should be visible for a parallel routing.');
+
+        RoutingPage.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure NextPrevOperationNoVisibleOnlyForParallelRoutingVersion()
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingVersion: Record "Routing Version";
+        RoutingVersionPage: TestPage "Routing Version";
+    begin
+        // [FEATURE] [Routing] [UI]
+        // [SCENARIO 641489] Next/Previous Operation No. on the Routing Version Lines subform are visible only when Type = Parallel.
+        Initialize();
+
+        // [GIVEN] A serial routing version opened on the Routing Version card
+        LibraryManufacturing.CreateRoutingHeader(RoutingHeader, RoutingHeader.Type::Serial);
+        LibraryManufacturing.CreateRoutingVersion(RoutingVersion, RoutingHeader."No.", Format(LibraryRandom.RandInt(5)));
+        RoutingVersion.Validate(Type, RoutingVersion.Type::Serial);
+        RoutingVersion.Modify(true);
+
+        RoutingVersionPage.OpenEdit();
+        RoutingVersionPage.GoToRecord(RoutingVersion);
+
+        // [THEN] The Next/Previous Operation No. fields are hidden for a serial routing version
+        Assert.IsFalse(RoutingVersionPage.RoutingLine."Next Operation No.".Visible(), 'Next Operation No. should be hidden for a serial routing version.');
+        Assert.IsFalse(RoutingVersionPage.RoutingLine."Previous Operation No.".Visible(), 'Previous Operation No. should be hidden for a serial routing version.');
+
+        // [WHEN] The routing version Type is changed to Parallel
+        RoutingVersionPage.Type.SetValue(RoutingVersion.Type::Parallel);
+
+        // [THEN] The Next/Previous Operation No. fields become visible
+        Assert.IsTrue(RoutingVersionPage.RoutingLine."Next Operation No.".Visible(), 'Next Operation No. should be visible for a parallel routing version.');
+        Assert.IsTrue(RoutingVersionPage.RoutingLine."Previous Operation No.".Visible(), 'Previous Operation No. should be visible for a parallel routing version.');
+
+        RoutingVersionPage.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure SimpleParallelRouting()
     var
         WorkCenter: Record "Work Center";
