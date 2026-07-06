@@ -11,6 +11,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Finance.GeneralLedger.Reversal;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.Item;
@@ -543,6 +544,16 @@ page 20 "General Ledger Entries"
                         Rec.ShowValueEntries();
                     end;
                 }
+                action("Spend Request To G/L Link")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Spend Requests';
+                    Image = ProjectExpense;
+                    Scope = Repeater;
+                    ToolTip = 'View the spend requests linked to this entry.';
+                    RunObject = page "Spend Request To G/L Link";
+                    RunPageLink = "G/L Entry No." = field("Entry No.");
+                }
             }
         }
         area(processing)
@@ -703,6 +714,9 @@ page 20 "General Ledger Entries"
                     {
                     }
                     actionref("Value Entries_Promoted"; "Value Entries")
+                    {
+                    }
+                    actionref(SpendReqToGLLink_Promoted; "Spend Request To G/L Link")
                     {
                     }
                     actionref(GLDimensionOverview_Promoted; GLDimensionOverview)

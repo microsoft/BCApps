@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -222,6 +222,10 @@ page 17 "G/L Account Card"
                 {
                     ApplicationArea = Suite;
                     Caption = 'Default Deferral Template';
+                }
+                field("Spend Request Required"; Rec."Spend Request Required")
+                {
+                    ApplicationArea = Basic, Suite;
                 }
             }
             group(Revaluation)

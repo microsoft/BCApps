@@ -14,6 +14,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.Depreciation;
@@ -2138,6 +2139,41 @@ table 39 "Purchase Line"
             Caption = 'Prepmt. Pmt. Discount Amount';
             Editable = false;
         }
+        field(147; "Spend Request No."; Code[20])
+        {
+            Caption = 'Spend Request No.';
+            ToolTip = 'Specifies the spend request that this purchase document relates to.';
+            TableRelation = "Spend Request" where(Status = const(Approved));
+            DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            var
+                SpendRequest: Record "Spend Request";
+                DimensionSetIDArr: array[10] of Integer;
+            begin
+                if not GuiAllowed() then
+                    exit;
+                if Rec."Spend Request No." = '' then begin
+                    Rec."Spend Request Close" := false;
+                    exit;
+                end;
+                SpendRequest.SetAutoCalcFields("Total Spent Amount (LCY)");
+                SpendRequest.Get(Rec."Spend Request No.");
+                SpendRequest.TestField(Status, SpendRequest.Status::Approved);
+                if SpendRequest."Dimension Set ID" <> 0 then begin
+                    DimensionSetIDArr[1] := Rec."Dimension Set ID";
+                    DimensionSetIDArr[2] := SpendRequest."Dimension Set ID";
+                    Rec."Dimension Set ID" := DimMgt.GetCombinedDimensionSetID(DimensionSetIDArr, Rec."Shortcut Dimension 1 Code", Rec."Shortcut Dimension 2 Code");
+                end;
+                Rec."Spend Request Close" := Confirm(SpendRequestCloseQst, true, SpendRequest."No.");
+            end;
+        }
+        field(148; "Spend Request Close"; Boolean)
+        {
+            Caption = 'Spend Request Close';
+            ToolTip = 'Specifies that the spend request will be closed when the purchase document is posted.';
+            DataClassification = CustomerContent;
+        }
         field(480; "Dimension Set ID"; Integer)
         {
             Caption = 'Dimension Set ID';
@@ -4251,6 +4287,7 @@ table 39 "Purchase Line"
         InvoiceOrOrderDocTypeErr: Label '%1 must be either %2 or %3.', Comment = '%1 - Document Type; %2, %3 - Purchase Document Type, Invoice or Order';
         CannotInsertPurchLineWithoutHeaderErr: Label 'You cannot insert a purchase line without a purchase header.';
         MustSpecifyErr: Label 'You must either specify %1 or %2.', Comment = '%1 = Field Caption; %2 = Field Caption';
+        SpendRequestCloseQst: Label 'Do you want to close spend request %1 after posting this entry?', Comment = '%1 is a document no.';
 
     protected var
         Currency: Record Currency;

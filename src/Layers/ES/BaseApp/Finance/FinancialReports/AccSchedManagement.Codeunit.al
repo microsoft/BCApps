@@ -17,6 +17,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Budget;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Period;
 using System.Utilities;
@@ -871,6 +872,8 @@ codeunit 8 AccSchedManagement
         AnalysisViewEntry: Record "Analysis View Entry";
         [SecurityFiltering(SecurityFilter::Filtered)]
         AnalysisViewBudgetEntry: Record "Analysis View Budget Entry";
+        [SecurityFiltering(SecurityFilter::Filtered)]
+        SpendRequestDetail: Record "Spend Request Detail";
         AmountType: Enum "Account Schedule Amount Type";
         TestBalance: Boolean;
         Balance: Decimal;
@@ -1049,6 +1052,30 @@ codeunit 8 AccSchedManagement
                         if CalcAddCurr then
                             ColValue := CalcLCYToACY(ColValue);
                     end;
+
+                ColumnLayout."Ledger Entry Type"::"Approved Spend Requests":
+                    begin
+                        SetSpendRequestFilters(SpendRequestDetail, GLAcc);
+                        SpendRequestDetail.CalcSums("Expected Amount");
+                        ColValue := SpendRequestDetail."Expected Amount";
+                        case AmountType of
+                            AmountType::"Debit Amount":
+                                if ColValue < 0 then
+                                    ColValue := 0;
+                            AmountType::"Credit Amount":
+                                begin
+                                    ColValue := -SpendRequestDetail."Expected Amount";
+                                    if ColValue < 0 then
+                                        ColValue := 0;
+                                end;
+                        end;
+                        Balance := SpendRequestDetail."Expected Amount";
+                        if CalcAddCurr then
+                            ColValue := CalcLCYToACY(ColValue);
+                    end;
+
+
+
             end;
 
             OnBeforeTestBalance(
@@ -1646,6 +1673,16 @@ codeunit 8 AccSchedManagement
 
         OnAfterSetCFAnalysisViewEntryFilters(AnalysisViewEntry, AccSchedLine, ColumnLayout);
     end;
+
+    local procedure SetSpendRequestFilters(var SpendRequestDetail: Record "Spend Request Detail"; var GLAcc: Record "G/L Account")
+    begin
+        if GLAcc.Totaling = '' then
+            SpendRequestDetail.SetRange("G/L Account No.", GLAcc."No.")
+        else
+            SpendRequestDetail.SetFilter("G/L Account No.", GLAcc.Totaling);
+    end;
+
+
 
     /// <summary>
     /// Applies mathematical operators to two decimal values with division error handling.

@@ -446,6 +446,16 @@ table 98 "General Ledger Setup"
             TableRelation = "No. Series";
         }
         /// <summary>
+        /// Number series used for assigning spend request numbers during spend request creation.
+        /// </summary>
+        field(64; "Spend Request No. Series"; Code[20])
+        {
+            Caption = 'Spend Request No. Series';
+            ToolTip = 'Specifies the code for the number series that will be used to assign numbers to spend requests.';
+            TableRelation = "No. Series";
+            DataClassification = CustomerContent;
+        }
+        /// <summary>
         /// Combines G/L entries with identical account, posting date, and dimensions into summary entries.
         /// </summary>
         field(65; "Summarize G/L Entries"; Boolean)

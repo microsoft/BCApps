@@ -279,6 +279,12 @@ page 51 "Purchase Invoice"
                     ShowMandatory = VendorInvoiceNoMandatory;
                     Editable = IsVendorInvoiceEditable;
                 }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
+                    ToolTip = 'Specifies the spend request that this purchase document relates to.';
+                }
                 field("Purchaser Code"; Rec."Purchaser Code")
                 {
                     ApplicationArea = Suite;

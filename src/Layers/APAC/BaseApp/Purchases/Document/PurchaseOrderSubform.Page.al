@@ -944,6 +944,11 @@ page 54 "Purchase Order Subform"
                     ApplicationArea = Basic, Suite;
                     Visible = AttachingLinesEnabled;
                 }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Visible = false;
+                }
             }
             group(Control43)
             {

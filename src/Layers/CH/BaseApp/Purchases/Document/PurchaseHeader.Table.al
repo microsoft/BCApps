@@ -21,6 +21,7 @@ using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
@@ -2170,6 +2171,48 @@ table 38 "Purchase Header"
                 Validate("VAT Base Discount %");
             end;
         }
+        field(145; "Spend Request No."; Code[20])
+        {
+            Caption = 'Spend Request No.';
+            ToolTip = 'Specifies the spend request that this purchase document relates to.';
+            TableRelation = "Spend Request" where(Status = const(Approved));
+            DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            var
+                SpendRequest: Record "Spend Request";
+                NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+                AlreadyAllocatedNotification: Notification;
+                DimensionSetIDArr: array[10] of Integer;
+            begin
+                if not GuiAllowed() then
+                    exit;
+                if Rec."Spend Request No." = '' then begin
+                    Rec."Spend Request Close" := false;
+                    exit;
+                end;
+                SpendRequest.SetAutoCalcFields("Total Spent Amount (LCY)");
+                SpendRequest.Get(Rec."Spend Request No.");
+                SpendRequest.TestField(Status, SpendRequest.Status::Approved);
+                if SpendRequest."Total Spent Amount (LCY)" > 0 then begin
+                    AlreadyAllocatedNotification.Scope := AlreadyAllocatedNotification.Scope::LocalScope;
+                    AlreadyAllocatedNotification.Message := StrSubstNo(SpendRequestIsUsedMsg, SpendRequest."No.", SpendRequest."Total Expected Amount (LCY)", SpendRequest."Total Spent Amount (LCY)");
+                    NotificationLifecycleMgt.SendNotification(AlreadyAllocatedNotification, SpendRequest.RecordId);
+                end;
+                if SpendRequest."Dimension Set ID" <> 0 then begin
+                    DimensionSetIDArr[1] := Rec."Dimension Set ID";
+                    DimensionSetIDArr[2] := SpendRequest."Dimension Set ID";
+                    Rec."Dimension Set ID" := DimMgt.GetCombinedDimensionSetID(DimensionSetIDArr, Rec."Shortcut Dimension 1 Code", Rec."Shortcut Dimension 2 Code");
+                end;
+                Rec."Spend Request Close" := Confirm(SpendRequestCloseQst, true, SpendRequest."No.");
+            end;
+        }
+        field(146; "Spend Request Close"; Boolean)
+        {
+            Caption = 'Spend Request Close';
+            ToolTip = 'Specifies that the spend request will be closed when the purchase document is posted.';
+            DataClassification = CustomerContent;
+        }
         field(151; "Quote No."; Code[20])
         {
             Caption = 'Quote No.';
@@ -3036,6 +3079,8 @@ table 38 "Purchase Header"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         ConfirmChangeQst: Label 'Do you want to change %1?', Comment = '%1 = a Field Caption like Currency Code';
+        SpendRequestIsUsedMsg: Label 'Spend request %1 was approved for %2 and current allocation is %3.', Comment = '%1 is a document no., %2 and %3 are amounts in local currency.';
+        SpendRequestCloseQst: Label 'Do you want to close spend request %1 after posting this entry?', Comment = '%1 is a document no.';
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text005: Label 'You cannot reset %1 because the document still has one or more lines.';

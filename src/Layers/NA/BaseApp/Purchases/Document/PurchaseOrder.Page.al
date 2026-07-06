@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -290,6 +290,11 @@ page 50 "Purchase Order"
                     ApplicationArea = Suite;
                     ShowMandatory = VendorInvoiceNoMandatory;
                     Editable = IsVendorInvoiceEditable;
+                }
+                field("Spend Request No."; Rec."Spend Request No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Importance = Additional;
                 }
                 field("Your Reference"; Rec."Your Reference")
                 {

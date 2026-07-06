@@ -12,6 +12,7 @@ using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.SpendRequest;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.FixedAssets.Journal;
@@ -26,6 +27,7 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
+using System.Environment.Configuration;
 using System.Security.User;
 using System.Utilities;
 
@@ -95,6 +97,7 @@ codeunit 11 "Gen. Jnl.-Check Line"
         GLAccCurrencyDoesNotMatchErr: Label 'The currency code %1 on general journal line does not match with the currency code %2 of G/L account %3.', Comment = '%1 and %2 - currency code, %3 - G/L Account No.';
         GLAccSourceCurrencyDoesNotMatchErr: Label 'The currency code %1 on general journal line does not match with the any source currency code of G/L account %2.', Comment = '%1 - currency code, %2 - G/L Account No.';
         GLAccSourceCurrencyDoesNotAllowedErr: Label 'The currency code %1 on general journal line does not allowed for posting to G/L account %2.', Comment = '%1 - currency code, %2 - G/L Account No.';
+        SpendRequestIsDepletedMsg: Label 'Spend request %1 was approved for %2 and current allocation is %3.', Comment = '%1 is a document no., %2 and %3 are amounts in local currency.';
 
     /// <summary>
     /// Performs comprehensive validation checks on a general journal line before posting.
@@ -221,6 +224,8 @@ codeunit 11 "Gen. Jnl.-Check Line"
         if CostAccSetup.Get() then
             CostAccMgt.CheckValidCCAndCOInGLEntry(GenJnlLine."Dimension Set ID");
 
+        TestSpendRequest(GenJnlLine);
+
         OnAfterCheckGenJnlLine(GenJnlLine, ErrorMessageMgt);
 
         if LogErrorMode then
@@ -280,6 +285,36 @@ codeunit 11 "Gen. Jnl.-Check Line"
 
         if GenJnlLine."Applies-to Doc. No." <> '' then
             GenJnlLine.TestField("Applies-to ID", '', ErrorInfo.Create());
+    end;
+
+    local procedure TestSpendRequest(var GenJnlLine: Record "Gen. Journal Line")
+    var
+        SpendRequest: Record "Spend Request";
+        GLAccount: Record "G/L Account";
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        OverspendNotification: Notification;
+    begin
+        if GenJnlLine."Spend Request No." = '' then begin
+            if (GenJnlLine."Account Type" = GenJnlLine."Account Type"::"G/L Account") and (GenJnlLine."Account No." <> '') then
+                if GLAccount.Get(GenJnlLine."Account No.") then
+                    if GLAccount."Spend Request Required" = GLAccount."Spend Request Required"::Required then
+                        GenJnlLine.TestField("Spend Request No.");
+            if (GenJnlLine."Bal. Account Type" = GenJnlLine."Bal. Account Type"::"G/L Account") and (GenJnlLine."Bal. Account No." <> '') then
+                if GLAccount.Get(GenJnlLine."Bal. Account No.") then
+                    if GLAccount."Spend Request Required" = GLAccount."Spend Request Required"::Required then
+                        GenJnlLine.TestField("Spend Request No.");
+        end else begin
+            SpendRequest.SetAutoCalcFields("Total Spent Amount (LCY)");
+            SpendRequest.Get(GenJnlLine."Spend Request No.");
+            // This spend request may have been closed in a prior entry in this transaction
+            if not ((SpendRequest.Status = SpendRequest.Status::Closed) and (SpendRequest."Closed By Document No." = GenJnlLine."Document No.")) then
+                SpendRequest.TestField(Status, SpendRequest.Status::Approved);
+            if Abs(GenJnlLine."Amount (LCY)") > SpendRequest."Total Expected Amount (LCY)" - SpendRequest."Total Spent Amount (LCY)" then begin
+                OverspendNotification.Scope := OverspendNotification.Scope::LocalScope;
+                OverspendNotification.Message := StrSubstNo(SpendRequestIsDepletedMsg, SpendRequest."No.", SpendRequest."Total Expected Amount (LCY)", SpendRequest."Total Spent Amount (LCY)");
+                NotificationLifecycleMgt.SendNotification(OverspendNotification, GenJnlLine.RecordId);
+            end;
+        end;
     end;
 
     /// <summary>

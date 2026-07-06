@@ -905,6 +905,30 @@ table 4 Currency
     end;
 
     /// <summary>
+    /// Retrieves the most recent exchange rate for the actual currency, based on 1FCY.
+    /// If no exchange rate is specified, it returns 1
+    /// </summary>
+    /// <param name="ConversionDate"></param>
+    /// <returns></returns>
+    procedure GetExchangeRate(ConversionDate: Date): Decimal
+    var
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+    begin
+        if Rec.Code = '' then
+            exit(100);
+        CurrencyExchangeRate.SetRange("Currency Code", Rec.Code);
+        CurrencyExchangeRate.SetFilter("Starting Date", '<=%1', ConversionDate);
+        if not CurrencyExchangeRate.FindLast() then begin
+            CurrencyExchangeRate.SetRange("Starting Date");
+            if not CurrencyExchangeRate.FindLast() then
+                exit(1);
+        end;
+        if CurrencyExchangeRate."Exchange Rate Amount" <> 0 then
+            exit(Round(CurrencyExchangeRate."Relational Exch. Rate Amount" / CurrencyExchangeRate."Exchange Rate Amount", Rec."Amount Rounding Precision"));
+        exit(1);
+    end;
+
+    /// <summary>
     /// Validates that the specified G/L account number exists and is valid.
     /// Performs account validation checks to ensure the account can be used for posting.
     /// </summary>
