@@ -280,6 +280,91 @@ codeunit 139555 "Aged Accounts Excel Reports"
         Assert.AreEqual(0, LibraryReportDataset.RowCount(), 'No aging entry should be exported');
     end;
 
+    [Test]
+    [HandlerFunctions('EXRAgedAccPayableExcelHandlerWorkdate')]
+    procedure AgedAccountsPayableExcelReportExportsAsPerPeriodCount()
+    var
+        Vendor: Record Vendor;
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 640052] Aged Accounts Payable Excel report exports as per Period count.
+        InitializeAgingData();
+
+        // [GIVEN] Vendor "V" with an open vendor ledger entry whose Due Date is after the selected period
+        CreateMinimalVendor(Vendor);
+        CreateVendorLedgerEntry(VendorLedgerEntry, Vendor."No.", "Gen. Journal Document Type"::Invoice);
+        Commit();
+
+        // [WHEN] Running the Aged Accounts Payable Excel report with Aged As Of = WorkDate() and Period Count = 1
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Acc Payable Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Acc Payable Excel", Variant, RequestPageXml);
+
+        // [THEN] The exported data does not include entries whose Due Date is outside the selected period
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
+        Assert.AreEqual(0, LibraryReportDataset.RowCount(), 'No aging entry should be exported');
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRAgedAccountsRecPostingDatePeriodCountHandler')]
+    procedure AgedAccountsRecExcelReportPostingDateRespectsPeriodCount()
+    var
+        Customer: Record Customer;
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 640052] Aged Accounts Receivable Excel report, when Aging by = Posting Date, respects Period Count.
+        InitializeAgingData();
+
+        // [GIVEN] Customer "C" with an open customer ledger entry whose Posting Date is before the earliest selected period
+        CreateMinimalCustomer(Customer);
+        CreateCustLedgerEntry(CustLedgerEntry, Customer."No.", "Gen. Journal Document Type"::Invoice);
+        CustLedgerEntry."Posting Date" := CalcDate('<-2M>', WorkDate());
+        CustLedgerEntry.Modify();
+        Commit();
+
+        // [WHEN] Running the Aged Accounts Receivable Excel report with Aging By = Posting Date and Period Count = 1
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Accounts Rec Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Accounts Rec Excel", Variant, RequestPageXml);
+
+        // [THEN] The exported data does not include entries whose Posting Date is outside the selected period
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
+        Assert.AreEqual(0, LibraryReportDataset.RowCount(), 'No aging entry should be exported');
+    end;
+
+    [Test]
+    [HandlerFunctions('EXRAgedAccPayablePostingDatePeriodCountHandler')]
+    procedure AgedAccountsPayableExcelReportPostingDateRespectsPeriodCount()
+    var
+        Vendor: Record Vendor;
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        Variant: Variant;
+        RequestPageXml: Text;
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 640052] Aged Accounts Payable Excel report, when Aging by = Posting Date, respects Period Count.
+        InitializeAgingData();
+
+        // [GIVEN] Vendor "V" with an open vendor ledger entry whose Posting Date is before the earliest selected period
+        CreateMinimalVendor(Vendor);
+        CreateVendorLedgerEntry(VendorLedgerEntry, Vendor."No.", "Gen. Journal Document Type"::Invoice);
+        VendorLedgerEntry."Posting Date" := CalcDate('<-2M>', WorkDate());
+        VendorLedgerEntry.Modify();
+        Commit();
+
+        // [WHEN] Running the Aged Accounts Payable Excel report with Aging By = Posting Date and Period Count = 1
+        RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Acc Payable Excel", RequestPageXml);
+        LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Acc Payable Excel", Variant, RequestPageXml);
+
+        // [THEN] The exported data does not include entries whose Posting Date is outside the selected period
+        LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
+        Assert.AreEqual(0, LibraryReportDataset.RowCount(), 'No aging entry should be exported');
+    end;
+
     local procedure InitializeAgingData()
     var
         Vendor: Record Vendor;
@@ -421,7 +506,33 @@ codeunit 139555 "Aged Accounts Excel Reports"
     procedure EXRAgedAccountsRecExcelHandlerWorkdate(var EXRAgedAccountsRecExcel: TestRequestPage "EXR Aged Accounts Rec Excel")
     begin
         EXRAgedAccountsRecExcel.AgedAsOfOption.SetValue(WorkDate());
-         EXRAgedAccountsRecExcel.PeriodCountOption.SetValue(1);
+        EXRAgedAccountsRecExcel.PeriodCountOption.SetValue(1);
         EXRAgedAccountsRecExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRAgedAccPayableExcelHandlerWorkdate(var EXRAgedAccPayableExcel: TestRequestPage "EXR Aged Acc Payable Excel")
+    begin
+        EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccPayableExcel.PeriodCountOption.SetValue(1);
+        EXRAgedAccPayableExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRAgedAccountsRecPostingDatePeriodCountHandler(var EXRAgedAccountsRecExcel: TestRequestPage "EXR Aged Accounts Rec Excel")
+    begin
+        EXRAgedAccountsRecExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccountsRecExcel.AgingbyOption.SetValue('Posting Date');
+        EXRAgedAccountsRecExcel.PeriodCountOption.SetValue(1);
+        EXRAgedAccountsRecExcel.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure EXRAgedAccPayablePostingDatePeriodCountHandler(var EXRAgedAccPayableExcel: TestRequestPage "EXR Aged Acc Payable Excel")
+    begin
+        EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate());
+        EXRAgedAccPayableExcel.AgingbyOption.SetValue('Posting Date');
+        EXRAgedAccPayableExcel.PeriodCountOption.SetValue(1);
+        EXRAgedAccPayableExcel.OK().Invoke();
     end;
 }

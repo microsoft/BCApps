@@ -350,8 +350,14 @@ report 4403 "EXR Aged Acc Payable Excel"
         VendorLedgerEntry.SetRange("Posting Date", 0D, EndingDate);
         VendorLedgerEntry.SetRange("Date Filter", 0D, EndingDate);
 
-        if (TempEXRAgingReportBuffer."Aged By" = TempEXRAgingReportBuffer."Aged By"::"Due Date") and (PeriodCount <> 0) then
-            VendorLedgerEntry.SetRange("Due Date", EarliestPeriodStart, EndingDate);
+        case TempEXRAgingReportBuffer."Aged By" of
+            TempEXRAgingReportBuffer."Aged By"::"Due Date":
+                VendorLedgerEntry.SetRange("Due Date", EarliestPeriodStart, EndingDate);
+            TempEXRAgingReportBuffer."Aged By"::"Posting Date":
+                VendorLedgerEntry.SetRange("Posting Date", EarliestPeriodStart, EndingDate);
+            TempEXRAgingReportBuffer."Aged By"::"Document Date":
+                VendorLedgerEntry.SetRange("Document Date", EarliestPeriodStart, EndingDate);
+        end;
 
         VendorLedgerEntry.SetAutoCalcFields("Remaining Amt. (LCY)", "Remaining Amount", "Original Amount", "Original Amt. (LCY)");
         VendorLedgerEntry.SetFilter("Remaining Amt. (LCY)", '<>0');

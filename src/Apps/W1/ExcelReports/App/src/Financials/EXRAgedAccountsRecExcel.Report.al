@@ -349,8 +349,14 @@ report 4402 "EXR Aged Accounts Rec Excel"
         CustLedgerEntry.SetRange("Posting Date", 0D, EndingDate);
         CustLedgerEntry.SetRange("Date Filter", 0D, EndingDate);
 
-        if (TempEXRAgingReportBuffer."Aged By" = TempEXRAgingReportBuffer."Aged By"::"Due Date") and (PeriodCount <> 0) then
-            CustLedgerEntry.SetRange("Due Date", EarliestPeriodStart, EndingDate);
+        case TempEXRAgingReportBuffer."Aged By" of
+            TempEXRAgingReportBuffer."Aged By"::"Due Date":
+                CustLedgerEntry.SetRange("Due Date", EarliestPeriodStart, EndingDate);
+            TempEXRAgingReportBuffer."Aged By"::"Posting Date":
+                CustLedgerEntry.SetRange("Posting Date", EarliestPeriodStart, EndingDate);
+            TempEXRAgingReportBuffer."Aged By"::"Document Date":
+                CustLedgerEntry.SetRange("Document Date", EarliestPeriodStart, EndingDate);
+        end;
 
         CustLedgerEntry.SetAutoCalcFields("Remaining Amt. (LCY)", "Remaining Amount", "Original Amount", "Original Amt. (LCY)");
         CustLedgerEntry.SetFilter("Remaining Amt. (LCY)", '<>0');
