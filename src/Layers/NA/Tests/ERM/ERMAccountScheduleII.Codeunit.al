@@ -38,6 +38,7 @@
         RowNotFoundErr: Label 'Row %1 is not visible.';
         WrongValueErr: Label 'Wrong value of the field %1 in table %2.', Comment = '%1 = Field name, %2 = Table name';
         MissingSheetDataErr: Label 'Sheet %1 is either missing or does not contain the correct data.', Comment = '%1 = Sheet number';
+        TextValueDuplicateErr: Label 'Text value %1 should appear exactly once in Excel export, but found %2 occurrences', Comment = '%1 = Text value, %2 = Occurrence count';
         IsInitialized: Boolean;
 
     [Test]
@@ -3009,6 +3010,58 @@
         Assert.IsFalse(ColumnLayoutNames.First(), 'Blocked column definitions are not visible to users without write permission on status.');
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
+    procedure ExportAccScheduleToExcelWithDimFilter2()
+    var
+        GLAccount: Record "G/L Account";
+        GenJournalLine: Record "Gen. Journal Line";
+        DimensionValue: array[4] of Record "Dimension Value";
+        AccScheduleName: Record "Acc. Schedule Name";
+    begin
+        // [SCENARIO 637755] Account Schedule must be exported to excel values with filters of dimensions
+        Initialize();
+
+        // [GIVEN] 4 Dimensions with Dimension Values:
+        // [GIVEN] First - "DIM1" with "DIMVALUE1"
+        LibraryDimension.CreateDimensionValue(DimensionValue[1], LibraryERM.GetGlobalDimensionCode(1));
+
+        // [GIVEN] First - "DIM2" with "DIMVALUE2"
+        LibraryDimension.CreateDimWithDimValue(DimensionValue[2]);
+
+        // [GIVEN] First - "DIM3" with "DIMVALUE3"
+        LibraryDimension.CreateDimWithDimValue(DimensionValue[3]);
+
+        // [GIVEN] First - "DIM4" with "DIMVALUE4"
+        LibraryDimension.CreateDimWithDimValue(DimensionValue[4]);
+
+        // [GIVEN] G/L Account with posted entries and the dimension value assigned
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryJournals.CreateGenJournalLineWithBatch(
+            GenJournalLine,
+            GenJournalLine."Document Type"::" ",
+            GenJournalLine."Account Type"::"G/L Account",
+            GLAccount."No.",
+            LibraryRandom.RandDecInRange(1000, 5000, 2));
+        GenJournalLine.Validate("Shortcut Dimension 1 Code", DimensionValue[1].Code);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Account Schedule with Analysis View with dimensions: "DIM1", "DIM2", "DIM3" and "DIM4"
+        CreateAccScheduleNameWithViewAndDimensions(AccScheduleName, DimensionValue);
+        LibraryReportValidation.SetFileName(AccScheduleName.Name);
+
+        // [WHEN] Run export Account Schedule to Excel - Report 29 (Export Acc. Sched. to Excel)
+        RunExportAccScheduleToExcel(AccScheduleName, DimensionValue);
+
+        // [THEN] Excel file contains values of dimensions filters
+        VerifyDimensionsAndValueInExcel(DimensionValue);
+
+        // [THEN] Verify that the Currency appears only once in the export
+        VerifyTextValueAppearsOnce('Currency');
+    end;
+
     local procedure Initialize()
     var
         FinancialReportMgt: Codeunit "Financial Report Mgt.";
@@ -3467,6 +3520,24 @@
         FinRepStatus.Validate(Code, LibraryUtility.GenerateRandomCode(FinRepStatus.FieldNo(Code), Database::"Financial Report Status"));
         FinRepStatus.Validate(Blocked, IsBlocked);
         FinRepStatus.Insert(true);
+    end;
+
+    local procedure VerifyTextValueAppearsOnce(TextValue: Text[20])
+    var
+        RowNo: Integer;
+        ColumnNo: Integer;
+        ValueFound: Boolean;
+        CellValue: Text[250];
+        OccurrenceCount: Integer;
+    begin
+        OccurrenceCount := 0;
+        for RowNo := 1 to 200 do
+            for ColumnNo := 1 to 20 do begin
+                CellValue := LibraryReportValidation.GetValueAt(ValueFound, RowNo, ColumnNo);
+                if ValueFound and (StrPos(CellValue, TextValue) > 0) then
+                    OccurrenceCount += 1;
+            end;
+        Assert.AreEqual(1, OccurrenceCount, StrSubstNo(TextValueDuplicateErr, TextValue, OccurrenceCount));
     end;
 
     [RequestPageHandler]
