@@ -126,7 +126,7 @@ codeunit 135647 "EDoc MLLM Tests"
 
         LinesArray := BuildThreeLineArray();
 
-        EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, 1, TempLine);
+        EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, 1, TempLine, '');
 
         TempLine.FindSet();
         Assert.AreEqual(10000, TempLine."Line No.", 'First line number');
@@ -180,7 +180,7 @@ codeunit 135647 "EDoc MLLM Tests"
         LineObj.Add('invoiced_quantity', QuantityObj);
         LinesArray.Add(LineObj);
 
-        EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, 1, TempLine);
+        EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, 1, TempLine, '');
 
         TempLine.FindFirst();
         Assert.AreEqual(1, TempLine.Quantity, 'Zero quantity should default to 1');
@@ -197,7 +197,7 @@ codeunit 135647 "EDoc MLLM Tests"
         // [SCENARIO] Empty lines array produces no line records
         LibraryLowerPermission.SetOutsideO365Scope();
 
-        EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, 1, TempLine);
+        EDocMLLMSchemaHelper.MapLinesFromJson(LinesArray, 1, TempLine, '');
 
         Assert.IsTrue(TempLine.IsEmpty(), 'No lines should be inserted for empty array');
     end;

@@ -1,22 +1,22 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/6ce99a8c1b840818da308fae257c14ed6bf76c70/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/39fa5591e01f7569384bba8cad40cabdb5618a01/Actions/.Modules/settings.schema.json",
   "type": "PTE",
   "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
   "bcContainerHelperVersion": "preview",
   "runs-on": "windows-latest",
   "cacheImageName": "",
   "UsePsSession": false,
-  "artifact": "bcinsider/Sandbox/29.0.51551.0//latest",
+  "gitHubRunner": "windows-latest",
+  "githubRunnerShell": "pwsh",
+  "artifact": "bcinsider/Sandbox/29.0.51936.0//latest",
   "country": "base",
   "useProjectDependencies": true,
-  "incrementalBuilds": {
-    "onPush": false,
-    "onPull_Request": true,
-    "onSchedule": false,
-    "retentionDays": 30,
-    "mode": "modifiedApps"
-  },
   "repoVersion": "29.0",
+  "numberOfTenantsForTesting": 3,
+  "workspaceCompilation": {
+    "enabled": true,
+    "parallelism": -1
+  },
   "conditionalSettings": [
     {
       "buildModes": [
@@ -33,13 +33,12 @@
       }
     },
     {
-      "branches": [
-        "main",
-        "releases/*.x"
+      "projects": [
+        "."
       ],
       "settings": {
-        "buildModes": [
-          "Clean"
+        "appFolders": [
+          "src/Layers/W1/DemoTool"
         ]
       }
     }
@@ -120,25 +119,29 @@
   "enablePerTenantExtensionCop": true,
   "enableUICop": true,
   "enableCodeAnalyzersOnTestApps": true,
-  "rulesetFile": "../../../src/rulesets/ruleset.json",
+  "rulesetFile": "../../../src/rulesets/base.ruleset.json",
   "skipUpgrade": true,
   "fullBuildPatterns": [
     "build/*",
     "src/rulesets/*",
+    "src/Layers/*",
     ".github/workflows/PullRequestHandler.yaml",
     ".github/workflows/_BuildALGoProject.yaml"
   ],
   "PullRequestTrigger": "pull_request",
   "ALDoc": {
     "maxReleases": 0,
-    "continuousDeployment": true,
+    "continuousDeployment": false,
     "groupByProject": false,
+    "includeProjects": [
+      "build_projects_Apps W1"
+    ],
     "excludeProjects": [
       "build_projects_System Application Modules"
     ]
   },
   "UpdateALGoSystemFilesEnvironment": "Official-Build",
-  "templateSha": "935eb86c6df0c56a8dec18044cb625c70ae25b2a",
+  "templateSha": "8fe0216dffe00a150ed8c8c76fc69072b79467a5",
   "commitOptions": {
     "messageSuffix": "Related to AB#539394",
     "pullRequestAutoMerge": true,
@@ -146,5 +149,11 @@
       "Automation"
     ]
   },
-  "runNumberOffset": 60000
+  "runNumberOffset": 60000,
+  "incrementalBuilds": {
+    "onPush": false,
+    "onPull_Request": true,
+    "onSchedule": false,
+    "mode": "modifiedApps"
+  }
 }
