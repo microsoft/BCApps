@@ -48,6 +48,8 @@ codeunit 134152 "ERM Intercompany II"
         ItemDescriptionLbl: Label 'Custom item description', Locked = true;
         DateLbl: Label '<%1D>', Locked = true;
         PostingDateErr: Label '%1 of %2 must be equal to blank', Comment = '%1 = date field, %2 = table name';
+        SourceCurrencyAmountErr: Label 'Source Currency Amount on G/L Account %1 should match the entered foreign currency amount.', Comment = '%1 = G/L Account No.';
+        SourceCurrencyBalanceErr: Label 'The sum of Source Currency Amount on the posted G/L Entries should be 0.', Locked = true;
 
     [Test]
     [HandlerFunctions('ConfirmHandler')]
@@ -4551,6 +4553,78 @@ codeunit 134152 "ERM Intercompany II"
         PurchaseLine.TestField("VAT Difference", SalesLine."VAT Difference");
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostICPartnerFCYJournalHasCorrectSourceCurrencyAmount()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        ICGLAccount: Record "IC G/L Account";
+        ICPartner: Record "IC Partner";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GLEntry: Record "G/L Entry";
+        CurrencyCode: Code[10];
+        SourceCurrencyBalance: Decimal;
+        FCYAmount: Decimal;
+    begin
+        // [FEATURE] [Intercompany] [Source Currency]
+        // [SCENARIO 638802] Source Currency Amount on the IC control account must match the entered foreign
+        // currency amount and must not be re-derived from the rounded LCY amount in multicurrency scenarios.
+        Initialize();
+
+        // [GIVEN] A foreign currency whose exchange rate (1 : 0.74) causes an LCY -> FCY round-trip rounding deviation.
+        // A deterministic amount is used so the round-trip always deviates by 0.01 without the fix (320.63 -> 237.27 -> 320.64),
+        // which makes this a reliable regression test rather than a flaky one.
+        FCYAmount := 320.63;
+        CurrencyCode := CreateCurrencyWithRoundingExchangeRate();
+
+        // [GIVEN] An IC Partner with Receivables/Payables (IC control) accounts and an IC G/L Account.
+        ICPartner.Get(CreateICPartner());
+        CreateICGLAccount(ICGLAccount);
+
+        // [GIVEN] An Intercompany general journal line posting a G/L account in FCY, balancing to the IC Partner.
+        CreateICJournalBatch(GenJournalBatch, GenJournalTemplate.Type::Intercompany);
+        LibraryERM.CreateGeneralJnlLine(
+          GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+          GenJournalLine."Document Type"::Invoice,
+          GenJournalLine."Account Type"::"G/L Account", ICGLAccount."Map-to G/L Acc. No.", 0);
+        GenJournalLine.Validate("Currency Code", CurrencyCode);
+        GenJournalLine.Validate(Amount, FCYAmount);
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"IC Partner");
+        GenJournalLine.Validate("Bal. Account No.", ICPartner.Code);
+        GenJournalLine.Validate("IC Account Type", "IC Journal Account Type"::"G/L Account");
+        GenJournalLine.Validate("IC Account No.", ICGLAccount."No.");
+        GenJournalLine.Modify(true);
+
+        // [WHEN] Posting the Intercompany general journal line.
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] Source Currency Amount on the posted G/L account entry equals the entered FCY amount.
+        GLEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        GLEntry.SetRange("G/L Account No.", ICGLAccount."Map-to G/L Acc. No.");
+        GLEntry.FindFirst();
+        Assert.AreEqual(FCYAmount, GLEntry."Source Currency Amount", StrSubstNo(SourceCurrencyAmountErr, GLEntry."G/L Account No."));
+
+        // [THEN] Source Currency Amount on the IC control account (Receivables/Payables) equals the negative entered FCY amount,
+        // i.e. it is not re-derived from the rounded LCY amount.
+        GLEntry.SetRange("G/L Account No.");
+        GLEntry.SetFilter("G/L Account No.", '%1|%2', ICPartner."Receivables Account", ICPartner."Payables Account");
+        GLEntry.FindFirst();
+        Assert.AreEqual(-FCYAmount, GLEntry."Source Currency Amount", StrSubstNo(SourceCurrencyAmountErr, GLEntry."G/L Account No."));
+
+        // [THEN] The Source Currency Amounts balance to 0 across the transaction.
+        GLEntry.SetRange("G/L Account No.");
+        GLEntry.FindSet();
+        repeat
+            SourceCurrencyBalance += GLEntry."Source Currency Amount";
+        until GLEntry.Next() = 0;
+        Assert.AreEqual(0, SourceCurrencyBalance, SourceCurrencyBalanceErr);
+
+        // Tear Down: Delete newly created batch.
+        DeleteGeneralJournalBatch(GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name");
+    end;
+
     local procedure Initialize()
     var
         ICSetup: Record "IC Setup";
@@ -4829,6 +4903,31 @@ codeunit 134152 "ERM Intercompany II"
         Vendor.Validate("IC Partner Code", ICPartnerCode);
         Vendor.Modify(true);
         exit(Vendor."No.");
+    end;
+
+    local procedure CreateCurrencyWithRoundingExchangeRate(): Code[10]
+    var
+        Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+    begin
+        // Exchange rate (Exchange Rate Amount = 1, Relational Exch. Rate Amount = 0.74) reproduces the rounding
+        // deviation seen when an FCY amount is converted to LCY and then converted back to the source currency.
+        Currency.Get(LibraryERM.CreateCurrencyWithGLAccountSetup());
+        Currency.Validate("Amount Rounding Precision", 0.01);
+        Currency.Modify(true);
+
+        CurrencyExchangeRate.SetRange("Currency Code", Currency.Code);
+        CurrencyExchangeRate.DeleteAll();
+
+        CurrencyExchangeRate.Init();
+        CurrencyExchangeRate."Currency Code" := Currency.Code;
+        CurrencyExchangeRate."Starting Date" := WorkDate();
+        CurrencyExchangeRate."Exchange Rate Amount" := 1;
+        CurrencyExchangeRate."Relational Exch. Rate Amount" := 0.74;
+        CurrencyExchangeRate."Adjustment Exch. Rate Amount" := 1;
+        CurrencyExchangeRate."Relational Adjmt Exch Rate Amt" := 0.74;
+        CurrencyExchangeRate.Insert(true);
+        exit(Currency.Code);
     end;
 
     local procedure CreateICVendorWithVATBusPostingGroup(VATBusPostingGroup: Code[20]): Code[20]
