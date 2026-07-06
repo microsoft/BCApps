@@ -22,6 +22,56 @@ codeunit 6148 "E-Document Helper"
             Error(FailedToGetBlobErr);
     end;
 
+    /// <summary>
+    /// Resolves the inbound PDF preview (unstructured E-Doc. Data Storage entry) for a posted purchase
+    /// document that originated from an E-Document, matching by the document's RecordId.
+    /// </summary>
+    /// <param name="SourceRecordId">The RecordId of the source purchase document.</param>
+    /// <param name="EDocDataStorageEntryNo">Out: the unstructured PDF data storage entry number.</param>
+    /// <returns>True if a linked E-Document with a PDF preview exists.</returns>
+    procedure GetInboundPdfPreviewEntryNo(SourceRecordId: RecordId; var EDocDataStorageEntryNo: Integer): Boolean
+    var
+        EmptyLink: Guid;
+    begin
+        exit(GetInboundPdfPreviewEntryNo(SourceRecordId, EmptyLink, EDocDataStorageEntryNo));
+    end;
+
+    /// <summary>
+    /// Resolves the inbound PDF preview (unstructured E-Doc. Data Storage entry) for a purchase document
+    /// that originated from an E-Document. The E-Document is located by its SystemId (open documents that
+    /// carry an "E-Document Link") or, as a fallback, by the document's RecordId (posted documents).
+    /// </summary>
+    /// <param name="SourceRecordId">The RecordId of the source purchase document.</param>
+    /// <param name="EDocumentLink">The "E-Document Link" GUID from the source document, or an empty GUID.</param>
+    /// <param name="EDocDataStorageEntryNo">Out: the unstructured PDF data storage entry number.</param>
+    /// <returns>True if a linked E-Document with a PDF preview exists.</returns>
+    procedure GetInboundPdfPreviewEntryNo(SourceRecordId: RecordId; EDocumentLink: Guid; var EDocDataStorageEntryNo: Integer): Boolean
+    var
+        EDocument: Record "E-Document";
+        EDocDataStorage: Record "E-Doc. Data Storage";
+    begin
+        EDocDataStorageEntryNo := 0;
+        if not FindLinkedEDocument(SourceRecordId, EDocumentLink, EDocument) then
+            exit(false);
+        if EDocument."Unstructured Data Entry No." = 0 then
+            exit(false);
+        EDocDataStorage.SetLoadFields("File Format");
+        if not EDocDataStorage.Get(EDocument."Unstructured Data Entry No.") then
+            exit(false);
+        if EDocDataStorage."File Format" <> Enum::"E-Doc. File Format"::PDF then
+            exit(false);
+        EDocDataStorageEntryNo := EDocDataStorage."Entry No.";
+        exit(true);
+    end;
+
+    local procedure FindLinkedEDocument(SourceRecordId: RecordId; EDocumentLink: Guid; var EDocument: Record "E-Document"): Boolean
+    begin
+        if (not IsNullGuid(EDocumentLink)) and EDocument.GetBySystemId(EDocumentLink) then
+            exit(true);
+        EDocument.SetRange("Document Record ID", SourceRecordId);
+        exit(EDocument.FindFirst());
+    end;
+
 
     /// <summary>
     /// Use it to check if the source document is an E-Document.
