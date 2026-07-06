@@ -1,0 +1,27 @@
+[
+  {
+    "codeunitId": 142054,
+    "codeunitName": "SalesDocTotalsWithSalesTax",
+    "method": "SalesCreditMemo"
+  },
+  {
+    "codeunitId": 142054,
+    "codeunitName": "SalesDocTotalsWithSalesTax",
+    "method": "SalesInvoice"
+  },
+  {
+    "codeunitId": 142054,
+    "codeunitName": "SalesDocTotalsWithSalesTax",
+    "method": "SalesQuote"
+  },
+  {
+    "codeunitId": 142054,
+    "codeunitName": "SalesDocTotalsWithSalesTax",
+    "method": "SalesTaxUpdatedInSalesInvoiceWhenShipToChanged"
+  },
+  {
+    "codeunitId": 142054,
+    "codeunitName": "SalesDocTotalsWithSalesTax",
+    "method": "SalesTaxUpdatedInSalesOrderWhenShipToChanged"
+  }
+]

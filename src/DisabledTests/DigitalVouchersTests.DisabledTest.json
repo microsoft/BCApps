@@ -1,0 +1,14 @@
+[
+  {
+    "codeunitId": 139515,
+    "codeunitName": "Digital Vouchers Tests",
+    "method": "PostBlankDocTypeWithGenerateAutomaticallyAndConsiderBlankDocType",
+    "bug": "618779"
+  },
+  {
+    "codeunitId": 139515,
+    "codeunitName": "Digital Vouchers Tests",
+    "method": "PostMultipleGeneralJournalLinesWithGenerateAutomaticallyOption",
+    "bug": "618779"
+  }
+]

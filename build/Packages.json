@@ -4,8 +4,12 @@
     "Source": "NuGet.org"
   },
   "AppBaselines-BCArtifacts": {
-    "Version": "28.2.50931.52129",
+    "Version": "28.2.50931.52151",
     "Source": "BCArtifacts",
     "_comment": "Used to fetch app baselines from BC artifacts"
+  },
+  "BCPlatform": {
+    "Version": "28.0.52286.0",
+    "Source": "NuGet.org"
   }
 }

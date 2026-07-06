@@ -1,0 +1,17 @@
+[
+  {
+    "codeunitId": 142060,
+    "codeunitName": "ERM Misc. Report",
+    "method": "PostApplForCustomerWithPaymentsRemainingAmount"
+  },
+  {
+    "codeunitId": 142060,
+    "codeunitName": "ERM Misc. Report",
+    "method": "PostApplForVendorWithPaymentsRemainingAmount"
+  },
+  {
+    "codeunitId": 142060,
+    "codeunitName": "ERM Misc. Report",
+    "method": "PostApplicationForVendorWithRemainingAmount"
+  }
+]

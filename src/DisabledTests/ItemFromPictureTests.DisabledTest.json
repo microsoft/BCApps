@@ -1,0 +1,22 @@
+[
+  {
+    "codeunitId": 135215,
+    "codeunitName": "Item From Picture Tests",
+    "method": "NoSetupAndSaas_Successful"
+  },
+  {
+    "codeunitId": 135215,
+    "codeunitName": "Item From Picture Tests",
+    "method": "ValidSetup_NoTags"
+  },
+  {
+    "codeunitId": 135215,
+    "codeunitName": "Item From Picture Tests",
+    "method": "ValidSetup_OverLimit"
+  },
+  {
+    "codeunitId": 135215,
+    "codeunitName": "Item From Picture Tests",
+    "method": "ValidSetup_Successful"
+  }
+]

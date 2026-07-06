@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 134333,
+    "codeunitName": "ERM Purchase Prepayments",
+    "method": "PostFCYPurchPrepCreditMemo"
+  },
+  {
+    "codeunitId": 134333,
+    "codeunitName": "ERM Purchase Prepayments",
+    "method": "PostFCYPurchasePrepayment"
+  }
+]

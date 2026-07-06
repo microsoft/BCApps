@@ -1,0 +1,77 @@
+[
+  {
+    "codeunitId": 144129,
+    "codeunitName": "Remittance - Export Test",
+    "method": "ExportPaymentsWithExternalDocNoSingleHeaderInExportFile"
+  },
+  {
+    "codeunitId": 144129,
+    "codeunitName": "Remittance - Export Test",
+    "method": "ExportPaymentWhenLimitIsZero"
+  },
+  {
+    "codeunitId": 144129,
+    "codeunitName": "Remittance - Export Test",
+    "method": "ExportPaymentWithAmountLessThanLimitAndEmptyPaymentTypeCodeAbroadConfirmYes"
+  },
+  {
+    "codeunitId": 144129,
+    "codeunitName": "Remittance - Export Test",
+    "method": "ExportPaymentWithAmountLessThanLimitAndEmptySpecConfirmYes"
+  },
+  {
+    "codeunitId": 144129,
+    "codeunitName": "Remittance - Export Test",
+    "method": "ExportPaymentWithAmountLessThanLimitAndFilledPaymentTypeCodeAbroad"
+  },
+  {
+    "codeunitId": 144129,
+    "codeunitName": "Remittance - Export Test",
+    "method": "ExportPaymentWithAmountLessThanLimitAndFilledSpec"
+  },
+  {
+    "codeunitId": 144129,
+    "codeunitName": "Remittance - Export Test",
+    "method": "TC60563ExportWithSpecialChars"
+  },
+  {
+    "codeunitId": 144129,
+    "codeunitName": "Remittance - Export Test",
+    "method": "TC60573ManualExportOfPaymentOrder"
+  },
+  {
+    "codeunitId": 144129,
+    "codeunitName": "Remittance - Export Test",
+    "method": "TC60574RunTheRemittanceExportBankReport"
+  },
+  {
+    "codeunitId": 144129,
+    "codeunitName": "Remittance - Export Test",
+    "method": "TC60574RunTheRemittanceExportBankReportWithKID"
+  },
+  {
+    "codeunitId": 144129,
+    "codeunitName": "Remittance - Export Test",
+    "method": "TC60574RunTheRemittanceExportBBSReport"
+  },
+  {
+    "codeunitId": 144129,
+    "codeunitName": "Remittance - Export Test",
+    "method": "TC60574RunTheRemittanceExportBBSReportUnstructured"
+  },
+  {
+    "codeunitId": 144129,
+    "codeunitName": "Remittance - Export Test",
+    "method": "TC60574RunTheRemittanceExportBBSReportWithKID"
+  },
+  {
+    "codeunitId": 144129,
+    "codeunitName": "Remittance - Export Test",
+    "method": "TC60633CreateAndWithNonLCYAndCheckAmountIsPostedInLCY"
+  },
+  {
+    "codeunitId": 144129,
+    "codeunitName": "Remittance - Export Test",
+    "method": "WaitingJournalPaymentOverviewReport"
+  }
+]

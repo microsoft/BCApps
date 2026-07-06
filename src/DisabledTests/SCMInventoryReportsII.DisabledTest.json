@@ -1,0 +1,17 @@
+[
+  {
+    "codeunitId": 137302,
+    "codeunitName": "SCM Inventory Reports - II",
+    "method": "AsOfValueInInventoryValuationWIPReport"
+  },
+  {
+    "codeunitId": 137302,
+    "codeunitName": "SCM Inventory Reports - II",
+    "method": "MultilevelPhantomBOMWithBOMVersion"
+  },
+  {
+    "codeunitId": 137302,
+    "codeunitName": "SCM Inventory Reports - II",
+    "method": "MultilevelPhantomBOMWithDifferentUOM"
+  }
+]

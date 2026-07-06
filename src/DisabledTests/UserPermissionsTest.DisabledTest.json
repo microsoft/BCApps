@@ -1,0 +1,22 @@
+[
+  {
+    "codeunitId": 139146,
+    "codeunitName": "User Permissions Test",
+    "method": "IsSuperWhenUserIsNotSuperForSpecificCompanyTest"
+  },
+  {
+    "codeunitId": 139146,
+    "codeunitName": "User Permissions Test",
+    "method": "IsSuperWhenUserIsNotSuperTest"
+  },
+  {
+    "codeunitId": 139146,
+    "codeunitName": "User Permissions Test",
+    "method": "IsSuperWhenUserIsSuperForSpecificCompanyTest"
+  },
+  {
+    "codeunitId": 139146,
+    "codeunitName": "User Permissions Test",
+    "method": "IsSuperWhenUserIsSuperTest"
+  }
+]

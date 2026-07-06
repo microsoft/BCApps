@@ -1,0 +1,6 @@
+{
+  "codeunitId": 139989,
+  "codeunitName": "Subc. Subcontracting Test",
+  "method": "CancelInvoiceWithSubcontractingItemChargeIsBlocked",
+  "bug": "638523"
+}

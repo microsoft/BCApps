@@ -1,0 +1,22 @@
+[
+  {
+    "codeunitId": 132919,
+    "codeunitName": "ABS Container Client Test",
+    "method": "CreateContainerFailedTest"
+  },
+  {
+    "codeunitId": 132919,
+    "codeunitName": "ABS Container Client Test",
+    "method": "CreateContainerSharedKeyTest"
+  },
+  {
+    "codeunitId": 132919,
+    "codeunitName": "ABS Container Client Test",
+    "method": "LeaseContainerTest"
+  },
+  {
+    "codeunitId": 132919,
+    "codeunitName": "ABS Container Client Test",
+    "method": "ListContainersTest"
+  }
+]

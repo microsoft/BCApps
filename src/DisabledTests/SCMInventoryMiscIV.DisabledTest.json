@@ -1,0 +1,17 @@
+[
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "DoNotUpdatePhysInvCountingPeriodOnPhysInventoryOutsideThePeriod"
+  },
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "NextPhysInvtCountingPeriodIsAfterLastInventoryDateDoneOutsidePeriod"
+  },
+  {
+    "codeunitId": 137296,
+    "codeunitName": "SCM Inventory Misc. IV",
+    "method": "PurchLineDiscForVendorWithPartialQty"
+  }
+]

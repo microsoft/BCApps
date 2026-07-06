@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 141011,
+    "codeunitName": "ERM WHT - AU",
+    "method": "PurchaseOrderPartialPrepaymentsAndCreditMemo"
+  },
+  {
+    "codeunitId": 141011,
+    "codeunitName": "ERM WHT - AU",
+    "method": "PurchaseOrderPartialPrepaymentsAndFinalInvoice"
+  }
+]

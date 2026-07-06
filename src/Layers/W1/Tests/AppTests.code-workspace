@@ -1,0 +1,125 @@
+{
+	"folders": [
+		{
+			"path": "Bank"
+		},
+		{
+			"path": "Cash Flow"
+		},
+		{
+			"path": "Cost Accounting"
+		},
+		{
+			"path": "CRM integration"
+		},
+		{
+			"path": "Data Exchange"
+		},
+		{
+			"path": "Dimension"
+		},
+		{
+			"path": "DotNet-Internal"
+		},
+		{
+			"path": "ERM"
+		},
+		{
+			"path": "Fixed Asset"
+		},
+		{
+			"path": "General Journal"
+		},
+		{
+			"path": "Graph"
+		},
+		{
+			"path": "Integration"
+		},
+		{
+			"path": "Integration-Internal"
+		},
+		{
+			"path": "Invoicing"
+		},
+		{
+			"path": "Job"
+		},
+		{
+			"path": "Local"
+		},
+		{
+			"path": "Marketing"
+		},
+		{
+			"path": "MBT"
+		},
+		{
+			"path": "Misc"
+		},
+		{
+			"path": "MOCKSERVICETESTS-Internal"
+		},
+		{
+			"path": "Monitor Sensitive Fields"
+		},
+		{
+			"path": "Permissions"
+		},
+		{
+			"path": "Performance-Internal"
+		},
+		{
+			"path": "Physical Inventory"
+		},
+		{
+			"path": "Prepayment"
+		},
+		{
+			"path": "Rapid Start"
+		},
+		{
+			"path": "Report"
+		},
+		{
+			"path": "Resource"
+		},
+		{
+			"path": "Reverse"
+		},
+		{
+			"path": "SCM"
+		},
+		{
+			"path": "SINGLESERVER"
+		},
+		{
+			"path": "SINGLESERVER-Internal"
+		},
+		{
+			"path": "SMB"
+		},
+		{
+			"path": "SMTP"
+		},
+		{
+			"path": "TestLibraries"
+		},
+		{
+			"path": "TestRunner-Internal"
+		},
+		{
+			"path": "Upgrade"
+		},
+		{
+			"path": "User"
+		},
+		{
+			"path": "VAT"
+		},
+		{
+			"path": "Workflow"
+		}
+	],
+	"settings": {}
+}

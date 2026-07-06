@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 136309,
+    "codeunitName": "Job Posting",
+    "method": "PostingPurchaseCreditMemoWithJobAndTracking"
+  },
+  {
+    "codeunitId": 136309,
+    "codeunitName": "Job Posting",
+    "method": "PurchaseCreditMemoWithTrackingAndJob"
+  }
+]

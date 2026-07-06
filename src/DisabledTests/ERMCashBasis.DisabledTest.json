@@ -1,0 +1,37 @@
+[
+  {
+    "codeunitId": 144056,
+    "codeunitName": "ERM Cash Basis",
+    "method": "RealizedVATAmountInExchRateOfPaymentWhenFCYPaymentToFCYInvoice"
+  },
+  {
+    "codeunitId": 144056,
+    "codeunitName": "ERM Cash Basis",
+    "method": "RealizedVATAmountInExchRateOfPaymentWhenFCYPaymentToFCYInvoiceUnapplyPurchase"
+  },
+  {
+    "codeunitId": 144056,
+    "codeunitName": "ERM Cash Basis",
+    "method": "RealizedVATAmountInExchRateOfPaymentWhenFCYPaymentToFCYInvoiceUnapplySales"
+  },
+  {
+    "codeunitId": 144056,
+    "codeunitName": "ERM Cash Basis",
+    "method": "RealizedVATAmountInManualExchRateOfPaymentFCYToPurchaseInvoiceFCY"
+  },
+  {
+    "codeunitId": 144056,
+    "codeunitName": "ERM Cash Basis",
+    "method": "RealizedVATAmountInManualExchRateOfPaymentFCYToSalesInvoiceFCY"
+  },
+  {
+    "codeunitId": 144056,
+    "codeunitName": "ERM Cash Basis",
+    "method": "VATRealizedGainLossForCustomerLCYPaymentToFCYInvoice"
+  },
+  {
+    "codeunitId": 144056,
+    "codeunitName": "ERM Cash Basis",
+    "method": "VATRealizedGainLossForVendorLCYPaymentToFCYInvoice"
+  }
+]

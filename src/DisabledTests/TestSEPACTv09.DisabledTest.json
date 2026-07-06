@@ -1,0 +1,107 @@
+[
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "ChargeBearerIsCredWhenDomesticAndForeignCostIsBalancingAccountHolder"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "ChargeBearerIsDebtWhenDomesticAndForeignCostIsPrincipal"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPA_GLSetupEUR_BankDefault_InvDefault"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPA_GLSetupEUR_BankDefault_InvDefault_WorldPaymentMode"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPA_GLSetupEUR_BankDefault_InvUSD"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPA_GLSetupEUR_BankUSD_InvDefault"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPA_GLSetupEUR_BankUSD_InvGBP"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPA_GLSetupEUR_BankUSD_InvUSD"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPA_GLSetupGBP_BankDefault_InvDefault"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPA_GLSetupGBP_BankDefault_InvEUR"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPA_GLSetupGBP_BankDefault_InvUSD"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPA_GLSetupGBP_BankEUR_InvDefault"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPA_GLSetupGBP_BankEUR_InvEUR"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPA_GLSetupGBP_BankEUR_InvEUR_WorldPaymentMode"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPA_GLSetupGBP_BankEUR_InvUSD"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPA_GLSetupGBP_BankUSD_InvDefault"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPA_GLSetupGBP_BankUSD_InvEUR"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPA_GLSetupGBP_BankUSD_InvUSD"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPAExportProtocolDemodata"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "GenericSEPAExportsIBANWhenBankAccountIsBlanked"
+  },
+  {
+    "codeunitId": 144103,
+    "codeunitName": "Test SEPA CT v09",
+    "method": "SEPA_ISO20022_Pain00800102_DecimalAmountFormat"
+  }
+]

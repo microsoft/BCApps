@@ -1,0 +1,77 @@
+[
+  {
+    "codeunitId": 134261,
+    "codeunitName": "Bank Pmt. Appl. Algorithm",
+    "method": "TestCustCertainAndMultipleAmountMatch"
+  },
+  {
+    "codeunitId": 134261,
+    "codeunitName": "Bank Pmt. Appl. Algorithm",
+    "method": "TestCustCertainAndSingleAmountMatch"
+  },
+  {
+    "codeunitId": 134261,
+    "codeunitName": "Bank Pmt. Appl. Algorithm",
+    "method": "TestCustCertainMatchAndDocNoAndAmount"
+  },
+  {
+    "codeunitId": 134261,
+    "codeunitName": "Bank Pmt. Appl. Algorithm",
+    "method": "TestCustCertainMatchAndDocNoAndAmountWithAmountTolerance"
+  },
+  {
+    "codeunitId": 134261,
+    "codeunitName": "Bank Pmt. Appl. Algorithm",
+    "method": "TestCustDocAndMultipleAmountMatch"
+  },
+  {
+    "codeunitId": 134261,
+    "codeunitName": "Bank Pmt. Appl. Algorithm",
+    "method": "TestCustDocAndSingleAmountMatch"
+  },
+  {
+    "codeunitId": 134261,
+    "codeunitName": "Bank Pmt. Appl. Algorithm",
+    "method": "TestCustMultipleAmountMatch"
+  },
+  {
+    "codeunitId": 134261,
+    "codeunitName": "Bank Pmt. Appl. Algorithm",
+    "method": "TestCustomerMultipleMatchAllEntriesAppliedOneUnderPaid"
+  },
+  {
+    "codeunitId": 134261,
+    "codeunitName": "Bank Pmt. Appl. Algorithm",
+    "method": "TestCustomerRunningWithoutApplicationIncludesEntriesAfterStatementDate"
+  },
+  {
+    "codeunitId": 134261,
+    "codeunitName": "Bank Pmt. Appl. Algorithm",
+    "method": "TestCustSingleAmountMatch"
+  },
+  {
+    "codeunitId": 134261,
+    "codeunitName": "Bank Pmt. Appl. Algorithm",
+    "method": "TestCustSingleAmountMatchWithAmountToleranceLowerRange"
+  },
+  {
+    "codeunitId": 134261,
+    "codeunitName": "Bank Pmt. Appl. Algorithm",
+    "method": "TestSalesBankAccLedgerEntryMultipleAmountMatchWithAmountTolerance"
+  },
+  {
+    "codeunitId": 134261,
+    "codeunitName": "Bank Pmt. Appl. Algorithm",
+    "method": "TestSalesBankAccLedgerEntrySingleAmountMatch"
+  },
+  {
+    "codeunitId": 134261,
+    "codeunitName": "Bank Pmt. Appl. Algorithm",
+    "method": "TestVendSingleAmountMatchWithAmountPercentageTolerance"
+  },
+  {
+    "codeunitId": 134261,
+    "codeunitName": "Bank Pmt. Appl. Algorithm",
+    "method": "TestVerifyApplyManuallyPageWithSuggestionsTurnedOff"
+  }
+]

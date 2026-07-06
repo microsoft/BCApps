@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 137306,
+    "codeunitName": "SCM Costing Reports",
+    "method": "ItemAgeCompositionAverageOnePeriod"
+  },
+  {
+    "codeunitId": 137306,
+    "codeunitName": "SCM Costing Reports",
+    "method": "ItemAgeCompositionValueTotalInvtValueCalculation"
+  }
+]

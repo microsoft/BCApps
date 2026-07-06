@@ -1,0 +1,20 @@
+[
+  {
+    "bugId": 609445,
+    "codeunitId": 144026,
+    "codeunitName": "Test SR G/L Entries Foreign C.",
+    "method": "VerifyGLEntriesForeignCurrencyReportWithFilter"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 144026,
+    "codeunitName": "Test SR G/L Entries Foreign C.",
+    "method": "VerifyGLEntriesForeignCurrencyReportWithGLRegisterInput"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 144026,
+    "codeunitName": "Test SR G/L Entries Foreign C.",
+    "method": "VerifyGLEntriesForeignCurrencyReportWithNoConstraints"
+  }
+]

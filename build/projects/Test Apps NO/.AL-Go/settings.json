@@ -1,0 +1,64 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/d6059b86a7774031d5c41ca64a9efd4160c1c057/Actions/.Modules/settings.schema.json",
+  "projectName": "Unit Tests (NO)",
+  "gitHubRunner": "GitHub-BCAppsPL",
+  "projectsToTest": [
+    "build/projects/Apps NO"
+  ],
+  "testFolders": [],
+  "runTestsInAllInstalledTestApps": true,
+  "installOnlyReferencedApps": false,
+  "memoryLimit": "16G",
+  "doNotRunTests": false,
+  "useCompilerFolder": false,
+  "doNotPublishApps": false,
+  "testType": "UnitTest",
+  "companyName": "Empty Company",
+  "country": "NO",
+  "buildModes": [
+    "IntegrationTests",
+    "UncategorizedTests",
+    "LegacyTestsBucket1",
+    "LegacyTestsBucket2"
+  ],
+  "ConditionalSettings": [
+    {
+      "buildModes": [
+        "IntegrationTests"
+      ],
+      "settings": {
+        "testType": "IntegrationTest",
+        "companyName": "My Company"
+      }
+    },
+    {
+      "buildModes": [
+        "UncategorizedTests"
+      ],
+      "settings": {
+        "testType": "Uncategorized",
+        "companyName": "CRONUS International Ltd."
+      }
+    },
+    {
+      "buildModes": [
+        "LegacyTestsBucket1"
+      ],
+      "settings": {
+        "testType": "Legacy",
+        "bucketNumber": 1,
+        "companyName": "CRONUS International Ltd."
+      }
+    },
+    {
+      "buildModes": [
+        "LegacyTestsBucket2"
+      ],
+      "settings": {
+        "testType": "Legacy",
+        "bucketNumber": 2,
+        "companyName": "CRONUS International Ltd."
+      }
+    }
+  ]
+}

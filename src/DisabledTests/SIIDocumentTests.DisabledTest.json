@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 147520,
+    "codeunitName": "SIIDocumentTests",
+    "method": "TestCreatePurchCrMemoXmlReplacement"
+  },
+  {
+    "codeunitId": 147520,
+    "codeunitName": "SIIDocumentTests",
+    "method": "TestCreatePurchaseCrMemoReplacementXmlWithDiffPayToVend"
+  }
+]

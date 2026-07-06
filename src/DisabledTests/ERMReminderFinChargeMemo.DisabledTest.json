@@ -1,0 +1,52 @@
+[
+  {
+    "codeunitId": 134909,
+    "codeunitName": "ERM Reminder/Fin.Charge Memo",
+    "method": "CancelAlreadyCancelledFinChargeMemo"
+  },
+  {
+    "codeunitId": 134909,
+    "codeunitName": "ERM Reminder/Fin.Charge Memo",
+    "method": "CancelFinChargeMemoDontUseSameDocumentNo"
+  },
+  {
+    "codeunitId": 134909,
+    "codeunitName": "ERM Reminder/Fin.Charge Memo",
+    "method": "CancelFinChargeMemoSeveralInvoices"
+  },
+  {
+    "codeunitId": 134909,
+    "codeunitName": "ERM Reminder/Fin.Charge Memo",
+    "method": "CancelFinChargeMemoSunshine"
+  },
+  {
+    "codeunitId": 134909,
+    "codeunitName": "ERM Reminder/Fin.Charge Memo",
+    "method": "CancelFinChargeMemoUseNewPostingDate"
+  },
+  {
+    "codeunitId": 134909,
+    "codeunitName": "ERM Reminder/Fin.Charge Memo",
+    "method": "CancelFinChargeMemoWhenCustLedgerEntryAlreadyApplied"
+  },
+  {
+    "codeunitId": 134909,
+    "codeunitName": "ERM Reminder/Fin.Charge Memo",
+    "method": "CancelMultilevelReminderFirstLevel"
+  },
+  {
+    "codeunitId": 134909,
+    "codeunitName": "ERM Reminder/Fin.Charge Memo",
+    "method": "CreateFinChargeMemoAfterCancel"
+  },
+  {
+    "codeunitId": 134909,
+    "codeunitName": "ERM Reminder/Fin.Charge Memo",
+    "method": "DocumentEntriesForIssuedFinanceChargeMemoInFCY"
+  },
+  {
+    "codeunitId": 134909,
+    "codeunitName": "ERM Reminder/Fin.Charge Memo",
+    "method": "DocumentEntriesForIssuedFinanceChargeMemoInLCY"
+  }
+]

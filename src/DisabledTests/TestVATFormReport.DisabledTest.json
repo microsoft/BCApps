@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 144021,
+    "codeunitName": "Test VAT - Form Report",
+    "method": "ProcessVATFormReportInTransactionMonthAndValidate"
+  },
+  {
+    "codeunitId": 144021,
+    "codeunitName": "Test VAT - Form Report",
+    "method": "ProcessVATFormReportInTransactionQuarterAndValidate"
+  }
+]

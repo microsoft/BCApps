@@ -1,0 +1,22 @@
+[
+  {
+    "codeunitId": 134090,
+    "codeunitName": "ERM Pmt Disc And VAT Cust/Vend",
+    "method": "PurchCreditMemoWithVAT"
+  },
+  {
+    "codeunitId": 134090,
+    "codeunitName": "ERM Pmt Disc And VAT Cust/Vend",
+    "method": "PurchInvoiceWithVAT"
+  },
+  {
+    "codeunitId": 134090,
+    "codeunitName": "ERM Pmt Disc And VAT Cust/Vend",
+    "method": "PurchPmtDiscountWithVAT"
+  },
+  {
+    "codeunitId": 134090,
+    "codeunitName": "ERM Pmt Disc And VAT Cust/Vend",
+    "method": "SalesPmtDiscountWithVAT"
+  }
+]

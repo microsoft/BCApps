@@ -1,0 +1,22 @@
+[
+  {
+    "codeunitId": 137285,
+    "codeunitName": "SCM Inventory Batch Jobs",
+    "method": "PstdServInvStatisticsUsingGetShipmentLines"
+  },
+  {
+    "codeunitId": 137285,
+    "codeunitName": "SCM Inventory Batch Jobs",
+    "method": "PstdServInvStatisticsUsingGetShipmentLinesWithChrgAssgnt"
+  },
+  {
+    "codeunitId": 137285,
+    "codeunitName": "SCM Inventory Batch Jobs",
+    "method": "PstdServInvStatisticsUsingGetShipmentLinesNM"
+  },
+  {
+    "codeunitId": 137285,
+    "codeunitName": "SCM Inventory Batch Jobs",
+    "method": "PstdServInvStatisticsUsingGetShipmentLinesWithChrgAssgntNM"
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "bugId": 609445,
+    "codeunitId": 141051,
+    "codeunitName": "Sales Price With Cost Plus",
+    "method": "CampaignSalesPriceDiscountAmt"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 141051,
+    "codeunitName": "Sales Price With Cost Plus",
+    "method": "SingleCustomerSalesPriceDiscountAmtWithDate"
+  },
+  {
+    "bugId": 609445,
+    "codeunitId": 141051,
+    "codeunitName": "Sales Price With Cost Plus",
+    "method": "SingleCustomerSalesPriceDiscountAmtWithoutDate"
+  }
+]

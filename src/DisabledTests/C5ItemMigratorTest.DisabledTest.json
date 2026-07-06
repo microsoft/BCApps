@@ -1,0 +1,20 @@
+[
+  {
+    "bugId": 609041,
+    "codeunitId": 148005,
+    "codeunitName": "C5 Item Migrator Test",
+    "method": "TestC5ItemMigration"
+  },
+  {
+    "bugId": 609041,
+    "codeunitId": 148005,
+    "codeunitName": "C5 Item Migrator Test",
+    "method": "TestC5ItemMigrationWithLocation"
+  },
+  {
+    "bugId": 609041,
+    "codeunitId": 148005,
+    "codeunitName": "C5 Item Migrator Test",
+    "method": "TestC5ItemMigrationWithoutMigratingVendors"
+  }
+]

@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 134987,
+    "codeunitName": "ERM Financial Reports III",
+    "method": "VendorPreReportPrintsPmtDiscAndPmtToleranceForCustomerPayment"
+  },
+  {
+    "codeunitId": 134987,
+    "codeunitName": "ERM Financial Reports III",
+    "method": "VendorPreReportPrintsPmtDiscAndPmtToleranceForVendorPayment"
+  }
+]

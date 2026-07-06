@@ -1,0 +1,297 @@
+[
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "ChangeDiscountAmountCreditMemo"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "ChangeDiscountAmountInvoice"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "ChangeDiscountAmountQuote"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "ChangeTotalVATCreditMemo"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "ChangeTotalVATInvoice"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "ChangeTotalVATQuote"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "CreditLimitLCYOnPostedInvoice"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "CreditLimitLCYOnPostedMemo"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "CreditMemoStatisticsCost"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "CreditMemoStatisticsGLAccount"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "CreditMemoStatisticsItem"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "CreditMemoStatisticsResource"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "CreditMemoWithInvoiceDiscount"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "InvoiceStatisticsCost"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "InvoiceStatisticsGLAccount"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "InvoiceStatisticsItem"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "InvoiceStatisticsResource"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "InvoiceWithInvoiceDiscount"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "InvoiceWithPriceIncludingVAT"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "MemoWithPriceIncludingVAT"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "OrderStatisticsCost"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "OrderWithInvoiceDiscount"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "OrderWithPriceIncludingVAT"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "PostedCreditMemoStatistics"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "PostedInvoiceStatistics"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "QuoteStatisticsCost"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "QuoteStatisticsGLAccount"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "QuoteStatisticsItem"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "QuoteStatisticsResource"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "QuoteWithInvoiceDiscount"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "QuoteWithPriceIncludingVAT"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "ServiceShipmentStatistics"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "InvoiceStatisticsCostNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "InvoiceWithInvoiceDiscountNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "InvoiceWithPriceIncludingVATNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "CreditMemoStatisticsCostNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "CreditMemoWithInvoiceDiscountNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "MemoWithPriceIncludingVATNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "OrderStatisticsCostNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "OrderWithInvoiceDiscountNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "OrderWithPriceIncludingVATNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "QuoteStatisticsCostNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "QuoteWithInvoiceDiscountNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "QuoteWithPriceIncludingVATNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "InvoiceStatisticsItemNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "InvoiceStatisticsResourceNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "InvoiceStatisticsGLAccountNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "ChangeDiscountAmountInvoiceNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "ChangeTotalVATInvoiceNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "CreditMemoStatisticsItemNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "CreditMemoStatisticsResourceNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "CreditMemoStatisticsGLAccountNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "ChangeDiscountAmountCreditMemoNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "ChangeTotalVATCreditMemoNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "QuoteStatisticsItemNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "QuoteStatisticsResourceNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "QuoteStatisticsGLAccountNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "ChangeDiscountAmountQuoteNM"
+  },
+  {
+    "codeunitId": 136130,
+    "codeunitName": "Service Statistics",
+    "method": "ChangeTotalVATQuoteNM"
+  }
+]

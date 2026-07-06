@@ -1,0 +1,8 @@
+[
+    {
+        "codeunitId": 139686,
+        "codeunitName": "Billing Correction Test",
+        "method": "CancelPostedPurchaseInvoiceIfContractLineNumberWasChanged",
+        "bug": "610744"
+    }
+]

@@ -1,0 +1,8 @@
+[
+  {
+    "codeunitId": 134386,
+    "codeunitName": "ERM Sales Documents II",
+    "method": "CustomerCreditLimitWithItemSalesPrices",
+    "bug": 609759
+  }
+]

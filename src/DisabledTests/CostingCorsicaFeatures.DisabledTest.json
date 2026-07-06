@@ -1,0 +1,302 @@
+[
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_AdjCostCOGSTC1_1"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_AdjCostCOGSTC1_2"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_AdjCostCOGSTC1_3"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_AdjCostCOGSTC1_4"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_AdjCostCOGSTC1_5"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_AdjCostCOGSTC1_6"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_AdjCostCOGSTC2_1"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_AdjCostCOGSTC3_1"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_AdjCostCOGSTC4_1"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_AdjCostCOGSTC5"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ClosingInvPerTC2"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ClosingInvPerTC5_1"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ClosingInvPerTC5_2"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ClosingInvPerTC6"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ClosingInvPerTC7_2"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC1_1"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC1_2"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC1_3"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC2_1"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC2_2"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC3_1"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC3_2"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC4"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC5"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC6"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC7"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC9_1_1"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC9_1_2"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC9_1_5"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC9_1_6"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC9_2_1"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC9_2_2"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC9_2_4"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ResiliencyTC9_2_5"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_TracingCostTC1"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_TracingCostTC3_1"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_TracingCostTC3_2"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_TracingCostTC3_3"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_TracingCostTC4_1"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_TracingCostTC4_2"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_TracingCostTC4_3"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_UpdateSalesStatTC1"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_UpdateSalesStatTC10"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_UpdateSalesStatTC11"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_UpdateSalesStatTC12"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_UpdateSalesStatTC13"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_UpdateSalesStatTC2"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_UpdateSalesStatTC3"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_UpdateSalesStatTC4"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_UpdateSalesStatTC5"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_UpdateSalesStatTC7"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_UpdateSalesStatTC9"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ValInvAvgCostTC1_1"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ValInvAvgCostTC1_2"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ValInvAvgCostTC1_3"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ValInvAvgCostTC1_4"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ValInvAvgCostTC2_1"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ValInvAvgCostTC2_2"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ValInvAvgCostTC2_3"
+  },
+  {
+    "codeunitId": 137182,
+    "codeunitName": "Costing Corsica Features",
+    "method": "Corsica_ValInvAvgCostTC3_1"
+  }
+]

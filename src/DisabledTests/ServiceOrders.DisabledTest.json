@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 136101,
+    "codeunitName": "Service Orders",
+    "method": "OutStandingAmountOnGLEntries"
+  },
+  {
+    "codeunitId": 136101,
+    "codeunitName": "Service Orders",
+    "method": "VATAmountOnGLEntryAfterPostingServiceOrder"
+  }
+]

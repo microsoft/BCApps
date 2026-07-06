@@ -1,0 +1,42 @@
+[
+  {
+    "codeunitId": 139027,
+    "codeunitName": "Test Background Posting",
+    "method": "DataPrivacyWizardExportExcelActivityLogSuccess"
+  },
+  {
+    "codeunitId": 139027,
+    "codeunitName": "Test Background Posting",
+    "method": "MailManagementSubscriptionInTwoSessions"
+  },
+  {
+    "codeunitId": 139027,
+    "codeunitName": "Test Background Posting",
+    "method": "PostPurchOrderNotificationTest"
+  },
+  {
+    "codeunitId": 139027,
+    "codeunitName": "Test Background Posting",
+    "method": "PostPurchOrderNotificationWithCalcInvDiscount"
+  },
+  {
+    "codeunitId": 139027,
+    "codeunitName": "Test Background Posting",
+    "method": "PostPurchOrderSameCategoryTest"
+  },
+  {
+    "codeunitId": 139027,
+    "codeunitName": "Test Background Posting",
+    "method": "PostSalesOrderNotificationTest"
+  },
+  {
+    "codeunitId": 139027,
+    "codeunitName": "Test Background Posting",
+    "method": "PostSalesOrderNotificationWithCalcInvDiscount"
+  },
+  {
+    "codeunitId": 139027,
+    "codeunitName": "Test Background Posting",
+    "method": "PostSalesOrderSameCategoryTest"
+  }
+]

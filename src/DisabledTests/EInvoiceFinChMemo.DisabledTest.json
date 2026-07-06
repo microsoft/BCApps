@@ -1,0 +1,52 @@
+[
+  {
+    "codeunitId": 144116,
+    "codeunitName": "E-Invoice Fin. Ch. Memo",
+    "method": "CreateEInvoiceFinChMemoFile"
+  },
+  {
+    "codeunitId": 144116,
+    "codeunitName": "E-Invoice Fin. Ch. Memo",
+    "method": "DocumentReferenceMapping"
+  },
+  {
+    "codeunitId": 144116,
+    "codeunitName": "E-Invoice Fin. Ch. Memo",
+    "method": "EInvoiceFinChMemoEndpointID"
+  },
+  {
+    "codeunitId": 144116,
+    "codeunitName": "E-Invoice Fin. Ch. Memo",
+    "method": "EmptyDocumentReference"
+  },
+  {
+    "codeunitId": 144116,
+    "codeunitName": "E-Invoice Fin. Ch. Memo",
+    "method": "FinChMemoFileEntReg"
+  },
+  {
+    "codeunitId": 144116,
+    "codeunitName": "E-Invoice Fin. Ch. Memo",
+    "method": "FinChMemoFileNoEntReg"
+  },
+  {
+    "codeunitId": 144116,
+    "codeunitName": "E-Invoice Fin. Ch. Memo",
+    "method": "FinChMemoWithAllVATGroups"
+  },
+  {
+    "codeunitId": 144116,
+    "codeunitName": "E-Invoice Fin. Ch. Memo",
+    "method": "FinChMemoWithOneVATGroup"
+  },
+  {
+    "codeunitId": 144116,
+    "codeunitName": "E-Invoice Fin. Ch. Memo",
+    "method": "FinChMemoWithTwoVATGroups"
+  },
+  {
+    "codeunitId": 144116,
+    "codeunitName": "E-Invoice Fin. Ch. Memo",
+    "method": "NoAccountingCostCodeAdded"
+  }
+]

@@ -1,0 +1,14 @@
+[
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139962,
+        "codeunitName": "Qlty. Tests - Filter Helpers",
+        "method": "IdentifyTableIDFromText_FuzzyName"
+    },
+    {
+        "bug": "Not Provided",
+        "codeunitId": 139962,
+        "codeunitName": "Qlty. Tests - Filter Helpers",
+        "method": "IdentifyTableIDFromText_FuzzyCaption"
+    }
+]

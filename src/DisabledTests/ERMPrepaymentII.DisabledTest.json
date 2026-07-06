@@ -1,0 +1,12 @@
+[
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "PurchasePrepmtLineAmountErrorOnPartialPostedInvoice"
+  },
+  {
+    "codeunitId": 134101,
+    "codeunitName": "ERM Prepayment II",
+    "method": "SalesPrepmtLineAmountErrorOnPartialPostedInvoice"
+  }
+]

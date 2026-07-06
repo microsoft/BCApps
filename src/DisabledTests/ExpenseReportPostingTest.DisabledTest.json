@@ -1,0 +1,26 @@
+[
+  {
+    "codeunitId": 148302,
+    "codeunitName": "Expense Report Posting Test",
+    "method": "ExpenseReportIsPostedWithCurrencyOnHeaderAndExchangeRateForExpensesIsExpenseDate",
+    "bug": "639486"
+  },
+  {
+    "codeunitId": 148302,
+    "codeunitName": "Expense Report Posting Test",
+    "method": "ExpenseReportIsPostedWithCurrencyOnHeaderAndExchangeRateForExpensesIsPostingDate",
+    "bug": "639486"
+  },
+  {
+    "codeunitId": 148302,
+    "codeunitName": "Expense Report Posting Test",
+    "method": "ExpenseReportIsPostedWithFCYOnHeaderAndExchangeRateForExpensesIsPostingDateWithMultipleFCYLinesAndEmployeePaid",
+    "bug": "639486"
+  },
+  {
+    "codeunitId": 148302,
+    "codeunitName": "Expense Report Posting Test",
+    "method": "ExpenseReportIsPostedWithFCYOnHeaderAndExchangeRateForExpensesIsExpenseDateWithMultipleFCYLinesAndEmployeePaid",
+    "bug": "639486"
+  }
+]

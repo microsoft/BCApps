@@ -1,0 +1,8 @@
+[
+  {
+    "codeunitId": 148306,
+    "codeunitName": "Expense Report Test",
+    "method": "VATMustBeCalculatedWhenVATLiableIsTrue",
+    "bug": "620275"
+  }
+]
