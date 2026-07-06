@@ -2893,11 +2893,18 @@ codeunit 12 "Gen. Jnl.-Post Line"
     procedure CreateGLEntryBalAcc(GenJnlLine: Record "Gen. Journal Line"; AccNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal; BalAccType: Enum "Gen. Journal Account Type"; BalAccNo: Code[20])
     var
         GLEntry: Record "G/L Entry";
+        AmountSrcCurr: Decimal;
     begin
         OnBeforeCreateGLEntryBalAcc(GenJnlLine, AccNo, Amount, AmountAddCurr, BalAccType, BalAccNo);
+        // Use the entered source currency amount for the balancing entry (e.g. IC control account) instead of
+        // reconverting the rounded LCY amount back to the source currency, which introduces a rounding deviation.
+        if GenJnlLine."Source Currency Code" <> '' then
+            AmountSrcCurr := GenJnlLine."Source Currency Amount"
+        else
+            AmountSrcCurr := CalcAmountSrcCurr(GenJnlLine, Amount);
         InitGLEntry(
             GenJnlLine, GLEntry, AccNo, Amount, AmountAddCurr, true, true,
-            CalcAmountSrcCurr(GenJnlLine, Amount));
+            AmountSrcCurr);
         GLEntry."Bal. Account Type" := BalAccType;
         GLEntry."Bal. Account No." := BalAccNo;
         InsertGLEntry(GenJnlLine, GLEntry, true);
