@@ -482,9 +482,7 @@ codeunit 130002 "Library Assert"
         AllObjWithCaption: Record AllObjWithCaption;
         TableCaption: Text;
     begin
-        AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
-        AllObjWithCaption.SetRange("Object ID", TableID);
-        AllObjWithCaption.FindFirst();
+        AllObjWithCaption.Get(AllObjWithCaption."Object Type"::Table, TableID);
         TableCaption := AllObjWithCaption."Object Caption";
 
         if TableCaption <> '' then
