@@ -932,7 +932,7 @@ codeunit 5988 "Serv-Documents Mgt."
         end;
 
         UseAsExternalDocumentNo := ServInvHeader."External Document No.";
-        if UseAsExternalDocumentNo = '' then
+        if UseAsExternalDocumentNo = '' then //
             UseAsExternalDocumentNo := ServHeader."No.";
         SetGenJnlLineDocNos(GenJnlLineDocType::Invoice, ServInvHeader."No.", UseAsExternalDocumentNo);
 
