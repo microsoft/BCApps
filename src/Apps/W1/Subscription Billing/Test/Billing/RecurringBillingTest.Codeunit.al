@@ -68,6 +68,7 @@ codeunit 139688 "Recurring Billing Test"
         PostedDocumentNo: Code[20];
         StrMenuHandlerStep: Integer;
         BillingProposalNotCreatedErr: Label 'Billing proposal not created.', Locked = true;
+        BillingToCappedErr: Label 'Billing to should be capped at the harmonized Next Billing To date.', Locked = true;
         ExtendedTextValueErr: Label 'Sales line with extended text description should be created.', Locked = true;
         ExtendedTextPurchValueErr: Label 'Purchase line with extended text description should be created.', Locked = true;
         RecurringBillingPage: TestPage "Recurring Billing";
@@ -1569,6 +1570,49 @@ codeunit 139688 "Recurring Billing Test"
         ExpectedNextBillingDate := CalcDate('<1D>', BillingLine."Billing to");
         ServiceCommitment.Get(ServiceCommitment."Entry No.");
         Assert.AreEqual(ExpectedNextBillingDate, ServiceCommitment."Next Billing Date", 'Next Billing Date should be the day after the last Billing To date.');
+    end;
+
+    [Test]
+    procedure CreateBillingProposalForHarmonizedContractWithCappedNextBillingToDoesNotHang()
+    var
+        ContractType: Record "Subscription Contract Type";
+        BillingDate: Date;
+        CappedNextBillingTo: Date;
+      begin
+        // [SCENARIO 637042] Creating a Billing Proposal for a harmonized billing contract must not hang when the contract "Next Billing To" caps the calculated billing period below the Billing Date
+        Initialize();
+
+        // [GIVEN] An LCY Customer Subscription Contract with a monthly Subscription Line
+        CreateCustomerContract('<1M>', '<12M>');
+        FindFirstServiceCommitment();
+
+        // [GIVEN] The contract uses a harmonized billing contract type
+        ContractTestLibrary.CreateContractType(ContractType);
+        ContractType.HarmonizedBillingCustContracts := true;
+        ContractType.Modify(false);
+
+        // [GIVEN] The harmonized "Next Billing To" is frozen at the first billing period end, which is earlier than the Billing Date
+        CappedNextBillingTo := ServiceCommitment.CalculateNextToDate(ServiceCommitment."Billing Rhythm", ServiceCommitment."Next Billing Date");
+        BillingDate := CalcDate('<+6M>', ServiceCommitment."Next Billing Date");
+        CustomerContract.Get(CustomerContract."No.");
+        CustomerContract."Contract Type" := ContractType.Code;
+        CustomerContract."Next Billing To" := CappedNextBillingTo;
+        CustomerContract.Modify(false);
+
+        // [GIVEN] A Billing Template filtered on the harmonized contract
+        CustomerContract.SetRecFilter();
+        ContractTestLibrary.CreateRecurringBillingTemplate(BillingTemplate, '', '', CustomerContract.GetView(), Enum::"Service Partner"::Customer);
+
+        // [WHEN] Create Billing Proposal up to a Billing Date that lies beyond the frozen "Next Billing To"
+        // [THEN] The process completes without entering an infinite loop in CalculateBillingPeriod (before the fix it would spin until a SQL timeout)
+        ContractTestLibrary.CreateBillingProposal(BillingTemplate, Enum::"Service Partner"::Customer, BillingDate, 0D);
+
+        // [THEN] A Billing Line is created and its "Billing to" is capped at the harmonized "Next Billing To" date
+        BillingLine.Reset();
+        BillingLine.SetRange("Subscription Contract No.", CustomerContract."No.");
+        Assert.RecordIsNotEmpty(BillingLine);
+        BillingLine.FindLast();
+        Assert.AreEqual(CappedNextBillingTo, BillingLine."Billing to", BillingToCappedErr);
     end;
 
     #endregion Tests
