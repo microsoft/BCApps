@@ -486,6 +486,7 @@ page 7022 "Price Worksheet"
     var
         FeaturePriceCalculation: Codeunit "Feature - Price Calculation";
     begin
+        OnBeforeOnInit();
         FeaturePriceCalculation.FailIfFeatureDisabled();
     end;
 
@@ -849,6 +850,11 @@ page 7022 "Price Worksheet"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterGetDefaults(var Result: Text; TempWorksheetPriceListHeader: Record "Price List Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOnInit()
     begin
     end;
 
