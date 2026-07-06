@@ -2530,12 +2530,7 @@ codeunit 134396 "ERM Sales Invoice Aggregate UT"
     begin
         Field.SetRange(TableNo, DATABASE::"Sales Invoice Entity Aggregate");
         Field.SetFilter(ObsoleteState, '<>%1', Field.ObsoleteState::Removed);
-        Field.SetFilter("No.", '<>%1&<>%2&<>%3&<>%4&<>%5',
-            Field.FieldNo(SystemId),
-            Field.FieldNo(SystemCreatedAt),
-            Field.FieldNo(SystemCreatedBy),
-            Field.FieldNo(SystemModifiedAt),
-            Field.FieldNo(SystemModifiedBy));
+        Field.SetFilter("No.", '<%1', Field.FieldNo(SystemId));
     end;
 
     local procedure AssignStaticValues524113(var UnitPrice: array[4] of Decimal; var Quantity: array[4] of Integer)
