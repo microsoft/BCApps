@@ -3280,6 +3280,7 @@ codeunit 134976 "ERM Sales Report"
         Assert.RecordIsEmpty(InteractionLogEntry);
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('StandardSalesInvoiceRequestPageHandler')]
     procedure StandardSalesInvoice_HasSirenNo()
@@ -3309,6 +3310,7 @@ codeunit 134976 "ERM Sales Report"
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementTagWithValueExists('CustomerSirenNo', Customer.GetSIRENNoWithCaption());
     end;
+#endif
 
     [Test]
     [HandlerFunctions('StandardSalesInvoiceRequestPageHandler')]
@@ -3370,6 +3372,7 @@ codeunit 134976 "ERM Sales Report"
         LibraryReportDataset.AssertElementTagWithValueExists('AlternativeAddress1', '');
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('StandardSalesInvoiceRequestPageHandler')]
     procedure StandardSalesInvoice_VATPaidOnDebitsTrue()
@@ -3421,6 +3424,7 @@ codeunit 134976 "ERM Sales Report"
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementTagWithValueExists('VATPaidOnDebits_Lbl', '');
     end;
+#endif
 
     [Test]
     [HandlerFunctions('StandardSalesInvoiceRequestPageHandler')]
@@ -3515,6 +3519,7 @@ codeunit 134976 "ERM Sales Report"
         LibraryReportDataset.AssertElementTagWithValueExists('GoodsAndServices_Lbl', InvIncludesGoodsAndServicesTxt);
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('DraftSalesInvoiceRequestPageHandler')]
     procedure StandardSalesDraftInvoice_HasSirenNo()
@@ -3541,6 +3546,7 @@ codeunit 134976 "ERM Sales Report"
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementTagWithValueExists('CustomerSirenNo', Customer.GetSIRENNoWithCaption());
     end;
+#endif
 
     [Test]
     [HandlerFunctions('DraftSalesInvoiceRequestPageHandler')]
@@ -3596,6 +3602,7 @@ codeunit 134976 "ERM Sales Report"
         LibraryReportDataset.AssertElementTagWithValueExists('AlternativeAddress1', '');
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('DraftSalesInvoiceRequestPageHandler')]
     procedure StandardSalesDraftInvoice_VATPaidOnDebitsTrue()
@@ -3641,6 +3648,7 @@ codeunit 134976 "ERM Sales Report"
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementTagWithValueExists('VATPaidOnDebits_Lbl', '');
     end;
+#endif
 
     [Test]
     [HandlerFunctions('DraftSalesInvoiceRequestPageHandler')]
@@ -3726,6 +3734,7 @@ codeunit 134976 "ERM Sales Report"
         LibraryReportDataset.AssertElementTagWithValueExists('GoodsAndServices_Lbl', InvIncludesGoodsAndServicesTxt);
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('StdSalesCrMemoRequestPageHandler')]
     procedure StandardSalesCreditMemo_HasSirenNo()
@@ -3807,6 +3816,7 @@ codeunit 134976 "ERM Sales Report"
         LibraryReportDataset.LoadDataSetFile();
         LibraryReportDataset.AssertElementTagWithValueExists('VATPaidOnDebits_Lbl', '');
     end;
+#endif
 
     [Test]
     [HandlerFunctions('StdSalesCrMemoRequestPageHandler')]
@@ -4811,6 +4821,7 @@ codeunit 134976 "ERM Sales Report"
         SalesInvoiceLine.Insert();
     end;
 
+#if not CLEAN28
     local procedure CreateSalesInvoiceWithVATPaidOnDebits(var SalesHeader: Record "Sales Header"; VATPaidOnDebits: Boolean)
     begin
         LibrarySales.CreateSalesInvoiceForCustomerNo(SalesHeader, LibrarySales.CreateCustomerNo());
@@ -4824,6 +4835,7 @@ codeunit 134976 "ERM Sales Report"
         SalesHeader.Validate("VAT Paid on Debits", VATPaidOnDebits);
         SalesHeader.Modify();
     end;
+#endif
 
     local procedure CreateSalesHeader(var SalesHeader: Record "Sales Header"; CurrencyCode: Code[10]; CustomerNo: Code[20])
     begin
@@ -4968,12 +4980,14 @@ codeunit 134976 "ERM Sales Report"
         Customer.Modify(true);
     end;
 
+#if not CLEAN28
     local procedure CreateCustomerWithSirenNo(var Customer: Record Customer)
     begin
         LibrarySales.CreateCustomer(Customer);
         Customer.Validate("SIREN No.", LibraryUtility.GenerateRandomNumericText(9));
         Customer.Modify(true);
     end;
+#endif
 
     local procedure CreateVATPostingGroup(var VATPostingSetup: Record "VAT Posting Setup"; VATPercent: Decimal)
     var
@@ -5307,9 +5321,7 @@ codeunit 134976 "ERM Sales Report"
         Customer: Record Customer;
     begin
         LibraryVariableStorage.Enqueue(ShowAmountInLCY);
-#if not CLEAN28
         LibraryVariableStorage.Enqueue(false);
-#endif
         Customer.SetRange("No.", SellToCustomerNo);
         Commit();  // Due to limitation in page testability, commit is needed in this test case.
         REPORT.Run(REPORT::"Customer - Order Detail", true, false, Customer);
@@ -5747,18 +5759,12 @@ codeunit 134976 "ERM Sales Report"
     procedure CustomerOrderDetailRequestPageHandler(var CustomerOrderDetail: TestRequestPage "Customer - Order Detail")
     var
         ShowAmountInLCY: Variant;
-#if not CLEAN28
         PrintOnlyPerPage: Variant;
-#endif
     begin
         LibraryVariableStorage.Dequeue(ShowAmountInLCY);
-#if not CLEAN28
         LibraryVariableStorage.Dequeue(PrintOnlyPerPage);
-#endif
         CustomerOrderDetail.ShowAmountsInLCY.SetValue(ShowAmountInLCY);
-#if not CLEAN28
         CustomerOrderDetail.NewPagePerCustomer.SetValue(PrintOnlyPerPage);
-#endif
         CustomerOrderDetail.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
     end;
 

@@ -20,7 +20,9 @@ using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
+#if not CLEAN28
 using Microsoft.Inventory.Item;
+#endif
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
@@ -281,6 +283,7 @@ report 1307 "Standard Sales - Credit Memo"
             column(ShipToAddress8; ShipToAddr[8])
             {
             }
+#if not CLEAN28
             column(CustomerSirenNo; Cust.GetSIRENNoWithCaption())
             {
             }
@@ -290,6 +293,7 @@ report 1307 "Standard Sales - Credit Memo"
             column(VATPaidOnDebits_Lbl; GetVATPaidOnDebitsText())
             {
             }
+#endif
             column(ShipToPhoneNo; Header."Ship-to Phone No.")
             {
             }
@@ -1177,9 +1181,11 @@ report 1307 "Standard Sales - Credit Memo"
         ClosingLbl: Label 'Sincerely';
         BodyLbl: Label 'Thank you for your business. Your credit memo is attached to this message.';
         LCYTxt: label ' (LCY)';
+#if not CLEAN28
         IncludesGoodsLbl: Label 'Sales credit memo includes only goods.';
         IncludesServicesLbl: Label 'Sales credit memo includes only services.';
         IncludesGoodsAndServicesLbl: Label 'Sales credit memo includes goods and services.';
+#endif
         VATClauseText: Text;
         LegalOfficeTxt, LegalOfficeLbl, CustomGiroTxt, CustomGiroLbl, LegalStatementLbl : Text;
 
@@ -1285,6 +1291,7 @@ report 1307 "Standard Sales - Credit Memo"
         DisplayAssemblyInformation := DisplayAsmInfo;
     end;
 
+#if not CLEAN28
     local procedure GetGoodsAndServicesText(): Text
     var
         SalesCrMemoLine: Record "Sales Cr.Memo Line";
@@ -1327,6 +1334,7 @@ report 1307 "Standard Sales - Credit Memo"
         if Header."VAT Paid on Debits" then
             exit(Header.FieldCaption("VAT Paid on Debits"));
     end;
+#endif
 
     local procedure GetUOMText(UOMCode: Code[10]): Text[50]
     var

@@ -9874,6 +9874,46 @@
     ]
   },
   {
+    "name": "Sales FR",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Sales FR Tests",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
     "name": "Reports GB",
     "groups": [
       {

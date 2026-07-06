@@ -946,10 +946,20 @@ table 5050 Contact
             Caption = 'Stock Capital';
             OptimizeForTextSearch = true;
         }
+#if not CLEANSCHEMA28
         field(10805; "SIREN No."; Code[9])
         {
             Caption = 'SIREN No.';
+            ObsoleteReason = 'Moved to Sales FR app.';
+#if CLEAN28
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
     }
 
     keys
@@ -3178,16 +3188,6 @@ table 5050 Contact
         ContBusRel.SetRange("Contact No.", "No.");
         ContBusRel.SetRange("Link to Table", ContBusRel."Link to Table"::Customer);
         exit(ContBusRel.FindFirst())
-    end;
-
-    procedure ContactToVendBusinessRelationExist(): Boolean
-    var
-        ContactBusinessRelation: Record "Contact Business Relation";
-    begin
-        ContactBusinessRelation.Reset();
-        ContactBusinessRelation.SetRange("Contact No.", "No.");
-        ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Vendor);
-        exit(ContactBusinessRelation.FindFirst())
     end;
 
     procedure CheckIfMinorForProfiles()

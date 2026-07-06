@@ -7289,6 +7289,27 @@
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
+    "Sales FR": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\FR\\SalesFR\\app",
+      "dvdFolder": "Applications\\SalesFR\\Source",
+      "hasTranslations": true,
+      "supportedCountries": "FR",
+      "installOnEnvironmentUpdate": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
+    },
+    "Sales FR Tests": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\FR\\SalesFR\\test",
+      "dvdFolder": "Applications\\SalesFR\\Test",
+      "supportedCountries": "FR",
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
+    },
     "Excise Taxes": {
       "projectPath": "$env:INETROOT\\App\\Apps\\W1\\ExciseTaxes\\app",
       "dvdFolder": "Applications\\ExciseTaxes\\Source",

@@ -19,7 +19,9 @@ using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
+#if not CLEAN28
 using Microsoft.Inventory.Item;
+#endif
 using Microsoft.Inventory.Location;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Posting;
@@ -272,6 +274,7 @@ report 1303 "Standard Sales - Draft Invoice"
             column(ShipToAddress8; ShipToAddr[8])
             {
             }
+#if not CLEAN28
             column(AlternativeAddress_Lbl; AlternativeAddressTxt)
             {
             }
@@ -308,6 +311,7 @@ report 1303 "Standard Sales - Draft Invoice"
             column(VATPaidOnDebits_Lbl; GetVATPaidOnDebitsText())
             {
             }
+#endif
             column(ShipToPhoneNo; Header."Ship-to Phone No.")
             {
             }
@@ -969,7 +973,13 @@ report 1303 "Standard Sales - Draft Invoice"
                 CalcFields("Work Description");
                 ShowWorkDescription := "Work Description".HasValue;
 
+#if not CLEAN28
                 FormatAddressFields(Header);
+#else
+                FormatAddr.GetCompanyAddr("Responsibility Center", RespCenter, CompanyInfo, CompanyAddr);
+                FormatAddr.SalesHeaderBillTo(CustAddr, Header);
+                ShowShippingAddr := FormatAddr.SalesHeaderShipTo(ShipToAddr, CustAddr, Header);
+#endif
                 DocumentTitleText := SalesConfirmationLbl;
                 YourDocumentTitleText := StrSubstNo(YourDocLbl, SalesConfirmationLbl);
                 InvoiceNoText := InvNoLbl;
@@ -1142,7 +1152,9 @@ report 1303 "Standard Sales - Draft Invoice"
         CustAddr: array[8] of Text[100];
         ChecksPayableText: Text;
         ShipToAddr: array[8] of Text[100];
+#if not CLEAN28
         AlternativeAddress: array[8] of Text[100];
+#endif
         CompanyAddr: array[8] of Text[100];
         SalesPersonText: Text[50];
         LogInteractionEnable: Boolean;
@@ -1155,7 +1167,9 @@ report 1303 "Standard Sales - Draft Invoice"
         TotalVATAmountLCY: Decimal;
         PrevLineAmount: Decimal;
         PmtDiscText: Text;
+#if not CLEAN28
         AlternativeAddressTxt: Text;
+#endif
         PaymentInstructionsTxt: Text;
         VATClausesText: Text;
         NextInvoiceNo: Text;
@@ -1214,9 +1228,11 @@ report 1303 "Standard Sales - Draft Invoice"
         PriceLbl: Label 'Price';
         PricePerLbl: Label 'Price per';
         LCYTxt: label ' (LCY)';
+#if not CLEAN28
         IncludesGoodsLbl: Label 'Sales invoice includes only goods.';
         IncludesServicesLbl: Label 'Sales invoice includes only services.';
         IncludesGoodsAndServicesLbl: Label 'Sales invoice includes goods and services.';
+#endif
         VATClauseText: Text;
 
     protected var
@@ -1280,6 +1296,7 @@ report 1303 "Standard Sales - Draft Invoice"
         exit(CurrReport.Preview() or MailManagement.IsHandlingGetEmailBody());
     end;
 
+#if not CLEAN28
     local procedure GetGoodsAndServicesText(): Text
     var
         SalesLine: Record "Sales Line";
@@ -1323,6 +1340,7 @@ report 1303 "Standard Sales - Draft Invoice"
         if Header."VAT Paid on Debits" then
             exit(Header.FieldCaption("VAT Paid on Debits"));
     end;
+#endif
 
     local procedure CreateReportTotalLines()
     begin
@@ -1354,6 +1372,7 @@ report 1303 "Standard Sales - Draft Invoice"
         exit(true);
     end;
 
+#if not CLEAN28
     local procedure FormatAddressFields(var SalesHeader: Record "Sales Header")
     var
         i: Integer;
@@ -1367,6 +1386,7 @@ report 1303 "Standard Sales - Draft Invoice"
             AlternativeAddressTxt := ShiptoAddrLbl;
         end;
     end;
+#endif
 
     local procedure FormatLineValues(CurrLine: Record "Sales Line")
     var
