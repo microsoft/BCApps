@@ -159,6 +159,10 @@ page 99001030 "Temp Routing Lines"
             }
         }
     }
+    trigger OnDeleteRecord(): Boolean
+    begin
+        Rec.CheckPreviousAndNextForTemp();
+    end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
