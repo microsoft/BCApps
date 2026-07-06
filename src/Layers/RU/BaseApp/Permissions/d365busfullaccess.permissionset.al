@@ -759,7 +759,7 @@ permissionset 959 "D365 BUS FULL ACCESS"
                   tabledata "Sorting Table" = RIMD,
                   tabledata Microsoft.Finance.SpendRequest."Spend Request" = RIMD,
                   tabledata Microsoft.Finance.SpendRequest."Spend Request Detail" = RIMD,
-                  tabledata Microsoft.Finance.SpendRequest."Spend Request To G/L Link" = RIMD,
+                  tabledata Microsoft.Finance.SpendRequest."Spend Request To G/L Link" = Rimd,
                   tabledata "Standard Address" = Rimd,
                   tabledata Microsoft.Manufacturing.StandardCost."Standard Cost Worksheet" = RIMD,
                   tabledata Microsoft.Manufacturing.StandardCost."Standard Cost Worksheet Name" = RIMD,

@@ -97,6 +97,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                   tabledata "Purchases & Payables Setup" = R,
                   TableData "FA Ledger Entry" = rimd,
                   TableData "FA Register" = rimd,
+                  TableData "Spend Request to G/L Link" = rimd,
                   TableData "Maintenance Ledger Entry" = rimd;
     TableNo = "Gen. Journal Line";
 
