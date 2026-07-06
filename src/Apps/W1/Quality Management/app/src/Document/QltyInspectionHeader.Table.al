@@ -93,13 +93,13 @@ table 20405 "Qlty. Inspection Header"
         {
             AutoFormatType = 0;
             Caption = 'Quantity (Base)';
-            ToolTip = 'Specifies a reference to the quantity involved.';
+            ToolTip = 'Specifies a reference to the quantity involved. Only users with the Quality Admin & Supervisor role can change this value.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
             begin
                 if not Rec.IsTemporary() then
-                    if not GetIsCreating() then
+                    if not Rec.GetIsCreating() then
                         QltyPermissionMgmt.VerifyCanChangeSourceQuantity();
 
                 if Rec."Source Quantity (Base)" < 0 then
@@ -113,7 +113,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Pass Quantity';
             AutoFormatType = 0;
-            ToolTip = 'Specifies the quantity that passed inspection. A manually entered quantity for non-sampling inspections, or derived from the quantity of passed sampling lines for sampling inspections.';
+            ToolTip = 'Specifies the quantity that passed quality inspection. When the inspection is finished with acceptable results, this value is automatically derived from sample size or source quantity. It is reset to zero when the inspection is reopened. Only users with the Quality Admin & Supervisor role are allowed to manually change this value.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -132,7 +132,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Fail Quantity';
             AutoFormatType = 0;
-            ToolTip = 'Specifies the quantity that failed inspection. A manually entered quantity for non-sampling inspections, or derived from the quantity of failed sampling lines for sampling inspections.';
+            ToolTip = 'Specifies the quantity that failed quality inspection. When the inspection is finished with non-acceptable results, this value is automatically derived from sample size or source quantity. It is reset to zero when the inspection is reopened. Only users with the Quality Admin & Supervisor role are allowed to manually change this value.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -140,6 +140,7 @@ table 20405 "Qlty. Inspection Header"
             begin
                 if Rec.IsTemporary() then
                     exit;
+
                 if not Rec.GetIsCreating() then
                     QltyPermissionMgmt.VerifyCanChangeSourceQuantity();
 
@@ -149,12 +150,16 @@ table 20405 "Qlty. Inspection Header"
         field(17; "Sample Size"; Integer)
         {
             Caption = 'Sample Size';
-            ToolTip = 'Specifies the number of units that must be inspected. This will be used to fill out the sample size field on a Quality Inspection when possible based on the other characteristics that were applied.';
+            ToolTip = 'Specifies the number of units that must be inspected. This will be used to fill out the sample size field on a Quality Inspection when possible based on the other characteristics that were applied. Only users with the Quality Admin & Supervisor role can change this value.';
 
             trigger OnValidate()
             var
                 Math: Codeunit Math;
             begin
+                if not Rec.IsTemporary() then
+                    if not Rec.GetIsCreating() then
+                        QltyPermissionMgmt.VerifyCanChangeSourceQuantity();
+
                 if (Rec."Sample Size" > Rec."Source Quantity (Base)") and (Rec."Source Quantity (Base)" > 0) then begin
                     if GuiAllowed() and not Rec.GetIsCreating() and (not Rec.IsTemporary()) then
                         Message(SampleSizeInvalidMsg, Rec."Sample Size", Rec."No.", Rec."Source Quantity (Base)");
@@ -169,7 +174,7 @@ table 20405 "Qlty. Inspection Header"
             Editable = false;
             TableRelation = User."User Name";
             Caption = 'Assigned User ID';
-            ToolTip = 'Specifies the user this inspection is assigned to.';
+            ToolTip = 'Specifies the user this inspection is assigned to. Changing another user''s assignment requires the Quality Admin & Supervisor role.';
 
             trigger OnValidate()
             var
@@ -350,7 +355,7 @@ table 20405 "Qlty. Inspection Header"
                 if (Rec.Status = Rec.Status::Finished) and (Rec."Source Serial No." <> xRec."Source Serial No.") then
                     Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
 
-                if not GetIsCreating() then
+                if not Rec.GetIsCreating() then
                     QltyPermissionMgmt.VerifyCanChangeItemTracking();
             end;
         }
@@ -365,7 +370,7 @@ table 20405 "Qlty. Inspection Header"
                 if (Rec.Status = Rec.Status::Finished) and (Rec."Source Lot No." <> xRec."Source Lot No.") then
                     Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
 
-                if not GetIsCreating() then
+                if not Rec.GetIsCreating() then
                     QltyPermissionMgmt.VerifyCanChangeItemTracking();
             end;
         }
@@ -380,7 +385,7 @@ table 20405 "Qlty. Inspection Header"
                 if (Rec.Status = Rec.Status::Finished) and (Rec."Source Package No." <> xRec."Source Package No.") then
                     Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
 
-                if not GetIsCreating() then
+                if not Rec.GetIsCreating() then
                     QltyPermissionMgmt.VerifyCanChangeItemTracking();
             end;
         }
@@ -1289,6 +1294,8 @@ table 20405 "Qlty. Inspection Header"
             if QltyInspectionResult."Finish Allowed" <> QltyInspectionResult."Finish Allowed"::"Allow Finish" then
                 Error(CannotFinishInspectionBecauseTheInspectionIsInResultErr, Rec."No.", QltyInspectionResult.Code);
 
+        CalculatePassFailQuantities();
+
         Rec."Finished By User ID" := CopyStr(UserId(), 1, MaxStrLen(Rec."Finished By User ID"));
         Rec."Finished Date" := CurrentDateTime();
         Rec.Modify(false);
@@ -1304,8 +1311,11 @@ table 20405 "Qlty. Inspection Header"
     begin
         if xRec.Status <> xRec.Status::Finished then
             exit;
+
         if Rec.Status <> Rec.Status::Open then
             exit;
+
+        ClearPassFailQuantities();
 
         Rec.Modify(false);
 
@@ -1552,24 +1562,6 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    ///Returns the quantity of samples with acceptable measures for all sampling fields.
-    ///If no sampling fields, will return the sample size if all measures are acceptable.
-    /// </summary>
-    /// <returns>Quantity of samples</returns>
-    internal procedure GetPassSampleQuantity() PassQuantity: Decimal
-    begin
-    end;
-
-    /// <summary>
-    ///Returns the quantity of samples with any not acceptable measure for all sampling fields.
-    ///If no sampling fields, will return the sample size if any measures are not acceptable.
-    /// </summary>
-    /// <returns>Quantity of samples</returns>
-    internal procedure GetFailedSampleQuantity() FailQuantity: Decimal
-    begin
-    end;
-
-    /// <summary>
     /// Initializes the Qlty. Related Transfers page with the Quality Inspection record and runs it
     /// </summary>
     internal procedure RunModalRelatedTransfers()
@@ -1609,6 +1601,55 @@ table 20405 "Qlty. Inspection Header"
             else
                 exit('None');
         end;
+    end;
+
+    /// <summary>
+    /// Calculates and assigns the Pass Quantity or Fail Quantity based on the inspection's Result Category.
+    /// Uses Sample Size when greater than zero; otherwise falls back to Source Quantity (Base).
+    /// Acceptable results populate Pass Quantity; any other category populates Fail Quantity.
+    /// The opposite quantity is always cleared so the values stay mutually exclusive.
+    /// Intended to be called when the inspection transitions to Finished.
+    /// </summary>
+    local procedure CalculatePassFailQuantities()
+    var
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+        QuantityToApply: Decimal;
+    begin
+        if Rec."Result Code" = '' then
+            exit;
+
+        QltyInspectionResult.SetLoadFields("Result Category");
+        if not QltyInspectionResult.Get(Rec."Result Code") then
+            exit;
+
+        if (Rec."Sample Size" > Rec."Source Quantity (Base)") and (Rec."Source Quantity (Base)" > 0) then
+            exit;
+
+        if Rec."Sample Size" > 0 then
+            QuantityToApply := Rec."Sample Size"
+        else
+            QuantityToApply := Rec."Source Quantity (Base)";
+
+        if QuantityToApply <= 0 then
+            exit;
+
+        if QltyInspectionResult."Result Category" = QltyInspectionResult."Result Category"::Acceptable then begin
+            Rec."Pass Quantity" := QuantityToApply;
+            Rec."Fail Quantity" := 0;
+        end else begin
+            Rec."Fail Quantity" := QuantityToApply;
+            Rec."Pass Quantity" := 0;
+        end;
+    end;
+
+    /// <summary>
+    /// Resets the Pass Quantity and Fail Quantity to zero. Used when an inspection is reopened
+    /// so the values calculated at finish do not linger on the open inspection.
+    /// </summary>
+    local procedure ClearPassFailQuantities()
+    begin
+        Rec."Pass Quantity" := 0;
+        Rec."Fail Quantity" := 0;
     end;
 
     /// <summary>
