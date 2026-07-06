@@ -11,7 +11,6 @@ using Microsoft.Bank.Payment;
 using Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Statement;
 using Microsoft.CRM.Campaign;
-using Microsoft.CRM.Contact;
 using Microsoft.CRM.Team;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.AllocationAccount;
@@ -27,7 +26,6 @@ using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Insurance;
@@ -246,7 +244,6 @@ table 81 "Gen. Journal Line"
                 GetReverseSalesVATNoSeries();
                 UpdateLineBalance();
                 UpdateSource();
-                DeleteTmpWithhSocSec();
 
                 IsHandled := false;
                 OnAccountNoOnValidateOnBeforeCreateDim(Rec, IsHandled);
@@ -1899,18 +1896,9 @@ table 81 "Gen. Journal Line"
                     if "Document Date" > "Posting Date" then
                         Error(Text1130014, FieldCaption("Document Date"), FieldCaption("Posting Date"));
 
-                if TmpWithholdingSocSec.Get("Journal Template Name", "Journal Batch Name", "Line No.") then begin
-                    TmpWithholdingSocSec."Payment Date" := "Document Date";
-                    TmpWithholdingSocSec.Modify();
-                end;
-
                 GLSetup.Get();
                 GLSetup.UpdateVATDate("Document Date", Enum::"VAT Reporting Date"::"Document Date", "VAT Reporting Date");
                 Validate("VAT Reporting Date");
-
-                Validate("Payment Terms Code");
-
-
 
                 Validate("Payment Terms Code");
             end;
@@ -3899,19 +3887,6 @@ table 81 "Gen. Journal Line"
             Caption = 'VAT Identifier';
             TableRelation = "VAT Identifier";
         }
-        field(12101; "Fiscal Code"; Code[20])
-        {
-            Caption = 'Fiscal Code';
-
-            trigger OnValidate()
-            var
-                LocalAppMgt: Codeunit LocalApplicationManagement;
-            begin
-                TestField(Resident, Resident::Resident);
-                if "Fiscal Code" <> '' then
-                    LocalAppMgt.CheckDigit("Fiscal Code");
-            end;
-        }
         field(12102; "Deductible %"; Decimal)
         {
             AutoFormatType = 0;
@@ -3983,36 +3958,6 @@ table 81 "Gen. Journal Line"
             begin
             end;
         }
-        field(12130; Resident; Option)
-        {
-            Caption = 'Resident';
-            OptionCaption = 'Resident,Non-Resident';
-            OptionMembers = Resident,"Non-Resident";
-
-            trigger OnValidate()
-            begin
-                TestField("Tax Representative Type", "Tax Representative Type"::" ");
-                if Resident = Resident::Resident then
-                    InitFields()
-                else
-                    "Fiscal Code" := '';
-            end;
-        }
-        field(12131; "Individual Person"; Boolean)
-        {
-            Caption = 'Individual Person';
-
-            trigger OnValidate()
-            begin
-                "Tax Representative Type" := "Tax Representative Type"::" ";
-                "Tax Representative No." := '';
-                if not "Individual Person" then begin
-                    Resident := Resident::Resident;
-                    InitFields();
-                    "Fiscal Code" := '';
-                end;
-            end;
-        }
         field(12132; "Related Entry No."; Integer)
         {
             BlankZero = true;
@@ -4041,53 +3986,6 @@ table 81 "Gen. Journal Line"
                         FieldError("Document Type");
                 end;
             end;
-        }
-        field(12133; "First Name"; Text[30])
-        {
-            Caption = 'First Name';
-        }
-        field(12134; "Last Name"; Text[30])
-        {
-            Caption = 'Last Name';
-        }
-        field(12135; "Date of Birth"; Date)
-        {
-            Caption = 'Date of Birth';
-        }
-        field(12136; "Tax Representative Type"; Option)
-        {
-            Caption = 'Tax Representative Type';
-            OptionCaption = ' ,Customer,Contact,Vendor';
-            OptionMembers = " ",Customer,Contact,Vendor;
-
-            trigger OnValidate()
-            begin
-                if "Tax Representative Type" <> "Tax Representative Type"::" " then begin
-                    TestField("Individual Person", false);
-                    TestField(Resident, Resident::"Non-Resident");
-                end;
-                if "Tax Representative Type" <> xRec."Tax Representative Type" then
-                    "Tax Representative No." := '';
-            end;
-        }
-        field(12137; "Tax Representative No."; Code[20])
-        {
-            Caption = 'Tax Representative No.';
-            TableRelation = if ("Tax Representative Type" = filter(Vendor)) Vendor
-            else
-            if ("Tax Representative Type" = filter(Customer)) Customer
-            else
-            if ("Tax Representative Type" = filter(Contact)) Contact;
-
-            trigger OnValidate()
-            begin
-                if "Tax Representative No." <> '' then
-                    TestField("Tax Representative Type");
-            end;
-        }
-        field(12138; "Place of Birth"; Text[30])
-        {
-            Caption = 'Place of Birth';
         }
         field(12139; "Refers to Period"; Option)
         {
@@ -4234,8 +4132,6 @@ table 81 "Gen. Journal Line"
             if not GenJnlAlloc.IsEmpty() then
                 GenJnlAlloc.DeleteAll();
         end;
-
-        DeleteTmpWithhSocSec();
 
         DeferralUtilities.DeferralCodeOnDelete(
             DeferralDocType::"G/L".AsInteger(),
@@ -4396,11 +4292,8 @@ table 81 "Gen. Journal Line"
         PaymentSales: Record "Payment Lines";
         PaymentTermsLine: Record "Payment Lines";
         Year: Integer;
-        TmpWithholdingSocSec: Record "Tmp Withholding Contribution";
         PaymentMethod: Record "Payment Method";
         Text1130014: Label '%1 cannot be greater than %2';
-        Text1130015: Label 'It''s not possible to change %1 when there are withholding lines associated. Delete this line \';
-        Text1130016: Label 'or the associated withholding line.';
         Bill: Record Bill;
         Country: Record "Country/Region";
         ExportAgainQst: Label 'One or more of the selected lines have already been exported. Do you want to export them again?';
@@ -5651,13 +5544,6 @@ table 81 "Gen. Journal Line"
         OnAfterGetFADeprBook(Rec, FANo);
     end;
 
-    procedure DeleteTmpWithhSocSec()
-    begin
-        TmpWithholdingSocSec.ClearDeletedLineNos(Rec);
-        if TmpWithholdingSocSec.Get("Journal Template Name", "Journal Batch Name", "Line No.") then
-            TmpWithholdingSocSec.Delete();
-    end;
-
     [Scope('OnPrem')]
     procedure InsertPaymentLines()
     begin
@@ -6078,8 +5964,7 @@ table 81 "Gen. Journal Line"
         ApplyVendEntries.SetRecord(VendLedgEntry);
         ApplyVendEntries.LookupMode(true);
         if ApplyVendEntries.RunModal() = ACTION::LookupOK then begin
-            if TmpWithholdingSocSec.Get("Journal Template Name", "Journal Batch Name", "Line No.") then
-                Error(Text1130015 + Text1130016, FieldCaption("Applies-to Doc. No."));
+            OnBeforeApplyVendEntriesGetRecord(Rec, VendLedgEntry);
             ApplyVendEntries.GetRecord(VendLedgEntry);
             exit(true);
         end;
@@ -6517,41 +6402,6 @@ table 81 "Gen. Journal Line"
                     if VATPostingSetup.IncludeInVATTransReport("Bal. VAT Bus. Posting Group", "Bal. VAT Prod. Posting Group") then
                         exit(true);
         exit(false);
-    end;
-
-    [Scope('OnPrem')]
-    procedure InitFields()
-    begin
-        "First Name" := '';
-        "Last Name" := '';
-        "Date of Birth" := 0D;
-        "Place of Birth" := '';
-    end;
-
-    [Scope('OnPrem')]
-    procedure ConvertPurchTaxRepresentativeTypeToGenJnlLine(TaxRepresentativeType: Option " ",Vendor,Contact): Integer
-    begin
-        case TaxRepresentativeType of
-            TaxRepresentativeType::" ":
-                exit(GenJnlLine."Tax Representative Type"::" ");
-            TaxRepresentativeType::Vendor:
-                exit(GenJnlLine."Tax Representative Type"::Vendor);
-            TaxRepresentativeType::Contact:
-                exit(GenJnlLine."Tax Representative Type"::Contact);
-        end;
-    end;
-
-    [Scope('OnPrem')]
-    procedure ConvertSalesTaxRepresentativeTypeToGenJnlLine(TaxRepresentativeType: Option " ",Customer,Contact): Integer
-    begin
-        case TaxRepresentativeType of
-            TaxRepresentativeType::" ":
-                exit(GenJnlLine."Tax Representative Type"::" ");
-            TaxRepresentativeType::Customer:
-                exit(GenJnlLine."Tax Representative Type"::Customer);
-            TaxRepresentativeType::Contact:
-                exit(GenJnlLine."Tax Representative Type"::Contact);
-        end;
     end;
 
     procedure GetCustLedgerEntry()
@@ -7859,15 +7709,6 @@ table 81 "Gen. Journal Line"
         "System-Created Entry" := true;
         Prepayment := true;
         "Activity Code" := PurchHeader."Activity Code";
-        "Fiscal Code" := PurchHeader."Fiscal Code";
-        "Individual Person" := PurchHeader."Individual Person";
-        Resident := PurchHeader.Resident;
-        "First Name" := PurchHeader."First Name";
-        "Last Name" := PurchHeader."Last Name";
-        "Date of Birth" := PurchHeader."Date of Birth";
-        "Place of Birth" := PurchHeader."Birth City";
-        "Tax Representative Type" := ConvertSalesTaxRepresentativeTypeToGenJnlLine(PurchHeader."Tax Representative Type");
-        "Tax Representative No." := PurchHeader."Tax Representative No.";
         "Payment Method Code" := PurchHeader."Payment Method Code";
         "Reverse Sales VAT No. Series" := PurchHeader."Reverse Sales VAT No. Series";
         "Reverse Sales VAT No." := PurchHeader."Reverse Sales VAT No.";
@@ -7974,15 +7815,6 @@ table 81 "Gen. Journal Line"
         "IC Partner Code" := SalesHeader."Sell-to IC Partner Code";
         "Payment Method Code" := SalesHeader."Payment Method Code";
         "Activity Code" := SalesHeader."Activity Code";
-        "Fiscal Code" := SalesHeader."Fiscal Code";
-        "Individual Person" := SalesHeader."Individual Person";
-        Resident := SalesHeader.Resident;
-        "First Name" := SalesHeader."First Name";
-        "Last Name" := SalesHeader."Last Name";
-        "Date of Birth" := SalesHeader."Date of Birth";
-        "Place of Birth" := SalesHeader."Place of Birth";
-        "Tax Representative Type" := ConvertSalesTaxRepresentativeTypeToGenJnlLine(SalesHeader."Tax Representative Type");
-        "Tax Representative No." := SalesHeader."Tax Representative No.";
         "VAT Posting" := "VAT Posting"::"Manual VAT Entry";
         "System-Created Entry" := true;
         Prepayment := true;
@@ -8455,16 +8287,6 @@ table 81 "Gen. Journal Line"
         "Payment Terms Code" := Cust."Payment Terms Code";
         Validate("Bill-to/Pay-to No.", "Account No.");
         Validate("Sell-to/Buy-from No.", "Account No.");
-        "Individual Person" := Cust."Individual Person";
-        Resident := Cust.Resident;
-        "Tax Representative Type" := ConvertSalesTaxRepresentativeTypeToGenJnlLine(Cust."Tax Representative Type");
-        "Tax Representative No." := Cust."Tax Representative No.";
-        "Fiscal Code" := Cust."Fiscal Code";
-        "VAT Registration No." := Cust."VAT Registration No.";
-        "First Name" := Cust."First Name";
-        "Last Name" := Cust."Last Name";
-        "Date of Birth" := Cust."Date of Birth";
-        "Place of Birth" := Cust."Place of Birth";
         if not SetCurrencyCode("Bal. Account Type", "Bal. Account No.") then
             "Currency Code" := Cust."Currency Code";
         ClearPostingGroups();
@@ -8554,16 +8376,6 @@ table 81 "Gen. Journal Line"
         "Payment Terms Code" := Vend."Payment Terms Code";
         Validate("Bill-to/Pay-to No.", "Account No.");
         Validate("Sell-to/Buy-from No.", "Account No.");
-        "Individual Person" := Vend."Individual Person";
-        Resident := Vend.Resident;
-        "Tax Representative Type" := ConvertPurchTaxRepresentativeTypeToGenJnlLine(Vend."Tax Representative Type");
-        "Tax Representative No." := Vend."Tax Representative No.";
-        "Fiscal Code" := Vend."Fiscal Code";
-        "VAT Registration No." := Vend."VAT Registration No.";
-        "First Name" := Vend."First Name";
-        "Last Name" := Vend."Last Name";
-        "Date of Birth" := Vend."Date of Birth";
-        "Place of Birth" := Vend."Birth City";
         if not SetCurrencyCode("Bal. Account Type", "Bal. Account No.") then
             "Currency Code" := Vend."Currency Code";
         ClearPostingGroups();
@@ -13467,6 +13279,11 @@ table 81 "Gen. Journal Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetAccCurrencyCode(var GenJnlLine: Record "Gen. Journal Line"; var CurrencyCode: Code[10]; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeApplyVendEntriesGetRecord(var Rec: Record "Gen. Journal Line"; var VendLedgEntry: Record "Vendor Ledger Entry")
     begin
     end;
 }

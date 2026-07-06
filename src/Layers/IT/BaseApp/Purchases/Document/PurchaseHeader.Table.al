@@ -288,14 +288,6 @@ table 38 "Purchase Header"
                 "Pay-to Name" := Vend.Name;
                 "Pay-to Name 2" := Vend."Name 2";
                 CopyPayToVendorAddressFieldsFromVendor(Vend, false);
-                "Individual Person" := Vend."Individual Person";
-                Resident := Vend.Resident;
-                "First Name" := Vend."First Name";
-                "Last Name" := Vend."Last Name";
-                "Date of Birth" := Vend."Date of Birth";
-                "Birth City" := Vend."Birth City";
-                "Tax Representative Type" := Vend."Tax Representative Type";
-                "Tax Representative No." := Vend."Tax Representative No.";
                 "VAT Country/Region Code" := Vend."Country/Region Code";
                 if not SkipPayToContact then
                     "Pay-to Contact" := Vend.Contact;
