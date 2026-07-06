@@ -5,6 +5,7 @@
 namespace Microsoft.Purchases.Document;
 
 using Microsoft.Bank.Payment;
+using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Vendor;
 
 tableextension 11306 PurchaseHeaderNL extends "Purchase Header"
@@ -21,6 +22,9 @@ tableextension 11306 PurchaseHeaderNL extends "Purchase Header"
             var
                 TransactionMode: Record "Transaction Mode";
             begin
+                if not IsDutchCompany() then
+                    exit;
+
                 if "Transaction Mode Code" <> '' then begin
                     TransactionMode.Get(TransactionMode."Account Type"::Vendor, "Transaction Mode Code");
                     if TransactionMode."Payment Method Code" <> '' then
@@ -37,5 +41,11 @@ tableextension 11306 PurchaseHeaderNL extends "Purchase Header"
             TableRelation = "Vendor Bank Account".Code where("Vendor No." = field("Pay-to Vendor No."));
         }
     }
-}
 
+    local procedure IsDutchCompany(): Boolean
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        exit(CompanyInformation.Get() and (CompanyInformation."Country/Region Code" = 'NL'));
+    end;
+}

@@ -5,6 +5,7 @@
 namespace Microsoft.Sales.Document;
 
 using Microsoft.Bank.Payment;
+using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 
 /// <summary>
@@ -27,6 +28,9 @@ tableextension 11465 "Sales Header NL" extends "Sales Header"
             var
                 TrMode: Record "Transaction Mode";
             begin
+                if not IsDutchCompany() then
+                    exit;
+
                 if "Transaction Mode Code" <> '' then begin
                     TrMode.Get(TrMode."Account Type"::Customer, "Transaction Mode Code");
                     if TrMode."Payment Method Code" <> '' then
@@ -46,4 +50,11 @@ tableextension 11465 "Sales Header NL" extends "Sales Header"
             TableRelation = "Customer Bank Account".Code where("Customer No." = field("Bill-to Customer No."));
         }
     }
+
+    local procedure IsDutchCompany(): Boolean
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        exit(CompanyInformation.Get() and (CompanyInformation."Country/Region Code" = 'NL'));
+    end;
 }
