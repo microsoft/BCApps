@@ -47,6 +47,7 @@ codeunit 139561 "Shpfy Initialize Test"
 
     internal procedure CreateShop(): Record "Shpfy Shop"
     var
+        GeneralPostingSetup: Record "General Posting Setup";
         RefundGLAccount: Record "G/L Account";
         Shop: Record "Shpfy Shop";
         VATPostingSetup: Record "VAT Posting Setup";
@@ -64,6 +65,8 @@ codeunit 139561 "Shpfy Initialize Test"
                 exit(Shop);
 
         Code := CopyStr(Any.AlphabeticText(MaxStrLen(Code)), 1, MaxStrLen(Code));
+
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
 
         LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup,
            VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandDecInDecimalRange(10, 25, 0));
