@@ -2062,12 +2062,10 @@
         "name": "FinancialsExtensions"
       },
       {
-        "name": "OnPrem",
-        "doNotInstall": true
+        "name": "OnPrem"
       },
       {
-        "name": "OnPremExtensions",
-        "doNotInstall": true
+        "name": "OnPremExtensions"
       }
     ]
   },

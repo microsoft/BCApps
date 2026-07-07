@@ -2109,8 +2109,8 @@
     "Shopify Connector BE": {
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Apps\\BE\\ShopifyBE\\App",
       "dvdFolder": "Applications\\ShopifyBE\\Source",
+      "skipInstallOnPrem": true,
       "hasTranslations": true,
-      "installOnEnvironmentUpdate": true,
       "supportedCountries": "BE",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
