@@ -271,6 +271,30 @@ page 99000768 "Manufacturing Setup"
                 ObsoleteReason = 'Preparation for replacement by Subcontracting app';
                 ObsoleteState = Pending;
                 ObsoleteTag = '28.0';
+
+                action("Activate Legacy Subcontracting")
+                {
+                    ApplicationArea = Manufacturing;
+                    Caption = 'Activate Legacy Subcontracting';
+                    ToolTip = 'Activates the Legacy Subcontracting application area so that the legacy subcontracting functionality becomes available. A session restart is required for the change to take effect.';
+                    Image = Change;
+                    Visible = not Rec."Legacy Subcontracting";
+                    ObsoleteReason = 'Legacy Subcontracting will be discontinued, environments should move to the Subcontracting App.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+
+                    trigger OnAction()
+                    var
+                        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+                        ActivateLegacySubcontractingQst: Label 'Legacy subcontracting features are scheduled for removal in a future release. We recommend installing and using the Subcontracting app instead. Do you want to activate legacy subcontracting anyway?';
+                    begin
+                        LegacySubcFeatureHandler.CheckCanEnableLegacySubcontracting();
+                        if not Confirm(ActivateLegacySubcontractingQst, false) then
+                            exit;
+
+                        LegacySubcFeatureHandler.SetLegacySubcontracting(Rec, true);
+                    end;
+                }
                 action("Disable Legacy Subcontracting")
                 {
                     ApplicationArea = Manufacturing;

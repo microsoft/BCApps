@@ -319,55 +319,72 @@ page 4400 "SOA Setup"
             group(SOAManageMailboxConfigCard)
             {
                 Caption = 'Manage mailbox';
-
                 group(IncomingMail)
                 {
                     Caption = 'Incoming mail';
-                    InstructionalText = 'Analyze new messages to determine the sender''s intent and how to respond.';
+                    InstructionalText = 'Read emails received from the start date onwards.';
 
-                    group(AnalyzeAttachmentsGrp)
+                    field(EarliestSyncAt;
+                    Rec."Earliest Sync At")
                     {
-                        Caption = 'Analyze attachments';
-                        InstructionalText = 'Includes attachments when analyzing intent. Supported formats: PDF, PNG, JPG.';
+                        Caption = 'Start Date';
+                        ToolTip = 'Specifies the date from which the agent starts reading emails in the selected mailbox.';
 
-                        field(AnalyzeAttachments; Rec."Analyze Attachments")
+                        trigger OnValidate()
+                        begin
+                            ConfigUpdated();
+                        end;
+                    }
+                    group(AnalyzeNewMessagesGrp)
+                    {
+                        ShowCaption = false;
+                        InstructionalText = 'Analyze new messages to determine the sender''s intent and how to respond.';
+
+                        group(AnalyzeAttachmentsGrp)
                         {
                             Caption = 'Analyze attachments';
-                            ToolTip = 'Includes attachments when analyzing intent. Supported formats: PDF, PNG, JPG.';
-                            ShowCaption = false;
+                            InstructionalText = 'Includes attachments when analyzing intent. Supported formats: PDF, PNG, JPG.';
 
-                            trigger OnValidate()
-                            begin
-                                ConfigUpdated();
-                            end;
+                            field(AnalyzeAttachments; Rec."Analyze Attachments")
+                            {
+                                Caption = 'Analyze attachments';
+                                ToolTip = 'Includes attachments when analyzing intent. Supported formats: PDF, PNG, JPG.';
+                                ShowCaption = false;
+
+                                trigger OnValidate()
+                                begin
+                                    ConfigUpdated();
+                                end;
+                            }
                         }
-                    }
-                    group(MarkEmailAsReadGrp)
-                    {
-                        Caption = 'Mark email as read';
-                        InstructionalText = 'Mark emails as read after the agent processes them.';
-
-                        field(MarkEmailAsRead; Rec."Mark Email As Read")
+                        group(MarkEmailAsReadGrp)
                         {
                             Caption = 'Mark email as read';
-                            ToolTip = 'Specifies whether the agent marks emails as read after processing them.';
-                            ShowCaption = false;
+                            InstructionalText = 'Mark emails as read after the agent processes them.';
 
-                            trigger OnValidate()
-                            begin
-                                ConfigUpdated();
-                            end;
+                            field(MarkEmailAsRead; Rec."Mark Email As Read")
+                            {
+                                Caption = 'Mark email as read';
+                                ToolTip = 'Specifies whether the agent marks emails as read after processing them.';
+                                ShowCaption = false;
+
+                                trigger OnValidate()
+                                begin
+                                    ConfigUpdated();
+                                end;
+                            }
+                        }
+
+                        field(LastSync; LastSync)
+                        {
+                            Caption = 'Last sync';
+                            ToolTip = 'Specifies the date and time of the last sync with the mailbox.';
+                            Editable = false;
+                            Visible = ShowLastSync;
                         }
                     }
-
-                    field(LastSync; LastSync)
-                    {
-                        Caption = 'Last sync';
-                        ToolTip = 'Specifies the date and time of the last sync with the mailbox.';
-                        Editable = false;
-                        Visible = ShowLastSync;
-                    }
                 }
+
 
                 group(ProcessingLimits)
                 {
@@ -555,6 +572,7 @@ page 4400 "SOA Setup"
             SOASetupCU.UpdateSOASetupActivationDT(Rec);
 
         SOASetupCU.ValidateAgentIdentity(Rec);
+        SOASetupCU.CheckMailboxUnique(Rec);
 
         SOASetupCU.UpdateAgent(TempAgentSetupBuffer, Rec, ShouldScheduleTask());
         exit(true);
