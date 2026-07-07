@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.OrderMatch;
 using Microsoft.EServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Import.Sales;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.eServices.EDocument.Service.Participant;
@@ -549,6 +550,8 @@ codeunit 6103 "E-Document Subscribers"
 #pragma warning restore AL0432
 #endif
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc Sample Purch. Inv File");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Sales Header");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Sales Line");
     end;
 
 
