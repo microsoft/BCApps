@@ -1,6 +1,5 @@
 namespace System.Diagnostics;
 
-using Microsoft.Finance.FinancialReports;
 using System.IO;
 using System.Security.AccessControl;
 using System.Telemetry;
@@ -189,23 +188,7 @@ codeunit 423 "Change Log Management"
            Database::"Tenant Permission Set Rel.",
            Database::"Tenant Permission Set",
            Database::"Tenant Permission",
-           Database::"Field Monitoring Setup",
-           Database::"Acc. Schedule Name",
-           Database::"Financial Report",
-           Database::"Financial Report User Filters",
-           Database::"Column Layout Name",
-           Database::"Fin. Report Excel Template",
-           Database::"Financial Report Schedule",
-           Database::"Financial Report Export Log",
-           Database::"Financial Report Recipient",
-           Database::"Financial Report Package",
-           Database::"Fin. Report Package Report",
-           Database::"Fin. Report Package Schedule",
-           Database::"Fin. Report Package Recipient",
-           Database::"Fin. Rep. Package Export Log",
-           Database::"Financial Report Audit Log",
-           Database::"Financial Report Category",
-           Database::"Financial Report Status"];
+           Database::"Field Monitoring Setup"];
 
         if not AlwaysLogTable then
             OnAfterIsAlwaysLoggedTable(TableID, AlwaysLogTable);
