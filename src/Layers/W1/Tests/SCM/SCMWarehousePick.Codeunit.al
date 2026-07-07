@@ -47,6 +47,7 @@ codeunit 137055 "SCM Warehouse Pick"
         PickQuantityErr: Label 'Expected picked quantity %1 %2, but got %3 %2', Comment = '%1, %3 - Quantity; %2 - Unit of Measure Code';
         ShipQtyErr: Label 'Sales line should be fully shipped with no residual quantity';
         PickNotFoundErr: Label 'Pick should be created for reserved Sales Order %1', Comment = '%1 = Document No.';
+        ShippedQtyMismatchErr: Label 'Expected %1 units to be shipped for the sales order.', Comment = '%1 - Quantity';
 
     [Test]
     [HandlerFunctions('ReservationPageHandler')]
@@ -2232,6 +2233,235 @@ codeunit 137055 "SCM Warehouse Pick"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure RegisterFEFOPickWithNonspecificReservationsBlockedByOtherOrders()
+    var
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        Bin: Record Bin;
+        ShipmentBin: Record Bin;
+        SalesHeader: array[3] of Record "Sales Header";
+        SalesLine: array[3] of Record "Sales Line";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        LotNo: array[3] of Code[50];
+        ExpirationDate: array[3] of Date;
+        LotQty: Decimal;
+        SalesQty: array[3] of Decimal;
+        i: Integer;
+        TotalShippedQty: Decimal;
+        TotalInventory: Decimal;
+        RemainingQty: Decimal;
+    begin
+        // [SCENARIO] Register FEFO pick for a sales order with nonspecific reservations when other sales orders also have nonspecific reservations on the same lots.
+        // The pick registration should not cause item tracking quantity mismatch errors.
+        // [SCENARIO] Previously, when registering FEFO pick with nonspecific reservations, the system incorrectly released lot quantities needed by other orders,
+        // causing "Qty. to Handle (Base) in the item tracking assigned to the document line" errors.
+        Initialize();
+
+        // [GIVEN] Create FEFO-enabled location with Bin Mandatory, Require Pick, and Require Shipment
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, true, false, true);
+        Location.Validate("Bin Mandatory", true);
+        Location.Validate("Pick According to FEFO", true);
+        Location.Modify(true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+
+        // [GIVEN] Create bins - one for inventory/picking and one for shipment
+        LibraryWarehouse.CreateBin(Bin, Location.Code, LibraryUtility.GenerateGUID(), '', '');
+        LibraryWarehouse.CreateBin(ShipmentBin, Location.Code, LibraryUtility.GenerateGUID(), '', '');
+        Location.Validate("Shipment Bin Code", ShipmentBin.Code);
+        Location.Modify(true);
+
+        // [GIVEN] Create Item with Lot tracking and expiration date tracking
+        CreateItemWithLotTrackingAndExpirationDate(Item, ItemTrackingCode);
+
+        // [GIVEN] Setup 3 lots with different expiration dates and 10 units each
+        LotQty := 10;
+        for i := 1 to 3 do begin
+            LotNo[i] := LibraryUtility.GenerateGUID();
+            ExpirationDate[i] := CalcDate('<+' + Format(i * 30) + 'D>', WorkDate());
+        end;
+
+        // [GIVEN] Post positive adjustment for each lot to the pick bin (earliest expiry first, latest last)
+        for i := 1 to 3 do
+            CreateAndPostItemJnlLineWithLotAndExpiration(Item."No.", Location.Code, Bin.Code, LotNo[i], ExpirationDate[i], LotQty);
+
+        // [GIVEN] Create 3 sales orders with random quantities (total=30, matches total inventory)
+        // SO2 must span multiple lots (> LotQty) to test FEFO picking across lots
+        TotalInventory := 3 * LotQty;
+        SalesQty[2] := LotQty + LibraryRandom.RandInt(LotQty - 1); // Between 11 and 19
+        RemainingQty := TotalInventory - SalesQty[2];
+        SalesQty[1] := LibraryRandom.RandIntInRange(1, RemainingQty - 1); // At least 1, leave at least 1 for SO3
+        SalesQty[3] := RemainingQty - SalesQty[1];
+
+        for i := 1 to 3 do begin
+            CreateSalesOrderWithNonspecificReservation(SalesHeader[i], SalesLine[i], Item."No.", Location.Code, SalesQty[i]);
+            LibrarySales.ReleaseSalesDocument(SalesHeader[i]);
+        end;
+
+        // [GIVEN] Create Warehouse Shipment for SO2 (spans multiple lots)
+        LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeader[2]);
+        FindWarehouseShipmentHeader(WarehouseShipmentHeader, SalesHeader[2]."No.");
+
+        // [GIVEN] Create Pick from Warehouse Shipment (FEFO pick will take from earliest lot first, then next lot)
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+        FindWarehouseActivityHeader(WarehouseActivityHeader, WarehouseActivityHeader.Type::Pick, Location.Code, SalesHeader[2]."No.");
+
+        // [WHEN] Register the Warehouse Pick
+        // This previously failed with "Qty. to Handle (Base) in the item tracking assigned to the document line for item X is currently Y. It must be Z."
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [THEN] Pick is registered successfully (no error) - the pick activity lines no longer exist
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
+        WarehouseActivityLine.SetRange("Location Code", Location.Code);
+        WarehouseActivityLine.SetRange("Source No.", SalesHeader[2]."No.");
+        Assert.RecordIsEmpty(WarehouseActivityLine);
+
+        // [THEN] Post the Warehouse Shipment
+        FindWarehouseShipmentHeader(WarehouseShipmentHeader, SalesHeader[2]."No.");
+        LibraryWarehouse.PostWhseShipment(WarehouseShipmentHeader, false);
+
+        // [THEN] Verify 15 units shipped for SO2
+        SalesShipmentLine.SetRange("Order No.", SalesHeader[2]."No.");
+        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+        SalesShipmentLine.SetRange("No.", Item."No.");
+        TotalShippedQty := 0;
+        if SalesShipmentLine.FindSet() then
+            repeat
+                TotalShippedQty += SalesShipmentLine.Quantity;
+            until SalesShipmentLine.Next() = 0;
+
+        Assert.AreEqual(SalesQty[2], TotalShippedQty, StrSubstNo(ShippedQtyMismatchErr, SalesQty[2]));
+
+        // [THEN] Verify sales line is fully shipped
+        SalesLine[2].Get(SalesLine[2]."Document Type", SalesLine[2]."Document No.", SalesLine[2]."Line No.");
+        Assert.AreEqual(SalesQty[2], SalesLine[2]."Quantity Shipped", ShipQtyErr);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure RegisterFEFOPickWithNonspecificReservationsOnLotSplitAcrossTwoEntries()
+    var
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+        Bin: Record Bin;
+        ShipmentBin: Record Bin;
+        SalesHeader: array[3] of Record "Sales Header";
+        SalesLine: array[3] of Record "Sales Line";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        LotNo: array[3] of Code[50];
+        ExpirationDate: array[3] of Date;
+        SalesQty: array[3] of Decimal;
+        i: Integer;
+        TotalShippedQty: Decimal;
+    begin
+        // [SCENARIO] Register a FEFO pick for a sales order whose nonspecific reservation on a lot is split across two
+        // reservation entries (because the lot exists as two separate item ledger entries), while the pick only takes
+        // part of that lot.
+        // [SCENARIO] Previously the released quantity subtracted the picked quantity for the lot from every reservation
+        // entry on the lot, so a lot split across two entries kept the picked quantity twice and left too much reserved,
+        // starving the other orders that needed the surplus and causing item tracking quantity mismatch errors.
+        Initialize();
+
+        // [GIVEN] Create FEFO-enabled location with Bin Mandatory, Require Pick, and Require Shipment
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, true, false, true);
+        Location.Validate("Bin Mandatory", true);
+        Location.Validate("Pick According to FEFO", true);
+        Location.Modify(true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+
+        // [GIVEN] Create bins - one for inventory/picking and one for shipment
+        LibraryWarehouse.CreateBin(Bin, Location.Code, LibraryUtility.GenerateGUID(), '', '');
+        LibraryWarehouse.CreateBin(ShipmentBin, Location.Code, LibraryUtility.GenerateGUID(), '', '');
+        Location.Validate("Shipment Bin Code", ShipmentBin.Code);
+        Location.Modify(true);
+
+        // [GIVEN] Create Item with Lot tracking and expiration date tracking
+        CreateItemWithLotTrackingAndExpirationDate(Item, ItemTrackingCode);
+
+        // [GIVEN] Setup 3 lots with different expiration dates (earliest expiry first, latest last)
+        for i := 1 to 3 do begin
+            LotNo[i] := LibraryUtility.GenerateGUID();
+            ExpirationDate[i] := CalcDate('<+' + Format(i * 30) + 'D>', WorkDate());
+        end;
+
+        // [GIVEN] Lot 1 (earliest, 10) and Lot 3 (latest, 10) are posted as a single item ledger entry each
+        CreateAndPostItemJnlLineWithLotAndExpiration(Item."No.", Location.Code, Bin.Code, LotNo[1], ExpirationDate[1], 10);
+        // [GIVEN] Lot 2 (middle, 10) is split across two item ledger entries of 5 each
+        CreateAndPostItemJnlLineWithLotAndExpiration(Item."No.", Location.Code, Bin.Code, LotNo[2], ExpirationDate[2], 5);
+        CreateAndPostItemJnlLineWithLotAndExpiration(Item."No.", Location.Code, Bin.Code, LotNo[2], ExpirationDate[2], 5);
+        CreateAndPostItemJnlLineWithLotAndExpiration(Item."No.", Location.Code, Bin.Code, LotNo[3], ExpirationDate[3], 10);
+
+        // [GIVEN] Three sales orders with nonspecific reservations that consume all 30 units.
+        // SO1 reserves lot 1, SO2 reserves the split lot 2 (two reservation entries) plus part of lot 3, SO3 the rest.
+        SalesQty[1] := 10;
+        SalesQty[2] := 15;
+        SalesQty[3] := 5;
+        for i := 1 to 3 do begin
+            CreateSalesOrderWithNonspecificReservation(SalesHeader[i], SalesLine[i], Item."No.", Location.Code, SalesQty[i]);
+            LibrarySales.ReleaseSalesDocument(SalesHeader[i]);
+        end;
+
+        // [GIVEN] Create Warehouse Shipment and Pick for SO2. FEFO directs the pick to take lot 1 fully and only 5 of
+        // the split lot 2, so the pick uses only part of the lot that SO2 reserved across two entries.
+        LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeader[2]);
+        FindWarehouseShipmentHeader(WarehouseShipmentHeader, SalesHeader[2]."No.");
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+        FindWarehouseActivityHeader(WarehouseActivityHeader, WarehouseActivityHeader.Type::Pick, Location.Code, SalesHeader[2]."No.");
+
+        // [WHEN] Register the Warehouse Pick
+        // Before the fix, keeping the picked quantity on both reservation entries of the split lot left too much
+        // reserved and raised "Qty. to Handle (Base) in the item tracking assigned to the document line ... must be".
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [THEN] Pick is registered successfully (no error) - the pick activity lines no longer exist
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::Pick);
+        WarehouseActivityLine.SetRange("Location Code", Location.Code);
+        WarehouseActivityLine.SetRange("Source No.", SalesHeader[2]."No.");
+        Assert.RecordIsEmpty(WarehouseActivityLine);
+
+        // [THEN] Post the Warehouse Shipment for SO2 and verify it ships its full quantity
+        FindWarehouseShipmentHeader(WarehouseShipmentHeader, SalesHeader[2]."No.");
+        LibraryWarehouse.PostWhseShipment(WarehouseShipmentHeader, false);
+
+        SalesShipmentLine.SetRange("Order No.", SalesHeader[2]."No.");
+        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+        SalesShipmentLine.SetRange("No.", Item."No.");
+        TotalShippedQty := 0;
+        if SalesShipmentLine.FindSet() then
+            repeat
+                TotalShippedQty += SalesShipmentLine.Quantity;
+            until SalesShipmentLine.Next() = 0;
+        Assert.AreEqual(SalesQty[2], TotalShippedQty, StrSubstNo(ShippedQtyMismatchErr, SalesQty[2]));
+
+        // [THEN] The surplus freed from the split lot lets the remaining orders pick and ship their full quantities.
+        // With the bug the over-kept reservation on lot 2 would leave SO1 and SO3 short of inventory here.
+        for i := 1 to 3 do
+            if i <> 2 then begin
+                LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeader[i]);
+                FindWarehouseShipmentHeader(WarehouseShipmentHeader, SalesHeader[i]."No.");
+                LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+                FindWarehouseActivityHeader(WarehouseActivityHeader, WarehouseActivityHeader.Type::Pick, Location.Code, SalesHeader[i]."No.");
+                LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+                FindWarehouseShipmentHeader(WarehouseShipmentHeader, SalesHeader[i]."No.");
+                LibraryWarehouse.PostWhseShipment(WarehouseShipmentHeader, false);
+
+                SalesLine[i].Get(SalesLine[i]."Document Type", SalesLine[i]."Document No.", SalesLine[i]."Line No.");
+                Assert.AreEqual(SalesQty[i], SalesLine[i]."Quantity Shipped", ShipQtyErr);
+            end;
+    end;
+
     local procedure Initialize()
     var
         WarehouseActivityLine: Record "Warehouse Activity Line";
@@ -3265,6 +3495,50 @@ codeunit 137055 "SCM Warehouse Pick"
         WarehouseActivityLine.SetRange("Source No.", SourceNo);
         WarehouseActivityLine.SetRange("Action Type", ActionType);
         WarehouseActivityLine.FindFirst();
+    end;
+
+    local procedure CreateItemWithLotTrackingAndExpirationDate(var Item: Record Item; var ItemTrackingCode: Record "Item Tracking Code")
+    begin
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+        ItemTrackingCode.Validate("Lot Warehouse Tracking", true);
+        ItemTrackingCode.Validate("Use Expiration Dates", true);
+        ItemTrackingCode.Validate("Man. Expir. Date Entry Reqd.", true);
+        ItemTrackingCode.Validate("Strict Expiration Posting", true);
+        ItemTrackingCode.Modify(true);
+
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Validate("Lot Nos.", LibraryUtility.GetGlobalNoSeriesCode());
+        Item.Modify(true);
+    end;
+
+    local procedure CreateAndPostItemJnlLineWithLotAndExpiration(ItemNo: Code[20]; LocationCode: Code[10]; BinCode: Code[20]; LotNo: Code[50]; ExpirationDate: Date; Quantity: Decimal)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        LibraryInventory.ClearItemJournal(ItemJournalTemplate, ItemJournalBatch);
+
+        LibraryInventory.CreateItemJournalLine(
+            ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+            ItemJournalLine."Entry Type"::"Positive Adjmt.", ItemNo, Quantity);
+        ItemJournalLine.Validate("Location Code", LocationCode);
+        ItemJournalLine.Validate("Bin Code", BinCode);
+        ItemJournalLine.Modify(true);
+
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo, Quantity);
+        ReservationEntry.Validate("Expiration Date", ExpirationDate);
+        ReservationEntry.Modify(true);
+
+        LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+    end;
+
+    local procedure CreateSalesOrderWithNonspecificReservation(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ItemNo: Code[20]; LocationCode: Code[10]; Quantity: Decimal)
+    begin
+        LibrarySales.CreateSalesDocumentWithItem(
+            SalesHeader, SalesLine, SalesHeader."Document Type"::Order,
+            LibrarySales.CreateCustomerNo(), ItemNo, Quantity, LocationCode, WorkDate());
+        LibrarySales.AutoReserveSalesLine(SalesLine);
     end;
 
     [ModalPageHandler]
