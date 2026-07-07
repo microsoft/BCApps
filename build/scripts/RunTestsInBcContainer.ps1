@@ -10,6 +10,9 @@ Param(
 
 Import-Module $PSScriptRoot\EnlistmentHelperFunctions.psm1
 Import-Module $PSScriptRoot\TestTolerance\TestTolerance.psm1 -Force
+# EXPERIMENT: drive the new `al runtests` (altool) runner instead of BcContainerHelper's
+# client-session runner, to evaluate how well it works in BCApps. See AlToolTestRunner.psm1.
+Import-Module $PSScriptRoot\AlToolTestRunner.psm1 -Force
 
 function Get-DisabledTests
 {
@@ -136,21 +139,19 @@ $parameters["renewClientContextBetweenTests"] = $true
 # and we fall through to the sequential single-app path below.
 if ($AppNamesToTest.Count -gt 0) {
     Import-Module $PSScriptRoot\ParallelTestExecution.psm1
+    # EXPERIMENT: install/update the altool CLI once here (mutex-guarded, moves to the newest
+    # prerelease) so the per-app background jobs that follow just find `al` on PATH instead of each
+    # racing to `dotnet tool install --global`.
+    Install-AlTool -Force | Out-Null
     return Invoke-ParallelTestExecution -parameters $parameters -scriptPath $PSCommandPath -testType $TestType -appNamesToTest $AppNamesToTest
 }
 
-$maxAttempts = if ($TestType -eq "Legacy") { 1 } else { 2 }
-$result = Invoke-TestsWithReruns -parameters $parameters -maxAttempts $maxAttempts
-
-# For UnitTests, also run with DisableTestIsolation on the same tenant
-if ($TestType -eq "UnitTest") {
-    Write-Host "Running DisableTestIsolation pass for UnitTest"
-    $parameters["requiredTestIsolation"] = "Disabled"
-    $parameters["testRunnerCodeunitId"] = "130451"
-    $parameters.Remove("ReRun") # Clear rerun state from the first pass
-    $isolationResult = Invoke-TestsWithReruns -parameters $parameters -maxAttempts 1
-    $result = $result -and $isolationResult
-}
+# EXPERIMENT: run this app's tests via the new `al runtests` (altool) runner instead of
+# Run-TestsInBcContainer. This is a first "does it work / how does it perform" evaluation, so the
+# BCH-only behaviors (rerun loop, DisableTestIsolation second pass, client-cancellation transcript)
+# are intentionally skipped. altool runs one codeunit per process against the container's default
+# company and emits the same JUnit XML the pipeline consumes below.
+$result = Invoke-AlToolTestRun -Parameters $parameters -TestType $TestType
 
 # If tests failed, check if we can tolerate failures based on the test results and unstable tests list.
 # Test tolerance only applies to PR builds.
