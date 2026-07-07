@@ -356,7 +356,7 @@ function Invoke-LegacyDemoDataTool() {
 
 <#
 .SYNOPSIS
-    Smoke-tests the legacy DemoTool for one or more non-Extended data types against a throwaway company.
+    Verifies the legacy DemoTool for one or more additional (non-Extended) data types against a throwaway company.
 .DESCRIPTION
     BCApps legacy tests only generate Extended demo data, so the Standard/Evaluation generation path
     ('Interface Trial Data'.CreateSetupData, CU122000) is never exercised in BCApps CI. Bugs on that path
@@ -366,7 +366,7 @@ function Invoke-LegacyDemoDataTool() {
     This function closes that gap: for each requested data type it creates a disposable company, runs the
     legacy DemoTool into it, and removes it again. It is designed to run BEFORE the real (Extended) test
     company is built. Because New-TestCompany subsequently deletes all companies and recreates the real one
-    from a clean slate, this smoke test cannot interfere with the demo data the tests actually run against.
+    from a clean slate, this verification cannot interfere with the demo data the tests actually run against.
 
     The DemoTool bug class this targets throws DURING generation (before any rapidstart export), so a
     throwaway-company run reliably reproduces it without needing the full generate/export/delete pipeline.
@@ -374,7 +374,7 @@ function Invoke-LegacyDemoDataTool() {
     One or more of "Standard","Evaluation". Extended is skipped here because it is already covered by the
     real test-company generation.
 #>
-function Invoke-LegacyDemoDataSmokeTest() {
+function Invoke-AdditionalLegacyDemoData() {
     param(
         [Parameter(Mandatory=$true)]
         [string]$ContainerName,
@@ -387,31 +387,31 @@ function Invoke-LegacyDemoDataSmokeTest() {
 
     foreach ($demoDataType in $DemoDataTypes) {
         if ($demoDataType -eq "Extended") {
-            Write-Host "Skipping Extended in demo-data smoke test (already covered by the real test company)"
+            Write-Host "Skipping Extended in additional demo data verification (already covered by the real test company)"
             continue
         }
 
-        $smokeCompanyName = "Smoke $demoDataType"
-        Write-Host "=== Legacy DemoTool smoke test: DataType=$demoDataType (throwaway company '$smokeCompanyName') ==="
+        $additionalCompanyName = "Additional $demoDataType"
+        Write-Host "=== Legacy DemoTool additional demo data check: DataType=$demoDataType (throwaway company '$additionalCompanyName') ==="
 
         # Evaluation demo data requires an evaluation company; Standard uses a normal company.
         $isEvaluation = ($demoDataType -eq "Evaluation")
 
         try {
-            Write-Host "Creating throwaway company '$smokeCompanyName' (evaluation=$isEvaluation)"
-            New-CompanyInBcContainer -containerName $ContainerName -companyName $smokeCompanyName -evaluationCompany:$isEvaluation
+            Write-Host "Creating throwaway company '$additionalCompanyName' (evaluation=$isEvaluation)"
+            New-CompanyInBcContainer -containerName $ContainerName -companyName $additionalCompanyName -evaluationCompany:$isEvaluation
 
-            Invoke-LegacyDemoDataTool -ContainerName $ContainerName -CompanyName $smokeCompanyName `
+            Invoke-LegacyDemoDataTool -ContainerName $ContainerName -CompanyName $additionalCompanyName `
                 -Credential $Credential -Tenant $Tenant -DemoDataType $demoDataType
 
-            Write-Host "Legacy DemoTool smoke test for DataType=$demoDataType succeeded"
+            Write-Host "Legacy DemoTool additional demo data check for DataType=$demoDataType succeeded"
         } catch {
-            throw "Legacy DemoTool smoke test FAILED for DataType=$demoDataType (country $(Get-CountryCodeFromSettings)). This path is exercised by the NAV translated-country build but not by BCApps Extended-only demo data. Error: $($_.Exception.Message)"
+            throw "Legacy DemoTool additional demo data check FAILED for DataType=$demoDataType (country $(Get-CountryCodeFromSettings)). This path is exercised by the NAV translated-country build but not by BCApps Extended-only demo data. Error: $($_.Exception.Message)"
         } finally {
             # Always remove the throwaway company so it never lingers into the real test run.
-            if (Get-CompanyInBcContainer -containerName $ContainerName | Where-Object { $_.CompanyName -eq $smokeCompanyName }) {
-                Write-Host "Removing throwaway company '$smokeCompanyName'"
-                Remove-CompanyInBcContainer -containerName $ContainerName -companyName $smokeCompanyName
+            if (Get-CompanyInBcContainer -containerName $ContainerName | Where-Object { $_.CompanyName -eq $additionalCompanyName }) {
+                Write-Host "Removing throwaway company '$additionalCompanyName'"
+                Remove-CompanyInBcContainer -containerName $ContainerName -companyName $additionalCompanyName
             }
         }
     }
@@ -801,15 +801,15 @@ function Invoke-DemoDataGeneration
     } elseif ( $TestType -eq "Legacy" ) {
         Install-BaseAppsForDemoTool -ContainerName $ContainerName -CountryCode (Get-CountryCodeFromSettings)
 
-        # Optional: smoke-test non-Extended demo data (Standard/Evaluation) against throwaway companies
-        # BEFORE building the real Extended test company. This catches DemoTool bugs on the
-        # 'Interface Trial Data'.CreateSetupData path that otherwise only fail in the NAV translated-country
-        # build. Gated by the "smokeTestDemoDataTypes" AL-Go setting (array, e.g. ["Standard"]); when unset
-        # or empty, behavior is unchanged. Runs before New-TestCompany, which wipes all companies and
-        # recreates the real one, guaranteeing the smoke run cannot affect the demo data tests run against.
-        $smokeTestDemoDataTypes = Get-ALGoSetting -Key "smokeTestDemoDataTypes"
-        if ($smokeTestDemoDataTypes -and $smokeTestDemoDataTypes.Count -gt 0) {
-            Invoke-LegacyDemoDataSmokeTest -ContainerName $ContainerName -Credential $Credential -Tenant $Tenant -DemoDataTypes $smokeTestDemoDataTypes
+        # Optional: run the legacy DemoTool for additional non-Extended demo data types (Standard/Evaluation)
+        # against throwaway companies BEFORE building the real Extended test company. This catches DemoTool
+        # bugs on the 'Interface Trial Data'.CreateSetupData path that otherwise only fail in the NAV
+        # translated-country build. Gated by the "additionalDemoDataTypes" AL-Go setting (array, e.g.
+        # ["Standard"]); when unset or empty, behavior is unchanged. Runs before New-TestCompany, which wipes
+        # all companies and recreates the real one, guaranteeing this cannot affect the demo data tests run against.
+        $additionalDemoDataTypes = Get-ALGoSetting -Key "additionalDemoDataTypes"
+        if ($additionalDemoDataTypes -and $additionalDemoDataTypes.Count -gt 0) {
+            Invoke-AdditionalLegacyDemoData -ContainerName $ContainerName -Credential $Credential -Tenant $Tenant -DemoDataTypes $additionalDemoDataTypes
         }
 
         New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
