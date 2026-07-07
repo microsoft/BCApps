@@ -138,6 +138,7 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
 #endif
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Billing Log");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Billing Task Setup");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Known Sender");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterProcessIncomingEDocument, '', false, false)]
