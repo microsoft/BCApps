@@ -304,8 +304,8 @@ page 99000768 "Manufacturing Setup"
                         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
                         PreChecksPassedMsg: Label 'Pre-checks passed. You can now disable Legacy Subcontracting using the action "Disable Legacy Subcontracting".';
                     begin
-                        LegacySubcFeatureHandler.CheckCanDisableLegacySubcontracting();
-                        Message(PreChecksPassedMsg);
+                        if LegacySubcFeatureHandler.CheckCanDisableLegacySubcontracting() then
+                            Message(PreChecksPassedMsg);
                     end;
                 }
             }
