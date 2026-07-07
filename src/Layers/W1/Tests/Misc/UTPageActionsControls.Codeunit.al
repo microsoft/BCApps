@@ -3407,6 +3407,7 @@ codeunit 134341 "UT Page Actions & Controls"
         // [THEN] Bill-to address fields are editable, and "Bill-to Name" field is not
         Assert.IsFalse(SalesQuotePage."Bill-to Name".Editable(), '');
         Assert.IsTrue(SalesQuotePage."Bill-to Name 2".Editable() and
+          SalesQuotePage."Bill-to Name 2".Enabled() and
           SalesQuotePage."Bill-to Address".Editable() and
           SalesQuotePage."Bill-to Address 2".Editable() and
           SalesQuotePage."Bill-to City".Editable() and
@@ -3439,6 +3440,7 @@ codeunit 134341 "UT Page Actions & Controls"
         // [THEN] Bill-to address fields are editable, and "Bill-to Name" field is not
         Assert.IsFalse(SalesOrderPage."Bill-to Name".Editable(), '');
         Assert.IsTrue(SalesOrderPage."Bill-to Name 2".Editable() and
+          SalesOrderPage."Bill-to Name 2".Enabled() and
           SalesOrderPage."Bill-to Address".Editable() and
           SalesOrderPage."Bill-to Address 2".Editable() and
           SalesOrderPage."Bill-to City".Editable() and
@@ -3471,6 +3473,7 @@ codeunit 134341 "UT Page Actions & Controls"
         // [THEN] Bill-to address fields are editable, and "Bill-to Name" field is not
         Assert.IsFalse(SalesInvoicePage."Bill-to Name".Editable(), '');
         Assert.IsTrue(SalesInvoicePage."Bill-to Name 2".Editable() and
+          SalesInvoicePage."Bill-to Name 2".Enabled() and
           SalesInvoicePage."Bill-to Address".Editable() and
           SalesInvoicePage."Bill-to Address 2".Editable() and
           SalesInvoicePage."Bill-to City".Editable() and
@@ -3504,6 +3507,7 @@ codeunit 134341 "UT Page Actions & Controls"
         // [THEN] Bill-to address fields are editable, and "Bill-to Name" field is not
         Assert.IsFalse(BlanketSalesOrderPage."Bill-to Name".Editable(), '');
         Assert.IsTrue(BlanketSalesOrderPage."Bill-to Name 2".Editable() and
+          BlanketSalesOrderPage."Bill-to Name 2".Enabled() and
           BlanketSalesOrderPage."Bill-to Address".Editable() and
           BlanketSalesOrderPage."Bill-to Address 2".Editable() and
           BlanketSalesOrderPage."Bill-to City".Editable() and
