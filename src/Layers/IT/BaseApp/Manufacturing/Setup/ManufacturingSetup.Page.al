@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -281,7 +281,9 @@ page 99000768 "Manufacturing Setup"
                     Visible = not Rec."Legacy Subcontracting";
                     ObsoleteReason = 'Legacy Subcontracting will be discontinued, environments should move to the Subcontracting App.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+#pragma warning disable AS0072
+                    ObsoleteTag = '28.0';
+#pragma warning restore AS0072
 
                     trigger OnAction()
                     var
