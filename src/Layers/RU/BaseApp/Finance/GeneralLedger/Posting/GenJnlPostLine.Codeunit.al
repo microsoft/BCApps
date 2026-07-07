@@ -100,7 +100,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                   TableData "FA Ledger Entry" = rimd,
                   TableData "FA Register" = rimd,
                   TableData "Tax Diff. Register" = rimd,
-                  TableData "Tax Diff. Ledger Entry" = rimd;
+                  TableData "Tax Diff. Ledger Entry" = rimd,
                   TableData "Spend Request to G/L Link" = rimd,
                   TableData "Maintenance Ledger Entry" = rimd;
     TableNo = "Gen. Journal Line";
