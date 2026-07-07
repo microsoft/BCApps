@@ -1,6 +1,7 @@
 namespace System.Diagnostics;
 
 using System.IO;
+using Microsoft.Finance.FinancialReports;
 using System.Security.AccessControl;
 using System.Telemetry;
 
