@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting;
 
+using Microsoft.Foundation.Address;
+using Microsoft.Foundation.Company;
+
 /// <summary>
 /// Builds the CompanyMetadata JSON payload the platform reads at report run time. Typed setters
 /// centralize the wire keys so the subscriber never hand-writes raw key strings (a silent key
@@ -160,6 +163,51 @@ codeunit 9666 "Company Metadata Builder"
     procedure SetGiroNoCaption(Value: Text)
     begin
         this.Put('CompanyGiroNoCaption', Value);
+    end;
+
+    /// <summary>
+    /// Populates the company block from a Company Information record: name, the formatted address
+    /// (via the country/region address format), and the phone/fax/email/home page, VAT/registration,
+    /// bank, and giro fields with their captions. Display name and logo are set separately by the
+    /// caller because they are not plain Company Information fields.
+    /// </summary>
+    /// <param name="CompanyInfo">The Company Information record to read the company block from.</param>
+    procedure PopulateFromCompanyInformation(var CompanyInfo: Record "Company Information")
+    var
+        FormatAddress: Codeunit "Format Address";
+        AddrArray: array[8] of Text[100];
+        Index: Integer;
+    begin
+        this.SetName(CompanyInfo.Name);
+
+        FormatAddress.Company(AddrArray, CompanyInfo);
+        for Index := 1 to ArrayLen(AddrArray) do
+            this.AddAddressLine(AddrArray[Index]);
+
+        this.SetPhone(CompanyInfo."Phone No.");
+        this.SetPhoneCaption(CompanyInfo.FieldCaption("Phone No."));
+        this.SetFaxNo(CompanyInfo."Fax No.");
+        this.SetFaxNoCaption(CompanyInfo.FieldCaption("Fax No."));
+        this.SetEmail(CompanyInfo."E-Mail");
+        this.SetEmailCaption(CompanyInfo.FieldCaption("E-Mail"));
+        this.SetHomePage(CompanyInfo."Home Page");
+        this.SetHomePageCaption(CompanyInfo.FieldCaption("Home Page"));
+        this.SetVATRegistrationNo(CompanyInfo."VAT Registration No.");
+        this.SetVATRegistrationNoCaption(CompanyInfo.FieldCaption("VAT Registration No."));
+        this.SetRegistrationNo(CompanyInfo."Registration No.");
+        this.SetRegistrationNoCaption(CompanyInfo.FieldCaption("Registration No."));
+        this.SetBankName(CompanyInfo."Bank Name");
+        this.SetBankNameCaption(CompanyInfo.FieldCaption("Bank Name"));
+        this.SetBankAccountNo(CompanyInfo."Bank Account No.");
+        this.SetBankAccountNoCaption(CompanyInfo.FieldCaption("Bank Account No."));
+        this.SetBankBranchNo(CompanyInfo."Bank Branch No.");
+        this.SetBankBranchNoCaption(CompanyInfo.FieldCaption("Bank Branch No."));
+        this.SetIBAN(CompanyInfo.IBAN);
+        this.SetIBANCaption(CompanyInfo.FieldCaption(IBAN));
+        this.SetBankSWIFT(CompanyInfo."SWIFT Code");
+        this.SetBankSWIFTCaption(CompanyInfo.FieldCaption("SWIFT Code"));
+        this.SetGiroNo(CompanyInfo."Giro No.");
+        this.SetGiroNoCaption(CompanyInfo.FieldCaption("Giro No."));
     end;
 
     /// <summary>

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Reporting;
 
-using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using System.Device;
 using System.Environment;
@@ -270,7 +269,7 @@ codeunit 44 ReportManagement
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Reporting Triggers", 'GetCompanyMetadata', '', false, false)]
     local procedure GetCompanyMetadataSubscriber(ReportId: Integer; var CompanyMetadata: JsonObject)
     begin
-        GetCompanyMetadata(CompanyMetadata);
+        this.GetCompanyMetadata(CompanyMetadata);
     end;
 
     /// <summary>
@@ -285,46 +284,16 @@ codeunit 44 ReportManagement
     procedure GetCompanyMetadata(var CompanyMetadata: JsonObject)
     var
         CompanyInfo: Record "Company Information";
-        FormatAddress: Codeunit "Format Address";
         CompanyMetadataBuilder: Codeunit "Company Metadata Builder";
-        AddrArray: array[8] of Text[100];
-        Index: Integer;
     begin
         if not CompanyInfo.Get() then
             CompanyInfo.Init();
 
-        CompanyMetadataBuilder.SetName(CompanyInfo.Name);
-        CompanyMetadataBuilder.SetDisplayName(GetCompanyDisplayName());
-
-        FormatAddress.Company(AddrArray, CompanyInfo);
-        for Index := 1 to ArrayLen(AddrArray) do
-            CompanyMetadataBuilder.AddAddressLine(AddrArray[Index]);
-
-        CompanyMetadataBuilder.SetPhone(CompanyInfo."Phone No.");
-        CompanyMetadataBuilder.SetPhoneCaption(CompanyInfo.FieldCaption("Phone No."));
-        CompanyMetadataBuilder.SetFaxNo(CompanyInfo."Fax No.");
-        CompanyMetadataBuilder.SetFaxNoCaption(CompanyInfo.FieldCaption("Fax No."));
-        CompanyMetadataBuilder.SetEmail(CompanyInfo."E-Mail");
-        CompanyMetadataBuilder.SetEmailCaption(CompanyInfo.FieldCaption("E-Mail"));
-        CompanyMetadataBuilder.SetHomePage(CompanyInfo."Home Page");
-        CompanyMetadataBuilder.SetHomePageCaption(CompanyInfo.FieldCaption("Home Page"));
-        CompanyMetadataBuilder.SetLogo(GetLogoBase64(CompanyInfo));
-        CompanyMetadataBuilder.SetVATRegistrationNo(CompanyInfo."VAT Registration No.");
-        CompanyMetadataBuilder.SetVATRegistrationNoCaption(CompanyInfo.FieldCaption("VAT Registration No."));
-        CompanyMetadataBuilder.SetRegistrationNo(CompanyInfo."Registration No.");
-        CompanyMetadataBuilder.SetRegistrationNoCaption(CompanyInfo.FieldCaption("Registration No."));
-        CompanyMetadataBuilder.SetBankName(CompanyInfo."Bank Name");
-        CompanyMetadataBuilder.SetBankNameCaption(CompanyInfo.FieldCaption("Bank Name"));
-        CompanyMetadataBuilder.SetBankAccountNo(CompanyInfo."Bank Account No.");
-        CompanyMetadataBuilder.SetBankAccountNoCaption(CompanyInfo.FieldCaption("Bank Account No."));
-        CompanyMetadataBuilder.SetBankBranchNo(CompanyInfo."Bank Branch No.");
-        CompanyMetadataBuilder.SetBankBranchNoCaption(CompanyInfo.FieldCaption("Bank Branch No."));
-        CompanyMetadataBuilder.SetIBAN(CompanyInfo.IBAN);
-        CompanyMetadataBuilder.SetIBANCaption(CompanyInfo.FieldCaption(IBAN));
-        CompanyMetadataBuilder.SetBankSWIFT(CompanyInfo."SWIFT Code");
-        CompanyMetadataBuilder.SetBankSWIFTCaption(CompanyInfo.FieldCaption("SWIFT Code"));
-        CompanyMetadataBuilder.SetGiroNo(CompanyInfo."Giro No.");
-        CompanyMetadataBuilder.SetGiroNoCaption(CompanyInfo.FieldCaption("Giro No."));
+        // Display name and logo are not plain Company Information fields (a session display name and
+        // a Base64-encoded BLOB), so they are set here; the rest of the block is mapped by the builder.
+        CompanyMetadataBuilder.SetDisplayName(this.GetCompanyDisplayName());
+        CompanyMetadataBuilder.SetLogo(this.GetLogoBase64(CompanyInfo));
+        CompanyMetadataBuilder.PopulateFromCompanyInformation(CompanyInfo);
 
         CompanyMetadataBuilder.WriteTo(CompanyMetadata);
     end;
