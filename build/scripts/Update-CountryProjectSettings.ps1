@@ -78,10 +78,13 @@ $AdditionalAppFolders = @(
     "../../../src/Layers/W1/DemoTool"
 )
 
-# Exclude apps in these folders. The two apps here depends on internal, non released libraries
+# Exclude apps in these folders. The first two apps here depends on internal, non released libraries.
+# The Agent Design Experience test app is excluded because its tests require a live Agents backend
+# service that is not available in the public CI containers.
 $ExcludedAppFolders = @(
     "../../../src/Layers/W1/Tests/Performance-Internal",
-    "../../../src/Layers/W1/Tests/SINGLESERVER-Internal"
+    "../../../src/Layers/W1/Tests/SINGLESERVER-Internal",
+    "../../../src/Apps/W1/AgentDesignExperience/test"
 )
 
 # Country code used for the W1 base project. Matches the identifier used in

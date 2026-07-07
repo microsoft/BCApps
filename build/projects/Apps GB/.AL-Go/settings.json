@@ -143,7 +143,6 @@
     "../../../src/Apps/GB/ReverseChargeVAT/test",
     "../../../src/Apps/GB/UKMakingTaxDigital/test",
     "../../../src/Apps/GB/VATReporting/test",
-    "../../../src/Apps/W1/AgentDesignExperience/test",
     "../../../src/Apps/W1/AMCBanking365Fundamentals/test",
     "../../../src/Apps/W1/APIV1/test",
     "../../../src/Apps/W1/APIV2/test",

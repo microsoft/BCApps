@@ -135,7 +135,6 @@
     "../../../src/Apps/IN/INTCS/test",
     "../../../src/Apps/IN/INTDS/test",
     "../../../src/Apps/IN/INVoucherInterface/test",
-    "../../../src/Apps/W1/AgentDesignExperience/test",
     "../../../src/Apps/W1/AuditFileExport/test",
     "../../../src/Apps/W1/BankAccRecWithAI/test",
     "../../../src/Apps/W1/BankDeposits/test",

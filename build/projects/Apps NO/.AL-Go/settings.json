@@ -129,7 +129,6 @@
   "testFolders": [
     "../../../src/Apps/NO/ImportNOPayroll/test",
     "../../../src/Apps/NO/NorwegianSAFT/test",
-    "../../../src/Apps/W1/AgentDesignExperience/test",
     "../../../src/Apps/W1/AMCBanking365Fundamentals/test",
     "../../../src/Apps/W1/APIV1/test",
     "../../../src/Apps/W1/APIV2/test",
