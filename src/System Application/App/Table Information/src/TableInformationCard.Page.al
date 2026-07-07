@@ -18,6 +18,9 @@ page 8705 "Table Information Card"
     AdditionalSearchTerms = 'Database,Size,Storage';
     SourceTable = "Table Metadata";
     Caption = 'Table Data Management - Card';
+    DeleteAllowed = false;
+    InsertAllowed = false;
+    ModifyAllowed = false;
     DataCaptionExpression = StrSubstNo('%1 - %2', Rec.Name, Rec.ID);
     Permissions = tabledata "Table Metadata" = r,
                   tabledata "Database Index" = r;
