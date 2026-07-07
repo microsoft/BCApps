@@ -752,6 +752,8 @@ table 8059 "Subscription Line"
     begin
         if IsInitialTermEmpty() then
             exit;
+        if not IsExtensionTermEmpty() then
+            exit;
 
         TestField("Subscription Line Start Date");
         "Subscription Line End Date" := CalcDate("Initial Term", "Subscription Line Start Date");
@@ -764,10 +766,16 @@ table 8059 "Subscription Line"
         if "Subscription Line End Date" <> 0D then
             "Term Until" := "Subscription Line End Date"
         else
-            if not IsNoticePeriodEmpty() then begin
+            if not IsExtensionTermEmpty() then begin
                 TestField("Subscription Line Start Date");
-                "Term Until" := CalcDate("Notice Period", "Subscription Line Start Date");
-                "Term Until" := CalcDate('<-1D>', "Term Until");
+                if not IsInitialTermEmpty() then begin
+                    "Term Until" := CalcDate("Initial Term", "Subscription Line Start Date");
+                    "Term Until" := CalcDate('<-1D>', "Term Until");
+                end else
+                    if not IsNoticePeriodEmpty() then begin
+                        "Term Until" := CalcDate("Notice Period", "Subscription Line Start Date");
+                        "Term Until" := CalcDate('<-1D>', "Term Until");
+                    end;
             end;
         CalculateCancellationPossibleUntil();
     end;
@@ -1406,6 +1414,24 @@ table 8059 "Subscription Line"
         Rec."Currency Factor" := CurrencyFactor;
         Rec."Currency Factor Date" := CurrencyFactorDate;
         Rec."Currency Code" := CurrencyCode;
+    end;
+
+    internal procedure EnsureCalculationBaseAmountExcludesVAT(SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header")
+    var
+        LocalCurrency: Record Currency;
+        NetBaseAmount: Decimal;
+    begin
+        if not SalesHeader."Prices Including VAT" then
+            exit;
+        if SalesLine."VAT Calculation Type" = SalesLine."VAT Calculation Type"::"Full VAT" then
+            exit;
+        if SalesLine.GetVATPct() = 0 then
+            exit;
+        LocalCurrency.Initialize(SalesHeader."Currency Code");
+        NetBaseAmount := Round(
+            Rec."Calculation Base Amount" / (1 + SalesLine.GetVATPct() / 100),
+            LocalCurrency."Unit-Amount Rounding Precision");
+        Rec.Validate("Calculation Base Amount", NetBaseAmount);
     end;
 
     internal procedure ErrorIfBillingLineForServiceCommitmentExist()

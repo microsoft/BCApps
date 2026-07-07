@@ -315,6 +315,70 @@ codeunit 139633 "Shpfy Bulk Operations Test"
     end;
 
     [Test]
+    [HandlerFunctions('BulkOperationHttpHandler')]
+    procedure TestBulkOperationRevertFailedWithLegacyRequestDataMissingUnitCost()
+    var
+        ShopifyVariant: Record "Shpfy Variant";
+        BulkOperation: Record "Shpfy Bulk Operation";
+        BulkOperationType: Enum "Shpfy Bulk Operation Type";
+        ProductId: BigInteger;
+        VariantId: BigInteger;
+        VariantIds: List of [BigInteger];
+        Index: Integer;
+    begin
+        // [SCENARIO] A bulk operation persisted before the unitCost key was added still
+        // completes its revert without throwing, leaving Unit Cost untouched.
+        // Regression for bug 637250.
+
+        // [GIVEN] A bulk operation whose request data was written by the pre-unitCost code
+        // (i.e. the JSON objects only contain id/price/compareAtPrice/updatedAt) and four variants
+        Initialize();
+        for Index := 1 to 4 do begin
+            ProductId := Any.IntegerInRange(100000, 555555);
+            VariantId := Any.IntegerInRange(100000, 555555);
+            VariantIds.Add(VariantId);
+            ShopifyVariant."Product Id" := ProductId;
+            ShopifyVariant.Id := VariantId;
+            ShopifyVariant.Price := 200;
+            ShopifyVariant."Compare at Price" := 250;
+            ShopifyVariant."Unit Cost" := 75;
+            ShopifyVariant.Insert();
+        end;
+        BulkOperationUrl := 'https://storage.googleapis.com/shopify-bulk-result/' + Any.AlphabeticText(20);
+        BulkOperation := CreateBulkOperation(BulkOperationId1, BulkOperationType::UpdateProductPrice, Shop.Code, BulkOperationUrl, GenerateLegacyRequestDataWithoutUnitCost(VariantIds, 100, 150));
+
+        // [WHEN] Bulk operation is completed
+        BulkOperationIdCurrent := BulkOperationId1;
+        VariantId1 := VariantIds.Get(1);
+        VariantId2 := VariantIds.Get(4);
+        BulkOperation.Status := BulkOperation.Status::Completed;
+        BulkOperation.Modify(true);
+
+        // [THEN] The bulk operation is processed without throwing on the missing unitCost key,
+        // failed variants have their Price/Compare at Price reverted, and Unit Cost is left
+        // untouched on every variant (since the legacy blob doesn't know the pre-update value).
+        BulkOperation.Get(BulkOperationId1, Shop.Code, BulkOperation.Type::mutation);
+        LibraryAssert.IsTrue(BulkOperation.Processed, 'Bulk operation should be processed.');
+        ShopifyVariant.Get(VariantIds.Get(1));
+        LibraryAssert.AreEqual(200, ShopifyVariant.Price, 'Variant price should not be reverted.');
+        LibraryAssert.AreEqual(250, ShopifyVariant."Compare at Price", 'Variant compare at price should not be reverted.');
+        LibraryAssert.AreEqual(75, ShopifyVariant."Unit Cost", 'Variant unit cost should be left untouched when legacy blob lacks unitCost.');
+        ShopifyVariant.Get(VariantIds.Get(2));
+        LibraryAssert.AreEqual(100, ShopifyVariant.Price, 'Variant price should be reverted.');
+        LibraryAssert.AreEqual(150, ShopifyVariant."Compare at Price", 'Variant compare at price should be reverted.');
+        LibraryAssert.AreEqual(75, ShopifyVariant."Unit Cost", 'Variant unit cost should be left untouched when legacy blob lacks unitCost.');
+        ShopifyVariant.Get(VariantIds.Get(3));
+        LibraryAssert.AreEqual(100, ShopifyVariant.Price, 'Variant price should be reverted.');
+        LibraryAssert.AreEqual(150, ShopifyVariant."Compare at Price", 'Variant compare at price should be reverted.');
+        LibraryAssert.AreEqual(75, ShopifyVariant."Unit Cost", 'Variant unit cost should be left untouched when legacy blob lacks unitCost.');
+        ShopifyVariant.Get(VariantIds.Get(4));
+        LibraryAssert.AreEqual(200, ShopifyVariant.Price, 'Variant price should not be reverted.');
+        LibraryAssert.AreEqual(250, ShopifyVariant."Compare at Price", 'Variant compare at price should not be reverted.');
+        LibraryAssert.AreEqual(75, ShopifyVariant."Unit Cost", 'Variant unit cost should be left untouched when legacy blob lacks unitCost.');
+        ClearSetup();
+    end;
+
+    [Test]
     procedure TestBulkUpdateProductPriceClearsCompareAtPriceAsNull()
     var
         ShopifyVariant: Record "Shpfy Variant";
@@ -489,6 +553,26 @@ codeunit 139633 "Shpfy Bulk Operations Test"
             Data.Add('price', Price);
             Data.Add('compareAtPrice', CompareAtPrice);
             Data.Add('unitCost', UnitCost);
+            Data.Add('updatedAt', '2025-02-25T13:40:15.6530000Z');
+            RequestData.Add(Data);
+        end;
+        exit(RequestData);
+    end;
+
+    local procedure GenerateLegacyRequestDataWithoutUnitCost(VariantIds: List of [BigInteger]; Price: Decimal; CompareAtPrice: Decimal): JsonArray
+    var
+        RequestData: JsonArray;
+        VariantId: BigInteger;
+        Data: JsonObject;
+    begin
+        // Simulates the request-data layout written by the connector before the unitCost key
+        // was added to the bulk-operation rollback bookkeeping. Used to test that the revert
+        // tolerates legacy blobs persisted before the upgrade.
+        foreach VariantId in VariantIds do begin
+            Clear(Data);
+            Data.Add('id', VariantId);
+            Data.Add('price', Price);
+            Data.Add('compareAtPrice', CompareAtPrice);
             Data.Add('updatedAt', '2025-02-25T13:40:15.6530000Z');
             RequestData.Add(Data);
         end;

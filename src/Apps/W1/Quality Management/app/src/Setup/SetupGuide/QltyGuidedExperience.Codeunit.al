@@ -28,13 +28,13 @@ codeunit 20419 "Qlty. Guided Experience"
         DemoDataDescriptionTxt: Label 'Install or explore Contoso demo data for Quality Management with sample quality tests, templates, generation rules, and inspections. This lets you learn how quality checks work without setting up your own data.';
         QualityResultsShortTitleTxt: Label 'Inspection results';
         QualityResultsTitleTxt: Label 'Set up quality inspection results';
-        QualityResultsDescriptionTxt: Label 'Define possible outcomes for quality inspections, like Pass, Fail, or In Progress. Create custom results and set priorities to match your organization''s standards. These results control how inspections are evaluated and how items are blocked or released.';
+        QualityResultsDescriptionTxt: Label 'Define custom grades for quality inspections, to match your organization''s standards. You can decide evaluation priorities and set conditions for allowed transactions.';
         QualityTestsShortTitleTxt: Label 'Quality tests';
         QualityTestsTitleTxt: Label 'Understand quality tests';
         QualityTestsDescriptionTxt: Label 'Quality tests define what is measured. Visit the Quality Tests list to see available tests, then open a test card to review parameters, limits, and expected values used during inspections.';
         QualityTemplatesShortTitleTxt: Label 'Quality templates';
         QualityTemplatesTitleTxt: Label 'Reuse inspection templates';
-        QualityTemplatesDescriptionTxt: Label 'With templates you can group and reuse quality tests so you can apply consistent inspection standards across items, processes, or scenarios. From the list you can create a new template card to understand its structure and purpose.';
+        QualityTemplatesDescriptionTxt: Label 'With templates you can group and reuse quality tests to ensure consistent inspection standards. Try creating a new template card to understand its structure and purpose.';
         GenerationRulesShortTitleTxt: Label 'Generation rules';
         GenerationRulesTitleTxt: Label 'Set up inspection generation rules';
         GenerationRulesDescriptionTxt: Label 'Inspection generation rules define when quality inspections are created automatically, such as during receiving, production, or assembly.';

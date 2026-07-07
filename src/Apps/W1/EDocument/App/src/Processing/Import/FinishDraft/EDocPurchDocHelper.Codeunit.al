@@ -7,7 +7,9 @@ namespace Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Posting;
@@ -40,6 +42,9 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         PurchaseLine."Variant Code" := EDocumentPurchaseLine."[BC] Variant Code";
         PurchaseLine.Type := EDocumentPurchaseLine."[BC] Purchase Line Type";
         ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("No."), EDocumentPurchaseLine."[BC] Purchase Type No.");
+        if EDocumentPurchaseLine."[BC] VAT Prod. Posting Group" <> '' then
+            ValidateFieldWithContext(
+                PurchaseLine, PurchaseLine.FieldNo("VAT Prod. Posting Group"), EDocumentPurchaseLine."[BC] VAT Prod. Posting Group");
         if (PurchaseLine.Type = PurchaseLine.Type::"G/L Account") and HasTotalDiscount then
             ValidateFieldWithContext(PurchaseLine, PurchaseLine.FieldNo("Allow Invoice Disc."), true);
         PurchaseLine.Description := EDocumentPurchaseLine.Description;
@@ -154,6 +159,45 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         EDocImpSessionTelemetry.SetBool('Totals Validation', TryValidateDocumentTotals(PurchaseHeader));
     end;
 
+    procedure ApplyVATDifferenceToLines(PurchaseHeader: Record "Purchase Header"; EDocumentPurchaseHeader: Record "E-Document Purchase Header")
+    var
+        PurchaseLine: Record "Purchase Line";
+        Currency: Record Currency;
+        LineAmount: Decimal;
+        TotalLineAmount, VATDiffRemainder, VATDiffForLine : Decimal;
+        AppliedVATAmountDiff: Decimal;
+    begin
+        AppliedVATAmountDiff := EDocumentPurchaseHeader.GetAppliedVATAmountDiff();
+        if AppliedVATAmountDiff = 0 then
+            exit;
+
+        if PurchaseHeader."Currency Code" = '' then
+            Currency.InitRoundingPrecision()
+        else
+            Currency.Get(PurchaseHeader."Currency Code");
+
+        TotalLineAmount := ComputeTotalLineAmount(EDocumentPurchaseHeader."E-Document Entry No.", Currency."Amount Rounding Precision");
+        if TotalLineAmount = 0 then
+            exit;
+
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetFilter(Type, '<>%1', PurchaseLine.Type::" ");
+        if not PurchaseLine.FindSet() then
+            exit;
+
+        VATDiffRemainder := 0;
+        repeat
+            LineAmount := PurchaseLine."Line Amount" - PurchaseLine."Inv. Discount Amount";
+            if LineAmount <> 0 then begin
+                VATDiffForLine := VATDiffRemainder + AppliedVATAmountDiff * LineAmount / TotalLineAmount;
+                PurchaseLine.Validate("VAT Difference", Round(VATDiffForLine, Currency."Amount Rounding Precision"));
+                VATDiffRemainder := VATDiffForLine - PurchaseLine."VAT Difference";
+                PurchaseLine.Modify(true);
+            end;
+        until PurchaseLine.Next() = 0;
+    end;
+
     procedure RevertCreatedDocument(EDocument: Record "E-Document")
     var
         PurchaseHeader: Record "Purchase Header";
@@ -180,5 +224,28 @@ codeunit 6402 "E-Doc. Purch. Doc. Helper"
         if EDocumentPurchaseHeader."Document Date" = 0D then
             exit;
         PurchaseHeader.Validate("Posting Date", EDocumentPurchaseHeader."Document Date");
+    end;
+
+    procedure SetNormalReverseChargeFilter(var VATPostingSetup: Record "VAT Posting Setup"; VATBusPostingGroup: Code[20])
+    begin
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", VATBusPostingGroup);
+        VATPostingSetup.SetFilter("VAT Calculation Type", '%1|%2',
+            VATPostingSetup."VAT Calculation Type"::"Normal VAT",
+            VATPostingSetup."VAT Calculation Type"::"Reverse Charge VAT");
+    end;
+
+    local procedure ComputeTotalLineAmount(EDocEntryNo: Integer; AmountRoundingPrecision: Decimal): Decimal
+    var
+        EDocPurchLine: Record "E-Document Purchase Line";
+        TotalLineAmount: Decimal;
+    begin
+        EDocPurchLine.SetRange("E-Document Entry No.", EDocEntryNo);
+        if EDocPurchLine.FindSet() then
+            repeat
+                TotalLineAmount += Round(
+                    EDocPurchLine.Quantity * EDocPurchLine."Unit Price" - EDocPurchLine."Total Discount",
+                    AmountRoundingPrecision);
+            until EDocPurchLine.Next() = 0;
+        exit(TotalLineAmount);
     end;
 }

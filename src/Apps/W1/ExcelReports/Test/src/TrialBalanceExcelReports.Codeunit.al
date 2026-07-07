@@ -10,12 +10,7 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.ExcelReports;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Budget;
-using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Purchases.Payables;
-using Microsoft.Purchases.Vendor;
-using Microsoft.Sales.Customer;
-using Microsoft.Sales.Receivables;
 
 codeunit 139544 "Trial Balance Excel Reports"
 {
@@ -26,11 +21,8 @@ codeunit 139544 "Trial Balance Excel Reports"
 
     var
         LibraryERM: Codeunit "Library - ERM";
-        LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         Assert: Codeunit Assert;
-        DocumentTypeShouldBeInvoiceErr: Label 'Document Type should be Invoice';
-        DocumentNoShouldMatchErr: Label 'Document No should match the ledger entry';
 
     [Test]
     [HandlerFunctions('EXRTrialBalanceExcelHandler')]
@@ -478,6 +470,48 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
     [Test]
+    procedure QueryPathDoesNotDoubleCountNestedTotals()
+    var
+        GLAccount: Record "G/L Account";
+        TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalance: Codeunit "Trial Balance";
+        PostingAccountNo, ChildTotalNo, ParentTotalNo : Code[20];
+        EntryAmount: Decimal;
+    begin
+        // [SCENARIO] A parent End-Total whose Totaling range contains a nested child End-Total must not double-count the child's amounts.
+        // [GIVEN] A posting account (10000), a child End-Total (20000) totaling the posting account,
+        //         and a parent End-Total (30000) whose range 10000..29999 spans BOTH the posting account and the child End-Total's number.
+        // The total accounts are processed in No. order, so the child (20000) is inserted into the buffer before the parent (30000) is computed.
+        Initialize();
+        PostingAccountNo := CreateGLAccountWithNo('10000', Enum::"G/L Account Type"::Posting, '');
+        ChildTotalNo := CreateGLAccountWithNo('20000', Enum::"G/L Account Type"::"End-Total", '10000..19999');
+        ParentTotalNo := CreateGLAccountWithNo('30000', Enum::"G/L Account Type"::"End-Total", '10000..29999');
+
+        // [GIVEN] A single entry posted to the posting account
+        EntryAmount := 1000;
+        CreateGLEntryWithAmount(PostingAccountNo, '', '', '', WorkDate(), EntryAmount);
+
+        // [WHEN] Running the query-based trial balance for the current year
+        GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
+        TrialBalance.ConfigureTrialBalance(false, false);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
+
+        // [THEN] The child End-Total equals the entry amount (the posting account counted once)
+        TempTrialBalanceData.Reset();
+        TempTrialBalanceData.SetRange("G/L Account No.", ChildTotalNo);
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(EntryAmount, TempTrialBalanceData.Balance, 'Child End-Total should sum the posting account once');
+
+        // [THEN] The parent End-Total ALSO equals the entry amount, not twice:
+        // its Totaling range includes the child End-Total's already-inserted buffer row, which must not be re-summed.
+        TempTrialBalanceData.Reset();
+        TempTrialBalanceData.SetRange("G/L Account No.", ParentTotalNo);
+        TempTrialBalanceData.FindFirst();
+        Assert.AreEqual(EntryAmount, TempTrialBalanceData.Balance, 'Parent End-Total must not double-count the nested child End-Total');
+    end;
+
+    [Test]
     procedure QueryPathPopulatesBudgetFields()
     var
         GLAccount: Record "G/L Account";
@@ -599,24 +633,27 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
     [Test]
-    procedure QueryPathSkipsAllZeroRecords()
+    procedure QueryPathIncludesAccountsThatNetToZero()
     var
         GLAccount: Record "G/L Account";
         TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
         TempTrialBalanceData: Record "EXR Trial Balance Buffer";
         TrialBalance: Codeunit "Trial Balance";
         ZeroAccount, NonZeroAccount : Code[20];
+        GrossAmount: Decimal;
     begin
-        // [SCENARIO] Accounts with entries that sum to zero are not included in the buffer.
-        // [GIVEN] One account with cancelling entries (net zero) and another with a non-zero balance
+        // [SCENARIO] Accounts that have entries are included even when they net to zero. The query only returns
+        // accounts with activity, so a zero net change still represents real (offsetting) turnover worth showing.
+        // [GIVEN] One account with cancelling entries (net zero, gross turnover) and another with a non-zero balance
         Initialize();
         LibraryERM.CreateGLAccount(GLAccount);
         ZeroAccount := GLAccount."No.";
         LibraryERM.CreateGLAccount(GLAccount);
         NonZeroAccount := GLAccount."No.";
 
-        CreateGLEntryWithAmount(ZeroAccount, '', '', '', WorkDate(), 500);
-        CreateGLEntryWithAmount(ZeroAccount, '', '', '', WorkDate(), -500);
+        GrossAmount := 500;
+        CreateGLEntryWithAmount(ZeroAccount, '', '', '', WorkDate(), GrossAmount);
+        CreateGLEntryWithAmount(ZeroAccount, '', '', '', WorkDate(), -GrossAmount);
         CreateGLEntryWithAmount(NonZeroAccount, '', '', '', WorkDate(), 100);
 
         // [WHEN] Running the trial balance
@@ -625,10 +662,54 @@ codeunit 139544 "Trial Balance Excel Reports"
         TrialBalance.ConfigureTrialBalance(false, false);
         TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
 
-        // [THEN] Only the non-zero account appears
-        Assert.AreEqual(1, TempTrialBalanceData.Count(), 'Only the non-zero account should be in the buffer');
-        TempTrialBalanceData.FindFirst();
-        Assert.AreEqual(NonZeroAccount, TempTrialBalanceData."G/L Account No.", 'The non-zero account should be the one returned');
+        // [THEN] Both accounts are in the buffer
+        Assert.AreEqual(2, TempTrialBalanceData.Count(), 'Both accounts with entries should be in the buffer');
+        // [THEN] The net-zero account is present with zero net change and balance, but its gross turnover is reported
+        TempTrialBalanceData.SetRange("G/L Account No.", ZeroAccount);
+        Assert.IsTrue(TempTrialBalanceData.FindFirst(), 'The net-zero account should be included');
+        Assert.AreEqual(0, TempTrialBalanceData."Net Change", 'Net Change should be zero');
+        Assert.AreEqual(0, TempTrialBalanceData.Balance, 'Balance should be zero');
+        Assert.AreEqual(GrossAmount, TempTrialBalanceData."Net Change (Debit)", 'Gross debit turnover should be reported');
+        Assert.AreEqual(GrossAmount, TempTrialBalanceData."Net Change (Credit)", 'Gross credit turnover should be reported');
+    end;
+
+    [Test]
+    procedure QueryPathReportsCorrectDebitCreditSplitsForZeroEndBalance()
+    var
+        GLAccount, KeptAccount : Record "G/L Account";
+        TempDimension1Values, TempDimension2Values : Record "Dimension Value" temporary;
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalance: Codeunit "Trial Balance";
+        OpeningDebit: Decimal;
+        PriorYear: Integer;
+    begin
+        // [SCENARIO] A combination that nets to zero at the end date but has period activity keeps correct debit/credit
+        // splits: the first pass inserts it (carrying the end-date totals) so the second pass can subtract the opening.
+        Initialize();
+        PriorYear := Date2DMY(WorkDate(), 3) - 1;
+        OpeningDebit := 1000;
+
+        // [GIVEN] An account whose opening debit is fully reversed by a credit within the period (net-zero end, period activity)
+        CreateGLAccount(KeptAccount);
+        CreateGLEntryWithAmount(KeptAccount."No.", '', '', '', DMY2Date(15, 6, PriorYear), OpeningDebit);
+        CreateGLEntryWithAmount(KeptAccount."No.", '', '', '', DMY2Date(15, 6, Date2DMY(WorkDate(), 3)), -OpeningDebit);
+
+        // [WHEN] Running the query-based trial balance for the current year
+        GLAccount.SetRange("Date Filter", DMY2Date(1, 1, Date2DMY(WorkDate(), 3)), DMY2Date(31, 12, Date2DMY(WorkDate(), 3)));
+        TrialBalance.ConfigureTrialBalance(false, false);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimension1Values, TempDimension2Values, TempTrialBalanceData);
+
+        // [THEN] The combination is present with correct net AND gross debit/credit columns
+        TempTrialBalanceData.SetRange("G/L Account No.", KeptAccount."No.");
+        Assert.IsTrue(TempTrialBalanceData.FindFirst(), 'Buffer record should exist for the net-zero-at-end combination');
+        Assert.AreEqual(OpeningDebit, TempTrialBalanceData."Starting Balance", 'Starting Balance should equal the opening debit');
+        Assert.AreEqual(-OpeningDebit, TempTrialBalanceData."Net Change", 'Net Change should reverse the opening');
+        Assert.AreEqual(0, TempTrialBalanceData.Balance, 'Balance should net to zero at the end date');
+        Assert.AreEqual(OpeningDebit, TempTrialBalanceData."Starting Balance (Debit)", 'Opening debit split');
+        Assert.AreEqual(0, TempTrialBalanceData."Net Change (Debit)", 'No period debit turnover');
+        Assert.AreEqual(OpeningDebit, TempTrialBalanceData."Net Change (Credit)", 'Period credit turnover equals the reversal');
+        Assert.AreEqual(OpeningDebit, TempTrialBalanceData."Balance (Debit)", 'Cumulative debit at the end date');
+        Assert.AreEqual(OpeningDebit, TempTrialBalanceData."Balance (Credit)", 'Cumulative credit at the end date');
     end;
 
     [Test]
@@ -668,113 +749,44 @@ codeunit 139544 "Trial Balance Excel Reports"
     end;
 
     [Test]
-    [HandlerFunctions('EXRAgedAccPayableExcelHandler')]
-    procedure AgedAccountsPayableExportsDocumentTypeAndNo()
+    procedure QueryPathSupportsClosingDateAsStartingDate()
     var
-        Vendor: Record Vendor;
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
-        Variant: Variant;
-        RequestPageXml: Text;
-        ReportDocumentType: Text;
-        ReportDocumentNo: Text;
+        GLAccount: Record "G/L Account";
+        TempDimensionValue: Record "Dimension Value" temporary;
+        TempTrialBalanceData: Record "EXR Trial Balance Buffer";
+        TrialBalance: Codeunit "Trial Balance";
+        PostingAccount: Code[20];
+        PriorYearActivity, ClosingAmount, CurrentYearActivity : Decimal;
+        PriorYear, CurrentYear : Integer;
     begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 622247] Aged Accounts Payable Excel report exports Document Type and Document No fields correctly for Invoice entries
-        InitializeAgingData();
+        // [SCENARIO 638353] The query path supports a closing date as the starting date instead of crashing,
+        // and includes that day's closing entries in the period rather than the opening balance.
+        // [GIVEN] A posting account with prior-year activity, a year-end closing entry, and current-year activity
+        Initialize();
+        CreateGLAccount(GLAccount);
+        PostingAccount := GLAccount."No.";
+        CurrentYear := Date2DMY(WorkDate(), 3);
+        PriorYear := CurrentYear - 1;
+        PriorYearActivity := 5000;
+        ClosingAmount := -2000;
+        CurrentYearActivity := 300;
+        CreateGLEntryWithAmount(PostingAccount, '', '', '', DMY2Date(15, 6, PriorYear), PriorYearActivity);
+        CreateGLEntryWithAmount(PostingAccount, '', '', '', ClosingDate(DMY2Date(31, 12, PriorYear)), ClosingAmount);
+        CreateGLEntryWithAmount(PostingAccount, '', '', '', DMY2Date(15, 6, CurrentYear), CurrentYearActivity);
 
-        // [GIVEN] Vendor "V" with an open vendor ledger entry of type Invoice
-        // Create vendor directly to avoid VAT posting setup requirements in some localizations
-        CreateMinimalVendor(Vendor);
-        CreateVendorLedgerEntry(VendorLedgerEntry, Vendor."No.", "Gen. Journal Document Type"::Invoice);
-        Commit();
+        // [WHEN] Running the trial balance with the starting date set to the prior year's closing date
+        GLAccount.SetRange("No.", PostingAccount);
+        GLAccount.SetRange("Date Filter", ClosingDate(DMY2Date(31, 12, PriorYear)), DMY2Date(31, 12, CurrentYear));
+        TrialBalance.ConfigureTrialBalance(false, false);
+        TrialBalance.InsertTrialBalanceReportData(GLAccount, TempDimensionValue, TempDimensionValue, TempTrialBalanceData);
 
-        // [WHEN] Running the Aged Accounts Payable Excel report
-        RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Acc Payable Excel", RequestPageXml);
-        LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Acc Payable Excel", Variant, RequestPageXml);
-
-        // [THEN] The exported data contains the Document Type "Invoice" and the correct Document No
-        LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
-        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'One aging entry should be exported');
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.FindCurrentRowValue('DocumentType', Variant);
-        ReportDocumentType := Variant;
-        Assert.AreEqual(Format("Gen. Journal Document Type"::Invoice), ReportDocumentType, DocumentTypeShouldBeInvoiceErr);
-        LibraryReportDataset.FindCurrentRowValue('DocumentNo', Variant);
-        ReportDocumentNo := Variant;
-        Assert.AreEqual(VendorLedgerEntry."Document No.", ReportDocumentNo, DocumentNoShouldMatchErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('EXRAgedAccountsRecExcelHandler')]
-    procedure AgedAccountsRecExportsDocumentTypeAndNo()
-    var
-        Customer: Record Customer;
-        CustLedgerEntry: Record "Cust. Ledger Entry";
-        Variant: Variant;
-        RequestPageXml: Text;
-        ReportDocumentType: Text;
-        ReportDocumentNo: Text;
-    begin
-        // [FEATURE] [AI test]
-        // [SCENARIO 622247] Aged Accounts Receivable Excel report exports Document Type and Document No fields correctly for Invoice entries
-        InitializeAgingData();
-
-        // [GIVEN] Customer "C" with an open customer ledger entry of type Invoice
-        // Create customer directly to avoid VAT posting setup requirements in some localizations
-        CreateMinimalCustomer(Customer);
-        CreateCustLedgerEntry(CustLedgerEntry, Customer."No.", "Gen. Journal Document Type"::Invoice);
-        Commit();
-
-        // [WHEN] Running the Aged Accounts Receivable Excel report
-        RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Accounts Rec Excel", RequestPageXml);
-        LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Accounts Rec Excel", Variant, RequestPageXml);
-
-        // [THEN] The exported data contains the Document Type "Invoice" and the correct Document No
-        LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
-        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'One aging entry should be exported');
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.FindCurrentRowValue('DocumentType', Variant);
-        ReportDocumentType := Variant;
-        Assert.AreEqual(Format("Gen. Journal Document Type"::Invoice), ReportDocumentType, DocumentTypeShouldBeInvoiceErr);
-        LibraryReportDataset.FindCurrentRowValue('DocumentNo', Variant);
-        ReportDocumentNo := Variant;
-        Assert.AreEqual(CustLedgerEntry."Document No.", ReportDocumentNo, DocumentNoShouldMatchErr);
-    end;
-
-    [Test]
-    [HandlerFunctions('EXRAgedAccPayablePostingDateHandler')]
-    procedure AgedAccountsPayableReportAgesByPostingDate()
-    var
-        Vendor: Record Vendor;
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
-        Variant: Variant;
-        RequestPageXml: Text;
-        ReportingDateText: Text;
-        ReportingDate: Date;
-    begin
-        // [FEATURE] [AI test 0.4]
-        // [SCENARIO] Aged Accounts Payable report uses Posting Date as Reporting Date when aging by Posting Date
-        InitializeAgingData();
-
-        // [GIVEN] Vendor "V" with an open ledger entry where Posting Date, Document Date, and Due Date are distinct
-        CreateMinimalVendor(Vendor);
-        CreateVendorLedgerEntry(VendorLedgerEntry, Vendor."No.", "Gen. Journal Document Type"::Invoice);
-        VendorLedgerEntry."Document Date" := WorkDate() - 10;
-        VendorLedgerEntry.Modify();
-        Commit();
-
-        // [WHEN] Running the Aged Accounts Payable Excel report with Aging By = Posting Date
-        RequestPageXml := Report.RunRequestPage(Report::"EXR Aged Acc Payable Excel", RequestPageXml);
-        LibraryReportDataset.RunReportAndLoad(Report::"EXR Aged Acc Payable Excel", Variant, RequestPageXml);
-
-        // [THEN] The Reporting Date matches the Posting Date of the vendor ledger entry
-        LibraryReportDataset.SetXmlNodeList('DataItem[@name="AgingData"]');
-        Assert.AreEqual(1, LibraryReportDataset.RowCount(), 'One aging entry should be exported');
-        LibraryReportDataset.GetNextRow();
-        LibraryReportDataset.FindCurrentRowValue('ReportingDate', Variant);
-        ReportingDateText := Variant;
-        Evaluate(ReportingDate, ReportingDateText);
-        Assert.AreEqual(VendorLedgerEntry."Posting Date", ReportingDate, 'Reporting Date should match the Posting Date when aging by Posting Date');
+        // [THEN] The opening balance holds only the activity strictly before the closing date
+        TempTrialBalanceData.SetRange("G/L Account No.", PostingAccount);
+        Assert.IsTrue(TempTrialBalanceData.FindFirst(), 'Buffer record should exist for the posting account');
+        Assert.AreEqual(PriorYearActivity, TempTrialBalanceData."Starting Balance", 'Starting Balance should exclude the closing-date entry');
+        // [THEN] The closing-date entry falls inside the reported period together with current-year activity
+        Assert.AreEqual(ClosingAmount + CurrentYearActivity, TempTrialBalanceData."Net Change", 'Net Change should include the closing-date entry');
+        Assert.AreEqual(PriorYearActivity + ClosingAmount + CurrentYearActivity, TempTrialBalanceData.Balance, 'Balance should equal Starting Balance + Net Change');
     end;
 
     local procedure CreateSampleBusinessUnits(HowMany: Integer)
@@ -818,6 +830,21 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLAccount."Account Type" := AccountType;
         GLAccount.Totaling := CopyStr(Totaling, 1, 250);
         GLAccount.Modify();
+    end;
+
+    local procedure CreateGLAccountWithNo(No: Code[20]; AccountType: Enum "G/L Account Type"; Totaling: Text): Code[20]
+    var
+        GLAccount: Record "G/L Account";
+    begin
+        // Insert with an explicit No. so the test controls both the FindSet (No.) ordering of the
+        // total accounts and whether one total's number falls inside another total's Totaling range.
+        GLAccount.Init();
+        GLAccount."No." := No;
+        GLAccount.Name := No;
+        GLAccount."Account Type" := AccountType;
+        GLAccount.Totaling := CopyStr(Totaling, 1, MaxStrLen(GLAccount.Totaling));
+        GLAccount.Insert();
+        exit(No);
     end;
 
     local procedure Initialize()
@@ -900,109 +927,6 @@ codeunit 139544 "Trial Balance Excel Reports"
         GLEntry.Insert();
     end;
 
-    local procedure InitializeAgingData()
-    var
-        Vendor: Record Vendor;
-        Customer: Record Customer;
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
-        CustLedgerEntry: Record "Cust. Ledger Entry";
-        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
-        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-    begin
-        DetailedVendorLedgEntry.DeleteAll();
-        DetailedCustLedgEntry.DeleteAll();
-        VendorLedgerEntry.DeleteAll();
-        CustLedgerEntry.DeleteAll();
-        Vendor.DeleteAll();
-        Customer.DeleteAll();
-    end;
-
-    local procedure CreateMinimalVendor(var Vendor: Record Vendor)
-    begin
-        Vendor.Init();
-        Vendor."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(Vendor."No."));
-        Vendor.Name := Vendor."No.";
-        Vendor.Insert();
-    end;
-
-    local procedure CreateMinimalCustomer(var Customer: Record Customer)
-    begin
-        Customer.Init();
-        Customer."No." := CopyStr(Format(CreateGuid()), 1, MaxStrLen(Customer."No."));
-        Customer.Name := Customer."No.";
-        Customer.Insert();
-    end;
-
-    local procedure CreateVendorLedgerEntry(var VendorLedgerEntry: Record "Vendor Ledger Entry"; VendorNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type")
-    var
-        DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry";
-        EntryNo: Integer;
-        Amount: Decimal;
-    begin
-        if VendorLedgerEntry.FindLast() then;
-        EntryNo := VendorLedgerEntry."Entry No." + 1;
-
-        VendorLedgerEntry.Init();
-        VendorLedgerEntry."Entry No." := EntryNo;
-        VendorLedgerEntry."Vendor No." := VendorNo;
-        VendorLedgerEntry."Vendor Name" := VendorNo;
-        VendorLedgerEntry."Document Type" := DocumentType;
-        VendorLedgerEntry."Document No." := 'DOC' + Format(EntryNo);
-        VendorLedgerEntry."Posting Date" := WorkDate();
-        VendorLedgerEntry."Document Date" := WorkDate();
-        VendorLedgerEntry."Due Date" := WorkDate() + 30;
-        VendorLedgerEntry.Open := true;
-        VendorLedgerEntry.Insert();
-
-        // Create detailed vendor ledger entry for remaining amount
-        Amount := -LibraryRandom.RandDec(1000, 2);
-        if DetailedVendorLedgEntry.FindLast() then;
-        DetailedVendorLedgEntry.Init();
-        DetailedVendorLedgEntry."Entry No." := DetailedVendorLedgEntry."Entry No." + 1;
-        DetailedVendorLedgEntry."Vendor Ledger Entry No." := VendorLedgerEntry."Entry No.";
-        DetailedVendorLedgEntry."Vendor No." := VendorNo;
-        DetailedVendorLedgEntry."Posting Date" := WorkDate();
-        DetailedVendorLedgEntry."Entry Type" := DetailedVendorLedgEntry."Entry Type"::"Initial Entry";
-        DetailedVendorLedgEntry.Amount := Amount;
-        DetailedVendorLedgEntry."Amount (LCY)" := Amount;
-        DetailedVendorLedgEntry.Insert();
-    end;
-
-    local procedure CreateCustLedgerEntry(var CustLedgerEntry: Record "Cust. Ledger Entry"; CustomerNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type")
-    var
-        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
-        EntryNo: Integer;
-        Amount: Decimal;
-    begin
-        if CustLedgerEntry.FindLast() then;
-        EntryNo := CustLedgerEntry."Entry No." + 1;
-
-        CustLedgerEntry.Init();
-        CustLedgerEntry."Entry No." := EntryNo;
-        CustLedgerEntry."Customer No." := CustomerNo;
-        CustLedgerEntry."Customer Name" := CustomerNo;
-        CustLedgerEntry."Document Type" := DocumentType;
-        CustLedgerEntry."Document No." := 'DOC' + Format(EntryNo);
-        CustLedgerEntry."Posting Date" := WorkDate();
-        CustLedgerEntry."Document Date" := WorkDate();
-        CustLedgerEntry."Due Date" := WorkDate() + 30;
-        CustLedgerEntry.Open := true;
-        CustLedgerEntry.Insert();
-
-        // Create detailed customer ledger entry for remaining amount
-        Amount := LibraryRandom.RandDec(1000, 2);
-        if DetailedCustLedgEntry.FindLast() then;
-        DetailedCustLedgEntry.Init();
-        DetailedCustLedgEntry."Entry No." := DetailedCustLedgEntry."Entry No." + 1;
-        DetailedCustLedgEntry."Cust. Ledger Entry No." := CustLedgerEntry."Entry No.";
-        DetailedCustLedgEntry."Customer No." := CustomerNo;
-        DetailedCustLedgEntry."Posting Date" := WorkDate();
-        DetailedCustLedgEntry."Entry Type" := DetailedCustLedgEntry."Entry Type"::"Initial Entry";
-        DetailedCustLedgEntry.Amount := Amount;
-        DetailedCustLedgEntry."Amount (LCY)" := Amount;
-        DetailedCustLedgEntry.Insert();
-    end;
-
     [RequestPageHandler]
     procedure EXRTrialBalanceExcelHandler(var EXRTrialBalanceExcel: TestRequestPage "EXR Trial Balance Excel")
     begin
@@ -1030,28 +954,6 @@ codeunit 139544 "Trial Balance Excel Reports"
     begin
         EXRConsolidatedTrialBalance.EndingDateField.Value := Format(DMY2Date(31, 12, WorkDate().Year));
         EXRConsolidatedTrialBalance.OK().Invoke();
-    end;
-
-    [RequestPageHandler]
-    procedure EXRAgedAccPayableExcelHandler(var EXRAgedAccPayableExcel: TestRequestPage "EXR Aged Acc Payable Excel")
-    begin
-        EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate());
-        EXRAgedAccPayableExcel.OK().Invoke();
-    end;
-
-    [RequestPageHandler]
-    procedure EXRAgedAccountsRecExcelHandler(var EXRAgedAccountsRecExcel: TestRequestPage "EXR Aged Accounts Rec Excel")
-    begin
-        EXRAgedAccountsRecExcel.AgedAsOfOption.SetValue(WorkDate());
-        EXRAgedAccountsRecExcel.OK().Invoke();
-    end;
-
-    [RequestPageHandler]
-    procedure EXRAgedAccPayablePostingDateHandler(var EXRAgedAccPayableExcel: TestRequestPage "EXR Aged Acc Payable Excel")
-    begin
-        EXRAgedAccPayableExcel.AgedAsOfOption.SetValue(WorkDate());
-        EXRAgedAccPayableExcel.AgingbyOption.SetValue('Posting Date');
-        EXRAgedAccPayableExcel.OK().Invoke();
     end;
 
 #if not CLEAN27

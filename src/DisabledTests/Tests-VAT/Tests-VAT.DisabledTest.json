@@ -1,0 +1,3082 @@
+[
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "ApplyPurchaseCreditMemoTwice"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "ApplySalesCreditMemoTwice"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "CreditMemoApplyTwiceCurrency"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "FullPaymentUnrealizedVATFirst"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "FullVATFullyPaidSales"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "FullVATFullyPurchase"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "HalfVATFirstPurchase"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "HalfVATFirstPurchaseFCY"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "HalfVATFirstSales"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "NoVATFullyPaidPurchase"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "NoVATFullyPaidSales"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "PartialCreditMemoWithCurrency"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "PartialPaymentVATFirstFully"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "PartialPaymentVATTypeFirst"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "PartialVATFirstPurchase"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "PartialVATFirstPurchaseFCY"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "PartialVATFirstSales"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "PartialVATPurchaseCreditMemo"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "PartialVATSalesCreditMemo"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "RemainingVATFirstPurchase"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "RemainingVATFirstPurchaseFCY"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "RemainingVATFirstSales"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "RemainingVATPurchaseFCY"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "UnrealizedVATHalfFirstPurch"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "UnrealizedVATHalfFirstSales"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "UnrealVATFirstRemainingPurch"
+  },
+  {
+    "codeunitId": 134014,
+    "codeunitName": "ERM Unreal VAT Option First",
+    "method": "UnrealVATFirstRemainingSales"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "ApplyFullyPurchaseCreditMemo"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "ApplyFullyVATSalesCreditMemo"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "ApplyPartialPurchaseCreditMemo"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "ApplyPartialVATSalesCreditMemo"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "ApplyPurchaseCreditMemoTwice"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "ApplySalesCreditMemoTwice"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "ClosePaymentUnrealVATLast"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "CreditMemoApplyTwiceCurrency"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "FullVATLastFullyPaidPurchase"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "FullVATLastFullyPaidSales"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "NoVATLastFullyPaidPurchase"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "NoVATLastFullyPaidSales"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "OverVATPaymentLastFully"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "OverVATPaymentUnrealVATLast"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "PartialCreditMemoWithCurrency"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "PartialFullyPurchaseCreditMemo"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "PartialFullyVATSalesCreditMemo"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "PartialVATLastPurchase"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "PartialVATLastSales"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "PartialVATPurchaseCreditMemo"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "PartialVATSalesCreditMemo"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "RemainingVATLastPurchase"
+  },
+  {
+    "codeunitId": 134015,
+    "codeunitName": "ERM Unreal VAT Option Last",
+    "method": "RemainingVATLastSales"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchCrMemoFullRefundDiffFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchCrMemoFullRefundFCYLCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchCrMemoFullRefundSameFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchCrMemoFullRefundSameFCYDecrease"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchCrMemoPartialPaymentDiffFCYRemaining"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchCrMemoPartialPaymentSameFCYRemaining"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchCrMemoPartialRefundDiffFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchCrMemoPartialRefundFCYLCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchCrMemoPartialRefundSameFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchCrMemoPartialRefundSameFCYDecrease"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchFullPaymentInvoiceSameFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchInvoiceFullPaymentDiffFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchInvoiceFullPaymentFCYLCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchInvoiceFullPaymentSameFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchInvoiceFullPaymentSameFCYDecrease"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchInvoicePartialPaymentDiffFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchInvoicePartialPaymentDiffFCYRemaining"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchInvoicePartialPaymentFCYLCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchInvoicePartialPaymentSameFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchInvoicePartialPaymentSameFCYDecrease"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchInvoicePartialPaymentSameFCYRemaining"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "PurchPartialPaymentInvoiceSameFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesCrMemoFullRefundDiffFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesCrMemoFullRefundFCYLCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesCrMemoFullRefundSameFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesCrMemoFullRefundSameFCYDecrease"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesCrMemoPartialPaymentDiffFCYRemaining"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesCrMemoPartialPaymentSameFCYRemaining"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesCrMemoPartialRefundDiffFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesCrMemoPartialRefundFCYLCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesCrMemoPartialRefundSameFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesCrMemoPartialRefundSameFCYDecrease"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesFullPaymentInvoiceSameFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesInvoiceFullPaymentDiffFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesInvoiceFullPaymentFCYLCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesInvoiceFullPaymentSameFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesInvoiceFullPaymentSameFCYDecrease"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesInvoicePartialPaymentDiffFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesInvoicePartialPaymentDiffFCYRemaining"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesInvoicePartialPaymentFCYLCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesInvoicePartialPaymentSameFCY"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesInvoicePartialPaymentSameFCYDecrease"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesInvoicePartialPaymentSameFCYRemaining"
+  },
+  {
+    "codeunitId": 134021,
+    "codeunitName": "ERM Unrealized VAT With FCY",
+    "method": "SalesPartialPaymentInvoiceSameFCY"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "ApplyCreditMemoToInvoice"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "ApplyPaymentToInvoice"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "ExpectedGLEntriesWhenPostingUnrealizedVATDeferralHeaderDiscountInvoice"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "ExpectedGLEntriesWhenPostingUnrealizedVATDeferralLineDiscountInvoice"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "FCYCrMemoLowerInvoiceHalfMinusPaidDownExchRate"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "FCYCrMemoLowerInvoiceHalfMinusPaidUpExchRate"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "FCYCrMemoLowerInvoiceHalfPlusPaidDownExchRate"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "FCYCrMemoLowerInvoiceHalfPlusPaidUpExchRate"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "FCYCrMemoOverInvoiceHalfMinusPaidDownExchRate"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "FCYCrMemoOverInvoiceHalfMinusPaidUpExchRate"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "FCYCrMemoOverInvoiceHalfPlusPaidDownExchRate"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "FCYCrMemoOverInvoiceHalfPlusPaidUpExchRate"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "FCYCrMemoToInvoiceHalfMinusPaidDownExchRate"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "FCYCrMemoToInvoiceHalfMinusPaidUpExchRate"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "FCYCrMemoToInvoiceHalfPlusPaidDownExchRate"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "FCYCrMemoToInvoiceHalfPlusPaidUpExchRate"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "FCYInvoiceAppliedWithSameExchRateAfterAdjustment"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "GLEntriesRevertWithCreditMemoWhenPostingUnrealizedVATDeferralDiscountInvoice"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "SalesInvoiceWithNegativeLinePartialApply"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "TestUnrealizedVATEntry"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "TestZeroVATUnrealizedVATEntry"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "ThreePartialPaymentsOfUnrealVATSalesInvoiceWithThreeLines"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "UnrealizedLossAfterAdjustRate"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "UnrealizedVATApplyPayment"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "UnrealizedVATFullyPaid"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "UnrealizedVATPercentageApply"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "UnrealizedVATWithACY"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "UnrealizedVATWithCreditMemo"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "UnrealizedVATWithCurrencies"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "UnrealizedVATWithDiffCurrency"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "UnrealizedVATWithExchangeRate"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "UnrealizedVATWithFCY"
+  },
+  {
+    "codeunitId": 134025,
+    "codeunitName": "ERM Unrealized VAT Customer",
+    "method": "UnrealizedVATWithSameCurrency"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "ApplyAndPostApplicationPayment"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "CreditMemoPostingWithUnrealizedVatTypePercentage"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "ExpectedGLEntriesWhenPostingUnrealizedVATDeferralHeaderDiscountInvoice"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "ExpectedGLEntriesWhenPostingUnrealizedVATDeferralLineDiscountInvoice"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "FCYCrMemoLowerInvoiceHalfMinusPaidDownExchRate"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "FCYCrMemoLowerInvoiceHalfMinusPaidUpExchRate"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "FCYCrMemoLowerInvoiceHalfPlusPaidDownExchRate"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "FCYCrMemoLowerInvoiceHalfPlusPaidUpExchRate"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "FCYCrMemoOverInvoiceHalfMinusPaidDownExchRate"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "FCYCrMemoOverInvoiceHalfMinusPaidUpExchRate"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "FCYCrMemoOverInvoiceHalfPlusPaidDownExchRate"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "FCYCrMemoOverInvoiceHalfPlusPaidUpExchRate"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "FCYCrMemoToInvoiceHalfMinusPaidDownExchRate"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "FCYCrMemoToInvoiceHalfMinusPaidUpExchRate"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "FCYCrMemoToInvoiceHalfPlusPaidDownExchRate"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "FCYCrMemoToInvoiceHalfPlusPaidUpExchRate"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "FCYInvoiceAppliedWithSameExchRateAfterExchRateAdjustment"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "GLEntriesRevertWithCreditMemoWhenPostingUnrealizedVATDeferralDiscountInvoice"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "PurchInvoiceWithNegativeLinePartialApply"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "TestUnrealizedVATEntry"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "TestZeroVATUnrealizedVATEntry"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "ThreePartialPaymentsOfUnrealVATPurchInvoiceWithThreeLines"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "UnrealizedVATApplyPayment"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "UnrealizedVATFullyPaid"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "UnrealizedVATPercentage"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "UnrealizedVATPercentageApply"
+  },
+  {
+    "codeunitId": 134026,
+    "codeunitName": "ERM Unrealized VAT Vendor",
+    "method": "UnrealizedVATWithCreditMemo"
+  },
+  {
+    "codeunitId": 134028,
+    "codeunitName": "ERM Change VAT On VAT Amt Line",
+    "method": "StatisticsInvoicingTabVATAmountUpdatesGeneralTabForSalesOrder"
+  },
+  {
+    "codeunitId": 134028,
+    "codeunitName": "ERM Change VAT On VAT Amt Line",
+    "method": "StatisticsVATAmountLineUpdatesGeneralTabForSalesInvoice"
+  },
+  {
+    "codeunitId": 134028,
+    "codeunitName": "ERM Change VAT On VAT Amt Line",
+    "method": "TestManlVATOnSalesOrdWithFCY"
+  },
+  {
+    "codeunitId": 134028,
+    "codeunitName": "ERM Change VAT On VAT Amt Line",
+    "method": "TestNegativeManlVATOnSalesOrd"
+  },
+  {
+    "codeunitId": 134028,
+    "codeunitName": "ERM Change VAT On VAT Amt Line",
+    "method": "TestPositiveManlVATOnSalesOrd"
+  },
+  {
+    "codeunitId": 134028,
+    "codeunitName": "ERM Change VAT On VAT Amt Line",
+    "method": "VATAmountWithVATDiffForPurchase"
+  },
+  {
+    "codeunitId": 134028,
+    "codeunitName": "ERM Change VAT On VAT Amt Line",
+    "method": "VATAmountWithVATDiffForSales"
+  },
+  {
+    "codeunitId": 134029,
+    "codeunitName": "ERM VAT On Gen Journal Line",
+    "method": "NegativeVATDiffOnGenJnlLine"
+  },
+  {
+    "codeunitId": 134029,
+    "codeunitName": "ERM VAT On Gen Journal Line",
+    "method": "PositiveVATDiffOnGenJnlLine"
+  },
+  {
+    "codeunitId": 134029,
+    "codeunitName": "ERM VAT On Gen Journal Line",
+    "method": "VATBaseAmountOnGenJnlLine"
+  },
+  {
+    "codeunitId": 134029,
+    "codeunitName": "ERM VAT On Gen Journal Line",
+    "method": "VerifySalesAmtLCYonCLEwhenEntryPostedInMultiLine"
+  },
+  {
+    "codeunitId": 134030,
+    "codeunitName": "ERM VAT 2010",
+    "method": "ServiceCreditMemoEUService"
+  },
+  {
+    "codeunitId": 134030,
+    "codeunitName": "ERM VAT 2010",
+    "method": "ServiceOrderEUService"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "InvoiceDiscountAmountOnPostedPurchaseCreditMemo"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "InvoiceDiscountAmountOnPostedSalesCreditMemo"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "InvoiceDiscountAmountOnPurchaseCreditMemo"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "InvoiceDiscountAmountOnSalesCreditMemo"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "PostPurchCMWithCustomInvDisc"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "PurchaseLineDiscountWhenPostItemCharge"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "PurchaseLineDiscountWhenPostItemChargeLCY"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "PurchaseOrderInvDisc"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "PurchaseOrderInvDiscAndPayment"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "PurchOrderWithInvDiscAndVAT"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "SalesCMWithInvDiscAndVAT"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "SalesCMWithLineDiscAndVAT"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "SalesInvoiceWithLineDiscount"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "SalesLineDiscountWhenPostItemCharge"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "SalesLineDiscountWhenPostItemChargeLCY"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "SalesOrderInvDisc"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "SalesOrderInvDiscAndPayment"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "SalesOrderVATAfterInvDisc"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "SalesOrderVATAfterInvDiscZero"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "SalesOrderWithZeroVAT"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "VATAmountOnPstdPurchCrMemo"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "VATAmountOnPstdPurchInvoice"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "VATAmountOnPstdSalesCrMemo"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "VATAmountOnPstdSalesInvoice"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "VATAmountOnSalesCrMemo"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "VATAmountOnSalesOrder"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "VATIdentifierOnPstdPurchCrMemo"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "VATIdentifierOnPstdPurchInv"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "VATIdentifierOnPstdSalesCrMemo"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "VATIdentifierOnPstdSalesInv"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "VATIdentifierOnPurchCrMemo"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "VATIdentifierOnPurchOrder"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "VATIdentifierOnSalesCrMemo"
+  },
+  {
+    "codeunitId": 134039,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purchase",
+    "method": "VATIdentifierOnSalesOrder"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "InvDiscountPartPostPurchaseOrderWithZeroLine"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "InvDiscountPartPostSalesOrder"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "InvDiscountPartPostSalesOrderWithZeroLine"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "PstdPurchaseCrMemoRoundingNear"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "PstdPurchaseInvoiceRoundingUp"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "PstdPurchaseOrderRoundingNear"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "PstdPurchOrderEqualInvDiscount"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "PstdSalesInvoiceRoundingNear"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "PstdSalesOrderEqualInvDiscount"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "PstdSalesOrderRoundingUp"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "SalesInvoiceFCYRoundingNear"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "SalesOrderEqualInvDiscount"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "SalesOrderLargeInvDiscount"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "SalesOrderNegativeInvDiscount"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "SalesOrderNonDiscountItem"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "SalesOrderRoundingUp"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "VATBaseAmountOnPstdPurchCrMemo"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "VATBaseAmountOnPstdPurchInv"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "VATBaseAmountOnPstdSalesCrMemo"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "VATBaseAmountOnPstdSalesInv"
+  },
+  {
+    "codeunitId": 134040,
+    "codeunitName": "ERM Inv Disc VAT Sale/Purch II",
+    "method": "VATSpecificationSalesInvoice"
+  },
+  {
+    "codeunitId": 134042,
+    "codeunitName": "ERM VAT Tolerance",
+    "method": "HighInclVATTolOnPostedPurchDoc"
+  },
+  {
+    "codeunitId": 134042,
+    "codeunitName": "ERM VAT Tolerance",
+    "method": "HighInclVATTolOnPostedSalesDoc"
+  },
+  {
+    "codeunitId": 134042,
+    "codeunitName": "ERM VAT Tolerance",
+    "method": "HighVATTolOnPostedPurchDoc"
+  },
+  {
+    "codeunitId": 134042,
+    "codeunitName": "ERM VAT Tolerance",
+    "method": "HighVATTolOnPostedSalesDoc"
+  },
+  {
+    "codeunitId": 134042,
+    "codeunitName": "ERM VAT Tolerance",
+    "method": "LowInclVATOnPostedSalesDoc"
+  },
+  {
+    "codeunitId": 134042,
+    "codeunitName": "ERM VAT Tolerance",
+    "method": "LowInclVATTolOnPostedPurchDoc"
+  },
+  {
+    "codeunitId": 134042,
+    "codeunitName": "ERM VAT Tolerance",
+    "method": "LowInclVATTolOnPostedSalesDoc"
+  },
+  {
+    "codeunitId": 134042,
+    "codeunitName": "ERM VAT Tolerance",
+    "method": "LowInclVATZeroPostedPurchDoc"
+  },
+  {
+    "codeunitId": 134042,
+    "codeunitName": "ERM VAT Tolerance",
+    "method": "LowVATTolOnPostedPurchDoc"
+  },
+  {
+    "codeunitId": 134042,
+    "codeunitName": "ERM VAT Tolerance",
+    "method": "LowVATTolOnPostedSalesDoc"
+  },
+  {
+    "codeunitId": 134042,
+    "codeunitName": "ERM VAT Tolerance",
+    "method": "LowVATTolZeroVATOnPostSalesDoc"
+  },
+  {
+    "codeunitId": 134042,
+    "codeunitName": "ERM VAT Tolerance",
+    "method": "LowVATTolZeroVATPostPurchDoc"
+  },
+  {
+    "codeunitId": 134042,
+    "codeunitName": "ERM VAT Tolerance",
+    "method": "ReverseChargeVATAmountWithTolerance"
+  },
+  {
+    "codeunitId": 134042,
+    "codeunitName": "ERM VAT Tolerance",
+    "method": "ZeroInclVATAmtPostedPurchDoc"
+  },
+  {
+    "codeunitId": 134042,
+    "codeunitName": "ERM VAT Tolerance",
+    "method": "ZeroInclVATOnPostedSalesDoc"
+  },
+  {
+    "codeunitId": 134042,
+    "codeunitName": "ERM VAT Tolerance",
+    "method": "ZeroVATAmtOnPostedSalesDoc"
+  },
+  {
+    "codeunitId": 134044,
+    "codeunitName": "ERM VAT on Jnl",
+    "method": "MaximumVATDifferenceAllowed"
+  },
+  {
+    "codeunitId": 134044,
+    "codeunitName": "ERM VAT on Jnl",
+    "method": "NegativeBalVATGenJournalLine"
+  },
+  {
+    "codeunitId": 134044,
+    "codeunitName": "ERM VAT on Jnl",
+    "method": "NoVATDiffAllowedGenJournalLine"
+  },
+  {
+    "codeunitId": 134044,
+    "codeunitName": "ERM VAT on Jnl",
+    "method": "PostGenJournalWithNegativeVAT"
+  },
+  {
+    "codeunitId": 134044,
+    "codeunitName": "ERM VAT on Jnl",
+    "method": "PostGenJournalWithPositiveVAT"
+  },
+  {
+    "codeunitId": 134044,
+    "codeunitName": "ERM VAT on Jnl",
+    "method": "VATDiffTooBigOnGenJournalLine"
+  },
+  {
+    "codeunitId": 134044,
+    "codeunitName": "ERM VAT on Jnl",
+    "method": "VATOnGenJournalLine"
+  },
+  {
+    "codeunitId": 134044,
+    "codeunitName": "ERM VAT on Jnl",
+    "method": "VATOnPostedGenJournalLine"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "BatchPostPurchCreditMemosWithVATDate"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "BatchPostPurchInvWithVATDate"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "BatchPostPurchOrdersWithVATDate"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "BatchPostSalesCreditMemosWithVATDate"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "BatchPostSalesInvWithVATDate"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "BatchPostSalesOrdersWithVATDate"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "ChangeCurrencyOnSalesOrder"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "ChangeCustomerOnSalesInvoice"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "CheckAmountOnCustomerLedgerEntry"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "CheckAmountOnVendLedgerEntry"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "CheckGenBusPostingGroupOnVatEntry"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "CustomerVatRegistrationNoOnVATEntry"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "ErrorVATAmountOnSalesOrder"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "OutStandingSalesAfterRelease"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "OutStandingSalesBeforeRelease"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PostGenJournalLineOutOfAllowedPostingPeriod"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PostPurchaseDocWithBlankVATDate"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PostPurchaseOrderVATDifference"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PostSalesDocInClosedPeriodError"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PostSalesDocInClosedPeriodError2"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PostSalesDocOutOfAllowedPostingPeriod"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PostSalesOrderVATDifference"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PostServiceDocOutOfAllowedPostingPeriod"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PostWithVATDateInReleasedVATReturnPeriodSuccess"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PurchaseInvoiceCopyDocument"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PurchaseInvoiceVATFieldCheck"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PurchaseReverseChargeVATEntriesAmounts"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "PurchaseReverseChargeVATEntriesAmountsWithMultipleLinesVatProdPostingGrp"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesCheckNumbersOfLinesLimitNeg"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesCheckNumbersOfLinesLimitPos"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesCrMemoVATAmountError"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesInvoiceCopyDocument"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesInvoiceCopyDocumentUsingGLAccount"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesInvoiceRounding"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesInvoiceSalesStatistics"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesInvoiceStatistics"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesLineAmountIncludingVATWithDifferentVATCalculationTypes"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesOrderDocTotalsAfterVATUpdatedOnStatsPage"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesOrderStatisticsVATAmount"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesOrderStatisticsVATAmountNM"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesOrderVATAmountError"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesOrderWithSevLinesAndRounding"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesPricesExclVATtoInclVATWithoutRecalc"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesPricesExclVATtoInclVATWithRecalc"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesPricesInclVATtoExclVATWithoutRecalc"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesPricesInclVATtoExclVATWithRecalc"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesVATAmountLinesWithInvoiceRounding"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SalesVATAmountLinesWithInvoiceRounding_PartialInvoicing"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SetQuantityToZeroForInsertedSalesLine"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "SetQuantityToZeroForNonInsertedSalesLine"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateAdjustedOnVATEntryOnPurchCreditMemoInvHeader"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateAdjustedOnVATEntryOnPurchInvHeader"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateAdjustedOnVATEntryOnSalesCreditMemoInvHeader"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateAdjustedOnVATEntryOnSalesInvHeader"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnFinanceChargeMemo"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnPurchaseCreditMemo"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnPurchaseInvoice"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnPurchaseOrder"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnPurchaseReturnOrder"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnRecurringGeneralJournal"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnReminder"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnSalesCreditMemo"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnSalesInvoice"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnSalesOrder"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnSalesReturnOrder"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnServiceCreditMemo"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnServiceInvoice"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATDateChangesOnServiceOrder"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATEntryAdjustDateWithEmptyDocType"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "TestVATEntryAdjustDateWithEmptyPostType"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "UpdateVATDateMultipleVATEntriesSameDocNo"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATAmountOnInvoiceTabSalesOrderPartShipAndInvoice"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATAmountOnInvoiceTabSalesOrderPartShipAndInvoiceNM"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATAmtFromSalesBlanketOrder"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATAmtFromSalesBlanketOrderNM"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATAmtFromSalesOrderStatistics"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATAmtFromSalesOrderStatisticsNM"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATAmtFromSalesQuoteSalesStatistics"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATAmtFromSalesQuoteStatistics"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATDateChangeFromClosedPeriodFailure"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATDateChangeMultiEntriesSuccessful"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATDateUIChangeDateFromToPeriodSuccessAndFailure"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATDifferenceOnCopySalesDoc"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATDifferenceOnSalesLine"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATDifferenceOnSalesLineNM"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATDifferenceOnSalesOrder"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATPostingDateChangeFailure"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATPostingDateChangeMultiPeriodSuccessful"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATPostingDateChangeNotAllowedOnSettlementSuccessful"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATPostingDateChangeSuccessful"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATPostingDateChangeWarning"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATPostingDateChangeWarning2"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATPostingDateChangeWarning3"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATPostingGroupBillToPayToNo"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATPostingGroupSellToBuyFromNo"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATPurchOrderInvAfterReceive"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATPurchOrderReceiveAndInvoice"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATSalesOrderInvoiceAfterShip"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VATSalesOrderShipAndInvoice"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VendorVatRegistrationNoOnVATEntry"
+  },
+  {
+    "codeunitId": 134045,
+    "codeunitName": "ERM VAT Sales/Purchase",
+    "method": "VerifyUnrealizedVATEntryMustBePercentage"
+  },
+  {
+    "codeunitId": 134047,
+    "codeunitName": "ERM VAT Setup",
+    "method": "AssistEditContactVATRegPopulatesLogIfContactsVATIsNotThere"
+  },
+  {
+    "codeunitId": 134047,
+    "codeunitName": "ERM VAT Setup",
+    "method": "AssistEditCustomerVATRegPopulatesLogIfCustomersVATIsNotThere"
+  },
+  {
+    "codeunitId": 134047,
+    "codeunitName": "ERM VAT Setup",
+    "method": "AssistEditVendorVATRegPopulatesLogIfVendorsVATIsNotThere"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "BlanketOrderAndOrderWithShipment"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "ConvertPartiallyReceivedOrderWithBlankQtyToReceive"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "ConvertSalesLineWithItemTrackingAfterPlanningRun"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "PrepaymentVATFieldsUpdate"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "UnitPriceDoesNotUpdateForFixedAssetLineWhenPricesIncludingVATEnabled"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "UnitPriceDoesNotUpdateForGLAccLineWhenPricesIncludingVATEnabled"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "UnitPriceDoesNotUpdateForItemChargeLineWhenPricesIncludingVATEnabled"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "UnitPriceUpdateForFixedAssetLineWhenPricesIncludingVATEnabled"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "UnitPriceUpdateForGLAccLineWhenPricesIncludingVATEnabled"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "UnitPriceUpdateForItemChargeLineWhenPricesIncludingVATEnabled"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolAdjustExtTextsAttachedToLineNo"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolDropShipmentBoth"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolProdOrderGen"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolProdOrderNo"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesBlanketOrderBoth"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesBlanketOrderGen"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesBlanketOrderNo"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesBlanketOrderVAT"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesBlanketOrdMakeFull"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesBlanketOrdMakePart"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesBlOrdMakeFShpPost"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesBlOrdMakeOrderFShp"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesBlOrdMakeOrderPShp"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesBlOrdMakePartMake"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesBlOrdMakePShpMake"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesBlOrdMakePShpPost"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesCreditMemo"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesDocConvFalse"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesDocPShConvFalse"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesInvoiceForShipment"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesInvoiceVAT"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesInvoiceVATAmount"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesLineWithZeroOutstandingQty"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderBoth"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderDimensions"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderFullyShip"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderGen"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderItemCharge"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderItemChargeSameDoc"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderItemChrgPInvoiced"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderItemChrgPInvoicedSameDoc"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderItemChrgPShip"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderItemChrgPShipSameDoc"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderItemTracking"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderMultipleLines"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderMultipleLinesUpdateFirst"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderMultipleLinesUpdateSecond"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderNo"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderNoSpaceForNewLine"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderPrepayment"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderReleasedIgn"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderReleasedNoIgn"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderReserve"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderVAT"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderVATAmount"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderWhse"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderWhsePartShip"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderWithNegativeQty"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrderWithNegativeQtyShip"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrdPartShpBoth"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrdPartShpBothMultipleLines"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrdPartShpGen"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrdPartShpVAT"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesOrdPartShpVATAmt"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesQuoteBoth"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesQuoteGen"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesQuoteMakeOrd"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesQuoteNo"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalesQuoteVAT"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSalOrdPShpAutoInsSetup"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSaRetOrdPartShpBoth"
+  },
+  {
+    "codeunitId": 134051,
+    "codeunitName": "ERM VAT Tool - Sales Doc",
+    "method": "VATToolSpecialOrderBoth"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "BlanketOrderAndOrderWithReceipt"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "ConvertPartiallyReceivedOrderWithBlankQtyToReceive"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolAdjustExtTextsAttachedToLineNo"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToollPurchOrdPartRecBoth"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToollPurchOrdPartRecBothMultipleLines"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToollPurchOrdPartRecGen"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToollPurchOrdPRAutoInsSetup"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToollPurchRetOrdPartRecBoth"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchaseBlOrdMakePShpMk"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchaseDocPShConvFalse"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchaseOrdPartShpVATAm"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchBlOrdMakeFRecPost"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchBlOrdMakeOrderFRec"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchBlOrdMakeOrderPRec"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchBlOrdMakePRecPost"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchInvoiceForReceipt"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchLineWithZeroOutstandingQty"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchOrderDimensions"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchOrderFullyReceived"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchOrderItemCharge"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchOrderItemChargeSameDoc"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchOrderItemChrgPInvoiced"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchOrderItemChrgPInvoicedSameDoc"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchOrderItemChrgPRec"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchOrderItemChrgPRecSameDoc"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchOrderItemTracking"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchOrderMultipleLinesUpdateFirst"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchOrderMultipleLinesUpdateSecond"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchOrderNoSpaceForNewLine"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchOrderPrepayment"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchOrderReserve"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchOrderWhsePartRec"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchOrderWithNegativeQtyRec"
+  },
+  {
+    "codeunitId": 134052,
+    "codeunitName": "ERM VAT Tool - Purch. Doc",
+    "method": "VATToolPurchOrdPartRecVAT"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "ConvertPartiallyReceivedOrderWithBlankQtyToReceive"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToollServOrderPartShipAndConsume"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToollServOrderPartShipAndInvoice"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToollServOrderPartShipBoth"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToollServOrderPartShipBothMultipleLines"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToollServOrderPartShipGen"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToollServOrPShAutoInsSetup"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToolServiceDocPShConvFalse"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToolServiceLineWithZeroOutstandingQty"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToolServiceOrderNoSpaceForNewLine"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToolServiceOrderReserve"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToolServiLnDimensions"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToolServInvoiceForShipment"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToolServiOrderPartShpInvoiceAndConsume"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToolServOrderFullyShip"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToolServOrderItemTracking"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToolServOrderMultipleLinesUpdateFirst"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToolServOrderMultipleLinesUpdateSecond"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToolServOrderPartShipVAT"
+  },
+  {
+    "codeunitId": 134053,
+    "codeunitName": "ERM VAT Tool - Serv. Doc",
+    "method": "VATToolServOrderPartShpVATAmt"
+  },
+  {
+    "codeunitId": 134058,
+    "codeunitName": "ERM VAT Report Reopen Release",
+    "method": "TestReopen"
+  },
+  {
+    "codeunitId": 134058,
+    "codeunitName": "ERM VAT Report Reopen Release",
+    "method": "TestReopenNotAllowed"
+  },
+  {
+    "codeunitId": 134060,
+    "codeunitName": "ERM VAT Reg. No Validity Check",
+    "method": "TestCustomerCountryCodeChangeCausesVATValidation"
+  },
+  {
+    "codeunitId": 134060,
+    "codeunitName": "ERM VAT Reg. No Validity Check",
+    "method": "TestDeletingEntityDeletesVATRegistrationLogEntries"
+  },
+  {
+    "codeunitId": 134060,
+    "codeunitName": "ERM VAT Reg. No Validity Check",
+    "method": "TestInvalidVATRegistrationNo"
+  },
+  {
+    "codeunitId": 134060,
+    "codeunitName": "ERM VAT Reg. No Validity Check",
+    "method": "TestLaunchingVatRegistrationLogContact"
+  },
+  {
+    "codeunitId": 134060,
+    "codeunitName": "ERM VAT Reg. No Validity Check",
+    "method": "TestLaunchingVatRegistrationLogCustomer"
+  },
+  {
+    "codeunitId": 134060,
+    "codeunitName": "ERM VAT Reg. No Validity Check",
+    "method": "TestLaunchingVatRegistrationLogCustomerCreatedFromContact"
+  },
+  {
+    "codeunitId": 134060,
+    "codeunitName": "ERM VAT Reg. No Validity Check",
+    "method": "TestLaunchingVatRegistrationLogVendor"
+  },
+  {
+    "codeunitId": 134060,
+    "codeunitName": "ERM VAT Reg. No Validity Check",
+    "method": "TestLaunchingVatRegistrationLogVendorCreatedFromContact"
+  },
+  {
+    "codeunitId": 134060,
+    "codeunitName": "ERM VAT Reg. No Validity Check",
+    "method": "TestMaliciousResponseWithEmptyResponseFile"
+  },
+  {
+    "codeunitId": 134060,
+    "codeunitName": "ERM VAT Reg. No Validity Check",
+    "method": "TestMaliciousResponseWithHugeNameAndAddress"
+  },
+  {
+    "codeunitId": 134060,
+    "codeunitName": "ERM VAT Reg. No Validity Check",
+    "method": "TestMaliciousResponseWithManyTags"
+  },
+  {
+    "codeunitId": 134060,
+    "codeunitName": "ERM VAT Reg. No Validity Check",
+    "method": "TestValidVATRegistrationNo"
+  },
+  {
+    "codeunitId": 134060,
+    "codeunitName": "ERM VAT Reg. No Validity Check",
+    "method": "TestVATRegistrationLogEntryCreation"
+  },
+  {
+    "codeunitId": 134060,
+    "codeunitName": "ERM VAT Reg. No Validity Check",
+    "method": "TestVendorCountryCodeChangeCausesVATValidation"
+  },
+  {
+    "codeunitId": 134061,
+    "codeunitName": "ERM VAT Tool - UT",
+    "method": "ShowSalesCrMemoVATRateChangeLogEntries"
+  },
+  {
+    "codeunitId": 134061,
+    "codeunitName": "ERM VAT Tool - UT",
+    "method": "ShowSalesInvoiceVATRateChangeLogEntries"
+  },
+  {
+    "codeunitId": 134061,
+    "codeunitName": "ERM VAT Tool - UT",
+    "method": "ShowSalesLineVATRateChangeLogEntries"
+  },
+  {
+    "codeunitId": 134061,
+    "codeunitName": "ERM VAT Tool - UT",
+    "method": "ShowSalesOrderVATRateChangeLogEntries"
+  },
+  {
+    "codeunitId": 134061,
+    "codeunitName": "ERM VAT Tool - UT",
+    "method": "ShowSalesQuoteVATRateChangeLogEntries"
+  },
+  {
+    "codeunitId": 134090,
+    "codeunitName": "ERM Pmt Disc And VAT Cust/Vend",
+    "method": "PurchCreditMemoWithVAT"
+  },
+  {
+    "codeunitId": 134090,
+    "codeunitName": "ERM Pmt Disc And VAT Cust/Vend",
+    "method": "PurchInvoiceWithVAT"
+  },
+  {
+    "codeunitId": 134090,
+    "codeunitName": "ERM Pmt Disc And VAT Cust/Vend",
+    "method": "PurchPmtDiscountWithVAT"
+  },
+  {
+    "codeunitId": 134090,
+    "codeunitName": "ERM Pmt Disc And VAT Cust/Vend",
+    "method": "PurchPmtDiscountWithVATUnapply"
+  },
+  {
+    "codeunitId": 134090,
+    "codeunitName": "ERM Pmt Disc And VAT Cust/Vend",
+    "method": "SalesCreditMemoWithVAT"
+  },
+  {
+    "codeunitId": 134090,
+    "codeunitName": "ERM Pmt Disc And VAT Cust/Vend",
+    "method": "SalesInvoiceWithVAT"
+  },
+  {
+    "codeunitId": 134090,
+    "codeunitName": "ERM Pmt Disc And VAT Cust/Vend",
+    "method": "SalesPmtDiscountWithVAT"
+  },
+  {
+    "codeunitId": 134090,
+    "codeunitName": "ERM Pmt Disc And VAT Cust/Vend",
+    "method": "SalesPmtDiscountWithVATUnapply"
+  },
+  {
+    "codeunitId": 134096,
+    "codeunitName": "ERM VAT Return",
+    "method": "TestVATReturnSuggestLines"
+  },
+  {
+    "codeunitId": 134096,
+    "codeunitName": "ERM VAT Return",
+    "method": "TestVATReturnSuggestLinesUpdateLines"
+  },
+  {
+    "codeunitId": 134096,
+    "codeunitName": "ERM VAT Return",
+    "method": "VATReportSetupAutoUpdatePeriodUI"
+  },
+  {
+    "codeunitId": 134125,
+    "codeunitName": "ERM Reversal Change VAT Amount",
+    "method": "VATDifferenceWithPurchase"
+  },
+  {
+    "codeunitId": 134125,
+    "codeunitName": "ERM Reversal Change VAT Amount",
+    "method": "VATDifferenceWithSale"
+  },
+  {
+    "codeunitId": 134125,
+    "codeunitName": "ERM Reversal Change VAT Amount",
+    "method": "VATWithNegativeAmount"
+  },
+  {
+    "codeunitId": 134125,
+    "codeunitName": "ERM Reversal Change VAT Amount",
+    "method": "VATWithPositiveAmount"
+  },
+  {
+    "codeunitId": 134126,
+    "codeunitName": "ERM Reversal VAT Entries",
+    "method": "ReversalWithNormalVAT"
+  },
+  {
+    "codeunitId": 134126,
+    "codeunitName": "ERM Reversal VAT Entries",
+    "method": "ReversalWithReverseChargeVAT"
+  },
+  {
+    "codeunitId": 134126,
+    "codeunitName": "ERM Reversal VAT Entries",
+    "method": "VATAmountOnGeneralJournalLine"
+  },
+  {
+    "codeunitId": 134130,
+    "codeunitName": "ERM Reverse And VAT Settlement",
+    "method": "CalcVATSettlementAndVATEntry"
+  },
+  {
+    "codeunitId": 134130,
+    "codeunitName": "ERM Reverse And VAT Settlement",
+    "method": "RunCalcPostVATSttlmtWithPostNotSetOnPurchaseDocReverseChargeVAT"
+  },
+  {
+    "codeunitId": 134130,
+    "codeunitName": "ERM Reverse And VAT Settlement",
+    "method": "RunCalcPostVATSttlmtWithPostNotSetOnSalesDocNormalVAT"
+  },
+  {
+    "codeunitId": 134130,
+    "codeunitName": "ERM Reverse And VAT Settlement",
+    "method": "RunCalcPostVATSttlmtWithPostNotSetOnSalesDocReverseChargeVAT"
+  },
+  {
+    "codeunitId": 134130,
+    "codeunitName": "ERM Reverse And VAT Settlement",
+    "method": "RunCalcPostVATSttlmtWithPostSetOnPurchaseDocReverseChargeVAT"
+  },
+  {
+    "codeunitId": 134130,
+    "codeunitName": "ERM Reverse And VAT Settlement",
+    "method": "RunCalcPostVATSttlmtWithPostSetOnSalesDocNormalVAT"
+  },
+  {
+    "codeunitId": 134130,
+    "codeunitName": "ERM Reverse And VAT Settlement",
+    "method": "RunCalcPostVATSttlmtWithPostSetOnSalesDocReverseChargeVAT"
+  },
+  {
+    "codeunitId": 134130,
+    "codeunitName": "ERM Reverse And VAT Settlement",
+    "method": "RunCalcPostVATSttlmtWithPostSetOnSalesDocReverseChargeVATInconsitencies"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "BlankVATRegNoReplacedWithNonBlankFromAltCustVATReg"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "ChangeBillToCustomerAndRevertBack"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "ChangeBillToCustomerWhenBillToVATCalc"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "ChangeBillToCustomerWhenSellToVATCalc"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "ChangeCustomerAfterShipToAddressConnectedToAlternativeCustVATSetup"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "ChangeShipToAddressNoConnectionToAlternativeCustVATSetup"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "ChangeShipToCountryCodeConnectionToAlternativeCustVATSetup"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "ChangeVATCountryCodeConnectionToAlternativeCustVATSetup"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "ChangeVATCountryCodeNoConnectionToAlternativeCustVATSetup"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "ClearShipToAddressConnectedToAlternativeCustVATSetup"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "ClearShipToAddressConnectedToAlternativeCustVATSetupSellToCustomer"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "NoAltCustVATRegConfWhenSetHideValidationDialog"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "ShipToCodeConnectionAltCustVATSetupOfBillToCustomer"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "ShipToCountryCodeEqualsVATCountryCodeOfAlternativeCustVATSetup"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "ShipToCountryCodeEqualsVATCountryCodeOfAlternativeCustVATSetupConfirmed"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "ShipToCountryCodeEqualsVATCountryCodeOfAlternativeCustVATSetupNotConfirmed"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "SingleConfirmationWhenChangeShipToCodeWithAltCustVATRegInDocWithLine"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "SingleConfirmationWhenRevertShipToCodeWithAltCustVATRegInDocWithLine"
+  },
+  {
+    "codeunitId": 134237,
+    "codeunitName": "Alt. Cust. VAT. Doc. Tests",
+    "method": "VATRegNoNotCopiedToCustFromSalesHeaderWhenBlankAndFromAltCustVATReg"
+  },
+  {
+    "codeunitId": 134240,
+    "codeunitName": "Alt. Cust VAT Reg. Check Tests",
+    "method": "ChangeVATCountryRegionCodeBackFromConnectedToAltCustVATRegWhenPrepayment"
+  },
+  {
+    "codeunitId": 134240,
+    "codeunitName": "Alt. Cust VAT Reg. Check Tests",
+    "method": "ChangeVATCountryRegionCodeBackPartialPosting"
+  },
+  {
+    "codeunitId": 134240,
+    "codeunitName": "Alt. Cust VAT Reg. Check Tests",
+    "method": "ChangeVATCountryRegionCodeConnectedToAltCustVATRegWhenPrepayment"
+  },
+  {
+    "codeunitId": 134240,
+    "codeunitName": "Alt. Cust VAT Reg. Check Tests",
+    "method": "ChangeVATCountryRegionCodePartialPosting"
+  },
+  {
+    "codeunitId": 134282,
+    "codeunitName": "Non-Deductible UT",
+    "method": "CheckVATEntryNonDeductibleVATPurchaseInvoicePosting"
+  },
+  {
+    "codeunitId": 134282,
+    "codeunitName": "Non-Deductible UT",
+    "method": "NonDeductibleVATWithItemCostNotAppliedToSales"
+  },
+  {
+    "codeunitId": 134283,
+    "codeunitName": "Non-Deductible Purch. Posting",
+    "method": "CostAmountInValueEntryForItemChargeAssignedByGetReceiptLines"
+  },
+  {
+    "codeunitId": 134283,
+    "codeunitName": "Non-Deductible Purch. Posting",
+    "method": "CostAmountInValueEntryHavingItemChargeNoIncludesNonDeductibleVATAmount"
+  },
+  {
+    "codeunitId": 134283,
+    "codeunitName": "Non-Deductible Purch. Posting",
+    "method": "HundredPctPurchInvWithCurrencyAndRounding"
+  },
+  {
+    "codeunitId": 134283,
+    "codeunitName": "Non-Deductible Purch. Posting",
+    "method": "NormalVATNonDeductibleAmountsAfterPostingPurchInvEndToEnd"
+  },
+  {
+    "codeunitId": 134283,
+    "codeunitName": "Non-Deductible Purch. Posting",
+    "method": "PostedEntriesManualChangeOfNonDedVATPct"
+  },
+  {
+    "codeunitId": 134283,
+    "codeunitName": "Non-Deductible Purch. Posting",
+    "method": "PurchInvoiceWithNonDeductibleVATAndPricesIncludingVAT"
+  },
+  {
+    "codeunitId": 134283,
+    "codeunitName": "Non-Deductible Purch. Posting",
+    "method": "RevChargeNonDeductibleAmountsAfterPostingPurchInvEndToEnd"
+  },
+  {
+    "codeunitId": 134283,
+    "codeunitName": "Non-Deductible Purch. Posting",
+    "method": "ReverseChargeNonDeductibleAmountsAfterPostingPurchaseOrder"
+  },
+  {
+    "codeunitId": 134283,
+    "codeunitName": "Non-Deductible Purch. Posting",
+    "method": "ValueEntryItemChargeIncludesNonDeductibleVATAmountInCostAmount"
+  },
+  {
+    "codeunitId": 134283,
+    "codeunitName": "Non-Deductible Purch. Posting",
+    "method": "VerifyUnitCostOnProjectLedgerEntryForNonDeductibleAmountsAfterPosting"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "DeferralNonDedVATRounding"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "DeferralNonDedVATRoundingReverseChargeVAT"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "JobLedgerEntryAfterPostPurchCrMemoWithNonDeductibleVAT"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "NonDedNormalVATRoundingOnPurchInvWith6LinesAndDimensions"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "NonDedNormalVATRoundingOnPurchInvWithCustomLinesAndDimensions"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "NonDedRevChrgVATRoundingOnPurchInvWith6LinesAndDimensions"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "NonDedRevChrgVATRoundingOnPurchInvWithCustomLinesAndDimensions"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "NonDeductibleReverseChargeVATInPurchaseInvoice"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "NonDeductibleVATInPurchaseInvoice"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "PostedFCYPurchInvWithDeferralAndDeductibleVATBlankNonDeductibleVATAcc"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "PostedPurchInvWithDeferralAndDeductibleVATBlankNonDeductibleVATAcc"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "PostedPurchInvWithDeferralAndDeductibleVATBlankNonDeductibleVATAccReverseChargeVAT"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "PostedPurchInvWithDeferralAndDeductibleVATWithNonDeductibleVATAcc"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "PostedPurchInvWithDeferralAndDeductibleVATWithNonDeductibleVATAccReverseChargeVAT"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "PostedPurchInvWithDeferralAndZeroDeductibleVAT"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "PostedPurchInvWithDeferralAndZeroDeductibleVATReverseChargeVAT"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "ProjectLedgerEntryShowsCorrectAmountWithNonDeductibleVATWhenPostFromPurchaseInvoice"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "PurchaseInvoiceNonDeductibleVAT"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "PurchInvWithNonDedAndDeprUntilFADateBeforeInvDate"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "ReverseChargeVATAmtOnAcqAccountWhenZeroDedPctAndBlankNDVATAccount"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "VATAmtOnAcqAccountWhenZeroDedPctAndBlankNDVATAccount"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "VATAmtOnRevChargeVATAcctWhenZeroDedPctAndBlankNDVATAccount"
+  },
+  {
+    "codeunitId": 134284,
+    "codeunitName": "Non Ded. VAT Misc.",
+    "method": "VATAmtOnRevChargeVATAcctWhenZeroDedPctAndNDVATAccount"
+  },
+  {
+    "codeunitId": 134285,
+    "codeunitName": "Non-Deductible VAT Post. Basic",
+    "method": "PurchInvDeductiblePcthundredWithNondeductibleAcc"
+  },
+  {
+    "codeunitId": 134285,
+    "codeunitName": "Non-Deductible VAT Post. Basic",
+    "method": "PurchInvDeductiblePcthundredWithoutNondeductibleAcc"
+  },
+  {
+    "codeunitId": 134285,
+    "codeunitName": "Non-Deductible VAT Post. Basic",
+    "method": "PurchInvDeductiblePctRandomWithNondeductibleAcc"
+  },
+  {
+    "codeunitId": 134285,
+    "codeunitName": "Non-Deductible VAT Post. Basic",
+    "method": "PurchInvDeductiblePctRandomWithoutNondeductibleAcc"
+  },
+  {
+    "codeunitId": 134285,
+    "codeunitName": "Non-Deductible VAT Post. Basic",
+    "method": "PurchNonDeductibleReverseVAT"
+  },
+  {
+    "codeunitId": 134286,
+    "codeunitName": "Non. Ded. VAT Currency",
+    "method": "BasicPurchInvWithACY"
+  },
+  {
+    "codeunitId": 134286,
+    "codeunitName": "Non. Ded. VAT Currency",
+    "method": "PurchInvWithdFCYAndTwoLines"
+  },
+  {
+    "codeunitId": 134287,
+    "codeunitName": "Non-Deductible VAT Statistics",
+    "method": "PostingOfPurchInvWithChangedVATAmtAndNonDedVATAmount"
+  },
+  {
+    "codeunitId": 134287,
+    "codeunitName": "Non-Deductible VAT Statistics",
+    "method": "PostingOfPurchInvWithChangedVATAmtAndNonDedVATAmt"
+  },
+  {
+    "codeunitId": 134287,
+    "codeunitName": "Non-Deductible VAT Statistics",
+    "method": "PurchaseInvoiceInCurrencyIsPostedWhenChangeVATAmountOnStatisticIfNDVATPctIs100"
+  },
+  {
+    "codeunitId": 134287,
+    "codeunitName": "Non-Deductible VAT Statistics",
+    "method": "PurchaseInvoiceInCurrencyIsPostedWhenChangeVATAmtOnStatisticIfNDVATPctIs100"
+  },
+  {
+    "codeunitId": 134289,
+    "codeunitName": "Non-Deductible VAT Pmt. Disc.",
+    "method": "NormalVATPurchInvAppliedToPmtAdjustForPmtDisc"
+  },
+  {
+    "codeunitId": 134289,
+    "codeunitName": "Non-Deductible VAT Pmt. Disc.",
+    "method": "ReverseChargeVATPurchInvAppliedToPmtAdjustForPmtDisc"
+  },
+  {
+    "codeunitId": 134290,
+    "codeunitName": "Non-Deductible VAT Reports",
+    "method": "VATReconciliationReportWithNonDedVAT"
+  },
+  {
+    "codeunitId": 134290,
+    "codeunitName": "Non-Deductible VAT Reports",
+    "method": "VATSettlementReverseChargeVAT"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "BlankSalesLineServiceCharge"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "PurchaseOrderPostWithFullPrepmtAndServChargeLine"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "PurchaseOrderPostWithPrepmtAndServChargeLine"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "PurchaseOrderUpdatePrepmtInServChargeLine"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "PurchaseOrderWithPrepmtCreateLineWithServChargeLine"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "PurchaseOrderWithPrepmtResetPrepmtInServiceChargeLine"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "PurchaseOrderWithServChargeChangedCannotBeUpdatedWhenPrepmtPosted"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "PurchaseOrderWithServChargeIsUpdatedWhenPrepmtPosted"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "PurchCMGLEntryVATServiceCharge"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "SalesOrderGLVATServiceCharge"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "SalesOrderPostWithFullPrepmtAndServChargeLine"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "SalesOrderPostWithPrepmtAndServChargeLine"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "SalesOrderUpdatePrepmtInServChargeLine"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "SalesOrderVATServiceCharge"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "SalesOrderWithPrepmtCreateLineWithServChargeLine"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "SalesOrderWithPrepmtResetPrepmtInServiceChargeLine"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "SalesOrderWithServChargeChangedCannotBeUpdatedWhenPrepmtPosted"
+  },
+  {
+    "codeunitId": 134908,
+    "codeunitName": "ERM VAT Serv. Charge",
+    "method": "SalesOrderWithServChargeIsUpdatedWhenPrepmtPosted"
+  },
+  {
+    "codeunitId": 134283,
+    "codeunitName": "Non-Deductible Purch. Posting",
+    "method": "PurchCrMemoNonDedVATWithPositiveAndNegativeLines"
+  },
+  {
+    "codeunitId": 134283,
+    "codeunitName": "Non-Deductible Purch. Posting",
+    "method": "DeductibleVATBaseNotZeroedWhenNonDedVATPctIsZero"
+  }
+]

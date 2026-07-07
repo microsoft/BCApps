@@ -19,6 +19,12 @@
       "version": "29.0.0.0"
     },
     {
+      "id": "e1966889-b5fb-4fda-a84c-ea71b590e1a9",
+      "name": "PEPPOL",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
       "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
       "name": "Tests-TestLibraries",
       "publisher": "Microsoft",
@@ -74,7 +80,7 @@
     },
     {
       "from": 135575,
-      "to": 135575
+      "to": 135576
     },
     {
       "from": 135647,
