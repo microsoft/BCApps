@@ -307,6 +307,18 @@ page 99000754 "Work Center Card"
                 }
             }
         }
+        area(processing)
+        {
+            action("Calculate Work Center Calendar")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'Calculate Work Center Calendar';
+                Image = CalcWorkCenterCalendar;
+                RunObject = Report "Calculate Work Center Calendar";
+                RunPageOnRec = true;
+                ToolTip = 'Create new calendar entries for the work center to define the available daily capacity.';
+            }
+        }
         area(reporting)
         {
             action("Subcontractor - Dispatch List")
@@ -326,6 +338,9 @@ page 99000754 "Work Center Card"
             {
                 Caption = 'Process', Comment = 'Generated from the PromotedActionCategories property index 1.';
 
+                actionref("Calculate Work Center Calendar_Promoted"; "Calculate Work Center Calendar")
+                {
+                }
                 actionref("Lo&ad_Promoted"; "Lo&ad")
                 {
                 }
