@@ -119,7 +119,7 @@
   "enablePerTenantExtensionCop": true,
   "enableUICop": true,
   "enableCodeAnalyzersOnTestApps": true,
-  "rulesetFile": "../../../src/rulesets/base.ruleset.json",
+  "rulesetFile": "../../../src/rulesets/ruleset.json",
   "skipUpgrade": true,
   "fullBuildPatterns": [
     "build/*",
