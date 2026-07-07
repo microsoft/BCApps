@@ -10,7 +10,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Integration.Shopify;
 using System.TestLibraries.Utilities;
 
-codeunit 139700 "Shpfy Transactions Test"
+codeunit 139697 "Shpfy Transactions Test"
 {
     Subtype = Test;
     TestType = Uncategorized;
@@ -321,6 +321,37 @@ codeunit 139700 "Shpfy Transactions Test"
 
         // [THEN] Returns empty
         LibraryAssert.AreEqual('', Result, 'Should return empty when currency not found');
+    end;
+
+    [Test]
+    procedure TranslateCurrencyCodeReturnsEmptyWhenResolvedCodeIsLcy()
+    var
+        Currency: Record Currency;
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        ImportOrder: Codeunit "Shpfy Import Order";
+        LibraryERM: Codeunit "Library - ERM";
+        CurrencyCode: Code[10];
+        Result: Code[10];
+    begin
+        // [SCENARIO] When "LCY Code" is configured as a non-ISO currency code, a shop currency whose
+        // ISO code resolves to that LCY currency must be treated as local currency and return blank.
+        Initialize();
+
+        // [GIVEN] A currency whose Code differs from its ISO Code, and "LCY Code" set to that Code
+        CurrencyCode := LibraryERM.CreateCurrencyWithRounding();
+        Currency.Get(CurrencyCode);
+        Currency."ISO Code" := 'YYZ';
+        Currency.Modify();
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."LCY Code" := CurrencyCode;
+        GeneralLedgerSetup.Modify();
+
+        // [WHEN] TranslateCurrencyCode is called with the ISO code (which differs from "LCY Code")
+        ImportOrder.SetShop(Shop.Code);
+        Result := ImportOrder.TranslateCurrencyCode('YYZ');
+
+        // [THEN] Result is blank because the resolved BC currency code equals the LCY code
+        LibraryAssert.AreEqual('', Result, 'Should return empty when the resolved currency code is the LCY code');
     end;
 
     [HttpClientHandler]

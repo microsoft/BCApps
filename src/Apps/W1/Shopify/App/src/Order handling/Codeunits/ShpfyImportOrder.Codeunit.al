@@ -653,6 +653,7 @@ codeunit 30161 "Shpfy Import Order"
         Currency: Record Currency;
         GeneralLedgerSetup: Record "General Ledger Setup";
         CurrencyCode: Code[10];
+        CurrencyCount: Integer;
     begin
         if ShopifyCurrencyCode = '' then
             exit('');
@@ -663,12 +664,13 @@ codeunit 30161 "Shpfy Import Order"
 
         Currency.SetLoadFields(Code);
         Currency.SetRange("ISO Code", CopyStr(ShopifyCurrencyCode, 1, 3));
-        if Currency.Count() = 1 then begin
+        CurrencyCount := Currency.Count();
+        if CurrencyCount = 1 then begin
             Currency.FindFirst();
             CurrencyCode := Currency.Code;
-        end else begin
-            if Currency.Count() > 1 then begin
-                Session.LogMessage('0000S1A', StrSubstNo(DuplicateISOCodeTelemetryLbl, ShopifyCurrencyCode, Currency.Count()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+        end else
+            if CurrencyCount > 1 then begin
+                Session.LogMessage('0000S1A', StrSubstNo(DuplicateISOCodeTelemetryLbl, ShopifyCurrencyCode, CurrencyCount), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
                 Currency.FindFirst();
                 CurrencyCode := Currency.Code;
             end else
@@ -676,7 +678,11 @@ codeunit 30161 "Shpfy Import Order"
                     CurrencyCode := Currency.Code
                 else
                     Session.LogMessage('0000S1B', StrSubstNo(CurrencyNotFoundTelemetryLbl, ShopifyCurrencyCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
-        end;
+
+        // Edge case: "LCY Code" is configured as a non-ISO currency code, so the fast path
+        // above did not catch it. Treat the resolved BC currency code as LCY as well.
+        if CurrencyCode = GeneralLedgerSetup."LCY Code" then
+            exit('');
 
         exit(CurrencyCode);
     end;
