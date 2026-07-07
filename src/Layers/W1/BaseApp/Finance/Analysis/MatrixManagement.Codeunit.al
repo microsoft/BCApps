@@ -613,15 +613,16 @@ codeunit 9200 "Matrix Management"
 
         case RoundingFactor of
             RoundingFactor::"1":
-                exit(Round(Amount, 1));
+                Amount := Round(Amount, 1);
             RoundingFactor::"1000":
-                exit(Round(Amount / 1000, 0.1));
+                Amount := Round(Amount / 1000, 0.1);
             RoundingFactor::"1000000":
-                exit(Round(Amount / 1000000, 0.1));
+                Amount := Round(Amount / 1000000, 0.1);
             else
                 OnRoundAmountOnElse(Amount, RoundingFactor);
         end;
 
+        OnRoundAmountOnAfterRound(Amount, RoundingFactor);
         exit(Amount);
     end;
 
@@ -694,6 +695,9 @@ codeunit 9200 "Matrix Management"
             else
                 OnFormatRoundingFactorOnElse(AmountDecimal, RoundingFactor);
         end;
+
+        OnFormatRoundingFactorOnAfterSetAmountDecimal(RoundingFactor, AmountDecimal);
+
         case NegativeAmountFormat of
             NegativeAmountFormat::"Minus Sign":
                 Result := StrSubstNo(RoundingFormatTxt, AmountDecimal, '');
@@ -775,6 +779,28 @@ codeunit 9200 "Matrix Management"
     /// <param name="RoundingFactor">Rounding factor option being applied</param>
     [IntegrationEvent(false, false)]
     local procedure OnRoundAmountOnElse(var Amount: Decimal; RoundingFactor: Enum "Analysis Rounding Factor")
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after an amount has been rounded according to the rounding factor.
+    /// Allows subscribers to further adjust the rounded amount, for example to round to whole numbers.
+    /// </summary>
+    /// <param name="Amount">Rounded amount, passed by reference so subscribers can change it.</param>
+    /// <param name="RoundingFactor">Rounding factor that was applied.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnRoundAmountOnAfterRound(var Amount: Decimal; RoundingFactor: Enum "Analysis Rounding Factor")
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised after the decimal format text has been set for the rounding factor and before the negative amount format is applied.
+    /// Allows subscribers to change the decimal formatting based on the rounding factor.
+    /// </summary>
+    /// <param name="RoundingFactor">Rounding factor being formatted.</param>
+    /// <param name="AmountDecimal">Decimal format text, passed by reference so subscribers can change it.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnFormatRoundingFactorOnAfterSetAmountDecimal(RoundingFactor: Enum "Analysis Rounding Factor"; var AmountDecimal: Text)
     begin
     end;
 
