@@ -105,7 +105,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                   TableData "FA Ledger Entry" = rimd,
                   TableData "FA Register" = rimd,
                   TableData "VAT Book Entry" = rimd,
-                  TableData "GL Book Entry" = rimd;
+                  TableData "GL Book Entry" = rimd,
                   TableData "Spend Request to G/L Link" = rimd,
                   TableData "Maintenance Ledger Entry" = rimd;
     TableNo = "Gen. Journal Line";
