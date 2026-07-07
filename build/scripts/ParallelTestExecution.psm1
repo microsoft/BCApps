@@ -85,6 +85,24 @@ function Get-AppNameFromMetadata {
 
 <#
 .SYNOPSIS
+    Thin wrapper around BcContainerHelper's Get-BcContainerAppInfo, extracted so Pester tests can mock it.
+.DESCRIPTION
+    Delegates to BcContainerHelper\Get-BcContainerAppInfo. BcContainerHelper must be imported in
+    the calling session before this function is invoked in production. In unit tests, Pester
+    replaces this function via Mock -ModuleName ParallelTestExecution.
+#>
+function Get-BcContainerAppInfo {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$containerName,
+        [string]$tenant,
+        [switch]$tenantSpecificProperties
+    )
+    BcContainerHelper\Get-BcContainerAppInfo @PSBoundParameters
+}
+
+<#
+.SYNOPSIS
     Returns the names of test apps that are both expected for a country and installed in the container.
 .DESCRIPTION
     Combines the project metadata in build/projects.json (via Get-ApplicationGroup) with
