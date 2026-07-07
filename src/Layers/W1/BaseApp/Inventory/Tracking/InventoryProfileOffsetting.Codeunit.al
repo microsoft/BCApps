@@ -96,6 +96,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
         NextStateTxt: Label 'StartOver,MatchDates,MatchQty,CreateSupply,ReduceSupply,CloseDemand,CloseSupply,CloseLoop';
         NextState: Option StartOver,MatchDates,MatchQty,CreateSupply,ReduceSupply,CloseDemand,CloseSupply,CloseLoop;
         LotAccumulationPeriodStartDate: Date;
+        SimulationMode: Boolean;
         PlanningParametersTakenFromItemCardTxt: Label 'Item %3 at Location %4 was planned using the planning parameters from the Item Card, because no stockkeeping unit exists and %1 is set to %2.', Comment = '%1: Field Caption, %2: Missing SKU Policy, %3: Item No., %4: Location Code';
         SKUNotPlannedTxt: Label 'Item %1 at Location %2 was not planned, because no stockkeeping unit exists and %3 is set to %4.', Comment = '%1: Item No., %2: Location Code, %3: Field Caption, %4: Missing SKU Policy';
 
@@ -137,6 +138,11 @@ codeunit 99000854 "Inventory Profile Offsetting"
         CommitTracking();
 
         OnAfterCalculatePlanFromWorksheet(Item);
+    end;
+
+    internal procedure SetSimulationMode(NewSimulationMode: Boolean)
+    begin
+        SimulationMode := NewSimulationMode;
     end;
 
     local procedure InitVariables(var InventoryProfile: Record "Inventory Profile"; Item: Record Item; TemplateName: Code[10]; WorksheetName: Code[10]; MRPPlanning: Boolean)
@@ -4167,9 +4173,12 @@ codeunit 99000854 "Inventory Profile Offsetting"
         AcceptActionMsg: Boolean;
         IsHandled: Boolean;
     begin
-        ReqWkshTempl.Get(CurrTemplateName);
-        if ReqWkshTempl.Type <> ReqWkshTempl.Type::Planning then
-            exit;
+        if not SimulationMode then begin
+            ReqWkshTempl.Get(CurrTemplateName);
+            if ReqWkshTempl.Type <> ReqWkshTempl.Type::Planning then
+                exit;
+        end;
+
         ReqLine.SetCurrentKey("Worksheet Template Name", "Journal Batch Name", Type, "No.");
         ReqLine.SetRange("Worksheet Template Name", CurrTemplateName);
         ReqLine.SetRange("Journal Batch Name", CurrWorksheetName);
