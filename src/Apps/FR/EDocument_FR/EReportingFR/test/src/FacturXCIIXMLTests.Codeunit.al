@@ -1119,6 +1119,8 @@ codeunit 148148 "Factur-X CII XML Tests"
     var
         VATBusinessPostingGroup: Record "VAT Business Posting Group";
     begin
+        // Shared test libraries can reference VAT posting setup data whose backing VAT business posting group
+        // is missing in the test company, so recreate the missing group before validating the customer.
         if (VATBusPostingGroupCode = '') or VATBusinessPostingGroup.Get(VATBusPostingGroupCode) then
             exit;
 
