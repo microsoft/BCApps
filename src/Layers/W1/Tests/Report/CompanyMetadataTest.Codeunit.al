@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-codeunit 139596 "Company Metadata Test"
+codeunit 139593 "Company Metadata Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
