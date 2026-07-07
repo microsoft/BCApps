@@ -4,13 +4,13 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Vendor;
 
-codeunit 12201 "WHT Vendor IT"
+codeunit 12211 "WHT Vendor IT"
 {
 
     [EventSubscriber(ObjectType::Table, Database::Vendor, 'OnAfterGetTaxCode', '', true, false)]
     local procedure OnAfterGetTaxCode(Rec: Record Vendor; var TaxCode: Code[20])
     begin
-        if Vendor."Fiscal Code" <> '' then
-            TaxCode := Vendor."Fiscal Code";
+        if Rec."Fiscal Code" <> '' then
+            TaxCode := Rec."Fiscal Code";
     end;
 }

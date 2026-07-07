@@ -44,7 +44,6 @@ using Microsoft.Finance.VAT.RateChange;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Insurance;
@@ -1793,36 +1792,6 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'Vendor Sheet - Print';
                         RunObject = report "Vendor Sheet - Print";
                     }
-                    action("Withholding Taxes")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Withholding Taxes';
-                        RunObject = report "Withholding Taxes";
-                    }
-                    action("Contribution")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Contribution';
-                        RunObject = report "Contribution";
-                    }
-                    action("Summary Withholding Payment")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Summary Withholding Payment';
-                        RunObject = report "Summary Withholding Payment";
-                    }
-                    action("Compensation Details")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Compensation Details';
-                        RunObject = report "Compensation Details";
-                    }
-                    action("Certifications")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Certifications';
-                        RunObject = report "Certifications";
-                    }
                     action("Calculate Interest on Arrears1")
                     {
                         ApplicationArea = Basic, Suite;
@@ -1838,12 +1807,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Purchases & Payables Setup';
                         RunObject = page "Purchases & Payables Setup";
-                    }
-                    action("Withhold Tax Code")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Withhold Tax Code';
-                        RunObject = page "Withhold Codes";
                     }
                     group("Group62")
                     {

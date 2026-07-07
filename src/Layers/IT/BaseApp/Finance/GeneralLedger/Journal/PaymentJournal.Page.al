@@ -16,7 +16,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Reporting;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Purchases.Payables;
@@ -862,23 +861,6 @@ page 256 "Payment Journal"
             {
                 Caption = '&Payments';
                 Image = Payment;
-                action(WithhTaxSocSec)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Withh.Ta&x-Soc.Sec.';
-                    Image = SocialSecurityTax;
-                    ToolTip = 'Show the calculated withholding tax contributions for social security.';
-
-                    trigger OnAction()
-                    begin
-                        WithholdingSocSecMgt.CreateTmpWithhSocSec(Rec);
-                        PaymentToleranceMgt.SetIncludeWHT();
-                        PaymentToleranceMgt.PmtTolGenJnl(Rec);
-                    end;
-                }
-                separator(Action1130000)
-                {
-                }
                 action(SuggestVendorPayments)
                 {
                     ApplicationArea = Basic, Suite;
@@ -1903,7 +1885,6 @@ page 256 "Payment Journal"
         IsPostingGroupEditable: Boolean;
         StyleTxt: Text;
         OverdueWarningText: Text;
-        WithholdingSocSecMgt: Codeunit "Withholding - Contribution";
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
         EventFilter: Text;
         IsPowerAutomatePrivacyNoticeApproved: Boolean;

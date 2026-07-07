@@ -15,7 +15,6 @@ using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Period;
@@ -1535,8 +1534,6 @@ codeunit 13 "Gen. Jnl.-Post Batch"
 
     local procedure PostGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; CurrentICPartner: Code[20]; ICTransactionNo: Integer) Result: Boolean
     var
-        TmpWithholdingContribution: Record "Tmp Withholding Contribution";
-        WithholdingContribution: Codeunit "Withholding - Contribution";
         IsPosted: Boolean;
         SavedPostingDate: Date;
         SavedVATReportingDate: Date;
@@ -1590,8 +1587,6 @@ codeunit 13 "Gen. Jnl.-Post Batch"
             GenJournalLine."Due Date" := GenJournalLine."Posting Date";
         end;
         PostAllocations(GenJournalLine, false);
-        if TmpWithholdingContribution.Get(GenJournalLine."Journal Template Name", GenJournalLine."Journal Batch Name", GenJournalLine."Line No.") then
-            WithholdingContribution.PostPayments(TmpWithholdingContribution, GenJournalLine, false);
         Result := true;
         OnAfterPostGenJournalLine(GenJournalLine, Result, GenJnlPostLine);
     end;
