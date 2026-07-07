@@ -346,6 +346,14 @@ function Invoke-LegacyDemoDataTool() {
     Invoke-NavContainerCodeunit -Codeunitid 2 -containerName $ContainerName -CompanyName $CompanyName
 
     $countryCode = Get-CountryCodeFromSettings
+    if (Test-IsRUProject) {
+        # RU builds as a W1 artifact (country=w1), but the RU legacy DemoTool needs RU demo resources
+        # (RU DemoDataConfig.xml + LocalFiles such as RUS_ExchRates.xml). Stage the RU layer explicitly
+        # so those files are copied into the container; otherwise only W1 resources are staged and the
+        # RU DemoTool fails with "Could not find ... LocalFiles\RUS_ExchRates.xml".
+        Write-Host "RU project detected: staging RU DemoTool resources instead of W1."
+        $countryCode = "RU"
+    }
 
     Initialize-DemoToolResources -ContainerName $ContainerName -CountryCode $countryCode
 
@@ -521,6 +529,44 @@ function Get-CountryCodeFromSettings() {
         return $country.ToUpper()
     }
     return "W1"
+}
+
+<#
+.SYNOPSIS
+    Returns $true when running for the RU localization test project.
+.DESCRIPTION
+    RU localization apps are built against the W1 artifact (there is no RU artifact), so the AL-Go
+    "country" setting is "w1". RU tests still need RU-specific handling that no other country needs:
+      * the RU CD Tracking app (codeunit 14109) requires an Inventory Setup record at install time
+      * the RU legacy DemoTool imports RU-only resource files (e.g. LocalFiles\RUS_ExchRates.xml)
+    Detecting the RU project keeps those RU-only workarounds from affecting any other country.
+#>
+function Test-IsRUProject() {
+    $projectName = Get-ALGoSetting -Key "projectName"
+    if ($projectName -and ($projectName -match "\(RU\)")) {
+        return $true
+    }
+    $projectsToTest = Get-ALGoSetting -Key "projectsToTest"
+    if ($projectsToTest -and ($projectsToTest -contains "build/projects/Apps RU")) {
+        return $true
+    }
+    return $false
+}
+
+<#
+.SYNOPSIS
+    Runs Company-Initialize (codeunit 2) on the given company to create the standard setup records
+    (e.g. Inventory Setup) before localization apps are installed.
+#>
+function Initialize-TestCompany() {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName,
+        [Parameter(Mandatory=$true)]
+        [string]$CompanyName
+    )
+    Write-Host "Running Company-Initialize (codeunit 2) on company '$CompanyName'"
+    Invoke-NavContainerCodeunit -Codeunitid 2 -containerName $ContainerName -CompanyName $CompanyName
 }
 
 <#
@@ -718,19 +764,44 @@ function Invoke-DemoDataGeneration
         [PSCredential]$Credential,
         [string]$Tenant = "default"
     )
+    # RU-only: the RU CD Tracking app (codeunit 14109) requires an Inventory Setup record when it
+    # installs. Because creating a company re-runs OnInstallAppPerCompany, the test company must be
+    # created and Company-Initialized BEFORE apps are installed, so the record exists when CD Tracking
+    # installs. Other countries keep the original install-then-create order.
+    $isRUProject = Test-IsRUProject
+
     if ($TestType -eq "UnitTest") {
-        Install-AllApps -ContainerName $ContainerName
-        New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
+        if ($isRUProject) {
+            New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
+            Initialize-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
+            Install-AllApps -ContainerName $ContainerName
+        } else {
+            Install-AllApps -ContainerName $ContainerName
+            New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
+        }
         Write-Host "UnitTest shouldn't have dependency on any Demo Data, skipping demo data generation"
         return
     } elseif( $TestType -eq "IntegrationTest" ) {
-        Install-AllApps -ContainerName $ContainerName
-        New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
+        if ($isRUProject) {
+            New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
+            Initialize-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
+            Install-AllApps -ContainerName $ContainerName
+        } else {
+            Install-AllApps -ContainerName $ContainerName
+            New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
+        }
         Write-Host "Proceeding with demo data generation (SetupData) as test type is set to IntegrationTest"
         Invoke-ContosoDemoToolWithRetry -ContainerName $ContainerName -CompanyName (Get-TestCompanyName) -SetupData
     } elseif( $TestType -eq "Uncategorized" ) {
-        Install-AllApps -ContainerName $ContainerName
-        New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName) -EvaluationCompany
+        if ($isRUProject) {
+            # The evaluation company is created with full demo data (incl. Inventory Setup), so
+            # CD Tracking can install afterwards; just create it before installing apps.
+            New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName) -EvaluationCompany
+            Install-AllApps -ContainerName $ContainerName
+        } else {
+            Install-AllApps -ContainerName $ContainerName
+            New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName) -EvaluationCompany
+        }
         Write-Host "Proceeding with full demo data generation as test type is set to Uncategorized"
         Invoke-ContosoDemoToolWithRetry -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
     } elseif ( $TestType -eq "Legacy" ) {
