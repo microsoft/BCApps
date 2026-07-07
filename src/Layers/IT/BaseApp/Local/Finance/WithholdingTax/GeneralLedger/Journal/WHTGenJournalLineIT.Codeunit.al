@@ -10,7 +10,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 
-codeunit 12111 "WHT Gen. Journal Line IT"
+codeunit 12113 "WHT Gen. Journal Line IT"
 {
 
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAccountNoOnValidateOnBeforeCreateDim', '', true, false)]
