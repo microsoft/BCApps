@@ -8327,9 +8327,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
 #endif
     end;
 
-#if not CLREAN29
+#if not CLEAN29
     [Scope('OnPrem')]
-    [Obsolete('Moved to codeunit WHT GEn. Jnl.-Post Line IT', '29.0')]
+    [Obsolete('Moved to codeunit WHT Gen. Jnl.-Post Line IT', '29.0')]
     procedure CheckWithholdTax(DocType: Option " ",,Invoice,"Credit Memo"; DocNo: Code[20]; GenJnlLine: Record "Gen. Journal Line"; ApplyInGenJnlLine: Boolean)
     var
         WHTGenJnlPostLineIT: Codeunit "WHT Gen. Jnl.-Post Line IT";
