@@ -393,8 +393,10 @@ codeunit 134590 "Mandatory Fields Tests"
         Assert.IsTrue(PurchaseInvoice."Buy-from Vendor Name".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         Assert.IsTrue(PurchaseInvoice."Vendor Invoice No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         PurchaseInvoice."Buy-from Vendor Name".SetValue(Vendor.Name);
+#if not CLEAN29
         Assert.IsTrue(PurchaseInvoice."Message Type".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         Assert.IsTrue(PurchaseInvoice."Invoice Message".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
+#endif
         PurchaseInvoice.PurchLines.New();
         Assert.IsFalse(PurchaseInvoice.PurchLines.Quantity.ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         Assert.IsFalse(PurchaseInvoice.PurchLines."Direct Unit Cost".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
@@ -427,8 +429,10 @@ codeunit 134590 "Mandatory Fields Tests"
         PurchaseOrder.OpenNew();
         Assert.IsTrue(PurchaseOrder."Buy-from Vendor Name".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         Assert.IsTrue(PurchaseOrder."Vendor Invoice No.".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
+#if not CLEAN29
         Assert.IsTrue(PurchaseOrder."Message Type".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
         Assert.IsTrue(PurchaseOrder."Invoice Message".ShowMandatory(), UnexpectedShowMandatoryValueTxt);
+#endif
         PurchaseOrder."Buy-from Vendor Name".SetValue(Vendor."No.");
         PurchaseOrder.PurchLines.New();
         Assert.IsFalse(PurchaseOrder.PurchLines.Quantity.ShowMandatory(), UnexpectedShowMandatoryValueTxt);

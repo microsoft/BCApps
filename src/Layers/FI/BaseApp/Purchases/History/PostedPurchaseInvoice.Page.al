@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -562,18 +562,26 @@ page 138 "Posted Purchase Invoice"
                         Editable = false;
                     }
                 }
+#if not CLEAN29
                 field("Message Type"; Rec."Message Type")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     ToolTip = 'Specifies the message type for the purchase header. A Message can be up to 70 characters, and a Long Message can be up to 420. You can extend long messages to the Invoice Message 2 field. A tax message has both a reference number and information bout the tax being paid. If you use a tax message, enter the reference number in the Invoice Message field and information about the paid levies in the Invoice Message 2 field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
                 field("Invoice Message"; Rec."Invoice Message")
                 {
                     ApplicationArea = Basic, Suite;
                     Editable = false;
                     ToolTip = 'Specifies a free-text message. The maximum length of the message is between 70 and 420 characters, depending on the selection in the Message Type field.  ';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
+#endif
                 group("Remit-to")
                 {
                     field("Remit-to Code"; Rec."Remit-to Code")

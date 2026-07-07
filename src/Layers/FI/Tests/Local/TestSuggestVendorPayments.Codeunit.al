@@ -1,7 +1,11 @@
+#if not CLEAN29
 codeunit 144024 "Test Suggest Vendor Payments"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
     trigger OnRun()
     begin
@@ -568,4 +572,5 @@ codeunit 144024 "Test Suggest Vendor Payments"
         LibraryVariableStorage.AssertEmpty();
     end;
 }
+#endif
 

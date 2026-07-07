@@ -22,7 +22,9 @@ codeunit 144010 "Company Field Report Test"
 
     local procedure Initialize()
     var
+#if not CLEAN29
         SalesAndReceivablesSetup: Record "Sales & Receivables Setup";
+#endif
         FeatureKey: Record "Feature Key";
         FeatureKeyUpdateStatus: Record "Feature Data Update Status";
     begin
@@ -45,6 +47,7 @@ codeunit 144010 "Company Field Report Test"
         CompanyInformation."Registered Home City" := TenDigitsTxt + TenDigitsTxt + TenDigitsTxt + TenDigitsTxt + TenDigitsTxt;
         CompanyInformation.Modify();
 
+#if not CLEAN29
         SalesAndReceivablesSetup.Get();
         SalesAndReceivablesSetup."Reference Nos." := CreateRefNumberSeries('1000');
         SalesAndReceivablesSetup."Print Reference No." := false;
@@ -53,10 +56,12 @@ codeunit 144010 "Company Field Report Test"
         SalesAndReceivablesSetup.Date := false;
         SalesAndReceivablesSetup."Default Number" := '';
         SalesAndReceivablesSetup.Modify();
+#endif
 
         Commit();
     end;
 
+#if not CLEAN29
     local procedure CreateRefNumberSeries(StartIngNo: Code[20]): Code[10]
     var
         NoSeries: Record "No. Series";
@@ -68,6 +73,7 @@ codeunit 144010 "Company Field Report Test"
         LibraryUtility.CreateNoSeriesLine(NoSeriesLine, NoSeries.Code, StartIngNo, '9999');
         exit(NoSeries.Code);
     end;
+#endif
 
     local procedure CreateSalesDocument(Type: Enum "Sales Document Type"; Post: Boolean): Text
     var

@@ -24,15 +24,25 @@ codeunit 13456 "Create Sales Recv. Setup FI"
         ValidateRecordFields(CreateJobQueueCategory.SalesPurchasePosting(), true, true, true);
     end;
 
+#if CLEAN29
+#pragma warning disable AA0137 // InvoiceNo, CustomerNo and PrintReferenceNo are only consumed by pre-CLEAN29 code below
+#endif
     local procedure ValidateRecordFields(JobQueueCategoryCode: Code[10]; InvoiceNo: Boolean; CustomerNo: Boolean; PrintReferenceNo: Boolean)
     var
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
     begin
+#if CLEAN29
+#pragma warning restore AA0137
+#endif
         SalesReceivablesSetup.Get();
         SalesReceivablesSetup.Validate("Job Queue Category Code", JobQueueCategoryCode);
+#if not CLEAN29
+#pragma warning disable AL0432
         SalesReceivablesSetup.Validate("Invoice No.", InvoiceNo);
         SalesReceivablesSetup.Validate("Customer No.", CustomerNo);
         SalesReceivablesSetup.Validate("Print Reference No.", PrintReferenceNo);
+#pragma warning restore AL0432
+#endif
         SalesReceivablesSetup.Modify(true);
     end;
 }

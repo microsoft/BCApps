@@ -5,11 +5,17 @@
 
 namespace Microsoft.Bank.Reports;
 
+#if not CLEAN29
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Payment;
+#endif
 
+#if not CLEAN29
 report 32000005 Payment
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
     DefaultLayout = RDLC;
     RDLCLayout = './Local/BankMgt/Reports/Payment.rdlc';
     Caption = 'Payment';
@@ -147,4 +153,5 @@ report 32000005 Payment
         BankPaymentsCaptionLbl: Label 'Bank Payments';
         TotalCaptionLbl: Label 'Total';
 }
+#endif
 

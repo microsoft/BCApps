@@ -26,8 +26,12 @@ codeunit 13435 "Create Purchase Order FI"
     begin
         if PurchHeader.FindSet() then
             repeat
+#if not CLEAN29
+#pragma warning disable AL0432
                 PurchHeader.Validate("Message Type", PurchHeader."Message Type"::Message);
                 PurchHeader.Validate("Invoice Message", PurchHeader."No.");
+#pragma warning restore AL0432
+#endif
 
                 if PurchHeader."Buy-from Vendor No." = CreateVendor.DomesticFirstUp() then
                     PurchHeader.Validate("Payment Terms Code", CreatePaymentTerms.PaymentTermsDAYS30());

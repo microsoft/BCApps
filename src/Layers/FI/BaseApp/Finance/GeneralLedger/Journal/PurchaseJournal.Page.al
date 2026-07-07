@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -509,16 +509,24 @@ page 254 "Purchase Journal"
                     ApplicationArea = Comments;
                     Visible = false;
                 }
+#if not CLEAN29
                 field("Message Type"; Rec."Message Type")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the message type for the purchase header.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
                 field("Invoice Message"; Rec."Invoice Message")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies an invoice message for the general journal.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
+#endif
                 field("Job Queue Status"; Rec."Job Queue Status")
                 {
                     ApplicationArea = All;

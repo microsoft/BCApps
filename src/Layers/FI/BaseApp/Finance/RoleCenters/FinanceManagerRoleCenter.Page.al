@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -854,18 +854,26 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "Payment Application Rules";
                         Tooltip = 'Open the Payment Application Rules page.';
                     }
+#if not CLEAN29
                     action("Bank Reference Payments")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Bank Payments to Send';
                         RunObject = page "Bank Payments to send";
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
+                        ObsoleteReason = 'Moved to Banking and Payments FI app.';
                     }
                     action("Transferfiles")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Bank Reference File Setup';
                         RunObject = page "Bank Reference File Setup";
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
+                        ObsoleteReason = 'Moved to Banking and Payments FI app.';
                     }
+#endif
                     action("Cash Flow Setup")
                     {
                         ApplicationArea = Basic, Suite;
@@ -901,12 +909,17 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "Payment Methods";
                         Tooltip = 'Open the Payment Methods page.';
                     }
+#if not CLEAN29
                     action("Payment Method Codes")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Payment Method Codes';
                         RunObject = page "Payment Method Codes";
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
+                        ObsoleteReason = 'Moved to Banking and Payments FI app.';
                     }
+#endif
                     action("Currencies")
                     {
                         ApplicationArea = Suite;

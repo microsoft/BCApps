@@ -1,7 +1,11 @@
-﻿codeunit 144021 "Ref. Payment - Exported Test"
+#if not CLEAN29
+codeunit 144021 "Ref. Payment - Exported Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
     trigger OnRun()
     begin
@@ -91,4 +95,5 @@
         RefPaymentExported.MarkAffiliatedAsTransferred();
     end;
 }
+#endif
 

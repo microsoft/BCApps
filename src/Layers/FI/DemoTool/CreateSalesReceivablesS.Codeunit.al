@@ -41,9 +41,13 @@ codeunit 101311 "Create Sales & Receivables S."
         "Sales & Receivables Setup"."Credit Memo Nos." := "Sales & Receivables Setup"."Posted Credit Memo Nos.";
         "Sales & Receivables Setup"."Appln. between Currencies" := "Sales & Receivables Setup"."Appln. between Currencies"::All;
         "Sales & Receivables Setup"."Document Default Line Type" := "Sales & Receivables Setup"."Document Default Line Type"::Item;
+#if not CLEAN29
+#pragma warning disable AL0432
         "Sales & Receivables Setup"."Invoice No." := true;
         "Sales & Receivables Setup"."Customer No." := true;
         "Sales & Receivables Setup"."Print Reference No." := true;
+#pragma warning restore AL0432
+#endif
         "Sales & Receivables Setup".Modify();
     end;
 
@@ -133,9 +137,13 @@ codeunit 101311 "Create Sales & Receivables S."
         "Sales & Receivables Setup"."Stockout Warning" := true;
         "Sales & Receivables Setup"."VAT Bus. Posting Gr. (Price)" := CreateVATBusPostingGr.GetDomesticVATGroup();
         "Sales & Receivables Setup"."Document Default Line Type" := "Sales & Receivables Setup"."Document Default Line Type"::Item;
+#if not CLEAN29
+#pragma warning disable AL0432
         "Sales & Receivables Setup"."Invoice No." := true;
         "Sales & Receivables Setup"."Customer No." := true;
         "Sales & Receivables Setup"."Print Reference No." := true;
+#pragma warning restore AL0432
+#endif
         "Sales & Receivables Setup".Modify();
     end;
 

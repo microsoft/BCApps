@@ -1057,14 +1057,34 @@ table 21 "Cust. Ledger Entry"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies the date on which the customer have promised to pay this invoice.';
         }
+#if not CLEANSCHEMA32
+#pragma warning disable AA0232
         field(32000000; "Reference No."; Code[20])
         {
             Caption = 'Reference No.';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
         field(32000001; "Disreg. Pmt. Disc. at Full Pmt"; Boolean)
         {
             Caption = 'Disreg. Pmt. Disc. at Full Pmt';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
+#pragma warning restore AA0232
+#endif
     }
 
     keys

@@ -1,9 +1,13 @@
+#if not CLEAN29
 codeunit 144007 "E-Banking FI"
 {
     // // [FEATURE] [Bank Payments]
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
     trigger OnRun()
     begin
@@ -453,4 +457,5 @@ codeunit 144007 "E-Banking FI"
         Reply := false;
     end;
 }
+#endif
 

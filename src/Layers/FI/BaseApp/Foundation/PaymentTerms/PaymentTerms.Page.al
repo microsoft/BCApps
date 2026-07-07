@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -42,11 +42,16 @@ page 4 "Payment Terms"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+#if not CLEAN29
                 field("Disreg. Pmt. Disc. at Full Pmt"; Rec."Disreg. Pmt. Disc. at Full Pmt")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if you do not want to post a payment discount when it is not used.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
+#endif
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;

@@ -58,7 +58,12 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
         CreditTransferRegister: Record "Credit Transfer Register";
         CreditTransferEntry: Record "Credit Transfer Entry";
         BankExportImportSetup: Record "Bank Export/Import Setup";
+#if not CLEAN29
+#pragma warning disable AL0432
         RefPmtExp: Record "Ref. Payment - Exported";
+#pragma warning restore AL0432
+        FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
+#endif
         MessageID: Code[20];
     begin
         TempGenJnlLine.CopyFilters(GenJnlLine);
@@ -171,19 +176,25 @@ codeunit 1221 "SEPA CT-Fill Export Buffer"
                     CreditTransferEntry."Entry No." + 1, TempGenJnlLine.GetAppliesToDocEntryNo());
         until TempGenJnlLine.Next() = 0;
 
-        RefPmtExp.SetRange(Transferred, false);
-        RefPmtExp.SetRange("Applied Payments", false);
-        RefPmtExp.SetRange("SEPA Payment", true);
-        if RefPmtExp.FindSet() then
-            repeat
-                RefPmtExp.Transferred := true;
-                RefPmtExp."Transfer Date" := Today;
-                RefPmtExp."Transfer Time" := Time;
-                RefPmtExp."Batch Code" := PaymentExportData."Message ID";
-                RefPmtExp."Payment Execution Date" := RefPmtExp."Payment Date";
-                RefPmtExp.Modify();
-                RefPmtExp.MarkAffiliatedAsTransferred();
-            until RefPmtExp.Next() = 0;
+#if not CLEAN29
+        if not FIBankingPaymentFeature.IsEnabled() then begin
+#pragma warning disable AL0432
+            RefPmtExp.SetRange(Transferred, false);
+            RefPmtExp.SetRange("Applied Payments", false);
+            RefPmtExp.SetRange("SEPA Payment", true);
+            if RefPmtExp.FindSet() then
+                repeat
+                    RefPmtExp.Transferred := true;
+                    RefPmtExp."Transfer Date" := Today;
+                    RefPmtExp."Transfer Time" := Time;
+                    RefPmtExp."Batch Code" := PaymentExportData."Message ID";
+                    RefPmtExp."Payment Execution Date" := RefPmtExp."Payment Date";
+                    RefPmtExp.Modify();
+                    RefPmtExp.MarkAffiliatedAsTransferred();
+                until RefPmtExp.Next() = 0;
+#pragma warning restore AL0432
+        end;
+#endif
 
         OnAfterFillExportBuffer(PaymentExportData, BankExportImportSetup);
     end;

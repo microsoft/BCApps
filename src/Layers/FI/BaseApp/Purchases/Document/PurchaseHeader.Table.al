@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -2835,21 +2835,35 @@ table 38 "Purchase Header"
                                 Rec));
             end;
         }
+#if not CLEANSCHEMA32
+#pragma warning disable AA0232
         field(32000000; "Message Type"; Option)
         {
             Caption = 'Message Type';
             InitValue = "Reference No.";
             OptionCaption = 'Reference No.,Invoice Information,Message,Long Message,Tax Message';
             OptionMembers = "Reference No.","Invoice Information",Message,"Long Message","Tax Message";
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
 
             trigger OnValidate()
             begin
                 RefNoCheck.PurchMessageCheck(Rec);
             end;
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
         field(32000001; "Invoice Message"; Text[250])
         {
             Caption = 'Invoice Message';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
 
             trigger OnValidate()
             begin
@@ -2869,10 +2883,18 @@ table 38 "Purchase Header"
                     RefNoCheck.InvReferenceCheck("Invoice Message");
                 end;
             end;
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
         field(32000002; "Invoice Message 2"; Text[250])
         {
             Caption = 'Invoice Message 2';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
 
             trigger OnValidate()
             begin
@@ -2880,7 +2902,13 @@ table 38 "Purchase Header"
                     if StrLen("Invoice Message" + "Invoice Message 2") > 420 then
                         Error(Text1090003, FieldCaption("Invoice Message"), FieldCaption("Invoice Message 2"), 420);
             end;
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
+#pragma warning restore AA0232
+#endif
     }
 
     keys
@@ -3100,14 +3128,18 @@ table 38 "Purchase Header"
         StandardCodesMgtGlobal: Codeunit "Standard Codes Mgt.";
         ApplicationAreaMgmt: Codeunit "Application Area Mgmt.";
         CurrencyDate: Date;
+#if not CLEAN29
         RefNoCheck: Codeunit "Bank Nos Check";
+#endif
         Confirmed: Boolean;
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text034: Label 'You cannot change the %1 when the %2 has been filled in.';
         Text037: Label 'Contact %1 %2 is not related to vendor %3.';
         Text038: Label 'Contact %1 %2 is related to a different company than vendor %3.';
+#if not CLEAN29
         Text1090000: Label '%1 is too long, maximum length is %2 characters.';
+#endif
         Text039: Label 'Contact %1 %2 is not related to a vendor.';
         Text040: Label 'You can not change the %1 field because %2 %3 has %4 = %5 and the %6 has already been assigned %7 %8.';
         Text042: Label 'You must cancel the approval process if you wish to change the %1.';
@@ -3119,7 +3151,9 @@ table 38 "Purchase Header"
         Text051: Label 'You may have changed a dimension.\\Do you want to update the lines?';
 #pragma warning disable AA0470
         Text052: Label 'The %1 field on the purchase order %2 must be the same as on sales order %3.';
+#if not CLEAN29
         Text1090003: Label '%1 and %2 are too long, maximum length is %3 characters.';
+#endif
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         ReplaceDocumentDate: Boolean;

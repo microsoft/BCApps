@@ -130,6 +130,8 @@ table 475 "Vendor Payment Buffer"
             DataClassification = SystemMetadata;
             TableRelation = "Remit Address".Code where("Vendor No." = field("Vendor No."));
         }
+#if not CLEANSCHEMA32
+#pragma warning disable AA0232
         field(32000000; "Message Type"; Option)
         {
             Caption = 'Message Type';
@@ -137,32 +139,82 @@ table 475 "Vendor Payment Buffer"
             OptionCaption = 'Reference No.,Invoice Information,Message,Long Message,Tax Message';
             OptionMembers = "Reference No.","Invoice Information",Message,"Long Message","Tax Message";
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
         field(32000001; "Invoice Message"; Text[250])
         {
             Caption = 'Invoice Message';
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
         field(32000002; "Invoice Message 2"; Text[250])
         {
             Caption = 'Invoice Message 2';
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
         field(32000003; "Payment Date"; Date)
         {
             Caption = 'Payment Date';
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
         field(32000004; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
         field(32000005; "Attached to Line No."; Integer)
         {
             Caption = 'Attached to Line No.';
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
+#pragma warning restore AA0232
+#endif
     }
 
     keys
@@ -174,12 +226,14 @@ table 475 "Vendor Payment Buffer"
         key(Key2; "Document No.")
         {
         }
+#if not CLEAN29
         key(Key3; "Document No.", "Bal. Account No.")
         {
         }
         key(Key4; "Payment Date", "Vendor No.", "Document No.")
         {
         }
+#endif
     }
 
     fieldgroups

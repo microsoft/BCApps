@@ -646,8 +646,10 @@ codeunit 144020 "Depr. Diff. Calculation"
         PurchaseHeader.Validate(
           "Vendor Invoice No.", LibraryUtility.GenerateRandomCode(PurchaseHeader.FieldNo("Vendor Invoice No."), DATABASE::"Purchase Header"));
         PurchaseHeader.Validate("Posting Date", PostingDate);
+#if not CLEAN29
         PurchaseHeader.Validate("Message Type", PurchaseHeader."Message Type"::Message);
         PurchaseHeader.Validate("Invoice Message", FixedAssetNo);
+#endif
         PurchaseHeader.Modify(true);
 
         CreatePurchaseLine(PurchaseHeader, FixedAssetNo, DepreciationBookCode, Quantity, Cost);

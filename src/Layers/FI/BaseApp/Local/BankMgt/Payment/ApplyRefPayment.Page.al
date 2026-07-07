@@ -5,8 +5,12 @@
 
 namespace Microsoft.Bank.Payment;
 
+#if not CLEAN29
 page 32000002 "Apply Ref. Payment"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
     Caption = 'Apply Ref. Payment';
     InsertAllowed = false;
     PageType = List;
@@ -106,4 +110,5 @@ page 32000002 "Apply Ref. Payment"
         CurrPage.LookupMode := true;
     end;
 }
+#endif
 

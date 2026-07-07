@@ -5,14 +5,20 @@
 
 namespace Microsoft.Bank.Payment;
 
+#if not CLEAN29
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
+#endif
 
+#if not CLEAN29
 report 32000001 "Ref. Payment Imported"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
     DefaultLayout = RDLC;
     RDLCLayout = './Local/BankMgt/Payment/RefPaymentImported.rdlc';
     Caption = 'Ref. Payment Imported';
@@ -169,4 +175,5 @@ report 32000001 "Ref. Payment Imported"
         AikaCaptionLbl: Label 'Aika';
         PvmCaptionLbl: Label 'Pvm';
 }
+#endif
 
