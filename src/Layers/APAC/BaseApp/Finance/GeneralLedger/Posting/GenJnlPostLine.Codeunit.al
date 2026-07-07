@@ -2266,33 +2266,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             end;
     end;
 
-    local procedure UpdateAppliedCVLedgerEntries()
-    var
-        VendorLedgerEntryApplied: Record "Vendor Ledger Entry";
-        CustLedgEntryApplied: Record "Cust. Ledger Entry";
-    begin
-        if TempVendorLedgerEntry.FindSet() then begin
-            repeat
-                if VendorLedgerEntryApplied.Get(TempVendorLedgerEntry."Entry No.") then begin
-                    VendorLedgerEntryApplied."Applies-to ID" := '';
-                    VendorLedgerEntryApplied."Amount to Apply" := 0;
-                    VendorLedgerEntryApplied.Modify();
-                end;
-            until TempVendorLedgerEntry.Next() = 0;
-            TempVendorLedgerEntry.DeleteAll();
-        end;
-        if TempCustLedgEntry.FindSet() then begin
-            repeat
-                if CustLedgEntryApplied.Get(TempCustLedgEntry."Entry No.") then begin
-                    CustLedgEntryApplied."Applies-to ID" := '';
-                    CustLedgEntryApplied."Amount to Apply" := 0;
-                    CustLedgEntryApplied.Modify();
-                end;
-            until TempCustLedgEntry.Next() = 0;
-            TempCustLedgEntry.DeleteAll();
-        end;
-    end;
-
     local procedure UpdateSpendRequest(var GLEntry: Record "G/L Entry"; var GenJnlLine: Record "Gen. Journal Line")
     var
         SpendReqToGLLink: Record "Spend Request To G/L Link";
