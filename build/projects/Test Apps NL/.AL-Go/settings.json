@@ -47,7 +47,8 @@
       "settings": {
         "testType": "Legacy",
         "bucketNumber": 1,
-        "companyName": "CRONUS International Ltd."
+        "companyName": "CRONUS International Ltd.",
+        "smokeTestDemoDataTypes": [ "Standard", "Evaluation" ]
       }
     },
     {
