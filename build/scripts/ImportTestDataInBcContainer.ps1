@@ -738,7 +738,9 @@ function Invoke-DemoDataGeneration
         New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
         Write-Host "Proceeding with full demo data generation as test type is set to Legacy"
         Invoke-LegacyDemoDataTool -ContainerName $ContainerName -Credential $Credential -Tenant $Tenant
-        Install-AllApps -ContainerName $ContainerName
+        # TEMP: Skipping install of remaining apps after legacy demo data generation to test
+        # whether TestDataSensitivities only validates installed apps (e.g. Data Archive).
+        # Install-AllApps -ContainerName $ContainerName
     }
     else {
         throw "Unknown test type $TestType."
