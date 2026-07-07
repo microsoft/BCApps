@@ -315,9 +315,26 @@ page 99000754 "Work Center Card"
                 }
             }
         }
-#if not CLEAN27
         area(processing)
         {
+            action("Calculate Work Center Calendar")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'Calculate Work Center Calendar';
+                Image = CalcWorkCenterCalendar;
+                ToolTip = 'Create new calendar entries for the work center to define the available daily capacity.';
+
+                trigger OnAction()
+                var
+                    WorkCenter: Record "Work Center";
+                    CalculateWorkCenterCalendar: Report "Calculate Work Center Calendar";
+                begin
+                    WorkCenter.SetRange("No.", Rec."No.");
+                    CalculateWorkCenterCalendar.SetTableView(WorkCenter);
+                    CalculateWorkCenterCalendar.Run();
+                end;
+            }
+#if not CLEAN27
             action("Subcontr. &Prices")
             {
                 ApplicationArea = LegacySubcontracting;
@@ -332,19 +349,7 @@ page 99000754 "Work Center Card"
                 ObsoleteState = Pending;
                 ObsoleteTag = '27.0';
             }
-        }
 #endif
-        area(processing)
-        {
-            action("Calculate Work Center Calendar")
-            {
-                ApplicationArea = Manufacturing;
-                Caption = 'Calculate Work Center Calendar';
-                Image = CalcWorkCenterCalendar;
-                RunObject = Report "Calculate Work Center Calendar";
-                RunPageOnRec = true;
-                ToolTip = 'Create new calendar entries for the work center to define the available daily capacity.';
-            }
         }
         area(reporting)
         {
