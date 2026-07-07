@@ -11,6 +11,7 @@ Describe "ParallelTestExecution app-name resolution" {
         $script:createdBcContainerAppInfoStub = $false
         if (-not (Get-Command Get-BcContainerAppInfo -ErrorAction SilentlyContinue)) {
             function global:Get-BcContainerAppInfo {
+                [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameters exist only so the stub matches the mocked BcContainerHelper cmdlet signature; the body never runs.')]
                 param(
                     [string]$containerName,
                     [string]$tenant,
