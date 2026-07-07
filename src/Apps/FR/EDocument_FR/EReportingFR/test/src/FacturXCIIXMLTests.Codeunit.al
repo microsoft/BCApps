@@ -23,7 +23,8 @@ codeunit 148148 "Factur-X CII XML Tests"
 {
     Subtype = Test;
     Permissions = tabledata "Company Information" = rimd,
-                  tabledata Customer = rimd;
+                  tabledata Customer = rimd,
+                  tabledata "VAT Business Posting Group" = rimd;
 
     trigger OnRun()
     begin
@@ -1087,6 +1088,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         LibraryUtility.UpdateSetupNoSeriesCode(
             DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Posted Credit Memo Nos."));
         GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+        EnsureVATBusinessPostingGroupExists(GLAccount."VAT Bus. Posting Group");
         Customer.Get(CustomerNo);
         Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
         Customer.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
@@ -1104,12 +1106,25 @@ codeunit 148148 "Factur-X CII XML Tests"
         Customer: Record Customer;
     begin
         LibrarySales.CreateCustomer(Customer);
+        EnsureVATBusinessPostingGroupExists(Customer."VAT Bus. Posting Group");
         if Customer."Country/Region Code" = '' then
             Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
         Customer.Validate("VAT Registration No.", GetNextCustomerVATRegistrationNo());
         Customer.Validate("FR Electronic Address", FRElecAddress);
         Customer.Modify(true);
         exit(Customer."No.");
+    end;
+
+    local procedure EnsureVATBusinessPostingGroupExists(VATBusPostingGroupCode: Code[20])
+    var
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+    begin
+        if (VATBusPostingGroupCode = '') or VATBusinessPostingGroup.Get(VATBusPostingGroupCode) then
+            exit;
+
+        VATBusinessPostingGroup.Init();
+        VATBusinessPostingGroup.Code := VATBusPostingGroupCode;
+        VATBusinessPostingGroup.Insert();
     end;
 
     local procedure GetNextCustomerVATRegistrationNo(): Text[20]
