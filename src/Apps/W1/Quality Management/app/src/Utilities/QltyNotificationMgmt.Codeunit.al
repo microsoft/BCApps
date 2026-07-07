@@ -270,7 +270,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
                 DocumentNotAbleToBeCreatedAnMsg,
                 DocumentType,
                 QltyInspectionHeader."No.",
-                TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)",
+                GetDisplayQuantityForFailure(QltyInspectionHeader, TempInstructionQltyDispositionBuffer),
                 GetSourceSummaryText(QltyInspectionHeader),
                 OptionalAdditionalMessageContext,
                 Item."Base Unit of Measure")
@@ -279,7 +279,7 @@ codeunit 20437 "Qlty. Notification Mgmt."
                 DocumentNotAbleToBeCreatedAMsg,
                 DocumentType,
                 QltyInspectionHeader."No.",
-                TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)",
+                GetDisplayQuantityForFailure(QltyInspectionHeader, TempInstructionQltyDispositionBuffer),
                 GetSourceSummaryText(QltyInspectionHeader),
                 OptionalAdditionalMessageContext,
                 Item."Base Unit of Measure");
@@ -292,6 +292,32 @@ codeunit 20437 "Qlty. Notification Mgmt."
             end;
 
         CreateActionNotification(DocumentCreationFailedNotification, CurrentMessage, AvailableOptions);
+    end;
+
+    /// <summary>
+    /// Determines the quantity to display in the document creation failed message. The instruction quantity is often left at
+    /// zero for behaviors that resolve the quantity later (for example the failed or passed sample count), which would
+    /// otherwise be shown as "0" in the message. In that case fall back to the quantity the user actually intended to move,
+    /// derived from the quantity behavior, so the message is meaningful.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection the failed document relates to.</param>
+    /// <param name="TempInstructionQltyDispositionBuffer">The instruction that was attempted.</param>
+    /// <returns>The quantity to show in the message.</returns>
+    local procedure GetDisplayQuantityForFailure(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary): Decimal
+    begin
+        if TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)" <> 0 then
+            exit(TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)");
+
+        case TempInstructionQltyDispositionBuffer."Quantity Behavior" of
+            TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Failed Quantity":
+                exit(QltyInspectionHeader."Fail Quantity");
+            TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Passed Quantity":
+                exit(QltyInspectionHeader."Pass Quantity");
+            TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Sample Quantity":
+                exit(QltyInspectionHeader."Sample Size");
+            else
+                exit(QltyInspectionHeader."Source Quantity (Base)");
+        end;
     end;
 
     /// <summary>
