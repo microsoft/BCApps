@@ -297,7 +297,10 @@ codeunit 7000 "Sales Price Calc. Mgt."
         if FoundSalesPrice then
             repeat
                 IsHandled := false;
-                OnCalcBestUnitPriceOnBeforeCalcBestUnitPriceConvertPrice(SalesPrice, Qty, IsHandled, Item, QtyPerUOM, BestSalesPrice, BestSalesPriceFound);
+                OnCalcBestUnitPriceOnBeforeCalcBestUnitPriceConvertPrice(
+                  SalesPrice, Qty, IsHandled, Item, QtyPerUOM, BestSalesPrice, BestSalesPriceFound,
+                  VATCalcType, PricesInclVAT, VATPerCent, PricesInCurrency, ExchRateDate, CurrencyFactor,
+                  Currency, LineDiscPerCent, VATBusPostingGr);
                 if not IsHandled then
                     if IsInMinQty(SalesPrice."Unit of Measure Code", SalesPrice."Minimum Quantity") then begin
                         CalcBestUnitPriceConvertPrice(SalesPrice);
@@ -2330,12 +2333,15 @@ codeunit 7000 "Sales Price Calc. Mgt."
     var
         DummyBestSalesPriceFound: Boolean;
     begin
-        OnCalcBestUnitPriceOnBeforeCalcBestUnitPriceConvertPrice(SalesPrice, Qty, IsHandled, Item, 0, SalesPrice, DummyBestSalesPriceFound);
+        OnCalcBestUnitPriceOnBeforeCalcBestUnitPriceConvertPrice(
+          SalesPrice, Qty, IsHandled, Item, 0, SalesPrice, DummyBestSalesPriceFound,
+          VATCalcType, PricesInclVAT, VATPerCent, PricesInCurrency, ExchRateDate, CurrencyFactor,
+          Currency, LineDiscPerCent, VATBusPostingGr);
     end;
 #endif
 
     [IntegrationEvent(false, false)]
-    local procedure OnCalcBestUnitPriceOnBeforeCalcBestUnitPriceConvertPrice(var SalesPrice: Record "Sales Price"; Qty: Decimal; var IsHandled: Boolean; var Item: Record Item; QtyPerUOM: Decimal; var BestSalesPrice: Record "Sales Price"; var BestSalesPriceFound: Boolean)
+    local procedure OnCalcBestUnitPriceOnBeforeCalcBestUnitPriceConvertPrice(var SalesPrice: Record "Sales Price"; Qty: Decimal; var IsHandled: Boolean; var Item: Record Item; QtyPerUOM: Decimal; var BestSalesPrice: Record "Sales Price"; var BestSalesPriceFound: Boolean; VATCalcType: Option; PricesInclVAT: Boolean; VATPerCent: Decimal; PricesInCurrency: Boolean; ExchRateDate: Date; CurrencyFactor: Decimal; Currency: Record Currency; LineDiscPerCent: Decimal; VATBusPostingGr: Code[20])
     begin
     end;
 
