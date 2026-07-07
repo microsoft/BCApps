@@ -1126,6 +1126,7 @@ codeunit 148148 "Factur-X CII XML Tests"
 
         VATBusinessPostingGroup.Init();
         VATBusinessPostingGroup.Code := VATBusPostingGroupCode;
+        VATBusinessPostingGroup.Description := VATBusPostingGroupCode;
         VATBusinessPostingGroup.Insert();
     end;
 
