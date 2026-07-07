@@ -74,4 +74,11 @@ page 30102 "Shpfy Shops"
             }
         }
     }
+
+    trigger OnOpenPage()
+    var
+        BelgianLocalization: Codeunit "Shpfy Belgian Localization";
+    begin
+        BelgianLocalization.ShowInstallNotificationIfNeeded();
+    end;
 }
