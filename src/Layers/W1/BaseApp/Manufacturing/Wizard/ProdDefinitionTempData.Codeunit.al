@@ -369,7 +369,7 @@ codeunit 99001016 "Prod. Definition Temp Data"
                     ProductionBOMLineNextLevel.SetRange("Version Code", ProdDefinitionVersionMgmt.GetDefaultBOMVersion(ProductionBOMLine."No."));
                     if ProductionBOMLineNextLevel.FindSet() then
                         repeat
-                            CreateTemporaryComponentFromBOMLine(ProductionBOMLineNextLevel, BOMQuantity * ProductionBOMLineNextLevel."Quantity per", LineNo);
+                            CreateTemporaryComponentFromBOMLine(ProductionBOMLineNextLevel, BOMQuantity * ProductionBOMLine."Quantity per", LineNo);
                         until ProductionBOMLineNextLevel.Next() = 0;
                 end;
         end;

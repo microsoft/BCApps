@@ -31,6 +31,7 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         WizardFinished: Boolean;
         // Handler state
         ActualEditBOMLines: Boolean;
+        CreateBOMVersionFieldEnabled: Boolean;
         ActualShowEditOptionsEnabled: Boolean;
         ActualBOMStepVisible: Boolean;
         ActualRoutingStepVisible: Boolean;
@@ -41,7 +42,8 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
 
 
     [Test]
-    procedure TestC1_BOMRoutingDisplayHide_Steps2And3Skipped()
+    [HandlerFunctions('HandleWizardTrackStepVisibility')]
+    procedure TestC1_BOMRoutingDisplayHide_DefineItemStructureMode_ForcedToEdit()
     var
         Item: Record Item;
         ProdDefManager: Codeunit "Production Definition Manager";
@@ -52,7 +54,7 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         WC2No: Code[20];
     begin
         // [FEATURE] Production Definition Wizard
-        // [SCENARIO C1] BOMRoutingDisplay = Hide → Steps 2 and 3 are skipped
+        // [SCENARIO C1] In DefineItemStructure mode, BOMRoutingDisplay is always forced to Edit — setup Hide is ignored
         Initialize();
 
         // [GIVEN] Manufacturing Setup: ShowRtngBOMSelect_Both = Hide; item has both BOM and Routing
@@ -63,20 +65,20 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         ProdDefWizSetupLib.ConfigureForBothAvailable(
             "Prod. Definition Display"::Hide, "Prod. Definition Display"::Hide);
 
-        // [WHEN] Wizard is opened
+        // [WHEN] Wizard is opened in DefineItemStructure mode
         ActualBOMStepVisible := false;
         ActualRoutingStepVisible := false;
         Commit();
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
-        // [THEN] Step 2 and Step 3 were never visible
-        Assert.IsFalse(ActualBOMStepVisible, 'BOM step (Step 2) should not be visible when Display = Hide');
-        Assert.IsFalse(ActualRoutingStepVisible, 'Routing step (Step 3) should not be visible when Display = Hide');
+        // [THEN] Step 2 (BOM) and Step 3 (Routing) are visible because DefineItemStructure always forces Edit
+        Assert.IsTrue(ActualBOMStepVisible, 'BOM step (Step 2) should be visible in DefineItemStructure mode regardless of setup');
+        Assert.IsTrue(ActualRoutingStepVisible, 'Routing step (Step 3) should be visible in DefineItemStructure mode regardless of setup');
     end;
 
     [Test]
     [HandlerFunctions('HandleWizardNavigateToStep2AndCaptureEditability')]
-    procedure TestC2_BOMRoutingDisplayShow_BOMStepReadOnly()
+    procedure TestC2_BOMRoutingDisplayShow_DefineItemStructureMode_ForcedToEdit()
     var
         Item: Record Item;
         ProdDefManager: Codeunit "Production Definition Manager";
@@ -87,7 +89,7 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         WC2No: Code[20];
     begin
         // [FEATURE] Production Definition Wizard
-        // [SCENARIO C2] BOMRoutingDisplay = Show → BOM/Routing lines are read-only
+        // [SCENARIO C2] In DefineItemStructure mode, BOMRoutingDisplay is always forced to Edit — setup Show is overridden
         Initialize();
 
         // [GIVEN] Manufacturing Setup: ShowRtngBOMSelect_Both = Show
@@ -99,12 +101,14 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
             "Prod. Definition Display"::Show, "Prod. Definition Display"::Show);
 
         // [WHEN] Wizard opens on Step 2
-        ActualEditBOMLines := true; // will be set false by handler if BOM is read-only
+        ActualEditBOMLines := false;
         Commit();
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
-        // [THEN] BOMLinesPart.Editable = false
-        Assert.IsFalse(ActualEditBOMLines, 'BOM lines should be read-only when Display = Show');
+        // [THEN] BOMLinesPart.Enabled = true because DefineItemStructure mode forces Edit regardless of Show setup
+        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsFalse(ActualEditBOMLines, 'BOM lines should be editable in DefineItemStructure mode regardless of Show setting');
+        Assert.IsTrue(CreateBOMVersionFieldEnabled, 'CreateBOMVersionField should be enabled in DefineItemStructure mode regardless of Show setting');
     end;
 
     [Test]
@@ -271,6 +275,7 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
             Wizard.ActionNext.Invoke();
         // Capture editability
         ActualEditBOMLines := Wizard.BOMLinesPart.Enabled();
+        CreateBOMVersionFieldEnabled := Wizard.CreateBOMVersionField.Enabled();
 
         // Continue to finish
         while Wizard.ActionNext.Enabled() do

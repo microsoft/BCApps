@@ -164,8 +164,10 @@ codeunit 99001017 "Production Definition Manager"
                 end;
         end;
 
-        if WizardMode = WizardMode::DefineItemStructure then
+        if WizardMode = WizardMode::DefineItemStructure then begin
+            BOMRoutingDisplay := BOMRoutingDisplay::Edit;
             ProdCompDisplay := ProdCompDisplay::Hide;
+        end;
     end;
 
     local procedure ShouldSkipUserInteraction(BOMRoutingDisplay: Enum "Prod. Definition Display"; ProdCompDisplay: Enum "Prod. Definition Display"): Boolean

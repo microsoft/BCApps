@@ -1160,7 +1160,8 @@ table 5407 "Prod. Order Component"
         if IsHandled then
             exit;
 
-        ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
+        if not IsTemporary() then
+            ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
 
         if "Due Date" = 0D then begin
             "Due Date" := ProdOrderLine."Starting Date";

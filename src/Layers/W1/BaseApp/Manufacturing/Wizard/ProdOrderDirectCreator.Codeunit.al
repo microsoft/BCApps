@@ -219,6 +219,7 @@ codeunit 99001018 "Prod. Order Direct Creator"
         ProdOrderRoutingLine.Validate("From-Production Bin Code", TempProdOrderRoutingLine."From-Production Bin Code");
         ProdOrderRoutingLine.Validate("To-Production Bin Code", TempProdOrderRoutingLine."To-Production Bin Code");
         ProdOrderRoutingLine.Validate("Open Shop Floor Bin Code", TempProdOrderRoutingLine."Open Shop Floor Bin Code");
+        OnBeforeModifyProdOrderRoutingLineFromTemp(ProdOrderRoutingLine, TempProdOrderRoutingLine, ProdOrderLine);
         ProdOrderRoutingLine.Modify(true);
     end;
     /// <summary>

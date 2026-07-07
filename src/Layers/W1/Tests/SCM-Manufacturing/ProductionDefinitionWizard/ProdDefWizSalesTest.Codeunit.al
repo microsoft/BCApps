@@ -40,6 +40,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         WizardFinished: Boolean;
         WizardResult: Boolean;
         CapturedNotificationMessage: Text;
+        CapturedExpectedQty: Decimal;
         TargetBOMVersionCode: Code[20];
         TargetRoutingVersionCode: Code[20];
 
@@ -873,7 +874,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         Assert.IsTrue(WizardFinished, 'Wizard should have finished');
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderStatus(ProdOrder, "Production Order Status"::Released);
-        ProdDefWizCheckLib.VerifyProdOrderComponentFlushingMethod(ProdOrder, "Flushing Method"::Manual);
+        ProdDefWizCheckLib.VerifyProdOrderComponentFlushingMethod(ProdOrder, "Flushing Method"::"Pick + Manual");
     end;
 
     [Test]
@@ -1203,6 +1204,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
     [HandlerFunctions('HandleWizardAddComponent')]
     procedure TestJ31_ProdOrderFromSalesLine_NoBOM_TemporaryComponentGetsSetupFlushingMethod()
     var
+        ProdOrderComponent: Record "Prod. Order Component";
         SalesLine: Record "Sales Line";
         ProdOrder: Record "Production Order";
         ProdDefManager: Codeunit "Production Definition Manager";
@@ -1225,10 +1227,82 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         Commit();
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
-        // [THEN] Production Order exists; the added component has the Backward flushing method from the setup default (temporary creation case)
+        // [THEN] Production Order exists; the added component has the Backward flushing method from the item default (temporary creation case), setup component flushing method is applied to the first component, and the last component has flushing method from item
         Assert.IsTrue(WizardFinished, 'Wizard should have finished');
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
-        ProdDefWizCheckLib.VerifyProdOrderComponentFlushingMethod(ProdOrder, "Flushing Method"::Backward);
+
+        ProdOrderComponent.SetRange(Status, ProdOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProdOrder."No.");
+        ProdOrderComponent.FindFirst();
+        Assert.AreEqual("Flushing Method"::Backward, ProdOrderComponent."Flushing Method", 'Flushing Method of the first component should match the setup default (Backward)');
+        ProdOrderComponent.FindLast();
+        Assert.AreEqual("Flushing Method"::"Pick + Manual", ProdOrderComponent."Flushing Method", 'Flushing Method of the last component should match the setup default (Backward)');
+    end;
+
+    [Test]
+    [HandlerFunctions('HandleWizardCaptureComponentExpectedQty')]
+    procedure TestJ32_TempComponentsPreview_ExpectedQuantityNonZero()
+    var
+        SalesLine: Record "Sales Line";
+        ProdDefManager: Codeunit "Production Definition Manager";
+        BOMNo: Code[20];
+        RoutingNo: Code[20];
+        ItemNo: Code[20];
+        LocationCode: Code[10];
+        WC1No: Code[20];
+        WC2No: Code[20];
+        SalesQty: Decimal;
+        ComponentQtyPer: Decimal;
+    begin
+        // [FEATURE] Production Definition Wizard
+        // [SCENARIO J32] In Step 4 (component preview), temporary components display non-zero Expected Quantity after Quantity per is set
+        Initialize();
+
+        // [GIVEN] Item with a BOM (1 component, Qty per = 2) and Routing; Sales Line qty = 5
+        SalesQty := 5;
+        ComponentQtyPer := 2; // first BOM line qty = 1, second = 2; CreateBOM sets qty = line index
+        BOMNo := ProdDefWizLibrary.CreateBOM(2);
+        RoutingNo := ProdDefWizLibrary.CreateRoutingWithTwoLines(WC1No, WC2No);
+        ItemNo := ProdDefWizLibrary.CreateItemWithBOMAndRouting(BOMNo, RoutingNo);
+        LocationCode := ProdDefWizLibrary.CreateLocationCode();
+        ProdDefWizLibrary.CreateSalesLine(SalesLine, ItemNo, SalesQty, LocationCode, '', WorkDate());
+        ProdDefWizSetupLib.ConfigureForBothAvailable(
+            "Prod. Definition Display"::Edit, "Prod. Definition Display"::Edit);
+
+        // [WHEN] Wizard runs and user navigates to Step 4 (component preview)
+        CapturedExpectedQty := 0;
+        Commit();
+        ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
+
+        // [THEN] The second temporary component's Expected Quantity is non-zero (= SalesQty * ComponentQtyPer = 10)
+        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(CapturedExpectedQty > 0,
+            'Temporary component Expected Quantity must be non-zero after Quantity per validation');
+        Assert.AreNearlyEqual(SalesQty * ComponentQtyPer, CapturedExpectedQty, 0.01,
+            'Expected Quantity should equal Sales Qty × Quantity per');
+    end;
+
+    [ModalPageHandler]
+    procedure HandleWizardCaptureComponentExpectedQty(var Wizard: TestPage "Production Definition Wizard")
+    begin
+        // Navigate to Step 4 (Components) via Steps 2 and 3
+        if Wizard.ActionNext.Enabled() then
+            Wizard.ActionNext.Invoke();
+        if Wizard.ActionNext.Enabled() then
+            Wizard.ActionNext.Invoke();
+        if Wizard.ActionNext.Enabled() then begin
+            Wizard.ActionNext.Invoke();
+            // Find the last component (BOM line 2 has Qty per = 2)
+            if Wizard.ComponentsPart.Last() then
+                CapturedExpectedQty := Wizard.ComponentsPart."Expected Quantity".AsDecimal();
+        end;
+        // Continue and finish
+        while Wizard.ActionNext.Enabled() do
+            Wizard.ActionNext.Invoke();
+        if Wizard.ActionFinish.Enabled() then begin
+            Wizard.ActionFinish.Invoke();
+            WizardFinished := true;
+        end;
     end;
 
     [ModalPageHandler]
