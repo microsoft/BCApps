@@ -23,7 +23,7 @@ function Get-PlatformVersions {
     if ($null -eq $script:PlatformVersionsCache -or $Force) {
         try {
             Write-Host "Fetching platform version index from $script:PlatformIndexUrl"
-            $response = Invoke-WebRequest -Uri $script:PlatformIndexUrl -ErrorAction Stop
+            $response = Invoke-WebRequest -Uri $script:PlatformIndexUrl -UseBasicParsing -ErrorAction Stop
             $index = @($response.Content | ConvertFrom-Json)
             if ($index.Count -gt 0 -and $index[0].PSObject.Properties['Version']) {
                 $script:PlatformVersionsCache = @($index | ForEach-Object { $_.Version })
