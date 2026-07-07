@@ -1306,7 +1306,7 @@ codeunit 133961 "Agent Test"
     begin
         Initialize();
 
-        // [SCENARIO] Updating access control on an archived agent is rejected before any prep work
+        // [SCENARIO] Updating access control on an archived agent is rejected by the platform
 
         // [GIVEN] A deactivated, archived agent
         AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
@@ -1318,9 +1318,9 @@ codeunit 133961 "Agent Test"
         Agent.Archive(AgentId);
 
         // [WHEN] Updating access control on the archived agent
-        // [THEN] An error is raised that the archived agent cannot be modified
+        // [THEN] An error is raised that the operation is not allowed because the associated agent is archived
         asserterror Agent.UpdateAgentAccessControl(AgentId, TempAgentAccessControl);
-        Assert.ExpectedError('The agent is archived and cannot be modified.');
+        Assert.ExpectedError('The operation on Agent Access Control is not allowed because the associated agent is archived.');
     end;
 
     [Test]
