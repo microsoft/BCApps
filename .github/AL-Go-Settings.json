@@ -155,5 +155,9 @@
     "onPull_Request": true,
     "onSchedule": false,
     "mode": "modifiedApps"
-  }
+  },
+  "projects": [
+    "build/projects/Apps W1",
+    "build/projects/Test Apps W1"
+  ]
 }
