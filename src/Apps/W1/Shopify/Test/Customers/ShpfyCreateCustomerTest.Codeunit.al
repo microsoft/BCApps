@@ -95,6 +95,39 @@ codeunit 139565 "Shpfy Create Customer Test"
         LibraryAssert.AreEqual(ResultCode, ShopifyCustomer."Customer No.", 'The Shopify customer should be linked to the created BC customer.');
     end;
 
+    [Test]
+    procedure UnitTestUpdateCustomerWithoutDefaultAddressDoesNotError()
+    var
+        Customer: Record Customer;
+        ShopifyCustomer: Record "Shpfy Customer";
+        ShopifyCustomerAddress: Record "Shpfy Customer Address";
+        UpdateCustomer: Codeunit "Shpfy Update Customer";
+    begin
+        // [SCENARIO] Updating a linked BC customer from a Shopify customer that has no default address
+        // (Shopify defaultAddress = null) falls back to an available address instead of erroring.
+        Initialize();
+
+        // [GIVEN] A BC customer linked to a Shopify customer
+        Customer.Init();
+        Customer."No." := CopyStr(Any.AlphanumericText(10), 1, MaxStrLen(Customer."No."));
+        Customer.Insert(true);
+        CustomerInitTest.CreateShopifyCustomer(ShopifyCustomer);
+        ShopifyCustomer."Customer SystemId" := Customer.SystemId;
+        ShopifyCustomer.Modify();
+
+        // [GIVEN] The Shopify customer has an address that is not marked as default
+        ShopifyCustomerAddress := CustomerInitTest.CreateShopifyCustomerAddress(ShopifyCustomer);
+        ShopifyCustomerAddress.TestField(Default, false);
+
+        // [WHEN] The customer is updated from Shopify
+        UpdateCustomer.SetShop(Shop);
+        UpdateCustomer.Run(ShopifyCustomer);
+
+        // [THEN] No error is raised and the customer address is filled from the available (non-default) address
+        Customer.Get(Customer."No.");
+        LibraryAssert.AreEqual(ShopifyCustomerAddress."Address 1", Customer.Address, 'Customer address should be updated from the available address.');
+    end;
+
     local procedure Initialize()
     var
         AccessToken: SecretText;

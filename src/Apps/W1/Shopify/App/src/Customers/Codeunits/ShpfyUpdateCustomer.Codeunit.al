@@ -49,12 +49,15 @@ codeunit 30124 "Shpfy Update Customer"
     var
         CustomerAddress: Record "Shpfy Customer Address";
         CustContUpdate: Codeunit "CustCont-Update";
-        NoDefaltAddressErr: Label 'No default address found for Shopify customer id: %1', Comment = '%1 = Shopify customer id';
+        NoAddressErr: Label 'No address found for Shopify customer id: %1', Comment = '%1 = Shopify customer id';
     begin
         CustomerAddress.SetRange("Customer Id", ShopifyCustomer.Id);
         CustomerAddress.SetRange(Default, true);
-        if not CustomerAddress.FindFirst() then
-            Error(NoDefaltAddressErr, ShopifyCustomer.Id);
+        if not CustomerAddress.FindFirst() then begin
+            CustomerAddress.SetRange(Default);
+            if not CustomerAddress.FindFirst() then
+                Error(NoAddressErr, ShopifyCustomer.Id);
+        end;
 
         FillInCustomerFields(Customer, ShopifyShop, ShopifyCustomer, CustomerAddress);
         Customer.Modify();
