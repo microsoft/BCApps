@@ -4,7 +4,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.SpendRequest;
 using Microsoft.HumanResources.Employee;
 
-codeunit 134241 "Spend Request Tests"
+codeunit 134242 "Spend Request Tests"
 {
     Subtype = Test;
     TestPermissions = Disabled;
