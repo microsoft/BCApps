@@ -162,19 +162,25 @@ codeunit 20445 "Qlty. Inventory Availability"
             if RecordRefToSearch.FindFirst() then begin
                 LocationCode := QltyInspectionHeader."Location Code";
                 GetFromLocationAndBinBasedOnNamingConventions(RecordRefToSearch, LocationCode, BinCode, QuantityBaseValue);
-                if LocationCode <> '' then begin
-                    TempToMoveBinContent.Reset();
-                    TempToMoveBinContent.SetRange("Location Code", LocationCode);
-                    if BinCode <> '' then
-                        TempToMoveBinContent.SetRange("Bin Code", BinCode);
-                    if not TempToMoveBinContent.FindFirst() then begin
-                        TempToMoveBinContent.Init();
-                        TempToMoveBinContent."Location Code" := LocationCode;
-                        TempToMoveBinContent."Bin Code" := BinCode;
-                        TempToMoveBinContent."Min. Qty." := QuantityBaseValue;
-                        TempToMoveBinContent.Insert(false);
+                if LocationCode <> '' then
+                    // In bin mandatory locations (including directed put-away and pick) the bin derived from the source
+                    // document naming conventions can be stale - for example the receive bin the goods first landed in,
+                    // or a bin that no longer holds the item. Resolve the actual current bin(s) from Bin Content instead,
+                    // so the put-away is created from a bin that really contains the inventory. Only fall back to the
+                    // naming convention bin when the location is not bin mandatory or the item is not currently in stock.
+                    if not TryResolveBinsFromBinContent(QltyInspectionHeader, LocationCode, TempToMoveBinContent) then begin
+                        TempToMoveBinContent.Reset();
+                        TempToMoveBinContent.SetRange("Location Code", LocationCode);
+                        if BinCode <> '' then
+                            TempToMoveBinContent.SetRange("Bin Code", BinCode);
+                        if not TempToMoveBinContent.FindFirst() then begin
+                            TempToMoveBinContent.Init();
+                            TempToMoveBinContent."Location Code" := LocationCode;
+                            TempToMoveBinContent."Bin Code" := BinCode;
+                            TempToMoveBinContent."Min. Qty." := QuantityBaseValue;
+                            TempToMoveBinContent.Insert(false);
+                        end;
                     end;
-                end;
             end;
         end;
 
@@ -185,6 +191,60 @@ codeunit 20445 "Qlty. Inventory Availability"
             TempToMoveBinContent."Min. Qty." := QuantityBaseValue;
             TempToMoveBinContent.Insert(false);
         end;
+    end;
+
+    /// <summary>
+    /// Resolves the actual bin(s) that currently hold the inspection's item at a bin mandatory location by reading Bin Content.
+    /// Only bins with positive quantity are considered, and receive and adjustment bins are excluded because inventory cannot be
+    /// moved from them with an internal put-away. This is the non item tracked counterpart to GetCurrentLocationOfTrackedInventory.
+    /// </summary>
+    /// <param name="QltyInspectionHeader">The inspection providing the item, variant and any tracking to look up.</param>
+    /// <param name="LocationCode">The location to resolve the bins at.</param>
+    /// <param name="TempToMoveBinContent">The temporary bin content buffer that resolved bins are added to.</param>
+    /// <returns>True when at least one qualifying bin was added, false otherwise so the caller can fall back to other logic.</returns>
+    local procedure TryResolveBinsFromBinContent(QltyInspectionHeader: Record "Qlty. Inspection Header"; LocationCode: Code[10]; var TempToMoveBinContent: Record "Bin Content" temporary): Boolean
+    var
+        Location: Record Location;
+        BinContent: Record "Bin Content";
+        Added: Boolean;
+    begin
+        if (LocationCode = '') or (QltyInspectionHeader."Source Item No." = '') then
+            exit(false);
+        if not Location.Get(LocationCode) then
+            exit(false);
+        if not Location."Bin Mandatory" then
+            exit(false);
+
+        BinContent.SetRange("Location Code", LocationCode);
+        BinContent.SetRange("Item No.", QltyInspectionHeader."Source Item No.");
+        BinContent.SetRange("Variant Code", QltyInspectionHeader."Source Variant Code");
+        if QltyInspectionHeader."Source Lot No." <> '' then
+            BinContent.SetRange("Lot No. Filter", QltyInspectionHeader."Source Lot No.");
+        if QltyInspectionHeader."Source Serial No." <> '' then
+            BinContent.SetRange("Serial No. Filter", QltyInspectionHeader."Source Serial No.");
+        if QltyInspectionHeader."Source Package No." <> '' then
+            BinContent.SetRange("Package No. Filter", QltyInspectionHeader."Source Package No.");
+        if Location."Adjustment Bin Code" <> '' then
+            BinContent.SetFilter("Bin Code", '<>%1', Location."Adjustment Bin Code");
+        BinContent.SetAutoCalcFields("Quantity (Base)");
+        if BinContent.FindSet() then
+            repeat
+                if BinContent."Quantity (Base)" > 0 then
+                    if not IsReceiveBin(BinContent."Location Code", BinContent."Bin Code") then begin
+                        // A valid non-receive bin with stock exists for this location. Report success even when the bin was
+                        // already added by a previous source record, otherwise the caller would fall back to the naming
+                        // convention bin (which can be the receive bin) and add it to the buffer alongside the real bin.
+                        Added := true;
+                        if not TempToMoveBinContent.Get(BinContent."Location Code", BinContent."Bin Code", BinContent."Item No.", BinContent."Variant Code", BinContent."Unit of Measure Code") then begin
+                            TempToMoveBinContent.Init();
+                            TempToMoveBinContent := BinContent;
+                            TempToMoveBinContent."Min. Qty." := BinContent."Quantity (Base)";
+                            TempToMoveBinContent.Insert(false);
+                        end;
+                    end;
+            until BinContent.Next() = 0;
+
+        exit(Added);
     end;
 
     local procedure GetFromLocationAndBinBasedOnNamingConventions(var RecordRef: RecordRef; var LocationCode: Code[10]; var BinCode: Code[20]; var QuantityBase: Decimal)
@@ -464,18 +524,23 @@ codeunit 20445 "Qlty. Inventory Availability"
     /// <param name="FromLocationCode">The location code the inventory is being moved from.</param>
     /// <param name="FromBinCode">The bin code the inventory is being moved from.</param>
     internal procedure ErrorIfFromBinIsReceiveBin(QltyInspectionHeader: Record "Qlty. Inspection Header"; FromLocationCode: Code[10]; FromBinCode: Code[20])
+    begin
+        if IsReceiveBin(FromLocationCode, FromBinCode) then
+            Error(CannotMoveFromReceiveBinErr, QltyInspectionHeader.GetFriendlyIdentifier(), FromBinCode, FromLocationCode);
+    end;
+
+    local procedure IsReceiveBin(FromLocationCode: Code[10]; FromBinCode: Code[20]): Boolean
     var
         FromBin: Record Bin;
         BinType: Record "Bin Type";
     begin
         if (FromLocationCode = '') or (FromBinCode = '') then
-            exit;
+            exit(false);
         if not FromBin.Get(FromLocationCode, FromBinCode) then
-            exit;
+            exit(false);
         if not BinType.Get(FromBin."Bin Type Code") then
-            exit;
-        if BinType.Receive then
-            Error(CannotMoveFromReceiveBinErr, QltyInspectionHeader.GetFriendlyIdentifier(), FromBinCode, FromLocationCode);
+            exit(false);
+        exit(BinType.Receive);
     end;
 
     [IntegrationEvent(false, false)]
