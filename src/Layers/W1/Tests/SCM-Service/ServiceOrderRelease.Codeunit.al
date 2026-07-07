@@ -1231,6 +1231,7 @@ codeunit 136140 "Service Order Release"
         LibraryWarehouse.GetSourceDocumentsShipment(WarehouseShipmentHeader, WarehouseSourceFilter, WMSFullLocation);
 
         // VERIFY: No lines are pulled.
+        WarehouseShipmentHeader.TestField("No.");
         GetWarehouseShipmentLinesByShipmentHeader(WarehouseShipmentLine, WarehouseShipmentHeader);
         Assert.AreEqual(0, WarehouseShipmentLine.Count, 'No warehouse shipment lines should be created.');
     end;
