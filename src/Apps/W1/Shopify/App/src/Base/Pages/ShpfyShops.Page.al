@@ -77,8 +77,8 @@ page 30102 "Shpfy Shops"
 
     trigger OnOpenPage()
     var
-        BelgianLocalization: Codeunit "Shpfy Belgian Localization";
+        ShopMgt: Codeunit "Shpfy Shop Mgt.";
     begin
-        BelgianLocalization.ShowInstallNotificationIfNeeded();
+        ShopMgt.SendBelgianLocalizationNotification();
     end;
 }
