@@ -515,8 +515,16 @@ function New-BcClientContext() {
     # Load Client Context via PsTestFunctions.ps1 (handles Add-Type DLL loading)
     . (Join-Path $PsTestToolFolder "PsTestFunctions.ps1") -newtonSoftDllPath $newtonSoftDllPath -clientDllPath $clientDllPath -clientContextScriptPath (Join-Path $PsTestToolFolder "ClientContext.ps1")
 
-    Write-Host "Connecting to $serviceUrl"
-    return New-ClientContext -serviceUrl $serviceUrl -auth $clientServicesCredentialType -credential $credential -interactionTimeout ([timespan]::FromHours(2)) -culture "en-US"
+    # The RU legacy DemoTool imports data using Russian regional formats (e.g. day-first dates such
+    # as "31-12-05"); its DemoDataConfig uses DataLanguageID 1049. Open the session with the Russian
+    # culture so BC parses those values. Other countries keep en-US.
+    $culture = "en-US"
+    if (Test-IsRUProject) {
+        $culture = "ru-RU"
+    }
+
+    Write-Host "Connecting to $serviceUrl (culture $culture)"
+    return New-ClientContext -serviceUrl $serviceUrl -auth $clientServicesCredentialType -credential $credential -interactionTimeout ([timespan]::FromHours(2)) -culture $culture
 }
 
 <#
@@ -765,13 +773,16 @@ function Invoke-DemoDataGeneration
         [string]$Tenant = "default"
     )
     # RU-only: the RU CD Tracking app (codeunit 14109) requires an Inventory Setup record when it
-    # installs. Because creating a company re-runs OnInstallAppPerCompany, the test company must be
-    # created and Company-Initialized BEFORE apps are installed, so the record exists when CD Tracking
-    # installs. Other countries keep the original install-then-create order.
+    # installs, and creating a company re-runs OnInstallAppPerCompany. Mirror the Legacy flow: install
+    # the base apps first (so Company-Initialize has the SUPER permission set from the System/Base
+    # Application), create the test company, run Company-Initialize to create Inventory Setup, and only
+    # then install the remaining apps (incl. CD Tracking). Other countries keep the original
+    # install-then-create order.
     $isRUProject = Test-IsRUProject
 
     if ($TestType -eq "UnitTest") {
         if ($isRUProject) {
+            Install-BaseAppsForDemoTool -ContainerName $ContainerName -CountryCode (Get-CountryCodeFromSettings)
             New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
             Initialize-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
             Install-AllApps -ContainerName $ContainerName
@@ -783,6 +794,7 @@ function Invoke-DemoDataGeneration
         return
     } elseif( $TestType -eq "IntegrationTest" ) {
         if ($isRUProject) {
+            Install-BaseAppsForDemoTool -ContainerName $ContainerName -CountryCode (Get-CountryCodeFromSettings)
             New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
             Initialize-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
             Install-AllApps -ContainerName $ContainerName
@@ -794,9 +806,9 @@ function Invoke-DemoDataGeneration
         Invoke-ContosoDemoToolWithRetry -ContainerName $ContainerName -CompanyName (Get-TestCompanyName) -SetupData
     } elseif( $TestType -eq "Uncategorized" ) {
         if ($isRUProject) {
-            # The evaluation company is created with full demo data (incl. Inventory Setup), so
-            # CD Tracking can install afterwards; just create it before installing apps.
+            Install-BaseAppsForDemoTool -ContainerName $ContainerName -CountryCode (Get-CountryCodeFromSettings)
             New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName) -EvaluationCompany
+            Initialize-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
             Install-AllApps -ContainerName $ContainerName
         } else {
             Install-AllApps -ContainerName $ContainerName
