@@ -11,7 +11,7 @@ using System.Reflection;
 page 40016 "Add Custom Migration Mapping"
 {
     ApplicationArea = All;
-    PageType = Card;
+    PageType = List;
     SourceTable = "AllObj";
     Permissions = tabledata "NAV App Installed App" = r,
                   tabledata AllObj = r,
