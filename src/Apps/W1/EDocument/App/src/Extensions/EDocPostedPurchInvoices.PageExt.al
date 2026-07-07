@@ -12,12 +12,13 @@ pageextension 6109 "E-Doc. Posted Purch. Invoices" extends "Posted Purchase Invo
     {
         addbefore(IncomingDocAttachFactBox)
         {
-            part(EDocumentPdfPreview; "Inbound E-Doc. Picture")
+            part(EDocumentPdfPreview; "E-Doc. Posted Purch. Preview")
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Preview';
                 Visible = ShowEDocumentPdfPreview;
                 ShowFilter = false;
+                SubPageLink = "No." = field("No.");
             }
         }
     }
@@ -31,7 +32,5 @@ pageextension 6109 "E-Doc. Posted Purch. Invoices" extends "Posted Purchase Invo
         EDocDataStorageEntryNo: Integer;
     begin
         ShowEDocumentPdfPreview := EDocumentHelper.GetInboundPdfPreviewEntryNo(Rec.RecordId(), EDocDataStorageEntryNo);
-        if ShowEDocumentPdfPreview then
-            CurrPage.EDocumentPdfPreview.Page.SetEDocDataStorage(EDocDataStorageEntryNo);
     end;
 }
