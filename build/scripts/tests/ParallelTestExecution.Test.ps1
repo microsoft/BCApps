@@ -11,12 +11,14 @@ Describe "ParallelTestExecution app-name resolution" {
         $script:createdBcContainerAppInfoStub = $false
         if (-not (Get-Command Get-BcContainerAppInfo -ErrorAction SilentlyContinue)) {
             function global:Get-BcContainerAppInfo {
-                [Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSReviewUnusedParameter', '', Justification = 'Parameters exist only so the stub matches the mocked BcContainerHelper cmdlet signature; the body never runs.')]
                 param(
                     [string]$containerName,
                     [string]$tenant,
                     [switch]$tenantSpecificProperties
                 )
+                # The parameters exist only so the stub matches the mocked BcContainerHelper cmdlet
+                # signature; reference them so PSScriptAnalyzer does not flag them as unused.
+                $null = $containerName, $tenant, $tenantSpecificProperties
                 # This body must never run: it exists only so Pester can resolve and mock the
                 # command. Every module call to it in these tests is intercepted by Pester's mock.
                 throw "Get-BcContainerAppInfo stub should never be called; a Pester mock must intercept it."
