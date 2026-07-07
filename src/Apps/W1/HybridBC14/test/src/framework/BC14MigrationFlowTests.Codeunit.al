@@ -550,6 +550,43 @@ codeunit 148906 "BC14 Migration Flow Tests"
     end;
 
     [Test]
+    procedure TestTriggerUpgradeOneStep_NoDataReplicated_SkipsUpgrade()
+    var
+        HybridReplicationSummary: Record "Hybrid Replication Summary";
+        BC14GlobalSettings: Record "BC14 Global Migration Settings";
+        BC14Wizard: Codeunit "BC14 Wizard";
+        BC14MigrationOrchestrator: Codeunit "BC14 Migration Orchestrator";
+        RunId: Text[50];
+    begin
+        // [SCENARIO] A setup-phase run replicates no per-company data and therefore produces
+        // no Hybrid Replication Detail rows. The one-step upgrade must be skipped instead of
+        // entering the upgrade flow (which fails when no companies are selected/created).
+
+        // [GIVEN] Intelligent cloud is set up for BC14 and One Step Upgrade is enabled
+        Initialize_Orch();
+        BC14GlobalSettings.FindFirst();
+        BC14GlobalSettings."One Step Upgrade" := true;
+        BC14GlobalSettings.Modify();
+
+        // [GIVEN] A completed replication summary with no replicated table detail rows
+        HybridReplicationSummary.Init();
+        HybridReplicationSummary."Run ID" := CreateGuid();
+        HybridReplicationSummary.Status := HybridReplicationSummary.Status::Completed;
+        HybridReplicationSummary.Source := BC14Wizard.GetMigrationProviderId();
+        HybridReplicationSummary.Insert();
+        RunId := HybridReplicationSummary."Run ID";
+
+        // [WHEN] The one-step upgrade trigger runs for that run
+        BC14MigrationOrchestrator.TriggerUpgradeIfOneStepEnabled(RunId);
+
+        // [THEN] No error is thrown and the summary is not moved to UpgradeInProgress
+        HybridReplicationSummary.Get(RunId);
+        Assert.AreEqual(
+            HybridReplicationSummary.Status::Completed, HybridReplicationSummary.Status,
+            'Setup run with no replicated data should not trigger the upgrade');
+    end;
+
+    [Test]
     procedure TestGetDefaultJobTimeout_Is48Hours()
     var
         BC14MigrationOrchestrator: Codeunit "BC14 Migration Orchestrator";
@@ -990,11 +1027,11 @@ codeunit 148906 "BC14 Migration Flow Tests"
     var
         BC14MigrationProvider: Codeunit "BC14 Migration Provider";
     begin
-        // [SCENARIO] ShowConfigureMigrationTablesMappingStep returns true for BC14
-        // so the configuration package step is shown in the wizard page.
+        // [SCENARIO] ShowConfigureMigrationTablesMappingStep returns false for BC14
+        // so the configuration package step is skipped in the wizard page.
 
-        // [THEN] The step should be shown
-        Assert.IsTrue(BC14MigrationProvider.ShowConfigureMigrationTablesMappingStep(), 'Should show configure migration tables mapping step');
+        // [THEN] The step should be skipped
+        Assert.IsFalse(BC14MigrationProvider.ShowConfigureMigrationTablesMappingStep(), 'Should skip configure migration tables mapping step');
     end;
 
     // ============================================================

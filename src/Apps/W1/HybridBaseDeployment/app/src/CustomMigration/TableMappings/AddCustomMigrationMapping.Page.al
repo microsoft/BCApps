@@ -11,7 +11,7 @@ using System.Reflection;
 page 40016 "Add Custom Migration Mapping"
 {
     ApplicationArea = All;
-    PageType = List;
+    PageType = Card;
     SourceTable = "AllObj";
     Permissions = tabledata "NAV App Installed App" = r,
                   tabledata AllObj = r,
@@ -20,6 +20,7 @@ page 40016 "Add Custom Migration Mapping"
     DeleteAllowed = false;
     ModifyAllowed = false;
     Caption = 'Add migration table mappings for custom migration';
+    DataCaptionExpression = '';
     InherentEntitlements = X;
     InherentPermissions = X;
 
@@ -182,7 +183,7 @@ page 40016 "Add Custom Migration Mapping"
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     var
         HybridCompany: Record "Hybrid Company";
-        CustomMigrationTableBuffer: Record "Custom Migration Table Buffer";
+        TempCustomMigrationTableBuffer: Record "Custom Migration Table Buffer";
         NewCompanyName: Text[30];
         NewSourceTableName: Text[128];
         NewDestinationTableName: Text[128];
@@ -192,6 +193,8 @@ page 40016 "Add Custom Migration Mapping"
 
         if TargetTableName = '' then
             exit(Confirm(TheDestinationTableIsEmptyContinueQst));
+
+        ValidateTargetTable();
 
         if AllCompanies then begin
             HybridCompany.SetRange(Replicate, true);
@@ -203,13 +206,11 @@ page 40016 "Add Custom Migration Mapping"
                 NewDestinationTableName := DestinationTableName.Replace(AllCompaniesTok, HybridCompany.Name);
                 NewCompanyName := HybridCompany.Name;
 #pragma warning restore AA0139
-                CustomMigrationTableBuffer.SaveMigrationTableMapping(MappingType, NewSourceTableName, NewDestinationTableName, TargetTableName, NewCompanyName, DataPerCompany, GlobalPreserveCloudData);
+                TempCustomMigrationTableBuffer.SaveMigrationTableMapping(MappingType, NewSourceTableName, NewDestinationTableName, TargetTableName, NewCompanyName, DataPerCompany, GlobalPreserveCloudData);
             until HybridCompany.Next() = 0;
         end else
-            CustomMigrationTableBuffer.SaveMigrationTableMapping(MappingType, SourceTableName, DestinationTableName, TargetTableName, CompanyName, DataPerCompany, GlobalPreserveCloudData);
+            TempCustomMigrationTableBuffer.SaveMigrationTableMapping(MappingType, SourceTableName, DestinationTableName, TargetTableName, CompanyName, DataPerCompany, GlobalPreserveCloudData);
 
-        // Validate and enable replication for all custom migration tables
-        ValidateTargetTable();
         exit(true);
     end;
 
@@ -257,8 +258,8 @@ page 40016 "Add Custom Migration Mapping"
         GlobalPreserveCloudData: Boolean;
         BCTableSeparatorTok: Label '$', Locked = true;
         TableExtensionSuffixTok: Label '$ext', Locked = true;
-        InvalidSqlCharactersTok: Label '.\/-', Locked = true;
-        ValidSqlReplacementTok: Label '____', Locked = true;
+        InvalidSqlCharactersTok: Label '.\/', Locked = true;
+        ValidSqlReplacementTok: Label '___', Locked = true;
         AllCompaniesTok: Label '{$CompanyName$}', Locked = true;
         AllCompanies: Boolean;
         UpdateTableNamesWithAllCompaniesTokMsg: Label 'The %1 token in the source table and destination table name will be replaced with the name of the company that is selected for migration. Update the source and destination table names accordingly.', Comment = '%1 is this value that is not translated {$AllCompanies$}';
