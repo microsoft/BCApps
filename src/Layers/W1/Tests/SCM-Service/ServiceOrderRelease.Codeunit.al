@@ -1200,6 +1200,7 @@ codeunit 136140 "Service Order Release"
         Customer: Record Customer;
         Item: Record Item;
         ServiceHeader: Record "Service Header";
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
         WarehouseShipmentHeader: Record "Warehouse Shipment Header";
         WarehouseSourceFilter: Record "Warehouse Source Filter";
         LocationCode: Code[10];
@@ -1227,10 +1228,11 @@ codeunit 136140 "Service Order Release"
         WarehouseSourceFilter.Validate("Sales Orders", false);
         WarehouseSourceFilter.Validate("Customer No. Filter", Customer."No.");
         WarehouseSourceFilter.Modify(true);
-        asserterror LibraryWarehouse.GetSourceDocumentsShipment(WarehouseShipmentHeader, WarehouseSourceFilter, WMSFullLocation);
+        LibraryWarehouse.GetSourceDocumentsShipment(WarehouseShipmentHeader, WarehouseSourceFilter, WMSFullLocation);
 
-        // VERIFY: Error message is displayed.
-        Assert.AreEqual(Format(NoWarehouseShipmentsErr), GetLastErrorText, VerifyDisplayedErrorMsg);
+        // VERIFY: No lines are pulled.
+        GetWarehouseShipmentLinesByShipmentHeader(WarehouseShipmentLine, WarehouseShipmentHeader);
+        Assert.AreEqual(0, WarehouseShipmentLine.Count, 'No warehouse shipment lines should be created.');
     end;
 
     [Test]
@@ -4274,4 +4276,3 @@ codeunit 136140 "Service Order Release"
         until ServiceLine.Next() = 0;
     end;
 }
-
