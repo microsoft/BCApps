@@ -1424,7 +1424,9 @@ codeunit 130130 "MCP Config Test"
     var
         CopilotCapability: Codeunit "Copilot Capability";
     begin
-        // [GIVEN] MCP module is installed (MCPInstall.OnInstallAppPerDatabase has run)
+        // [GIVEN] MCP registers its Copilot capability, as it does on install/upgrade
+        MCPConfigTestLibrary.RegisterMCPCapability();
+
         // [THEN] The MCP Server capability is registered against the MCP app id
         Assert.IsTrue(
             CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"MCP Server", GetMCPAppId()),
@@ -1436,7 +1438,9 @@ codeunit 130130 "MCP Config Test"
     var
         CopilotCapability: Codeunit "Copilot Capability";
     begin
-        // [GIVEN] MCP module is installed
+        // [GIVEN] MCP registers its Copilot capability, as it does on install/upgrade
+        MCPConfigTestLibrary.RegisterMCPCapability();
+
         // [THEN] The MCP Server capability is Active by default so the feature works out of the box
         Assert.IsTrue(
             CopilotCapability.IsCapabilityActive(Enum::"Copilot Capability"::"MCP Server", GetMCPAppId()),
