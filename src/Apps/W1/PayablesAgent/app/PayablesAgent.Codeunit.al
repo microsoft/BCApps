@@ -198,7 +198,6 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
     var
         PayablesAgentSetup: Record "Payables Agent Setup";
         PayablesAgent: Codeunit "Payables Agent";
-        PASetup: Codeunit "Payables Agent Setup";
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
         PATrial: Codeunit "PA Trial";
