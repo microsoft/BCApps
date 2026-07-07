@@ -3027,13 +3027,13 @@
         // [GIVEN] First - "DIM1" with "DIMVALUE1"
         LibraryDimension.CreateDimensionValue(DimensionValue[1], LibraryERM.GetGlobalDimensionCode(1));
 
-        // [GIVEN] First - "DIM2" with "DIMVALUE2"
+        // [GIVEN] Second - "DIM2" with "DIMVALUE2"
         LibraryDimension.CreateDimWithDimValue(DimensionValue[2]);
 
-        // [GIVEN] First - "DIM3" with "DIMVALUE3"
+        // [GIVEN] Third - "DIM3" with "DIMVALUE3"
         LibraryDimension.CreateDimWithDimValue(DimensionValue[3]);
 
-        // [GIVEN] First - "DIM4" with "DIMVALUE4"
+        // [GIVEN] Fourth - "DIM4" with "DIMVALUE4"
         LibraryDimension.CreateDimWithDimValue(DimensionValue[4]);
 
         // [GIVEN] G/L Account with posted entries and the dimension value assigned
