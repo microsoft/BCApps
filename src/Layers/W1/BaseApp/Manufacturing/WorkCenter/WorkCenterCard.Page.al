@@ -314,9 +314,17 @@ page 99000754 "Work Center Card"
                 ApplicationArea = Manufacturing;
                 Caption = 'Calculate Work Center Calendar';
                 Image = CalcWorkCenterCalendar;
-                RunObject = Report "Calculate Work Center Calendar";
-                RunPageOnRec = true;
                 ToolTip = 'Create new calendar entries for the work center to define the available daily capacity.';
+
+                trigger OnAction()
+                var
+                    WorkCenter: Record "Work Center";
+                    CalculateWorkCenterCalendar: Report "Calculate Work Center Calendar";
+                begin
+                    WorkCenter.SetRange("No.", Rec."No.");
+                    CalculateWorkCenterCalendar.SetTableView(WorkCenter);
+                    CalculateWorkCenterCalendar.RunModal();
+                end;
             }
         }
         area(reporting)

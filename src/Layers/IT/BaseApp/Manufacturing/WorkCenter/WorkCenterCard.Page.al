@@ -331,7 +331,7 @@ page 99000754 "Work Center Card"
                 begin
                     WorkCenter.SetRange("No.", Rec."No.");
                     CalculateWorkCenterCalendar.SetTableView(WorkCenter);
-                    CalculateWorkCenterCalendar.Run();
+                    CalculateWorkCenterCalendar.RunModal();
                 end;
             }
 #if not CLEAN27

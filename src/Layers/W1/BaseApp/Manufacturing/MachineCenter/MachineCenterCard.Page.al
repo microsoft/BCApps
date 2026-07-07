@@ -304,9 +304,17 @@ page 99000760 "Machine Center Card"
                 ApplicationArea = Manufacturing;
                 Caption = 'Calculate Machine Center Calendar';
                 Image = CalcWorkCenterCalendar;
-                RunObject = Report "Calc. Machine Center Calendar";
-                RunPageOnRec = true;
                 ToolTip = 'Create new calendar entries for the machine center to define the available daily capacity.';
+
+                trigger OnAction()
+                var
+                    MachineCenter: Record "Machine Center";
+                    CalcMachineCenterCalendar: Report "Calc. Machine Center Calendar";
+                begin
+                    MachineCenter.SetRange("No.", Rec."No.");
+                    CalcMachineCenterCalendar.SetTableView(MachineCenter);
+                    CalcMachineCenterCalendar.RunModal();
+                end;
             }
         }
         area(Promoted)
