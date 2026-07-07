@@ -101,6 +101,7 @@ report 99001017 "Calculate Plan - Plan. Wksh."
                 OnOnPreDataItemOnAfterCalcShouldSetAtStartPosition(Item, PlanningErrorLog, ReqLine, SetAtStartPosition, ShouldSetAtStartPosition);
                 if ShouldSetAtStartPosition then
                     SetAtStartPosition := not Confirm(Text009);
+                OnOnPreDataItemOnAfterSetAtStartPosition(Item, PlanningErrorLog, ReqLine, SetAtStartPosition, ShouldSetAtStartPosition);
 
                 ClearPlanningErrorLog();
                 ClearLastError();
@@ -419,6 +420,11 @@ report 99001017 "Calculate Plan - Plan. Wksh."
 
     [IntegrationEvent(false, false)]
     local procedure OnOnPreDataItemOnAfterCalcShouldSetAtStartPosition(Item: Record Item; PlanningErrorLog: Record "Planning Error Log"; RequisitionLine: Record "Requisition Line"; var SetAtStartPosition: Boolean; var ShouldSetAtStartPosition: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnOnPreDataItemOnAfterSetAtStartPosition(Item: Record Item; PlanningErrorLog: Record "Planning Error Log"; RequisitionLine: Record "Requisition Line"; var SetAtStartPosition: Boolean; ShouldSetAtStartPosition: Boolean)
     begin
     end;
 }

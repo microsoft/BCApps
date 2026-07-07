@@ -1223,7 +1223,10 @@ report 7305 "Whse.-Source - Create Document"
             Database::"Whse. Internal Put-away Line":
                 ItemTrackingMgt.SplitInternalPutAwayLine(PostedWhseRcptLine, TempPostedWhseReceiptLine);
             Database::"Posted Whse. Receipt Line":
-                ItemTrackingMgt.SplitPostedWhseRcptLine(PostedWhseRcptLine, TempPostedWhseReceiptLine);
+                begin
+                    ItemTrackingMgt.SplitPostedWhseRcptLine(PostedWhseRcptLine, TempPostedWhseReceiptLine);
+                    OnCreatePutAwayFromDiffSourceOnAfterSplitPostedWhseRcptLine(PostedWhseRcptLine, TempPostedWhseReceiptLine);
+                end;
         end;
         RemQtyToHandleBase := PostedWhseRcptLine."Qty. (Base)";
 
@@ -1451,6 +1454,11 @@ report 7305 "Whse.-Source - Create Document"
 
     [IntegrationEvent(false, false)]
     local procedure OnCreatePutAwayFromDiffSourceOnBeforeProcessCreatePutAway(WhseSourceCreateDocument: Report "Whse.-Source - Create Document"; PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var TempPostedWhseReceiptLine: Record "Posted Whse. Receipt Line" temporary; var CreatePutAway: Codeunit "Create Put-away"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreatePutAwayFromDiffSourceOnAfterSplitPostedWhseRcptLine(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var TempPostedWhseReceiptLine: Record "Posted Whse. Receipt Line" temporary)
     begin
     end;
 
