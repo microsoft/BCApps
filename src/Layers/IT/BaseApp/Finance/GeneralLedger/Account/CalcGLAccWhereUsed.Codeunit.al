@@ -12,7 +12,6 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Intercompany.Partner;
@@ -72,7 +71,6 @@ codeunit 100 "Calc. G/L Acc. Where-Used"
         InventoryPostingSetup: Record "Inventory Posting Setup";
         ICPartner: Record "IC Partner";
         PaymentMethod: Record "Payment Method";
-        WithholdCode: Record "Withhold Code";
         ContributionCode: Record "Contribution Code";
         BillPostingGroup: Record "Bill Posting Group";
         Bill: Record Bill;
@@ -178,11 +176,6 @@ codeunit 100 "Calc. G/L Acc. Where-Used"
                 PAGE.Run(PAGE::"Sales & Receivables Setup");
             Database::"Purchases & Payables Setup":
                 PAGE.Run(PAGE::"Purchases & Payables Setup");
-            Database::"Withhold Code":
-                begin
-                    WithholdCode.Code := CopyStr(GLAccWhereUsed."Key 1", 1, MaxStrLen(WithholdCode.Code));
-                    PAGE.Run(0, WithholdCode);
-                end;
             Database::"Contribution Code":
                 begin
                     ContributionCode.Code := CopyStr(GLAccWhereUsed."Key 1", 1, MaxStrLen(ContributionCode.Code));
@@ -409,7 +402,6 @@ codeunit 100 "Calc. G/L Acc. Where-Used"
     local procedure AddCountryTables(var TableBuffer: Record "Integer")
     begin
         TableBuffer.Reset();
-        AddTable(TableBuffer, Database::"Withhold Code");
         AddTable(TableBuffer, Database::"Contribution Code");
         AddTable(TableBuffer, Database::"Bill Posting Group");
         AddTable(TableBuffer, Database::Bill);

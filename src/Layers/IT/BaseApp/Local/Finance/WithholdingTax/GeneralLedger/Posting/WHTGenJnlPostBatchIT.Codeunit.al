@@ -7,7 +7,7 @@ namespace Microsoft.Finance.WithholdingTax;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 
-codeunit 12139 "WHT Gen. Jnl.-Post Batch IT"
+codeunit 12111 "WHT Gen. Jnl.-Post Batch IT"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Batch", 'OnAfterPostGenJournalLine', '', false, false)]
     local procedure OnAfterPostGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; var Result: Boolean; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")

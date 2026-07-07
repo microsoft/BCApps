@@ -4,36 +4,37 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.WithholdingTax;
 
-using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Finance.ReceivablesPayables;
+using Microsoft.Purchases.Document;
 
-pageextension 12100 "WHT Payment Journal IT" extends "Payment Journal"
+pageextension 12110 "WHTPurchCrMemoIT" extends "Purchase Credit Memo"
 {
     actions
     {
-        addbefore(SuggestVendorPayments)
+        addafter(Approvals)
         {
-            action(WithhTaxSocSec)
+            separator(Action1130000)
+            {
+            }
+            action("With&hold Taxes-Soc. Sec.")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Withh.Ta&x-Soc.Sec.';
+                Caption = 'With&hold Taxes-Soc. Sec.';
                 Image = SocialSecurityTax;
+                RunObject = Page "Withh. Taxes-Contribution Card";
+#pragma warning disable AL0603
+                RunPageLink = "Document Type" = field("Document Type"),
+#pragma warning restore AL0603
+                              "No." = field("No.");
                 ToolTip = 'Show the calculated withholding tax contributions for social security.';
 
                 trigger OnAction()
                 begin
-                    WithholdingSocSecMgt.CreateTmpWithhSocSec(Rec);
-                    PaymentToleranceMgt.SetIncludeWHT();
-                    PaymentToleranceMgt.PmtTolGenJnl(Rec);
+                    WithhSocSecTax.CalculateWithholdingTax(Rec, false);
                 end;
-            }
-            separator(Action1130000)
-            {
             }
         }
     }
 
     var
-        WithholdingSocSecMgt: Codeunit "Withholding - Contribution";
-        PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+        WithhSocSecTax: Codeunit "Withholding - Contribution";
 }

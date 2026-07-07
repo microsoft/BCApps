@@ -1885,7 +1885,6 @@ page 256 "Payment Journal"
         IsPostingGroupEditable: Boolean;
         StyleTxt: Text;
         OverdueWarningText: Text;
-        PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
         EventFilter: Text;
         IsPowerAutomatePrivacyNoticeApproved: Boolean;
         OpenApprovalEntriesExistForCurrUser: Boolean;

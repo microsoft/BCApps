@@ -11,7 +11,6 @@ using Microsoft.Finance.Currency;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Calculation;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.Enums;
@@ -1101,26 +1100,6 @@ page 52 "Purchase Credit Memo"
                         ApprovalsMgmt.OpenApprovalsPurchase(Rec);
                     end;
                 }
-                separator(Action1130000)
-                {
-                }
-                action("With&hold Taxes-Soc. Sec.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'With&hold Taxes-Soc. Sec.';
-                    Image = SocialSecurityTax;
-                    RunObject = Page "Withh. Taxes-Contribution Card";
-#pragma warning disable AL0603
-                    RunPageLink = "Document Type" = field("Document Type"),
-#pragma warning restore AL0603
-                                  "No." = field("No.");
-                    ToolTip = 'Show the calculated withholding tax contributions for social security.';
-
-                    trigger OnAction()
-                    begin
-                        WithhSocSecTax.CalculateWithholdingTax(Rec, false);
-                    end;
-                }
                 action("Co&mments")
                 {
                     ApplicationArea = Basic, Suite;
@@ -1834,7 +1813,6 @@ page 52 "Purchase Credit Memo"
         MoveNegPurchLines: Report "Move Negative Purchase Lines";
         ReportPrint: Codeunit "Test Report-Print";
         UserMgt: Codeunit "User Setup Management";
-        WithhSocSecTax: Codeunit "Withholding - Contribution";
         PurchCalcDiscByType: Codeunit "Purch - Calc Disc. By Type";
         LinesInstructionMgt: Codeunit "Lines Instruction Mgt.";
         FormatAddress: Codeunit "Format Address";
