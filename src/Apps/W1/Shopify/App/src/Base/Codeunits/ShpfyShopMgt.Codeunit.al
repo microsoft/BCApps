@@ -16,7 +16,7 @@ codeunit 30211 "Shpfy Shop Mgt."
         BelgianCountryCodeTok: Label 'BE', Locked = true;
         BelgianLocalizationAppIdTok: Label 'c2d93c78-f87a-4b0e-b71f-570f578d78de', Locked = true;
         InstallActionLbl: Label 'Install';
-        DontShowThisAgainMsg: Label 'Don''t show this again.';
+        DontShowThisAgainLbl: Label 'Don''t show this again.';
         ExpirationNotificationMsg: Label 'The Shopify Admin API used by your current Shopify connector will go out of support on %1. Please upgrade your Business Central environment.', Comment = '%1 - expiry date';
         BlockedNotificationMsg: Label 'The Shopify Admin API used by your current Shopify connector is no longer supported. To continue using the Shopify connector, please upgrade your Business Central environment.';
         ExpirationNotificationNameTok: Label 'Notify user of Shopify connector going out of support.';
@@ -49,7 +49,7 @@ codeunit 30211 "Shpfy Shop Mgt."
             ExpirationNotification.Id := GetExpirationNotificationId();
             ExpirationNotification.Message := StrSubstNo(ExpirationNotificationMsg, Format(ExpiryDate));
             ExpirationNotification.Scope := NotificationScope::LocalScope;
-            ExpirationNotification.AddAction(DontShowThisAgainMsg, Codeunit::"Shpfy Shop Mgt.", 'DisableExpirationNotification');
+            ExpirationNotification.AddAction(DontShowThisAgainLbl, Codeunit::"Shpfy Shop Mgt.", 'DisableExpirationNotification');
             ExpirationNotification.Send();
         end;
     end;
@@ -63,7 +63,7 @@ codeunit 30211 "Shpfy Shop Mgt."
             BlockedNotification.Id := GetBlockedNotificationId();
             BlockedNotification.Message := BlockedNotificationMsg;
             BlockedNotification.Scope := NotificationScope::LocalScope;
-            BlockedNotification.AddAction(DontShowThisAgainMsg, Codeunit::"Shpfy Shop Mgt.", 'DisableBlockedNotification');
+            BlockedNotification.AddAction(DontShowThisAgainLbl, Codeunit::"Shpfy Shop Mgt.", 'DisableBlockedNotification');
             BlockedNotification.Send();
         end;
     end;
@@ -137,7 +137,7 @@ codeunit 30211 "Shpfy Shop Mgt."
         BelgianLocalizationNotification.Message := BelgianLocalizationNotificationMsg;
         BelgianLocalizationNotification.Scope := NotificationScope::LocalScope;
         BelgianLocalizationNotification.AddAction(InstallActionLbl, Codeunit::"Shpfy Shop Mgt.", 'InstallBelgianLocalization');
-        BelgianLocalizationNotification.AddAction(DontShowThisAgainMsg, Codeunit::"Shpfy Shop Mgt.", 'DisableBelgianLocalizationNotification');
+        BelgianLocalizationNotification.AddAction(DontShowThisAgainLbl, Codeunit::"Shpfy Shop Mgt.", 'DisableBelgianLocalizationNotification');
         BelgianLocalizationNotification.Send();
     end;
 
