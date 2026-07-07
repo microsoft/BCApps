@@ -14,7 +14,7 @@ codeunit 8359 "MCP Notifications"
     InherentPermissions = X;
 
     var
-        FeatureDisabledMsg: Label 'The MCP server feature is disabled. Clients will receive a ''feature disabled'' error until you enable the MCP server capability on the Copilot & agent capabilities page.';
+        FeatureDisabledMsg: Label 'The MCP server feature is disabled. Hosts will receive a ''feature disabled'' error until you enable the MCP server capability on the Copilot & agent capabilities page.';
         OpenCapabilitiesPageLbl: Label 'Open Copilot & agent capabilities';
         FeatureDisabledNotificationIdLbl: Label '7d6f6b3c-9d8f-4e8e-9c1e-2a3b4c5d6e7f', Locked = true;
 
