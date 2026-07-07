@@ -2778,6 +2778,7 @@ codeunit 136302 "Job Consumption Purchase"
         VerifyItemLedgEntriesInvoiced(Item."No.", PurchaseLine.Amount);
     end;
 
+    [Test]
     procedure PartialInvoicingNonInvItemWithJobAppliesNegAdjmtToCorrectILE()
     var
         Item: Record Item;
