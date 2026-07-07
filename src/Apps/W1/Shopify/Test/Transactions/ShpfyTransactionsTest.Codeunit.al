@@ -26,6 +26,7 @@ codeunit 139697 "Shpfy Transactions Test"
         InitializeTest: Codeunit "Shpfy Initialize Test";
         TransactionData: Codeunit "Library - Variable Storage";
         IsInitialized: Boolean;
+        IsoCodeCounter: Integer;
 
     local procedure Initialize()
     var
@@ -50,43 +51,26 @@ codeunit 139697 "Shpfy Transactions Test"
     var
         OrderHeader: Record "Shpfy Order Header";
         OrderTransaction: Record "Shpfy Order Transaction";
-        Currency: Record Currency;
-        ImportOrder: Codeunit "Shpfy Import Order";
-        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
-        LibraryERM: Codeunit "Library - ERM";
-        OrdersToImport: Record "Shpfy Orders to Import";
-        JShopifyOrder: JsonObject;
-        JShopifyLineItems: JsonArray;
+        Transactions: Codeunit "Shpfy Transactions";
+        IsoCode: Code[3];
         CurrencyCode: Code[10];
     begin
         // [SCENARIO] When importing a transaction, the Currency field is populated from shopMoney.currencyCode
         Initialize();
 
-        // [GIVEN] A foreign currency with ISO Code
-        CurrencyCode := LibraryERM.CreateCurrencyWithRounding();
-        Currency.Get(CurrencyCode);
-        Currency."ISO Code" := CopyStr(CurrencyCode, 1, MaxStrLen(Currency."ISO Code"));
-        Currency.Modify();
+        // [GIVEN] A foreign shop currency with a distinct ISO Code
+        IsoCode := GetUniqueIsoCode();
+        CurrencyCode := CreateCurrencyWithIsoCode(IsoCode);
 
-        // [GIVEN] Set up mock transaction response with foreign shop currency
-        TransactionData.Clear();
-        TransactionData.Enqueue(CurrencyCode); // shopMoney.currencyCode
-        TransactionData.Enqueue(100.00); // shopMoney.amount
-        TransactionData.Enqueue('AUD'); // presentmentMoney.currencyCode
-        TransactionData.Enqueue(120.00); // presentmentMoney.amount
+        // [GIVEN] A mock transaction response in that shop currency
+        EnqueueTransaction(IsoCode, 100.00, IsoCode, 120.00);
 
-        // [GIVEN] A Shopify order is imported
-        ImportOrder.SetShop(Shop.Code);
-        JShopifyOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JShopifyLineItems, false);
-        ImportOrder.ImportCreateAndUpdateOrderHeaderFromMock(Shop.Code, OrdersToImport.Id, JShopifyOrder);
-        ImportOrder.ImportCreateAndUpdateOrderLinesFromMock(OrdersToImport.Id, JShopifyLineItems);
-        Commit();
-        OrderHeader.Get(OrdersToImport.Id);
+        // [WHEN] Transactions are imported for an order
+        CreateOrderHeader(OrderHeader);
+        Transactions.UpdateTransactionInfos(OrderHeader);
 
-        // [THEN] OrderTransaction.Currency is set to the translated currency code
-        OrderTransaction.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
-        OrderTransaction.SetRange(Status, "Shpfy Transaction Status"::Success);
-        LibraryAssert.IsTrue(OrderTransaction.FindFirst(), 'Transaction should be created');
+        // [THEN] The transaction is created with the resolved BC currency code
+        FindSuccessTransaction(OrderHeader, OrderTransaction);
         LibraryAssert.AreEqual(CurrencyCode, OrderTransaction.Currency, 'Currency should be set from shopMoney.currencyCode');
     end;
 
@@ -97,11 +81,7 @@ codeunit 139697 "Shpfy Transactions Test"
         OrderHeader: Record "Shpfy Order Header";
         OrderTransaction: Record "Shpfy Order Transaction";
         GeneralLedgerSetup: Record "General Ledger Setup";
-        ImportOrder: Codeunit "Shpfy Import Order";
-        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
-        OrdersToImport: Record "Shpfy Orders to Import";
-        JShopifyOrder: JsonObject;
-        JShopifyLineItems: JsonArray;
+        Transactions: Codeunit "Shpfy Transactions";
         LCYCode: Code[10];
     begin
         // [SCENARIO] When the shop currency matches LCY, the Currency field should be empty
@@ -111,25 +91,15 @@ codeunit 139697 "Shpfy Transactions Test"
         GeneralLedgerSetup.Get();
         LCYCode := GeneralLedgerSetup."LCY Code";
 
-        // [GIVEN] Set up mock transaction response with LCY as shop currency
-        TransactionData.Clear();
-        TransactionData.Enqueue(LCYCode);
-        TransactionData.Enqueue(100.00);
-        TransactionData.Enqueue(LCYCode);
-        TransactionData.Enqueue(100.00);
+        // [GIVEN] A mock transaction response with LCY as shop currency
+        EnqueueTransaction(LCYCode, 100.00, LCYCode, 100.00);
 
-        // [GIVEN] A Shopify order is imported
-        ImportOrder.SetShop(Shop.Code);
-        JShopifyOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JShopifyLineItems, false);
-        ImportOrder.ImportCreateAndUpdateOrderHeaderFromMock(Shop.Code, OrdersToImport.Id, JShopifyOrder);
-        ImportOrder.ImportCreateAndUpdateOrderLinesFromMock(OrdersToImport.Id, JShopifyLineItems);
-        Commit();
-        OrderHeader.Get(OrdersToImport.Id);
+        // [WHEN] Transactions are imported for an order
+        CreateOrderHeader(OrderHeader);
+        Transactions.UpdateTransactionInfos(OrderHeader);
 
         // [THEN] OrderTransaction.Currency is empty (LCY is represented as blank in BC)
-        OrderTransaction.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
-        OrderTransaction.SetRange(Status, "Shpfy Transaction Status"::Success);
-        LibraryAssert.IsTrue(OrderTransaction.FindFirst(), 'Transaction should be created');
+        FindSuccessTransaction(OrderHeader, OrderTransaction);
         LibraryAssert.AreEqual('', OrderTransaction.Currency, 'Currency should be empty for LCY');
     end;
 
@@ -139,47 +109,30 @@ codeunit 139697 "Shpfy Transactions Test"
     var
         OrderHeader: Record "Shpfy Order Header";
         OrderTransaction: Record "Shpfy Order Transaction";
-        Currency: Record Currency;
         GeneralLedgerSetup: Record "General Ledger Setup";
-        ImportOrder: Codeunit "Shpfy Import Order";
-        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
-        LibraryERM: Codeunit "Library - ERM";
-        OrdersToImport: Record "Shpfy Orders to Import";
-        JShopifyOrder: JsonObject;
-        JShopifyLineItems: JsonArray;
+        Transactions: Codeunit "Shpfy Transactions";
+        PresentmentIsoCode: Code[3];
         PresentmentCurrencyCode: Code[10];
         LCYCode: Code[10];
     begin
         // [SCENARIO] When importing a transaction, Presentment Currency is populated from presentmentMoney.currencyCode
         Initialize();
 
-        // [GIVEN] LCY code and a foreign presentment currency
+        // [GIVEN] LCY shop currency and a foreign presentment currency
         GeneralLedgerSetup.Get();
         LCYCode := GeneralLedgerSetup."LCY Code";
-        PresentmentCurrencyCode := LibraryERM.CreateCurrencyWithRounding();
-        Currency.Get(PresentmentCurrencyCode);
-        Currency."ISO Code" := CopyStr(PresentmentCurrencyCode, 1, MaxStrLen(Currency."ISO Code"));
-        Currency.Modify();
+        PresentmentIsoCode := GetUniqueIsoCode();
+        PresentmentCurrencyCode := CreateCurrencyWithIsoCode(PresentmentIsoCode);
 
-        // [GIVEN] Set up mock transaction response with LCY shop currency and foreign presentment
-        TransactionData.Clear();
-        TransactionData.Enqueue(LCYCode);
-        TransactionData.Enqueue(100.00);
-        TransactionData.Enqueue(PresentmentCurrencyCode);
-        TransactionData.Enqueue(150.00);
+        // [GIVEN] A mock transaction response with LCY shop currency and foreign presentment
+        EnqueueTransaction(LCYCode, 100.00, PresentmentIsoCode, 150.00);
 
-        // [GIVEN] A Shopify order is imported
-        ImportOrder.SetShop(Shop.Code);
-        JShopifyOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JShopifyLineItems, false);
-        ImportOrder.ImportCreateAndUpdateOrderHeaderFromMock(Shop.Code, OrdersToImport.Id, JShopifyOrder);
-        ImportOrder.ImportCreateAndUpdateOrderLinesFromMock(OrdersToImport.Id, JShopifyLineItems);
-        Commit();
-        OrderHeader.Get(OrdersToImport.Id);
+        // [WHEN] Transactions are imported for an order
+        CreateOrderHeader(OrderHeader);
+        Transactions.UpdateTransactionInfos(OrderHeader);
 
         // [THEN] Presentment Currency is set correctly
-        OrderTransaction.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
-        OrderTransaction.SetRange(Status, "Shpfy Transaction Status"::Success);
-        LibraryAssert.IsTrue(OrderTransaction.FindFirst(), 'Transaction should be created');
+        FindSuccessTransaction(OrderHeader, OrderTransaction);
         LibraryAssert.AreEqual('', OrderTransaction.Currency, 'Currency should be empty for LCY shop currency');
         LibraryAssert.AreEqual(PresentmentCurrencyCode, OrderTransaction."Presentment Currency", 'Presentment Currency should be set from presentmentMoney.currencyCode');
     end;
@@ -190,49 +143,31 @@ codeunit 139697 "Shpfy Transactions Test"
     var
         OrderHeader: Record "Shpfy Order Header";
         OrderTransaction: Record "Shpfy Order Transaction";
-        Currency: Record Currency;
         GeneralLedgerSetup: Record "General Ledger Setup";
-        ImportOrder: Codeunit "Shpfy Import Order";
-        OrderHandlingHelper: Codeunit "Shpfy Order Handling Helper";
-        LibraryERM: Codeunit "Library - ERM";
-        OrdersToImport: Record "Shpfy Orders to Import";
-        JShopifyOrder: JsonObject;
-        JShopifyLineItems: JsonArray;
-        PresentmentCurrencyCode: Code[10];
+        Transactions: Codeunit "Shpfy Transactions";
+        PresentmentIsoCode: Code[3];
         ShopAmount: Decimal;
         PresentmentAmount: Decimal;
     begin
         // [SCENARIO] Amount field contains shopMoney.amount and Presentment Amount contains presentmentMoney.amount
         Initialize();
 
-        // [GIVEN] A foreign presentment currency
+        // [GIVEN] LCY shop currency and a foreign presentment currency
         GeneralLedgerSetup.Get();
-        PresentmentCurrencyCode := LibraryERM.CreateCurrencyWithRounding();
-        Currency.Get(PresentmentCurrencyCode);
-        Currency."ISO Code" := CopyStr(PresentmentCurrencyCode, 1, MaxStrLen(Currency."ISO Code"));
-        Currency.Modify();
+        PresentmentIsoCode := GetUniqueIsoCode();
+        CreateCurrencyWithIsoCode(PresentmentIsoCode);
 
-        // [GIVEN] Set up mock transaction response with specific amounts
+        // [GIVEN] A mock transaction response with specific amounts
         ShopAmount := 85.50;
         PresentmentAmount := 120.75;
-        TransactionData.Clear();
-        TransactionData.Enqueue(GeneralLedgerSetup."LCY Code");
-        TransactionData.Enqueue(ShopAmount);
-        TransactionData.Enqueue(PresentmentCurrencyCode);
-        TransactionData.Enqueue(PresentmentAmount);
+        EnqueueTransaction(GeneralLedgerSetup."LCY Code", ShopAmount, PresentmentIsoCode, PresentmentAmount);
 
-        // [GIVEN] A Shopify order is imported
-        ImportOrder.SetShop(Shop.Code);
-        JShopifyOrder := OrderHandlingHelper.CreateShopifyOrderAsJson(Shop, OrdersToImport, JShopifyLineItems, false);
-        ImportOrder.ImportCreateAndUpdateOrderHeaderFromMock(Shop.Code, OrdersToImport.Id, JShopifyOrder);
-        ImportOrder.ImportCreateAndUpdateOrderLinesFromMock(OrdersToImport.Id, JShopifyLineItems);
-        Commit();
-        OrderHeader.Get(OrdersToImport.Id);
+        // [WHEN] Transactions are imported for an order
+        CreateOrderHeader(OrderHeader);
+        Transactions.UpdateTransactionInfos(OrderHeader);
 
         // [THEN] Amounts are correctly mapped
-        OrderTransaction.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
-        OrderTransaction.SetRange(Status, "Shpfy Transaction Status"::Success);
-        LibraryAssert.IsTrue(OrderTransaction.FindFirst(), 'Transaction should be created');
+        FindSuccessTransaction(OrderHeader, OrderTransaction);
         LibraryAssert.AreEqual(ShopAmount, OrderTransaction.Amount, 'Amount should match shopMoney.amount');
         LibraryAssert.AreEqual(PresentmentAmount, OrderTransaction."Presentment Amount", 'Presentment Amount should match presentmentMoney.amount');
     end;
@@ -352,6 +287,53 @@ codeunit 139697 "Shpfy Transactions Test"
 
         // [THEN] Result is blank because the resolved BC currency code equals the LCY code
         LibraryAssert.AreEqual('', Result, 'Should return empty when the resolved currency code is the LCY code');
+    end;
+
+    local procedure CreateOrderHeader(var OrderHeader: Record "Shpfy Order Header")
+    begin
+        Clear(OrderHeader);
+        OrderHeader.Init();
+        OrderHeader."Shopify Order Id" := Any.IntegerInRange(100000, 999999);
+        OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader.Insert();
+    end;
+
+    local procedure CreateCurrencyWithIsoCode(IsoCode: Code[3]): Code[10]
+    var
+        Currency: Record Currency;
+        LibraryERM: Codeunit "Library - ERM";
+        CurrencyCode: Code[10];
+    begin
+        CurrencyCode := LibraryERM.CreateCurrencyWithRounding();
+        Currency.Get(CurrencyCode);
+        Currency."ISO Code" := IsoCode;
+        Currency.Modify();
+        exit(CurrencyCode);
+    end;
+
+    local procedure GetUniqueIsoCode(): Code[3]
+    begin
+        // Distinct, non-standard ISO codes (Z01..Z99) that do not collide with demo-data currencies.
+        IsoCodeCounter += 1;
+        if IsoCodeCounter < 10 then
+            exit(CopyStr('Z0' + Format(IsoCodeCounter), 1, 3));
+        exit(CopyStr('Z' + Format(IsoCodeCounter), 1, 3));
+    end;
+
+    local procedure EnqueueTransaction(ShopCurrencyCode: Text; ShopAmount: Decimal; PresentmentCurrencyCode: Text; PresentmentAmount: Decimal)
+    begin
+        TransactionData.Clear();
+        TransactionData.Enqueue(ShopCurrencyCode);
+        TransactionData.Enqueue(ShopAmount);
+        TransactionData.Enqueue(PresentmentCurrencyCode);
+        TransactionData.Enqueue(PresentmentAmount);
+    end;
+
+    local procedure FindSuccessTransaction(OrderHeader: Record "Shpfy Order Header"; var OrderTransaction: Record "Shpfy Order Transaction")
+    begin
+        OrderTransaction.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        OrderTransaction.SetRange(Status, "Shpfy Transaction Status"::Success);
+        LibraryAssert.IsTrue(OrderTransaction.FindFirst(), 'Transaction should be created');
     end;
 
     [HttpClientHandler]
