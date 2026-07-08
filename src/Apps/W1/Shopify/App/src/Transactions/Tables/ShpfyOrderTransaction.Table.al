@@ -66,7 +66,7 @@ table 30133 "Shpfy Order Transaction"
         }
         field(8; "Created At"; DateTime)
         {
-            Caption = 'Created At';
+            Caption = 'Created At (Shopify)';
             DataClassification = SystemMetadata;
             Editable = false;
         }
