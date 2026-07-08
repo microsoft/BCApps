@@ -109,7 +109,7 @@ page 99000755 "Work Center List"
                 {
                     ApplicationArea = Planning;
                 }
-                field("Calendar Entries Available Until"; Rec."Calendar Entries Available Until")
+                field("Calendar Entries Available Until"; Rec."Calendar Entries Avail. Until")
                 {
                     ApplicationArea = Manufacturing;
                     Editable = false;
@@ -389,9 +389,9 @@ page 99000755 "Work Center List"
 
     trigger OnAfterGetRecord()
     begin
-        Rec.CalcFields("Calendar Entries Available Until");
+        Rec.CalcFields("Calendar Entries Avail. Until");
         CalendarHorizonStyleTxt := '';
-        if (Rec."Calendar Entries Available Until" <> 0D) and (Rec."Calendar Entries Available Until" < WorkDate()) then
+        if (Rec."Calendar Entries Avail. Until" <> 0D) and (Rec."Calendar Entries Avail. Until" < WorkDate()) then
             CalendarHorizonStyleTxt := 'Unfavorable';
     end;
 

@@ -623,7 +623,7 @@ table 99000758 "Machine Center"
                 CheckBinCode("Location Code", "From-Production Bin Code", FieldCaption("From-Production Bin Code"), "No.");
             end;
         }
-        field(7304; "Calendar Entries Available Until"; Date)
+        field(7304; "Calendar Entries Avail. Until"; Date)
         {
             CalcFormula = max("Calendar Entry".Date where("Capacity Type" = const("Machine Center"),
                                                           "No." = field("No.")));
