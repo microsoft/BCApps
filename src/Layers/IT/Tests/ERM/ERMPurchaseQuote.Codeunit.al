@@ -590,9 +590,9 @@ codeunit 134325 "ERM Purchase Quote"
         Vendor.Validate("Primary Contact No.", Contact."No.");
         Vendor.Modify(true);
 
-        // [WHEN] Purchase Invoice is created from Vendor Card
+        // [WHEN] Purchase Quote is created from Vendor Card
         LibraryPurchase.CreatePurchHeader(
-           PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+           PurchaseHeader, PurchaseHeader."Document Type"::Quote, Vendor."No.");
 
         // [THEN] Buy-from Contact email is Contact "CO" email
         PurchaseQuote.OpenView();

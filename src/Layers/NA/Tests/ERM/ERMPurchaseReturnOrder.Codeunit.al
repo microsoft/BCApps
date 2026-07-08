@@ -1467,9 +1467,9 @@ codeunit 134329 "ERM Purchase Return Order"
         Vendor.Validate("Primary Contact No.", Contact."No.");
         Vendor.Modify(true);
 
-        // [WHEN] Purchase Invoice is created from Vendor Card
+        // [WHEN] Purchase Return Order is created from Vendor Card
         LibraryPurchase.CreatePurchHeader(
-           PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+           PurchaseHeader, PurchaseHeader."Document Type"::"Return Order", Vendor."No.");
 
         // [THEN] Buy-from Contact email is Contact "CO" email
         PurchaseReturnOrder.OpenView();

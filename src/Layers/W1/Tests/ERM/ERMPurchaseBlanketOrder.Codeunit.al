@@ -1481,9 +1481,9 @@ codeunit 134326 "ERM Purchase Blanket Order"
         Vendor.Validate("Primary Contact No.", Contact."No.");
         Vendor.Modify(true);
 
-        // [WHEN] Purchase Invoice is created from Vendor Card
+        // [WHEN] Blanket Purchase Order is created from Vendor Card
         LibraryPurchase.CreatePurchHeader(
-           PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+           PurchaseHeader, PurchaseHeader."Document Type"::"Blanket Order", Vendor."No.");
 
         // [THEN] Buy-from Contact email is Contact "CO" email
         BlanketPurchaseOrder.OpenView();
