@@ -2973,9 +2973,8 @@
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
-    procedure ExportAccScheduleToExcelWithDimFilter2()
+    procedure ExportAccScheduleToExcelWithDimFilter()
     var
         GLAccount: Record "G/L Account";
         GenJournalLine: Record "Gen. Journal Line";

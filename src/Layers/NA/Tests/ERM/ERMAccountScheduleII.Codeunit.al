@@ -2898,7 +2898,7 @@
         FinancialReportAuditLog.SetRange(User, UserId);
         FinancialReportAuditLog.SetRange(Format, FinancialReportAuditLog.Format::Excel);
         Assert.AreEqual(1, FinancialReportAuditLog.Count(), 'Audit log entry was not created after export the financial report to PDF.');
-    end;			
+    end;
 
     procedure FinancialReportWithBlockedStatus()
     var
@@ -3011,9 +3011,8 @@
     end;
 
     [Test]
-    [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
-    procedure ExportAccScheduleToExcelWithDimFilter2()
+    procedure ExportAccScheduleToExcelWithDimFilter()
     var
         GLAccount: Record "G/L Account";
         GenJournalLine: Record "Gen. Journal Line";
