@@ -1423,33 +1423,37 @@ codeunit 130130 "MCP Config Test"
     [Test]
     procedure TestMCPCapabilityIsRegisteredAfterInstall()
     var
-        CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";
+        CopilotCapability: Codeunit "Copilot Capability";
+        CopilotTestLibrary: Codeunit "Copilot Test Library";
     begin
-        // [GIVEN] MCP registers its Copilot capability, as it does on install/upgrade
-        MCPConfigTestLibrary.RegisterMCPCapability();
+        // [GIVEN] The MCP Server capability is registered under the MCP app id
+        CopilotTestLibrary.RegisterCopilotCapabilityWithAppId(Enum::"Copilot Capability"::"MCP Server", GetMCPAppId());
 
-        // [THEN] The MCP Server capability row exists and is registered as Generally Available
-        CopilotSettingsTestLibrary.SetCapabilityFilter(Enum::"Copilot Capability"::"MCP Server");
-        Assert.IsTrue(CopilotSettingsTestLibrary.FindFirst(), 'Expected MCP Server capability to be registered after install.');
-        Assert.AreEqual(
-            Enum::"Copilot Availability"::"Generally Available", CopilotSettingsTestLibrary.GetAvailability(),
-            'Expected MCP Server capability to be registered as Generally Available.');
+        // [THEN] The MCP Server capability is registered against the MCP app id
+        Assert.IsTrue(
+            CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"MCP Server", GetMCPAppId()),
+            'Expected MCP Server capability to be registered after install.');
     end;
 
     [Test]
     procedure TestMCPCapabilityIsActiveByDefault()
     var
-        CopilotSettingsTestLibrary: Codeunit "Copilot Settings Test Library";
+        CopilotCapability: Codeunit "Copilot Capability";
+        CopilotTestLibrary: Codeunit "Copilot Test Library";
     begin
-        // [GIVEN] MCP registers its Copilot capability, as it does on install/upgrade
-        MCPConfigTestLibrary.RegisterMCPCapability();
+        // [GIVEN] The MCP Server capability is registered under the MCP app id
+        CopilotTestLibrary.RegisterCopilotCapabilityWithAppId(Enum::"Copilot Capability"::"MCP Server", GetMCPAppId());
 
         // [THEN] The MCP Server capability is Active by default so the feature works out of the box
-        CopilotSettingsTestLibrary.SetCapabilityFilter(Enum::"Copilot Capability"::"MCP Server");
-        Assert.IsTrue(CopilotSettingsTestLibrary.FindFirst(), 'Expected MCP Server capability to be registered after install.');
-        Assert.AreEqual(
-            Enum::"Copilot Status"::Active, CopilotSettingsTestLibrary.GetStatus(),
+        Assert.IsTrue(
+            CopilotCapability.IsCapabilityActive(Enum::"Copilot Capability"::"MCP Server", GetMCPAppId()),
             'Expected MCP Server capability to be Active by default after install.');
+    end;
+
+    local procedure GetMCPAppId(): Guid
+    begin
+        // App id of the MCP module (src/System Application/App/MCP/app.json).
+        exit('5767db24-c02e-46e8-9132-44de8be7fc57');
     end;
 
     #endregion

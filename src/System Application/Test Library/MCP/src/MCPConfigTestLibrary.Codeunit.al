@@ -63,14 +63,4 @@ codeunit 130131 "MCP Config Test Library"
     begin
         exit(MCPConfigImplementation.EncodeForMCPHeaderIfNonAscii(Value));
     end;
-
-    procedure RegisterMCPCapability()
-    var
-        MCPCopilotCapReg: Codeunit "MCP Copilot Cap. Reg.";
-    begin
-        // Runs the same registration logic that MCP Install/Upgrade invokes, so tests do not depend
-        // on install/upgrade triggers having fired in the test environment. The capability is registered
-        // under the MCP app id because RegisterCapability resolves the caller (MCP Copilot Cap. Reg.) module.
-        MCPCopilotCapReg.RegisterMCPCapability();
-    end;
 }

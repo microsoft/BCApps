@@ -19,12 +19,6 @@ codeunit 132934 "Copilot Settings Test Library"
         exit(CopilotSettings.FindFirst());
     end;
 
-    procedure SetCapabilityFilter(CopilotCapability: Enum "Copilot Capability")
-    begin
-        CopilotSettings.Reset();
-        CopilotSettings.SetRange(Capability, CopilotCapability);
-    end;
-
     procedure GetCapability(): Enum "Copilot Capability"
     begin
         exit(CopilotSettings."Capability");
