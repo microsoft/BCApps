@@ -40,8 +40,8 @@ page 3313 "PA Known Senders"
         SavedSetup: Record "Payables Agent Setup";
         OutlookSetup: Record "Outlook Setup";
         PayablesAgentSetup: Codeunit "Payables Agent Setup";
-        Impact: Enum "PA Setup Change Impact";
         UnusedNotification: Notification;
+        Impact: Enum "PA Setup Change Impact";
         SavedFolder: Text;
     begin
         SavedSetup.GetSetup();
