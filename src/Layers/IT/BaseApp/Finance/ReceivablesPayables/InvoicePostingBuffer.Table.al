@@ -799,8 +799,8 @@ table 55 "Invoice Posting Buffer"
           PadField(Format("Related Entry No."), 10) +
           Format("Include in VAT Transac. Rep.") +
           PadField(Format(RefersToPeriod), 10) +
-          PadField("Contract No.", MaxStrLen("Contract No."));
-          PadField("Spend Request No.", MaxStrLen("Spend Request No.")) +
+          PadField("Contract No.", MaxStrLen("Contract No.")),
+          PadField("Spend Request No.", MaxStrLen("Spend Request No."));
         OnBuildPrimaryKeyAfterDeferralCode(GroupID, Rec);
         GroupID := GroupID + PadField("Additional Grouping Identifier", MaxStrLen("Additional Grouping Identifier"));
 
