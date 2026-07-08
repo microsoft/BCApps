@@ -43,6 +43,12 @@ jobs:
         id: pr
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          WORKFLOW_RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          WORKFLOW_RUN_PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          WORKFLOW_RUN_HEAD_OWNER: ${{ github.event.workflow_run.head_repository.owner.login }}
+          WORKFLOW_RUN_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          WORKFLOW_RUN_BASE_REF: ${{ github.event.workflow_run.pull_requests[0].base.ref }}
         run: |
           $headers = @{
             Accept = 'application/vnd.github+json'
@@ -50,13 +56,13 @@ jobs:
             'User-Agent' = 'bcapps-copilot-pr-reviewer'
           }
 
-          $expectedHeadSha = '${{ github.event.workflow_run.head_sha }}'
+          $expectedHeadSha = $env:WORKFLOW_RUN_HEAD_SHA
 
-          $prNumber = '${{ github.event.workflow_run.pull_requests[0].number }}'
+          $prNumber = $env:WORKFLOW_RUN_PR_NUMBER
           if (-not $prNumber) {
-            $headOwner = '${{ github.event.workflow_run.head_repository.owner.login }}'
-            $headBranch = '${{ github.event.workflow_run.head_branch }}'
-            $baseBranch = '${{ github.event.workflow_run.pull_requests[0].base.ref }}'
+            $headOwner = $env:WORKFLOW_RUN_HEAD_OWNER
+            $headBranch = $env:WORKFLOW_RUN_HEAD_BRANCH
+            $baseBranch = $env:WORKFLOW_RUN_BASE_REF
 
             if (-not $headOwner -or -not $headBranch) {
               throw 'No pull request number in workflow_run payload and insufficient head repo/branch metadata for fallback lookup.'
@@ -69,7 +75,7 @@ jobs:
               $query = "$query&base=$encodedBase"
             }
 
-            $searchUri = "https://api.github.com/repos/${{ github.repository }}/pulls?$query&per_page=30"
+            $searchUri = "https://api.github.com/repos/${env:GITHUB_REPOSITORY}/pulls?$query&per_page=30"
             $candidates = Invoke-RestMethod -Uri $searchUri -Headers $headers -Method GET
 
             $matchingCandidates = @($candidates | Where-Object { $_.head.sha -eq $expectedHeadSha })
@@ -85,7 +91,7 @@ jobs:
             throw 'No pull request number found in workflow_run payload or fallback PR lookup.'
           }
 
-          $uri = "https://api.github.com/repos/${{ github.repository }}/pulls/$prNumber"
+          $uri = "https://api.github.com/repos/${env:GITHUB_REPOSITORY}/pulls/$prNumber"
           $pr = Invoke-RestMethod -Uri $uri -Headers $headers -Method GET
 
           if ($expectedHeadSha -and $pr.head.sha -ne $expectedHeadSha) {

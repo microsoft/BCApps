@@ -1647,6 +1647,7 @@ codeunit 7312 "Create Pick"
                 CurrWarehouseActivityHeader.Validate("Assigned User ID", CreatePickParameters."Assigned ID");
             CurrWarehouseActivityHeader."Sorting Method" := CreatePickParameters."Sorting Method";
             CurrWarehouseActivityHeader."Breakbulk Filter" := CreatePickParameters."Breakbulk Filter";
+            CurrWarehouseActivityHeader."Do Not Fill Qty. to Handle" := CreatePickParameters."Do Not Fill Qty. to Handle";
             OnBeforeWhseActivHeaderInsert(CurrWarehouseActivityHeader, TempWarehouseActivityLine, CreatePickParameters, CurrWarehouseShipmentLine);
             CurrWarehouseActivityHeader.Insert(true);
             OnCreateWhseActivHeaderOnAfterWhseActivHeaderInsert(CurrWarehouseActivityHeader, TempWarehouseActivityLine, CreatePickParameters);
