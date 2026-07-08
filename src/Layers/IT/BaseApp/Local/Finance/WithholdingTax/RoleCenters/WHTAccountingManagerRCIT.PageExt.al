@@ -16,7 +16,7 @@ pageextension 12107 "WHT Accounting Manager RC IT" extends "Accounting Manager R
             group(Withholding)
             {
                 Caption = 'Withholding';
-                action("Withholding Taxes")
+                action(Action1130000)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Withholding Taxes';

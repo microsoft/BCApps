@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.WithholdingTax;
 
+using Microsoft.Bank.Payment;
 using Microsoft.Finance.RoleCenters;
 
 pageextension 12109 "WHT Finance Manager RC IT" extends "Finance Manager Role Center"
@@ -17,6 +18,12 @@ pageextension 12109 "WHT Finance Manager RC IT" extends "Finance Manager Role Ce
                 ApplicationArea = Basic, Suite;
                 Caption = 'Withholding Taxes';
                 RunObject = report "Withholding Taxes";
+            }
+            action("Contribution")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Contribution';
+                RunObject = report "Contribution";
             }
             action("Summary Withholding Payment")
             {
