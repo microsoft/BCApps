@@ -1124,13 +1124,14 @@ codeunit 134389 "ERM Customer Statistics"
     procedure OverdueBalanceIsolatedFromLeakedWideDateFilterOnCustomer()
     var
         Customer: Record Customer;
+        CustomerCard: TestPage "Customer Card";
         EarliestDate: Date;
         LatestDate: Date;
         OverdueAmount: Decimal;
         NotOverdueAmount: Decimal;
     begin
         // [FEATURE] [Overdue Balance] [Cue]
-        // [SCENARIO 640988] Both Customer.CalcOverdueBalance (used by the Customer Card background calculation that feeds the overdue payments cue) and the "Balance Due (LCY)" FlowField (which the card evaluates after resetting the Date Filter to 0D..WORKDATE in OnAfterGetCurrRecord) return only overdue amounts, even when a wider "Date Filter" is inherited on the Customer record from a document or journal.
+        // [SCENARIO 640988] Both Customer.CalcOverdueBalance (used by the Customer Card background calculation that feeds the overdue payments cue) and the "Balance Due (LCY)" FlowField shown on the Customer Card return only overdue amounts, even when a wider "Date Filter" is inherited on the Customer record from a document or journal.
         Initialize();
 
         // [GIVEN] Reference dates that bracket both WORKDATE and Today so the fixture is deterministic regardless of their relative order.
@@ -1144,25 +1145,28 @@ codeunit 134389 "ERM Customer Statistics"
 
         // [GIVEN] Create customer with two posted sales invoices.
         LibrarySales.CreateCustomer(Customer);
-        // [GIVEN] CreateInvoice "A" is overdue against both WORKDATE and Today: Due Date < min(WORKDATE, Today), Amount = "X".
+        // [GIVEN] Invoice "A" is overdue against both WORKDATE and Today: Due Date < min(WORKDATE, Today), Amount = "X".
         OverdueAmount := CreateAndPostInvoiceWithDueDate(Customer."No.", CalcDate('<-2M>', EarliestDate), CalcDate('<-1M>', EarliestDate));
-        // [GIVEN] Create Invoice "B" is not yet due against either WORKDATE or Today: Due Date > max(WORKDATE, Today), Amount = "Y".
+        // [GIVEN] Invoice "B" is not yet due against either WORKDATE or Today: Due Date > max(WORKDATE, Today), Amount = "Y".
         NotOverdueAmount := CreateAndPostInvoiceWithDueDate(Customer."No.", WorkDate(), CalcDate('<2M>', LatestDate));
 
         // [GIVEN] A wider "Date Filter" is applied on the Customer record, simulating one inherited from a document or journal and captured by StartBackgroundCalculations before any reset.
         Customer.SetFilter("Date Filter", '..%1', CalcDate('<3M>', LatestDate));
 
-        // [WHEN] CalcOverdueBalance is called on the Customer (the same call the background task makes after Customer.SetView).
+        // [WHEN] CalcOverdueBalance is called on the Customer (the same call the background task makes after Customer.SetView for the overdue payments cue).
+        // [THEN] Only the overdue invoice amount is returned, proving the cue calculation is isolated from the leaked wider Date Filter.
         Assert.AreEqual(Round(OverdueAmount), Customer.CalcOverdueBalance(), OverDueBalanceErr);
 
-        // [WHEN] The Customer Card's OnAfterGetCurrRecord unconditionally resets the "Date Filter" to 0D..WORKDATE.
-        Customer.SetRange("Date Filter", 0D, WorkDate());
+        // [WHEN] The Customer Card is opened for the customer with a leaked wider "Date Filter" applied by the caller (document/journal path).
+        CustomerCard.OpenView();
+        CustomerCard.FILTER.SetFilter("Date Filter", StrSubstNo('..%1', CalcDate('<3M>', LatestDate)));
+        CustomerCard.FILTER.SetFilter("No.", Customer."No.");
 
-        // [THEN] Verify "Balance Due (LCY)" sums only the overdue invoice amount.
-        Customer.CalcFields("Balance Due (LCY)", "Balance (LCY)");
-        Assert.AreEqual(OverdueAmount, Customer."Balance Due (LCY)", OverDueBalanceErr);
-        // [THEN] Verify "Balance (LCY)" sums both invoice amounts.
-        Assert.AreEqual(OverdueAmount + NotOverdueAmount, Customer."Balance (LCY)", 'Balance (LCY) should include both invoices.');
+        // [THEN] "Balance Due (LCY)" shown on the Customer Card reflects only the overdue invoice amount, proving OnAfterGetCurrRecord resets the "Date Filter" to 0D..WORKDATE before FlowFields are evaluated.
+        Assert.AreEqual(OverdueAmount, CustomerCard."Balance Due (LCY)".AsDecimal(), OverDueBalanceErr);
+        // [THEN] "Balance (LCY)" on the Customer Card still sums both invoices.
+        Assert.AreEqual(OverdueAmount + NotOverdueAmount, CustomerCard."Balance (LCY)".AsDecimal(), 'Balance (LCY) should include both invoices.');
+        CustomerCard.Close();
     end;
 
     local procedure Initialize()
