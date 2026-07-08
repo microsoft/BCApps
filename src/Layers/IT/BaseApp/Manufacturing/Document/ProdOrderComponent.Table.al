@@ -672,18 +672,23 @@ table 5407 "Prod. Order Component"
             DecimalPlaces = 2 : 5;
 
             trigger OnValidate()
+            var
+                IsHandled: Boolean;
             begin
                 TestField("Item No.");
 
                 Item.Get("Item No.");
                 GetGLSetup();
-                if Item."Costing Method" = Item."Costing Method"::Standard then begin
-                    if CurrFieldNo = FieldNo("Unit Cost") then
-                        Error(
-                          Text99000003,
-                          FieldCaption("Unit Cost"), Item.FieldCaption("Costing Method"), Item."Costing Method");
-                    UpdateUnitCost();
-                end;
+                IsHandled := false;
+                OnValidateUnitCostOnBeforeCheckCostingMethod(Rec, IsHandled);
+                if not IsHandled then
+                    if Item."Costing Method" = Item."Costing Method"::Standard then begin
+                        if CurrFieldNo = FieldNo("Unit Cost") then
+                            Error(
+                              Text99000003,
+                              FieldCaption("Unit Cost"), Item.FieldCaption("Costing Method"), Item."Costing Method");
+                        UpdateUnitCost();
+                    end;
                 Validate("Calculation Formula");
             end;
         }
@@ -1363,6 +1368,11 @@ table 5407 "Prod. Order Component"
                     until CapLedgEntry.Next() = 0;
             end;
 
+            IsHandled := false;
+            OnGetNeededQtyOnBeforeCalcActNeededQtyBase(Rec, OutputQtyBase, NeededQty, IsHandled);
+            if IsHandled then
+                exit(NeededQty);
+
             CompQtyBase := MfgCostCalcMgt.CalcActNeededQtyBase(ProdOrderLine, Rec, OutputQtyBase);
             OnGetNeededQtyAfterCalcCompQtyBase(Rec, CompQtyBase, OutputQtyBase);
 
@@ -1371,8 +1381,14 @@ table 5407 "Prod. Order Component"
                 if Status in [Status::Released, Status::Finished] then
                     CalcFields("Act. Consumption (Qty)");
                 OnGetNeededQtyAfterCalcActConsumptionQty(Rec);
-                exit(NeededQty -
-                  UOMMgt.RoundToItemRndPrecision("Act. Consumption (Qty)" / "Qty. per Unit of Measure", RoundingPrecision));
+                NeededQty :=
+                  NeededQty -
+                  UOMMgt.RoundToItemRndPrecision("Act. Consumption (Qty)" / "Qty. per Unit of Measure", RoundingPrecision);
+                IsHandled := false;
+                OnGetNeededQtyOnBeforeExitWithPreviousPosting(Rec, CompQtyBase, NeededQty, IsHandled);
+                if IsHandled then
+                    exit(NeededQty);
+                exit(NeededQty);
             end;
             exit(NeededQty);
         end;
@@ -2500,6 +2516,16 @@ table 5407 "Prod. Order Component"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnGetNeededQtyOnBeforeCalcActNeededQtyBase(var ProdOrderComponent: Record "Prod. Order Component"; var OutputQtyBase: Decimal; var Result: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetNeededQtyOnBeforeExitWithPreviousPosting(var ProdOrderComponent: Record "Prod. Order Component"; var CompQtyBase: Decimal; var Result: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnGetNeededQtyOnAfterCalcBasedOn(var ProdOrderComponent: Record "Prod. Order Component")
     begin
     end;
@@ -2632,6 +2658,11 @@ table 5407 "Prod. Order Component"
 
     [IntegrationEvent(false, false)]
     local procedure OnValidateRoutingLinkCodeOnBeforeUpdateDueDateAndTime(var ProdOrderComponent: Record "Prod. Order Component"; var ProdOrderLine: Record "Prod. Order Line"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateUnitCostOnBeforeCheckCostingMethod(var ProdOrderComponent: Record "Prod. Order Component"; var IsHandled: Boolean)
     begin
     end;
 
