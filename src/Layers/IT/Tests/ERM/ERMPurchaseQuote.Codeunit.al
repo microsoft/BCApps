@@ -18,6 +18,7 @@ codeunit 134325 "ERM Purchase Quote"
         LibraryRandom: Codeunit "Library - Random";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryResource: Codeunit "Library - Resource";
+        LibraryUtility: Codeunit "Library - Utility";
         IsInitialized: Boolean;
         AmountErrorMessage: Label '%1 must be %2 in %3.';
         FieldError: Label '%1 not updated correctly.';
@@ -555,6 +556,48 @@ codeunit 134325 "ERM Purchase Quote"
                 QuoteNoErr,
                 QuoteNo,
                 PurchaseHeader.TableCaption()));
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ContactEmailDisplayedOnNewPurchaseQuote()
+    var
+        Contact: Record Contact;
+        ContactBusinessRelation: Record "Contact Business Relation";
+        CompanyContact: Record Contact;
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseQuote: TestPage "Purchase Quote";
+        ContactEmail: Text[80];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 625599] Contact email is displayed on a new Purchase Quote created from Vendor Card when Vendor "V" has a primary Contact "CO" with email
+        Initialize();
+
+        // [GIVEN] Vendor "V" with a primary Contact "CO" that has an email address
+        ContactEmail := CopyStr(LibraryUtility.GenerateRandomEmail(), 1, MaxStrLen(ContactEmail));
+        LibraryPurchase.CreateVendor(Vendor);
+        ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Vendor);
+        ContactBusinessRelation.SetRange("No.", Vendor."No.");
+        ContactBusinessRelation.FindFirst();
+        CompanyContact.Get(ContactBusinessRelation."Contact No.");
+        Contact.Init();
+        Contact.Type := Contact.Type::Person;
+        Contact.Validate("Company No.", CompanyContact."No.");
+        Contact.Insert(true);
+        Contact.Validate("E-Mail", ContactEmail);
+        Contact.Modify(true);
+        Vendor.Validate("Primary Contact No.", Contact."No.");
+        Vendor.Modify(true);
+
+        // [WHEN] Purchase Invoice is created from Vendor Card
+        LibraryPurchase.CreatePurchHeader(
+           PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+
+        // [THEN] Buy-from Contact email is Contact "CO" email
+        PurchaseQuote.OpenView();
+        PurchaseQuote.FILTER.SetFilter("No.", PurchaseHeader."No.");
+        PurchaseQuote.BuyFromContactEmail.AssertEquals(ContactEmail);
     end;
 
     local procedure Initialize()
