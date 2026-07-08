@@ -25,6 +25,8 @@
         ReversalErr: Label 'Due to how Business Central posts and updates amounts in an additional reporting currency (ACY), you can''t use this feature if you use ACY. Business Central converts amounts in local currency to the alternate currency, but doesn''t net transactions. If you use ACY, you must manually reverse the amounts.';
         ReversalSuccessfullTxt: Label 'The entries were successfully reversed.';
         AmountMismatchErr: Label '%1 field must be %2 in %3 table for %4 field %5.';
+        ExpectedUnrealizedDtldCustEntryErr: Label 'Expected Unrealized Loss/Gain Detailed Customer Ledger Entry for customer %1.', Comment = '%1 = Customer No.';
+        UnexpectedAdjustedEntryErr: Label 'No Unrealized Loss/Gain Detailed Customer Ledger Entry was expected for Posting Group %1.', Comment = '%1 = Posting Group Code';
         PostingDate: Date;
         SetHandler: Boolean;
         DocTypeReversalErr: Label 'You cannot reverse the entry %1 because it''s an %2 Document.';
@@ -1129,6 +1131,73 @@
         Assert.AreNotEqual(0, ExchRateAdjmtReg."Adjusted Amt. (LCY)", 'Register for EPG2 must have non-zero amount.');
     end;
 
+    [Test]
+    procedure ExchRateAdjmtCustomerFilterAdjustsDefaultPostingGroupOnly()
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        AltCustomerPostingGroup: Record "Customer Posting Group";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [Adjust Exchange Rate] [Detailed Ledger Entry] [Posting Group]
+        // [SCENARIO] Exchange Rate Adjustment filtered by the customer's default Posting Group only adjusts ledger entries that carry that Posting Group
+        Initialize();
+
+        // [GIVEN] Allow Multiple Posting Groups is enabled in Sales & Receivables Setup.
+        SetSalesAllowMultiplePostingGroups();
+
+        // [GIVEN] Create a new Currency with exchange rate.
+        CurrencyCode := CreateCurrency();
+
+        // [GIVEN] Customer with default Posting Group "CPG1", allowing multiple posting groups, and a linked alternate Posting Group "CPG2".
+        CreateCustomerAllowMultiplePostingGroups(Customer, CustomerPostingGroup, AltCustomerPostingGroup, CurrencyCode);
+
+        // [GIVEN] Post an invoice for the customer with the default Posting Group "CPG1".
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Customer,
+            Customer."No.", LibraryRandom.RandIntInRange(500, 1000));
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Post an invoice for the customer with the alternate Posting Group "CPG2".
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Customer,
+            Customer."No.", LibraryRandom.RandIntInRange(500, 1000));
+        GenJournalLine.Validate("Posting Group", AltCustomerPostingGroup.Code);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Exchange rate is changed.
+        ModifyExchangeRate(CurrencyCode, LibraryRandom.RandInt(50));
+
+        // [WHEN] Run Adjust Exchange Rates filtered to the default Customer Posting Group "CPG1".
+        RunExchRateAdjustmentWithCustomerPostingGroupFilter(CurrencyCode, Customer."No.", CustomerPostingGroup.Code);
+
+        // [THEN] An Unrealized Loss/Gain Detailed Customer Ledger Entry exists for Posting Group "CPG1".
+        DetailedCustLedgEntry.SetRange("Customer No.", Customer."No.");
+        DetailedCustLedgEntry.SetFilter(
+            "Entry Type", '%1|%2',
+            DetailedCustLedgEntry."Entry Type"::"Unrealized Loss",
+            DetailedCustLedgEntry."Entry Type"::"Unrealized Gain");
+        DetailedCustLedgEntry.SetRange("Posting Group", CustomerPostingGroup.Code);
+        Assert.IsFalse(
+            DetailedCustLedgEntry.IsEmpty(),
+            StrSubstNo(ExpectedUnrealizedDtldCustEntryErr, Customer."No."));
+
+        // [THEN] No Unrealized Loss/Gain Detailed Customer Ledger Entry exists for the alternate Posting Group "CPG2".
+        DetailedCustLedgEntry.SetRange("Posting Group", AltCustomerPostingGroup.Code);
+        Assert.IsTrue(
+            DetailedCustLedgEntry.IsEmpty(),
+            StrSubstNo(UnexpectedAdjustedEntryErr, AltCustomerPostingGroup.Code));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -1151,6 +1220,8 @@
 
         IsInitialized := true;
         Commit();
+
+        LibrarySetupStorage.Save(Database::"Sales & Receivables Setup");
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"ERM Exch. Rate Adjmt. Customer");
     end;
@@ -1719,5 +1790,42 @@
     procedure ReversalMessageHandler(Message: Text[1024])
     begin
         Assert.ExpectedMessage(ReversalSuccessfullTxt, Message);
+    end;
+
+    local procedure SetSalesAllowMultiplePostingGroups()
+    var
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup.Validate("Allow Multiple Posting Groups", true);
+        SalesReceivablesSetup.Modify(true);
+    end;
+
+    local procedure CreateCustomerAllowMultiplePostingGroups(var Customer: Record Customer; var CustomerPostingGroup: Record "Customer Posting Group"; var AltCustomerPostingGroup: Record "Customer Posting Group"; CurrencyCode: Code[10])
+    begin
+        CreateCustomerWithNewPostingGroup(Customer, CustomerPostingGroup, CurrencyCode);
+        LibrarySales.CreateCustomerPostingGroup(AltCustomerPostingGroup);
+        AltCustomerPostingGroup.Validate("Receivables Account", LibraryERM.CreateGLAccountNo());
+        AltCustomerPostingGroup.Modify(true);
+        LibrarySales.CreateAltCustomerPostingGroup(CustomerPostingGroup.Code, AltCustomerPostingGroup.Code);
+        Customer.Validate("Allow Multiple Posting Groups", true);
+        Customer.Modify(true);
+    end;
+
+    local procedure RunExchRateAdjustmentWithCustomerPostingGroupFilter(CurrencyCode: Code[10]; CustomerNo: Code[20]; CustomerPostingGroupCode: Code[20])
+    var
+        Currency: Record Currency;
+        Customer: Record Customer;
+        ExchRateAdjustment: Report "Exch. Rate Adjustment";
+    begin
+        Currency.SetRange(Code, CurrencyCode);
+        Customer.SetRange("No.", CustomerNo);
+        Customer.SetRange("Customer Posting Group", CustomerPostingGroupCode);
+        ExchRateAdjustment.SetTableView(Currency);
+        ExchRateAdjustment.SetTableView(Customer);
+        ExchRateAdjustment.InitializeRequest2(0D, WorkDate(), 'Test', WorkDate(), LibraryUtility.GenerateGUID(), true, false);
+        ExchRateAdjustment.UseRequestPage(false);
+        ExchRateAdjustment.SetHideUI(true);
+        ExchRateAdjustment.Run();
     end;
 }
