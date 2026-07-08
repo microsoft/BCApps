@@ -706,6 +706,50 @@ codeunit 144003 "ERM Payment Journal"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('SuggestVendorPaymentsPmtDiscDateRPH')]
+    procedure SuggestVendorPaymentsSelectsDiscountOnlyEntryWithDiscountedAmount()
+    var
+        PaymentJournalLine: Record "Payment Journal Line";
+        PurchaseHeader: Record "Purchase Header";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        VendorNo: Code[20];
+    begin
+        // [SCENARIO 637839] An invoice due after the "Last Due Date" but within the payment discount window is only suggested when "Take Payment Discounts" is enabled, and then with the discounted amount.
+        Initialize();
+
+        // [GIVEN] A Vendor with Payment Terms granting a payment discount.
+        VendorNo := CreateVendorWithPaymentDiscount();
+
+        // [GIVEN] A posted Purchase Invoice whose "Due Date" is later than its "Pmt. Discount Date".
+        CreateAndPostPurchaseDocument(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+
+        // [GIVEN] The invoice Vendor Ledger Entry with its remaining amount and remaining payment discount.
+        FindInvoiceVendorLedgerEntry(VendorLedgerEntry, VendorNo);
+        VendorLedgerEntry.CalcFields("Remaining Amount");
+
+        // [WHEN] Run "Suggest Vendor Payments EB" with "Last Due Date" = the invoice "Pmt. Discount Date" (before the invoice "Due Date") and "Take Payment Discounts" = FALSE.
+        LibraryVariableStorage.Enqueue(VendorLedgerEntry."Pmt. Discount Date");
+        LibraryVariableStorage.Enqueue(false);
+        SuggestVendorPayments(VendorNo);
+
+        // [THEN] No Payment Journal Line is suggested, because the invoice is not yet due and the payment discount path is disabled.
+        FilterEBPaymentJournalLine(PaymentJournalLine, VendorNo, PaymentJournalLine.Status::Created);
+        Assert.RecordIsEmpty(PaymentJournalLine);
+
+        // [WHEN] Run "Suggest Vendor Payments EB" again with the same "Last Due Date" and "Take Payment Discounts" = TRUE.
+        LibraryVariableStorage.Enqueue(VendorLedgerEntry."Pmt. Discount Date");
+        LibraryVariableStorage.Enqueue(true);
+        SuggestVendorPayments(VendorNo);
+
+        // [THEN] The invoice is suggested through the payment discount path with the exact discounted amount.
+        FilterEBPaymentJournalLine(PaymentJournalLine, VendorNo, PaymentJournalLine.Status::Created);
+        PaymentJournalLine.FindFirst();
+        Assert.AreEqual(Abs(VendorLedgerEntry."Remaining Pmt. Disc. Possible"), PaymentJournalLine."Pmt. Disc. Possible", StrSubstNo(WrongPmtDiscErr, PaymentJournalLine.FieldCaption("Pmt. Disc. Possible")));
+        Assert.AreEqual(Abs(VendorLedgerEntry."Remaining Amount") - Abs(VendorLedgerEntry."Remaining Pmt. Disc. Possible"), Abs(PaymentJournalLine.Amount), StrSubstNo(WrongPmtDiscErr, PaymentJournalLine.FieldCaption(Amount)));
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"ERM Payment Journal");
@@ -1628,6 +1672,14 @@ codeunit 144003 "ERM Payment Journal"
     procedure SuggestVendorPaymentsTakeDiscRPH(var SuggestVendorPaymentsEB: TestRequestPage "Suggest Vendor Payments EB")
     begin
         SuggestVendorPaymentsEB.DueDate.SetValue(CalcDate('<3M>', WorkDate()));
+        SuggestVendorPaymentsEB.IncPmtDiscount.SetValue(LibraryVariableStorage.DequeueBoolean());
+        SuggestVendorPaymentsEB.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure SuggestVendorPaymentsPmtDiscDateRPH(var SuggestVendorPaymentsEB: TestRequestPage "Suggest Vendor Payments EB")
+    begin
+        SuggestVendorPaymentsEB.DueDate.SetValue(LibraryVariableStorage.DequeueDate());
         SuggestVendorPaymentsEB.IncPmtDiscount.SetValue(LibraryVariableStorage.DequeueBoolean());
         SuggestVendorPaymentsEB.OK().Invoke();
     end;
