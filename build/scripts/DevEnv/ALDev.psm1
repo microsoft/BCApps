@@ -57,20 +57,47 @@ function GetDefaultSettings([switch]$LaunchJson, [switch]$SettingsJson)
 
 function SetupProjectSettings(
     [string]$VSCodeSettingsFolder,
+    [string]$CountryCode,
+    [switch]$ResetConfiguration,
     [hashtable]$ProjectSettings = @{ }
     )
 {
     $projectSettingsPath = Join-Path $VSCodeSettingsFolder "settings.json"
+    if ((Test-Path $projectSettingsPath) -and !$ResetConfiguration)
+    {
+        $existingSettings = Get-Content -Path $projectSettingsPath -Raw | ConvertFrom-Json
+        foreach ($property in $existingSettings.PSObject.Properties)
+        {
+            if (!$ProjectSettings.ContainsKey($property.Name))
+            {
+                $ProjectSettings[$property.Name] = $property.Value
+            }
+        }
+    }
+    else 
+    {
+        [hashtable]$defaultSettings = GetDefaultProjectSettings -CountryCode $CountryCode
+        foreach ($propertyName in $defaultSettings.Keys)
+        {
+            if (!$ProjectSettings.ContainsKey($propertyName))
+            {
+                $ProjectSettings[$propertyName] = $defaultSettings[$propertyName]
+            }
+        }
+    }
+
     Set-Content -Path $projectSettingsPath -Value ($ProjectSettings | ConvertTo-Json)
 }
 
 function SetupLaunchSettings(
     [string]$VSCodeSettingsFolder,
+    [string]$CountryCode,
+    [switch]$ResetConfiguration,
     [hashtable]$LaunchSettings = @{ }
 )
 {
     $launchSettingsPath = Join-Path $VSCodeSettingsFolder "launch.json"
-    if (Test-Path $launchSettingsPath) {
+    if ((Test-Path $launchSettingsPath) -and !$ResetConfiguration) {
         $launchConfigurations = Get-Content -Path $launchSettingsPath -Raw | ConvertFrom-Json
     } else {
             $launchConfigurations = @"
@@ -104,6 +131,9 @@ The path to root folder of the AL project.
 .PARAMETER CountryCode
 The country code for which the service should be configured.
 
+.PARAMETER ResetConfiguration
+Set this flag if the configuration should be completely overwritten.
+
 .PARAMETER LaunchSettings
 A hash table containing the settings that should be set in the default launch configuration.
 
@@ -114,10 +144,12 @@ function Configure-ALProject(
     [Parameter(Mandatory = $true)]
     [string]$ProjectFolder,
     [Parameter(Mandatory = $false)]
+    [string]$CountryCode,
     [string] $ContainerName,
     [Parameter(Mandatory = $false)]
     [string] $Authentication,
     [Parameter(Mandatory = $false)]
+    [switch]$ResetConfiguration,
     [hashtable] $LaunchSettings = (Get-LaunchSettings -ContainerName $ContainerName -Authentication $Authentication),
     [Parameter(Mandatory = $false)]
     [hashtable] $ProjectSettings = (Get-ProjectSettings -ContainerName $ContainerName)
@@ -135,8 +167,8 @@ function Configure-ALProject(
         New-Item -Path $vsCodeFolder -ItemType Directory | Out-Null
     }
 
-    SetupProjectSettings -VSCodeSettingsFolder $vsCodeFolder -ProjectSettings $ProjectSettings
-    SetupLaunchSettings -VSCodeSettingsFolder $vsCodeFolder -LaunchSettings $LaunchSettings
+    SetupProjectSettings -VSCodeSettingsFolder $vsCodeFolder -CountryCode $CountryCode -ProjectSettings $ProjectSettings -ResetConfiguration:$ResetConfiguration
+    SetupLaunchSettings -VSCodeSettingsFolder $vsCodeFolder -LaunchSettings $LaunchSettings -ResetConfiguration:$ResetConfiguration
 }
 
 <#

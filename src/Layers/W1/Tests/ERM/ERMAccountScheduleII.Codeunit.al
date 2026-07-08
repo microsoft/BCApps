@@ -2861,6 +2861,39 @@
         Assert.AreEqual(1, FinancialReportAuditLog.Count(), 'Audit log entry was not created after export the financial report to PDF.');
     end;
 
+    [Test]
+    [HandlerFunctions('NameValueLookupModalPageHandler')]
+    [Scope('OnPrem')]
+    procedure FinRepAuditLogExcelExportWithModalDuringProcessing()
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        AccScheduleLine: Record "Acc. Schedule Line";
+        FinancialReportAuditLog: Record "Financial Report Audit Log";
+        FinRepExportTxnHandler: Codeunit "Fin. Rep. Export Txn Handler";
+    begin
+        // [SCENARIO 641100] Exporting to Excel must not keep a write transaction open across a modal shown while processing
+        Initialize();
+
+        // [GIVEN] A financial report
+        LibraryERM.CreateAccScheduleName(AccScheduleName);
+
+        // [GIVEN] A modal page is shown while the export is processing (mimics the multi-sheet sheet-selection lookup)
+        BindSubscription(FinRepExportTxnHandler);
+
+        // [WHEN] The financial report is exported to Excel
+        AccScheduleLine.SetRange("Schedule Name", AccScheduleName.Name);
+        AccScheduleLine.SetRange("Date Filter", CalcDate('<-CY>', WorkDate()), CalcDate('<CY>', WorkDate()));
+        RunExportAccSchedule(AccScheduleLine, AccScheduleName);
+
+        UnbindSubscription(FinRepExportTxnHandler);
+
+        // [THEN] No "RunModal is not allowed in write transactions" error occurs and the audit log entry is still created
+        FinancialReportAuditLog.SetRange("Report Name", AccScheduleName.Name);
+        FinancialReportAuditLog.SetRange(User, UserId);
+        FinancialReportAuditLog.SetRange(Format, FinancialReportAuditLog.Format::Excel);
+        Assert.AreEqual(1, FinancialReportAuditLog.Count(), 'Audit log entry was not created after Excel export with a modal shown during processing.');
+    end;
+
     procedure FinancialReportWithBlockedStatus()
     var
         AccScheduleName: Record "Acc. Schedule Name";
@@ -3670,5 +3703,11 @@
     procedure RenameDefinitionConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ModalPageHandler]
+    procedure NameValueLookupModalPageHandler(var NameValueLookup: TestPage "Name/Value Lookup")
+    begin
+        NameValueLookup.OK().Invoke();
     end;
 }
