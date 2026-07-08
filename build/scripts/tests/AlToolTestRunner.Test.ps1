@@ -144,3 +144,57 @@ Describe "Add-JUnitTestSuite output is consumable by Test Tolerance" {
         $failed[0].ExtensionId | Should -Be "ext-guid"
     }
 }
+
+Describe "Get-DisabledTestKeySet" {
+    It "builds case-insensitive keys for single and array methods" {
+        $disabled = @(
+            [PSCustomObject]@{ codeunitName = "ERM Apply"; method = "TestA" },
+            [PSCustomObject]@{ codeunitName = "SCM Kitting"; method = @("TestB", "TestC") }
+        )
+        $set = Get-DisabledTestKeySet -DisabledTests $disabled
+        $set.ContainsKey("erm apply::testa") | Should -Be $true
+        $set.ContainsKey("scm kitting::testb") | Should -Be $true
+        $set.ContainsKey("scm kitting::testc") | Should -Be $true
+        $set.Count | Should -Be 3
+    }
+
+    It "returns an empty set for no disabled tests" {
+        (Get-DisabledTestKeySet -DisabledTests @()).Count | Should -Be 0
+    }
+}
+
+Describe "Invoke-AlToolTestRun JUnit append behavior" {
+    It "appends new testsuites to an existing per-tenant file instead of overwriting" {
+        # Simulate two apps (two Invoke-AlToolTestRun calls) writing to the same per-tenant file.
+        $file = Join-Path ([System.IO.Path]::GetTempPath()) ("altool_append_" + [System.Guid]::NewGuid().ToString('N') + ".xml")
+        try {
+            # First app writes a suite.
+            $doc1 = New-Object System.Xml.XmlDocument
+            $doc1.AppendChild($doc1.CreateXmlDeclaration("1.0", "UTF-8", $null)) | Out-Null
+            $s1 = $doc1.CreateElement("testsuites"); $doc1.AppendChild($s1) | Out-Null
+            $cu1 = [PSCustomObject]@{ Id = "111"; Name = "App1 CU"; Tests = @("T1") }
+            Add-JUnitTestSuite -Doc $doc1 -TestSuitesNode $s1 -Codeunit $cu1 -RequestedMethods $cu1.Tests `
+                -MethodResults @{ "T1" = @{ Outcome = "Pass"; Ms = 1; Message = ""; Stacktrace = "" } } `
+                -ExtensionId "app1" -AppName "App1" -Hostname "h" -ElapsedSec 1 | Out-Null
+            $doc1.Save($file)
+
+            # Second app loads the existing file and appends (the fixed behavior).
+            $doc2 = New-Object System.Xml.XmlDocument
+            $doc2.Load($file)
+            $s2 = $doc2.DocumentElement
+            $cu2 = [PSCustomObject]@{ Id = "222"; Name = "App2 CU"; Tests = @("T2") }
+            Add-JUnitTestSuite -Doc $doc2 -TestSuitesNode $s2 -Codeunit $cu2 -RequestedMethods $cu2.Tests `
+                -MethodResults @{ "T2" = @{ Outcome = "Pass"; Ms = 1; Message = ""; Stacktrace = "" } } `
+                -ExtensionId "app2" -AppName "App2" -Hostname "h" -ElapsedSec 1 | Out-Null
+            $doc2.Save($file)
+
+            [xml]$final = Get-Content $file
+            $suites = @($final.testsuites.testsuite)
+            $suites.Count | Should -Be 2
+            ($suites | Where-Object { $_.name -eq "111 App1 CU" }) | Should -Not -BeNullOrEmpty
+            ($suites | Where-Object { $_.name -eq "222 App2 CU" }) | Should -Not -BeNullOrEmpty
+        } finally {
+            if (Test-Path $file) { Remove-Item $file -Force }
+        }
+    }
+}

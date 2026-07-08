@@ -207,12 +207,41 @@ function Get-AlToolCompany {
 
 <#
 .SYNOPSIS
+    Builds a fast lookup set of disabled "<codeunitName>::<method>" keys from the disabledTests list.
+.DESCRIPTION
+    Each disabledTests entry has a codeunitName and either a single 'method' or an array of methods.
+    Keys are lowercased so matching is case-insensitive.
+.OUTPUTS
+    [hashtable] set of "<codeunitname>::<method>" -> $true
+#>
+function Get-DisabledTestKeySet {
+    param(
+        [array]$DisabledTests = @()
+    )
+
+    $set = @{}
+    foreach ($entry in $DisabledTests) {
+        if (-not $entry) { continue }
+        $cuName = "$($entry.codeunitName)"
+        $methods = @()
+        if ($entry.PSObject.Properties['method'] -and $entry.method) { $methods = @($entry.method) }
+        foreach ($m in $methods) {
+            $set["$($cuName.ToLowerInvariant())::$("$m".ToLowerInvariant())"] = $true
+        }
+    }
+    return $set
+}
+
+<#
+.SYNOPSIS
     Enumerates the test codeunits + enabled methods for an app in the container.
 .DESCRIPTION
-    Uses Get-TestsFromBcContainer with the same extensionId, disabledTests and testType the BCH
-    runner would use, so the codeunit/method set matches what the pipeline runs.
+    Uses Get-TestsFromBcContainer with the app's extensionId and testType to list every test
+    codeunit and method. BCH disables tests at RUN time via the test tool page's DisableTestMethod
+    control, a mechanism `al runtests` bypasses entirely - so we must filter the disabled methods
+    out of the enumerated list here, otherwise altool runs tests the pipeline treats as disabled.
 .OUTPUTS
-    [object[]] Codeunit objects with .Id, .Name, .Tests (method name array).
+    [object[]] Codeunit objects with .Id, .Name, .Tests (enabled method name array).
 #>
 function Get-AlToolTestCodeunits {
     param(
@@ -226,15 +255,36 @@ function Get-AlToolTestCodeunits {
         extensionId   = $Parameters.extensionId
         ignoreGroups  = $true
     }
-    if ($Parameters.ContainsKey("disabledTests") -and $Parameters.disabledTests) {
-        $getTestsParams.disabledTests = @($Parameters.disabledTests)
-    }
     if ($Parameters.ContainsKey("testType") -and $Parameters.testType) {
         $getTestsParams.testType = $Parameters.testType
     }
 
     $codeunits = @(Get-TestsFromBcContainer @getTestsParams)
-    return @($codeunits | Where-Object { $_.Tests -and @($_.Tests).Count -gt 0 })
+
+    $disabledSet = @{}
+    if ($Parameters.ContainsKey("disabledTests") -and $Parameters.disabledTests) {
+        $disabledSet = Get-DisabledTestKeySet -DisabledTests @($Parameters.disabledTests)
+    }
+
+    $result = @()
+    $disabledCount = 0
+    foreach ($cu in $codeunits) {
+        $methods = @($cu.Tests | ForEach-Object { "$_" })
+        if ($disabledSet.Count -gt 0) {
+            $cuNameLower = "$($cu.Name)".ToLowerInvariant()
+            $enabled = @($methods | Where-Object { -not $disabledSet.ContainsKey("$cuNameLower::$("$_".ToLowerInvariant())") })
+            $disabledCount += ($methods.Count - $enabled.Count)
+            $methods = $enabled
+        }
+        if ($methods.Count -gt 0) {
+            $result += [PSCustomObject]@{ Id = $cu.Id; Name = $cu.Name; Tests = $methods }
+        }
+    }
+
+    if ($disabledCount -gt 0) {
+        Write-Host "Excluded $disabledCount disabled test method(s) from altool enumeration."
+    }
+    return @($result)
 }
 
 <#
@@ -490,10 +540,30 @@ function Invoke-AlToolTestRun {
     }
 
     $hostname = [System.Net.Dns]::GetHostName()
+
+    # The parallel harness (Start-TestJob) gives every app dispatched onto the SAME tenant the SAME
+    # per-tenant JUnit file (name-<tenant>.xml). BCH's runner appends to that file across apps; if we
+    # overwrite it, only the last app on each tenant survives (which is exactly the bug that left just
+    # one app per tenant in the merged results). So load and append to the existing file when present.
+    $junitFile = if ($Parameters.ContainsKey("JUnitResultFileName")) { $Parameters.JUnitResultFileName } else { "" }
     $doc = New-Object System.Xml.XmlDocument
-    $doc.AppendChild($doc.CreateXmlDeclaration("1.0", "UTF-8", $null)) | Out-Null
-    $suites = $doc.CreateElement("testsuites")
-    $doc.AppendChild($suites) | Out-Null
+    $suites = $null
+    if (-not [string]::IsNullOrWhiteSpace($junitFile) -and (Test-Path $junitFile)) {
+        try {
+            $doc.Load($junitFile)
+            $suites = $doc.DocumentElement
+            if (-not $suites -or $suites.LocalName -ne 'testsuites') { $suites = $null; $doc = New-Object System.Xml.XmlDocument }
+        } catch {
+            Write-Host "WARNING: Could not load existing JUnit file '$junitFile' ($($_.Exception.Message)); starting fresh."
+            $doc = New-Object System.Xml.XmlDocument
+            $suites = $null
+        }
+    }
+    if (-not $suites) {
+        $doc.AppendChild($doc.CreateXmlDeclaration("1.0", "UTF-8", $null)) | Out-Null
+        $suites = $doc.CreateElement("testsuites")
+        $doc.AppendChild($suites) | Out-Null
+    }
 
     $allPassed = $true
     $idx = 0
@@ -519,7 +589,6 @@ function Invoke-AlToolTestRun {
             $idx, $codeunits.Count, $cu.Id, $cu.Name, $failed, $methods.Count, $run.ElapsedSec)
     }
 
-    $junitFile = if ($Parameters.ContainsKey("JUnitResultFileName")) { $Parameters.JUnitResultFileName } else { "" }
     if (-not [string]::IsNullOrWhiteSpace($junitFile)) {
         $dir = [System.IO.Path]::GetDirectoryName($junitFile)
         if ($dir -and -not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }
@@ -533,5 +602,5 @@ function Invoke-AlToolTestRun {
 }
 
 Export-ModuleMember -Function Install-AlTool, Get-AlToolConnection, New-AlToolProject, Get-AlToolCompany, `
-    Get-AlToolTestCodeunits, ConvertFrom-AlRunTestsOutput, Invoke-AlRunTestsForCodeunit, `
+    Get-DisabledTestKeySet, Get-AlToolTestCodeunits, ConvertFrom-AlRunTestsOutput, Invoke-AlRunTestsForCodeunit, `
     Add-JUnitTestSuite, Invoke-AlToolTestRun
