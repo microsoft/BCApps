@@ -28,6 +28,7 @@ codeunit 5455 "Supply What-If Planning Engine"
         WhatIfScenariosPage.RunModal();
     end;
 
+    [CommitBehavior(CommitBehavior::Ignore)]
     internal procedure RunWhatIfAnalysis(var TempWhatIfScenario: Record "Supply What-If Scenario" temporary; var TempWhatIfImpact: Record "What-If Impact" temporary)
     var
         RequisitionLine: Record "Requisition Line";
