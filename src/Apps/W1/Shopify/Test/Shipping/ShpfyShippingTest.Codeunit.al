@@ -257,6 +257,29 @@ codeunit 139606 "Shpfy Shipping Test"
         LibraryAssert.IsFalse(FulfillmentRequest.Contains(Format(FulfillmentOrderHeaderA."Shopify Fulfillment Order Id")), 'Second request should not contain Location A fulfillment order');
     end;
 
+    [Test]
+    [HandlerFunctions('MarketDrivenShippingHttpHandler')]
+    procedure UnitTestGetMarketDrivenShippingMethods()
+    var
+        ShipmentMethodMapping: Record "Shpfy Shipment Method Mapping";
+        ShippingMethods: Codeunit "Shpfy Shipping Methods";
+    begin
+        // [SCENARIO] On a market-driven-shipping shop, GetShippingMethods reads shipping options from the Markets API
+        // [GIVEN] A shop whose features.marketDrivenShipping is true, with one market exposing two active and one inactive shipping option
+        Initialize();
+        ShipmentMethodMapping.SetRange("Shop Code", Shop.Code);
+        ShipmentMethodMapping.DeleteAll();
+
+        // [WHEN] Retrieving the shipping methods
+        ShippingMethods.GetShippingMethods(Shop);
+
+        // [THEN] Each active market shipping option name is stored as a shipment method mapping
+        LibraryAssert.IsTrue(ShipmentMethodMapping.Get(Shop.Code, 'Standard Shipping'), 'Standard Shipping mapping should be created');
+        LibraryAssert.IsTrue(ShipmentMethodMapping.Get(Shop.Code, 'Express Shipping'), 'Express Shipping mapping should be created');
+        // [THEN] Inactive shipping options are skipped
+        LibraryAssert.IsFalse(ShipmentMethodMapping.Get(Shop.Code, 'Inactive Method'), 'Inactive shipping option should not be created');
+    end;
+
     local procedure Initialize()
     var
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -306,6 +329,18 @@ codeunit 139606 "Shpfy Shipping Test"
             exit(true);
 
         Response.Content.WriteFrom(NavApp.GetResourceAsText('Shipping/FulfillmentOrderAcceptResponse.txt', TextEncoding::UTF8));
+        exit(false); // Prevents actual HTTP call
+    end;
+
+    [HttpClientHandler]
+    internal procedure MarketDrivenShippingHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        // The same payload serves both the feature-detection query and the markets query;
+        // each caller reads only its own path (shop.features / markets) from the response.
+        Response.Content.WriteFrom(NavApp.GetResourceAsText('Shipping/MarketShippingMethodsResponse.txt', TextEncoding::UTF8));
         exit(false); // Prevents actual HTTP call
     end;
 }

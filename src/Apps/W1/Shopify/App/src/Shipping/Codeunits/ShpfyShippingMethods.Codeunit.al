@@ -36,6 +36,10 @@ codeunit 30193 "Shpfy Shipping Methods"
             Shop.CopyFilters(ShopifyShop);
         if Shop.FindFirst() then begin
             CommunicationMgt.SetShop(Shop);
+            if IsMarketDrivenShipping() then begin
+                GetMarketShippingMethods(Shop);
+                exit;
+            end;
             GraphQLType := GraphQLType::Shipping_GetDeliveryProfiles;
             repeat
                 JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -50,6 +54,65 @@ codeunit 30193 "Shpfy Shipping Methods"
                 GraphQLType := GraphQLType::Shipping_GetNextDeliveryProfiles;
             until not JsonHelper.GetValueAsBoolean(JResponse, 'data.deliveryProfiles.pageInfo.hasNextPage');
         end;
+    end;
+
+    // Market-driven shipping moves merchant shipping configuration from delivery profiles to Markets.
+    // For shops on that model the legacy deliveryProfiles query returns stale/incomplete data, so the
+    // shipping methods are read from the Markets API instead. Shopify.dev upgrade guide, readers Option B.
+    local procedure IsMarketDrivenShipping(): Boolean
+    var
+        JResponse: JsonToken;
+    begin
+        JResponse := CommunicationMgt.ExecuteGraphQL('{"query":"query { shop { features { marketDrivenShipping } } }"}');
+        exit(JsonHelper.GetValueAsBoolean(JResponse, 'data.shop.features.marketDrivenShipping'));
+    end;
+
+    local procedure GetMarketShippingMethods(Shop: Record "Shpfy Shop")
+    var
+        GraphQLType: Enum "Shpfy GraphQL Type";
+        Parameters: Dictionary of [Text, Text];
+        JMarkets: JsonArray;
+        JMarket: JsonToken;
+        JResponse: JsonToken;
+    begin
+        GraphQLType := GraphQLType::Shipping_GetMarketShippingMethods;
+        repeat
+            JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
+            if JsonHelper.GetJsonArray(JResponse, JMarkets, 'data.markets.edges') then
+                foreach JMarket in JMarkets do
+                    AddMarketShippingMethods(JMarket, Shop);
+
+            if JMarkets.Count() > 0 then
+                if Parameters.ContainsKey('After') then
+                    Parameters.Set('After', JsonHelper.GetValueAsText(JMarket.AsObject(), 'cursor'))
+                else
+                    Parameters.Add('After', JsonHelper.GetValueAsText(JMarket.AsObject(), 'cursor'));
+            GraphQLType := GraphQLType::Shipping_GetNextMarketShippingMethods;
+        until not JsonHelper.GetValueAsBoolean(JResponse, 'data.markets.pageInfo.hasNextPage');
+    end;
+
+    local procedure AddMarketShippingMethods(JMarket: JsonToken; Shop: Record "Shpfy Shop")
+    var
+        ShipmentMethodMapping: Record "Shpfy Shipment Method Mapping";
+        JOptionDefinitions: JsonArray;
+        JOptionDefinition: JsonToken;
+        Name: Text;
+    begin
+        // A null shipping configuration means the market inherits shipping from its parent; the parent
+        // market carries the same option names, so nothing is lost by skipping the inheriting market.
+        if not JsonHelper.GetValueAsBoolean(JMarket, 'node.delivery.shipping.isEnabled') then
+            exit;
+        if JsonHelper.GetJsonArray(JMarket, JOptionDefinitions, 'node.delivery.shipping.optionDefinitions.edges') then
+            foreach JOptionDefinition in JOptionDefinitions do begin
+                Name := JsonHelper.GetValueAsText(JOptionDefinition, 'node.name', MaxStrLen(ShipmentMethodMapping.Name));
+                if JsonHelper.GetValueAsBoolean(JOptionDefinition, 'node.isActive') and (Name <> '') then
+                    if not ShipmentMethodMapping.Get(Shop.Code, Name) then begin
+                        Clear(ShipmentMethodMapping);
+                        ShipmentMethodMapping."Shop Code" := Shop.Code;
+                        ShipmentMethodMapping.Name := CopyStr(Name, 1, MaxStrLen(ShipmentMethodMapping.Name));
+                        ShipmentMethodMapping.Insert();
+                    end;
+            end;
     end;
 
     local procedure GetProfileLocationGroups(JDeliveryProfile: JsonToken; Shop: Record "Shpfy Shop")
