@@ -610,13 +610,14 @@ page 9293 "Machine Center Calendar Matrix"
     local procedure MATRIX_OnAfterGetRecord(MATRIX_ColumnOrdinal: Integer)
     var
         CalendarMgt: Codeunit "Shop Calendar Management";
+        WorkCenter: Record "Work Center";
     begin
         SetDateFilter(MATRIX_ColumnOrdinal);
         Rec.CalcFields("Capacity (Effective)");
-        if (CapacityUoM <> '') and (Rec."Unit of Measure Code" <> '') then
+        if (CapacityUoM <> '') and (Rec."Work Center No." <> '') and WorkCenter.Get(Rec."Work Center No.") and (WorkCenter."Unit of Measure Code" <> '') then
             MATRIX_CellData[MATRIX_ColumnOrdinal] :=
                 Rec."Capacity (Effective)" *
-                CalendarMgt.TimeFactor(Rec."Unit of Measure Code") /
+                CalendarMgt.TimeFactor(WorkCenter."Unit of Measure Code") /
                 CalendarMgt.TimeFactor(CapacityUoM)
         else
             MATRIX_CellData[MATRIX_ColumnOrdinal] := Rec."Capacity (Effective)";

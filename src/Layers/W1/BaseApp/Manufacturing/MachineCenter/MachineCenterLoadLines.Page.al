@@ -162,13 +162,14 @@ page 99000890 "Machine Center Load Lines"
     local procedure CalcLine()
     var
         CalendarMgt: Codeunit "Shop Calendar Management";
-        CapacityTimeFactor: Decimal
+        WorkCenter: Record "Work Center";
+        CapacityTimeFactor: Decimal;
     begin
         SetDateFilter();
         MachineCenter.CalcFields("Capacity (Effective)", "Prod. Order Need (Qty.)");
-        if (CapacityUoM <> '') and (MachineCenter."Unit of Measure Code" <> '') then
+        if (CapacityUoM <> '') and (MachineCenter."Work Center No." <> '') and WorkCenter.Get(MachineCenter."Work Center No.") and (WorkCenter."Unit of Measure Code" <> '') then
             CapacityTimeFactor :=
-                CalendarMgt.TimeFactor(MachineCenter."Unit of Measure Code") /
+                CalendarMgt.TimeFactor(WorkCenter."Unit of Measure Code") /
                 CalendarMgt.TimeFactor(CapacityUoM)
         else
             CapacityTimeFactor := 1;
