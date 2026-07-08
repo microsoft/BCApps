@@ -7,7 +7,6 @@ namespace Microsoft.Foundation.Navigate;
 using Microsoft.Bank.Payment;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.VAT.Ledger;
-using Microsoft.Finance.WithholdingTax;
 
 codeunit 355 "Local Navigate Handler"
 {
@@ -16,10 +15,6 @@ codeunit 355 "Local Navigate Handler"
         VATBookEntry: Record "VAT Book Entry";
         [SecurityFiltering(SecurityFilter::Filtered)]
         GLBookEntry: Record "GL Book Entry";
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        ComputedWithholdingTax: Record "Computed Withholding Tax";
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        WithholdingTax: Record "Withholding Tax";
         [SecurityFiltering(SecurityFilter::Filtered)]
         ComputedContribution: Record "Computed Contribution";
         [SecurityFiltering(SecurityFilter::Filtered)]
@@ -37,14 +32,6 @@ codeunit 355 "Local Navigate Handler"
         if VATBookEntry.ReadPermission then begin
             SetVATBookEntryFilters(DocNoFilter, PostingDateFilter);
             DocumentEntry.InsertIntoDocEntry(Database::"VAT Book Entry", VATBookEntry.TableCaption(), VATBookEntry.Count);
-        end;
-        if ComputedWithholdingTax.ReadPermission then begin
-            SetComputedWithholdingTaxFilters(DocNoFilter, PostingDateFilter);
-            DocumentEntry.InsertIntoDocEntry(Database::"Computed Withholding Tax", ComputedWithholdingTax.TableCaption(), ComputedWithholdingTax.Count);
-        end;
-        if WithholdingTax.ReadPermission then begin
-            SetWithholdingTaxFilters(DocNoFilter, PostingDateFilter);
-            DocumentEntry.InsertIntoDocEntry(Database::"Withholding Tax", WithholdingTax.TableCaption(), WithholdingTax.Count);
         end;
         if ComputedContribution.ReadPermission then begin
             SetComputedContributionFilters(DocNoFilter, PostingDateFilter);
@@ -73,16 +60,6 @@ codeunit 355 "Local Navigate Handler"
                 begin
                     SetVATBookEntryFilters(DocNoFilter, PostingDateFilter);
                     PAGE.Run(0, VATBookEntry);
-                end;
-            Database::"Computed Withholding Tax":
-                begin
-                    SetComputedWithholdingTaxFilters(DocNoFilter, PostingDateFilter);
-                    PAGE.Run(0, ComputedWithholdingTax);
-                end;
-            Database::"Withholding Tax":
-                begin
-                    SetWithholdingTaxFilters(DocNoFilter, PostingDateFilter);
-                    PAGE.Run(0, WithholdingTax);
                 end;
             Database::"Computed Contribution":
                 begin
@@ -116,22 +93,6 @@ codeunit 355 "Local Navigate Handler"
         VATBookEntry.SetCurrentKey("Document No.", "Posting Date");
         VATBookEntry.SetFilter("Document No.", DocNoFilter);
         VATBookEntry.SetFilter("Posting Date", PostingDateFilter);
-    end;
-
-    local procedure SetComputedWithholdingTaxFilters(DocNoFilter: Text; PostingDateFilter: Text)
-    begin
-        ComputedWithholdingTax.Reset();
-        ComputedWithholdingTax.SetCurrentKey("Vendor No.", "Document Date", "Document No.");
-        ComputedWithholdingTax.SetFilter("Document No.", DocNoFilter);
-        ComputedWithholdingTax.SetFilter("Posting Date", PostingDateFilter);
-    end;
-
-    local procedure SetWithholdingTaxFilters(DocNoFilter: Text; PostingDateFilter: Text)
-    begin
-        WithholdingTax.Reset();
-        WithholdingTax.SetCurrentKey("Vendor No.", "Document Date", "Document No.");
-        WithholdingTax.SetFilter("Document No.", DocNoFilter);
-        WithholdingTax.SetFilter("Posting Date", PostingDateFilter);
     end;
 
     local procedure SetComputedContributionFilters(DocNoFilter: Text; PostingDateFilter: Text)
