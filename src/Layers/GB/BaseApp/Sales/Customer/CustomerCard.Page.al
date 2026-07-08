@@ -2440,6 +2440,7 @@ page 21 "Customer Card"
         CRMCouplingManagement: Codeunit "CRM Coupling Management";
         WorkflowWebhookManagement: Codeunit "Workflow Webhook Management";
     begin
+        Rec.SetRange("Date Filter", 0D, WorkDate());
         if NewMode then
             CreateCustomerFromTemplate()
         else
@@ -2504,8 +2505,11 @@ page 21 "Customer Card"
 
         if GuiAllowed() then
             OnOpenPageFunc()
-        else
+        else begin
+            if Rec.GetFilter("Date Filter") = '' then
+                Rec.SetRange("Date Filter", 0D, WorkDate());
             OnOpenBackground();
+        end;
         OnAfterOnOpenPage(Rec, xRec);
     end;
 

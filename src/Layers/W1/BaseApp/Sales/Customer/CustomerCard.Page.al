@@ -2382,6 +2382,7 @@ page 21 "Customer Card"
         CRMCouplingManagement: Codeunit "CRM Coupling Management";
         WorkflowWebhookManagement: Codeunit "Workflow Webhook Management";
     begin
+        Rec.SetRange("Date Filter", 0D, WorkDate());
         if NewMode then
             CreateCustomerFromTemplate()
         else
@@ -2389,7 +2390,6 @@ page 21 "Customer Card"
         ActivateFields();
         SetCreditLimitStyle();
 
-        Rec.SetRange("Date Filter", 0D, WorkDate());
         if CRMIntegrationEnabled or CDSIntegrationEnabled then begin
             CRMIsCoupledToRecord := CRMCouplingManagement.IsRecordCoupledToCRM(Rec.RecordId);
             if Rec."No." <> xRec."No." then
@@ -2443,8 +2443,11 @@ page 21 "Customer Card"
 
         if GuiAllowed() then
             OnOpenPageFunc()
-        else
+        else begin
+            if Rec.GetFilter("Date Filter") = '' then
+                Rec.SetRange("Date Filter", 0D, WorkDate());
             OnOpenBackground();
+        end;
         OnAfterOnOpenPage(Rec, xRec);
     end;
 
