@@ -88,6 +88,32 @@ page 30152 "Shpfy Bulk Operations"
                     Message(BulkOperationMgt.GetBulkOperationResult(Shop, Rec));
                 end;
             }
+            action(GetSentData)
+            {
+                ApplicationArea = All;
+                Caption = 'Download Sent Data';
+                Enabled = HasSentJsonl;
+                Image = Export;
+                Promoted = true;
+                PromotedCategory = Process;
+                PromotedIsBig = true;
+                PromotedOnly = true;
+                ToolTip = 'Download the JSONL request that was sent to Shopify for this bulk operation.';
+
+                trigger OnAction();
+                var
+                    InStream: InStream;
+                    FileName: Text;
+                    SentDataFileNameLbl: Label 'BulkOperation_%1.jsonl', Comment = '%1 = the bulk operation id', Locked = true;
+                begin
+                    Rec.CalcFields("Sent JSONL");
+                    if not Rec."Sent JSONL".HasValue then
+                        exit;
+                    Rec."Sent JSONL".CreateInStream(InStream, TextEncoding::UTF8);
+                    FileName := StrSubstNo(SentDataFileNameLbl, Rec."Bulk Operation Id");
+                    DownloadFromStream(InStream, '', '', '', FileName);
+                end;
+            }
             action(Refresh)
             {
                 ApplicationArea = All;
@@ -137,6 +163,7 @@ page 30152 "Shpfy Bulk Operations"
 
     var
         HasDataUrl: Boolean;
+        HasSentJsonl: Boolean;
         CurrentStatus: Text;
         InProgressLbl: Label 'In Progress';
         ErrorLbl: Label 'Error';
@@ -145,6 +172,8 @@ page 30152 "Shpfy Bulk Operations"
     trigger OnAfterGetRecord()
     begin
         HasDataUrl := (Rec.Url <> '') or (Rec."Partial Data Url" <> '');
+        Rec.CalcFields("Sent JSONL");
+        HasSentJsonl := Rec."Sent JSONL".HasValue;
         if Rec.Status in [Rec.Status::Created, Rec.Status::Running, Rec.Status::Canceled] then
             CurrentStatus := InProgressLbl;
         if Rec.Status in [Rec.Status::Canceled, Rec.Status::Failed, Rec.Status::Expired] then
