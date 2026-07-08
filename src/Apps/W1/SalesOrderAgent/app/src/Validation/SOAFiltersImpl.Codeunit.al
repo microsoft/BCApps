@@ -250,14 +250,14 @@ codeunit 4305 "SOA Filters Impl."
         if ContactList.RunModal() <> Action::LookupOK then
             exit;
         ContactList.GetRecord(SelectedContact);
-        if SelectedContact."E-Mail" <> '' then
-            if not Confirm(ContactAlreadyHasEmailQst, false, SelectedContact."No.", SelectedContact."E-Mail", ContactEmail) then
+        if SelectedContact."E-Mail 2" <> '' then
+            if not Confirm(ContactAlreadyHasEmail2Qst, false, SelectedContact."No.", SelectedContact."E-Mail 2", ContactEmail) then
                 exit;
         // Direct assignment is intentional: ContactEmail originates from an incoming email's From address,
         // which has already been accepted by the mail system. Validate() is skipped to avoid rejecting
         // valid but non-standard addresses such as system aliases or distribution lists.
 #pragma warning disable AA0139
-        SelectedContact."E-Mail" := CopyStr(ContactEmail, 1, MaxStrLen(SelectedContact."E-Mail"));
+        SelectedContact."E-Mail 2" := CopyStr(ContactEmail, 1, MaxStrLen(SelectedContact."E-Mail 2"));
 #pragma warning restore AA0139
         SelectedContact.Modify(true);
         Commit();
@@ -298,7 +298,7 @@ codeunit 4305 "SOA Filters Impl."
         NoTaskMessagesFoundTxt: Label 'No agent task messages found for given task ID.', Locked = true;
         LearnMoreLbl: Label 'Learn more';
         SelectContactOrCreateLbl: Label 'Select an existing contact, or create a new one';
-        ContactAlreadyHasEmailQst: Label 'Contact %1 already has email address %2. Replace it with %3?', Comment = '%1 = Contact No., %2 = Existing email, %3 = New email';
+        ContactAlreadyHasEmail2Qst: Label 'Contact %1 already has email address 2 %2. Replace it with %3?', Comment = '%1 = Contact No., %2 = Existing email 2, %3 = New email';
         ContactActionsMenuQst: Label 'Create a new contact,Use another contact once,Use another contact always', Comment = 'Comma-separated StrMenu options - do not add spaces around commas';
         ContactActionsInstructionQst: Label 'Select one option for how this email should be handled.';
         SecurityFilteringDocumentationURLTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2298901', Locked = true;
