@@ -1,7 +1,7 @@
 name: Copilot PR Review Runner
 
 # Thin caller for the reusable Business Central PR-review workflow, which
-# lives in microsoft/BC-PRReviewerAgent. All orchestration (PR resolution,
+# lives in microsoft/BC-PullRequestReviewAgent. All orchestration (PR resolution,
 # BCQuality clone+filter, running the Copilot CLI, rendering and posting
 # findings) is implemented there; this repository only supplies its policy
 # config (tools/BCQuality/bcquality.config.yaml) and the trigger.
@@ -34,11 +34,11 @@ jobs:
   review:
     if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
     # Pin BOTH the workflow ref and engine_ref to the same reviewed SHA.
-    uses: microsoft/BC-PRReviewerAgent/.github/workflows/review.yml@b6792d3c661a214aa7a5f1c4b845cfe06527f0b9
+    uses: microsoft/BC-PullRequestReviewAgent/.github/workflows/review.yml@f9f7302bb3ea99cffd42eb2c1d8fd27d263723ee
     secrets: inherit
     with:
       target_repo: ${{ github.repository }}
-      engine_ref: b6792d3c661a214aa7a5f1c4b845cfe06527f0b9
+      engine_ref: f9f7302bb3ea99cffd42eb2c1d8fd27d263723ee
       config_path: tools/BCQuality/bcquality.config.yaml
       # BCQuality policy overrides (operator escape-hatch; config file is the default)
       bcquality_repo: ${{ vars.BCQUALITY_REPO }}
