@@ -16,30 +16,10 @@
   "companyName": "Empty Company",
   "country": "w1",
   "buildModes": [
-    "IntegrationTests",
-    "UncategorizedTests",
     "LegacyTestsBucket1",
     "LegacyTestsBucket2"
   ],
   "ConditionalSettings": [
-    {
-      "buildModes": [
-        "IntegrationTests"
-      ],
-      "settings": {
-        "testType": "IntegrationTest",
-        "companyName": "My Company"
-      }
-    },
-    {
-      "buildModes": [
-        "UncategorizedTests"
-      ],
-      "settings": {
-        "testType": "Uncategorized",
-        "companyName": "CRONUS International Ltd."
-      }
-    },
     {
       "buildModes": [
         "LegacyTestsBucket1"
