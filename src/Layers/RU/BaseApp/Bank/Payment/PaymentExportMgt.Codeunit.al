@@ -353,10 +353,16 @@ codeunit 1210 "Payment Export Mgt"
             if not DataExchLineDef.Get(DataExchDef.Code, DataExchLineDefCode) then
                 Error(DataExchLineDefNotFoundErr, DataExchDef.Name, DataExchLineDefCode);
             for ColumnIndex := 1 to DataExchLineDef."Column Count" do
-                if DataExchColumnDef.Get(DataExchDef.Code, DataExchLineDef.Code, ColumnIndex) then
+                if DataExchColumnDef.Get(DataExchDef.Code, DataExchLineDef.Code, ColumnIndex) then begin
                     TempDataExchField.InsertRec(
-                      DataExchEntryNo, DataExchLineNo, ColumnIndex, DataExchColumnDef.Constant, DataExchLineDefCode)
-                else
+                      DataExchEntryNo, DataExchLineNo, ColumnIndex, DataExchColumnDef.Constant, DataExchLineDefCode);
+                    if DataExchDef."Columns as Rows" then
+                        if TempDataExchField.Get(DataExchEntryNo, DataExchLineNo, ColumnIndex) then begin
+                            TempDataExchField."Column Name" := DataExchColumnDef.Name;
+                            TempDataExchField."Column Type" := DataExchColumnDef."Column Type";
+                            TempDataExchField.Modify();
+                        end;
+                end else
                     TempDataExchField.InsertRec(DataExchEntryNo, DataExchLineNo, ColumnIndex, '', DataExchLineDefCode);
         end;
     end;
