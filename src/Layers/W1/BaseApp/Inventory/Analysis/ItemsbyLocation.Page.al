@@ -19,6 +19,7 @@ page 491 "Items by Location"
     PageType = ListPlus;
     SaveValues = true;
     SourceTable = Item;
+    SourceTableView = where(Type = const(Inventory));
 
     layout
     {
