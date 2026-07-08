@@ -1155,7 +1155,6 @@ table 5407 "Prod. Order Component"
         NeededQty: Decimal;
         IsHandled: Boolean;
     begin
-        IsHandled := IsTemporary();
         OnBeforeGetProdOrderNeeds(Rec, ProdOrderLine, IsHandled);
         if IsHandled then
             exit;

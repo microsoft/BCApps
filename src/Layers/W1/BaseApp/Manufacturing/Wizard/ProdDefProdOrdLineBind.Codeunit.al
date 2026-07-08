@@ -78,7 +78,6 @@ codeunit 99001023 "Prod. Def. ProdOrdLine Bind"
         if ProdOrderComponent."Prod. Order Line No." <> StoredProdOrderLine."Line No." then
             exit;
         ProdOrderLine := StoredProdOrderLine;
-        IsHandled := false;
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Routing Line", 'OnBeforeGetProdOrderLine', '', false, false)]
