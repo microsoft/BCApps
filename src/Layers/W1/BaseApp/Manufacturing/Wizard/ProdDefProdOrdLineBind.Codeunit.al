@@ -65,7 +65,7 @@ codeunit 99001023 "Prod. Def. ProdOrdLine Bind"
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", 'OnBeforeGetProdOrderNeeds', '', false, false)]
-    local procedure OnBeforeGetProdOrderNeedsForProdOrderComp(var ProdOrderComponent: Record "Prod. Order Component"; var IsHandled: Boolean; var ProdOrderLine: Record "Prod. Order Line")
+    local procedure OnBeforeGetProdOrderNeedsForProdOrderComp(var ProdOrderComponent: Record "Prod. Order Component"; var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
     begin
         if StoredProdOrderLine."Prod. Order No." = '' then
             exit;
