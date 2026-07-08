@@ -14073,13 +14073,6 @@ codeunit 80 "Sales-Post"
     [IntegrationEvent(false, false)]
     local procedure OnSyncSurPlusItemTrackingOnBeforeModifyQtyToHandleInvoice(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var IsHandled: Boolean; var ReservationEntry: Record "Reservation Entry")
     begin
-<<<<<<< src/Layers/GB/BaseApp/Sales/Posting/SalesPost.Codeunit.al
-    end;    
-}
-||||||| Base: src/Layers/W1/BaseApp/Sales/Posting/SalesPost.Codeunit.al
     end;
 }
-=======
-    end;
-}
->>>>>>> src/Layers/W1/BaseApp/Sales/Posting/SalesPost.Codeunit.al
+
