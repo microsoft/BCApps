@@ -1078,6 +1078,116 @@ codeunit 134454 "ERM FA Bonus Depreciation"
         Assert.AreEqual(-ExpectedBonusDeprAmount, FAJournalLine.Amount, 'Bonus depreciation amount should use Adv. Setup percentage.');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('DepreciationCalcConfirmHandler')]
+    procedure StraightLinePctDeprUsesBasisReducedByBonusDepreciation()
+    var
+        DepreciationBook: Record "Depreciation Book";
+        FADepreciationBookBonus: Record "FA Depreciation Book";
+        FADepreciationBookControl: Record "FA Depreciation Book";
+        FixedAssetBonus: Record "Fixed Asset";
+        FixedAssetControl: Record "Fixed Asset";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        FAJournalLine: Record "FA Journal Line";
+        BonusDeprPct: Decimal;
+        StraightLinePct: Decimal;
+        AcquisitionAmount: Decimal;
+        BonusAmount: Decimal;
+        ControlDeprAmount: Decimal;
+        BonusFADeprAmount: Decimal;
+    begin
+        // [SCENARIO 640613] Straight-Line % depreciation following a bonus depreciation is calculated on the depreciable basis reduced by the bonus amount, not on the full acquisition cost.
+        Initialize();
+
+        // [GIVEN] FA Setup with 20% bonus depreciation effective on the depreciation starting date
+        BonusDeprPct := 20;
+        StraightLinePct := 10;
+        AcquisitionAmount := 100000;
+        GeneralLedgerSetup.Get();
+        BonusAmount := Round(AcquisitionAmount * BonusDeprPct * 0.01, GeneralLedgerSetup."Amount Rounding Precision");
+        SetupBonusDepreciation(BonusDeprPct, WorkDate());
+
+        CreateJournalSetupDepreciation(DepreciationBook);
+
+        // [GIVEN] Fixed asset "Bonus" with acquisition cost 100,000, Straight-Line 10% and bonus depreciation enabled
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAssetBonus);
+        CreateStraightLinePctFADepreciationBook(FADepreciationBookBonus, FixedAssetBonus, DepreciationBook.Code, StraightLinePct);
+        FADepreciationBookBonus.Validate("Use Bonus Depreciation", true);
+        FADepreciationBookBonus.Modify(true);
+        PostAcquisitionFAJournalLine(FADepreciationBookBonus, AcquisitionAmount);
+
+        // [GIVEN] Control fixed asset with acquisition cost already reduced to 80,000, Straight-Line 10% and no bonus depreciation
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAssetControl);
+        CreateStraightLinePctFADepreciationBook(FADepreciationBookControl, FixedAssetControl, DepreciationBook.Code, StraightLinePct);
+        PostAcquisitionFAJournalLine(FADepreciationBookControl, AcquisitionAmount - BonusAmount);
+
+        // [WHEN] Calculate Depreciation is run for both fixed assets over the same period
+        LibraryLowerPermissions.SetJournalsPost();
+        LibraryLowerPermissions.AddO365FAEdit();
+        RunCalculateDepreciation(FixedAssetBonus."No.", DepreciationBook.Code);
+        RunCalculateDepreciation(FixedAssetControl."No.", DepreciationBook.Code);
+
+        // [THEN] A bonus depreciation line of -20,000 is created for the bonus fixed asset
+        FindFAJournalLineForFA(FAJournalLine, DepreciationBook.Code, FAJournalLine."FA Posting Type"::"Bonus Depreciation", FixedAssetBonus."No.");
+        Assert.AreEqual(-BonusAmount, FAJournalLine.Amount, 'Bonus depreciation amount is incorrect.');
+
+        // [THEN] The Straight-Line depreciation of the bonus fixed asset equals the depreciation of the control asset, i.e. it is calculated on the 80,000 basis reduced by the bonus, not on 100,000
+        FindFAJournalLineForFA(FAJournalLine, DepreciationBook.Code, FAJournalLine."FA Posting Type"::Depreciation, FixedAssetBonus."No.");
+        BonusFADeprAmount := FAJournalLine.Amount;
+        FindFAJournalLineForFA(FAJournalLine, DepreciationBook.Code, FAJournalLine."FA Posting Type"::Depreciation, FixedAssetControl."No.");
+        ControlDeprAmount := FAJournalLine.Amount;
+        Assert.AreEqual(
+            ControlDeprAmount, BonusFADeprAmount,
+            'Straight-Line % depreciation should be calculated on the depreciable basis reduced by the bonus depreciation.');
+
+        // Clean up the shared FA journal batch so leftover lines do not affect other tests.
+        DeleteFAJournalLines(DepreciationBook.Code);
+    end;
+
+    local procedure CreateStraightLinePctFADepreciationBook(var FADepreciationBook: Record "FA Depreciation Book"; FixedAsset: Record "Fixed Asset"; DepreciationBookCode: Code[10]; StraightLinePct: Decimal)
+    begin
+        LibraryFixedAsset.CreateFADepreciationBook(FADepreciationBook, FixedAsset."No.", DepreciationBookCode);
+        FADepreciationBook.Validate("FA Posting Group", FixedAsset."FA Posting Group");
+        FADepreciationBook.Validate("Depreciation Method", FADepreciationBook."Depreciation Method"::"Straight-Line");
+        FADepreciationBook.Validate("Depreciation Starting Date", WorkDate());
+        FADepreciationBook.Validate("Straight-Line %", StraightLinePct);
+        FADepreciationBook.Modify(true);
+    end;
+
+    local procedure PostAcquisitionFAJournalLine(FADepreciationBook: Record "FA Depreciation Book"; Amount: Decimal)
+    var
+        FAJournalLine: Record "FA Journal Line";
+    begin
+        CreateFAJournalLineWithPostingType(
+            FAJournalLine, FADepreciationBook."FA No.", FADepreciationBook."Depreciation Book Code",
+            FAJournalLine."FA Posting Type"::"Acquisition Cost", Amount);
+        LibraryFixedAsset.PostFAJournalLine(FAJournalLine);
+    end;
+
+    local procedure FindFAJournalLineForFA(var FAJournalLine: Record "FA Journal Line"; DepreciationBookCode: Code[10]; FAPostingType: Enum "FA Journal Line FA Posting Type"; FANo: Code[20])
+    var
+        FAJournalSetup: Record "FA Journal Setup";
+    begin
+        FAJournalSetup.Get(DepreciationBookCode, '');
+        FAJournalLine.SetRange("Journal Template Name", FAJournalSetup."FA Jnl. Template Name");
+        FAJournalLine.SetRange("Journal Batch Name", FAJournalSetup."FA Jnl. Batch Name");
+        FAJournalLine.SetRange("FA Posting Type", FAPostingType);
+        FAJournalLine.SetRange("FA No.", FANo);
+        FAJournalLine.FindFirst();
+    end;
+
+    local procedure DeleteFAJournalLines(DepreciationBookCode: Code[10])
+    var
+        FAJournalLine: Record "FA Journal Line";
+        FAJournalSetup: Record "FA Journal Setup";
+    begin
+        FAJournalSetup.Get(DepreciationBookCode, '');
+        FAJournalLine.SetRange("Journal Template Name", FAJournalSetup."FA Jnl. Template Name");
+        FAJournalLine.SetRange("Journal Batch Name", FAJournalSetup."FA Jnl. Batch Name");
+        FAJournalLine.DeleteAll();
+    end;
+
     local procedure Initialize()
     var
         AdvBonusDeprSetup: Record "Adv. Bonus Depreciation Setup";
