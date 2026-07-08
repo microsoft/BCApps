@@ -259,17 +259,13 @@ page 46 "Sales Order Subform"
                     ToolTip = 'Specifies a description of what you’re selling. Based on your choices in the Type and No. fields, the field may show suggested text that you can change it for this document. To add a comment, set the Type field to Comment and write the comment itself here.';
 
                     trigger OnValidate()
-                    var
-                        LookupStateManager: Codeunit "Lookup State Manager";
-                        ItemSelectedFromLookup: Boolean;
                     begin
                         UpdateEditableOnRow();
 
-                        ItemSelectedFromLookup := LookupStateManager.IsRecordSaved();
                         Rec.RestoreLookupSelection();
                         if Rec."No." <> xRec."No." then
                             NoOnAfterValidate();
-                        if ItemSelectedFromLookup or (Rec."No." <> xRec."No.") then begin
+                        if Rec."No." <> xRec."No." then begin
                             ResetxRecAmountValues();
                             CalculateTotals();
                             DeltaUpdateTotals();
