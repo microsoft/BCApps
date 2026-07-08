@@ -71,7 +71,7 @@ pageextension 36961 "Purchasing Manager Role Center" extends "Purchasing Manager
                     Caption = 'Purchases Period-Over-Period (Power BI)';
                     Image = "PowerBI";
                     RunObject = page "Purchases Period-Over-Period";
-                    Tooltip = 'Open a Power BI Report that compares procurement performance across different periods, such as month-over-month or year-over-year. Completed up to here';
+                    Tooltip = 'Open a Power BI Report that compares procurement performance across different periods, such as month-over-month or year-over-year.';
                 }
                 action("Purchases Year-Over-Year (Power BI)")
                 {
