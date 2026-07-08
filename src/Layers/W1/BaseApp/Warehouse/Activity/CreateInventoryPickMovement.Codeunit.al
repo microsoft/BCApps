@@ -2293,10 +2293,10 @@ codeunit 7322 "Create Inventory Pick/Movement"
 
     local procedure GetSourceLineNo(WarehouseActivityLine: Record "Warehouse Activity Line"): Integer
     begin
-        if WarehouseActivityLine."Source Type" <> Database::Job then
-            exit(WarehouseActivityLine."Source Line No.");
+        if WarehouseActivityLine."Source Type" in [Database::Job, Database::"Job Planning Line"] then
+            exit(-1);
 
-        exit(-1);
+        exit(WarehouseActivityLine."Source Line No.");
     end;
 
     procedure SetHideDialogForTracking(NewHideDialogForTracking: Boolean)

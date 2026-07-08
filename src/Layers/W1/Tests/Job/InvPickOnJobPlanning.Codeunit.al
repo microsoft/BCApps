@@ -2266,6 +2266,75 @@ codeunit 136317 "Inv. Pick On Job Planning"
         Assert.AreEqual(QtyToUse2, JobPlanningLine2."Reserved Quantity", 'JPL2 should have correct Reserved Quantity after picking item-tracked JPL1.');
     end;
 
+    [Test]
+    [HandlerFunctions('MessageHandler,ConfirmHandlerTrue')]
+    [Scope('OnPrem')]
+    procedure InvPickCreatedForMultipleReservedJobPlanningLinesAggregatesAvailability()
+    var
+        Item: Record Item;
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobPlanningLine1: Record "Job Planning Line";
+        JobPlanningLine2: Record "Job Planning Line";
+        JobPlanningLine3: Record "Job Planning Line";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        QtyPerLine: Integer;
+    begin
+        // [FEATURE] 625654 [WMS] Availability aggregation across multiple reserved job planning lines
+        // [SCENARIO] Guards GetSourceLineNo in "Create Inventory Pick/Movement": for Database::"Job Planning Line"
+        // it must return -1 so CalcLineReservedQtyOnInvt aggregates reservations across all planning lines of the
+        // job. Otherwise the per-line availability would drop below the reserved quantity and inventory pick
+        // creation would produce zero-qty (or missing) pick lines for some planning lines.
+        Initialize();
+
+        // [GIVEN] Item with total inventory exactly equal to the sum of 3 planning lines on a require-pick, bin-mandatory location.
+        // Using an exact-fit inventory makes the regression observable: if LineReservedQty only accounts for a
+        // single planning line's reservation, the availability formula produces < Quantity for each line.
+        LibraryInventory.CreateItem(Item);
+        QtyPerLine := 3;
+        CreateAndPostInvtAdjustmentWithUnitCost(Item."No.", LocationWithRequirePickBinMandatory.Code, Bin1.Code, QtyPerLine * 3, LibraryRandom.RandDec(10, 2));
+
+        // [GIVEN] Job "J" with 1 Job Task "JT".
+        LibraryJob.CreateJob(Job, CreateCustomer(''));
+        LibraryJob.CreateJobTask(Job, JobTask);
+
+        // [GIVEN] 3 Job Planning Lines, each with Quantity = 3 for Item "I".
+        CreateJobPlanningLineWithData(JobPlanningLine1, JobTask, "Job Planning Line Line Type"::Budget, JobPlanningLine1.Type::Item, Item."No.", LocationWithRequirePickBinMandatory.Code, Bin1.Code, QtyPerLine);
+        CreateJobPlanningLineWithData(JobPlanningLine2, JobTask, "Job Planning Line Line Type"::Budget, JobPlanningLine2.Type::Item, Item."No.", LocationWithRequirePickBinMandatory.Code, Bin1.Code, QtyPerLine);
+        CreateJobPlanningLineWithData(JobPlanningLine3, JobTask, "Job Planning Line Line Type"::Budget, JobPlanningLine3.Type::Item, Item."No.", LocationWithRequirePickBinMandatory.Code, Bin1.Code, QtyPerLine);
+
+        // [GIVEN] Each planning line is auto-reserved against on-hand inventory (each reservation has a distinct "Source Ref. No.").
+        JobPlanningLine1.AutoReserve();
+        JobPlanningLine2.AutoReserve();
+        JobPlanningLine3.AutoReserve();
+
+        // [THEN] All three planning lines are fully reserved (sanity check on setup).
+        JobPlanningLine1.CalcFields("Reserved Quantity");
+        JobPlanningLine2.CalcFields("Reserved Quantity");
+        JobPlanningLine3.CalcFields("Reserved Quantity");
+        Assert.AreEqual(QtyPerLine, JobPlanningLine1."Reserved Quantity", 'JPL1 should be fully reserved.');
+        Assert.AreEqual(QtyPerLine, JobPlanningLine2."Reserved Quantity", 'JPL2 should be fully reserved.');
+        Assert.AreEqual(QtyPerLine, JobPlanningLine3."Reserved Quantity", 'JPL3 should be fully reserved.');
+
+        // [WHEN] Create Inventory Pick for the Job.
+        OpenJobAndCreateInventoryPick(Job);
+
+        // [THEN] Exactly one Inventory Pick header is created for the Job.
+        WarehouseActivityHeader.SetRange("Source Document", WarehouseActivityHeader."Source Document"::"Job Usage");
+        WarehouseActivityHeader.SetRange("Source No.", Job."No.");
+        WarehouseActivityHeader.SetRange("Location Code", LocationWithRequirePickBinMandatory.Code);
+        Assert.RecordCount(WarehouseActivityHeader, 1);
+        WarehouseActivityHeader.FindFirst();
+
+        // [THEN] One pick line is created per planning line with the correct quantity.
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        Assert.RecordCount(WarehouseActivityLine, 3);
+        VerifyWarehouseActivityLine(JobPlanningLine1);
+        VerifyWarehouseActivityLine(JobPlanningLine2);
+        VerifyWarehouseActivityLine(JobPlanningLine3);
+    end;
+
     local procedure CreateDefaultWarehouseEmployee(var NewDefaultLocation: Record Location)
     var
         WarehouseEmployee: Record "Warehouse Employee";
