@@ -66,5 +66,24 @@ page 6111 "Inbound E-Doc. Picture"
         TempMediaRepository: Record "Media Repository" temporary;
         PdfLoaded: Boolean;
 
+    /// <summary>
+    /// Points the preview at a specific unstructured E-Doc. Data Storage entry and renders it.
+    /// Use this when the page is hosted as a factbox without a SubPageLink (e.g. on purchase invoice pages),
+    /// so the host can drive which document is shown from its own current record.
+    /// </summary>
+    /// <param name="EDocDataStorageEntryNo">The E-Doc. Data Storage entry number to display.</param>
+    internal procedure SetEDocDataStorage(EDocDataStorageEntryNo: Integer)
+    begin
+        if EDocDataStorageEntryNo = 0 then
+            exit;
+        if Rec."Entry No." = EDocDataStorageEntryNo then
+            exit;
+        if not Rec.Get(EDocDataStorageEntryNo) then
+            exit;
+        Rec.SetRecFilter();
+        PdfLoaded := false;
+        CurrPage.Update(false);
+    end;
+
 }
 
