@@ -18,7 +18,9 @@ table 20402 "Qlty. Inspection Template Hdr."
     DrillDownPageId = "Qlty. Inspection Template List";
     LookupPageId = "Qlty. Inspection Template List";
     DataClassification = CustomerContent;
-    Permissions = tabledata "Qlty. Inspection Template Line" = d;
+    Permissions = tabledata "Qlty. Inspection Template Line" = d,
+                  tabledata "Qlty. Inspection Gen. Rule" = d,
+                  tabledata "Qlty. Inspection Line" = m;
 
     fields
     {
