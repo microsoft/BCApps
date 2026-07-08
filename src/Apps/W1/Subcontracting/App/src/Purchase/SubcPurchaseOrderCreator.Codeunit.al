@@ -189,6 +189,11 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         end;
     end;
 
+    /// <summary>
+    /// Opens the subcontracting purchase order(s) marked during the current CreateSubcontractingOrdersForRoutingLineSelection call on this instance. Does nothing if no purchase order was marked (for example when called directly).
+    /// </summary>
+    /// <param name="ProdOrderNo">The production order the subcontracting orders were created for.</param>
+    /// <param name="NoOfCreatedPurchOrder">The number of Carry Out runs performed during creation.</param>
     procedure ShowCreatedPurchaseOrder(ProdOrderNo: Code[20]; NoOfCreatedPurchOrder: Integer)
     var
         InstructionMgt: Codeunit "Instruction Mgt.";
