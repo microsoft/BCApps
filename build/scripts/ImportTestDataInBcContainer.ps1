@@ -339,13 +339,24 @@ function Invoke-LegacyDemoDataTool() {
         [PSCredential]$Credential,
         [string]$Tenant = "default",
         [ValidateSet("Standard","Evaluation","Extended")]
-        [string]$DemoDataType = "Extended"
+        [string]$DemoDataType = "Extended",
+        [switch]$SkipCompanyInitialize
     )
 
     $ErrorActionPreference = "Stop"
 
-    Write-Host "Initializing company"
-    Invoke-NavContainerCodeunit -Codeunitid 2 -containerName $ContainerName -CompanyName $CompanyName
+    # NAV's Run-NavDemoTool runs the legacy DemoTool against a brand-new EMPTY company and never runs
+    # Company-Initialize (CU2). For the real Extended test company we keep the CU2 call (existing behavior
+    # that tests may rely on), but the additional Standard/Evaluation verification passes -SkipCompanyInitialize
+    # to mirror NAV exactly: some localizations (e.g. CZ, DK) have OnCompanyInitialize subscribers that seed
+    # setup which then collides with the Standard/Evaluation demo data paths, so running CU2 first would cause
+    # false failures that never occur in NAV.
+    if (-not $SkipCompanyInitialize) {
+        Write-Host "Initializing company"
+        Invoke-NavContainerCodeunit -Codeunitid 2 -containerName $ContainerName -CompanyName $CompanyName
+    } else {
+        Write-Host "Skipping company initialization (CU2) to mirror NAV's empty-company legacy DemoTool run"
+    }
 
     $countryCode = Get-CountryCodeFromSettings
 
@@ -370,6 +381,9 @@ function Invoke-LegacyDemoDataTool() {
 
     The DemoTool bug class this targets throws DURING generation (before any rapidstart export), so a
     throwaway-company run reliably reproduces it without needing the full generate/export/delete pipeline.
+
+    Company-Initialize (CU2) is deliberately skipped for these runs (see -SkipCompanyInitialize below) so the
+    behavior matches NAV's Run-NavDemoTool, which runs the legacy DemoTool against a fresh empty company.
 .PARAMETER DemoDataTypes
     One or more of "Standard","Evaluation". Extended is skipped here because it is already covered by the
     real test-company generation.
@@ -402,7 +416,7 @@ function Invoke-AdditionalLegacyDemoData() {
             New-CompanyInBcContainer -containerName $ContainerName -companyName $additionalCompanyName -evaluationCompany:$isEvaluation
 
             Invoke-LegacyDemoDataTool -ContainerName $ContainerName -CompanyName $additionalCompanyName `
-                -Credential $Credential -Tenant $Tenant -DemoDataType $demoDataType
+                -Credential $Credential -Tenant $Tenant -DemoDataType $demoDataType -SkipCompanyInitialize
 
             Write-Host "Legacy DemoTool additional demo data check for DataType=$demoDataType succeeded"
         } catch {
