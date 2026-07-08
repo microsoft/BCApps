@@ -279,7 +279,7 @@ page 20408 "Qlty. Inspection List"
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                ToolTip = 'Reopen';
+                ToolTip = 'Reopen a finished inspection. Only users with the Quality Admin & Supervisor role can perform this action.';
                 Enabled = CanReopen;
 
                 trigger OnAction()
