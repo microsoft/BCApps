@@ -103,7 +103,10 @@ xmlport 1001 "SEPA CT pain.001.001.09"
 
                                 trigger OnBeforePassVariable()
                                 begin
-                                    Cd := 'SEPA';
+                                    if PaymentExportDataGroup."SEPA Charge Bearer Text" = 'SLEV' then
+                                        Cd := 'SEPA'
+                                    else
+                                        Cd := 'NURG';
                                 end;
                             }
                         }
