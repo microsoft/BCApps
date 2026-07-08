@@ -135,13 +135,15 @@ page 99000888 "Work Center Load Lines"
 
     protected var
         WorkCenter: Record "Work Center";
+        CapacityUoM: Code[10];
 
-    procedure SetLines(var NewWorkCenter: Record "Work Center"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type")
+    procedure SetLines(var NewWorkCenter: Record "Work Center"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type"; NewCapUoM: Code[10])
     begin
         WorkCenter.Copy(NewWorkCenter);
         Rec.DeleteAll();
         PeriodType := NewPeriodType;
         AmountType := NewAmountType;
+        CapacityUoM := NewCapUoM;
         CurrPage.Update(false);
 
         OnAfterSetLines(WorkCenter, PeriodType, AmountType);
@@ -156,12 +158,21 @@ page 99000888 "Work Center Load Lines"
     end;
 
     local procedure CalcLine()
+    var
+        CalendarMgt: Codeunit "Shop Calendar Management";
+        CapacityTimeFactor: Decimal;
     begin
         SetDateFilter();
         WorkCenter.CalcFields("Capacity (Effective)", "Prod. Order Need (Qty.)");
-        Rec.Capacity := WorkCenter."Capacity (Effective)";
-        Rec."Allocated Qty." := WorkCenter."Prod. Order Need (Qty.)";
-        Rec."Availability After Orders" := WorkCenter."Capacity (Effective)" - WorkCenter."Prod. Order Need (Qty.)";
+        if (CapacityUoM <> '') and (WorkCenter."Unit of Measure Code" <> '') then
+            CapacityTimeFactor :=
+                CalendarMgt.TimeFactor(WorkCenter."Unit of Measure Code") /
+                CalendarMgt.TimeFactor(CapacityUoM)
+        else
+            CapacityTimeFactor := 1;
+        Rec.Capacity := WorkCenter."Capacity (Effective)" * CapacityTimeFactor;
+        Rec."Allocated Qty." := WorkCenter."Prod. Order Need (Qty.)" * CapacityTimeFactor;
+        Rec."Availability After Orders" := Rec.Capacity - Rec."Allocated Qty.";
         if WorkCenter."Capacity (Effective)" <> 0 then
             Rec.Load := Round(WorkCenter."Prod. Order Need (Qty.)" / WorkCenter."Capacity (Effective)" * 100, 0.1)
         else

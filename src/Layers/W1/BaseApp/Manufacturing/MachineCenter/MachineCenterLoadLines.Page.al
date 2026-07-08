@@ -139,13 +139,15 @@ page 99000890 "Machine Center Load Lines"
         MachineCenter: Record "Machine Center";
         PeriodType: Enum "Analysis Period Type";
         AmountType: Enum "Analysis Amount Type";
+        CapacityUoM: Code[10];
 
-    procedure SetLines(var NewMachineCenter: Record "Machine Center"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type")
+    procedure SetLines(var NewMachineCenter: Record "Machine Center"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type"; NewCapUoM: Code[10])
     begin
         MachineCenter.Copy(NewMachineCenter);
         Rec.DeleteAll();
         PeriodType := NewPeriodType;
         AmountType := NewAmountType;
+        CapacityUoM := NewCapUoM;
         CurrPage.Update(false);
     end;
 
@@ -158,12 +160,21 @@ page 99000890 "Machine Center Load Lines"
     end;
 
     local procedure CalcLine()
+    var
+        CalendarMgt: Codeunit "Shop Calendar Management";
+        CapacityTimeFactor: Decimal
     begin
         SetDateFilter();
         MachineCenter.CalcFields("Capacity (Effective)", "Prod. Order Need (Qty.)");
-        Rec.Capacity := MachineCenter."Capacity (Effective)";
-        Rec."Allocated Qty." := MachineCenter."Prod. Order Need (Qty.)";
-        Rec."Availability After Orders" := MachineCenter."Capacity (Effective)" - MachineCenter."Prod. Order Need (Qty.)";
+        if (CapacityUoM <> '') and (MachineCenter."Unit of Measure Code" <> '') then
+            CapacityTimeFactor :=
+                CalendarMgt.TimeFactor(MachineCenter."Unit of Measure Code") /
+                CalendarMgt.TimeFactor(CapacityUoM)
+        else
+            CapacityTimeFactor := 1;
+        Rec.Capacity := MachineCenter."Capacity (Effective)" * CapacityTimeFactor;
+        Rec."Allocated Qty." := MachineCenter."Prod. Order Need (Qty.)" * CapacityTimeFactor;
+        Rec."Availability After Orders" := Rec.Capacity - Rec."Allocated Qty.";
         if MachineCenter."Capacity (Effective)" <> 0 then
             Rec.Load := Round(MachineCenter."Prod. Order Need (Qty.)" / MachineCenter."Capacity (Effective)" * 100, 0.1)
         else

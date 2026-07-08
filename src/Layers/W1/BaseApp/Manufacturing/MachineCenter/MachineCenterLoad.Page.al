@@ -5,6 +5,8 @@
 namespace Microsoft.Manufacturing.MachineCenter;
 
 using Microsoft.Foundation.Enums;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Setup;
 
 page 99000889 "Machine Center Load"
 {
@@ -59,6 +61,18 @@ page 99000889 "Machine Center Load"
                             NetChangeAmountTypeOnValidate();
                     end;
                 }
+                field(CapacityUoM; CapacityUoM)
+                {
+                    ApplicationArea = Manufacturing;
+                    Caption = 'Capacity Shown In';
+                    TableRelation = "Capacity Unit of Measure".Code;
+                    ToolTip = 'Specifies how the capacity is shown (minutes, days, or hours).';
+
+                    trigger OnValidate()
+                    begin
+                        UpdateSubForm();
+                    end;
+                }
             }
             part(MachineCLoadLines; "Machine Center Load Lines")
             {
@@ -78,8 +92,12 @@ page 99000889 "Machine Center Load"
 
     trigger OnOpenPage()
     var
+        MfgSetup: Record "Manufacturing Setup";
         PeriodTypeOption: Option;
     begin
+        MfgSetup.Get();
+        MfgSetup.TestField("Show Capacity In");
+        CapacityUoM := MfgSetup."Show Capacity In";
         PeriodTypeOption := PeriodType.AsInteger();
         OnBeforeOpenPage(PeriodTypeOption, AmountType);
         PeriodType := Enum::"Analysis Period Type".FromInteger(PeriodTypeOption);
@@ -88,10 +106,11 @@ page 99000889 "Machine Center Load"
     protected var
         PeriodType: Enum "Analysis Period Type";
         AmountType: Enum "Analysis Amount Type";
+        CapacityUoM: Code[10];
 
     local procedure UpdateSubForm()
     begin
-        CurrPage.MachineCLoadLines.PAGE.SetLines(Rec, PeriodType, AmountType);
+        CurrPage.MachineCLoadLines.PAGE.SetLines(Rec, PeriodType, AmountType, CapacityUoM);
     end;
 
     local procedure DayPeriodTypeOnPush()
