@@ -141,6 +141,7 @@ report 7132 "Export Item Budget to Excel"
                     if FindColumn('-') then begin
                         ColumnNo := 1;
                         EnterCell(RowNo, ColumnNo, Text007, false, true, false, '', TempExcelBuffer."Cell Type"::Text);
+                        OnOnAfterGetRecordOnAfterEnterTableDataCell(TempExcelBuffer, RowNo, ColumnNo, AnalysisArea, BudgetName);
                         repeat
                             ColumnNo := ColumnNo + 1;
                             EnterCell(RowNo, ColumnNo, ColumnDimCodeBuffer.Code, false, false, false, '', TempExcelBuffer."Cell Type"::Text);
@@ -153,6 +154,7 @@ report 7132 "Export Item Budget to Excel"
                         ColumnNo := 1;
                         EnterCell(
                           RowNo, ColumnNo, LineDimCodeBuffer.Code, LineDimCodeBuffer."Show in Bold", false, false, '', TempExcelBuffer."Cell Type"::Text);
+                        OnOnAfterGetRecordOnAfterEnterLineDimensionCodeCell(TempExcelBuffer, RowNo, ColumnNo, LineDimCodeBuffer, AnalysisArea, BudgetName);
                         if FindColumn('-') then
                             repeat
                                 ColumnNo := ColumnNo + 1;
@@ -366,6 +368,16 @@ report 7132 "Export Item Budget to Excel"
     procedure SetTestMode(NewTestMode: Boolean)
     begin
         TestMode := NewTestMode;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnOnAfterGetRecordOnAfterEnterTableDataCell(var TempExcelBuffer: Record "Excel Buffer" temporary; HeaderRowNo: Integer; var ColumnNo: Integer; AnalysisArea: Enum "Analysis Area Type"; BudgetName: Code[10])
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnOnAfterGetRecordOnAfterEnterLineDimensionCodeCell(var TempExcelBuffer: Record "Excel Buffer" temporary; DataRowNo: Integer; var ColumnNo: Integer; LineDimCodeBuffer: Record "Dimension Code Buffer"; AnalysisArea: Enum "Analysis Area Type"; BudgetName: Code[10])
+    begin
     end;
 }
 
