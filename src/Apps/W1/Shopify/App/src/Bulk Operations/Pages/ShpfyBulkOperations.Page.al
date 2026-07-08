@@ -104,7 +104,6 @@ page 30152 "Shpfy Bulk Operations"
                 var
                     InStream: InStream;
                     FileName: Text;
-                    SentDataFileNameLbl: Label 'BulkOperation_%1.jsonl', Comment = '%1 = the bulk operation id', Locked = true;
                 begin
                     Rec.CalcFields("Sent JSONL");
                     if not Rec."Sent JSONL".HasValue then
@@ -168,6 +167,7 @@ page 30152 "Shpfy Bulk Operations"
         InProgressLbl: Label 'In Progress';
         ErrorLbl: Label 'Error';
         CompletedLbl: Label 'Completed';
+        SentDataFileNameLbl: Label 'BulkOperation_%1.jsonl', Comment = '%1 = the bulk operation id', Locked = true;
 
     trigger OnAfterGetRecord()
     begin

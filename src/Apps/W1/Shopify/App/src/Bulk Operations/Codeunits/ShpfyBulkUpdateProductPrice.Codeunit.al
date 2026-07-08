@@ -174,8 +174,10 @@ codeunit 30281 "Shpfy Bulk UpdateProductPrice" implements "Shpfy IBulk Operation
     begin
         // Resolve the skipped record back to the linked BC Item Variant (preferred) or Item, so the
         // user sees which product failed. Falls back to the Shopify variant when no BC link exists.
+        ItemVariant.SetLoadFields();
         if (not IsNullGuid(ShopifyVariant."Item Variant SystemId")) and ItemVariant.GetBySystemId(ShopifyVariant."Item Variant SystemId") then
             exit(ItemVariant.RecordId());
+        Item.SetLoadFields();
         if (not IsNullGuid(ShopifyVariant."Item SystemId")) and Item.GetBySystemId(ShopifyVariant."Item SystemId") then
             exit(Item.RecordId());
         exit(ShopifyVariant.RecordId());
