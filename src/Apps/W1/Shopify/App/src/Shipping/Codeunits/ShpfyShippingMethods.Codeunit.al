@@ -100,6 +100,8 @@ codeunit 30193 "Shpfy Shipping Methods"
     begin
         // A null shipping configuration means the market inherits shipping from its parent; the parent
         // market carries the same option names, so nothing is lost by skipping the inheriting market.
+        // Carrier-calculated options have no static 'name' (rates are named by the carrier at checkout),
+        // so they are not queried and simply yield an empty name that is skipped below.
         if not JsonHelper.GetValueAsBoolean(JMarket, 'node.delivery.shipping.isEnabled') then
             exit;
         if JsonHelper.GetJsonArray(JMarket, JOptionDefinitions, 'node.delivery.shipping.optionDefinitions.edges') then
