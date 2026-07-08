@@ -30,7 +30,7 @@ codeunit 5998 "Job Warehouse Mgt."
     var
         Job: Record Job;
     begin
-        if SourceType = Database::Job then
+        if SourceType in [Database::Job, Database::"Job Planning Line"] then
             if Job.Get(SourceNo) then
                 Page.RunModal(Page::"Job Card", Job);
     end;
