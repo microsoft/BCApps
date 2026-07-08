@@ -1699,6 +1699,78 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
             'WIP Transfer Line must retain Transfer WIP Item = true after toggling off Direct Transfer.');
     end;
 
+    [Test]
+    procedure ProdOrderRoutingLineTransferWIPItemValidationFailsForMachineCenterType()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [SCENARIO] Validating Transfer WIP Item = true on a Prod. Order Routing Line with
+        // Machine Center type fails, even when the parent Work Center has a Subcontractor No.
+        Initialize();
+
+        // [GIVEN] Subcontracting work centers with machine centers and an item with routing + BOM
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+
+        // [GIVEN] A released production order to create Prod. Order Routing Lines
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", 1);
+
+        // [GIVEN] A Prod. Order Routing Line with Type = Machine Center
+        ProdOrderRoutingLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange(Type, ProdOrderRoutingLine.Type::"Machine Center");
+        ProdOrderRoutingLine.FindFirst();
+
+        // [WHEN] Transfer WIP Item is set to true on the Machine Center routing line
+        // [THEN] An error is raised because the line type must be Work Center
+        asserterror ProdOrderRoutingLine.Validate("Transfer WIP Item", true);
+        Assert.ExpectedTestFieldError(ProdOrderRoutingLine.FieldCaption(Type), Format(ProdOrderRoutingLine.Type::"Work Center"));
+    end;
+
+    [Test]
+    procedure ProdOrderRoutingPageTransferWIPItemDisabledForMachineCenterLine()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProductionOrder: Record "Production Order";
+        WorkCenter: array[2] of Record "Work Center";
+        ProdOrderRtng: TestPage "Prod. Order Routing";
+    begin
+        // [SCENARIO] Transfer WIP Item field is disabled on Prod. Order Routing page for a Machine
+        // Center routing line, even when the parent Work Center has a Subcontractor No.
+        Initialize();
+
+        // [GIVEN] Subcontracting work centers with machine centers and an item with routing + BOM
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+
+        // [GIVEN] A released production order to create Prod. Order Routing Lines
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", 1);
+
+        // [GIVEN] A Prod. Order Routing Line with Type = Machine Center
+        ProdOrderRoutingLine.SetRange(Status, "Production Order Status"::Released);
+        ProdOrderRoutingLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderRoutingLine.SetRange(Type, ProdOrderRoutingLine.Type::"Machine Center");
+        ProdOrderRoutingLine.FindFirst();
+
+        // [WHEN] The Prod. Order Routing page is opened for that line
+        ProdOrderRtng.OpenEdit();
+        ProdOrderRtng.GoToRecord(ProdOrderRoutingLine);
+
+        // [THEN] Transfer WIP Item is not enabled (Machine Center type is not eligible)
+        Assert.IsFalse(ProdOrderRtng."Transfer WIP Item".Enabled(), ProdOrderRoutingTransferWIPEnabledErr);
+        ProdOrderRtng.Close();
+    end;
+
     [PageHandler]
     procedure HandleTransferOrder(var TransfOrderPage: TestPage "Transfer Order")
     begin
@@ -1765,7 +1837,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         RoutingLine.SetRange(Type, RoutingLine.Type::"Work Center");
         RoutingLine.SetRange("No.", WorkCenterNo);
         RoutingLine.FindFirst();
-        RoutingLine."Transfer WIP Item" := TransferWIPItem;
+        RoutingLine.Validate("Transfer WIP Item", TransferWIPItem);
         RoutingLine.Modify(true);
 
         RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
@@ -1831,4 +1903,5 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         SubSetupLibrary: Codeunit "Subc. Setup Library";
         SubcWarehouseLibrary: Codeunit "Subc. Warehouse Library";
         IsInitialized: Boolean;
+        ProdOrderRoutingTransferWIPEnabledErr: Label 'Transfer WIP Item should not be enabled for a Machine Center prod. order routing line.';
 }
