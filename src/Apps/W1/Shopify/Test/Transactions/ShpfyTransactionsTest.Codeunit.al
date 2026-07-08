@@ -290,10 +290,20 @@ codeunit 139697 "Shpfy Transactions Test"
     end;
 
     local procedure CreateOrderHeader(var OrderHeader: Record "Shpfy Order Header")
+    var
+        ExistingOrderHeader: Record "Shpfy Order Header";
+        NextOrderId: BigInteger;
     begin
+        // Use an id above any existing order header so it can't collide with data committed by
+        // other Shopify test codeunits sharing the same test database.
+        if ExistingOrderHeader.FindLast() then
+            NextOrderId := ExistingOrderHeader."Shopify Order Id" + 1
+        else
+            NextOrderId := 1;
+
         Clear(OrderHeader);
         OrderHeader.Init();
-        OrderHeader."Shopify Order Id" := Any.IntegerInRange(100000, 999999);
+        OrderHeader."Shopify Order Id" := NextOrderId;
         OrderHeader."Shop Code" := Shop.Code;
         OrderHeader.Insert();
     end;
@@ -312,12 +322,21 @@ codeunit 139697 "Shpfy Transactions Test"
     end;
 
     local procedure GetUniqueIsoCode(): Code[3]
+    var
+        Currency: Record Currency;
+        Candidate: Code[3];
     begin
-        // Distinct, non-standard ISO codes (Z01..Z99) that do not collide with demo-data currencies.
-        IsoCodeCounter += 1;
-        if IsoCodeCounter < 10 then
-            exit(CopyStr('Z0' + Format(IsoCodeCounter), 1, 3));
-        exit(CopyStr('Z' + Format(IsoCodeCounter), 1, 3));
+        // Pick a non-standard ISO code (Z01..Z99) that is not already used by any currency in the
+        // shared test database, so the ISO-code lookup in TranslateCurrencyCode resolves to exactly one row.
+        repeat
+            IsoCodeCounter += 1;
+            if IsoCodeCounter < 10 then
+                Candidate := CopyStr('Z0' + Format(IsoCodeCounter), 1, 3)
+            else
+                Candidate := CopyStr('Z' + Format(IsoCodeCounter), 1, 3);
+            Currency.SetRange("ISO Code", Candidate);
+        until Currency.IsEmpty() or (IsoCodeCounter >= 99);
+        exit(Candidate);
     end;
 
     local procedure EnqueueTransaction(ShopCurrencyCode: Text; ShopAmount: Decimal; PresentmentCurrencyCode: Text; PresentmentAmount: Decimal)
@@ -355,7 +374,7 @@ codeunit 139697 "Shpfy Transactions Test"
             ShopAmount := TransactionData.DequeueDecimal();
             PresentmentCurrencyCode := TransactionData.DequeueText();
             PresentmentAmount := TransactionData.DequeueDecimal();
-            TransactionId := Any.IntegerInRange(100000, 999999);
+            TransactionId := GetNextTransactionId();
             Body := StrSubstNo(
                 TransactionResponseLbl,
                 Format(CurrentDateTime(), 0, 9),
@@ -370,5 +389,16 @@ codeunit 139697 "Shpfy Transactions Test"
         end else
             Response.Content.WriteFrom('{"data":{"order":{"transactions":[]}}}');
         exit(false);
+    end;
+
+    local procedure GetNextTransactionId(): BigInteger
+    var
+        OrderTransaction: Record "Shpfy Order Transaction";
+    begin
+        // Use an id above any existing transaction so the mock response can't collide with data
+        // committed by other Shopify test codeunits sharing the same test database.
+        if OrderTransaction.FindLast() then
+            exit(OrderTransaction."Shopify Transaction Id" + 1);
+        exit(1);
     end;
 }
