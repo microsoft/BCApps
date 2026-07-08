@@ -174,6 +174,7 @@ function Resolve-PlatformVersion {
 #>
 function Get-BCPlatformArtifactUrl {
     [CmdletBinding()]
+    [OutputType([string])]
     param()
 
     $platformVersion = (Get-ConfigValue -Key "BCPlatform" -ConfigType Packages).Version
