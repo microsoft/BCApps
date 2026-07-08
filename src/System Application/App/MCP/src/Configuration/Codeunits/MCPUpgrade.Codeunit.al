@@ -96,6 +96,6 @@ codeunit 8356 "MCP Upgrade"
 
     local procedure GetRegisterMCPCapabilityUpgradeTag(): Text[250]
     begin
-        exit('MS-RegisterMCPCapability-20260612');
+        exit('MS-641612-RegisterMCPCapability-20260612');
     end;
 }
