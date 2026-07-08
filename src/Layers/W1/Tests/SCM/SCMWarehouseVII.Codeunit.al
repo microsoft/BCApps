@@ -74,6 +74,7 @@ codeunit 137159 "SCM Warehouse VII"
         RegInvtMovementHdrDoesNotExistErr: Label 'Registered Invt. Movement Hdr. does not exist.';
         RegisterWhseMessageLbl: Label 'The journal lines were successfully registered.You are now';
         ValueMustBeEqualErr: Label '%1 must be equal to %2 in the %3.', Comment = '%1 = Field Caption , %2 = Expected Value, %3 = Table Caption';
+        CubageExceedsCapacityErr: Label '%1 to place (%2) exceeds the available capacity (%3) on %4 %5.', Comment = '%1 = Cubage Caption, %2 = Cubage to place, %3 = Available Cubage, %4 = Bin Table Caption, %5 = Bin Code';
         ILEMustNotBeFoundMoreThanErr: Label 'Item Ledger Entry must not be found more than %1', Comment = 'Count of Item Ledger Entry';
         TrackingOption: Option AssignLotNoWithExpirationDate,VerifyExpirationDate;
 
@@ -3109,6 +3110,73 @@ codeunit 137159 "SCM Warehouse VII"
         Assert.AreEqual(1, JobPlanningLine."Qty. Picked", PickQtyAndQtyPickedMustMatchErr);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure InvtMovementProhibitsExceedingBinMaxCubageOnPartialMovements()
+    var
+        CubagePerUnit: Decimal;
+        FirstQty: Decimal;
+        FromBin: Record Bin;
+        Item: Record Item;
+        Location: Record Location;
+        MaxCubage: Decimal;
+        SecondQty: Decimal;
+        ToBin: Record Bin;
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        WarehouseEntry: Record "Warehouse Entry";
+    begin
+        // [SCENARIO 640512] Bin Capacity Policy "Prohibit More Than Max. Cap." blocks registering a partial Inventory Movement that exceeds the destination bin Maximum Cubage.
+        // Without the fix, base unit of measure movement lines did not carry Cubage to the warehouse entries, so a subsequent partial
+        // movement to the same bin was not detected as exceeding the bin Maximum Cubage and could be registered incorrectly.
+        Initialize();
+
+        // First partial movement fits within the bin Maximum Cubage, while the first and second movement together exceed it.
+        CubagePerUnit := LibraryRandom.RandInt(5);
+        FirstQty := LibraryRandom.RandIntInRange(5, 10);
+        SecondQty := LibraryRandom.RandIntInRange(5, 10);
+        MaxCubage := (FirstQty + SecondQty - 1) * CubagePerUnit;
+
+        // [GIVEN] Create Non-directed Location with Bin Mandatory and Bin Capacity Policy = "Prohibit More Than Max. Cap.".
+        LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
+        Location.Validate("Bin Capacity Policy", Location."Bin Capacity Policy"::"Prohibit More Than Max. Cap.");
+        Location.Modify(true);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+
+        // [GIVEN] Create Item with base Unit of Measure Cubage
+        CreateItemWithCubage(Item, CubagePerUnit);
+
+        // [GIVEN] Create Source Bin without capacity limit and destination Bin with a Maximum Cubage.
+        LibraryWarehouse.CreateBin(FromBin, Location.Code, LibraryUtility.GenerateGUID(), '', '');
+        LibraryWarehouse.CreateBin(ToBin, Location.Code, LibraryUtility.GenerateGUID(), '', '');
+        ToBin.Validate("Maximum Cubage", MaxCubage);
+        ToBin.Modify(true);
+
+        // [GIVEN] Create Inventory for the total movement quantity on the source Bin.
+        CreateAndPostItemJournalLine(Location.Code, FromBin.Code, Item."No.", '', FirstQty + SecondQty, false, false);
+
+        // [GIVEN] Create a first partial Inventory Movement from the source Bin to the destination Bin (fits within Maximum Cubage).
+        CreateAndRegisterInvtMovementFromInternalMovement(Item."No.", Location.Code, FromBin.Code, ToBin.Code, FirstQty);
+
+        // [THEN] The movement carries the corresponding Cubage into the warehouse entries for the destination Bin
+        WarehouseEntry.SetRange("Location Code", Location.Code);
+        WarehouseEntry.SetRange("Bin Code", ToBin.Code);
+        WarehouseEntry.SetRange("Item No.", Item."No.");
+        WarehouseEntry.CalcSums(Cubage);
+        Assert.AreEqual(
+          FirstQty * CubagePerUnit, WarehouseEntry.Cubage,
+          StrSubstNo(ValueMustBeEqualErr, WarehouseEntry.FieldCaption(Cubage), FirstQty * CubagePerUnit, WarehouseEntry.TableCaption()));
+
+        // [WHEN] Create a second partial Inventory Movement to the same destination Bin (would exceed the Maximum Cubage).
+        asserterror CreateAndRegisterInvtMovementFromInternalMovement(Item."No.", Location.Code, FromBin.Code, ToBin.Code, SecondQty);
+
+        // [THEN] Verify Registration is blocked because the destination Bin Maximum Cubage would be exceeded.
+        Assert.ExpectedError(
+          StrSubstNo(
+            CubageExceedsCapacityErr, WarehouseActivityLine.FieldCaption(Cubage), SecondQty * CubagePerUnit,
+            (SecondQty - 1) * CubagePerUnit, ToBin.TableCaption(), ToBin.Code));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -5540,6 +5608,29 @@ codeunit 137159 "SCM Warehouse VII"
         AssemblyLine.SetRange("Document No.", AssemblyHeader."No.");
         AssemblyLine.SetRange("No.", ItemNo);
         AssemblyLine.FindFirst();
+    end;
+
+    local procedure CreateAndRegisterInvtMovementFromInternalMovement(ItemNo: Code[20]; LocationCode: Code[10]; FromBinCode: Code[20]; ToBinCode: Code[20]; Quantity: Decimal)
+    var
+        InternalMovementHeader: Record "Internal Movement Header";
+        InternalMovementLine: Record "Internal Movement Line";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        LibraryWarehouse.CreateInternalMovementHeader(InternalMovementHeader, LocationCode, ToBinCode);
+        LibraryWarehouse.CreateInternalMovementLine(InternalMovementHeader, InternalMovementLine, ItemNo, FromBinCode, ToBinCode, Quantity);
+        CreateInventoryMovementFromInternalMovement(InternalMovementHeader);
+        RegisterWarehouseActivity(
+          WarehouseActivityLine."Source Document"::" ", '', WarehouseActivityLine."Activity Type"::"Invt. Movement");
+    end;
+
+    local procedure CreateItemWithCubage(var Item: Record Item; CubageValue: Decimal)
+    var
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+    begin
+        LibraryInventory.CreateItem(Item);
+        ItemUnitOfMeasure.Get(Item."No.", Item."Base Unit of Measure");
+        ItemUnitOfMeasure.Validate(Cubage, CubageValue);
+        ItemUnitOfMeasure.Modify(true);
     end;
 
     [ModalPageHandler]
