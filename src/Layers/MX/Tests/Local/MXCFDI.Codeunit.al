@@ -7309,6 +7309,7 @@
         FechaPagoValue: Text;
         PastWorkDate: Date;
         SavedWorkDate: Date;
+        StampDate: Date;
     begin
         // [FEATURE] [Payment Stamp]
         // [SCENARIO] Comprobante/@Fecha uses the stamp request date and pago20:Pago/@FechaPago
@@ -7317,7 +7318,8 @@
 
         // [GIVEN] The work date is set to a past date to post the payment with a past posting date
         SavedWorkDate := WorkDate();
-        PastWorkDate := CalcDate('<-30D>', Today());
+        StampDate := Today();
+        PastWorkDate := CalcDate('<-30D>', StampDate);
         WorkDate(PastWorkDate);
 
         // [GIVEN] A sales invoice "SI" is posted for customer "C"
@@ -7337,8 +7339,8 @@
             -SalesInvoiceHeader."Amount Including VAT",
             '');
 
-        // [GIVEN] The work date is restored to the current date before requesting the stamp
-        WorkDate(Today());
+        // [GIVEN] The work date is restored to the stamp request date before requesting the stamp
+        WorkDate(StampDate);
 
         // [WHEN] A stamp request is sent for the payment
         RequestStamp(
@@ -7358,7 +7360,7 @@
         FechaValue := LibraryXPathXMLReader.GetRootAttributeValue('Fecha');
 
         Assert.AreEqual(
-            FormatDate(Today()),
+            FormatDate(StampDate),
             CopyStr(FechaValue, 1, 10),
             'Comprobante/@Fecha date portion must equal the stamp request date');
 
@@ -7394,6 +7396,7 @@
         FechaValue: Text;
         FechaPagoValue: Text;
         SavedWorkDate: Date;
+        StampDate: Date;
     begin
         // [FEATURE] [Payment Stamp]
         // [SCENARIO] Comprobante/@Fecha and pago20:Pago/@FechaPago contain the same date
@@ -7402,7 +7405,8 @@
 
         // [GIVEN] The work date is set to today so that the payment posting date equals the stamp request date
         SavedWorkDate := WorkDate();
-        WorkDate(Today());
+        StampDate := Today();
+        WorkDate(StampDate);
 
         // [GIVEN] A sales invoice "SI" is posted for customer "C"
         SalesInvoiceHeader.Get(CreateAndPostDoc(DATABASE::"Sales Invoice Header", CreatePaymentMethodForSAT()));
@@ -7460,6 +7464,7 @@
         PaymentNo: Code[20];
         SavedWorkDate: Date;
         PastWorkDate: Date;
+        StampDate: Date;
     begin
         // [FEATURE] [Payment Stamp]
         // [SCENARIO] Payment XML contains expected attribute values when the posting date differs from the stamp request date
@@ -7467,7 +7472,8 @@
 
         // [GIVEN] The work date is set to a past date to post the payment with a past posting date
         SavedWorkDate := WorkDate();
-        PastWorkDate := CalcDate('<-30D>', Today());
+        StampDate := Today();
+        PastWorkDate := CalcDate('<-30D>', StampDate);
         WorkDate(PastWorkDate);
 
         // [GIVEN] A sales invoice "SI" is posted for customer "C"
@@ -7487,8 +7493,8 @@
             -SalesInvoiceHeader."Amount Including VAT",
             '');
 
-        // [GIVEN] The work date is restored to the current date before requesting the stamp
-        WorkDate(Today());
+        // [GIVEN] The work date is restored to the stamp request date before requesting the stamp
+        WorkDate(StampDate);
 
         // [WHEN] A stamp request is sent for the payment
         RequestStamp(
