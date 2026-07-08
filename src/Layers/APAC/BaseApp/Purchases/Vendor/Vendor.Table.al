@@ -1733,7 +1733,6 @@ table 23 Vendor
             Caption = 'IRD No.';
             OptimizeForTextSearch = true;
         }
-        }
         field(28043; "ID No."; Text[20])
         {
             Caption = 'ID No.';
