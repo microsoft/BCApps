@@ -112,7 +112,7 @@ codeunit 1565 "Privacy Notice Impl."
 
         // Apply the runtime default policy (e.g. non-EUDB tenants auto-approve Copilot) without persisting an admin decision.
         if ShouldApproveByDefault(PrivacyNoticeId) then begin
-            Session.LogMessage('', StrSubstNo(PrivacyNoticeAutoApprovedByDefaultTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+            Session.LogMessage('0000UHZ', StrSubstNo(PrivacyNoticeAutoApprovedByDefaultTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit(true);
         end;
 
@@ -168,7 +168,7 @@ codeunit 1565 "Privacy Notice Impl."
 
         // Apply the runtime default policy (e.g. non-EUDB tenants auto-approve Copilot) without persisting an admin decision.
         if ShouldApproveByDefault(PrivacyNoticeId) then begin
-            Session.LogMessage('', StrSubstNo(PrivacyNoticeAutoApprovedByDefaultTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
+            Session.LogMessage('0000UI0', StrSubstNo(PrivacyNoticeAutoApprovedByDefaultTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit("Privacy Notice Approval State"::Agreed);
         end;
 
