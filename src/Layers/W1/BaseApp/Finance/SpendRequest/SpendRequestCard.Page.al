@@ -4,10 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.SpendRequest;
 
-using System.Automation;
-using System.Environment;
-using System.Privacy;
-
 page 6841 "Spend Request Card"
 {
     Caption = 'Spend Request';
