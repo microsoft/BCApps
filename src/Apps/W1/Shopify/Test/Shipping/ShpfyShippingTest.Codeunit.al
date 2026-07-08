@@ -20,6 +20,7 @@ codeunit 139606 "Shpfy Shipping Test"
         Shop: Record "Shpfy Shop";
         Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         IsInitialized: Boolean;
 
@@ -269,6 +270,9 @@ codeunit 139606 "Shpfy Shipping Test"
         Initialize();
         ShipmentMethodMapping.SetRange("Shop Code", Shop.Code);
         ShipmentMethodMapping.DeleteAll();
+        // The handler returns responses in enqueue order: first the feature-detection query, then the markets query.
+        OutboundHttpRequests.Enqueue('GQL Get Market Driven Shipping Feature');
+        OutboundHttpRequests.Enqueue('GQL Get Market Shipping Methods');
 
         // [WHEN] Retrieving the shipping methods
         ShippingMethods.GetShippingMethods(Shop);
@@ -278,6 +282,8 @@ codeunit 139606 "Shpfy Shipping Test"
         LibraryAssert.IsTrue(ShipmentMethodMapping.Get(Shop.Code, 'Express Shipping'), 'Express Shipping mapping should be created');
         // [THEN] Inactive shipping options are skipped
         LibraryAssert.IsFalse(ShipmentMethodMapping.Get(Shop.Code, 'Inactive Method'), 'Inactive shipping option should not be created');
+        // [THEN] Exactly the two expected API calls were made
+        OutboundHttpRequests.AssertEmpty();
     end;
 
     local procedure Initialize()
@@ -334,13 +340,30 @@ codeunit 139606 "Shpfy Shipping Test"
 
     [HttpClientHandler]
     internal procedure MarketDrivenShippingHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        FeatureResponseTok: Label 'Shipping/MarketDrivenShippingFeatureResponse.txt', Locked = true;
+        MarketShippingResponseTok: Label 'Shipping/MarketShippingMethodsResponse.txt', Locked = true;
+        UnexpectedApiCallErr: Label 'Unexpected number of API calls.', Locked = true;
     begin
         if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
             exit(true);
 
-        // The same payload serves both the feature-detection query and the markets query;
-        // each caller reads only its own path (shop.features / markets) from the response.
-        Response.Content.WriteFrom(NavApp.GetResourceAsText('Shipping/MarketShippingMethodsResponse.txt', TextEncoding::UTF8));
+        // The handler cannot read the request body, so responses are returned in enqueued order,
+        // dispatched on the remaining queue length: first the feature-detection query, then the markets query.
+        case OutboundHttpRequests.Length() of
+            2:
+                LoadResourceIntoHttpResponse(FeatureResponseTok, Response);
+            1:
+                LoadResourceIntoHttpResponse(MarketShippingResponseTok, Response);
+            0:
+                Error(UnexpectedApiCallErr);
+        end;
         exit(false); // Prevents actual HTTP call
+    end;
+
+    local procedure LoadResourceIntoHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)
+    begin
+        Response.Content.WriteFrom(NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8));
+        OutboundHttpRequests.DequeueText();
     end;
 }
