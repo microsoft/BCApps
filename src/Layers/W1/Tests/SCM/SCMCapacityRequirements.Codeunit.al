@@ -91,11 +91,11 @@ codeunit 137074 "SCM Capacity Requirements"
         ExpectedDate := CalendarEntry.Date;
 
         // [WHEN] Calculating the FlowField
-        WorkCenter.CalcFields("Calendar Entries Available Until");
+        WorkCenter.CalcFields("Calendar Entries Avail. Until");
 
         // [THEN] It equals the latest calendar entry date
         Assert.AreEqual(
-          ExpectedDate, WorkCenter."Calendar Entries Available Until",
+          ExpectedDate, WorkCenter."Calendar Entries Avail. Until",
           'Calendar Entries Available Until must equal the latest Calendar Entry date for the work center.');
     end;
 
@@ -123,11 +123,11 @@ codeunit 137074 "SCM Capacity Requirements"
         ExpectedDate := CalendarEntry.Date;
 
         // [WHEN] Calculating the FlowField
-        MachineCenter.CalcFields("Calendar Entries Available Until");
+        MachineCenter.CalcFields("Calendar Entries Avail. Until");
 
         // [THEN] It equals the latest calendar entry date
         Assert.AreEqual(
-          ExpectedDate, MachineCenter."Calendar Entries Available Until",
+          ExpectedDate, MachineCenter."Calendar Entries Avail. Until",
           'Calendar Entries Available Until must equal the latest Calendar Entry date for the machine center.');
     end;
 
