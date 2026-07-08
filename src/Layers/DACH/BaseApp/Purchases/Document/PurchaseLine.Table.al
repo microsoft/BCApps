@@ -2150,21 +2150,18 @@ table 39 "Purchase Line"
                 SpendRequest: Record "Spend Request";
                 DimensionSetIDArr: array[10] of Integer;
             begin
-                if not GuiAllowed() then
-                    exit;
                 if Rec."Spend Request No." = '' then begin
                     Rec."Spend Request Close" := false;
                     exit;
                 end;
-                SpendRequest.SetAutoCalcFields("Total Spent Amount (LCY)");
-                SpendRequest.Get(Rec."Spend Request No.");
-                SpendRequest.TestField(Status, SpendRequest.Status::Approved);
+
+                SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", Rec."Unit Cost (LCY)" * Quantity);
+
                 if SpendRequest."Dimension Set ID" <> 0 then begin
                     DimensionSetIDArr[1] := Rec."Dimension Set ID";
                     DimensionSetIDArr[2] := SpendRequest."Dimension Set ID";
                     Rec."Dimension Set ID" := DimMgt.GetCombinedDimensionSetID(DimensionSetIDArr, Rec."Shortcut Dimension 1 Code", Rec."Shortcut Dimension 2 Code");
                 end;
-                Rec."Spend Request Close" := Confirm(SpendRequestCloseQst, true, SpendRequest."No.");
             end;
         }
         field(148; "Spend Request Close"; Boolean)
@@ -4294,7 +4291,6 @@ table 39 "Purchase Line"
         InvoiceOrOrderDocTypeErr: Label '%1 must be either %2 or %3.', Comment = '%1 - Document Type; %2, %3 - Purchase Document Type, Invoice or Order';
         CannotInsertPurchLineWithoutHeaderErr: Label 'You cannot insert a purchase line without a purchase header.';
         MustSpecifyErr: Label 'You must either specify %1 or %2.', Comment = '%1 = Field Caption; %2 = Field Caption';
-        SpendRequestCloseQst: Label 'Do you want to close spend request %1 after posting this entry?', Comment = '%1 is a document no.';
 
     protected var
         Currency: Record Currency;
@@ -5564,7 +5560,17 @@ table 39 "Purchase Line"
 
         CalcPrepaymentToDeduct();
 
+        if "Spend Request No." <> '' then
+            CheckSpendRequestAmount();
+
         OnAfterUpdateAmountsDone(Rec, xRec, CurrFieldNo);
+    end;
+
+    local procedure CheckSpendRequestAmount()
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", Rec."Unit Cost (LCY)" * Quantity);
     end;
 
     local procedure UpdateJobFields()

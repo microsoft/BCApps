@@ -292,18 +292,6 @@ page 6841 "Spend Request Card"
     }
 
     var
-        IsSaaS: Boolean;
-        IsPowerAutomatePrivacyNoticeApproved: Boolean;
         HasExpensesErr: Label 'A spend request with posted expenses cannot be reopened.';
         ClosedRequestErr: Label 'A closed spend request cannot be reopened.';
-
-    trigger OnOpenPage()
-    var
-        EnvironmentInfo: Codeunit "Environment Information";
-        PrivacyNotice: Codeunit "Privacy Notice";
-        FlowServiceManagement: Codeunit "Flow Service Management";
-    begin
-        IsPowerAutomatePrivacyNoticeApproved := PrivacyNotice.GetPrivacyNoticeApprovalState(FlowServiceManagement.GetPowerAutomatePrivacyNoticeId()) = "Privacy Notice Approval State"::Agreed;
-        IsSaaS := EnvironmentInfo.IsSaaS();
-    end;
 }

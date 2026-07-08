@@ -2575,30 +2575,18 @@ table 81 "Gen. Journal Line"
             trigger OnValidate()
             var
                 SpendRequest: Record "Spend Request";
-                NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
-                AlreadyAllocatedNotification: Notification;
                 DimensionSetIDArr: array[10] of Integer;
             begin
-                if not GuiAllowed() then
-                    exit;
                 if "Spend Request No." = '' then begin
                     "Spend Request Close" := false;
                     exit;
                 end;
-                SpendRequest.SetAutoCalcFields("Total Spent Amount (LCY)");
-                SpendRequest.Get(Rec."Spend Request No.");
-                SpendRequest.TestField(Status, SpendRequest.Status::Approved);
-                if SpendRequest."Total Spent Amount (LCY)" > 0 then begin
-                    AlreadyAllocatedNotification.Scope := AlreadyAllocatedNotification.Scope::LocalScope;
-                    AlreadyAllocatedNotification.Message := StrSubstNo(SpendRequestIsUsedMsg, SpendRequest."No.", SpendRequest."Total Expected Amount (LCY)", SpendRequest."Total Spent Amount (LCY)");
-                    NotificationLifecycleMgt.SendNotification(AlreadyAllocatedNotification, SpendRequest.RecordId);
-                end;
+                SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", Rec."Amount (LCY)");
                 if SpendRequest."Dimension Set ID" <> 0 then begin
                     DimensionSetIDArr[1] := Rec."Dimension Set ID";
                     DimensionSetIDArr[2] := SpendRequest."Dimension Set ID";
                     Rec."Dimension Set ID" := DimMgt.GetCombinedDimensionSetID(DimensionSetIDArr, Rec."Shortcut Dimension 1 Code", Rec."Shortcut Dimension 2 Code");
                 end;
-                Rec."Spend Request Close" := Confirm(SpendRequestCloseQst, true, SpendRequest."No.");
             end;
         }
         /// <summary>
@@ -5149,6 +5137,9 @@ table 81 "Gen. Journal Line"
             then
                 CustCheckCreditLimit.GenJnlLineCheck(Rec);
 
+        if "Spend Request No." <> '' then
+            CheckSpendRequestAmount();
+
         Validate("VAT %");
         Validate("Bal. VAT %");
         UpdateLineBalance();
@@ -5163,6 +5154,13 @@ table 81 "Gen. Journal Line"
         end;
 
         OnAfterValidateAmount(Rec);
+    end;
+
+    local procedure CheckSpendRequestAmount()
+    var
+        SpendRequest: Record "Spend Request";
+    begin
+        SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", Rec."Amount (LCY)");
     end;
 
     local procedure UpdateApplyToAmount()

@@ -10,6 +10,7 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.HumanResources.Employee;
+using System.Environment.Configuration;
 using System.Security.AccessControl;
 
 table 6840 "Spend Request"
@@ -70,7 +71,6 @@ table 6840 "Spend Request"
         {
             Caption = 'G/L Account No.';
             ToolTip = 'The G/L Account that the expenses will primarily be posted to.';
-            DataClassification = CustomerContent;
             TableRelation = "G/L Account";
 
             trigger OnValidate()
@@ -82,14 +82,12 @@ table 6840 "Spend Request"
         field(8; Purpose; Text[1000])
         {
             Caption = 'Purpose';
-            DataClassification = CustomerContent;
             ToolTip = 'Specifies the purpose of the spend request.';
         }
         field(9; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             ToolTip = 'Specifies the currency used for estimation. The currency amount will automatically be converted into Total Expected Amount (LCY)';
-            DataClassification = CustomerContent;
             TableRelation = Currency;
             trigger OnValidate()
             begin
@@ -339,11 +337,6 @@ table 6840 "Spend Request"
                     end;
     end;
 
-    trigger OnModify()
-    begin
-        Rec.TestField(Status, Rec.Status::Open);
-    end;
-
     trigger OnDelete()
     var
         SpendRequestDetail: Record "Spend Request Detail";
@@ -363,6 +356,8 @@ table 6840 "Spend Request"
         CannotDeleteErr: Label 'You cannot delete a spend request that has expenses posted against it.';
         CannotBeLessThanSumOfLinesErr: Label 'You cannot specify an amount less than the total of the lines.';
         ChangeCurrCodeOnLineQst: Label 'You have changed the currency code on the expense request. Do you also want to update the lines that had the same currency code?';
+        SpendRequestIsUsedMsg: Label 'Spend request %1 was approved for %2 and current allocation is %3.', Comment = '%1 is a document no., %2 and %3 are amounts in local currency.';
+        SpendRequestCloseQst: Label 'Do you want to close spend request %1 after posting this entry?', Comment = '%1 is a document no.';
 
     /// <summary>
     /// Returns the difference between estimated amount and actually spent amount
@@ -498,9 +493,9 @@ table 6840 "Spend Request"
         Currency: Record Currency;
         SpendRequestDetail: Record "Spend Request Detail";
     begin
-        if Rec."Currency code" = xCurrencyCode then
+        if Rec."Currency Code" = xCurrencyCode then
             exit;
-        if Rec."Currency code" = '' then begin
+        if Rec."Currency Code" = '' then begin
             Currency.InitRoundingPrecision();
             Rec."Currency Exchange Rate" := 1
         end else begin
@@ -532,7 +527,7 @@ table 6840 "Spend Request"
         Currency: Record Currency;
         SpendRequestDetail: Record "Spend Request Detail";
     begin
-        if Rec."Currency code" = '' then
+        if Rec."Currency Code" = '' then
             Rec."Currency Exchange Rate" := 1
         else begin
             Currency.Get(Rec."Currency Code");
@@ -551,5 +546,60 @@ table 6840 "Spend Request"
             Rec."Total Expected Amount (LCY)" += SpendRequestDetail."Expected Amount (LCY)";
         until SpendRequestDetail.Next() = 0;
         Rec.Modify();
+    end;
+
+    /// <summary>
+    /// Validates that the spendrequest is approved, asks if should be closed and checks if there's room for the new amount
+    /// </summary>
+    /// <param name="SpendRequestNo"></param>
+    /// <param name="SpendRequestclose"></param>
+    /// <param name="NewAmountLCY"></param>
+    procedure ValidateSpendRequest(SpendRequestNo: Code[20]; var SpendRequestclose: Boolean; NewAmountLCY: Decimal)
+    begin
+        ValidateSpendRequest(SpendRequestNo, SpendRequestclose);
+        if NewAmountLCY <> 0 then
+            CheckSpendRequestAmount(SpendRequestNo, NewAmountLCY);
+    end;
+
+    /// <summary>
+    /// Validates that the spendrequest is approved and asks if should be closed
+    /// </summary>
+    /// <param name="SpendRequestNo"></param>
+    /// <param name="SpendRequestclose"></param>
+    procedure ValidateSpendRequest(SpendRequestNo: Code[20]; var SpendRequestclose: Boolean)
+    begin
+        if SpendRequestNo = '' then begin
+            SpendRequestclose := false;
+            exit;
+        end;
+        Rec.SetAutoCalcFields("Total Spent Amount (LCY)");
+        Rec.Get(SpendRequestNo);
+        Rec.TestField(Status, Rec.Status::Approved);
+        if GuiAllowed() then
+            SpendRequestclose := Confirm(SpendRequestCloseQst, true, Rec."No.");
+    end;
+
+    /// <summary>
+    /// Checks if there's room for the new amount (absolute value)
+    /// </summary>
+    /// <param name="SpendRequestNo"></param>
+    /// <param name="NewAmountLCY"></param>
+    procedure CheckSpendRequestAmount(SpendRequestNo: Code[20]; NewAmountLCY: Decimal)
+    var
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        AlreadyAllocatedNotification: Notification;
+    begin
+        if NewAmountLCY = 0 then
+            exit;
+        NewAmountLCY := Abs(NewAmountLCY);
+        Rec.SetAutoCalcFields("Total Spent Amount (LCY)");
+        Rec.Get(SpendRequestNo);
+        Rec.TestField(Status, Rec.Status::Approved);
+        if GuiAllowed() then
+            if Rec."Total Spent Amount (LCY)" + NewAmountLCY > Rec."Total Expected Amount (LCY)" then begin
+                AlreadyAllocatedNotification.Scope := AlreadyAllocatedNotification.Scope::LocalScope;
+                AlreadyAllocatedNotification.Message := StrSubstNo(SpendRequestIsUsedMsg, Rec."No.", Rec."Total Expected Amount (LCY)", Rec."Total Spent Amount (LCY)");
+                NotificationLifecycleMgt.SendNotification(AlreadyAllocatedNotification, Rec.RecordId);
+            end;
     end;
 }
