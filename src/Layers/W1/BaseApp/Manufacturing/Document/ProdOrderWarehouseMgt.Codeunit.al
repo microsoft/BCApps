@@ -733,6 +733,7 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
         ProdOrderComponent.SetRange("Due Date", 0D, CrossDockDate);
         ProdOrderComponent.SetRange("Planning Level Code", 0);
         ProdOrderComponent.SetFilter("Remaining Qty. (Base)", '>0');
+        OnCalcCrossDockToProdOrderComponentOnBeforeFindProdOrderComponent(ProdOrderComponent);
         if ProdOrderComponent.Find('-') then
             repeat
                 ProdOrderComponent.CalcFields("Pick Qty. (Base)");
@@ -750,6 +751,11 @@ codeunit 5996 "Prod. Order Warehouse Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnCalcCrossDockToProdOrderComponentOnBeforeInsertCrossDockLine(ProdOrderComp: Record "Prod. Order Component")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcCrossDockToProdOrderComponentOnBeforeFindProdOrderComponent(var ProdOrderComponent: Record "Prod. Order Component")
     begin
     end;
 
