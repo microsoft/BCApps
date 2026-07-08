@@ -11,7 +11,6 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Reversal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SpendRequest;
-using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Inventory.Item;
 using System.Diagnostics;
