@@ -27,6 +27,12 @@ table 3308 "PA Known Sender"
             Caption = 'Email';
             ToolTip = 'Specifies the email address of a sender whose e-documents have been processed by the Payables Agent.';
         }
+        field(3; "Sender Policy"; Enum "PA Sender Policy")
+        {
+            DataClassification = CustomerContent;
+            Caption = 'Review policy';
+            ToolTip = 'Specifies how an incoming email from this sender is handled. ''Ask'' requests human review. ''Approve'' processes without review (effective when overall email review is ''Only if untrusted''). ''Reject'' ignores the email.';
+        }
     }
     keys
     {
@@ -39,9 +45,23 @@ table 3308 "PA Known Sender"
         }
     }
 
+    trigger OnInsert()
+    begin
+        LogSenderAdded();
+        if Rec."Sender Policy" = Rec."Sender Policy"::Approve then
+            LogSenderApproved();
+    end;
+
+    trigger OnModify()
+    begin
+        if (Rec."Sender Policy" = Rec."Sender Policy"::Approve) and (xRec."Sender Policy" <> Rec."Sender Policy"::Approve) then
+            LogSenderApproved();
+    end;
+
     internal procedure InsertIfNew(EDocument: Record "E-Document")
     var
         Existing: Record "PA Known Sender";
+        Setup: Record "Payables Agent Setup";
         SenderEmail: Text[250];
     begin
         SenderEmail := CopyStr(EDocument."Source Details", 1, MaxStrLen(SenderEmail));
@@ -52,7 +72,42 @@ table 3308 "PA Known Sender"
             exit;
         Rec.Init();
         Rec.Email := SenderEmail;
-        Rec.Insert();
-        Session.LogSecurityAudit(Rec.TableName(), SecurityOperationResult::Success, 'Added new known sender.', AuditCategory::PolicyManagement);
+        Setup.GetSetup();
+        if Setup."Email Review Policy" = "PA Email Review Policy"::OnlyIfUntrusted then
+            Rec."Sender Policy" := "PA Sender Policy"::Approve
+        else
+            Rec."Sender Policy" := "PA Sender Policy"::Ask;
+        Rec.Insert(true);
     end;
+
+    /// <summary>
+    /// Finds the known-sender record matching the e-document's sender, if any.
+    /// Returns false when the sender is empty or not in the list.
+    /// </summary>
+    internal procedure GetForEDocument(EDocument: Record "E-Document"; var KnownSender: Record "PA Known Sender"): Boolean
+    var
+        SenderEmail: Text[250];
+    begin
+        SenderEmail := CopyStr(EDocument."Source Details", 1, MaxStrLen(KnownSender.Email));
+        if SenderEmail = '' then
+            exit(false);
+        KnownSender.SetRange(Email, SenderEmail);
+        exit(KnownSender.FindFirst());
+    end;
+
+    // Logs every path that adds a known sender, and separately every path that results in a sender
+    // marked Approve (which lets its emails be processed without human review).
+    local procedure LogSenderAdded()
+    begin
+        Session.LogSecurityAudit(Rec.TableName(), SecurityOperationResult::Success, StrSubstNo(SenderAddedAuditLbl, Rec.Email), AuditCategory::PolicyManagement);
+    end;
+
+    local procedure LogSenderApproved()
+    begin
+        Session.LogSecurityAudit(Rec.TableName(), SecurityOperationResult::Success, StrSubstNo(SenderApprovedAuditLbl, Rec.Email), AuditCategory::PolicyManagement);
+    end;
+
+    var
+        SenderAddedAuditLbl: Label 'Added Payables Agent known sender %1.', Locked = true;
+        SenderApprovedAuditLbl: Label 'Payables Agent known sender %1 was set to Approve, allowing its emails to be processed without review.', Locked = true;
 }
