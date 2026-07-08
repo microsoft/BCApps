@@ -44,6 +44,7 @@ page 99000766 Routing
                     trigger OnValidate()
                     begin
                         UpdateRoutingLineParallelFieldsVisibility();
+                        CurrPage.Update(false);
                     end;
                 }
                 field(Status; Rec.Status)

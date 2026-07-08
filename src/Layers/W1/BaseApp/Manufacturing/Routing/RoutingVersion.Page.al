@@ -40,6 +40,7 @@ page 99000810 "Routing Version"
                     trigger OnValidate()
                     begin
                         UpdateRoutingLineParallelFieldsVisibility();
+                        CurrPage.Update(false);
                     end;
                 }
                 field(Status; Rec.Status)
