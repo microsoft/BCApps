@@ -199,7 +199,6 @@ page 12188 "Manual vendor Payment Line"
     end;
 
     var
-        VendorNo: Code[20];
         VendorBillNo: Code[20];
         DocumentNo: Code[20];
         VendorBankAccount: Code[20];
@@ -212,6 +211,9 @@ page 12188 "Manual vendor Payment Line"
         TotalAmount: Decimal;
         TaxBaseAmount: Decimal;
         MissingVendorNoErr: Label 'Please enter the vendor number.';
+
+    protected var
+        VendorNo: Code[20];
 
     [Scope('OnPrem')]
     procedure SetVendBillNoAndDueDate(VendBillNo: Code[20]; Date: Date)

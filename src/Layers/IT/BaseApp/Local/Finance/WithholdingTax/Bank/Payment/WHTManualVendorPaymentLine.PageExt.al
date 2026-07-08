@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.Payment;
 
-using Microsoft.Finance.Dimension;
-using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.WithholdingTax;
 using Microsoft.Purchases.Vendor;
 
