@@ -2887,16 +2887,6 @@ table 38 "Purchase Header"
         {
             Caption = 'ABN Division Part No.';
         }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            TableRelation = "WHT Business Posting Group";
-        }
-        field(28041; "Actual Vendor No."; Code[20])
-        {
-            Caption = 'Actual Vendor No.';
-            TableRelation = Vendor;
-        }
         field(28050; "WHT Amount"; Decimal)
         {
             AutoFormatType = 1;

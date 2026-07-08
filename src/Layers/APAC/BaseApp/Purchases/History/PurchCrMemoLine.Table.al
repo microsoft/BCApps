@@ -729,22 +729,6 @@ table 125 "Purch. Cr. Memo Line"
             Editable = false;
             FieldClass = FlowField;
         }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            TableRelation = "WHT Business Posting Group";
-        }
-        field(28041; "WHT Product Posting Group"; Code[20])
-        {
-            Caption = 'WHT Product Posting Group';
-            TableRelation = "WHT Product Posting Group";
-        }
-        field(28042; "WHT Absorb Base"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = GetCurrencyCode();
-            Caption = 'WHT Absorb Base';
-        }
         field(28081; "VAT Base (ACY)"; Decimal)
         {
             AutoFormatType = 1;

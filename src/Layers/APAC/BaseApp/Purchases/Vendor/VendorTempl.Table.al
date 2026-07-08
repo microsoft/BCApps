@@ -494,15 +494,6 @@ table 1383 "Vendor Templ."
         {
             Caption = 'IRD No.';
         }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            TableRelation = "WHT Business Posting Group";
-        }
-        field(28042; "WHT Registration ID"; Text[20])
-        {
-            Caption = 'WHT Registration ID';
-        }
         field(28043; "ID No."; Text[20])
         {
             Caption = 'ID No.';

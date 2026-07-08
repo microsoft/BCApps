@@ -17,7 +17,6 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Comment;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.ExtendedText;
@@ -1066,16 +1065,6 @@ table 15 "G/L Account"
         {
             Caption = 'API Account Type';
             Editable = false;
-        }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            TableRelation = "WHT Business Posting Group";
-        }
-        field(28041; "WHT Product Posting Group"; Code[20])
-        {
-            Caption = 'WHT Product Posting Group';
-            TableRelation = "WHT Product Posting Group";
         }
 #if not CLEANSCHEMA25
         field(28160; "G/L Entry Type Filter"; Option)

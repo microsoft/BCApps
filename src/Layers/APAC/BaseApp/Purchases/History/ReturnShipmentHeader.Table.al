@@ -569,11 +569,6 @@ table 6650 "Return Shipment Header"
         {
             Caption = 'Adjustment Applies-to';
         }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            TableRelation = "WHT Business Posting Group";
-        }
     }
 
     keys
