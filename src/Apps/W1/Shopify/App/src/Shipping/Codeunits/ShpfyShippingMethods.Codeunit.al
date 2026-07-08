@@ -78,15 +78,19 @@ codeunit 30193 "Shpfy Shipping Methods"
         GraphQLType := GraphQLType::Shipping_GetMarketShippingMethods;
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
-            if JsonHelper.GetJsonArray(JResponse, JMarkets, 'data.markets.edges') then
-                foreach JMarket in JMarkets do
-                    AddMarketShippingMethods(JMarket, Shop);
+            // Stop when there are no edges: there is no cursor to advance, so continuing would re-issue
+            // the same query and loop forever if Shopify ever returns hasNextPage=true with an empty page.
+            if not JsonHelper.GetJsonArray(JResponse, JMarkets, 'data.markets.edges') then
+                exit;
+            if JMarkets.Count() = 0 then
+                exit;
+            foreach JMarket in JMarkets do
+                AddMarketShippingMethods(JMarket, Shop);
 
-            if JMarkets.Count() > 0 then
-                if Parameters.ContainsKey('After') then
-                    Parameters.Set('After', JsonHelper.GetValueAsText(JMarket.AsObject(), 'cursor'))
-                else
-                    Parameters.Add('After', JsonHelper.GetValueAsText(JMarket.AsObject(), 'cursor'));
+            if Parameters.ContainsKey('After') then
+                Parameters.Set('After', JsonHelper.GetValueAsText(JMarket.AsObject(), 'cursor'))
+            else
+                Parameters.Add('After', JsonHelper.GetValueAsText(JMarket.AsObject(), 'cursor'));
             GraphQLType := GraphQLType::Shipping_GetNextMarketShippingMethods;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.markets.pageInfo.hasNextPage');
     end;
