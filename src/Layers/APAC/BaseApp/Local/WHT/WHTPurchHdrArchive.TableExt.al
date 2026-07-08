@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.WithholdingTax;
 
+using Microsoft.Purchases.Archive;
+using Microsoft.Purchases.Vendor;
+
 tableextension 28004 WHTPurchHdrArchive extends "Purchase Header Archive"
 {
     fields
@@ -11,11 +14,14 @@ tableextension 28004 WHTPurchHdrArchive extends "Purchase Header Archive"
         field(28040; "WHT Business Posting Group"; Code[20])
         {
             Caption = 'WHT Business Posting Group';
+            DataClassification = CustomerContent;
             TableRelation = "WHT Business Posting Group";
         }
         field(28041; "Actual Vendor No."; Code[20])
         {
             Caption = 'Actual Vendor No.';
+            DataClassification = CustomerContent;
+            TableRelation = Vendor;
         }
     }
 }

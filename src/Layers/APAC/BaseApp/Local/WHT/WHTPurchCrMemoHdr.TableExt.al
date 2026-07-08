@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.WithholdingTax;
 
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
+
 tableextension 28007 WHTPurchCrMemoHdr extends "Purch. Cr. Memo Hdr."
 {
     fields
@@ -11,6 +14,7 @@ tableextension 28007 WHTPurchCrMemoHdr extends "Purch. Cr. Memo Hdr."
         field(28040; "WHT Business Posting Group"; Code[20])
         {
             Caption = 'WHT Business Posting Group';
+            DataClassification = CustomerContent;
             TableRelation = "WHT Business Posting Group";
         }
         field(28041; "Rem. WHT Prepaid Amount (LCY)"; Decimal)
@@ -43,6 +47,7 @@ tableextension 28007 WHTPurchCrMemoHdr extends "Purch. Cr. Memo Hdr."
         field(28045; "Actual Vendor No."; Code[20])
         {
             Caption = 'Actual Vendor No.';
+            DataClassification = CustomerContent;
             TableRelation = Vendor;
         }
     }

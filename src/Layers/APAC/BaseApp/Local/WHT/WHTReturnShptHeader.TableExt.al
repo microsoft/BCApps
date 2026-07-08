@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.WithholdingTax;
 
+using Microsoft.Purchases.History;
+
 tableextension 28012 WHTReturnShptHeader extends "Return Shipment Header"
 {
     fields
@@ -11,6 +13,7 @@ tableextension 28012 WHTReturnShptHeader extends "Return Shipment Header"
         field(28040; "WHT Business Posting Group"; Code[20])
         {
             Caption = 'WHT Business Posting Group';
+            DataClassification = CustomerContent;
             TableRelation = "WHT Business Posting Group";
         }
     }

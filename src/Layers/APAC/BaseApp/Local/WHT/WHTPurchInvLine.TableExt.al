@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.WithholdingTax;
 
+using Microsoft.Purchases.History;
+
 tableextension 28010 WHTPurchInvLine extends "Purch. Inv. Line"
 {
     fields
@@ -11,11 +13,13 @@ tableextension 28010 WHTPurchInvLine extends "Purch. Inv. Line"
         field(28040; "WHT Business Posting Group"; Code[20])
         {
             Caption = 'WHT Business Posting Group';
+            DataClassification = CustomerContent;
             TableRelation = "WHT Business Posting Group";
         }
         field(28041; "WHT Product Posting Group"; Code[20])
         {
             Caption = 'WHT Product Posting Group';
+            DataClassification = CustomerContent;
             TableRelation = "WHT Product Posting Group";
         }
         field(28042; "WHT Absorb Base"; Decimal)
@@ -23,5 +27,7 @@ tableextension 28010 WHTPurchInvLine extends "Purch. Inv. Line"
             AutoFormatType = 1;
             AutoFormatExpression = '';
             Caption = 'WHT Absorb Base';
-        }    }
+            DataClassification = CustomerContent;
+        }
+    }
 }

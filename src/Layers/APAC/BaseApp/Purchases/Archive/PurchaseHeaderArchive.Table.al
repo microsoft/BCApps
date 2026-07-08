@@ -18,7 +18,6 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
@@ -917,10 +916,6 @@ table 5109 "Purchase Header Archive"
         field(11622; "ABN Division Part No."; Text[3])
         {
             Caption = 'ABN Division Part No.';
-        }
-        field(28041; "Actual Vendor No."; Code[20])
-        {
-            Caption = 'Actual Vendor No.';
         }
     }
 

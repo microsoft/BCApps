@@ -16,7 +16,6 @@ using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Insurance;
@@ -311,7 +310,7 @@ table 39 "Purchase Line"
                                 "VAT Prod. Posting Group" := BASManagement.GetUnregGSTProdPostGroup("VAT Bus. Posting Group", "Buy-from Vendor No.");
                         if Type <> Type::"Fixed Asset" then
                             Validate("VAT Prod. Posting Group");
-                        Validate("WHT Product Posting Group");
+                        OnValidateNoOnAfterValidateVATProdPostingGroup(Rec, xRec);
                     end;
 
                 UpdatePrepmtSetupFields();
@@ -4005,7 +4004,7 @@ table 39 "Purchase Line"
         key(Key16; "Recalculate Invoice Disc.")
         {
         }
-        key(Key15; "Document Type", "Document No.", "WHT Business Posting Group", "WHT Product Posting Group")
+        key(Key15; "Document Type", "Document No.")
         {
             IncludedFields = "Prepmt. Amt. Inv.", "Prepmt Amt to Deduct";
         }
@@ -4533,7 +4532,6 @@ table 39 "Purchase Line"
         OnInitHeaderDefaultsOnBeforeSetVATBusPostingGroup(Rec, IsHandled);
         if not IsHandled then
             "VAT Bus. Posting Group" := PurchHeader."VAT Bus. Posting Group";
-        "WHT Business Posting Group" := PurchHeader."WHT Business Posting Group";
         "Entry Point" := PurchHeader."Entry Point";
         Area := PurchHeader.Area;
         "Transaction Specification" := PurchHeader."Transaction Specification";
@@ -4802,7 +4800,6 @@ table 39 "Purchase Line"
             Description := GLAcc.Name;
             "Gen. Prod. Posting Group" := GLAcc."Gen. Prod. Posting Group";
             "VAT Prod. Posting Group" := GLAcc."VAT Prod. Posting Group";
-            "WHT Product Posting Group" := GLAcc."WHT Product Posting Group";
             "Tax Group Code" := GLAcc."Tax Group Code";
             "Allow Invoice Disc." := false;
             "Allow Item Charge Assignment" := false;
@@ -4849,7 +4846,6 @@ table 39 "Purchase Line"
         "Allow Invoice Disc." := Item."Allow Invoice Disc.";
         "Gen. Prod. Posting Group" := Item."Gen. Prod. Posting Group";
         "VAT Prod. Posting Group" := Item."VAT Prod. Posting Group";
-        "WHT Product Posting Group" := Item."WHT Product Posting Group";
         "Tax Group Code" := Item."Tax Group Code";
         Nonstock := Item."Created From Nonstock Item";
         "Item Category Code" := Item."Item Category Code";
@@ -4950,7 +4946,6 @@ table 39 "Purchase Line"
         FixedAsset.TestField(Inactive, false);
         FixedAsset.TestField(Blocked, false);
         GetFAPostingGroup();
-        "WHT Product Posting Group" := FixedAsset."WHT Product Posting Group";
         Description := FixedAsset.Description;
         "Description 2" := FixedAsset."Description 2";
         "Allow Invoice Disc." := false;
@@ -4964,7 +4959,6 @@ table 39 "Purchase Line"
         Description := ItemCharge.Description;
         "Gen. Prod. Posting Group" := ItemCharge."Gen. Prod. Posting Group";
         "VAT Prod. Posting Group" := ItemCharge."VAT Prod. Posting Group";
-        "WHT Product Posting Group" := ItemCharge."WHT Product Posting Group";
         "Tax Group Code" := ItemCharge."Tax Group Code";
         "Allow Invoice Disc." := false;
         "Allow Item Charge Assignment" := false;
@@ -5899,7 +5893,7 @@ table 39 "Purchase Line"
                 GLAcc.Get(GenPostingSetup."Purch. Prepayments Account");
                 VATPostingSetupRetrieved := false;
                 OnUpdatePrepmtSetupFieldsOnBeforeGetVATPostingSetup(Rec, GLAcc, VATPostingSetup, VATPostingSetupRetrieved);
-                if not VATPostingSetupRetrieved then		
+                if not VATPostingSetupRetrieved then
                     if not BASManagement.VendorRegistered("Buy-from Vendor No.") then
                         VATPostingSetup.Get(
                         "VAT Bus. Posting Group",
@@ -12989,6 +12983,11 @@ table 39 "Purchase Line"
     /// <param name="NewHideValidationDialog">The new hide validation dialog value.</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetHideValidationDialog(var PurchaseLine: Record "Purchase Line"; NewHideValidationDialog: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateNoOnAfterValidateVATProdPostingGroup(var Rec: Record "Purchase Line"; var xRec: Record "Purchase Line")
     begin
     end;
 }

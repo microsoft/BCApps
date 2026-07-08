@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.WithholdingTax;
 
+using Microsoft.Finance.ReceivablesPayables;
+
 tableextension 28003 WHTInvoicePostingBuffer extends "Invoice Posting Buffer"
 {
     fields

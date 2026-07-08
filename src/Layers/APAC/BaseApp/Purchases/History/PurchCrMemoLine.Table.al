@@ -12,7 +12,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Insurance;
@@ -775,9 +774,6 @@ table 125 "Purch. Cr. Memo Line"
         {
         }
         key(Key3; "Buy-from Vendor No.")
-        {
-        }
-        key(Key4; "Document No.", "WHT Business Posting Group", "WHT Product Posting Group")
         {
         }
         key(Key5; "Order No.", "Order Line No.", "Posting Date")

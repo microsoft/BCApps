@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.WithholdingTax;
 
+using Microsoft.Finance.GeneralLedger.Account;
+
 tableextension 28000 WHTGLAccount extends "G/L Account"
 {
     fields
@@ -11,11 +13,13 @@ tableextension 28000 WHTGLAccount extends "G/L Account"
         field(28040; "WHT Business Posting Group"; Code[20])
         {
             Caption = 'WHT Business Posting Group';
+            DataClassification = CustomerContent;
             TableRelation = "WHT Business Posting Group";
         }
         field(28041; "WHT Product Posting Group"; Code[20])
         {
             Caption = 'WHT Product Posting Group';
+            DataClassification = CustomerContent;
             TableRelation = "WHT Product Posting Group";
         }
     }

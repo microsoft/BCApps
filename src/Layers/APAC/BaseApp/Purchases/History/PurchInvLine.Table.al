@@ -11,7 +11,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Insurance;
@@ -822,9 +821,6 @@ table 123 "Purch. Inv. Line"
             IncludedFields = "Quantity (Base)";
         }
         key(Key4; "Buy-from Vendor No.")
-        {
-        }
-        key(Key5; "Document No.", "WHT Business Posting Group", "WHT Product Posting Group")
         {
         }
         key(Key6; "Order No.", "Order Line No.", "Posting Date")
