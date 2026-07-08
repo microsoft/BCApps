@@ -38,7 +38,7 @@
         BlockedBinContentErr: Label 'Block Movement must not be All in Bin Content Location Code=''%1'',Bin Code=''%2'',Item No.=''%3'',Variant Code=''%4'',Unit of Measure Code=''%5''.',
                               Comment = '%1= Location Code, %2= Bin Code, %3= Item No., %4= Varient Code, %5= Unit of Measure Code';
         BlockedBinContentMovementErr: Label 'Block Movement must not be %1 in Bin Content Location Code=''%2'',Bin Code=''%3'',Item No.=''%4'',Variant Code=''%5'',Unit of Measure Code=''%6''.',
-                              Comment = '%1= Block Movement, %2= Location Code, %3= Bin Code, %4= Item No., %5= Varient Code, %6= Unit of Measure Code';
+                              Comment = '%1= Block Movement, %2= Location Code, %3= Bin Code, %4= Item No., %5= Variant Code, %6= Unit of Measure Code';
         ValueMustBeEqualErr: Label '%1 value must be equal to %2 in %3', Comment = '%1 = Field Name, %2= Expected Value, %3 = Table Name';
         ValueMustBeNegativeErr: Label '%1 Value must be negative', Comment = '%1=FieldName';
         ValueMustBePositiveErr: Label '%1 Value must be positive', Comment = '%1=FieldName';
@@ -3154,7 +3154,7 @@
             ItemJournalLine, ItemJournalLine."Entry Type"::"Negative Adjmt.", ItemNo, LocationCode, BinCode, LibraryRandom.RandInt(5));
     end;
 
-    local procedure CreateItemJournalLineWithBin(var ItemJournalLine: Record "Item Journal Line"; EntryType: Enum "Item Ledger Document Type"; ItemNo: Code[20]; LocationCode: Code[10]; BinCode: Code[20]; Quantity: Decimal)
+    local procedure CreateItemJournalLineWithBin(var ItemJournalLine: Record "Item Journal Line"; EntryType: Enum "Item Ledger Entry Type"; ItemNo: Code[20]; LocationCode: Code[10]; BinCode: Code[20]; Quantity: Decimal)
     var
         ItemJournalBatch: Record "Item Journal Batch";
     begin
