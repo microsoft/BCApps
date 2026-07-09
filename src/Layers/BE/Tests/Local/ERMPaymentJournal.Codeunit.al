@@ -666,8 +666,8 @@ codeunit 144003 "ERM Payment Journal"
         PaymentJournalLine.FindFirst();
 
         // [THEN] Verify that the "Pmt. Discount Date" is Blank, Pmt Discount is not taken, in Payment Journal Line.
-        Assert.AreEqual(0D, PaymentJournalLine."Pmt. Discount Date", StrSubstNo(WrongPmtDiscErr, PaymentJournalLine."Pmt. Discount Date"));
-        Assert.AreEqual(0, PaymentJournalLine."Pmt. Disc. Possible", StrSubstNo(WrongPmtDiscErr, PaymentJournalLine."Pmt. Disc. Possible"));
+        Assert.AreEqual(0D, PaymentJournalLine."Pmt. Discount Date", StrSubstNo(WrongPmtDiscErr, PaymentJournalLine.FieldCaption("Pmt. Discount Date")));
+        Assert.AreEqual(0, PaymentJournalLine."Pmt. Disc. Possible", StrSubstNo(WrongPmtDiscErr, PaymentJournalLine.FieldCaption("Pmt. Disc. Possible")));
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -701,8 +701,8 @@ codeunit 144003 "ERM Payment Journal"
         PaymentJournalLine.FindFirst();
 
         // [THEN] Verify that the "Pmt. Discount Date" and Pmt Discount is taken, in Payment Journal Line.
-        Assert.AreEqual(WorkDate(), PaymentJournalLine."Pmt. Discount Date", StrSubstNo(WrongPmtDiscErr, PaymentJournalLine."Pmt. Discount Date"));
-        Assert.AreEqual(PaymentJournalLine."Pmt. Disc. Possible", Abs(VendorLedgerEntry."Remaining Pmt. Disc. Possible"), StrSubstNo(WrongPmtDiscErr, PaymentJournalLine."Pmt. Disc. Possible"));
+        Assert.AreEqual(WorkDate(), PaymentJournalLine."Pmt. Discount Date", StrSubstNo(WrongPmtDiscErr, PaymentJournalLine.FieldCaption("Pmt. Discount Date")));
+        Assert.AreEqual(Abs(VendorLedgerEntry."Remaining Pmt. Disc. Possible"), PaymentJournalLine."Pmt. Disc. Possible", StrSubstNo(WrongPmtDiscErr, PaymentJournalLine.FieldCaption("Pmt. Disc. Possible")));
         LibraryVariableStorage.AssertEmpty();
     end;
 
@@ -742,9 +742,10 @@ codeunit 144003 "ERM Payment Journal"
         LibraryVariableStorage.Enqueue(true);
         SuggestVendorPayments(VendorNo);
 
-        // [THEN] The invoice is suggested through the payment discount path with the exact discounted amount.
+        // [THEN] The invoice is suggested through the payment discount path with the "Pmt. Discount Date" retained and the exact discounted amount.
         FilterEBPaymentJournalLine(PaymentJournalLine, VendorNo, PaymentJournalLine.Status::Created);
         PaymentJournalLine.FindFirst();
+        Assert.AreEqual(WorkDate(), PaymentJournalLine."Pmt. Discount Date", StrSubstNo(WrongPmtDiscErr, PaymentJournalLine.FieldCaption("Pmt. Discount Date")));
         Assert.AreEqual(Abs(VendorLedgerEntry."Remaining Pmt. Disc. Possible"), PaymentJournalLine."Pmt. Disc. Possible", StrSubstNo(WrongPmtDiscErr, PaymentJournalLine.FieldCaption("Pmt. Disc. Possible")));
         Assert.AreEqual(Abs(VendorLedgerEntry."Remaining Amount") - Abs(VendorLedgerEntry."Remaining Pmt. Disc. Possible"), Abs(PaymentJournalLine.Amount), StrSubstNo(WrongPmtDiscErr, PaymentJournalLine.FieldCaption(Amount)));
         LibraryVariableStorage.AssertEmpty();
@@ -1670,17 +1671,31 @@ codeunit 144003 "ERM Payment Journal"
 
     [RequestPageHandler]
     procedure SuggestVendorPaymentsTakeDiscRPH(var SuggestVendorPaymentsEB: TestRequestPage "Suggest Vendor Payments EB")
+    var
+        TakePmtDiscount: Boolean;
     begin
         SuggestVendorPaymentsEB.DueDate.SetValue(CalcDate('<3M>', WorkDate()));
-        SuggestVendorPaymentsEB.IncPmtDiscount.SetValue(LibraryVariableStorage.DequeueBoolean());
+        TakePmtDiscount := LibraryVariableStorage.DequeueBoolean();
+        SuggestVendorPaymentsEB.IncPmtDiscount.SetValue(TakePmtDiscount);
+        if TakePmtDiscount then
+            SuggestVendorPaymentsEB.PmtDiscDueDate.SetValue(WorkDate())
+        else
+            SuggestVendorPaymentsEB.PmtDiscDueDate.SetValue(0D);
         SuggestVendorPaymentsEB.OK().Invoke();
     end;
 
     [RequestPageHandler]
     procedure SuggestVendorPaymentsPmtDiscDateRPH(var SuggestVendorPaymentsEB: TestRequestPage "Suggest Vendor Payments EB")
+    var
+        TakePmtDiscount: Boolean;
     begin
         SuggestVendorPaymentsEB.DueDate.SetValue(LibraryVariableStorage.DequeueDate());
-        SuggestVendorPaymentsEB.IncPmtDiscount.SetValue(LibraryVariableStorage.DequeueBoolean());
+        TakePmtDiscount := LibraryVariableStorage.DequeueBoolean();
+        SuggestVendorPaymentsEB.IncPmtDiscount.SetValue(TakePmtDiscount);
+        if TakePmtDiscount then
+            SuggestVendorPaymentsEB.PmtDiscDueDate.SetValue(WorkDate())
+        else
+            SuggestVendorPaymentsEB.PmtDiscDueDate.SetValue(0D);
         SuggestVendorPaymentsEB.OK().Invoke();
     end;
 }
