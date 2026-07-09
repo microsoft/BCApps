@@ -8,6 +8,7 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Period;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Setup;
 using System.Utilities;
 
 page 99000888 "Work Center Load Lines"
@@ -136,6 +137,17 @@ page 99000888 "Work Center Load Lines"
     protected var
         WorkCenter: Record "Work Center";
         CapacityUoM: Code[10];
+
+    procedure SetLines(var NewWorkCenter: Record "Work Center"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type")
+    var
+        MfgSetup: Record "Manufacturing Setup";
+    begin
+        MfgSetup.SetLoadFields("Show Capacity In");
+        MfgSetup.Get();
+        MfgSetup.TestField("Show Capacity In");
+        CapacityUoM := MfgSetup."Show Capacity In";
+        SetLines(NewWorkCenter, NewPeriodType, NewAmountType, CapacityUoM);
+    end;
 
     procedure SetLines(var NewWorkCenter: Record "Work Center"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type"; NewCapUoM: Code[10])
     begin

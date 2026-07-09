@@ -8,6 +8,7 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.Period;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using System.Utilities;
 
@@ -141,6 +142,17 @@ page 99000890 "Machine Center Load Lines"
         PeriodType: Enum "Analysis Period Type";
         AmountType: Enum "Analysis Amount Type";
         CapacityUoM: Code[10];
+
+    procedure SetLines(var NewMachineCenter: Record "Machine Center"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type")
+    var
+        MfgSetup: Record "Manufacturing Setup";
+    begin
+        MfgSetup.SetLoadFields("Show Capacity In");
+        MfgSetup.Get();
+        MfgSetup.TestField("Show Capacity In");
+        CapacityUoM := MfgSetup."Show Capacity In";
+        SetLines(NewMachineCenter, NewPeriodType, NewAmountType, CapacityUoM);
+    end;
 
     procedure SetLines(var NewMachineCenter: Record "Machine Center"; NewPeriodType: Enum "Analysis Period Type"; NewAmountType: Enum "Analysis Amount Type"; NewCapUoM: Code[10])
     begin

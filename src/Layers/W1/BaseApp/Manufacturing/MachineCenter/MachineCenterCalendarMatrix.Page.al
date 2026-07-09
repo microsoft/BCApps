@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.MachineCenter;
 
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Comment;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using System.Utilities;
 
@@ -584,6 +585,16 @@ page 9293 "Machine Center Calendar Matrix"
             Rec.SetRange("Date Filter", MatrixRecords[MATRIX_ColumnOrdinal]."Period Start", MatrixRecords[MATRIX_ColumnOrdinal]."Period End")
     end;
 
+    procedure Load(MatrixColumns1: array[32] of Text[1024]; var MatrixRecords1: array[32] of Record Date; CurrentNoOfMatrixColumns: Integer)
+    var
+        MfgSetup: Record "Manufacturing Setup";
+    begin
+        MfgSetup.SetLoadFields("Show Capacity In");
+        MfgSetup.Get();
+        MfgSetup.TestField("Show Capacity In");
+        CapacityUoM := MfgSetup."Show Capacity In";
+        Load(MatrixColumns1, MatrixRecords1, CurrentNoOfMatrixColumns, CapacityUoM);
+    end;
     procedure Load(MatrixColumns1: array[32] of Text[1024]; var MatrixRecords1: array[32] of Record Date; CurrentNoOfMatrixColumns: Integer; SetCapacityUoM: Code[10])
     begin
         CopyArray(MATRIX_CaptionSet, MatrixColumns1, 1);
