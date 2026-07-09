@@ -43,6 +43,7 @@ codeunit 4783 "Manufacturing Module" implements "Contoso Demo Data Module"
         Codeunit.Run(Codeunit::"Create Mfg Item Category");
         Codeunit.Run(Codeunit::"Create Mfg Availability Setup");
         Codeunit.Run(Codeunit::"Create Mfg Vendor");
+        Codeunit.Run(Codeunit::"Create Mfg Item Template");
         Codeunit.Run(Codeunit::"Create Mfg Item");
         Codeunit.Run(Codeunit::"Create Mfg Capacity");
         Codeunit.Run(Codeunit::"Create Mfg Prod. Routing");
