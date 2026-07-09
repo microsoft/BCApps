@@ -50,11 +50,13 @@ pageextension 4411 "SOA Contact List Ext" extends "Contact List"
         if IsAgentSession then begin
             SOATaskContactOverride.SetRange("Task ID", AgentTaskID);
             SOATaskContactOverride.SetRange("Contact No.", Rec."No.");
+            SOATaskContactOverride.SetLoadFields("Task Message ID");
             SOATaskContactOverride.ReadIsolation := IsolationLevel::ReadUncommitted;
 
             if SOATaskContactOverride.FindFirst() then begin
                 SOAEmail.SetRange("Task ID", AgentTaskID);
                 SOAEmail.SetRange("Task Message ID", SOATaskContactOverride."Task Message ID");
+                SOAEmail.SetLoadFields("Sender Address");
                 SOAEmail.ReadIsolation := IsolationLevel::ReadUncommitted;
 
                 if SOAEmail.FindFirst() then
