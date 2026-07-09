@@ -166,6 +166,7 @@ jobs:
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
         uses: microsoft/AL-Go/Actions/DownloadProjectDependencies@39fa5591e01f7569384bba8cad40cabdb5618a01
         env:
+          ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
           shell: ${{ inputs.shell }}
