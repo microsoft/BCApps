@@ -5443,7 +5443,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         DtldVendLedgEntryNoOffset: Integer;
         SaveEntryNo: Integer;
         PayableAccAmtLCY: Decimal;
-        PayableAccAmtAddCurr: Decimal;
+        PayableAccAmtAddCurr, AmountSrcCurr : Decimal;
         ExistDtldCVLedgEntryBuf: Boolean;
         FindBill, FindInvoice, FindApplication : Boolean;
         IsHandled: Boolean;
@@ -5546,9 +5546,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
                     ((PayableAccAmtAddCurr <> 0) and (AddCurrencyCode <> ''))
                     then
                         if LedgEntryInserted or not (MultiplePostingGroups and IDInvoiceSettlement and not IDBillSettlement and (DocAmountLCY <> 0)) then begin
+                            if GenjournalLine."System-Created Entry" then
+                                AmountSrcCurr := CalcAmountSrcCurr(GenJournalLine, PayableAccAmtLCY)
+                            else
+                                AmountSrcCurr := GenJournalLine."Source Currency Amount";
                             InitGLEntry(
                                 GenJournalLine, GLEntry, AccNo, PayableAccAmtLCY, PayableAccAmtAddCurr, true, true,
-                                CalcAmountSrcCurr(GenJournalLine, PayableAccAmtLCY));
+                                AmountSrcCurr);
                             GLEntry."Bal. Account Type" := GenJournalLine."Bal. Account Type";
                             GLEntry."Bal. Account No." := GenJournalLine."Bal. Account No.";
                             UpdateGLEntryNo(GLEntry."Entry No.", SaveEntryNo);
