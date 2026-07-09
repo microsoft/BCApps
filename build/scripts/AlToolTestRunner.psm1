@@ -371,6 +371,10 @@ function Invoke-AlRunTestsForCodeunit {
         [Parameter(Mandatory = $true)][hashtable]$Connection
     )
 
+    # `al runtests` changed its DEFAULT output to structured JSON in 18.0.38; `--raw` restores the
+    # human-readable text summary ("Test run completed: ..." + a "Results:" block of
+    # "PASS|FAIL|SKIP <name> (Nms)" lines) that ConvertFrom-AlRunTestsOutput parses. Without it the
+    # parser sees JSON, finds no result lines, and every method is reported as "No result produced".
     $alArgs = @(
         'runtests', $CodeunitId,
         '--project', $ProjectPath,
@@ -381,6 +385,7 @@ function Invoke-AlRunTestsForCodeunit {
         '--environmenttype', 'OnPrem',
         '--authentication', 'UserPassword',
         '--tenant', $Tenant,
+        '--raw',
         '--testmethods'
     ) + $Methods
 
@@ -391,6 +396,14 @@ function Invoke-AlRunTestsForCodeunit {
     $lines = @($output | ForEach-Object { "$_" })
     $connected = ($lines | Where-Object { $_ -match 'Test run completed:' }).Count -gt 0
     $parsed = ConvertFrom-AlRunTestsOutput -OutputLines $lines
+
+    # Guard against silent output-format drift: if al reported a completed run but we parsed zero
+    # method results, surface the raw output so the format change is diagnosable instead of every
+    # method being silently marked "No result produced".
+    if ($connected -and $parsed.Count -eq 0 -and $Methods.Count -gt 0) {
+        Write-Host "::warning::al runtests connected for codeunit $CodeunitId but produced no parseable results. Raw output follows (possible output-format change):"
+        Write-Host ($lines -join "`n")
+    }
 
     return @{
         Results    = $parsed
