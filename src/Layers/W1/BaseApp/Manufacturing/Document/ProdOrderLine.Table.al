@@ -1247,6 +1247,7 @@ table 5406 "Prod. Order Line"
     begin
         OnBeforeCheckEndingDate(Rec, ShowWarning);
         if not Blocked then begin
+            OnCheckEndingDateOnBeforeProdOrderLineCheck(Rec, ShowWarning);
             MfgReserveCheckDateConfl.ProdOrderLineCheck(Rec, ShowWarning);
             ProdOrderLineReserve.AssignForPlanning(Rec);
         end;
@@ -1953,6 +1954,11 @@ table 5406 "Prod. Order Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckEndingDate(var ProdOrderLine: Record "Prod. Order Line"; var ShowWarning: Boolean);
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckEndingDateOnBeforeProdOrderLineCheck(var ProdOrderLine: Record "Prod. Order Line"; var ShowWarning: Boolean)
     begin
     end;
 

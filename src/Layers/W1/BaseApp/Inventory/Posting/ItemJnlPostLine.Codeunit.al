@@ -369,6 +369,25 @@ codeunit 22 "Item Jnl.-Post Line"
     /// <returns>True if item journal line was posted, otherwise false.</returns>
     procedure PostSplitJnlLine(var ItemJnlLineToPost: Record "Item Journal Line"; TrackingSpecExists: Boolean): Boolean
     var
+        IgnoreCommit: Boolean;
+    begin
+        IgnoreCommit := true;
+        OnSetCommitBehavior(IgnoreCommit);
+
+        if IgnoreCommit then
+            exit(PostSplitJnlLineCommitBehaviorIgnore(ItemJnlLineToPost, TrackingSpecExists));
+
+        exit(RunPostSplitJnlLine(ItemJnlLineToPost, TrackingSpecExists));
+    end;
+
+    [CommitBehavior(CommitBehavior::Ignore)]
+    local procedure PostSplitJnlLineCommitBehaviorIgnore(var ItemJnlLineToPost: Record "Item Journal Line"; TrackingSpecExists: Boolean): Boolean
+    begin
+        exit(RunPostSplitJnlLine(ItemJnlLineToPost, TrackingSpecExists));
+    end;
+
+    local procedure RunPostSplitJnlLine(var ItemJnlLineToPost: Record "Item Journal Line"; TrackingSpecExists: Boolean): Boolean
+    var
         PostItemJnlLine: Boolean;
     begin
         PostItemJnlLine := SetupSplitJnlLine(ItemJnlLineToPost, TrackingSpecExists);
@@ -1253,6 +1272,7 @@ codeunit 22 "Item Jnl.-Post Line"
                 CostApplication := true;
             if (ItemLedgEntry."Remaining Quantity" <> 0) and (ItemLedgEntry2."Remaining Quantity" <> 0) then
                 CostApplication := false;
+            OnReApplyOnBeforeCostApply(ItemLedgEntry, ItemLedgEntry2, CostApplication);
             if CostApplication then
                 CostApply(ItemLedgEntry, ItemLedgEntry2)
             else begin
@@ -1455,7 +1475,10 @@ codeunit 22 "Item Jnl.-Post Line"
 
                         OldItemLedgEntry.TestField("Item No.", ItemJnlLine."Item No.");
                         OldItemLedgEntry.TestField("Variant Code", ItemJnlLine."Variant Code");
-                        OldItemLedgEntry.TestField("Location Code", ItemJnlLine."Location Code");
+                        IsHandled := false;
+                        OnApplyItemLedgEntryOnBeforeTestOldItemLedgEntryLocationCode(OldItemLedgEntry, IsHandled);
+                        if not IsHandled then
+                            OldItemLedgEntry.TestField("Location Code", ItemJnlLine."Location Code");
                         OnApplyItemLedgEntryOnBeforeCloseReservEntry(OldItemLedgEntry, ItemJnlLine, ItemLedgEntry, ReservEntry);
                         ReservEngineMgt.CloseReservEntry(ReservEntry, false, false);
                         OnApplyItemLedgEntryOnAfterCloseReservEntry(OldItemLedgEntry, ItemJnlLine, ItemLedgEntry, ReservEntry);
@@ -5388,17 +5411,23 @@ codeunit 22 "Item Jnl.-Post Line"
         "Count": Integer;
         t: Integer;
         IsHandled: Boolean;
+        SkipDialog: Boolean;
     begin
+        SkipDialog := false;
+        OnBeforeRedoApplications(SkipDialog);
+
         TempTouchedItemLedgerEntries.SetCurrentKey("Item No.", Open, "Variant Code", Positive, "Location Code", "Posting Date", "Entry No.");
         if TempTouchedItemLedgerEntries.Find('-') then begin
-            DialogWindow.Open(Text01 +
-              '@1@@@@@@@@@@@@@@@@@@@@@@@');
+            if not SkipDialog then
+                DialogWindow.Open(Text01 +
+                    '@1@@@@@@@@@@@@@@@@@@@@@@@');
             Count := TempTouchedItemLedgerEntries.Count();
             t := 0;
 
             repeat
                 t := t + 1;
-                DialogWindow.Update(1, Round(t * 10000 / Count, 1));
+                if not SkipDialog then
+                    DialogWindow.Update(1, Round(t * 10000 / Count, 1));
                 TouchedItemLedgEntry.Get(TempTouchedItemLedgerEntries."Entry No.");
                 IsHandled := false;
                 OnRedoApplicationsOnBeforeReApply(TouchedItemLedgEntry, IsHandled);
@@ -5412,7 +5441,8 @@ codeunit 22 "Item Jnl.-Post Line"
                 VerifyTouchedOnInventory();
             TempTouchedItemLedgerEntries.DeleteAll();
             DeleteTouchedEntries();
-            DialogWindow.Close();
+            if not SkipDialog then
+                DialogWindow.Close();
         end;
     end;
 
@@ -6292,6 +6322,11 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnSetCommitBehavior(var IgnoreCommit: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeSetValueEntrySourceFieldsFromItemJnlLine(var ValueEntry: Record "Value Entry"; var ItemJournalLine: Record "Item Journal Line")
     begin
     end;
@@ -6573,6 +6608,11 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnBeforeRedoApplications(var SkipDialog: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeOldItemLedgEntryModify(var OldItemLedgerEntry: Record "Item Ledger Entry")
     begin
     end;
@@ -6696,6 +6736,11 @@ codeunit 22 "Item Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnApplyItemLedgEntryOnBeforeCloseReservEntry(var OldItemLedgEntry: Record "Item Ledger Entry"; ItemJournalLine: Record "Item Journal Line"; var ItemLedgerEntry: Record "Item Ledger Entry"; var ReservEntry: Record "Reservation Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnApplyItemLedgEntryOnBeforeTestOldItemLedgEntryLocationCode(var OldItemLedgEntry: Record "Item Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 
@@ -7292,6 +7337,11 @@ codeunit 22 "Item Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnReApplyOnBeforeStartApply(var ItemLedgerEntry: Record "Item Ledger Entry"; var ItemLedgerEntry2: Record "Item Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnReApplyOnBeforeCostApply(var ItemLedgerEntry: Record "Item Ledger Entry"; var ItemLedgerEntry2: Record "Item Ledger Entry"; var CostApplication: Boolean)
     begin
     end;
 
