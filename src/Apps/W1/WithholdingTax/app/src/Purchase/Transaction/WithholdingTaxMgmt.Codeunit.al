@@ -4302,14 +4302,20 @@ codeunit 6785 "Withholding Tax Mgmt."
         GenJnlLine3."System-Created Entry" := true;
         GenJnlLine3."Is Withholding Tax" := true;
         if GenJnlLine."Document Type" = GenJnlLine."Document Type"::Refund then begin
-            if TType = TType::Purchase then
+            if TType = TType::Purchase then begin
+                WithholdingPostingSetup.TestField("Purch. Wthldg. Tax Adj. Acc No");
                 GenJnlLine3.Validate("Account No.", WithholdingPostingSetup."Purch. Wthldg. Tax Adj. Acc No");
+            end;
 
-            if TType = TType::Sale then
+            if TType = TType::Sale then begin
+                WithholdingPostingSetup.TestField("Sales Wthldg. Tax Adj. Acc No");
                 GenJnlLine3.Validate("Account No.", WithholdingPostingSetup."Sales Wthldg. Tax Adj. Acc No");
+            end;
         end else begin
-            if TType = TType::Purchase then
+            if TType = TType::Purchase then begin
+                WithholdingPostingSetup.TestField("Payable Wthldg. Tax Acc. Code");
                 GenJnlLine3.Validate("Account No.", WithholdingPostingSetup."Payable Wthldg. Tax Acc. Code");
+            end;
 
             if TType = TType::Sale then begin
                 WithholdingPostingSetup.TestField("Prepaid Wthldg. Tax Acc. Code");
