@@ -755,18 +755,22 @@ codeunit 7017 "Price List Management"
                 PriceListLine.SetRange("Parent Source No.", PriceSource."Parent Source No.");
                 PriceListLine.SetRange("Source No.", PriceSource."Source No.");
                 OnBuildSourceFiltersOnBeforeFindLines(PriceListLine, PriceSource);
-                if PriceListLine.FindSet() then begin
-                    if SearchIfPriceExists then begin
+                if SearchIfPriceExists then begin
+                    if not PriceListLine.IsEmpty() then begin
                         ClearSourceFilters(PriceListLine);
                         PriceIsFound := true;
                         exit;
                     end;
-                    repeat
-                        PriceListLine.Mark(true);
-                    until PriceListLine.Next() = 0;
+                end else begin
+                    PriceListLine.SetLoadFields("Price List Code", "Line No.");
+                    if PriceListLine.FindSet() then
+                        repeat
+                            PriceListLine.Mark(true);
+                        until PriceListLine.Next() = 0;
                 end;
             until not PriceSourceList.Next(PriceSource);
         ClearSourceFilters(PriceListLine);
+        PriceListLine.SetLoadFields();
     end;
 
     local procedure ClearSourceFilters(var PriceListLine: Record "Price List Line")
