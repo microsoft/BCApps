@@ -41,6 +41,14 @@ report 8752 "DA External Storage Sync"
                 ProcessedCount := 0;
                 FailedCount := 0;
 
+                // Multiple Document Attachment records can reference the same Tenant Media
+                // record (e.g. an original and its posted-document counterpart). Build a
+                // reference count once up front so the shared record is only physically
+                // deleted after the last referencing attachment has been migrated.
+                if SyncDirection = SyncDirection::"To External Storage" then
+                    ExternalStorageImpl.BuildMediaReferenceCounts(MediaReferenceCounts);
+
+
                 if GuiAllowed() then
                     Dialog.Open(ProcessingMsg, TotalCount);
             end;
@@ -61,7 +69,7 @@ report 8752 "DA External Storage Sync"
                         begin
                             SyncSuccess := ExternalStorageImpl.UploadToExternalStorage(DocumentAttachment);
                             if SyncSuccess and (Operation = Operation::Move) then begin
-                                DeleteSuccess := ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment);
+                                DeleteSuccess := ExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment, MediaReferenceCounts);
                                 if not DeleteSuccess then
                                     FailedCount += 1;
                             end;
@@ -143,6 +151,7 @@ report 8752 "DA External Storage Sync"
     var
         ExternalStorageImpl: Codeunit "DA External Storage Impl.";
         Dialog: Dialog;
+        MediaReferenceCounts: Dictionary of [Guid, Integer];
         FailedCount: Integer;
         MaxRecordsToProcess: Integer;
         ProcessedCount: Integer;
