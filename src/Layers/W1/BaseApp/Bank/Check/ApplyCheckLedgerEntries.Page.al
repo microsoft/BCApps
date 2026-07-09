@@ -16,7 +16,7 @@ using Microsoft.Bank.Reconciliation;
 /// </remarks>
 page 382 "Apply Check Ledger Entries"
 {
-    Caption = 'Apply Check Ledger Entries';
+    Caption = 'Apply Check Ledger Entry';
     PageType = Worksheet;
     SourceTable = "Check Ledger Entry";
 
