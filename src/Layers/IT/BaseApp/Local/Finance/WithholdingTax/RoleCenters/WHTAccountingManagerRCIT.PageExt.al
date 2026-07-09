@@ -11,12 +11,15 @@ pageextension 12107 "WHT Accounting Manager RC IT" extends "Accounting Manager R
 {
     actions
     {
-        addlast(reporting)
+        addafter("Cost Accounting Analysis")
         {
+            separator(Action1130008)
+            {
+            }
             group(Withholding)
             {
                 Caption = 'Withholding';
-                action(Action1130000)
+                action("Withholding Taxes")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Withholding Taxes';
@@ -30,7 +33,7 @@ pageextension 12107 "WHT Accounting Manager RC IT" extends "Accounting Manager R
                     Caption = 'Contribution';
                     Image = "Report";
                     RunObject = Report Contribution;
-                    ToolTip = 'Get a report of social security and workers'' compensation contribution taxes on non-inventory services that you have purchased from an independent contractor or consultant.';
+                    ToolTip = 'Get a report of social security and workers’ compensation contribution taxes on non-inventory services that you have purchased from an independent contractor or consultant.';
                 }
                 action("Compensation Details")
                 {
@@ -50,10 +53,9 @@ pageextension 12107 "WHT Accounting Manager RC IT" extends "Accounting Manager R
                 }
             }
         }
-
-        addlast(embedding)
+        addafter("VAT Statements")
         {
-            action(WithholdingTaxesList)
+            action(Action1130000)
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Withholding Taxes';
@@ -72,14 +74,14 @@ pageextension 12107 "WHT Accounting Manager RC IT" extends "Accounting Manager R
                 ApplicationArea = Basic, Suite;
                 Caption = 'INPS Contributions';
                 RunObject = Page "INPS Contribution List";
-                ToolTip = 'View the social security taxes on non-inventory services that you have purchased from an independent contractor or consultant.';
+                ToolTip = 'View the social security taxes on non-inventory services that you have purchased from an independent contractor or consultant. ';
             }
             action("INAIL Contributions")
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'INAIL Contributions';
                 RunObject = Page "INAIL Contribution List";
-                ToolTip = 'View the workers'' compensation taxes on non-inventory services that you have purchased from an independent contractor or consultant.';
+                ToolTip = 'View the workers’ compensation taxes on non-inventory services that you have purchased from an independent contractor or consultant.';
             }
             action("INAIL & Social Security Payments")
             {
@@ -89,8 +91,7 @@ pageextension 12107 "WHT Accounting Manager RC IT" extends "Accounting Manager R
                 ToolTip = 'View the INAIL and social security tax payments.';
             }
         }
-
-        addlast(processing)
+        addafter("Calc. and Pos&t VAT Settlement")
         {
             action("Withholding Tax Card")
             {
@@ -98,15 +99,7 @@ pageextension 12107 "WHT Accounting Manager RC IT" extends "Accounting Manager R
                 Caption = 'Withholding Tax Card';
                 Image = ListPage;
                 RunObject = Page "Withholding Tax Card";
-                ToolTip = 'View the withholding tax card.';
-            }
-            action("Social Security")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Social Security';
-                Image = SocialSecurity;
-                RunObject = Page "Contribution Card";
-                ToolTip = 'View the contribution taxes that have been applied to a purchase invoice from an independent contractor or consultant.';
+                ToolTip = 'View the  withholding tax card.';
             }
         }
     }

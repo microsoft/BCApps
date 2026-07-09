@@ -6,6 +6,7 @@ namespace Microsoft.Finance.RoleCenters;
 
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Deposit;
+using Microsoft.Bank.Payment;
 using Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Reports;
 using Microsoft.CashFlow.Account;
@@ -362,9 +363,6 @@ page 9001 "Accounting Manager Role Center"
                 Image = "Report";
                 RunObject = Report "Cost Acctg. Analysis";
                 ToolTip = 'View balances per cost type with columns for seven fields for cost centers and cost objects. It is used as the cost distribution sheet in Cost accounting. The structure of the lines is based on the chart of cost types. You define up to seven cost centers and cost objects that appear as columns in the report.';
-            }
-            separator(Action1130008)
-            {
             }
         }
         area(embedding)
@@ -1008,6 +1006,14 @@ page 9001 "Accounting Manager Role Center"
                 ToolTip = 'View the list of periodic VAT settlements.';
             }
 #endif
+            action("Social Security")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Social Security';
+                Image = SocialSecurity;
+                RunObject = Page "Contribution Card";
+                ToolTip = 'View the contribution taxes that have been applied to a purchase invoice from an independent contractor or consultant.';
+            }
             separator(Action80)
             {
                 Caption = 'Administration';
