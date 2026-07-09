@@ -622,8 +622,13 @@ function Install-AllApps() {
 
     # Install all published-but-not-installed apps in dependency order
     Write-Host "Installing all published apps..."
-    $publishedApps = Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesFirst
-    $uninstalledApps = $publishedApps | Where-Object { $_.IsPublished -and -not $_.IsInstalled }
+    $publishedApps = @(Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesFirst)
+
+    if ($publishedApps.Count -eq 0) {
+        throw "No apps found in container '$ContainerName'. The build/publish step produced no apps to install. This usually means dependency resolution downloaded no apps - e.g. a branch name containing glob metacharacters (such as ']') can break artifact matching in AL-Go's DownloadProjectDependencies."
+    }
+
+    $uninstalledApps = @($publishedApps | Where-Object { $_.IsPublished -and -not $_.IsInstalled })
 
     if ($uninstalledApps.Count -eq 0) {
         Write-Host "All apps already installed"
@@ -677,7 +682,7 @@ function Install-BaseAppsForDemoTool() {
 
     # Install only those apps (in dependency order)
     $publishedApps = Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesFirst
-    $appsToInstall = $publishedApps | Where-Object { $_.IsPublished -and -not $_.IsInstalled -and ($baseAppNames -contains $_.Name) }
+    $appsToInstall = @($publishedApps | Where-Object { $_.IsPublished -and -not $_.IsInstalled -and ($baseAppNames -contains $_.Name) })
 
     Write-Host "Installing $($appsToInstall.Count) base apps"
     foreach ($app in $appsToInstall) {
