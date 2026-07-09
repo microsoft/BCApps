@@ -30,15 +30,15 @@ pageextension 4411 "SOA Contact List Ext" extends "Contact List"
         }
     }
 
-    trigger OnAfterGetRecord()
+    trigger OnOpenPage()
     var
         SOAKPITrackAll: Codeunit "SOA - KPI Track All";
     begin
-        if not IsAgentSessionInitialized then begin
-            IsAgentSession := SOAKPITrackAll.IsOrderTakerAgentSession(AgentTaskID);
-            IsAgentSessionInitialized := true;
-        end;
+        IsAgentSession := SOAKPITrackAll.IsOrderTakerAgentSession(AgentTaskID);
+    end;
 
+    trigger OnAfterGetRecord()
+    begin
         PopulateMappedEmail();
     end;
 
@@ -73,5 +73,4 @@ pageextension 4411 "SOA Contact List Ext" extends "Contact List"
         MappedEmail: Text[250];
         AgentTaskID: BigInteger;
         IsAgentSession: Boolean;
-        IsAgentSessionInitialized: Boolean;
 }
