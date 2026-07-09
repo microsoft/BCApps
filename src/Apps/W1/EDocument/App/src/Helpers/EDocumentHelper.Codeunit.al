@@ -9,7 +9,6 @@ using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.Foundation.Reporting;
 using System.Automation;
 using System.Environment.Configuration;
-using System.IO;
 using System.Utilities;
 
 codeunit 6148 "E-Document Helper"
@@ -71,49 +70,6 @@ codeunit 6148 "E-Document Helper"
             exit(true);
         EDocument.SetRange("Document Record ID", SourceRecordId);
         exit(EDocument.FindFirst());
-    end;
-
-    /// <summary>
-    /// Renders the first page of the inbound PDF preview for a posted purchase document (matched by RecordId)
-    /// into the provided temporary media record. Returns false and clears the media when there is no PDF preview.
-    /// </summary>
-    procedure RenderInboundPdfPreview(SourceRecordId: RecordId; var TempMediaRepository: Record "Media Repository" temporary): Boolean
-    var
-        EmptyLink: Guid;
-    begin
-        exit(RenderInboundPdfPreview(SourceRecordId, EmptyLink, TempMediaRepository));
-    end;
-
-    /// <summary>
-    /// Renders the first page of the inbound PDF preview for a purchase document into the provided temporary
-    /// media record. The E-Document is resolved by "E-Document Link" GUID (open) or "Document Record ID" (posted).
-    /// Returns false and clears the media when the document has no linked PDF preview.
-    /// </summary>
-    procedure RenderInboundPdfPreview(SourceRecordId: RecordId; EDocumentLink: Guid; var TempMediaRepository: Record "Media Repository" temporary): Boolean
-    var
-        EDocDataStorage: Record "E-Doc. Data Storage";
-        PdfDocument: Codeunit "PDF Document";
-        TempBlob: Codeunit "Temp Blob";
-        PdfStream: InStream;
-        ImageStream: InStream;
-        EDocDataStorageEntryNo: Integer;
-        PdfPreviewLbl: Label 'Pdf Preview';
-    begin
-        Clear(TempMediaRepository);
-        if not GetInboundPdfPreviewEntryNo(SourceRecordId, EDocumentLink, EDocDataStorageEntryNo) then
-            exit(false);
-        if not EDocDataStorage.Get(EDocDataStorageEntryNo) then
-            exit(false);
-        EDocDataStorage.CalcFields("Data Storage");
-        EDocDataStorage."Data Storage".CreateInStream(PdfStream, TextEncoding::UTF8);
-        if not PdfDocument.Load(PdfStream) then
-            exit(false);
-        TempBlob.CreateInStream(ImageStream, TextEncoding::UTF8);
-        if not PdfDocument.ConvertPdfToImage(ImageStream, "Image Format"::Png, 1) then
-            exit(false);
-        TempMediaRepository."File Name" := CopyStr(Format(EDocDataStorageEntryNo), 1, MaxStrLen(TempMediaRepository."File Name"));
-        TempMediaRepository.Image.ImportStream(ImageStream, PdfPreviewLbl, 'image/png');
-        exit(true);
     end;
 
 
