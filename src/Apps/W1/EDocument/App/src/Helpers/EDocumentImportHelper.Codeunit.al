@@ -5,9 +5,7 @@
 namespace Microsoft.eServices.EDocument;
 
 using Microsoft.Bank.Reconciliation;
-#if not CLEAN26
 using Microsoft.eServices.EDocument.Processing.Import;
-#endif
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -20,6 +18,7 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.IO;
 using System.Reflection;
@@ -600,6 +599,33 @@ codeunit 6109 "E-Document Import Helper"
 
         if NameOnlyCandidateFound then
             EDocImpSessionTelemetry.SetBool('Vendor Matched By Name Not Address', true);
+    end;
+
+    /// <summary>
+    /// Use it to find a customer by name and address using fuzzy matching.
+    /// </summary>
+    /// <param name="CustomerName">Name of a customer.</param>
+    /// <param name="CustomerAddress">Address of a customer.</param>
+    /// <returns>Customer number if found or empty string.</returns>
+    procedure FindCustomerByNameAndAddress(CustomerName: Text; CustomerAddress: Text): Code[20]
+    var
+        Customer: Record Customer;
+        RecordMatchMgt: Codeunit "Record Match Mgt.";
+        NameNearness: Integer;
+        AddressNearness: Integer;
+    begin
+        Customer.SetCurrentKey(Blocked);
+        Customer.SetLoadFields(Name, Address);
+        if Customer.FindSet() then
+            repeat
+                NameNearness := RecordMatchMgt.CalculateStringNearness(CustomerName, Customer.Name, MatchThreshold(), NormalizingFactor());
+                if CustomerAddress = '' then
+                    AddressNearness := RequiredNearness()
+                else
+                    AddressNearness := RecordMatchMgt.CalculateStringNearness(CustomerAddress, Customer.Address, MatchThreshold(), NormalizingFactor());
+                if (NameNearness >= RequiredNearness()) and (AddressNearness >= RequiredNearness()) then
+                    exit(Customer."No.");
+            until Customer.Next() = 0;
     end;
 
     /// <summary>
