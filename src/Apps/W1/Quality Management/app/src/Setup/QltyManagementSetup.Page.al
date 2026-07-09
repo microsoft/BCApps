@@ -20,6 +20,7 @@ page 20400 "Qlty. Management Setup"
     DeleteAllowed = false;
     InsertAllowed = false;
     SourceTable = "Qlty. Management Setup";
+    AccessByPermission = tabledata "Qlty. Management Setup" = R;
     UsageCategory = Administration;
     ApplicationArea = QualityManagement;
     AboutTitle = 'About Quality Management Setup';

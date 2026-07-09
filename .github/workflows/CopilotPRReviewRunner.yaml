@@ -14,25 +14,41 @@ concurrency:
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-permissions:
-  actions: read
-  contents: read
-  issues: write
-  pull-requests: write
+# Least privilege by default; each job grants only what it needs. The
+# tool-enabled Copilot CLI (which processes untrusted PR diff content with
+# --allow-all-tools) runs only in the read-only `review` job. Comment/issue
+# writes happen in the separate `publish` job, which never runs the model.
+permissions: {}
 
 jobs:
   review:
     if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
     environment: copilot-pr-review
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read       # resolve PR metadata only
+      copilot-requests: write   # bill Copilot inference to the org via the built-in GITHUB_TOKEN
     defaults:
       run:
         shell: pwsh
+    outputs:
+      pr_number: ${{ steps.pr.outputs.number }}
+      head_sha: ${{ steps.pr.outputs.head_sha }}
+      base_ref: ${{ steps.pr.outputs.base_ref }}
+      bcquality_sha: ${{ steps.bcquality.outputs.sha }}
     steps:
       - name: Resolve PR details
         id: pr
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          WORKFLOW_RUN_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          WORKFLOW_RUN_PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          WORKFLOW_RUN_HEAD_OWNER: ${{ github.event.workflow_run.head_repository.owner.login }}
+          WORKFLOW_RUN_HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          WORKFLOW_RUN_BASE_REF: ${{ github.event.workflow_run.pull_requests[0].base.ref }}
         run: |
           $headers = @{
             Accept = 'application/vnd.github+json'
@@ -40,13 +56,13 @@ jobs:
             'User-Agent' = 'bcapps-copilot-pr-reviewer'
           }
 
-          $expectedHeadSha = '${{ github.event.workflow_run.head_sha }}'
+          $expectedHeadSha = $env:WORKFLOW_RUN_HEAD_SHA
 
-          $prNumber = '${{ github.event.workflow_run.pull_requests[0].number }}'
+          $prNumber = $env:WORKFLOW_RUN_PR_NUMBER
           if (-not $prNumber) {
-            $headOwner = '${{ github.event.workflow_run.head_repository.owner.login }}'
-            $headBranch = '${{ github.event.workflow_run.head_branch }}'
-            $baseBranch = '${{ github.event.workflow_run.pull_requests[0].base.ref }}'
+            $headOwner = $env:WORKFLOW_RUN_HEAD_OWNER
+            $headBranch = $env:WORKFLOW_RUN_HEAD_BRANCH
+            $baseBranch = $env:WORKFLOW_RUN_BASE_REF
 
             if (-not $headOwner -or -not $headBranch) {
               throw 'No pull request number in workflow_run payload and insufficient head repo/branch metadata for fallback lookup.'
@@ -59,7 +75,7 @@ jobs:
               $query = "$query&base=$encodedBase"
             }
 
-            $searchUri = "https://api.github.com/repos/${{ github.repository }}/pulls?$query&per_page=30"
+            $searchUri = "https://api.github.com/repos/${env:GITHUB_REPOSITORY}/pulls?$query&per_page=30"
             $candidates = Invoke-RestMethod -Uri $searchUri -Headers $headers -Method GET
 
             $matchingCandidates = @($candidates | Where-Object { $_.head.sha -eq $expectedHeadSha })
@@ -75,7 +91,7 @@ jobs:
             throw 'No pull request number found in workflow_run payload or fallback PR lookup.'
           }
 
-          $uri = "https://api.github.com/repos/${{ github.repository }}/pulls/$prNumber"
+          $uri = "https://api.github.com/repos/${env:GITHUB_REPOSITORY}/pulls/$prNumber"
           $pr = Invoke-RestMethod -Uri $uri -Headers $headers -Method GET
 
           if ($expectedHeadSha -and $pr.head.sha -ne $expectedHeadSha) {
@@ -92,7 +108,10 @@ jobs:
           ref: refs/heads/main
           path: trusted
           fetch-depth: 0
-          persist-credentials: true
+          # The tool-enabled Copilot CLI runs in this job; do not leave a token
+          # in .git/config where a successful prompt-injection could read it.
+          # The orchestrator fetches public base/PR-head refs unauthenticated.
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
@@ -102,17 +121,68 @@ jobs:
       - name: Install Copilot CLI
         run: npm install --global @github/copilot
 
-      - name: Run Copilot PR review
+      - name: Install powershell-yaml
+        run: |
+          if (-not (Get-Module -ListAvailable -Name powershell-yaml)) {
+            Install-Module powershell-yaml -Scope CurrentUser -Force -AllowClobber
+          }
+
+      - name: Fetch and filter BCQuality
+        id: bcquality
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-          GH_TOKEN: ${{ secrets.COPILOT_GH_TOKEN }}
+          BCQUALITY_REPO: ${{ vars.BCQUALITY_REPO }}
+          BCQUALITY_REF: ${{ vars.BCQUALITY_REF }}
+          BCQUALITY_ENABLED_LAYERS: ${{ vars.BCQUALITY_ENABLED_LAYERS }}
+          BCQUALITY_DISABLED_SKILLS: ${{ vars.BCQUALITY_DISABLED_SKILLS }}
+          BCQUALITY_KNOWLEDGE_ALLOW: ${{ vars.BCQUALITY_KNOWLEDGE_ALLOW }}
+          BCQUALITY_KNOWLEDGE_DENY: ${{ vars.BCQUALITY_KNOWLEDGE_DENY }}
+        run: |
+          $cfg = & "${{ github.workspace }}/trusted/tools/BCQuality/scripts/Get-BCQualityConfig.ps1"
+          $repo = $cfg.bcquality.repo
+          $ref  = $cfg.bcquality.ref
+          $root = "${{ github.workspace }}/bcquality"
+
+          Write-Host "Fetching BCQuality from $repo@$ref into $root"
+          # Use init + fetch + checkout so the ref may be a branch, tag, or a pinned commit SHA
+          # (`git clone --branch` does not accept raw commit SHAs).
+          New-Item -ItemType Directory -Force -Path $root | Out-Null
+          git -C $root init -q
+          git -C $root remote add origin $repo
+          git -C $root fetch --depth=1 origin "$ref"
+          if ($LASTEXITCODE -ne 0) { throw "git fetch of BCQuality ref '$ref' failed (exit $LASTEXITCODE)" }
+          git -C $root checkout -q FETCH_HEAD
+          if ($LASTEXITCODE -ne 0) { throw "git checkout of BCQuality ref '$ref' failed (exit $LASTEXITCODE)" }
+
+          $resolvedSha = (& git -C $root rev-parse HEAD).Trim()
+          Write-Host "BCQuality resolved SHA: $resolvedSha"
+
+          & "${{ github.workspace }}/trusted/tools/BCQuality/scripts/Invoke-BCQualityFilter.ps1" `
+              -BCQualityRoot $root `
+              -Config $cfg | Out-Null
+
+          "root=$root" >> $env:GITHUB_OUTPUT
+          "sha=$resolvedSha" >> $env:GITHUB_OUTPUT
+
+      - name: Run Copilot PR review (generate findings)
+        env:
+          REVIEW_PHASE: generate
+          GH_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           REVIEW_WORKSPACE: ${{ github.workspace }}/trusted
           REVIEW_OUTPUT_DIR: ${{ github.workspace }}/review-output
           PR_NUMBER: ${{ steps.pr.outputs.number }}
           PR_HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
+          BCQUALITY_ROOT: ${{ steps.bcquality.outputs.root }}
+          BCQUALITY_SHA: ${{ steps.bcquality.outputs.sha }}
+          BCQUALITY_REPO: ${{ vars.BCQUALITY_REPO }}
+          BCQUALITY_REF: ${{ vars.BCQUALITY_REF }}
+          BCQUALITY_ENABLED_LAYERS: ${{ vars.BCQUALITY_ENABLED_LAYERS }}
+          BCQUALITY_DISABLED_SKILLS: ${{ vars.BCQUALITY_DISABLED_SKILLS }}
+          BCQUALITY_KNOWLEDGE_ALLOW: ${{ vars.BCQUALITY_KNOWLEDGE_ALLOW }}
+          BCQUALITY_KNOWLEDGE_DENY: ${{ vars.BCQUALITY_KNOWLEDGE_DENY }}
           COPILOT_MODEL: ${{ vars.COPILOT_REVIEW_MODEL }}
           MINIMUM_SEVERITY: ${{ vars.COPILOT_REVIEW_MINIMUM_SEVERITY || 'Medium' }}
+          AGENT_MINIMUM_SEVERITY: ${{ vars.COPILOT_REVIEW_AGENT_MINIMUM_SEVERITY || vars.COPILOT_REVIEW_MINIMUM_SEVERITY || 'Medium' }}
           MAX_FINDINGS_PER_DOMAIN: ${{ vars.COPILOT_REVIEW_MAX_FINDINGS_PER_DOMAIN || '25' }}
           COPILOT_REVIEW_FAIL_ON_PARSE_ERROR: ${{ vars.COPILOT_REVIEW_FAIL_ON_PARSE_ERROR || 'true' }}
           COPILOT_REVIEW_EMBED_DIFF: ${{ vars.COPILOT_REVIEW_EMBED_DIFF || 'false' }}
@@ -124,9 +194,92 @@ jobs:
         run: |
           & "${{ github.workspace }}/trusted/tools/Code Review/scripts/Invoke-CopilotPRReview.ps1"
 
-      - name: Upload review artifacts
+      - name: Upload review output
+        if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: copilot-pr-review-output-${{ steps.pr.outputs.number }}
+          path: ${{ github.workspace }}/review-output
+          if-no-files-found: warn
+
+      - name: Upload BCQuality filter report
+        if: always() && steps.bcquality.outputs.root != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: bcquality-filter-report-${{ steps.pr.outputs.number }}
+          path: ${{ github.workspace }}/bcquality/_filter-report.json
+          if-no-files-found: warn
+
+  publish:
+    needs: review
+    if: ${{ needs.review.result == 'success' && needs.review.outputs.pr_number != '' && needs.review.outputs.head_sha != '' }}
+    environment: copilot-pr-review
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      issues: write
+      pull-requests: write
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout trusted base code
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: refs/heads/main
+          path: trusted
+          fetch-depth: 0
+          # This job holds issues/pull-requests:write but posts via the GitHub
+          # API (not git push), so it needs no stored credentials.
+          persist-credentials: false
+
+      - name: Install powershell-yaml
+        run: |
+          if (-not (Get-Module -ListAvailable -Name powershell-yaml)) {
+            Install-Module powershell-yaml -Scope CurrentUser -Force -AllowClobber
+          }
+
+      - name: Download review output
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: copilot-pr-review-output-${{ needs.review.outputs.pr_number }}
+          path: ${{ github.workspace }}/review-output
+
+      - name: Run Copilot PR review (post comments)
+        env:
+          REVIEW_PHASE: post
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          REVIEW_WORKSPACE: ${{ github.workspace }}/trusted
+          REVIEW_OUTPUT_DIR: ${{ github.workspace }}/review-output
+          PR_NUMBER: ${{ needs.review.outputs.pr_number }}
+          PR_HEAD_SHA: ${{ needs.review.outputs.head_sha }}
+          BCQUALITY_SHA: ${{ needs.review.outputs.bcquality_sha }}
+          BCQUALITY_REPO: ${{ vars.BCQUALITY_REPO }}
+          BCQUALITY_REF: ${{ vars.BCQUALITY_REF }}
+          BCQUALITY_ENABLED_LAYERS: ${{ vars.BCQUALITY_ENABLED_LAYERS }}
+          BCQUALITY_DISABLED_SKILLS: ${{ vars.BCQUALITY_DISABLED_SKILLS }}
+          BCQUALITY_KNOWLEDGE_ALLOW: ${{ vars.BCQUALITY_KNOWLEDGE_ALLOW }}
+          BCQUALITY_KNOWLEDGE_DENY: ${{ vars.BCQUALITY_KNOWLEDGE_DENY }}
+          COPILOT_MODEL: ${{ vars.COPILOT_REVIEW_MODEL }}
+          MINIMUM_SEVERITY: ${{ vars.COPILOT_REVIEW_MINIMUM_SEVERITY || 'Medium' }}
+          AGENT_MINIMUM_SEVERITY: ${{ vars.COPILOT_REVIEW_AGENT_MINIMUM_SEVERITY || vars.COPILOT_REVIEW_MINIMUM_SEVERITY || 'Medium' }}
+          MAX_FINDINGS_PER_DOMAIN: ${{ vars.COPILOT_REVIEW_MAX_FINDINGS_PER_DOMAIN || '25' }}
+          COPILOT_REVIEW_FAIL_ON_PARSE_ERROR: ${{ vars.COPILOT_REVIEW_FAIL_ON_PARSE_ERROR || 'true' }}
+          COPILOT_REVIEW_EMBED_DIFF: ${{ vars.COPILOT_REVIEW_EMBED_DIFF || 'false' }}
+          COPILOT_REVIEW_CLI_TIMEOUT_MINUTES: ${{ vars.COPILOT_REVIEW_CLI_TIMEOUT_MINUTES || '30' }}
+          COPILOT_REVIEW_AGENT_LABEL: ${{ vars.COPILOT_REVIEW_AGENT_LABEL || 'copilot-pr-review' }}
+          COPILOT_REVIEW_AGENT_RELEASE_DATE: ${{ vars.COPILOT_REVIEW_AGENT_RELEASE_DATE }}
+          COPILOT_REVIEW_AGENT_RELEASE_VERSION: ${{ vars.COPILOT_REVIEW_AGENT_RELEASE_VERSION || '0' }}
+          BASE_BRANCH: ${{ needs.review.outputs.base_ref }}
+        run: |
+          & "${{ github.workspace }}/trusted/tools/Code Review/scripts/Invoke-CopilotPRReview.ps1"
+
+      - name: Upload published review artifacts
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: copilot-pr-review-final-${{ needs.review.outputs.pr_number }}
           path: ${{ github.workspace }}/review-output
           if-no-files-found: warn

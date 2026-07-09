@@ -26,10 +26,10 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
             group(Production)
             {
                 Caption = 'Production';
-                Visible = HasSubcontractingContext;
                 action("Production Order")
                 {
                     ApplicationArea = Subcontracting;
+                    Visible = HasSubcontractingContext;
                     Caption = 'Production Order';
                     Image = Production;
                     ToolTip = 'View the related production order.';
@@ -41,6 +41,7 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
                 action("Production Order Routing")
                 {
                     ApplicationArea = Subcontracting;
+                    Visible = HasSubcontractingContext;
                     Caption = 'Production Order Routing';
                     Image = Route;
                     ToolTip = 'View the related production order routing.';
@@ -52,6 +53,7 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
                 action("Production Order Components")
                 {
                     ApplicationArea = Subcontracting;
+                    Visible = HasSubcontractingContext;
                     Caption = 'Production Order Components';
                     Image = Components;
                     ToolTip = 'View the related production order components.';
@@ -63,6 +65,7 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
                 action("Transfer Order")
                 {
                     ApplicationArea = Subcontracting;
+                    Visible = HasSubcontractingContext;
                     Caption = 'Subcontracting Transfer Order';
                     Enabled = CurrentLineIsSubcontractingLine;
                     Image = TransferOrder;
@@ -75,6 +78,7 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
                 action("Return Transfer Order")
                 {
                     ApplicationArea = Subcontracting;
+                    Visible = HasSubcontractingContext;
                     Caption = 'Subcontracting Return Transfer Order';
                     Enabled = CurrentLineIsSubcontractingLine;
                     Image = ReturnRelated;
@@ -89,6 +93,8 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
     }
 
     var
+        PurchaseHeader: Record "Purchase Header";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
         SubcProdOrderFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
         SubcontractingManagement: Codeunit "Subcontracting Management";
@@ -100,10 +106,19 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
         CurrentLineIsSubcontractingLine := SubcontractingManagement.IsSubcontractingPurchaseLine(Rec);
     end;
 
-    internal procedure SetIsSubcontracting(IsSubcontractingRelated: Boolean)
+    trigger OnAfterGetCurrRecord()
     begin
-        HasSubcontractingContext := IsSubcontractingRelated;
-        CurrPage.Update();
+        SetSubcontractingVisibility();
+    end;
+
+    local procedure SetSubcontractingVisibility()
+    begin
+        if (Rec."Document No." = PurchaseHeader."No.") and (Rec."Document Type" = PurchaseHeader."Document Type") then
+            exit;
+        if PurchaseHeader.Get(Rec."Document Type", Rec."Document No.") then
+            HasSubcontractingContext := SubcontractingManagement.IsSubcontractingPurchaseDocument(PurchaseHeader)
+        else
+            HasSubcontractingContext := false;
     end;
 
     local procedure ShowProductionOrder(RecRelatedVariant: Variant)
