@@ -6,6 +6,7 @@
 namespace Microsoft.DemoData.Warehousing;
 
 using Microsoft.Assembly.Document;
+using Microsoft.DemoData.Inventory;
 using Microsoft.DemoTool.Helpers;
 using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.Setup;
@@ -23,6 +24,7 @@ codeunit 4787 "Create Whse Location"
     var
         WhseDemoDataSetup: Record "Warehouse Module Setup";
         ContosoWarehouse: Codeunit "Contoso Warehouse";
+        CreateLocation: Codeunit "Create Location";
         BasicLocationLbl: Label 'Silver Warehouse', MaxLength = 100;
         SimpleLocationLbl: Label 'Yellow Warehouse', MaxLength = 100;
         AdvancedLocationLbl: Label 'White Warehouse', MaxLength = 100;
@@ -30,7 +32,6 @@ codeunit 4787 "Create Whse Location"
         BasicLocationTok: Label 'SILVER', MaxLength = 10;
         SimpleLocationTok: Label 'YELLOW', MaxLength = 10;
         AdvancedLocationTok: Label 'WHITE', MaxLength = 10;
-        TransitLocationTok: Label 'OWN LOG.', MaxLength = 10;
         ColdTok: Label 'COLD', MaxLength = 10;
         FrozenTok: Label 'FROZEN', MaxLength = 10;
         ForkliftTok: Label 'FORKLIFT', MaxLength = 10;
@@ -273,7 +274,7 @@ codeunit 4787 "Create Whse Location"
 
     procedure TransitLocation(): Code[10]
     begin
-        exit(TransitLocationTok);
+        exit(CreateLocation.OwnLogLocation());
     end;
 
     procedure ColdClass(): Code[10]
