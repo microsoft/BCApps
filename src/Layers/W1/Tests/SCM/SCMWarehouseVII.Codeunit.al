@@ -3112,7 +3112,7 @@ codeunit 137159 "SCM Warehouse VII"
 
     [Test]
     [HandlerFunctions('ConfirmHandler,MessageHandler')]
-    procedure InvtMovementProhibitsExceedingBinMaxCubageOnPartialMovements()
+    procedure InvtMovementProhibitsExceedingBinMaxCubageOnSplitLineMovements()
     var
         CubagePerUnit: Decimal;
         FirstQty: Decimal;
@@ -3122,16 +3122,17 @@ codeunit 137159 "SCM Warehouse VII"
         MaxCubage: Decimal;
         SecondQty: Decimal;
         ToBin: Record Bin;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
         WarehouseActivityLine: Record "Warehouse Activity Line";
         WarehouseEmployee: Record "Warehouse Employee";
         WarehouseEntry: Record "Warehouse Entry";
     begin
-        // [SCENARIO 640512] Bin Capacity Policy "Prohibit More Than Max. Cap." blocks registering a partial Inventory Movement that exceeds the destination bin Maximum Cubage.
-        // Without the fix, base unit of measure movement lines did not carry Cubage to the warehouse entries, so a subsequent partial
-        // movement to the same bin was not detected as exceeding the bin Maximum Cubage and could be registered incorrectly.
+        // [SCENARIO 640512] Bin Capacity Policy "Prohibit More Than Max. Cap." blocks registering the remaining part of a split Inventory Movement line that exceeds the destination bin Maximum Cubage.
+        // Without the fix, base unit of measure movement lines did not carry Cubage to the warehouse entries, so registering the remaining split
+        // quantity to the same bin was not detected as exceeding the bin Maximum Cubage and could be registered incorrectly.
         Initialize();
 
-        // First partial movement fits within the bin Maximum Cubage, while the first and second movement together exceed it.
+        // The first split part fits within the bin Maximum Cubage, while both split parts together exceed it.
         CubagePerUnit := LibraryRandom.RandInt(5);
         FirstQty := LibraryRandom.RandIntInRange(5, 10);
         SecondQty := LibraryRandom.RandIntInRange(5, 10);
@@ -3155,10 +3156,17 @@ codeunit 137159 "SCM Warehouse VII"
         // [GIVEN] Create Inventory for the total movement quantity on the source Bin.
         CreateAndPostItemJournalLine(Location.Code, FromBin.Code, Item."No.", '', FirstQty + SecondQty, false, false);
 
-        // [GIVEN] Create a first partial Inventory Movement from the source Bin to the destination Bin (fits within Maximum Cubage).
-        CreateAndRegisterInvtMovementFromInternalMovement(Item."No.", Location.Code, FromBin.Code, ToBin.Code, FirstQty);
+        // [GIVEN] Create a single Inventory Movement for the total quantity from the source Bin to the destination Bin.
+        CreateInvtMovementFromInternalMovement(Item."No.", Location.Code, FromBin.Code, ToBin.Code, FirstQty + SecondQty);
 
-        // [THEN] The movement carries the corresponding Cubage into the warehouse entries for the destination Bin
+        // [GIVEN] Split the Inventory Movement Take and Place lines at the first partial quantity.
+        SplitInvtMovementLine(Location.Code, WarehouseActivityLine."Action Type"::Take, FirstQty);
+        SplitInvtMovementLine(Location.Code, WarehouseActivityLine."Action Type"::Place, FirstQty);
+
+        // [GIVEN] Register only the first split part of the movement (fits within Maximum Cubage).
+        RegisterFirstSplitPartOfInvtMovement(Location.Code);
+
+        // [THEN] The registered movement carries the corresponding Cubage into the warehouse entries for the destination Bin
         WarehouseEntry.SetRange("Location Code", Location.Code);
         WarehouseEntry.SetRange("Bin Code", ToBin.Code);
         WarehouseEntry.SetRange("Item No.", Item."No.");
@@ -3167,8 +3175,10 @@ codeunit 137159 "SCM Warehouse VII"
           FirstQty * CubagePerUnit, WarehouseEntry.Cubage,
           StrSubstNo(ValueMustBeEqualErr, WarehouseEntry.FieldCaption(Cubage), FirstQty * CubagePerUnit, WarehouseEntry.TableCaption()));
 
-        // [WHEN] Create a second partial Inventory Movement to the same destination Bin (would exceed the Maximum Cubage).
-        asserterror CreateAndRegisterInvtMovementFromInternalMovement(Item."No.", Location.Code, FromBin.Code, ToBin.Code, SecondQty);
+        // [WHEN] Register the remaining split part to the same destination Bin (would exceed the Maximum Cubage).
+        FindWarehouseActivityHeader(WarehouseActivityHeader, Location.Code, WarehouseActivityHeader.Type::"Invt. Movement");
+        LibraryWarehouse.AutoFillQtyInventoryActivity(WarehouseActivityHeader);
+        asserterror LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
 
         // [THEN] Verify Registration is blocked because the destination Bin Maximum Cubage would be exceeded.
         Assert.ExpectedError(
@@ -5610,17 +5620,52 @@ codeunit 137159 "SCM Warehouse VII"
         AssemblyLine.FindFirst();
     end;
 
-    local procedure CreateAndRegisterInvtMovementFromInternalMovement(ItemNo: Code[20]; LocationCode: Code[10]; FromBinCode: Code[20]; ToBinCode: Code[20]; Quantity: Decimal)
+
+    local procedure CreateInvtMovementFromInternalMovement(ItemNo: Code[20]; LocationCode: Code[10]; FromBinCode: Code[20]; ToBinCode: Code[20]; Quantity: Decimal)
     var
         InternalMovementHeader: Record "Internal Movement Header";
         InternalMovementLine: Record "Internal Movement Line";
-        WarehouseActivityLine: Record "Warehouse Activity Line";
     begin
         LibraryWarehouse.CreateInternalMovementHeader(InternalMovementHeader, LocationCode, ToBinCode);
         LibraryWarehouse.CreateInternalMovementLine(InternalMovementHeader, InternalMovementLine, ItemNo, FromBinCode, ToBinCode, Quantity);
         CreateInventoryMovementFromInternalMovement(InternalMovementHeader);
-        RegisterWarehouseActivity(
-          WarehouseActivityLine."Source Document"::" ", '', WarehouseActivityLine."Activity Type"::"Invt. Movement");
+    end;
+
+    local procedure SplitInvtMovementLine(LocationCode: Code[10]; ActionType: Enum "Warehouse Action Type"; QtyToHandle: Decimal)
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        WarehouseActivityLine.SetRange("Location Code", LocationCode);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::"Invt. Movement");
+        WarehouseActivityLine.SetRange("Action Type", ActionType);
+        WarehouseActivityLine.FindFirst();
+        WarehouseActivityLine.Validate("Qty. to Handle", QtyToHandle);
+        WarehouseActivityLine.Modify(true);
+        WarehouseActivityLine.SplitLine(WarehouseActivityLine);
+    end;
+
+    local procedure RegisterFirstSplitPartOfInvtMovement(LocationCode: Code[10])
+    var
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        // Clear Qty. to Handle on the second split part so only the first split part is registered.
+        ClearQtyToHandleOnSecondSplitLine(LocationCode, WarehouseActivityLine."Action Type"::Take);
+        ClearQtyToHandleOnSecondSplitLine(LocationCode, WarehouseActivityLine."Action Type"::Place);
+        FindWarehouseActivityHeader(WarehouseActivityHeader, LocationCode, WarehouseActivityHeader.Type::"Invt. Movement");
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+    end;
+
+    local procedure ClearQtyToHandleOnSecondSplitLine(LocationCode: Code[10]; ActionType: Enum "Warehouse Action Type")
+    var
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+    begin
+        WarehouseActivityLine.SetRange("Location Code", LocationCode);
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityLine."Activity Type"::"Invt. Movement");
+        WarehouseActivityLine.SetRange("Action Type", ActionType);
+        WarehouseActivityLine.FindLast();
+        WarehouseActivityLine.Validate("Qty. to Handle", 0);
+        WarehouseActivityLine.Modify(true);
     end;
 
     local procedure CreateItemWithCubage(var Item: Record Item; CubageValue: Decimal)
