@@ -1,0 +1,1608 @@
+table 'Translated Localized Labels'
+	isHidden
+	lineageTag: f5d846b6-84c3-4f55-bfee-f1db2ec79b15
+
+	measure 'My Report Title Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Título del informe",
+			   "de-DE", "Titel meines Berichts",
+			   "fr-FR", "Titre de l’état",
+			   "cs-CZ", "Můj nadpis sestavy",
+			   "da-DK", "Min rapporttitel",
+			   "de-AT", "Titel meines Berichts",
+			   "de-CH", "Titel meines Berichts",
+			   "en-AU", "My Report Title",
+			   "en-CA", "My Report Title",
+			   "en-GB", "My Report Title",
+			   "en-NZ", "My Report Title",
+			   "es-MX", "Título del informe",
+			   "fi-FI", "Oman raportin otsikko",
+			   "fr-BE", "Titre de l’état",
+			   "fr-CA", "Titre de mon rapport",
+			   "fr-CH", "Titre de l’état",
+			   "is-IS", "Skýrslutitill notanda",
+			   "it-CH", "Titolo report personale",
+			   "it-IT", "Titolo report personale",
+			   "nb-NO", "Min rapporttittel",
+			   "nl-BE", "Mijn rapporttitel",
+			   "nl-NL", "Mijn rapporttitel",
+			   "sv-SE", "Min rapportrubrik",
+			   "My Report Title"
+			)
+		isHidden
+		lineageTag: fb5269a0-c56a-4bbf-ad38-6099f3dfc95c
+
+	measure 'My Button Caption Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Título de botón",
+			   "de-DE", "Beschriftung Meine Schaltfläche",
+			   "fr-FR", "Légende de mon bouton",
+			   "cs-CZ", "Popisek mého tlačítka",
+			   "da-DK", "Min knaptitel",
+			   "de-AT", "Beschriftung Meine Schaltfläche",
+			   "de-CH", "Beschriftung Meine Schaltfläche",
+			   "en-AU", "My Button Caption",
+			   "en-CA", "My Button Caption",
+			   "en-GB", "My Button Caption",
+			   "en-NZ", "My Button Caption",
+			   "es-MX", "Título de botón",
+			   "fi-FI", "Oma painikkeen otsikko",
+			   "fr-BE", "Légende de mon bouton",
+			   "fr-CA", "Légende de mon bouton",
+			   "fr-CH", "Légende de mon bouton",
+			   "is-IS", "Texti hnapps notanda",
+			   "it-CH", "Didascalia pulsante personale",
+			   "it-IT", "Didascalia pulsante personale",
+			   "nb-NO", "Min knappetittel",
+			   "nl-BE", "Bijschrift van mijn knop",
+			   "nl-NL", "Bijschrift van mijn knop",
+			   "sv-SE", "Min knapprubrik",
+			   "My Button Caption"
+			)
+		isHidden
+		lineageTag: ab567927-3a6c-4c0c-b43f-b3d7b82b1dab
+
+	measure 'My Visual Title Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Título visual",
+			   "de-DE", "Titel meines Visuals",
+			   "fr-FR", "Mon titre visuel",
+			   "cs-CZ", "Název mého vizuálu",
+			   "da-DK", "Min visuelle titel",
+			   "de-AT", "Titel meines Visuals",
+			   "de-CH", "Titel meines Visuals",
+			   "en-AU", "My Visual Title",
+			   "en-CA", "My Visual Title",
+			   "en-GB", "My Visual Title",
+			   "en-NZ", "My Visual Title",
+			   "es-MX", "Título visual",
+			   "fi-FI", "Oma visuaalinen otsikko",
+			   "fr-BE", "Mon titre visuel",
+			   "fr-CA", "Mon titre visuel",
+			   "fr-CH", "Mon titre visuel",
+			   "is-IS", "Sjónrænn titill notanda",
+			   "it-CH", "Titolo visivo personale",
+			   "it-IT", "Titolo visivo personale",
+			   "nb-NO", "Min visuelle tittel",
+			   "nl-BE", "Mijn visuele titel",
+			   "nl-NL", "Mijn visuele titel",
+			   "sv-SE", "Min visuella rubrik",
+			   "My Visual Title"
+			)
+		isHidden
+		lineageTag: fa152da6-732e-4185-bbe5-c20396a25cbc
+
+	measure 'Inactive Employees Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Empleados inactivos",
+			   "de-DE", "Inaktive Mitarbeiter",
+			   "fr-FR", "Salariés inactifs",
+			   "cs-CZ", "Neaktivní zaměstnanci",
+			   "da-DK", "Inaktive medarbejdere",
+			   "de-AT", "Inaktive Mitarbeiter",
+			   "de-CH", "Inaktive Mitarbeiter",
+			   "en-AU", "Inactive Employees",
+			   "en-CA", "Inactive Employees",
+			   "en-GB", "Inactive Employees",
+			   "en-NZ", "Inactive Employees",
+			   "es-MX", "Empleados inactivos",
+			   "fi-FI", "Passiiviset työntekijät",
+			   "fr-BE", "Salariés inactifs",
+			   "fr-CA", "Employés inactifs",
+			   "fr-CH", "Salariés inactifs",
+			   "is-IS", "Óvirkir starfsmenn",
+			   "it-CH", "Dipendenti inattivi",
+			   "it-IT", "Dipendenti inattivi",
+			   "nb-NO", "Inaktive ansatte",
+			   "nl-BE", "Inactieve werknemers",
+			   "nl-NL", "Inactieve werknemers",
+			   "sv-SE", "Inaktiva medarbetare",
+			   "Inactive Employees"
+			)
+		isHidden
+		lineageTag: 40c03f22-a480-4a08-ad4d-2be686dac3b6
+
+	measure 'Terminated Employees Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Empleados despedidos",
+			   "de-DE", "Gekündigte Mitarbeiter",
+			   "fr-FR", "Salariés licenciés",
+			   "cs-CZ", "Zaměstnanci, kteří ukončili pracovní poměr",
+			   "da-DK", "Opsagte medarbejdere",
+			   "de-AT", "Gekündigte Mitarbeiter",
+			   "de-CH", "Gekündigte Mitarbeiter",
+			   "en-AU", "Terminated Employees",
+			   "en-CA", "Terminated Employees",
+			   "en-GB", "Terminated Employees",
+			   "en-NZ", "Terminated Employees",
+			   "es-MX", "Empleados despedidos",
+			   "fi-FI", "Työntekijät, joiden työsuhde päättynyt",
+			   "fr-BE", "Salariés licenciés",
+			   "fr-CA", "Employés licenciés",
+			   "fr-CH", "Salariés licenciés",
+			   "is-IS", "Starfsmenn sem hafa hætt störfum",
+			   "it-CH", "Dipendenti licenziati",
+			   "it-IT", "Dipendenti licenziati",
+			   "nb-NO", "Oppsagte ansatte",
+			   "nl-BE", "Ontslagen werknemers",
+			   "nl-NL", "Ontslagen werknemers",
+			   "sv-SE", "Uppsagda medarbetare",
+			   "Terminated Employees"
+			)
+		isHidden
+		lineageTag: 966f8d1a-5a7d-4f3d-a4c2-5f61792529a2
+
+	measure 'Employees in Unions Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Empleados en sindicatos",
+			   "de-DE", "Mitarbeiter in Gewerkschaften",
+			   "fr-FR", "Salariés dans les mutuelles",
+			   "cs-CZ", "Zaměstnanci ve svazech",
+			   "da-DK", "Medarbejdere i fagforeninger",
+			   "de-AT", "Mitarbeiter in Gewerkschaften",
+			   "de-CH", "Mitarbeiter in Personalverbänden",
+			   "en-AU", "Employees in Unions",
+			   "en-CA", "Employees in Unions",
+			   "en-GB", "Employees in Unions",
+			   "en-NZ", "Employees in Unions",
+			   "es-MX", "Empleados en sindicatos",
+			   "fi-FI", "Työntekijät ammattiyhdistyksissä",
+			   "fr-BE", "Salariés dans les mutuelles",
+			   "fr-CA", "Employés syndiqués",
+			   "fr-CH", "Salariés dans les mutuelles",
+			   "is-IS", "Starfsmenn í stéttarfélögum",
+			   "it-CH", "Dipendenti in sindacati",
+			   "it-IT", "Dipendenti in sindacati",
+			   "nb-NO", "Ansatte i fagforening",
+			   "nl-BE", "Werknemers in vakbonden",
+			   "nl-NL", "Werknemers in vakbonden",
+			   "sv-SE", "Medarbetare i fackföreningar",
+			   "Employees in Unions"
+			)
+		isHidden
+		lineageTag: 75302eb0-3f95-45c3-b914-10e96fdda99a
+
+	measure 'Social Analysis Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis social",
+			   "de-DE", "Sozialanalyse",
+			   "fr-FR", "Analyse sociale",
+			   "cs-CZ", "Sociální analýza",
+			   "da-DK", "Social analyse",
+			   "de-AT", "Sozialanalyse",
+			   "de-CH", "Sozialanalyse",
+			   "en-AU", "Social Analysis",
+			   "en-CA", "Social Analysis",
+			   "en-GB", "Social Analysis",
+			   "en-NZ", "Social Analysis",
+			   "es-MX", "Análisis social",
+			   "fi-FI", "Sosiaalinen analyysi",
+			   "fr-BE", "Analyse sociale",
+			   "fr-CA", "Analyse sociale",
+			   "fr-CH", "Analyse sociale",
+			   "is-IS", "Félagsgreining",
+			   "it-CH", "Analisi sociale",
+			   "it-IT", "Analisi sociale",
+			   "nb-NO", "Samfunnsanalyse",
+			   "nl-BE", "Sociale analyse",
+			   "nl-NL", "Sociale analyse",
+			   "sv-SE", "Samhällsanalys",
+			   "Social Analysis"
+			)
+		isHidden
+		lineageTag: fae30f4b-3d2b-41aa-b4b7-d2704e1eb978
+
+	measure 'Gender Distribution Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Distribución de sexos",
+			   "de-DE", "Geschlechteverteilung",
+			   "fr-FR", "Répartition par genre",
+			   "cs-CZ", "Distribuce podle pohlaví",
+			   "da-DK", "Distribution af køn",
+			   "de-AT", "Geschlechteverteilung",
+			   "de-CH", "Geschlechteverteilung",
+			   "en-AU", "Gender Distribution",
+			   "en-CA", "Gender Distribution",
+			   "en-GB", "Gender Distribution",
+			   "en-NZ", "Gender Distribution",
+			   "es-MX", "Distribución de sexos",
+			   "fi-FI", "Sukupuolijakauma",
+			   "fr-BE", "Répartition par genre",
+			   "fr-CA", "Répartition par genre",
+			   "fr-CH", "Répartition par genre",
+			   "is-IS", "Kynjadreifing",
+			   "it-CH", "Distribuzione generi",
+			   "it-IT", "Distribuzione generi",
+			   "nb-NO", "Kjønnsdistribusjon",
+			   "nl-BE", "Geslachtsdistributie",
+			   "nl-NL", "Geslachtsdistributie",
+			   "sv-SE", "Könsfördelning",
+			   "Gender Distribution"
+			)
+		isHidden
+		lineageTag: e3fefcbc-8053-4e5c-b133-c535b6516f5b
+
+	measure 'Age Distribution Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Distribución por edades",
+			   "de-DE", "Altersverteilung",
+			   "fr-FR", "Répartition par âge",
+			   "cs-CZ", "Distribuce podle věku",
+			   "da-DK", "Aldersfordeling",
+			   "de-AT", "Altersverteilung",
+			   "de-CH", "Altersverteilung",
+			   "en-AU", "Age Distribution",
+			   "en-CA", "Age Distribution",
+			   "en-GB", "Age Distribution",
+			   "en-NZ", "Age Distribution",
+			   "es-MX", "Distribución por edades",
+			   "fi-FI", "Ikäjakauma",
+			   "fr-BE", "Répartition par âge",
+			   "fr-CA", "Répartition par âge",
+			   "fr-CH", "Répartition par âge",
+			   "is-IS", "Aldursdreifing",
+			   "it-CH", "Distribuzione età",
+			   "it-IT", "Distribuzione età",
+			   "nb-NO", "Aldersfordeling",
+			   "nl-BE", "Leeftijdsdistributie",
+			   "nl-NL", "Leeftijdsdistributie",
+			   "sv-SE", "Åldersfördelning",
+			   "Age Distribution"
+			)
+		isHidden
+		lineageTag: fa947550-0373-467a-931b-570b3406299b
+
+	measure 'Employees Qualifications Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Cualificaciones de empleados",
+			   "de-DE", "Mitarbeiterqualifikationen",
+			   "fr-FR", "Qualifications salariés",
+			   "cs-CZ", "Kvalifikace zaměstnanců",
+			   "da-DK", "Medarbejderkvalifikationer",
+			   "de-AT", "Mitarbeiterqualifikationen",
+			   "de-CH", "Mitarbeiterqualifikationen",
+			   "en-AU", "Employees Qualifications",
+			   "en-CA", "Employees Qualifications",
+			   "en-GB", "Employees Qualifications",
+			   "en-NZ", "Employees Qualifications",
+			   "es-MX", "Habilidades de empleados",
+			   "fi-FI", "Työntekijöiden pätevyydet",
+			   "fr-BE", "Qualifications salariés",
+			   "fr-CA", "Qualifications des employés",
+			   "fr-CH", "Qualifications salariés",
+			   "is-IS", "Menntun og hæfi starfsmanna",
+			   "it-CH", "Qualifiche dipendenti",
+			   "it-IT", "Qualifiche dipendenti",
+			   "nb-NO", "Ansattes kvalifikasjoner",
+			   "nl-BE", "Werknemerskwalificaties",
+			   "nl-NL", "Werknemerskwalificaties",
+			   "sv-SE", "Personalkompetenser",
+			   "Employees Qualifications"
+			)
+		isHidden
+		lineageTag: 37ca1a9d-ef57-430b-a539-f41505303779
+
+	measure 'Realized Emissions vs Target Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones realizadas frente a destino",
+			   "de-DE", "Realisierte Emissionen gegenüber Ziel",
+			   "fr-FR", "Émissions réalisées par rapport à la cible",
+			   "cs-CZ", "Realizované emise vs. cílová hodnota",
+			   "da-DK", "Realiserede udledninger vs mål",
+			   "de-AT", "Realisierte Emissionen gegenüber Ziel",
+			   "de-CH", "Realisierte Emissionen gegenüber Ziel",
+			   "en-AU", "Realised Emissions vs Target",
+			   "en-CA", "Realized Emissions vs Target",
+			   "en-GB", "Realised Emissions vs Target",
+			   "en-NZ", "Realised Emissions vs Target",
+			   "es-MX", "Emisiones realizadas frente a destino",
+			   "fi-FI", "Toteutuneet päästöt vrt. tavoite",
+			   "fr-BE", "Émissions réalisées par rapport à la cible",
+			   "fr-CA", "Émissions réalisées par rapport à la cible",
+			   "fr-CH", "Émissions réalisées par rapport à la cible",
+			   "is-IS", "Raunlosun samanborið við markmið",
+			   "it-CH", "Realizzazione emissioni rispetto all'obiettivo",
+			   "it-IT", "Realizzazione emissioni rispetto all'obiettivo",
+			   "nb-NO", "Realiserte utslipp kontra mål",
+			   "nl-BE", "Gerealiseerde uitstoot versus doel",
+			   "nl-NL", "Gerealiseerde uitstoot versus doel",
+			   "sv-SE", "Realiserade utsläpp jämfört med målet",
+			   "Realized Emissions vs Target"
+			)
+		isHidden
+		lineageTag: d088698d-3e33-4bdb-bd13-21798956a522
+
+	measure 'CO2e Emissions by Scope Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones de CO2e por ámbito",
+			   "de-DE", "CO2e-Emissionen nach Umfang",
+			   "fr-FR", "Émissions de CO2e par champ",
+			   "cs-CZ", "Emise CO2e podle rozsahu",
+			   "da-DK", "CO2e-udledninger efter omfang",
+			   "de-AT", "CO2e-Emissionen nach Umfang",
+			   "de-CH", "CO2e-Emissionen nach Umfang",
+			   "en-AU", "CO2e Emissions by Scope",
+			   "en-CA", "CO2e Emissions by Scope",
+			   "en-GB", "CO2e Emissions by Scope",
+			   "en-NZ", "CO2e Emissions by Scope",
+			   "es-MX", "Emisiones de CO2e por ámbito",
+			   "fi-FI", "CO2e-päästöt laajuuksittain",
+			   "fr-BE", "Émissions de CO2e par champ",
+			   "fr-CA", "Émissions de CO2e par champ",
+			   "fr-CH", "Émissions de CO2e par champ",
+			   "is-IS", "Losun CO2e eftir umfangi",
+			   "it-CH", "Emissioni CO2e per ambito",
+			   "it-IT", "Emissioni CO2e per ambito",
+			   "nb-NO", "CO2e-utslipp etter område",
+			   "nl-BE", "CO2e-uitstoot per bereik",
+			   "nl-NL", "CO2e-uitstoot per bereik",
+			   "sv-SE", "CO2e-utsläpp per scope",
+			   "CO2e Emissions by Scope"
+			)
+		isHidden
+		lineageTag: a730e6f7-17d1-4e9e-b056-54f9deae203d
+
+	measure 'Gas Emissions by Category Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones de gases por categoría",
+			   "de-DE", "Gasemissionen nach Kategorien",
+			   "fr-FR", "Émissions de gaz par catégorie",
+			   "cs-CZ", "Emise plynu podle kategorie",
+			   "da-DK", "Gasudledninger efter kategori",
+			   "de-AT", "Gasemissionen nach Kategorien",
+			   "de-CH", "Gasemissionen nach Kategorien",
+			   "en-AU", "Gas Emissions by Category",
+			   "en-CA", "Gas Emissions by Category",
+			   "en-GB", "Gas Emissions by Category",
+			   "en-NZ", "Gas Emissions by Category",
+			   "es-MX", "Emisiones de gases por categoría",
+			   "fi-FI", "Kaasupäästöt luokittain",
+			   "fr-BE", "Émissions de gaz par catégorie",
+			   "fr-CA", "Émissions de gaz par catégorie",
+			   "fr-CH", "Émissions de gaz par catégorie",
+			   "is-IS", "Losun lofttegunda eftir flokki",
+			   "it-CH", "Emissioni gas per categoria",
+			   "it-IT", "Emissioni gas per categoria",
+			   "nb-NO", "Gassutslipp etter kategori",
+			   "nl-BE", "Gasuitstoot per categorie",
+			   "nl-NL", "Gasuitstoot per categorie",
+			   "sv-SE", "Gasutsläpp per kategori",
+			   "Gas Emissions by Category"
+			)
+		isHidden
+		lineageTag: 01961868-8ec4-47a5-a6d9-4b5042fdf0d0
+
+	measure 'Realized Emissions vs Baseline Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones realizadas frente a línea de base",
+			   "de-DE", "Realisierte Emissionen gegenüber Ausgangswert",
+			   "fr-FR", "Émissions réalisées par rapport à la ligne de base",
+			   "cs-CZ", "Realizované emise vs. základní hodnota",
+			   "da-DK", "Realiserede udledninger vs grundlinje",
+			   "de-AT", "Realisierte Emissionen gegenüber Ausgangswert",
+			   "de-CH", "Realisierte Emissionen gegenüber Ausgangswert",
+			   "en-AU", "Realised Emissions vs Baseline",
+			   "en-CA", "Realized Emissions vs Baseline",
+			   "en-GB", "Realised Emissions vs Baseline",
+			   "en-NZ", "Realised Emissions vs Baseline",
+			   "es-MX", "Emisiones realizadas frente a línea de base",
+			   "fi-FI", "Toteutuneet päästöt vrt. perustaso",
+			   "fr-BE", "Émissions réalisées par rapport à la ligne de base",
+			   "fr-CA", "Émissions réalisées par rapport à la ligne de base",
+			   "fr-CH", "Émissions réalisées par rapport à la ligne de base",
+			   "is-IS", "Raunlosun samanborið við grunngildi",
+			   "it-CH", "Realizzazione emissioni rispetto al valore di riferimento",
+			   "it-IT", "Realizzazione emissioni rispetto al valore di riferimento",
+			   "nb-NO", "Realiserte utslipp kontra grunnlinje",
+			   "nl-BE", "Gerealiseerde uitstoot versus basislijn",
+			   "nl-NL", "Gerealiseerde uitstoot versus basislijn",
+			   "sv-SE", "Realiserade utsläpp jämfört med baslinjen",
+			   "Realized Emissions vs Baseline"
+			)
+		isHidden
+		lineageTag: 73d19675-e65b-43ab-ba62-ef09a9b1ec9f
+
+	measure 'CO2e Emissions vs Baseline Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones de CO2e frente a línea de base",
+			   "de-DE", "CO2e-Emissionen gegenüber Ausgangswert",
+			   "fr-FR", "Émissions de CO2e par rapport à la ligne de base",
+			   "cs-CZ", "Emise CO2e vs. základní hodnota",
+			   "da-DK", "CO2e-udledninger vs grundlinje",
+			   "de-AT", "CO2e-Emissionen gegenüber Ausgangswert",
+			   "de-CH", "CO2e-Emissionen gegenüber Ausgangswert",
+			   "en-AU", "CO2e Emissions vs Baseline",
+			   "en-CA", "CO2e Emissions vs Baseline",
+			   "en-GB", "CO2e Emissions vs Baseline",
+			   "en-NZ", "CO2e Emissions vs Baseline",
+			   "es-MX", "Emisiones de CO2e frente a línea de base",
+			   "fi-FI", "CO2e-päästöt vrt. perustaso",
+			   "fr-BE", "Émissions de CO2e par rapport à la ligne de base",
+			   "fr-CA", "Émissions de CO2e par rapport à la ligne de base",
+			   "fr-CH", "Émissions de CO2e par rapport à la ligne de base",
+			   "is-IS", "Losun CO2e miðað við grunnlínu",
+			   "it-CH", "Emissioni CO2e rispetto al valore di riferimento",
+			   "it-IT", "Emissioni CO2e rispetto al valore di riferimento",
+			   "nb-NO", "CO2e-utslipp kontra grunnlinje",
+			   "nl-BE", "CO2e-uitstoot versus basislijn",
+			   "nl-NL", "CO2e-uitstoot versus basislijn",
+			   "sv-SE", "CO2e-utsläpp jämfört med baslinjen",
+			   "CO2e Emissions vs Baseline"
+			)
+		isHidden
+		lineageTag: d0931db5-679a-4fcb-a8b4-53ec4cbbcd3b
+
+	measure 'CO2e Emissions by Account Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones de CO2e por cuenta",
+			   "de-DE", "CO2e-Emissionen nach Firma",
+			   "fr-FR", "Émissions de CO2e par compte",
+			   "cs-CZ", "Emise CO2e podle účtu",
+			   "da-DK", "CO2e-udledninger efter konto",
+			   "de-AT", "CO2e-Emissionen nach Firma",
+			   "de-CH", "CO2e-Emissionen nach Firma",
+			   "en-AU", "CO2e Emissions by Account",
+			   "en-CA", "CO2e Emissions by Account",
+			   "en-GB", "CO2e Emissions by Account",
+			   "en-NZ", "CO2e Emissions by Account",
+			   "es-MX", "Emisiones de CO2e por cuenta",
+			   "fi-FI", "CO2e-päästöt tileittäin",
+			   "fr-BE", "Émissions de CO2e par compte",
+			   "fr-CA", "Émissions de CO2e par compte",
+			   "fr-CH", "Émissions de CO2e par compte",
+			   "is-IS", "Losun CO2e eftir reikningi",
+			   "it-CH", "Emissioni CO2e per conto",
+			   "it-IT", "Emissioni CO2e per conto",
+			   "nb-NO", "CO2e-utslipp etter konto",
+			   "nl-BE", "CO2e-uitstoot per rekening",
+			   "nl-NL", "CO2e-uitstoot per rekening",
+			   "sv-SE", "CO2e-utsläpp per konto",
+			   "CO2e Emissions by Account"
+			)
+		isHidden
+		lineageTag: 164f119d-7781-4b56-a18a-c097fb293ea7
+
+	measure 'Water and Waste Analysis Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis del agua y residuos",
+			   "de-DE", "Wasser- und Abfallanalyse",
+			   "fr-FR", "Analyse de l’eau et des déchets",
+			   "cs-CZ", "Voda a odpad podle analýzy",
+			   "da-DK", "Vand- og affaldsanalyse",
+			   "de-AT", "Wasser- und Abfallanalyse",
+			   "de-CH", "Wasser- und Abfallanalyse",
+			   "en-AU", "Water and Waste Analysis",
+			   "en-CA", "Water and Waste Analysis",
+			   "en-GB", "Water and Waste Analysis",
+			   "en-NZ", "Water and Waste Analysis",
+			   "es-MX", "Análisis del agua y residuos",
+			   "fi-FI", "Vesi- ja jäteanalyysi",
+			   "fr-BE", "Analyse de l’eau et des déchets",
+			   "fr-CA", "Analyse de l’eau et des déchets",
+			   "fr-CH", "Analyse de l’eau et des déchets",
+			   "is-IS", "Greining á vatni og úrgangi",
+			   "it-CH", "Analisi acqua e rifiuti",
+			   "it-IT", "Analisi acqua e rifiuti",
+			   "nb-NO", "Vann- og avfallsanalyse",
+			   "nl-BE", "Water- en afvalanalyse",
+			   "nl-NL", "Water- en afvalanalyse",
+			   "sv-SE", "Vatten- och avfallsanalys",
+			   "Water and Waste Analysis"
+			)
+		isHidden
+		lineageTag: 81aa95d3-a862-46e8-a421-b65a76aefff6
+
+	measure 'Water by Facility Location Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Agua por almacén de instalación",
+			   "de-DE", "Wasser nach Anlagenstandort",
+			   "fr-FR", "Eau par magasin de l’installation",
+			   "cs-CZ", "Voda podle lokace zařízení",
+			   "da-DK", "Vand efter lokaleplacering",
+			   "de-AT", "Wasser nach Anlagenstandort",
+			   "de-CH", "Wasser nach Anlagenstandort",
+			   "en-AU", "Water by Facility Location",
+			   "en-CA", "Water by Facility Location",
+			   "en-GB", "Water by Facility Location",
+			   "en-NZ", "Water by Facility Location",
+			   "es-MX", "Agua por almacén de instalación",
+			   "fi-FI", "Vesi laitoksen sijainnin mukaan",
+			   "fr-BE", "Eau par magasin de l’installation",
+			   "fr-CA", "Consommation d’eau par site",
+			   "fr-CH", "Eau par magasin de l’installation",
+			   "is-IS", "Vatn eftir staðsetningu starfsstöðvar",
+			   "it-CH", "Acqua per ubicazione dell'impianto",
+			   "it-IT", "Acqua per ubicazione dell'impianto",
+			   "nb-NO", "Vann etter anleggslokasjon",
+			   "nl-BE", "Water per faciliteitslocatie",
+			   "nl-NL", "Water per faciliteitslocatie",
+			   "sv-SE", "Vatten per anläggningsplats",
+			   "Water by Facility Location"
+			)
+		isHidden
+		lineageTag: 137fea26-a935-4bde-8211-d9568e24f1d5
+
+	measure 'Water by Facility Capacity Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Agua por capacidad de instalación",
+			   "de-DE", "Wasser nach Anlagenkapazität",
+			   "fr-FR", "Eau par capacité de l’installation",
+			   "cs-CZ", "Voda podle kapacity zařízení",
+			   "da-DK", "Vand efter lokalekapacitet",
+			   "de-AT", "Wasser nach Anlagenkapazität",
+			   "de-CH", "Wasser nach Anlagenkapazität",
+			   "en-AU", "Water by Facility Capacity",
+			   "en-CA", "Water by Facility Capacity",
+			   "en-GB", "Water by Facility Capacity",
+			   "en-NZ", "Water by Facility Capacity",
+			   "es-MX", "Agua por capacidad de instalación",
+			   "fi-FI", "Vesi laitoksen kapasiteetin mukaan",
+			   "fr-BE", "Eau par capacité de l’installation",
+			   "fr-CA", "Eau par capacité de l’installation",
+			   "fr-CH", "Eau par capacité de l’installation",
+			   "is-IS", "Vatn eftir afkastagetu starfastöðvar",
+			   "it-CH", "Acqua per capacità dell'impianto",
+			   "it-IT", "Acqua per capacità dell'impianto",
+			   "nb-NO", "Vann etter anleggskapasitet",
+			   "nl-BE", "Water per faciliteitscapaciteit",
+			   "nl-NL", "Water per faciliteitscapaciteit",
+			   "sv-SE", "Vatten per anläggningskapacitet",
+			   "Water by Facility Capacity"
+			)
+		isHidden
+		lineageTag: a3b2726a-050e-47fc-8ac9-b473900f7c51
+
+	measure 'Water and Waste by Type Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Agua y residuos por tipo",
+			   "de-DE", "Wasser und Abfall nach Typ",
+			   "fr-FR", "Eau et déchets par type",
+			   "cs-CZ", "Voda a odpad podle typu",
+			   "da-DK", "Vand og affald efter type",
+			   "de-AT", "Wasser und Abfall nach Typ",
+			   "de-CH", "Wasser und Abfall nach Typ",
+			   "en-AU", "Water and Waste by Type",
+			   "en-CA", "Water and Waste by Type",
+			   "en-GB", "Water and Waste by Type",
+			   "en-NZ", "Water and Waste by Type",
+			   "es-MX", "Agua y residuos por tipo",
+			   "fi-FI", "Vesi- ja jäte tyypeittäin",
+			   "fr-BE", "Eau et déchets par type",
+			   "fr-CA", "Eau et déchets par type",
+			   "fr-CH", "Eau et déchets par type",
+			   "is-IS", "Vatn og úrgangur eftir gerð",
+			   "it-CH", "Acqua e rifiuti per tipo",
+			   "it-IT", "Acqua e rifiuti per tipo",
+			   "nb-NO", "Vann og avfall etter type",
+			   "nl-BE", "Water en afval per type",
+			   "nl-NL", "Water en afval per type",
+			   "sv-SE", "Vatten och avfall per typ",
+			   "Water and Waste by Type"
+			)
+		isHidden
+		lineageTag: 0097cb7f-445d-434d-9781-e7014cc9cfb0
+
+	measure 'Water and Waste Intensity by Type Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Intensidad del agua y residuos por tipo",
+			   "de-DE", "Wasser- und Abfallintensität nach Typ",
+			   "fr-FR", "Intensité en eau et des déchets par type",
+			   "cs-CZ", "Intenzita vody a odpadu podle typu",
+			   "da-DK", "Vand- og affaldsintensitet efter type",
+			   "de-AT", "Wasser- und Abfallintensität nach Typ",
+			   "de-CH", "Wasser- und Abfallintensität nach Typ",
+			   "en-AU", "Water and Waste Intensity by Type",
+			   "en-CA", "Water and Waste Intensity by Type",
+			   "en-GB", "Water and Waste Intensity by Type",
+			   "en-NZ", "Water and Waste Intensity by Type",
+			   "es-MX", "Intensidad del agua y residuos por tipo",
+			   "fi-FI", "Vesi- ja jäteintensiteetti tyypeittäin",
+			   "fr-BE", "Intensité en eau et des déchets par type",
+			   "fr-CA", "Intensité en eau et des déchets par type",
+			   "fr-CH", "Intensité en eau et des déchets par type",
+			   "is-IS", "Vatns- og úrgangsmagn eftir gerð",
+			   "it-CH", "Intensità acqua e rifiuti per tipo",
+			   "it-IT", "Intensità acqua e rifiuti per tipo",
+			   "nb-NO", "Vann- og avfallsintensitet etter type",
+			   "nl-BE", "Water- en afvalintensiteit per type",
+			   "nl-NL", "Water- en afvalintensiteit per type",
+			   "sv-SE", "Vatten- och avfallsintensitet per typ",
+			   "Water and Waste Intensity by Type"
+			)
+		isHidden
+		lineageTag: beb66cc4-3728-484c-b477-f2425b878ceb
+
+	measure 'Water and Waste Intensity by Facility Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Intensidad del agua y residuos por instalación",
+			   "de-DE", "Wasser- und Abfallintensität nach Anlage",
+			   "fr-FR", "Intensité en eau et des déchets par installation",
+			   "cs-CZ", "Intenzita vody a odpadu podle zařízení",
+			   "da-DK", "Vand- og affaldsintensitet efter anlæg",
+			   "de-AT", "Wasser- und Abfallintensität nach Anlage",
+			   "de-CH", "Wasser- und Abfallintensität nach Anlage",
+			   "en-AU", "Water and Waste Intensity by Facility",
+			   "en-CA", "Water and Waste Intensity by Facility",
+			   "en-GB", "Water and Waste Intensity by Facility",
+			   "en-NZ", "Water and Waste Intensity by Facility",
+			   "es-MX", "Intensidad del agua y residuos por instalación",
+			   "fi-FI", "Vesi- ja jäteintensiteetti laitoksittain",
+			   "fr-BE", "Intensité en eau et des déchets par installation",
+			   "fr-CA", "Intensité en eau et des déchets par installation",
+			   "fr-CH", "Intensité en eau et des déchets par installation",
+			   "is-IS", "Vatns- og úrgangsmagn eftir starfsstöð",
+			   "it-CH", "Intensità acqua e rifiuti per impianto",
+			   "it-IT", "Intensità acqua e rifiuti per impianto",
+			   "nb-NO", "Vann- og avfallsintensitet etter anlegg",
+			   "nl-BE", "Water- en afvalintensiteit per faciliteit",
+			   "nl-NL", "Water- en afvalintensiteit per faciliteit",
+			   "sv-SE", "Vatten- och avfallsintensitet per anläggning",
+			   "Water and Waste Intensity by Facility"
+			)
+		isHidden
+		lineageTag: ac93d89e-099c-4f3c-9013-44973e700059
+
+	measure 'Emissions by Category and Scope Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones por categoría y ámbito",
+			   "de-DE", "Emissionen nach Kategorie und Umfang",
+			   "fr-FR", "Émissions par catégorie et champ",
+			   "cs-CZ", "Emise podle kategorie a rozsahu",
+			   "da-DK", "Udledninger efter kategori og omfang",
+			   "de-AT", "Emissionen nach Kategorie und Umfang",
+			   "de-CH", "Emissionen nach Kategorie und Umfang",
+			   "en-AU", "Emissions by Category and Scope",
+			   "en-CA", "Emissions by Category and Scope",
+			   "en-GB", "Emissions by Category and Scope",
+			   "en-NZ", "Emissions by Category and Scope",
+			   "es-MX", "Emisiones por categoría y ámbito",
+			   "fi-FI", "Päästöt luokittain ja laajuuksittain",
+			   "fr-BE", "Émissions par catégorie et champ",
+			   "fr-CA", "Émissions par catégorie et champ",
+			   "fr-CH", "Émissions par catégorie et champ",
+			   "is-IS", "Losun eftir flokkum og umfangi",
+			   "it-CH", "Emissioni per categoria e ambito",
+			   "it-IT", "Emissioni per categoria e ambito",
+			   "nb-NO", "Utslipp etter kategori og område",
+			   "nl-BE", "Uitstoot per categorie en bereik",
+			   "nl-NL", "Uitstoot per categorie en bereik",
+			   "sv-SE", "Utsläpp per kategori och scope",
+			   "Emissions by Category and Scope"
+			)
+		isHidden
+		lineageTag: d7190573-55f7-4652-a893-8fb3d8a31be4
+
+	measure 'Emissions by Category Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones por categoría",
+			   "de-DE", "Emissionen nach Kategorie",
+			   "fr-FR", "Émissions par catégorie",
+			   "cs-CZ", "Emise podle kategorie",
+			   "da-DK", "Udledninger efter kategori",
+			   "de-AT", "Emissionen nach Kategorie",
+			   "de-CH", "Emissionen nach Kategorie",
+			   "en-AU", "Emissions by Category",
+			   "en-CA", "Emissions by Category",
+			   "en-GB", "Emissions by Category",
+			   "en-NZ", "Emissions by Category",
+			   "es-MX", "Emisiones por categoría",
+			   "fi-FI", "Päästöt luokittain",
+			   "fr-BE", "Émissions par catégorie",
+			   "fr-CA", "Émissions par catégorie",
+			   "fr-CH", "Émissions par catégorie",
+			   "is-IS", "Losun eftir flokki",
+			   "it-CH", "Emissioni per categoria",
+			   "it-IT", "Emissioni per categoria",
+			   "nb-NO", "Utslipp etter kategori",
+			   "nl-BE", "Uitstoot per categorie",
+			   "nl-NL", "Uitstoot per categorie",
+			   "sv-SE", "Utsläpp per kategori",
+			   "Emissions by Category"
+			)
+		isHidden
+		lineageTag: 54aebfbb-1933-46de-8b15-4a5a5a4cb2af
+
+	measure 'Emissions by Scope Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones por ámbito",
+			   "de-DE", "Emissionen nach Umfang",
+			   "fr-FR", "Émissions par portée",
+			   "cs-CZ", "Emise podle rozsahu",
+			   "da-DK", "Udledninger efter omfang",
+			   "de-AT", "Emissionen nach Umfang",
+			   "de-CH", "Emissionen nach Umfang",
+			   "en-AU", "Emissions by Scope",
+			   "en-CA", "Emissions by Scope",
+			   "en-GB", "Emissions by Scope",
+			   "en-NZ", "Emissions by Scope",
+			   "es-MX", "Emisiones por ámbito",
+			   "fi-FI", "Päästöt laajuuksittain",
+			   "fr-BE", "Émissions par portée",
+			   "fr-CA", "Émissions par portée",
+			   "fr-CH", "Émissions par portée",
+			   "is-IS", "Losun eftir umfangi",
+			   "it-CH", "Emissioni per ambito",
+			   "it-IT", "Emissioni per ambito",
+			   "nb-NO", "Utslipp etter område",
+			   "nl-BE", "Uitstoot per bereik",
+			   "nl-NL", "Uitstoot per bereik",
+			   "sv-SE", "Utsläpp per scope",
+			   "Emissions by Scope"
+			)
+		isHidden
+		lineageTag: 8cd8acb4-c9ce-457d-b6c5-1e326a185d90
+
+	measure 'CO2e Analysis Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis de CO2e",
+			   "de-DE", "CO2e-Analyse",
+			   "fr-FR", "Analyse du CO2e",
+			   "cs-CZ", "Analýza CO2e",
+			   "da-DK", "CO2e-analyse",
+			   "de-AT", "CO2e-Analyse",
+			   "de-CH", "CO2e-Analyse",
+			   "en-AU", "CO2e Analysis",
+			   "en-CA", "CO2e Analysis",
+			   "en-GB", "CO2e Analysis",
+			   "en-NZ", "CO2e Analysis",
+			   "es-MX", "Análisis de CO2e",
+			   "fi-FI", "CO2e-analyysi",
+			   "fr-BE", "Analyse du CO2e",
+			   "fr-CA", "Analyse du CO2e",
+			   "fr-CH", "Analyse du CO2e",
+			   "is-IS", "Greining CO2e",
+			   "it-CH", "Analisi CO2e",
+			   "it-IT", "Analisi CO2e",
+			   "nb-NO", "CO2e-analyse",
+			   "nl-BE", "CO2e-analyse",
+			   "nl-NL", "CO2e-analyse",
+			   "sv-SE", "CO2e-analys",
+			   "CO2e Analysis"
+			)
+		isHidden
+		lineageTag: 449cc7c3-f092-44eb-a528-e4b31f3fba06
+
+	measure 'CO2e Emissions by Category Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones de CO2e por categoría",
+			   "de-DE", "CO2e-Emissionen nach Kategorien",
+			   "fr-FR", "Émissions de CO2e par catégorie",
+			   "cs-CZ", "Emise CO2e podle kategorie",
+			   "da-DK", "CO2e-udledning pr. kategori",
+			   "de-AT", "CO2e-Emissionen nach Kategorien",
+			   "de-CH", "CO2e-Emissionen nach Kategorien",
+			   "en-AU", "CO2e Emissions by Category",
+			   "en-CA", "CO2e Emissions by Category",
+			   "en-GB", "CO2e Emissions by Category",
+			   "en-NZ", "CO2e Emissions by Category",
+			   "es-MX", "Emisiones de CO2e por categoría",
+			   "fi-FI", "CO2e-päästöt luokittain",
+			   "fr-BE", "Émissions de CO2e par catégorie",
+			   "fr-CA", "Émissions de CO2e par catégorie",
+			   "fr-CH", "Émissions de CO2e par catégorie",
+			   "is-IS", "Losun CO2e eftir flokki",
+			   "it-CH", "Emissioni CO2e per categoria",
+			   "it-IT", "Emissioni CO2e per categoria",
+			   "nb-NO", "CO2e-utslipp etter kategori",
+			   "nl-BE", "CO2e-uitstoot per categorie",
+			   "nl-NL", "CO2e-uitstoot per categorie",
+			   "sv-SE", "CO2e-utsläpp per kategori",
+			   "CO2e Emissions by Category"
+			)
+		isHidden
+		lineageTag: af1f6b06-4265-466e-9973-a4911a823260
+
+	measure 'Carbon Credit by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Crédito de carbono por mes",
+			   "de-DE", "Kohlenstoffgutschrift nach Monat",
+			   "fr-FR", "Crédit carbone par mois",
+			   "cs-CZ", "Uhlíkový kredit podle měsíce",
+			   "da-DK", "CO2-kredit efter måned",
+			   "de-AT", "Kohlenstoffgutschrift nach Monat",
+			   "de-CH", "Kohlenstoffgutschrift nach Monat",
+			   "en-AU", "Carbon Credit by Month",
+			   "en-CA", "Carbon Credit by Month",
+			   "en-GB", "Carbon Credit by Month",
+			   "en-NZ", "Carbon Credit by Month",
+			   "es-MX", "Crédito de carbono por mes",
+			   "fi-FI", "Hiilihyvitys kuukausittain",
+			   "fr-BE", "Crédit carbone par mois",
+			   "fr-CA", "Crédit carbone par mois",
+			   "fr-CH", "Crédit carbone par mois",
+			   "is-IS", "Kolefnisheimild eftir mánuði",
+			   "it-CH", "Credito di carbonio per mese",
+			   "it-IT", "Credito di carbonio per mese",
+			   "nb-NO", "Karbonkredit etter måned",
+			   "nl-BE", "Koolstofkrediet per maand",
+			   "nl-NL", "Koolstofkrediet per maand",
+			   "sv-SE", "Koldioxidkredit per månad",
+			   "Carbon Credit by Month"
+			)
+		isHidden
+		lineageTag: e50a6587-38e1-4700-bff5-cf82b1115a8b
+
+	measure 'CO2e Equivalent Emission by Month and Revenue Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones equivalentes de CO2e por mes e ingresos",
+			   "de-DE", "CO2e-Äquivalent Emission pro Monat und Umsatz",
+			   "fr-FR", "Émissions d’équivalent CO2e par mois et par revenu",
+			   "cs-CZ", "Ekvivalentní emise CO2e podle měsíce a výnosů",
+			   "da-DK", "CO2e-ækvivalente udledninger efter måned og indtægt",
+			   "de-AT", "CO2e-Äquivalent Emission pro Monat und Umsatz",
+			   "de-CH", "CO2e-Äquivalent Emission pro Monat und Umsatz",
+			   "en-AU", "CO2e Equivalent Emission by Month and Revenue",
+			   "en-CA", "CO2e Equivalent Emission by Month and Revenue",
+			   "en-GB", "CO2e Equivalent Emission by Month and Revenue",
+			   "en-NZ", "CO2e Equivalent Emission by Month and Revenue",
+			   "es-MX", "Emisiones equivalentes de CO2e por mes e ingresos",
+			   "fi-FI", "CO2e-ekvivalenttipäästöt kuukausittain ja tuotoittain",
+			   "fr-BE", "Émissions d’équivalent CO2e par mois et par revenu",
+			   "fr-CA", "Émissions d’équivalent CO2e par mois et par revenu",
+			   "fr-CH", "Émissions d’équivalent CO2e par mois et par revenu",
+			   "is-IS", "Jafngild losun CO2e eftir mánuði og tekjum",
+			   "it-CH", "Emissione CO2e equivalente per mese e ricavi",
+			   "it-IT", "Emissione CO2e equivalente per mese e ricavi",
+			   "nb-NO", "CO2e-ekvivalentutslipp etter måned og inntekt",
+			   "nl-BE", "CO2e-equivalente uitstoot per maand en opbrengst",
+			   "nl-NL", "CO2e-equivalente uitstoot per maand en opbrengst",
+			   "sv-SE", "Utsläpp av CO2e-ekvivalenter per månad och intäkt",
+			   "CO2e Equivalent Emission by Month and Revenue"
+			)
+		isHidden
+		lineageTag: cbf91ef2-8bb7-4400-8f2d-35c3efcc4daa
+
+	measure 'Employee Entries Drillthrough Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis detallado de movs. empleados",
+			   "de-DE", "Mitarbeiterposten-Drillthrough",
+			   "fr-FR", "Extraction écritures salarié",
+			   "cs-CZ", "Podrobné procházení položek zaměstnanců",
+			   "da-DK", "Detaljeudledning af medarbejderposter",
+			   "de-AT", "Mitarbeiterposten-Drillthrough",
+			   "de-CH", "Mitarbeiterposten-Drillthrough",
+			   "en-AU", "Employee Entries Drillthrough",
+			   "en-CA", "Employee Entries Drillthrough",
+			   "en-GB", "Employee Entries Drillthrough",
+			   "en-NZ", "Employee Entries Drillthrough",
+			   "es-MX", "Análisis detallado de movs. empleados",
+			   "fi-FI", "Työntekijätapahtumiin porautuminen",
+			   "fr-BE", "Extraction écritures salarié",
+			   "fr-CA", "Exploration des entrées de l’employé",
+			   "fr-CH", "Extraction écritures salarié",
+			   "is-IS", "Köfun í færslur starfsmanns",
+			   "it-CH", "Drill-through movimenti dipendenti",
+			   "it-IT", "Drill-through movimenti dipendenti",
+			   "nb-NO", "Gjennomgang av ansattposter",
+			   "nl-BE", "Detailanalyse van werknemersposten",
+			   "nl-NL", "Detailanalyse van werknemersposten",
+			   "sv-SE", "Detaljerad analys av personaltransaktioner",
+			   "Employee Entries Drillthrough"
+			)
+		isHidden
+		lineageTag: 14e39ece-5fe8-4d86-8c8f-ae0bfea24dbc
+
+	measure 'Employee Ledger Entries Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Movimientos empleados",
+			   "de-DE", "Mitarbeiterposten",
+			   "fr-FR", "Écritures comptable salarié",
+			   "cs-CZ", "Položky zaměstnanců",
+			   "da-DK", "Medarbejderposter",
+			   "de-AT", "Mitarbeiterposten",
+			   "de-CH", "Mitarbeiterposten",
+			   "en-AU", "Employee Ledger Entries",
+			   "en-CA", "Employee Ledger Entries",
+			   "en-GB", "Employee Ledger Entries",
+			   "en-NZ", "Employee Ledger Entries",
+			   "es-MX", "Movimientos empleados",
+			   "fi-FI", "Työntekijätapahtumat",
+			   "fr-BE", "Écritures comptable salarié",
+			   "fr-CA", "Écritures du grand livre des employés",
+			   "fr-CH", "Écritures comptable salarié",
+			   "is-IS", "Fjárhagsfærslur starfsmanns",
+			   "it-CH", "Movimenti contabili dipendente",
+			   "it-IT", "Movimenti contabili dipendente",
+			   "nb-NO", "Ansattposter",
+			   "nl-BE", "Werknemersposten",
+			   "nl-NL", "Werknemersposten",
+			   "sv-SE", "Personaltransaktioner",
+			   "Employee Ledger Entries"
+			)
+		isHidden
+		lineageTag: 76bc227a-9ee5-4ef6-bbd0-cc0a22d6fbe5
+
+	measure 'Sustainability Ledger Entries Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Movimientos de sostenibilidad",
+			   "de-DE", "Nachhaltigkeitsposten",
+			   "fr-FR", "Écritures comptables durabilité",
+			   "cs-CZ", "Položky udržitelnosti",
+			   "da-DK", "Finansposter for bæredygtighed",
+			   "de-AT", "Nachhaltigkeitsposten",
+			   "de-CH", "Nachhaltigkeitsposten",
+			   "en-AU", "Sustainability Ledger Entries",
+			   "en-CA", "Sustainability Ledger Entries",
+			   "en-GB", "Sustainability Ledger Entries",
+			   "en-NZ", "Sustainability Ledger Entries",
+			   "es-MX", "Movimientos de sustentabilidad",
+			   "fi-FI", "Vastuullisuustapahtumat",
+			   "fr-BE", "Écritures comptables durabilité",
+			   "fr-CA", "Écritures relatives au développement durable",
+			   "fr-CH", "Écritures comptables durabilité",
+			   "is-IS", "Fjárhagsfærslur fyrir sjálfbærni",
+			   "it-CH", "Movimenti contabili sostenibilità",
+			   "it-IT", "Movimenti contabili sostenibilità",
+			   "nb-NO", "Bærekraftposter",
+			   "nl-BE", "Duurzaamheidsposten",
+			   "nl-NL", "Duurzaamheidsposten",
+			   "sv-SE", "Hållbarhetstransaktioner",
+			   "Sustainability Ledger Entries"
+			)
+		isHidden
+		lineageTag: e92439f0-1160-4d4d-b6a4-bdcd867c43c2
+
+	measure 'Sustainability Ledger Entries Drillthrough Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis detallado de movimientos de sostenibilidad",
+			   "de-DE", "Nachhaltigkeitsposten-Drillthrough",
+			   "fr-FR", "Extraction Écritures comptables durabilité",
+			   "cs-CZ", "Podrobné procházení položek udržitelnosti",
+			   "da-DK", "Detaljeudledning af finansposter for bæredygtighed",
+			   "de-AT", "Nachhaltigkeitsposten-Drillthrough",
+			   "de-CH", "Nachhaltigkeitsposten-Drillthrough",
+			   "en-AU", "Sustainability Ledger Entries Drillthrough",
+			   "en-CA", "Sustainability Ledger Entries Drillthrough",
+			   "en-GB", "Sustainability Ledger Entries Drillthrough",
+			   "en-NZ", "Sustainability Ledger Entries Drillthrough",
+			   "es-MX", "Análisis detallado de movimientos de sustentabilidad",
+			   "fi-FI", "Vastuullisuustapahtumiin porautuminen",
+			   "fr-BE", "Extraction Écritures comptables durabilité",
+			   "fr-CA", "Écritures relatives au développement durable",
+			   "fr-CH", "Extraction Écritures comptables durabilité",
+			   "is-IS", "Köfun í fjárhagsfærslur fyrir sjálfbærni",
+			   "it-CH", "Drill-through movimenti contabili sostenibilità",
+			   "it-IT", "Drill-through movimenti contabili sostenibilità",
+			   "nb-NO", "Gjennomgang av bærekraftposter",
+			   "nl-BE", "Detailanalyse duurzaamheidsposten",
+			   "nl-NL", "Detailanalyse duurzaamheidsposten",
+			   "sv-SE", "Detaljerad analys av hållbarhetstransaktioner",
+			   "Sustainability Ledger Entries Drillthrough"
+			)
+		isHidden
+		lineageTag: 975fbee2-7094-46b6-8e5e-8d01fc6fe203
+
+	measure 'Employee Ledger Entries Drillthrough Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis detallado de movimientos de empleados",
+			   "de-DE", "Mitarbeiter-Hauptbuchposten-Drillthrough",
+			   "fr-FR", "Extraction écritures comptables salarié",
+			   "cs-CZ", "Podrobné procházení položek zaměstnanců",
+			   "da-DK", "Detaljeudledning af medarbejderfinansposter",
+			   "de-AT", "Mitarbeiter-Hauptbuchposten-Drillthrough",
+			   "de-CH", "Mitarbeiter-Hauptbuchposten-Drillthrough",
+			   "en-AU", "Employee Ledger Entries Drillthrough",
+			   "en-CA", "Employee Ledger Entries Drillthrough",
+			   "en-GB", "Employee Ledger Entries Drillthrough",
+			   "en-NZ", "Employee Ledger Entries Drillthrough",
+			   "es-MX", "Análisis detallado de movimientos de empleados",
+			   "fi-FI", "Työntekijätapahtumiin porautuminen",
+			   "fr-BE", "Extraction écritures comptables salarié",
+			   "fr-CA", "Exploration des écritures du grand livre des employés",
+			   "fr-CH", "Extraction écritures comptables salarié",
+			   "is-IS", "Köfun í fjárhagsfærslur starfsmanns",
+			   "it-CH", "Drill-through movimenti contabili dipendente",
+			   "it-IT", "Drill-through movimenti contabili dipendente",
+			   "nb-NO", "Gjennomgang av ansattposter",
+			   "nl-BE", "Detailanalyse werknemersposten",
+			   "nl-NL", "Detailanalyse werknemersposten",
+			   "sv-SE", "Detaljerad analys av redovisningstransaktioner för personal",
+			   "Employee Ledger Entries Drillthrough"
+			)
+		isHidden
+		lineageTag: 49c60c46-0db2-4187-96f6-3198848206ce
+
+	measure 'Sustainability Overview Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Información general de sostenibilidad",
+			   "de-DE", "Nachhaltigkeitsübersicht",
+			   "fr-FR", "Vue d’ensemble durabilité",
+			   "cs-CZ", "Přehled udržitelnosti",
+			   "da-DK", "Bæredygtighedsoversigt",
+			   "de-AT", "Nachhaltigkeitsübersicht",
+			   "de-CH", "Nachhaltigkeitsübersicht",
+			   "en-AU", "Sustainability Overview",
+			   "en-CA", "Sustainability Overview",
+			   "en-GB", "Sustainability Overview",
+			   "en-NZ", "Sustainability Overview",
+			   "es-MX", "Información general de sustentabilidad",
+			   "fi-FI", "Vastuullisuus – Yleiskuvaus",
+			   "fr-BE", "Vue d’ensemble durabilité",
+			   "fr-CA", "Vue d’ensemble durabilité",
+			   "fr-CH", "Vue d’ensemble durabilité",
+			   "is-IS", "Yfirlit yfir sjálfbærni",
+			   "it-CH", "Panoramica sostenibilità",
+			   "it-IT", "Panoramica sostenibilità",
+			   "nb-NO", "Oversikt over bærekraft",
+			   "nl-BE", "Duurzaamheidsoverzicht",
+			   "nl-NL", "Duurzaamheidsoverzicht",
+			   "sv-SE", "Hållbarhetsöversikt",
+			   "Sustainability Overview"
+			)
+		isHidden
+		lineageTag: d3bd6d03-774d-4c7f-babd-ef6f210d9c57
+
+	measure 'Sustainability Analytics Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis de sostenibilidad",
+			   "de-DE", "Nachhaltigkeitsanalysen",
+			   "fr-FR", "Analyse de durabilité",
+			   "cs-CZ", "Analýzy udržitelnosti",
+			   "da-DK", "Bæredygtighedsanalyse",
+			   "de-AT", "Nachhaltigkeitsanalysen",
+			   "de-CH", "Nachhaltigkeitsanalysen",
+			   "en-AU", "Sustainability Analytics",
+			   "en-CA", "Sustainability Analytics",
+			   "en-GB", "Sustainability Analytics",
+			   "en-NZ", "Sustainability Analytics",
+			   "es-MX", "Análisis de sustentabilidad",
+			   "fi-FI", "Vastuullisuusanalytiikka",
+			   "fr-BE", "Analyse de durabilité",
+			   "fr-CA", "Analyse de durabilité",
+			   "fr-CH", "Analyse de durabilité",
+			   "is-IS", "Sjálfbærnigreining",
+			   "it-CH", "Analisi sostenibilità",
+			   "it-IT", "Analisi sostenibilità",
+			   "nb-NO", "Bærekraftsanalyse",
+			   "nl-BE", "Duurzaamheidsanalyses",
+			   "nl-NL", "Duurzaamheidsanalyses",
+			   "sv-SE", "Hållbarhetsanalys",
+			   "Sustainability Analytics"
+			)
+		isHidden
+		lineageTag: 18d14acd-1c9f-400a-bc73-2ed3ea01b46d
+
+	measure 'CO2e Emissions by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones de CO2e por mes",
+			   "de-DE", "CO2e-Emissionen pro Monat",
+			   "fr-FR", "Émissions de CO2e par mois",
+			   "cs-CZ", "Emise CO2e podle měsíce",
+			   "da-DK", "CO2e-udledninger pr. måned",
+			   "de-AT", "CO2e-Emissionen pro Monat",
+			   "de-CH", "CO2e-Emissionen pro Monat",
+			   "en-AU", "CO2e Emissions by Month",
+			   "en-CA", "CO2e Emissions by Month",
+			   "en-GB", "CO2e Emissions by Month",
+			   "en-NZ", "CO2e Emissions by Month",
+			   "es-MX", "Emisiones de CO2e por mes",
+			   "fi-FI", "CO2e-päästöt kuukausittain",
+			   "fr-BE", "Émissions de CO2e par mois",
+			   "fr-CA", "Émissions de CO2e par mois",
+			   "fr-CH", "Émissions de CO2e par mois",
+			   "is-IS", "Losun CO2e eftir mánuði",
+			   "it-CH", "Emissioni CO2e per mese",
+			   "it-IT", "Emissioni CO2e per mese",
+			   "nb-NO", "CO2e-utslipp etter måned",
+			   "nl-BE", "CO2e-uitstoot per maand",
+			   "nl-NL", "CO2e-uitstoot per maand",
+			   "sv-SE", "CO2e-utsläpp per månad",
+			   "CO2e Emissions by Month"
+			)
+		isHidden
+		lineageTag: aedacb5a-e879-4dcc-97f8-25264ae7a4ab
+
+	measure 'Scopes 1 and 2 Analysis by Categories Per Year Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Análisis de los ámbitos 1 y 2 por categorías por año",
+			   "de-DE", "Bereich-1- und Bereich-2-Analyse nach Kategorien pro Jahr",
+			   "fr-FR", "Analyse des champs 1 et 2 par catégories par an",
+			   "cs-CZ", "Analýza rozsahů 1 a 2 podle kategorií za rok",
+			   "da-DK", "Omfang 1 og 2 Analyse efter kategorier pr. år",
+			   "de-AT", "Bereich-1- und Bereich-2-Analyse nach Kategorien pro Jahr",
+			   "de-CH", "Bereich-1- und Bereich-2-Analyse nach Kategorien pro Jahr",
+			   "en-AU", "Scopes 1 and 2 Analysis by Categories Per Year",
+			   "en-CA", "Scopes 1 and 2 Analysis by Categories Per Year",
+			   "en-GB", "Scopes 1 and 2 Analysis by Categories Per Year",
+			   "en-NZ", "Scopes 1 and 2 Analysis by Categories Per Year",
+			   "es-MX", "Análisis de los ámbitos 1 y 2 por categorías por año",
+			   "fi-FI", "Laajuuksien 1 ja 2 analyysi luokittain per vuosi",
+			   "fr-BE", "Analyse des champs 1 et 2 par catégories par an",
+			   "fr-CA", "Analyse des champs 1 et 2 par catégories par an",
+			   "fr-CH", "Analyse des champs 1 et 2 par catégories par an",
+			   "is-IS", "Umfang 1 og 2 Greining eftir flokkum eftir ári",
+			   "it-CH", "Analisi ambiti 1 e 2 per categorie per anno",
+			   "it-IT", "Analisi ambiti 1 e 2 per categorie per anno",
+			   "nb-NO", "Analyse av område 1 og 2 etter kategorier per år",
+			   "nl-BE", "Analyse per categorie per jaar bereik 1 en 2",
+			   "nl-NL", "Analyse per categorie per jaar bereik 1 en 2",
+			   "sv-SE", "Analys av kategorierna scope 1 och 2 per kategori och år",
+			   "Scopes 1 and 2 Analysis by Categories Per Year"
+			)
+		isHidden
+		lineageTag: 389e4f5e-27f9-421f-926d-c0de60f040c3
+
+	measure 'CO2e Emissions by Department Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones de CO2e por departamento",
+			   "de-DE", "CO2e-Emissionen nach Abteilungen",
+			   "fr-FR", "Émissions de CO2e par département",
+			   "cs-CZ", "Emise CO2e podle oddělení",
+			   "da-DK", "CO2e-udledninger efter afdeling",
+			   "de-AT", "CO2e-Emissionen nach Abteilungen",
+			   "de-CH", "CO2e-Emissionen nach Abteilungen",
+			   "en-AU", "CO2e Emissions by Department",
+			   "en-CA", "CO2e Emissions by Department",
+			   "en-GB", "CO2e Emissions by Department",
+			   "en-NZ", "CO2e Emissions by Department",
+			   "es-MX", "Emisiones de CO2e por departamento",
+			   "fi-FI", "CO2e-päästöt osastoittain",
+			   "fr-BE", "Émissions de CO2e par département",
+			   "fr-CA", "Émissions de CO2e par département",
+			   "fr-CH", "Émissions de CO2e par département",
+			   "is-IS", "Losun CO2e eftir deild",
+			   "it-CH", "Emissioni CO2e per reparto",
+			   "it-IT", "Emissioni CO2e per reparto",
+			   "nb-NO", "CO2e-utslipp etter avdeling",
+			   "nl-BE", "CO2e-uitstoot per afdeling",
+			   "nl-NL", "CO2e-uitstoot per afdeling",
+			   "sv-SE", "CO2e-utsläpp per avdelning",
+			   "CO2e Emissions by Department"
+			)
+		isHidden
+		lineageTag: 031dee52-b2ba-43c9-9689-72e8d0a10fcc
+
+	measure 'Journey to Net-Zero Carbon Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Recorrido hacia el carbono cero neto",
+			   "de-DE", "Der Weg zur CO2-Neutralität",
+			   "fr-FR", "Parcours vers le zéro carbone net",
+			   "cs-CZ", "Cesta k nulovým emisím uhlíku",
+			   "da-DK", "Rejsen til netto-nul CO2",
+			   "de-AT", "Der Weg zur CO2-Neutralität",
+			   "de-CH", "Der Weg zur CO2-Neutralität",
+			   "en-AU", "Journey to Net-Zero Carbon",
+			   "en-CA", "Journey to Net-Zero Carbon",
+			   "en-GB", "Journey to Net-Zero Carbon",
+			   "en-NZ", "Journey to Net-Zero Carbon",
+			   "es-MX", "Recorrido hacia el carbono cero neto",
+			   "fi-FI", "Matka kohti hiilineutraaliutta",
+			   "fr-BE", "Parcours vers le zéro carbone net",
+			   "fr-CA", "Parcours vers le zéro carbone net",
+			   "fr-CH", "Parcours vers le zéro carbone net",
+			   "is-IS", "Ferð til nettólosunar kolefnis",
+			   "it-CH", "Percorso verso l'azzeramento delle emissioni nette di carbonio",
+			   "it-IT", "Percorso verso l'azzeramento delle emissioni nette di carbonio",
+			   "nb-NO", "Reisen til nettonull karbon",
+			   "nl-BE", "Reis naar Netto-Nul-Koolstof",
+			   "nl-NL", "Reis naar Netto-Nul-Koolstof",
+			   "sv-SE", "Resan mot netto-noll koldioxidutsläpp",
+			   "Journey to Net-Zero Carbon"
+			)
+		isHidden
+		lineageTag: 429c7d14-a6f8-4421-bae5-6e58597ce9a7
+
+	measure 'CO2e Emissions by Business Group Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones de CO2e por grupo empresarial",
+			   "de-DE", "CO2e-Emissionen nach Unternehmensgruppe",
+			   "fr-FR", "Émissions de CO2e par marché",
+			   "cs-CZ", "Emise CO2e podle obchodní skupiny",
+			   "da-DK", "CO2e-udledninger efter virksomhedsgruppe",
+			   "de-AT", "CO2e-Emissionen nach Unternehmensgruppe",
+			   "de-CH", "CO2e-Emissionen nach Unternehmensgruppe",
+			   "en-AU", "CO2e Emissions by Business Group",
+			   "en-CA", "CO2e Emissions by Business Group",
+			   "en-GB", "CO2e Emissions by Business Group",
+			   "en-NZ", "CO2e Emissions by Business Group",
+			   "es-MX", "Emisiones de CO2e por grupo empresarial",
+			   "fi-FI", "CO2e-päästöt liiketoimintaryhmittäin",
+			   "fr-BE", "Émissions de CO2e par marché",
+			   "fr-CA", "Émissions de CO2e par marché",
+			   "fr-CH", "Émissions de CO2e par marché",
+			   "is-IS", "Losun CO2e eftir fyrirtækjahópi",
+			   "it-CH", "Emissioni CO2e per categoria business",
+			   "it-IT", "Emissioni CO2e per categoria business",
+			   "nb-NO", "CO2e-utslipp etter forretningsgruppe",
+			   "nl-BE", "CO2e-uitstoot per bedrijfsgroep",
+			   "nl-NL", "CO2e-uitstoot per bedrijfsgroep",
+			   "sv-SE", "CO2e-utsläpp per affärsgrupp",
+			   "CO2e Emissions by Business Group"
+			)
+		isHidden
+		lineageTag: 09453e8f-8a96-40a8-8aab-f4bc99d6079e
+
+	measure 'Renewable Energy Usage Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Uso de energías Renovables",
+			   "de-DE", "Nutzung erneuerbarer Energien",
+			   "fr-FR", "Activité des énergies renouvelables",
+			   "cs-CZ", "Využití obnovitelné energie",
+			   "da-DK", "Forbrug af vedvarende energi",
+			   "de-AT", "Nutzung erneuerbarer Energien",
+			   "de-CH", "Nutzung erneuerbarer Energien",
+			   "en-AU", "Renewable Energy Usage",
+			   "en-CA", "Renewable Energy Usage",
+			   "en-GB", "Renewable Energy Usage",
+			   "en-NZ", "Renewable Energy Usage",
+			   "es-MX", "Uso de energías Renovables",
+			   "fi-FI", "Uusiutuvan energian käyttö",
+			   "fr-BE", "Activité des énergies renouvelables",
+			   "fr-CA", "Utilisation d’énergies renouvelables",
+			   "fr-CH", "Activité des énergies renouvelables",
+			   "is-IS", "Notkun endurnýjanlegrar orku",
+			   "it-CH", "Utilizzo energie rinnovabili",
+			   "it-IT", "Utilizzo energie rinnovabili",
+			   "nb-NO", "Bruk av fornybar energi",
+			   "nl-BE", "Gebruik hernieuwbare energie",
+			   "nl-NL", "Gebruik hernieuwbare energie",
+			   "sv-SE", "Användning av förnybar energi",
+			   "Renewable Energy Usage"
+			)
+		isHidden
+		lineageTag: bd45299c-16e4-4dc4-b8df-46460d7d639a
+
+	measure 'CO2e Emissions Over Time Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones de CO2e a lo largo del tiempo",
+			   "de-DE", "CO2e-Emissionen im Zeitverlauf",
+			   "fr-FR", "Émissions de CO2e dans le temps",
+			   "cs-CZ", "Emise CO2e v průběhu času",
+			   "da-DK", "CO2e-udledninger over tid",
+			   "de-AT", "CO2e-Emissionen im Zeitverlauf",
+			   "de-CH", "CO2e-Emissionen im Zeitverlauf",
+			   "en-AU", "CO2e Emissions Over Time",
+			   "en-CA", "CO2e Emissions Over Time",
+			   "en-GB", "CO2e Emissions Over Time",
+			   "en-NZ", "CO2e Emissions Over Time",
+			   "es-MX", "Emisiones de CO2e a lo largo del tiempo",
+			   "fi-FI", "CO2e-päästöt ajan myötä",
+			   "fr-BE", "Émissions de CO2e dans le temps",
+			   "fr-CA", "Émissions de CO2e dans le temps",
+			   "fr-CH", "Émissions de CO2e dans le temps",
+			   "is-IS", "Losun CO2e yfir tíma",
+			   "it-CH", "Emissioni CO2e nel tempo",
+			   "it-IT", "Emissioni CO2e nel tempo",
+			   "nb-NO", "CO2e-utslipp over tid",
+			   "nl-BE", "CO2e-uitstoot in loop van tijd",
+			   "nl-NL", "CO2e-uitstoot in loop van tijd",
+			   "sv-SE", "CO2e-utsläpp över tid",
+			   "CO2e Emissions Over Time"
+			)
+		isHidden
+		lineageTag: 44d0e701-7844-43e5-bfa0-961f7b2a31a0
+
+	measure 'CO2e Smart Review Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Revisión inteligente de CO2e",
+			   "de-DE", "Intelligente CO2e-Prüfung",
+			   "fr-FR", "CO2e Smart Review",
+			   "cs-CZ", "Chytrá kontrola CO2e",
+			   "da-DK", "CO2e Smart anmeldelse",
+			   "de-AT", "Intelligente CO2e-Prüfung",
+			   "de-CH", "Intelligente CO2e-Prüfung",
+			   "en-AU", "CO2e Smart Review",
+			   "en-CA", "CO2e Smart Review",
+			   "en-GB", "CO2e Smart Review",
+			   "en-NZ", "CO2e Smart Review",
+			   "es-MX", "Revisión inteligente de CO2e",
+			   "fi-FI", "Älykäs CO2e-arviointi",
+			   "fr-BE", "CO2e Smart Review",
+			   "fr-CA", "CO2e Smart Review",
+			   "fr-CH", "CO2e Smart Review",
+			   "is-IS", "Snjallúttekt CO2e",
+			   "it-CH", "Recensione intelligente CO2e",
+			   "it-IT", "Recensione intelligente CO2e",
+			   "nb-NO", "Smart gjennomgang av CO2e",
+			   "nl-BE", "Slimme beoordeling CO2e",
+			   "nl-NL", "Slimme beoordeling CO2e",
+			   "sv-SE", "Smart granskning av CO2e",
+			   "CO2e Smart Review"
+			)
+		isHidden
+		lineageTag: e38ec7fb-ceb3-43c8-8c76-9d747e55b510
+
+	measure 'CO2e Emissions by Global Dimension One Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones de CO2e por dimensión global uno",
+			   "de-DE", "CO2e-Emissionen nach globaler Dimension eins",
+			   "fr-FR", "Émissions de CO2e par axe analytique principal un",
+			   "cs-CZ", "Emise CO2e podle globální dimenze jedna",
+			   "da-DK", "CO2e-emissioner efter global dimension et",
+			   "de-AT", "CO2e-Emissionen nach globaler Dimension eins",
+			   "de-CH", "CO2e-Emissionen nach globaler Dimension eins",
+			   "en-AU", "CO2e Emissions by Global Dimension One",
+			   "en-CA", "CO2e Emissions by Global Dimension One",
+			   "en-GB", "CO2e Emissions by Global Dimension One",
+			   "en-NZ", "CO2e Emissions by Global Dimension One",
+			   "es-MX", "Emisiones de CO2e por dimensión global uno",
+			   "fi-FI", "CO2e-päästöt yleisen dimension yksi mukaan",
+			   "fr-BE", "Émissions de CO2e par axe analytique principal un",
+			   "fr-CA", "Émissions de CO2 par dimension principale 1",
+			   "fr-CH", "Émissions de CO2e par axe analytique principal un",
+			   "is-IS", "Losun CO2e frá altækri vídd eitt",
+			   "it-CH", "Emissioni CO2e per dimensione globale uno",
+			   "it-IT", "Emissioni CO2e per dimensione globale uno",
+			   "nb-NO", "CO2e-utslipp etter global dimensjon én",
+			   "nl-BE", "CO2e-uitstoot per globale dimensie één",
+			   "nl-NL", "CO2e-uitstoot per globale dimensie één",
+			   "sv-SE", "CO2e-utsläpp per global dimension ett",
+			   "CO2e Emissions by Global Dimension One"
+			)
+		isHidden
+		lineageTag: 8e16bdd3-ed1a-4c02-a296-7ed348a3c942
+
+	measure 'CO2e Emissions by Global Dimension Two Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones de CO2e por dimensión global dos",
+			   "de-DE", "CO2e-Emissionen nach globaler Dimension zwei",
+			   "fr-FR", "Émissions de CO2e par axe analytique principal deux",
+			   "cs-CZ", "Emise CO2e podle globální dimenze dvě",
+			   "da-DK", "CO2e-emissioner efter global dimension to",
+			   "de-AT", "CO2e-Emissionen nach globaler Dimension zwei",
+			   "de-CH", "CO2e-Emissionen nach globaler Dimension zwei",
+			   "en-AU", "CO2e Emissions by Global Dimension Two",
+			   "en-CA", "CO2e Emissions by Global Dimension Two",
+			   "en-GB", "CO2e Emissions by Global Dimension Two",
+			   "en-NZ", "CO2e Emissions by Global Dimension Two",
+			   "es-MX", "Emisiones de CO2e por dimensión global dos",
+			   "fi-FI", "CO2e-päästöt yleisen dimension kaksi mukaan",
+			   "fr-BE", "Émissions de CO2e par axe analytique principal deux",
+			   "fr-CA", "Émissions de CO2 par dimension principale 2",
+			   "fr-CH", "Émissions de CO2e par axe analytique principal deux",
+			   "is-IS", "Losun CO2e frá altækri vídd tvö",
+			   "it-CH", "Emissioni CO2e per dimensione globale due",
+			   "it-IT", "Emissioni CO2e per dimensione globale due",
+			   "nb-NO", "CO2e-utslipp etter global dimensjon to",
+			   "nl-BE", "CO2e-uitstoot per globale dimensie twee",
+			   "nl-NL", "CO2e-uitstoot per globale dimensie twee",
+			   "sv-SE", "CO2e-utsläpp per global dimension två",
+			   "CO2e Emissions by Global Dimension Two"
+			)
+		isHidden
+		lineageTag: a6e904ef-b83e-4dde-b25d-e1b56188b607
+
+	measure 'CO2e Equivalent Emissions by Month Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Emisiones equivalentes de CO2e por mes",
+			   "de-DE", "CO2e-Äquivalent Emissionen pro Monat",
+			   "fr-FR", "Émissions d’équivalent CO2e par mois",
+			   "cs-CZ", "Ekvivalentní emise CO2e podle měsíce",
+			   "da-DK", "CO2e-ækvivalente udledninger pr. måned",
+			   "de-AT", "CO2e-Äquivalent Emissionen pro Monat",
+			   "de-CH", "CO2e-Äquivalent Emissionen pro Monat",
+			   "en-AU", "CO2e Equivalent Emissions by Month",
+			   "en-CA", "CO2e Equivalent Emissions by Month",
+			   "en-GB", "CO2e Equivalent Emissions by Month",
+			   "en-NZ", "CO2e Equivalent Emissions by Month",
+			   "es-MX", "Emisiones equivalentes de CO2e por mes",
+			   "fi-FI", "CO2e-ekvivalenttipäästöt kuukausittain",
+			   "fr-BE", "Émissions d’équivalent CO2e par mois",
+			   "fr-CA", "Émissions d’équivalent CO2e par mois",
+			   "fr-CH", "Émissions d’équivalent CO2e par mois",
+			   "is-IS", "Jafngild losun CO2e eftir mánuði",
+			   "it-CH", "Emissioni CO2e equivalente per mese",
+			   "it-IT", "Emissioni CO2e equivalente per mese",
+			   "nb-NO", "CO2e-ekvivalentutslipp etter måned",
+			   "nl-BE", "CO2e-equivalente uitstoot per maand",
+			   "nl-NL", "CO2e-equivalente uitstoot per maand",
+			   "sv-SE", "Utsläpp av CO2e-ekvivalenter per månad",
+			   "CO2e Equivalent Emissions by Month"
+			)
+		isHidden
+		lineageTag: df571b02-f7d2-4a39-a7e4-7e225e52d4f9
+
+	measure 'Company Name Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Nombre empresa",
+			   "de-DE", "Mandantenname",
+			   "fr-FR", "Nom de la société",
+			   "cs-CZ", "Název společnosti",
+			   "da-DK", "Virksomhedsnavn",
+			   "de-AT", "Mandantenname",
+			   "de-CH", "Mandantenname",
+			   "en-AU", "Company Name",
+			   "en-CA", "Company Name",
+			   "en-GB", "Company Name",
+			   "en-NZ", "Company Name",
+			   "es-MX", "Nombre empresa",
+			   "fi-FI", "Yrityksen nimi",
+			   "fr-BE", "Nom de la société",
+			   "fr-CA", "Nom de la compagnie",
+			   "fr-CH", "Nom de la société",
+			   "is-IS", "Heiti fyrirtækis",
+			   "it-CH", "Nome società",
+			   "it-IT", "Nome società",
+			   "nb-NO", "Selskapsnavn",
+			   "nl-BE", "Bedrijfsnaam",
+			   "nl-NL", "Bedrijfsnaam",
+			   "sv-SE", "Företagsnamn",
+			   "Company Name"
+			)
+		isHidden
+		lineageTag: dad2b120-4410-42f7-9032-bd23b40a4ec4
+
+	measure 'Last Refreshed Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Última actualización",
+			   "de-DE", "Zuletzt aktualisiert",
+			   "fr-FR", "Dernière actualisation",
+			   "cs-CZ", "Naposledy aktualizováno",
+			   "da-DK", "Sidst opdateret",
+			   "de-AT", "Zuletzt aktualisiert",
+			   "de-CH", "Zuletzt aktualisiert",
+			   "en-AU", "Last Refreshed",
+			   "en-CA", "Last Refreshed",
+			   "en-GB", "Last Refreshed",
+			   "en-NZ", "Last Refreshed",
+			   "es-MX", "Última actualización",
+			   "fi-FI", "Päivitetty viimeksi",
+			   "fr-BE", "Dernière actualisation",
+			   "fr-CA", "Dernière actualisation",
+			   "fr-CH", "Dernière actualisation",
+			   "is-IS", "Síðast uppfært",
+			   "it-CH", "Ultimo aggiornamento",
+			   "it-IT", "Ultimo aggiornamento",
+			   "nb-NO", "Sist oppdatert",
+			   "nl-BE", "Laatst vernieuwd",
+			   "nl-NL", "Laatst vernieuwd",
+			   "sv-SE", "Uppdaterades senast",
+			   "Last Refreshed"
+			)
+		isHidden
+		lineageTag: da033582-c8f8-4c86-8659-15abdfb7daff
+
+	measure 'Released Employees Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Empleados liberados",
+			   "de-DE", "Freigestellte Mitarbeiter",
+			   "fr-FR", "Salariés lancés",
+			   "cs-CZ", "Propuštění zaměstnanci",
+			   "da-DK", "Frigivne medarbejdere",
+			   "de-AT", "Freigestellte Mitarbeiter",
+			   "de-CH", "Freigestellte Mitarbeiter",
+			   "en-AU", "Released Employees",
+			   "en-CA", "Released Employees",
+			   "en-GB", "Released Employees",
+			   "en-NZ", "Released Employees",
+			   "es-MX", "Empleados liberados",
+			   "fi-FI", "Vapautetut työntekijät",
+			   "fr-BE", "Salariés lancés",
+			   "fr-CA", "Raison de l’inactivité des employés",
+			   "fr-CH", "Salariés lancés",
+			   "is-IS", "Losaðir starfsmenn",
+			   "it-CH", "Dipendenti in aspettativa",
+			   "it-IT", "Dipendenti in aspettativa",
+			   "nb-NO", "Frigitte ansatte",
+			   "nl-BE", "Vertrokken werknemers",
+			   "nl-NL", "Vertrokken werknemers",
+			   "sv-SE", "Frisläppta medarbetare",
+			   "Released Employees"
+			)
+		isHidden
+		lineageTag: da1a2617-6f8c-4d3a-8537-99878e4f2e21
+
+	measure 'CO2e Decomposition Tree Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Árbol de descomposición de CO2e",
+			   "de-DE", "CO2e-Zerlegungsstruktur",
+			   "fr-FR", "Arborescence de décomposition CO2e",
+			   "cs-CZ", "Strom dekompozice CO2e",
+			   "da-DK", "CO2e-dekompositionstræ",
+			   "de-AT", "CO2e-Zerlegungsstruktur",
+			   "de-CH", "CO2e-Zerlegungsstruktur",
+			   "en-AU", "CO2e Decomposition Tree",
+			   "en-CA", "CO2e Decomposition Tree",
+			   "en-GB", "CO2e Decomposition Tree",
+			   "en-NZ", "CO2e Decomposition Tree",
+			   "es-MX", "Árbol de descomposición de CO2e",
+			   "fi-FI", "CO2e-hajautuspuu",
+			   "fr-BE", "Arborescence de décomposition CO2e",
+			   "fr-CA", "Arborescence de décomposition CO2e",
+			   "fr-CH", "Arborescence de décomposition CO2e",
+			   "is-IS", "Niðurbrotstré CO2e",
+			   "it-CH", "Albero di scomposizione CO2e",
+			   "it-IT", "Albero di scomposizione CO2e",
+			   "nb-NO", "CO2e-nedbrytingstre",
+			   "nl-BE", "Ontledingsstructuur CO2e",
+			   "nl-NL", "Ontledingsstructuur CO2e",
+			   "sv-SE", "Nedbrytningsträd för CO2e",
+			   "CO2e Decomposition Tree"
+			)
+		isHidden
+		lineageTag: a718aa57-e775-474f-a197-e6f8a95111f1
+
+	measure 'CO2e Key Influences Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Influencias clave de CO2e",
+			   "de-DE", "CO2e-Haupteinflüsse",
+			   "fr-FR", "Influences clés CO2e",
+			   "cs-CZ", "Klíčové vlivy CO2e",
+			   "da-DK", "CO2e-nøglepåvirkninger",
+			   "de-AT", "CO2e-Haupteinflüsse",
+			   "de-CH", "CO2e-Haupteinflüsse",
+			   "en-AU", "CO2e Key Influences",
+			   "en-CA", "CO2e Key Influences",
+			   "en-GB", "CO2e Key Influences",
+			   "en-NZ", "CO2e Key Influences",
+			   "es-MX", "Influencias clave de CO2e",
+			   "fi-FI", "Tärkeimmät CO2e-vaikutukset",
+			   "fr-BE", "Influences clés CO2e",
+			   "fr-CA", "Influences clés CO2e",
+			   "fr-CH", "Influences clés CO2e",
+			   "is-IS", "Helstu áhrif CO2e",
+			   "it-CH", "Influenze chiave CO2e",
+			   "it-IT", "Influenze chiave CO2e",
+			   "nb-NO", "CO2e-nøkkelpåvirkninger",
+			   "nl-BE", "Belangrijke invloeden CO2e",
+			   "nl-NL", "Belangrijke invloeden CO2e",
+			   "sv-SE", "Viktiga CO2e-influenser",
+			   "CO2e Key Influences"
+			)
+		isHidden
+		lineageTag: 25386a0e-7f63-402c-9c5e-5a3e3c883691
+
+	measure 'Water and Waste Yearly and Daily Change Label' =
+			SWITCH(USERCULTURE(),
+			   "es-ES", "Cambio anual y diario de agua y residuos",
+			   "de-DE", "Wasser und Abfall – Jährliche und tägliche Veränderung",
+			   "fr-FR", "Changement annuel et quotidien de l’eau et des déchets",
+			   "cs-CZ", "Roční a denní změna vody a odpadu",
+			   "da-DK", "Vand og affald årligt og dagligt skift",
+			   "de-AT", "Wasser und Abfall – Jährliche und tägliche Veränderung",
+			   "de-CH", "Wasser und Abfall – Jährliche und tägliche Veränderung",
+			   "en-AU", "Water and Waste Yearly and Daily Change",
+			   "en-CA", "Water and Waste Yearly and Daily Change",
+			   "en-GB", "Water and Waste Yearly and Daily Change",
+			   "en-NZ", "Water and Waste Yearly and Daily Change",
+			   "es-MX", "Cambio anual y diario de agua y residuos",
+			   "fi-FI", "Veden ja jätteiden vuosittainen ja päivittäinen muutos",
+			   "fr-BE", "Changement annuel et quotidien de l’eau et des déchets",
+			   "fr-CA", "Changement annuel et quotidien de l’eau et des déchets",
+			   "fr-CH", "Changement annuel et quotidien de l’eau et des déchets",
+			   "is-IS", "Árlegar og daglegar breytingar á vatni og úrgangi",
+			   "it-CH", "Variazione annuale e giornaliera acqua e rifiuti",
+			   "it-IT", "Variazione annuale e giornaliera acqua e rifiuti",
+			   "nb-NO", "Vann og avfall, årlig og daglig endring",
+			   "nl-BE", "Jaarlijkse en dagelijkse wijziging van water en afval",
+			   "nl-NL", "Jaarlijkse en dagelijkse wijziging van water en afval",
+			   "sv-SE", "Årlig och daglig förändring för vatten och avfall",
+			   "Water and Waste Yearly and Daily Change"
+			)
+		isHidden
+		lineageTag: 7f5d9a10-ebb1-4e16-8f23-532f45602d81
+
+	column unused
+		isHidden
+		displayFolder: unused
+		lineageTag: ad570195-97b6-4cb6-bf6b-75691681b389
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [unused]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Partition = calculated
+		mode: import
+		source = DATATABLE("unused", STRING, {{"This is a table automatically generated by Translations Builder"}})
+

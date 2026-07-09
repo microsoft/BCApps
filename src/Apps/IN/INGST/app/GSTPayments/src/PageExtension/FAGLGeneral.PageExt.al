@@ -1,0 +1,178 @@
+﻿// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.FixedAssets.Journal;
+
+using Microsoft.Finance.TaxBase;
+using Microsoft.Finance.TaxEngine.TaxTypeHandler;
+using Microsoft.FixedAssets.FixedAsset;
+
+pageextension 18251 "FA GL General" extends "Fixed Asset G/L Journal"
+{
+    layout
+    {
+        addafter("Account No.")
+        {
+            field("Location Code"; Rec."Location Code")
+            {
+                Caption = 'Location Code';
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies the location code for which the journal lines will be posted.';
+
+                trigger OnValidate()
+                begin
+                    CallTaxEngine();
+                end;
+            }
+        }
+        addafter(Amount)
+        {
+            field("GST Assessable Value"; Rec."GST Assessable Value")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies the GST assessable value on the Journal Line';
+                trigger OnValidate()
+                var
+                    FixedAsset: Record "Fixed Asset";
+                begin
+                    if Rec."Account Type" = Rec."Account Type"::"Fixed Asset" then
+                        FixedAsset.Get(Rec."Account No.")
+                    else
+                        FixedAsset.Get(Rec."Bal. Account No.");
+
+                    FixedAsset.TestField("GST Calc. on Transfer", false);
+
+                    CallTaxEngine();
+                end;
+            }
+            field("Custom Duty Amount"; Rec."Custom Duty Amount")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies the custom duty amount  on the Journal line.';
+                trigger OnValidate()
+                begin
+                    CallTaxEngine();
+                end;
+            }
+            field("GST Group Code"; Rec."GST Group Code")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies the GST Group Code on the Journal Line';
+                trigger OnValidate()
+                begin
+                    CallTaxEngine();
+                end;
+            }
+            field("HSN/SAC Code"; Rec."HSN/SAC Code")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies the HSN/SAC Code on the Journal Line';
+                trigger OnValidate()
+                begin
+                    CallTaxEngine();
+                end;
+            }
+            field("GST Credit"; Rec."GST Credit")
+            {
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies the GST Credit on the Journal Line';
+                trigger OnValidate()
+                begin
+                    CallTaxEngine();
+                end;
+            }
+        }
+        addfirst(factboxes)
+        {
+            part(TaxInformation; "Tax Information Factbox")
+            {
+                ApplicationArea = Basic, Suite;
+                SubPageLink = "Table ID Filter" = const(81), "Template Name Filter" = field("Journal Template Name"), "Batch Name Filter" = field("Journal Batch Name"), "Line No. Filter" = field("Line No.");
+            }
+        }
+        modify(Amount)
+        {
+            trigger OnAfterValidate()
+            begin
+                CallTaxEngine();
+            end;
+        }
+        modify("Account No.")
+        {
+            trigger OnAfterValidate()
+            begin
+                CallTaxEngine();
+            end;
+        }
+        modify("Bal. Account No.")
+        {
+            trigger OnAfterValidate()
+            begin
+                CallTaxEngine();
+            end;
+        }
+        modify("Document Type")
+        {
+            trigger OnAfterValidate()
+            begin
+                CallTaxEngine();
+            end;
+        }
+        modify("Posting Date")
+        {
+            trigger OnAfterValidate()
+            begin
+                CallTaxEngine();
+            end;
+        }
+        modify("Currency Code")
+        {
+            trigger OnAfterValidate()
+            begin
+                CallTaxEngine();
+            end;
+        }
+    }
+    actions
+    {
+        addafter("Insert Conv. LCY Rndg. Lines")
+        {
+            action("Update Reference Invoice No.")
+            {
+                Promoted = true;
+                PromotedCategory = Process;
+                ApplicationArea = Basic, Suite;
+                Image = ApplyEntries;
+                ToolTip = 'Specifies the function through which reference number can be updated in the document.';
+
+                trigger OnAction()
+                var
+                    i: Integer;
+                begin
+                    i := 0;
+                    //blank OnAction created as we have a subscriber of this action in "Reference Invoice No. Mgt." codeunit;
+                end;
+            }
+            action(CalculateTax)
+            {
+                Promoted = true;
+                PromotedCategory = Process;
+                ApplicationArea = Basic, Suite;
+                Image = Calculate;
+                ToolTip = 'Calculates the tax amounts based on the tax information provided in the journal line.';
+
+                trigger OnAction()
+                begin
+                    CallTaxEngine();
+                end;
+            }
+        }
+    }
+    local procedure CallTaxEngine()
+    var
+        CalculateTax: Codeunit "Calculate Tax";
+    begin
+        CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
+    end;
+}

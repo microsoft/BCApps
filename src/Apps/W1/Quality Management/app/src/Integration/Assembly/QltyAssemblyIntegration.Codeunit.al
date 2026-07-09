@@ -20,6 +20,10 @@ using Microsoft.Warehouse.Journal;
 /// </summary>
 codeunit 20412 "Qlty. Assembly Integration"
 {
+    Permissions =
+        tabledata "Qlty. Inspection Gen. Rule" = r,
+        tabledata "Qlty. Inspection Header" = rm;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Assembly-Post", 'OnAfterPost', '', true, true)]
     local procedure HandleOnAfterPost(var AssemblyHeader: Record "Assembly Header"; var AssemblyLine: Record "Assembly Line"; PostedAssemblyHeader: Record "Posted Assembly Header"; var ItemJnlPostLine: Codeunit "Item Jnl.-Post Line"; var ResJnlPostLine: Codeunit "Res. Jnl.-Post Line"; var WhseJnlRegisterLine: Codeunit "Whse. Jnl.-Register Line")
     var
@@ -35,9 +39,7 @@ codeunit 20412 "Qlty. Assembly Integration"
         HasInspection: Boolean;
         IsHandled: Boolean;
     begin
-        QltyInspectionGenRule.SetRange("Assembly Trigger", QltyInspectionGenRule."Assembly Trigger"::OnAssemblyOutputPost);
-        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if QltyInspectionGenRule.IsEmpty() then
+        if not HasAssemblyOutputPostGenRule(QltyInspectionGenRule) then
             exit;
 
         MgtItemTrackingDocManagement.FindShptRcptEntries(TempSpecTrackingSpecification, Database::"Posted Assembly Header", 0, PostedAssemblyHeader."No.", '', 0, 0, '');
@@ -74,6 +76,14 @@ codeunit 20412 "Qlty. Assembly Integration"
             OnAfterAttemptCreateInspectionFromPostedAssembly(AssemblyHeader, PostedAssemblyHeader, TempSpecTrackingSpecification, QltyInspectionHeader);
         end;
         QltyBatchNotifHelper.EndBatch();
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
+    local procedure HasAssemblyOutputPostGenRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Boolean
+    begin
+        QltyInspectionGenRule.SetRange("Assembly Trigger", QltyInspectionGenRule."Assembly Trigger"::OnAssemblyOutputPost);
+        QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
+        exit(not QltyInspectionGenRule.IsEmpty());
     end;
 
     /// <summary>

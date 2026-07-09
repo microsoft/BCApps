@@ -236,6 +236,67 @@ codeunit 4316 "Agent Task Message Builder"
 #if not CLEAN28
 #pragma warning restore AS0078
 #endif
+
+    /// <summary>
+    /// Attach a file received from a page-level fileuploadaction trigger to the task message.
+    /// Intended to be called once per element of a List of [FileUpload] so that callers can
+    /// support multi-file selection from the browser file picker. The MIME type is derived
+    /// from the file name extension. The file is attached when the message is created.
+    /// </summary>
+    /// <remarks>
+    /// The file stream is read using MS-DOS encoding so that binary attachments (PDF, PNG,
+    /// XLSX, ...) round-trip byte-for-byte.
+    /// </remarks>
+    /// <param name="File">The file to attach, as supplied by a fileuploadaction trigger.</param>
+    /// <returns>This instance of the Agent Task Message Builder.</returns>
+    procedure AddAttachment(File: FileUpload): codeunit "Agent Task Message Builder"
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        AgentTaskMsgBuilderImpl.AddAttachment(File);
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Attach a file received from a page-level fileuploadaction trigger to the task message.
+    /// Intended to be called once per element of a List of [FileUpload] so that callers can
+    /// support multi-file selection from the browser file picker. The MIME type is derived
+    /// from the file name extension. The file is attached when the message is created.
+    /// </summary>
+    /// <remarks>
+    /// The file stream is read using MS-DOS encoding so that binary attachments (PDF, PNG,
+    /// XLSX, ...) round-trip byte-for-byte.
+    /// </remarks>
+    /// <param name="File">The file to attach, as supplied by a fileuploadaction trigger.</param>
+    /// <param name="Ignored">Specifies if the attachment should be marked as ignored, so that it is not processed by agent.</param>
+    /// <returns>This instance of the Agent Task Message Builder.</returns>
+    procedure AddAttachment(File: FileUpload; Ignored: Boolean): codeunit "Agent Task Message Builder"
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        AgentTaskMsgBuilderImpl.AddAttachment(File, Ignored);
+        exit(this);
+    end;
+
+    /// <summary>
+    /// Attach a file received from a page-level fileuploadaction trigger to the task message.
+    /// Intended to be called once per element of a List of [FileUpload] so that callers can
+    /// support multi-file selection from the browser file picker. The MIME type is derived
+    /// from the file name extension. The file is attached when the message is created.
+    /// </summary>
+    /// <remarks>
+    /// The file stream is read using MS-DOS encoding so that binary attachments (PDF, PNG,
+    /// XLSX, ...) round-trip byte-for-byte.
+    /// </remarks>
+    /// <param name="File">The file to attach, as supplied by a fileuploadaction trigger.</param>
+    /// <param name="Ignored">Specifies if the attachment should be marked as ignored, so that it is not processed by agent.</param>
+    /// <param name="IgnoredReason">Specifies why the attachment was ignored.</param>
+    /// <returns>This instance of the Agent Task Message Builder.</returns>
+    procedure AddAttachment(File: FileUpload; Ignored: Boolean; IgnoredReason: Text[250]): codeunit "Agent Task Message Builder"
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        AgentTaskMsgBuilderImpl.AddAttachment(File, Ignored, IgnoredReason);
+        exit(this);
+    end;
+
     /// <summary>
     /// Uploads a file to the task message.
     /// The file will be attached when the message is created.
