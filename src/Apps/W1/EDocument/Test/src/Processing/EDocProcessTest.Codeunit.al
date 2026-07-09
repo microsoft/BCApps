@@ -1217,6 +1217,7 @@ codeunit 139883 "E-Doc Process Test"
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         GLSetup: Record "General Ledger Setup";
         Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
         LibraryERM: Codeunit "Library - ERM";
     begin
         LibraryLowerPermission.SetOutsideO365Scope();
@@ -1237,8 +1238,11 @@ codeunit 139883 "E-Doc Process Test"
         // Set a currency that can be used across all localizations
         Currency.Init();
         Currency.Validate(Code, 'XYZ');
-        if Currency.Insert(true) then
-            LibraryERM.CreateExchangeRate(Currency.Code, Today(), 1.0, 1.0);
+        if Currency.Insert(true) then;
+        CurrencyExchangeRate.SetRange("Currency Code", Currency.Code);
+        CurrencyExchangeRate.SetRange("Starting Date", DMY2Date(1, 1, 2025));
+        if CurrencyExchangeRate.IsEmpty() then
+            LibraryERM.CreateExchangeRate(Currency.Code, DMY2Date(1, 1, 2025), 1.0, 1.0);
 
         EDocument.DeleteAll();
         EDocumentServiceStatus.DeleteAll();

@@ -2147,18 +2147,31 @@ codeunit 139175 "CRM Sales Order Integr. Test"
     local procedure EnsureVATPostingSetupOnSalesLines(SalesHeader: Record "Sales Header")
     var
         SalesLine: Record "Sales Line";
+        GenPostingSetup: Record "General Posting Setup";
+        GLAcc: Record "G/L Account";
         VATPostingSetup: Record "VAT Posting Setup";
+        VATProdPostingGroup: Code[20];
     begin
         // Prepayment % validation on the header propagates to lines and runs UpdatePrepmtSetupFields,
-        // which requires a VAT Posting Setup entry for each line's (VAT Bus. Posting Group, VAT Prod.
-        // Posting Group). CRM-sourced sales lines may land on a combination that the default test
-        // VAT data does not cover — insert it on the fly so the validation has the setup it needs.
+        // which requires a VAT Posting Setup entry for each line's VAT business posting group and the
+        // prepayment G/L account's VAT product posting group. CRM-sourced sales lines may land on a
+        // combination that the default test VAT data does not cover.
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         if SalesLine.FindSet() then
             repeat
-                if not VATPostingSetup.Get(SalesLine."VAT Bus. Posting Group", SalesLine."VAT Prod. Posting Group") then
-                    LibraryERM.CreateVATPostingSetup(VATPostingSetup, SalesLine."VAT Bus. Posting Group", SalesLine."VAT Prod. Posting Group");
+                VATProdPostingGroup := SalesLine."VAT Prod. Posting Group";
+                if GenPostingSetup.Get(SalesLine."Gen. Bus. Posting Group", SalesLine."Gen. Prod. Posting Group") then
+                    if GenPostingSetup."Sales Prepayments Account" <> '' then begin
+                        GLAcc.Get(GenPostingSetup."Sales Prepayments Account");
+                        VATProdPostingGroup := GLAcc."VAT Prod. Posting Group";
+                    end;
+
+                if not VATPostingSetup.Get(SalesLine."VAT Bus. Posting Group", VATProdPostingGroup) then begin
+                    LibraryERM.CreateVATPostingSetup(VATPostingSetup, SalesLine."VAT Bus. Posting Group", VATProdPostingGroup);
+                    VATPostingSetup.Validate("VAT Calculation Type", SalesLine."VAT Calculation Type");
+                    VATPostingSetup.Modify(true);
+                end;
             until SalesLine.Next() = 0;
     end;
 

@@ -30,7 +30,7 @@ codeunit 132520 "AFS File Client Test"
         SharedKeyAuthorization := AFSGetTestStorageAuth.GetDefaultAccountSAS(AFSInitTestStorage.GetAccessKey());
 
         // [WHEN] The programmer creates a text file in the file share and puts the content in it
-        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
+        AFSInitTestStorage.InitializeFileClient(AFSFileClient, SharedKeyAuthorization);
 
         AFSOperationResponse := AFSFileClient.CreateFile(FilePathLbl, StrLen(FileContentLbl));
         LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
@@ -59,7 +59,7 @@ codeunit 132520 "AFS File Client Test"
         SharedKeyAuthorization := AFSGetTestStorageAuth.GetSharedKeyAuthorization(AFSInitTestStorage.GetAccessKey());
 
         // [WHEN] The programmer creates a text file in the file share and puts the content in it
-        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
+        AFSInitTestStorage.InitializeFileClient(AFSFileClient, SharedKeyAuthorization);
 
         AFSOperationResponse := AFSFileClient.CreateFile(FilePathLbl, StrLen(FileContentLbl));
         LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
@@ -88,7 +88,7 @@ codeunit 132520 "AFS File Client Test"
         SharedKeyAuthorization := AFSGetTestStorageAuth.GetDefaultAccountSAS(AFSInitTestStorage.GetAccessKey());
 
         // [WHEN] The programmer creates a text file in the file share in the path that doesn't exist
-        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
+        AFSInitTestStorage.InitializeFileClient(AFSFileClient, SharedKeyAuthorization);
         AFSOperationResponse := AFSFileClient.CreateFile(FilePathLbl, StrLen(FileContentLbl));
         LibraryAssert.AreEqual(false, AFSOperationResponse.IsSuccessful(), 'The CreateFile operation should return an error.');
 
@@ -126,7 +126,7 @@ codeunit 132520 "AFS File Client Test"
         AFSOptionalParameters.MaxResults(1);
 
         // [WHEN] The programmer runs a list operation on the root directory
-        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
+        AFSInitTestStorage.InitializeFileClient(AFSFileClient, SharedKeyAuthorization);
         AFSOperationResponse := AFSFileClient.ListDirectory('', TempAFSDirectoryContent, AFSOptionalParameters);
         LibraryAssert.IsTrue(AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
 
@@ -176,7 +176,7 @@ codeunit 132520 "AFS File Client Test"
         InitializeFileShareStructure();
 
         // [WHEN] The programmer runs a list operation on the parent directory
-        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
+        AFSInitTestStorage.InitializeFileClient(AFSFileClient, SharedKeyAuthorization);
         AFSOperationResponse := AFSFileClient.ListDirectory('', TempAFSDirectoryContent);
         LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
 
@@ -221,7 +221,7 @@ codeunit 132520 "AFS File Client Test"
         AFSOptionalParameters.Include(IncludeProperties);
 
         // [WHEN] The programmer runs a list operation on the anotherdir/ directory with the parameters requesting timestamps and etag
-        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
+        AFSInitTestStorage.InitializeFileClient(AFSFileClient, SharedKeyAuthorization);
         AFSOperationResponse := AFSFileClient.ListDirectory('anotherdir/', TempAFSDirectoryContent, AFSOptionalParameters);
         LibraryAssert.IsTrue(AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
 
@@ -252,10 +252,10 @@ codeunit 132520 "AFS File Client Test"
         AFSInitTestStorage.ClearFileShare();
         SharedKeyAuthorization := AFSGetTestStorageAuth.GetDefaultAccountSAS(AFSInitTestStorage.GetAccessKey());
 
-        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
+        AFSInitTestStorage.InitializeFileClient(AFSFileClient, SharedKeyAuthorization);
 
         // [WHEN] The programmer creates a directory and a file in it
-        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
+        AFSInitTestStorage.InitializeFileClient(AFSFileClient, SharedKeyAuthorization);
         AFSOperationResponse := AFSFileClient.CreateDirectory('parentdir');
         LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
         AFSOperationResponse := AFSFileClient.CreateFile('parentdir/test.txt', StrLen(FileContentLbl));
@@ -301,7 +301,7 @@ codeunit 132520 "AFS File Client Test"
         InitializeFileShareStructure();
 
         // [WHEN] The programmer deletes a file
-        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
+        AFSInitTestStorage.InitializeFileClient(AFSFileClient, SharedKeyAuthorization);
         AFSOperationResponse := AFSFileClient.DeleteFile('parentdir/test.txt');
         LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
 
@@ -336,7 +336,7 @@ codeunit 132520 "AFS File Client Test"
         InitializeFileShareStructure();
 
         // [WHEN] The programmer deletes a directory
-        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
+        AFSInitTestStorage.InitializeFileClient(AFSFileClient, SharedKeyAuthorization);
         AFSOperationResponse := AFSFileClient.DeleteDirectory('anotherdir/emptydir');
         LibraryAssert.AreEqual(true, AFSOperationResponse.IsSuccessful(), AFSOperationResponse.GetError());
 
@@ -361,13 +361,13 @@ codeunit 132520 "AFS File Client Test"
         AFSInitTestStorage.ClearFileShare();
         SharedKeyAuthorization := AFSGetTestStorageAuth.GetDefaultAccountSAS(AFSInitTestStorage.GetAccessKey());
 
-        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
+        AFSInitTestStorage.InitializeFileClient(AFSFileClient, SharedKeyAuthorization);
         AFSFileClient.CreateFile('sourcefile.txt', StrLen(FileContentLbl));
         AFSFileClient.PutFileText('sourcefile.txt', FileContentLbl);
 
         // [WHEN] The programmer copies a file
         // NOTE: When copying a file using shared access signature you need to authorize the source file with the same shared access signature
-        SourceFileURI := 'https://' + AFSInitTestStorage.GetStorageAccountName() + '.file.core.windows.net/' + AFSInitTestStorage.GetFileShareName() + '/sourcefile.txt';
+        SourceFileURI := AFSInitTestStorage.GetFileStorageBaseUrl() + '/' + AFSInitTestStorage.GetFileShareName() + '/sourcefile.txt';
         HttpRequestMessage.SetRequestUri(SourceFileURI);
         SharedKeyAuthorization.Authorize(HttpRequestMessage, AFSInitTestStorage.GetStorageAccountName());
         SourceFileURI := HttpRequestMessage.GetRequestUri();
@@ -395,7 +395,7 @@ codeunit 132520 "AFS File Client Test"
         AFSInitTestStorage.ClearFileShare();
         SharedKeyAuthorization := AFSGetTestStorageAuth.GetDefaultAccountSAS(AFSInitTestStorage.GetAccessKey());
 
-        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
+        AFSInitTestStorage.InitializeFileClient(AFSFileClient, SharedKeyAuthorization);
         AFSFileClient.CreateFile('sourcefile.txt', 0);
 
         // [WHEN] The programmer sets some metadata for a file
@@ -417,7 +417,7 @@ codeunit 132520 "AFS File Client Test"
     var
         AFSFileClient: Codeunit "AFS File Client";
     begin
-        AFSFileClient.Initialize(AFSInitTestStorage.GetStorageAccountName(), AFSInitTestStorage.GetFileShareName(), SharedKeyAuthorization);
+        AFSInitTestStorage.InitializeFileClient(AFSFileClient, SharedKeyAuthorization);
         AFSFileClient.CreateDirectory('parentdir');
         AFSFileClient.CreateFile('parentdir/test.txt', 0);
         AFSFileClient.CreateFile('parentdir/test2.txt', 0);

@@ -6,6 +6,7 @@ namespace System.Test.Agents;
 
 using System.Agents;
 using System.Environment.Configuration;
+using System.Security.AccessControl;
 
 /// <summary>
 /// Helper methods for Agent SDK testing.
@@ -19,6 +20,8 @@ codeunit 133954 "Library Mock Agent"
         TempUserSettings: Record "User Settings" temporary;
         Agent: Codeunit Agent;
     begin
+        AssignSuperToCurrentUser();
+
         AgentRecord.SetRange("Agent Metadata Provider", AgentRecord."Agent Metadata Provider"::"SDK Mock Agent");
         AgentRecord.SetFilter("User Name", AgentUserName);
         if AgentRecord.FindFirst() then
@@ -49,6 +52,8 @@ codeunit 133954 "Library Mock Agent"
         AgentRecord: Record Agent;
         MockAgentSetup: Record "Mock Agent Setup";
     begin
+        AssignSuperToCurrentUser();
+
         AgentRecord.SetRange("Agent Metadata Provider", AgentRecord."Agent Metadata Provider"::"SDK Mock Agent");
         if AgentRecord.FindSet() then
             repeat
@@ -57,5 +62,19 @@ codeunit 133954 "Library Mock Agent"
 
                 AgentRecord.Delete();
             until AgentRecord.Next() = 0;
+    end;
+
+    local procedure AssignSuperToCurrentUser()
+    var
+        AccessControl: Record "Access Control";
+    begin
+        AccessControl.SetRange("User Security ID", UserSecurityId());
+        AccessControl.SetRange("Role ID", 'SUPER');
+        if not AccessControl.IsEmpty() then
+            exit;
+
+        AccessControl."User Security ID" := UserSecurityId();
+        AccessControl."Role ID" := 'SUPER';
+        AccessControl.Insert(true);
     end;
 }

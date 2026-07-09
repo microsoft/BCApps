@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Test;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.eServices.EDocument.OrderMatch;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Item.Catalog;
@@ -35,11 +36,21 @@ codeunit 139659 "E-Doc. Line Matching Test"
         IsInitialized: Boolean;
 
     procedure Initialize(Integration: Enum "Service Integration")
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
     begin
         LibraryPermission.SetOutsideO365Scope();
-        if IsInitialized then
+        if GeneralLedgerSetup.Get() then
+            if GeneralLedgerSetup."VAT Reporting Date Usage" <> GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled then begin
+                GeneralLedgerSetup."VAT Reporting Date Usage" := GeneralLedgerSetup."VAT Reporting Date Usage"::Disabled;
+                GeneralLedgerSetup.Modify(false);
+            end;
+
+        if IsInitialized and Vendor.Get(Vendor."No.") and EDocumentService.Get(EDocumentService.Code) then
             exit;
 
+        Clear(Vendor);
+        Clear(EDocumentService);
         LibraryEDoc.SetupStandardVAT();
         LibraryEDoc.SetupStandardPurchaseScenario(Vendor, EDocumentService, Enum::"E-Document Format"::Mock, Integration);
 

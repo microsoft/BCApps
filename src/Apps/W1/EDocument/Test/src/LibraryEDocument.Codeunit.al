@@ -492,6 +492,7 @@ codeunit 139629 "Library - E-Document"
 
     procedure CreatePurchaseOrderWithLine(var Vendor: Record Vendor; var PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; Quantity: Decimal)
     begin
+        LibraryPurchase.SetOrderNoSeriesInSetup();
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, Enum::"Purchase Document Type"::Order, Vendor."No.");
         if StandardItem."No." = '' then
             CreateGenericItem(StandardItem);
