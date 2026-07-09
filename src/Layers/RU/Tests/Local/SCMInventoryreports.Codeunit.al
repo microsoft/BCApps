@@ -861,4 +861,19 @@ codeunit 144102 "SCM Inventory reports"
     procedure CancelPrintPostedInvShipmentTORG12RequestPageHandler(var PostedInvShipmentTORG12: TestRequestPage "Posted Inv. Shipment TORG-12")
     begin
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"File Management", 'OnBeforeDownloadHandler', '', false, false)]
+    local procedure CopyServerFileToTargetOnBeforeDownloadHandler(ToFileName: Text; FromFileName: Text; var IsHandled: Boolean)
+    var
+        FileManagement: Codeunit "File Management";
+    begin
+        // In containers the client-side Download does not materialize the exported report file at the
+        // server session path the test reads, so copy the server-side source file to the target path.
+        if (FromFileName = '') or (ToFileName = '') then
+            exit;
+        if not FileManagement.ServerFileExists(FromFileName) then
+            exit;
+        FileManagement.CopyServerFile(FromFileName, ToFileName, true);
+        IsHandled := true;
+    end;
 }
