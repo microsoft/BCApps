@@ -30,16 +30,9 @@ codeunit 4768 "Create Mfg Posting Setup"
         MfgGLAccount: Codeunit "Create Mfg GL Account";
         CommonPostingGroup: Codeunit "Create Common Posting Group";
         MfgPostingGroup: Codeunit "Create Mfg Posting Group";
-        MfgLocation: Codeunit "Create Mfg Location";
     begin
         ContosoPostingSetup.InsertInventoryPostingSetup('', MfgPostingGroup.Finished(), MfgGLAccount.FinishedGoods(), '', MfgGLAccount.WIPAccountFinishedGoods(), MfgGLAccount.MaterialVariance(), MfgGLAccount.CapacityVariance(), MfgGLAccount.SubcontractedVariance(), MfgGLAccount.CapOverheadVariance(), MfgGLAccount.MfgOverheadVariance(), MfgGLAccount.MaterialNonInvVariance());
         ContosoPostingSetup.InsertInventoryPostingSetup('', CommonPostingGroup.RawMaterial(), CommonGLAccount.RawMaterials(), '', MfgGLAccount.WIPAccountFinishedGoods(), '', '', '', '', '', '');
-
-        ContosoPostingSetup.InsertInventoryPostingSetup(MfgLocation.SubcontractingLocation(), MfgPostingGroup.Finished(), MfgGLAccount.FinishedGoods(), '', MfgGLAccount.WIPAccountFinishedGoods(), MfgGLAccount.MaterialVariance(), MfgGLAccount.CapacityVariance(), MfgGLAccount.SubcontractedVariance(), MfgGLAccount.CapOverheadVariance(), MfgGLAccount.MfgOverheadVariance(), MfgGLAccount.MaterialNonInvVariance());
-        ContosoPostingSetup.InsertInventoryPostingSetup(MfgLocation.SubcontractingLocation(), CommonPostingGroup.RawMaterial(), CommonGLAccount.RawMaterials(), '', MfgGLAccount.WIPAccountFinishedGoods(), '', '', '', '', '', '');
-
-        ContosoPostingSetup.InsertInventoryPostingSetup(MfgLocation.LocalSubcontractingLocation(), MfgPostingGroup.Finished(), MfgGLAccount.FinishedGoods(), '', MfgGLAccount.WIPAccountFinishedGoods(), MfgGLAccount.MaterialVariance(), MfgGLAccount.CapacityVariance(), MfgGLAccount.SubcontractedVariance(), MfgGLAccount.CapOverheadVariance(), MfgGLAccount.MfgOverheadVariance(), MfgGLAccount.MaterialNonInvVariance());
-        ContosoPostingSetup.InsertInventoryPostingSetup(MfgLocation.LocalSubcontractingLocation(), CommonPostingGroup.RawMaterial(), CommonGLAccount.RawMaterials(), '', MfgGLAccount.WIPAccountFinishedGoods(), '', '', '', '', '', '');
     end;
 
     local procedure CreateGeneralPostingSetup()

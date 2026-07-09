@@ -27,10 +27,27 @@ codeunit 4764 "Create Mfg Location"
         ContosoWarehouse.InsertLocation(SubcontractingLocation(), BulkAssemblyLocationNameLbl, '', false);
         ContosoWarehouse.InsertLocation(LocalSubcontractingLocation(), LocalAssemblyLocationNameLbl, '', false);
 
+        CreateSubcontractingInventoryPostingSetup();
+
         if ManufacturingDemoDataSetup."Subcontracting Location" = '' then
             ManufacturingDemoDataSetup.Validate("Subcontracting Location", SubcontractingLocation());
 
         ManufacturingDemoDataSetup.Modify();
+    end;
+
+    local procedure CreateSubcontractingInventoryPostingSetup()
+    var
+        ContosoPostingSetup: Codeunit "Contoso Posting Setup";
+        CommonGLAccount: Codeunit "Create Common GL Account";
+        MfgGLAccount: Codeunit "Create Mfg GL Account";
+        CommonPostingGroup: Codeunit "Create Common Posting Group";
+        MfgPostingGroup: Codeunit "Create Mfg Posting Group";
+    begin
+        ContosoPostingSetup.InsertInventoryPostingSetup(SubcontractingLocation(), MfgPostingGroup.Finished(), MfgGLAccount.FinishedGoods(), '', MfgGLAccount.WIPAccountFinishedGoods(), MfgGLAccount.MaterialVariance(), MfgGLAccount.CapacityVariance(), MfgGLAccount.SubcontractedVariance(), MfgGLAccount.CapOverheadVariance(), MfgGLAccount.MfgOverheadVariance(), MfgGLAccount.MaterialNonInvVariance());
+        ContosoPostingSetup.InsertInventoryPostingSetup(SubcontractingLocation(), CommonPostingGroup.RawMaterial(), CommonGLAccount.RawMaterials(), '', MfgGLAccount.WIPAccountFinishedGoods(), '', '', '', '', '', '');
+
+        ContosoPostingSetup.InsertInventoryPostingSetup(LocalSubcontractingLocation(), MfgPostingGroup.Finished(), MfgGLAccount.FinishedGoods(), '', MfgGLAccount.WIPAccountFinishedGoods(), MfgGLAccount.MaterialVariance(), MfgGLAccount.CapacityVariance(), MfgGLAccount.SubcontractedVariance(), MfgGLAccount.CapOverheadVariance(), MfgGLAccount.MfgOverheadVariance(), MfgGLAccount.MaterialNonInvVariance());
+        ContosoPostingSetup.InsertInventoryPostingSetup(LocalSubcontractingLocation(), CommonPostingGroup.RawMaterial(), CommonGLAccount.RawMaterials(), '', MfgGLAccount.WIPAccountFinishedGoods(), '', '', '', '', '', '');
     end;
 
     var
