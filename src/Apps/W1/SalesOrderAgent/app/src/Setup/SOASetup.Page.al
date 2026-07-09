@@ -442,6 +442,75 @@ page 4400 "SOA Setup"
                     }
                 }
             }
+            group(DatePickers)
+            {
+                Caption = 'Date picker variants';
+
+                field(MyDate; Rec."Plain Date")
+                {
+                    Caption = 'Start Date 1';
+                    ToolTip = 'Specifies the start date.';
+                    ShowMandatory = true;
+
+                    trigger OnValidate()
+                    begin
+                        IsConfigUpdated := true;
+                    end;
+                }
+                field(MyDate2; Rec."Assist Date")
+                {
+                    Caption = 'Start Date 2';
+                    ToolTip = 'Specifies the start date.';
+                    ShowMandatory = true;
+
+                    trigger OnAssistEdit()
+                    begin
+                        Message('Assist Edit');
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        IsConfigUpdated := true;
+                    end;
+                }
+                field(MyDate3; Rec."DrillDown Date")
+                {
+                    Caption = 'Start Date 3';
+                    ToolTip = 'Specifies the start date.';
+                    ShowMandatory = true;
+
+                    trigger OnDrillDown()
+                    begin
+                        Message('Drill Down');
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        IsConfigUpdated := true;
+                    end;
+                }
+                field(MyDate4; Rec."Assist And DrillDown Date")
+                {
+                    Caption = 'Start Date 4';
+                    ToolTip = 'Specifies the start date.';
+                    ShowMandatory = true;
+
+                    trigger OnDrillDown()
+                    begin
+                        Message('Drill Down');
+                    end;
+
+                    trigger OnAssistEdit()
+                    begin
+                        Message('Assist Edit');
+                    end;
+
+                    trigger OnValidate()
+                    begin
+                        IsConfigUpdated := true;
+                    end;
+                }
+            }
         }
     }
     actions
