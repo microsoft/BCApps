@@ -423,9 +423,13 @@ function Invoke-AdditionalLegacyDemoData() {
             throw "Legacy DemoTool additional demo data check FAILED for DataType=$demoDataType (country $(Get-CountryCodeFromSettings)). This path is exercised by the NAV translated-country build but not by BCApps Extended-only demo data. Error: $($_.Exception.Message)"
         } finally {
             # Always remove the throwaway company so it never lingers into the real test run.
-            if (Get-CompanyInBcContainer -containerName $ContainerName | Where-Object { $_.CompanyName -eq $additionalCompanyName }) {
-                Write-Host "Removing throwaway company '$additionalCompanyName'"
-                Remove-CompanyInBcContainer -containerName $ContainerName -companyName $additionalCompanyName
+            try {
+                if (Get-CompanyInBcContainer -containerName $ContainerName | Where-Object { $_.CompanyName -eq $additionalCompanyName }) {
+                    Write-Host "Removing throwaway company '$additionalCompanyName'"
+                    Remove-CompanyInBcContainer -containerName $ContainerName -companyName $additionalCompanyName
+                }
+            } catch {
+                Write-Host "Warning: failed to remove throwaway company '$additionalCompanyName': $($_.Exception.Message)"
             }
         }
     }
