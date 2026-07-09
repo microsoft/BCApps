@@ -212,19 +212,19 @@ codeunit 20445 "Qlty. Inventory Availability"
             BinContent.SetRange("Package No. Filter", QltyInspectionHeader."Source Package No.");
         if Location."Adjustment Bin Code" <> '' then
             BinContent.SetFilter("Bin Code", '<>%1', Location."Adjustment Bin Code");
+        BinContent.SetFilter("Quantity (Base)", '>%1', 0);
         BinContent.SetAutoCalcFields("Quantity (Base)");
         if BinContent.FindSet() then
             repeat
-                if BinContent."Quantity (Base)" > 0 then
-                    if not IsReceiveBin(BinContent."Location Code", BinContent."Bin Code") then begin
-                        Added := true;
-                        if not TempToMoveBinContent.Get(BinContent."Location Code", BinContent."Bin Code", BinContent."Item No.", BinContent."Variant Code", BinContent."Unit of Measure Code") then begin
-                            TempToMoveBinContent.Init();
-                            TempToMoveBinContent := BinContent;
-                            TempToMoveBinContent."Min. Qty." := BinContent."Quantity (Base)";
-                            TempToMoveBinContent.Insert(false);
-                        end;
+                if not IsReceiveBin(BinContent."Location Code", BinContent."Bin Code") then begin
+                    Added := true;
+                    if not TempToMoveBinContent.Get(BinContent."Location Code", BinContent."Bin Code", BinContent."Item No.", BinContent."Variant Code", BinContent."Unit of Measure Code") then begin
+                        TempToMoveBinContent.Init();
+                        TempToMoveBinContent := BinContent;
+                        TempToMoveBinContent."Min. Qty." := BinContent."Quantity (Base)";
+                        TempToMoveBinContent.Insert(false);
                     end;
+                end;
             until BinContent.Next() = 0;
 
         exit(Added);
