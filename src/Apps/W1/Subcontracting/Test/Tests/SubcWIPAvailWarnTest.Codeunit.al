@@ -53,7 +53,7 @@ codeunit 149912 "Subc. WIP Avail. Warn Test"
         SetQuantityOnTransferOrderPage(TransferOrder, TransferHeader, TransferLine, NewQuantity);
 
         // [THEN] The Quantity is persisted and the item-availability warning check was NOT performed for the WIP item
-        TransferLine.Find();
+        TransferLine.Find('=');
         Assert.AreEqual(NewQuantity, TransferLine.Quantity, 'Quantity should be updated on the WIP transfer line.');
         Assert.IsFalse(
             AvailCheckSpy.WasInvokedForItem(Item."No."),
@@ -92,7 +92,7 @@ codeunit 149912 "Subc. WIP Avail. Warn Test"
         SetQuantityOnTransferOrderPage(TransferOrder, TransferHeader, TransferLine, NewQuantity);
 
         // [THEN] The item-availability warning check WAS performed for the normal item
-        TransferLine.Find();
+        TransferLine.Find('=');
         Assert.AreEqual(NewQuantity, TransferLine.Quantity, 'Quantity should be updated on the transfer line.');
         Assert.IsTrue(
             AvailCheckSpy.WasInvokedForItem(Item."No."),
