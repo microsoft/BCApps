@@ -631,6 +631,8 @@ codeunit 7017 "Price List Management"
     end;
 
     procedure SetPriceListLineFilters(var PriceListLine: Record "Price List Line"; PriceSourceList: Codeunit "Price Source List"; AmountType: Enum "Price Amount Type")
+    var
+        MarkingIsUsed: Boolean;
     begin
         PriceListLine.FilterGroup(2);
         PriceListLine.SetRange(Status, "Price Status"::Draft, "Price Status"::Active);
@@ -640,7 +642,9 @@ codeunit 7017 "Price List Management"
         else
             PriceListLine.SetFilter("Amount Type", '%1|%2', AmountType, AmountType::Any);
 
-        BuildSourceFilters(PriceListLine, PriceSourceList);
+        BuildSourceFilters(PriceListLine, PriceSourceList, MarkingIsUsed);
+        if MarkingIsUsed then
+            PriceListLine.MarkedOnly(true);
         PriceListLine.FilterGroup(0);
     end;
 
@@ -744,14 +748,14 @@ codeunit 7017 "Price List Management"
         OnAfterClearAssetFilters(PriceListLine);
     end;
 
-    local procedure BuildSourceFilters(var PriceListLine: Record "Price List Line"; PriceSourceList: Codeunit "Price Source List")
+    local procedure BuildSourceFilters(var PriceListLine: Record "Price List Line"; PriceSourceList: Codeunit "Price Source List"; var MarkingIsUsed: Boolean)
     var
         PriceSource: Record "Price Source";
-        SourceTypeFilter: Text;
-        ParentSourceNoFilter: Text;
-        SourceNoFilter: Text;
-        OrSeparator: Text[1];
     begin
+        MarkingIsUsed := true;
+        if not SearchIfPriceExists then
+            MarkingIsUsed := CheckIfPriceListLineMarkingIsNeededForSources(PriceListLine, PriceSourceList);
+
         ClearSourceFilters(PriceListLine);
         if PriceSourceList.First(PriceSource, 0) then
             repeat
@@ -759,27 +763,47 @@ codeunit 7017 "Price List Management"
                 PriceListLine.SetRange("Parent Source No.", PriceSource."Parent Source No.");
                 PriceListLine.SetRange("Source No.", PriceSource."Source No.");
                 OnBuildSourceFiltersOnBeforeFindLines(PriceListLine, PriceSource);
-                if SearchIfPriceExists then begin
-                    if not PriceListLine.IsEmpty() then begin
+                if not PriceListLine.IsEmpty() then begin
+                    if SearchIfPriceExists then begin
                         ClearSourceFilters(PriceListLine);
                         PriceIsFound := true;
                         exit;
                     end;
-                end else begin
-                    SourceTypeFilter += OrSeparator + Format(PriceSource."Source Type");
-                    ParentSourceNoFilter += OrSeparator + GetFilterText(PriceSource."Parent Source No.");
-                    SourceNoFilter += OrSeparator + GetFilterText(PriceSource."Source No.");
-                    OrSeparator := '|';
+
+                    PriceListLine.FindSet();
+                    if not MarkingIsUsed then
+                        exit;
+
+                    repeat
+                        PriceListLine.Mark(true);
+                    until PriceListLine.Next() = 0;
                 end;
             until not PriceSourceList.Next(PriceSource);
         ClearSourceFilters(PriceListLine);
+    end;
 
-        if SourceTypeFilter = '' then
-            exit;
-
-        PriceListLine.SetFilter("Source Type", SourceTypeFilter);
-        PriceListLine.SetFilter("Parent Source No.", ParentSourceNoFilter);
-        PriceListLine.SetFilter("Source No.", SourceNoFilter);
+    local procedure CheckIfPriceListLineMarkingIsNeededForSources(var PriceListLine: Record "Price List Line"; PriceSourceList: Codeunit "Price Source List"): Boolean;
+    var
+        PriceSource: Record "Price Source";
+        RecordSetsCounter: Integer;
+    begin
+        if PriceSourceList.First(PriceSource, 0) then
+            repeat
+                PriceListLine.SetRange("Source Type", PriceSource."Source Type");
+                PriceListLine.SetRange("Parent Source No.", PriceSource."Parent Source No.");
+                PriceListLine.SetRange("Source No.", PriceSource."Source No.");
+                OnBuildSourceFiltersOnBeforeFindLines(PriceListLine, PriceSource);
+                if not PriceListLine.IsEmpty() then begin
+                    RecordSetsCounter += 1;
+                    if RecordSetsCounter > 1 then begin
+                        ClearSourceFilters(PriceListLine);
+                        exit(true);
+                    end;
+                end;
+            until not PriceSourceList.Next(PriceSource);
+        ClearSourceFilters(PriceListLine);
+        if RecordSetsCounter = 0 then
+            exit(true);
     end;
 
     local procedure ClearSourceFilters(var PriceListLine: Record "Price List Line")
