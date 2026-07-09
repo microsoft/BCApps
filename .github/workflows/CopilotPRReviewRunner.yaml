@@ -34,11 +34,11 @@ jobs:
   review:
     if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
     # Pin BOTH the workflow ref and engine_ref to the same reviewed engine release.
-    uses: microsoft/BC-PullRequestReviewAgent/.github/workflows/review.yml@v1.0.2
+    uses: microsoft/BC-PullRequestReviewAgent/.github/workflows/review.yml@v1.0.3
     secrets: inherit
     with:
       target_repo: ${{ github.repository }}
-      engine_ref: v1.0.2
+      engine_ref: v1.0.3
       config_path: tools/BCQuality/bcquality.config.yaml
       # BCQuality policy overrides (operator escape-hatch; config file is the default)
       bcquality_repo: ${{ vars.BCQUALITY_REPO }}
