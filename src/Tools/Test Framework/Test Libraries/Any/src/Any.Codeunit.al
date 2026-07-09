@@ -232,7 +232,11 @@ codeunit 130500 "Any"
     /// </summary>
     /// <param name="NewSeed">New seed to be used.</param>
     procedure SetSeed(NewSeed: Integer)
+    var
+        AnySeedOverride: Codeunit "Any Seed Override";
     begin
+        if AnySeedOverride.IsActive() then
+            NewSeed := AnySeedOverride.GetSeed();
         Seed := NewSeed;
         SeedSet := true;
         Randomize(Seed);
@@ -264,9 +268,14 @@ codeunit 130500 "Any"
     /// <param name="MaxValue">Upper range for the number</param>
     /// <returns>Pseudo-random integer value</returns>
     local procedure GetNextValue(MaxValue: Integer): Integer
+    var
+        AnySeedOverride: Codeunit "Any Seed Override";
     begin
         if (not SeedSet) then
-            SetSeed(1);
+            SetSeed(1)
+        else
+            if AnySeedOverride.IsActive() and (Seed <> AnySeedOverride.GetSeed()) then
+                SetSeed(AnySeedOverride.GetSeed());
 
         exit(Random(MaxValue));
     end;
