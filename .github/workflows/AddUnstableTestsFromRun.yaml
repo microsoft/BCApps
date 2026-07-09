@@ -46,7 +46,7 @@ jobs:
 
       - name: Get Official Branches
         id: getOfficialBranches
-        uses: ./.github/actions/GetGitBranches
+        uses: microsoft/BCApps/.github/actions/GetGitBranches@main
         with:
           include: ${{ steps.filter.outputs.includeJson }}
 
