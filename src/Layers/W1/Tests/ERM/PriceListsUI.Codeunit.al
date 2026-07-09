@@ -33,6 +33,7 @@
         CodeErr: Label '%1 must be %2 in %3.', Comment = '%1 = Code, %2 = Next No. from No. Series, %3 = Sales/Purchase Price List';
         CustDiscountGroupDeleteErr: Label 'You cannot delete the Customer Discount Group %1 because it is used in Customer.', Comment = '%1= Customer Discount Group Code.';
         CustDiscountGroupCodeDeleteErr: Label 'The field Customer Disc. Group of table Sales Line contains a value (%1) that cannot be found in the related table (Customer Discount Group).', Comment = '%1= Customer Discount Group Code.';
+        AllCustomersLinesNotShownErr: Label 'All Customers lines are not all shown';
 
     [Test]
     procedure T000_SalesPriceListsPageIsNotEditable()
@@ -4840,6 +4841,54 @@
         Assert.IsTrue(PriceListLineReview.Next(), 'not found second');
         PriceListLineReview."Price List Code".AssertEquals(PriceListHeader[2].Code);
         Assert.IsFalse(PriceListLineReview.Next(), 'found 3rd');
+    end;
+
+    [Test]
+    procedure T220_SalesPriceLinesFromCustomerCardManyAllCustomersLinesAreNotMarked()
+    var
+        Customer: Record Customer;
+        PriceListLine: Record "Price List Line";
+        CustomerCard: TestPage "Customer Card";
+        PriceListLineReview: TestPage "Price List Line Review";
+        ItemNo: Code[20];
+        Index: Integer;
+        AllCustomersCount: Integer;
+    begin
+        // [FEATURE] [Performance] [Bug 641061]
+        // [SCENARIO] Sales Price Review page opened from the Customer Card returns every "All Customers"
+        // price line without materializing the result set via MarkedOnly. This is the performance
+        Initialize(true);
+        AllCustomersCount := LibraryRandom.RandIntInRange(10, 20);
+
+        // [GIVEN] Customer 'A'
+        LibrarySales.CreateCustomer(Customer);
+
+        // [GIVEN] 'AllCustomersCount' price lines for "Source Type" 'All Customers'
+        for Index := 1 to AllCustomersCount do begin
+            ItemNo := LibraryInventory.CreateItemNo();
+            LibraryPriceCalculation.CreateSalesPriceLine(
+                PriceListLine, LibraryUtility.GenerateGUID(), "Price Source Type"::"All Customers", '',
+                "Price Asset Type"::Item, ItemNo);
+        end;
+
+        // [GIVEN] Open Customer Card for customer 'A'
+        CustomerCard.OpenEdit();
+        CustomerCard.Filter.SetFilter("No.", Customer."No.");
+
+        // [WHEN] Run action "Sales Prices"
+        PriceListLineReview.Trap();
+        CustomerCard.PriceLines.Invoke();
+
+        // [THEN] All 'AllCustomersCount' "All Customers" price lines are shown
+        Assert.AreEqual(AllCustomersCount, CountReviewLines(PriceListLineReview), AllCustomersLinesNotShownErr);
+    end;
+
+    local procedure CountReviewLines(var PriceListLineReview: TestPage "Price List Line Review") LineCount: Integer
+    begin
+        if PriceListLineReview.First() then
+            repeat
+                LineCount += 1;
+            until not PriceListLineReview.Next();
     end;
 
     local procedure Initialize(Enable: Boolean)
