@@ -198,8 +198,8 @@ codeunit 99001557 "Subc. Purchase Order Creator"
     var
         InstructionMgt: Codeunit "Instruction Mgt.";
         SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
-        IsHandled: Boolean;
         NoOfMarkedPurchaseOrders: Integer;
+        IsHandled: Boolean;
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
