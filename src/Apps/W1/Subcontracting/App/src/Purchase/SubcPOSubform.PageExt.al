@@ -97,17 +97,12 @@ pageextension 99001524 "Subc. PO Subform" extends "Purchase Order Subform"
         SubcontractingManagement: Codeunit "Subcontracting Management";
         SubcProdOrderFactboxMgmt: Codeunit "Subc. ProdO. Factbox Mgmt.";
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
-        SubcontractingManagement: Codeunit "Subcontracting Management";
         HasSubcontractingContext: Boolean;
         CurrentLineIsSubcontractingLine: Boolean;
 
     trigger OnAfterGetCurrRecord()
     begin
         CurrentLineIsSubcontractingLine := SubcontractingManagement.IsSubcontractingPurchaseLine(Rec);
-    end;
-
-    trigger OnAfterGetCurrRecord()
-    begin
         SetSubcontractingVisibility();
     end;
 
