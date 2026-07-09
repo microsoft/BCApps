@@ -671,4 +671,14 @@ codeunit 826 "Purch. Post Invoice Events"
     local procedure OnCalcSplitFA(GenJnlLine: Record "Gen. Journal Line"; SplitNo: Integer; var SplitEnabled: Boolean)
     begin
     end;
+
+    procedure RunOnPrepareLineOnBeforeSetInvoiceDiscountPosting(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; GenPostingSetup: Record "General Posting Setup"; var TotalAmount: Decimal; var TotalAmountACY: Decimal)
+    begin
+        OnPrepareLineOnBeforeSetInvoiceDiscountPosting(PurchHeader, PurchLine, GenPostingSetup, TotalAmount, TotalAmountACY);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPrepareLineOnBeforeSetInvoiceDiscountPosting(var PurchHeader: Record "Purchase Header"; var PurchLine: Record "Purchase Line"; GenPostingSetup: Record "General Posting Setup"; var TotalAmount: Decimal; var TotalAmountACY: Decimal)
+    begin
+    end;
 }

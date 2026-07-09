@@ -1542,4 +1542,14 @@ codeunit 825 "Sales Post Invoice Events"
     local procedure OnPostLinesOnAfterPostJobSalesLines(var SalesHeader: Record "Sales Header"; var TempInvoicePostingBuffer: Record "Invoice Posting Buffer" temporary; var TotalSalesLine: Record "Sales Line"; var TotalSalesLineLCY: Record "Sales Line"; var GLEntryNo: Integer; var InvoicePostingParameters: Record "Invoice Posting Parameters")
     begin
     end;
+
+    procedure RunOnAfterInitGenJnlLineAmountFieldsFromTotalLines(var GenJnlLine: Record "Gen. Journal Line"; var SalesHeader: Record "Sales Header"; var TotalSalesLine: Record "Sales Line"; var TotalSalesLineLCY: Record "Sales Line")
+    begin
+        OnAfterInitGenJnlLineAmountFieldsFromTotalLines(GenJnlLine, SalesHeader, TotalSalesLine, TotalSalesLineLCY);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitGenJnlLineAmountFieldsFromTotalLines(var GenJnlLine: Record "Gen. Journal Line"; var SalesHeader: Record "Sales Header"; var TotalSalesLine: Record "Sales Line"; var TotalSalesLineLCY: Record "Sales Line")
+    begin
+    end;
 }
