@@ -24,6 +24,7 @@ codeunit 20445 "Qlty. Inventory Availability"
         NoSamplesToMoveErr: Label 'No samples meet the condition specified.', Locked = true;
         SerialQuantityGreaterThanOneErr: Label '%1 (%2) cannot be greater than 1 when New Serial No. is requested.', Comment = '%1=quantity behavior, %2=quantity';
         ZeroQuantityErr: Label 'Unable to use the disposition %1 on the inspection %2 for the item %3 because the quantity is zero.', Comment = '%1=the inspection, %2=the inspection, %3=the item';
+        InsufficientInventoryToAllocateErr: Label 'Unable to move the entire requested quantity for inspection %1 for item %2. There is not enough inventory available in eligible bins (short by %3). Put the remaining inventory away or reduce the quantity, and then try again.', Comment = '%1=the inspection, %2=the item, %3=the missing quantity';
         SupplyFromLocationCodeNameLbl: Label 'Supply-from Location Code', Locked = true;
         FromLocationCodeNameLbl: Label 'From Location Code', Locked = true;
         LocationCodeNameLbl: Label 'Location Code', Locked = true;
@@ -526,6 +527,9 @@ codeunit 20445 "Qlty. Inventory Availability"
                     TempQuantityQltyDispositionBuffer.Insert(false);
                 end;
             until TempExistingInventoryBinContent.Next() = 0;
+
+            if AllocateAcrossBins and (RemainingQuantityToAllocate > 0) then
+                Error(InsufficientInventoryToAllocateErr, QltyInspectionHeader."No.", QltyInspectionHeader."Source Item No.", RemainingQuantityToAllocate);
         end;
 
         OnAfterPopulateBinContentBuffer(QltyInspectionHeader, TempInstructionQltyDispositionBuffer, TempQuantityQltyDispositionBuffer, TempExistingInventoryBinContent);
