@@ -12,7 +12,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Setup;
 
-codeunit 4773 "Create Mfg Item Template"
+codeunit 5152 "Create Mfg Item Template"
 {
     InherentEntitlements = X;
     InherentPermissions = X;
