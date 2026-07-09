@@ -22,7 +22,7 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
     InherentEntitlements = X;
     InherentPermissions = X;
     Subtype = Install;
-    Permissions = tabledata "Payables Agent Setup" = R, tabledata User = R;
+    Permissions = tabledata "Payables Agent Setup" = R, tabledata User = R, tabledata Agent = R, tabledata "Agent Task Message" = R;
 
     trigger OnInstallAppPerDatabase()
     begin
@@ -138,6 +138,7 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
 #endif
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Billing Log");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Billing Task Setup");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Known Sender");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterProcessIncomingEDocument, '', false, false)]
@@ -198,7 +199,6 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
     var
         PayablesAgentSetup: Record "Payables Agent Setup";
         PayablesAgent: Codeunit "Payables Agent";
-        PASetup: Codeunit "Payables Agent Setup";
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
         PATrial: Codeunit "PA Trial";
