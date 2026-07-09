@@ -24,7 +24,7 @@ codeunit 4787 "Create Whse Location"
     var
         WhseDemoDataSetup: Record "Warehouse Module Setup";
         ContosoWarehouse: Codeunit "Contoso Warehouse";
-        CreateLocation: Codeunit "Create Location";
+        CreateInvtLocation: Codeunit "Create Location";
         BasicLocationLbl: Label 'Silver Warehouse', MaxLength = 100;
         SimpleLocationLbl: Label 'Yellow Warehouse', MaxLength = 100;
         AdvancedLocationLbl: Label 'White Warehouse', MaxLength = 100;
@@ -274,7 +274,7 @@ codeunit 4787 "Create Whse Location"
 
     procedure TransitLocation(): Code[10]
     begin
-        exit(CreateLocation.OwnLogLocation());
+        exit(CreateInvtLocation.OwnLogLocation());
     end;
 
     procedure ColdClass(): Code[10]
