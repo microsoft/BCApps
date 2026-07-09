@@ -27,7 +27,6 @@ using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Insurance;
@@ -4141,11 +4140,6 @@ table 81 "Gen. Journal Line"
                 GenJnlAlloc.DeleteAll();
         end;
 
-        TempWHTEntry.SetRange("Document Type", "Document Type");
-        TempWHTEntry.SetRange("Original Document No.", "Document No.");
-        if TempWHTEntry.FindFirst() then
-            TempWHTEntry.DeleteAll();
-
         DeferralUtilities.DeferralCodeOnDelete(
             DeferralDocType::"G/L".AsInteger(),
             "Journal Template Name", "Journal Batch Name", 0, '', "Line No.");
@@ -4303,7 +4297,6 @@ table 81 "Gen. Journal Line"
         DocDate: Date;
         CustBankAcc: Record "Customer Bank Account";
         VendBankAcc: Record "Vendor Bank Account";
-        TempWHTEntry: Record "Temp WHT Entry";
         Text1500001: Label '%1 and %2 must be identical or %1 must be Blank.';
         Text020: Label 'You have not selected the Adjustment Applies-to, Do you still want to continue with the Document.';
         Text021: Label 'The posting has been interrupted to respect the warning.';

@@ -5,7 +5,6 @@
 namespace Microsoft.FixedAssets.FixedAsset;
 
 using Microsoft.Finance.Dimension;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.Insurance;
 using Microsoft.FixedAssets.Ledger;
@@ -342,11 +341,6 @@ table 5600 "Fixed Asset"
             begin
                 UpdateResponsibleEmployeeCode();
             end;
-        }
-        field(28040; "WHT Product Posting Group"; Code[20])
-        {
-            Caption = 'WHT Product Posting Group';
-            TableRelation = "WHT Product Posting Group";
         }
     }
 

@@ -17,7 +17,6 @@ using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Reporting;
 using Microsoft.HumanResources.Payables;
 using Microsoft.Purchases.Payables;
@@ -206,18 +205,6 @@ page 256 "Payment Journal"
                     Style = Attention;
                     StyleExpr = HasPmtFileErr;
                 }
-                field("WHT Business Posting Group"; Rec."WHT Business Posting Group")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that the WHT Business Posting Group will be assigned to this field based on the Account Type and Account No. selected.';
-                    Visible = false;
-                }
-                field("WHT Product Posting Group"; Rec."WHT Product Posting Group")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the WHT product posting group you want to use for your journal transactions.';
-                    Visible = false;
-                }
                 field("Salespers./Purch. Code"; Rec."Salespers./Purch. Code")
                 {
                     ApplicationArea = Suite;
@@ -272,18 +259,6 @@ page 256 "Payment Journal"
                     ApplicationArea = Basic, Suite;
                     Editable = IsPostingGroupEditable;
                     Visible = IsPostingGroupEditable;
-                }
-                field("WHT Payment"; Rec."WHT Payment")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies during manual calculation of WHT that the cash receipt is only for WHT and no VAT calculation shall be done for this transaction.';
-                    Visible = false;
-                }
-                field("Skip WHT"; Rec."Skip WHT")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies that this field can be checked if we want to skip the WHT Calculation for a particular journal transaction.';
-                    Visible = false;
                 }
                 field("Allocation Account No."; Rec."Selected Alloc. Account No.")
                 {
@@ -1095,18 +1070,6 @@ page 256 "Payment Journal"
                                     CheckManagement.VoidCheck(GenJournalLine2);
                                 until GenJournalLine.Next() = 0;
                         end;
-                    end;
-                }
-                action("Print WHT Certificate")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Print WHT Certificate';
-                    Image = PrintVAT;
-                    ToolTip = 'Print the withholding tax certificate.';
-
-                    trigger OnAction()
-                    begin
-                        WHTManagement.PreprintingWHT(Rec);
                     end;
                 }
                 action(CreditTransferRegEntries)
@@ -1968,7 +1931,6 @@ page 256 "Payment Journal"
         ApprovalMgmt: Codeunit "Approvals Mgmt.";
         ClientTypeManagement: Codeunit "Client Type Management";
         ChangeExchangeRate: Page "Change Exchange Rate";
-        WHTManagement: Codeunit WHTManagement;
         PostDatedCheckMgt: Codeunit PostDatedCheckMgt;
         GenJnlBatchApprovalStatus: Text[20];
         GenJnlLineApprovalStatus: Text[20];

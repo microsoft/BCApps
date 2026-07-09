@@ -13,7 +13,6 @@ using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Clause;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.AuditCodes;
@@ -910,22 +909,6 @@ table 115 "Sales Cr.Memo Line"
         {
             Caption = 'S/T Exempt';
         }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            TableRelation = "WHT Business Posting Group";
-        }
-        field(28041; "WHT Product Posting Group"; Code[20])
-        {
-            Caption = 'WHT Product Posting Group';
-            TableRelation = "WHT Product Posting Group";
-        }
-        field(28042; "WHT Absorb Base"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = GetCurrencyCode();
-            Caption = 'WHT Absorb Base';
-        }
         field(28081; "VAT Base (ACY)"; Decimal)
         {
             AutoFormatType = 1;
@@ -982,9 +965,6 @@ table 115 "Sales Cr.Memo Line"
         {
         }
         key(Key6; "Bill-to Customer No.")
-        {
-        }
-        key(Key7; "Document No.", "WHT Business Posting Group", "WHT Product Posting Group")
         {
         }
         key(Key8; "Order No.", "Order Line No.", "Posting Date")

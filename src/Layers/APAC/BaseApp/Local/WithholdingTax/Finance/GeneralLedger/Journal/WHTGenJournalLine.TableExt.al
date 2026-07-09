@@ -77,4 +77,14 @@ tableextension 28001 WHTGenJournalLine extends "Gen. Journal Line"
             DataClassification = CustomerContent;
         }
     }
+
+    trigger OnDelete()
+    var
+        TempWHTEntry: Record "Temp WHT Entry";
+    begin
+        TempWHTEntry.SetRange("Document Type", "Document Type");
+        TempWHTEntry.SetRange("Original Document No.", "Document No.");
+        if TempWHTEntry.FindFirst() then
+            TempWHTEntry.DeleteAll();
+    end;
 }
