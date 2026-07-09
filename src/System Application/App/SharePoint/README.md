@@ -52,12 +52,21 @@ begin
 ```al
 var
     GraphListItem: Record "SharePoint Graph List Item" temporary;
+    FieldsJson: JsonObject;
 begin
     // Get items from a list
     Response := SPGraphClient.GetListItems('<ListId>', GraphListItem);
 
     // Create a new item
     Response := SPGraphClient.CreateListItem('<ListId>', 'Item Title', GraphListItem);
+
+    // Get a single item (column values are included via the fields expansion)
+    Response := SPGraphClient.GetListItem('<ListId>', '<ItemId>', GraphListItem);
+
+    // Update fields of an existing item
+    FieldsJson.Add('Title', 'New Title');
+    FieldsJson.Add('Status', 'Approved');
+    Response := SPGraphClient.UpdateListItem('<ListId>', '<ItemId>', FieldsJson, GraphListItem);
 ```
 
 ## Working with Drives and Files
@@ -106,6 +115,8 @@ begin
 
 ```al
 var
+    GraphDriveItem: Record "SharePoint Graph Drive Item" temporary;
+    UpdateProperties: JsonObject;
     Exists: Boolean;
     Response: Codeunit "SharePoint Graph Response";
 begin
@@ -120,6 +131,15 @@ begin
 
     // Move/rename item
     Response := SPGraphClient.MoveItemByPath('Documents/file.pdf', 'Archive', '');
+
+    // Update drive item properties (by ID or by path)
+    UpdateProperties.Add('description', 'Updated description');
+    Response := SPGraphClient.UpdateDriveItem('<ItemId>', UpdateProperties, GraphDriveItem);
+    Response := SPGraphClient.UpdateDriveItemByPath('Documents/file.pdf', UpdateProperties, GraphDriveItem);
+
+    // Rename item (by ID or by path)
+    Response := SPGraphClient.RenameDriveItem('<ItemId>', 'renamed.pdf', GraphDriveItem);
+    Response := SPGraphClient.RenameDriveItemByPath('Documents/file.pdf', 'renamed.pdf', GraphDriveItem);
 ```
 
 ## OData Query Parameters
