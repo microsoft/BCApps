@@ -1470,6 +1470,7 @@ codeunit 99000774 "Calculate Routing Line"
                         repeat
                             if LastProdOrderCapNeed."Ending Time" < EndTime then begin
                                 AvailTime := Min(CalendarMgt.CalcTimeDelta(EndTime, LastProdOrderCapNeed."Ending Time"), AvailCap);
+                                OnFinitelyLoadCapBackOnAfterCalcAvailTimeFromLastProdOrderCapNeed(AvailTime, EndTime, AvailCap, LastProdOrderCapNeed);
                                 if AvailTime > 0 then begin
                                     UpdateTimesBack(AvailTime, AvailCap, TimetoProgram, StartTime, EndTime);
                                     CreateCapNeed(CalendarEntry.Date, StartTime, EndTime, TimetoProgram, TimeType, 1);
@@ -1491,6 +1492,7 @@ codeunit 99000774 "Calculate Routing Line"
 
                     if (AvailCap > 0) and (RemainNeedQty > 0) then begin
                         AvailTime := Min(CalendarMgt.CalcTimeDelta(EndTime, CalendarEntry."Starting Time"), AvailCap);
+                        OnFinitelyLoadCapBackOnAfterCalcAvailTimeFromCalendarEntry(AvailTime, EndTime, AvailCap, CalendarEntry);
                         if AvailTime > 0 then begin
                             UpdateTimesBack(AvailTime, AvailCap, TimetoProgram, StartTime, EndTime);
                             AdjustStartingTime(CalendarEntry, StartTime);
@@ -2544,6 +2546,16 @@ codeunit 99000774 "Calculate Routing Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnFinitelyLoadCapBackOnAfterCalcSetupTime(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; WorkCenter: Record "Work Center"; var SetupTime: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFinitelyLoadCapBackOnAfterCalcAvailTimeFromLastProdOrderCapNeed(var AvailTime: Decimal; EndTime: Time; AvailCap: Decimal; LastProdOrderCapacityNeed: Record "Prod. Order Capacity Need")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnFinitelyLoadCapBackOnAfterCalcAvailTimeFromCalendarEntry(var AvailTime: Decimal; EndTime: Time; AvailCap: Decimal; CalendarEntry: Record "Calendar Entry")
     begin
     end;
 
