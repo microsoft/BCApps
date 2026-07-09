@@ -7,7 +7,6 @@ namespace Microsoft.Sales.RoleCenters;
 using Microsoft.Assembly.Document;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.Task;
 using Microsoft.Integration.D365Sales;
@@ -568,34 +567,6 @@ page 9006 "Order Processor Role Center"
                     Caption = 'Posted Purchase Invoices';
                     RunObject = Page "Posted Purchase Invoices";
                     ToolTip = 'Open the list of posted purchase invoices.';
-                }
-                action("Posted Sales Tax Invoices")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Sales Tax Invoices';
-                    RunObject = Page "Posted Sales Tax Invoices";
-                    ToolTip = 'View the list of posted documents.';
-                }
-                action("Posted Sales Tax Credit Memos")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Sales Tax Credit Memos';
-                    RunObject = Page "Posted Sales Tax Cr. Memos";
-                    ToolTip = 'View the list of posted documents.';
-                }
-                action("Posted Purch. Tax Invoices")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Purch. Tax Invoices';
-                    RunObject = Page "Posted Purch. Tax Invoices";
-                    ToolTip = 'View the list of posted documents.';
-                }
-                action("Posted Purch. Tax Credit Memos")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Purch. Tax Credit Memos';
-                    RunObject = Page "Posted Purch. Tax Cr. Memos";
-                    ToolTip = 'View the list of posted documents.';
                 }
                 action(Action86)
                 {
