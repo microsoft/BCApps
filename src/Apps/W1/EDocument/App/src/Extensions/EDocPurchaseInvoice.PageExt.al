@@ -12,13 +12,12 @@ pageextension 6129 "E-Doc. Purchase Invoice" extends "Purchase Invoice"
     {
         addbefore(IncomingDocAttachFactBox)
         {
-            part(EDocumentPdfPreview; "E-Doc. Purch. Doc. Preview")
+            part(EDocumentPdfPreview; "Inbound E-Doc. Picture")
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Preview';
                 Visible = ShowEDocumentPdfPreview;
                 ShowFilter = false;
-                SubPageLink = "Document Type" = field("Document Type"), "No." = field("No.");
             }
         }
     }
@@ -107,5 +106,7 @@ pageextension 6129 "E-Doc. Purchase Invoice" extends "Purchase Invoice"
     begin
         HasEDocumentLinked := not IsNullGuid(Rec."E-Document Link");
         ShowEDocumentPdfPreview := EDocumentHelper.GetInboundPdfPreviewEntryNo(Rec.RecordId(), Rec."E-Document Link", EDocDataStorageEntryNo);
+        if ShowEDocumentPdfPreview then
+            CurrPage.EDocumentPdfPreview.Page.SetEDocDataStorage(EDocDataStorageEntryNo);
     end;
 }
