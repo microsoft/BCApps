@@ -248,7 +248,7 @@ codeunit 1563 "Privacy Notice"
     /// <param name="ShouldApproveByDefault">Set by a subscriber to indicate whether the notice should be approved by default.</param>
     /// <param name="Handled">Set to true by the subscriber that resolves the policy for the given integration.</param>
     [IntegrationEvent(false, false)]
-    procedure OnCheckPrivacyNoticeApprovalDefault(IntegrationID: Text; var ShouldApproveByDefault: Boolean; var Handled: Boolean)
+    internal procedure OnCheckPrivacyNoticeApprovalDefault(IntegrationID: Text; var ShouldApproveByDefault: Boolean; var Handled: Boolean)
     begin
     end;
 }

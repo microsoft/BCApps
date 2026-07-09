@@ -32,6 +32,11 @@
       "id": "7c2785ec-13a5-470b-87a4-6838a2c19a3a",
       "name": "Privacy Notice Tests",
       "publisher": "Microsoft"
+    },
+    {
+      "id": "d3433b68-4901-445f-9547-fdfeca57575a",
+      "name": "AI SDK",
+      "publisher": "Microsoft"
     }
   ],
   "idRanges": [
