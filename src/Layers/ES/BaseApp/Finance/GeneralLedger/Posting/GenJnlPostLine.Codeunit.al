@@ -4433,7 +4433,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
               GenJnlLine, TempDimPostingBuffer, AdjAmount, SaveEntryNo, GetCustomerReceivablesAccount(GenJnlLine, CustPostingGr));
 
         OnPostDtldCustLedgEntriesOnAfterCreateGLEntriesForTotalAmounts(TempGLEntryBuf, GlobalGLEntry, NextTransactionNo);
-        PostReceivableDocs(GenJnlLine, CustPostingGr);
+        PostReceivableDocs(GenJnlLine, CustPostingGr, SaveEntryNo);
 
         DtldCVLedgEntryBuf.DeleteAll();
     end;
@@ -8466,25 +8466,39 @@ codeunit 12 "Gen. Jnl.-Post Line"
         exit;
     end;
 
-    local procedure PostReceivableDocs(GenJnlLine: Record "Gen. Journal Line"; CustPostingGr: Record "Customer Posting Group")
+    local procedure PostReceivableDocs(GenJnlLine: Record "Gen. Journal Line"; CustPostingGr: Record "Customer Posting Group"; var SaveEntryNo: Integer)
     var
         DocAmountAddCurr: Decimal;
         GLAccNo: Code[20];
+        GLEntry: Record "G/L Entry";
+        NeedsSaveEntryNoFix: Boolean;
     begin
-        if (DocAmountLCY <> 0) or (DiscDocAmountLCY <> 0) or (CollDocAmountLCY <> 0) or (RejDocAmountLCY <> 0) or
-           (DiscRiskFactAmountLCY <> 0) or (DiscUnriskFactAmountLCY <> 0) or (CollFactAmountLCY <> 0)
-        then
-            if NextEntryNo2 = NextEntryNo then
-                NextEntryNo := NextEntryNo - 1;
+        NeedsSaveEntryNoFix := (SaveEntryNo <> 0) and (NextEntryNo2 <> NextEntryNo);
+        if not NeedsSaveEntryNoFix then
+            if (DocAmountLCY <> 0) or (DiscDocAmountLCY <> 0) or (CollDocAmountLCY <> 0) or (RejDocAmountLCY <> 0) or
+               (DiscRiskFactAmountLCY <> 0) or (DiscUnriskFactAmountLCY <> 0) or (CollFactAmountLCY <> 0)
+            then
+                if NextEntryNo2 = NextEntryNo then
+                    NextEntryNo := NextEntryNo - 1;
         if DocAmountLCY <> 0 then begin
             if GenJnlLine."Currency Code" = AddCurrency.Code then
                 DocAmountAddCurr := GenJnlLine.Amount
             else
                 DocAmountAddCurr := DocAmtCalcAddCurrency(GenJnlLine, DocAmountLCY);
             GLAccNo := GetGLAccountForReceivableDocs(GenJnlLine, CustPostingGr, DocAmountLCY, CollDocAmountLCY);
-            CreateGLEntryBalAcc(
-              GenJnlLine, GLAccNo, DocAmountLCY, DocAmountAddCurr,
-              GenJnlLine."Bal. Account Type", GenJnlLine."Bal. Account No.");
+            if NeedsSaveEntryNoFix then begin
+                DocAmountAddCurr := DocAmountAddCurr - GenJnlLine."VAT Amount";
+                InitGLEntry(GenJnlLine, GLEntry, GLAccNo, DocAmountLCY, DocAmountAddCurr, true, true,
+                  CalcAmountSrcCurr(GenJnlLine, DocAmountLCY));
+                GLEntry."Bal. Account Type" := GenJnlLine."Bal. Account Type";
+                GLEntry."Bal. Account No." := GenJnlLine."Bal. Account No.";
+                UpdateGLEntryNo(GLEntry."Entry No.", SaveEntryNo);
+                InsertGLEntry(GenJnlLine, GLEntry, true);
+                OnMoveGenJournalLine(GenJnlLine, GLEntry.RecordId);
+            end else
+                CreateGLEntryBalAcc(
+                  GenJnlLine, GLAccNo, DocAmountLCY, DocAmountAddCurr,
+                  GenJnlLine."Bal. Account Type", GenJnlLine."Bal. Account No.");
         end;
         if DiscDocAmountLCY <> 0 then begin
             CustPostingGr.TestField("Discted. Bills Acc.");
