@@ -697,13 +697,15 @@ codeunit 7017 "Price List Management"
                         exit;
                     end;
 
-                    PriceListLine.FindSet();
                     if not MarkingIsUsed then
                         exit;
 
+                    PriceListLine.SetLoadFields("Price List Code", "Line No.");
+                    PriceListLine.FindSet();
                     repeat
                         PriceListLine.Mark(true);
                     until PriceListLine.Next() = 0;
+                    PriceListLine.SetLoadFields();
                 end;
             until not PriceAssetList.Next(PriceAsset);
         ClearAssetFilters(PriceListLine);
@@ -770,13 +772,15 @@ codeunit 7017 "Price List Management"
                         exit;
                     end;
 
-                    PriceListLine.FindSet();
                     if not MarkingIsUsed then
                         exit;
 
+                    PriceListLine.SetLoadFields("Price List Code", "Line No.");
+                    PriceListLine.FindSet();
                     repeat
                         PriceListLine.Mark(true);
                     until PriceListLine.Next() = 0;
+                    PriceListLine.SetLoadFields();
                 end;
             until not PriceSourceList.Next(PriceSource);
         ClearSourceFilters(PriceListLine);
