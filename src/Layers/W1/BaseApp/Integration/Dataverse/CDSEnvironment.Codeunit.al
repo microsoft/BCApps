@@ -17,8 +17,6 @@ codeunit 7203 "CDS Environment"
     end;
 
     var
-        OAuthAuthorityUrlAuthCodeTxt: Label 'https://login.microsoftonline.com/common/oauth2', Locked = true;
-        ScopesLbl: Label 'https://globaldisco.crm.dynamics.com/user_impersonation', Locked = true;
         GlobalDiscoOauthCategoryLbl: Label 'Global Discoverability OAuth', Locked = true;
         MissingKeyErr: Label 'The consumer key has not been initialized and are missing from the Azure Key Vault.';
         MissingSecretErr: Label 'The consumer secret has not been initialized and are missing from the Azure Key Vault.';
@@ -35,7 +33,6 @@ codeunit 7203 "CDS Environment"
         EnvironmentUrlEmptyTxt: Label 'Environment URL is empty.', Locked = true;
         NoEnvironmentsWhenUrlNotEmptyMsg: Label 'No Dataverse environments were discovered.';
         NoEnvironmentsWhenUrlEmptyMsg: Label 'No Dataverse environments were discovered. Enter the URL of the Dataverse environment to connect to.';
-        GlobalDiscoApiUrlTok: Label 'https://globaldisco.crm.dynamics.com/api/discovery/v2.0/Instances', Locked = true;
         RequestFailedWithStatusCodeTxt: Label 'Request failed with status code %1.', Locked = true;
         EnvironmentIdFilterTok: Label '?$filter=EnvironmentId eq ''%1''', Locked = true, Comment = '%1 = The environment id to filter on';
 
@@ -82,10 +79,12 @@ codeunit 7203 "CDS Environment"
     var
         OAuth2: Codeunit OAuth2;
         CDSIntegrationImpl: Codeunit "CDS Integration Impl.";
+        Endpoints: Interface "Dataverse Cloud Endpoints";
         Scopes: List of [Text];
         Token: SecretText;
     begin
-        Scopes.Add(ScopesLbl);
+        Endpoints := CDSIntegrationImpl.GetDataverseCloudEndpoints();
+        Scopes.Add(Endpoints.GetGlobalDiscoveryScope());
         OAuth2.AcquireOnBehalfOfToken(CDSIntegrationImpl.GetRedirectURL(), Scopes, Token);
         exit(Token);
     end;
@@ -97,6 +96,7 @@ codeunit 7203 "CDS Environment"
         OAuth2: Codeunit OAuth2;
         CDSIntegrationImpl: Codeunit "CDS Integration Impl.";
         PromptInteraction: Enum "Prompt Interaction";
+        Endpoints: Interface "Dataverse Cloud Endpoints";
         Scopes: List of [Text];
         ConsumerKey: Text;
         ConsumerSecret: SecretText;
@@ -106,7 +106,8 @@ codeunit 7203 "CDS Environment"
         Token: SecretText;
         Err: Text;
     begin
-        Scopes.Add(ScopesLbl);
+        Endpoints := CDSIntegrationImpl.GetDataverseCloudEndpoints();
+        Scopes.Add(Endpoints.GetGlobalDiscoveryScope());
         OAuth2.AcquireOnBehalfOfToken(CDSIntegrationImpl.GetRedirectURL(), Scopes, Token);
         if not Token.IsEmpty() then
             exit(Token);
@@ -118,9 +119,9 @@ codeunit 7203 "CDS Environment"
         RedirectUrl := CDSIntegrationImpl.GetRedirectURL();
         if (FirstPartyappId <> '') and (not (FirstPartyAppCertificate.IsEmpty())) then begin
             Session.LogMessage('0000EI6', AcquiringAuthCodeTokenWithCertificateTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GlobalDiscoOauthCategoryLbl);
-            OAuth2.AcquireAuthorizationCodeTokenFromCacheWithCertificate(FirstPartyappId, FirstPartyAppCertificate, RedirectUrl, OAuthAuthorityUrlAuthCodeTxt, Scopes, Token);
+            OAuth2.AcquireAuthorizationCodeTokenFromCacheWithCertificate(FirstPartyappId, FirstPartyAppCertificate, RedirectUrl, Endpoints.GetOAuthAuthorityUrl(), Scopes, Token);
             if Token.IsEmpty() then
-                OAuth2.AcquireTokenByAuthorizationCodeWithCertificate(FirstPartyappId, FirstPartyAppCertificate, OAuthAuthorityUrlAuthCodeTxt, RedirectUrl, Scopes, PromptInteraction::Login, Token, Err);
+                OAuth2.AcquireTokenByAuthorizationCodeWithCertificate(FirstPartyappId, FirstPartyAppCertificate, Endpoints.GetOAuthAuthorityUrl(), RedirectUrl, Scopes, PromptInteraction::Login, Token, Err);
 
             if Token.IsEmpty() then
                 Session.LogMessage('0000EI7', ReceivedEmptyAuthCodeTokenErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GlobalDiscoOauthCategoryLbl);
@@ -138,9 +139,9 @@ codeunit 7203 "CDS Environment"
             Session.LogMessage('0000BRC', MissingSecretErr, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GlobalDiscoOauthCategoryLbl);
 
         if (ConsumerKey <> '') and (not ConsumerSecret.IsEmpty()) then begin
-            OAuth2.AcquireAuthorizationCodeTokenFromCache(ConsumerKey, ConsumerSecret, RedirectUrl, OAuthAuthorityUrlAuthCodeTxt, Scopes, Token);
+            OAuth2.AcquireAuthorizationCodeTokenFromCache(ConsumerKey, ConsumerSecret, RedirectUrl, Endpoints.GetOAuthAuthorityUrl(), Scopes, Token);
             if Token.IsEmpty() then
-                OAuth2.AcquireTokenByAuthorizationCode(ConsumerKey, ConsumerSecret, OAuthAuthorityUrlAuthCodeTxt, RedirectUrl, Scopes, PromptInteraction::Login, Token, Err);
+                OAuth2.AcquireTokenByAuthorizationCode(ConsumerKey, ConsumerSecret, Endpoints.GetOAuthAuthorityUrl(), RedirectUrl, Scopes, PromptInteraction::Login, Token, Err);
         end;
         if Token.IsEmpty() then
             Session.LogMessage('0000C6I', ReceivedEmptyAuthCodeTokenErr, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', GlobalDiscoOauthCategoryLbl);
@@ -151,7 +152,9 @@ codeunit 7203 "CDS Environment"
     local procedure GetCDSEnvironmentCount(var TempCDSEnvironment: Record "CDS Environment" temporary; Token: SecretText; FilterTxt: Text): Integer
     var
         EnvironmentInformation: Codeunit "Environment Information";
+        CDSIntegrationImpl: Codeunit "CDS Integration Impl.";
         TempBlob: Codeunit "Temp Blob";
+        Endpoints: Interface "Dataverse Cloud Endpoints";
         RequestMessage: HttpRequestMessage;
         ResponseMessage: HttpResponseMessage;
         RequestHeaders: HttpHeaders;
@@ -168,10 +171,11 @@ codeunit 7203 "CDS Environment"
         StatusCode: Integer;
         EnvironmentCount: Integer;
     begin
+        Endpoints := CDSIntegrationImpl.GetDataverseCloudEndpoints();
         RequestMessage.GetHeaders(RequestHeaders);
         RequestHeaders.Add('Authorization', SecretStrSubstNo('Bearer %1', Token));
 
-        RequestMessage.SetRequestUri(GlobalDiscoApiUrlTok + FilterTxt);
+        RequestMessage.SetRequestUri(Endpoints.GetGlobalDiscoveryApiUrl() + FilterTxt);
         RequestMessage.Method('GET');
 
         Clear(TempBlob);
