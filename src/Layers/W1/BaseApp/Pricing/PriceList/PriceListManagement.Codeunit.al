@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -750,78 +750,45 @@ codeunit 7017 "Price List Management"
         SourceTypeFilter: Text;
         ParentSourceNoFilter: Text;
         SourceNoFilter: Text;
-        SystemIdFilter: Text;
         OrSeparator: Text[1];
-        CorrelatedSources: Boolean;
     begin
+        // Build native filters for the union of price sources instead of iterating every matching
+        // line and calling Mark()/MarkedOnly(). Marking materializes the whole filtered result set,
+        // which is prohibitively slow when a broad source (e.g. "All Customers") matches a very large
+        // number of price list lines. Native filters let the database evaluate and page the result set.
+        // This mirrors the header page filter built by SetSourceFilters()/BuildSourceFilters() for
+        // "Price List Header".
         ClearSourceFilters(PriceListLine);
-        if not PriceSourceList.First(PriceSource, 0) then
-            exit;
-
-        CorrelatedSources := not SearchIfPriceExists and HasCorrelatedSourceEntries(PriceSourceList);
-
-        repeat
-            PriceListLine.SetRange("Source Type", PriceSource."Source Type");
-            PriceListLine.SetRange("Parent Source No.", PriceSource."Parent Source No.");
-            PriceListLine.SetRange("Source No.", PriceSource."Source No.");
-            OnBuildSourceFiltersOnBeforeFindLines(PriceListLine, PriceSource);
-
-            if SearchIfPriceExists then begin
-                PriceIsFound := not PriceListLine.IsEmpty();
-                ClearSourceFilters(PriceListLine);
-                if PriceIsFound then
-                    exit;
-            end else
-                if CorrelatedSources then begin
-                    if PriceListLine.FindSet() then
-                        repeat
-                            SystemIdFilter += OrSeparator + Format(PriceListLine.SystemId);
-                            OrSeparator := '|';
-                        until PriceListLine.Next() = 0;
-                    ClearSourceFilters(PriceListLine);
+        if PriceSourceList.First(PriceSource, 0) then
+            repeat
+                // Apply the exact source tuple filter before raising the event so subscribers keep
+                // observing the per-source filtered record, and so the "price exists" fast path finds
+                // by the same tuple as before.
+                PriceListLine.SetRange("Source Type", PriceSource."Source Type");
+                PriceListLine.SetRange("Parent Source No.", PriceSource."Parent Source No.");
+                PriceListLine.SetRange("Source No.", PriceSource."Source No.");
+                OnBuildSourceFiltersOnBeforeFindLines(PriceListLine, PriceSource);
+                if SearchIfPriceExists then begin
+                    if not PriceListLine.IsEmpty() then begin
+                        ClearSourceFilters(PriceListLine);
+                        PriceIsFound := true;
+                        exit;
+                    end;
                 end else begin
                     SourceTypeFilter += OrSeparator + Format(PriceSource."Source Type");
                     ParentSourceNoFilter += OrSeparator + GetFilterText(PriceSource."Parent Source No.");
                     SourceNoFilter += OrSeparator + GetFilterText(PriceSource."Source No.");
                     OrSeparator := '|';
-                    ClearSourceFilters(PriceListLine);
                 end;
-        until not PriceSourceList.Next(PriceSource);
+            until not PriceSourceList.Next(PriceSource);
 
-        if CorrelatedSources then begin
-            if SystemIdFilter = '' then begin
-                PriceListLine.SetRange(SystemId, EmptyGuidFilter());
-                exit;
-            end;
-            PriceListLine.SetFilter(SystemId, SystemIdFilter);
-            exit;
-        end;
-
+        ClearSourceFilters(PriceListLine);
         if SourceTypeFilter = '' then
             exit;
 
         PriceListLine.SetFilter("Source Type", SourceTypeFilter);
         PriceListLine.SetFilter("Parent Source No.", ParentSourceNoFilter);
         PriceListLine.SetFilter("Source No.", SourceNoFilter);
-    end;
-
-    local procedure HasCorrelatedSourceEntries(PriceSourceList: Codeunit "Price Source List"): Boolean
-    var
-        PriceSource: Record "Price Source";
-    begin
-        if PriceSourceList.First(PriceSource, 0) then
-            repeat
-                if PriceSource."Parent Source No." <> '' then
-                    exit(true);
-            until not PriceSourceList.Next(PriceSource);
-        exit(false);
-    end;
-
-    local procedure EmptyGuidFilter(): Guid
-    var
-        NullGuid: Guid;
-    begin
-        exit(NullGuid);
     end;
 
     local procedure ClearSourceFilters(var PriceListLine: Record "Price List Line")
