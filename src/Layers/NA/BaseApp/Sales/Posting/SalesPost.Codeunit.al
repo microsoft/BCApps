@@ -1312,7 +1312,9 @@ codeunit 80 "Sales-Post"
         InvoicePostingInterface.SetParameters(InvoicePostingParameters);
         InvoicePostingInterface.SetTotalLines(TotalSalesLine, TotalSalesLineLCY);
         InvoicePostingInterface.PostLines(SalesHeader, GenJnlPostLine, Window, TotalAmount);
-        OnPostInvoiceOnAfterPostLines(SalesHeader, SrcCode, GenJnlLineDocType, GenJnlLineDocNo, GenJnlLineExtDocNo, GenJnlPostLine);
+        OnPostInvoiceOnAfterPostLines(
+            SalesHeader, SrcCode, GenJnlLineDocType, GenJnlLineDocNo, GenJnlLineExtDocNo, GenJnlPostLine,
+            TotalAmount, TempSalesLineGlobal, SalesInvHeader, SalesCrMemoHeader, TotalSalesLineLCY);
 
         if TaxOption = TaxOption::SalesTax then
             if SalesHeader."Tax Area Code" <> '' then begin
@@ -14183,7 +14185,7 @@ codeunit 80 "Sales-Post"
     end;
 #endif
     [IntegrationEvent(false, false)]
-    local procedure OnPostInvoiceOnAfterPostLines(var SalesHeader: Record "Sales Header"; SrcCode: Code[10]; GenJnlLineDocType: Enum "Gen. Journal Document Type"; GenJnlLineDocNo: Code[20]; GenJnlLineExtDocNo: Code[35]; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
+    local procedure OnPostInvoiceOnAfterPostLines(var SalesHeader: Record "Sales Header"; SrcCode: Code[10]; GenJnlLineDocType: Enum "Gen. Journal Document Type"; GenJnlLineDocNo: Code[20]; GenJnlLineExtDocNo: Code[35]; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; TotalAmount: Decimal; var TempSalesLineGlobal: Record "Sales Line" temporary; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var TotalSalesLineLCY: Record "Sales Line" temporary)
     begin
     end;
 

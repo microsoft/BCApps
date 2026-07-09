@@ -162,7 +162,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
 
         PurchPostInvoiceEvents.RunOnPrepareLineOnBeforeSetInvoiceDiscountPosting(PurchHeader, PurchLine, GenPostingSetup, TotalAmount, TotalAmountACY);
 
-'        InvoiceDiscountPosting := PurchSetup."Discount Posting" in
+        InvoiceDiscountPosting := PurchSetup."Discount Posting" in
            [PurchSetup."Discount Posting"::"Invoice Discounts", PurchSetup."Discount Posting"::"All Discounts"];
         PurchPostInvoiceEvents.RunOnPrepareLineOnAfterSetInvoiceDiscountPosting(PurchHeader, PurchLine, InvoiceDiscountPosting);
         if InvoiceDiscountPosting then begin

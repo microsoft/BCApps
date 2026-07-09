@@ -6,8 +6,6 @@ namespace Microsoft.Finance.WithholdingTax;
 
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.Posting;
 
@@ -21,13 +19,15 @@ codeunit 28011 "WHT Sales Post Invoice"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Post Invoice Events", 'OnPostBalancingEntryOnAfterInitNewLine', '', true, false)]
-    local procedure OnPostBalancingEntryOnAfterInitNewLine(var GenJnlLine: Record "Gen. Journal Line"; var SalesHeader: Record "Sales Header")
+    local procedure OnPostBalancingEntryOnAfterInitNewLine(SalesHeader: Record "Sales Header"; var GenJournalLine: Record "Gen. Journal Line")
     begin
-        GenJnlLine."WHT Business Posting Group" := SalesHeader."WHT Business Posting Group";
+        GenJournalLine."WHT Business Posting Group" := SalesHeader."WHT Business Posting Group";
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Post Invoice Events", 'OnAfterInitGenJnlLineAmountFieldsFromTotalLines', '', true, false)]
     local procedure OnAfterInitGenJnlLineAmountFieldsFromTotalLines(var GenJnlLine: Record "Gen. Journal Line"; var SalesHeader: Record "Sales Header"; var TotalSalesLine: Record "Sales Line"; var TotalSalesLineLCY: Record "Sales Line")
+    var
+        CurrExchRate: Record "Currency Exchange Rate";
     begin
         GenJnlLine.Amount += SalesHeader."WHT Amount";
         GenJnlLine."Source Currency Amount" += SalesHeader."WHT Amount";
@@ -35,7 +35,7 @@ codeunit 28011 "WHT Sales Post Invoice"
             GenJnlLine."Amount (LCY)" +=
                 Round(
                     CurrExchRate.ExchangeAmtFCYToLCY(
-                        SalesHeader."Posting Date", SalesHeader."Currency Code", SalesHeader."WHT Amount", SalesHeader."Currency Factor")))
+                        SalesHeader."Posting Date", SalesHeader."Currency Code", SalesHeader."WHT Amount", SalesHeader."Currency Factor"))
         else
             GenJnlLine."Amount (LCY)" += SalesHeader."WHT Amount";
     end;
