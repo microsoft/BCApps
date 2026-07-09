@@ -36,7 +36,8 @@ codeunit 4775 "Create Mfg Capacity"
         PackingDepartmentTok: Label 'Packing department';
         PaintingDepartmentTok: Label 'Painting department';
         MachineDepartmentTok: Label 'Machine department';
-        SubcontractorTok: Label 'Subcontractor';
+        BulkAssemblyTok: Label 'Bulk Assembly';
+        LocalAssemblyTok: Label 'Local Assembly';
         FlushManualTok: Label 'Flushing Manual', MaxLength = 30;
         FlushBackTok: Label 'Flushing Backward', MaxLength = 30;
         FlushForwardTok: Label 'Flushing Forward', MaxLength = 30;
@@ -115,7 +116,8 @@ codeunit 4775 "Create Mfg Capacity"
         ContosoManufacturing.InsertCapacityConstrainedResource('420', 1, 90, 5);
 
         ContosoManufacturing.InsertWorkCenterGroup(WorkCenterGroup5(), SubcontractorsTok);
-        ContosoManufacturing.InsertWorkCenter(WorkCenter500(), SubcontractorTok, WorkCenterGroup5(), 0, MfgCapUnitOfMeasure.Minutes(), 100, ShopCalendarOneShift(), 1, CommonPostingGroup.Retail(), MfgVendor.SubcontractorVendor(), true);
+        ContosoManufacturing.InsertWorkCenter(WorkCenter500(), BulkAssemblyTok, WorkCenterGroup5(), 0, MfgCapUnitOfMeasure.Minutes(), 100, ShopCalendarOneShift(), 1, CommonPostingGroup.Retail(), MfgVendor.SubcontractorVendor(), true);
+        ContosoManufacturing.InsertWorkCenter(WorkCenter600(), LocalAssemblyTok, WorkCenterGroup5(), 0, MfgCapUnitOfMeasure.Minutes(), 40, ShopCalendarOneShift(), 1, CommonPostingGroup.Retail(), MfgVendor.LocalSubcontractorVendor(), true);
 
 
         CalcMachineCenterCalendar.InitializeRequest(ContosoUtilities.AdjustDate(19020101D), ContosoUtilities.AdjustDate(19031231D));
@@ -181,6 +183,11 @@ codeunit 4775 "Create Mfg Capacity"
     procedure WorkCenter500(): Code[10]
     begin
         exit('500')
+    end;
+
+    procedure WorkCenter600(): Code[10]
+    begin
+        exit('600')
     end;
 
     procedure MachineCenter110(): Code[20]

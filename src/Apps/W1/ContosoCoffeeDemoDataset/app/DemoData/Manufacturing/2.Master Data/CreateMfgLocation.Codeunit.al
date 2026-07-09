@@ -24,7 +24,8 @@ codeunit 4764 "Create Mfg Location"
         if ManufacturingDemoDataSetup."Manufacturing Location" = '' then
             ManufacturingDemoDataSetup.Validate("Manufacturing Location", CommonLocation.MainLocation());
 
-        ContosoWarehouse.InsertLocation(SubcontractingLocation(), SubcontractingLocationNameLbl, '', false);
+        ContosoWarehouse.InsertLocation(SubcontractingLocation(), BulkAssemblyLocationNameLbl, '', false);
+        ContosoWarehouse.InsertLocation(LocalSubcontractingLocation(), LocalAssemblyLocationNameLbl, '', false);
 
         if ManufacturingDemoDataSetup."Subcontracting Location" = '' then
             ManufacturingDemoDataSetup.Validate("Subcontracting Location", SubcontractingLocation());
@@ -33,10 +34,16 @@ codeunit 4764 "Create Mfg Location"
     end;
 
     var
-        SubcontractingLocationNameLbl: Label 'Subcontracting', MaxLength = 100;
+        BulkAssemblyLocationNameLbl: Label 'Bulk Assembly', MaxLength = 100;
+        LocalAssemblyLocationNameLbl: Label 'Local Assembly', MaxLength = 100;
 
     procedure SubcontractingLocation(): Code[10]
     begin
-        exit('82000');
+        exit('S82000');
+    end;
+
+    procedure LocalSubcontractingLocation(): Code[10]
+    begin
+        exit('S83000');
     end;
 }

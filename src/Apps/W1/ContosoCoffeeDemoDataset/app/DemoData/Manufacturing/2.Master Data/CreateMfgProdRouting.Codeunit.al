@@ -96,7 +96,7 @@ codeunit 4772 "Create Mfg Prod. Routing"
         CertifyRouting(SPSCM1009SUB1());
 
         ContosoManufacturing.InsertRoutingHeader(SPSCM1009SUB2(), AirpotSubcontr2Tok, 0);
-        ContosoManufacturing.InsertRoutingLine(SPSCM1009SUB2(), '', OperationNo10(), '', "Capacity Type Routing"::"Work Center", MfgCapacity.WorkCenter500(), UnitAssemblyTok, 0, 25, 100, 0, RoutingLink500(), ContosoUtilities.AdjustPrice(45.32));  //Currency
+        ContosoManufacturing.InsertRoutingLine(SPSCM1009SUB2(), '', OperationNo10(), '', "Capacity Type Routing"::"Work Center", MfgCapacity.WorkCenter600(), UnitAssemblyTok, 0, 25, 40, 0, RoutingLink500(), ContosoUtilities.AdjustPrice(45.32));  //Currency
         CertifyRouting(SPSCM1009SUB2());
     end;
 
