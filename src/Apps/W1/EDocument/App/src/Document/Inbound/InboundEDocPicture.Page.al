@@ -72,7 +72,7 @@ page 6111 "Inbound E-Doc. Picture"
     /// so the host can drive which document is shown from its own current record.
     /// </summary>
     /// <param name="EDocDataStorageEntryNo">The E-Doc. Data Storage entry number to display.</param>
-    internal procedure SetEDocDataStorage(EDocDataStorageEntryNo: Integer)
+    internal procedure SetRecFilterByEDocDataStorageEntryNo(EDocDataStorageEntryNo: Integer)
     begin
         if Rec."Entry No." = EDocDataStorageEntryNo then
             exit;

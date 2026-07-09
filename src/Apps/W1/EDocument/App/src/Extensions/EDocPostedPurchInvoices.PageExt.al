@@ -30,7 +30,8 @@ pageextension 6109 "E-Doc. Posted Purch. Invoices" extends "Posted Purchase Invo
         EDocumentHelper: Codeunit "E-Document Helper";
         EDocDataStorageEntryNo: Integer;
     begin
-        ShowEDocumentPdfPreview := EDocumentHelper.GetInboundPdfPreviewEntryNo(Rec.RecordId(), EDocDataStorageEntryNo);
-        CurrPage.EDocumentPdfPreview.Page.SetEDocDataStorage(EDocDataStorageEntryNo);
+        EDocDataStorageEntryNo := EDocumentHelper.GetInboundPdfPreviewEntryNo(Rec.RecordId());
+        ShowEDocumentPdfPreview := EDocDataStorageEntryNo <> 0;
+        CurrPage.EDocumentPdfPreview.Page.SetRecFilterByEDocDataStorageEntryNo(EDocDataStorageEntryNo);
     end;
 }

@@ -23,51 +23,51 @@ codeunit 6148 "E-Document Helper"
     end;
 
     /// <summary>
-    /// Resolves the inbound PDF preview (unstructured E-Doc. Data Storage entry) for a posted purchase
+    /// Returns the inbound PDF preview (unstructured E-Doc. Data Storage entry) for a posted purchase
     /// document that originated from an E-Document, matching by the document's RecordId.
+    /// Returns 0 when the document has no linked PDF preview.
     /// </summary>
     /// <param name="SourceRecordId">The RecordId of the source purchase document.</param>
-    /// <param name="EDocDataStorageEntryNo">Out: the unstructured PDF data storage entry number.</param>
-    /// <returns>True if a linked E-Document with a PDF preview exists.</returns>
-    procedure GetInboundPdfPreviewEntryNo(SourceRecordId: RecordId; var EDocDataStorageEntryNo: Integer): Boolean
+    /// <returns>The unstructured PDF data storage entry number, or 0 when there is none.</returns>
+    procedure GetInboundPdfPreviewEntryNo(SourceRecordId: RecordId): Integer
     var
         EmptyLink: Guid;
     begin
-        exit(GetInboundPdfPreviewEntryNo(SourceRecordId, EmptyLink, EDocDataStorageEntryNo));
+        exit(GetInboundPdfPreviewEntryNo(SourceRecordId, EmptyLink));
     end;
 
     /// <summary>
-    /// Resolves the inbound PDF preview (unstructured E-Doc. Data Storage entry) for a purchase document
+    /// Returns the inbound PDF preview (unstructured E-Doc. Data Storage entry) for a purchase document
     /// that originated from an E-Document. The E-Document is located by its SystemId (open documents that
     /// carry an "E-Document Link") or, as a fallback, by the document's RecordId (posted documents).
+    /// Returns 0 when the document has no linked PDF preview.
     /// </summary>
     /// <param name="SourceRecordId">The RecordId of the source purchase document.</param>
     /// <param name="EDocumentLink">The "E-Document Link" GUID from the source document, or an empty GUID.</param>
-    /// <param name="EDocDataStorageEntryNo">Out: the unstructured PDF data storage entry number.</param>
-    /// <returns>True if a linked E-Document with a PDF preview exists.</returns>
-    procedure GetInboundPdfPreviewEntryNo(SourceRecordId: RecordId; EDocumentLink: Guid; var EDocDataStorageEntryNo: Integer): Boolean
+    /// <returns>The unstructured PDF data storage entry number, or 0 when there is none.</returns>
+    procedure GetInboundPdfPreviewEntryNo(SourceRecordId: RecordId; EDocumentLink: Guid): Integer
     var
         EDocument: Record "E-Document";
         EDocDataStorage: Record "E-Doc. Data Storage";
     begin
-        EDocDataStorageEntryNo := 0;
         if not FindLinkedEDocument(SourceRecordId, EDocumentLink, EDocument) then
-            exit(false);
+            exit(0);
         if EDocument."Unstructured Data Entry No." = 0 then
-            exit(false);
+            exit(0);
         EDocDataStorage.SetLoadFields("File Format");
         if not EDocDataStorage.Get(EDocument."Unstructured Data Entry No.") then
-            exit(false);
+            exit(0);
         if EDocDataStorage."File Format" <> Enum::"E-Doc. File Format"::PDF then
-            exit(false);
-        EDocDataStorageEntryNo := EDocDataStorage."Entry No.";
-        exit(true);
+            exit(0);
+        exit(EDocDataStorage."Entry No.");
     end;
 
     local procedure FindLinkedEDocument(SourceRecordId: RecordId; EDocumentLink: Guid; var EDocument: Record "E-Document"): Boolean
     begin
-        if (not IsNullGuid(EDocumentLink)) and EDocument.GetBySystemId(EDocumentLink) then
-            exit(true);
+        EDocument.SetLoadFields("Document Record ID", "Unstructured Data Entry No.");
+        if not IsNullGuid(EDocumentLink) then
+            if EDocument.GetBySystemId(EDocumentLink) then
+                exit(true);
         EDocument.SetRange("Document Record ID", SourceRecordId);
         exit(EDocument.FindFirst());
     end;
