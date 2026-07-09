@@ -27,6 +27,7 @@ table 20400 "Qlty. Management Setup"
     Caption = 'Quality Management Setup';
     DrillDownPageId = "Qlty. Management Setup";
     DataClassification = CustomerContent;
+    Permissions = tabledata "Qlty. Management Setup" = r;
 
     fields
     {
@@ -525,9 +526,6 @@ table 20400 "Qlty. Management Setup"
 
     internal procedure GetSetupRecord(): Boolean
     begin
-        if not Rec.ReadPermission() then
-            exit(false);
-
         exit(Rec.Get());
     end;
 

@@ -162,6 +162,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// </summary>
     /// <param name="ItemJnlTemplate"></param>
     /// <param name="PageTemplate"></param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::ItemJnlManagement, 'OnTemplateSelectionSetFilter', '', true, true)]
     local procedure HandleOnTemplateSelectionSetFilter(var ItemJnlTemplate: Record "Item Journal Template"; var PageTemplate: Option)
     var
@@ -220,6 +221,7 @@ codeunit 20439 "Qlty. Item Tracking Mgmt."
     /// <param name="WarehouseJournalLine"></param>
     /// <param name="WhseJnlTemplate"></param>
     /// <param name="OpenFromBatch"></param>
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Journal Line", 'OnTemplateSelectionOnAfterSetFilters', '', true, true)]
     local procedure HandleOnTemplateSelectionOnAfterSetFilters(var WarehouseJournalLine: Record "Warehouse Journal Line"; var WhseJnlTemplate: Record "Warehouse Journal Template"; OpenFromBatch: Boolean)
     var
