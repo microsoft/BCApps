@@ -238,4 +238,17 @@ codeunit 1563 "Privacy Notice"
     internal procedure OnRegisterPrivacyNotices(var TempPrivacyNotice: Record "Privacy Notice" temporary)
     begin
     end;
+
+    /// <summary>
+    /// Raised while resolving the runtime default approval policy for a privacy notice.
+    /// Modules that own an integration can subscribe to decide whether the notice should be approved by default,
+    /// without persisting an explicit admin or user decision.
+    /// </summary>
+    /// <param name="IntegrationID">The identifier of the privacy notice / integration being evaluated.</param>
+    /// <param name="ShouldApproveByDefault">Set by a subscriber to indicate whether the notice should be approved by default.</param>
+    /// <param name="Handled">Set to true by the subscriber that resolves the policy for the given integration.</param>
+    [IntegrationEvent(false, false)]
+    procedure OnCheckPrivacyNoticeApprovalDefault(IntegrationID: Text; var ShouldApproveByDefault: Boolean; var Handled: Boolean)
+    begin
+    end;
 }

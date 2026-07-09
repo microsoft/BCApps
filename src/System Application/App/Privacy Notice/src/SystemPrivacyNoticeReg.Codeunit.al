@@ -105,12 +105,4 @@ codeunit 1566 "System Privacy Notice Reg."
     begin
         HasInGeoSupport := ALMicrosoftLearnFunctions.HasInGeoSupport()
     end;
-
-    [TryFunction]
-    internal procedure TryGetIsNotWithinEUDB(var IsNotWithinEUDB: Boolean)
-    var
-        ALCopilotFunctions: DotNet ALCopilotFunctions;
-    begin
-        IsNotWithinEUDB := not ALCopilotFunctions.IsWithinEUDB();
-    end;
 }

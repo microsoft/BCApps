@@ -5,7 +5,6 @@
 
 namespace System.Privacy;
 
-using System.AI;
 using System.Environment;
 
 codeunit 1565 "Privacy Notice Impl."
@@ -14,7 +13,6 @@ codeunit 1565 "Privacy Notice Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
     Permissions = tabledata Company = r,
-                  tabledata "Copilot Settings" = r,
                   tabledata "Privacy Notice" = im;
 
     var
@@ -371,42 +369,21 @@ codeunit 1565 "Privacy Notice Impl."
     local procedure ShouldApproveByDefault(IntegrationID: Text): Boolean
     var
         SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
+        PrivacyNotice: Codeunit "Privacy Notice";
         MicrosoftLearnServiceInGeo: Boolean;
-        IsNotWithinEUDB: Boolean;
+        DefaultApproval: Boolean;
+        Handled: Boolean;
     begin
         if CheckIntegrationIDEquality(SystemPrivacyNoticeReg.GetMicrosoftLearnID(), IntegrationID) then
             if (SystemPrivacyNoticeReg.TryGetMicrosoftLearnInGeoSupport(MicrosoftLearnServiceInGeo)) then
                 exit(MicrosoftLearnServiceInGeo);
 
-        if CheckIntegrationIDEquality(SystemPrivacyNoticeReg.GetMicrosoftCopilotID(), IntegrationID) then begin
-            // Trial / evaluation tenants: unconditionally auto-approve; no EUDB split and no legacy admin gates to inherit.
-            if IsInTrialOrEvaluationMode() then
-                exit(true);
-            // If the pre-BizChat Chat capability was turned off, honor that choice instead of auto-approving.
-            if IsChatCapabilityInactive() then
-                exit(false);
-            if (SystemPrivacyNoticeReg.TryGetIsNotWithinEUDB(IsNotWithinEUDB)) then
-                exit(IsNotWithinEUDB);
-        end;
+        // Let integrations (for example Copilot in the AI SDK module) resolve their own runtime default approval policy.
+        PrivacyNotice.OnCheckPrivacyNoticeApprovalDefault(IntegrationID, DefaultApproval, Handled);
+        if Handled then
+            exit(DefaultApproval);
 
         exit(false);
-    end;
-
-    // Returns true if the SaaS-registered "Chat" Copilot capability exists and is currently marked Inactive.
-    local procedure IsChatCapabilityInactive(): Boolean
-    var
-        CopilotSettings: Record "Copilot Settings";
-    begin
-        CopilotSettings.SetRange(Capability, Enum::"Copilot Capability"::Chat);
-        CopilotSettings.SetRange(Status, Enum::"Copilot Status"::Inactive);
-        exit(not CopilotSettings.IsEmpty());
-    end;
-
-    local procedure IsInTrialOrEvaluationMode(): Boolean
-    var
-        TenantLicenseState: Codeunit "Tenant License State";
-    begin
-        exit(TenantLicenseState.IsTrialMode() or TenantLicenseState.IsEvaluationMode());
     end;
 
     /// <summary>
