@@ -6,7 +6,7 @@ content the reviewer consumes when it runs against BCApps pull requests.
 
 The reviewer engine itself — the orchestrator script, the BCQuality
 clone+filter scripts, and the reusable workflow — lives in
-[microsoft/BC-PullRequestReviewAgent](https://github.com/microsoft/BC-PullRequestReviewAgent).
+[microsoft/BC-ALReviewAgent](https://github.com/microsoft/BC-ALReviewAgent).
 BCApps is a **caller**: `.github/workflows/CopilotPRReviewRunner.yaml`
 invokes the engine's reusable workflow and points it at the config below.
 
@@ -95,6 +95,6 @@ cannot influence the agent — and the deletion list is recorded in
 
 ## Background
 
-- [BC PR Reviewer Agent (engine)](https://github.com/microsoft/BC-PullRequestReviewAgent#readme)
+- [BC PR Reviewer Agent (engine)](https://github.com/microsoft/BC-ALReviewAgent#readme)
 - [BCQuality README](https://github.com/microsoft/BCQuality#readme)
 - [skills/entry.md](https://github.com/microsoft/BCQuality/blob/main/skills/entry.md)
