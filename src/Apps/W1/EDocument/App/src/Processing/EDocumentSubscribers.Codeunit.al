@@ -790,7 +790,7 @@ codeunit 6103 "E-Document Subscribers"
         EDocument.SetRange(Direction, EDocument.Direction::Incoming);
         if not EDocument.FindLast() then
             exit;
-        IResponseBuilder := EDocument."Read into Draft Impl.";
+        IResponseBuilder := EDocument.GetEDocumentService()."Document Format";
         if not IResponseBuilder.SupportsOrderResponse(EDocument) then
             exit;
         IResponseBuilder.BuildOrderResponse(EDocument, "E-Doc. Response Type"::Accepted, ResponseBlob);

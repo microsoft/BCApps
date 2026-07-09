@@ -137,7 +137,7 @@ codeunit 6104 "Import E-Document Process"
         EDocument."Process Draft Impl." := IStructuredFormatReader.ReadIntoDraft(EDocument, FromBlob);
         EDocument.Modify();
 
-        IResponseBuilder := EDocument."Read into Draft Impl.";
+        IResponseBuilder := EDocument.GetEDocumentService()."Document Format";
         if IResponseBuilder.SupportsOrderResponse(EDocument) then begin
             IResponseBuilder.BuildOrderResponse(EDocument, "E-Doc. Response Type"::Acknowledged, ResponseBlob);
             EDocMessageMgt.CreateMessage(EDocument, "E-Document Message Type"::"PEPPOL Order Response", "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Acknowledged, ResponseBlob);

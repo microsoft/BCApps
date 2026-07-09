@@ -316,6 +316,7 @@ page 6121 "E-Document"
                 {
                     Caption = 'Reject Order';
                     ToolTip = 'Sends a rejection response to the sender of this inbound order.';
+                    ApplicationArea = Basic, Suite;
                     Image = Reject;
                     Visible = IsIncomingDoc;
 

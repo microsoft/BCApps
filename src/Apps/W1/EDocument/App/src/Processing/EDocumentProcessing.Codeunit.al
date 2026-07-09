@@ -760,7 +760,7 @@ codeunit 6108 "E-Document Processing"
         IResponseBuilder: Interface IOrderResponseBuilder;
     begin
         EDocument.TestField(Direction, EDocument.Direction::Incoming);
-        IResponseBuilder := EDocument."Read into Draft Impl.";
+        IResponseBuilder := EDocument.GetEDocumentService()."Document Format";
         if not IResponseBuilder.SupportsOrderResponse(EDocument) then
             exit;
         IResponseBuilder.BuildOrderResponse(EDocument, "E-Doc. Response Type"::Rejected, ResponseBlob);
