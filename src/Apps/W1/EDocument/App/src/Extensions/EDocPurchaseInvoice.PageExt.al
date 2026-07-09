@@ -106,7 +106,6 @@ pageextension 6129 "E-Doc. Purchase Invoice" extends "Purchase Invoice"
     begin
         HasEDocumentLinked := not IsNullGuid(Rec."E-Document Link");
         ShowEDocumentPdfPreview := EDocumentHelper.GetInboundPdfPreviewEntryNo(Rec.RecordId(), Rec."E-Document Link", EDocDataStorageEntryNo);
-        if ShowEDocumentPdfPreview then
-            CurrPage.EDocumentPdfPreview.Page.SetEDocDataStorage(EDocDataStorageEntryNo);
+        CurrPage.EDocumentPdfPreview.Page.SetEDocDataStorage(EDocDataStorageEntryNo);
     end;
 }

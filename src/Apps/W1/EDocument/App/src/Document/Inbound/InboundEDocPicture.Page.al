@@ -74,14 +74,22 @@ page 6111 "Inbound E-Doc. Picture"
     /// <param name="EDocDataStorageEntryNo">The E-Doc. Data Storage entry number to display.</param>
     internal procedure SetEDocDataStorage(EDocDataStorageEntryNo: Integer)
     begin
-        if EDocDataStorageEntryNo = 0 then
-            exit;
         if Rec."Entry No." = EDocDataStorageEntryNo then
             exit;
-        if not Rec.Get(EDocDataStorageEntryNo) then
+        if (EDocDataStorageEntryNo = 0) or (not Rec.Get(EDocDataStorageEntryNo)) then begin
+            ClearPreview();
             exit;
+        end;
         Rec.SetRecFilter();
         PdfLoaded := false;
+        CurrPage.Update(false);
+    end;
+
+    local procedure ClearPreview()
+    begin
+        Rec.Reset();
+        Clear(Rec);
+        Clear(TempMediaRepository);
         CurrPage.Update(false);
     end;
 

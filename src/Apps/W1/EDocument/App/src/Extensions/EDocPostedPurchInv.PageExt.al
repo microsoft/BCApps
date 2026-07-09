@@ -55,7 +55,6 @@ pageextension 6146 "E-Doc. Posted Purch. Inv." extends "Posted Purchase Invoice"
         EDocDataStorageEntryNo: Integer;
     begin
         ShowEDocumentPdfPreview := EDocumentHelper.GetInboundPdfPreviewEntryNo(Rec.RecordId(), EDocDataStorageEntryNo);
-        if ShowEDocumentPdfPreview then
-            CurrPage.EDocumentPdfPreview.Page.SetEDocDataStorage(EDocDataStorageEntryNo);
+        CurrPage.EDocumentPdfPreview.Page.SetEDocDataStorage(EDocDataStorageEntryNo);
     end;
 }
