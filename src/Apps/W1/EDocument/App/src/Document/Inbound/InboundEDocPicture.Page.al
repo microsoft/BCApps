@@ -76,7 +76,11 @@ page 6111 "Inbound E-Doc. Picture"
     begin
         if Rec."Entry No." = EDocDataStorageEntryNo then
             exit;
-        if (EDocDataStorageEntryNo = 0) or (not Rec.Get(EDocDataStorageEntryNo)) then begin
+        if EDocDataStorageEntryNo = 0 then begin
+            ClearPreview();
+            exit;
+        end;
+        if not Rec.Get(EDocDataStorageEntryNo) then begin
             ClearPreview();
             exit;
         end;
