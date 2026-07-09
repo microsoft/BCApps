@@ -236,7 +236,10 @@ report 5808 "Item Age Composition - Value"
 
                         TotalInvtValueRTC += UnitCost * Abs(TotalInvtQty);
                         InvtValueRTC[i] += UnitCost * Abs(InvtQty[i]);
-                    end
+                    end;
+
+                    for j := 1 to 5 do
+                        InvtQtyTotal[j] += InvtQty[j];
                 end;
 
                 trigger OnPostDataItem()
@@ -256,6 +259,7 @@ report 5808 "Item Age Composition - Value"
                     for i := 1 to 5 do
                         InvtValue[i] := 0;
                     RemainingQty := 0;
+                    Clear(InvtQtyTotal);
                 end;
             }
             dataitem("Integer"; "Integer")
@@ -285,27 +289,27 @@ report 5808 "Item Age Composition - Value"
                 {
                     AutoFormatType = 1;
                 }
-                column(InvtQty1_ItemLedgEntry; InvtQty[1])
+                column(InvtQty1_ItemLedgEntry; InvtQtyTotal[1])
                 {
                     DecimalPlaces = 0 : 2;
                 }
-                column(InvtQty2_ItemLedgEntry; InvtQty[2])
+                column(InvtQty2_ItemLedgEntry; InvtQtyTotal[2])
                 {
                     DecimalPlaces = 0 : 2;
                 }
-                column(InvtQty3_ItemLedgEntry; InvtQty[3])
+                column(InvtQty3_ItemLedgEntry; InvtQtyTotal[3])
                 {
                     DecimalPlaces = 0 : 2;
                 }
-                column(InvtQty4_ItemLedgEntry; InvtQty[4])
+                column(InvtQty4_ItemLedgEntry; InvtQtyTotal[4])
                 {
                     DecimalPlaces = 0 : 2;
                 }
-                column(InvtQty5_ItemLedgEntry; InvtQty[5])
+                column(InvtQty5_ItemLedgEntry; InvtQtyTotal[5])
                 {
                     DecimalPlaces = 0 : 2;
                 }
-                column(TotalInvtQty; TotalInvtQty)
+                column(TotalInvtQty; RemainingQty)
                 {
                     DecimalPlaces = 0 : 2;
                 }
@@ -506,9 +510,11 @@ report 5808 "Item Age Composition - Value"
         InvtValue: array[6] of Decimal;
         InvtValueRTC: array[6] of Decimal;
         InvtQty: array[6] of Decimal;
+        InvtQtyTotal: array[5] of Decimal;
         UnitCost: Decimal;
         PeriodStartDate: array[6] of Date;
         i: Integer;
+        j: Integer;
         TotalInvtValue_Item: Decimal;
         TotalInvtValueRTC: Decimal;
         TotalInvtQty: Decimal;
