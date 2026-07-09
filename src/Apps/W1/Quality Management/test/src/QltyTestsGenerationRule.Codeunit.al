@@ -30,6 +30,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         CouldNotFindSourceErr: Label 'There are generation rules for the template %1, however there is no source configuration that describes how to connect control fields. Navigate to Quality Inspection Source Configuration list and create a source configuration for table(s) %2', Comment = '%1=the template, %2=the table';
         TableMissingErr: Label 'You must choose a Table for this generation rule', Locked = true;
         LegacyDescriptionTok: Label 'Legacy rule', Locked = true;
+        NoCompatibleGenRuleQstFragmentTok: Label 'Could not find any compatible inspection generation rules for the template', Locked = true;
 
     [Test]
     procedure ActivationTriggerFindGenerationRule_ManualOnly_ManualRuleSearch()
@@ -498,6 +499,46 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
 
         // [THEN] It is gone - legacy rows are not bricked by the mandatory-table enforcement
         LibraryAssert.IsFalse(QltyInspectionGenRule.Get(LegacyEntryNo), 'A legacy rule without a table should be deletable');
+    end;
+
+    [Test]
+    [HandlerFunctions('NoCompatibleGenRuleConfirmHandler,GenRulesFilteredToTemplateModalHandler')]
+    procedure SourceLookup_NoCompatibleRule_WarnsAndOpensGenRulesFilteredToTemplate()
+    var
+        TargetQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        OtherQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        HasCompatibleRule: Boolean;
+    begin
+        // [SCENARIO] When the Source lookup finds no compatible generation rule for the chosen template, it warns the user and opens the Generation Rules page filtered to that template
+
+        // [GIVEN] Setup, a target template with no rules, and a different template that does have an enabled rule
+        QltyInspectionUtility.EnsureSetupExists();
+        QltyInspectionGenRule.DeleteAll();
+        QltyInspectionUtility.CreateTemplate(TargetQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreateTemplate(OtherQltyInspectionTemplateHdr, 0);
+        QltyInspectionUtility.CreatePrioritizedRule(OtherQltyInspectionTemplateHdr, Database::"Purchase Line");
+
+        // [WHEN] The Source lookup pre-check runs for the target template (via the test library wrapper around the report procedure)
+        HasCompatibleRule := QltyInspectionUtility.EnsureCompatibleGenerationRuleExists(TargetQltyInspectionTemplateHdr.Code);
+
+        // [THEN] The warning question was shown (NoCompatibleGenRuleConfirmHandler) and the Generation Rules page opened filtered to the target template (GenRulesFilteredToTemplateModalHandler)
+        // [THEN] Still no compatible rule afterwards because none was created
+        LibraryAssert.IsFalse(HasCompatibleRule, 'No compatible rule should exist for the target template');
+    end;
+
+    [ConfirmHandler]
+    procedure NoCompatibleGenRuleConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        LibraryAssert.IsTrue(StrPos(Question, NoCompatibleGenRuleQstFragmentTok) > 0, 'The lookup should warn that no compatible generation rule exists for the template');
+        Reply := true;
+    end;
+
+    [ModalPageHandler]
+    procedure GenRulesFilteredToTemplateModalHandler(var QltyInspectionGenRules: TestPage "Qlty. Inspection Gen. Rules")
+    begin
+        // The page is opened filtered to the target template, which has no rules, so the rule that exists for a different template must not be shown
+        LibraryAssert.IsFalse(QltyInspectionGenRules.First(), 'The Generation Rules page should open filtered to the selected template (rules of other templates must not appear)');
     end;
 
     local procedure DeleteAllAndCreateOneGenerationRule(TemplateCode: Code[20]; ActivationTrigger: Enum "Qlty. Gen. Rule Act. Trigger")

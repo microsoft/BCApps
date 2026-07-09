@@ -895,6 +895,19 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
+    /// Wrapper for internal procedure EnsureCompatibleGenerationRuleExists from the Qlty. Inspec. Gen. Rule Mgmt. codeunit.
+    /// Runs the Source lookup pre-check that warns when no compatible generation rule exists for the template and opens the Generation Rules page filtered to it.
+    /// </summary>
+    /// <param name="TemplateCode">The template the inspection is being created for.</param>
+    /// <returns>True if a compatible generation rule exists (or was created), false otherwise.</returns>
+    internal procedure EnsureCompatibleGenerationRuleExists(TemplateCode: Code[20]): Boolean
+    var
+        QltyInspecGenRuleMgmt: Codeunit "Qlty. Inspec. Gen. Rule Mgmt.";
+    begin
+        exit(QltyInspecGenRuleMgmt.EnsureCompatibleGenerationRuleExists(TemplateCode));
+    end;
+
+    /// <summary>
     /// Wrapper for internal procedure ValidateQltyInspectionLine from Qlty. Result Evaluation codeunit.
     /// Validates an inspection line using the single-parameter internal signature.
     /// </summary>

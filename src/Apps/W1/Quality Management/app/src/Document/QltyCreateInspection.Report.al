@@ -72,7 +72,7 @@ report 20400 "Qlty. Create Inspection"
                             QltyInspectSourceConfigList: Page "Qlty. Ins. Source Config. List";
                             OldTableNo: Integer;
                         begin
-                            if not EnsureCompatibleGenerationRuleExists() then
+                            if not QltyInspecGenRuleMgmt.EnsureCompatibleGenerationRuleExists(QltInspectionTemplateToCreate) then
                                 exit(false);
 
                             OldTableNo := QltyInspectSourceConfig."From Table No.";
@@ -225,7 +225,6 @@ report 20400 "Qlty. Create Inspection"
         DidChangeSourceQuantity: Boolean;
         NotAValidQltyInspectionTemplateErr: Label '''%1'' is not a valid Quality Inspection Template. Please re-configure the available Quality Inspection Templates.', Comment = '%1=The template that was expected';
         PleaseChooseARecordFirstErr: Label 'Choose which record you want to create a Quality Inspection for, then try again.';
-        NoCompatibleGenRuleQst: Label 'Could not find any compatible inspection generation rules for the template %1. Do you want to open the Quality Inspection Generation Rules page to create one?', Comment = '%1=the template code';
         NoLookupPageForSourceTableErr: Label 'The source configuration ''%1'' is mapped to table ''%2'', which has no list or lookup page available. Choose a different Source.', Comment = '%1=Source configuration code, %2=From Table caption';
 
     trigger OnPreReport()
@@ -272,28 +271,6 @@ report 20400 "Qlty. Create Inspection"
             end;
         end;
         SetRequestPageControlVisibility();
-    end;
-
-    local procedure EnsureCompatibleGenerationRuleExists(): Boolean
-    var
-        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
-        TempCompatibleQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
-        QltyInspectionGenRules: Page "Qlty. Inspection Gen. Rules";
-    begin
-        if QltInspectionTemplateToCreate = '' then
-            exit(true);
-
-        if QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectionGenRule) then
-            exit(true);
-
-        if not Confirm(NoCompatibleGenRuleQst, false, QltInspectionTemplateToCreate) then
-            exit(false);
-
-        QltyInspectionGenRule.SetRange("Template Code", QltInspectionTemplateToCreate);
-        QltyInspectionGenRules.SetTableView(QltyInspectionGenRule);
-        QltyInspectionGenRules.RunModal();
-
-        exit(QltyInspecGenRuleMgmt.FindAllCompatibleGenerationRules(QltInspectionTemplateToCreate, TempCompatibleQltyInspectionGenRule));
     end;
 
     local procedure ClearParameters()

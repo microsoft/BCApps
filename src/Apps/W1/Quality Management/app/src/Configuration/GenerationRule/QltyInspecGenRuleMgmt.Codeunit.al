@@ -24,6 +24,7 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
         MissingTableErr: Label 'There are generation rules for the template %1, however the table is missing. Navigate to Quality Inspection Generation Rules page and ensure that table is populated for %2 rule.', Comment = '%1=the template, %2=the description';
         UnexpectedUnableWithADetailErr: Label 'Cannot find an inspection to create that will work with [%1]. Please review your Quality Inspection Source table configurations and your Quality Inspection Generation Rules.', Comment = '%1=the id/name';
         NoGenRuleErr: Label 'Cannot find an inspection to create that will work with [%1]. Please review your Quality Inspection Source table configurations and your Quality Inspection Generation Rules.', Comment = '%1=the id/name';
+        NoCompatibleGenRuleQst: Label 'Could not find any compatible inspection generation rules for the template %1. Do you want to open the Quality Inspection Generation Rules page to create one?', Comment = '%1=the template code';
 
     /// <summary>
     /// Sets the filter on the target configuration to sources that could match the supplied template.
@@ -303,5 +304,27 @@ codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
                 if TempQltyInspectionGenRule.Insert() then;
                 Found := true;
             until QltyInspectionGenRule.Next() = 0;
+    end;
+
+    internal procedure EnsureCompatibleGenerationRuleExists(TemplateCode: Code[20]): Boolean
+    var
+        QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule";
+        TempCompatibleQltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule" temporary;
+        QltyInspectionGenRules: Page "Qlty. Inspection Gen. Rules";
+    begin
+        if TemplateCode = '' then
+            exit(true);
+
+        if FindAllCompatibleGenerationRules(TemplateCode, TempCompatibleQltyInspectionGenRule) then
+            exit(true);
+
+        if not Confirm(NoCompatibleGenRuleQst, false, TemplateCode) then
+            exit(false);
+
+        QltyInspectionGenRule.SetRange("Template Code", TemplateCode);
+        QltyInspectionGenRules.SetTableView(QltyInspectionGenRule);
+        QltyInspectionGenRules.RunModal();
+
+        exit(FindAllCompatibleGenerationRules(TemplateCode, TempCompatibleQltyInspectionGenRule));
     end;
 }
