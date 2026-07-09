@@ -4,6 +4,28 @@ Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
 
 Describe "ParallelTestExecution app-name resolution" {
     BeforeAll {
+        # Get-BcContainerAppInfo comes from BcContainerHelper, which is present when the module
+        # runs inside a BC container but is NOT loaded in the "Run PS Tests" runner. Pester cannot
+        # mock a command that does not exist, so define a no-op stub (guarded so we never shadow the
+        # real cmdlet) declaring the parameters the module passes, letting the mock bind correctly.
+        $script:createdBcContainerAppInfoStub = $false
+        if (-not (Get-Command Get-BcContainerAppInfo -ErrorAction SilentlyContinue)) {
+            function global:Get-BcContainerAppInfo {
+                param(
+                    [string]$containerName,
+                    [string]$tenant,
+                    [switch]$tenantSpecificProperties
+                )
+                # The parameters exist only so the stub matches the mocked BcContainerHelper cmdlet
+                # signature; reference them so PSScriptAnalyzer does not flag them as unused.
+                $null = $containerName, $tenant, $tenantSpecificProperties
+                # This body must never run: it exists only so Pester can resolve and mock the
+                # command. Every module call to it in these tests is intercepted by Pester's mock.
+                throw "Get-BcContainerAppInfo stub should never be called; a Pester mock must intercept it."
+            }
+            $script:createdBcContainerAppInfoStub = $true
+        }
+
         # Create real app.json files on disk so Get-AppNameFromMetadata can read them.
         $script:tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("patest_" + [System.Guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $script:tempRoot -Force | Out-Null
@@ -24,6 +46,9 @@ Describe "ParallelTestExecution app-name resolution" {
     }
 
     AfterAll {
+        if ($script:createdBcContainerAppInfoStub -and (Test-Path 'function:global:Get-BcContainerAppInfo')) {
+            Remove-Item 'function:global:Get-BcContainerAppInfo' -Force -ErrorAction SilentlyContinue
+        }
         if (Test-Path $script:tempRoot) { Remove-Item $script:tempRoot -Recurse -Force -ErrorAction SilentlyContinue }
     }
 
