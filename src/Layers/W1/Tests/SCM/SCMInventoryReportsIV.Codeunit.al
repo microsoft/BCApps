@@ -118,6 +118,36 @@ codeunit 137351 "SCM Inventory Reports - IV"
     end;
 
     [Test]
+    [HandlerFunctions('ItemAgeCompositionValueRequestPageHandler')]
+    [Scope('OnPrem')]
+    procedure ItemAgeCompositionBeforeBucketSumsAllEntries()
+    var
+        Item: Record Item;
+        PostingDate: Date;
+    begin
+        // [FEATURE] [Item Age Composition]
+        // [SCENARIO 637846] The "...before" quantity bucket sums the remaining quantity of all item ledger entries, not just the last one.
+
+        // [GIVEN] An item with three posted receipts (6, 10, 15), all dated in the "...before" bucket
+        Initialize();
+        PostingDate := CalcDate('<-4M>', WorkDate());
+        CreateItem(Item, Item."Replenishment System"::Purchase);
+        PostPositiveAdjustmentWithDate(Item."No.", 6, PostingDate);
+        PostPositiveAdjustmentWithDate(Item."No.", 10, PostingDate);
+        PostPositiveAdjustmentWithDate(Item."No.", 15, PostingDate);
+
+        // [WHEN] Running the Item Age Composition by Quantity and Value report
+        Commit();
+        RunItemAgeCompositionValueReport(Item."No.");
+
+        // [THEN] The "...before" quantity column shows the total remaining quantity (6 + 10 + 15 = 31), not just the last entry
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.SetRange('No_Item', Item."No.");
+        LibraryReportDataset.GetNextRow();
+        LibraryReportDataset.AssertCurrentRowValueEquals('InvtQty1_ItemLedgEntry', 31);
+    end;
+
+    [Test]
     [HandlerFunctions('ImplementStandardCostChangePageHandler,MessageHandler')]
     [Scope('OnPrem')]
     procedure RevaluationJournalLinesUsingStdCostWorksheet()
@@ -3005,6 +3035,21 @@ codeunit 137351 "SCM Inventory Reports - IV"
         LibraryVariableStorage.Enqueue(WorkDate() - 1);
         LibraryVariableStorage.Enqueue(PeriodLength);
         REPORT.Run(REPORT::"Item Age Composition - Value", true, false, Item);
+    end;
+
+    local procedure PostPositiveAdjustmentWithDate(ItemNo: Code[20]; Qty: Decimal; PostingDate: Date)
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ItemJournalTemplate: Record "Item Journal Template";
+    begin
+        CreateItemJournalBatch(ItemJournalBatch, ItemJournalTemplate.Type::Item);
+        LibraryInventory.CreateItemJournalLine(
+          ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+          ItemJournalLine."Entry Type"::"Positive Adjmt.", ItemNo, Qty);
+        ItemJournalLine.Validate("Posting Date", PostingDate);
+        ItemJournalLine.Modify(true);
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
     end;
 
     local procedure RunItemBudgetReport(No: Code[20])

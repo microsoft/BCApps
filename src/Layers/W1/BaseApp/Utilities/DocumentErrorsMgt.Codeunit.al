@@ -356,7 +356,7 @@ codeunit 9070 "Document Errors Mgt."
     begin
         if BackgroundValidationEnabled() then begin
             SetFullDocumentCheck(true);
-            GlobalPurchaseOrderPage.RunBackgroundCheck();
+            GlobalPurchaseInvoicePage.RunBackgroundCheck();
         end;
     end;
 
@@ -365,7 +365,7 @@ codeunit 9070 "Document Errors Mgt."
     begin
         if BackgroundValidationEnabled() then begin
             SetFullDocumentCheck(true);
-            GlobalPurchaseOrderPage.RunBackgroundCheck();
+            GlobalPurchaseCreditMemoPage.RunBackgroundCheck();
         end;
     end;
 
@@ -374,7 +374,7 @@ codeunit 9070 "Document Errors Mgt."
     begin
         if BackgroundValidationEnabled() then begin
             SetFullDocumentCheck(true);
-            GlobalPurchaseOrderPage.RunBackgroundCheck();
+            GlobalPurchaseReturnOrderPage.RunBackgroundCheck();
         end;
     end;
 
