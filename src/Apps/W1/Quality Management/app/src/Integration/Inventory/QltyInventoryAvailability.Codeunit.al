@@ -429,7 +429,10 @@ codeunit 20445 "Qlty. Inventory Availability"
         MultipleBins: Boolean;
         SkipBinContent: Boolean;
         IsHandled: Boolean;
+        AllocateAcrossBins: Boolean;
         BufferEntryCounter: Integer;
+        RemainingQuantityToAllocate: Decimal;
+        QuantityToHandle: Decimal;
     begin
         TempQuantityQltyDispositionBuffer.Reset();
         TempQuantityQltyDispositionBuffer.DeleteAll();
@@ -460,6 +463,18 @@ codeunit 20445 "Qlty. Inventory Availability"
                 TempExistingInventoryBinContent.FindSet();
             end;
 
+            AllocateAcrossBins := MultipleBins and (TempInstructionQltyDispositionBuffer."Quantity Behavior" in [
+                TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Specific Quantity",
+                TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Sample Quantity",
+                TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Failed Quantity",
+                TempInstructionQltyDispositionBuffer."Quantity Behavior"::"Passed Quantity"]);
+            if AllocateAcrossBins then
+                RemainingQuantityToAllocate := GetQuantityToHandleFromInspection(
+                    QltyInspectionHeader,
+                    TempInstructionQltyDispositionBuffer."Quantity Behavior",
+                    TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)",
+                    TempExistingInventoryBinContent);
+
             repeat
                 SkipBinContent := false;
                 if TempExistingInventoryBinContent."Location Code" <> '' then
@@ -475,22 +490,36 @@ codeunit 20445 "Qlty. Inventory Availability"
                     end;
 
                 if not SkipBinContent then begin
+                    if AllocateAcrossBins then begin
+                        if (TempExistingInventoryBinContent."Min. Qty." > 0) and (TempExistingInventoryBinContent."Min. Qty." < RemainingQuantityToAllocate) then
+                            QuantityToHandle := TempExistingInventoryBinContent."Min. Qty."
+                        else
+                            QuantityToHandle := RemainingQuantityToAllocate;
+                        SkipBinContent := QuantityToHandle <= 0;
+                    end else
+                        QuantityToHandle := GetQuantityToHandleFromInspection(
+                            QltyInspectionHeader,
+                            TempInstructionQltyDispositionBuffer."Quantity Behavior",
+                            TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)",
+                            TempExistingInventoryBinContent);
+                end;
+
+                if not SkipBinContent then begin
                     BufferEntryCounter += 1;
                     TempQuantityQltyDispositionBuffer := TempInstructionQltyDispositionBuffer;
                     TempQuantityQltyDispositionBuffer."Buffer Entry No." := BufferEntryCounter;
                     TempQuantityQltyDispositionBuffer."Location Filter" := TempExistingInventoryBinContent."Location Code";
                     TempQuantityQltyDispositionBuffer."Bin Filter" := TempExistingInventoryBinContent."Bin Code";
-                    TempQuantityQltyDispositionBuffer."Qty. To Handle (Base)" := GetQuantityToHandleFromInspection(
-                        QltyInspectionHeader,
-                        TempInstructionQltyDispositionBuffer."Quantity Behavior",
-                        TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)",
-                        TempExistingInventoryBinContent);
+                    TempQuantityQltyDispositionBuffer."Qty. To Handle (Base)" := QuantityToHandle;
 
                     if TempQuantityQltyDispositionBuffer."Qty. To Handle (Base)" = 0 then
                         Error(ZeroQuantityErr, TempInstructionQltyDispositionBuffer."Disposition Action", QltyInspectionHeader."No.", QltyInspectionHeader."Source Item No.");
 
                     if (TempQuantityQltyDispositionBuffer."New Serial No." <> '') and (TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)" > 1) then
                         Error(SerialQuantityGreaterThanOneErr, TempInstructionQltyDispositionBuffer."Entry Behavior", TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)");
+
+                    if AllocateAcrossBins then
+                        RemainingQuantityToAllocate -= TempQuantityQltyDispositionBuffer."Qty. To Handle (Base)";
 
                     TempQuantityQltyDispositionBuffer.Insert(false);
                 end;
