@@ -161,6 +161,7 @@ codeunit 1210 "Payment Export Mgt"
     /// <param name="LineNo">Line number in the data exchange</param>
     /// <param name="DataExchLineDefCode">Data exchange line definition code</param>
     /// <param name="TableID">Table ID of the source record</param>
+    [Obsolete('Use ProcessColumnMapping with TempDataExchField parameter for better performance.', '29.0')]
     procedure ProcessColumnMapping(var DataExch: Record "Data Exch."; RecRef: RecordRef; var DataExchFlowFieldGrBuff: Record "Data Exch. FlowField Gr. Buff."; LineNo: Integer; DataExchLineDefCode: Code[20]; TableID: Integer)
     var
         DataExchDef: Record "Data Exch. Def";
