@@ -8473,6 +8473,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GLEntry: Record "G/L Entry";
         NeedsSaveEntryNoFix: Boolean;
     begin
+        //
         NeedsSaveEntryNoFix := (SaveEntryNo <> 0) and (NextEntryNo2 <> NextEntryNo);
         if not NeedsSaveEntryNoFix then
             if (DocAmountLCY <> 0) or (DiscDocAmountLCY <> 0) or (CollDocAmountLCY <> 0) or (RejDocAmountLCY <> 0) or
