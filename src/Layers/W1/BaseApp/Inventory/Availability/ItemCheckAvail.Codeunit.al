@@ -60,7 +60,14 @@ codeunit 311 "Item-Check Avail."
         DontShowAgainTxt: Label 'Don''t show again';
 
     procedure ItemJnlCheckLine(ItemJnlLine: Record "Item Journal Line") Rollback: Boolean
+    var
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeItemJnlCheckLine(ItemJnlLine, Rollback, IsHandled);
+        if IsHandled then
+            exit(Rollback);
+
         NotificationLifecycleMgt.RecallNotificationsForRecordWithAdditionalContext(
           ItemJnlLine.RecordId, GetItemAvailabilityNotificationId(), true);
         if ItemJnlLineShowWarning(ItemJnlLine) then
@@ -775,6 +782,11 @@ codeunit 311 "Item-Check Avail."
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterItemJnlLineShowWarning(var ItemJournalLine: Record "Item Journal Line"; var ItemNetChange: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeItemJnlCheckLine(var ItemJournalLine: Record "Item Journal Line"; var Rollback: Boolean; var IsHandled: Boolean)
     begin
     end;
 

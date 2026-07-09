@@ -48,11 +48,50 @@ function Get-CachedTestRunResult {
 
 <#
 .SYNOPSIS
+    Resolves the authoritative app name for a project from its app.json "name" field.
+.DESCRIPTION
+    Get-ApplicationGroup exposes the projects.json key as ApplicationName. That key is required to
+    match the app.json "name", but the two can drift (typos, "-Tests" vs " Test", trailing dots).
+    When they drift, the container only ever knows the app.json "name", so any match keyed off
+    ApplicationName silently drops the app from the test dispatch set and skips ALL of its tests
+    while the build stays green. Reading the name straight from app.json (via AppJsonPath) makes
+    the dispatch robust against that drift. Falls back to ApplicationName if app.json is missing
+    or unreadable.
+.OUTPUTS
+    [string] The app.json "name", or ApplicationName as a fallback.
+#>
+function Get-AppNameFromMetadata {
+    param(
+        [Parameter(Mandatory=$true)]
+        $BuildMetadata
+    )
+
+    $appJsonPath = $BuildMetadata.AppJsonPath
+    if (-not [string]::IsNullOrWhiteSpace($appJsonPath) -and (Test-Path $appJsonPath -PathType Leaf)) {
+        try {
+            $appName = (Get-Content $appJsonPath -Raw | ConvertFrom-Json).name
+            if (-not [string]::IsNullOrWhiteSpace($appName)) {
+                if ($appName -ne $BuildMetadata.ApplicationName) {
+                    Write-Host "::warning::Test app projects.json key '$($BuildMetadata.ApplicationName)' does not match its app.json name '$appName'. Using the app.json name for test dispatch. Align the projects.json key (and build/groups.json name) with the app.json name to avoid confusion."
+                }
+                return $appName
+            }
+        } catch {
+            Write-Host "WARNING: Could not read app name from '$appJsonPath' ($($_.Exception.Message)); falling back to projects.json key '$($BuildMetadata.ApplicationName)'."
+        }
+    }
+    return $BuildMetadata.ApplicationName
+}
+
+<#
+.SYNOPSIS
     Returns the names of test apps that are both expected for a country and installed in the container.
 .DESCRIPTION
     Combines the project metadata in eng/projects.json (via Get-ApplicationGroup) with
     Get-BcContainerAppInfo so we only ever try to dispatch apps that actually exist in the
     container. The country defaults to "w1" when unset or set to the repo-level "base" sentinel.
+    App names are resolved from each project's app.json "name" (via Get-AppNameFromMetadata) so a
+    projects.json-key vs app.json-name mismatch cannot silently exclude a test app from dispatch.
 #>
 function Get-InstalledTestAppNames {
     param(
@@ -68,7 +107,7 @@ function Get-InstalledTestAppNames {
     $allTestAppNames = @(
         Get-ApplicationGroup -GroupName "All" -CountryCode $Country -SkipLanguagePacks |
         Where-Object { $_.IsTest } |
-        Select-Object -ExpandProperty ApplicationName
+        ForEach-Object { Get-AppNameFromMetadata -BuildMetadata $_ }
     )
 
     $installedAppNames = @(
@@ -689,4 +728,4 @@ function Invoke-PerProjectTestRun {
     return (. $script -parameters $parameters -TestType $testType -AppNamesToTest $appNamesToTest)
 }
 
-Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun
+Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata

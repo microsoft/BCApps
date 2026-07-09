@@ -192,10 +192,21 @@ page 30145 "Shpfy Refund"
                 RunObject = Page "Shpfy Refund Shipping Lines";
                 RunPageLink = "Refund Id" = field("Refund Id");
             }
+            action(Transactions)
+            {
+                ApplicationArea = All;
+                Caption = 'Transactions';
+                Image = Payment;
+                ToolTip = 'View the transactions created for this refund that results in exchange of money.';
+                RunObject = Page "Shpfy Order Transactions";
+                RunPageLink = "Refund Id" = field("Refund Id");
+                RunPageMode = View;
+            }
         }
         area(Promoted)
         {
             actionref(PromotedShippingLines; ShippingLines) { }
+            actionref(PromotedTransactions; Transactions) { }
             actionref(PromotedCreateCreditNoted; CreateCreditMemo) { }
             actionref(PromotedRetrievedShopifyData; RetrievedShopifyData) { }
         }
