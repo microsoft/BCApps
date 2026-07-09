@@ -540,8 +540,11 @@ codeunit 7774 "Copilot Capability Impl"
     local procedure IsChatCapabilityInactive(): Boolean
     var
         ChatCopilotSettings: Record "Copilot Settings";
+        ModuleInfo: ModuleInfo;
     begin
+        NavApp.GetCurrentModuleInfo(ModuleInfo);
         ChatCopilotSettings.SetRange(Capability, Enum::"Copilot Capability"::Chat);
+        ChatCopilotSettings.SetRange("App Id", ModuleInfo.Id());
         ChatCopilotSettings.SetRange(Status, Enum::"Copilot Status"::Inactive);
         exit(not ChatCopilotSettings.IsEmpty());
     end;
