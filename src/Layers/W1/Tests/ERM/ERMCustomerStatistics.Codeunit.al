@@ -1165,6 +1165,8 @@ codeunit 134389 "ERM Customer Statistics"
 
         // [THEN] "Balance Due (LCY)" FlowField shown on the Customer Card reflects only the overdue invoice amount.
         Assert.AreEqual(OverdueAmount, CustomerCard."Balance Due (LCY)".AsDecimal(), OverDueBalanceErr);
+        // [THEN] "Balance Due" cue (OverdueBalance page variable, populated by the background task) also reflects only the overdue invoice amount.
+        Assert.AreEqual(OverdueAmount, CustomerCard."Balance Due".AsDecimal(), OverDueBalanceErr);
         // [THEN] "Balance (LCY)" on the Customer Card still sums both invoices.
         Assert.AreEqual(OverdueAmount + NotOverdueAmount, CustomerCard."Balance (LCY)".AsDecimal(), BalanceLCYShouldIncludeBothInvoicesErr);
 
