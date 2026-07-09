@@ -750,29 +750,52 @@ codeunit 7017 "Price List Management"
         SourceTypeFilter: Text;
         ParentSourceNoFilter: Text;
         SourceNoFilter: Text;
+        SystemIdFilter: Text;
         OrSeparator: Text[1];
+        CorrelatedSources: Boolean;
     begin
-        // Use native filters instead of Mark/MarkedOnly to avoid materializing broad result sets (e.g. "All Customers").
         ClearSourceFilters(PriceListLine);
         if not PriceSourceList.First(PriceSource, 0) then
             exit;
+
+        CorrelatedSources := not SearchIfPriceExists and HasCorrelatedSourceEntries(PriceSourceList);
+
         repeat
+            PriceListLine.SetRange("Source Type", PriceSource."Source Type");
+            PriceListLine.SetRange("Parent Source No.", PriceSource."Parent Source No.");
+            PriceListLine.SetRange("Source No.", PriceSource."Source No.");
             OnBuildSourceFiltersOnBeforeFindLines(PriceListLine, PriceSource);
+
             if SearchIfPriceExists then begin
-                PriceListLine.SetRange("Source Type", PriceSource."Source Type");
-                PriceListLine.SetRange("Parent Source No.", PriceSource."Parent Source No.");
-                PriceListLine.SetRange("Source No.", PriceSource."Source No.");
                 PriceIsFound := not PriceListLine.IsEmpty();
                 ClearSourceFilters(PriceListLine);
                 if PriceIsFound then
                     exit;
-            end else begin
-                SourceTypeFilter += OrSeparator + Format(PriceSource."Source Type");
-                ParentSourceNoFilter += OrSeparator + GetFilterText(PriceSource."Parent Source No.");
-                SourceNoFilter += OrSeparator + GetFilterText(PriceSource."Source No.");
-                OrSeparator := '|';
-            end;
+            end else
+                if CorrelatedSources then begin
+                    if PriceListLine.FindSet() then
+                        repeat
+                            SystemIdFilter += OrSeparator + Format(PriceListLine.SystemId);
+                            OrSeparator := '|';
+                        until PriceListLine.Next() = 0;
+                    ClearSourceFilters(PriceListLine);
+                end else begin
+                    SourceTypeFilter += OrSeparator + Format(PriceSource."Source Type");
+                    ParentSourceNoFilter += OrSeparator + GetFilterText(PriceSource."Parent Source No.");
+                    SourceNoFilter += OrSeparator + GetFilterText(PriceSource."Source No.");
+                    OrSeparator := '|';
+                    ClearSourceFilters(PriceListLine);
+                end;
         until not PriceSourceList.Next(PriceSource);
+
+        if CorrelatedSources then begin
+            if SystemIdFilter = '' then begin
+                PriceListLine.SetRange(SystemId, EmptyGuidFilter());
+                exit;
+            end;
+            PriceListLine.SetFilter(SystemId, SystemIdFilter);
+            exit;
+        end;
 
         if SourceTypeFilter = '' then
             exit;
@@ -780,6 +803,25 @@ codeunit 7017 "Price List Management"
         PriceListLine.SetFilter("Source Type", SourceTypeFilter);
         PriceListLine.SetFilter("Parent Source No.", ParentSourceNoFilter);
         PriceListLine.SetFilter("Source No.", SourceNoFilter);
+    end;
+
+    local procedure HasCorrelatedSourceEntries(PriceSourceList: Codeunit "Price Source List"): Boolean
+    var
+        PriceSource: Record "Price Source";
+    begin
+        if PriceSourceList.First(PriceSource, 0) then
+            repeat
+                if PriceSource."Parent Source No." <> '' then
+                    exit(true);
+            until not PriceSourceList.Next(PriceSource);
+        exit(false);
+    end;
+
+    local procedure EmptyGuidFilter(): Guid
+    var
+        NullGuid: Guid;
+    begin
+        exit(NullGuid);
     end;
 
     local procedure ClearSourceFilters(var PriceListLine: Record "Price List Line")
