@@ -1392,6 +1392,76 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
 
     [Test]
     [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
+    procedure WIPTransferRemainderCreatedWhenOpenLineQuantityReduced()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        TransferLine: Record "Transfer Line";
+        WorkCenter: array[2] of Record "Work Center";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+        FullQty: Decimal;
+        ReducedQty: Decimal;
+    begin
+        // [SCENARIO 639382] When an open (unposted) WIP transfer line had its quantity reduced,
+        // re-running "Create Transfer Order to Subcontractor" must create the remaining quantity
+        // instead of erroring that there is nothing to create.
+
+        // [GIVEN] Complete setup with Transfer WIP Item = true on the subcontracting routing line
+        Initialize();
+
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SetTransferWIPItemOnRoutingLine(Item."Routing No.", WorkCenter[2]."No.", true);
+
+        // [GIVEN] Create and refresh production order with a quantity that allows a partial remainder
+        FullQty := LibraryRandom.RandIntInRange(6, 10);
+        LibraryManufacturing.CreateProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", FullQty);
+        SetProdOrderLocationToCompSetupLocationAndRefresh(ProductionOrder);
+
+        // [GIVEN] Create Subcontracting Purchase Order
+        SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+
+        // [GIVEN] Create the initial WIP Transfer Order with the full quantity
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GoToRecord(PurchaseHeader);
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+        PurchaseHeaderPage.Close();
+
+        // [GIVEN] Reduce the open WIP transfer line quantity (do not post it)
+        TransferLine.SetRange("Subc. Prod. Order No.", ProductionOrder."No.");
+        TransferLine.SetRange("Subc. Return Order", false);
+#pragma warning disable AA0210
+        TransferLine.SetRange("Transfer WIP Item", true);
+#pragma warning restore AA0210
+        Assert.RecordCount(TransferLine, 1);
+        TransferLine.FindFirst();
+        ReducedQty := FullQty - LibraryRandom.RandIntInRange(1, FullQty - 1);
+        TransferLine.Validate(Quantity, ReducedQty);
+        TransferLine.Modify(true);
+
+        // [WHEN] Re-run Create Transfer Order to Subcontractor
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GoToRecord(PurchaseHeader);
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        // [THEN] The remaining quantity is now covered (reduced line + new remainder line = FullQty)
+        TransferLine.CalcSums(Quantity);
+        Assert.AreEqual(FullQty, TransferLine.Quantity,
+            'Re-running Create Transfer Order must create the remaining WIP quantity after the open line was reduced.');
+    end;
+
+    [Test]
+    [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
     procedure ToggleOffDirectTransferOnWIPTransferOrderDoesNotError()
     var
         Item: Record Item;

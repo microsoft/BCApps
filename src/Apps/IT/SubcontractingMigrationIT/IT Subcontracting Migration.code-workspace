@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "IT Subcontracting Migration",
+			"path": ".\\App"
+		},
+		{
+			"name": "IT Subcontracting Migration - Test",
+			"path": ".\\Test"
+		}
+	],
+	"settings": {}
+}

@@ -1,0 +1,53 @@
+{
+  "id": "2363a2b7-1018-4976-a32a-c77338dc9f16",
+  "name": "Dynamics 365 Business Central v14 Reimplementation",
+  "publisher": "Microsoft",
+  "version": "29.0.0.0",
+  "brief": "Migrate data from Business Central 14 on-premises to Business Central online",
+  "description": "This extension enables cloud migration from Business Central 14 on-premises to Business Central online. It replicates and transforms customers, vendors, items, chart of accounts, and transactional data to help you move your business to the cloud seamlessly.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2009036",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2115702",
+  "logo": "ExtensionLogo.png",
+  "dependencies": [
+    {
+      "id": "58623bfa-0559-4bc2-ae1c-0979c29fd9e0",
+      "publisher": "Microsoft",
+      "name": "Intelligent Cloud Base",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "f4e3d2c1-b0a9-4867-8765-432109876543",
+      "publisher": "Microsoft",
+      "name": "Business Central 14 Historical Data",
+      "version": "29.0.0.0"
+    }
+  ],
+  "screenshots": [],
+  "platform": "29.0.0.0",
+  "application": "29.0.0.0",
+  "idRanges": [
+    {
+      "from": 46850,
+      "to": 46999
+    }
+  ],
+  "internalsVisibleTo": [
+    {
+      "id": "a1b2c3d4-5678-9012-abcd-ef1234567890",
+      "publisher": "Microsoft",
+      "name": "BC14 Reimplementation Tool Tests"
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": false,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "features": [
+    "NoImplicitWith",
+    "TranslationFile"
+  ]
+}
