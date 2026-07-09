@@ -1501,7 +1501,7 @@ table 20405 "Qlty. Inspection Header"
         if not QltyInspectionTemplateHdr.Get(Rec."Template Code") then
             exit;
 
-        MaxSampleSize := 2147483647; // Maximum value of an Integer field; protects the "Sample Size" field against overflow.
+        MaxSampleSize := Power(2, 31) - 1; // Maximum value of an Integer field; protects the "Sample Size" field against overflow.
         EffectiveMaxSampleSize := MaxSampleSize;
 
         if (Rec."Source Quantity (Base)" > 0) and (Rec."Source Quantity (Base)" < MaxSampleSize) then
