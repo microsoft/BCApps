@@ -295,14 +295,11 @@ codeunit 20437 "Qlty. Notification Mgmt."
     end;
 
     /// <summary>
-    /// Determines the quantity to display in the document creation failed message. The instruction quantity is often left at
-    /// zero for behaviors that resolve the quantity later (for example the failed or passed sample count), which would
-    /// otherwise be shown as "0" in the message. In that case fall back to the quantity the user actually intended to move,
-    /// derived from the quantity behavior, so the message is meaningful.
+    /// Gets the quantity to show in the document creation failed message, falling back to the quantity implied by the quantity behavior when the instruction quantity is zero.
     /// </summary>
     /// <param name="QltyInspectionHeader">The inspection the failed document relates to.</param>
-    /// <param name="TempInstructionQltyDispositionBuffer">The instruction that was attempted.</param>
-    /// <returns>The quantity to show in the message.</returns>
+    /// <param name="TempInstructionQltyDispositionBuffer">The attempted instruction.</param>
+    /// <returns>The quantity to display.</returns>
     local procedure GetDisplayQuantityForFailure(QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary): Decimal
     begin
         if TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)" <> 0 then

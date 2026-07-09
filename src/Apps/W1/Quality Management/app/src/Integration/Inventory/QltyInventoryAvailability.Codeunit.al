@@ -163,11 +163,6 @@ codeunit 20445 "Qlty. Inventory Availability"
                 LocationCode := QltyInspectionHeader."Location Code";
                 GetFromLocationAndBinBasedOnNamingConventions(RecordRefToSearch, LocationCode, BinCode, QuantityBaseValue);
                 if LocationCode <> '' then
-                    // In bin mandatory locations (including directed put-away and pick) the bin derived from the source
-                    // document naming conventions can be stale - for example the receive bin the goods first landed in,
-                    // or a bin that no longer holds the item. Resolve the actual current bin(s) from Bin Content instead,
-                    // so the put-away is created from a bin that really contains the inventory. Only fall back to the
-                    // naming convention bin when the location is not bin mandatory or the item is not currently in stock.
                     if not TryResolveBinsFromBinContent(QltyInspectionHeader, LocationCode, TempToMoveBinContent) then begin
                         TempToMoveBinContent.Reset();
                         TempToMoveBinContent.SetRange("Location Code", LocationCode);
@@ -193,15 +188,6 @@ codeunit 20445 "Qlty. Inventory Availability"
         end;
     end;
 
-    /// <summary>
-    /// Resolves the actual bin(s) that currently hold the inspection's item at a bin mandatory location by reading Bin Content.
-    /// Only bins with positive quantity are considered, and receive and adjustment bins are excluded because inventory cannot be
-    /// moved from them with an internal put-away. This is the non item tracked counterpart to GetCurrentLocationOfTrackedInventory.
-    /// </summary>
-    /// <param name="QltyInspectionHeader">The inspection providing the item, variant and any tracking to look up.</param>
-    /// <param name="LocationCode">The location to resolve the bins at.</param>
-    /// <param name="TempToMoveBinContent">The temporary bin content buffer that resolved bins are added to.</param>
-    /// <returns>True when at least one qualifying bin was added, false otherwise so the caller can fall back to other logic.</returns>
     local procedure TryResolveBinsFromBinContent(QltyInspectionHeader: Record "Qlty. Inspection Header"; LocationCode: Code[10]; var TempToMoveBinContent: Record "Bin Content" temporary): Boolean
     var
         Location: Record Location;
@@ -231,9 +217,6 @@ codeunit 20445 "Qlty. Inventory Availability"
             repeat
                 if BinContent."Quantity (Base)" > 0 then
                     if not IsReceiveBin(BinContent."Location Code", BinContent."Bin Code") then begin
-                        // A valid non-receive bin with stock exists for this location. Report success even when the bin was
-                        // already added by a previous source record, otherwise the caller would fall back to the naming
-                        // convention bin (which can be the receive bin) and add it to the buffer alongside the real bin.
                         Added := true;
                         if not TempToMoveBinContent.Get(BinContent."Location Code", BinContent."Bin Code", BinContent."Item No.", BinContent."Variant Code", BinContent."Unit of Measure Code") then begin
                             TempToMoveBinContent.Init();

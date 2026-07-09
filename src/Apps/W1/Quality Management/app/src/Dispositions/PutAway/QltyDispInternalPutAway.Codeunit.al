@@ -72,11 +72,6 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
             exit;
         end;
 
-        // An internal put-away cannot be sourced from a receive bin - those are emptied by the source document put-away,
-        // not by an internal put-away. Validate every resolved source bin up front, before any document is created, so we
-        // never create a put-away (and emit its "created" notification) only to roll everything back when a later line is
-        // found to be in a receive bin. If the inventory is still in the receive bin, this gives the user an actionable
-        // message to put the items away first, instead of letting the platform raise the cryptic bin type error.
         repeat
             QltyInventoryAvailability.ErrorIfFromBinIsReceiveBin(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer.GetFromLocationCode(), TempQuantityToActQltyDispositionBuffer.GetFromBinCode());
         until TempQuantityToActQltyDispositionBuffer.Next() = 0;
