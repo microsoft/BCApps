@@ -92,7 +92,7 @@ report 99001502 "Subc. Create SubCReturnOrder"
         SubcTransferManagement: Codeunit "Subc. Transfer Management";
     begin
         TransferHeader.Reset();
-        TransferHeader.SetRange("Source Subtype", TransferHeader."Source Subtype"::"2");
+        TransferHeader.SetRange("Subc. Source Type", TransferHeader."Subc. Source Type"::Subcontracting);
         TransferHeader.SetRange("Source ID", "Purchase Header"."Buy-from Vendor No.");
         TransferHeader.SetRange(Status, TransferHeader.Status::Open);
         TransferHeader.SetRange("Completely Shipped", false);
@@ -113,7 +113,6 @@ report 99001502 "Subc. Create SubCReturnOrder"
             end;
 
             TransferHeader."Subc. Source Type" := TransferHeader."Subc. Source Type"::Subcontracting;
-            TransferHeader."Source Subtype" := TransferHeader."Source Subtype"::"2";
             TransferHeader."Source ID" := "Purchase Header"."Buy-from Vendor No.";
             TransferHeader."Subcontr. Purch. Order No." := "Purchase Header"."No.";
             TransferHeader."Subcontr. PO Line No." := "Purchase Line"."Line No.";
@@ -212,6 +211,8 @@ report 99001502 "Subc. Create SubCReturnOrder"
                     QtyToPost := AvailableToReturn;
                 if QtyToPost > 0 then
                     if InsertLine then begin
+                        if ProdOrderComponent."Subc. Original Location Code" = '' then
+                            ProdOrderComponent."Subc. Original Location Code" := ProdOrderComponent."Location Code";
 
                         InsertTransferHeader(SubcFromLocationCode, ProdOrderComponent."Subc. Original Location Code");
 
@@ -243,8 +244,6 @@ report 99001502 "Subc. Create SubCReturnOrder"
 
                         SubcTransferManagement.TransferReservationEntryFromProdOrderCompToTransferOrder(TransferLine, ProdOrderComponent);
 
-                        if ProdOrderComponent."Subc. Original Location Code" = '' then
-                            ProdOrderComponent."Subc. Original Location Code" := ProdOrderComponent."Location Code";
                         if ProdOrderComponent."Subc. Orig. Bin Code" = '' then
                             ProdOrderComponent."Subc. Orig. Bin Code" := ProdOrderComponent."Bin Code";
                         if TransferHeader."Transfer-to Code" <> ProdOrderComponent."Location Code" then begin
