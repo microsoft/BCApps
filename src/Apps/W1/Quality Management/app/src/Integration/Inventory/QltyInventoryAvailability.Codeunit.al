@@ -489,12 +489,15 @@ codeunit 20445 "Qlty. Inventory Availability"
                                 Location."Bin Mandatory");
                     end;
 
-                if not SkipBinContent then begin
+                if not SkipBinContent then
                     if AllocateAcrossBins then begin
-                        if (TempExistingInventoryBinContent."Min. Qty." > 0) and (TempExistingInventoryBinContent."Min. Qty." < RemainingQuantityToAllocate) then
-                            QuantityToHandle := TempExistingInventoryBinContent."Min. Qty."
+                        if TempExistingInventoryBinContent."Min. Qty." <= 0 then
+                            QuantityToHandle := 0
                         else
-                            QuantityToHandle := RemainingQuantityToAllocate;
+                            if TempExistingInventoryBinContent."Min. Qty." < RemainingQuantityToAllocate then
+                                QuantityToHandle := TempExistingInventoryBinContent."Min. Qty."
+                            else
+                                QuantityToHandle := RemainingQuantityToAllocate;
                         SkipBinContent := QuantityToHandle <= 0;
                     end else
                         QuantityToHandle := GetQuantityToHandleFromInspection(
@@ -502,7 +505,6 @@ codeunit 20445 "Qlty. Inventory Availability"
                             TempInstructionQltyDispositionBuffer."Quantity Behavior",
                             TempInstructionQltyDispositionBuffer."Qty. To Handle (Base)",
                             TempExistingInventoryBinContent);
-                end;
 
                 if not SkipBinContent then begin
                     BufferEntryCounter += 1;
