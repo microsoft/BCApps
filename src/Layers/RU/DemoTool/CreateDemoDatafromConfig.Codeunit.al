@@ -64,7 +64,7 @@ codeunit 101899 "Create Demo Data from Config"
         DemoDataSetup."VAT Rate 2" := 20;
         // Regular VAT Rate
         DemoDataSetup."Russian Accounting" := true;
-        DemoDataSetup."Tax Accounting" := false;
+        DemoDataSetup."Tax Accounting" := true;
         DemoDataSetup."Import Electronic Reporting" := false;
         DemoDataSetup.SetTaxRates();
         DemoDataSetup.Modify(true);

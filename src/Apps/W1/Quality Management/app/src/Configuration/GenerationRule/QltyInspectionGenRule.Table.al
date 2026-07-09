@@ -35,6 +35,8 @@ table 20404 "Qlty. Inspection Gen. Rule"
     DrillDownPageId = "Qlty. Inspection Gen. Rules";
     LookupPageId = "Qlty. Inspection Gen. Rules";
     DataClassification = CustomerContent;
+    Permissions = tabledata "Qlty. Management Setup" = r,
+                  tabledata "Qlty. Inspection Template Hdr." = r;
 
     fields
     {

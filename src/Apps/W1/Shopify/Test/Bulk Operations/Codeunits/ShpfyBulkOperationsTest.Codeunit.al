@@ -405,8 +405,8 @@ codeunit 139633 "Shpfy Bulk Operations Test"
         xShopifyVariant := ShopifyVariant;
         xShopifyVariant."Compare at Price" := 200;
 
-        // [WHEN] UpdateProductPrice runs on the bulk path (RecordCount >= 100)
-        VariantApi.UpdateProductPrice(ShopifyVariant, xShopifyVariant, BulkOperationInput, GraphQueryList, 100, JRequestData);
+        // [WHEN] UpdateProductPrice accumulates the bulk input
+        VariantApi.UpdateProductPrice(ShopifyVariant, xShopifyVariant, BulkOperationInput, GraphQueryList, JRequestData);
 
         // [THEN] The JSONL line clears Compare at Price with the literal token null, not the string "0"
         Jsonl := BulkOperationInput.ToText();
@@ -444,8 +444,8 @@ codeunit 139633 "Shpfy Bulk Operations Test"
         xShopifyVariant := ShopifyVariant;
         xShopifyVariant.Price := 80;
 
-        // [WHEN] UpdateProductPrice runs on the bulk path
-        VariantApi.UpdateProductPrice(ShopifyVariant, xShopifyVariant, BulkOperationInput, GraphQueryList, 100, JRequestData);
+        // [WHEN] UpdateProductPrice accumulates the bulk input
+        VariantApi.UpdateProductPrice(ShopifyVariant, xShopifyVariant, BulkOperationInput, GraphQueryList, JRequestData);
 
         // [THEN] compareAtPrice is not in the JSONL at all - Shopify preserves its existing value
         Jsonl := BulkOperationInput.ToText();
@@ -480,8 +480,8 @@ codeunit 139633 "Shpfy Bulk Operations Test"
         xShopifyVariant := ShopifyVariant;
         xShopifyVariant."Compare at Price" := 0;
 
-        // [WHEN] UpdateProductPrice runs on the bulk path
-        VariantApi.UpdateProductPrice(ShopifyVariant, xShopifyVariant, BulkOperationInput, GraphQueryList, 100, JRequestData);
+        // [WHEN] UpdateProductPrice accumulates the bulk input
+        VariantApi.UpdateProductPrice(ShopifyVariant, xShopifyVariant, BulkOperationInput, GraphQueryList, JRequestData);
 
         // [THEN] Compare at Price is sent as a quoted decimal string
         Jsonl := BulkOperationInput.ToText();
@@ -517,8 +517,8 @@ codeunit 139633 "Shpfy Bulk Operations Test"
         xShopifyVariant := ShopifyVariant;
         xShopifyVariant."Unit Cost" := 50;
 
-        // [WHEN] UpdateProductPrice runs on the bulk path
-        VariantApi.UpdateProductPrice(ShopifyVariant, xShopifyVariant, BulkOperationInput, GraphQueryList, 100, JRequestData);
+        // [WHEN] UpdateProductPrice accumulates the bulk input
+        VariantApi.UpdateProductPrice(ShopifyVariant, xShopifyVariant, BulkOperationInput, GraphQueryList, JRequestData);
 
         // [THEN] compareAtPrice is omitted entirely - Shopify keeps its current value
         Jsonl := BulkOperationInput.ToText();

@@ -895,6 +895,20 @@ codeunit 139940 "Qlty. Inspection Utility"
     end;
 
     /// <summary>
+    /// Wrapper for internal procedure CheckIfValueIsInPredefinedList from Qlty. Result Evaluation codeunit.
+    /// </summary>
+    /// <param name="ValueToCheck">The value to check.</param>
+    /// <param name="AcceptableValue">The acceptable value condition: a comma or pipe separated list of literal values. A blank value means no condition, and the default "anything except empty" tokens are also accepted.</param>
+    /// <param name="QltyCaseSensitivity">The case sensitivity option.</param>
+    /// <returns>True if the value matches one of the listed literal values, false otherwise.</returns>
+    internal procedure CheckIfValueIsInPredefinedList(ValueToCheck: Text; AcceptableValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Boolean
+    var
+        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
+    begin
+        exit(QltyResultEvaluation.CheckIfValueIsInPredefinedList(ValueToCheck, AcceptableValue, QltyCaseSensitivity));
+    end;
+
+    /// <summary>
     /// Wrapper for internal procedure EnsureCompatibleGenerationRuleExists from the Qlty. Inspec. Gen. Rule Mgmt. codeunit.
     /// Runs the Source lookup pre-check that warns when no compatible generation rule exists for the template and opens the Generation Rules page filtered to it.
     /// </summary>

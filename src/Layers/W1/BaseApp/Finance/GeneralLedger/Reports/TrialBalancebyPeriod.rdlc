@@ -4050,6 +4050,7 @@
                     <TablixCell>
                       <CellContents>
                         <Textbox Name="ColumnValuesAsText_1_">
+                          <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
@@ -4115,6 +4116,7 @@
                     <TablixCell>
                       <CellContents>
                         <Textbox Name="ColumnValuesAsText_2_">
+                          <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
@@ -4180,6 +4182,7 @@
                     <TablixCell>
                       <CellContents>
                         <Textbox Name="ColumnValuesAsText_3_">
+                          <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
@@ -4245,6 +4248,7 @@
                     <TablixCell>
                       <CellContents>
                         <Textbox Name="ColumnValuesAsText_4_">
+                          <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
@@ -4310,6 +4314,7 @@
                     <TablixCell>
                       <CellContents>
                         <Textbox Name="ColumnValuesAsText_5_">
+                          <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
@@ -4375,6 +4380,7 @@
                     <TablixCell>
                       <CellContents>
                         <Textbox Name="ColumnValuesAsText_6_">
+                          <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
@@ -4440,6 +4446,7 @@
                     <TablixCell>
                       <CellContents>
                         <Textbox Name="ColumnValuesAsText_7_">
+                          <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
@@ -4505,6 +4512,7 @@
                     <TablixCell>
                       <CellContents>
                         <Textbox Name="ColumnValuesAsText_8_">
+                          <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
@@ -4570,6 +4578,7 @@
                     <TablixCell>
                       <CellContents>
                         <Textbox Name="ColumnValuesAsText_9_">
+                          <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
@@ -4635,6 +4644,7 @@
                     <TablixCell>
                       <CellContents>
                         <Textbox Name="ColumnValuesAsText_10_">
+                          <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
@@ -4700,6 +4710,7 @@
                     <TablixCell>
                       <CellContents>
                         <Textbox Name="ColumnValuesAsText_11_">
+                          <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
@@ -4765,6 +4776,7 @@
                     <TablixCell>
                       <CellContents>
                         <Textbox Name="ColumnValuesAsText_12_">
+                          <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
@@ -4830,6 +4842,7 @@
                     <TablixCell>
                       <CellContents>
                         <Textbox Name="ColumnValuesAsText_13_">
+                          <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
