@@ -8,7 +8,6 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Message;
-using Microsoft.Peppol.Response;
 using Microsoft.Purchases.Vendor;
 using System.IO;
 using System.Utilities;
@@ -124,7 +123,9 @@ codeunit 6104 "Import E-Document Process"
         FromBlob: Codeunit "Temp Blob";
         ResponseBlob: Codeunit "Temp Blob";
         IStructuredFormatReader: Interface IStructuredFormatReader;
-        IResponseBuilder: Interface IOrderResponseBuilder;
+        IResponseProvider: Interface IEDocResponseProvider;
+        IMessageBuilder: Interface IEDocMessageBuilder;
+        MessageType: Enum "E-Document Message Type";
     begin
         if EDocumentDataStorage.Get(EDocument."Structured Data Entry No.") then
             FromBlob := EDocumentDataStorage.GetTempBlob();
@@ -137,10 +138,12 @@ codeunit 6104 "Import E-Document Process"
         EDocument."Process Draft Impl." := IStructuredFormatReader.ReadIntoDraft(EDocument, FromBlob);
         EDocument.Modify();
 
-        IResponseBuilder := EDocument.GetEDocumentService()."Document Format";
-        if IResponseBuilder.SupportsOrderResponse(EDocument) then begin
-            IResponseBuilder.BuildOrderResponse(EDocument, "E-Doc. Response Type"::Acknowledged, ResponseBlob);
-            EDocMessageMgt.CreateMessage(EDocument, "E-Document Message Type"::"PEPPOL Order Response", "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Acknowledged, ResponseBlob);
+        IResponseProvider := EDocument.GetEDocumentService()."Document Format";
+        MessageType := IResponseProvider.GetResponseMessageType(EDocument);
+        if MessageType <> "E-Document Message Type"::Unknown then begin
+            IMessageBuilder := MessageType;
+            IMessageBuilder.BuildMessage(EDocument, "E-Doc. Response Type"::Acknowledged, ResponseBlob);
+            EDocMessageMgt.CreateMessage(EDocument, MessageType, "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Acknowledged, ResponseBlob);
         end;
     end;
 

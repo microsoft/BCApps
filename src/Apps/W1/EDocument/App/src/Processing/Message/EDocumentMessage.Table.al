@@ -5,7 +5,6 @@
 namespace Microsoft.eServices.EDocument.Processing.Message;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Peppol.Response;
 
 /// <summary>
 /// Stores a message (e.g. a PEPPOL Order Response) that relates to an existing E-Document.

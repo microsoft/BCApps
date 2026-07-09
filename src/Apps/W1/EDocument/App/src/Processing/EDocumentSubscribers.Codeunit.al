@@ -20,7 +20,6 @@ using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Transfer;
-using Microsoft.Peppol.Response;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
@@ -781,7 +780,9 @@ codeunit 6103 "E-Document Subscribers"
         EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
         ResponseBlob: Codeunit "Temp Blob";
         SalesHeaderRef: RecordRef;
-        IResponseBuilder: Interface IOrderResponseBuilder;
+        IResponseProvider: Interface IEDocResponseProvider;
+        IMessageBuilder: Interface IEDocMessageBuilder;
+        MessageType: Enum "E-Document Message Type";
     begin
         if PreviewMode then
             exit;
@@ -790,10 +791,12 @@ codeunit 6103 "E-Document Subscribers"
         EDocument.SetRange(Direction, EDocument.Direction::Incoming);
         if not EDocument.FindLast() then
             exit;
-        IResponseBuilder := EDocument.GetEDocumentService()."Document Format";
-        if not IResponseBuilder.SupportsOrderResponse(EDocument) then
+        IResponseProvider := EDocument.GetEDocumentService()."Document Format";
+        MessageType := IResponseProvider.GetResponseMessageType(EDocument);
+        if MessageType = "E-Document Message Type"::Unknown then
             exit;
-        IResponseBuilder.BuildOrderResponse(EDocument, "E-Doc. Response Type"::Accepted, ResponseBlob);
-        EDocMessageMgt.CreateMessage(EDocument, "E-Document Message Type"::"PEPPOL Order Response", "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Accepted, ResponseBlob);
+        IMessageBuilder := MessageType;
+        IMessageBuilder.BuildMessage(EDocument, "E-Doc. Response Type"::Accepted, ResponseBlob);
+        EDocMessageMgt.CreateMessage(EDocument, MessageType, "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Accepted, ResponseBlob);
     end;
 }

@@ -9,10 +9,10 @@ using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 
-enum 6101 "E-Document Format" implements "E-Document", IOrderResponseBuilder
+enum 6101 "E-Document Format" implements "E-Document", IEDocResponseProvider
 {
     Extensible = true;
-    DefaultImplementation = IOrderResponseBuilder = "E-Doc. Unspecified Impl.";
+    DefaultImplementation = IEDocResponseProvider = "E-Doc. Unspecified Impl.";
 
     value(0; "Data Exchange")
     {
@@ -23,6 +23,6 @@ enum 6101 "E-Document Format" implements "E-Document", IOrderResponseBuilder
     {
         Caption = 'PEPPOL BIS 3.0';
         Implementation = "E-Document" = "EDoc PEPPOL BIS 3.0",
-                          IOrderResponseBuilder = "E-Document PEPPOL Handler";
+                          IEDocResponseProvider = "E-Document PEPPOL Handler";
     }
 }

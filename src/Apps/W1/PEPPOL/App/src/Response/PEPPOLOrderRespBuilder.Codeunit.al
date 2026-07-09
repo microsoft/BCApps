@@ -20,7 +20,8 @@ codeunit 37209 "PEPPOL Order Resp. Builder"
     /// Generates a minimal UBL OrderResponse XML blob using primitive parameters.
     /// Writes the result into TempBlob.
     /// </summary>
-    procedure Build(EDocEntryNo: Integer; BuyerOrderNo: Code[20]; SellerName: Text[100]; BuyerName: Text[100]; ResponseType: Enum "E-Doc. Response Type"; var TempBlob: Codeunit "Temp Blob")
+    /// <param name="ResponseCode">The UNCL4343 OrderResponseCode used on the wire (e.g. AB = Acknowledged, AC = Accepted, RE = Rejected).</param>
+    procedure Build(EDocEntryNo: Integer; BuyerOrderNo: Code[20]; SellerName: Text[100]; BuyerName: Text[100]; ResponseCode: Code[10]; var TempBlob: Codeunit "Temp Blob")
     var
         XmlDoc: XmlDocument;
         RootNode: XmlElement;
@@ -29,26 +30,11 @@ codeunit 37209 "PEPPOL Order Resp. Builder"
         XmlDoc := XmlDocument.Create();
         XmlDoc.SetDeclaration(XmlDeclaration.Create('1.0', 'UTF-8', 'no'));
 
-        RootNode := BuildOrderResponse(EDocEntryNo, BuyerOrderNo, SellerName, BuyerName, ResponseTypeToCode(ResponseType));
+        RootNode := BuildOrderResponse(EDocEntryNo, BuyerOrderNo, SellerName, BuyerName, ResponseCode);
         XmlDoc.Add(RootNode);
 
         TempBlob.CreateOutStream(OutStr, TextEncoding::UTF8);
         XmlDoc.WriteTo(OutStr);
-    end;
-
-    /// <summary>
-    /// Maps a response type to its UNCL4343 OrderResponseCode used on the wire.
-    /// </summary>
-    local procedure ResponseTypeToCode(ResponseType: Enum "E-Doc. Response Type"): Code[10]
-    begin
-        case ResponseType of
-            "E-Doc. Response Type"::Acknowledged:
-                exit('AB');
-            "E-Doc. Response Type"::Accepted:
-                exit('AC');
-            "E-Doc. Response Type"::Rejected:
-                exit('RE');
-        end;
     end;
 
     local procedure BuildOrderResponse(EDocEntryNo: Integer; BuyerOrderNo: Code[20]; SellerName: Text[100]; BuyerName: Text[100]; ResponseCode: Code[10]) RootNode: XmlElement

@@ -37,7 +37,7 @@ codeunit 139898 "E-Doc. Message Response Tests"
         Initialize();
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
-        PEPPOLRespBuilder.Build(EDocument."Entry No", 'PO-001', 'Seller Corp.', 'Buyer Inc.', "E-Doc. Response Type"::Acknowledged, TempBlob);
+        PEPPOLRespBuilder.Build(EDocument."Entry No", 'PO-001', 'Seller Corp.', 'Buyer Inc.', 'AB', TempBlob);
         MessageEntryNo := EDocMessageMgt.CreateMessage(EDocument, "E-Document Message Type"::"PEPPOL Order Response", "E-Document Direction"::Incoming, "E-Doc. Response Type"::Acknowledged, TempBlob);
 
         EDocMessage.Get(MessageEntryNo);
@@ -62,7 +62,7 @@ codeunit 139898 "E-Doc. Message Response Tests"
         Initialize();
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
-        PEPPOLRespBuilder.Build(EDocument."Entry No", 'PO-002', 'Seller Corp.', 'Buyer Inc.', "E-Doc. Response Type"::Accepted, TempBlob);
+        PEPPOLRespBuilder.Build(EDocument."Entry No", 'PO-002', 'Seller Corp.', 'Buyer Inc.', 'AC', TempBlob);
         MessageEntryNo := EDocMessageMgt.CreateMessage(EDocument, "E-Document Message Type"::"PEPPOL Order Response", "E-Document Direction"::Incoming, "E-Doc. Response Type"::Accepted, TempBlob);
 
         EDocMessage.Get(MessageEntryNo);
@@ -87,7 +87,7 @@ codeunit 139898 "E-Doc. Message Response Tests"
         Initialize();
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
-        PEPPOLRespBuilder.Build(EDocument."Entry No", 'PO-003', 'Seller Corp.', 'Buyer Inc.', "E-Doc. Response Type"::Rejected, TempBlob);
+        PEPPOLRespBuilder.Build(EDocument."Entry No", 'PO-003', 'Seller Corp.', 'Buyer Inc.', 'RE', TempBlob);
         MessageEntryNo := EDocMessageMgt.CreateMessage(EDocument, "E-Document Message Type"::"PEPPOL Order Response", "E-Document Direction"::Incoming, "E-Doc. Response Type"::Rejected, TempBlob);
 
         EDocMessage.Get(MessageEntryNo);

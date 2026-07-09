@@ -5,7 +5,6 @@
 namespace Microsoft.eServices.EDocument.Processing.Message;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Peppol.Response;
 using System.Utilities;
 
 /// <summary>

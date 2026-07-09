@@ -10,7 +10,6 @@ using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.EServices.EDocument.Processing.Import.Sales;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Processing.Message;
-using Microsoft.Peppol.Response;
 using System.Utilities;
 
 /// <summary>
@@ -21,7 +20,7 @@ using System.Utilities;
 ///                 https://docs.peppol.eu/poacc/billing/3.0/syntax/ubl-creditnote/tree/
 ///                 https://docs.peppol.eu/poacc/upgrade-3/syntax/Order/tree/
 /// </summary>
-codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IOrderResponseBuilder
+codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IEDocResponseProvider
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -527,18 +526,11 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IO
         Error('A view is not implemented for this handler.');
     end;
 
-    procedure SupportsOrderResponse(EDocument: Record "E-Document"): Boolean
+    procedure GetResponseMessageType(EDocument: Record "E-Document"): Enum "E-Document Message Type"
     begin
-        exit(EDocument."Process Draft Impl." = "E-Doc. Process Draft"::"Sales Order");
-    end;
-
-    procedure BuildOrderResponse(EDocument: Record "E-Document"; ResponseType: Enum "E-Doc. Response Type"; var TempBlob: Codeunit "Temp Blob")
-    var
-        EDocSalesHeader: Record "E-Document Sales Header";
-        Builder: Codeunit "PEPPOL Order Resp. Builder";
-    begin
-        EDocSalesHeader.GetFromEDocument(EDocument);
-        Builder.Build(EDocSalesHeader."E-Document Entry No.", EDocSalesHeader."Buyer Order No.", EDocSalesHeader."Seller Company Name", EDocSalesHeader."Buyer Company Name", ResponseType, TempBlob);
+        if EDocument."Process Draft Impl." = "E-Doc. Process Draft"::"Sales Order" then
+            exit("E-Document Message Type"::"PEPPOL Order Response");
+        exit("E-Document Message Type"::Unknown);
     end;
 
     local procedure HandleInboundOrderResponse(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"; PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager): Enum "E-Doc. Process Draft"
