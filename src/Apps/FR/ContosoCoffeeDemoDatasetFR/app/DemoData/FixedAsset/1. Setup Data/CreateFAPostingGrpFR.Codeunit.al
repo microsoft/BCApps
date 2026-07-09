@@ -6,6 +6,9 @@
 namespace Microsoft.DemoData.FixedAsset;
 
 using Microsoft.DemoData.Finance;
+#if not CLEAN28
+using Microsoft.FixedAssets.Depreciation;
+#endif
 using Microsoft.FixedAssets.FixedAsset;
 
 codeunit 10876 "Create FA Posting Grp. FR"
@@ -29,6 +32,12 @@ codeunit 10876 "Create FA Posting Grp. FR"
     end;
 
     local procedure ValidateFAPostingGroup(var FAPostingGroup: Record "FA Posting Group"; AcquisitionCostAccount: Code[20]; AccumDepreciationAccount: Code[20]; AcqCostAccOnDisposal: Code[20]; AccumDeprAccOnDisposal: Code[20]; GainsAccOnDisposal: Code[20]; LossesAccOnDisposal: Code[20]; BookValueGainAcc: Code[20]; SaleAccDisposalGain: Code[20]; MaintenanceExpenseAccount: Code[20]; DepreciationExpenseAcc: Code[20]; AcquisitionCostBalAcc: Code[20]; SalesAccDisposalLoss: Code[20]; BookValueLossAcc: Code[20]; DerogatoryAccount: Code[20]; DerogatoryAccountDecrease: Code[20]; DerogatoryBalDecreaseAcc: Code[20]; DerogatoryExpenseAcc: Code[20])
+#if not CLEAN28
+    var
+#pragma warning disable AL0432
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#pragma warning restore AL0432
+#endif
     begin
         FAPostingGroup.Validate("Acquisition Cost Account", AcquisitionCostAccount);
         FAPostingGroup.Validate("Accum. Depreciation Account", AccumDepreciationAccount);
@@ -42,10 +51,27 @@ codeunit 10876 "Create FA Posting Grp. FR"
         FAPostingGroup.Validate("Book Val. Acc. on Disp. (Gain)", BookValueGainAcc);
         FAPostingGroup.Validate("Sales Acc. on Disp. (Loss)", SalesAccDisposalLoss);
         FAPostingGroup.Validate("Book Val. Acc. on Disp. (Loss)", BookValueLossAcc);
-        FAPostingGroup.Validate("Derogatory Account", DerogatoryAccount);
-        FAPostingGroup.Validate("Derogatory Acc. (Decrease)", DerogatoryAccountDecrease);
-        FAPostingGroup.Validate("Derog. Bal. Acc. (Decrease)", DerogatoryBalDecreaseAcc);
-        FAPostingGroup.Validate("Derogatory Expense Account", DerogatoryExpenseAcc);
+#if not CLEAN28
+        if AcceleratedDeprFeature.IsEnabled() then begin
+            FAPostingGroup.Validate("Derogatory Acc.", DerogatoryAccount);
+            FAPostingGroup.Validate("Derogatory Account (Decrease)", DerogatoryAccountDecrease);
+            FAPostingGroup.Validate("Derog. Bal. Account (Decrease)", DerogatoryBalDecreaseAcc);
+            FAPostingGroup.Validate("Derogatory Expense Acc.", DerogatoryExpenseAcc);
+        end
+        else begin
+#pragma warning disable AL0432
+            FAPostingGroup.Validate("Derogatory Account", DerogatoryAccount);
+            FAPostingGroup.Validate("Derogatory Acc. (Decrease)", DerogatoryAccountDecrease);
+            FAPostingGroup.Validate("Derog. Bal. Acc. (Decrease)", DerogatoryBalDecreaseAcc);
+            FAPostingGroup.Validate("Derogatory Expense Account", DerogatoryExpenseAcc);
+#pragma warning restore AL0432
+        end;
+#else
+        FAPostingGroup.Validate("Derogatory Acc.", DerogatoryAccount);
+        FAPostingGroup.Validate("Derogatory Account (Decrease)", DerogatoryAccountDecrease);
+        FAPostingGroup.Validate("Derog. Bal. Account (Decrease)", DerogatoryBalDecreaseAcc);
+        FAPostingGroup.Validate("Derogatory Expense Acc.", DerogatoryExpenseAcc);
+#endif
         FAPostingGroup.Validate("Acquisition Cost Bal. Acc.", AcquisitionCostBalAcc);
     end;
 }

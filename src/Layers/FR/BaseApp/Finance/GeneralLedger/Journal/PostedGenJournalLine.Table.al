@@ -1645,6 +1645,11 @@ table 181 "Posted Gen. Journal Line"
         {
             Caption = 'Check Transmitted';
         }
+        field(5865; "Is Derogatory"; Boolean)
+        {
+            Caption = 'Derogatory Line';
+            Editable = false;
+        }
         /// <summary>
         /// Non-deductible VAT percentage for tax calculations where only part of the VAT can be deducted per tax regulations.
         /// </summary>
@@ -1796,11 +1801,22 @@ table 181 "Posted Gen. Journal Line"
             Caption = 'Entry No.';
             Editable = false;
         }
+#if not CLEANSCHEMA31
         field(10861; "Derogatory Line"; Boolean)
         {
             Caption = 'Derogatory Line';
             Editable = false;
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#endif
         }
+#endif
         field(10862; "Delayed Unrealized VAT"; Boolean)
         {
             Caption = 'Delayed Unrealized VAT';

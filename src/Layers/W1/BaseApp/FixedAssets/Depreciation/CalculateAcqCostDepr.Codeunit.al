@@ -63,6 +63,28 @@ codeunit 5613 "Calculate Acq. Cost Depr."
         end;
     end;
 
+    [Scope('OnPrem')]
+    procedure DerogatoryCalculation(var DeprAmount: Decimal; FANo: Code[20]; DeprBookCode: Code[10]; LocalDerogatoryBasis: Decimal)
+    var
+        DeprBook: Record "Depreciation Book";
+        FADeprBook: Record "FA Depreciation Book";
+        DepreciationCalc: Codeunit "Depreciation Calculation";
+        DerogBasis: Decimal;
+    begin
+        DeprAmount := 0;
+        DeprBook.Get(DeprBookCode);
+        if not FADeprBook.Get(FANo, DeprBookCode) then
+            exit;
+        FADeprBook.CalcFields("Derogatory Amount", "Acquisition Cost", "Depreciable Basis");
+        DerogBasis := FADeprBook."Depreciable Basis" - LocalDerogatoryBasis;
+        if DerogBasis <= 0 then
+            CreateError(FANo, DeprBookCode);
+        if DerogBasis > 0 then
+            DeprAmount :=
+              DepreciationCalc.CalcRounding(
+                DeprBookCode, (FADeprBook."Derogatory Amount" * LocalDerogatoryBasis) / DerogBasis);
+    end;
+
     local procedure CreateError(FANo: Code[20]; DeprBookCode: Code[20])
     var
         GenJnlLine: Record "Gen. Journal Line";

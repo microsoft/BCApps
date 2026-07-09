@@ -115,6 +115,7 @@ codeunit 5600 "FA Insert Ledger Entry"
            (LastEntryNo > 0)
         then
             CheckFADocNo(FALedgEntry);
+        FALedgEntry."Derogatory Excluded" := CalcExcludeDerogatory(FALedgEntry);
         FALedgEntry.Insert(true);
         FeatureTelemetry.LogUsage('0000H4F', 'Fixed Asset', 'Insert FA Ledger Entry');
         OnInsertFAOnAfterInsertFALedgEntry(FALedgEntry, FALedgEntry3);
@@ -153,7 +154,9 @@ codeunit 5600 "FA Insert Ledger Entry"
         OnInsertFAOnBeforeFACheckConsistency(FALedgEntry, FALedgEntry3);
 
         if FALedgEntry3."FA Posting Category" = FALedgEntry3."FA Posting Category"::" " then
-            if FALedgEntry3."FA Posting Type".AsInteger() <= FALedgEntry3."FA Posting Type"::"Salvage Value".AsInteger() then
+            if (FALedgEntry3."FA Posting Type".AsInteger() <= FALedgEntry3."FA Posting Type"::"Salvage Value".AsInteger()) or
+               (FALedgEntry3."FA Posting Type" = FALedgEntry3."FA Posting Type"::Derogatory)
+            then
                 CODEUNIT.Run(CODEUNIT::"FA Check Consistency", FALedgEntry);
 
         OnBeforeInsertRegister(FALedgEntry, FALedgEntry2, NextEntryNo);
@@ -239,6 +242,7 @@ codeunit 5600 "FA Insert Ledger Entry"
             end;
             case FALedgerEntry."FA Posting Type" of
                 "FA Ledger Entry FA Posting Type"::"Acquisition Cost",
+                "FA Ledger Entry FA Posting Type"::Derogatory,
                 "FA Ledger Entry FA Posting Type"::Depreciation,
                 "FA Ledger Entry FA Posting Type"::"Bonus Depreciation":
                     FALedgerEntry."Part of Book Value" := true;
@@ -494,8 +498,11 @@ codeunit 5600 "FA Insert Ledger Entry"
                 IsHandled := false;
                 OnInsertReverseEntryOnBeforeInsertTempFALedgEntry(FALedgEntry3, IsHandled);
                 if not IsHandled then begin
-                    TempFALedgEntry := FALedgEntry3;
-                    TempFALedgEntry.Insert();
+                    DeprBook.Get(FALedgEntry3."Depreciation Book Code");
+                    if DeprBook."Derogatory Calc." = '' then begin
+                        TempFALedgEntry := FALedgEntry3;
+                        TempFALedgEntry.Insert();
+                    end;
                 end;
                 SetFAReversalMark(FALedgEntry3, NextEntryNo);
                 FALedgEntry3."Entry No." := NextEntryNo;
@@ -518,6 +525,7 @@ codeunit 5600 "FA Insert Ledger Entry"
                 CODEUNIT.Run(CODEUNIT::"FA Check Consistency", FALedgEntry3);
                 OnInsertReverseEntryOnBeforeInsertRegister(FALedgEntry3);
                 InsertRegister("FA Register Called From"::"Fixed Asset", NextEntryNo);
+                InsertFARevEntryForDerog(FAEntryType, NewFAEntryNo, FALedgEntry3);
             end;
         end;
         if FAEntryType = FAEntryType::Maintenance then begin
@@ -542,6 +550,8 @@ codeunit 5600 "FA Insert Ledger Entry"
                 Error(DimMgt.GetDimValuePostingErr());
 
             OnInsertReverseEntryOnBeforeInsertMaintenanceLedgerEntryBuffer(MaintenanceLedgEntry3, SkipInsertOfMaintenanceLedgerEntry);
+            DeprBook.Get(MaintenanceLedgEntry3."Depreciation Book Code");
+            SkipInsertOfMaintenanceLedgerEntry := SkipInsertOfMaintenanceLedgerEntry or (DeprBook."Derogatory Calc." <> '');
             if not SkipInsertOfMaintenanceLedgerEntry then begin
                 TempMaintenanceLedgEntry := MaintenanceLedgEntry3;
                 TempMaintenanceLedgEntry.Insert()
@@ -669,6 +679,50 @@ codeunit 5600 "FA Insert Ledger Entry"
         LastEntryNo := 0;
         if FindLastEntry then
             LastEntryNo := FALedgEntry.GetLastEntryNo();
+    end;
+
+    [Scope('OnPrem')]
+    procedure InsertFARevEntryForDerog(FAEntryType: Option " ","Fixed Asset",Maintenance; var NewFAEntryNo: Integer; FALedgEntry: Record "FA Ledger Entry")
+    var
+        FALedgEntryForDerog: Record "FA Ledger Entry";
+    begin
+        DeprBook.SetRange("Derogatory Calc.", FALedgEntry."Depreciation Book Code");
+        if not DeprBook.FindFirst() then
+            exit;
+        FALedgEntryForDerog.Reset();
+        FALedgEntryForDerog.SetRange("Depreciation Book Code", DeprBook.Code);
+        FALedgEntryForDerog.SetRange("FA No.", FALedgEntry."FA No.");
+        FALedgEntryForDerog.SetRange("FA Posting Type", FALedgEntry."FA Posting Type");
+        FALedgEntryForDerog.SetRange(Amount, -FALedgEntry.Amount);
+        FALedgEntryForDerog.SetRange("Document Type", FALedgEntry."Document Type");
+        FALedgEntryForDerog.SetRange("Document No.", FALedgEntry."Document No.");
+        if FALedgEntryForDerog.FindFirst() then
+            InsertReverseEntry(0, FAEntryType, FALedgEntryForDerog."Entry No.", NewFAEntryNo, 0);
+    end;
+
+    [Scope('OnPrem')]
+    procedure InsertMaintRevEntryForDerog(FAEntryType: Option; var NewFAEntryNo: Integer; MaintenanceLedgEntry: Record "Maintenance Ledger Entry")
+    var
+        MaintLedgEntryForDerog: Record "Maintenance Ledger Entry";
+    begin
+        DeprBook.SetRange("Derogatory Calc.", MaintenanceLedgEntry."Depreciation Book Code");
+        if not DeprBook.FindFirst() then
+            exit;
+        MaintLedgEntryForDerog.Reset();
+        MaintLedgEntryForDerog.SetRange("Depreciation Book Code", DeprBook.Code);
+        MaintLedgEntryForDerog.SetRange("FA No.", MaintenanceLedgEntry."FA No.");
+        MaintLedgEntryForDerog.SetRange("Document Type", MaintenanceLedgEntry."Document Type");
+        MaintLedgEntryForDerog.SetRange("Document No.", MaintenanceLedgEntry."Document No.");
+        if MaintLedgEntryForDerog.FindFirst() then
+            InsertReverseEntry(0, FAEntryType, MaintLedgEntryForDerog."Entry No.", NewFAEntryNo, 0);
+    end;
+
+    local procedure CalcExcludeDerogatory(FALedgerEntry: Record "FA Ledger Entry"): Boolean
+    var
+        DepreciationBook: Record "Depreciation Book";
+    begin
+        DepreciationBook.Get(FALedgerEntry."Depreciation Book Code");
+        exit((FALedgerEntry."FA Posting Type" = FALedgerEntry."FA Posting Type"::Derogatory) and not DepreciationBook.IsDerogatoryBook());
     end;
 
     procedure SetGLRegisterNo(NewGLRegisterNo: Integer)

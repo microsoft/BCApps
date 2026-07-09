@@ -24,6 +24,7 @@ using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Finance.WithholdingTax;
+using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
@@ -138,6 +139,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GLBookEntry: Record "GL Book Entry";
         GenJnlCheckLine: Codeunit "Gen. Jnl.-Check Line";
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
+        FAJnlPostLine: Codeunit "FA Jnl.-Post Line";
         DeferralUtilities: Codeunit "Deferral Utilities";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
         SequenceNoMgt: Codeunit "Sequence No. Mgt.";
@@ -224,6 +226,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         DescriptionMustNotBeBlankErr: Label 'When %1 is selected for %2, %3 must have a value.', Comment = '%1: Field Omit Default Descr. in Jnl., %2 G/L Account No, %3 Description';
         NoDeferralScheduleErr: Label 'You must create a deferral schedule if a deferral template is selected. Line: %1, Deferral Template: %2.', Comment = '%1=The line number of the general ledger transaction, %2=The Deferral Template Code';
         ZeroDeferralAmtErr: Label 'Deferral amounts cannot be 0. Line: %1, Deferral Template: %2.', Comment = '%1=The line number of the general ledger transaction, %2=The Deferral Template Code';
+#pragma warning disable AA0074
+        Text10800: Label 'Not a derogatory line.';
+#pragma warning restore AA0074
         Text1130001: Label 'Please specify %1 in %2 %3.';
         Text1130021: Label 'Unrealized VAT cannot be used with %1 %2 and %3 %4';
         Text1130018: Label 'Nondeductible not supported with Sales Tax!!!';
@@ -1305,7 +1310,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     local procedure PostFAJnlLineWithGLEntryBufUpdate(GenJnlLine: Record "Gen. Journal Line"; VATPostingParameters: Record "VAT Posting Parameters"; LastNextEntryNo: Integer)
     var
         TempFAGLPostingBuffer: Record "FA G/L Posting Buffer" temporary;
-        FAJnlPostLine: Codeunit "FA Jnl.-Post Line";
         GLBalanceAmount: Decimal;
         IsLastDepreciationEntry: Boolean;
     begin
@@ -2038,7 +2042,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempFAGLPostBuf: Record "FA G/L Posting Buffer" temporary;
         FAGLPostBuf: Record "FA G/L Posting Buffer";
         VATPostingSetup: Record "VAT Posting Setup";
-        FAJnlPostLine: Codeunit "FA Jnl.-Post Line";
+        FAJnlLine: Record "FA Journal Line";
         FAAutomaticEntry: Codeunit "FA Automatic Entry";
         ShortcutDim1Code: Code[20];
         ShortcutDim2Code: Code[20];
@@ -2065,6 +2069,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if not IsHandled then
                 FAJnlPostLine.GenJnlPostLine(
                     GenJnlLine, GLEntry2.Amount, GLEntry2."VAT Amount", NextTransactionNo, NextEntryNo, GLReg."No.");
+            if GenJnlLine."Is Derogatory" then begin
+                MakeDerogatoryFAJnlLine(FAJnlLine, GenJnlLine);
+                if GenJnlLine."FA Error Entry No." <> 0 then
+                    FAJnlLine."FA Error Entry No." := FAJnlPostLine.GetNextMatchingFALedgEntry(FAJnlLine, GenJnlLine."FA Error Entry No.", FAJnlLine."Depreciation Book Code");
+                FAJnlPostLine.FAJnlPostLine(FAJnlLine, true);
+                CreateAndPostDerogEntry(GenJnlLine);
+            end;
             ShortcutDim1Code := GenJnlLine."Shortcut Dimension 1 Code";
             ShortcutDim2Code := GenJnlLine."Shortcut Dimension 2 Code";
             DimensionSetID := GenJnlLine."Dimension Set ID";
@@ -8096,6 +8107,49 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NextTransactionNo := NextTransactionNo + 1;
     end;
 
+    local procedure MakeDerogatoryFAJnlLine(var FAJnlLine: Record "FA Journal Line"; GenJnlLine: Record "Gen. Journal Line")
+    var
+        DeprBook: Record "Depreciation Book";
+        FAJnlSetup: Record "FA Journal Setup";
+    begin
+        DeprBook.SetRange("Derogatory Calc.", GenJnlLine."Depreciation Book Code");
+        if not DeprBook.FindFirst() then
+            Error(Text10800);
+        FAJnlLine.Validate(FAJnlLine."Depreciation Book Code", DeprBook.Code);
+        if not FAJnlSetup.Get(FAJnlLine."Depreciation Book Code", UserId) then
+            FAJnlSetup.Get(FAJnlLine."Depreciation Book Code", '');
+        FAJnlLine."Journal Template Name" := FAJnlSetup."FA Jnl. Template Name";
+        FAJnlLine."Journal Batch Name" := FAJnlSetup."FA Jnl. Batch Name";
+        FAJnlLine."FA Posting Type" := Enum::"FA Journal Line FA Posting Type".FromInteger(GenJnlLine."FA Posting Type".AsInteger() - 1);
+        FAJnlLine."FA No." := GenJnlLine."Account No.";
+        if GenJnlLine."FA Posting Date" <> 0D then
+            FAJnlLine."FA Posting Date" := GenJnlLine."FA Posting Date"
+        else
+            FAJnlLine."FA Posting Date" := GenJnlLine."Posting Date";
+        FAJnlLine."Posting Date" := GenJnlLine."Posting Date";
+        if FAJnlLine."Posting Date" = FAJnlLine."FA Posting Date" then
+            FAJnlLine."Posting Date" := 0D;
+        FAJnlLine."Document Type" := GenJnlLine."Document Type";
+        FAJnlLine."Document Date" := GenJnlLine."Document Date";
+        FAJnlLine."Document No." := GenJnlLine."Document No.";
+        FAJnlLine."External Document No." := GenJnlLine."External Document No.";
+        FAJnlLine.Description := GenJnlLine.Description;
+        FAJnlLine.Validate(FAJnlLine.Amount, GenJnlLine."VAT Base Amount");
+        FAJnlLine.Quantity := GenJnlLine.Quantity;
+        FAJnlLine.Validate(FAJnlLine.Correction, GenJnlLine.Correction);
+        FAJnlLine."No. of Depreciation Days" := GenJnlLine."No. of Depreciation Days";
+        FAJnlLine."Depr. until FA Posting Date" := GenJnlLine."Depr. until FA Posting Date";
+        FAJnlLine."Depr. Acquisition Cost" := GenJnlLine."Depr. Acquisition Cost";
+        FAJnlLine."FA Posting Group" := GenJnlLine."Posting Group";
+        FAJnlLine."Maintenance Code" := GenJnlLine."Maintenance Code";
+        FAJnlLine."Shortcut Dimension 1 Code" := GenJnlLine."Shortcut Dimension 1 Code";
+        FAJnlLine."Shortcut Dimension 2 Code" := GenJnlLine."Shortcut Dimension 2 Code";
+        FAJnlLine."Dimension Set ID" := GenJnlLine."Dimension Set ID";
+        FAJnlLine."Budgeted FA No." := GenJnlLine."Budgeted FA No.";
+        FAJnlLine."FA Reclassification Entry" := GenJnlLine."FA Reclassification Entry";
+        FAJnlLine."Index Entry" := GenJnlLine."Index Entry";
+    end;
+
     [Scope('OnPrem')]
     procedure InitPaymentTerms(GenJnlLine: Record "Gen. Journal Line")
     var
@@ -8680,6 +8734,66 @@ codeunit 12 "Gen. Jnl.-Post Line"
             exit;
 
         InsertGLEntry(GenJnlLine, GLEntry, true);
+    end;
+
+    local procedure CreateAndPostDerogEntry(SourceGenJournalLine: Record "Gen. Journal Line")
+    var
+        DepreciationBook: Record "Depreciation Book";
+        DerogDepreciationBook: Record "Depreciation Book";
+        GenJnlLine: Record "Gen. Journal Line";
+        FAJnlLine: Record "FA Journal Line";
+        DerogFALedgerEntry: Record "FA Ledger Entry";
+        CalculateAcqCostDepr: Codeunit "Calculate Acq. Cost Depr.";
+        DerogatoryAmount: Decimal;
+    begin
+        if (SourceGenJournalLine."FA Posting Type" <> SourceGenJournalLine."FA Posting Type"::"Acquisition Cost") or
+           (not SourceGenJournalLine."Depr. Acquisition Cost")
+        then
+            exit;
+
+        DepreciationBook.Get(SourceGenJournalLine."Depreciation Book Code");
+        DerogDepreciationBook.SetRange("Derogatory Calc.", DepreciationBook.Code);
+        if not DerogDepreciationBook.FindFirst() then
+            exit;
+
+        CalculateAcqCostDepr.DerogatoryCalculation(
+          DerogatoryAmount, SourceGenJournalLine."Account No.", DerogDepreciationBook.Code, SourceGenJournalLine.Amount);
+
+        if DerogatoryAmount = 0 then
+            exit;
+
+        MakeGenJnlLineOfTypeDerog(GenJnlLine, SourceGenJournalLine, DerogatoryAmount);
+        MakeDerogatoryFAJnlLine(FAJnlLine, GenJnlLine);
+
+        if DepreciationBook."Integration G/L - Derogatory" then begin
+            // Insert/post G/L + FA entries for primary depreciation book
+            FAJnlPostLine.GenJnlPostLineContinue(
+              GenJnlLine, GenJnlLine.Amount, GenJnlLine."VAT Amount", NextTransactionNo, NextEntryNo, GLReg."No.");
+
+            // Insert balance entry for primary depreciation book
+            DerogFALedgerEntry.SetCurrentKey("Entry No.");
+            DerogFALedgerEntry.FindLast();
+            DerogFALedgerEntry."Automatic Entry" := true;
+            FAJnlPostLine.InsertBalAcc(DerogFALedgerEntry);
+        end else begin
+            // Post FA ledger entry for primary book
+            FAJnlLine.Validate("Depreciation Book Code", SourceGenJournalLine."Depreciation Book Code");
+            FAJnlPostLine.FAJnlPostLine(FAJnlLine, true);
+        end;
+
+        // Post FA ledger entry for secondary book
+        FAJnlLine.Validate("Depreciation Book Code", DerogDepreciationBook.Code);
+        FAJnlPostLine.FAJnlPostLine(FAJnlLine, true);
+    end;
+
+    local procedure MakeGenJnlLineOfTypeDerog(var DerogGenJnlLine: Record "Gen. Journal Line"; GenJnlLine: Record "Gen. Journal Line"; DerogAmount: Decimal)
+    begin
+        DerogGenJnlLine.TransferFields(GenJnlLine);
+        DerogGenJnlLine.Validate("FA Posting Type", DerogGenJnlLine."FA Posting Type"::Derogatory);
+        DerogGenJnlLine.Validate(Amount, DerogAmount);
+        DerogGenJnlLine.Validate("Depr. until FA Posting Date", false);
+        DerogGenJnlLine.Validate("Depr. Acquisition Cost", false);
+        DerogGenJnlLine.Validate("System-Created Entry", true);
     end;
 
     /// <summary>

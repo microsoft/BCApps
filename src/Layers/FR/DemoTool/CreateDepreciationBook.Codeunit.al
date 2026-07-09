@@ -26,7 +26,11 @@ codeunit 101808 "Create Depreciation Book"
         "Depreciation Book"."G/L Integration - Custom 2" := "G/L Integration - Custom 2";
         "Depreciation Book"."G/L Integration - Disposal" := "G/L Integration - Disposal";
         "Depreciation Book"."G/L Integration - Maintenance" := "G/L Integration - Maintenance";
+#if not CLEAN28
         "Depreciation Book"."G/L Integration - Derogatory" := true;
+#else
+        "Depreciation Book"."Integration G/L - Derogatory" := true;
+#endif
         "Depreciation Book"."Use Rounding in Periodic Depr." := "Use Rounding in Periodic Depr.";
         "Depreciation Book"."Default Final Rounding Amount" := "Default Final Rounding Amount";
         // Modif Demo Finance (CM) : initialisation de la loi avec méthode cession Brut.

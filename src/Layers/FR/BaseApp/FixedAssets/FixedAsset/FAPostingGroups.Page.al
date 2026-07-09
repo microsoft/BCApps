@@ -3,6 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.FixedAssets.FixedAsset;
+#if not CLEAN29
+using Microsoft.FixedAssets.Depreciation;
+#endif
 
 page 5613 "FA Posting Groups"
 {
@@ -55,26 +58,76 @@ page 5613 "FA Posting Groups"
                     ApplicationArea = FixedAssets;
                     Visible = false;
                 }
+                field("Derogatory Acc."; Rec."Derogatory Acc.")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies the G/L account number to post derogatory transactions to, for fixed assets in this posting group.';
+#if not CLEAN29
+                    Visible = AcceleratedDeprFeatureEnabled;
+#endif
+                }
+                field("Derogatory Account (Decrease)"; Rec."Derogatory Account (Decrease)")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies the G/L account number to post derogatory transactions to, when you dispose of fixed assets in this posting group.';
+#if not CLEAN29
+                    Visible = AcceleratedDeprFeatureEnabled;
+#endif
+                }
+                field("Derogatory Expense Acc."; Rec."Derogatory Expense Acc.")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies the G/L balancing account number to post derogatory transactions to, for fixed assets in this posting group.';
+#if not CLEAN29
+                    Visible = AcceleratedDeprFeatureEnabled;
+#endif
+                }
+                field("Derog. Bal. Account (Decrease)"; Rec."Derog. Bal. Account (Decrease)")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies the number of the G/L balancing account to post derogatory transactions of fixed assets to, when you dispose of fixed assets.';
+#if not CLEAN29
+                    Visible = AcceleratedDeprFeatureEnabled;
+#endif
+                }
+#if not CLEAN29
                 field("Derogatory Account"; Rec."Derogatory Account")
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the G/L account number to post derogatory transactions to, for fixed assets in this posting group.';
+                    Visible = not AcceleratedDeprFeatureEnabled;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to W1 Base Application';
                 }
                 field("Derogatory Acc. (Decrease)"; Rec."Derogatory Acc. (Decrease)")
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the G/L account number to post derogatory transactions to, when you dispose of fixed assets in this posting group.';
+                    Visible = not AcceleratedDeprFeatureEnabled;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to W1 Base Application';
                 }
                 field("Derogatory Expense Account"; Rec."Derogatory Expense Account")
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the G/L balancing account number to post derogatory transactions to, for fixed assets in this posting group.';
+                    Visible = not AcceleratedDeprFeatureEnabled;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to W1 Base Application';
                 }
                 field("Derog. Bal. Acc. (Decrease)"; Rec."Derog. Bal. Acc. (Decrease)")
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the number of the G/L balancing account to post derogatory transactions of fixed assets to, when you dispose of fixed assets.';
+                    Visible = not AcceleratedDeprFeatureEnabled;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to W1 Base Application';
                 }
+#endif
                 field("Acq. Cost Acc. on Disposal"; Rec."Acq. Cost Acc. on Disposal")
                 {
                     ApplicationArea = FixedAssets;
@@ -346,6 +399,20 @@ page 5613 "FA Posting Groups"
                                       "Allocation Type" = const(Loss);
                         ToolTip = 'View or edit the FA allocations that apply to losses.';
                     }
+                    action(FA_Derogatory_Allocations)
+                    {
+                        ApplicationArea = FixedAssets;
+                        Caption = 'De&rogatory';
+                        Image = Delegate;
+                        RunObject = Page "FA Allocations";
+                        RunPageLink = Code = field(Code),
+                                      "Allocation Type" = const(Derogatory);
+                        ToolTip = 'View or change the posting account and allocation percentage for derogatory transactions for fixed assets in this posting group.';
+#if not CLEAN29
+                        Visible = AcceleratedDeprFeatureEnabled;
+#endif
+                    }
+#if not CLEAN29
                     action(Derogatory)
                     {
                         ApplicationArea = FixedAssets;
@@ -355,10 +422,26 @@ page 5613 "FA Posting Groups"
                         RunPageLink = Code = field(Code),
                                       "Allocation Type" = const(Derogatory);
                         ToolTip = 'View or change the posting account and allocation percentage for derogatory transactions for fixed assets in this posting group.';
+                        Visible = not AcceleratedDeprFeatureEnabled;
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
+                        ObsoleteReason = 'Moved to W1 Base Application';
                     }
+#endif
                 }
             }
         }
     }
+
+#if not CLEAN29
+    trigger OnOpenPage()
+    begin
+        AcceleratedDeprFeatureEnabled := AcceleratedDeprFeature.IsEnabled();
+    end;
+
+    var
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+        AcceleratedDeprFeatureEnabled: Boolean;
+#endif      
 }
 
