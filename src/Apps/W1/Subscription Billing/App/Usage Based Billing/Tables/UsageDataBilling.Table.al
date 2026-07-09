@@ -68,6 +68,7 @@ table 8006 "Usage Data Billing"
         {
             Caption = 'Processing Status';
             Editable = false;
+            ToolTip = 'Specifies whether the row has been processed. In case of an error during processing, it is displayed in the "Reason (Preview)" field.';
             trigger OnValidate()
             begin
                 if "Processing Status" in ["Processing Status"::None, "Processing Status"::Ok] then
@@ -459,6 +460,11 @@ table 8006 "Usage Data Billing"
     begin
         Rec.SetRange("Usage Data Import Entry No.", UsageDataImportEntryNo);
         Rec.FilterOnServiceCommitment(ServiceCommitment);
+    end;
+
+    internal procedure ExcludeProcessingStatusError()
+    begin
+        Rec.SetFilter("Processing Status", '<>%1', Rec."Processing Status"::Error);
     end;
 
     internal procedure FilterOnServiceCommitment(ServiceCommitment: Record "Subscription Line")
