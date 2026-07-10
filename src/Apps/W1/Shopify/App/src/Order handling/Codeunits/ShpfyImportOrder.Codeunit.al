@@ -77,8 +77,8 @@ codeunit 30161 "Shpfy Import Order"
         OrderEvents: Codeunit "Shpfy Order Events";
         OrderFulfillments: Codeunit "Shpfy Order Fulfillments";
         ProcessedConflictErr: Label 'The order has already been processed in Business Central, but an edition was received from Shopify. Changes were not propagated to the processed order in Business Central. Update the processed documents to match the received data from Shopify.';
-        DuplicateISOCodeTelemetryLbl: Label 'Multiple currencies found with ISO Code %1. Count: %2.', Locked = true;
-        CurrencyNotFoundTelemetryLbl: Label 'No currency found with ISO Code %1.', Locked = true;
+        DuplicateISOCodeTelemetryLbl: Label 'Multiple currencies found with ISO Code %1. Count: %2.', Comment = '%1 - ISO currency code from Shopify, %2 - number of currencies matching that ISO Code', Locked = true;
+        CurrencyNotFoundTelemetryLbl: Label 'No currency found with ISO Code %1.', Comment = '%1 - ISO currency code from Shopify', Locked = true;
         CategoryTok: Label 'Shopify Integration', Locked = true;
 
     local procedure ImportOrderAndCreateOrUpdate(ShopCode: Code[20]; OrderId: BigInteger)
