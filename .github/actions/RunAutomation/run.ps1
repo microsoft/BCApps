@@ -32,6 +32,13 @@ $ErrorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-S
 # Initialize enlistment (sets $repoRoot and loads shared modules)
 . "$env:GITHUB_WORKSPACE/init.ps1"
 
+# Do not run automations on branches that are out of support (branches with the "Branch is out of support" ruleset).
+# This is a safety net that also covers manual (workflow_dispatch) runs, which bypass the GetGitBranches filtering.
+if (-not (Test-IsBranchInSupport -BranchName $TargetBranch -Repository $Repository)) {
+    Write-Host "::Notice::Skipping automations because branch '$TargetBranch' is out of support."
+    return
+}
+
 function RunAutomation {
     param(
         [Parameter(Mandatory=$true)]
