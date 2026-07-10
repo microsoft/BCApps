@@ -343,6 +343,14 @@ codeunit 137021 "SCM Planning - NTF tests"
           'Reservation Entry Quantity (Base) must match demand.');
     end;
 
+    local procedure VerifyNoReservEntryExists(ItemNo: Code[20])
+    var
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        ReservationEntry.SetRange("Item No.", ItemNo);
+        Assert.RecordIsEmpty(ReservationEntry);
+    end;
+
     local procedure CreateSaleDocType(var SalesHeader: Record "Sales Header"; DocumentType: Enum "Sales Document Type"; Item: Record Item; SalesQty: Integer; ShipmentDate: Date; LocationCode: Code[10])
     var
         SalesLine: Record "Sales Line";
@@ -3708,10 +3716,11 @@ codeunit 137021 "SCM Planning - NTF tests"
 
         Initialize();
 
-        // [GIVEN] Item "I" with non-base Purchase UoM "U" with random Qty per UoM, Reordering Policy = Lot-for-Lot, and Job Planning Line "J" with random quantity.
+        // [GIVEN] Item "I" with non-base Purchase UoM "U" with Qty per UoM = 12, Reordering Policy = Lot-for-Lot, and Job Planning Line "J" with quantity = 1.
+        // [GIVEN] Qty per UoM = 12 and quantity = 1 reproduce the base-quantity conversion rounding mismatch (1/12 rounded to 0.00001 precision converts back to 0.99996).
         TestSetup();
-        QtyPerUoM := LibraryRandom.RandIntInRange(2, 5);
-        JobQuantity := LibraryRandom.RandIntInRange(1, 5);
+        QtyPerUoM := 12;
+        JobQuantity := 1;
         CreateItemWithNonBasePurchUoM(Item, ItemUnitOfMeasure, QtyPerUoM);
         CreateJobAndPlanningLine(JobTask, JobPlanningLine, Item."No.", JobQuantity, true);
 
@@ -3719,7 +3728,7 @@ codeunit 137021 "SCM Planning - NTF tests"
         LibraryPlanning.CalcRegenPlanForPlanWksh(Item, WorkDate(), CalcDate(PlanningEndDate, WorkDate()));
         AcceptAndCarryOutActionMessage(Item."No.");
 
-        // [THEN] Reservation entries linked to "P" have correct Quantity (Base) matching "J" quantity, and deleting "P" and then "J" succeeds without error.
+        // [THEN] Reservation entries linked to "P" have correct Quantity (Base) matching "J" quantity, and deleting "P" and then "J" succeeds without leaving orphan reservation entries.
         FindPurchaseLineByItemNo(PurchaseLine, Item."No.");
         PurchaseHeader.Get(PurchaseHeader."Document Type"::Order, PurchaseLine."Document No.");
         VerifyReservEntryQtyBase(
@@ -3727,6 +3736,7 @@ codeunit 137021 "SCM Planning - NTF tests"
         PurchaseHeader.Delete(true);
         JobPlanningLine.Find();
         JobPlanningLine.Delete(true);
+        VerifyNoReservEntryExists(Item."No.");
     end;
 
     [ModalPageHandler]
