@@ -722,6 +722,10 @@ page 4410 "SOA Multi Items Availability"
             Rec.FilterGroup(OriginalFilterGroup);
             if LocationFilter = '' then
                 LocationFilter := '''''';
+
+            Rec.SetFilter(Description, '*Chair*');
+            Rec.SetFilter("Location Filter", 'RED');
+            Rec."Location Filter" := 'RED';
         end;
 
         FindPeriod('');

@@ -77,4 +77,9 @@ codeunit 4401 "SOA Metadata Provider" implements IAgentMetadata, IAgentFactory
     var
         SOAAnnotation: Codeunit "SOA Annotation";
         SOASetupCU: Codeunit "SOA Setup";
+
+    procedure GetCreateAgentTaskPageId(AgentUserId: Guid): Integer
+    begin
+
+    end;
 }
