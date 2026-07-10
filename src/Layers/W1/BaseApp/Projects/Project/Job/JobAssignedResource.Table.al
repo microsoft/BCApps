@@ -82,6 +82,7 @@ table 1008 "Job Assigned Resource"
         // A blank Project Task No. is a project-level assignment
         if "Job Task No." = '' then
             exit;
+        JobTask.SetLoadFields("Job Task Type");
         JobTask.Get("Job No.", "Job Task No.");
         JobTask.TestField("Job Task Type", JobTask."Job Task Type"::Posting);
     end;
