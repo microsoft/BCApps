@@ -172,6 +172,7 @@ codeunit 5193 "Contoso Demo Tool"
         ContosoDemoDataModule: Record "Contoso Demo Data Module";
         Module: Enum "Contoso Demo Data Module";
         ModuleProvider: Interface "Contoso Demo Data Module";
+        GeneratingDemoDataErrorText: Text;
     begin
         foreach Module in SortedModulesList do begin
 
@@ -183,30 +184,42 @@ codeunit 5193 "Contoso Demo Tool"
 
                 OnBeforeGeneratingDemoData(Module, ContosoDemoDataLevel);
 
-                case ContosoDemoDataLevel of
-                    Enum::"Contoso Demo Data Level"::"Setup Data":
-                        begin
-                            ModuleProvider.CreateSetupData();
-                            ContosoDemoDataModule.Validate("Data Level", ContosoDemoDataLevel);
-                            ContosoDemoDataModule.Modify(true);
-                        end;
-                    Enum::"Contoso Demo Data Level"::"Master Data":
-                        ModuleProvider.CreateMasterData();
-                    Enum::"Contoso Demo Data Level"::"Transactional Data":
-                        ModuleProvider.CreateTransactionalData();
-                    Enum::"Contoso Demo Data Level"::"Historical Data":
-                        begin
-                            ModuleProvider.CreateHistoricalData();
-                            ContosoDemoDataModule.Validate("Data Level", Enum::"Contoso Demo Data Level"::All);
-                            ContosoDemoDataModule.Modify(true);
-                        end;
+                if TryGenerateModuleDemoData(ModuleProvider, ContosoDemoDataModule, ContosoDemoDataLevel) then begin
+                    OnAfterGeneratingDemoData(Module, ContosoDemoDataLevel);
+
+                    Session.LogMessage('0000OL7', StrSubstNo(EndGeneratingDemoDataMsg, ContosoDemoDataModule.Module, ContosoDemoDataLevel), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ContosoCoffeeDemoDatasetFeatureNameTok);
+                end else begin
+                    // Release any subscriptions bound in OnBeforeGeneratingDemoData before surfacing the error,
+                    // otherwise they stay bound and every subsequent generation fails to bind them again.
+                    GeneratingDemoDataErrorText := GetLastErrorText();
+                    OnAfterGeneratingDemoData(Module, ContosoDemoDataLevel);
+                    Error('%1', GeneratingDemoDataErrorText);
                 end;
-
-                OnAfterGeneratingDemoData(Module, ContosoDemoDataLevel);
-
-                Session.LogMessage('0000OL7', StrSubstNo(EndGeneratingDemoDataMsg, ContosoDemoDataModule.Module, ContosoDemoDataLevel), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', ContosoCoffeeDemoDatasetFeatureNameTok);
             end;
 
+        end;
+    end;
+
+    [TryFunction]
+    local procedure TryGenerateModuleDemoData(ModuleProvider: Interface "Contoso Demo Data Module"; var ContosoDemoDataModule: Record "Contoso Demo Data Module"; ContosoDemoDataLevel: Enum "Contoso Demo Data Level")
+    begin
+        case ContosoDemoDataLevel of
+            Enum::"Contoso Demo Data Level"::"Setup Data":
+                begin
+                    ModuleProvider.CreateSetupData();
+                    ContosoDemoDataModule.Validate("Data Level", ContosoDemoDataLevel);
+                    ContosoDemoDataModule.Modify(true);
+                end;
+            Enum::"Contoso Demo Data Level"::"Master Data":
+                ModuleProvider.CreateMasterData();
+            Enum::"Contoso Demo Data Level"::"Transactional Data":
+                ModuleProvider.CreateTransactionalData();
+            Enum::"Contoso Demo Data Level"::"Historical Data":
+                begin
+                    ModuleProvider.CreateHistoricalData();
+                    ContosoDemoDataModule.Validate("Data Level", Enum::"Contoso Demo Data Level"::All);
+                    ContosoDemoDataModule.Modify(true);
+                end;
         end;
     end;
 

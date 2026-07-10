@@ -16,4 +16,8 @@ enumextension 148000 "Contoso Test" extends "Contoso Demo Data Module"
     {
         Implementation = "Contoso Demo Data Module" = "Contoso Test Module 3";
     }
+    value(148004; "Contoso Bind Leak")
+    {
+        Implementation = "Contoso Demo Data Module" = "Contoso Bind Leak Module";
+    }
 }
