@@ -6,6 +6,7 @@
 #pragma warning disable AS0007
 namespace Microsoft.Agent.SalesOrderAgent;
 
+using Microsoft.CRM.Contact;
 using System.Agents;
 using System.Email;
 using System.Telemetry;
@@ -89,13 +90,38 @@ codeunit 4581 "SOA Send Replies"
         EmailMessage: Codeunit "Email Message";
         Body: Text;
         Subject: Text;
+        MappedContactEmail: Text;
+        ToRecipients: List of [Text];
     begin
         Subject := StrSubstNo(EmailSubjectTxt, InputAgentTaskMessage."Task ID");
         Body := AgentMessage.GetText(OutputAgentTaskMessage);
-        EmailMessage.CreateReplyAll(Subject, Body, true, InputAgentTaskMessage."External ID");
-        AddMessageAttachments(EmailMessage, OutputAgentTaskMessage);
 
-        exit(Email.ReplyAll(EmailMessage, SOASetup."Email Account ID", SOASetup."Email Connector"));
+        // Check if there's a mapped contact
+        MappedContactEmail := GetMappedContactEmail(InputAgentTaskMessage."Task ID", InputAgentTaskMessage.ID);
+
+        if MappedContactEmail <> '' then begin
+            // Reply in same thread but send to mapped contact
+            ToRecipients.Add(MappedContactEmail);
+            EmailMessage.CreateReply(ToRecipients, Subject, Body, true, InputAgentTaskMessage."External ID");
+            AddMessageAttachments(EmailMessage, OutputAgentTaskMessage);
+            exit(Email.Reply(EmailMessage, SOASetup."Email Account ID", SOASetup."Email Connector"));
+        end else begin
+            // No mapped contact, reply to original sender
+            EmailMessage.CreateReplyAll(Subject, Body, true, InputAgentTaskMessage."External ID");
+            AddMessageAttachments(EmailMessage, OutputAgentTaskMessage);
+            exit(Email.ReplyAll(EmailMessage, SOASetup."Email Account ID", SOASetup."Email Connector"));
+        end;
+    end;
+
+    local procedure GetMappedContactEmail(TaskID: BigInteger; TaskMessageID: Guid): Text
+    var
+        SOATaskContactOverride: Record "SOA Task Contact Override";
+        Contact: Record Contact;
+    begin
+        if SOATaskContactOverride.Get(TaskID, TaskMessageID) then
+            if Contact.Get(SOATaskContactOverride."Contact No.") then
+                exit(Contact."E-Mail");
+        exit('');
     end;
 
     local procedure AddMessageAttachments(var EmailMessage: Codeunit "Email Message"; var AgentTaskMessage: Record "Agent Task Message")
