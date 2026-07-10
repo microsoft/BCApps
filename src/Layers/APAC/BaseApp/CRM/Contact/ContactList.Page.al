@@ -1187,6 +1187,19 @@ page 5052 "Contact List"
         OnBeforeUpdateContactBusinessRelationOnContacts(Rec, IsHandled);
     end;
 
+    trigger OnFindRecord(Which: Text): Boolean
+    var
+        Found: Boolean;
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeFindRecord(Rec, Which, Found, IsHandled);
+        if IsHandled then
+            exit(Found);
+
+        exit(Rec.Find(Which));
+    end;
+
     var
         CRMCouplingManagement: Codeunit "CRM Coupling Management";
         PriceCalculationMgt: Codeunit "Price Calculation Mgt.";
@@ -1233,6 +1246,11 @@ page 5052 "Contact List"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateContactBusinessRelationOnContacts(Contact: Record Contact; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeFindRecord(var Rec: Record Contact; Which: Text; var Found: Boolean; var IsHandled: Boolean)
     begin
     end;
 }
