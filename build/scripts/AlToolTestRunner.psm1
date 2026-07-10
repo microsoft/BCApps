@@ -207,29 +207,38 @@ function Get-AlToolCompany {
 
 <#
 .SYNOPSIS
-    Builds a fast lookup set of disabled "<codeunitName>::<method>" keys from the disabledTests list.
+    Builds disabled-test lookups from the disabledTests list: per-method keys plus whole-codeunit
+    names (where a `*` wildcard method disables the entire codeunit).
 .DESCRIPTION
-    Each disabledTests entry has a codeunitName and either a single 'method' or an array of methods.
-    Keys are lowercased so matching is case-insensitive.
+    Each disabledTests entry has a codeunitName and either a single 'method', an array of methods, or
+    the wildcard '*'. A '*' entry means the ENTIRE codeunit is disabled online (BCApps uses this to
+    disable a whole codeunit), so it must exclude every method of that codeunit - not a literal method
+    named '*'. Names/keys are lowercased for case-insensitive matching.
 .OUTPUTS
-    [hashtable] set of "<codeunitname>::<method>" -> $true
+    [hashtable] @{ Methods = <set of "<codeunitname>::<method>">; Codeunits = <set of "<codeunitname>"> }
 #>
 function Get-DisabledTestKeySet {
     param(
         [array]$DisabledTests = @()
     )
 
-    $set = @{}
+    $methodSet = @{}
+    $codeunitSet = @{}
     foreach ($entry in $DisabledTests) {
         if (-not $entry) { continue }
-        $cuName = "$($entry.codeunitName)"
+        $cuName = "$($entry.codeunitName)".ToLowerInvariant()
         $methods = @()
         if ($entry.PSObject.Properties['method'] -and $entry.method) { $methods = @($entry.method) }
         foreach ($m in $methods) {
-            $set["$($cuName.ToLowerInvariant())::$("$m".ToLowerInvariant())"] = $true
+            if ("$m" -eq '*') {
+                # Wildcard = whole codeunit disabled online.
+                $codeunitSet[$cuName] = $true
+            } else {
+                $methodSet["$cuName::$("$m".ToLowerInvariant())"] = $true
+            }
         }
     }
-    return $set
+    return @{ Methods = $methodSet; Codeunits = $codeunitSet }
 }
 
 <#
@@ -239,7 +248,8 @@ function Get-DisabledTestKeySet {
     Uses Get-TestsFromBcContainer with the app's extensionId and testType to list every test
     codeunit and method. BCH disables tests at RUN time via the test tool page's DisableTestMethod
     control, a mechanism `al runtests` bypasses entirely - so we must filter the disabled methods
-    out of the enumerated list here, otherwise altool runs tests the pipeline treats as disabled.
+    (and whole disabled codeunits, marked with a `*` wildcard) out of the enumerated list here,
+    otherwise altool runs tests the pipeline treats as disabled.
 .OUTPUTS
     [object[]] Codeunit objects with .Id, .Name, .Tests (enabled method name array).
 #>
@@ -261,18 +271,28 @@ function Get-AlToolTestCodeunits {
 
     $codeunits = @(Get-TestsFromBcContainer @getTestsParams)
 
-    $disabledSet = @{}
+    $disabledMethods = @{}
+    $disabledCodeunits = @{}
     if ($Parameters.ContainsKey("disabledTests") -and $Parameters.disabledTests) {
-        $disabledSet = Get-DisabledTestKeySet -DisabledTests @($Parameters.disabledTests)
+        $lookup = Get-DisabledTestKeySet -DisabledTests @($Parameters.disabledTests)
+        $disabledMethods = $lookup.Methods
+        $disabledCodeunits = $lookup.Codeunits
     }
 
     $result = @()
     $disabledCount = 0
     foreach ($cu in $codeunits) {
+        $cuNameLower = "$($cu.Name)".ToLowerInvariant()
         $methods = @($cu.Tests | ForEach-Object { "$_" })
-        if ($disabledSet.Count -gt 0) {
-            $cuNameLower = "$($cu.Name)".ToLowerInvariant()
-            $enabled = @($methods | Where-Object { -not $disabledSet.ContainsKey("$cuNameLower::$("$_".ToLowerInvariant())") })
+
+        # Whole codeunit disabled online (`*` wildcard) -> skip all its methods.
+        if ($disabledCodeunits.ContainsKey($cuNameLower)) {
+            $disabledCount += $methods.Count
+            continue
+        }
+
+        if ($disabledMethods.Count -gt 0) {
+            $enabled = @($methods | Where-Object { -not $disabledMethods.ContainsKey("$cuNameLower::$("$_".ToLowerInvariant())") })
             $disabledCount += ($methods.Count - $enabled.Count)
             $methods = $enabled
         }
@@ -503,6 +523,69 @@ function Add-JUnitTestSuite {
 
 <#
 .SYNOPSIS
+    Runs a codeunit and re-runs only the failed methods up to MaxAttempts, mirroring BCH's rerun pass.
+.DESCRIPTION
+    BCH's RunTestsInBcContainer reruns failed tests (maxAttempts=2 for non-Legacy, 1 for Legacy) and
+    keeps the final outcome, which recovers flaky / transient failures. We replicate that per codeunit:
+    run all methods, then re-run just the still-failing methods, overwriting each method's result with
+    the latest attempt (a method that passes on any rerun ends up Pass). Elapsed time accumulates
+    across attempts; Connected is true if any attempt connected.
+.OUTPUTS
+    [hashtable] @{ Results (method->outcome map); ElapsedSec; Connected; Attempts }
+#>
+function Invoke-AlRunTestsWithReruns {
+    param(
+        [Parameter(Mandatory = $true)][string]$CodeunitId,
+        [Parameter(Mandatory = $true)][string[]]$Methods,
+        [Parameter(Mandatory = $true)][string]$ProjectPath,
+        [Parameter(Mandatory = $true)][string]$Company,
+        [Parameter(Mandatory = $true)][string]$Tenant,
+        [Parameter(Mandatory = $true)][hashtable]$Connection,
+        [int]$MaxAttempts = 1,
+        [string]$CodeunitName = ""
+    )
+
+    $merged = @{}
+    $totalElapsed = 0.0
+    $anyConnected = $false
+    $toRun = @($Methods)
+    $attempt = 0
+
+    while ($toRun.Count -gt 0 -and $attempt -lt $MaxAttempts) {
+        $attempt++
+        if ($attempt -gt 1) {
+            Write-Host ("  rerun {0}/{1}: codeunit {2} '{3}' re-running {4} failed method(s)" -f `
+                $attempt, $MaxAttempts, $CodeunitId, $CodeunitName, $toRun.Count)
+        }
+
+        $run = Invoke-AlRunTestsForCodeunit -CodeunitId $CodeunitId -Methods $toRun `
+            -ProjectPath $ProjectPath -Company $Company -Tenant $Tenant -Connection $Connection
+
+        $totalElapsed += $run.ElapsedSec
+        if ($run.Connected) { $anyConnected = $true }
+
+        # Overwrite each re-run method's result with this attempt's outcome (latest wins).
+        foreach ($k in $run.Results.Keys) { $merged[$k] = $run.Results[$k] }
+
+        # Determine which methods still need a rerun: failed, or produced no result this attempt.
+        $toRun = @($toRun | Where-Object {
+            $r = $merged[$_]
+            ($null -eq $r) -or ($r.Outcome -eq 'Fail')
+        })
+
+        if (-not $run.Connected) { break } # a non-connecting attempt won't improve on rerun
+    }
+
+    return @{
+        Results    = $merged
+        ElapsedSec = [Math]::Round($totalElapsed, 3)
+        Connected  = $anyConnected
+        Attempts   = $attempt
+    }
+}
+
+<#
+.SYNOPSIS
     Runs all of a single app's test codeunits through `al runtests` and writes a JUnit results file.
 .DESCRIPTION
     Replacement for the per-app BCH execution. Expects $Parameters to contain containerName, tenant,
@@ -545,6 +628,11 @@ function Invoke-AlToolTestRun {
 
     Write-Host "altool run: app='$appName' extensionId=$extensionId testType='$TestType' company='$company' server='$($connection.Server)' instance='$($connection.ServerInstance)' port=$($connection.Port) tenant='$tenant'"
 
+    # Mirror BCH's rerun policy: non-Legacy test types get one rerun of failed tests (2 attempts);
+    # Legacy runs once (BCH uses maxAttempts=1 for Legacy - reruns don't recover its state-dependent
+    # failures and can introduce new ones).
+    $maxAttempts = if ($TestType -eq "Legacy") { 1 } else { 2 }
+
     $codeunits = @(Get-AlToolTestCodeunits -Parameters $Parameters)
     Write-Host "Enumerated $($codeunits.Count) test codeunit(s) for app '$appName'."
     if ($codeunits.Count -eq 0) {
@@ -583,8 +671,9 @@ function Invoke-AlToolTestRun {
     foreach ($cu in $codeunits) {
         $idx++
         $methods = @($cu.Tests | ForEach-Object { "$_" })
-        $run = Invoke-AlRunTestsForCodeunit -CodeunitId "$($cu.Id)" -Methods $methods `
-            -ProjectPath $projectPath -Company $company -Tenant $tenant -Connection $connection
+        $run = Invoke-AlRunTestsWithReruns -CodeunitId "$($cu.Id)" -Methods $methods `
+            -ProjectPath $projectPath -Company $company -Tenant $tenant -Connection $connection `
+            -MaxAttempts $maxAttempts -CodeunitName "$($cu.Name)"
 
         if (-not $run.Connected) {
             Write-Host "::warning::al runtests did not complete for codeunit $($cu.Id) '$($cu.Name)'. Raw output:"
@@ -616,4 +705,4 @@ function Invoke-AlToolTestRun {
 
 Export-ModuleMember -Function Install-AlTool, Get-AlToolConnection, New-AlToolProject, Get-AlToolCompany, `
     Get-DisabledTestKeySet, Get-AlToolTestCodeunits, ConvertFrom-AlRunTestsOutput, Invoke-AlRunTestsForCodeunit, `
-    Add-JUnitTestSuite, Invoke-AlToolTestRun
+    Invoke-AlRunTestsWithReruns, Add-JUnitTestSuite, Invoke-AlToolTestRun
