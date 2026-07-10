@@ -5,7 +5,9 @@ using System.Reflection;
 
 codeunit 1269 "Export Mapping"
 {
-    Permissions = TableData "Data Exch." = rimd;
+    Permissions = TableData "Data Exch." = rimd,
+                  TableData "Data Exch. Field" = rimd;
+
     TableNo = "Data Exch.";
 
     trigger OnRun()
