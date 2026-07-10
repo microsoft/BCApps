@@ -3,8 +3,9 @@ name: Copilot PR Review Runner
 # Thin caller for the reusable Business Central PR-review workflow, which
 # lives in microsoft/BC-ALReviewAgent. All orchestration (PR resolution,
 # BCQuality clone+filter, running the Copilot CLI, rendering and posting
-# findings) is implemented there; this repository only supplies its policy
-# config (tools/BCQuality/bcquality.config.yaml) and the trigger.
+# findings) is implemented there; this repository supplies its policy inline
+# in the `with:` block below (BCQuality repo/ref, layers, knowledge filters,
+# task-context) and the trigger.
 #
 # Security model is preserved by the reusable workflow: the review job is
 # read-only and runs the model on the untrusted diff; a separate publish job
@@ -34,19 +35,27 @@ jobs:
   review:
     if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
     # Pin BOTH the workflow ref and engine_ref to the same reviewed engine release.
-    uses: microsoft/BC-ALReviewAgent/.github/workflows/review.yml@v1.0.3
+    uses: microsoft/BC-ALReviewAgent/.github/workflows/review.yml@v1.0.4
     secrets: inherit
     with:
       target_repo: ${{ github.repository }}
-      engine_ref: v1.0.3
-      config_path: tools/BCQuality/bcquality.config.yaml
-      # BCQuality policy overrides (operator escape-hatch; config file is the default)
-      bcquality_repo: ${{ vars.BCQUALITY_REPO }}
-      bcquality_ref: ${{ vars.BCQUALITY_REF }}
-      enabled_layers: ${{ vars.BCQUALITY_ENABLED_LAYERS }}
+      engine_ref: v1.0.4
+      # BCQuality policy (inlined here; formerly tools/BCQuality/bcquality.config.yaml).
+      # Literal defaults are this repo's tracked policy; the matching vars.* override
+      # at runtime. SECURITY: bcquality_repo/ref point the reviewer at BCQuality content
+      # that is read before the untrusted PR diff, so keep bcquality_ref pinned to a
+      # reviewed SHA and bcquality_repo at a trusted host.
+      bcquality_repo: ${{ vars.BCQUALITY_REPO || 'https://github.com/microsoft/BCQuality' }}
+      bcquality_ref: ${{ vars.BCQUALITY_REF || '822cae1b2771ac25f665f73369f69093bd4fd630' }}
+      enabled_layers: ${{ vars.BCQUALITY_ENABLED_LAYERS || 'microsoft' }}
       disabled_skills: ${{ vars.BCQUALITY_DISABLED_SKILLS }}
-      knowledge_allow: ${{ vars.BCQUALITY_KNOWLEDGE_ALLOW }}
+      knowledge_allow: ${{ vars.BCQUALITY_KNOWLEDGE_ALLOW || 'microsoft/knowledge/**' }}
       knowledge_deny: ${{ vars.BCQUALITY_KNOWLEDGE_DENY }}
+      # task-context dimensions passed to BCQuality's skills/entry.md ('all' = unconstrained)
+      technologies: ${{ vars.BCQUALITY_TECHNOLOGIES || 'al' }}
+      countries: ${{ vars.BCQUALITY_COUNTRIES || 'w1' }}
+      application_area: ${{ vars.BCQUALITY_APPLICATION_AREA || 'all' }}
+      bc_version: ${{ vars.BCQUALITY_BC_VERSION || 'all' }}
       # Reviewer behaviour overrides
       copilot_model: ${{ vars.COPILOT_REVIEW_MODEL }}
       minimum_severity: ${{ vars.COPILOT_REVIEW_MINIMUM_SEVERITY || 'Medium' }}
