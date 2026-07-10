@@ -118,9 +118,11 @@ codeunit 4581 "SOA Send Replies"
         SOATaskContactOverride: Record "SOA Task Contact Override";
         Contact: Record Contact;
     begin
-        if SOATaskContactOverride.Get(TaskID, TaskMessageID) then
+        if SOATaskContactOverride.Get(TaskID, TaskMessageID) then begin
+            Contact.SetLoadFields("E-Mail");
             if Contact.Get(SOATaskContactOverride."Contact No.") then
                 exit(Contact."E-Mail");
+        end;
         exit('');
     end;
 
