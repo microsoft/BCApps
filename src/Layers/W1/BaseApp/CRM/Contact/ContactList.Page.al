@@ -1171,6 +1171,19 @@ page 5052 "Contact List"
         StyleIsStrong := Rec.Type = Rec.Type::Company;
     end;
 
+    trigger OnFindRecord(Which: Text): Boolean
+    var
+        Found: Boolean;
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnBeforeFindRecord(Rec, Which, Found, IsHandled);
+        if IsHandled then
+            exit(Found);
+
+        exit(Rec.Find(Which));
+    end;
+
     trigger OnOpenPage()
     var
         CRMIntegrationManagement: Codeunit "CRM Integration Management";
@@ -1228,6 +1241,11 @@ page 5052 "Contact List"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateContactBusinessRelationOnContacts(Contact: Record Contact; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeFindRecord(var Rec: Record Contact; Which: Text; var Found: Boolean; var IsHandled: Boolean)
     begin
     end;
 }
