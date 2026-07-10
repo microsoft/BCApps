@@ -600,4 +600,12 @@ enum 30111 "Shpfy GraphQL Type"
     {
         Caption = 'Has Fulfillment Service';
     }
+    value(148; Shipping_GetMarketShippingMethods)
+    {
+        Caption = 'Get Market Shipping Methods';
+    }
+    value(149; Shipping_GetNextMarketShippingMethods)
+    {
+        Caption = 'Get Next Market Shipping Methods';
+    }
 }
