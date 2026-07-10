@@ -34,7 +34,7 @@ codeunit 4419 "SOA Contact Search Impl"
         SOATaskContactOverride.ReadIsolation := IsolationLevel::ReadUncommitted;
         if SOATaskContactOverride.FindFirst() then begin
             Rec.Reset();
-            Rec.SetFilter("No.", SOATaskContactOverride."Contact No.");
+            Rec.SetRange("No.", SOATaskContactOverride."Contact No.");
             Found := Rec.Find(Which);
             IsHandled := true;
         end;
