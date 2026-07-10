@@ -151,15 +151,86 @@ Describe "Get-DisabledTestKeySet" {
             [PSCustomObject]@{ codeunitName = "ERM Apply"; method = "TestA" },
             [PSCustomObject]@{ codeunitName = "SCM Kitting"; method = @("TestB", "TestC") }
         )
-        $set = Get-DisabledTestKeySet -DisabledTests $disabled
-        $set.ContainsKey("erm apply::testa") | Should -Be $true
-        $set.ContainsKey("scm kitting::testb") | Should -Be $true
-        $set.ContainsKey("scm kitting::testc") | Should -Be $true
-        $set.Count | Should -Be 3
+        $lookup = Get-DisabledTestKeySet -DisabledTests $disabled
+        $lookup.Methods.ContainsKey("erm apply::testa") | Should -Be $true
+        $lookup.Methods.ContainsKey("scm kitting::testb") | Should -Be $true
+        $lookup.Methods.ContainsKey("scm kitting::testc") | Should -Be $true
+        $lookup.Methods.Count | Should -Be 3
+        $lookup.Codeunits.Count | Should -Be 0
     }
 
-    It "returns an empty set for no disabled tests" {
-        (Get-DisabledTestKeySet -DisabledTests @()).Count | Should -Be 0
+    It "treats a '*' method as a whole-codeunit disable" {
+        $disabled = @(
+            [PSCustomObject]@{ codeunitName = "Azure AD User Sync Test"; method = "*" },
+            [PSCustomObject]@{ codeunitName = "ERM Apply"; method = "TestA" }
+        )
+        $lookup = Get-DisabledTestKeySet -DisabledTests $disabled
+        $lookup.Codeunits.ContainsKey("azure ad user sync test") | Should -Be $true
+        # '*' must NOT become a literal method key.
+        $lookup.Methods.ContainsKey("azure ad user sync test::*") | Should -Be $false
+        $lookup.Methods.ContainsKey("erm apply::testa") | Should -Be $true
+    }
+
+    It "returns empty sets for no disabled tests" {
+        $lookup = Get-DisabledTestKeySet -DisabledTests @()
+        $lookup.Methods.Count | Should -Be 0
+        $lookup.Codeunits.Count | Should -Be 0
+    }
+}
+
+Describe "Invoke-AlRunTestsWithReruns" {
+    It "re-runs only failed methods and records a pass on rerun" {
+        # attempt 1: A passes, B fails. attempt 2 (rerun of B only): B passes.
+        $script:calls = 0
+        Mock -ModuleName AlToolTestRunner Invoke-AlRunTestsForCodeunit {
+            $script:calls++
+            if ($script:calls -eq 1) {
+                return @{ Results = @{
+                    "A" = @{ Outcome = "Pass"; Ms = 5; Message = ""; Stacktrace = "" }
+                    "B" = @{ Outcome = "Fail"; Ms = 5; Message = "boom"; Stacktrace = "s" }
+                }; ElapsedSec = 1; Raw = ""; Connected = $true }
+            }
+            # Rerun should be called with only the failed method B.
+            $Methods.Count | Should -Be 1
+            $Methods[0] | Should -Be "B"
+            return @{ Results = @{ "B" = @{ Outcome = "Pass"; Ms = 4; Message = ""; Stacktrace = "" } }; ElapsedSec = 1; Raw = ""; Connected = $true }
+        }
+
+        $r = Invoke-AlRunTestsWithReruns -CodeunitId "134001" -Methods @("A","B") `
+            -ProjectPath "p" -Company "c" -Tenant "default" -Connection @{ Server="s"; ServerInstance="BC"; Port=7049 } `
+            -MaxAttempts 2 -CodeunitName "CU"
+
+        $r.Attempts | Should -Be 2
+        $r.Results["A"].Outcome | Should -Be "Pass"
+        $r.Results["B"].Outcome | Should -Be "Pass"
+        Should -Invoke -ModuleName AlToolTestRunner Invoke-AlRunTestsForCodeunit -Times 2
+    }
+
+    It "does not rerun when MaxAttempts is 1 (Legacy policy)" {
+        $script:calls2 = 0
+        Mock -ModuleName AlToolTestRunner Invoke-AlRunTestsForCodeunit {
+            $script:calls2++
+            return @{ Results = @{ "B" = @{ Outcome = "Fail"; Ms = 5; Message = "boom"; Stacktrace = "s" } }; ElapsedSec = 1; Raw = ""; Connected = $true }
+        }
+        $r = Invoke-AlRunTestsWithReruns -CodeunitId "134001" -Methods @("B") `
+            -ProjectPath "p" -Company "c" -Tenant "default" -Connection @{ Server="s"; ServerInstance="BC"; Port=7049 } `
+            -MaxAttempts 1 -CodeunitName "CU"
+        $r.Attempts | Should -Be 1
+        $r.Results["B"].Outcome | Should -Be "Fail"
+        Should -Invoke -ModuleName AlToolTestRunner Invoke-AlRunTestsForCodeunit -Times 1
+    }
+
+    It "stops re-running once all methods pass" {
+        $script:calls3 = 0
+        Mock -ModuleName AlToolTestRunner Invoke-AlRunTestsForCodeunit {
+            $script:calls3++
+            return @{ Results = @{ "A" = @{ Outcome = "Pass"; Ms = 5; Message = ""; Stacktrace = "" } }; ElapsedSec = 1; Raw = ""; Connected = $true }
+        }
+        $r = Invoke-AlRunTestsWithReruns -CodeunitId "1" -Methods @("A") `
+            -ProjectPath "p" -Company "c" -Tenant "default" -Connection @{ Server="s"; ServerInstance="BC"; Port=7049 } `
+            -MaxAttempts 3 -CodeunitName "CU"
+        $r.Attempts | Should -Be 1
+        Should -Invoke -ModuleName AlToolTestRunner Invoke-AlRunTestsForCodeunit -Times 1
     }
 }
 
