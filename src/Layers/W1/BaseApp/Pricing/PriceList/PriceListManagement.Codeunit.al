@@ -751,6 +751,39 @@ codeunit 7017 "Price List Management"
     local procedure BuildSourceFilters(var PriceListLine: Record "Price List Line"; PriceSourceList: Codeunit "Price Source List"; var MarkingIsUsed: Boolean)
     var
         PriceSource: Record "Price Source";
+        TypeFilter: TextBuilder;
+        ParentFilter: TextBuilder;
+        NoFilter: TextBuilder;
+        Sep: Text[1];
+    begin
+        if SearchIfPriceExists or not CanCombineSourceFilters(PriceListLine, PriceSourceList) then begin
+            BuildSourceFiltersByMarking(PriceListLine, PriceSourceList, MarkingIsUsed);
+            exit;
+        end;
+
+        MarkingIsUsed := false;
+        if PriceSourceList.First(PriceSource, 0) then
+            repeat
+                PriceListLine.SetRange("Source Type", PriceSource."Source Type");
+                PriceListLine.SetRange("Parent Source No.", PriceSource."Parent Source No.");
+                PriceListLine.SetRange("Source No.", PriceSource."Source No.");
+                OnBuildSourceFiltersOnBeforeFindLines(PriceListLine, PriceSource);
+                if not PriceListLine.IsEmpty() then begin
+                    TypeFilter.Append(Sep + Format(PriceSource."Source Type"));
+                    ParentFilter.Append(Sep + GetFilterText(PriceSource."Parent Source No."));
+                    NoFilter.Append(Sep + GetFilterText(PriceSource."Source No."));
+                    Sep := '|';
+                end;
+            until not PriceSourceList.Next(PriceSource);
+        ClearSourceFilters(PriceListLine);
+        PriceListLine.SetFilter("Source Type", TypeFilter.ToText());
+        PriceListLine.SetFilter("Parent Source No.", ParentFilter.ToText());
+        PriceListLine.SetFilter("Source No.", NoFilter.ToText());
+    end;
+
+    local procedure BuildSourceFiltersByMarking(var PriceListLine: Record "Price List Line"; PriceSourceList: Codeunit "Price Source List"; var MarkingIsUsed: Boolean)
+    var
+        PriceSource: Record "Price Source";
     begin
         MarkingIsUsed := true;
         if not SearchIfPriceExists then
@@ -779,6 +812,39 @@ codeunit 7017 "Price List Management"
                 end;
             until not PriceSourceList.Next(PriceSource);
         ClearSourceFilters(PriceListLine);
+    end;
+
+    local procedure CanCombineSourceFilters(var PriceListLine: Record "Price List Line"; PriceSourceList: Codeunit "Price Source List"): Boolean
+    var
+        PriceSource: Record "Price Source";
+        SourceNoToTypeParentKey: Dictionary of [Code[20], Text];
+        TypeParentKey: Text;
+        ExistingKey: Text;
+        NonEmptyCount: Integer;
+    begin
+        if PriceSourceList.First(PriceSource, 0) then
+            repeat
+                PriceListLine.SetRange("Source Type", PriceSource."Source Type");
+                PriceListLine.SetRange("Parent Source No.", PriceSource."Parent Source No.");
+                PriceListLine.SetRange("Source No.", PriceSource."Source No.");
+                OnBuildSourceFiltersOnBeforeFindLines(PriceListLine, PriceSource);
+                if not PriceListLine.IsEmpty() then begin
+                    NonEmptyCount += 1;
+                    if PriceSource."Source No." <> '' then begin
+                        TypeParentKey := Format(PriceSource."Source Type") + '|' + PriceSource."Parent Source No.";
+                        if SourceNoToTypeParentKey.Get(PriceSource."Source No.", ExistingKey) then begin
+                            if ExistingKey <> TypeParentKey then begin
+                                ClearSourceFilters(PriceListLine);
+                                exit(false);
+                            end;
+                        end else
+                            SourceNoToTypeParentKey.Add(PriceSource."Source No.", TypeParentKey);
+                    end;
+                end;
+            until not PriceSourceList.Next(PriceSource);
+        ClearSourceFilters(PriceListLine);
+
+        exit(NonEmptyCount > 0);
     end;
 
     local procedure CheckIfPriceListLineMarkingIsNeededForSources(var PriceListLine: Record "Price List Line"; PriceSourceList: Codeunit "Price Source List"): Boolean;
