@@ -72,7 +72,7 @@ This formula accounts for the time elapsed since the last request (during which 
 
 The `GoToSleep()` method uses AL's `Sleep()` function with a TryFunction wrapper. If the calculated sleep time causes an error (e.g., negative duration), it falls back to a 100ms sleep.
 
-The API version is hardcoded as `'2026-01'` in `ShpfyCommunicationMgt.Codeunit.al`. The connector validates the API version expiry date and shows warnings/errors when it is approaching or has passed expiry, pulling the date from Azure Key Vault.
+The API version is hardcoded as `'2026-07'` in `ShpfyCommunicationMgt.Codeunit.al`. The connector validates the API version expiry date and shows warnings/errors when it is approaching or has passed expiry, pulling the date from Azure Key Vault.
 
 ## Webhook multi-company fan-out
 
