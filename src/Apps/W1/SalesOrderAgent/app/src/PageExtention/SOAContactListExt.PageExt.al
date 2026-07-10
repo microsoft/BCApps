@@ -12,9 +12,9 @@ pageextension 4411 "SOA Contact List Ext" extends "Contact List"
     {
         addafter("E-Mail")
         {
-            field(MappedEmail; MappedEmail)
+            field(AlternateEmail; AlternateEmail)
             {
-                Caption = 'Mapped Email';
+                Caption = 'Alternate Email';
                 ToolTip = 'Specifies the email address mapped to this contact from an unknown sender during the current agent task.';
                 Visible = IsAgentSession;
                 Editable = false;
@@ -39,10 +39,10 @@ pageextension 4411 "SOA Contact List Ext" extends "Contact List"
 
     trigger OnAfterGetRecord()
     begin
-        PopulateMappedEmail();
+        PopulateAlternateEmail();
     end;
 
-    local procedure PopulateMappedEmail()
+    local procedure PopulateAlternateEmail()
     var
         SOATaskContactOverride: Record "SOA Task Contact Override";
         SOAEmail: Record "SOA Email";
@@ -60,17 +60,17 @@ pageextension 4411 "SOA Contact List Ext" extends "Contact List"
                 SOAEmail.ReadIsolation := IsolationLevel::ReadUncommitted;
 
                 if SOAEmail.FindFirst() then
-                    MappedEmail := SOAEmail."Sender Address"
+                    AlternateEmail := SOAEmail."Sender Address"
                 else
-                    MappedEmail := '';
+                    AlternateEmail := '';
             end else
-                MappedEmail := '';
+                AlternateEmail := '';
         end else
-            MappedEmail := '';
+            AlternateEmail := '';
     end;
 
     var
-        MappedEmail: Text[250];
+        AlternateEmail: Text[250];
         AgentTaskID: BigInteger;
         IsAgentSession: Boolean;
 }
