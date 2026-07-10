@@ -5631,7 +5631,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if DetailedCVLedgEntryBuffer."Initial Document Type" = DetailedCVLedgEntryBuffer."Initial Document Type"::Bill then
                 AccNo := VendPostingGr."Payables Account"
             else
-                if (GenJournalLine."Document Type" = GenJournalLine."Document Type"::Payment) and (GenJournalLine."Applies-to Doc. No." <> '') and (DetailedCVLedgEntryBuffer."Document Type" = DetailedCVLedgEntryBuffer."Document Type"::Payment) then
+                if (GenJournalLine."Document Type" = GenJournalLine."Document Type"::Payment) and (GenJournalLine."Applies-to Doc. No." <> '') and (DetailedCVLedgEntryBuffer."Document Type" = DetailedCVLedgEntryBuffer."Document Type"::Payment) and
+                   (not IsApplnEntryForAppliedVendorDoc(GenJournalLine, DetailedCVLedgEntryBuffer))
+                then
                     AccNo := VendPostingGr."Payables Account"
                 else
                     AccNo := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer)
@@ -5661,7 +5663,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if DetailedCVLedgEntryBuffer."Initial Document Type" = DetailedCVLedgEntryBuffer."Initial Document Type"::Bill then
                 AccNo := VendPostingGr."Payables Account"
             else
-                if (GenJournalLine."Document Type" = GenJournalLine."Document Type"::Payment) and (GenJournalLine."Applies-to Doc. No." <> '') and (DetailedCVLedgEntryBuffer."Document Type" = DetailedCVLedgEntryBuffer."Document Type"::Payment) then
+                if (GenJournalLine."Document Type" = GenJournalLine."Document Type"::Payment) and (GenJournalLine."Applies-to Doc. No." <> '') and (DetailedCVLedgEntryBuffer."Document Type" = DetailedCVLedgEntryBuffer."Document Type"::Payment) and
+                   (not IsApplnEntryForAppliedVendorDoc(GenJournalLine, DetailedCVLedgEntryBuffer))
+                then
                     AccNo := VendPostingGr."Payables Account"
                 else
                     AccNo := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer)
@@ -5839,6 +5843,19 @@ codeunit 12 "Gen. Jnl.-Post Line"
         exit(GetVendorPayablesAccount(GenJournalLine, VendorPostingGroup));
     end;
 
+    local procedure IsApplnEntryForAppliedVendorDoc(GenJournalLine: Record "Gen. Journal Line"; DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"): Boolean
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+    begin
+        // An application creates one detailed entry for the payment line's own ledger entry and one for the
+        // applied document (e.g. the invoice). When applying via "Applies-to Doc. No." the payment's own ledger
+        // entry might not be inserted yet, so it must use the line's posting group payables account. The applied
+        // document already exists and, when it uses a different posting group, must post to its own posting
+        // group's payables account so that the resulting G/L entries balance.
+        if not VendorLedgerEntry.Get(DetailedCVLedgEntryBuffer."CV Ledger Entry No.") then
+            exit(false);
+        exit(VendorLedgerEntry."Document Type" <> GenJournalLine."Document Type");
+    end;
     local procedure GetEmplDtldCVLedgEntryBufferAccNo(var GenJournalLine: Record "Gen. Journal Line"; var DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"): Code[20]
     var
         EmployeeLedgerEntry: Record "Employee Ledger Entry";
