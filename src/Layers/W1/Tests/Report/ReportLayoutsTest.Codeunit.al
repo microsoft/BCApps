@@ -492,9 +492,13 @@ codeunit 139595 "Report Layouts Test"
     local procedure EnsureNewLayoutsAreCleaned()
     var
         TenantReportLayout: Record "Tenant Report Layout";
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
     begin
         TenantReportLayout.SetRange("Report ID", 139595);
         TenantReportLayout.DeleteAll();
+
+        TenantReportLayoutOverride.SetRange("Report ID", 139595);
+        TenantReportLayoutOverride.DeleteAll();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Layouts Impl.", 'OnBeforeUpload', '', false, false)]
@@ -657,6 +661,50 @@ codeunit 139595 "Report Layouts Test"
             Enum::"Report Layout Status"::Draft,
             TenantReportLayout."Layout Status",
             'Layout status should be Draft after cycling back.');
+    end;
+
+    [Test]
+    [HandlerFunctions('StatusChangedMessageHandler')]
+    procedure TestSetExtensionLayoutStatusWritesOverride()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] Setting the status of an extension-installed layout writes a Tenant Report Layout
+        // Override record instead of copying the layout into the tenant table.
+
+        // Init - remove any tenant layouts/overrides for the test report
+        EnsureNewLayoutsAreCleaned();
+
+        // The test report (139595) ships an RDLC layout via its rendering section, so it surfaces in
+        // Report Layout List as an extension-installed layout (User Defined = false).
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
+
+        // Act - Set status to Approved via the page action
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        Assert.IsTrue(ReportLayoutsPage.SetApproved.Enabled(), 'Set Approved should be enabled for extension layouts.');
+        ReportLayoutsPage.SetApproved.Invoke();
+        ReportLayoutsPage.Close();
+
+        // Assert - a company-specific override carries the Approved status...
+        Assert.IsTrue(
+            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+            'An override record should have been created for the extension layout.');
+        Assert.IsTrue(TenantReportLayoutOverride."Override Layout Status", 'The Override Layout Status flag should be set.');
+        Assert.AreEqual(
+            Enum::"Report Layout Status"::Approved,
+            TenantReportLayoutOverride."Layout Status",
+            'The override should carry the Approved status.');
+
+        // ...and no copy was made into the tenant table.
+        TenantReportLayout.SetRange("Report ID", 139595);
+        Assert.IsTrue(TenantReportLayout.IsEmpty(), 'No copy should have been created in Tenant Report Layout.');
     end;
 
     [MessageHandler]

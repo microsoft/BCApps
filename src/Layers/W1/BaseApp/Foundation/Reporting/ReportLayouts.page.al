@@ -728,9 +728,9 @@ page 9660 "Report Layouts"
         IsMultiSelect := SelectedReportLayoutList.Count() > 1;
         ShareOptionsVisible := DocumentSharing.ShareEnabled(Enum::"Document Sharing Source"::System);
         ShareOptionsEnabled := LayoutIsSelected and (not IsMultiSelect) and Rec."User Defined" and (Rec."Layout Format" <> Rec."Layout Format"::RDLC);
-        SelectedReportLayoutList.SetRange("User Defined", true);
-        CanModifyStatus := LayoutIsSelected and not SelectedReportLayoutList.IsEmpty();
-        SelectedReportLayoutList.SetRange("User Defined");
+        // Both user-defined and extension-installed layouts can have their status changed: user-defined
+        // layouts are updated in place, extension layouts via a Tenant Report Layout Override record.
+        CanModifyStatus := LayoutIsSelected;
         UpdateUserDisplayName();
     end;
 

@@ -21,7 +21,8 @@ codeunit 9660 "Report Layouts Impl."
 {
     Access = Internal;
     Permissions = tabledata "Tenant Report Layout" = rimd,
-                  tabledata "Tenant Report Layout Selection" = rimd;
+                  tabledata "Tenant Report Layout Selection" = rimd,
+                  tabledata "Tenant Report Layout Override" = rimd;
 
     var
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
@@ -50,19 +51,25 @@ codeunit 9660 "Report Layouts Impl."
     end;
 
     /// <summary>
-    /// Sets the status for a user-defined layout.
-    /// Only user-defined layouts have entries in "Tenant Report Layout" (table 2000000232).
-    /// Extension-defined layouts reside in the read-only App database and cannot be modified.
+    /// Sets the status for a layout.
+    /// User-defined layouts are updated in place in "Tenant Report Layout" (table 2000000232).
+    /// Extension-installed layouts reside in the read-only App database; their status is set by
+    /// writing an override record in "Tenant Report Layout Override" (table 2000000248) instead of
+    /// copying the layout into the tenant table.
     /// </summary>
     /// <param name="ReportLayoutList">The layout record from the virtual table</param>
     /// <param name="NewStatus">The new status to set</param>
-    /// <returns>True if the status was updated, false if the layout is not user-defined or not found</returns>
+    /// <returns>True if the status was updated, false if the user-defined layout was not found</returns>
     internal procedure SetLayoutStatus(ReportLayoutList: Record "Report Layout List"; NewStatus: Enum "Report Layout Status"): Boolean
     var
         TenantReportLayout: Record "Tenant Report Layout";
     begin
-        if not ReportLayoutList."User Defined" then
-            exit(false);
+        if not ReportLayoutList."User Defined" then begin
+            // Extension-installed layout: override the status rather than copying the layout.
+            // Company-specific by default (see CP0529-338 open question Q1 on scope).
+            UpsertLayoutOverride(ReportLayoutList, false, false, '', true, NewStatus, false, false);
+            exit(true);
+        end;
 
         if TenantReportLayout.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", EmptyGuid) then begin
             TenantReportLayout."Layout Status" := NewStatus;
@@ -70,6 +77,56 @@ codeunit 9660 "Report Layouts Impl."
             exit(true);
         end;
         exit(false);
+    end;
+
+    /// <summary>
+    /// Creates or updates a "Tenant Report Layout Override" record for an extension-installed layout.
+    /// Only the fields flagged by the corresponding Apply* parameter are written, together with their
+    /// "Override *" flag; unset fields pass through from the layout metadata unchanged. "IsObsolete" is
+    /// one-way: it can only ever be set to true and never clears a layout that is obsolete in metadata.
+    /// </summary>
+    /// <param name="ReportLayoutList">The (extension-installed) layout row from the virtual table</param>
+    /// <param name="MakeGlobal">True writes a global override (empty Company Name); false writes one scoped to the selected company</param>
+    local procedure UpsertLayoutOverride(ReportLayoutList: Record "Report Layout List"; MakeGlobal: Boolean; ApplyDescription: Boolean; NewDescription: Text[250]; ApplyStatus: Boolean; NewStatus: Enum "Report Layout Status"; ApplyObsolete: Boolean; NewIsObsolete: Boolean)
+    var
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        OverrideCompanyName: Text[30];
+        OverrideExists: Boolean;
+    begin
+        if MakeGlobal then
+            OverrideCompanyName := ''
+        else
+            OverrideCompanyName := SelectedCompany;
+
+        OverrideExists := TenantReportLayoutOverride.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", OverrideCompanyName);
+        if not OverrideExists then begin
+            TenantReportLayoutOverride.Init();
+            TenantReportLayoutOverride."Report ID" := ReportLayoutList."Report ID";
+            TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
+            TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
+            TenantReportLayoutOverride."Company Name" := OverrideCompanyName;
+        end;
+
+        if ApplyDescription then begin
+            TenantReportLayoutOverride.Description := NewDescription;
+            TenantReportLayoutOverride."Override Description" := true;
+        end;
+
+        if ApplyStatus then begin
+            TenantReportLayoutOverride."Layout Status" := NewStatus;
+            TenantReportLayoutOverride."Override Layout Status" := true;
+        end;
+
+        // One-way: only ever mark obsolete; never write false over a metadata-obsolete layout.
+        if ApplyObsolete and NewIsObsolete then begin
+            TenantReportLayoutOverride.IsObsolete := true;
+            TenantReportLayoutOverride."Override IsObsolete" := true;
+        end;
+
+        if OverrideExists then
+            TenantReportLayoutOverride.Modify(true)
+        else
+            TenantReportLayoutOverride.Insert(true);
     end;
 
     /// <summary>
