@@ -563,6 +563,7 @@ codeunit 134290 "Non-Deductible VAT Reports"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
     begin
+        LibrarySales.SetInvoiceRounding(false);
         LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandIntInRange(10, 25));
         GLAccNo := LibraryERM.CreateGLAccountWithVATPostingSetup(VATPostingSetup, "General Posting Type"::Sale);
         LibrarySales.CreateSalesHeader(
