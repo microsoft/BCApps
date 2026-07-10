@@ -222,7 +222,7 @@ page 20298 "Use Case Tree"
         [InDataSet]
         NameIndent: Integer;
         ConditionText: Text;
-        TaxEntityName: Text[30];
+        TaxEntityName: Text[100];
         UseCaseName: Text[2000];
         ObjectIDNotFoundErr: Label 'Error : Table ID %1 not found', Comment = '%1=Table Id';
         ConditionLbl: Label 'Condition : %1', Comment = '%1 = condtion as text';

@@ -549,12 +549,12 @@ page 20142 "Script Symbol Lookup Dialog"
     end;
 
     [IntegrationEvent(false, false)]
-    procedure OnValidateLookupTableName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text[30]; IsTransactionTable: Boolean)
+    procedure OnValidateLookupTableName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text[100]; IsTransactionTable: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    procedure OnLookupLookupTableName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text[30]; SearchText: Text)
+    procedure OnLookupLookupTableName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text[100]; SearchText: Text)
     begin
     end;
 
@@ -575,7 +575,7 @@ page 20142 "Script Symbol Lookup Dialog"
         ShowFullLoookup: Boolean;
         [InDataSet]
         IsSymbolType: Boolean;
-        LookupTableName: Text[30];
+        LookupTableName: Text[100];
         LookupTableFieldName: Text[30];
         AttributeName2: Text[30];
         LookupTableFilters2: Text;

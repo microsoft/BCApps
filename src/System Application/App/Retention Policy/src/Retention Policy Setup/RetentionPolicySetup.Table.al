@@ -42,7 +42,7 @@ table 3901 "Retention Policy Setup"
         field(2; "Table Name"; Text[30])
         {
             FieldClass = FlowField;
-            CalcFormula = lookup(AllObjWithCaption."Object Name" where("Object Type" = const(Table), "Object ID" = field("Table Id")));
+            CalcFormula = lookup(AllObjWithCaption.Name where("Object Type" = const(Table), "Object ID" = field("Table Id")));
             Editable = false;
 
             trigger OnLookup()

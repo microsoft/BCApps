@@ -83,9 +83,9 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
             UnbindSubscription(RetenPolAllowedTblImpl);
 
             if TableAllowed then
-                RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(AllowedTablesModifiedLbl, RetentionPolicyAllowedTable."Table Id", AllObj."Object Name", RetentionPolicyAllowedTable."Default Date Field No."))
+                RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(AllowedTablesModifiedLbl, RetentionPolicyAllowedTable."Table Id", AllObj.Name, RetentionPolicyAllowedTable."Default Date Field No."))
             else
-                RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(FailedModifyingTableLbl, RetentionPolicyAllowedTable."Table Id", AllObj."Object Name"), false);
+                RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(FailedModifyingTableLbl, RetentionPolicyAllowedTable."Table Id", AllObj.Name), false);
 
             exit(TableAllowed);
         end;
@@ -95,9 +95,9 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
         UnbindSubscription(RetenPolAllowedTblImpl);
 
         if TableAllowed then
-            RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(AddTableToAllowedTablesLbl, RetentionPolicyAllowedTable."Table Id", AllObj."Object Name", RetentionPolicyAllowedTable."Default Date Field No."))
+            RetentionPolicyLog.LogInfo(LogCategory(), StrSubstNo(AddTableToAllowedTablesLbl, RetentionPolicyAllowedTable."Table Id", AllObj.Name, RetentionPolicyAllowedTable."Default Date Field No."))
         else
-            RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(FailedAddingTableLbl, RetentionPolicyAllowedTable."Table Id", AllObj."Object Name"), false);
+            RetentionPolicyLog.LogError(LogCategory(), StrSubstNo(FailedAddingTableLbl, RetentionPolicyAllowedTable."Table Id", AllObj.Name), false);
 
         exit(TableAllowed)
     end;
@@ -121,7 +121,7 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
         PublishedApplication.SetRange("Version Revision", CallerModuleInfo.AppVersion.Revision);
         PublishedApplication.SetFilter("Tenant ID", '%1|%2', '', TenantInformation.GetTenantId());
         if not PublishedApplication.FindFirst() then begin
-            RetentionPolicyLog.LogWarning(LogCategory(), StrSubstNo(ModuleDoesNotExistLbl, TableId, AllObj."Object Name", CallerModuleInfo.Id));
+            RetentionPolicyLog.LogWarning(LogCategory(), StrSubstNo(ModuleDoesNotExistLbl, TableId, AllObj.Name, CallerModuleInfo.Id));
             exit(false);
         end;
 
@@ -129,7 +129,7 @@ codeunit 3906 "Reten. Pol. Allowed Tbl. Impl."
             exit(true);
 
         if AllObj."App Runtime Package ID" <> PublishedApplication."Runtime Package ID" then begin
-            RetentionPolicyLog.LogWarning(LogCategory(), StrSubstNo(WrongModuleOwnerLbl, TableId, AllObj."Object Name", CallerModuleInfo.Id));
+            RetentionPolicyLog.LogWarning(LogCategory(), StrSubstNo(WrongModuleOwnerLbl, TableId, AllObj.Name, CallerModuleInfo.Id));
             exit(false);
         end;
 

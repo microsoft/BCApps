@@ -217,8 +217,8 @@ page 130415 "Semi-Manual Test Wizard"
         if not AllObjWithCaption.FindFirst() then
             exit;
 
-        CodeunitIdentifier := StrSubstNo('%1: %2', CodeunitId, AllObjWithCaption."Object Name");
-        Rec.Initialize(AllObjWithCaption."Object ID", AllObjWithCaption."Object Name");
+        CodeunitIdentifier := StrSubstNo('%1: %2', CodeunitId, AllObjWithCaption.Name);
+        Rec.Initialize(AllObjWithCaption."Object ID", AllObjWithCaption.Name);
         ManualSteps := Rec.GetManualSteps();
         TestExecuting := true;
         SemiManualExecutionLog.Log(StrSubstNo('Loaded codeunit %1. Total steps = %2.',

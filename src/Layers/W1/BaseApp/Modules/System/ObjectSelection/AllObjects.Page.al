@@ -27,7 +27,7 @@ page 696 "All Objects"
                     Caption = 'Object ID';
                     ToolTip = 'Specifies the ID of the object.';
                 }
-                field("Object Name"; Rec."Object Name")
+                field("Object Name"; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Object Name';

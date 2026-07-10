@@ -48,7 +48,7 @@ table 552 "VAT Rate Change Log Entry"
         /// </summary>
         field(11; "Table Caption"; Text[80])
         {
-            CalcFormula = lookup(AllObj."Object Name" where("Object Type" = const(Table),
+            CalcFormula = lookup(AllObj.Name where("Object Type" = const(Table),
                                                              "Object ID" = field("Table ID")));
             Caption = 'Table Caption';
             ToolTip = 'Specifies the table. This field is intended only for internal use.';

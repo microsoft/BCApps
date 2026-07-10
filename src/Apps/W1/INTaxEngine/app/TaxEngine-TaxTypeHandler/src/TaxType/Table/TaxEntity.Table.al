@@ -25,7 +25,7 @@ table 20257 "Tax Entity"
             Caption = 'Tax Type';
             TableRelation = "Tax Type".Code;
         }
-        field(3; "Table Name"; Text[30])
+        field(3; "Table Name"; Text[100])
         {
             DataClassification = SystemMetadata;
             Caption = 'Table Name';

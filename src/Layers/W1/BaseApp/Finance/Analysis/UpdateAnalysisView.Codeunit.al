@@ -721,7 +721,7 @@ codeunit 410 "Update Analysis View"
         WinTotalCounter := 0;
         AllObj.Get(AllObj."Object Type"::Table, TableID);
         Window.Update(1, AnalysisView.Code);
-        Window.Update(2, AllObj."Object Name");
+        Window.Update(2, AllObj.Name);
         Window.Update(3, 0);
         Window.Update(4, 0);
         Window.Update(5, 0);

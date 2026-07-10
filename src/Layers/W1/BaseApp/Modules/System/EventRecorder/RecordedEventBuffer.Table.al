@@ -45,7 +45,7 @@ table 9804 "Recorded Event Buffer"
         }
         field(4; "Object Name"; Text[30])
         {
-            CalcFormula = lookup(AllObjWithCaption."Object Name" where("Object Type" = field("Object Type"),
+            CalcFormula = lookup(AllObjWithCaption.Name where("Object Type" = field("Object Type"),
                                                                         "Object ID" = field("Object ID")));
             Caption = 'Object Name';
             Editable = false;
@@ -87,7 +87,7 @@ table 9804 "Recorded Event Buffer"
         }
         field(11; "Calling Object Name"; Text[30])
         {
-            CalcFormula = lookup(AllObjWithCaption."Object Name" where("Object Type" = field("Calling Object Type"),
+            CalcFormula = lookup(AllObjWithCaption.Name where("Object Type" = field("Calling Object Type"),
                                                                         "Object ID" = field("Calling Object ID")));
             Caption = 'Calling Object Name';
             Editable = false;

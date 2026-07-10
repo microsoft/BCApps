@@ -643,7 +643,7 @@ codeunit 136704 "Script Symbols Store Tests"
             CaseID,
             ScriptID,
             Database::AllObj,
-            AllObj.FieldNo("Object Name"),
+            AllObj.FieldNo(Name),
             "Symbol Type"::Table);
 
         // [WHEN] The function GetLookupSourceType is called.
@@ -1021,7 +1021,7 @@ codeunit 136704 "Script Symbols Store Tests"
             CaseID,
             ScriptID,
             Database::AllObj,
-            AllObj.FieldNo("Object Name"),
+            AllObj.FieldNo(Name),
             "Symbol Type"::Table,
             TableMethod::First);
 
@@ -1294,18 +1294,18 @@ codeunit 136704 "Script Symbols Store Tests"
 
         ScriptSymbolStore.InsertDictionaryValue("Symbol Data Type"::OPTION, SymbolID, AllObj.FieldNo("Object Type"));
         ScriptSymbolStore.InsertDictionaryValue("Symbol Data Type"::NUMBER, SymbolID, AllObj.FieldNo("Object ID"));
-        ScriptSymbolStore.InsertDictionaryValue("Symbol Data Type"::STRING, SymbolID, AllObj.FieldNo("Object Name"));
+        ScriptSymbolStore.InsertDictionaryValue("Symbol Data Type"::STRING, SymbolID, AllObj.FieldNo(Name));
 
         // [WHEN] The function TransferRecRefToSymbolMembers is called.
         ScriptSymbolStore.TransferRecRefToSymbolMembers(RecRef, SymbolID);
 
         ScriptSymbolStore.GetSymbolMember(SymbolID, AllObj.FieldNo("Object Type"), ObjectTypeResult);
         ScriptSymbolStore.GetSymbolMember(SymbolID, AllObj.FieldNo("Object ID"), ObjectIDResult);
-        ScriptSymbolStore.GetSymbolMember(SymbolID, AllObj.FieldNo("Object Name"), ObjectNameResult);
+        ScriptSymbolStore.GetSymbolMember(SymbolID, AllObj.FieldNo(Name), ObjectNameResult);
 
         // [THEN] It should assign update member value in store from RecordRef.
         Assert.AreEqual(AllObj."Object Type", ObjectTypeResult, 'Object Type should be Table.');
         Assert.AreEqual(AllObj."Object ID", ObjectIDResult, 'Object ID should be 3');
-        Assert.AreEqual(AllObj."Object Name", ObjectNameResult, 'Object ID should be Payment Terms.');
+        Assert.AreEqual(AllObj.Name, ObjectNameResult, 'Object ID should be Payment Terms.');
     end;
 }

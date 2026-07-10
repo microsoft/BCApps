@@ -9,7 +9,7 @@ using Microsoft.Finance.TaxEngine.UseCaseBuilder;
 
 codeunit 20232 "Tax Type Object Helper"
 {
-    procedure SearchTaxTypeTable(var TableID: Integer; var TableName: Text[30]; TaxType: Code[20]; IsTransactionTable: Boolean)
+    procedure SearchTaxTypeTable(var TableID: Integer; var TableName: Text[100]; TaxType: Code[20]; IsTransactionTable: Boolean)
     var
         TaxEntity: Record "Tax Entity";
         TmpObjectID: Integer;
@@ -59,7 +59,7 @@ codeunit 20232 "Tax Type Object Helper"
             Error(InvalidAttributeValueErr, AttributeValue);
     end;
 
-    procedure OpenTaxTypeTableLookup(var TableID: Integer; var TableName: Text[30]; SearchText: Text; TaxType: Code[20]);
+    procedure OpenTaxTypeTableLookup(var TableID: Integer; var TableName: Text[100]; SearchText: Text; TaxType: Code[20]);
     var
         TaxEntity: Record "Tax Entity";
     begin
@@ -80,7 +80,7 @@ codeunit 20232 "Tax Type Object Helper"
         end;
     end;
 
-    procedure OpenTaxTypeTransactionTableLookup(var TableID: Integer; var TableName: Text[30]; SearchText: Text; TaxType: Code[20]);
+    procedure OpenTaxTypeTransactionTableLookup(var TableID: Integer; var TableName: Text[100]; SearchText: Text; TaxType: Code[20]);
     var
         TaxEntity: Record "Tax Entity";
     begin
@@ -265,7 +265,7 @@ codeunit 20232 "Tax Type Object Helper"
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Script Symbol Lookup Dialog", 'OnValidateLookupTableName', '', false, false)]
-    local procedure OnValidateLookupTableName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text[30]; IsTransactionTable: Boolean)
+    local procedure OnValidateLookupTableName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text[100]; IsTransactionTable: Boolean)
     var
         TaxUseCase: Record "Tax Use Case";
     begin
@@ -275,7 +275,7 @@ codeunit 20232 "Tax Type Object Helper"
     end;
 
     [EventSubscriber(ObjectType::Page, Page::"Script Symbol Lookup Dialog", 'OnLookupLookupTableName', '', false, false)]
-    local procedure OnLookupLookupTableName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text[30]; SearchText: Text)
+    local procedure OnLookupLookupTableName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text[100]; SearchText: Text)
     var
         TaxUseCase: Record "Tax Use Case";
     begin

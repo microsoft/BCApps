@@ -39,7 +39,7 @@ table 2000005 "Export Protocol"
         }
         field(26; "Check Object Name"; Text[30])
         {
-            CalcFormula = lookup(AllObj."Object Name" where("Object Type" = const(Codeunit),
+            CalcFormula = lookup(AllObj.Name where("Object Type" = const(Codeunit),
                                                              "Object ID" = field("Check Object ID")));
             Caption = 'Check Object Name';
             Editable = false;

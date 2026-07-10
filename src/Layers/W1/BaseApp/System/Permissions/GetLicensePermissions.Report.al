@@ -92,7 +92,7 @@ report 8313 "Get License Permissions"
                 Description := '';
                 if "Object Type" = "Object Type"::System then
                     if SysObject.Get("Object Type", From) then
-                        Description := SysObject."Object Name";
+                        Description := SysObject.Name;
             end;
         }
         dataitem("License Information"; "License Information")
@@ -143,7 +143,7 @@ report 8313 "Get License Permissions"
 
     var
         SysObject: Record "System Object";
-        Description: Text[50];
+        Description: Text;
         SkipHeader: Boolean;
         License_PermissionsCaptionLbl: Label 'License Permissions';
         CurrReport_PAGENOCaptionLbl: Label 'Page';

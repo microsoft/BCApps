@@ -21,7 +21,7 @@ codeunit 134848 "Test Web Service Creation"
     begin
         // [SCENARIO] The web service is expected to named 'SalesOrder' (no space) by other tests
         AllObj.Get(WebService."Object Type"::Page, PAGE::"Sales Order");
-        ObjectName := DelChr(AllObj."Object Name", '=', ' ');
+        ObjectName := DelChr(AllObj.Name, '=', ' ');
         WebService.Get(AllObj."Object Type", ObjectName);
         Assert.AreEqual(WebService."Object Type", WebService."Object Type"::Page, 'Invalid Object Type for the web service');
         Assert.AreEqual(WebService."Service Name", ObjectName, 'Invalid name for the web service');

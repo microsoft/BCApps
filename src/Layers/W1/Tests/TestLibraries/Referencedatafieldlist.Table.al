@@ -15,7 +15,7 @@ table 130060 "Reference data - field list"
         }
         field(3; "Table name"; Text[30])
         {
-            CalcFormula = lookup(AllObj."Object Name" where("Object Type" = const(Table),
+            CalcFormula = lookup(AllObj.Name where("Object Type" = const(Table),
                                                              "Object ID" = field("Table ID")));
             Editable = false;
             FieldClass = FlowField;

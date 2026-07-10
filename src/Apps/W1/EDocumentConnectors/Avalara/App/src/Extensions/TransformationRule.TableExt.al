@@ -28,7 +28,7 @@ tableextension 6374 "Transformation Rule" extends "Transformation Rule"
         }
         field(6371; "Lookup Table Name"; Text[30])
         {
-            CalcFormula = lookup(AllObjWithCaption."Object Name" where("Object Type" = const(Table), "Object ID" = field("Lookup Table ID")));
+            CalcFormula = lookup(AllObjWithCaption.Name where("Object Type" = const(Table), "Object ID" = field("Lookup Table ID")));
             Caption = 'Lookup Table Name';
             Editable = false;
             FieldClass = FlowField;

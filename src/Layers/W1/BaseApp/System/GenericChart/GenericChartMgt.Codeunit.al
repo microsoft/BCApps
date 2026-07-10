@@ -208,7 +208,7 @@ codeunit 9180 "Generic Chart Mgt"
         Clear(chartBuilder);
     end;
 
-    procedure LookUpObjectId(ObjType: Option " ","Table","Query"; var ObjID: Integer; var ObjName: Text[50])
+    procedure LookUpObjectId(ObjType: Option " ","Table","Query"; var ObjID: Integer; var ObjName: Text[100])
     var
         AllObjWithCaption: Record AllObjWithCaption;
     begin
@@ -219,7 +219,7 @@ codeunit 9180 "Generic Chart Mgt"
         end;
     end;
 
-    procedure ValidateObjectID(ObjType: Option " ","Table","Query"; var ObjID: Integer; var ObjName: Text[50])
+    procedure ValidateObjectID(ObjType: Option " ","Table","Query"; var ObjID: Integer; var ObjName: Text[100])
     var
         AllObjWithCaption: Record AllObjWithCaption;
     begin
@@ -231,7 +231,7 @@ codeunit 9180 "Generic Chart Mgt"
         SetObjTypeRange(ObjType, AllObjWithCaption);
         AllObjWithCaption.SetRange("Object ID", ObjID);
         if AllObjWithCaption.FindFirst() then
-            ObjName := AllObjWithCaption."Object Name";
+            ObjName := AllObjWithCaption.Name;
     end;
 
     [Scope('OnPrem')]
@@ -682,11 +682,11 @@ codeunit 9180 "Generic Chart Mgt"
         if SourceID > 0 then begin
             AllObjWithCaption.SetRange("Object ID", SourceID);
             AllObjWithCaption.FindFirst();
-            SourceName := AllObjWithCaption."Object Name";
+            SourceName := AllObjWithCaption.Name;
             exit;
         end;
         if SourceName <> '' then begin
-            AllObjWithCaption.SetRange("Object Name", SourceName);
+            AllObjWithCaption.SetRange(Name, SourceName);
             AllObjWithCaption.FindFirst();
             SourceID := AllObjWithCaption."Object ID";
         end;

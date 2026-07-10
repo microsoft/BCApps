@@ -53,7 +53,7 @@ page 20201 "Script Record Variable"
 
     var
         AppObjectHelper: Codeunit "App Object Helper";
-        RecordTableName: Text[30];
+        RecordTableName: Text[100];
 
     local procedure UpdateControls();
     begin

@@ -30,7 +30,7 @@ page 11000017 "AL Objects (Telebanking)"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the ID of the object.';
                 }
-                field(Name; Rec."Object Name")
+                field(Name; Rec.Name)
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the name of the object.';

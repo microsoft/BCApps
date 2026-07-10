@@ -297,7 +297,7 @@ page 20308 "Use Case Card"
         EmptyGuid: Guid;
         ShowTaxAttributePart: Boolean;
         ConditionText: Text;
-        TaxEntityName: Text[30];
+        TaxEntityName: Text[100];
         VersionTxt: Text;
         ConditionLbl: Label 'Condition : %1', Comment = '%1 = condtion as text';
         VersionLbl: Label '%1.%2', Comment = '%1 - Major Version, %2 - Minor Version';

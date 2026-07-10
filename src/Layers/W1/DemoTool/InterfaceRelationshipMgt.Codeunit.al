@@ -92,7 +92,7 @@ codeunit 114000 "Interface Relationship Mgt."
         AllObj: Record AllObj;
     begin
         AllObj.Get(AllObj."Object Type"::Codeunit, CodeunitID);
-        Window.Update(1, StrSubstNo('%1 %2', AllObj."Object ID", AllObj."Object Name"));
+        Window.Update(1, StrSubstNo('%1 %2', AllObj."Object ID", AllObj.Name));
         Steps := Steps + 1;
         Window.Update(2, Round(Steps / MaxSteps * 10000, 1));
         CODEUNIT.Run(CodeunitID);
@@ -103,7 +103,7 @@ codeunit 114000 "Interface Relationship Mgt."
         AllObj: Record AllObj;
     begin
         AllObj.Get(AllObj."Object Type"::Report, ReportID);
-        Window.Update(1, StrSubstNo('%1 %2', AllObj."Object ID", AllObj."Object Name"));
+        Window.Update(1, StrSubstNo('%1 %2', AllObj."Object ID", AllObj.Name));
         Steps := Steps + 1;
         Window.Update(2, Round(Steps / MaxSteps * 10000, 1));
         REPORT.Run(ReportID, false);

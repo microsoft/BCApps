@@ -227,7 +227,7 @@ page 20171 "Action Loop Through Rec. Dlg"
         LookupSerialization: Codeunit "Lookup Serialization";
         LookupDialogMgmt: Codeunit "Lookup Dialog Mgmt.";
         ScriptSymbolsMgmt: Codeunit "Script Symbols Mgmt.";
-        FromTableName: Text[30];
+        FromTableName: Text[100];
         TableFilters: Text;
         TableSorting2: Text;
         IndexVariable2: Text[30];

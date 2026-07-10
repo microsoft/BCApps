@@ -113,7 +113,7 @@ page 20337 "Use Case Posting"
         LookupDialogMgmt: Codeunit "Lookup Dialog Mgmt.";
         LookupEntityMgmt: Codeunit "Lookup Entity Mgmt.";
         AppObjectHelper: Codeunit "App Object Helper";
-        PostingTableName: Text[30];
+        PostingTableName: Text[100];
         PostingTableFilters: Text;
         EmptyGuid: Guid;
 

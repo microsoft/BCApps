@@ -155,7 +155,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         // [THEN] The first table's name is returned
         AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
         AllObjWithCaption.FindFirst();
-        LibraryAssert.AreEqual(AllObjWithCaption."Object Name", TableReference, 'The object name should be the same.');
+        LibraryAssert.AreEqual(AllObjWithCaption.Name, TableReference, 'The object name should be the same.');
     end;
 
     [Test]
@@ -178,7 +178,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         // [THEN] The correct table name is returned
         AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
         AllObjWithCaption.FindFirst();
-        LibraryAssert.AreEqual(AllObjWithCaption."Object Name", TableReference, 'The object name should be the same.');
+        LibraryAssert.AreEqual(AllObjWithCaption.Name, TableReference, 'The object name should be the same.');
     end;
 
     [Test]
@@ -201,7 +201,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         // [THEN] The first table's name matching the filter is returned
         AllObjWithCaption.SetRange("Object Type", AllObjWithCaption."Object Type"::Table);
         AllObjWithCaption.FindFirst();
-        LibraryAssert.AreEqual(AllObjWithCaption."Object Name", TableReference, 'The object name should be the same.');
+        LibraryAssert.AreEqual(AllObjWithCaption.Name, TableReference, 'The object name should be the same.');
     end;
 
     [Test]
@@ -288,7 +288,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
         // [GIVEN] A table object is retrieved and its name is used
         TableAllObjWithCaption.SetRange("Object Type", TableAllObjWithCaption."Object Type"::Table);
         TableAllObjWithCaption.FindFirst();
-        TableReference := TableAllObjWithCaption."Object Name";
+        TableReference := TableAllObjWithCaption.Name;
 
         // [WHEN] IdentifyTableIDFromText is called with the table name
         CurrentTable := QltyInspectionUtility.IdentifyTableIDFromText(TableReference);
@@ -329,7 +329,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         // [GIVEN] A table object is retrieved and its name is modified (substring from position 2)
         TableAllObjWithCaption.Get(TableAllObjWithCaption."Object Type"::Table, 6);
-        TableReference := TableAllObjWithCaption."Object Name";
+        TableReference := TableAllObjWithCaption.Name;
         TableReference := CopyStr(TableReference, 2, (MaxStrLen(TableReference) - 1));
 
         // [WHEN] IdentifyTableIDFromText is called with the partial name
@@ -350,7 +350,7 @@ codeunit 139962 "Qlty. Tests - Filter Helpers"
 
         // [GIVEN] A table object is retrieved and its name is shortened to first 5 characters
         TableAllObjWithCaption.Get(TableAllObjWithCaption."Object Type"::Table, 6);
-        TableReference := TableAllObjWithCaption."Object Name";
+        TableReference := TableAllObjWithCaption.Name;
         TableReference := CopyStr(TableReference, 1, 5);
 
         // [WHEN] IdentifyTableIDFromText is called with the too-short name
