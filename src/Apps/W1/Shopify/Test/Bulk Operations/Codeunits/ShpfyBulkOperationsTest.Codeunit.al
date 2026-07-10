@@ -6,6 +6,7 @@
 namespace Microsoft.Integration.Shopify.Test;
 
 using Microsoft.Integration.Shopify;
+using Microsoft.Inventory.Item;
 using System.TestLibraries.Utilities;
 
 codeunit 139633 "Shpfy Bulk Operations Test"
@@ -59,11 +60,13 @@ codeunit 139633 "Shpfy Bulk Operations Test"
     var
         BulkOperation: Record "Shpfy Bulk Operation";
         ShopifyVariant: Record "Shpfy Variant";
+        SkippedRecord: Record "Shpfy Skipped Record";
     begin
         BulkOperation.DeleteAll();
         BulkOperationRunning := false;
         BulkUploadFail := false;
         ShopifyVariant.DeleteAll();
+        SkippedRecord.DeleteAll();
         GraphQLResponses.Clear();
     end;
 
@@ -375,6 +378,159 @@ codeunit 139633 "Shpfy Bulk Operations Test"
         LibraryAssert.AreEqual(200, ShopifyVariant.Price, 'Variant price should not be reverted.');
         LibraryAssert.AreEqual(250, ShopifyVariant."Compare at Price", 'Variant compare at price should not be reverted.');
         LibraryAssert.AreEqual(75, ShopifyVariant."Unit Cost", 'Variant unit cost should be left untouched when legacy blob lacks unitCost.');
+        ClearSetup();
+    end;
+
+    [Test]
+    [HandlerFunctions('BulkOperationHttpHandler')]
+    procedure TestBulkOperationRevertFailedLogsSkippedRecords()
+    var
+        ShopifyVariant: Record "Shpfy Variant";
+        BulkOperation: Record "Shpfy Bulk Operation";
+        SkippedRecord: Record "Shpfy Skipped Record";
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        LibraryInventory: Codeunit "Library - Inventory";
+        BulkOperationType: Enum "Shpfy Bulk Operation Type";
+        ProductId: BigInteger;
+        VariantId: BigInteger;
+        VariantIds: List of [BigInteger];
+        Index: Integer;
+        RevertedWithUserErrorLbl: Label 'The product price update was reverted because Shopify returned an error: Product variant does not exist', Locked = true;
+        RevertedWithTopErrorLbl: Label 'The product price update was reverted because Shopify returned an error: This product is currently being modified. Please try again later.', Locked = true;
+    begin
+        // [SCENARIO] Bug 641615: when a bulk price sync reverts a variant because Shopify returned an
+        // error, a Shopify Skipped Record is created with the error details and the linked BC record so
+        // the user sees which item failed and why.
+
+        // [GIVEN] Four Shopify variants (1 and 4 succeed, 2 and 3 fail). The failed variants are linked
+        // to BC records: variant 2 to an Item, variant 3 to an Item Variant.
+        Initialize();
+        ClearSetup();
+        LibraryInventory.CreateItem(Item);
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        for Index := 1 to 4 do begin
+            ProductId := Any.IntegerInRange(100000, 555555);
+            VariantId := Any.IntegerInRange(100000, 555555);
+            VariantIds.Add(VariantId);
+            ShopifyVariant.Init();
+            ShopifyVariant."Product Id" := ProductId;
+            ShopifyVariant.Id := VariantId;
+            ShopifyVariant.Price := 200;
+            ShopifyVariant."Compare at Price" := 250;
+            ShopifyVariant."Unit Cost" := 75;
+            case Index of
+                2:
+                    ShopifyVariant."Item SystemId" := Item.SystemId;
+                3:
+                    begin
+                        ShopifyVariant."Item SystemId" := Item.SystemId;
+                        ShopifyVariant."Item Variant SystemId" := ItemVariant.SystemId;
+                    end;
+            end;
+            ShopifyVariant.Insert();
+        end;
+        BulkOperationUrl := 'https://storage.googleapis.com/shopify-bulk-result/' + Any.AlphabeticText(20);
+        BulkOperation := CreateBulkOperation(BulkOperationId1, BulkOperationType::UpdateProductPrice, Shop.Code, BulkOperationUrl, GenerateRequestData(VariantIds, 100, 150, 50));
+
+        // [WHEN] Bulk operation is completed
+        BulkOperationIdCurrent := BulkOperationId1;
+        VariantId1 := VariantIds.Get(1);
+        VariantId2 := VariantIds.Get(4);
+        BulkOperation.Status := BulkOperation.Status::Completed;
+        BulkOperation.Modify(true);
+
+        // [THEN] A skipped record is logged for the item-linked failed variant, pointing at the BC Item
+        SkippedRecord.SetRange("Shopify Id", VariantIds.Get(2));
+        LibraryAssert.IsTrue(SkippedRecord.FindFirst(), 'Skipped record should be created for the first failed variant.');
+        LibraryAssert.AreEqual(RevertedWithUserErrorLbl, SkippedRecord."Skipped Reason", 'Skipped reason should contain the Shopify user error.');
+        LibraryAssert.AreEqual(Database::Item, SkippedRecord."Table ID", 'Skipped record should reference the BC Item table.');
+        LibraryAssert.AreEqual(Format(Item.RecordId()), Format(SkippedRecord."Record ID"), 'Skipped record should reference the BC Item record.');
+
+        // [THEN] A skipped record is logged for the variant-linked failed variant, pointing at the BC Item Variant
+        SkippedRecord.SetRange("Shopify Id", VariantIds.Get(3));
+        LibraryAssert.IsTrue(SkippedRecord.FindFirst(), 'Skipped record should be created for the second failed variant.');
+        LibraryAssert.AreEqual(RevertedWithTopErrorLbl, SkippedRecord."Skipped Reason", 'Skipped reason should contain the Shopify top-level error.');
+        LibraryAssert.AreEqual(Database::"Item Variant", SkippedRecord."Table ID", 'Skipped record should reference the BC Item Variant table.');
+        LibraryAssert.AreEqual(Format(ItemVariant.RecordId()), Format(SkippedRecord."Record ID"), 'Skipped record should reference the BC Item Variant record.');
+
+        // [THEN] No skipped record is logged for the variants that succeeded
+        SkippedRecord.SetRange("Shopify Id", VariantIds.Get(1));
+        LibraryAssert.IsTrue(SkippedRecord.IsEmpty(), 'No skipped record should be created for a variant that succeeded.');
+        SkippedRecord.SetRange("Shopify Id", VariantIds.Get(4));
+        LibraryAssert.IsTrue(SkippedRecord.IsEmpty(), 'No skipped record should be created for a variant that succeeded.');
+        ClearSetup();
+    end;
+
+    [Test]
+    [HandlerFunctions('BulkMessageHandler,BulkOperationHttpHandler')]
+    procedure TestSendBulkOperationStoresSentJsonl()
+    var
+        LoggingShop: Record "Shpfy Shop";
+        BulkOperation: Record "Shpfy Bulk Operation";
+        BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
+        BulkOperationType: Enum "Shpfy Bulk Operation Type";
+        IBulkOperation: Interface "Shpfy IBulk Operation";
+        tb: TextBuilder;
+        RequestData: JsonArray;
+        StoredJsonl: Text;
+    begin
+        // [SCENARIO] Bug 641615: when the shop's Logging Mode is All, the JSONL input sent to
+        // Shopify is stored on the bulk operation record so it can be downloaded for troubleshooting.
+        Initialize();
+        ClearSetup();
+
+        // [GIVEN] A shop with Logging Mode = All and a bulk operation input
+        LoggingShop := Shop;
+        LoggingShop."Logging Mode" := Enum::"Shpfy Logging Mode"::All;
+        BulkOperationIdCurrent := BulkOperationId1;
+        IBulkOperation := BulkOperationType::AddProduct;
+        tb.AppendLine(StrSubstNo(IBulkOperation.GetInput(), 'Sweet new snowboard 1', 'Snowboard', 'JadedPixel'));
+        tb.AppendLine(StrSubstNo(IBulkOperation.GetInput(), 'Sweet new snowboard 2', 'Snowboard', 'JadedPixel'));
+
+        // [WHEN] The bulk operation is sent
+        EnqueueGraphQLResponsesForSendBulkMutation();
+        BulkOperationMgt.SendBulkMutation(LoggingShop, BulkOperationType::AddProduct, tb.ToText(), RequestData);
+
+        // [THEN] The sent JSONL is stored on the bulk operation record
+        BulkOperation.Get(BulkOperationId1, Shop.Code, BulkOperation.Type::mutation);
+        StoredJsonl := BulkOperation.GetSentJsonl();
+        LibraryAssert.IsTrue(StoredJsonl.Contains('Sweet new snowboard 1'), 'Stored JSONL should contain the first sent line.');
+        LibraryAssert.IsTrue(StoredJsonl.Contains('Sweet new snowboard 2'), 'Stored JSONL should contain the second sent line.');
+        ClearSetup();
+    end;
+
+    [Test]
+    [HandlerFunctions('BulkMessageHandler,BulkOperationHttpHandler')]
+    procedure TestSendBulkOperationDoesNotStoreSentJsonlWhenNotLoggingAll()
+    var
+        LoggingShop: Record "Shpfy Shop";
+        BulkOperation: Record "Shpfy Bulk Operation";
+        BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
+        BulkOperationType: Enum "Shpfy Bulk Operation Type";
+        IBulkOperation: Interface "Shpfy IBulk Operation";
+        tb: TextBuilder;
+        RequestData: JsonArray;
+    begin
+        // [SCENARIO] Bug 641615: the sent JSONL is only stored when Logging Mode is All, so the
+        // bulk operation table does not grow with a payload blob on every price sync.
+        Initialize();
+        ClearSetup();
+
+        // [GIVEN] A shop with Logging Mode = Error Only and a bulk operation input
+        LoggingShop := Shop;
+        LoggingShop."Logging Mode" := Enum::"Shpfy Logging Mode"::"Error Only";
+        BulkOperationIdCurrent := BulkOperationId1;
+        IBulkOperation := BulkOperationType::AddProduct;
+        tb.AppendLine(StrSubstNo(IBulkOperation.GetInput(), 'Sweet new snowboard 1', 'Snowboard', 'JadedPixel'));
+
+        // [WHEN] The bulk operation is sent
+        EnqueueGraphQLResponsesForSendBulkMutation();
+        BulkOperationMgt.SendBulkMutation(LoggingShop, BulkOperationType::AddProduct, tb.ToText(), RequestData);
+
+        // [THEN] The sent JSONL is not stored on the bulk operation record
+        BulkOperation.Get(BulkOperationId1, Shop.Code, BulkOperation.Type::mutation);
+        LibraryAssert.AreEqual('', BulkOperation.GetSentJsonl(), 'Sent JSONL should not be stored when Logging Mode is not All.');
         ClearSetup();
     end;
 
