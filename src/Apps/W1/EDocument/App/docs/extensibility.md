@@ -194,7 +194,7 @@ procedure BuildMessage(EDocument, ResponseType, var TempBlob)
 procedure GetResponseMessageType(EDocument): Enum "E-Document Message Type"
 ```
 
-**Binding enums**: `"E-Document Message Type"` (`enum 6430`) implements `IEDocMessageBuilder` -- each message type value dispatches to the codeunit that builds it. `"E-Document Format"` (`enum 6101`) implements `IEDocResponseProvider` -- the format selects the message type, or returns `Unknown` for none.
+**Binding enums**: `"E-Document Message Type"` (`enum 6436`) implements `IEDocMessageBuilder` -- each message type value dispatches to the codeunit that builds it. `"E-Document Format"` (`enum 6101`) implements `IEDocResponseProvider` -- the format selects the message type, or returns `Unknown` for none.
 
 To ship a new message format, your app (depending only on E-Document Core):
 

@@ -13,7 +13,7 @@ using Microsoft.eServices.EDocument.Processing.Interfaces;
 /// Extend this enum in a format-specific app with a value bound to your IEDocMessageBuilder
 /// implementation to provide a new message format.
 /// </summary>
-enum 6430 "E-Document Message Type" implements IEDocMessageBuilder
+enum 6436 "E-Document Message Type" implements IEDocMessageBuilder
 {
     Extensible = true;
     DefaultImplementation = IEDocMessageBuilder = "E-Doc. Unspecified Impl.";
