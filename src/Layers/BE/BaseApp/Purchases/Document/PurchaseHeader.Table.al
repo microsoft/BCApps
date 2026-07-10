@@ -2176,7 +2176,7 @@ table 38 "Purchase Header"
                 Validate("VAT Base Discount %");
             end;
         }
-        field(145; "Spend Request No."; Code[20])
+        field(146; "Spend Request No."; Code[20])
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request that this purchase document relates to.';
@@ -2200,7 +2200,7 @@ table 38 "Purchase Header"
                 end;
             end;
         }
-        field(146; "Spend Request Close"; Boolean)
+        field(147; "Spend Request Close"; Boolean)
         {
             Caption = 'Spend Request Close';
             ToolTip = 'Specifies that the spend request will be closed when the purchase document is posted.';

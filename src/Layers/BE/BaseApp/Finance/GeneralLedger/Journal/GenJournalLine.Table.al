@@ -2569,7 +2569,7 @@ table 81 "Gen. Journal Line"
         /// <summary>
         /// Specifies the spend request that this journal line relates to.
         /// </summary>
-        field(145; "Spend Request No."; Code[20])
+        field(146; "Spend Request No."; Code[20])
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request that this journal line relates to.';
@@ -2596,7 +2596,7 @@ table 81 "Gen. Journal Line"
         /// <summary>
         /// Specifies that the spend request will be closed when the journal line is posted.
         /// </summary>
-        field(146; "Spend Request Close"; Boolean)
+        field(147; "Spend Request Close"; Boolean)
         {
             Caption = 'Spend Request Close';
             ToolTip = 'Specifies that the spend request will be closed when the journal line is posted.';

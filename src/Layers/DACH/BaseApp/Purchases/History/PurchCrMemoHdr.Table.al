@@ -541,14 +541,14 @@ table 124 "Purch. Cr. Memo Hdr."
         {
             Caption = 'Prepayment Order No.';
         }
-        field(145; "Spend Request No."; Code[20])
+        field(146; "Spend Request No."; Code[20])
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request that this purchase document relates to.';
             TableRelation = "Spend Request";
             DataClassification = CustomerContent;
         }
-        field(146; "Spend Request Close"; Boolean)
+        field(147; "Spend Request Close"; Boolean)
         {
             Caption = 'Spend Request Close';
             ToolTip = 'Specifies that the spend request will be closed when the purchase document is posted.';
