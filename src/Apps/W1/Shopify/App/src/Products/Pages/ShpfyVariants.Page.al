@@ -127,12 +127,12 @@ page 30127 "Shpfy Variants"
                 field(CreatedAt; Rec."Created At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time when the product variant was created.';
+                    ToolTip = 'Specifies the date and time when the product variant was created in Shopify.';
                 }
                 field(UpdatedAt; Rec."Updated At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time when the product variant was last modified.';
+                    ToolTip = 'Specifies the date and time when the product variant was last modified in Shopify.';
                 }
                 field(InventoryPolicy; Rec."Inventory Policy")
                 {
