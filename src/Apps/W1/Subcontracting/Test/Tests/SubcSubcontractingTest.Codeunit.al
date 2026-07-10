@@ -3320,7 +3320,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProdOrderLine.FindFirst();
         ProdOrderLine.Validate(Quantity, 9);
         ProdOrderLine.Modify(true);
-        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
 
         // [WHEN] Create Subcontracting Order is invoked again and both prompts are confirmed
         SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
@@ -3374,7 +3373,6 @@ codeunit 139989 "Subc. Subcontracting Test"
         ProdOrderLine.FindFirst();
         ProdOrderLine.Validate(Quantity, 9);
         ProdOrderLine.Modify(true);
-        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
 
         // [WHEN] Create Subcontracting Order is invoked again (updates the existing open order instead of creating a new one)
         SubcontractingMgmtLibrary.CreateSubcontractingOrderFromProdOrderRtngPage(Item."Routing No.", WorkCenter[2]."No.");
