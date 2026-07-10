@@ -794,7 +794,6 @@ codeunit 7017 "Price List Management"
                 PriceListLine.SetRange("Source Type", PriceSource."Source Type");
                 PriceListLine.SetRange("Parent Source No.", PriceSource."Parent Source No.");
                 PriceListLine.SetRange("Source No.", PriceSource."Source No.");
-                OnBuildSourceFiltersOnBeforeFindLines(PriceListLine, PriceSource);
                 if not PriceListLine.IsEmpty() then begin
                     if SearchIfPriceExists then begin
                         ClearSourceFilters(PriceListLine);
@@ -827,7 +826,6 @@ codeunit 7017 "Price List Management"
                 PriceListLine.SetRange("Source Type", PriceSource."Source Type");
                 PriceListLine.SetRange("Parent Source No.", PriceSource."Parent Source No.");
                 PriceListLine.SetRange("Source No.", PriceSource."Source No.");
-                OnBuildSourceFiltersOnBeforeFindLines(PriceListLine, PriceSource);
                 if not PriceListLine.IsEmpty() then begin
                     NonEmptyCount += 1;
                     if PriceSource."Source No." <> '' then begin
