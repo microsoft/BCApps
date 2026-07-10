@@ -152,7 +152,6 @@ codeunit 1210 "Payment Export Mgt"
         until DataExchFieldMapping.Next() = 0;
     end;
 
-#if not CLEAN29
     /// <summary>
     /// Processes column mapping for payment export data exchange with FlowField grouping support.
     /// </summary>
@@ -162,7 +161,6 @@ codeunit 1210 "Payment Export Mgt"
     /// <param name="LineNo">Line number in the data exchange</param>
     /// <param name="DataExchLineDefCode">Data exchange line definition code</param>
     /// <param name="TableID">Table ID of the source record</param>
-    [Obsolete('Use ProcessColumnMapping with TempDataExchField parameter for better performance.', '29.0')]
     procedure ProcessColumnMapping(var DataExch: Record "Data Exch."; RecRef: RecordRef; var DataExchFlowFieldGrBuff: Record "Data Exch. FlowField Gr. Buff."; LineNo: Integer; DataExchLineDefCode: Code[20]; TableID: Integer)
     var
         DataExchDef: Record "Data Exch. Def";
@@ -222,7 +220,6 @@ codeunit 1210 "Payment Export Mgt"
             DataExchField.Modify();
         until DataExchFieldMapping.Next() = 0;
     end;
-#endif
 
     local procedure PrepopulateColumns(DataExchDef: Record "Data Exch. Def"; DataExchLineDefCode: Code[20]; DataExchEntryNo: Integer; DataExchLineNo: Integer)
     var
