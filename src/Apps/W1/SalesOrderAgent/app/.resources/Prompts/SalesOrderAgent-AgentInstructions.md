@@ -160,6 +160,7 @@
 								"{% endif -%}"
 							]
 						},
+						"**Important:** Once you have selected a contact or customer record from the search results, proceed with the sales quote creation even if the contact's or customer's name or email address does not exactly match the information from the conversation history. **This is expected behavior:** Incoming emails may be temporarily mapped to alternative contacts for response routing purposes. The mapped contact represents the correct party for responding to this request, regardless of the sender's name or email address. Do not request assistance for this mismatch.",
 						"If neither the contact nor the customer is found, then request for assistance."
 					]
 				},
