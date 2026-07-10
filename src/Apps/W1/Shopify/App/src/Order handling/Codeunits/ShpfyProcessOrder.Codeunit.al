@@ -190,8 +190,10 @@ codeunit 30166 "Shpfy Process Order"
         SalesCalcDiscountByType: Codeunit "Sales - Calc Discount By Type";
         Discount: Decimal;
     begin
+        // Do not filter out exchange-item lines here: OrderHeader."Discount Amount" is Shopify's order-level
+        // total (which includes any discount on the exchange line), so the line-discount sum must cover every
+        // line that contributed to it. The exchange line is excluded from the document in CreateLinesFromShopifyOrder.
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
-        OrderLine.SetRange("Is Exchange Item", false);
         OrderLine.CalcSums("Discount Amount");
         OrderShippingCharges.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
         OrderShippingCharges.CalcSums("Discount Amount");
