@@ -27,6 +27,10 @@ flowchart TD
 
 `ShpfyImportOrder.ImportOrderAndCreateOrUpdate` does the heavy lifting. It fetches the full order JSON via a second GraphQL call (`GetOrderHeader`), retrieves order lines in a paginated loop (`GetOrderLines` / `GetNextOrderLines`), and populates the staging tables.
 
+`RetrieveOrderHeaderJson` conditionally includes the `staffMember { id }` field in the GraphQL query parameters based on `Shop."Advanced Shopify Plan"`. When the shop is not on an Advanced/Plus plan, the `StaffMember` parameter is sent as an empty string, omitting staff data from the query. `SetNewOrderHeaderValuesFromJson` (which populates the order header from the JSON response) similarly gates the staff member processing -- it only extracts the staff member ID and calls `SetSalespersonOnOrderHeader` when `Shop."Advanced Shopify Plan"` is true.
+
+*Updated: 2026-04-08 -- staff member handling gated by Advanced Shopify Plan instead of B2B Enabled*
+
 For already-processed orders, it runs conflict detection. A conflict is flagged if the current total items quantity increased, the line item composition changed (checked via a hash of line IDs), or the shipping charges amount changed. Conflicting orders get `Has Order State Error = true`.
 
 After populating the header and lines, the import calls into related modules: fulfillment orders, shipping charges, transactions, returns (if the return/refund process requires import), and refunds. It then adjusts order line quantities and header amounts by subtracting refund line quantities and amounts. Zero-quantity lines are deleted. If the order is fully fulfilled and paid, and `Archive Processed Orders` is enabled, it closes the order in Shopify via the `CloseOrder` GraphQL mutation.
@@ -67,3 +71,17 @@ A final cash rounding line is created if the order has a non-zero `Payment Round
 ## Error handling
 
 `ShpfyProcessOrders.ProcessShopifyOrder` wraps `ShpfyProcessOrder.Run` in a `if not ... Run` pattern. On failure it captures the error text into the order header's `Error Message`, clears the sales document number, and calls `CleanUpLastCreatedDocument` to delete the partially created sales document. On success it sets `Processed = true` and records the `Processed Currency Handling` so refund processing later knows which currency was used.
+
+## Contact lookup on the order page
+
+The Shopify Order page exposes contact number fields for all three address contexts (sell-to, ship-to, bill-to). These fields are hidden by default and provide lookup and validation behavior.
+
+- **Automatic resolution during mapping**: `ShpfyOrderMapping.FindContactNo` resolves a contact name to a contact number by finding a person-type contact whose name matches and whose company contact matches the customer's contact business relation. This runs during `DoMapping` for both standard and B2B paths, populating `Sell-to Contact No.`, `Ship-to Contact No.`, and `Bill-to Contact No.`.
+
+- **Manual lookup on the page**: Each contact field's `OnLookup` trigger calls `OrderHeader.LookupContactForCustomer`, which filters the Contact list to contacts belonging to the customer's company contact. The user selects a contact, and `Validate` is called to store the selection.
+
+- **Validation**: The `OnValidate` triggers on the contact number fields call `CheckContactRelatedToCustomer`, which verifies the selected contact is related to the corresponding customer via `Contact Business Relation`. If the contact is neither the company contact itself nor a person under that company, an error is raised.
+
+- **Customer number changes**: When `Sell-to Customer No.` is validated on the order header, it automatically re-resolves `Sell-to Contact No.` and `Ship-to Contact No.` via `FindContactNo`. Similarly, validating `Bill-to Customer No.` re-resolves `Bill-to Contact No.`.
+
+*Updated: 2026-04-08 -- contact lookup/validation added (PR #7525)*

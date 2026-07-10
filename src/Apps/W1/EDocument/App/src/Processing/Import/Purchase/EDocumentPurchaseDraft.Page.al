@@ -8,6 +8,7 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using System.Feedback;
 using System.Telemetry;
@@ -160,6 +161,19 @@ page 6181 "E-Document Purchase Draft"
                             CurrPage.Update();
                         end;
                     }
+                    field("Applies-to Doc. No."; EDocumentPurchaseHeader."Applies-to Doc. No.")
+                    {
+                        Caption = 'Applies-to Doc. No.';
+                        ToolTip = 'Specifies the posted purchase invoice number in Business Central that this credit memo applies to.';
+                        Visible = IsCreditMemo;
+                        Editable = PageEditable;
+
+                        trigger OnValidate()
+                        begin
+                            EDocumentPurchaseHeader.Modify();
+                            CurrPage.Update();
+                        end;
+                    }
                 }
                 field("Status"; Rec.Status)
                 {
@@ -180,6 +194,16 @@ page 6181 "E-Document Purchase Draft"
             group("E-Document Details")
             {
                 ShowCaption = false;
+                field("Applied VAT Amount Diff."; AppliedVATAmountDiff)
+                {
+                    Caption = 'Applied VAT Amount Diff.';
+                    ToolTip = 'Specifies the VAT amount difference that was automatically applied to reconcile the document total VAT with the computed line VAT amounts.';
+                    Importance = Additional;
+                    Editable = false;
+                    Visible = ApplyVATDiffEnabled;
+                    AutoFormatType = 1;
+                    AutoFormatExpression = EDocumentPurchaseHeader."Currency Code";
+                }
                 field("Amount Excl. VAT"; EDocumentPurchaseHeader."Sub Total")
                 {
                     Caption = 'Amount Excl. VAT';
@@ -484,6 +508,7 @@ page 6181 "E-Document Purchase Draft"
     trigger OnOpenPage()
     var
         EDocumentDataStorage: Record "E-Doc. Data Storage";
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
         EDocumentNotification: Codeunit "E-Document Notification";
         EDocPOMatching: Codeunit "E-Doc. PO Matching";
         MatchesRemovedMsg: Label 'This e-document was matched to purchase order lines, but the matches are no longer consistent with the current data. The matches have been removed';
@@ -502,7 +527,10 @@ page 6181 "E-Document Purchase Draft"
         HasErrorsOrWarnings := false;
         HasErrors := false;
         PageEditable := IsEditable();
+        IsCreditMemo := Rec."Document Type" = Enum::"E-Document Type"::"Purchase Credit Memo";
         EDocumentNotification.SendPurchaseDocumentDraftNotifications(Rec."Entry No");
+        if PurchasesPayablesSetup.Get() then
+            ApplyVATDiffEnabled := PurchasesPayablesSetup."Apply VAT Diff. For Purch EDoc";
 
         if Rec."Entry No" <> 0 then
             Rec.SetRecFilter(); // Filter the record to only this instance to avoid navigation 
@@ -526,6 +554,8 @@ page 6181 "E-Document Purchase Draft"
         SetStyle();
         SetPageCaption();
 
+        AppliedVATAmountDiff := EDocumentPurchaseHeader.GetAppliedVATAmountDiff();
+
         Rec.CalcFields("Import Processing Status");
         ShowFinalizeDraftAction := Rec."Import Processing Status" in [Enum::"Import E-Doc. Proc. Status"::"Ready for draft", Enum::"Import E-Doc. Proc. Status"::"Draft Ready"];
         ShowAnalyzeDocumentAction :=
@@ -533,6 +563,7 @@ page 6181 "E-Document Purchase Draft"
             (Rec.Status = Enum::"E-Document Status"::Error);
 
         PageEditable := IsEditable();
+        IsCreditMemo := Rec."Document Type" = Enum::"E-Document Type"::"Purchase Credit Memo";
     end;
 
     local procedure SetPageCaption()
@@ -606,8 +637,6 @@ page 6181 "E-Document Purchase Draft"
 
     local procedure FinalizeEDocument(EDocImportParameters: Record "E-Doc. Import Parameters")
     var
-        TempErrorMessage: Record "Error Message" temporary;
-        ErrorMessage: Record "Error Message";
         EDocImport: Codeunit "E-Doc. Import";
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         Telemetry: Codeunit Telemetry;
@@ -620,12 +649,7 @@ page 6181 "E-Document Purchase Draft"
         EDocImport.ProcessIncomingEDocument(Rec, EDocImportParameters);
         Rec.Get(Rec."Entry No");
 
-        if EDocumentErrorHelper.HasErrors(Rec) then begin
-            ErrorMessage.SetRange("Context Record ID", Rec.RecordId);
-            ErrorMessage.CopyToTemp(TempErrorMessage);
-            Commit(); // Persists error messages after error is thrown.
-            TempErrorMessage.ThrowError();
-        end;
+        EDocumentErrorHelper.ThrowIfHasErrors(Rec);
 
         PageEditable := IsEditable();
         CurrPage.Lines.Page.Update();
@@ -662,6 +686,7 @@ page 6181 "E-Document Purchase Draft"
         Rec.Get(Rec."Entry No");
         if GuiAllowed() then
             Progress.Close();
+        EDocumentErrorHelper.ThrowIfHasErrors(Rec);
     end;
 
     local procedure PrepareDraft()
@@ -704,6 +729,7 @@ page 6181 "E-Document Purchase Draft"
         Rec.Get(Rec."Entry No");
         if GuiAllowed() then
             Progress.Close();
+        EDocumentErrorHelper.ThrowIfHasErrors(Rec);
     end;
 
     local procedure ProvideFeedback()
@@ -756,7 +782,7 @@ page 6181 "E-Document Purchase Draft"
         EDocumentProcessing: Codeunit "E-Document Processing";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         GlobalEDocumentHelper: Codeunit "E-Document Helper";
-        RecordLinkTxt, StyleStatusTxt, ServiceStatusStyleTxt, VendorName, DataCaption : Text;
+        RecordLinkTxt, StyleStatusTxt, DataCaption : Text;
         HasErrorsOrWarnings, HasErrors : Boolean;
         ShowFinalizeDraftAction: Boolean;
         ShowAnalyzeDocumentAction: Boolean;
@@ -764,5 +790,7 @@ page 6181 "E-Document Purchase Draft"
         FinalizeDraftPerformedTxt: Label 'User completed Finalize Draft action.', Locked = true;
         ProcessingDocumentMsg: Label 'Processing document...';
         ResetDraftQst: Label 'All the changes that you may have made on the document draft will be lost. Do you want to continue?';
-        PageEditable, HasPDFSource : Boolean;
+        PageEditable, HasPDFSource, IsCreditMemo : Boolean;
+        ApplyVATDiffEnabled: Boolean;
+        AppliedVATAmountDiff: Decimal;
 }

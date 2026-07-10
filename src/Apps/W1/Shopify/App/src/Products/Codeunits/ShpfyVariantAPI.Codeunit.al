@@ -189,7 +189,7 @@ codeunit 30189 "Shpfy Variant API"
                 HasChange := true;
                 GraphQuery.Append(', compareAtPrice: null');
             end;
-        if (ShopifyVariant."Unit Cost" <> xShopifyVariant."Unit Cost") or (ShopifyVariant.Weight <> xShopifyVariant.Weight) or (ShopifyVariant.SKU <> xShopifyVariant.SKU) then begin
+        if (ShopifyVariant."Unit Cost" <> xShopifyVariant."Unit Cost") or (ShopifyVariant.Weight <> xShopifyVariant.Weight) or (ShopifyVariant.SKU <> xShopifyVariant.SKU) or (ShopifyVariant."Tariff No." <> xShopifyVariant."Tariff No.") or (ShopifyVariant."Country/Region of Origin Code" <> xShopifyVariant."Country/Region of Origin Code") then begin
             HasChange := true;
             GraphQuery.Append(', inventoryItem: {tracked: ');
             if Shop."Inventory Tracked" then
@@ -205,6 +205,20 @@ codeunit 30189 "Shpfy Variant API"
                 GraphQuery.Append(', sku: \"');
                 GraphQuery.Append(ShopifyVariant.SKU);
                 GraphQuery.Append('\"');
+            end;
+            if ShopifyVariant."Tariff No." <> xShopifyVariant."Tariff No." then begin
+                HasChange := true;
+                GraphQuery.Append(', harmonizedSystemCode: \"');
+                GraphQuery.Append(CommunicationMgt.EscapeGraphQLData(ShopifyVariant."Tariff No."));
+                GraphQuery.Append('\"');
+            end;
+            if ShopifyVariant."Country/Region of Origin Code" <> xShopifyVariant."Country/Region of Origin Code" then begin
+                HasChange := true;
+                GraphQuery.Append(', countryCodeOfOrigin: ');
+                if ShopifyVariant."Country/Region of Origin Code" = '' then
+                    GraphQuery.Append('null')
+                else
+                    GraphQuery.Append(ShopifyVariant."Country/Region of Origin Code");
             end;
             if ShopifyVariant.Weight <> xShopifyVariant.Weight then begin
                 GraphQuery.Append(', measurement: {weight: {value:');
@@ -282,6 +296,15 @@ codeunit 30189 "Shpfy Variant API"
             GraphQuery.Append(', sku: \"');
             GraphQuery.Append(CommunicationMgt.EscapeGraphQLData(ShopifyVariant.SKU));
             GraphQuery.Append('\"');
+        end;
+        if ShopifyVariant."Tariff No." <> '' then begin
+            GraphQuery.Append(', harmonizedSystemCode: \"');
+            GraphQuery.Append(CommunicationMgt.EscapeGraphQLData(ShopifyVariant."Tariff No."));
+            GraphQuery.Append('\"');
+        end;
+        if ShopifyVariant."Country/Region of Origin Code" <> '' then begin
+            GraphQuery.Append(', countryCodeOfOrigin: ');
+            GraphQuery.Append(ShopifyVariant."Country/Region of Origin Code");
         end;
         if ShopifyVariant.Weight > 0 then begin
             GraphQuery.Append(', measurement: {weight: {value:');
@@ -638,23 +661,17 @@ codeunit 30189 "Shpfy Variant API"
         exit(NewImageId);
     end;
 
-    internal procedure UpdateProductPrice(ShopifyVariant: Record "Shpfy Variant"; xShopifyVariant: Record "Shpfy Variant"; var BulkOperationInput: TextBuilder; var GraphQueryList: Dictionary of [BigInteger, TextBuilder]; RecordCount: Integer; var JRequestData: JsonArray)
+    internal procedure UpdateProductPrice(ShopifyVariant: Record "Shpfy Variant"; xShopifyVariant: Record "Shpfy Variant"; var BulkOperationInput: TextBuilder; var GraphQueryList: Dictionary of [BigInteger, TextBuilder]; var JRequestData: JsonArray)
     var
-        BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
         BulkOperationType: Enum "Shpfy Bulk Operation Type";
         IBulkOperation: Interface "Shpfy IBulk Operation";
         HasChange: Boolean;
-        IsBulkOperationEnabled: Boolean;
-        JResponse: JsonToken;
-        JVariant: JsonToken;
-        JVariants: JsonArray;
         JRequest: JsonObject;
         GraphQuery: TextBuilder;
         Price: Text;
         CompareAtPrice: Text;
         UnitCost: Text;
     begin
-        IsBulkOperationEnabled := RecordCount >= BulkOperationMgt.GetBulkOperationThreshold();
         GraphQuery.Append('{"query":"mutation { productVariantsBulkUpdate(productId: \"gid://shopify/Product/');
         GraphQuery.Append(Format(ShopifyVariant."Product Id"));
         GraphQuery.Append('\", variants: [{id: \"gid://shopify/ProductVariant/');
@@ -665,8 +682,7 @@ codeunit 30189 "Shpfy Variant API"
             GraphQuery.Append(', price: \"');
             GraphQuery.Append(Format(ShopifyVariant.Price, 0, 9));
             GraphQuery.Append('\"');
-            if IsBulkOperationEnabled then
-                Price := Format(ShopifyVariant.Price, 0, 9);
+            Price := Format(ShopifyVariant.Price, 0, 9);
         end;
         if (ShopifyVariant."Compare at Price" <> xShopifyVariant."Compare at Price") then
             if (ShopifyVariant.Price < ShopifyVariant."Compare at Price") then begin
@@ -674,69 +690,63 @@ codeunit 30189 "Shpfy Variant API"
                 GraphQuery.Append(', compareAtPrice: \"');
                 GraphQuery.Append(Format(ShopifyVariant."Compare at Price", 0, 9));
                 GraphQuery.Append('\"');
-                if IsBulkOperationEnabled then
-                    CompareAtPrice := Format(ShopifyVariant."Compare at Price", 0, 9);
+                CompareAtPrice := ', "compareAtPrice": "' + Format(ShopifyVariant."Compare at Price", 0, 9) + '"';
             end else begin
                 HasChange := true;
                 GraphQuery.Append(', compareAtPrice: null');
-                CompareAtPrice := '0';
+                CompareAtPrice := ', "compareAtPrice": null';
             end;
         if ShopifyVariant."Unit Cost" <> xShopifyVariant."Unit Cost" then begin
             HasChange := true;
             GraphQuery.Append(', inventoryItem: {cost: \"');
             GraphQuery.Append(Format(ShopifyVariant."Unit Cost", 0, 9));
             GraphQuery.Append('\"}');
-            if IsBulkOperationEnabled then
-                UnitCost := Format(ShopifyVariant."Unit Cost", 0, 9);
+            UnitCost := Format(ShopifyVariant."Unit Cost", 0, 9);
         end;
 
         GraphQuery.Append('}]) {productVariants {updatedAt}, userErrors {field, message}}}"}');
 
-        if HasChange then
-            if IsBulkOperationEnabled then begin
-                IBulkOperation := BulkOperationType::UpdateProductPrice;
-                if Price = '' then
-                    Price := Format(ShopifyVariant.Price, 0, 9);
-                if CompareAtPrice = '' then
-                    CompareAtPrice := Format(ShopifyVariant."Compare at Price", 0, 9);
-                if UnitCost = '' then
-                    UnitCost := Format(ShopifyVariant."Unit Cost", 0, 9);
+        if HasChange then begin
+            IBulkOperation := BulkOperationType::UpdateProductPrice;
+            if Price = '' then
+                Price := Format(ShopifyVariant.Price, 0, 9);
+            if UnitCost = '' then
+                UnitCost := Format(ShopifyVariant."Unit Cost", 0, 9);
 
-                GraphQueryList.Add(ShopifyVariant.Id, GraphQuery);
-                JRequest.Add('id', ShopifyVariant.Id);
-                JRequest.Add('price', xShopifyVariant.Price);
-                JRequest.Add('compareAtPrice', xShopifyVariant."Compare at Price");
-                JRequest.Add('unitCost', xShopifyVariant."Unit Cost");
-                JRequest.Add('updatedAt', xShopifyVariant."Updated At");
-                JRequestData.Add(JRequest);
+            GraphQueryList.Add(ShopifyVariant.Id, GraphQuery);
+            JRequest.Add('id', ShopifyVariant.Id);
+            JRequest.Add('price', xShopifyVariant.Price);
+            JRequest.Add('compareAtPrice', xShopifyVariant."Compare at Price");
+            JRequest.Add('unitCost', xShopifyVariant."Unit Cost");
+            JRequest.Add('updatedAt', xShopifyVariant."Updated At");
+            JRequestData.Add(JRequest);
 
-                BulkOperationInput.AppendLine(StrSubstNo(IBulkOperation.GetInput(), ShopifyVariant."Product Id", ShopifyVariant.Id, Price, CompareAtPrice, UnitCost));
-                ShopifyVariant."Updated At" := CurrentDateTime();
-                ShopifyVariant.Modify();
-            end else begin
-                JResponse := CommunicationMgt.ExecuteGraphQL(GraphQuery.ToText());
-                if JsonHelper.GetJsonArray(JResponse, JVariants, 'data.productVariantsBulkUpdate.productVariants') then
-                    if JVariants.Get(0, JVariant) then begin
-                        ShopifyVariant."Updated At" := JsonHelper.GetValueAsDateTime(JVariant, 'updatedAt');
-                        if ShopifyVariant."Updated At" > 0DT then
-                            ShopifyVariant.Modify();
-                    end;
-            end;
+            BulkOperationInput.AppendLine(StrSubstNo(IBulkOperation.GetInput(), ShopifyVariant."Product Id", ShopifyVariant.Id, Price, CompareAtPrice, UnitCost));
+            ShopifyVariant."Updated At" := CurrentDateTime();
+            ShopifyVariant.Modify();
+        end;
     end;
 
-    [TryFunction]
-    internal procedure UpdateProductPrice(GraphQuery: TextBuilder)
+    internal procedure UpdateProductPrice(VariantId: BigInteger; GraphQuery: TextBuilder): Boolean
     var
+        ShopifyVariant: Record "Shpfy Variant";
         JVariants: JsonArray;
         JVariant: JsonToken;
         JResponse: JsonToken;
-        VariantUpdateFailedErr: Label 'Failed to update variant price.';
+        UpdatedAt: DateTime;
     begin
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQuery.ToText());
         if JsonHelper.GetJsonArray(JResponse, JVariants, 'data.productVariantsBulkUpdate.productVariants') then
-            if JVariants.Get(0, JVariant) then
-                if JsonHelper.GetValueAsDateTime(JVariant, 'updatedAt') <= 0DT then
-                    Error(VariantUpdateFailedErr);
+            if JVariants.Get(0, JVariant) then begin
+                UpdatedAt := JsonHelper.GetValueAsDateTime(JVariant, 'updatedAt');
+                if UpdatedAt <= 0DT then
+                    exit(false);
+                if ShopifyVariant.Get(VariantId) then begin
+                    ShopifyVariant."Updated At" := UpdatedAt;
+                    ShopifyVariant.Modify();
+                end;
+            end;
+        exit(true);
     end;
 
     /// <summary> 

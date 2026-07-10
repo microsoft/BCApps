@@ -76,6 +76,12 @@ table 30155 "Shpfy Dispute"
             Caption = 'Finalized On';
             DataClassification = CustomerContent;
         }
+        field(101; "Shop Code"; Code[20])
+        {
+            Caption = 'Shop Code';
+            DataClassification = SystemMetadata;
+            TableRelation = "Shpfy Shop";
+        }
     }
     keys
     {
@@ -83,5 +89,6 @@ table 30155 "Shpfy Dispute"
         {
             Clustered = true;
         }
+        key(Key1; "Shop Code") { }
     }
 }

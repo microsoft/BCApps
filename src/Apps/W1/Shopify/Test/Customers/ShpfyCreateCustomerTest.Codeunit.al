@@ -16,18 +16,19 @@ codeunit 139565 "Shpfy Create Customer Test"
 {
     Subtype = Test;
     TestType = IntegrationTest;
-    EventSubscriberInstance = Manual;
     TestPermissions = Disabled;
+    TestHttpRequestPolicy = BlockOutboundRequests;
 
     var
+        Shop: Record "Shpfy Shop";
+        Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
-        CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
-        CreateCustomerTest: Codeunit "Shpfy Create Customer Test";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
         CustomerInitTest: Codeunit "Shpfy Customer Init Test";
+        IsInitialized: Boolean;
         OnCreateCustomerEventMsg: Label 'OnCreateCustomer', Locked = true;
 
     [Test]
-    [HandlerFunctions('OnCreateCustomerHandler')]
     procedure UniTestCreateCustomerFromShopifyInfo()
     var
         Customer: Record Customer;
@@ -36,8 +37,8 @@ codeunit 139565 "Shpfy Create Customer Test"
         ShpfyCreateCustomer: Codeunit "Shpfy Create Customer";
     begin
         // Creating Test data. The database must have a Config Template for creating a customer.
-        Init();
-        ShpfyCreateCustomer.SetShop(CommunicationMgt.GetShopRecord());
+        Initialize();
+        ShpfyCreateCustomer.SetShop(Shop);
         if not CustomerTempl.FindFirst() then
             exit;
 
@@ -46,32 +47,101 @@ codeunit 139565 "Shpfy Create Customer Test"
         ShpfyCustomerAddress.SetRecFilter();
 
         // [GIVEN] The shop
-        ShpfyCreateCustomer.SetShop(CommunicationMgt.GetShopRecord());
+        ShpfyCreateCustomer.SetShop(Shop);
         // [GIVEN] The customer template code
         ShpfyCreateCustomer.SetTemplateCode(CustomerTempl.Code);
         // [GIVEN] The Shopify Customer Address record.
-        BindSubscription(CreateCustomerTest);
         ShpfyCreateCustomer.Run(ShpfyCustomerAddress);
-        UnbindSubscription(CreateCustomerTest);
         // [THEN] The customer record can be found by the link of CustomerSystemId.
         ShpfyCustomerAddress.Get(ShpfyCustomerAddress.Id);
         if not Customer.GetBySystemId(ShpfyCustomerAddress.CustomerSystemId) then
             LibraryAssert.AssertRecordNotFound();
     end;
 
-    local procedure Init()
+    [Test]
+    procedure UnitTestMapCustomerWithoutDefaultAddressStillCreatesCustomer()
     var
-        Shop: Record "Shpfy Shop";
+        Customer: Record Customer;
+        CustomerTempl: Record "Customer Templ.";
+        ShopifyCustomer: Record "Shpfy Customer";
+        ShopifyCustomerAddress: Record "Shpfy Customer Address";
+        ICustomerMapping: Interface "Shpfy ICustomer Mapping";
+        JCustomerInfo: JsonObject;
+        CustomerId: BigInteger;
+        ResultCode: Code[20];
     begin
-        Codeunit.Run(Codeunit::"Shpfy Initialize Test");
-        Shop := CommunicationMgt.GetShopRecord();
-        if Shop."Default Customer No." = '' then begin
-            Shop."Name Source" := "Shpfy Name Source"::CompanyName;
-            Shop."Name 2 Source" := "Shpfy Name Source"::FirstAndLastName;
-            if not Shop.Modify(false) then
-                Shop.Insert();
-            CommunicationMgt.SetShop(Shop);
-        end;
+        // [SCENARIO] A staged Shopify customer that is not yet linked to a BC customer and whose address is not flagged
+        // as default (Shopify defaultAddress = null) still gets a BC customer created when mapping allows creation.
+        Initialize();
+        if not CustomerTempl.FindFirst() then
+            exit;
+
+        // [GIVEN] A staged Shopify customer without a linked BC customer
+        CustomerId := CustomerInitTest.CreateShopifyCustomer(ShopifyCustomer);
+        // [GIVEN] The customer has an address that is not marked as default
+        ShopifyCustomerAddress := CustomerInitTest.CreateShopifyCustomerAddress(ShopifyCustomer);
+        ShopifyCustomerAddress.TestField(Default, false);
+
+        // [WHEN] Mapping the customer by email/phone with customer creation allowed
+        ICustomerMapping := "Shpfy Customer Mapping"::"By EMail/Phone";
+        JCustomerInfo := CustomerInitTest.CreateJsonCustomerInfo(Shop."Name Source", Shop."Name 2 Source");
+        ResultCode := ICustomerMapping.DoMapping(CustomerId, JCustomerInfo, Shop.Code, CustomerTempl.Code, true);
+
+        // [THEN] A BC customer is created, linked to the Shopify customer, even though no default address existed
+        LibraryAssert.AreNotEqual('', ResultCode, 'A customer should be created when the customer has no default address.');
+        LibraryAssert.IsTrue(Customer.Get(ResultCode), 'The mapped BC customer should exist.');
+        ShopifyCustomer.Get(CustomerId);
+        ShopifyCustomer.CalcFields("Customer No.");
+        LibraryAssert.AreEqual(ResultCode, ShopifyCustomer."Customer No.", 'The Shopify customer should be linked to the created BC customer.');
+    end;
+
+    [Test]
+    procedure UnitTestUpdateCustomerWithoutDefaultAddressDoesNotError()
+    var
+        Customer: Record Customer;
+        ShopifyCustomer: Record "Shpfy Customer";
+        ShopifyCustomerAddress: Record "Shpfy Customer Address";
+        UpdateCustomer: Codeunit "Shpfy Update Customer";
+    begin
+        // [SCENARIO] Updating a linked BC customer from a Shopify customer that has no default address
+        // (Shopify defaultAddress = null) falls back to an available address instead of erroring.
+        Initialize();
+
+        // [GIVEN] A BC customer linked to a Shopify customer
+        Customer.Init();
+        Customer."No." := CopyStr(Any.AlphanumericText(10), 1, MaxStrLen(Customer."No."));
+        Customer.Insert(true);
+        CustomerInitTest.CreateShopifyCustomer(ShopifyCustomer);
+        ShopifyCustomer."Customer SystemId" := Customer.SystemId;
+        ShopifyCustomer.Modify();
+
+        // [GIVEN] The Shopify customer has an address that is not marked as default
+        ShopifyCustomerAddress := CustomerInitTest.CreateShopifyCustomerAddress(ShopifyCustomer);
+        ShopifyCustomerAddress.TestField(Default, false);
+
+        // [WHEN] The customer is updated from Shopify
+        UpdateCustomer.SetShop(Shop);
+        UpdateCustomer.Run(ShopifyCustomer);
+
+        // [THEN] No error is raised and the customer address is filled from the available (non-default) address
+        Customer.Get(Customer."No.");
+        LibraryAssert.AreEqual(ShopifyCustomerAddress."Address 1", Customer.Address, 'Customer address should be updated from the available address.');
+    end;
+
+    local procedure Initialize()
+    var
+        AccessToken: SecretText;
+    begin
+        if IsInitialized then
+            exit;
+        IsInitialized := true;
+        Shop := InitializeTest.CreateShop();
+        Shop."Name Source" := "Shpfy Name Source"::CompanyName;
+        Shop."Name 2 Source" := "Shpfy Name Source"::FirstAndLastName;
+        Shop.Modify(false);
+        AccessToken := Any.AlphanumericText(20);
+        InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
+        Commit();
     end;
 
     [MessageHandler]
@@ -80,15 +150,12 @@ codeunit 139565 "Shpfy Create Customer Test"
         LibraryAssert.ExpectedMessage(OnCreateCustomerEventMsg, Message);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Customer Events", 'OnBeforeCreateCustomer', '', true, false)]
-    local procedure OnBeforeCreateCustomer()
+    [HttpClientHandler]
+    internal procedure HttpClientHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
     begin
-        Message(OnCreateCustomerEventMsg);
-    end;
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Shpfy Customer Events", 'OnAfterCreateCustomer', '', true, false)]
-    local procedure OnAfterCreateCustomer()
-    begin
-        Message(OnCreateCustomerEventMsg);
+        exit(false);
     end;
 }

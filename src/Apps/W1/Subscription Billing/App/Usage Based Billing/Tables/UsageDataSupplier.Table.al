@@ -26,7 +26,7 @@ table 8014 "Usage Data Supplier"
         }
         field(4; "Unit Price from Import"; Boolean)
         {
-            Caption = 'Unit Price from Import';
+            Caption = 'Sales Prices from Import';
         }
         field(5; "Vendor Invoice per"; Enum "Vendor Invoice Per")
         {
@@ -91,29 +91,21 @@ table 8014 "Usage Data Supplier"
     trigger OnDelete()
     var
         UsageDataSupplierReference: Record "Usage Data Supplier Reference";
-        GenericImportSettings: Record "Generic Import Settings";
+        UsageDataProcessing: Interface "Usage Data Processing";
     begin
         UsageDataSupplierReference.SetRange("Supplier No.", "No.");
         UsageDataSupplierReference.DeleteAll(false);
 
-        GenericImportSettings.SetRange("Usage Data Supplier No.", "No.");
-        GenericImportSettings.DeleteAll(false);
+        UsageDataProcessing := Rec.Type;
+        UsageDataProcessing.DeleteSupplierData(Rec);
     end;
 
     internal procedure OpenSupplierSettings()
     var
-        GenericImportSettings: Record "Generic Import Settings";
+        UsageDataProcessing: Interface "Usage Data Processing";
     begin
-        case Rec.Type of
-            Enum::"Usage Data Supplier Type"::Generic:
-                begin
-                    GenericImportSettings.FilterGroup(2);
-                    GenericImportSettings.SetRange("Usage Data Supplier No.", Rec."No.");
-                    GenericImportSettings.FilterGroup(0);
-                    Page.RunModal(Page::"Generic Import Settings Card", GenericImportSettings);
-                end;
-
-        end;
+        UsageDataProcessing := Rec.Type;
+        UsageDataProcessing.OpenSupplierSettings(Rec);
     end;
 
     local procedure ShouldSearchForVendorByName(VendorNo: Code[20]): Boolean

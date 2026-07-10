@@ -113,7 +113,7 @@ page 30115 "Shpfy Orders"
                 field(CreatedAt; Rec."Created At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time when the order was created.';
+                    ToolTip = 'Specifies the date and time when the order was created in Shopify.';
                 }
                 field(Confirmed; Rec.Confirmed)
                 {
@@ -339,6 +339,20 @@ page 30115 "Shpfy Orders"
                 begin
                     ImportOrder.MarkOrderConflictAsResolved(Rec);
                     Rec.Modify();
+                end;
+            }
+            action(ProvideFeedback)
+            {
+                ApplicationArea = All;
+                Caption = 'Provide Feedback';
+                ToolTip = 'Provide feedback on Shopify Connector.';
+                Image = Comment;
+
+                trigger OnAction()
+                var
+                    ShopMgt: Codeunit "Shpfy Shop Mgt.";
+                begin
+                    ShopMgt.RequestFeedback();
                 end;
             }
         }

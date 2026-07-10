@@ -445,6 +445,7 @@ function getSeries(chartData, xAxisType) {
       lineWidth: getSerieLineWidth(chartData, measure),
       marker: getSerieMarker(chartData, measure),
       name: measure,
+      turboThreshold: 5000,
       stack: stack,
       step: getSerieLineStep(chartData, measure),
       type: getSerieType(chartData, measure),

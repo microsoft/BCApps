@@ -18,8 +18,6 @@ using Microsoft.QualityManagement.Workflow;
 /// <summary>
 /// Used for full read-only access to Quality Management.
 /// </summary>
-#pragma warning disable AS0125
-#pragma warning disable AS0090
 permissionset 20401 "QltyMgmt - Read"
 {
     Caption = 'Quality Auditor';
@@ -45,5 +43,3 @@ permissionset 20401 "QltyMgmt - Read"
         tabledata "Qlty. Inspection Header" = R,
         tabledata "Qlty. Inspection Line" = R;
 }
-#pragma warning restore AS0090
-#pragma warning restore AS0125

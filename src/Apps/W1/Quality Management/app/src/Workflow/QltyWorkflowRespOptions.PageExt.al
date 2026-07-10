@@ -71,13 +71,13 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                 {
                     Visible = QltyShouldShowGrpQuantity;
                     Caption = 'Quantity';
-                    InstructionalText = 'In most scenarios you will want to use the entire lot/serial/package if it is being quarantined. If you want a specific amount you can define it here. If this value is zero and also you are not moving the entire amount then the journal entry will use the Quantity defined on the inspection itself.';
+                    InstructionalText = 'Choose how the system determines what quantity to move. "Entire Lot/Serial/Package" searches posted inventory entries - use this only when inventory has already been received. For workflows triggered on inspection creation (before receipt posting), use "Sample Quantity" or "Specific Quantity" instead, which read the location from the source document.';
 
                     field(Qlty_QuantityMoveAll; QltyMoveAll)
                     {
                         ApplicationArea = QualityManagement;
                         Caption = 'Entire Lot/Serial/Package';
-                        ToolTip = 'Specifies that this will use the entire lot/serial/package.';
+                        ToolTip = 'Specifies that the system searches posted inventory (Item Ledger Entries and Bin Content) for the lot, serial, or package defined on the inspection, and uses the full available quantity. Requires item tracking to be specified on the inspection, and the inventory must already be received/posted.';
 
                         trigger OnValidate()
                         var
@@ -431,10 +431,8 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                             Bin: Record Bin;
                             QltyWorkflowResponse: Codeunit "Qlty. Workflow Response";
                         begin
-                            // After the table relation is removed to change from a drop-down to an assist-edit
-                            // to allow the bins to be filtered by the location code, there needs to be an ability
-                            // to validate the bin is still valid.  We do this by fetching the record and 
-                            // letting it fail if it doesn't exist.
+                            // There is no table relation on this field because the bins need to be filtered by the selected location code via the OnAssistEdit trigger. 
+                            // Bin is validated by fetching the record and letting it fail if it doesn't exist.
                             Bin.Get(QltyLocationCode, QltyBinCode);
                             QltyWorkflowResponse.SetStepConfigurationValue(Rec, QltyWorkflowResponse.GetWellKnownKeyBin(), QltyBinCode);
                         end;
@@ -616,7 +614,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                         ShowCaption = false;
                         Editable = false;
                         Caption = ' ';
-                        Tooltip = ' ';
+                        ToolTip = 'Select to populate the fields with an example that blocks purchases on the item card.';
 
                         trigger OnDrillDown()
                         var
@@ -635,7 +633,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                         ShowCaption = false;
                         Editable = false;
                         Caption = ' ';
-                        Tooltip = ' ';
+                        ToolTip = 'Select to populate the fields with an example that blocks a vendor.';
 
                         trigger OnDrillDown()
                         var
@@ -654,7 +652,7 @@ pageextension 20403 "Qlty. Workflow Resp. Options" extends "Workflow Response Op
                         ShowCaption = false;
                         Editable = false;
                         Caption = ' ';
-                        Tooltip = ' ';
+                        ToolTip = 'Select to populate the fields with an example that flags a BOM as under development.';
 
                         trigger OnDrillDown()
                         var

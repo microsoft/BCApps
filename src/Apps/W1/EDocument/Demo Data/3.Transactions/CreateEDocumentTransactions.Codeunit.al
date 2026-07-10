@@ -10,12 +10,12 @@ using Microsoft.DemoTool.Helpers;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.Foundation.Company;
+using Microsoft.Peppol;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Posting;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
-using Microsoft.Sales.Peppol;
 using Microsoft.Sales.Setup;
 using System.IO;
 using System.Utilities;
@@ -142,7 +142,7 @@ codeunit 5376 "Create E-Document Transactions"
         SalesSetup: Record "Sales & Receivables Setup";
         ContosoCustomer: Codeunit "Create Common Customer/Vendor";
         CreateEDocTransactions: Codeunit "Create E-Document Transactions";
-        ExportSalesInv: Codeunit "Exp. Sales Inv. PEPPOL BIS3.0";
+        ExportSalesInv: Codeunit "Exp. Sales Inv. PEPPOL30";
         TempBlob: Codeunit "Temp Blob";
         TempBlobList: Codeunit "Temp Blob List";
         OutStr: OutStream;
@@ -170,7 +170,7 @@ codeunit 5376 "Create E-Document Transactions"
         CorrectSalesInvHeader(SalesInvHeader);
 
         TempBlob.CreateOutStream(OutStr);
-        ExportSalesInv.GenerateXMLFile(SalesInvHeader, OutStr);
+        ExportSalesInv.GenerateXMLFile(SalesInvHeader, OutStr, "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales");
         TempBlobList.Add(TempBlob);
         SalesInvHeader.Delete(true);
         SalesHeader.Delete();
@@ -200,7 +200,7 @@ codeunit 5376 "Create E-Document Transactions"
 
         Clear(TempBlob);
         TempBlob.CreateOutStream(OutStr);
-        ExportSalesInv.GenerateXMLFile(SalesInvHeader, OutStr);
+        ExportSalesInv.GenerateXMLFile(SalesInvHeader, OutStr, "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales");
         TempBlobList.Add(TempBlob);
         SalesInvHeader.Delete(true);
         SalesHeader.Delete();
@@ -220,7 +220,7 @@ codeunit 5376 "Create E-Document Transactions"
 
         Clear(TempBlob);
         TempBlob.CreateOutStream(OutStr);
-        ExportSalesInv.GenerateXMLFile(SalesInvHeader, OutStr);
+        ExportSalesInv.GenerateXMLFile(SalesInvHeader, OutStr, "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales");
         TempBlobList.Add(TempBlob);
         SalesInvHeader.Delete(true);
         SalesHeader.Delete();
@@ -245,7 +245,7 @@ codeunit 5376 "Create E-Document Transactions"
 
         Clear(TempBlob);
         TempBlob.CreateOutStream(OutStr);
-        ExportSalesInv.GenerateXMLFile(SalesInvHeader, OutStr);
+        ExportSalesInv.GenerateXMLFile(SalesInvHeader, OutStr, "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales");
         TempBlobList.Add(TempBlob);
         SalesInvHeader.Delete(true);
         SalesHeader.Delete();
@@ -268,7 +268,7 @@ codeunit 5376 "Create E-Document Transactions"
 
         Clear(TempBlob);
         TempBlob.CreateOutStream(OutStr);
-        ExportSalesInv.GenerateXMLFile(SalesInvHeader, OutStr);
+        ExportSalesInv.GenerateXMLFile(SalesInvHeader, OutStr, "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales");
         TempBlobList.Add(TempBlob);
         SalesInvHeader.Delete(true);
         SalesHeader.Delete();
@@ -288,7 +288,7 @@ codeunit 5376 "Create E-Document Transactions"
 
         Clear(TempBlob);
         TempBlob.CreateOutStream(OutStr);
-        ExportSalesInv.GenerateXMLFile(SalesInvHeader, OutStr);
+        ExportSalesInv.GenerateXMLFile(SalesInvHeader, OutStr, "PEPPOL 3.0 Format"::"PEPPOL 3.0 - Sales");
         TempBlobList.Add(TempBlob);
         SalesInvHeader.Delete(true);
         SalesHeader.Delete();

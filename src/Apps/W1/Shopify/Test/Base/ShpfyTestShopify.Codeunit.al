@@ -48,7 +48,6 @@ codeunit 139563 "Shpfy Test Shopify"
         // [SCENARIO] If a version is out of support then the API must be blocked.
         // [WHEN] The Shop is created.
         Shop := InitializeTest.CreateShop();
-        CommunicationMgt.SetTestInProgress(false);
         SetupKeyVaultExpiryDate(CommunicationMgt.GetApiVersion());
         EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
 

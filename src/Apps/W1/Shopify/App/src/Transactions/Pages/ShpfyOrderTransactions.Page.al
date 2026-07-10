@@ -42,6 +42,7 @@ page 30131 "Shpfy Order Transactions"
                 field(ShpfyOrderNo; Rec."Shpfy Order No.")
                 {
                     ApplicationArea = All;
+                    Visible = false;
                     ToolTip = 'Specifies the order number from Shopify.';
                 }
                 field(Type; Rec.Type)
@@ -82,7 +83,7 @@ page 30131 "Shpfy Order Transactions"
                 field(CreatedAt; Rec."Created At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time at which the transaction is processed.';
+                    ToolTip = 'Specifies the date and time when the transaction was created in Shopify.';
                 }
                 field(Authorization; Rec.Authorization)
                 {
