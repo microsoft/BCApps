@@ -31,6 +31,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         TableMissingErr: Label 'You must choose a Table for this generation rule', Locked = true;
         LegacyDescriptionTok: Label 'Legacy rule', Locked = true;
         NoCompatibleGenRuleQstFragmentTok: Label 'Could not find any compatible inspection generation rules for the template', Locked = true;
+        NoCompatibleGenRuleQuestionSeen: Boolean;
 
     [Test]
     procedure ActivationTriggerFindGenerationRule_ManualOnly_ManualRuleSearch()
@@ -395,8 +396,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     begin
         // [SCENARIO] Inserting a generation rule without setting Source Table No. raises an actionable error pointing to the Table assist-edit button
 
-        // [GIVEN] Setup is initialized and a template exists
-        QltyInspectionUtility.EnsureSetupExists();
+        // [GIVEN] A template exists
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] All existing generation rules are removed
@@ -421,8 +421,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     begin
         // [SCENARIO] Modifying a generation rule to clear Source Table No. raises the actionable error
 
-        // [GIVEN] Setup is initialized and a valid generation rule for Purchase Line exists
-        QltyInspectionUtility.EnsureSetupExists();
+        // [GIVEN] A valid generation rule for Purchase Line exists
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
@@ -444,8 +443,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     begin
         // [SCENARIO] Inserting a generation rule with Source Table No. set succeeds without raising the actionable error
 
-        // [GIVEN] Setup is initialized and a template exists
-        QltyInspectionUtility.EnsureSetupExists();
+        // [GIVEN] A template exists
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] All existing generation rules are removed
@@ -472,8 +470,7 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     begin
         // [SCENARIO] A pre-existing rule with no Source Table No. (legacy data created before the mandatory-table guard) can still be edited and deleted
 
-        // [GIVEN] Setup is initialized and a template exists
-        QltyInspectionUtility.EnsureSetupExists();
+        // [GIVEN] A template exists
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
 
         // [GIVEN] All existing generation rules are removed
@@ -520,9 +517,11 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionUtility.CreatePrioritizedRule(OtherQltyInspectionTemplateHdr, Database::"Purchase Line");
 
         // [WHEN] The Source lookup pre-check runs for the target template (via the test library wrapper around the report procedure)
+        NoCompatibleGenRuleQuestionSeen := false;
         HasCompatibleRule := QltyInspectionUtility.EnsureCompatibleGenerationRuleExists(TargetQltyInspectionTemplateHdr.Code);
 
         // [THEN] The warning question was shown (NoCompatibleGenRuleConfirmHandler) and the Generation Rules page opened filtered to the target template (GenRulesFilteredToTemplateModalHandler)
+        LibraryAssert.IsTrue(NoCompatibleGenRuleQuestionSeen, 'The lookup should warn that no compatible generation rule exists for the template');
         // [THEN] Still no compatible rule afterwards because none was created
         LibraryAssert.IsFalse(HasCompatibleRule, 'No compatible rule should exist for the target template');
     end;
@@ -530,7 +529,9 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
     [ConfirmHandler]
     procedure NoCompatibleGenRuleConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
-        LibraryAssert.IsTrue(StrPos(Question, NoCompatibleGenRuleQstFragmentTok) > 0, 'The lookup should warn that no compatible generation rule exists for the template');
+        // Incidental confirms raised during setup are answered without asserting; only the no-compatible-rule warning is tracked
+        if StrPos(Question, NoCompatibleGenRuleQstFragmentTok) > 0 then
+            NoCompatibleGenRuleQuestionSeen := true;
         Reply := true;
     end;
 
