@@ -72,9 +72,7 @@ codeunit 135153 "Data Classs Demo Data Tests"
     begin
         // Resolve the app that owns the table and check whether that app is temporarily
         // exempted from the classification check while its fields are being classified.
-        AllObj.SetRange("Object Type", AllObj."Object Type"::Table);
-        AllObj.SetRange("Object ID", TableNo);
-        if not AllObj.FindFirst() then
+        if not AllObj.Get(AllObj."Object Type"::Table, TableNo) then
             exit(false);
         if IsNullGuid(AllObj."App Package ID") then
             exit(false);
