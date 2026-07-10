@@ -1191,6 +1191,73 @@
             StrSubstNo(UnexpectedAdjustedEntryErr, AltCustomerPostingGroup.Code));
     end;
 
+    [Test]
+    procedure ExchRateAdjmtCustomerFilterAdjustsAlternatePostingGroup()
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        AltCustomerPostingGroup: Record "Customer Posting Group";
+        CurrencyCode: Code[10];
+    begin
+        // [FEATURE] [Adjust Exchange Rate] [Detailed Ledger Entry] [Posting Group]
+        // [SCENARIO] Exchange Rate Adjustment filtered by an alternate Customer Posting Group adjusts the ledger entries carrying that Posting Group even though the customer's master Posting Group differs, proving the master record Posting Group filter is cleared.
+        Initialize();
+
+        // [GIVEN] Allow Multiple Posting Groups is enabled in Sales & Receivables Setup.
+        SetSalesAllowMultiplePostingGroups();
+
+        // [GIVEN] Create a new Currency with exchange rate.
+        CurrencyCode := CreateCurrency();
+
+        // [GIVEN] Customer with default Posting Group "CPG1", allowing multiple posting groups, and a linked alternate Posting Group "CPG2".
+        CreateCustomerAllowMultiplePostingGroups(Customer, CustomerPostingGroup, AltCustomerPostingGroup, CurrencyCode);
+
+        // [GIVEN] Post an invoice for the customer with the default Posting Group "CPG1".
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Customer,
+            Customer."No.", LibraryRandom.RandIntInRange(500, 1000));
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Post an invoice for the customer with the alternate Posting Group "CPG2".
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Customer,
+            Customer."No.", LibraryRandom.RandIntInRange(500, 1000));
+        GenJournalLine.Validate("Posting Group", AltCustomerPostingGroup.Code);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Exchange rate is changed.
+        ModifyExchangeRate(CurrencyCode, LibraryRandom.RandInt(50));
+
+        // [WHEN] Run Adjust Exchange Rates filtered to the alternate Customer Posting Group "CPG2" (not the customer's master Posting Group).
+        RunExchRateAdjustmentWithCustomerPostingGroupFilter(CurrencyCode, Customer."No.", AltCustomerPostingGroup.Code);
+
+        // [THEN] An Unrealized Loss/Gain Detailed Customer Ledger Entry exists for the alternate Posting Group "CPG2", proving the master record filter was cleared and the ledger entry was still adjusted.
+        DetailedCustLedgEntry.SetRange("Customer No.", Customer."No.");
+        DetailedCustLedgEntry.SetFilter(
+            "Entry Type", '%1|%2',
+            DetailedCustLedgEntry."Entry Type"::"Unrealized Loss",
+            DetailedCustLedgEntry."Entry Type"::"Unrealized Gain");
+        DetailedCustLedgEntry.SetRange("Posting Group", AltCustomerPostingGroup.Code);
+        Assert.IsFalse(
+            DetailedCustLedgEntry.IsEmpty(),
+            StrSubstNo(ExpectedUnrealizedDtldCustEntryErr, Customer."No."));
+
+        // [THEN] No Unrealized Loss/Gain Detailed Customer Ledger Entry exists for the default Posting Group "CPG1".
+        DetailedCustLedgEntry.SetRange("Posting Group", CustomerPostingGroup.Code);
+        Assert.IsTrue(
+            DetailedCustLedgEntry.IsEmpty(),
+            StrSubstNo(UnexpectedAdjustedEntryErr, CustomerPostingGroup.Code));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
