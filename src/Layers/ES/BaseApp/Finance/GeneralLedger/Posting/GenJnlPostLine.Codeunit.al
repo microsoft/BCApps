@@ -5663,7 +5663,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if DetailedCVLedgEntryBuffer."Initial Document Type" = DetailedCVLedgEntryBuffer."Initial Document Type"::Bill then
                 AccNo := VendPostingGr."Payables Account"
             else
-                if (GenJournalLine."Document Type" = GenJournalLine."Document Type"::Payment) and (GenJournalLine."Applies-to Doc. No." <> '') and (DetailedCVLedgEntryBuffer."Document Type" = DetailedCVLedgEntryBuffer."Document Type"::Payment) then
+                if (GenJournalLine."Document Type" = GenJournalLine."Document Type"::Payment) and (GenJournalLine."Applies-to Doc. No." <> '') and (DetailedCVLedgEntryBuffer."Document Type" = DetailedCVLedgEntryBuffer."Document Type"::Payment) and
+                   (not IsApplnEntryForAppliedVendorDoc(GenJournalLine, DetailedCVLedgEntryBuffer))
+                then
                     AccNo := VendPostingGr."Payables Account"
                 else
                     AccNo := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer)
