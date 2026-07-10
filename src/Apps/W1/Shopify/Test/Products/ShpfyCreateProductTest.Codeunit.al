@@ -3038,23 +3038,25 @@ codeunit 139601 "Shpfy Create Product Test"
     begin
         Any.SetDefaultSeed();
         OutboundHttpRequests.Clear();
+
+        if not ExportIsInitialized then begin
+            ExportShop := ShpfyInitializeTest.CreateShop();
+            ExportShop."Can Update Shopify Products" := true;
+            ExportShop."Product Metafields To Shopify" := false;
+            ExportShop.Modify();
+            Commit();
+
+            AccessToken := LibraryRandom.RandText(20);
+            ShpfyInitializeTest.RegisterAccessTokenForShop(ExportShop.GetStoreName(), AccessToken);
+
+            ExportIsInitialized := true;
+        end;
+
         // CreateShop() sets IsTestInProgress = true on the singleton CommunicationMgt,
         // which redirects HTTP calls through event mocking instead of HttpClient.Send().
         // Disable that so [HttpClientHandler] can intercept the requests instead.
+        // This must run after CreateShop(), otherwise CreateShop() re-enables the flag.
         CommunicationMgt.SetTestInProgress(false);
-        if ExportIsInitialized then
-            exit;
-
-        ExportShop := ShpfyInitializeTest.CreateShop();
-        ExportShop."Can Update Shopify Products" := true;
-        ExportShop."Product Metafields To Shopify" := false;
-        ExportShop.Modify();
-        Commit();
-
-        AccessToken := LibraryRandom.RandText(20);
-        ShpfyInitializeTest.RegisterAccessTokenForShop(ExportShop.GetStoreName(), AccessToken);
-
-        ExportIsInitialized := true;
     end;
 
     local procedure RegExpectedOutboundHttpRequestsForProductExport()
