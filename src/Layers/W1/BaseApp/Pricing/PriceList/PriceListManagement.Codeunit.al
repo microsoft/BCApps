@@ -753,12 +753,15 @@ codeunit 7017 "Price List Management"
     local procedure BuildSourceFilters(var PriceListLine: Record "Price List Line"; PriceSourceList: Codeunit "Price Source List"; var MarkingIsUsed: Boolean)
     var
         PriceSource: Record "Price Source";
+        NonEmptyPriceSource: Record "Price Source";
+        SourceTypeFilter: Text;
+        ParentSourceNoFilter: Text;
+        SourceNoFilter: Text;
+        OrSeparator: Text[1];
+        NonEmptyTupleCount: Integer;
     begin
-        MarkingIsUsed := true;
-        if not SearchIfPriceExists then
-            MarkingIsUsed := CheckIfPriceListLineMarkingIsNeededForSources(PriceListLine, PriceSourceList);
+        MarkingIsUsed := false;
 
-        ClearSourceFilters(PriceListLine);
         if PriceSourceList.First(PriceSource, 0) then
             repeat
                 PriceListLine.SetRange("Source Type", PriceSource."Source Type");
@@ -772,42 +775,32 @@ codeunit 7017 "Price List Management"
                         exit;
                     end;
 
-                    if not MarkingIsUsed then
-                        exit;
-
-                    PriceListLine.SetLoadFields("Price List Code", "Line No.");
-                    PriceListLine.FindSet();
-                    repeat
-                        PriceListLine.Mark(true);
-                    until PriceListLine.Next() = 0;
-                    PriceListLine.SetLoadFields();
+                    NonEmptyTupleCount += 1;
+                    NonEmptyPriceSource := PriceSource;
+                    SourceTypeFilter += OrSeparator + Format(PriceSource."Source Type");
+                    ParentSourceNoFilter += OrSeparator + GetFilterText(PriceSource."Parent Source No.");
+                    SourceNoFilter += OrSeparator + GetFilterText(PriceSource."Source No.");
+                    OrSeparator := '|';
                 end;
             until not PriceSourceList.Next(PriceSource);
-        ClearSourceFilters(PriceListLine);
-    end;
 
-    local procedure CheckIfPriceListLineMarkingIsNeededForSources(var PriceListLine: Record "Price List Line"; PriceSourceList: Codeunit "Price Source List"): Boolean;
-    var
-        PriceSource: Record "Price Source";
-        RecordSetsCounter: Integer;
-    begin
-        if PriceSourceList.First(PriceSource, 0) then
-            repeat
-                PriceListLine.SetRange("Source Type", PriceSource."Source Type");
-                PriceListLine.SetRange("Parent Source No.", PriceSource."Parent Source No.");
-                PriceListLine.SetRange("Source No.", PriceSource."Source No.");
-                OnBuildSourceFiltersOnBeforeFindLines(PriceListLine, PriceSource);
-                if not PriceListLine.IsEmpty() then begin
-                    RecordSetsCounter += 1;
-                    if RecordSetsCounter > 1 then begin
-                        ClearSourceFilters(PriceListLine);
-                        exit(true);
-                    end;
-                end;
-            until not PriceSourceList.Next(PriceSource);
         ClearSourceFilters(PriceListLine);
-        if RecordSetsCounter = 0 then
-            exit(true);
+
+        case NonEmptyTupleCount of
+            0:
+                MarkingIsUsed := true;
+            1:
+                begin
+                    PriceListLine.SetRange("Source Type", NonEmptyPriceSource."Source Type");
+                    PriceListLine.SetRange("Parent Source No.", NonEmptyPriceSource."Parent Source No.");
+                    PriceListLine.SetRange("Source No.", NonEmptyPriceSource."Source No.");
+                end;
+            else begin
+                PriceListLine.SetFilter("Source Type", SourceTypeFilter);
+                PriceListLine.SetFilter("Parent Source No.", ParentSourceNoFilter);
+                PriceListLine.SetFilter("Source No.", SourceNoFilter);
+            end;
+        end;
     end;
 
     local procedure ClearSourceFilters(var PriceListLine: Record "Price List Line")
