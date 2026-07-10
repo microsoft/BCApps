@@ -38,9 +38,10 @@ foreach ($pr in $prs) {
     Write-Host ""
     Write-Host "Checking PR #$($pr.number): $($pr.title)"
 
-    # Check if PR is mergeable
-    if ($pr.mergeable -ne "MERGEABLE") {
-        Write-Host "  PR is not in MERGEABLE state (current: $($pr.mergeable)), skipping"
+    # Skip PRs with merge conflicts - they need manual resolution first
+    # Process PRs in MERGEABLE and UNKNOWN states (UNKNOWN means GitHub hasn't computed mergeability yet)
+    if ($pr.mergeable -eq "CONFLICTING") {
+        Write-Host "  PR has merge conflicts (state: CONFLICTING), skipping"
         continue
     }
 

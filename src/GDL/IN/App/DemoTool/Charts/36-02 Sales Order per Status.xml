@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ChartDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="urn:schemas-microsoft-com:dynamics:NAV:MetaObjects" Type="Column">
+  <Title>
+    <Text ID="ENU">Sales Orders per Status</Text>
+  </Title>
+  <Table ID="36">
+    <Filters>
+      <Filter>
+        <Field Name="Document Type" />
+        <Value>1</Value>
+      </Filter>
+    </Filters>
+  </Table>
+  <XAxis ShowTitle="true">
+    <Field Name="Status" />
+  </XAxis>
+  <YAxis ShowTitle="true">
+    <Measures>
+      <Measure Operator="Count">
+        <Caption>
+          <Text ID="ENU">Count</Text>
+        </Caption>
+      </Measure>
+    </Measures>
+  </YAxis>
+</ChartDefinition>
