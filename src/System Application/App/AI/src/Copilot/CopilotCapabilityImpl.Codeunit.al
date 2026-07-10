@@ -527,26 +527,7 @@ codeunit 7774 "Copilot Capability Impl"
             ShouldApproveByDefault := true;
             exit;
         end;
-
-        // If the pre-BizChat Chat capability was turned off, honor that choice instead of auto-approving.
-        if IsChatCapabilityInactive() then begin
-            ShouldApproveByDefault := false;
-            exit;
-        end;
-
         ShouldApproveByDefault := not IsWithinEUDB();
-    end;
-
-    local procedure IsChatCapabilityInactive(): Boolean
-    var
-        ChatCopilotSettings: Record "Copilot Settings";
-        ModuleInfo: ModuleInfo;
-    begin
-        NavApp.GetCurrentModuleInfo(ModuleInfo);
-        ChatCopilotSettings.SetRange(Capability, Enum::"Copilot Capability"::Chat);
-        ChatCopilotSettings.SetRange("App Id", ModuleInfo.Id());
-        ChatCopilotSettings.SetRange(Status, Enum::"Copilot Status"::Inactive);
-        exit(not ChatCopilotSettings.IsEmpty());
     end;
 
     local procedure IsWithinEUDB(): Boolean
