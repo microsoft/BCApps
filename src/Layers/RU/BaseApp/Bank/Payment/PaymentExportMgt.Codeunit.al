@@ -152,6 +152,7 @@ codeunit 1210 "Payment Export Mgt"
         until DataExchFieldMapping.Next() = 0;
     end;
 
+#if not CLEAN29
     /// <summary>
     /// Processes column mapping for payment export data exchange with FlowField grouping support.
     /// </summary>
@@ -221,6 +222,7 @@ codeunit 1210 "Payment Export Mgt"
             DataExchField.Modify();
         until DataExchFieldMapping.Next() = 0;
     end;
+#endif
 
     local procedure PrepopulateColumns(DataExchDef: Record "Data Exch. Def"; DataExchLineDefCode: Code[20]; DataExchEntryNo: Integer; DataExchLineNo: Integer)
     var
