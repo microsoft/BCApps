@@ -19,7 +19,7 @@ pageextension 30104 "Shpfy Sales & Rel. Mgr. RC" extends "Sales & Relationship M
             group(Shpfy)
             {
                 Caption = 'Shopify';
-                ToolTip = 'Manage Shopify Shops, customers, products, orders, gift cards, transactions and payouts.';
+                ToolTip = 'Manage Shopify Shops, customers, companies, products, orders, gift cards, transactions and payouts.';
 
                 action(ShpfyShops)
                 {
@@ -36,6 +36,14 @@ pageextension 30104 "Shpfy Sales & Rel. Mgr. RC" extends "Sales & Relationship M
                     Image = CustomerList;
                     RunObject = page "Shpfy Customers";
                     ToolTip = 'View or edit detailed information for the customers that you trade with through Shopify.';
+                }
+                action(ShpfyCompanies)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Companies';
+                    Image = Company;
+                    RunObject = page "Shpfy Companies";
+                    ToolTip = 'View or edit detailed information for the companies that you trade with through Shopify.';
                 }
                 action(ShpfyProducts)
                 {
