@@ -415,9 +415,9 @@ page 8901 "Finance Manager Role Center"
                     }
                     // action("Simulation Register")
                     // {
-                    //     ApplicationArea = Basic, Suite;
-                    //     Caption = 'Simulation Register';
-                    //     RunObject = page 28160;
+                    // 	ApplicationArea = Basic,Suite;
+                    // 	Caption = 'Simulation Register';
+                    // 	RunObject = page 28160;
                     // }
                     action("GST Purchase Entries")
                     {
@@ -760,18 +760,6 @@ page 8901 "Finance Manager Role Center"
                     Caption = 'Payment Registration';
                     RunObject = page "Payment Registration";
                 }
-                action("Deposit")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Bank Deposits';
-                    RunObject = codeunit "Open Deposits Page";
-                }
-                action("Posted Bank Deposit")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Bank Deposits';
-                    RunObject = codeunit "Open P. Bank Deposits L. Page";
-                }
                 action("Post Dated Checks - Sales")
                 {
                     ApplicationArea = Basic, Suite;
@@ -783,6 +771,18 @@ page 8901 "Finance Manager Role Center"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Post Dated Checks-Purchases';
                     RunObject = page "Post Dated Checks-Purchases";
+                }
+                action("Deposit")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Bank Deposits';
+                    RunObject = codeunit "Open Deposits Page";
+                }
+                action("Posted Bank Deposit")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Posted Bank Deposits';
+                    RunObject = codeunit "Open P. Bank Deposits L. Page";
                 }
                 group("Group16")
                 {
@@ -1396,6 +1396,12 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'Customer Statement';
                         RunObject = codeunit "Customer Layout - Statement";
                     }
+                    action("AU/NZ Statement")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'AU/NZ Statement';
+                        RunObject = Report "AU/NZ Statement";
+                    }
                     action("Customer Register")
                     {
                         ApplicationArea = Basic, Suite;
@@ -1470,12 +1476,6 @@ page 8901 "Finance Manager Role Center"
                         ObsoleteTag = '28.0';
                     }
 #endif
-                    action("AU/NZ Statement")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'AU/NZ Statement';
-                        RunObject = Report "AU/NZ Statement";
-                    }
 #if not CLEAN28
                     action("Sales Statistics")
                     {
