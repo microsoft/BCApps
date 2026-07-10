@@ -15,17 +15,12 @@ using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Period;
 using Microsoft.Intercompany;
 using Microsoft.Intercompany.Inbox;
 using Microsoft.Intercompany.Outbox;
-using Microsoft.Purchases.History;
-using Microsoft.Purchases.Payables;
-using Microsoft.Sales.History;
-using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
 using System.Environment.Configuration;
 using System.Reflection;
@@ -113,20 +108,15 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         FAJnlSetup: Record "FA Journal Setup";
         TempGenJnlLine3: Record "Gen. Journal Line" temporary;
         SavedGenJournalLine: Record "Gen. Journal Line";
-        WHTEntry: Record "WHT Entry";
-        CustLedgEntry: Record "Cust. Ledger Entry";
-        VendLedgEntry: Record "Vendor Ledger Entry";
-        PurchInvLine: Record "Purch. Inv. Line";
-        SalesInvLine: Record "Sales Invoice Line";
-        WHTPostingSetup: Record "WHT Posting Setup";
-        TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary;
-        TempVendLedgerEntry: Record "Vendor Ledger Entry" temporary;
         GenJnlCheckLine: Codeunit "Gen. Jnl.-Check Line";
         GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line";
         GenJnlPostPreview: Codeunit "Gen. Jnl.-Post Preview";
         NoSeriesBatch: Codeunit "No. Series - Batch";
         ICOutboxMgt: Codeunit ICInboxOutboxMgt;
         PostingSetupMgt: Codeunit PostingSetupManagement;
+#if not CLEAN29
+        WHTGenJnlPostBatch: Codeunit "WHT Gen. Jnl.-Post Batch";
+#endif
         Window: Dialog;
         GLRegNo: Integer;
         StartLineNo: Integer;
@@ -149,7 +139,6 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         LastFAAddCurrExchRate: Decimal;
         LastCurrencyCode: Code[10];
         CurrencyBalance: Decimal;
-        TotWHT: Decimal;
 #pragma warning disable AA0074
         Text029: Label '%1 %2 posted on %3 includes more than one customer, vendor or IC Partner.', Comment = '%1 = Document Type;%2 = Document No.;%3=Posting Date';
 #pragma warning disable AA0470
@@ -392,7 +381,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         IsProcessingKeySet := false;
         OnBeforeProcessBalanceOfLines(GenJnlLine, GenJnlBatch, GenJnlTemplate, IsProcessingKeySet);
         if not IsProcessingKeySet then
-            if (IsWHTPaymentPosting(GenJnlLine) or GenJnlTemplate."Force Doc. Balance") then
+            if CheckIfForceDocumentBalance(GenJnlLine, GenJnlTemplate) then
                 GenJnlLine.SetCurrentKey("Document No.", "Posting Date")
             else
                 if CheckIfDiffPostingDatesExist(GenJnlBatch, GenJnlLine."Posting Date") then
@@ -1054,95 +1043,41 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         GenJnlLine.Modify();
     end;
 
+#if not CLEAN29
     [Scope('OnPrem')]
-    procedure CheckWHTCalculationRule(TotalInvoiceAmountLCY: Decimal; WHTPostingSetup: Record "WHT Posting Setup"; var GenJnlLine5: Record "Gen. Journal Line")
+    [Obsolete('Moved to codeunit WHT Gen. Jnl.-Post Batch', '29.0')]
+    procedure CheckWHTCalculationRule(TotalInvoiceAmountLCY: Decimal; WHTPostingSetup: Record Microsoft.Finance.WithholdingTax."WHT Posting Setup"; var GenJnlLine5: Record "Gen. Journal Line")
     begin
-        GenJnlLine5."Skip WHT" :=
-          not CompareAmounts(TotalInvoiceAmountLCY, WHTPostingSetup) and
-          (CompareAmounts(GenJnlLine5."Amount (LCY)", WHTPostingSetup) or GLSetup."Min. WHT Calc only on Inv. Amt");
+        WHTGenJnlPostBatch.CheckWHTCalculationRule(TotalInvoiceAmountLCY, WHTPostingSetup, GenJnlLine5);
     end;
+#endif
 
+#if not CLEAN29
     [Scope('OnPrem')]
-    procedure VendorMinWHT(var VendLedgEntry: Record "Vendor Ledger Entry"; var GenJnlLine5: Record "Gen. Journal Line")
+    [Obsolete('Moved to codeunit WHT Gen. Jnl.-Post Batch', '29.0')]
+    procedure VendorMinWHT(var VendLedgEntry: Record Microsoft.Purchases.Payables."Vendor Ledger Entry"; var GenJnlLine5: Record "Gen. Journal Line")
     begin
-        repeat
-            TempVendLedgerEntry.Init();
-            TempVendLedgerEntry."Entry No." := VendLedgEntry."Entry No.";
-            TempVendLedgerEntry."Document Type" := VendLedgEntry."Document Type";
-            TempVendLedgerEntry."Document No." := VendLedgEntry."Document No.";
-            TempVendLedgerEntry.Insert();
-            WHTEntry.Reset();
-            WHTPostingSetup.Reset();
-            TotWHT := 0;
-            WHTEntry.SetCurrentKey("Document Type", "Document No.");
-            WHTEntry.SetRange("Document Type", VendLedgEntry."Document Type");
-            WHTEntry.SetRange("Document No.", VendLedgEntry."Document No.");
-            if WHTEntry.FindFirst() then begin
-                WHTEntry.CalcSums("Unrealized Base (LCY)");
-                TotWHT := TotWHT + WHTEntry."Unrealized Base (LCY)";
-            end;
-            if WHTPostingSetup.Get(WHTEntry."WHT Bus. Posting Group", WHTEntry."WHT Prod. Posting Group") then
-                CheckWHTCalculationRule(TotWHT, WHTPostingSetup, GenJnlLine5);
-
-            if VendLedgEntry."Document Type" = VendLedgEntry."Document Type"::Invoice then begin
-                PurchInvLine.SetRange("Document No.", VendLedgEntry."Applies-to Doc. No.");
-                if PurchInvLine.FindFirst() and (PurchInvLine."Blanket Order No." <> '') then
-                    GenJnlLine5."Skip WHT" := false;
-            end;
-        // if (NOT GenJnlLine5."Skip WHT") THEN
-        // EXIT;
-        until VendLedgEntry.Next() = 0;
+        WHTGenJnlPostBatch.VendorMinWHT(VendLedgEntry, GenJnlLine5);
     end;
+#endif
 
+#if not CLEAN29
     [Scope('OnPrem')]
-    procedure CustomerMinWHT(var CustLedgEntry: Record "Cust. Ledger Entry"; var GenJnlLine5: Record "Gen. Journal Line")
+    [Obsolete('Moved to codeunit WHT Gen. Jnl.-Post Batch', '29.0')]
+    procedure CustomerMinWHT(var CustLedgEntry: Record Microsoft.Sales.Receivables."Cust. Ledger Entry"; var GenJnlLine5: Record "Gen. Journal Line")
     begin
-        repeat
-            TempCustLedgerEntry.Init();
-            TempCustLedgerEntry."Entry No." := CustLedgEntry."Entry No.";
-            TempCustLedgerEntry."Document Type" := CustLedgEntry."Document Type";
-            TempCustLedgerEntry."Document No." := CustLedgEntry."Document No.";
-            TempCustLedgerEntry.Insert();
-            WHTEntry.Reset();
-            WHTPostingSetup.Reset();
-            TotWHT := 0;
-            WHTEntry.SetCurrentKey("Document Type", "Document No.");
-            WHTEntry.SetRange("Document Type", CustLedgEntry."Document Type");
-            WHTEntry.SetRange("Document No.", CustLedgEntry."Document No.");
-            if WHTEntry.FindFirst() then begin
-                WHTEntry.CalcSums("Unrealized Base (LCY)");
-                TotWHT := TotWHT + WHTEntry."Unrealized Base (LCY)";
-            end;
-            if WHTPostingSetup.Get(WHTEntry."WHT Bus. Posting Group", WHTEntry."WHT Prod. Posting Group") then
-                CheckWHTCalculationRule(TotWHT, WHTPostingSetup, GenJnlLine5);
-
-            if CustLedgEntry."Document Type" = CustLedgEntry."Document Type"::Invoice then begin
-                SalesInvLine.SetRange("Document No.", CustLedgEntry."Applies-to Doc. No.");
-                if SalesInvLine.FindFirst() and (SalesInvLine."Blanket Order No." <> '') then
-                    GenJnlLine5."Skip WHT" := false;
-            end;
-            if not GenJnlLine5."Skip WHT" then
-                exit;
-        until CustLedgEntry.Next() = 0;
+        WHTGenJnlPostBatch.CustomerMinWHT(CustLedgEntry, GenJnlLine5);
     end;
+#endif
 
+#if not CLEAN29
     [Scope('OnPrem')]
-    procedure CompareAmounts(AmountLCY: Decimal; WHTPostSetup: Record "WHT Posting Setup"): Boolean
+    [Obsolete('Moved to codeunit WHT Gen. Jnl.-Post Batch', '29.0')]
+    procedure CompareAmounts(AmountLCY: Decimal; WHTPostSetup: Record Microsoft.Finance.WithholdingTax."WHT Posting Setup"): Boolean
     begin
-        AmountLCY := Abs(AmountLCY);
-        case WHTPostSetup."WHT Calculation Rule" of
-            WHTPostSetup."WHT Calculation Rule"::"Less than":
-                exit(AmountLCY >= WHTPostSetup."WHT Minimum Invoice Amount");
-            WHTPostSetup."WHT Calculation Rule"::"Less than or equal to":
-                exit(AmountLCY > WHTPostSetup."WHT Minimum Invoice Amount");
-            WHTPostSetup."WHT Calculation Rule"::"Equal to":
-                exit(AmountLCY <> WHTPostSetup."WHT Minimum Invoice Amount");
-            WHTPostSetup."WHT Calculation Rule"::"Greater than":
-                exit(AmountLCY <= WHTPostSetup."WHT Minimum Invoice Amount");
-            WHTPostSetup."WHT Calculation Rule"::"Greater than or equal to":
-                exit(AmountLCY < WHTPostSetup."WHT Minimum Invoice Amount");
-        end;
+        exit(WHTGenJnlPostBatch.CompareAmounts(AmountLCY, WHTPostSetup));
     end;
+#endif
 
     local procedure CopyGenJnlLineBalancingData(var GenJnlLineTo: Record "Gen. Journal Line"; var GenJnlLineFrom: Record "Gen. Journal Line")
     var
@@ -1649,7 +1584,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
     begin
         PostGenJournalLine(GenJournalLine, CurrGenJnlLine, CurrentICPartner, ICTransactionNo)
     end;
-    
+
     local procedure PostGenJournalLine(var GenJournalLine: Record "Gen. Journal Line"; CurrGenJnlLine: Record "Gen. Journal Line"; CurrentICPartner: Code[20]; ICTransactionNo: Integer) Result: Boolean
     var
         IsPosted: Boolean;
@@ -1669,43 +1604,7 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         CheckDocumentNo(GenJournalLine);
         GenJnlLine5.Copy(GenJournalLine);
         PrepareGenJnlLineAddCurr(GenJnlLine5);
-        // Update/delete lines
-        if GLSetup."Enable WHT" and (not GLSetup."Enable GST (Australia)") and (not GenJnlLine5."Skip WHT") then
-            if GenJnlLine5."Applies-to Doc. No." <> '' then begin
-                WHTEntry.SetCurrentKey("Document Type", "Document No.");
-                WHTEntry.SetRange("Document No.", GenJnlLine5."Applies-to Doc. No.");
-                WHTEntry.SetRange("Document Type", GenJnlLine5."Applies-to Doc. Type");
-                if WHTEntry.FindFirst() then
-                    if WHTPostingSetup.Get(WHTEntry."WHT Bus. Posting Group", WHTEntry."WHT Prod. Posting Group") then begin
-                        WHTEntry.CalcSums("Unrealized Base (LCY)");
-                        CheckWHTCalculationRule(WHTEntry."Unrealized Base (LCY)", WHTPostingSetup, GenJnlLine5);
-                    end;
-                if GenJnlLine5."Applies-to Doc. Type" = GenJnlLine5."Applies-to Doc. Type"::Invoice then begin
-                    PurchInvLine.SetRange("Document No.", GenJnlLine5."Applies-to Doc. No.");
-                    if PurchInvLine.FindFirst() then
-                        if PurchInvLine."Blanket Order No." <> '' then
-                            GenJnlLine5."Skip WHT" := false;
-                end;
-            end else
-                if GenJnlLine5."Applies-to ID" <> '' then
-                    case GenJnlLine5."Account Type" of
-                        GenJnlLine5."Account Type"::Customer:
-                            begin
-                                TotWHT := 0;
-                                CustLedgEntry.SetRange("Applies-to ID", CurrGenJnlLine."Document No.");
-                                CustLedgEntry.SetRange("Customer No.", CurrGenJnlLine."Account No.");
-                                if CustLedgEntry.FindFirst() then
-                                    CustomerMinWHT(CustLedgEntry, GenJnlLine5);
-                            end;
-                        GenJnlLine5."Account Type"::Vendor:
-                            begin
-                                TotWHT := 0;
-                                VendLedgEntry.SetRange("Applies-to ID", CurrGenJnlLine."Document No.");
-                                VendLedgEntry.SetRange("Vendor No.", CurrGenJnlLine."Account No.");
-                                if VendLedgEntry.FindFirst() then
-                                    VendorMinWHT(VendLedgEntry, GenJnlLine5);
-                            end;
-                    end;
+        OnPostGenJournalLineOnAfterPrepareGenJnlLineAddCurr(GenJnlLine5, CurrGenJnlLine, GenJournalLine);
 
         UpdateIncomingDocument(GenJnlLine5);
         UpdateDimBalBatchName(GenJnlLine5);
@@ -1745,29 +1644,6 @@ codeunit 13 "Gen. Jnl.-Post Batch"
         PostAllocations(GenJournalLine, false);
         Result := true;
         OnAfterPostGenJournalLine(GenJournalLine, Result, GenJnlPostLine);
-    end;
-
-    local procedure IsWHTPaymentPosting(var GenJournalLine: Record "Gen. Journal Line"): Boolean
-    var
-        GenJournalLineWHT: Record "Gen. Journal Line";
-        WHTPostingSetup: Record "WHT Posting Setup";
-    begin
-        if not GLSetup."Enable WHT" then
-            exit(false);
-
-        GenJournalLineWHT.Copy(GenJournalLine);
-        GenJournalLineWHT.SetRange("Document Type", GenJournalLine."Document Type"::Payment);
-        GenJournalLineWHT.SetRange("Skip WHT", false);
-        GenJournalLineWHT.SetFilter("Applies-to Doc. No.", '<>%1', '');
-        if GenJournalLineWHT.FindSet() then
-            repeat
-                if WHTPostingSetup.Get(GenJournalLineWHT."WHT Business Posting Group", GenJournalLineWHT."WHT Product Posting Group") and
-                   (WHTPostingSetup."Realized WHT Type" = WHTPostingSetup."Realized WHT Type"::Payment)
-                then
-                    exit(true);
-            until GenJournalLineWHT.Next() = 0;
-
-        exit(false);
     end;
 
     local procedure CheckLine(var GenJnlLine: Record "Gen. Journal Line"; var PostingAfterWorkingDateConfirmed: Boolean)
@@ -2129,6 +2005,13 @@ codeunit 13 "Gen. Jnl.-Post Batch"
                 GenJnlLine."VAT Reporting Date" := GLSetup.GetVATDate(GenJnlLine."Posting Date", GenJnlLine."Document Date");
             GenJnlLine.Modify();
         end;
+    end;
+
+    local procedure CheckIfForceDocumentBalance(var GenJnlLine: Record "Gen. Journal Line"; GenJnlTemplate2: Record "Gen. Journal Template") Result: Boolean
+    begin
+        Result := GenJnlTemplate2."Force Doc. Balance";
+        OnAfterCheckIfForceDocumentBalance(GenJnlLine, Result);
+        exit(Result);
     end;
 
     local procedure CheckIfDiffPostingDatesExist(GenJournalBatch: Record "Gen. Journal Batch"; PostingDate: Date): Boolean
@@ -2667,6 +2550,16 @@ codeunit 13 "Gen. Jnl.-Post Batch"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeFindGenJnlLineOnProcessLines(var GenJournalLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostGenJournalLineOnAfterPrepareGenJnlLineAddCurr(GenJnlLine5: Record "Gen. Journal Line"; CurrGenJnlLine: Record "Gen. Journal Line"; GenJournalLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterCheckIfForceDocumentBalance(var GenJnlLine: Record "Gen. Journal Line"; var Result: Boolean)
     begin
     end;
 }
