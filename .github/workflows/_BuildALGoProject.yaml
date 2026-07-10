@@ -164,7 +164,7 @@ jobs:
       - name: Download Project Dependencies
         id: DownloadProjectDependencies
         if: steps.DetermineBuildProject.outputs.BuildIt == 'True'
-        uses: microsoft/AL-Go-Actions/DownloadProjectDependencies@v9.1
+        uses: microsoft/AL-Go/Actions/DownloadProjectDependencies@aholstrup1-glowing-journey
         env:
           Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
         with:
