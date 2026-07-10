@@ -1422,6 +1422,77 @@
         Assert.AreEqual(CarteraDoc."Cust./Vendor Bank Acc. Code", SEPADirectDebitMandate."Customer Bank Account Code", CustVendorBankAccountErr);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    [Scope('OnPrem')]
+    procedure UnapplyAndRevertSucceedsAfterPaymentWithCurrencyFactorChange()
+    var
+        SalesHeader: Record "Sales Header";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalLine: Record "Gen. Journal Line";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        CurrencyCode: Code[10];
+        PostedInvoiceNo: Code[20];
+        PaymentDate: Date;
+        TransactionNo: Integer;
+    begin
+        // [SCENARIO] Unapply and revert transaction succeeds after payment with changed currency factor for Cartera bill
+        Initialize();
+
+        // [GIVEN] Posted sales invoice with Cartera customer in FCY (creates bill entries)
+        CurrencyCode := LibraryCarteraCommon.CreateCarteraCurrency(true, false, false);
+        PostedInvoiceNo := PostCarteraSalesInvoiceWithItem(SalesHeader, CurrencyCode);
+
+        // [GIVEN] Find the bill entry for the posted invoice
+        CustLedgerEntry.SetRange("Document No.", PostedInvoiceNo);
+        CustLedgerEntry.SetRange("Customer No.", SalesHeader."Sell-to Customer No.");
+        CustLedgerEntry.SetFilter("Bill No.", '<>%1', '');
+        CustLedgerEntry.FindFirst();
+
+        // [GIVEN] Create a second exchange rate for the payment date (different rate to cause gain/loss)
+        PaymentDate := CalcDate('<+1M>', WorkDate());
+        LibraryERM.CreateExchRate(CurrencyExchangeRate, CurrencyCode, PaymentDate);
+        CurrencyExchangeRate.Validate("Exchange Rate Amount", 1);
+        CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", LibraryRandom.RandDecInRange(2, 5, 2));
+        CurrencyExchangeRate.Validate("Adjustment Exch. Rate Amount", CurrencyExchangeRate."Exchange Rate Amount");
+        CurrencyExchangeRate.Validate("Relational Adjmt Exch Rate Amt", CurrencyExchangeRate."Relational Exch. Rate Amount");
+        CurrencyExchangeRate.Modify(true);
+
+        // [GIVEN] Payment journal applied to the bill and posted
+        CustLedgerEntry.CalcFields("Remaining Amount");
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLineWithBalAcc(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Customer, SalesHeader."Sell-to Customer No.",
+            GenJournalLine."Bal. Account Type"::"G/L Account", LibraryERM.CreateGLAccountNo(),
+            -Abs(CustLedgerEntry."Remaining Amount"));
+        GenJournalLine.Validate("Posting Date", PaymentDate);
+        GenJournalLine.Validate("Applies-to Bill No.", CustLedgerEntry."Bill No.");
+        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Bill);
+        GenJournalLine.Validate("Applies-to Doc. No.", PostedInvoiceNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [GIVEN] Find payment entry
+        CustLedgerEntry.Reset();
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Payment, GenJournalLine."Document No.");
+        TransactionNo := CustLedgerEntry."Transaction No.";
+
+        // [WHEN] Unapply entries and revert transaction
+        LibraryERM.UnapplyCustomerLedgerEntry(CustLedgerEntry);
+        LibraryERM.ReverseTransaction(TransactionNo);
+
+        // [THEN] No error occurs and entries are successfully reversed
+        CustLedgerEntry.Reset();
+        CustLedgerEntry.SetRange("Customer No.", SalesHeader."Sell-to Customer No.");
+        CustLedgerEntry.SetRange("Document No.", GenJournalLine."Document No.");
+        CustLedgerEntry.SetRange(Reversed, true);
+        Assert.RecordIsNotEmpty(CustLedgerEntry);
+    end;
+
     local procedure Initialize()
     begin
         LibraryVariableStorage.Clear();
@@ -1759,6 +1830,23 @@
         LibraryCarteraReceivables.CreateCarteraCustomer(Customer, CurrencyCode);
         LibraryCarteraReceivables.CreateCustomerBankAccount(Customer, CustomerBankAccount);
         LibraryCarteraReceivables.CreateSalesInvoice(SalesHeader, Customer."No.");
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure PostCarteraSalesInvoiceWithItem(var SalesHeader: Record "Sales Header"; CurrencyCode: Code[10]): Code[20]
+    var
+        Customer: Record Customer;
+        CustomerBankAccount: Record "Customer Bank Account";
+        Item: Record Item;
+        SalesLine: Record "Sales Line";
+    begin
+        LibraryCarteraReceivables.CreateCarteraCustomer(Customer, CurrencyCode);
+        LibraryCarteraReceivables.CreateCustomerBankAccount(Customer, CustomerBankAccount);
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
+        Item.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandInt(100));
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
