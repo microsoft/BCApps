@@ -277,11 +277,12 @@ codeunit 7324 "Whse.-Activity-Post"
         WarehouseActivityLine2.SetFilter("Activity Type", '%1|%2', WarehouseActivityLine2."Activity Type"::"Invt. Pick", WarehouseActivityLine2."Activity Type"::"Invt. Put-away");
         if WarehouseActivityLine2.FindSet() then
             repeat
-                if CheckItemTracking(WarehouseActivityLine2) then begin
-                    CreateWhseJnlLine(TempWhseJnlLine, WarehouseActivityLine2);
-                    if TempWhseJnlLine."Entry Type" = TempWhseJnlLine."Entry Type"::"Negative Adjmt." then
-                        WMSMgt.CheckWhseJnlLine(TempWhseJnlLine, 4, TempWhseJnlLine."Qty. (Base)", false); // 4 = Whse. Journal
-                end;
+                if not WarehouseActivityLine2."Assemble to Order" then
+                    if CheckItemTracking(WarehouseActivityLine2) then begin
+                        CreateWhseJnlLine(TempWhseJnlLine, WarehouseActivityLine2);
+                        if TempWhseJnlLine."Entry Type" = TempWhseJnlLine."Entry Type"::"Negative Adjmt." then
+                            WMSMgt.CheckWhseJnlLine(TempWhseJnlLine, 4, TempWhseJnlLine."Qty. (Base)", false); // 4 = Whse. Journal
+                    end;
             until WarehouseActivityLine2.Next() = 0;
     end;
 
