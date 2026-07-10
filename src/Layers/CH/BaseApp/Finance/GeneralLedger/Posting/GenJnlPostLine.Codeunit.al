@@ -1519,6 +1519,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary;
         DtldEmplLedgEntry: Record "Detailed Employee Ledger Entry";
+        TaxAmount: Decimal;
+        TaxBaseAmount: Decimal;
         DtldLedgEntryInserted: Boolean;
     begin
         Employee.Get(GenJnlLine."Account No.");
@@ -1537,6 +1539,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         InitEmployeeLedgerEntry(GenJnlLine, EmployeeLedgerEntry);
 
+        OnPostEmployeeOnAfterInitEmployeeLedgerEntry(GenJnlLine, EmployeeLedgerEntry, Employee, TaxAmount, TaxBaseAmount);
         TempDtldCVLedgEntryBuf.DeleteAll();
         TempDtldCVLedgEntryBuf.Init();
         TempDtldCVLedgEntryBuf.CopyFromGenJnlLine(GenJnlLine);
@@ -1577,6 +1580,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if DtldLedgEntryInserted then
             if IsTempGLEntryBufEmpty() then
                 DtldEmplLedgEntry.SetZeroTransNo(NextTransactionNo);
+
+        OnAfterPostEmployee(GenJnlLine, EmployeeLedgerEntry, TaxAmount, TaxBaseAmount, NextTransactionNo, NextTaxEntryNo);
+
         OnMoveGenJournalLine(GenJnlLine, EmployeeLedgerEntry.RecordId);
     end;
 
@@ -11184,6 +11190,16 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnPostUnapplyOnBeforeInsertTempVATEntry(var VATEntry: Record "VAT Entry"; var UnapplyVATEntries: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostEmployeeOnAfterInitEmployeeLedgerEntry(var GenJnlLine: Record "Gen. Journal Line"; var EmployeeLedgerEntry: Record "Employee Ledger Entry"; Employee: Record Employee; var TaxAmount: Decimal; var TaxBaseAmount: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnAfterPostEmployee(GenJnlLine: Record "Gen. Journal Line"; EmployeeLedgerEntry: Record "Employee Ledger Entry"; TaxAmount: Decimal; TaxBaseAmount: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer)
     begin
     end;
 }
