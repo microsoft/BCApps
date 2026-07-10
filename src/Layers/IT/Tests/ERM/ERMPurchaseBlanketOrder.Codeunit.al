@@ -36,6 +36,7 @@
         PayToAddressFieldsEditableErr: Label 'Pay-to address fields should be editable.';
         DocumentDateError: Label '%1 cannot be greater than %2';
         DirectCostIsChangedErr: Label 'Direct Cost is changed on Quantity update.';
+        WrongAttachedExtTextCountErr: Label 'Purchase Order must contain 2 extended-text lines attached to item %1 (order line no %2).', Comment = '%1 = Item No.; %2 = Purchase Order Line No.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1394,6 +1395,106 @@
 
         // [THEN] Verify Unit Cost is not changed if Purchase Order is related to Blanket Purchase Order
         Assert.IsTrue(PurchaseLine."Direct Unit Cost" = DirectCost, DirectCostIsChangedErr);
+    end;
+
+    [Test]
+    procedure ExtendedTextStaysAttachedToParentOnOrderWhenMakingOrderWithMultipleItems()
+    var
+        Vendor: Record Vendor;
+        Item: array[2] of Record Item;
+        BlanketPurchaseHeader: Record "Purchase Header";
+        OrderItemLine: Record "Purchase Line";
+        OrderAttachedLine: Record "Purchase Line";
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
+        OrderNo: Code[20];
+        i: Integer;
+    begin
+        // [SCENARIO 640321] Each item's extended-text lines on the new purchase order must be attached to that
+        //                 item's order line, not to the blanket parent line, even when multiple items have extended texts.
+        Initialize();
+
+        // [GIVEN] Two items, each with two extended texts.
+        CreateItemWithTwoExtendedTexts(Item[1]);
+        CreateItemWithTwoExtendedTexts(Item[2]);
+
+        // [GIVEN] A vendor.
+        LibraryPurchase.CreateVendor(Vendor);
+
+        // [GIVEN] A blanket purchase order with both items (auto-inserts the extended texts).
+        CreateBlanketPurchaseOrder(Vendor, Item[1], Item[2]);
+
+        // [GIVEN] Find the blanket purchase header.
+        BlanketPurchaseHeader.SetRange("Document Type", BlanketPurchaseHeader."Document Type"::"Blanket Order");
+        BlanketPurchaseHeader.SetRange("Buy-from Vendor No.", Vendor."No.");
+        BlanketPurchaseHeader.FindFirst();
+
+        // [WHEN] Make Order is run.
+        OrderNo := LibraryPurchase.BlanketPurchaseOrderMakeOrder(BlanketPurchaseHeader);
+
+        // [THEN] Each item on the new order has two extended-text lines attached to its order line no.
+        for i := 1 to 2 do begin
+            OrderItemLine.Reset();
+            OrderItemLine.SetRange("Document Type", OrderItemLine."Document Type"::Order);
+            OrderItemLine.SetRange("Document No.", OrderNo);
+            OrderItemLine.SetRange("No.", Item[i]."No.");
+            OrderItemLine.FindFirst();
+
+            OrderAttachedLine.Reset();
+            OrderAttachedLine.SetRange("Document Type", OrderAttachedLine."Document Type"::Order);
+            OrderAttachedLine.SetRange("Document No.", OrderNo);
+            OrderAttachedLine.SetRange("Attached to Line No.", OrderItemLine."Line No.");
+            Assert.AreEqual(
+                2,
+                OrderAttachedLine.Count(),
+                StrSubstNo(WrongAttachedExtTextCountErr, Item[i]."No.", OrderItemLine."Line No."));
+        end;
+
+        NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
+    local procedure CreateItemWithTwoExtendedTexts(var Item: Record Item)
+    var
+        ExtendedTextHeader: Record "Extended Text Header";
+        ExtendedTextLine: array[2] of Record "Extended Text Line";
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Automatic Ext. Texts", true);
+        Item.Modify(true);
+
+        LibraryInventory.CreateExtendedTextHeaderItem(ExtendedTextHeader, Item."No.");
+        ExtendedTextHeader.Validate("Purchase Blanket Order", true);
+        ExtendedTextHeader.Validate("Purchase Order", true);
+        ExtendedTextHeader.Modify(true);
+
+        LibraryInventory.CreateExtendedTextLineItem(ExtendedTextLine[1], ExtendedTextHeader);
+        ExtendedTextLine[1].Validate(Text, LibraryUtility.GenerateRandomText(MaxStrLen(Item."No.")));
+        ExtendedTextLine[1].Modify(true);
+
+        LibraryInventory.CreateExtendedTextLineItem(ExtendedTextLine[2], ExtendedTextHeader);
+        ExtendedTextLine[2].Validate(Text, LibraryUtility.GenerateRandomText(MaxStrLen(Item."No.")));
+        ExtendedTextLine[2].Modify(true);
+    end;
+
+    local procedure CreateBlanketPurchaseOrder(Vendor: Record Vendor; Item: Record Item; Item2: Record Item)
+    var
+        BlanketPurchaseOrder: TestPage "Blanket Purchase Order";
+    begin
+        BlanketPurchaseOrder.OpenNew();
+        BlanketPurchaseOrder."Buy-from Vendor No.".SetValue(Vendor."No.");
+        BlanketPurchaseOrder.PurchLines.First();
+        BlanketPurchaseOrder.PurchLines.Type.SetValue("Purchase Line Type"::Item);
+        BlanketPurchaseOrder.PurchLines."No.".SetValue(Item."No.");
+        BlanketPurchaseOrder.PurchLines.Quantity.SetValue(LibraryRandom.RandIntInRange(3, 3));
+        Commit();
+        BlanketPurchaseOrder.PurchLines.Next();
+        BlanketPurchaseOrder.PurchLines.Next();
+        BlanketPurchaseOrder.PurchLines.Next();
+        BlanketPurchaseOrder.PurchLines.Type.SetValue("Purchase Line Type"::Item);
+        BlanketPurchaseOrder.PurchLines."No.".SetValue(Item2."No.");
+        BlanketPurchaseOrder.PurchLines.Quantity.SetValue(LibraryRandom.RandIntInRange(4, 4));
+        Commit();
+        BlanketPurchaseOrder.PurchLines.Next();
+        BlanketPurchaseOrder.Close();
     end;
 
     local procedure Initialize()
