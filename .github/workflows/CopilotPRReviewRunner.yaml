@@ -3,9 +3,10 @@ name: Copilot PR Review Runner
 # Thin caller for the reusable Business Central PR-review workflow, which
 # lives in microsoft/BC-ALReviewAgent. All orchestration (PR resolution,
 # BCQuality clone+filter, running the Copilot CLI, rendering and posting
-# findings) is implemented there; this repository supplies its policy inline
-# in the `with:` block below (BCQuality repo/ref, layers, knowledge filters,
-# task-context) and the trigger.
+# findings, plus the default BCQuality policy) is implemented there. This
+# repository only supplies the trigger and reviewer-behaviour overrides; it
+# inherits the engine's BCQuality baseline (repo/ref, layers, knowledge
+# filters, task-context). To diverge, pass the matching `with:` input.
 #
 # Security model is preserved by the reusable workflow: the review job is
 # read-only and runs the model on the untrusted diff; a separate publish job
@@ -40,22 +41,9 @@ jobs:
     with:
       target_repo: ${{ github.repository }}
       engine_ref: v1.0.4
-      # BCQuality policy (inlined here; formerly tools/BCQuality/bcquality.config.yaml).
-      # Literal defaults are this repo's tracked policy; the matching vars.* override
-      # at runtime. SECURITY: bcquality_repo/ref point the reviewer at BCQuality content
-      # that is read before the untrusted PR diff, so keep bcquality_ref pinned to a
-      # reviewed SHA and bcquality_repo at a trusted host.
-      bcquality_repo: ${{ vars.BCQUALITY_REPO || 'https://github.com/microsoft/BCQuality' }}
-      bcquality_ref: ${{ vars.BCQUALITY_REF || '822cae1b2771ac25f665f73369f69093bd4fd630' }}
-      enabled_layers: ${{ vars.BCQUALITY_ENABLED_LAYERS || 'microsoft' }}
-      disabled_skills: ${{ vars.BCQUALITY_DISABLED_SKILLS }}
-      knowledge_allow: ${{ vars.BCQUALITY_KNOWLEDGE_ALLOW || 'microsoft/knowledge/**' }}
-      knowledge_deny: ${{ vars.BCQUALITY_KNOWLEDGE_DENY }}
-      # task-context dimensions passed to BCQuality's skills/entry.md ('all' = unconstrained)
-      technologies: ${{ vars.BCQUALITY_TECHNOLOGIES || 'al' }}
-      countries: ${{ vars.BCQUALITY_COUNTRIES || 'w1' }}
-      application_area: ${{ vars.BCQUALITY_APPLICATION_AREA || 'all' }}
-      bc_version: ${{ vars.BCQUALITY_BC_VERSION || 'all' }}
+      # BCQuality policy (repo/ref, layers, knowledge filters, task-context) is
+      # inherited from the engine's tracked baseline; pass the matching input
+      # here only to diverge from it.
       # Reviewer behaviour overrides
       copilot_model: ${{ vars.COPILOT_REVIEW_MODEL }}
       minimum_severity: ${{ vars.COPILOT_REVIEW_MINIMUM_SEVERITY || 'Medium' }}
