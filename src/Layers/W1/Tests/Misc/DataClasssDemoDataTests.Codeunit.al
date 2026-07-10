@@ -10,12 +10,7 @@ codeunit 135153 "Data Classs Demo Data Tests"
 
     var
         Assert: Codeunit Assert;
-        UnclassifiedFieldsErr: Label 'The following tables have fields with Data Sensitivity Unclassified. Classify them (e.g. via Codeunit "Data Classification Eval. Data" or a subscriber to OnCreateEvaluationDataOnAfterClassifyTablesToNormal), or add the owning app to GetAppsPendingDataClassification:\%1', Comment = '%1 = a multi-line list of tables and their unclassified fields';
-        TableLineTxt: Label 'Table %1 "%2": %3 unclassified field(s): %4', Comment = '%1 = table no., %2 = table name, %3 = count of unclassified fields, %4 = comma-separated list of field numbers';
-        MoreFieldsTxt: Label '%1, (+%2 more)', Comment = '%1 = the first field numbers, %2 = count of remaining unclassified fields not listed';
-        MoreTablesTxt: Label '...and %1 more table(s).', Comment = '%1 = count of remaining unclassified tables not listed';
-        MaxTablesInMessage: Integer;
-        MaxFieldsPerTable: Integer;
+        UnclassifiedFieldsErr: Label 'Field %1 of Table %2 has Data Sensitivity Unclassified';
 
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
@@ -24,13 +19,10 @@ codeunit 135153 "Data Classs Demo Data Tests"
     var
         Company: Record Company;
         DataSensitivity: Record "Data Sensitivity";
+        TableMetadata: Record "Table Metadata";
         DataClassificationEvalData: Codeunit "Data Classification Eval. Data";
         AppsPendingDataClassification: List of [Guid];
-        UnclassifiedTablesMessage: Text;
     begin
-        MaxTablesInMessage := 100;
-        MaxFieldsPerTable := 20;
-
         // [SCENARIO] All shipped fields should have a classification
         // [SCENARIO] EUII EUPI fields are classified as Personal
         // [SCENARIO] Master Tables contain Personal fields
@@ -49,14 +41,17 @@ codeunit 135153 "Data Classs Demo Data Tests"
         // [THEN] All shipped fields should have a classification
         // Apps listed in GetAppsPendingDataClassification are temporarily exempted while their
         // fields are being classified. New apps/tables not on that list are still enforced.
-        // All offending tables/fields are collected and reported together so a single run lists
-        // everything that needs classifying, instead of failing on the first field.
         GetAppsPendingDataClassification(AppsPendingDataClassification);
         DataSensitivity.SetRange("Data Sensitivity", DataSensitivity."Data Sensitivity"::Unclassified);
         DataSensitivity.SetFilter("Table No", '..101000|150000..160799|160803..');
-        CollectUnclassifiedFields(DataSensitivity, AppsPendingDataClassification, UnclassifiedTablesMessage);
-        if UnclassifiedTablesMessage <> '' then
-            Error(UnclassifiedFieldsErr, UnclassifiedTablesMessage);
+        // Assert.RecordIsEmpty is not giving a helpful message
+        if DataSensitivity.FindSet() then
+            repeat
+                TableMetadata.Get(DataSensitivity."Table No");
+                if (TableMetadata.TableType <> TableMetadata.TableType::Temporary) then
+                    if not IsTablePendingDataClassification(DataSensitivity."Table No", AppsPendingDataClassification) then
+                        Error(UnclassifiedFieldsErr, DataSensitivity."Field No", DataSensitivity."Table No");
+            until DataSensitivity.Next() = 0;
 
         // [THEN] EUII EUPI fields are classified as Personal
         DataSensitivity.SetFilter("Data Classification", StrSubstNo('%1|%2',
@@ -68,75 +63,6 @@ codeunit 135153 "Data Classs Demo Data Tests"
         // [THEN] Master Tables contain Personal fields
         // [THEN] Documents and Document Lines Contain Personal Fields
         VerifySensitivitiesForMasterTablesAndDocuments();
-    end;
-
-    local procedure CollectUnclassifiedFields(var DataSensitivity: Record "Data Sensitivity"; AppsPendingDataClassification: List of [Guid]; var Message: Text)
-    var
-        TableMetadata: Record "Table Metadata";
-        FieldsForTable: Text;
-        FieldCount: Integer;
-        TableCount: Integer;
-        LastTableNo: Integer;
-        CurrentTableName: Text;
-        Reporting: Boolean;
-    begin
-        // Walk the (already ordered by Table No, Field No) unclassified rows, grouping by table.
-        // For each offending table we emit one line listing its unclassified field numbers, so a
-        // single run reports every table/field that still needs classifying. Each table is only
-        // evaluated once (when its first row is seen), not per field.
-        if not DataSensitivity.FindSet() then
-            exit;
-
-        repeat
-            if DataSensitivity."Table No" <> LastTableNo then begin
-                // Table boundary: flush the previous table, then decide whether to report the new one.
-                if Reporting then
-                    AppendTableLine(Message, TableCount, LastTableNo, CurrentTableName, FieldsForTable, FieldCount);
-
-                LastTableNo := DataSensitivity."Table No";
-                FieldsForTable := '';
-                FieldCount := 0;
-                Reporting :=
-                    TableMetadata.Get(DataSensitivity."Table No") and
-                    (TableMetadata.TableType <> TableMetadata.TableType::Temporary) and
-                    (not IsTablePendingDataClassification(DataSensitivity."Table No", AppsPendingDataClassification));
-                if Reporting then
-                    CurrentTableName := TableMetadata.Name;
-            end;
-
-            if Reporting then begin
-                FieldCount += 1;
-                if FieldCount <= MaxFieldsPerTable then
-                    if FieldsForTable = '' then
-                        FieldsForTable := StrSubstNo('field %1', DataSensitivity."Field No")
-                    else
-                        FieldsForTable += StrSubstNo(', field %1', DataSensitivity."Field No");
-            end;
-        until DataSensitivity.Next() = 0;
-
-        // Flush the final table.
-        if Reporting then
-            AppendTableLine(Message, TableCount, LastTableNo, CurrentTableName, FieldsForTable, FieldCount);
-
-        if TableCount > MaxTablesInMessage then
-            Message += '\' + StrSubstNo(MoreTablesTxt, TableCount - MaxTablesInMessage);
-    end;
-
-    local procedure AppendTableLine(var Message: Text; var TableCount: Integer; TableNo: Integer; TableName: Text; FieldsForTable: Text; FieldCount: Integer)
-    var
-        FieldsText: Text;
-    begin
-        TableCount += 1;
-        if TableCount > MaxTablesInMessage then
-            exit;
-
-        FieldsText := FieldsForTable;
-        if FieldCount > MaxFieldsPerTable then
-            FieldsText := StrSubstNo(MoreFieldsTxt, FieldsForTable, FieldCount - MaxFieldsPerTable);
-
-        if Message <> '' then
-            Message += '\';
-        Message += StrSubstNo(TableLineTxt, TableNo, TableName, FieldCount, FieldsText);
     end;
 
     local procedure IsTablePendingDataClassification(TableNo: Integer; AppsPendingDataClassification: List of [Guid]): Boolean
