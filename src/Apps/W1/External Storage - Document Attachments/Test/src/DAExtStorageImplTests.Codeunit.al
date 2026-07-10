@@ -492,6 +492,50 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
             'External connector DeleteFile should not be invoked when Delete from External Storage is disabled');
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure RecordDeleteKeepsSharedBlobReferencedByAnotherAttachment()
+    var
+        DocumentAttachment: Record "Document Attachment";
+        OtherDocumentAttachment: Record "Document Attachment";
+        DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        ExternalFilePath: Text;
+    begin
+        // [SCENARIO] When another Document Attachment still references the same external file (for example the
+        // copy created on the posted document during posting), deleting one row must NOT delete the shared blob.
+        // Regression test for the posting failure "Document Attachment does not exist" (AB#640968).
+        Initialize();
+        SetupFileScenarioWithTestConnector();
+        EnableFeatureWithDelete();
+
+        // [GIVEN] An externally-stored attachment
+        CreateDocumentAttachmentWithContent(DocumentAttachment);
+        DAExternalStorageImpl.UploadToExternalStorage(DocumentAttachment);
+        DocumentAttachment.SetRecFilter();
+        DocumentAttachment.FindFirst();
+        ExternalFilePath := DocumentAttachment."External File Path";
+        Assert.AreNotEqual('', ExternalFilePath, 'Precondition: upload should set the External File Path');
+
+        // [GIVEN] A second attachment (for example the posted-document copy) that references the same external file
+        OtherDocumentAttachment.Init();
+        OtherDocumentAttachment.ID := Any.IntegerInRange(100000, 199999);
+        OtherDocumentAttachment."Table ID" := Database::"Document Attachment";
+        OtherDocumentAttachment."No." := CopyStr(Any.AlphanumericText(20), 1, 20);
+        OtherDocumentAttachment."File Name" := DocumentAttachment."File Name";
+        OtherDocumentAttachment."File Extension" := DocumentAttachment."File Extension";
+        OtherDocumentAttachment."Stored Externally" := true;
+        OtherDocumentAttachment."Stored Internally" := false;
+        OtherDocumentAttachment."External File Path" := ExternalFilePath;
+        OtherDocumentAttachment.Insert(false);
+
+        // [WHEN] The first Document Attachment row is deleted (fires OnAfterDeleteEvent)
+        DocumentAttachment.Delete(true);
+
+        // [THEN] The subscriber must NOT delete the shared blob, because another attachment still references it
+        Assert.AreNotEqual(ExternalFilePath, FileConnectorMock.GetLastDeletedPath(),
+            'External connector DeleteFile should not be invoked while another attachment references the same External File Path');
+    end;
+
     #endregion
 
     #region MIME Type Tests

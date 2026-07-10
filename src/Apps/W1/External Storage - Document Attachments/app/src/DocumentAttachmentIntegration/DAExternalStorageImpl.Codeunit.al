@@ -844,7 +844,29 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if IsFileFromAnotherEnvironmentOrCompany(DocumentAttachment) then
             exit(false);
 
+        // The external blob is shared with other attachments (for example, the copy created on the
+        // posted document during posting) - deleting it would break those still-live references.
+        if IsExternalFileStillReferenced(DocumentAttachment) then
+            exit(false);
+
         exit(true);
+    end;
+
+    /// <summary>
+    /// Checks whether any other Document Attachment record still references the same external file.
+    /// </summary>
+    /// <param name="DocumentAttachment">The document attachment record whose external file is being evaluated.</param>
+    /// <returns>True if another externally-stored attachment references the same external file path; otherwise false.</returns>
+    local procedure IsExternalFileStillReferenced(DocumentAttachment: Record "Document Attachment"): Boolean
+    var
+        OtherDocumentAttachment: Record "Document Attachment";
+    begin
+        if DocumentAttachment."External File Path" = '' then
+            exit(false);
+
+        OtherDocumentAttachment.SetRange("Stored Externally", true);
+        OtherDocumentAttachment.SetRange("External File Path", DocumentAttachment."External File Path");
+        exit(not OtherDocumentAttachment.IsEmpty());
     end;
 
     /// <summary>
