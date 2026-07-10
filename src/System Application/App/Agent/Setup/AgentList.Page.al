@@ -50,7 +50,6 @@ page 4316 "Agent List"
                 field(Substate; Rec.Substate)
                 {
                     Caption = 'Substate';
-                    ToolTip = 'Specifies whether the agent is archived.';
                     Editable = false;
                 }
                 field("Can Access Current Company"; Rec."Can Access Current Company")
@@ -88,7 +87,7 @@ page 4316 "Agent List"
             {
                 ApplicationArea = All;
                 Caption = 'Archive';
-                ToolTip = 'Archive the agent. Archiving removes the agent from active use and cannot be undone.';
+                ToolTip = 'Archive the agent so it can no longer process new tasks. The agent and its existing tasks and logs remain available as read-only. Archiving cannot be undone.';
                 Image = Archive;
                 Enabled = ArchiveActionEnabled;
 
@@ -197,9 +196,6 @@ page 4316 "Agent List"
             group(Category_Process)
             {
                 actionref(AgentSetup_Promoted; AgentSetup)
-                {
-                }
-                actionref(ArchiveAgent_Promoted; ArchiveAgent)
                 {
                 }
                 actionref(AgentTasks_Promoted; AgentTasks)

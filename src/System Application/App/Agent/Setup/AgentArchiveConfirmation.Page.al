@@ -40,7 +40,7 @@ page 4337 "Agent Archive Confirmation"
         ConfirmationPrompt: Text;
         Confirmed: Boolean;
         NameMismatchErr: Label 'The name you entered does not match the agent''s display name.';
-        ConfirmationInstructionLbl: Label 'You are about to archive the agent "%1". This removes the agent from active use and cannot be undone.\\To confirm, type the agent''s display name below.', Comment = '%1 = agent display name';
+        ConfirmationInstructionLbl: Label 'You are about to archive the agent "%1". It will no longer be able to process new tasks, and it cannot be restored. The agent and its existing tasks and logs remain available as read-only.\\To confirm, type the agent''s display name below.', Comment = '%1 = agent display name';
 
     /// <summary>
     /// Sets the agent display name that the user must type to confirm archiving, and builds the confirmation prompt.

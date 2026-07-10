@@ -142,7 +142,7 @@ page 4315 "Agent Card"
             {
                 ApplicationArea = All;
                 Caption = 'Archive';
-                ToolTip = 'Archive the agent. Archiving removes the agent from active use and cannot be undone.';
+                ToolTip = 'Archive the agent so it can no longer process new tasks. The agent and its existing tasks and logs remain available as read-only. Archiving cannot be undone.';
                 Image = Archive;
                 Enabled = ArchiveActionEnabled;
 
@@ -219,9 +219,6 @@ page 4315 "Agent Card"
                 actionref(AgentSetup_Promoted; AgentSetup)
                 {
                 }
-                actionref(ArchiveAgent_Promoted; ArchiveAgent)
-                {
-                }
                 actionref(UserSettings_Promoted; UserSettingsAction)
                 {
                 }
@@ -284,6 +281,25 @@ page 4315 "Agent Card"
     trigger OnAfterGetCurrRecord()
     begin
         UpdateControls();
+        SendArchivedNotificationIfNeeded();
+    end;
+
+    local procedure SendArchivedNotificationIfNeeded()
+    var
+        ArchivedNotification: Notification;
+    begin
+        if not AgentIsArchived then begin
+            ArchivedNotificationShown := false;
+            exit;
+        end;
+
+        if ArchivedNotificationShown then
+            exit;
+
+        ArchivedNotificationShown := true;
+        ArchivedNotification.Message(AgentArchivedNotificationMsg);
+        ArchivedNotification.Scope(NotificationScope::LocalScope);
+        ArchivedNotification.Send();
     end;
 
     local procedure OpenSetupPage()
@@ -299,9 +315,11 @@ page 4315 "Agent Card"
         Language: Codeunit Language;
         ProfileDisplayName, CopilotAvailabilityTxt : Text;
         ArchiveActionEnabled, AgentIsArchived, StateEditable : Boolean;
+        ArchivedNotificationShown: Boolean;
         ProfileChangedQst: Label 'Changing the agent''s profile may affect its accuracy and performance. It could also grant access to unexpected fields and actions.\\Do you want to continue?';
         OpenConfigurationPageQst: Label 'To activate the agent, use the configuration page. Would you like to open this page now?';
         YouCannotEnableAgentWithoutUsingConfigurationPageErr: Label 'You can''t activate the agent from this page. Use the action to configure and activate the agent.';
         YouDoNotHavePermissionToModifyThisAgentErr: Label 'You do not have permission to modify this agent. Contact your system administrator to update your permissions or to mark you as one of the administrators for the agent.';
         AgentArchivedMsg: Label 'The agent has been archived.';
+        AgentArchivedNotificationMsg: Label 'This agent is archived and can no longer be modified. Its tasks and logs remain available for reference.';
 }

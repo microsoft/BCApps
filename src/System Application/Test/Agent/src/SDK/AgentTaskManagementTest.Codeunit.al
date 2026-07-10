@@ -758,10 +758,10 @@ codeunit 133962 "Agent Task Management Test"
         TaskTitle := CopyStr(Any.AlphanumericText(MaxStrLen(TaskTitle)), 1, MaxStrLen(TaskTitle));
 
         // [WHEN] Creating a task for the archived agent
-        // [THEN] The operation is rejected because the associated agent is archived
+        // [THEN] The operation is rejected because an archived agent is inactive and cannot receive new tasks
         AgentTaskBuilder.Initialize(AgentUserId, TaskTitle);
         asserterror AgentTaskBuilder.Create(true, false);
-        Assert.ExpectedError('is not allowed because the associated agent is archived');
+        Assert.ExpectedError('does not exist or is not active');
     end;
 
     local procedure CreateAgentWithStoppedTask(var AgentTaskRecord: Record "Agent Task"; TaskTitle: Text[150]) AgentUserId: Guid

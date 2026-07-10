@@ -100,7 +100,6 @@ page 4300 "Agent Task List"
                 field(AgentSubstate; Rec."Agent Substate")
                 {
                     Caption = 'Agent Substate';
-                    ToolTip = 'Specifies whether the agent that owns the task is archived.';
                     Editable = false;
                     Visible = ShouldShowAllAgents;
                 }
