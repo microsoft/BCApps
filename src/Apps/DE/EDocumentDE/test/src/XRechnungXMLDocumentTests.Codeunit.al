@@ -1069,6 +1069,39 @@ codeunit 13918 "XRechnung XML Document Tests"
         Path := CrMemoTaxCategoryTok + '/cbc:TaxExemptionReason';
         Assert.AreEqual('Not subject to VAT', GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
     end;
+
+    [Test]
+    procedure ExportPostedSalesCrMemoInXRechnungFormatVerifyCompanyIBANInPaymentMeans();
+    var
+        Customer: Record Customer;
+        CustomerBankAccount: Record "Customer Bank Account";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        CustomerIBAN: Text[50];
+        Path: Text;
+    begin
+        // [SCENARIO] Export posted sales cr. memo uses the company IBAN (not the customer's) in PayeeFinancialAccount
+        Initialize();
+
+        // [GIVEN] Create customer with a bank account that has a specific IBAN
+        CustomerIBAN := LibraryUtility.GenerateMOD97CompliantCode();
+        Customer.Get(CreateCustomer());
+        LibrarySales.CreateCustomerBankAccount(CustomerBankAccount, Customer."No.");
+        CustomerBankAccount.IBAN := CustomerIBAN;
+        CustomerBankAccount.Modify(true);
+        Customer.Validate("Preferred Bank Account Code", CustomerBankAccount.Code);
+        Customer.Modify(true);
+
+        // [GIVEN] Create and Post sales cr. memo for that customer
+        SalesCrMemoHeader.Get(CreateAndPostSalesDocumentForCustomer("Sales Document Type"::"Credit Memo", Enum::"Sales Line Type"::Item, Customer."No."));
+
+        // [WHEN] Export XRechnung Electronic Document.
+        ExportCreditMemo(SalesCrMemoHeader, TempXMLBuffer);
+
+        // [THEN] Payment means contains the company IBAN, not the customer's
+        Path := '/ns0:CreditNote/cac:PaymentMeans/cac:PayeeFinancialAccount/cbc:ID';
+        Assert.AreEqual(CompanyInformation.IBAN, GetNodeByPathWithError(TempXMLBuffer, Path), StrSubstNo(IncorrectValueErr, Path));
+    end;
     #endregion
 
     #region ServiceCreditMemo
@@ -1756,6 +1789,15 @@ codeunit 13918 "XRechnung XML Document Tests"
         CreateSalesHeader(SalesHeader, DocumentType);
         SalesHeader.Validate("Company Bank Account Code", BankAccountCode);
         SalesHeader.Modify(true);
+        CreateSalesLine(SalesHeader, LineType, false);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostSalesDocumentForCustomer(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"; CustomerNo: Code[20]): Code[20];
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        CreateSalesHeader(SalesHeader, DocumentType, CustomerNo);
         CreateSalesLine(SalesHeader, LineType, false);
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
