@@ -24,23 +24,10 @@ pageextension 4411 "SOA Contact List Ext" extends "Contact List"
 
     trigger OnOpenPage()
     var
-        SOATaskContactOverride: Record "SOA Task Contact Override";
         SOAKPITrackAll: Codeunit "SOA - KPI Track All";
         AgentTaskID: BigInteger;
     begin
-        if SOAKPITrackAll.IsOrderTakerAgentSession(AgentTaskID) then begin
-            IsAgentSession := true;
-
-            // Filter Contact List to mapped contacts for this agent session
-            SOATaskContactOverride.SetRange("Task ID", AgentTaskID);
-            SOATaskContactOverride.SetLoadFields("Contact No.");
-            SOATaskContactOverride.ReadIsolation := IsolationLevel::ReadUncommitted;
-
-            if SOATaskContactOverride.FindFirst() then begin
-                Rec.SetFilter("No.", SOATaskContactOverride."Contact No.");
-                Rec.Find('-');
-            end;
-        end;
+        IsAgentSession := SOAKPITrackAll.IsOrderTakerAgentSession(AgentTaskID);
     end;
 
     var
