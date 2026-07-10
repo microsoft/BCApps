@@ -1683,12 +1683,8 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
         PostUnrealizedWHT(GenJournalLine, GenJnlPostLine);
     end;
 
-
     [EventSubscriber(ObjectType::Page, Page::"Create Payment", OnBeforeUpdateGnlJnlLineDimensionsFromVendorPayment, '', false, false)]
     local procedure AssignWHTPostingGroupOnCreatePayment(var GenJournalLine: Record "Gen. Journal Line"; TempVendorPaymentBuffer: Record "Vendor Payment Buffer" temporary)
-    var
-        VendorLedgerEntry: Record "Vendor Ledger Entry";
-        WithholdingTaxEntry: Record "Withholding Tax Entry";
     begin
         if CheckWithholdingTaxDisabled() then
             exit;
@@ -1696,11 +1692,32 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
         if GenJournalLine."Applies-to ID" = '' then
             exit;
 
-        if TempVendorPaymentBuffer."Vendor Ledg. Entry No." = 0 then
+        AssignWHTProdPostingGroupFromAppliedInvoice(GenJournalLine, TempVendorPaymentBuffer."Vendor Ledg. Entry No.");
+    end;
+
+    [EventSubscriber(ObjectType::Report, Report::"Suggest Vendor Payments", OnBeforeUpdateGnlJnlLineDimensionsFromVendorPaymentBuffer, '', false, false)]
+    local procedure AssignWHTPostingGroupOnSuggestVendorPayments(var GenJournalLine: Record "Gen. Journal Line"; TempVendorPaymentBuffer: Record "Vendor Payment Buffer" temporary; SummarizePerVend: Boolean; DocNoPerLine: Boolean; var NextDocNo: Code[20])
+    begin
+        if CheckWithholdingTaxDisabled() then
+            exit;
+
+        if SummarizePerVend then
+            exit;
+
+        AssignWHTProdPostingGroupFromAppliedInvoice(GenJournalLine, TempVendorPaymentBuffer."Vendor Ledg. Entry No.");
+    end;
+
+    local procedure AssignWHTProdPostingGroupFromAppliedInvoice(var GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntryNo: Integer)
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        WithholdingTaxEntry: Record "Withholding Tax Entry";
+    begin
+        if VendorLedgerEntryNo = 0 then
             exit;
 
         VendorLedgerEntry.SetLoadFields("Document No.", "Vendor No.");
-        VendorLedgerEntry.Get(TempVendorPaymentBuffer."Vendor Ledg. Entry No.");
+        if not VendorLedgerEntry.Get(VendorLedgerEntryNo) then
+            exit;
 
         WithholdingTaxEntry.SetLoadFields("Wthldg. Tax Prod. Post. Group");
         WithholdingTaxEntry.SetRange("Document No.", VendorLedgerEntry."Document No.");
