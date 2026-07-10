@@ -18,6 +18,7 @@ codeunit 136352 "UT T Job Task Line"
         Text001: Label 'Rolling back changes...';
         LibraryUtility: Codeunit "Library - Utility";
         LibraryJob: Codeunit "Library - Job";
+        LibraryResource: Codeunit "Library - Resource";
         IsInitialized: Boolean;
         CannotModifyJobTaskErr: Label 'The Project Task cannot be modified because the project has associated project WIP entries.';
 
@@ -45,6 +46,145 @@ codeunit 136352 "UT T Job Task Line"
         Assert.IsFalse(JobWIPTotal.FindFirst(), 'Job WIP Totals still exist after deletion of Record.');
 
         TearDown();
+    end;
+
+    [Test]
+    procedure DeletingJobTaskDeletesItsAssignedResources()
+    var
+        LocalJob: Record Job;
+        FirstJobTask: Record "Job Task";
+        SecondJobTask: Record "Job Task";
+        Resource: Record Resource;
+        JobAssignedResource: Record "Job Assigned Resource";
+    begin
+        // [FEATURE] [Assigned Resource]
+        // [SCENARIO] Deleting a project task deletes only its own task-level assigned resources.
+        Initialize();
+
+        // [GIVEN] A project with two tasks, a task-level assignment on each and a project-level assignment.
+        LibraryJob.CreateJob(LocalJob);
+        LibraryJob.CreateJobTask(LocalJob, FirstJobTask);
+        LibraryJob.CreateJobTask(LocalJob, SecondJobTask);
+        LibraryResource.CreateResourceNew(Resource);
+        LibraryJob.CreateJobAssignedResource(LocalJob."No.", FirstJobTask."Job Task No.", Resource."No.", JobAssignedResource);
+        LibraryJob.CreateJobAssignedResource(LocalJob."No.", SecondJobTask."Job Task No.", Resource."No.", JobAssignedResource);
+        LibraryJob.CreateJobAssignedResource(LocalJob."No.", '', Resource."No.", JobAssignedResource);
+
+        // [WHEN] The first task is deleted.
+        Assert.IsTrue(FirstJobTask.Delete(true), 'The project task could not be deleted.');
+
+        // [THEN] Only the assignment of the deleted task is gone; the other task and project-level remain.
+        JobAssignedResource.SetRange("Job No.", LocalJob."No.");
+        JobAssignedResource.SetRange("Job Task No.", FirstJobTask."Job Task No.");
+        Assert.RecordIsEmpty(JobAssignedResource);
+
+        JobAssignedResource.SetRange("Job Task No.", SecondJobTask."Job Task No.");
+        Assert.RecordIsNotEmpty(JobAssignedResource);
+
+        JobAssignedResource.SetRange("Job Task No.", '');
+        Assert.RecordIsNotEmpty(JobAssignedResource);
+    end;
+
+    [Test]
+    procedure CannotAssignResourceToNonPostingTask()
+    var
+        LocalJob: Record Job;
+        HeadingJobTask: Record "Job Task";
+        Resource: Record Resource;
+        JobAssignedResource: Record "Job Assigned Resource";
+    begin
+        // [FEATURE] [Assigned Resource]
+        // [SCENARIO] A task-level assignment can only target a posting-type task.
+        Initialize();
+
+        // [GIVEN] A project with a Heading task and a resource.
+        LibraryJob.CreateJob(LocalJob);
+        LibraryJob.CreateJobTask(LocalJob, HeadingJobTask);
+        HeadingJobTask.Validate("Job Task Type", HeadingJobTask."Job Task Type"::Heading);
+        HeadingJobTask.Modify(true);
+        LibraryResource.CreateResourceNew(Resource);
+
+        // [WHEN] Assigning the resource to the Heading task.
+        JobAssignedResource.Init();
+        JobAssignedResource."Job No." := LocalJob."No.";
+        JobAssignedResource."Job Task No." := HeadingJobTask."Job Task No.";
+        JobAssignedResource."Resource No." := Resource."No.";
+        asserterror JobAssignedResource.Insert(true);
+
+        // [THEN] It fails because the task is not a posting task.
+        Assert.ExpectedError('Posting');
+    end;
+
+    [Test]
+    procedure CannotChangeTaskTypeWhenAssignedResourceExists()
+    var
+        LocalJob: Record Job;
+        LocalJobTask: Record "Job Task";
+        Resource: Record Resource;
+        JobAssignedResource: Record "Job Assigned Resource";
+    begin
+        // [FEATURE] [Assigned Resource]
+        // [SCENARIO] A posting task with an assigned resource cannot be changed to a non-posting type.
+        Initialize();
+
+        // [GIVEN] A posting task with an assigned resource.
+        LibraryJob.CreateJob(LocalJob);
+        LibraryJob.CreateJobTask(LocalJob, LocalJobTask);
+        LibraryResource.CreateResourceNew(Resource);
+        LibraryJob.CreateJobAssignedResource(LocalJob."No.", LocalJobTask."Job Task No.", Resource."No.", JobAssignedResource);
+
+        // [WHEN] Changing the task type away from Posting.
+        asserterror LocalJobTask.Validate("Job Task Type", LocalJobTask."Job Task Type"::Heading);
+
+        // [THEN] It is blocked because an assigned resource is associated with the task.
+        Assert.ExpectedError('assigned resources');
+    end;
+
+    [Test]
+    procedure CannotInsertAssignedResourceWithBlankResourceNo()
+    var
+        LocalJob: Record Job;
+        LocalJobTask: Record "Job Task";
+        JobAssignedResource: Record "Job Assigned Resource";
+    begin
+        // [FEATURE] [Assigned Resource]
+        // [SCENARIO] An assigned resource cannot be inserted without a resource number.
+        Initialize();
+
+        // [GIVEN] A project and a posting task, but no resource on the assignment.
+        LibraryJob.CreateJob(LocalJob);
+        LibraryJob.CreateJobTask(LocalJob, LocalJobTask);
+        JobAssignedResource.Init();
+        JobAssignedResource."Job No." := LocalJob."No.";
+        JobAssignedResource."Job Task No." := LocalJobTask."Job Task No.";
+
+        // [WHEN] Inserting the assignment.
+        asserterror JobAssignedResource.Insert(true);
+
+        // [THEN] It fails because Resource No. is blank.
+        Assert.ExpectedError('Resource No.');
+    end;
+
+    [Test]
+    procedure CannotInsertAssignedResourceWithBlankJobNo()
+    var
+        Resource: Record Resource;
+        JobAssignedResource: Record "Job Assigned Resource";
+    begin
+        // [FEATURE] [Assigned Resource]
+        // [SCENARIO] An assigned resource cannot be inserted without a project number.
+        Initialize();
+
+        // [GIVEN] A resource but no project on the assignment.
+        LibraryResource.CreateResourceNew(Resource);
+        JobAssignedResource.Init();
+        JobAssignedResource."Resource No." := Resource."No.";
+
+        // [WHEN] Inserting the assignment.
+        asserterror JobAssignedResource.Insert(true);
+
+        // [THEN] It fails because Job No. is blank.
+        Assert.ExpectedError('Project No.');
     end;
 
     [Test]
