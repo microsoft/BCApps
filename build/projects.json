@@ -24,10 +24,7 @@
       "runStaticCodeAnalysis": true,
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
-      "repositoryUrl": "https://github.com/microsoft/BCApps",
-      "allowedEnvironmentTypes": [
-        "Sandbox"
-      ]
+      "repositoryUrl": "https://github.com/microsoft/BCApps"
     },
     "Library Assert": {
       "isMultiCountry": true,
@@ -36,10 +33,7 @@
       "runStaticCodeAnalysis": true,
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
-      "repositoryUrl": "https://github.com/microsoft/BCApps",
-      "allowedEnvironmentTypes": [
-        "Sandbox"
-      ]
+      "repositoryUrl": "https://github.com/microsoft/BCApps"
     },
     "Library Variable Storage": {
       "isMultiCountry": true,
@@ -48,10 +42,7 @@
       "runStaticCodeAnalysis": true,
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
-      "repositoryUrl": "https://github.com/microsoft/BCApps",
-      "allowedEnvironmentTypes": [
-        "Sandbox"
-      ]
+      "repositoryUrl": "https://github.com/microsoft/BCApps"
     },
     "Prevent Metadata Updates": {
       "isMultiCountry": true,
@@ -79,10 +70,7 @@
       "runStaticCodeAnalysis": true,
       "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
-      "repositoryUrl": "https://github.com/microsoft/BCApps",
-      "allowedEnvironmentTypes": [
-        "Sandbox"
-      ]
+      "repositoryUrl": "https://github.com/microsoft/BCApps"
     },
     "Performance Toolkit": {
       "isMultiCountry": true,

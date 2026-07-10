@@ -4,10 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.EServices.EDocumentConnector.B2Brouter;
 
-permissionset 6491 "B2Brouter Read"
+using Microsoft.EServices.EDocument;
+
+permissionsetextension 6492 "D365 User - B2Brouter" extends "E-Doc. Core - User"
 {
-    Assignable = true;
-    IncludedPermissionSets = "B2Brouter Objects";
-    Permissions =
-        tabledata "B2Brouter Setup" = r;
+    IncludedPermissionSets = "B2Brouter Edit";
 }
