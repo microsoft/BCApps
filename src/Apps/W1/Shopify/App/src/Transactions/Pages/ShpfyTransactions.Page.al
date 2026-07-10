@@ -35,7 +35,7 @@ page 30134 "Shpfy Transactions"
                 field(CreatedAt; Rec."Created At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time at which the transaction is processed.';
+                    ToolTip = 'Specifies the date and time when the transaction was created in Shopify.';
                 }
                 field(Type; Rec.Type)
                 {

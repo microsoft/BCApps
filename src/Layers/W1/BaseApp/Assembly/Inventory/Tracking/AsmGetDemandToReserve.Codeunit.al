@@ -143,6 +143,7 @@ codeunit 929 "Asm. Get Demand To Reserve"
         ReservationWkshLine: Record "Reservation Wksh. Line";
         TempAssemblyLine: Record "Assembly Line" temporary;
         ReservationWorksheetMgt: Codeunit "Reservation Worksheet Mgt.";
+        DoInsertReservationWkshLine: Boolean;
         RemainingQty, RemainingQtyBase : Decimal;
         AvailableQtyBase, InventoryQtyBase, ReservedQtyBase, WarehouseQtyBase : Decimal;
         LineNo: Integer;
@@ -199,9 +200,18 @@ codeunit 929 "Asm. Get Demand To Reserve"
 
             if (ReservationWkshLine."Remaining Qty. to Reserve" > 0) and
                (ReservationWkshLine."Available Qty. to Reserve" > 0)
-            then
-                ReservationWkshLine.Insert(true);
+            then begin
+                DoInsertReservationWkshLine := true;
+                OnSyncAssemblyOrderLinesOnBeforeInsertReservationWkshLine(ReservationWkshLine, TempAssemblyLine, DoInsertReservationWkshLine);
+                if DoInsertReservationWkshLine then
+                    ReservationWkshLine.Insert(true);
+            end;
         until TempAssemblyLine.Next() = 0;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSyncAssemblyOrderLinesOnBeforeInsertReservationWkshLine(var ReservationWkshLine: Record "Reservation Wksh. Line"; var TempAssemblyLine: Record "Assembly Line" temporary; var DoInsertReservationWkshLine: Boolean)
+    begin
     end;
 
 #if not CLEAN27

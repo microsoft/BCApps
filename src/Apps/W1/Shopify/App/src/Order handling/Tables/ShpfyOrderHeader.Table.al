@@ -394,7 +394,7 @@ table 30118 "Shpfy Order Header"
         }
         field(82; "Closed At"; DateTime)
         {
-            Caption = 'Closed At';
+            Caption = 'Closed At (Shopify)';
             DataClassification = SystemMetadata;
             Editable = false;
         }
@@ -410,7 +410,7 @@ table 30118 "Shpfy Order Header"
         }
         field(87; "Processed At"; DateTime)
         {
-            Caption = 'Processed At';
+            Caption = 'Processed At (Shopify)';
             DataClassification = SystemMetadata;
         }
         field(89; "Shopify Order No."; Text[50])
@@ -426,7 +426,7 @@ table 30118 "Shpfy Order Header"
         }
         field(91; "Created At"; DateTime)
         {
-            Caption = 'Created At';
+            Caption = 'Created At (Shopify)';
             DataClassification = SystemMetadata;
         }
         field(92; "Source Name"; Code[20])
@@ -437,7 +437,7 @@ table 30118 "Shpfy Order Header"
         }
         field(93; "Updated At"; DateTime)
         {
-            Caption = 'Updated At';
+            Caption = 'Updated At (Shopify)';
             DataClassification = SystemMetadata;
         }
         field(94; "Shipping Charges Amount"; Decimal)

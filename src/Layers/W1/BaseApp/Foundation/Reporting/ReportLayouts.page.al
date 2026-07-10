@@ -5,6 +5,7 @@
 
 namespace Microsoft.Shared.Report;
 
+using Microsoft.Foundation.Reporting;
 using System.Environment.Configuration;
 using System.Integration;
 using System.Reflection;
@@ -122,6 +123,14 @@ page 9660 "Report Layouts"
                     Caption = 'Layout Status';
                     ToolTip = 'Specifies the approval status of the layout. Only Approved layouts are available for selection on report request pages.';
                 }
+                field("Layout Subtype"; Rec."Layout Subtype")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Editable = false;
+                    Visible = DocumentReportExperienceEnabled;
+                    Caption = 'Subtype';
+                    ToolTip = 'Specifies the role of the layout in the Composite Layout Merge: full body (Default), header/footer part, or theme part.';
+                }
                 field("Excel data sheet configuration"; Rec.ExcelLayoutMultipleDataSheets)
                 {
                     ApplicationArea = Basic, Suite;
@@ -174,6 +183,12 @@ page 9660 "Report Layouts"
         }
         area(factboxes)
         {
+            part(ThemeHeaderFooterBox; "Theme and Header/Footer Box")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Theme and Header/Footer';
+                Visible = DocumentReportExperienceEnabled and WordLayoutSelected;
+            }
             systempart(Control11; Notes)
             {
                 ApplicationArea = Notes;
@@ -204,7 +219,7 @@ page 9660 "Report Layouts"
                     ReturnReportID: Integer;
                     ReturnLayoutName: Text;
                 begin
-                    ReportLayoutsImpl.CreateNewReportLayout(Rec, ReturnReportID, ReturnLayoutName);
+                    ReportLayoutsImpl.CreateNewReportLayout(Rec, ImpliedSubtype, ReturnReportID, ReturnLayoutName);
                     SetFocusedRecord(ReturnReportID, ReturnLayoutName);
                 end;
             }
@@ -394,6 +409,74 @@ page 9660 "Report Layouts"
                 end;
             }
 
+            group(CompositeLayoutDetails)
+            {
+                Caption = 'Composite Layout';
+                Image = Document;
+                Visible = DocumentReportExperienceEnabled;
+                // The assignment page and lookup helper declare RIMD on Tenant Report Layout Cfg (indirect
+                // permission) so the tenant-wide write can happen there. Each action below is gated with
+                // AccessByPermission so only a user who actually holds Modify on that configuration can reach it;
+                // otherwise anyone able to open Report Layouts could change tenant/company report branding defaults
+                // without permission to that table.
+
+                action(AssignReportDefaults)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Manage theme/header-footer';
+                    Image = Setup;
+                    Enabled = WordLayoutSelected;
+                    AccessByPermission = tabledata "Tenant Report Layout Cfg" = M;
+                    ToolTip = 'Assign the theme and header/footer applied to the selected Word layout. Themes and header/footer parts apply to Word documents only. The assignment is stored per company/tenant for this layout, not per user.';
+
+                    trigger OnAction()
+                    var
+                        HeaderFooterThemeAssignment: Page "Header/Footer Theme Assignment";
+                    begin
+                        HeaderFooterThemeAssignment.SetLayout(Rec."Report ID", Rec.Name);
+                        HeaderFooterThemeAssignment.RunModal();
+                    end;
+                }
+                action(ManageAllThemesAndHeaderFooters)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Manage all themes/header-footers';
+                    Image = ViewDetails;
+                    Enabled = LayoutIsSelected;
+                    AccessByPermission = tabledata "Tenant Report Layout Cfg" = M;
+                    ToolTip = 'Show every layout of this report with the theme and header/footer that apply to each, and change them per layout. Inherited company and global defaults are shown with their source.';
+
+                    trigger OnAction()
+                    var
+                        ReportLayoutList: Record "Report Layout List";
+                        LayoutThemeHeaderFooter: Page "Layout Theme and Header/Footer";
+                    begin
+                        // Themes and header/footer parts apply to Word layouts only.
+                        ReportLayoutList.SetRange("Report ID", Rec."Report ID");
+                        ReportLayoutList.SetRange("Layout Format", ReportLayoutList."Layout Format"::Word);
+                        LayoutThemeHeaderFooter.SetTableView(ReportLayoutList);
+                        LayoutThemeHeaderFooter.Run();
+                    end;
+                }
+                action(LayoutConfiguration)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Layout configuration';
+                    Image = Setup;
+                    Enabled = LayoutIsSelected;
+                    AccessByPermission = tabledata "Tenant Report Layout Cfg" = M;
+                    ToolTip = 'View the Tenant Report Layout Configuration defaults for the selected report. These defaults specify the header/footer and theme parts applied when no per-user selection override is present.';
+
+                    trigger OnAction()
+                    var
+                        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+                    begin
+                        TenantReportLayoutCfg.SetFilter("Report ID", '%1|%2', Rec."Report ID", 0);
+                        Page.RunModal(Page::"Tenant Report Layout Cfg", TenantReportLayoutCfg);
+                    end;
+                }
+            }
+
             action(SetApproved)
             {
                 ApplicationArea = Basic, Suite;
@@ -531,6 +614,24 @@ page 9660 "Report Layouts"
                     }
                 }
             }
+
+            group(CompositeLayout)
+            {
+                Caption = 'Composite Layout';
+                Visible = DocumentReportExperienceEnabled;
+
+                actionref(AssignReportDefaults_Promoted; AssignReportDefaults)
+                {
+                }
+
+                actionref(ManageAllThemesAndHeaderFooters_Promoted; ManageAllThemesAndHeaderFooters)
+                {
+                }
+
+                actionref(LayoutConfiguration_Promoted; LayoutConfiguration)
+                {
+                }
+            }
         }
     }
 
@@ -569,10 +670,18 @@ page 9660 "Report Layouts"
     }
 
     trigger OnOpenPage()
+    var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
         ReportLayoutsImpl.SetSelectedCompany(CompanyName());
         if CurrPage.LookupMode then
             Rec.SetRange("Layout Status", Enum::"Report Layout Status"::Approved);
+        DocumentReportExperienceEnabled := FeatureKeyManagement.IsDocumentReportExperienceEnabled();
+        if DocumentReportExperienceEnabled and (not CurrPage.LookupMode) and (ImpliedSubtype = Enum::"Report Layout Subtype"::Default) then begin
+            Rec.FilterGroup(2);
+            Rec.SetRange("Layout Subtype", Rec."Layout Subtype"::Default);
+            Rec.FilterGroup(0);
+        end;
     end;
 
     trigger OnDeleteRecord(): Boolean
@@ -589,6 +698,13 @@ page 9660 "Report Layouts"
                     if not ReportLayoutsImpl.ConfirmDeleteDefaultLayoutSelection(Rec, TenantReportLayoutSelection) then
                         exit(false);
 
+            if Rec."Layout Subtype" in [Rec."Layout Subtype"::HeaderFooter, Rec."Layout Subtype"::Theme] then begin
+                if HasCompositePartReferences(Rec) then
+                    if not Dialog.Confirm(DeletePartWithReferencesQst, false, Rec.Name) then
+                        exit(false);
+                LookupHelper.ClearPartAssignments(Rec);
+            end;
+
             ReportLayoutsImpl.DeleteReportLayout(TenantReportLayout);
         end else
             Error(ModifyNonUserLayoutErr);
@@ -603,6 +719,10 @@ page 9660 "Report Layouts"
         DocumentSharing: Codeunit "Document Sharing";
     begin
         LayoutIsSelected := not ((Rec."Report ID" = 0) and (Rec.Name = ''));
+        WordLayoutSelected := LayoutIsSelected and (Rec."Layout Format" = Rec."Layout Format"::Word);
+
+        if DocumentReportExperienceEnabled and WordLayoutSelected then
+            CurrPage.ThemeHeaderFooterBox.Page.SetContext(Rec."Report ID", Rec.Name);
 
         CurrPage.SetSelectionFilter(SelectedReportLayoutList);
         IsMultiSelect := SelectedReportLayoutList.Count() > 1;
@@ -644,19 +764,41 @@ page 9660 "Report Layouts"
         DefaultReportLayoutList: Record "Report Layout List";
         TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
         ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+        LookupHelper: Codeunit "Composite Layout Lookup Helper";
         EmptyGuid: Guid;
+        ImpliedSubtype: Enum "Report Layout Subtype";
         IsDefaultLayout: Boolean;
         IsMultiSelect: Boolean;
         LayoutIsSelected: Boolean;
         ShareOptionsVisible: Boolean;
         ShareOptionsEnabled: Boolean;
         CanModifyStatus: Boolean;
+        DocumentReportExperienceEnabled: Boolean;
+        WordLayoutSelected: Boolean;
         ModifyNonUserLayoutErr: Label 'Only user-defined layouts can be modified or removed.';
         EditInfoExtensionLayoutTxt: Label 'It is not possible to modify the layout info for this layout because it is provided by an extension. Do you want to edit a copy of the layout instead ?';
         ReplaceConfirmationTxt: Label 'This action will replace the layout file of the currently selected layout "%1". Do you want to continue ?', Comment = '%1 = LayoutName';
         LayoutStatusChangedMsg: Label '%1 layout(s) set to %2.', Comment = '%1 = Number of layouts updated, %2 = Status name';
+        DeletePartWithReferencesQst: Label 'Layout part "%1" is referenced in the Tenant Report Layout Configuration. Deleting it will clear those references and may result in reports rendering without the expected header/footer or theme. Do you want to continue?', Comment = '%1 = Layout Name';
         SystemModifiedByDisplayName: Text;
         SystemCreatedByDisplayName: Text;
+
+    local procedure HasCompositePartReferences(ReportLayoutList: Record "Report Layout List"): Boolean
+    var
+        TenantReportLayoutCfg: Record "Tenant Report Layout Cfg";
+        CompositeName: Text;
+    begin
+        // Filter with the same stored-length value the assignment/clear paths use (CopyStr to the field length),
+        // otherwise a composite name longer than the field would never match the truncated stored value and the
+        // "part is still referenced" warning would be skipped even though the part is assigned.
+        CompositeName := LookupHelper.EncodeCompositeName(ReportLayoutList."Application ID", ReportLayoutList.Name);
+        TenantReportLayoutCfg.SetRange("Header Part Name", CopyStr(CompositeName, 1, MaxStrLen(TenantReportLayoutCfg."Header Part Name")));
+        if not TenantReportLayoutCfg.IsEmpty() then
+            exit(true);
+        TenantReportLayoutCfg.SetRange("Header Part Name");
+        TenantReportLayoutCfg.SetRange("Theme Part Name", CopyStr(CompositeName, 1, MaxStrLen(TenantReportLayoutCfg."Theme Part Name")));
+        exit(not TenantReportLayoutCfg.IsEmpty());
+    end;
 
     local procedure SetLayoutStatusAction(NewStatus: Enum "Report Layout Status")
     var
