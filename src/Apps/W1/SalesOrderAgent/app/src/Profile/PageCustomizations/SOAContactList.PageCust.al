@@ -62,10 +62,6 @@ pagecustomization "SOA Contact List" customizes "Contact List"
         {
             Visible = true;
         }
-        modify(AlternateEmail)
-        {
-            Visible = true;
-        }
         modify("Fax No.")
         {
             Visible = true;

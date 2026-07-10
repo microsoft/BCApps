@@ -141,22 +141,22 @@
 					"steps_include_numbering": "true",
 					"steps": [
 						{
-							"value": "Navigate to the contact list page and use the search function to find the contact.",
-							"steps_include_numbering": "true",
-							"steps": [
-								"{% if page.id == 5052 -%}",
-								"Use information available to you from the conversation history one by one, starting with the email address, sender's name, company name, phone number, etc.",
-								"Do not select a contact without performing a search first.",
+						"value": "Navigate to the contact list page. **If there is only one contact record displayed, select it directly without using the search function. If there are multiple contacts, use the search function to find the correct contact.**",
+						"steps_include_numbering": "true",
+						"steps": [
+							"{% if page.id == 5052 -%}",
+							"Use information available to you from the conversation history one by one, starting with the email address, sender's name, company name, phone number, etc.",
+							"If there are multiple contacts, do not select a contact without performing a search first.",
 								"{% endif -%}"
 							]
 						},
 						{
-							"value": "If the contact is not found, navigate to the customer list page and use the search function to find the customer.",
+							"value": "If the contact is not found, navigate to the customer list page. **If there is only one customer record displayed, select it directly without using the search function. If there are multiple customers, use the search function to find the correct customer.**",
 							"steps_include_numbering": "true",
 							"steps": [
 								"{% if page.id == 22 -%}",
 								"Use information available to you from the conversation history one by one, starting with the email address, sender's name, company name, phone number, etc.",
-								"Do not select a customer without performing a search first.",
+								"If there are multiple customers, do not select a customer without performing a search first.",
 								"{% endif -%}"
 							]
 						},

@@ -12,14 +12,6 @@ pageextension 4411 "SOA Contact List Ext" extends "Contact List"
     {
         addafter("E-Mail")
         {
-            field(AlternateEmail; AlternateEmail)
-            {
-                Caption = 'Alternate Email';
-                ToolTip = 'Specifies the email address mapped to this contact from an unknown sender during the current agent task.';
-                Visible = IsAgentSession;
-                Editable = false;
-                ApplicationArea = Basic, Suite;
-            }
             field("E-Mail 2"; Rec."E-Mail 2")
             {
                 Caption = 'Email 2';
@@ -33,44 +25,11 @@ pageextension 4411 "SOA Contact List Ext" extends "Contact List"
     trigger OnOpenPage()
     var
         SOAKPITrackAll: Codeunit "SOA - KPI Track All";
+        AgentTaskID: BigInteger;
     begin
         IsAgentSession := SOAKPITrackAll.IsOrderTakerAgentSession(AgentTaskID);
     end;
 
-    trigger OnAfterGetRecord()
-    begin
-        PopulateAlternateEmail();
-    end;
-
-    local procedure PopulateAlternateEmail()
     var
-        SOATaskContactOverride: Record "SOA Task Contact Override";
-        SOAEmail: Record "SOA Email";
-    begin
-        if IsAgentSession then begin
-            SOATaskContactOverride.SetRange("Task ID", AgentTaskID);
-            SOATaskContactOverride.SetRange("Contact No.", Rec."No.");
-            SOATaskContactOverride.SetLoadFields("Task Message ID");
-            SOATaskContactOverride.ReadIsolation := IsolationLevel::ReadUncommitted;
-
-            if SOATaskContactOverride.FindFirst() then begin
-                SOAEmail.SetRange("Task ID", AgentTaskID);
-                SOAEmail.SetRange("Task Message ID", SOATaskContactOverride."Task Message ID");
-                SOAEmail.SetLoadFields("Sender Address");
-                SOAEmail.ReadIsolation := IsolationLevel::ReadUncommitted;
-
-                if SOAEmail.FindFirst() then
-                    AlternateEmail := SOAEmail."Sender Address"
-                else
-                    AlternateEmail := '';
-            end else
-                AlternateEmail := '';
-        end else
-            AlternateEmail := '';
-    end;
-
-    var
-        AlternateEmail: Text[250];
-        AgentTaskID: BigInteger;
         IsAgentSession: Boolean;
 }
