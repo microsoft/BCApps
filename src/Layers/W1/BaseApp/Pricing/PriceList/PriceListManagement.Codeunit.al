@@ -754,9 +754,9 @@ codeunit 7017 "Price List Management"
     var
         PriceSource: Record "Price Source";
         NonEmptyPriceSource: Record "Price Source";
-        SourceTypeFilter: Text;
-        ParentSourceNoFilter: Text;
-        SourceNoFilter: Text;
+        SourceTypeFilter: TextBuilder;
+        ParentSourceNoFilter: TextBuilder;
+        SourceNoFilter: TextBuilder;
         OrSeparator: Text[1];
         NonEmptyTupleCount: Integer;
     begin
@@ -777,9 +777,12 @@ codeunit 7017 "Price List Management"
 
                     NonEmptyTupleCount += 1;
                     NonEmptyPriceSource := PriceSource;
-                    SourceTypeFilter += OrSeparator + Format(PriceSource."Source Type");
-                    ParentSourceNoFilter += OrSeparator + GetFilterText(PriceSource."Parent Source No.");
-                    SourceNoFilter += OrSeparator + GetFilterText(PriceSource."Source No.");
+                    SourceTypeFilter.Append(OrSeparator);
+                    SourceTypeFilter.Append(Format(PriceSource."Source Type"));
+                    ParentSourceNoFilter.Append(OrSeparator);
+                    ParentSourceNoFilter.Append(GetFilterText(PriceSource."Parent Source No."));
+                    SourceNoFilter.Append(OrSeparator);
+                    SourceNoFilter.Append(GetFilterText(PriceSource."Source No."));
                     OrSeparator := '|';
                 end;
             until not PriceSourceList.Next(PriceSource);
@@ -796,9 +799,9 @@ codeunit 7017 "Price List Management"
                     PriceListLine.SetRange("Source No.", NonEmptyPriceSource."Source No.");
                 end;
             else begin
-                PriceListLine.SetFilter("Source Type", SourceTypeFilter);
-                PriceListLine.SetFilter("Parent Source No.", ParentSourceNoFilter);
-                PriceListLine.SetFilter("Source No.", SourceNoFilter);
+                PriceListLine.SetFilter("Source Type", SourceTypeFilter.ToText());
+                PriceListLine.SetFilter("Parent Source No.", ParentSourceNoFilter.ToText());
+                PriceListLine.SetFilter("Source No.", SourceNoFilter.ToText());
             end;
         end;
     end;
