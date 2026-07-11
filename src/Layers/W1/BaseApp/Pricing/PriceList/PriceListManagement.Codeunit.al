@@ -816,30 +816,27 @@ codeunit 7017 "Price List Management"
     local procedure CanCombineSourceFilters(var PriceListLine: Record "Price List Line"; PriceSourceList: Codeunit "Price Source List"): Boolean
     var
         PriceSource: Record "Price Source";
-        SpecificTypeParentKeys: Dictionary of [Text, Boolean];
-        TypeParentKey: Text;
+        SharedParent: Code[20];
+        SharedParentSet: Boolean;
         NonEmptyCount: Integer;
     begin
+        NonEmptyCount := 0;
+        SharedParentSet := false;
         if PriceSourceList.First(PriceSource, 0) then
             repeat
                 PriceListLine.SetRange("Source Type", PriceSource."Source Type");
                 PriceListLine.SetRange("Parent Source No.", PriceSource."Parent Source No.");
                 PriceListLine.SetRange("Source No.", PriceSource."Source No.");
                 if not PriceListLine.IsEmpty() then begin
-                    NonEmptyCount += 1;
-                    if PriceSource."Source No." <> '' then begin
-                        TypeParentKey := Format(PriceSource."Source Type") + '|' + PriceSource."Parent Source No.";
-                        if not SpecificTypeParentKeys.ContainsKey(TypeParentKey) then
-                            SpecificTypeParentKeys.Add(TypeParentKey, true);
-                        if SpecificTypeParentKeys.Count() > 1 then begin
-                            ClearSourceFilters(PriceListLine);
-                            exit(false);
-                        end;
+                    if not SharedParentSet then begin
+                        SharedParent := PriceSource."Parent Source No.";
+                        SharedParentSet := true;
                     end else
-                        if PriceSource."Parent Source No." <> '' then begin
+                        if PriceSource."Parent Source No." <> SharedParent then begin
                             ClearSourceFilters(PriceListLine);
                             exit(false);
                         end;
+                    NonEmptyCount += 1;
                 end;
             until not PriceSourceList.Next(PriceSource);
         ClearSourceFilters(PriceListLine);
