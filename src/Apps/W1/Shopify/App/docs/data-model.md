@@ -14,12 +14,17 @@ The Shop table includes plan-based feature flags. The `"Advanced Shopify Plan"` 
 
 Shop Location maps Shopify fulfillment locations to BC warehouse locations. Each mapping includes a stock calculation enum that determines how to compute available stock for that pairing.
 
+Registered Store (`Shpfy Registered Store New`) holds the OAuth state for each connected shop, keyed by store URL (not Shop Code): the requested and actual scopes, plus expiring-token metadata (`Token Expires At`, `Refresh Token Expires At`). The access and refresh tokens themselves are not table fields -- they are stored as `SecretText` in IsolatedStorage (module scope), keyed by the record's SystemId. This is a per-app+store credential, so multiple BC companies connected to the same shop each keep their own copy. See business-logic.md for the token lifecycle.
+
+*Updated: 2026-07-11 -- Expiring offline access token metadata (slice 637954)*
+
 ```mermaid
 erDiagram
     SHOP ||--o{ SYNCHRONIZATION_INFO : tracks
     SHOP ||--o{ SHOP_LOCATION : maps
     SHOP ||--o{ PRODUCT : contains
     SHOP ||--o{ ORDER_HEADER : contains
+    SHOP ||..|| REGISTERED_STORE : "OAuth tokens (by URL)"
 ```
 
 The Shop's `GetEmptySyncTime()` returns `2004-01-01` as a sentinel for "never synced" -- not `0DT`. This date is far enough in the past to import all data on first sync but avoids edge cases with zero-date handling in AL. The `SetLastSyncTime()` method stores `CurrentDateTime` after a successful sync. When the next sync runs, it passes this timestamp to Shopify's `updated_at` filter to fetch only changed records.

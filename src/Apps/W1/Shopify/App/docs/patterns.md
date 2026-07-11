@@ -159,6 +159,14 @@ CustomerNo := ICustomerMapping.DoMapping(...);
 
 This pattern repeats for stock calculation, product status, removal actions, customer name formatting, county resolution, company mapping, return/refund processing, metafield types, metafield owners, bulk operations, and document link handlers. Once you understand one instance, you understand them all.
 
+## Job Queue dispatcher and per-shop worker
+
+Background work that must run per shop with error isolation uses a two-codeunit split. The scheduled `Shpfy Token Refresh` codeunit has `TableNo = "Job Queue Entry"` and iterates the enabled shops. For each shop it calls `Codeunit.Run` on a separate worker, `Shpfy Token Refresh Shop`, which has `TableNo = "Shpfy Shop"`. Running the worker via `Codeunit.Run` gives each shop its own transaction, so a failure for one shop is caught and logged without aborting the whole run.
+
+The `TableNo` on the dispatcher is not optional: the Job Queue dispatcher passes the `Job Queue Entry` record to the codeunit it runs, so a Job-Queue-scheduled codeunit must use `TableNo = "Job Queue Entry"` (or none). Giving it the record it actually processes (e.g. `"Shpfy Shop"`) fails at runtime with "Record(472) is not compatible". Keep the dispatcher on `"Job Queue Entry"` and delegate record-specific work to a worker codeunit.
+
+*Updated: 2026-07-11 -- Token refresh backstop (slice 637954)*
+
 ## Legacy patterns
 
 ### Config Template Header (removed in v25)
