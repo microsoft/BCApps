@@ -325,9 +325,9 @@ codeunit 30199 "Shpfy Authentication Mgt."
         // so a transient failure must not break the connector. On success the old token is revoked.
         if IsSuccessStatusCode(StatusCode) and ResponseHasAccessToken(ResponseBody) then begin
             SaveTokenResponse(RegisteredStoreNew, ResponseBody);
-            LogTokenTelemetry('0000QK1', TokenMigratedTxt);
+            LogTokenTelemetry('', TokenMigratedTxt);
         end else
-            LogTokenTelemetry('0000QK2', TokenMigrationFailedTxt);
+            LogTokenTelemetry('', TokenMigrationFailedTxt);
     end;
 
     [NonDebuggable]
@@ -341,7 +341,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
         MaxAttempts: Integer;
     begin
         if RefreshTokenExpired(RegisteredStoreNew) then begin
-            LogTokenTelemetry('0000QK3', TokenRefreshExpiredTxt);
+            LogTokenTelemetry('', TokenRefreshExpiredTxt);
             Error(RefreshTokenExpiredErr, Store);
         end;
 
@@ -361,13 +361,13 @@ codeunit 30199 "Shpfy Authentication Mgt."
 
             if IsSuccessStatusCode(StatusCode) and ResponseHasAccessToken(ResponseBody) then begin
                 SaveTokenResponse(RegisteredStoreNew, ResponseBody);
-                LogTokenTelemetry('0000QK4', TokenRefreshedTxt);
+                LogTokenTelemetry('', TokenRefreshedTxt);
                 exit;
             end;
 
             // A 401 with an inactive refresh token is terminal: the merchant must reconnect.
             if StatusCode = 401 then begin
-                LogTokenTelemetry('0000QK3', TokenRefreshExpiredTxt);
+                LogTokenTelemetry('', TokenRefreshExpiredTxt);
                 Error(RefreshTokenExpiredErr, Store);
             end;
 
@@ -378,7 +378,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
         // cannot make calls, so surface the reconnect error; otherwise keep the still-valid token.
         if TokenExpired(RegisteredStoreNew) then
             Error(RefreshTokenExpiredErr, Store);
-        LogTokenTelemetry('0000QK5', TokenRefreshTransientTxt);
+        LogTokenTelemetry('', TokenRefreshTransientTxt);
     end;
 
     local procedure TokenNeedsRefresh(RegisteredStoreNew: Record "Shpfy Registered Store New"): Boolean

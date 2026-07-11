@@ -356,7 +356,6 @@ permissionset 30104 "Shpfy - Objects"
         page "Shpfy Tag Factbox" = X,
         page "Shpfy Tags" = X,
         page "Shpfy Tax Areas" = X,
-        page "Shpfy Token Dev Tools" = X,
         page "Shpfy Transaction Gateways" = X,
         page "Shpfy Transactions" = X,
         page "Shpfy Variants" = X;
