@@ -8289,6 +8289,7 @@ table 81 "Gen. Journal Line"
         UpdateDescription(Vend.Name);
         "Payment Method Code" := Vend."Payment Method Code";
         "Creditor No." := Vend."Creditor No.";
+
         OnGenJnlLineGetVendorAccount(Vend);
 
         Validate("Recipient Bank Account", Vend."Preferred Bank Account Code");
@@ -13142,13 +13143,14 @@ table 81 "Gen. Journal Line"
     /// This event allows developers to add custom logic after the "Remaining Amount" field has been calculated on the Vendor Ledger Entry.
     /// </summary>
     /// <param name="VendorLedgerEntry">The Vendor Ledger Entry record with the calculated "Remaining Amount".</param>
+    /// <param name="GenJournalLine">The Gen. Journal Line record.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterShouldCheckAdjustmentAppliesTo(var GenJournalLine: Record "Gen. Journal Line"; var ShouldCheck: Boolean)
+    local procedure OnGetVendLedgerEntryOnAfterCalcRemainingAmount(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line")
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnGetVendLedgerEntryOnAfterCalcRemainingAmount(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var GenJournalLine: Record "Gen. Journal Line")
+    local procedure OnAfterShouldCheckAdjustmentAppliesTo(var GenJournalLine: Record "Gen. Journal Line"; var ShouldCheck: Boolean)
     begin
     end;
 

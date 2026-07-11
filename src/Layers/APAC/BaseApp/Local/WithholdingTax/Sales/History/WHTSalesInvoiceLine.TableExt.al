@@ -30,11 +30,4 @@ tableextension 28018 "WHT Sales Invoice Line" extends "Sales Invoice Line"
             DataClassification = CustomerContent;
         }
     }
-
-    keys
-    {
-        key(WHT; "Document No.", "WHT Business Posting Group", "WHT Product Posting Group")
-        {
-        }
-    }
 }

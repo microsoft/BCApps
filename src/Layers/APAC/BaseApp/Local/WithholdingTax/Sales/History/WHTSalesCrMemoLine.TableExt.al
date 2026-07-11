@@ -30,11 +30,4 @@ tableextension 28016 "WHT Sales Cr.Memo Line" extends "Sales Cr.Memo Line"
             DataClassification = CustomerContent;
         }
     }
-
-    keys
-    {
-        key(WHT; "Document No.", "WHT Business Posting Group", "WHT Product Posting Group")
-        {
-        }
-    }
 }
