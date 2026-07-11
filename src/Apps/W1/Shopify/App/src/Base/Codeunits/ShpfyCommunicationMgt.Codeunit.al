@@ -231,6 +231,13 @@ codeunit 30103 "Shpfy Communication Mgt."
         end;
 
         if HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+            if HandleUnauthorizedResponse(HttpResponseMessage) then begin
+                Clear(HttpClient);
+                Clear(HttpRequestMessage);
+                Clear(HttpResponseMessage);
+                CreateHttpRequestMessage(Url, Method, Request, HttpRequestMessage);
+                HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+            end;
             Clear(RetryCounter);
             while (not HttpResponseMessage.IsBlockedByEnvironment) and (EvaluateResponse(HttpResponseMessage)) and (RetryCounter < MaxRetries) do begin
                 RetryCounter += 1;
@@ -374,6 +381,7 @@ codeunit 30103 "Shpfy Communication Mgt."
         NoAccessTokenErr: label 'No Access token for the store "%1".\Please request an access token for this store.', Comment = '%1 = Store';
         ChangedScopeErr: Label 'The application scope is changed, please request a new access token for the store "%1".', Comment = '%1 = Store';
     begin
+        AuthenticationMgt.EnsureValidAccessToken(Store);
         if RegisteredStoreNew.Get(Store) then
             if RegisteredStoreNew."Requested Scope" = AuthenticationMgt.GetScope() then begin
                 AccessToken := RegisteredStoreNew.GetAccessToken();
@@ -526,6 +534,22 @@ codeunit 30103 "Shpfy Communication Mgt."
                     Retry := true;
                 end;
         end;
+    end;
+
+    local procedure HandleUnauthorizedResponse(HttpResponseMessage: HttpResponseMessage): Boolean
+    var
+        AuthenticationMgt: Codeunit "Shpfy Authentication Mgt.";
+        Store: Text;
+    begin
+        // An expiring offline token may have been retired unexpectedly. Force a single refresh
+        // (or migration) so the request can be retried with a fresh token.
+        if HttpResponseMessage.HttpStatusCode() <> 401 then
+            exit(false);
+        Store := Shop.GetStoreName();
+        if Store = '' then
+            exit(false);
+        AuthenticationMgt.ForceTokenRefresh(Store);
+        exit(true);
     end;
 
     /// <summary> 

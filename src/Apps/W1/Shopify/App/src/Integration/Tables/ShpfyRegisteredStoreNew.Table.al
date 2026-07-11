@@ -41,6 +41,16 @@ table 30138 "Shpfy Registered Store New"
             Caption = 'Review Completed';
             DataClassification = SystemMetadata;
         }
+        field(6; "Token Expires At"; DateTime)
+        {
+            Caption = 'Token Expires At';
+            DataClassification = SystemMetadata;
+        }
+        field(7; "Refresh Token Expires At"; DateTime)
+        {
+            Caption = 'Refresh Token Expires At';
+            DataClassification = SystemMetadata;
+        }
     }
     keys
     {
@@ -58,5 +68,20 @@ table 30138 "Shpfy Registered Store New"
     internal procedure GetAccessToken() Result: SecretText
     begin
         if not IsolatedStorage.Get('AccessToken(' + Rec.SystemId + ')', DataScope::Module, Result) then;
+    end;
+
+    internal procedure SetRefreshToken(RefreshToken: SecretText)
+    begin
+        IsolatedStorage.Set('RefreshToken(' + Rec.SystemId + ')', RefreshToken, DataScope::Module);
+    end;
+
+    internal procedure GetRefreshToken() Result: SecretText
+    begin
+        if not IsolatedStorage.Get('RefreshToken(' + Rec.SystemId + ')', DataScope::Module, Result) then;
+    end;
+
+    internal procedure HasRefreshToken(): Boolean
+    begin
+        exit(not GetRefreshToken().IsEmpty());
     end;
 }

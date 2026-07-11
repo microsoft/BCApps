@@ -31,6 +31,15 @@ codeunit 30199 "Shpfy Authentication Mgt."
         EnableHttpRequestActionLbl: Label 'Allow HTTP requests';
         InvalidShopUrlErr: Label 'The URL must refer to the internal shop location at myshopify.com. It must not be the public URL that customers use, such as myshop.com.';
         NotSupportedOnPremErr: Label 'Shopify connector is only supported in SaaS environments.';
+        RefreshTokenExpiredErr: Label 'The Shopify access token for store "%1" has expired and could not be refreshed automatically. Open the Shopify Shop card and reconnect the store to continue.', Comment = '%1 = Store';
+        TokenExchangeGrantTypeTok: Label 'urn:ietf:params:oauth:grant-type:token-exchange', Locked = true;
+        RefreshTokenGrantTypeTok: Label 'refresh_token', Locked = true;
+        OfflineAccessTokenTypeTok: Label 'urn:shopify:params:oauth:token-type:offline-access-token', Locked = true;
+        TokenMigratedTxt: Label 'Migrated Shopify store to an expiring offline access token.', Locked = true;
+        TokenMigrationFailedTxt: Label 'Failed to migrate Shopify store to an expiring offline access token. The existing token is kept.', Locked = true;
+        TokenRefreshedTxt: Label 'Refreshed the Shopify expiring offline access token.', Locked = true;
+        TokenRefreshTransientTxt: Label 'A transient error occurred while refreshing the Shopify access token. The existing token is still valid and will be retried later.', Locked = true;
+        TokenRefreshExpiredTxt: Label 'The Shopify refresh token has expired. The store must be reconnected.', Locked = true;
 
     [NonDebuggable]
     local procedure GetClientId(): Text
@@ -110,25 +119,39 @@ codeunit 30199 "Shpfy Authentication Mgt."
     [NonDebuggable]
     local procedure GetToken(Store: Text; AuthorizationCode: SecretText)
     var
-        JsonHelper: Codeunit "Shpfy Json Helper";
-        Body: Text;
+        RequestBody: JsonObject;
+        Credentials: Dictionary of [Text, SecretText];
+        ResponseBody: Text;
+        StatusCode: Integer;
+    begin
+        RequestBody.Add('client_id', GetClientId());
+        RequestBody.Add('client_secret', '');
+        RequestBody.Add('code', '');
+        RequestBody.Add('expiring', 1);
+        Credentials.Add('$.client_secret', GetClientSecret());
+        Credentials.Add('$.code', AuthorizationCode);
+
+        StatusCode := ExecuteTokenRequest(Store, RequestBody, Credentials, ResponseBody);
+        if not IsSuccessStatusCode(StatusCode) then
+            exit;
+        if not ResponseHasAccessToken(ResponseBody) then
+            exit;
+
+        SaveInstalledToken(Store, ResponseBody);
+    end;
+
+    [NonDebuggable]
+    local procedure ExecuteTokenRequest(Store: Text; RequestBody: JsonObject; Credentials: Dictionary of [Text, SecretText]; var ResponseBody: Text): Integer
+    var
         SecretBody: SecretText;
         Url: Text;
         HttpClient: HttpClient;
         RequestHeaders: HttpHeaders;
         RequestHttpContent: HttpContent;
         HttpResponseMessage: HttpResponseMessage;
-        JObject: JsonObject;
-        RequestBody: JsonObject;
-        Credentials: Dictionary of [Text, SecretText];
         AccessTokenURLTxt: Label 'https://%1/admin/oauth/access_token', Comment = '%1 = Store', Locked = true;
         HttpRequestBlockedErrorInfo: ErrorInfo;
     begin
-        RequestBody.Add('client_id', GetClientId());
-        RequestBody.Add('client_secret', '');
-        RequestBody.Add('code', '');
-        Credentials.Add('$.client_secret', GetClientSecret());
-        Credentials.Add('$.code', AuthorizationCode);
         RequestBody.WriteWithSecretsTo(Credentials, SecretBody);
 
         Url := StrSubstNo(AccessTokenURLTxt, Store);
@@ -147,15 +170,14 @@ codeunit 30199 "Shpfy Authentication Mgt."
                 HttpRequestBlockedErrorInfo.AddAction(EnableHttpRequestActionLbl, Codeunit::"Shpfy Authentication Mgt.", 'EnableHttpRequestForShopifyConnector');
                 Error(HttpRequestBlockedErrorInfo);
             end else
-                exit;
+                exit(0);
 
-        Clear(Body);
-        HttpResponseMessage.Content().ReadAs(Body);
-        JObject.ReadFrom(Body);
-        SaveStoreInfo(Store, JsonHelper.GetValueAsText(JObject.AsToken(), 'scope'), JsonHelper.GetValueAsText(JObject.AsToken(), 'access_token'));
+        Clear(ResponseBody);
+        HttpResponseMessage.Content().ReadAs(ResponseBody);
+        exit(HttpResponseMessage.HttpStatusCode());
     end;
 
-    local procedure SaveStoreInfo(Store: Text; ActualScope: Text; AccessToken: SecretText)
+    local procedure SaveInstalledToken(Store: Text; ResponseBody: Text)
     var
         RegisteredStoreNew: Record "Shpfy Registered Store New";
     begin
@@ -166,9 +188,248 @@ codeunit 30199 "Shpfy Authentication Mgt."
             RegisteredStoreNew.Insert();
         end;
         RegisteredStoreNew."Requested Scope" := GetScope();
-        RegisteredStoreNew."Actual Scope" := CopyStr(ActualScope, 1, MaxStrLen(RegisteredStoreNew."Actual Scope"));
         RegisteredStoreNew.Modify();
+        SaveTokenResponse(RegisteredStoreNew, ResponseBody);
+    end;
+
+    [NonDebuggable]
+    local procedure SaveTokenResponse(var RegisteredStoreNew: Record "Shpfy Registered Store New"; ResponseBody: Text)
+    var
+        JsonHelper: Codeunit "Shpfy Json Helper";
+        JObject: JsonObject;
+        JToken: JsonToken;
+        AccessToken: SecretText;
+        RefreshToken: SecretText;
+        AccessTokenText: Text;
+        RefreshTokenText: Text;
+        ActualScope: Text;
+        ExpiresInSeconds: BigInteger;
+        RefreshExpiresInSeconds: BigInteger;
+    begin
+        if not JObject.ReadFrom(ResponseBody) then
+            exit;
+        JToken := JObject.AsToken();
+
+        AccessTokenText := JsonHelper.GetValueAsText(JToken, 'access_token');
+        if AccessTokenText = '' then
+            exit;
+
+        ActualScope := JsonHelper.GetValueAsText(JToken, 'scope');
+        if ActualScope <> '' then
+            RegisteredStoreNew."Actual Scope" := CopyStr(ActualScope, 1, MaxStrLen(RegisteredStoreNew."Actual Scope"));
+
+        ExpiresInSeconds := JsonHelper.GetValueAsBigInteger(JToken, 'expires_in');
+        if ExpiresInSeconds > 0 then
+            RegisteredStoreNew."Token Expires At" := AddSeconds(CurrentDateTime(), ExpiresInSeconds)
+        else
+            RegisteredStoreNew."Token Expires At" := 0DT;
+
+        RefreshExpiresInSeconds := JsonHelper.GetValueAsBigInteger(JToken, 'refresh_token_expires_in');
+        if RefreshExpiresInSeconds > 0 then
+            RegisteredStoreNew."Refresh Token Expires At" := AddSeconds(CurrentDateTime(), RefreshExpiresInSeconds)
+        else
+            RegisteredStoreNew."Refresh Token Expires At" := 0DT;
+
+        RegisteredStoreNew.Modify();
+
+        AccessToken := AccessTokenText;
         RegisteredStoreNew.SetAccessToken(AccessToken);
+
+        RefreshTokenText := JsonHelper.GetValueAsText(JToken, 'refresh_token');
+        if RefreshTokenText <> '' then begin
+            RefreshToken := RefreshTokenText;
+            RegisteredStoreNew.SetRefreshToken(RefreshToken);
+        end;
+    end;
+
+    /// <summary>
+    /// Ensures the store has a valid, non-expired offline access token before it is used.
+    /// Legacy non-expiring tokens are migrated to expiring tokens on first use, and expiring
+    /// tokens are refreshed when they are close to expiry. Refresh/migration is serialized
+    /// across sessions and companies via a table lock to respect Shopify's single
+    /// refreshable token per app and store.
+    /// </summary>
+    /// <param name="Store">The store URL.</param>
+    internal procedure EnsureValidAccessToken(Store: Text)
+    var
+        RegisteredStoreNew: Record "Shpfy Registered Store New";
+    begin
+        Store := Store.ToLower();
+        if not RegisteredStoreNew.Get(Store) then
+            exit;
+
+        if RegisteredStoreNew.HasRefreshToken() and not TokenNeedsRefresh(RegisteredStoreNew) then
+            exit;
+
+        RegisteredStoreNew.LockTable();
+        if not RegisteredStoreNew.Get(Store) then
+            exit;
+
+        if RegisteredStoreNew.HasRefreshToken() then begin
+            if TokenNeedsRefresh(RegisteredStoreNew) then
+                RefreshAccessToken(Store, RegisteredStoreNew);
+        end else
+            if not RegisteredStoreNew.GetAccessToken().IsEmpty() then
+                MigrateToExpiringToken(Store, RegisteredStoreNew);
+
+        Commit();
+    end;
+
+    /// <summary>
+    /// Forces a token refresh (or migration) regardless of the remaining lifetime. Used when an
+    /// API call unexpectedly returns 401, indicating the current access token is no longer valid.
+    /// </summary>
+    /// <param name="Store">The store URL.</param>
+    internal procedure ForceTokenRefresh(Store: Text)
+    var
+        RegisteredStoreNew: Record "Shpfy Registered Store New";
+    begin
+        Store := Store.ToLower();
+        if not RegisteredStoreNew.Get(Store) then
+            exit;
+
+        RegisteredStoreNew.LockTable();
+        if not RegisteredStoreNew.Get(Store) then
+            exit;
+
+        if RegisteredStoreNew.HasRefreshToken() then
+            RefreshAccessToken(Store, RegisteredStoreNew)
+        else
+            if not RegisteredStoreNew.GetAccessToken().IsEmpty() then
+                MigrateToExpiringToken(Store, RegisteredStoreNew);
+
+        Commit();
+    end;
+
+    [NonDebuggable]
+    local procedure MigrateToExpiringToken(Store: Text; var RegisteredStoreNew: Record "Shpfy Registered Store New")
+    var
+        RequestBody: JsonObject;
+        Credentials: Dictionary of [Text, SecretText];
+        ResponseBody: Text;
+        StatusCode: Integer;
+    begin
+        RequestBody.Add('client_id', GetClientId());
+        RequestBody.Add('client_secret', '');
+        RequestBody.Add('grant_type', TokenExchangeGrantTypeTok);
+        RequestBody.Add('subject_token', '');
+        RequestBody.Add('subject_token_type', OfflineAccessTokenTypeTok);
+        RequestBody.Add('requested_token_type', OfflineAccessTokenTypeTok);
+        RequestBody.Add('expiring', 1);
+        Credentials.Add('$.client_secret', GetClientSecret());
+        Credentials.Add('$.subject_token', RegisteredStoreNew.GetAccessToken());
+
+        StatusCode := ExecuteTokenRequest(Store, RequestBody, Credentials, ResponseBody);
+
+        // Migration is best-effort: the non-expiring token still works until January 1, 2027,
+        // so a transient failure must not break the connector. On success the old token is revoked.
+        if IsSuccessStatusCode(StatusCode) and ResponseHasAccessToken(ResponseBody) then begin
+            SaveTokenResponse(RegisteredStoreNew, ResponseBody);
+            LogTokenTelemetry('0000QK1', TokenMigratedTxt);
+        end else
+            LogTokenTelemetry('0000QK2', TokenMigrationFailedTxt);
+    end;
+
+    [NonDebuggable]
+    local procedure RefreshAccessToken(Store: Text; var RegisteredStoreNew: Record "Shpfy Registered Store New")
+    var
+        RequestBody: JsonObject;
+        Credentials: Dictionary of [Text, SecretText];
+        ResponseBody: Text;
+        StatusCode: Integer;
+        Attempt: Integer;
+        MaxAttempts: Integer;
+    begin
+        if RefreshTokenExpired(RegisteredStoreNew) then begin
+            LogTokenTelemetry('0000QK3', TokenRefreshExpiredTxt);
+            Error(RefreshTokenExpiredErr, Store);
+        end;
+
+        MaxAttempts := 3;
+        for Attempt := 1 to MaxAttempts do begin
+            Clear(RequestBody);
+            Clear(Credentials);
+            RequestBody.Add('client_id', GetClientId());
+            RequestBody.Add('client_secret', '');
+            RequestBody.Add('grant_type', RefreshTokenGrantTypeTok);
+            RequestBody.Add('refresh_token', '');
+            Credentials.Add('$.client_secret', GetClientSecret());
+            // Retry uses the SAME refresh token: Shopify returns the same response for up to 1 hour.
+            Credentials.Add('$.refresh_token', RegisteredStoreNew.GetRefreshToken());
+
+            StatusCode := ExecuteTokenRequest(Store, RequestBody, Credentials, ResponseBody);
+
+            if IsSuccessStatusCode(StatusCode) and ResponseHasAccessToken(ResponseBody) then begin
+                SaveTokenResponse(RegisteredStoreNew, ResponseBody);
+                LogTokenTelemetry('0000QK4', TokenRefreshedTxt);
+                exit;
+            end;
+
+            // A 401 with an inactive refresh token is terminal: the merchant must reconnect.
+            if StatusCode = 401 then begin
+                LogTokenTelemetry('0000QK3', TokenRefreshExpiredTxt);
+                Error(RefreshTokenExpiredErr, Store);
+            end;
+
+            Sleep(1000 * Attempt);
+        end;
+
+        // Transient failures exhausted. If the current access token is already expired the store
+        // cannot make calls, so surface the reconnect error; otherwise keep the still-valid token.
+        if TokenExpired(RegisteredStoreNew) then
+            Error(RefreshTokenExpiredErr, Store);
+        LogTokenTelemetry('0000QK5', TokenRefreshTransientTxt);
+    end;
+
+    local procedure TokenNeedsRefresh(RegisteredStoreNew: Record "Shpfy Registered Store New"): Boolean
+    begin
+        // A non-expiring token (no expiry recorded) never needs refreshing.
+        if RegisteredStoreNew."Token Expires At" = 0DT then
+            exit(false);
+        exit(CurrentDateTime() + GetRefreshBufferMs() >= RegisteredStoreNew."Token Expires At");
+    end;
+
+    local procedure TokenExpired(RegisteredStoreNew: Record "Shpfy Registered Store New"): Boolean
+    begin
+        exit((RegisteredStoreNew."Token Expires At" <> 0DT) and (CurrentDateTime() >= RegisteredStoreNew."Token Expires At"));
+    end;
+
+    local procedure RefreshTokenExpired(RegisteredStoreNew: Record "Shpfy Registered Store New"): Boolean
+    begin
+        exit((RegisteredStoreNew."Refresh Token Expires At" <> 0DT) and (CurrentDateTime() >= RegisteredStoreNew."Refresh Token Expires At"));
+    end;
+
+    local procedure GetRefreshBufferMs(): Duration
+    begin
+        exit(5 * 60 * 1000); // Refresh 5 minutes before the access token expires.
+    end;
+
+    local procedure AddSeconds(StartDateTime: DateTime; Seconds: BigInteger): DateTime
+    var
+        Lifetime: Duration;
+    begin
+        Lifetime := Seconds * 1000;
+        exit(StartDateTime + Lifetime);
+    end;
+
+    local procedure IsSuccessStatusCode(StatusCode: Integer): Boolean
+    begin
+        exit((StatusCode >= 200) and (StatusCode < 300));
+    end;
+
+    local procedure ResponseHasAccessToken(ResponseBody: Text): Boolean
+    var
+        JsonHelper: Codeunit "Shpfy Json Helper";
+        JObject: JsonObject;
+    begin
+        if not JObject.ReadFrom(ResponseBody) then
+            exit(false);
+        exit(JsonHelper.GetValueAsText(JObject.AsToken(), 'access_token') <> '');
+    end;
+
+    local procedure LogTokenTelemetry(EventId: Text; Message: Text)
+    begin
+        Session.LogMessage(EventId, Message, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
     end;
 
     [NonDebuggable]
@@ -179,6 +440,36 @@ codeunit 30199 "Shpfy Authentication Mgt."
         if RegisteredStoreNew.Get(Store) then
             if RegisteredStoreNew."Requested Scope" = GetScope() then
                 exit(not RegisteredStoreNew.GetAccessToken().IsEmpty());
+    end;
+
+    /// <summary>
+    /// Returns whether the store uses an expiring offline token whose refresh token has expired,
+    /// meaning the merchant must reconnect the store before the connector can be used again.
+    /// </summary>
+    /// <param name="Store">The store URL.</param>
+    internal procedure IsRefreshTokenExpired(Store: Text): Boolean
+    var
+        RegisteredStoreNew: Record "Shpfy Registered Store New";
+    begin
+        Store := Store.ToLower();
+        if not RegisteredStoreNew.Get(Store) then
+            exit(false);
+        if not RegisteredStoreNew.HasRefreshToken() then
+            exit(false);
+        exit(RefreshTokenExpired(RegisteredStoreNew));
+    end;
+
+    internal procedure ReconnectFromNotification(ReconnectNotification: Notification)
+    var
+        Shop: Record "Shpfy Shop";
+        ShopCode: Code[20];
+    begin
+        if Evaluate(ShopCode, ReconnectNotification.GetData('ShopCode')) then
+            if Shop.Get(ShopCode) then begin
+                Shop.RequestAccessToken();
+                Shop.GetShopSettings();
+                Shop.Modify();
+            end;
     end;
 
     internal procedure AssertValidShopUrl(ShopUrl: Text)

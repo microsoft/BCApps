@@ -268,6 +268,8 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy Tax Registration No." = X,
         codeunit "Shpfy ToArchivedProduct" = X,
         codeunit "Shpfy ToDraftProduct" = X,
+        codeunit "Shpfy Token Refresh" = X,
+        codeunit "Shpfy Token Refresh Shop" = X,
         codeunit "Shpfy Translation API" = X,
         codeunit "Shpfy Translation Mgt." = X,
         codeunit "Shpfy Transactions" = X,
@@ -354,6 +356,7 @@ permissionset 30104 "Shpfy - Objects"
         page "Shpfy Tag Factbox" = X,
         page "Shpfy Tags" = X,
         page "Shpfy Tax Areas" = X,
+        page "Shpfy Token Dev Tools" = X,
         page "Shpfy Transaction Gateways" = X,
         page "Shpfy Transactions" = X,
         page "Shpfy Variants" = X;

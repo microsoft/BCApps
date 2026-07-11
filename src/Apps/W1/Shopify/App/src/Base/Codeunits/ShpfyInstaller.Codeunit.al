@@ -21,6 +21,14 @@ codeunit 30273 "Shpfy Installer"
     begin
         AddRetentionPolicyAllowedTables();
         AddShopifyCueSetup();
+        ScheduleTokenRefreshJob();
+    end;
+
+    local procedure ScheduleTokenRefreshJob()
+    var
+        TokenRefresh: Codeunit "Shpfy Token Refresh";
+    begin
+        TokenRefresh.ScheduleRefreshJob();
     end;
 
     procedure AddRetentionPolicyAllowedTables()

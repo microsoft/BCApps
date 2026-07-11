@@ -45,6 +45,7 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         OrderTransactionShopCodeUpgrade();
         HasAdvancedShopifyPlanUpgrade();
         ItalianSardinianProvinceRenameUpgrade();
+        ScheduleTokenRefreshJobUpgrade();
     end;
 
     internal procedure UpgradeTemplatesData()
@@ -535,6 +536,19 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         UpgradeTag.SetUpgradeTag(GetHasAdvancedShopifyPlanUpgradeTag());
     end;
 
+    local procedure ScheduleTokenRefreshJobUpgrade()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+        TokenRefresh: Codeunit "Shpfy Token Refresh";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetScheduleTokenRefreshJobUpgradeTag()) then
+            exit;
+
+        TokenRefresh.ScheduleRefreshJob();
+
+        UpgradeTag.SetUpgradeTag(GetScheduleTokenRefreshJobUpgradeTag());
+    end;
+
     internal procedure GetAllowOutgoingRequestseUpgradeTag(): Code[250]
     begin
         exit('MS-445989-AllowOutgoingRequestseUpgradeTag-20220816');
@@ -615,6 +629,11 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         exit('MS-630316-HasAdvancedShopifyPlanUpgrade-20260408');
     end;
 
+    local procedure GetScheduleTokenRefreshJobUpgradeTag(): Code[250]
+    begin
+        exit('MS-637954-ScheduleTokenRefreshJob-20260711');
+    end;
+
     local procedure ItalianSardinianProvinceRenameUpgrade()
     var
         UpgradeTag: Codeunit "Upgrade Tag";
@@ -674,5 +693,6 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         PerCompanyUpgradeTags.Add(GetOrderTransactionShopCodeUpgradeTag());
         PerCompanyUpgradeTags.Add(GetHasAdvancedShopifyPlanUpgradeTag());
         PerCompanyUpgradeTags.Add(GetItalianSardinianProvinceRenameUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetScheduleTokenRefreshJobUpgradeTag());
     end;
 }
