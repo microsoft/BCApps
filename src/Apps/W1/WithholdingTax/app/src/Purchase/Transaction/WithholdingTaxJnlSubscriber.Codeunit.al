@@ -136,6 +136,9 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
         if not Vendor."Withholding Tax Liable" then
             exit;
 
+        if GenJnlLine."Wthldg. Tax Prod. Post. Group" = '' then
+            TryAssignWHTProdPostingGroupFromApplication(GenJnlLine);
+
         CalcVendWithholdingTax(GenJnlLine, TaxAmountLCY, TaxAmount);
         VendLedgEntry."Amount to Apply" := GenJnlLine.Amount;
     end;
@@ -1728,6 +1731,45 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
             exit;
 
         GenJournalLine."Wthldg. Tax Prod. Post. Group" := WithholdingTaxEntry."Wthldg. Tax Prod. Post. Group";
+    end;
+
+    local procedure TryAssignWHTProdPostingGroupFromApplication(var GenJnlLine: Record "Gen. Journal Line")
+    var
+        AppliedVendorLedgerEntry: Record "Vendor Ledger Entry";
+    begin
+        // Only meaningful for vendor payment/refund lines that apply an existing invoice.
+        if not (GenJnlLine."Document Type" in [GenJnlLine."Document Type"::Payment, GenJnlLine."Document Type"::Refund]) then
+            exit;
+
+        if GenJnlLine."Account Type" <> GenJnlLine."Account Type"::Vendor then
+            exit;
+
+        if GenJnlLine."Account No." = '' then
+            exit;
+
+        // Single application via "Applies-to Doc. No.".
+        if GenJnlLine."Applies-to Doc. No." <> '' then begin
+            AppliedVendorLedgerEntry.SetRange("Vendor No.", GenJnlLine."Account No.");
+            AppliedVendorLedgerEntry.SetRange("Document Type", GenJnlLine."Applies-to Doc. Type");
+            AppliedVendorLedgerEntry.SetRange("Document No.", GenJnlLine."Applies-to Doc. No.");
+            if AppliedVendorLedgerEntry.FindFirst() then begin
+                AssignWHTProdPostingGroupFromAppliedInvoice(GenJnlLine, AppliedVendorLedgerEntry."Entry No.");
+                exit;
+            end;
+        end;
+
+        // Multi-line application via "Applies-to ID": only deterministic when exactly one invoice
+        // is applied. When multiple invoices are applied the WHT Prod. Posting Group cannot be
+        // inferred and the user must set it on the payment line before posting.
+        if GenJnlLine."Applies-to ID" <> '' then begin
+            AppliedVendorLedgerEntry.SetRange("Vendor No.", GenJnlLine."Account No.");
+            AppliedVendorLedgerEntry.SetRange("Applies-to ID", GenJnlLine."Applies-to ID");
+            AppliedVendorLedgerEntry.SetRange("Document Type", AppliedVendorLedgerEntry."Document Type"::Invoice);
+            if AppliedVendorLedgerEntry.Count() = 1 then begin
+                AppliedVendorLedgerEntry.FindFirst();
+                AssignWHTProdPostingGroupFromAppliedInvoice(GenJnlLine, AppliedVendorLedgerEntry."Entry No.");
+            end;
+        end;
     end;
 
     local procedure PostUnrealizedWHT(var GenJnlLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
