@@ -26,7 +26,7 @@ codeunit 28014 "WHT Gen. Jnl.-Post Batch"
         CustLedgEntry: Record "Cust. Ledger Entry";
         VendLedgEntry: Record "Vendor Ledger Entry";
     begin
-        GLSetup.Get();
+        GLSetup.GetRecordOnce();
         if GLSetup."Enable WHT" and (not GLSetup."Enable GST (Australia)") and (not GenJnlLine5."Skip WHT") then
             if GenJnlLine5."Applies-to Doc. No." <> '' then begin
                 WHTEntry.SetCurrentKey("Document Type", "Document No.");
@@ -72,6 +72,7 @@ codeunit 28014 "WHT Gen. Jnl.-Post Batch"
     [Scope('OnPrem')]
     procedure CheckWHTCalculationRule(TotalInvoiceAmountLCY: Decimal; WHTPostingSetup2: Record "WHT Posting Setup"; var GenJnlLine5: Record "Gen. Journal Line")
     begin
+        GLSetup.GetRecordOnce();
         GenJnlLine5."Skip WHT" :=
           not CompareAmounts(TotalInvoiceAmountLCY, WHTPostingSetup2) and
           (CompareAmounts(GenJnlLine5."Amount (LCY)", WHTPostingSetup2) or GLSetup."Min. WHT Calc only on Inv. Amt");
@@ -159,6 +160,7 @@ codeunit 28014 "WHT Gen. Jnl.-Post Batch"
     var
         GenJournalLineWHT: Record "Gen. Journal Line";
     begin
+        GLSetup.GetRecordOnce();
         if not GLSetup."Enable WHT" then
             exit(false);
 
