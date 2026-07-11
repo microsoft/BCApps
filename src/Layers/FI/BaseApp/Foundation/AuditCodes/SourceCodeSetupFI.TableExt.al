@@ -11,12 +11,24 @@ tableextension 13400 SourceCodeSetupFI extends "Source Code Setup"
 
     fields
     {
+#if not CLEANSCHEMA32
+#pragma warning disable AA0232
         field(13400; "Depr. Difference"; Code[10])
         {
             Caption = 'Depr. Difference';
+            ObsoleteReason = 'Moved to Depreciation Differences FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
             TableRelation = "Source Code";
             DataClassification = CustomerContent;
             MovedFrom = 'f3552374-a1f2-4356-848e-196002525837';
         }
+#pragma warning restore AA0232
+#endif
     }
 }

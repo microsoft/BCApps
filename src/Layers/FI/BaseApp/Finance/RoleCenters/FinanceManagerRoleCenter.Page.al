@@ -1763,12 +1763,16 @@ page 8901 "Finance Manager Role Center"
                     RunObject = report "Index Insurance";
                     Tooltip = 'Run the Index Insurance report.';
                 }
+#if not CLEAN29
+#pragma warning disable AL0432
                 action("Calc. and Post Depr. Differenc")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Calc. and Post Depr. Difference';
                     RunObject = report "Calc. and Post Depr. Diff.";
                 }
+#pragma warning restore AL0432
+#endif
                 group("Group43")
                 {
                     Caption = 'Journals';

@@ -507,11 +507,23 @@ table 5601 "FA Ledger Entry"
         {
             Caption = 'Non-Deductible VAT FA Cost';
         }
+#if not CLEANSCHEMA32
+#pragma warning disable AA0232
         field(13400; "Depr. Difference Posted"; Boolean)
         {
             Caption = 'Depr. Difference Posted';
+            ObsoleteReason = 'Moved to Depreciation Differences FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
             Editable = false;
         }
+#pragma warning restore AA0232
+#endif
     }
 
     keys
@@ -559,10 +571,12 @@ table 5601 "FA Ledger Entry"
         key(Key12; "FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Document No.")
         {
         }
+#if not CLEANSCHEMA32
         key(Key13; "FA No.", "FA Posting Group", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Posting Date", "Depr. Difference Posted")
         {
             SumIndexFields = Amount;
         }
+#endif
     }
 
     fieldgroups
