@@ -44,7 +44,7 @@ codeunit 30431 "Shpfy Token Refresh"
         CategoryTok: Label 'Shopify Integration', Locked = true;
         TokenRefreshJobFailedTxt: Label 'The scheduled Shopify token refresh failed for shop %1: %2', Comment = '%1 = shop code, %2 = error text', Locked = true;
     begin
-        Session.LogMessage('', StrSubstNo(TokenRefreshJobFailedTxt, ShopCode, ErrorText), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+        Session.LogMessage('0000UIV', StrSubstNo(TokenRefreshJobFailedTxt, ShopCode, ErrorText), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
     end;
 
     /// <summary>

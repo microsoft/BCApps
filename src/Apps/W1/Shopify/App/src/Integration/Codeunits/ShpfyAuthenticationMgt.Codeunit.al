@@ -325,9 +325,9 @@ codeunit 30199 "Shpfy Authentication Mgt."
         // so a transient failure must not break the connector. On success the old token is revoked.
         if IsSuccessStatusCode(StatusCode) and ResponseHasAccessToken(ResponseBody) then begin
             SaveTokenResponse(RegisteredStoreNew, ResponseBody);
-            Session.LogMessage('', TokenMigratedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+            Session.LogMessage('0000UIW', TokenMigratedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
         end else
-            Session.LogMessage('', TokenMigrationFailedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+            Session.LogMessage('0000UIX', TokenMigrationFailedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
     end;
 
     [NonDebuggable]
@@ -341,7 +341,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
         MaxAttempts: Integer;
     begin
         if RefreshTokenExpired(RegisteredStoreNew) then begin
-            Session.LogMessage('', TokenRefreshExpiredTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+            Session.LogMessage('0000UIY', TokenRefreshExpiredTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
             Error(RefreshTokenExpiredErr, Store);
         end;
 
@@ -361,13 +361,13 @@ codeunit 30199 "Shpfy Authentication Mgt."
 
             if IsSuccessStatusCode(StatusCode) and ResponseHasAccessToken(ResponseBody) then begin
                 SaveTokenResponse(RegisteredStoreNew, ResponseBody);
-                Session.LogMessage('', TokenRefreshedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+                Session.LogMessage('0000UIZ', TokenRefreshedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
                 exit;
             end;
 
             // A 401 with an inactive refresh token is terminal: the merchant must reconnect.
             if StatusCode = 401 then begin
-                Session.LogMessage('', TokenRefreshExpiredTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+                Session.LogMessage('0000UJ0', TokenRefreshExpiredTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
                 Error(RefreshTokenExpiredErr, Store);
             end;
 
@@ -378,7 +378,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
         // cannot make calls, so surface the reconnect error; otherwise keep the still-valid token.
         if TokenExpired(RegisteredStoreNew) then
             Error(RefreshTokenExpiredErr, Store);
-        Session.LogMessage('', TokenRefreshTransientTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+        Session.LogMessage('0000UJ1', TokenRefreshTransientTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
     end;
 
     local procedure TokenNeedsRefresh(RegisteredStoreNew: Record "Shpfy Registered Store New"): Boolean
