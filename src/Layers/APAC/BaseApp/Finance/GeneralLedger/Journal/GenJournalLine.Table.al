@@ -8289,8 +8289,7 @@ table 81 "Gen. Journal Line"
         UpdateDescription(Vend.Name);
         "Payment Method Code" := Vend."Payment Method Code";
         "Creditor No." := Vend."Creditor No.";
-
-        OnGenJnlLineGetVendorAccount(Vend, Rec);
+        OnGenJnlLineGetVendorAccount(Vend);
 
         Validate("Recipient Bank Account", Vend."Preferred Bank Account Code");
         "Posting Group" := Vend."Vendor Posting Group";
@@ -11707,7 +11706,7 @@ table 81 "Gen. Journal Line"
     /// </param>
     [IntegrationEvent(true, false)]
     [Scope('OnPrem')]
-    procedure OnGenJnlLineGetVendorAccount(Vendor: Record Vendor; var Rec: Record "Gen. Journal Line")
+    procedure OnGenJnlLineGetVendorAccount(Vendor: Record Vendor)
     begin
     end;
 

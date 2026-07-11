@@ -33,7 +33,7 @@ tableextension 28018 "WHT Sales Invoice Line" extends "Sales Invoice Line"
 
     keys
     {
-        key(Key28001; "WHT Business Posting Group", "WHT Product Posting Group")
+        key(WHT; "Document No.", "WHT Business Posting Group", "WHT Product Posting Group")
         {
         }
     }

@@ -30,4 +30,12 @@ tableextension 28006 WHTPurchaseLine extends "Purchase Line"
             DataClassification = CustomerContent;
         }
     }
+
+    keys
+    {
+        key(WHT; "Document Type", "Document No.", "WHT Business Posting Group", "WHT Product Posting Group")
+        {
+            IncludedFields = "Prepmt. Amt. Inv.", "Prepmt Amt to Deduct";
+        }
+    }
 }

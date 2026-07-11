@@ -13831,7 +13831,7 @@ codeunit 80 "Sales-Post"
     end;
 #endif
     [IntegrationEvent(false, false)]
-    local procedure OnPostInvoiceOnAfterPostLines(var SalesHeader: Record "Sales Header"; SrcCode: Code[10]; GenJnlLineDocType: Enum "Gen. Journal Document Type"; GenJnlLineDocNo: Code[20]; GenJnlLineExtDocNo: Code[35]; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; TotalAmount: Decimal; var TempSalesLineGlobal: Record "Sales Line" temporary; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var TotalSalesLineLCY: Record "Sales Line" temporary)
+    local procedure OnPostInvoiceOnAfterPostLines(var SalesHeader: Record "Sales Header"; SrcCode: Code[10]; GenJnlLineDocType: Enum "Gen. Journal Document Type"; GenJnlLineDocNo: Code[20]; GenJnlLineExtDocNo: Code[35]; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; TotalAmount: Decimal; var TempSalesLineGlobal: Record "Sales Line" temporary; var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var TotalSalesLineLCY: Record "Sales Line")
     begin
     end;
 

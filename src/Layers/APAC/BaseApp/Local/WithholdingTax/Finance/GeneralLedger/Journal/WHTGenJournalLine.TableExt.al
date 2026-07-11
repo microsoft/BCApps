@@ -84,7 +84,7 @@ tableextension 28001 WHTGenJournalLine extends "Gen. Journal Line"
     begin
         TempWHTEntry.SetRange("Document Type", "Document Type");
         TempWHTEntry.SetRange("Original Document No.", "Document No.");
-        if TempWHTEntry.FindFirst() then
+        if not TempWHTEntry.IsEmpty() then
             TempWHTEntry.DeleteAll();
     end;
 }

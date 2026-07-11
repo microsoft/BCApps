@@ -19,10 +19,10 @@ codeunit 28043 "WHT Gen Journal Line"
         Rec."WHT Product Posting Group" := '';
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnGenJnlLineGetVendorAccount', '', true, false)]
-    procedure OnGenJnlLineGetVendorAccount(Vendor: Record Vendor; var Rec: Record "Gen. Journal Line")
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterAccountNoOnValidateGetVendorAccount', '', true, false)]
+    local procedure OnAfterAccountNoOnValidateGetVendorAccount(Vendor: Record Vendor; var GenJournalLine: Record "Gen. Journal Line")
     begin
-        Rec."Skip WHT" := Vendor.ABN <> '';
+        GenJournalLine."Skip WHT" := Vendor.ABN <> '';
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnBeforeCheckConfirmDifferentVendorAndPayToVendor', '', true, false)]

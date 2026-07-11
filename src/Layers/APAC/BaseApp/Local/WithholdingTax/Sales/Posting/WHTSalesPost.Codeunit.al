@@ -212,7 +212,7 @@ codeunit 28013 "WHT Sales Post"
                     end;
             if GLSetup."Enable Tax Invoices" then begin
                 TaxManagement.PrintTaxInvoices(false);
-                if TaxPostBuffer.FindFirst() then
+                if not TaxPostBuffer.IsEmpty() then
                     TaxPostBuffer.DeleteAll();
             end;
         end;

@@ -35,7 +35,7 @@ pageextension 28000 WHTGLAccountCard extends "G/L Account Card"
                 Caption = 'WHT Posting Setup';
                 Image = VATPostingSetup;
                 RunObject = Page "WHT Posting Setup";
-                ToolTip = 'View the information posting.';
+                ToolTip = 'Open the WHT Posting Setup page.';
                 Promoted = true;
                 PromotedCategory = Process;
             }

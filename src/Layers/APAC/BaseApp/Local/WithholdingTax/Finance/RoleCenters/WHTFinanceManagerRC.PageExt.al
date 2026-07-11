@@ -88,10 +88,10 @@ pageextension 28009 WHTFinanceManagerRC extends "Finance Manager Role Center"
         }
         addafter("VAT Report - Vendor1")
         {
-            action("WHT Certificate - Other Copy1")
+            action("WHT Certificate - Copy1")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'WHT Certificate - Other Copy';
+                Caption = 'WHT Certificate - Copy';
                 RunObject = Report "WHT Certificate - Other Copy";
                 Tooltip = 'Open the WHT Certificate - Other Copy report.';
             }

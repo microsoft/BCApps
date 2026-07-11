@@ -30,4 +30,11 @@ tableextension 28010 WHTPurchInvLine extends "Purch. Inv. Line"
             DataClassification = CustomerContent;
         }
     }
+
+    keys
+    {
+        key(WHT; "Document No.", "WHT Business Posting Group", "WHT Product Posting Group")
+        {
+        }
+    }
 }

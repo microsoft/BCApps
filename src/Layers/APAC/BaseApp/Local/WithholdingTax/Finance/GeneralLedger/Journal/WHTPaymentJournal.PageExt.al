@@ -36,7 +36,7 @@ pageextension 28001 WHTPaymentJournal extends "Payment Journal"
             field("Skip WHT"; Rec."Skip WHT")
             {
                 ApplicationArea = Basic, Suite;
-                ToolTip = 'Specifies that this field can be checked if we want to skip the WHT Calculation for a particular journal transaction.';
+                ToolTip = 'Specifies whether to skip WHT calculation for this journal transaction.';
                 Visible = false;
             }
         }
