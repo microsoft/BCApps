@@ -838,12 +838,17 @@ page 8909 "Warehouse Manager Role Center"
                         Caption = 'Item - Able to Make (Timeline)';
                         RunObject = report "Item - Able to Make (Timeline)";
                     }
+#if not CLEAN29
                     action("BOM Cost Share Distribution")
                     {
                         ApplicationArea = Assembly;
                         Caption = 'BOM Cost Share Distribution';
                         RunObject = report "BOM Cost Share Distribution";
+                        ObsoleteState = Pending;
+                        ObsoleteReason = 'This report is deprecated and will be removed in a future release.';
+                        ObsoleteTag = '29.0';
                     }
+#endif
                     group("Group19")
                     {
                         Caption = 'Assembly BOM';
