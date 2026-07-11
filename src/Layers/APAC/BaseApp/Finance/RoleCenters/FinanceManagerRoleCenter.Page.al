@@ -96,7 +96,6 @@ using System.Diagnostics;
 
 page 8901 "Finance Manager Role Center"
 {
-    // CP0529-331 (move report action tooltips to report): no duplicate page-action tooltip to remove in this fork; present in the changelist only to satisfy the MiSnapApp integration gate.
     Caption = 'Finance Manager Role Center';
     PageType = RoleCenter;
     actions
@@ -495,12 +494,6 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Financial Analysis Report';
                             RunObject = Report "Financial Analysis Report";
-                        }
-                        action("Withholding Summary")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Withholding Summary';
-                            RunObject = Report "Withholding Summary";
                         }
                     }
                     group("Group11")
@@ -1336,18 +1329,6 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "Posted Return Receipts";
                         Tooltip = 'Open the Posted Return Receipts page.';
                     }
-                    action("Posted Sales Tax Invoice")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Posted Sales Tax Invoice';
-                        RunObject = page "Posted Sales Tax Invoice";
-                    }
-                    action("Posted Sales Tax Credit Memo")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Posted Sales Tax Credit Memo';
-                        RunObject = page "Posted Sales Tax Credit Memo";
-                    }
                     action("GST Sales Entries1")
                     {
                         ApplicationArea = Basic, Suite;
@@ -1556,12 +1537,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'VAT Report - Customer';
                         RunObject = Report "VAT Report - Customer";
-                    }
-                    action("Pending Sales Tax Invoice")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Pending Sales Tax Invoice';
-                        RunObject = Report "Pending Sales Tax Invoice";
                     }
                 }
                 group("Group37")
@@ -1802,6 +1777,7 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'VAT Report - Vendor';
                         RunObject = Report "VAT Report - Vendor";
                     }
+                }
                 group("Group41")
                 {
                     Caption = 'Registers/Entries';
@@ -1883,18 +1859,6 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'Posted Purchase Return Shipments';
                         RunObject = page "Posted Return Shipments";
                         Tooltip = 'Open the Posted Purchase Return Shipments page.';
-                    }
-                    action("Posted Purchase Tax Invoice")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Posted Purchase Tax Invoice';
-                        RunObject = page "Posted Purchase Tax Invoice";
-                    }
-                    action("Posted Purch. Tax  Credit Memo")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Posted Purch. Tax  Credit Memo';
-                        RunObject = page "Posted Purch. Tax  Credit Memo";
                     }
                 }
                 group("Group43")
