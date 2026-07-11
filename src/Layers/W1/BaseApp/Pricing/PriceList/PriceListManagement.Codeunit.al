@@ -816,9 +816,8 @@ codeunit 7017 "Price List Management"
     local procedure CanCombineSourceFilters(var PriceListLine: Record "Price List Line"; PriceSourceList: Codeunit "Price Source List"): Boolean
     var
         PriceSource: Record "Price Source";
-        SourceNoToTypeParentKey: Dictionary of [Code[20], Text];
+        SpecificTypeParentKeys: Dictionary of [Text, Boolean];
         TypeParentKey: Text;
-        ExistingKey: Text;
         NonEmptyCount: Integer;
     begin
         if PriceSourceList.First(PriceSource, 0) then
@@ -830,14 +829,17 @@ codeunit 7017 "Price List Management"
                     NonEmptyCount += 1;
                     if PriceSource."Source No." <> '' then begin
                         TypeParentKey := Format(PriceSource."Source Type") + '|' + PriceSource."Parent Source No.";
-                        if SourceNoToTypeParentKey.Get(PriceSource."Source No.", ExistingKey) then begin
-                            if ExistingKey <> TypeParentKey then begin
-                                ClearSourceFilters(PriceListLine);
-                                exit(false);
-                            end;
-                        end else
-                            SourceNoToTypeParentKey.Add(PriceSource."Source No.", TypeParentKey);
-                    end;
+                        if not SpecificTypeParentKeys.ContainsKey(TypeParentKey) then
+                            SpecificTypeParentKeys.Add(TypeParentKey, true);
+                        if SpecificTypeParentKeys.Count() > 1 then begin
+                            ClearSourceFilters(PriceListLine);
+                            exit(false);
+                        end;
+                    end else
+                        if PriceSource."Parent Source No." <> '' then begin
+                            ClearSourceFilters(PriceListLine);
+                            exit(false);
+                        end;
                 end;
             until not PriceSourceList.Next(PriceSource);
         ClearSourceFilters(PriceListLine);
