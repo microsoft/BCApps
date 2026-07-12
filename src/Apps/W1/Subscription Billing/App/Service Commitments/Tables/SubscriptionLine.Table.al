@@ -906,7 +906,7 @@ table 8059 "Subscription Line"
             until BillingLine.Next() = 0;
     end;
 
-    procedure UpdateNextBillingDate(LastBillingToDate: Date)
+    internal procedure UpdateNextBillingDate(LastBillingToDate: Date)
     var
         NewNextBillingDate: Date;
         OriginalInvoicedToDate: Date;

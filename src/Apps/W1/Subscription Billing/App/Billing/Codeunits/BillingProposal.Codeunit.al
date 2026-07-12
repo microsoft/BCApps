@@ -29,6 +29,9 @@ codeunit 8062 "Billing Proposal"
         PurchaseCreditMemoExistsForBillingLineQst: Label 'There is a purchase credit memo that needs to be posted before an invoice can be created. Do you want to open the credit memo?';
         BillingLinesForAllContractLinesExistsErr: Label 'There are billing lines for all contract lines. For contract lines with billing lines, the invoice must be created in recurring billing.';
         NotAuthorizedToClearOrDeleteDocumentErr: Label 'You are not authorized to clear billing templates or delete billing documents. To perform these actions, you must be set up as an Auto Contract Billing user in the User Setup.';
+        ClearingBillingProposalLbl: Label 'Clearing billing proposal...';
+        DeletingBillingLinesLbl: Label 'Deleting billing lines...';
+        DeletingDocumentsLbl: Label 'Deleting billing documents...';
 
     procedure InitTempTable(var TempBillingLine: Record "Billing Line" temporary; GroupBy: Enum "Contract Billing Grouping")
     var
@@ -656,7 +659,6 @@ codeunit 8062 "Billing Proposal"
         ClearBillingProposalOptionsTxt: Label 'All billing proposals, Only current billing template proposal';
         ClearBillingProposalOptionsMySuggestionsOnlyTxt: Label 'All billing proposals (user %1 only), Only current billing template proposal', Comment = '%1: User ID';
         ClearBillingProposalQst: Label 'Which billing proposal(s) should be deleted?';
-        ClearingBillingProposalLbl: Label 'Clearing billing proposal...';
         StrMenuResponse: Integer;
         Counter: Integer;
     begin
@@ -702,7 +704,6 @@ codeunit 8062 "Billing Proposal"
 
     internal procedure DeleteBillingLines(var BillingLine: Record "Billing Line")
     var
-        DeletingBillingLinesLbl: Label 'Deleting billing lines...';
         Counter: Integer;
     begin
         BillingLine.SetCurrentKey("Subscription Header No.", "Subscription Line Entry No.", "Billing to");
@@ -1017,7 +1018,6 @@ codeunit 8062 "Billing Proposal"
         DeleteBillingDocumentQst: Label 'Which contract billing documents should be deleted?';
         DeleteBillingDocumentOptionsTxt: Label 'All Documents,Documents from current billing template only';
         DeleteBillingDocumentOptionsMySuggestionsOnlyTxt: Label 'All Documents (user %1 only),Documents from current billing template only', Comment = '%1: User ID';
-        DeletingDocumentsLbl: Label 'Deleting billing documents...';
         PreviousDocumentNo: Code[20];
         StrMenuResponse: Integer;
         Counter: Integer;

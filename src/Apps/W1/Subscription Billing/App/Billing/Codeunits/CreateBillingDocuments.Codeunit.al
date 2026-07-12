@@ -327,10 +327,7 @@ codeunit 8060 "Create Billing Documents"
             UsageDataBilling.SetRange("Document Type", Enum::"Usage Based Billing Doc. Type"::None);
             UsageDataBilling.SetRange("Document No.", '');
             if UsageDataBilling.FindSet() then begin
-                // TempBillingLine.Indent holds the source Billing Line "Entry No." captured during aggregation
-                // in CreateTempBillingLines; reused here as the Billing Line link for Usage Data Billing
-                // instead of re-querying Billing Line.
-                BillingLineNo := TempBillingLine.Indent;
+                BillingLineNoByTempEntryNo.Get(TempBillingLine."Entry No.", BillingLineNo);
                 repeat
                     UsageDataBilling.SaveDocumentValues(UsageBasedDocTypeConv.ConvertSalesDocTypeToUsageBasedBillingDocType(SalesLine."Document Type"), SalesLine."Document No.",
                                                                                SalesLine."Line No.", BillingLineNo);
@@ -446,10 +443,7 @@ codeunit 8060 "Create Billing Documents"
         UsageDataBilling.SetRange("Document Type", Enum::"Usage Based Billing Doc. Type"::None);
         UsageDataBilling.SetRange("Document No.", '');
         if UsageDataBilling.FindSet() then begin
-            // TempBillingLine.Indent holds the source Billing Line "Entry No." captured during aggregation
-            // in CreateTempBillingLines; reused here as the Billing Line link for Usage Data Billing
-            // instead of re-querying Billing Line.
-            BillingLineNo := TempBillingLine.Indent;
+            BillingLineNoByTempEntryNo.Get(TempBillingLine."Entry No.", BillingLineNo);
             repeat
                 UsageDataBilling.SaveDocumentValues(UsageBasedDocTypeConv.ConvertPurchaseDocTypeToUsageBasedBillingDocType(PurchaseLine."Document Type"), PurchaseLine."Document No.",
                                            PurchaseLine."Line No.", BillingLineNo);
@@ -822,10 +816,7 @@ codeunit 8060 "Create Billing Documents"
                 OnCreateTempBillingLinesBeforeSaveTempBillingLine(TempBillingLine, BillingLine);
                 TempBillingLine."Unit Cost" += BillingLine."Unit Cost";
                 TempBillingLine."Unit Cost (LCY)" += BillingLine."Unit Cost (LCY)";
-                // Carry the (last) source Billing Line "Entry No." on the aggregated temp line via the unused
-                // Indent field, so the usage data billing link can be stamped without re-querying Billing Line
-                // (replaces a per-line GetBillingLineNo FindLast).
-                TempBillingLine.Indent := BillingLine."Entry No.";
+                BillingLineNoByTempEntryNo.Set(TempBillingLine."Entry No.", BillingLine."Entry No.");
                 TempBillingLine.Modify(false);
             until BillingLine.Next() = 0;
     end;
@@ -1502,6 +1493,7 @@ codeunit 8060 "Create Billing Documents"
         Language: Codeunit Language;
         ProgressTracker: Codeunit "Progress Tracker";
         BillingPriceCalcSkip: Codeunit "Billing Price Calc. Skip";
+        BillingLineNoByTempEntryNo: Dictionary of [Integer, Integer];
         DocumentDate: Date;
         PostingDate: Date;
         CustomerRecurringBillingGrouping: Enum "Customer Rec. Billing Grouping";

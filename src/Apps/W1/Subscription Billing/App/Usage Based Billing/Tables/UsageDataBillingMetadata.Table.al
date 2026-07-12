@@ -72,7 +72,7 @@ table 8021 "Usage Data Billing Metadata"
         }
     }
 
-    procedure InsertFromUsageDataBilling(UsageDataBilling: Record "Usage Data Billing")
+    internal procedure InsertFromUsageDataBilling(UsageDataBilling: Record "Usage Data Billing")
     var
         ServiceCommitment: Record "Subscription Line";
         NewOriginalInvoicedToDate: Date;
@@ -102,7 +102,7 @@ table 8021 "Usage Data Billing Metadata"
         Insert(true);
     end;
 
-    procedure FilterOnServiceCommitment(ServiceCommitmentEntryNo: Integer)
+    internal procedure FilterOnServiceCommitment(ServiceCommitmentEntryNo: Integer)
     begin
         Rec.SetRange("Subscription Line Entry No.", ServiceCommitmentEntryNo);
     end;

@@ -50,14 +50,14 @@ page 8077 "Create Vendor Billing Docs"
         PostingDate: Date;
         Grouping: Enum "Vendor Rec. Billing Grouping";
 
-    procedure GetData(var NewDocumentDate: Date; var NewPostingDate: Date; var NewGroupingType: Enum "Vendor Rec. Billing Grouping")
+    internal procedure GetData(var NewDocumentDate: Date; var NewPostingDate: Date; var NewGroupingType: Enum "Vendor Rec. Billing Grouping")
     begin
         NewDocumentDate := DocumentDate;
         NewPostingDate := PostingDate;
         NewGroupingType := Grouping;
     end;
 
-    procedure SetData(NewDocumentDate: Date; NewPostingDate: Date; NewGroupingType: Enum "Vendor Rec. Billing Grouping")
+    internal procedure SetData(NewDocumentDate: Date; NewPostingDate: Date; NewGroupingType: Enum "Vendor Rec. Billing Grouping")
     begin
         DocumentDate := NewDocumentDate;
         PostingDate := NewPostingDate;

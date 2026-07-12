@@ -352,7 +352,7 @@ table 8018 "Usage Data Generic Import"
                 end;
     end;
 
-    procedure SetReason(ReasonText: Text)
+    internal procedure SetReason(ReasonText: Text)
     var
         TextManagement: Codeunit "Text Management";
         RRef: RecordRef;
@@ -368,7 +368,7 @@ table 8018 "Usage Data Generic Import"
         end;
     end;
 
-    procedure ShowReason()
+    internal procedure ShowReason()
     var
         TextManagement: Codeunit "Text Management";
         RRef: RecordRef;
@@ -378,7 +378,7 @@ table 8018 "Usage Data Generic Import"
         TextManagement.ShowFieldText(RRef, FieldNo(Reason));
     end;
 
-    procedure GetCurrencyCode(): Code[10]
+    internal procedure GetCurrencyCode(): Code[10]
     var
         GLSetup: Record "General Ledger Setup";
     begin

@@ -363,7 +363,7 @@ table 8006 "Usage Data Billing"
         ServiceCommitment.Modify();
     end;
 
-    procedure SetReason(ReasonText: Text)
+    internal procedure SetReason(ReasonText: Text)
     var
         TextManagement: Codeunit "Text Management";
         RRef: RecordRef;
@@ -379,7 +379,7 @@ table 8006 "Usage Data Billing"
         end;
     end;
 
-    procedure InitFrom(UsageDataImportEntryNo: Integer; SubscriptionHeaderNo: Code[20]; ProductID: Text[80]; ProductName: Text[100];
+    internal procedure InitFrom(UsageDataImportEntryNo: Integer; SubscriptionHeaderNo: Code[20]; ProductID: Text[80]; ProductName: Text[100];
         BillingPeriodStartDate: Date; BillingPeriodEndDate: Date; NewQuantity: Decimal)
     begin
         Rec.Init();
@@ -474,23 +474,23 @@ table 8006 "Usage Data Billing"
         end;
     end;
 
-    procedure FilterOnUsageDataImportAndServiceCommitment(UsageDataImportEntryNo: Integer; ServiceCommitment: Record "Subscription Line")
+    internal procedure FilterOnUsageDataImportAndServiceCommitment(UsageDataImportEntryNo: Integer; ServiceCommitment: Record "Subscription Line")
     begin
         Rec.SetRange("Usage Data Import Entry No.", UsageDataImportEntryNo);
         Rec.FilterOnServiceCommitment(ServiceCommitment);
     end;
 
-    procedure FilterOnServiceCommitment(ServiceCommitment: Record "Subscription Line")
+    internal procedure FilterOnServiceCommitment(ServiceCommitment: Record "Subscription Line")
     begin
         Rec.SetRange("Subscription Line Entry No.", ServiceCommitment."Entry No.");
     end;
 
-    procedure UpdateChargedPeriod()
+    internal procedure UpdateChargedPeriod()
     begin
         "Charged Period (Days)" := Rec."Charge End Date" - Rec."Charge Start Date" + 1;
     end;
 
-    procedure ShowReason()
+    internal procedure ShowReason()
     var
         TextManagement: Codeunit "Text Management";
         RRef: RecordRef;
@@ -500,7 +500,7 @@ table 8006 "Usage Data Billing"
         TextManagement.ShowFieldText(RRef, FieldNo(Reason));
     end;
 
-    procedure GetReason(): Text
+    internal procedure GetReason(): Text
     var
         TextManagement: Codeunit "Text Management";
         RRef: RecordRef;
@@ -510,7 +510,7 @@ table 8006 "Usage Data Billing"
         exit(TextManagement.ReadBlobText(RRef, FieldNo(Reason)));
     end;
 
-    procedure ShowRelatedDocuments(var UsageBasedBilling: Record "Usage Data Billing"; DocumentType: Option Contract,"Contract Invoices","Posted Contract Invoices"; ServicePartner: Enum "Service Partner")
+    internal procedure ShowRelatedDocuments(var UsageBasedBilling: Record "Usage Data Billing"; DocumentType: Option Contract,"Contract Invoices","Posted Contract Invoices"; ServicePartner: Enum "Service Partner")
     begin
         UsageBasedBilling.SetRange(Partner, ServicePartner);
         case DocumentType of
@@ -598,7 +598,7 @@ table 8006 "Usage Data Billing"
             Page.Run(Page::"Posted Purchase Invoices", PurchInvHeader);
     end;
 
-    procedure MarkPurchaseHeaderFromUsageDataBilling(var UsageDataBilling: Record "Usage Data Billing"; var PurchaseHeader: Record "Purchase Header")
+    internal procedure MarkPurchaseHeaderFromUsageDataBilling(var UsageDataBilling: Record "Usage Data Billing"; var PurchaseHeader: Record "Purchase Header")
     begin
         UsageDataBilling.SetRange("Document Type", "Usage Based Billing Doc. Type"::Invoice);
         UsageDataBilling.SetFilter("Document No.", '<>%1', '');
@@ -646,14 +646,14 @@ table 8006 "Usage Data Billing"
         SalesHeader.MarkedOnly(true);
     end;
 
-    procedure FilterOnDocumentTypeAndDocumentNo(ServicePartner: Enum "Service Partner"; UsageBasedBillingDocType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20])
+    internal procedure FilterOnDocumentTypeAndDocumentNo(ServicePartner: Enum "Service Partner"; UsageBasedBillingDocType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20])
     begin
         Rec.SetRange(Partner, ServicePartner);
         Rec.SetRange("Document Type", UsageBasedBillingDocType);
         Rec.SetRange("Document No.", DocumentNo);
     end;
 
-    procedure SaveDocumentValues(UsageBasedBillingDocType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20]; DocumentEntryNo: Integer; BillingLineEntryNo: Integer)
+    internal procedure SaveDocumentValues(UsageBasedBillingDocType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20]; DocumentEntryNo: Integer; BillingLineEntryNo: Integer)
     begin
         Rec."Document Type" := UsageBasedBillingDocType;
         Rec."Document No." := DocumentNo;
@@ -663,12 +663,12 @@ table 8006 "Usage Data Billing"
         OnAfterSaveDocumentValues(Rec);
     end;
 
-    procedure IsPartnerVendor(): Boolean
+    internal procedure IsPartnerVendor(): Boolean
     begin
         exit(Rec.Partner = Rec.Partner::Vendor);
     end;
 
-    procedure IsPartnerCustomer(): Boolean
+    internal procedure IsPartnerCustomer(): Boolean
     begin
         exit(Rec.Partner = Rec.Partner::Customer);
     end;
@@ -680,7 +680,7 @@ table 8006 "Usage Data Billing"
         Rec.SetRange("Subscription Contract Line No.", EntryNo);
     end;
 
-    procedure FilterDocumentWithLine(ServicePartner: Enum "Service Partner"; DocumentType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20]; EntryNo: Integer)
+    internal procedure FilterDocumentWithLine(ServicePartner: Enum "Service Partner"; DocumentType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20]; EntryNo: Integer)
     begin
         Rec.FilterOnDocumentTypeAndDocumentNo(ServicePartner, DocumentType, DocumentNo);
         Rec.SetRange("Document Line No.", EntryNo);
@@ -701,75 +701,75 @@ table 8006 "Usage Data Billing"
         Rec.SetRange("Subscription Line Entry No.", EntryNo);
     end;
 
-    procedure ShowForContractLine(ServicePartner: Enum "Service Partner"; ContractNo: Code[20]; EntryNo: Integer)
+    internal procedure ShowForContractLine(ServicePartner: Enum "Service Partner"; ContractNo: Code[20]; EntryNo: Integer)
     begin
         FilterContractLine(ServicePartner, ContractNo, EntryNo);
         Page.RunModal(Page::"Usage Data Billings", Rec);
     end;
 
-    procedure ShowForDocuments(ServicePartner: Enum "Service Partner"; DocumentType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20]; EntryNo: Integer)
+    internal procedure ShowForDocuments(ServicePartner: Enum "Service Partner"; DocumentType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20]; EntryNo: Integer)
     begin
         FilterDocumentWithLine(ServicePartner, DocumentType, DocumentNo, EntryNo);
         Page.RunModal(Page::"Usage Data Billings", Rec);
     end;
 
-    procedure ShowForSalesDocuments(DocumentType: Enum "Sales Document Type"; DocumentNo: Code[20]; EntryNo: Integer)
+    internal procedure ShowForSalesDocuments(DocumentType: Enum "Sales Document Type"; DocumentNo: Code[20]; EntryNo: Integer)
     begin
         ShowForDocuments(Enum::"Service Partner"::Customer, UsageBasedDocTypeConv.ConvertSalesDocTypeToUsageBasedBillingDocType(DocumentType), DocumentNo, EntryNo);
     end;
 
-    procedure ShowForPurchaseDocuments(DocumentType: Enum "Purchase Document Type"; DocumentNo: Code[20]; EntryNo: Integer)
+    internal procedure ShowForPurchaseDocuments(DocumentType: Enum "Purchase Document Type"; DocumentNo: Code[20]; EntryNo: Integer)
     begin
         ShowForDocuments(Enum::"Service Partner"::Vendor, UsageBasedDocTypeConv.ConvertPurchaseDocTypeToUsageBasedBillingDocType(DocumentType), DocumentNo, EntryNo);
     end;
 
-    procedure ShowForRecurringBilling(ServiceObjectNo: Code[20]; ServCommEntryNo: Integer; DocumentType: Enum "Rec. Billing Document Type"; DocumentNo: Code[20])
+    internal procedure ShowForRecurringBilling(ServiceObjectNo: Code[20]; ServCommEntryNo: Integer; DocumentType: Enum "Rec. Billing Document Type"; DocumentNo: Code[20])
     begin
         FilterBillingLine(ServiceObjectNo, ServCommEntryNo, UsageBasedDocTypeConv.ConvertRecurringBillingDocTypeToUsageBasedBillingDocType(DocumentType), DocumentNo);
         Page.RunModal(Page::"Usage Data Billings", Rec);
     end;
 
-    procedure ShowForServiceCommitments(ServicePartner: Enum "Service Partner"; ServiceObjectNo: Code[20]; EntryNo: Integer)
+    internal procedure ShowForServiceCommitments(ServicePartner: Enum "Service Partner"; ServiceObjectNo: Code[20]; EntryNo: Integer)
     begin
         FilterServiceCommitmentLine(ServicePartner, ServiceObjectNo, EntryNo);
         Page.RunModal(Page::"Usage Data Billings", Rec);
     end;
 
-    procedure ExistForContractLine(ServicePartner: Enum "Service Partner"; ContractNo: Code[20]; EntryNo: Integer): Boolean
+    internal procedure ExistForContractLine(ServicePartner: Enum "Service Partner"; ContractNo: Code[20]; EntryNo: Integer): Boolean
     begin
         FilterContractLine(ServicePartner, ContractNo, EntryNo);
         exit(not Rec.IsEmpty());
     end;
 
-    procedure ExistForDocuments(ServicePartner: Enum "Service Partner"; DocumentType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20]; EntryNo: Integer): Boolean
+    internal procedure ExistForDocuments(ServicePartner: Enum "Service Partner"; DocumentType: Enum "Usage Based Billing Doc. Type"; DocumentNo: Code[20]; EntryNo: Integer): Boolean
     begin
         FilterDocumentWithLine(ServicePartner, DocumentType, DocumentNo, EntryNo);
         exit(not Rec.IsEmpty());
     end;
 
-    procedure ExistForSalesDocuments(DocumentType: Enum "Sales Document Type"; DocumentNo: Code[20]; EntryNo: Integer): Boolean
+    internal procedure ExistForSalesDocuments(DocumentType: Enum "Sales Document Type"; DocumentNo: Code[20]; EntryNo: Integer): Boolean
     begin
         exit(ExistForDocuments(Enum::"Service Partner"::Customer, UsageBasedDocTypeConv.ConvertSalesDocTypeToUsageBasedBillingDocType(DocumentType), DocumentNo, EntryNo));
     end;
 
-    procedure ExistForPurchaseDocuments(DocumentType: Enum "Purchase Document Type"; DocumentNo: Code[20]; EntryNo: Integer): Boolean
+    internal procedure ExistForPurchaseDocuments(DocumentType: Enum "Purchase Document Type"; DocumentNo: Code[20]; EntryNo: Integer): Boolean
     begin
         exit(ExistForDocuments(Enum::"Service Partner"::Vendor, UsageBasedDocTypeConv.ConvertPurchaseDocTypeToUsageBasedBillingDocType(DocumentType), DocumentNo, EntryNo));
     end;
 
-    procedure ExistForRecurringBilling(ServiceObjectNo: Code[20]; ServCommEntryNo: Integer; DocumentType: Enum "Rec. Billing Document Type"; DocumentNo: Code[20]): Boolean
+    internal procedure ExistForRecurringBilling(ServiceObjectNo: Code[20]; ServCommEntryNo: Integer; DocumentType: Enum "Rec. Billing Document Type"; DocumentNo: Code[20]): Boolean
     begin
         FilterBillingLine(ServiceObjectNo, ServCommEntryNo, UsageBasedDocTypeConv.ConvertRecurringBillingDocTypeToUsageBasedBillingDocType(DocumentType), DocumentNo);
         exit(not Rec.IsEmpty());
     end;
 
-    procedure ExistForServiceCommitments(ServicePartner: Enum "Service Partner"; ServiceObjectNo: Code[20]; EntryNo: Integer): Boolean
+    internal procedure ExistForServiceCommitments(ServicePartner: Enum "Service Partner"; ServiceObjectNo: Code[20]; EntryNo: Integer): Boolean
     begin
         FilterServiceCommitmentLine(ServicePartner, ServiceObjectNo, EntryNo);
         exit(not Rec.IsEmpty());
     end;
 
-    procedure UpdateRebilling()
+    internal procedure UpdateRebilling()
     var
         UsageDataBillingMetadata: Record "Usage Data Billing Metadata";
     begin
@@ -781,7 +781,7 @@ table 8006 "Usage Data Billing"
         Rec.Rebilling := not UsageDataBillingMetadata.IsEmpty;
     end;
 
-    procedure InsertMetadata()
+    internal procedure InsertMetadata()
     var
         UsageDataBillingMetadata: Record "Usage Data Billing Metadata";
     begin
@@ -792,7 +792,7 @@ table 8006 "Usage Data Billing"
             UsageDataBillingMetadata.ModifyAll(Rebilling, Rec.Rebilling, false);
     end;
 
-    procedure SetMetadataAsInvoiced()
+    internal procedure SetMetadataAsInvoiced()
     var
         UsageDataBillingMetadata: Record "Usage Data Billing Metadata";
     begin
@@ -804,7 +804,7 @@ table 8006 "Usage Data Billing"
         UsageDataBillingMetadata.ModifyAll(Invoiced, true, false);
     end;
 
-    procedure IsInvoiced(): Boolean
+    internal procedure IsInvoiced(): Boolean
     begin
         exit((Rec."Document Type" <> "Usage Based Billing Doc. Type"::None) and (Rec."Document No." <> ''));
     end;
