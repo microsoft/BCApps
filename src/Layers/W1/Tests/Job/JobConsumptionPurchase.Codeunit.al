@@ -2806,6 +2806,67 @@ codeunit 136302 "Job Consumption Purchase"
     end;
 
     [Test]
+    procedure PartialInvoicingNonInvItemWithJobAppliesNegAdjmtToCorrectILE()
+    var
+        Item: Record Item;
+        Vendor: Record Vendor;
+        JobTask: Record "Job Task";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchaseILE: Record "Item Ledger Entry";
+        NegAdjmtILE: Record "Item Ledger Entry";
+        ReceiptNo: Code[20];
+        UnitCost: Decimal;
+        FirstQtyToInvoice: Decimal;
+        SecondQtyToInvoice: Decimal;
+    begin
+        // [FEATURE] [Partial Posting] [Get Receipt Lines] [Non-Inventory]
+        // [SCENARIO 640811] Partial invoicing of a non-inventory item with a project applies the project consumption
+        // [SCENARIO 640811] "Negative Adjmt." value entry to the correct Item Ledger Entry.
+        Initialize();
+        UnitCost := LibraryRandom.RandDecInRange(100, 200, 2);
+        FirstQtyToInvoice := 0.2;
+        SecondQtyToInvoice := 0.3;
+
+        // [GIVEN] A non-inventory item and a project with a project task.
+        LibraryInventory.CreateNonInventoryTypeItem(Item);
+        CreateJobWithJobTask(JobTask);
+
+        // [GIVEN] A purchase order for the non-inventory item, Quantity = 1, with Project No. and Project Task No.
+        LibraryPurchase.CreateVendor(Vendor);
+        CreatePurchaseHeader(PurchaseHeader."Document Type"::Order, Vendor."No.", PurchaseHeader);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        PurchaseLine.Validate("Direct Unit Cost", UnitCost);
+        PurchaseLine.Validate("Job No.", JobTask."Job No.");
+        PurchaseLine.Validate("Job Task No.", JobTask."Job Task No.");
+        PurchaseLine.Modify(true);
+
+        // [GIVEN] The purchase receipt is posted for the full quantity.
+        // [GIVEN] Two Item Ledger Entries are created: a "Purchase" entry and a "Negative Adjmt." entry for the project.
+        ReceiptNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+
+        // [GIVEN] A first partial invoice for Quantity = 0.2 is created through "Get Receipt Lines" and posted.
+        CreateAndPostPurchInvoiceFromReceipt(Vendor."No.", ReceiptNo, FirstQtyToInvoice);
+
+        // [WHEN] A second partial invoice for Quantity = 0.3 is created through "Get Receipt Lines" and posted.
+        CreateAndPostPurchInvoiceFromReceipt(Vendor."No.", ReceiptNo, SecondQtyToInvoice);
+
+        // [THEN] The "Purchase" Item Ledger Entry has Invoiced Quantity = 0.5, matching the invoiced receipt quantity.
+        FindItemLedgEntry(
+          PurchaseILE, Item."No.", PurchaseILE."Entry Type"::Purchase, PurchaseILE."Document Type"::"Purchase Receipt", ReceiptNo);
+        PurchaseILE.TestField("Invoiced Quantity", FirstQtyToInvoice + SecondQtyToInvoice);
+
+        // [THEN] No "Negative Adjmt." value entry is linked to the "Purchase" Item Ledger Entry.
+        VerifyNoNegativeAdjmtValueEntryOnILE(PurchaseILE."Entry No.");
+
+        // [THEN] The "Negative Adjmt." Item Ledger Entry has Invoiced Quantity = -0.5.
+        FindItemLedgEntry(
+          NegAdjmtILE, Item."No.", NegAdjmtILE."Entry Type"::"Negative Adjmt.",
+          NegAdjmtILE."Document Type"::"Purchase Receipt", ReceiptNo);
+        NegAdjmtILE.TestField("Invoiced Quantity", -(FirstQtyToInvoice + SecondQtyToInvoice));
+    end;
+
+    [Test]
     procedure UndoPurchaseReceiptWithNegativeQuantityAndJob()
     var
         Vendor: Record Vendor;
@@ -5534,6 +5595,42 @@ codeunit 136302 "Job Consumption Purchase"
         PurchaseLine.Validate("VAT Prod. Posting Group", PurchRcptLine."VAT Prod. Posting Group");
         PurchaseLine.Modify(true);
         PurchaseLine.ShowItemChargeAssgnt();
+    end;
+
+    local procedure CreateAndPostPurchInvoiceFromReceipt(VendorNo: Code[20]; ReceiptDocumentNo: Code[20]; QtyToInvoice: Decimal)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+    begin
+        // Create a purchase invoice, pull in the posted receipt lines using "Get Receipt Lines" and
+        // reduce the line quantity so that only part of the receipt is invoiced, then post the invoice.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+        PurchaseHeader.Validate("Vendor Invoice No.", LibraryUtility.GenerateGUID());
+        PurchaseHeader.Modify(true);
+
+        PurchRcptLine.SetRange("Document No.", ReceiptDocumentNo);
+        PurchGetReceipt.SetPurchHeader(PurchaseHeader);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.FindFirst();
+        PurchaseLine.Validate(Quantity, QtyToInvoice);
+        PurchaseLine.Modify(true);
+
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+    end;
+
+    local procedure VerifyNoNegativeAdjmtValueEntryOnILE(ItemLedgerEntryNo: Integer)
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        ValueEntry.SetRange("Item Ledger Entry No.", ItemLedgerEntryNo);
+        ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::"Negative Adjmt.");
+        Assert.RecordIsEmpty(ValueEntry);
     end;
 
     local procedure AttachJobToPurchaseDocument(JobTask: Record "Job Task"; PurchaseHeader: Record "Purchase Header"; JobPlanningLineNo: Integer)
