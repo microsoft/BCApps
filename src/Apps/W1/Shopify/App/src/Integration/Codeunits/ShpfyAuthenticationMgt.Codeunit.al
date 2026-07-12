@@ -177,6 +177,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
         exit(HttpResponseMessage.HttpStatusCode());
     end;
 
+    [NonDebuggable]
     local procedure SaveInstalledToken(Store: Text; ResponseBody: Text)
     var
         RegisteredStoreNew: Record "Shpfy Registered Store New";

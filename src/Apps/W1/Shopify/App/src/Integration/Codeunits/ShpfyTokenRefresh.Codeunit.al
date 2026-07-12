@@ -53,7 +53,7 @@ codeunit 30431 "Shpfy Token Refresh"
     internal procedure ScheduleRefreshJob()
     var
         JobQueueEntry: Record "Job Queue Entry";
-        JobQueueCategoryLbl: Label 'SHPFY', Locked = true;
+        JobQueueCategoryLbl: Label 'SHPFYAUTH', Locked = true;
         JobDescriptionTxt: Label 'Shopify: refresh expiring access tokens';
     begin
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
