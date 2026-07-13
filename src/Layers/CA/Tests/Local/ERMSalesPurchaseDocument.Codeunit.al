@@ -873,6 +873,7 @@ codeunit 142053 "ERM Sales/Purchase Document"
         DocumentNo: Code[20];
         CurrencyCode: Code[10];
         AdditionalCurrencyAmount: Decimal;
+        AdditionalCurrencyAmountInclVAT: Decimal;
     begin
         // [FEATURE] [Service] [Order] [ACY]
         // Verify G/L Entry after post Service Order with additional Currency.
@@ -886,6 +887,7 @@ codeunit 142053 "ERM Sales/Purchase Document"
         CreateAndPostServiceOrder(ServiceLine);
         DocumentNo := FindServiceInvoiceHeader(ServiceLine."Document No.");
         AdditionalCurrencyAmount := LibraryERM.ConvertCurrency(ServiceLine."Line Amount", '', CurrencyCode, WorkDate());
+        AdditionalCurrencyAmountInclVAT := LibraryERM.ConvertCurrency(ServiceLine."Amount Including VAT", '', CurrencyCode, WorkDate());
 
         // Verify.
         GeneralPostingSetup.Get(ServiceLine."Gen. Bus. Posting Group", ServiceLine."Gen. Prod. Posting Group");
@@ -894,7 +896,7 @@ codeunit 142053 "ERM Sales/Purchase Document"
           -ServiceLine.Amount, -AdditionalCurrencyAmount);
         VerifyAmountOnGLEntry(
           GLEntry."Document Type"::Invoice, DocumentNo, FindCustomerPostingGroup(ServiceLine."Customer No."),
-          ServiceLine."Amount Including VAT", AdditionalCurrencyAmount);
+          ServiceLine."Amount Including VAT", AdditionalCurrencyAmountInclVAT);
     end;
 
     [Test]

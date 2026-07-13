@@ -48,7 +48,7 @@ codeunit 144002 "Sales/Purchase Reports"
         PurchaseLine.Get(PurchaseLine."Document Type", PurchaseLine."Document No.", PurchaseLine."Line No.");
         LineDiscAmt := LibraryERM.ConvertCurrency(PurchaseLine."Line Discount Amount", Vendor."Currency Code", '', WorkDate());
         InvDiscAmt := LibraryERM.ConvertCurrency(PurchaseLine."Inv. Discount Amount", Vendor."Currency Code", '', WorkDate());
-        Amount := LibraryERM.ConvertCurrency(PurchaseLine."Line Amount" - PurchaseLine."Inv. Discount Amount", Vendor."Currency Code", '', WorkDate());
+        Amount := LibraryERM.ConvertCurrency(PurchaseLine."Outstanding Amount", Vendor."Currency Code", '', WorkDate());
         LibraryVariableStorage.Enqueue(PurchaseLine."No.");  // Enqueue value for PurchaseOrderStatusRequestPageHandler.
         Commit();  // Commit is required to run the Report.
 
@@ -88,7 +88,7 @@ codeunit 144002 "Sales/Purchase Reports"
         SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
         LineDiscAmt := LibraryERM.ConvertCurrency(SalesLine."Line Discount Amount", Customer."Currency Code", '', WorkDate());
         InvDiscAmt := LibraryERM.ConvertCurrency(SalesLine."Inv. Discount Amount", Customer."Currency Code", '', WorkDate());
-        Amount := LibraryERM.ConvertCurrency(SalesLine."Line Amount" - SalesLine."Inv. Discount Amount", Customer."Currency Code", '', WorkDate());
+        Amount := LibraryERM.ConvertCurrency(SalesLine."Outstanding Amount", Customer."Currency Code", '', WorkDate());
         LibraryVariableStorage.Enqueue(SalesLine."No.");  // Enqueue value for SalesOrderStatusRequestPageHandler.
         Commit();  // Commit is required to run the Report.
 

@@ -2555,6 +2555,7 @@ codeunit 142063 SalesDocTotalsSalesEntryUI
         CreateVATPostingSetup();
         LibraryInventory.NoSeriesSetup(InventorySetup);
         LibraryERMCountryData.UpdateSalesReceivablesSetup();
+        LibraryApplicationArea.DisableApplicationAreaSetup();
 
         isInitialized := true;
         Commit();
