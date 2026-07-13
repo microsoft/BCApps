@@ -5,6 +5,7 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
+using Microsoft.CRM.Setup;
 using Microsoft.Integration.Shopify;
 using Microsoft.Sales.Customer;
 using System.TestLibraries.Utilities;
@@ -130,6 +131,7 @@ codeunit 139565 "Shpfy Create Customer Test"
 
     local procedure Initialize()
     var
+        MarketingSetup: Record "Marketing Setup";
         AccessToken: SecretText;
     begin
         if IsInitialized then
@@ -141,6 +143,17 @@ codeunit 139565 "Shpfy Create Customer Test"
         Shop.Modify(false);
         AccessToken := Any.AlphanumericText(20);
         InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
+
+        // Disable duplicate-contact auto-search so creating/updating a customer (which cascades to
+        // contact creation) does not raise an interactive "Duplicate Contacts were found" confirm
+        // dialog during automated integration tests, where GuiAllowed is true and some localizations'
+        // demo data enables this setting.
+        if MarketingSetup.Get() then begin
+            MarketingSetup."Autosearch for Duplicates" := false;
+            MarketingSetup."Maintain Dupl. Search Strings" := false;
+            MarketingSetup.Modify(false);
+        end;
+
         Commit();
     end;
 
