@@ -1,0 +1,126 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Manufacturing.Subcontracting;
+
+using Microsoft.Manufacturing.Document;
+
+page 99001502 "Subc. Routing Info Factbox"
+{
+    ApplicationArea = Subcontracting;
+    Caption = 'Subcontracting Routing Details';
+    Editable = false;
+    PageType = CardPart;
+    RefreshOnActivate = true;
+    SourceTable = "Prod. Order Routing Line";
+    layout
+    {
+        area(Content)
+        {
+            field(ShowSubcontractor; SubcRoutingFactboxMgmt.GetSubcontractorNo(Rec))
+            {
+                Caption = 'Subcontractor';
+                ToolTip = 'Specifies the assigned Subcontractor No. of this Prod. Order Routing Line.';
+                trigger OnDrillDown()
+                begin
+                    ShowSubcontractorFromRouting();
+                end;
+            }
+            field(ShowQtyInSubcontractingOrder; SubcRoutingFactboxMgmt.GetPurchOrderQtyFromRoutingLine(Rec))
+            {
+                AutoFormatType = 0;
+                Caption = 'Purch. Order Qty.';
+                DecimalPlaces = 0 : 5;
+                ToolTip = 'Specifies the dependent Quantity in Subcontracting Orders of this Prod. Order Routing Line.';
+                trigger OnDrillDown()
+                begin
+                    ShowPurchaseOrders();
+                end;
+            }
+            field(ShowQtyShippedRequest; SubcRoutingFactboxMgmt.GetPurchReceiptQtyFromRoutingLine(Rec))
+            {
+                AutoFormatType = 0;
+                Caption = 'Quantity Received';
+                DecimalPlaces = 0 : 5;
+                ToolTip = 'Specifies the dependent Quantity Received in Subcontracting Receipts of this Prod. Order Routing Line.';
+                trigger OnDrillDown()
+                begin
+                    ShowPurchaseReceipts();
+                end;
+            }
+            field(ShowQtyInvoicedRequest; SubcRoutingFactboxMgmt.GetPurchInvoicedQtyFromRoutingLine(Rec))
+            {
+                AutoFormatType = 0;
+                Caption = 'Quantity Invoiced';
+                DecimalPlaces = 0 : 5;
+                ToolTip = 'Specifies the dependent Quantity Invoiced in Subcontracting Invoices of this Prod. Order Routing Line.';
+                trigger OnDrillDown()
+                begin
+                    ShowPurchaseInvoices();
+                end;
+            }
+            field(ShowNoOfTransferOrdersFromProdOrderComp; SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, false, false))
+            {
+                Caption = 'Transfer Order Lines';
+                ToolTip = 'Specifies the number of transfer order lines assigned to this routing line.';
+                trigger OnDrillDown()
+                begin
+                    SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, false);
+                end;
+            }
+            field(ShowNoOfReturnTransferOrdersFromProdOrderComp; SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, false, true))
+            {
+                Caption = 'Return Transfer Order Lines';
+                ToolTip = 'Specifies the number of Return transfer order lines assigned to this routing line.';
+                trigger OnDrillDown()
+                begin
+                    SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder(Rec, true, true);
+                end;
+            }
+            field(ShowNoOfLinkedComp; SubcRoutingFactboxMgmt.GetNoOfLinkedComponentsFromRouting(Rec))
+            {
+                Caption = 'Components';
+                ToolTip = 'Specifies the number of components linked to this routing line.';
+                trigger OnDrillDown()
+                begin
+                    ShowProdOrderComponents();
+                end;
+            }
+            field("WIP Qty. (Base) at Subc."; Rec."WIP Qty. (Base) at Subc.")
+            {
+            }
+            field("WIP Qty. (Base) in Transit"; Rec."WIP Qty. (Base) in Transit")
+            {
+            }
+        }
+    }
+    local procedure ShowSubcontractorFromRouting()
+    begin
+        SubcRoutingFactboxMgmt.ShowSubcontractor(Rec);
+    end;
+
+    local procedure ShowPurchaseOrders()
+    begin
+        SubcRoutingFactboxMgmt.ShowPurchaseOrderLinesFromRouting(Rec);
+    end;
+
+    local procedure ShowPurchaseReceipts()
+    begin
+        SubcRoutingFactboxMgmt.ShowPurchaseReceiptLinesFromRouting(Rec);
+    end;
+
+    local procedure ShowPurchaseInvoices()
+    begin
+        SubcRoutingFactboxMgmt.ShowPurchaseInvoiceLinesFromRouting(Rec);
+    end;
+
+    local procedure ShowProdOrderComponents()
+    begin
+        SubcRoutingFactboxMgmt.ShowProdOrderComponents(Rec);
+    end;
+
+    var
+        SubcRoutingFactboxMgmt: Codeunit "Subc. Routing Factbox Mgmt.";
+        SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
+}

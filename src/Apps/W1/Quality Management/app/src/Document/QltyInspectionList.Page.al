@@ -15,6 +15,7 @@ using Microsoft.QualityManagement.Dispositions.Move;
 using Microsoft.QualityManagement.Dispositions.Purchase;
 using Microsoft.QualityManagement.Dispositions.PutAway;
 using Microsoft.QualityManagement.Dispositions.Transfer;
+using Microsoft.QualityManagement.Telemetry;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Warehouse.Structure;
 
@@ -30,6 +31,7 @@ page 20408 "Qlty. Inspection List"
     PageType = List;
     SourceTable = "Qlty. Inspection Header";
     SourceTableView = sorting("No.", "Re-inspection No.") order(descending);
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
     RefreshOnActivate = true;
@@ -278,7 +280,7 @@ page 20408 "Qlty. Inspection List"
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                ToolTip = 'Reopen';
+                ToolTip = 'Reopen a finished inspection. Only users with the Quality Admin & Supervisor role can perform this action.';
                 Enabled = CanReopen;
 
                 trigger OnAction()
@@ -707,6 +709,13 @@ page 20408 "Qlty. Inspection List"
         CanReopen: Boolean;
         RowActionsAreEnabled: Boolean;
         StatusStyleExpr: Text;
+
+    trigger OnOpenPage()
+    var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
+    begin
+        QltyMgmtFeatureTelemetry.LogFeatureUptakeDiscovered(ObjectType::Page, Page::"Qlty. Inspection List");
+    end;
 
     trigger OnAfterGetRecord()
     begin

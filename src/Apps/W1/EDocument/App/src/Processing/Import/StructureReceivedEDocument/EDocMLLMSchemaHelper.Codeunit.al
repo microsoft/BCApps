@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Processing.Import;
 
+using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
@@ -126,15 +127,20 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
         end;
     end;
 
-    procedure MapLinesFromJson(LinesArray: JsonArray; EDocEntryNo: Integer; var TempLine: Record "E-Document Purchase Line" temporary)
+    procedure MapLinesFromJson(LinesArray: JsonArray; EDocEntryNo: Integer; var TempLine: Record "E-Document Purchase Line" temporary; CurrencyCode: Code[10])
     var
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
         LineToken: JsonToken;
         LineObj: JsonObject;
         NestedObj: JsonObject;
         NestedObj2: JsonObject;
         LineNumber: Integer;
+        DiscountPct: Decimal;
+        RoundingPrecision: Decimal;
     begin
         TempLine.DeleteAll();
+
+        RoundingPrecision := EDocumentImportHelper.GetCurrencyRoundingPrecision(CurrencyCode);
 
         for LineNumber := 0 to LinesArray.Count() - 1 do
             if LinesArray.Get(LineNumber, LineToken) then begin
@@ -164,9 +170,16 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
 
                 GetDecimal(LineObj, 'line_extension_amount', TempLine."Sub Total");
 
-                if GetNestedObject(LineObj, 'allowance_charge', NestedObj) then
+                if GetNestedObject(LineObj, 'allowance_charge', NestedObj) then begin
                     if GetNestedObject(NestedObj, 'amount', NestedObj2) then
                         GetDecimal(NestedObj2, 'value', TempLine."Total Discount");
+                    if TempLine."Total Discount" = 0 then begin
+                        DiscountPct := 0;
+                        GetDecimal(NestedObj, 'percent', DiscountPct);
+                        if DiscountPct <> 0 then
+                            TempLine."Total Discount" := Round(TempLine."Unit Price" * TempLine.Quantity * DiscountPct / 100, RoundingPrecision);
+                    end;
+                end;
 
                 TempLine.Insert();
             end;
@@ -208,12 +221,17 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
     local procedure GetDecimal(JsonObj: JsonObject; PropertyName: Text; var FieldValue: Decimal)
     var
         JsonToken: JsonToken;
+        DecimalValue: Decimal;
+        DecimalParseFailedLbl: Label 'Could not parse decimal value returned by the model for property %1.', Comment = '%1 = JSON property name';
     begin
         if not JsonObj.Get(PropertyName, JsonToken) then
             exit;
         if JsonToken.AsValue().IsNull() then
             exit;
-        FieldValue := JsonToken.AsValue().AsDecimal();
+        if Evaluate(DecimalValue, JsonToken.AsValue().AsText(), 9) then
+            FieldValue := DecimalValue
+        else
+            Session.LogMessage('0000UAR', StrSubstNo(DecimalParseFailedLbl, PropertyName), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
     end;
 
     local procedure GetNestedObject(JsonObj: JsonObject; PropertyName: Text; var NestedObj: JsonObject): Boolean
