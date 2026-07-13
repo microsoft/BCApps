@@ -110,6 +110,10 @@ page 1 "Company Information"
                         VATRegistrationLogMgt.AssistEditCompanyInfoVATReg();
                     end;
                 }
+                field("SIRET No."; Rec."SIRET No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
                 field(GLN; Rec.GLN)
                 {
                     ApplicationArea = Basic, Suite;
@@ -342,10 +346,6 @@ page 1 "Company Information"
                     ApplicationArea = Basic, Suite;
                     Importance = Additional;
                     ToolTip = 'Specifies the company''s registration number. You can enter a maximum of 20 characters, both numbers and letters.';
-                }
-                field("SIRET No."; Rec."SIRET No.")
-                {
-                    ApplicationArea = Basic, Suite;
                 }
                 field(Control1120004; Rec."Trade Register")
                 {
