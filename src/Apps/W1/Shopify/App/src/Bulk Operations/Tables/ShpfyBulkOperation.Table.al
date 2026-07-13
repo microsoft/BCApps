@@ -76,6 +76,11 @@ table 30148 "Shpfy Bulk Operation"
             Caption = 'Processed';
             DataClassification = SystemMetadata;
         }
+        field(13; "Sent JSONL"; Blob)
+        {
+            Caption = 'Sent JSONL';
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys
@@ -127,5 +132,32 @@ table 30148 "Shpfy Bulk Operation"
             InStream.ReadText(RequestText);
             RequestData.ReadFrom(RequestText);
         end;
+    end;
+
+    internal procedure SetSentJsonl(Jsonl: Text)
+    var
+        OutStream: OutStream;
+    begin
+        Clear("Sent JSONL");
+        "Sent JSONL".CreateOutStream(OutStream, TextEncoding::UTF8);
+        OutStream.WriteText(Jsonl);
+        Modify();
+    end;
+
+    internal procedure GetSentJsonl() Jsonl: Text
+    var
+        InStream: InStream;
+        Line: Text;
+        JsonlBuilder: TextBuilder;
+    begin
+        CalcFields("Sent JSONL");
+        if not "Sent JSONL".HasValue then
+            exit('');
+        "Sent JSONL".CreateInStream(InStream, TextEncoding::UTF8);
+        while not InStream.EOS do begin
+            InStream.ReadText(Line);
+            JsonlBuilder.AppendLine(Line);
+        end;
+        exit(JsonlBuilder.ToText());
     end;
 }

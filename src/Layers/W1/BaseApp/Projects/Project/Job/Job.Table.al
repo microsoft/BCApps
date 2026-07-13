@@ -889,7 +889,7 @@ table 167 Job
             AutoFormatType = 1;
             AutoFormatExpression = Rec."Currency Code";
             CalcFormula = - sum("Job WIP G/L Entry"."WIP Entry Amount" where("Job No." = field("No."),
-                                                                             Reverse = const(false),
+                                                                             Reversed = const(false),
                                                                              "Job Complete" = const(false),
                                                                              Type = filter("Applied Costs")));
             Caption = 'Applied Costs G/L Amount';
@@ -902,7 +902,7 @@ table 167 Job
             AutoFormatType = 1;
             AutoFormatExpression = Rec."Currency Code";
             CalcFormula = - sum("Job WIP G/L Entry"."WIP Entry Amount" where("Job No." = field("No."),
-                                                                             Reverse = const(false),
+                                                                             Reversed = const(false),
                                                                              "Job Complete" = const(false),
                                                                              Type = filter("Applied Sales")));
             Caption = 'Applied Sales G/L Amount';
