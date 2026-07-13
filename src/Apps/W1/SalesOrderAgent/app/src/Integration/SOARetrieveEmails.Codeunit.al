@@ -324,7 +324,7 @@ codeunit 4582 "SOA Retrieve Emails"
         TelemetryDimensions.Set('IgnoredReason', IgnoredReason);
         TelemetryDimensions.Set('FileMIMEType', FileMIMEType);
         TelemetryDimensions.Set('AttachmentSizeInBytes', Format(AttachmentSizeInBytes));
-        FeatureTelemetry.LogUsage('', SOASetup.GetFeatureName(), StrSubstNo(AttachmentIgnoredTelemetryTxt, IgnoredReason), TelemetryDimensions);
+        FeatureTelemetry.LogUsage('0000UJB', SOASetup.GetFeatureName(), StrSubstNo(AttachmentIgnoredTelemetryTxt, IgnoredReason), TelemetryDimensions);
     end;
 
     local procedure SetAttachmentsTransferred(var SOAEmail: Record "SOA Email"; EmailMessage: Codeunit "Email Message")
