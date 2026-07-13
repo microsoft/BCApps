@@ -212,6 +212,7 @@ codeunit 30103 "Shpfy Communication Mgt."
         HttpRequestMessage: HttpRequestMessage;
         HttpResponseMessage: HttpResponseMessage;
         RetryCounter: Integer;
+        Sent: Boolean;
     begin
         FeatureTelemetry.LogUptake('0000HUV', 'Shopify', Enum::"Feature Uptake Status"::Used);
         if CheckOutgoingRequest then
@@ -230,16 +231,17 @@ codeunit 30103 "Shpfy Communication Mgt."
                 Sleep(Wait);
         end;
 
-        if HttpClient.Send(HttpRequestMessage, HttpResponseMessage) then begin
+        Sent := HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+        if Sent then begin
             if HandleUnauthorizedResponse(HttpResponseMessage) then begin
                 Clear(HttpClient);
                 Clear(HttpRequestMessage);
                 Clear(HttpResponseMessage);
                 CreateHttpRequestMessage(Url, Method, Request, HttpRequestMessage);
-                HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+                Sent := HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
             end;
             Clear(RetryCounter);
-            while (not HttpResponseMessage.IsBlockedByEnvironment) and (EvaluateResponse(HttpResponseMessage)) and (RetryCounter < MaxRetries) do begin
+            while Sent and (not HttpResponseMessage.IsBlockedByEnvironment) and (EvaluateResponse(HttpResponseMessage)) and (RetryCounter < MaxRetries) do begin
                 RetryCounter += 1;
                 Sleep(1000);
                 LogShopifyRequest(Url, Method, Request, HttpResponseMessage, Response, RetryCounter);
@@ -247,7 +249,7 @@ codeunit 30103 "Shpfy Communication Mgt."
                 Clear(HttpRequestMessage);
                 Clear(HttpResponseMessage);
                 CreateHttpRequestMessage(Url, Method, Request, HttpRequestMessage);
-                HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
+                Sent := HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
             end;
         end;
         if GetContent(HttpResponseMessage, Response) then;
