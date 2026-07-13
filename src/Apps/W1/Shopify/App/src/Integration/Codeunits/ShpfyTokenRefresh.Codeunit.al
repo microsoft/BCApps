@@ -29,6 +29,8 @@ codeunit 30431 "Shpfy Token Refresh"
         CategoryTok: Label 'Shopify Integration', Locked = true;
         TokenRefreshJobFailedTxt: Label 'The scheduled Shopify token refresh failed for a store.', Locked = true;
         ScheduleFailedTxt: Label 'Failed to schedule the Shopify token refresh job.', Locked = true;
+        JobQueueCategoryLbl: Label 'SHPFYAUTH', Locked = true;
+        JobDescriptionTxt: Label 'Shopify: refresh expiring access tokens';
 
     local procedure RefreshAllShops()
     var
@@ -70,8 +72,6 @@ codeunit 30431 "Shpfy Token Refresh"
     internal procedure ScheduleRefreshJob()
     var
         JobQueueEntry: Record "Job Queue Entry";
-        JobQueueCategoryLbl: Label 'SHPFYAUTH', Locked = true;
-        JobDescriptionTxt: Label 'Shopify: refresh expiring access tokens';
     begin
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
         JobQueueEntry.SetRange("Object ID to Run", Codeunit::"Shpfy Token Refresh");
