@@ -306,6 +306,7 @@ codeunit 4305 "SOA Filters Impl."
     internal procedure FindContactByEmail2(var Contact: Record Contact; EmailAddress: Text; var ContactCount: Integer): Boolean
     begin
         Contact.Reset();
+        Contact.ReadIsolation := IsolationLevel::ReadUncommitted;
         Contact.SetFilter("E-Mail 2", GetSafeFromEmailFilter(EmailAddress));
         ContactCount := Contact.Count();
         exit(Contact.FindFirst());
