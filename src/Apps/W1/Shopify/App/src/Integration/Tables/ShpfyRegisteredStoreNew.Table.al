@@ -67,7 +67,7 @@ table 30138 "Shpfy Registered Store New"
 
     internal procedure SetAccessToken(AccessToken: SecretText)
     begin
-        IsolatedStorage.Set('AccessToken(' + Rec.SystemId + ')', AccessToken, DataScope::Module);
+        IsolatedStorage.SetEncrypted('AccessToken(' + Rec.SystemId + ')', AccessToken, DataScope::Module);
     end;
 
     internal procedure GetAccessToken() Result: SecretText
