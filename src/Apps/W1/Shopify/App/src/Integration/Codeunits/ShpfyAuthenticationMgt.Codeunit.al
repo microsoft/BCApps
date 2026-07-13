@@ -246,9 +246,18 @@ codeunit 30199 "Shpfy Authentication Mgt."
     /// <summary>
     /// Ensures the store has a valid, non-expired offline access token before it is used.
     /// Legacy non-expiring tokens are migrated to expiring tokens on first use, and expiring
-    /// tokens are refreshed when they are close to expiry. Refresh/migration is serialized
-    /// across sessions and companies via a table lock to respect Shopify's single
-    /// refreshable token per app and store.
+    /// tokens are refreshed when they are close to expiry.
+    ///
+    /// Concurrency: a cheap check runs outside any lock; only when a refresh or migration is
+    /// actually needed does the code take a table lock and re-read the row (double-checked
+    /// locking). Concurrent sessions in the same company therefore serialize on the store row and,
+    /// on the second pass, find the token already fresh and return without a second HTTP call. The
+    /// lock is intentionally held across the token request to Shopify (a single round-trip on the
+    /// happy path; short backoff retries only on transient errors) so parallel sessions cannot
+    /// retire each other's refresh token - a deliberate trade-off of brief blocking for
+    /// correctness. Note the lock is per-company: two BC companies connected to the same shop keep
+    /// separate rows and cannot block each other, so cross-company safety relies on Shopify
+    /// returning the same tokens for ~1 hour after a rotation rather than on this lock.
     /// </summary>
     /// <param name="Store">The store URL.</param>
     internal procedure EnsureValidAccessToken(Store: Text)
