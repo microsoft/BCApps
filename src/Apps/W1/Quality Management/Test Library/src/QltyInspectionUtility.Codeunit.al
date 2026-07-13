@@ -110,6 +110,23 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyInspectionCreate.GetCreatedInspection(OutCreatedQltyInspectionHeader);
     end;
 
+    internal procedure CalculateSampleSizeUsingPercentSource(SamplePercentage: Decimal; SourceQuantityBase: Decimal) SampleSize: Integer
+    var
+        QltyInspectionHeader: Record "Qlty. Inspection Header";
+        QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+    begin
+        CreateABasicTemplateAndInstanceOfAInspection(QltyInspectionHeader, QltyInspectionTemplateHdr);
+
+        QltyInspectionTemplateHdr.Validate("Sample Source", QltyInspectionTemplateHdr."Sample Source"::"Percent of Quantity");
+        QltyInspectionTemplateHdr.Validate("Sample Percentage", SamplePercentage);
+        QltyInspectionTemplateHdr.Modify(true);
+
+        QltyInspectionHeader.Validate("Source Quantity (Base)", SourceQuantityBase);
+        QltyInspectionHeader.Modify(true);
+
+        exit(QltyInspectionHeader."Sample Size");
+    end;
+
     internal procedure CreateTemplate(var OutQltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr."; HowManyFields: Integer)
     var
         IgnoredQltyTest: Record "Qlty. Test";
@@ -892,6 +909,20 @@ codeunit 139940 "Qlty. Inspection Utility"
         QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
     begin
         exit(QltyResultEvaluation.CheckIfValueIsString(ValueToCheck, AcceptableValue, QltyCaseSensitivity));
+    end;
+
+    /// <summary>
+    /// Wrapper for internal procedure CheckIfValueIsInPredefinedList from Qlty. Result Evaluation codeunit.
+    /// </summary>
+    /// <param name="ValueToCheck">The value to check.</param>
+    /// <param name="AcceptableValue">The acceptable value condition: a comma or pipe separated list of literal values. A blank value means no condition, and the default "anything except empty" tokens are also accepted.</param>
+    /// <param name="QltyCaseSensitivity">The case sensitivity option.</param>
+    /// <returns>True if the value matches one of the listed literal values, false otherwise.</returns>
+    internal procedure CheckIfValueIsInPredefinedList(ValueToCheck: Text; AcceptableValue: Text; QltyCaseSensitivity: Enum "Qlty. Case Sensitivity"): Boolean
+    var
+        QltyResultEvaluation: Codeunit "Qlty. Result Evaluation";
+    begin
+        exit(QltyResultEvaluation.CheckIfValueIsInPredefinedList(ValueToCheck, AcceptableValue, QltyCaseSensitivity));
     end;
 
     /// <summary>

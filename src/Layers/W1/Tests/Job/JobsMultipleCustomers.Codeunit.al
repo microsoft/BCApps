@@ -323,6 +323,57 @@ codeunit 136323 "Jobs - Multiple Customers"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
+    procedure SalesPriceIsPulledFromCustomerOnJobTaskForJournalLine()
+    var
+        Item: Record Item;
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobJournalLine: Record "Job Journal Line";
+        PriceListHeader: Record "Price List Header";
+        PriceListLines: array[2] of Record "Price List Line";
+        Customers: array[2] of Record Customer;
+    begin
+        // [SCENARIO 639857] The Job Journal Line price honors the task-level Bill-to Customer under Multiple customers billing.
+        Initialize();
+
+        // [GIVEN] New pricing enabled
+        LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        LibraryPriceCalculation.SetupDefaultHandler("Price Calculation Handler"::"Business Central (Version 16.0)");
+
+        // [GIVEN] Set Multiple Customers on Project Setup
+        SetMultiupleCustomersOnProjectSetup();
+
+        // [GIVEN] New Item and two Customers with distinct Sales Prices
+        LibraryInventory.CreateItem(Item);
+        LibrarySales.CreateCustomer(Customers[1]);
+        LibrarySales.CreateCustomer(Customers[2]);
+        CreatePriceLineForCustomer(PriceListHeader, PriceListLines[1], Customers[1]."No.", Item."No.");
+        CreatePriceLineForCustomer(PriceListHeader, PriceListLines[2], Customers[2]."No.", Item."No.");
+
+        // [GIVEN] Project billed to Customer 1 with a task inheriting the project customer
+        LibraryJob.CreateJob(Job, Customers[1]."No.");
+        LibraryJob.CreateJobTask(Job, JobTask);
+
+        // [WHEN] Creating a Job Journal Line for the task
+        CreateJobJournalLineWithItem(JobJournalLine, JobTask, Item."No.", 1);
+
+        // [THEN] The unit price is Customer 1's price
+        Assert.AreEqual(PriceListLines[1]."Unit Price", JobJournalLine."Unit Price", 'Sales Price is not equal to Customer Sales Price');
+
+        // [GIVEN] A second task billed to Customer 2
+        LibraryJob.CreateJobTask(Job, JobTask);
+        JobTask.Validate("Sell-to Customer No.", Customers[2]."No.");
+        JobTask.Modify(true);
+
+        // [WHEN] Creating a Job Journal Line for the second task
+        CreateJobJournalLineWithItem(JobJournalLine, JobTask, Item."No.", 1);
+
+        // [THEN] The unit price is Customer 2's price (task-level Bill-to Customer honored)
+        Assert.AreEqual(PriceListLines[2]."Unit Price", JobJournalLine."Unit Price", 'Sales Price is not equal to Customer Sales Price');
+    end;
+
+    [Test]
     [HandlerFunctions('JobTransferToSalesInvoiceRequestPageHandler,MessageHandler')]
     procedure SalesInvoiceIsCreatedForJobTaskCustomer()
     var
@@ -2002,6 +2053,15 @@ codeunit 136323 "Jobs - Multiple Customers"
         JobPlanningLine.Validate("No.", ItemNo);
         JobPlanningLine.Validate(Quantity, Quantity);
         JobPlanningLine.Modify(true);
+    end;
+
+    local procedure CreateJobJournalLineWithItem(var JobJournalLine: Record "Job Journal Line"; JobTask: Record "Job Task"; ItemNo: Code[20]; Quantity: Decimal)
+    begin
+        LibraryJob.CreateJobJournalLine(LibraryJob.UsageLineTypeBoth(), JobTask, JobJournalLine);
+        JobJournalLine.Validate(Type, JobJournalLine.Type::Item);
+        JobJournalLine.Validate("No.", ItemNo);
+        JobJournalLine.Validate(Quantity, Quantity);
+        JobJournalLine.Modify(true);
     end;
 
     local procedure CreateCustomerwithDimension(var Customer: Record Customer; var DimensionValue: Record "Dimension Value")

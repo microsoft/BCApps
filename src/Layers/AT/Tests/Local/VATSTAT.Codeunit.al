@@ -1507,6 +1507,145 @@ codeunit 144001 VATSTAT
         VerifyXMLLine(LibraryXPathXMLReader, 'LIEFERUNGEN_LEISTUNGEN_EIGENVERBRAUCH/KZ000', 0);
     end;
 
+    [Test]
+    [HandlerFunctions('VATStmtATRequestPageHandler,VATStmtATMessageHandler')]
+    [Scope('OnPrem')]
+    procedure VAT49PctDomesticInvoiceKZ124()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        VATStatementLine: Record "VAT Statement Line";
+        VATEntry: Record "VAT Entry";
+        Item: Record Item;
+        VATStatementAT: Report "VAT Statement AT";
+        LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
+        VATTotalRowNo: Code[10];
+        DocNo: Code[20];
+        VATBusPostingGroupCode: Code[20];
+        VATProPostingGroupCode: Code[20];
+    begin
+        // [FEATURE] [AI test 0.3] [VAT 4.9%]
+        // [SCENARIO 639547] New reduced VAT rate 4.9% is exported in cipher KZ124 (VERSTEUERT) from 1 July 2026
+        Initialize();
+
+        // [GIVEN] VAT Statement Line with Row No. '124' totaling a domestic VAT base amount
+        CreateVATPostingGroup(VATBusPostingGroupCode, VATProPostingGroupCode);
+        VATTotalRowNo := LibraryUtility.GenerateRandomCode(VATStatementLine.FieldNo("Row No."), DATABASE::"VAT Statement Line");
+        CreateVATEntTotVATStmtLine(VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode);
+        VATStatementLine.SetRange("Row No.", VATTotalRowNo);
+        VATStatementLine.SetRange(Type, VATStatementLine.Type::"VAT Entry Totaling");
+        VATStatementLine.FindFirst();
+        VATStatementLine.Validate("Amount Type", VATStatementLine."Amount Type"::Base);
+        VATStatementLine.Modify(true);
+        CreateRowTotVATStmtLine('124', VATTotalRowNo);
+        CreateItem(Item, VATProPostingGroupCode);
+        EnqueRequestPageFields(WorkDate(), WorkDate(), "VAT Statement Report Selection"::"Open and Closed", "VAT Statement Report Period Selection"::"Within Period",
+          ReportingType::"Defined period", false, false, false, false, 0);
+
+        // [GIVEN] Posted purchase invoice
+        DocNo := CreateAndPostPurchaseDocumentOnItem(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VATBusPostingGroupCode, Item);
+
+        // [WHEN] Export VAT Statement
+        VATStatementAT.InitializeRequest(FdfFileName, XmlFileName);
+        VATStatementAT.RunModal();
+
+        // [THEN] XML file has KZ124 in LIEFERUNGEN_LEISTUNGEN_EIGENVERBRAUCH/VERSTEUERT
+        GetVATEntry(VATEntry, DocNo, VATEntry."Document Type"::Invoice, VATEntry.Type::Purchase);
+        LibraryXPathXMLReader.Initialize(XmlFileName, '');
+        VerifyXMLHeader(LibraryXPathXMLReader);
+        VerifyXMLLine(LibraryXPathXMLReader, 'LIEFERUNGEN_LEISTUNGEN_EIGENVERBRAUCH/VERSTEUERT/KZ124', VATEntry.Base);
+    end;
+
+    [Test]
+    [HandlerFunctions('VATStmtATRequestPageHandler,VATStmtATMessageHandler')]
+    [Scope('OnPrem')]
+    procedure VAT49PctIntraCommunityInvoiceKZ125()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        VATStatementLine: Record "VAT Statement Line";
+        VATEntry: Record "VAT Entry";
+        Item: Record Item;
+        VATStatementAT: Report "VAT Statement AT";
+        LibraryXPathXMLReader: Codeunit "Library - XPath XML Reader";
+        VATTotalRowNo: Code[10];
+        DocNo: Code[20];
+        VATBusPostingGroupCode: Code[20];
+        VATProPostingGroupCode: Code[20];
+    begin
+        // [FEATURE] [AI test 0.3] [VAT 4.9%]
+        // [SCENARIO 639547] New reduced VAT rate 4.9% is exported in cipher KZ125 (VERSTEUERT_IGE) from 1 July 2026
+        Initialize();
+
+        // [GIVEN] VAT Statement Line with Row No. '125' totaling an intra-community VAT base amount
+        CreateVATPostingGroup(VATBusPostingGroupCode, VATProPostingGroupCode);
+        VATTotalRowNo := LibraryUtility.GenerateRandomCode(VATStatementLine.FieldNo("Row No."), DATABASE::"VAT Statement Line");
+        CreateVATEntTotVATStmtLine(VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode);
+        VATStatementLine.SetRange("Row No.", VATTotalRowNo);
+        VATStatementLine.SetRange(Type, VATStatementLine.Type::"VAT Entry Totaling");
+        VATStatementLine.FindFirst();
+        VATStatementLine.Validate("Amount Type", VATStatementLine."Amount Type"::Base);
+        VATStatementLine.Modify(true);
+        CreateRowTotVATStmtLine('125', VATTotalRowNo);
+        CreateItem(Item, VATProPostingGroupCode);
+        EnqueRequestPageFields(WorkDate(), WorkDate(), "VAT Statement Report Selection"::"Open and Closed", "VAT Statement Report Period Selection"::"Within Period",
+          ReportingType::"Defined period", false, false, false, false, 0);
+
+        // [GIVEN] Posted purchase invoice
+        DocNo := CreateAndPostPurchaseDocumentOnItem(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VATBusPostingGroupCode, Item);
+
+        // [WHEN] Export VAT Statement
+        VATStatementAT.InitializeRequest(FdfFileName, XmlFileName);
+        VATStatementAT.RunModal();
+
+        // [THEN] XML file has KZ125 in INNERGEMEINSCHAFTLICHE_ERWERBE/VERSTEUERT_IGE
+        GetVATEntry(VATEntry, DocNo, VATEntry."Document Type"::Invoice, VATEntry.Type::Purchase);
+        LibraryXPathXMLReader.Initialize(XmlFileName, '');
+        VerifyXMLHeader(LibraryXPathXMLReader);
+        VerifyXMLLine(LibraryXPathXMLReader, 'INNERGEMEINSCHAFTLICHE_ERWERBE/VERSTEUERT_IGE/KZ125', VATEntry.Base);
+    end;
+
+    [Test]
+    [HandlerFunctions('VATStmtATRequestPageHandler,VATStmtATMessageHandler')]
+    [Scope('OnPrem')]
+    procedure VAT49PctKZ124PositionCheckBalanced()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        VATStatementLine: Record "VAT Statement Line";
+        Item: Record Item;
+        VATStatementAT: Report "VAT Statement AT";
+        VATTotalRowNo: Code[10];
+        VATBusPostingGroupCode: Code[20];
+        VATProPostingGroupCode: Code[20];
+    begin
+        // [FEATURE] [AI test 0.3] [VAT 4.9%]
+        // [SCENARIO 639547] VAT Statement AT report balances KZ124 in the position check (KZ022+124 = KZ000) without errors
+        Initialize();
+
+        // [GIVEN] The same revenue base feeds KZ000 and the new KZ124 (Row '124'), so the taxed-revenue check balances
+        CreateVATPostingGroup(VATBusPostingGroupCode, VATProPostingGroupCode);
+        VATTotalRowNo := LibraryUtility.GenerateRandomCode(VATStatementLine.FieldNo("Row No."), DATABASE::"VAT Statement Line");
+        CreateVATEntTotVATStmtLine(VATTotalRowNo, VATBusPostingGroupCode, VATProPostingGroupCode);
+        VATStatementLine.SetRange("Row No.", VATTotalRowNo);
+        VATStatementLine.SetRange(Type, VATStatementLine.Type::"VAT Entry Totaling");
+        VATStatementLine.FindFirst();
+        VATStatementLine.Validate("Amount Type", VATStatementLine."Amount Type"::Base);
+        VATStatementLine.Modify(true);
+        CreateRowTotVATStmtLine('124', VATTotalRowNo);
+        CreateRowTotVATStmtLine('1000', VATTotalRowNo);
+        CreateItem(Item, VATProPostingGroupCode);
+
+        // [GIVEN] Position check is enabled
+        EnqueRequestPageFields(WorkDate(), WorkDate(), "VAT Statement Report Selection"::"Open and Closed", "VAT Statement Report Period Selection"::"Within Period",
+          ReportingType::"Defined period", true, false, false, false, 0);
+        CreateAndPostPurchaseDocumentOnItem(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VATBusPostingGroupCode, Item);
+
+        // [WHEN] Run VAT Statement AT report with CheckPositions = true
+        VATStatementAT.InitializeRequest(FdfFileName, XmlFileName);
+        VATStatementAT.RunModal();
+
+        // [THEN] No position-check error is raised (KZ124 included in the taxed-revenue total) and the file is generated
+        Assert.IsTrue(Exists(XmlFileName), StrSubstNo('File %1 must be generated', XmlFileName));
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
