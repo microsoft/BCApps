@@ -101,19 +101,9 @@ codeunit 1565 "Privacy Notice Impl."
         if SkipCheckInEval and Company.Get(CompanyName()) and Company."Evaluation Company" then
             exit(true); // Auto-agree for evaluation companies if admin has not explicitly disagreed
 
-        // Some integrations (for example Copilot) fully govern the "Let Users Decide" state through a runtime default
-        // policy (such as a country/geo matrix). For those, the default is applied at runtime without ever being persisted:
-        // only users who can approve for the organization are prompted, and everyone else is asked to contact their admin.
-        if ResolveDefaultApproval(PrivacyNoticeId, DefaultApproval) then begin
-            if DefaultApproval then begin
-                Session.LogMessage('0000UHZ', StrSubstNo(PrivacyNoticeAutoApprovedByDefaultTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
-                exit(true);
-            end;
-            if CanCurrentUserApproveForOrganization() then
-                exit(ShowPrivacyNotice(PrivacyNotice)); // Eligible user can change the notice, so let them decide
-            Message(AdminDisabledIntegrationMsg, PrivacyNotice."Integration Service Name");
-            exit(false);
-        end;
+        // Resolve the runtime default (e.g. Copilot's geo/EUDB matrix or Microsoft Learn in geo). This is never persisted;
+        // it is only applied below after honoring any explicit user decision. When it is off, the user is prompted to decide.
+        ResolveDefaultApproval(PrivacyNoticeId, DefaultApproval);
 
         // Check if user made a decision and if so, return that
         PrivacyNotice.SetRange("User SID Filter", UserSecurityId());
@@ -123,7 +113,7 @@ codeunit 1565 "Privacy Notice Impl."
             exit(true); // If user clicked no, they will still be notified until admin makes a decision
         end;
 
-        // Apply the runtime default-approve hint (e.g. Microsoft Learn in geo) without persisting an admin decision.
+        // Apply the runtime default-approve hint (e.g. Microsoft Learn in geo).
         if DefaultApproval then begin
             Session.LogMessage('0000UHZ', StrSubstNo(PrivacyNoticeAutoApprovedByDefaultTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit(true);
@@ -172,16 +162,9 @@ codeunit 1565 "Privacy Notice Impl."
         if SkipCheckInEval and Company.Get(CompanyName()) and Company."Evaluation Company" then
             exit("Privacy Notice Approval State"::Agreed); // Auto-agree for evaluation companies if admin has not explicitly disagreed
 
-        // Integrations that fully govern the "Let Users Decide" state (for example Copilot) resolve their runtime
-        // default here. The default is never persisted; when it is off the state stays undecided ("Not set").
-        if ResolveDefaultApproval(PrivacyNoticeId, DefaultApproval) then begin
-            if DefaultApproval then begin
-                Session.LogMessage('0000UI0', StrSubstNo(PrivacyNoticeAutoApprovedByDefaultTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
-                exit("Privacy Notice Approval State"::Agreed);
-            end;
-            Session.LogMessage('0000GKG', StrSubstNo(UserPrivacyApprovalStateTelemetryTxt, "Privacy Notice Approval State"::"Not set", PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
-            exit("Privacy Notice Approval State"::"Not set");
-        end;
+        // Resolve the runtime default (e.g. Copilot's geo/EUDB matrix or Microsoft Learn in geo). This is never persisted;
+        // it is only applied below after honoring any explicit user decision. When it is off, the state stays undecided ("Not set").
+        ResolveDefaultApproval(PrivacyNoticeId, DefaultApproval);
 
         // Check if user made a decision and if so, return that
         PrivacyNotice.SetRange("User SID Filter", UserSecurityId());
@@ -402,21 +385,17 @@ codeunit 1565 "Privacy Notice Impl."
     end;
 
     /// <summary>
-    /// Resolves the runtime default approval policy for an integration without persisting any decision.
+    /// Resolves the runtime default-approve hint for an integration without persisting any decision.
+    /// This mirrors Microsoft Learn's in-geo behavior: it only provides a default-approve hint that is
+    /// re-evaluated on every check and never fully governs the "Let Users Decide" state.
     /// </summary>
     /// <param name="IntegrationID">The integration ID.</param>
     /// <param name="DefaultApproval">Set to true if the integration should be approved by default; otherwise false.</param>
-    /// <returns>
-    /// True if the integration fully governs the "Let Users Decide" (no admin decision) state through this default policy.
-    /// For those integrations only users who can approve for the organization are ever prompted, and the default is
-    /// resolved on every check without being persisted.
-    /// </returns>
-    local procedure ResolveDefaultApproval(IntegrationID: Text; var DefaultApproval: Boolean): Boolean
+    local procedure ResolveDefaultApproval(IntegrationID: Text; var DefaultApproval: Boolean)
     var
         SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
-        PrivacyNotice: Codeunit "Privacy Notice";
         MicrosoftLearnServiceInGeo: Boolean;
-        Handled: Boolean;
+        MicrosoftCopilotShouldApprove: Boolean;
     begin
         DefaultApproval := false;
 
@@ -424,13 +403,15 @@ codeunit 1565 "Privacy Notice Impl."
         if CheckIntegrationIDEquality(SystemPrivacyNoticeReg.GetMicrosoftLearnID(), IntegrationID) then begin
             if SystemPrivacyNoticeReg.TryGetMicrosoftLearnInGeoSupport(MicrosoftLearnServiceInGeo) then
                 DefaultApproval := MicrosoftLearnServiceInGeo;
-            exit(false);
+            exit;
         end;
 
-        // Let integrations (for example Copilot in the AI SDK module) resolve their own runtime default approval policy.
-        // When handled, the integration fully governs the no-decision state through this default.
-        PrivacyNotice.OnCheckPrivacyNoticeApprovalDefault(IntegrationID, DefaultApproval, Handled);
-        exit(Handled);
+        // Microsoft Copilot keeps the standard prompting flow; the geo/EUDB matrix only provides a default-approve hint.
+        if CheckIntegrationIDEquality(SystemPrivacyNoticeReg.GetMicrosoftCopilotID(), IntegrationID) then begin
+            if SystemPrivacyNoticeReg.TryGetMicrosoftCopilotDefaultApproval(MicrosoftCopilotShouldApprove) then
+                DefaultApproval := MicrosoftCopilotShouldApprove;
+            exit;
+        end;
     end;
 
     /// <summary>

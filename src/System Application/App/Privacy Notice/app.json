@@ -22,6 +22,12 @@
       "publisher": "Microsoft",
       "name": "DotNet Aliases",
       "version": "29.0.0.0"
+    },
+    {
+      "id": "21566fb3-3c6b-4cac-a70d-052f5d66ac64",
+      "publisher": "Microsoft",
+      "name": "Tenant License State",
+      "version": "29.0.0.0"
     }
   ],
   "screenshots": [],

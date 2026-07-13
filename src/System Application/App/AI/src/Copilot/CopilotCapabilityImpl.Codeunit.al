@@ -508,35 +508,6 @@ codeunit 7774 "Copilot Capability Impl"
         Session.LogAuditMessage(StrSubstNo(CopilotFeatureDeactivatedLbl, CopilotSettingsLocal.Capability, CopilotSettingsLocal."App Id", UserSecurityId()), SecurityOperationResult::Success, AuditCategory::ApplicationManagement, 4, 0);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Privacy Notice", OnCheckPrivacyNoticeApprovalDefault, '', false, false)]
-    local procedure ResolveMicrosoftCopilotPrivacyNoticeDefault(IntegrationID: Text; var ShouldApproveByDefault: Boolean; var Handled: Boolean)
-    var
-        SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
-        TenantLicenseState: Codeunit "Tenant License State";
-    begin
-        if Handled then
-            exit;
-
-        if CopyStr(UpperCase(IntegrationID), 1, 50) <> UpperCase(SystemPrivacyNoticeReg.GetMicrosoftCopilotID()) then
-            exit;
-
-        Handled := true;
-
-        // Trial / evaluation tenants: unconditionally auto-approve; no EUDB split and no legacy admin gates to inherit.
-        if TenantLicenseState.IsTrialMode() or TenantLicenseState.IsEvaluationMode() then begin
-            ShouldApproveByDefault := true;
-            exit;
-        end;
-        ShouldApproveByDefault := not IsWithinEUDB();
-    end;
-
-    local procedure IsWithinEUDB(): Boolean
-    var
-        ALCopilotFunctions: DotNet ALCopilotFunctions;
-    begin
-        exit(ALCopilotFunctions.IsWithinEUDB());
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", GetCopilotCapabilityStatus, '', false, false)]
     local procedure GetCopilotCapabilityStatus(Capability: Integer; var IsEnabled: Boolean; AppId: Guid; Silent: Boolean)
     var

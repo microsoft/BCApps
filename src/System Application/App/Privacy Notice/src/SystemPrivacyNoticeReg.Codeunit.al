@@ -6,6 +6,7 @@
 namespace System.Privacy;
 
 using System;
+using System.Environment;
 
 /// <summary>
 /// This codeunit registers platform level privacy notices and provides procedures to consistently reference the privacy notices.
@@ -104,5 +105,19 @@ codeunit 1566 "System Privacy Notice Reg."
         ALMicrosoftLearnFunctions: DotNet ALMicrosoftLearnFunctions;
     begin
         HasInGeoSupport := ALMicrosoftLearnFunctions.HasInGeoSupport()
+    end;
+
+    [TryFunction]
+    internal procedure TryGetMicrosoftCopilotDefaultApproval(var ShouldApproveByDefault: Boolean)
+    var
+        TenantLicenseState: Codeunit "Tenant License State";
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+    begin
+        // Trial / evaluation tenants: unconditionally auto-approve; no EUDB split and no legacy admin gates to inherit.
+        if TenantLicenseState.IsTrialMode() or TenantLicenseState.IsEvaluationMode() then begin
+            ShouldApproveByDefault := true;
+            exit;
+        end;
+        ShouldApproveByDefault := not ALCopilotFunctions.IsWithinEUDB();
     end;
 }
