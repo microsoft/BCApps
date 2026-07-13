@@ -561,6 +561,35 @@ codeunit 134837 "Test Contact Lookup"
         SalesQuote."Sell-to Contact No.".AssertEquals(Contact."No.");
     end;
 
+    [Test]
+    [HandlerFunctions('ContactListModalPageHandler')]
+    procedure SellToContactLookupOnSalesQuoteWithCustomerTest()
+    var
+        Customer: Record Customer;
+        SalesHeader: Record "Sales Header";
+        SalesQuote: TestPage "Sales Quote";
+    begin
+        // [FEATURE] [Sales Quote]
+        // [SCENARIO 641671] When "Sell-to Customer No." is set in a Sales Quote then on contact look up the contact list is filtered by the customer's contact "Company No." instead of showing all contacts.
+        Initialize();
+
+        // [GIVEN] Create Customer with a Contact.
+        LibrarySmallBusiness.CreateCustomer(Customer);
+        Customer.Validate(Contact, StrSubstNo('%1 %2', LibraryUtility.GenerateRandomText(10), LibraryUtility.GenerateRandomText(10)));
+
+        // [GIVEN] Create a Sales Quote for the created customer.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Quote, Customer."No.");
+        SalesQuote.OpenEdit();
+        SalesQuote.GotoRecord(SalesHeader);
+
+        // [WHEN] Look up contact list from "Sell-to Contact".
+        LibraryVariableStorage.Enqueue(Customer."Primary Contact No.");
+        SalesQuote."Sell-to Contact".Lookup();
+
+        // [THEN] Verify the contact list is filtered by the "Company No." of the customer's contact.
+        // Verification in ContactListModalPageHandler
+    end;
+
     local procedure Initialize()
     var
         ObjectOptions: Record "Object Options";
