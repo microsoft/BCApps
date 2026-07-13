@@ -60,6 +60,7 @@ codeunit 1563 "Privacy Notice"
     /// User:
     ///     If admin has agreed or disagreed, that will be returned
     ///     If user has agreed, that will be returned
+    ///     If a runtime default policy approves the notice (for example Microsoft Learn in a supported geo, or Microsoft Copilot outside the EU Data Boundary), that approval is returned without prompting. This default is evaluated at runtime and is never stored.
     ///     Privacy Notice will be shown and any agreement will be stored.
     ///     If the Privacy Notice was simply closed, we return false and nothing is stored.
     ///
@@ -84,6 +85,7 @@ codeunit 1563 "Privacy Notice"
     /// User:
     ///     If admin has agreed or disagreed, that will be returned
     ///     If user has agreed, that will be returned
+    ///     If a runtime default policy approves the notice (for example Microsoft Learn in a supported geo, or Microsoft Copilot outside the EU Data Boundary), that approval is returned without prompting. This default is evaluated at runtime and is never stored.
     ///     Privacy Notice will be shown and any agreement will be stored.
     ///     If the Privacy Notice was simply closed, we return false and nothing is stored.
     ///
