@@ -425,6 +425,50 @@ codeunit 139981 "Subc. Location Handler Test"
         Assert.ExpectedError('Bin Mandatory');
     end;
 
+    [Test]
+    procedure CreateSubcOrderFromRtngLineUsesProdOrderLineLocation()
+    var
+        Item: Record Item;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        PurchaseLine: Record "Purchase Line";
+        WorkCenter: array[2] of Record "Work Center";
+        WorkCenterLocation: Record Location;
+    begin
+        // [SCENARIO 635072] Creating a Subcontracting Order from a routing line uses the Prod. Order Line location, not the Work Center location.
+        Initialize();
+
+        // [GIVEN] A subcontracting work center with a Location Code
+        LibraryWarehouse.CreateLocation(WorkCenterLocation);
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+
+        WorkCenter[2]."Location Code" := WorkCenterLocation.Code;
+        WorkCenter[2]."Open Shop Floor Bin Code" := '';
+        WorkCenter[2].Modify();
+
+        // [GIVEN] A released production order whose location differs from the work center location
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+          ProductionOrder, "Production Order Status"::Released, ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5, '');
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [WHEN] Creating the subcontracting order from the routing line
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+
+        // [THEN] The purchase line uses the Prod. Order Line location, not the Work Center location
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+        Assert.AreEqual(
+          ProdOrderLine."Location Code", PurchaseLine."Location Code",
+          'Subcontracting order must use the Prod. Order Line location.');
+        Assert.AreNotEqual(
+          WorkCenter[2]."Location Code", PurchaseLine."Location Code",
+          'Subcontracting order must not use the Work Center location.');
+    end;
+
     local procedure UpdateSubManagementSetup(ComponentAtLocation: Enum "Components at Location")
     var
         ManufacturingSetup: Record "Manufacturing Setup";

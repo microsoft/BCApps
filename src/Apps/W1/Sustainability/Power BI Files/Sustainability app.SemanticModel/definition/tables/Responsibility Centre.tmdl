@@ -1,0 +1,65 @@
+table 'Responsibility Centre'
+	lineageTag: a8623892-be7f-4115-9213-a5a049ea3eef
+
+	measure 'Facility Capacity' =
+			
+			SUM ( 'Responsibility Centre'[waterCapactiybyMonth] ) * [Months]
+		displayFolder: _Responsibility Centre Measures
+		lineageTag: 0d06ebf4-5755-4106-8205-ec013bac139e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Months =
+			
+			DATEDIFF ( MIN ( 'Date'[Date] ), MAX ( 'Date'[Date] ), MONTH ) + 1
+		formatString: 0
+		isHidden
+		displayFolder: _Responsibility Centre Measures
+		lineageTag: f34f91fb-28aa-4366-8e7f-4229d9a59a60
+
+		changedProperty = IsHidden
+
+	column 'Responsibility Centre Code'
+		dataType: string
+		isKey
+		lineageTag: c5d0eaaa-0caf-4636-88e8-b3938b29bd4a
+		summarizeBy: none
+		sourceColumn: Responsibility Centre Code
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Responsibility Centre Name'
+		dataType: string
+		lineageTag: a7e4ec29-e333-4a92-912f-fd47bbfc0df6
+		summarizeBy: none
+		sourceColumn: Responsibility Centre Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column waterCapactiybyMonth
+		dataType: double
+		isHidden
+		lineageTag: ef1ab076-06b2-4da6-8ad5-d05ad74d3da2
+		summarizeBy: none
+		sourceColumn: waterCapactiybyMonth
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Responsibility Centre' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY,API_ENDPOINT, []),
+				    TableData = Source{[Name="pbiResponsibilityCentres",Signature="table"]}[Data],
+				    #"Renamed Columns" = Table.RenameColumns(TableData,{{"code", "Responsibility Centre Code"}, {"name", "Responsibility Centre Name"}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Renamed Columns",{"ETag"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -4,14 +4,24 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Configuration.SourceConfiguration;
 
+using Microsoft.Assembly.History;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Tracking;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
+using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.QualityManagement.Document;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
+using Microsoft.Warehouse.Document;
+using Microsoft.Warehouse.Journal;
+using Microsoft.Warehouse.Ledger;
 using System.Reflection;
 
 /// <summary>
@@ -19,6 +29,22 @@ using System.Reflection;
 /// </summary>
 codeunit 20408 "Qlty. Traversal"
 {
+    Permissions =
+        tabledata "Qlty. Inspect. Src. Fld. Conf." = r,
+        tabledata "Qlty. Inspect. Source Config." = r,
+        tabledata "Tracking Specification" = r,
+        tabledata "Warehouse Entry" = r,
+        tabledata "Warehouse Journal Line" = r,
+        tabledata "Warehouse Receipt Line" = r,
+        tabledata "Sales Line" = r,
+        tabledata "Purchase Line" = r,
+        tabledata "Prod. Order Line" = r,
+        tabledata "Prod. Order Routing Line" = r,
+        tabledata "Item Journal Line" = r,
+        tabledata "Item Ledger Entry" = r,
+        tabledata "Transfer Line" = r,
+        tabledata "Posted Assembly Header" = r;
+
     var
         QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         QltyMiscHelpers: Codeunit "Qlty. Misc Helpers";

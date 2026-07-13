@@ -1,0 +1,77 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Sales.History;
+
+using Microsoft.Utilities;
+
+/// <summary>
+/// Provides user confirmation dialog before canceling a posted sales invoice.
+/// </summary>
+codeunit 1323 "Cancel PstdSalesInv (Yes/No)"
+{
+    Permissions = TableData "Sales Invoice Header" = rm,
+                  TableData "Sales Cr.Memo Header" = rm;
+    TableNo = "Sales Invoice Header";
+
+    trigger OnRun()
+    begin
+        CancelInvoice(Rec);
+    end;
+
+    var
+        CancelPostedInvoiceFromOrderQst: Label 'This invoice was posted from a sales order. To cancel it, a sales credit memo will be created and posted. The quantities from the original sales order will be restored, provided the sales order still exists.\ \Do you want to continue?';
+        CancelPostedInvoiceQst: Label 'The posted sales invoice will be canceled, and a sales credit memo will be created and posted.\ \Do you want to continue?';
+        OpenPostedCreditMemoQst: Label 'A credit memo was successfully created. Do you want to open the posted credit memo?';
+
+    /// <summary>
+    /// Cancels the posted sales invoice after user confirmation and optionally opens the created credit memo.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">Specifies the posted sales invoice to cancel.</param>
+    /// <returns>True if the invoice was successfully canceled, otherwise false.</returns>
+    procedure CancelInvoice(var SalesInvoiceHeader: Record "Sales Invoice Header"): Boolean
+    var
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        CancelledDocument: Record "Cancelled Document";
+        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+        PageManagement: Codeunit "Page Management";
+        IsHandled: Boolean;
+    begin
+        IsHandled := false;
+        OnCancelInvoiceOnBeforeTestCorrectInvoiceIsAllowed(SalesInvoiceHeader, IsHandled);
+        if not IsHandled then
+            CorrectPostedSalesInvoice.TestCorrectInvoiceIsAllowed(SalesInvoiceHeader, true);
+        if Confirm(GetCancelPostedInvoiceQst(SalesInvoiceHeader)) then
+            if CorrectPostedSalesInvoice.CancelPostedInvoice(SalesInvoiceHeader) then
+                if Confirm(OpenPostedCreditMemoQst) then begin
+                    CancelledDocument.FindSalesCancelledInvoice(SalesInvoiceHeader."No.");
+                    SalesCrMemoHeader.Get(CancelledDocument."Cancelled By Doc. No.");
+                    IsHandled := false;
+                    OnCancelInvoiceOnBeforePostedSalesCreditMemo(SalesCrMemoHeader, IsHandled);
+                    if not IsHandled then
+                        PageManagement.PageRun(SalesCrMemoHeader);
+                    exit(true);
+                end;
+
+        exit(false);
+    end;
+
+    local procedure GetCancelPostedInvoiceQst(SalesInvoiceHeader: Record "Sales Invoice Header"): Text
+    begin
+        if SalesInvoiceHeader."Order No." <> '' then
+            exit(CancelPostedInvoiceFromOrderQst);
+        exit(CancelPostedInvoiceQst);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCancelInvoiceOnBeforePostedSalesCreditMemo(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCancelInvoiceOnBeforeTestCorrectInvoiceIsAllowed(var SalesInvoiceHeader: Record "Sales Invoice Header"; var IsHandled: Boolean)
+    begin
+    end;
+}
+

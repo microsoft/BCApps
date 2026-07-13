@@ -28,6 +28,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         ManufacturingSetup: Record "Manufacturing Setup";
         PageManagement: Codeunit "Page Management";
         UnitofMeasureManagement: Codeunit "Unit of Measure Management";
+        SubcontractingManagement: Codeunit "Subcontracting Management";
 #if not CLEAN29
 #pragma warning disable AL0432
         SubcFeatureFlagHandler: Codeunit "Subc. Feature Flag Handler";
@@ -72,11 +73,13 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         repeat
             BaseQtyToPurch := GetBaseQtyToPurchase(ProdOrderRoutingLine, ProdOrderLine);
             QtyToPurch := Round(BaseQtyToPurch / ProdOrderLine."Qty. per Unit of Measure", UnitofMeasureManagement.QtyRndPrecision());
-            if QtyToPurch > 0 then
+            if QtyToPurch > 0 then begin
+                SubcontractingManagement.CheckProdNotBlockedForOutput(ProdOrderLine."Item No.", ProdOrderLine."Variant Code");
                 CreateSubcontractingPurchase(ProdOrderRoutingLine,
                   ProdOrderLine,
                   QtyToPurch,
                   NoOfCreatedPurchOrder);
+            end;
         until ProdOrderLine.Next() = 0;
 
         exit(NoOfCreatedPurchOrder);
@@ -261,8 +264,6 @@ codeunit 99001557 "Subc. Purchase Order Creator"
     end;
 
     local procedure CheckProdOrderRtngLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line"): Boolean
-    var
-        WorkCenter: Record "Work Center";
     begin
         if ProdOrderRoutingLine.Status <> "Production Order Status"::Released then
             Error(CreationOfSubcontractingOrderIsNotAllowedErr, ProdOrderRoutingLine."Prod. Order No.");
@@ -276,10 +277,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         if ProdOrderLine.IsEmpty() then
             exit(false);
 
-        WorkCenter.SetLoadFields("Gen. Prod. Posting Group", "Subcontractor No.");
-        WorkCenter.Get(ProdOrderRoutingLine."Work Center No.");
-        WorkCenter.TestField("Subcontractor No.");
-        WorkCenter.TestField("Gen. Prod. Posting Group");
+        SubcontractingManagement.CheckSubcontractingWorkCenter(ProdOrderRoutingLine."Work Center No.");
         exit(true);
     end;
 
@@ -575,13 +573,8 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         RequisitionLine."Due Date" := ProdOrderRoutingLine."Ending Date";
         RequisitionLine."Requester ID" := CopyStr(UserId(), 1, MaxStrLen(RequisitionLine."Requester ID"));
 
-        if WorkCenter."Location Code" <> '' then begin
-            RequisitionLine."Location Code" := WorkCenter."Location Code";
-            RequisitionLine."Bin Code" := WorkCenter."Open Shop Floor Bin Code";
-        end else begin
-            RequisitionLine."Location Code" := ProdOrderLine."Location Code";
-            RequisitionLine."Bin Code" := ProdOrderLine."Bin Code";
-        end;
+        RequisitionLine."Location Code" := ProdOrderLine."Location Code";
+        RequisitionLine."Bin Code" := ProdOrderLine."Bin Code";
 
         RequisitionLine."Routing Reference No." := ProdOrderRoutingLine."Routing Reference No.";
         RequisitionLine."Routing No." := ProdOrderRoutingLine."Routing No.";
