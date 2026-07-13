@@ -6110,7 +6110,7 @@ codeunit 90 "Purch.-Post"
                 ItemLedgerEntry.SetRange("Document Line No.", ItemLedgerEntry."Document Line No.");
                 ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::"Negative Adjmt.");
                 ItemLedgerEntry.SetRange("Item No.", ItemLedgerEntry."Item No.");
-                ItemLedgerEntry.SetRange("Invoiced Quantity", 0);
+                ItemLedgerEntry.SetRange("Completely Invoiced", false);
                 if ItemLedgerEntry.FindFirst() then
                     ItemJournalLine."Item Shpt. Entry No." := ItemLedgerEntry."Entry No."
             end;

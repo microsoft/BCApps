@@ -669,7 +669,7 @@ codeunit 7000 "Sales Price Calc. Mgt."
         AllowInvDisc := AllowInvDisc2;
     end;
 
-    local procedure SetBillToCustomerDependingOnBillingMethod(Job: Record "Job"; JobPlanningLine: Record "Job Planning Line"; var BillToCustomerNo: Code[20]; var BillToContactNo: Code[20])
+    local procedure SetBillToCustomerDependingOnBillingMethod(Job: Record "Job"; JobNo: Code[20]; JobTaskNo: Code[20]; var BillToCustomerNo: Code[20]; var BillToContactNo: Code[20])
     var
         JobTask: Record "Job Task";
     begin
@@ -679,7 +679,7 @@ codeunit 7000 "Sales Price Calc. Mgt."
         if Job."Task Billing Method" = Job."Task Billing Method"::"One customer" then
             exit;
 
-        JobTask.Get(JobPlanningLine."Job No.", JobPlanningLine."Job Task No.");
+        JobTask.Get(JobNo, JobTaskNo);
         if (JobTask."Bill-to Customer No." <> '') and (JobTask."Bill-to Customer No." <> Job."Bill-to Customer No.") then begin
             BillToCustomerNo := JobTask."Bill-to Customer No.";
             BillToContactNo := JobTask."Bill-to Contact No.";
@@ -1244,7 +1244,7 @@ codeunit 7000 "Sales Price Calc. Mgt."
                     Job.Get(JobPlanningLine."Job No.");
                     Item.Get(JobPlanningLine."No.");
                     JobPlanningLine.TestField("Qty. per Unit of Measure");
-                    SetBillToCustomerDependingOnBillingMethod(Job, JobPlanningLine, BillToCustomerNo, BillToContactNo);
+                    SetBillToCustomerDependingOnBillingMethod(Job, JobPlanningLine."Job No.", JobPlanningLine."Job Task No.", BillToCustomerNo, BillToContactNo);
                     FindSalesPrice(
                       TempSalesPrice, BillToCustomerNo, BillToContactNo,
                       Job."Customer Price Group", '', JobPlanningLine."No.", JobPlanningLine."Variant Code", JobPlanningLine."Unit of Measure Code",
@@ -1426,6 +1426,7 @@ codeunit 7000 "Sales Price Calc. Mgt."
     procedure FindJobJnlLinePrice(var JobJnlLine: Record "Job Journal Line"; CalledByFieldNo: Integer)
     var
         Job: Record Job;
+        BillToCustomerNo, BillToContactNo : Code[20];
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -1444,8 +1445,9 @@ codeunit 7000 "Sales Price Calc. Mgt."
                     JobJnlLine.TestField("Qty. per Unit of Measure");
                     Job.Get(JobJnlLine."Job No.");
 
+                    SetBillToCustomerDependingOnBillingMethod(Job, JobJnlLine."Job No.", JobJnlLine."Job Task No.", BillToCustomerNo, BillToContactNo);
                     FindSalesPrice(
-                      TempSalesPrice, Job."Bill-to Customer No.", Job."Bill-to Contact No.",
+                      TempSalesPrice, BillToCustomerNo, BillToContactNo,
                       JobJnlLine."Customer Price Group", '', JobJnlLine."No.", JobJnlLine."Variant Code", JobJnlLine."Unit of Measure Code",
                       JobJnlLine."Currency Code", JobJnlLine."Posting Date", false);
                     CalcBestUnitPrice(TempSalesPrice);
