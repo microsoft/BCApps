@@ -425,6 +425,9 @@ codeunit 139955 "Qlty. Tests - Generation Rule"
         QltyInspectionUtility.CreateTemplate(QltyInspectionTemplateHdr, 0);
         QltyInspectionUtility.CreatePrioritizedRule(QltyInspectionTemplateHdr, Database::"Purchase Line", QltyInspectionGenRule);
 
+        // [GIVEN] The saved rule is read back so the before-image (xRec) reflects the table it has on disk, mirroring a user editing an existing rule
+        QltyInspectionGenRule.Get(QltyInspectionGenRule."Entry No.");
+
         // [GIVEN] Source Table No. is cleared on the record buffer
         QltyInspectionGenRule."Source Table No." := 0;
 
