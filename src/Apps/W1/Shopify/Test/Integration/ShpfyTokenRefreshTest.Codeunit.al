@@ -106,7 +106,7 @@ codeunit 139627 "Shpfy Token Refresh Test"
         end;
     end;
 
-    local procedure DaysFromNow(Days: Integer) Result: DateTime
+    local procedure DaysFromNow(Days: Integer): DateTime
     var
         Milliseconds: BigInteger;
         Offset: Duration;
