@@ -1,0 +1,2 @@
+# cost: 3
+{"query":"{customers(first: 1, query:\"phone:{{Phone}}\") {edges {node {id}}}}"}

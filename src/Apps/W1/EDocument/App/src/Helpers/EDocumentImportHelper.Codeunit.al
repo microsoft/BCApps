@@ -5,9 +5,7 @@
 namespace Microsoft.eServices.EDocument;
 
 using Microsoft.Bank.Reconciliation;
-#if not CLEAN26
 using Microsoft.eServices.EDocument.Processing.Import;
-#endif
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
@@ -20,6 +18,7 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
+using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
 using System.IO;
 using System.Reflection;
@@ -433,19 +432,26 @@ codeunit 6109 "E-Document Import Helper"
     /// <returns>Vendor number if exists or empty string.</returns>
     procedure FindVendor(VendorNoText: Code[20]; GLN: Code[13]; VATRegistrationNo: Text[20]): Code[20]
     var
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         VendorNo: Code[20];
     begin
         VendorNo := FindVendorByNo(VendorNoText);
-        if VendorNo <> '' then
+        if VendorNo <> '' then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'No');
             exit(VendorNo);
+        end;
 
         VendorNo := FindVendorByGLN(GLN);
-        if VendorNo <> '' then
+        if VendorNo <> '' then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'GLN');
             exit(VendorNo);
+        end;
 
         VendorNo := FindVendorByVATRegistrationNo(VATRegistrationNo);
-        if VendorNo <> '' then
+        if VendorNo <> '' then begin
+            EDocImpSessionTelemetry.SetText('Vendor Match Method', 'VAT Id');
             exit(VendorNo);
+        end;
     end;
 
     /// <summary>
@@ -566,9 +572,11 @@ codeunit 6109 "E-Document Import Helper"
         Vendor: Record Vendor;
         RecordMatchMgt: Codeunit "Record Match Mgt.";
         EDocumentNotification: Codeunit "E-Document Notification";
+        EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         NameNearness: Integer;
         AddressNearness: Integer;
         MatchedByAddress: Boolean;
+        NameOnlyCandidateFound: Boolean;
     begin
         Vendor.SetCurrentKey(Blocked);
         Vendor.SetLoadFields(Name, Address);
@@ -583,10 +591,41 @@ codeunit 6109 "E-Document Import Helper"
                     MatchedByAddress := AddressNearness >= RequiredNearness();
                     if MatchedByAddress then
                         exit(Vendor."No.");
+                    NameOnlyCandidateFound := true;
                     if EDocEntryNoForNotification <> 0 then
                         EDocumentNotification.AddVendorMatchedByNameNotAddressNotification(EDocEntryNoForNotification);
                 end;
             until Vendor.Next() = 0;
+
+        if NameOnlyCandidateFound then
+            EDocImpSessionTelemetry.SetBool('Vendor Matched By Name Not Address', true);
+    end;
+
+    /// <summary>
+    /// Use it to find a customer by name and address using fuzzy matching.
+    /// </summary>
+    /// <param name="CustomerName">Name of a customer.</param>
+    /// <param name="CustomerAddress">Address of a customer.</param>
+    /// <returns>Customer number if found or empty string.</returns>
+    procedure FindCustomerByNameAndAddress(CustomerName: Text; CustomerAddress: Text): Code[20]
+    var
+        Customer: Record Customer;
+        RecordMatchMgt: Codeunit "Record Match Mgt.";
+        NameNearness: Integer;
+        AddressNearness: Integer;
+    begin
+        Customer.SetCurrentKey(Blocked);
+        Customer.SetLoadFields(Name, Address);
+        if Customer.FindSet() then
+            repeat
+                NameNearness := RecordMatchMgt.CalculateStringNearness(CustomerName, Customer.Name, MatchThreshold(), NormalizingFactor());
+                if CustomerAddress = '' then
+                    AddressNearness := RequiredNearness()
+                else
+                    AddressNearness := RecordMatchMgt.CalculateStringNearness(CustomerAddress, Customer.Address, MatchThreshold(), NormalizingFactor());
+                if (NameNearness >= RequiredNearness()) and (AddressNearness >= RequiredNearness()) then
+                    exit(Customer."No.");
+            until Customer.Next() = 0;
     end;
 
     /// <summary>
@@ -667,10 +706,10 @@ codeunit 6109 "E-Document Import Helper"
     [Obsolete('Use codeunit 6140 "E-Doc. Import"''s method ProcessIncomingEDocument', '26.0')]
     procedure ProcessDocument(var EDocument: Record "E-Document"; CreateJnlLine: Boolean)
     var
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
     begin
-        EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
-        EDocumentImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
+        EDocumentImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
     end;
 #endif
 

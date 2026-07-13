@@ -483,6 +483,7 @@ codeunit 8062 "Billing Proposal"
     local procedure CalculateBillingPeriod(ServiceCommitment: Record "Subscription Line"; BillingDate: Date; BillToDate: Date; var BillingPeriodStart: Date; var BillingPeriodEnd: Date)
     var
         UsageDataBilling: Record "Usage Data Billing";
+        PreviousBillingPeriodEnd: Date;
     begin
         BillingPeriodEnd := 0D;
         BillingPeriodStart := ServiceCommitment."Next Billing Date";
@@ -505,10 +506,14 @@ codeunit 8062 "Billing Proposal"
         end;
 
         BillingPeriodEnd := CalculateNextBillingToDateForServiceCommitment(ServiceCommitment, BillingPeriodStart);
+        PreviousBillingPeriodEnd := 0D;
         while (BillingPeriodEnd < BillingDate) and
-              ((BillingPeriodEnd < ServiceCommitment."Subscription Line End Date") or (ServiceCommitment."Subscription Line End Date" = 0D))
-        do
+              ((BillingPeriodEnd < ServiceCommitment."Subscription Line End Date") or (ServiceCommitment."Subscription Line End Date" = 0D)) and
+              (BillingPeriodEnd > PreviousBillingPeriodEnd)
+        do begin
+            PreviousBillingPeriodEnd := BillingPeriodEnd;
             BillingPeriodEnd := CalculateNextBillingToDateForServiceCommitment(ServiceCommitment, BillingPeriodEnd + 1);
+        end;
     end;
 
     procedure CalculateNextBillingToDateForServiceCommitment(ServiceCommitment: Record "Subscription Line"; BillingFromDate: Date) NextBillingToDate: Date
@@ -701,14 +706,14 @@ codeunit 8062 "Billing Proposal"
         ProcessContractServiceCommitments(TempBillingTemplate, ContractNo, ContractLineFilter, BillingDate, BillingToDate, BillingRhythmFilter, false);
     end;
 
-    internal procedure CreateBillingProposalForPurchaseHeader(ServicePartner: Enum "Service Partner"; var TempServiceCommitment: Record "Subscription Line" temporary; BillingDate: Date; BillingToDate: Date)
+    procedure CreateBillingProposalForPurchaseHeader(ServicePartner: Enum "Service Partner"; var TempServiceCommitment: Record "Subscription Line" temporary; BillingDate: Date; BillingToDate: Date)
     var
         DummyPurchaseLine: Record "Purchase Line";
     begin
         CreateBillingProposalForPurchaseLine(ServicePartner, TempServiceCommitment, BillingDate, BillingToDate, DummyPurchaseLine);
     end;
 
-    internal procedure CreateBillingProposalForPurchaseLine(ServicePartner: Enum "Service Partner"; var TempServiceCommitment: Record "Subscription Line" temporary; BillingDate: Date; BillingToDate: Date; var PurchaseLine: Record "Purchase Line")
+    procedure CreateBillingProposalForPurchaseLine(ServicePartner: Enum "Service Partner"; var TempServiceCommitment: Record "Subscription Line" temporary; BillingDate: Date; BillingToDate: Date; var PurchaseLine: Record "Purchase Line")
     var
         TempBillingTemplate: Record "Billing Template" temporary;
         ServiceCommitment: Record "Subscription Line";
@@ -728,7 +733,7 @@ codeunit 8062 "Billing Proposal"
         AddRecurringBillingFlagToExistingPurchaseHeader(PurchaseLine."Document Type", PurchaseLine."Document No.");
     end;
 
-    internal procedure CreatePurchaseLines(PurchaseHeader: Record "Purchase Header")
+    procedure CreatePurchaseLines(PurchaseHeader: Record "Purchase Header")
     var
         BillingLine: Record "Billing Line";
         CreateBillingDocuments: Codeunit "Create Billing Documents";

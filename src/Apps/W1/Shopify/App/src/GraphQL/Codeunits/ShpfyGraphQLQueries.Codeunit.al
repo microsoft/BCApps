@@ -13,11 +13,6 @@ codeunit 30154 "Shpfy GraphQL Queries"
     Access = Internal;
     SingleInstance = true;
 
-    /// <summary> 
-    /// Get Query
-    /// </summary>
-    /// <param name="GraphQLType">Parameter of type enum "Shopify GraphQL Type".</param>
-    /// <param name="Parameters">Parameter of type Dictionary of [Text, Text].</param>
     internal procedure GetQuery(GraphQLType: enum "Shpfy GraphQL Type"; Parameters: Dictionary of [Text, Text]) Result: Text
     var
         ExpectedCost: Integer;
@@ -25,99 +20,42 @@ codeunit 30154 "Shpfy GraphQL Queries"
         exit(GetQuery(GraphQLType, Parameters, ExpectedCost));
     end;
 
-    /// <summary> 
-    /// Description for GetQuery.
-    /// </summary>
-    /// <param name="GraphQLType">Parameter of type enum "Shopify GraphQL Type".</param>
-    /// <param name="Parameters">Parameter of type Dictionary of [Text, Text].</param>
-    /// <param name="ExpectedCost">Parameter of type Decimal.</param>
     internal procedure GetQuery(GraphQLType: enum "Shpfy GraphQL Type"; Parameters: Dictionary of [Text, Text]; var ExpectedCost: Integer) GraphQL: Text
     var
         Param: Text;
-        IGraphQL: Interface "Shpfy IGraphQL";
-        IsHandled: Boolean;
     begin
-        OnBeforeSetInterfaceCodeunit(GraphQLType, Parameters, IGraphQL, IsHandled);
-        if not IsHandled then
-            IGraphQL := GraphQLType;
+        GraphQL := GetQueryWithCost(GraphQLType, ExpectedCost);
 
-        IsHandled := false;
-        OnBeforeGetGrapQLInfo(GraphQLType, Parameters, IGraphQL, GraphQL, ExpectedCost, IsHandled);
-        if not IsHandled then begin
-            GraphQL := IGraphQL.GetGraphQL();
-            ExpectedCost := IGraphQL.GetExpectedCost();
-        end;
-        OnAfterGetGrapQLInfo(GraphQLType, Parameters, IGraphQL, GraphQL, ExpectedCost);
-
-        IsHandled := false;
-        OnBeforeReplaceParameters(GraphQLType, Parameters, GraphQL, ExpectedCost, IsHandled);
-        if not IsHandled then
-            if (GraphQL <> '') and (Parameters.Count > 0) then
-                foreach Param in Parameters.Keys do
-                    GraphQL := GraphQL.Replace('{{' + Param + '}}', Parameters.Get(Param));
-        OnAfterReplaceParameters(GraphQLType, GraphQL, ExpectedCost);
+        if (GraphQL <> '') and (Parameters.Count > 0) then
+            foreach Param in Parameters.Keys do
+                GraphQL := GraphQL.Replace('{{' + Param + '}}', Parameters.Get(Param));
     end;
 
-    /// <summary>
-    /// OnAfterGetGrapQLInfo.
-    /// </summary>
-    /// <param name="GraphQLType">enum "Shopify GraphQL Type".</param>
-    /// <param name="Parameters">VAR Dictionary of [Text, Text].</param>
-    /// <param name="IGraphQL">VAR Interface "Shopify IGraphQL".</param>
-    /// <param name="GraphQL">VAR Text.</param>
-    /// <param name="ExpextedCost">VAR Integer.</param>
-    [InternalEvent(false)]
-    local procedure OnAfterGetGrapQLInfo(GraphQLType: enum "Shpfy GraphQL Type"; var Parameters: Dictionary of [Text, Text]; var IGraphQL: Interface "Shpfy IGraphQL"; var GraphQL: Text; var ExpextedCost: Integer)
+    internal procedure GetQueryWithCost(GraphQLType: enum "Shpfy GraphQL Type"; var ExpectedCost: Integer) GraphQL: Text
+    var
+        ResourceText: Text;
+        CostText: Text;
+        EnumName: Text;
+        AreaName: Text;
+        QueryName: Text;
+        SepPos: Integer;
+        JsonStart: Integer;
+        EnumIndex: Integer;
+        ResourcePathLbl: Label 'graphql/%1/%2.graphql', Locked = true;
+        CostPrefixTok: Label '# cost: ', Locked = true;
     begin
-    end;
+        EnumIndex := GraphQLType.Ordinals().IndexOf(GraphQLType.AsInteger());
+        EnumName := GraphQLType.Names().Get(EnumIndex);
+        SepPos := EnumName.IndexOf('_');
+        AreaName := EnumName.Substring(1, SepPos - 1);
+        QueryName := EnumName.Substring(SepPos + 1);
+        ResourceText := NavApp.GetResourceAsText(StrSubstNo(ResourcePathLbl, AreaName, QueryName));
 
-    /// <summary>
-    /// OnAfterReplaceParameters.
-    /// </summary>
-    /// <param name="GraphQLType">enum "Shopify GraphQL Type".</param>
-    /// <param name="GraphQL">VAR Text.</param>
-    /// <param name="ExpextedCost">VAR Integer.</param>
-    [InternalEvent(false)]
-    local procedure OnAfterReplaceParameters(GraphQLType: enum "Shpfy GraphQL Type"; var GraphQL: Text; var ExpextedCost: Integer)
-    begin
-    end;
+        // Parse cost: skip "# cost: " prefix, read until the JSON body starts
+        JsonStart := ResourceText.IndexOf('{');
+        CostText := ResourceText.Substring(StrLen(CostPrefixTok) + 1, JsonStart - StrLen(CostPrefixTok) - 1).Trim();
+        Evaluate(ExpectedCost, CostText);
 
-    /// <summary>
-    /// OnBeforeGetGrapQLInfo.
-    /// </summary>
-    /// <param name="GraphQLType">enum "Shopify GraphQL Type".</param>
-    /// <param name="Parameters">VAR Dictionary of [Text, Text].</param>
-    /// <param name="IGraphQL">VAR Interface "Shopify IGraphQL".</param>
-    /// <param name="GraphQL">VAR Text.</param>
-    /// <param name="ExpextedCost">VAR Integer.</param>
-    /// <param name="IsHandled">Boolean.</param>
-    [InternalEvent(false)]
-    local procedure OnBeforeGetGrapQLInfo(GraphQLType: enum "Shpfy GraphQL Type"; var Parameters: Dictionary of [Text, Text]; var IGraphQL: Interface "Shpfy IGraphQL"; var GraphQL: Text; var ExpextedCost: Integer; IsHandled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// OnBeforeReplaceParameters.
-    /// </summary>
-    /// <param name="GraphQLType">enum "Shopify GraphQL Type".</param>
-    /// <param name="Parameters">VAR Dictionary of [Text, Text].</param>
-    /// <param name="GraphQL">VAR Text.</param>
-    /// <param name="ExpextedCost">VAR Integer.</param>
-    /// <param name="IsHandled">Boolean.</param>
-    [InternalEvent(false)]
-    local procedure OnBeforeReplaceParameters(GraphQLType: enum "Shpfy GraphQL Type"; var Parameters: Dictionary of [Text, Text]; var GraphQL: Text; var ExpextedCost: Integer; IsHandled: Boolean)
-    begin
-    end;
-
-    /// <summary>
-    /// OnBeforeSetInterfaceCodeunit.
-    /// </summary>
-    /// <param name="GraphQLType">enum "Shopify GraphQL Type".</param>
-    /// <param name="Parameters">VAR Dictionary of [Text, Text].</param>
-    /// <param name="IGraphQL">VAR Interface "Shopify IGraphQL".</param>
-    /// <param name="IsHandled">Boolean.</param>
-    [InternalEvent(false)]
-    local procedure OnBeforeSetInterfaceCodeunit(GraphQLType: enum "Shpfy GraphQL Type"; var Parameters: Dictionary of [Text, Text]; var IGraphQL: Interface "Shpfy IGraphQL"; IsHandled: Boolean)
-    begin
+        GraphQL := ResourceText.Substring(JsonStart);
     end;
 }

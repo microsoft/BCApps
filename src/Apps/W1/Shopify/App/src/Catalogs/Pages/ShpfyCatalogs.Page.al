@@ -31,6 +31,15 @@ page 30159 "Shpfy Catalogs"
                 {
                     Caption = 'Company';
                     Editable = false;
+                    DrillDown = true;
+
+                    trigger OnDrillDown()
+                    var
+                        Company: Record "Shpfy Company";
+                    begin
+                        if Company.GetBySystemId(Rec."Company SystemId") then
+                            Page.Run(Page::"Shpfy Company Card", Company);
+                    end;
                 }
                 field(SyncPrices; Rec."Sync Prices") { }
                 field("Currency Code"; Rec."Currency Code")
@@ -92,7 +101,7 @@ page 30159 "Shpfy Catalogs"
                 Promoted = true;
                 PromotedOnly = true;
                 PromotedCategory = Process;
-                ToolTip = 'Get catalogs from Shopify.';
+                ToolTip = 'Retrieve active B2B catalogs from Shopify for companies that have already been imported. If no companies are synced to this shop, no catalogs will be retrieved.';
 
                 trigger OnAction()
                 var

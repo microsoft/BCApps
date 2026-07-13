@@ -189,7 +189,7 @@ codeunit 30189 "Shpfy Variant API"
                 HasChange := true;
                 GraphQuery.Append(', compareAtPrice: null');
             end;
-        if (ShopifyVariant."Unit Cost" <> xShopifyVariant."Unit Cost") or (ShopifyVariant.Weight <> xShopifyVariant.Weight) or (ShopifyVariant.SKU <> xShopifyVariant.SKU) then begin
+        if (ShopifyVariant."Unit Cost" <> xShopifyVariant."Unit Cost") or (ShopifyVariant.Weight <> xShopifyVariant.Weight) or (ShopifyVariant.SKU <> xShopifyVariant.SKU) or (ShopifyVariant."Tariff No." <> xShopifyVariant."Tariff No.") or (ShopifyVariant."Country/Region of Origin Code" <> xShopifyVariant."Country/Region of Origin Code") then begin
             HasChange := true;
             GraphQuery.Append(', inventoryItem: {tracked: ');
             if Shop."Inventory Tracked" then
@@ -205,6 +205,20 @@ codeunit 30189 "Shpfy Variant API"
                 GraphQuery.Append(', sku: \"');
                 GraphQuery.Append(ShopifyVariant.SKU);
                 GraphQuery.Append('\"');
+            end;
+            if ShopifyVariant."Tariff No." <> xShopifyVariant."Tariff No." then begin
+                HasChange := true;
+                GraphQuery.Append(', harmonizedSystemCode: \"');
+                GraphQuery.Append(CommunicationMgt.EscapeGraphQLData(ShopifyVariant."Tariff No."));
+                GraphQuery.Append('\"');
+            end;
+            if ShopifyVariant."Country/Region of Origin Code" <> xShopifyVariant."Country/Region of Origin Code" then begin
+                HasChange := true;
+                GraphQuery.Append(', countryCodeOfOrigin: ');
+                if ShopifyVariant."Country/Region of Origin Code" = '' then
+                    GraphQuery.Append('null')
+                else
+                    GraphQuery.Append(ShopifyVariant."Country/Region of Origin Code");
             end;
             if ShopifyVariant.Weight <> xShopifyVariant.Weight then begin
                 GraphQuery.Append(', measurement: {weight: {value:');
@@ -282,6 +296,15 @@ codeunit 30189 "Shpfy Variant API"
             GraphQuery.Append(', sku: \"');
             GraphQuery.Append(CommunicationMgt.EscapeGraphQLData(ShopifyVariant.SKU));
             GraphQuery.Append('\"');
+        end;
+        if ShopifyVariant."Tariff No." <> '' then begin
+            GraphQuery.Append(', harmonizedSystemCode: \"');
+            GraphQuery.Append(CommunicationMgt.EscapeGraphQLData(ShopifyVariant."Tariff No."));
+            GraphQuery.Append('\"');
+        end;
+        if ShopifyVariant."Country/Region of Origin Code" <> '' then begin
+            GraphQuery.Append(', countryCodeOfOrigin: ');
+            GraphQuery.Append(ShopifyVariant."Country/Region of Origin Code");
         end;
         if ShopifyVariant.Weight > 0 then begin
             GraphQuery.Append(', measurement: {weight: {value:');
@@ -382,7 +405,7 @@ codeunit 30189 "Shpfy Variant API"
             exit(false);
 
         Parameters.Add('Barcode', ShopifyVariant.Barcode.Replace('.', '\\\\.'));
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::FindVariantByBarcode, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Products_FindVariantByBarcode, Parameters);
         if JsonHelper.GetJsonArray(JResponse, JArray, 'data.productVariants.edges') then
             if JArray.Count = 1 then
                 if JArray.Get(0, JItem) then begin
@@ -409,7 +432,7 @@ codeunit 30189 "Shpfy Variant API"
             exit(false);
 
         Parameters.Add('SKU', ShopifyVariant.SKU.Replace('.', '\\\\.'));
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::FindVariantBySKU, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Products_FindVariantBySKU, Parameters);
         if JsonHelper.GetJsonArray(JResponse, JArray, 'data.productVariants.edges') then
             if JArray.Count = 1 then
                 if JArray.Get(0, JItem) then begin
@@ -451,7 +474,7 @@ codeunit 30189 "Shpfy Variant API"
         Cursor: Text;
     begin
         Clear(ProductVariantImages);
-        GraphQLType := GraphQLType::GetProductVariantImages;
+        GraphQLType := GraphQLType::Products_GetProductVariantImages;
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
             if JsonHelper.GetJsonArray(JResponse, JProductVariants, 'data.productVariants.edges') then begin
@@ -473,7 +496,7 @@ codeunit 30189 "Shpfy Variant API"
                 else
                     Parameters.Add('After', Cursor);
             end;
-            GraphQLType := GraphQLType::GetNextProductVariantImages;
+            GraphQLType := GraphQLType::Products_GetNextProductVariantImages;
         until not JsonHelper.GetValueAsBoolean(JResponse, 'data.productVariants.pageInfo.hasNextPage');
     end;
 
@@ -495,7 +518,7 @@ codeunit 30189 "Shpfy Variant API"
         Cursor: Text;
     begin
         Clear(ProductVariantIds);
-        GraphQLType := GraphQLType::GetProductVariantIds;
+        GraphQLType := GraphQLType::Products_GetProductVariantIds;
         Parameters.Add('ProductId', Format(ShopifyProduct.Id));
         repeat
             JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
@@ -508,7 +531,7 @@ codeunit 30189 "Shpfy Variant API"
                         ProductVariantIds.Add(Id, UpdatedAt);
                     end;
                 end;
-                GraphQLType := GraphQLType::GetNextProductVariantIds;
+                GraphQLType := GraphQLType::Products_GetNextProductVariantIds;
                 if Parameters.ContainsKey('After') then
                     Parameters.Set('After', Cursor)
                 else
@@ -532,9 +555,14 @@ codeunit 30189 "Shpfy Variant API"
         JResponse: JsonToken;
     begin
         Parameters.Add('VariantId', Format(ShopifyVariant.Id));
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::GetVariantById, Parameters);
-        if JsonHelper.GetJsonObject(JResponse.AsObject(), JData, 'data.productVariant') then
-            exit(UpdateShopifyVariantFields(ShopifyProduct, ShopifyVariant, ShopifyInventoryItem, JData));
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Products_GetVariantById, Parameters);
+        // When the productVariant node is present, the variant still exists on Shopify, so report it as existing.
+        // UpdateShopifyVariantFields internally skips the field update when the local record is already up to date.
+        // Only a missing node (variant genuinely deleted on Shopify) returns false so the caller can delete the record.
+        if JsonHelper.GetJsonObject(JResponse.AsObject(), JData, 'data.productVariant') then begin
+            UpdateShopifyVariantFields(ShopifyProduct, ShopifyVariant, ShopifyInventoryItem, JData);
+            exit(true);
+        end;
     end;
 
     /// <summary> 
@@ -638,23 +666,17 @@ codeunit 30189 "Shpfy Variant API"
         exit(NewImageId);
     end;
 
-    internal procedure UpdateProductPrice(ShopifyVariant: Record "Shpfy Variant"; xShopifyVariant: Record "Shpfy Variant"; var BulkOperationInput: TextBuilder; var GraphQueryList: Dictionary of [BigInteger, TextBuilder]; RecordCount: Integer; var JRequestData: JsonArray)
+    internal procedure UpdateProductPrice(ShopifyVariant: Record "Shpfy Variant"; xShopifyVariant: Record "Shpfy Variant"; var BulkOperationInput: TextBuilder; var GraphQueryList: Dictionary of [BigInteger, TextBuilder]; var JRequestData: JsonArray)
     var
-        BulkOperationMgt: Codeunit "Shpfy Bulk Operation Mgt.";
         BulkOperationType: Enum "Shpfy Bulk Operation Type";
         IBulkOperation: Interface "Shpfy IBulk Operation";
         HasChange: Boolean;
-        IsBulkOperationEnabled: Boolean;
-        JResponse: JsonToken;
-        JVariant: JsonToken;
-        JVariants: JsonArray;
         JRequest: JsonObject;
         GraphQuery: TextBuilder;
         Price: Text;
         CompareAtPrice: Text;
         UnitCost: Text;
     begin
-        IsBulkOperationEnabled := RecordCount >= BulkOperationMgt.GetBulkOperationThreshold();
         GraphQuery.Append('{"query":"mutation { productVariantsBulkUpdate(productId: \"gid://shopify/Product/');
         GraphQuery.Append(Format(ShopifyVariant."Product Id"));
         GraphQuery.Append('\", variants: [{id: \"gid://shopify/ProductVariant/');
@@ -665,8 +687,7 @@ codeunit 30189 "Shpfy Variant API"
             GraphQuery.Append(', price: \"');
             GraphQuery.Append(Format(ShopifyVariant.Price, 0, 9));
             GraphQuery.Append('\"');
-            if IsBulkOperationEnabled then
-                Price := Format(ShopifyVariant.Price, 0, 9);
+            Price := Format(ShopifyVariant.Price, 0, 9);
         end;
         if (ShopifyVariant."Compare at Price" <> xShopifyVariant."Compare at Price") then
             if (ShopifyVariant.Price < ShopifyVariant."Compare at Price") then begin
@@ -674,69 +695,63 @@ codeunit 30189 "Shpfy Variant API"
                 GraphQuery.Append(', compareAtPrice: \"');
                 GraphQuery.Append(Format(ShopifyVariant."Compare at Price", 0, 9));
                 GraphQuery.Append('\"');
-                if IsBulkOperationEnabled then
-                    CompareAtPrice := Format(ShopifyVariant."Compare at Price", 0, 9);
+                CompareAtPrice := ', "compareAtPrice": "' + Format(ShopifyVariant."Compare at Price", 0, 9) + '"';
             end else begin
                 HasChange := true;
                 GraphQuery.Append(', compareAtPrice: null');
-                CompareAtPrice := '0';
+                CompareAtPrice := ', "compareAtPrice": null';
             end;
         if ShopifyVariant."Unit Cost" <> xShopifyVariant."Unit Cost" then begin
             HasChange := true;
             GraphQuery.Append(', inventoryItem: {cost: \"');
             GraphQuery.Append(Format(ShopifyVariant."Unit Cost", 0, 9));
             GraphQuery.Append('\"}');
-            if IsBulkOperationEnabled then
-                UnitCost := Format(ShopifyVariant."Unit Cost", 0, 9);
+            UnitCost := Format(ShopifyVariant."Unit Cost", 0, 9);
         end;
 
         GraphQuery.Append('}]) {productVariants {updatedAt}, userErrors {field, message}}}"}');
 
-        if HasChange then
-            if IsBulkOperationEnabled then begin
-                IBulkOperation := BulkOperationType::UpdateProductPrice;
-                if Price = '' then
-                    Price := Format(ShopifyVariant.Price, 0, 9);
-                if CompareAtPrice = '' then
-                    CompareAtPrice := Format(ShopifyVariant."Compare at Price", 0, 9);
-                if UnitCost = '' then
-                    UnitCost := Format(ShopifyVariant."Unit Cost", 0, 9);
+        if HasChange then begin
+            IBulkOperation := BulkOperationType::UpdateProductPrice;
+            if Price = '' then
+                Price := Format(ShopifyVariant.Price, 0, 9);
+            if UnitCost = '' then
+                UnitCost := Format(ShopifyVariant."Unit Cost", 0, 9);
 
-                GraphQueryList.Add(ShopifyVariant.Id, GraphQuery);
-                JRequest.Add('id', ShopifyVariant.Id);
-                JRequest.Add('price', xShopifyVariant.Price);
-                JRequest.Add('compareAtPrice', xShopifyVariant."Compare at Price");
-                JRequest.Add('unitCost', xShopifyVariant."Unit Cost");
-                JRequest.Add('updatedAt', xShopifyVariant."Updated At");
-                JRequestData.Add(JRequest);
+            GraphQueryList.Add(ShopifyVariant.Id, GraphQuery);
+            JRequest.Add('id', ShopifyVariant.Id);
+            JRequest.Add('price', xShopifyVariant.Price);
+            JRequest.Add('compareAtPrice', xShopifyVariant."Compare at Price");
+            JRequest.Add('unitCost', xShopifyVariant."Unit Cost");
+            JRequest.Add('updatedAt', xShopifyVariant."Updated At");
+            JRequestData.Add(JRequest);
 
-                BulkOperationInput.AppendLine(StrSubstNo(IBulkOperation.GetInput(), ShopifyVariant."Product Id", ShopifyVariant.Id, Price, CompareAtPrice, UnitCost));
-                ShopifyVariant."Updated At" := CurrentDateTime();
-                ShopifyVariant.Modify();
-            end else begin
-                JResponse := CommunicationMgt.ExecuteGraphQL(GraphQuery.ToText());
-                if JsonHelper.GetJsonArray(JResponse, JVariants, 'data.productVariantsBulkUpdate.productVariants') then
-                    if JVariants.Get(0, JVariant) then begin
-                        ShopifyVariant."Updated At" := JsonHelper.GetValueAsDateTime(JVariant, 'updatedAt');
-                        if ShopifyVariant."Updated At" > 0DT then
-                            ShopifyVariant.Modify();
-                    end;
-            end;
+            BulkOperationInput.AppendLine(StrSubstNo(IBulkOperation.GetInput(), ShopifyVariant."Product Id", ShopifyVariant.Id, Price, CompareAtPrice, UnitCost));
+            ShopifyVariant."Updated At" := CurrentDateTime();
+            ShopifyVariant.Modify();
+        end;
     end;
 
-    [TryFunction]
-    internal procedure UpdateProductPrice(GraphQuery: TextBuilder)
+    internal procedure UpdateProductPrice(VariantId: BigInteger; GraphQuery: TextBuilder): Boolean
     var
+        ShopifyVariant: Record "Shpfy Variant";
         JVariants: JsonArray;
         JVariant: JsonToken;
         JResponse: JsonToken;
-        VariantUpdateFailedErr: Label 'Failed to update variant price.';
+        UpdatedAt: DateTime;
     begin
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQuery.ToText());
         if JsonHelper.GetJsonArray(JResponse, JVariants, 'data.productVariantsBulkUpdate.productVariants') then
-            if JVariants.Get(0, JVariant) then
-                if JsonHelper.GetValueAsDateTime(JVariant, 'updatedAt') <= 0DT then
-                    Error(VariantUpdateFailedErr);
+            if JVariants.Get(0, JVariant) then begin
+                UpdatedAt := JsonHelper.GetValueAsDateTime(JVariant, 'updatedAt');
+                if UpdatedAt <= 0DT then
+                    exit(false);
+                if ShopifyVariant.Get(VariantId) then begin
+                    ShopifyVariant."Updated At" := UpdatedAt;
+                    ShopifyVariant.Modify();
+                end;
+            end;
+        exit(true);
     end;
 
     /// <summary> 
@@ -746,8 +761,7 @@ codeunit 30189 "Shpfy Variant API"
     /// <param name="ShopifyVariant">Parameter of type Record "Shopify Variant".</param>
     /// <param name="ShopifyInventoryItem">Parameter of type Record "Shopify Inventory Item".</param>
     /// <param name="JVariant">Parameter of type JsonObject.</param>
-    /// <returns>Return variable "Result" of type Boolean.</returns>
-    internal procedure UpdateShopifyVariantFields(ShopifyProduct: Record "Shpfy Product"; var ShopifyVariant: Record "Shpfy Variant"; var ShopifyInventoryItem: Record "Shpfy Inventory Item"; JVariant: JsonObject) Result: Boolean
+    internal procedure UpdateShopifyVariantFields(ShopifyProduct: Record "Shpfy Product"; var ShopifyVariant: Record "Shpfy Variant"; var ShopifyInventoryItem: Record "Shpfy Inventory Item"; JVariant: JsonObject)
     var
         RecordRef: RecordRef;
         UpdatedAt: DateTime;
@@ -758,9 +772,8 @@ codeunit 30189 "Shpfy Variant API"
     begin
         UpdatedAt := JsonHelper.GetValueAsDateTime(JVariant, 'updatedAt');
         if UpdatedAt < ShopifyVariant."Updated At" then
-            exit(false);
+            exit;
 
-        Result := true;
         ShopifyVariant."Updated At" := UpdatedAt;
         ShopifyVariant."Created At" := JsonHelper.GetValueAsDateTime(JVariant, 'createdAt');
         ShopifyVariant."Available For Sales" := JsonHelper.GetValueAsBoolean(JVariant, 'availableForSale');
@@ -854,7 +867,7 @@ codeunit 30189 "Shpfy Variant API"
         JResponse: JsonToken;
     begin
         Parameters.Add('VariantId', Format(VariantId));
-        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::GetVariantImage, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Products_GetVariantImage, Parameters);
         if JsonHelper.GetJsonArray(JResponse, JMedias, 'data.productVariant.media.edges') then
             if JMedias.Count() = 1 then
                 exit(true);
@@ -869,7 +882,7 @@ codeunit 30189 "Shpfy Variant API"
         Parameters.Add('ProductId', Format(ShopifyVariant."Product Id"));
         Parameters.Add('VariantId', Format(ShopifyVariant.Id));
         Parameters.Add('ResourceUrl', ResourceUrl);
-        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::AddVariantImage, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::Products_AddVariantImage, Parameters);
 
         if not JsonHelper.GetJsonArray(JResponse, JArray, 'data.productVariantsBulkUpdate.productVariants') then
             exit;
@@ -894,7 +907,7 @@ codeunit 30189 "Shpfy Variant API"
         Parameters.Add('ProductId', Format(ProductId));
         Parameters.Add('VariantId', Format(VariantId));
         Parameters.Add('ImageId', Format(ImageId));
-        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::SetVariantImage, Parameters);
+        JResponse := CommunicationMgt.ExecuteGraphQL("Shpfy GraphQL Type"::Products_SetVariantImage, Parameters);
         if JsonHelper.GetJsonArray(JResponse, JErrors, 'data.productVariantsBulkUpdate.userErrors') then
             exit((JErrors.Count() = 0));
     end;

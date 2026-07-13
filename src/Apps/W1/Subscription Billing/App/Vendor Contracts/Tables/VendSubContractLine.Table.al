@@ -519,6 +519,7 @@ table 8065 "Vend. Sub. Contract Line"
         Rec."Subscription Description" := ServiceObject.Description;
         Rec."Subscription Line Entry No." := ServiceCommitment."Entry No.";
         Rec."Subscription Line Description" := ServiceCommitment.Description;
+        OnAfterInitFromSubscriptionLine(Rec, ServiceCommitment, ServiceObject);
     end;
 
     internal procedure IsCommentLine(): Boolean
@@ -535,5 +536,10 @@ table 8065 "Vend. Sub. Contract Line"
         VendSubContractDeferral.SetRange(Released, false);
         if not VendSubContractDeferral.IsEmpty() then
             Error(UnreleasedVendSubContractDeferralExistsErr);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitFromSubscriptionLine(var VendSubContractLine: Record "Vend. Sub. Contract Line"; SubscriptionLine: Record "Subscription Line"; SubscriptionHeader: Record "Subscription Header")
+    begin
     end;
 }

@@ -13,7 +13,7 @@ page 37014 "Purchases Period-Over-Period"
     PageType = UserControlHost;
     Caption = 'Purchases Period-Over-Period';
     AboutTitle = 'About Purchases Period-Over-Period';
-    AboutText = 'The Purchases Period Over Period report compares procurement performance across different periods, such as month-over-month or year-over-year. Completed up to here';
+    AboutText = 'The Purchases Period Over Period report compares procurement performance across different periods, such as month-over-month or year-over-year.';
 
     layout
     {
@@ -48,11 +48,8 @@ page 37014 "Purchases Period-Over-Period"
         ReportPageLbl: Label 'ReportSection2c5c763cbb0914a4201d', Locked = true;
 
     trigger OnOpenPage()
-    var
-        PowerBIReportsSetup: Record "PowerBI Reports Setup";
     begin
-        SetupHelper.EnsureUserAcceptedPowerBITerms();
-        ReportId := SetupHelper.GetReportIdAndEnsureSetup(CurrPage.Caption(), PowerBIReportsSetup.FieldNo("Purchases Report Id"));
+        ReportId := SetupHelper.OpenPowerBIEmbeddedReportPageValidation("PBI Report Setup"::"Purchases App");
     end;
 }
 

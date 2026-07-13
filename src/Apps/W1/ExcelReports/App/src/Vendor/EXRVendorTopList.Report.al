@@ -131,7 +131,9 @@ report 4404 "EXR Vendor Top List"
         DateFilter: Text;
 
     protected var
+#pragma warning disable AA0073
         GlobalExtTopVendorReportBuffer: Record "EXR Top Vendor Report Buffer";
+#pragma warning restore AA0073
         EXTTopVendorCaptionHandler: Codeunit "EXT Top Vendor Caption Handler";
         NoOfRecordsToPrint: Integer;
 

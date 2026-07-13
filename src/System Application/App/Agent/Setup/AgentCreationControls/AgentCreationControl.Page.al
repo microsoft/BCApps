@@ -17,7 +17,6 @@ page 4326 "Agent Creation Control"
     PageType = ListPlus;
     InsertAllowed = false;
     DeleteAllowed = false;
-    SourceTable = "Agent Creation Control";
     UsageCategory = Administration;
     DelayedInsert = true;
 

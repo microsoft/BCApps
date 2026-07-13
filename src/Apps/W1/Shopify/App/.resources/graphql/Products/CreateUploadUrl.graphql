@@ -1,0 +1,2 @@
+# cost: 11
+{"query": "mutation { stagedUploadsCreate(input: {filename: \"{{Filename}}\", mimeType: \"{{MimeType}}\", resource: {{Resource}}, httpMethod: {{HttpMethod}}}) { stagedTargets { url resourceUrl parameters { name value } }}}"}

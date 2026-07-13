@@ -1,0 +1,2 @@
+# cost: 13
+{"query":"{product(id: \"gid://shopify/Product/{{ProductId}}\") {variants(first:200, after:\"{{After}}}}\"){pageInfo{hasNextPage} edges{cursor node{legacyResourceId updatedAt}}}}}"}

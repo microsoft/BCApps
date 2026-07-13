@@ -1,0 +1,2 @@
+# cost: 4
+{"query":"{productVariants(query: \"sku:{{SKU}}\", first: 1) { edges { node { legacyResourceId product { legacyResourceId }}}}}"}

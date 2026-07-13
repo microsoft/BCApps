@@ -10,6 +10,7 @@ using Microsoft.eServices.EDocument.OrderMatch;
 using Microsoft.EServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.eServices.EDocument.Processing.Import.Sales;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
@@ -192,6 +193,26 @@ codeunit 6103 "E-Document Subscribers"
     local procedure OnBeforeReleaseServiceDoc(var ServiceHeader: Record "Service Header");
     begin
         EDocumentProcessing.RunEDocumentCheck(ServiceHeader, EDocumentProcessingPhase::Release);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Purchase Document", 'OnAfterReleasePurchaseDoc', '', false, false)]
+    local procedure OnAfterReleasePurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; var LinesWereModified: Boolean; SkipWhseRequestOperations: Boolean)
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+        EDocumentHelper: Codeunit "E-Document Helper";
+        SourceDocumentHeader: RecordRef;
+    begin
+        if PreviewMode then
+            exit;
+
+        if PurchaseHeader."Document Type" <> PurchaseHeader."Document Type"::Order then
+            exit;
+
+        SourceDocumentHeader.GetTable(PurchaseHeader);
+        if not EDocumentHelper.IsElectronicDocument(SourceDocumentHeader, DocumentSendingProfile) then
+            exit;
+
+        CreateEDocumentFromPostedDocument(SourceDocumentHeader, DocumentSendingProfile, Enum::"E-Document Type"::"Purchase Order", true);
     end;
     #endregion Release events
 
@@ -438,7 +459,7 @@ codeunit 6103 "E-Document Subscribers"
     local procedure OnBeforeOnDeletePurchaseHeader(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     var
         EDocument: Record "E-Document";
-        EDocImportParameters: Record "E-Doc. Import Parameters";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
         ConfirmDialogMgt: Codeunit "Confirm Management";
     begin
@@ -450,11 +471,34 @@ codeunit 6103 "E-Document Subscribers"
         if not ConfirmDialogMgt.GetResponseOrDefault(StrSubstNo(DeleteDocumentQst, EDocument."Entry No")) then
             Error('');
 
-        EDocImportParameters."Step to Run / Desired Status" := EDocImportParameters."Step to Run / Desired Status"::"Desired E-Document Status";
-        EDocImportParameters."Desired E-Document Status" := "Import E-Doc. Proc. Status"::"Draft Ready";
-        EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParameters);
+        TempEDocImportParameters."Step to Run / Desired Status" := TempEDocImportParameters."Step to Run / Desired Status"::"Desired E-Document Status";
+        TempEDocImportParameters."Desired E-Document Status" := "Import E-Doc. Proc. Status"::"Draft Ready";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
 
         PurchaseHeader.Get(PurchaseHeader."Document Type", PurchaseHeader."No.");
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Sales Header", 'OnDeleteOnBeforeArchiveSalesDocument', '', false, false)]
+    local procedure OnDeleteOnBeforeArchiveSalesDocumentSalesHeader(var SalesHeader: Record "Sales Header")
+    var
+        EDocument: Record "E-Document";
+        TempEDocImportParameters: Record "E-Doc. Import Parameters";
+        EDocImport: Codeunit "E-Doc. Import";
+        ConfirmDialogMgt: Codeunit "Confirm Management";
+    begin
+        if IsNullGuid(SalesHeader."E-Document Link") then
+            exit;
+
+        if not EDocument.GetBySystemId(SalesHeader."E-Document Link") then
+            exit;
+        if not ConfirmDialogMgt.GetResponseOrDefault(StrSubstNo(DeleteDocumentQst, EDocument."Entry No")) then
+            Error('');
+
+        TempEDocImportParameters."Step to Run / Desired Status" := TempEDocImportParameters."Step to Run / Desired Status"::"Desired E-Document Status";
+        TempEDocImportParameters."Desired E-Document Status" := "Import E-Doc. Proc. Status"::"Draft Ready";
+        EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParameters);
+
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Classification Eval. Data", 'OnCreateEvaluationDataOnAfterClassifyTablesToNormal', '', false, false)]
@@ -503,6 +547,8 @@ codeunit 6103 "E-Document Subscribers"
 #pragma warning restore AL0432
 #endif
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Doc Sample Purch. Inv File");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Sales Header");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"E-Document Sales Line");
     end;
 
 
@@ -633,16 +679,23 @@ codeunit 6103 "E-Document Subscribers"
         EDocument.Status := Enum::"E-Document Status"::Processed;
         EDocument.Modify(true);
 
+        OnAfterUpdateToPostedPurchaseEDocument(EDocument, PostedRecord, PostedDocumentNo, DocumentType);
+
         EDocService := EDocumentLog.GetLastServiceFromLog(EDocument);
         EDocLogHelper.InsertLog(EDocument, EDocService, Enum::"E-Document Service Status"::"Imported Document Created");
     end;
 
     procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile")
     begin
-        CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, EDocumentProcessing.GetTypeFromSourceDocument(PostedRecord));
+        CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, EDocumentProcessing.GetTypeFromSourceDocument(PostedRecord), false);
     end;
 
     procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type")
+    begin
+        CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, DocumentType, false);
+    end;
+
+    procedure CreateEDocumentFromPostedDocument(PostedRecord: Variant; DocumentSendingProfile: Record "Document Sending Profile"; DocumentType: Enum "E-Document Type"; AllowReExport: Boolean)
     var
         TypeHelper: Codeunit "Type Helper";
         RecordRef: RecordRef;
@@ -658,7 +711,7 @@ codeunit 6103 "E-Document Subscribers"
         if (DocumentSendingProfile."Electronic Document" <> DocumentSendingProfile."Electronic Document"::"Extended E-Document Service Flow") then
             exit;
 
-        EDocExport.CreateEDocument(PostedSourceDocumentHeader, DocumentSendingProfile, DocumentType);
+        EDocExport.CreateEDocument(PostedSourceDocumentHeader, DocumentSendingProfile, DocumentType, AllowReExport);
     end;
 
     local procedure PointEDocumentToPostedDocument(OpenRecord: Variant; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type")
@@ -666,7 +719,7 @@ codeunit 6103 "E-Document Subscribers"
         EDocument: Record "E-Document";
     begin
         if IsEDocumentLinkedToPurchaseDocument(EDocument, OpenRecord) then begin
-            Edocument.TestField(Direction, Enum::"E-Document Direction"::Incoming);
+            EDocument.TestField(Direction, Enum::"E-Document Direction"::Incoming);
             UpdateToPostedPurchaseEDocument(EDocument, PostedRecord, PostedDocumentNo, DocumentType);
             RemoveEDocumentLinkFromPurchaseDocument(OpenRecord);
         end;
@@ -713,4 +766,8 @@ codeunit 6103 "E-Document Subscribers"
         Telemetry.LogMessage('0000PYF', DraftChangeTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
     end;
 
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterUpdateToPostedPurchaseEDocument(var EDocument: Record "E-Document"; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type")
+    begin
+    end;
 }

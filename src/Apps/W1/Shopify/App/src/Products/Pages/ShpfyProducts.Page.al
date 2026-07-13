@@ -139,12 +139,12 @@ page 30126 "Shpfy Products"
                 field(CreatedAt; Rec."Created At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies when the product was created.';
+                    ToolTip = 'Specifies when the product was created in Shopify.';
                 }
                 field(UpdatedAt; Rec."Updated At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies when the product was updated.';
+                    ToolTip = 'Specifies when the product was updated in Shopify.';
                 }
                 field(ProductType; Rec."Product Type")
                 {
@@ -450,6 +450,20 @@ page 30126 "Shpfy Products"
                             BackgroundSyncs.InventorySync(CopyStr(Rec.GetFilter("Shop Code"), 1, MaxStrLen(Rec."Shop Code")));
                     end;
                 }
+            }
+            action(ProvideFeedback)
+            {
+                ApplicationArea = All;
+                Caption = 'Provide Feedback';
+                ToolTip = 'Provide feedback on Shopify Connector.';
+                Image = Comment;
+
+                trigger OnAction()
+                var
+                    ShopMgt: Codeunit "Shpfy Shop Mgt.";
+                begin
+                    ShopMgt.RequestFeedback();
+                end;
             }
         }
     }

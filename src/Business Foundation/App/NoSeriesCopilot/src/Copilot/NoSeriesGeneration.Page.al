@@ -198,24 +198,24 @@ page 332 "No. Series Generation"
 
     local procedure GenerateNoSeries()
     var
-        GeneratedNoSeries: Record "No. Series Generation Detail";
+        TempGeneratedNoSeries: Record "No. Series Generation Detail";
         NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
     begin
         NoSeriesCopilotTelemetry.StartDurationTracking();
-        NoSeriesCopilotImpl.Generate(Rec, GeneratedNoSeries, InputText);
+        NoSeriesCopilotImpl.Generate(Rec, TempGeneratedNoSeries, InputText);
         NoSeriesCopilotTelemetry.StopDurationTracking();
-        NoSeriesCopilotTelemetry.SaveTotalSuggestedLines(GeneratedNoSeries.Count());
-        CurrPage.GenerationDetails.Page.Load(GeneratedNoSeries);
-        IsGenerationDetailsVisible := not GeneratedNoSeries.IsEmpty;
+        NoSeriesCopilotTelemetry.SaveTotalSuggestedLines(TempGeneratedNoSeries.Count());
+        CurrPage.GenerationDetails.Page.Load(TempGeneratedNoSeries);
+        IsGenerationDetailsVisible := not TempGeneratedNoSeries.IsEmpty;
     end;
 
     local procedure ApplyGeneratedNoSeries()
     var
-        GeneratedNoSeries: Record "No. Series Generation Detail";
+        TempGeneratedNoSeries: Record "No. Series Generation Detail";
         NoSeriesCopilotImpl: Codeunit "No. Series Copilot Impl.";
     begin
-        CurrPage.GenerationDetails.Page.GetTempRecord(Rec."No.", GeneratedNoSeries);
-        NoSeriesCopilotImpl.ApplyGeneratedNoSeries(GeneratedNoSeries);
-        NoSeriesCopilotTelemetry.LogApply(GeneratedNoSeries);
+        CurrPage.GenerationDetails.Page.GetTempRecord(Rec."No.", TempGeneratedNoSeries);
+        NoSeriesCopilotImpl.ApplyGeneratedNoSeries(TempGeneratedNoSeries);
+        NoSeriesCopilotTelemetry.LogApply(TempGeneratedNoSeries);
     end;
 }

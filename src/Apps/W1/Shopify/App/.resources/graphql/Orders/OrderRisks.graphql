@@ -1,0 +1,2 @@
+# cost: 5
+{"query": "{order(id: \"gid://shopify/Order/{{OrderId}}\") {risk { assessments { facts { description sentiment } provider { title } riskLevel }}}}"}

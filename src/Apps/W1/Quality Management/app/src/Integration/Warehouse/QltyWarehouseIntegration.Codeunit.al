@@ -17,6 +17,12 @@ using Microsoft.Warehouse.Ledger;
 
 codeunit 20438 "Qlty. Warehouse Integration"
 {
+    Permissions =
+        tabledata "Qlty. Management Setup" = r,
+        tabledata "Qlty. Inspection Gen. Rule" = r,
+        tabledata "Qlty. Inspection Header" = r;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Management Setup", 'R', InherentPermissionsScope::Permissions)]
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse. Jnl.-Register Line", 'OnAfterInsertWhseEntry', '', true, true)]
     local procedure HandleOnAfterInsertWhseEntry(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line")
     var
@@ -29,10 +35,18 @@ codeunit 20438 "Qlty. Warehouse Integration"
         if not QltyManagementSetup.GetSetupRecord() then
             exit;
 
+        if not HasWhseMovementRegisterGenRule(QltyInspectionGenRule) then
+            exit;
+
+        AttemptCreateInspectionWithWhseJournalLine(WarehouseEntry, WarehouseJournalLine, QltyInspectionGenRule);
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Qlty. Inspection Gen. Rule", 'R', InherentPermissionsScope::Permissions)]
+    local procedure HasWhseMovementRegisterGenRule(var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule"): Boolean
+    begin
         QltyInspectionGenRule.SetRange("Warehouse Movement Trigger", QltyInspectionGenRule."Warehouse Movement Trigger"::OnWhseMovementRegister);
         QltyInspectionGenRule.SetFilter("Activation Trigger", '%1|%2', QltyInspectionGenRule."Activation Trigger"::"Manual or Automatic", QltyInspectionGenRule."Activation Trigger"::"Automatic only");
-        if not QltyInspectionGenRule.IsEmpty() then
-            AttemptCreateInspectionWithWhseJournalLine(WarehouseEntry, WarehouseJournalLine, QltyInspectionGenRule);
+        exit(not QltyInspectionGenRule.IsEmpty());
     end;
 
     local procedure AttemptCreateInspectionWithWhseJournalLine(var WarehouseEntry: Record "Warehouse Entry"; var WarehouseJournalLine: Record "Warehouse Journal Line"; var QltyInspectionGenRule: Record "Qlty. Inspection Gen. Rule")
@@ -40,6 +54,7 @@ codeunit 20438 "Qlty. Warehouse Integration"
         QltyInspectionHeader: Record "Qlty. Inspection Header";
         TempTrackingSpecification: Record "Tracking Specification" temporary;
         QltyInspectionCreate: Codeunit "Qlty. Inspection - Create";
+        QltyBatchNotifHelper: Codeunit "Qlty. Batch Notif. Helper";
         DoNotSendSourceVariant: Variant;
         IsHandled: Boolean;
         HasInspection: Boolean;
@@ -60,19 +75,25 @@ codeunit 20438 "Qlty. Warehouse Integration"
         if GetOptionalSourceVariantForWarehouseJournalLine(WarehouseJournalLine, DoNotSendSourceVariant) then
             CollectSourceItemTracking(DoNotSendSourceVariant, TempTrackingSpecification);
 
+        QltyBatchNotifHelper.BeginBatch();
+        QltyBatchNotifHelper.ConfigureForBatch(QltyInspectionCreate);
         TempTrackingSpecification.Reset();
         if TempTrackingSpecification.FindSet() then
             repeat
+                Clear(QltyInspectionHeader);
                 if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseEntry, WarehouseJournalLine, TempTrackingSpecification, DummyVariant, false, QltyInspectionGenRule) then begin
                     HasInspection := true;
                     QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                    QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
                 end;
             until TempTrackingSpecification.Next() = 0
         else
             if QltyInspectionCreate.CreateInspectionWithMultiVariants(WarehouseEntry, WarehouseJournalLine, DummyVariant, DummyVariant, false, QltyInspectionGenRule) then begin
                 HasInspection := true;
                 QltyInspectionCreate.GetCreatedInspection(QltyInspectionHeader);
+                QltyBatchNotifHelper.TrackCreatedInspection(QltyInspectionHeader."No.", QltyInspectionCreate.IsLastInspectionNewlyCreated());
             end;
+        QltyBatchNotifHelper.EndBatch();
 
         OnAfterWarehouseAttemptCreateInspectionWithWhseJournalLine(HasInspection, QltyInspectionHeader, WarehouseEntry, WarehouseJournalLine, DoNotSendSourceVariant);
     end;

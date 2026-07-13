@@ -60,6 +60,17 @@ calculated `Unit Price`, `Line Amount`, and `Unit Cost`. If ComparePrice is less
 than or equal to Price after calculation, ComparePrice is zeroed out. Events fire
 before and after to allow overrides.
 
+Before any price calculation, `CalcPrice` validates the unit of measure via
+`IsValidUoM`. This checks that the UoM code exists in the `Unit of Measure`
+table and is a valid `Item Unit of Measure` for the given item. If validation
+fails, the entire price sync for that item/variant/UoM combination is skipped
+and a `Shpfy Skipped Record` entry is logged with a descriptive message
+("Item price is not synchronized because the unit of measure %1 is not valid for
+item %2"). This prevents errors when an item's Sales Unit of Measure has been
+deleted or is otherwise misconfigured.
+
+*Updated: 2026-04-08 -- CalcPrice now validates UoM before calculating and skips invalid combinations (PR #7498)*
+
 ### Image sync
 
 `ShpfySyncProductImage` supports both directions. Export iterates products,

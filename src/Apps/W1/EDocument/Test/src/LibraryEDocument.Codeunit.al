@@ -69,6 +69,8 @@ codeunit 139629 "Library - E-Document"
         CountryRegion: Record "Country/Region";
         DocumentSendingProfile: Record "Document Sending Profile";
         SalesSetup: Record "Sales & Receivables Setup";
+        Contact: Record Contact;
+        ContactBusinessRelation: Record "Contact Business Relation";
         WorkflowSetup: Codeunit "Workflow Setup";
         WorkflowCode: Code[20];
     begin
@@ -92,8 +94,21 @@ codeunit 139629 "Library - E-Document"
         Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
         Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo(CountryRegion.Code);
         Customer.Validate(GLN, '1234567890128');
+        Customer.Validate("E-Mail", 'edoc-test@contoso.com');
         Customer."Document Sending Profile" := DocumentSendingProfile.Code;
         Customer.Modify(true);
+
+        // Set the same e-mail on the customer's contact. Validating the sell-to customer on a sales
+        // document copies the customer e-mail to "Sell-to E-Mail"; if the linked contact has no
+        // e-mail (e.g. via the OIOUBL "Sell-to Customer No." validation on NAV_DK) base app raises
+        // the "contact has no e-mail address" confirm, which fails these tests as Unhandled UI.
+        ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Customer);
+        ContactBusinessRelation.SetRange("No.", Customer."No.");
+        if ContactBusinessRelation.FindFirst() then
+            if Contact.Get(ContactBusinessRelation."Contact No.") then begin
+                Contact."E-Mail" := 'edoc-test@contoso.com';
+                Contact.Modify();
+            end;
 
         // Create Item
         if StandardItem."No." = '' then begin
@@ -289,14 +304,14 @@ codeunit 139629 "Library - E-Document"
         exit(EDocumentPurchaseLine);
     end;
 
-    procedure CreateInboundPEPPOLDocumentToState(var EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; FileName: Text; EDocImportParams: Record "E-Doc. Import Parameters"): Boolean
+    procedure CreateInboundPEPPOLDocumentToState(var EDocument: Record "E-Document"; EDocumentService: Record "E-Document Service"; FileName: Text; TempEDocImportParams: Record "E-Doc. Import Parameters"): Boolean
     var
         EDocImport: Codeunit "E-Doc. Import";
         InStream: InStream;
     begin
         NavApp.GetResource(FileName, InStream, TextEncoding::UTF8);
         EDocImport.CreateFromType(EDocument, EDocumentService, Enum::"E-Doc. File Format"::XML, 'TestFile', InStream);
-        exit(EDocImport.ProcessIncomingEDocument(EDocument, EDocImportParams));
+        exit(EDocImport.ProcessIncomingEDocument(EDocument, TempEDocImportParams));
     end;
 
     /// <summary>
