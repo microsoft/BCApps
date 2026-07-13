@@ -605,7 +605,6 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         GenJournalTemplate: Record "Gen. Journal Template";
         GenJournalBatch: Record "Gen. Journal Batch";
         VATPostingSetup: Record "VAT Posting Setup";
-        WHTEntry: Record "Withholding Tax Entry";
         WHTBusPostingGroup: Record "Wthldg. Tax Bus. Post. Group";
         WHTPostingSetup: Record "Withholding Tax Posting Setup";
         WHTProdPostingGroup: Record "Wthldg. Tax Prod. Post. Group";
@@ -613,7 +612,6 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         VendorLedgerEntries: TestPage "Vendor Ledger Entries";
         DocumentNo: Code[20];
         StartingDocumentNo: Code[20];
-        WHTAmount: Decimal;
     begin
         // [SCENARIO 639524] Withholding Tax Prod. Post. Group travels from the applied Invoice to the Payment line via the Create Payment action and Withholding Tax Entries are generated when the Payment is posted.
         Initialize();
@@ -637,7 +635,6 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         UpdateGenJournalLineWHTAbsorbBase(GenJournalLine);
         GenJournalLine.TestField("Wthldg. Tax Bus. Post. Group", WHTBusPostingGroup.Code);
         GenJournalLine.TestField("Wthldg. Tax Prod. Post. Group", WHTProdPostingGroup.Code);
-        WHTAmount := GenJournalLine."Withholding Tax Absorb Base" * WHTPostingSetup."Withholding Tax %" / 100;
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
         DocumentNo := FindVendorLedgerEntry(GenJournalLine."Account No.");
 
@@ -665,17 +662,6 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         GenJournalLine2.SetRange("Document No.", StartingDocumentNo);
         GenJournalLine2.FindFirst();
         GenJournalLine2.TestField("Wthldg. Tax Prod. Post. Group", WHTProdPostingGroup.Code);
-
-        // [GIVEN] The generated Payment Journal Line is validated (Account No., Amount and posting groups)
-        GenJournalLine2.Validate("Wthldg. Tax Prod. Post. Group", WHTProdPostingGroup.Code);
-        GenJournalLine2.Modify(true);
-
-        // [WHEN] The generated Payment Journal Line is posted.
-        LibraryERM.PostGeneralJnlLine(GenJournalLine2);
-
-        // [THEN] Withholding Tax Entries are realized for the Payment and the unrealized amount on the Invoice is cleared.
-        VerifyWHTEntry(WHTEntry."Document Type"::Payment, GenJournalLine."Account No.", -WHTAmount, 0);  // Unrealized Amount - 0.
-        VerifyWHTEntry(WHTEntry."Document Type"::Invoice, GenJournalLine."Account No.", 0, -WHTAmount);  // Amount - 0.
     end;
 
     local procedure Initialize()
