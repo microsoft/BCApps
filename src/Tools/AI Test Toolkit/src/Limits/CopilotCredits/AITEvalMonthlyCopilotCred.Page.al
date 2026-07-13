@@ -285,7 +285,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         AgentSystemPermissions: Codeunit "Agent System Permissions";
     begin
         CurrentUserIsAgentAdminForCurrentCompany := AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission();
-        CurrentUserIsAgentAdminForAllCompanies := AgentSystemPermissions.CurrentUserHasCanManageAllAgentsInAllCompaniesPermission()
+        CurrentUserIsAgentAdminForAllCompanies := AgentSystemPermissions.CurrentUserHasCanManageAllAgentsInAllCompaniesPermission();
     end;
 
     local procedure LoadCreditLimitSetup()
@@ -338,6 +338,7 @@ page 149048 "AIT Eval Monthly Copilot Cred."
         Rec.Reset();
         Rec.DeleteAll();
         EnvironmentLoadedDataCopilotCreditsConsumed := 0;
+        CompanyLoadedDataCopilotCreditsConsumed := 0;
         PeriodStartDate := EnvironmentLimitRecord.GetPeriodStartDate();
 
         // Load all agent test suites and their credit consumption for the current period into the buffer.

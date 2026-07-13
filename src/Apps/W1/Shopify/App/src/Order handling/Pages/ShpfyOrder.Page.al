@@ -185,7 +185,7 @@ page 30113 "Shpfy Order"
                     ApplicationArea = All;
                     Editable = false;
                     Importance = Additional;
-                    ToolTip = 'Specifies the date and time when the order was last modified.';
+                    ToolTip = 'Specifies the date and time when the order was last modified in Shopify.';
                 }
                 field(CancelledAt; Rec."Cancelled At")
                 {
@@ -1122,7 +1122,6 @@ page 30113 "Shpfy Order"
         OrderCancelFailedErr: Label 'Specifies the order could not be cancelled. You can see the error message from Shopify Log Entries.';
         LogEntriesLbl: Label 'Log Entries';
         WorkDescription: Text;
-        TotalAmount, SubtotalAmount : Decimal;
         PresentmentVisible: Boolean;
 
     trigger OnAfterGetRecord()

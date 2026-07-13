@@ -139,6 +139,47 @@ codeunit 139964 "Qlty. Tests - Misc."
     end;
 
     [Test]
+    [HandlerFunctions('SampleSizeCappedMessageHandler')]
+    procedure SampleSizeCalculationDoesNotOverflowForLargeSourceQuantity()
+    var
+        SampleSize: Integer;
+    begin
+        // [SCENARIO] Calculating the sample size from a percentage of a very large source quantity does not overflow the Integer "Sample Size" field.
+
+        Initialize();
+
+        // [GIVEN] A template using "Percent of Quantity" at 100% and an inspection whose source quantity exceeds the maximum Integer value
+        // [WHEN] The sample size is recalculated from the source quantity
+        SampleSize := QltyInspectionUtility.CalculateSampleSizeUsingPercentSource(100, 3000000000.0);
+
+        // [THEN] The sample size is clamped to the maximum Integer value instead of raising an overflow error
+        LibraryAssert.AreEqual(2147483647, SampleSize, 'Sample size should be clamped to the maximum integer value to avoid overflow.');
+    end;
+
+    [Test]
+    procedure SampleSizeCalculationSupportsIntegerMaxBoundary()
+    var
+        SampleSize: Integer;
+    begin
+        // [SCENARIO] Calculating sample size at the Integer maximum boundary returns a valid value without overflow.
+
+        Initialize();
+
+        // [GIVEN] A template using "Percent of Quantity" at 100% and a source quantity at Integer maximum.
+        // [WHEN] The sample size is recalculated from the source quantity.
+        SampleSize := QltyInspectionUtility.CalculateSampleSizeUsingPercentSource(100, 2147483647.0);
+
+        // [THEN] The sample size is exactly Integer maximum.
+        LibraryAssert.AreEqual(2147483647, SampleSize, 'Sample size should remain at Integer maximum at the exact boundary.');
+    end;
+
+    [MessageHandler]
+    procedure SampleSizeCappedMessageHandler(Message: Text[1024])
+    begin
+        // [THEN] A message informs the user that the calculated sample size was reduced
+    end;
+
+    [Test]
     procedure GetArbitraryMaximumRecursion()
     begin
         // [SCENARIO] Verify the maximum recursion depth limit
@@ -2332,6 +2373,9 @@ codeunit 139964 "Qlty. Tests - Misc."
         QltyInspectionHeader.Get(QltyInspectionHeader."No.", QltyInspectionHeader."Re-inspection No.");
         Commit();
 
+        // [GIVEN] Sleep to ensure modified timestamp is different
+        Sleep(1001);
+
         // [GIVEN] Quality Management setup with "Only the most recently modified finished inspection" inspection selection criteria
         QltyManagementSetup.Get();
 
@@ -2441,6 +2485,8 @@ codeunit 139964 "Qlty. Tests - Misc."
         ReQltyInspectionHeader.Status := QltyInspectionHeader.Status::Finished;
         ReQltyInspectionHeader.Modify();
         Commit();
+
+        // [GIVEN] Sleep to ensure modified timestamp is different
         Sleep(1001);
 
         // [GIVEN] Quality Management setup with "Only the newest inspection/re-inspection" inspection selection criteria

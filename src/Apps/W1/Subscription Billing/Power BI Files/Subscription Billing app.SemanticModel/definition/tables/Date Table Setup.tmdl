@@ -1,0 +1,374 @@
+table 'Date Table Setup'
+	isHidden
+	lineageTag: d7025a2b-e909-4d09-8e46-3ac17f8ea354
+
+	measure 'Last Refresh Label' = ```
+			
+			VAR LastRefreshLabel = [Last Refreshed Label] & ": "
+			VAR LastRefreshDate =
+			    FORMAT ( VALUES ( 'Date Table Setup'[Today] ), BLANK (), USERCULTURE () )
+			VAR LastRefreshTime =
+			    FORMAT (
+			        VALUES ( 'Date Table Setup'[Last Refresh Time] ),
+			        "hh:nn AMPM",
+			        USERCULTURE ()
+			    )
+			VAR CompanyName = [Company Name Label] & ": "
+			VAR AnalysisEntriesAsOfDate =
+			    FORMAT (
+			        LOOKUPVALUE (
+			            'Analysis Date'[Analysis Date],
+			            'Analysis Date'[is current Version], TRUE ()
+			        ),
+			        BLANK (),
+			        USERCULTURE ()
+			    )
+			RETURN
+			    CompanyName & [Company Label] & " - " & LastRefreshLabel & LastRefreshDate & " " & LastRefreshTime & " - " & [Analysis Entries as of Label] & ": " & AnalysisEntriesAsOfDate
+			
+			```
+		isHidden
+		lineageTag: c652d99c-caec-428b-bfc1-56978a7d1ac9
+
+		changedProperty = IsHidden
+
+	column 'First Day of Week'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: f67dc51b-1f06-4ee1-a723-9d99b4c0e166
+		summarizeBy: sum
+		sourceColumn: First Day of Week
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column Today
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: cc070ecf-9186-4f88-a22e-d07f52fb5717
+		summarizeBy: none
+		sourceColumn: Today
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column fiscalCalendarFirstMonth
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 33a00901-69f8-4c81-bfee-2eb0b7d00de1
+		summarizeBy: sum
+		sourceColumn: fiscalCalendarFirstMonth
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column firstDayOfWeek
+		dataType: string
+		isHidden
+		lineageTag: 4446c3e9-c3eb-4b2d-aa91-13436eb1d80b
+		summarizeBy: none
+		sourceColumn: firstDayOfWeek
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column isoCountryHolidays
+		dataType: string
+		isHidden
+		lineageTag: 12d102fb-ff3c-41d8-bf79-2e8a6072f91b
+		summarizeBy: none
+		sourceColumn: isoCountryHolidays
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column weeklyType
+		dataType: string
+		isHidden
+		lineageTag: bd977b0c-78cf-4b12-8732-5014f60668d6
+		summarizeBy: none
+		sourceColumn: weeklyType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column quarterWeekType
+		dataType: string
+		isHidden
+		lineageTag: 82446bf0-c58e-45ef-9039-55dd55444ee3
+		summarizeBy: none
+		sourceColumn: quarterWeekType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendarRange
+		dataType: string
+		isHidden
+		lineageTag: 3a8f008a-31df-46d4-bb66-f669ed747388
+		summarizeBy: none
+		sourceColumn: calendarRange
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendarPrefix
+		dataType: string
+		isHidden
+		lineageTag: c8fa610e-ec84-4579-964b-dce877909c68
+		summarizeBy: none
+		sourceColumn: calendarPrefix
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column fiscalGregorianPrefix
+		dataType: string
+		isHidden
+		lineageTag: eb3c4fef-3b31-43b7-80ba-3fc4e30d7c8b
+		summarizeBy: none
+		sourceColumn: fiscalGregorianPrefix
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column fiscalWeeklyPrefix
+		dataType: string
+		isHidden
+		lineageTag: b157d4d2-fc5a-4f5f-99d3-f68dd0085da4
+		summarizeBy: none
+		sourceColumn: fiscalWeeklyPrefix
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column useCustomFisclPeriods
+		dataType: boolean
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 245fa790-9499-4f92-abc4-0586f1e646bb
+		summarizeBy: none
+		sourceColumn: useCustomFisclPeriods
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column ignoreWeeklyPeriods
+		dataType: boolean
+		isHidden
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 3a764081-088c-492b-ae2e-607eb4eb1270
+		summarizeBy: none
+		sourceColumn: ignoreWeeklyPeriods
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column dateTblStart
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 52f280fc-0fcb-4305-b47f-9546da22f7b2
+		summarizeBy: none
+		sourceColumn: dateTblStart
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column dateTblEnd
+		dataType: dateTime
+		isHidden
+		formatString: Short Date
+		lineageTag: 2b872858-d31a-4588-96fb-ebb5593bb154
+		summarizeBy: none
+		sourceColumn: dateTblEnd
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column timeZone
+		dataType: string
+		isHidden
+		lineageTag: 1a8776d9-01e6-4653-b059-459ac905de4b
+		summarizeBy: none
+		sourceColumn: timeZone
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column timeZoneDisplayName
+		dataType: string
+		isHidden
+		lineageTag: a4cd51c2-0616-44ee-9888-57332071535e
+		summarizeBy: none
+		sourceColumn: timeZoneDisplayName
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column id
+		dataType: string
+		isHidden
+		lineageTag: 9da54e27-b18f-4012-b4d2-9807ee8d261d
+		summarizeBy: none
+		sourceColumn: id
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Last Refresh Time'
+		dataType: dateTime
+		isHidden
+		formatString: Long Time
+		lineageTag: a12e2d62-cfe3-4cf5-9675-ef5be6a85c8d
+		summarizeBy: none
+		sourceColumn: Last Refresh Time
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Time
+
+	column entryNo
+		dataType: string
+		isHidden
+		lineageTag: ba10457d-1371-4678-aca5-857eaf80e03c
+		summarizeBy: none
+		sourceColumn: entryNo
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Max Date with Actuals' =
+			
+			max(max(max('Subscription'[Analysis Date]),max('Customer Contract Deferrals'[Posting Date])),max('Vendor Contract Deferrals'[Posting Date]))
+		isHidden
+		formatString: Short Date
+		lineageTag: 22c86a03-f247-4187-81cf-d1a4b285f078
+		summarizeBy: none
+
+		changedProperty = DataType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column tenantID
+		dataType: string
+		lineageTag: 97dc332c-e49c-41e6-9900-c0e3fca7e493
+		summarizeBy: none
+		sourceColumn: tenantID
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Date Table Setup-212423f6-d641-4afd-8cf7-9cfd267b40dc' = m
+		mode: import
+		queryGroup: 'Date Table'
+		source =
+				let
+				    Source = Dynamics365BusinessCentral.ApiContentsWithOptions(ENVIRONMENT, COMPANY, API_ENDPOINT, []),
+				    TableData = Source{[Name = "dateSetups", Signature = "table"]}[Data],
+				    #"Check TenantID" = if Table.HasColumns(TableData, "tenantID") then TableData else Table.AddColumn(TableData, "tenantID", each null, type text),
+				    #"Convert UTC to Local" = ConvertUTC(#"Check TenantID"),
+				    #"Removed Columns" = Table.RemoveColumns(#"Convert UTC to Local", {"ETag"}),
+				    #"Added Conditional Column" = Table.AddColumn(
+				        #"Removed Columns",
+				        "First Day of Week",
+				        each
+				            if [firstDayOfWeek] = "Sunday" then
+				                0
+				            else if [firstDayOfWeek] = "Monday" then
+				                1
+				            else if [firstDayOfWeek] = "Tuesday" then
+				                2
+				            else if [firstDayOfWeek] = "Wednesday" then
+				                3
+				            else if [firstDayOfWeek] = "Thursday" then
+				                4
+				            else if [firstDayOfWeek] = "Friday" then
+				                5
+				            else if [firstDayOfWeek] = "Saturday" then
+				                6
+				            else
+				                1
+				    ),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Added Conditional Column", {{"First Day of Week", Int64.Type}}),
+				    #"Replaced Value" = Table.ReplaceValue(
+				        #"Changed Type",
+				        each [calendarRange],
+				        each
+				            if [calendarRange] = "Weekly" then
+				                "FiscalWeekly"
+				            else if [calendarRange] = "Fiscal Calendar" then
+				                "FiscalGregorian"
+				            else
+				                "Calendar",
+				        Replacer.ReplaceText,
+				        {"calendarRange"}
+				    ),
+				    #"Replaced Value1" = Table.ReplaceValue(
+				        #"Replaced Value", "", "F", Replacer.ReplaceValue, {"fiscalGregorianPrefix"}
+				    ),
+				    #"Replaced Value2" = Table.ReplaceValue(
+				        #"Replaced Value1", "", "FW", Replacer.ReplaceValue, {"fiscalWeeklyPrefix"}
+				    ),
+				    #"Changed Type3" = Table.TransformColumnTypes(
+				        #"Replaced Value2",
+				        {
+				            {"fiscalCalendarFirstMonth", Int64.Type},
+				            {"firstDayOfWeek", type text},
+				            {"isoCountryHolidays", type text},
+				            {"weeklyType", type text},
+				            {"quarterWeekType", type text},
+				            {"calendarRange", type text},
+				            {"calendarPrefix", type text},
+				            {"fiscalGregorianPrefix", type text},
+				            {"fiscalWeeklyPrefix", type text},
+				            {"useCustomFisclPeriods", type logical},
+				            {"ignoreWeeklyPeriods", type logical},
+				            {"timeZone", type text},
+				            {"timeZoneDisplayName", type text},
+				            {"dateTblStart", type date},
+				            {"dateTblEnd", type date}
+				        }
+				    )
+				in
+				    #"Changed Type3"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

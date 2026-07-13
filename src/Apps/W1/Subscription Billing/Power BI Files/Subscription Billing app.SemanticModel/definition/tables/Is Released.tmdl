@@ -1,0 +1,47 @@
+table 'Is Released'
+	lineageTag: 9728ed60-2d3f-45b2-bab6-f867ea81d7be
+
+	column 'Is Released'
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 2cf27524-b651-4999-9baf-680253f8b776
+		summarizeBy: none
+		sourceColumn: Is Released
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Released Key'
+		dataType: boolean
+		isHidden
+		isKey
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 299cc887-964a-47bc-96c1-6924ab1af0f2
+		summarizeBy: none
+		sourceColumn: Is Released Key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Is Released Value'
+		dataType: string
+		lineageTag: 924163c9-a51f-430e-89bf-b9cf3920703b
+		summarizeBy: none
+		sourceColumn: Is Released Value
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Is Released' = m
+		mode: import
+		queryGroup: 'Dimension Tables'
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i45WKikqTVXSUQqBUIZKsTrRSmmJOcUgHow2UIqNBQA=", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [#"Is Released" = _t, #"Is Released Key" = _t, #"Is Released Value" = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Is Released", type logical}, {"Is Released Key", type logical}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

@@ -10,6 +10,7 @@ query 36997 "Purch. Lines - Job Received"
 {
     Access = Internal;
     QueryType = API;
+    AboutText = 'Provides access to purchase order lines linked to projects that have been received but not yet invoiced. Enables Power BI reports to analyze project accruals, pending invoices, and goods-received-not-invoiced values by project and task.';
     Caption = 'Power BI Received Not Invoiced PO Line';
     APIPublisher = 'microsoft';
     APIGroup = 'analytics';

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v9.0/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v9.1/.Modules/settings.schema.json",
   "projectName": "System Application Modules",
   "appFolders": [
     "../../../src/System Application/App/*",
@@ -11,7 +11,19 @@
     "../../../src/Business Foundation/Test/*",
     "../../../src/Business Foundation/Test Library/*"
   ],
-  "useCompilerFolder": true,
   "doNotPublishApps": true,
-  "rulesetFile": "../../../src/rulesets/internal.module.ruleset.json"
+  "rulesetFile": "../../../src/rulesets/internal.module.ruleset.json",
+  "ConditionalSettings": [
+    {
+      "branches": [
+        "main",
+        "releases/*.x"
+      ],
+      "settings": {
+        "buildModes": [
+          "Clean"
+        ]
+      }
+    }
+  ]
 }

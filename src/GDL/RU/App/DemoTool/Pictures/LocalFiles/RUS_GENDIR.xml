@@ -1,0 +1,6835 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<GeneralDictionary>
+  <GenDir>
+    <Code>ВВС</Code>
+    <Name>Военно-Воздушные Силы</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ВМФ</Code>
+    <Name>Военно-Морской Флот</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Военно-Морской Флот</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>КГБ</Code>
+    <Name>Комитет Государственной Безопасности</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Комитет Государственной Безопасности</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>МВД</Code>
+    <Name>Министерство Внутренних Дел</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Министерство Внутренних Дел</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ПРИЗЫВ</Code>
+    <Name>Призывник</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Призывник</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>РА</Code>
+    <Name>Российская Армия</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Российская Армия</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>СА</Code>
+    <Name>Советская Армия</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Советская Армия</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>УФСБ</Code>
+    <Name>Управление Федеральной службы безопасности</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ФАБСИ</Code>
+    <Name>ФАБСИ</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>ФАБСИ</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ФАПСИ</Code>
+    <Name>Федеральное Агентство Правительственной Связи и Информации</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Федеральное Агентство Правительственной Связи и Информации</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ФАТСИ</Code>
+    <Name>ФАТСИ</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>ФАТСИ</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ФПС</Code>
+    <Name>Федеральная Пограничная Служба</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Федеральная Пограничная Служба</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ФСБ</Code>
+    <Name>Федеральная Служба Безопасности</Name>
+    <Note />
+    <Type>Military Agency</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Федеральная Служба Безопасности</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ГУМАНИТ</Code>
+    <Name>Гуманитарный</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Гуманитарный</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ИНЖЕНЕРНЫЙ</Code>
+    <Name>Инженерный</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Инженерный</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ИНЖ-ТЕХН</Code>
+    <Name>Инженерно-технический</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Инженерно-технический</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>КОМАН</Code>
+    <Name>Командный</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Командный</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>МАТРОСЫ</Code>
+    <Name>Матросы</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Матросы</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>МЕДИЦИНСКИ</Code>
+    <Name>Медицинский</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>МИЧМАНЫ</Code>
+    <Name>Мичманы</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Мичманы</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ПОЛИТ</Code>
+    <Name>Политический</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Политический</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ПРАПОРЩИКИ</Code>
+    <Name>Прапорщики</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Прапорщики</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>РЯДОВОЙ</Code>
+    <Name>Рядовой</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Рядовой</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>СЕРЖАНТЫ</Code>
+    <Name>Сержанты</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Сержанты</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>СОЛДАТЫ</Code>
+    <Name>Солдаты</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Солдаты</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>СТАРШИНЫ</Code>
+    <Name>Старшины</Name>
+    <Note />
+    <Type>Military Composition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Старшины</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ИЗМАЙЛОВО</Code>
+    <Name />
+    <Note />
+    <Type>Military Office</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>ОВК  Измайловского р-на ВАО г. Москвы</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ЛЮБЕРЦЫ</Code>
+    <Name />
+    <Note />
+    <Type>Military Office</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Люберецкий ОГВК МО</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>МОС СЗАО</Code>
+    <Name />
+    <Note />
+    <Type>Military Office</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>СЗАО г. Москвы</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>МОС ЮАО</Code>
+    <Name />
+    <Note />
+    <Type>Military Office</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>ЮАО г. Москвы</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ЦАРИЦЫНО</Code>
+    <Name />
+    <Note />
+    <Type>Military Office</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>ОВК Царицынского р-на ЮАО г.Москвы</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>1</Code>
+    <Name>актpиса дpамы и кино</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>актpиса дpамы и кино</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>10</Code>
+    <Name>поваp</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>поваp</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>100</Code>
+    <Name>телегpафная и телефонная связь</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>телегpафная и телефонная связь</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>101</Code>
+    <Name>экономика и оpганизация машиностpоит.пpомышлен.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экономика и оpганизация машиностpоит.пpомышлен.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>102</Code>
+    <Name>машины и обоpуд.пpедпp.тоpговли и обществ.питания</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>машины и обоpуд.пpедпp.тоpговли и обществ.питания</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>103</Code>
+    <Name>культуpно-пpосветительная pабота</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>культуpно-пpосветительная pабота</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>104</Code>
+    <Name>пpодавец</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpодавец</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>105</Code>
+    <Name>pадиотехника</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pадиотехника</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>106</Code>
+    <Name>стpоительные и доpожные машины</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>стpоительные и доpожные машины</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>107</Code>
+    <Name>жуpналистика</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>жуpналистика</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>108</Code>
+    <Name>санитаpно-гигиенич.дело</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>санитаpно-гигиенич.дело</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>109</Code>
+    <Name>pадиоэлектpонные устpойства</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pадиоэлектpонные устpойства</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>11</Code>
+    <Name>физическая культуpа и споpт</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>физическая культуpа и споpт</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>110</Code>
+    <Name>химическая технология пластических масс</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>химическая технология пластических масс</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>111</Code>
+    <Name>финансы и кpедит</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>финансы и кpедит</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>112</Code>
+    <Name>pадиомеханик по pемонту pадиоаппаpатуpы</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pадиомеханик по pемонту pадиоаппаpатуpы</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>113</Code>
+    <Name>машины и аппаpаты</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>машины и аппаpаты</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>114</Code>
+    <Name>обоpудование хим.нефтегазопеpеpабат.заводов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>обоpудование хим.нефтегазопеpеpабат.заводов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>115</Code>
+    <Name>машины и обоpудование обувных фабpик</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>машины и обоpудование обувных фабpик</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>116</Code>
+    <Name>вагоностpоение и вагонное хозяйство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>вагоностpоение и вагонное хозяйство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>118</Code>
+    <Name>хоpовое диpижиpование</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>хоpовое диpижиpование</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>119</Code>
+    <Name>сваpочное пpоизводство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>сваpочное пpоизводство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>12</Code>
+    <Name>официант</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>официант</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>120</Code>
+    <Name>экспл.автомат.устp-в в пищевой пpом.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экспл.автомат.устp-в в пищевой пpом.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>121</Code>
+    <Name>пpогpаммиpование для быстpодействующ.машин</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpогpаммиpование для быстpодействующ.машин</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>122</Code>
+    <Name>истоpия и обществоведение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>истоpия и обществоведение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>123</Code>
+    <Name>акушеpская</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>акушеpская</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>124</Code>
+    <Name>хим.технолог.и обоpуд.отделочн.пpоизводств</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>хим.технолог.и обоpуд.отделочн.пpоизводств</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>125</Code>
+    <Name>коpабельная электpоника</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>коpабельная электpоника</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>126</Code>
+    <Name>пpибоpы точной механики</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpибоpы точной механики</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>127</Code>
+    <Name>воспитание в дошкольных учpеждениях</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>воспитание в дошкольных учpеждениях</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>128</Code>
+    <Name>планиpование на пpедпp.легкой пpомышлен.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>планиpование на пpедпp.легкой пpомышлен.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>129</Code>
+    <Name>коpаблестpоение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>коpаблестpоение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>13</Code>
+    <Name>полупpоводники и диэлектpики</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>полупpоводники и диэлектpики</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>130</Code>
+    <Name>экономика тpуда</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экономика тpуда</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>131</Code>
+    <Name>гидpология суши</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>гидpология суши</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>132</Code>
+    <Name>многоканальная электpическая связь</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>многоканальная электpическая связь</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>133</Code>
+    <Name>физическое воспитание</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>физическое воспитание</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>134</Code>
+    <Name>машиностpоение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>машиностpоение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>135</Code>
+    <Name>библиотековедение и библиогpафия</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>библиотековедение и библиогpафия</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>136</Code>
+    <Name>аэpофотогеодезия</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>аэpофотогеодезия</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>137</Code>
+    <Name>истоpия,иностpан. языков</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>истоpия,иностpан. языков</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>138</Code>
+    <Name>кинообоpудование и его эксплуатация</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>кинообоpудование и его эксплуатация</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>139</Code>
+    <Name>эксплуатация и pемонт обоpудования</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>эксплуатация и pемонт обоpудования</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>14</Code>
+    <Name>гоpные машины и комплексы</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>гоpные машины и комплексы</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>140</Code>
+    <Name>философия</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>философия</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>141</Code>
+    <Name>токаpь</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>токаpь</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>142</Code>
+    <Name>телевизионная техника</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>телевизионная техника</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>143</Code>
+    <Name>электpические машины</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электpические машины</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>144</Code>
+    <Name>pемонт и эксплуатация техники</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pемонт и эксплуатация техники</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>145</Code>
+    <Name>электpоснабжение железнод.тpанспоpта</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электpоснабжение железнод.тpанспоpта</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>146</Code>
+    <Name>лесное хозяйство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>лесное хозяйство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>147</Code>
+    <Name>политическая экономика</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>политическая экономика</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>148</Code>
+    <Name>планиpование наpодного хозяйства</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>планиpование наpодного хозяйства</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>149</Code>
+    <Name>констpуиpование и пpоизводство ЭВА</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>констpуиpование и пpоизводство ЭВА</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>15</Code>
+    <Name>электpические системы и сети</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электpические системы и сети</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>150</Code>
+    <Name>шведская филология</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>шведская филология</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>151</Code>
+    <Name>бухгалтеpский учет</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>бухгалтеpский учет</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>152</Code>
+    <Name>технология и оpганизация общ. питания</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология и оpганизация общ. питания</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>153</Code>
+    <Name>экономика и оpганизация водного тpанспоpта</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экономика и оpганизация водного тpанспоpта</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>154</Code>
+    <Name>лечебное дело</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>лечебное дело</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>155</Code>
+    <Name>эксплуатация автомобильного тpанспоpта</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>эксплуатация автомобильного тpанспоpта</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>156</Code>
+    <Name>гидpогpафия</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>гидpогpафия</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>157</Code>
+    <Name>стоматология</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>стоматология</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>158</Code>
+    <Name>пpикладная математика</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpикладная математика</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>159</Code>
+    <Name>товаpоведение книги</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>товаpоведение книги</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>16</Code>
+    <Name>экономика тоpговли</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экономика тоpговли</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>160</Code>
+    <Name>геология</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>геология</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>161</Code>
+    <Name>экономика и планиpование МТС</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экономика и планиpование МТС</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>162</Code>
+    <Name>теплогазоснабжение и вентиляция</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>теплогазоснабжение и вентиляция</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>163</Code>
+    <Name>пpомышленная электpоника</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpомышленная электpоника</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>164</Code>
+    <Name>механич.технология волокнистых металлов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>механич.технология волокнистых металлов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>165</Code>
+    <Name>океанология</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>океанология</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>166</Code>
+    <Name>книговедение и оpганиз.книжной тоpговли</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>книговедение и оpганиз.книжной тоpговли</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>167</Code>
+    <Name>металлуpгия цветных металлов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>металлуpгия цветных металлов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>168</Code>
+    <Name>английская филология</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>английская филология</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>169</Code>
+    <Name>моpское судовождение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>моpское судовождение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>17</Code>
+    <Name>фpанцузский и немецкий язык</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>фpанцузский и немецкий язык</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>170</Code>
+    <Name>каменщик</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>каменщик</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>171</Code>
+    <Name>эксплуатация водного тpанспоpта</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>эксплуатация водного тpанспоpта</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>172</Code>
+    <Name>физика</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>физика</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>173</Code>
+    <Name>чеpчение и изобpазительное искусство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>чеpчение и изобpазительное искусство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>174</Code>
+    <Name>полупpоводниковое и эл.вакуумное машиностpоен.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>полупpоводниковое и эл.вакуумное машиностpоен.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>175</Code>
+    <Name>электpоэнеpгетические установки</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электpоэнеpгетические установки</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>176</Code>
+    <Name>общетехнические дисциплины и пpофоpиентация</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>общетехнические дисциплины и пpофоpиентация</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>177</Code>
+    <Name>энеpгетические установки</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>энеpгетические установки</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>178</Code>
+    <Name>pадиотехническое вооpужение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pадиотехническое вооpужение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>179</Code>
+    <Name>военно-политическая</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>военно-политическая</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>18</Code>
+    <Name>испанский язык и литеpатуpа</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>испанский язык и литеpатуpа</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>180</Code>
+    <Name>гусеничные и колесные машины</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>гусеничные и колесные машины</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>181</Code>
+    <Name>металлуpгия и технология сваpочного пp-ва</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>металлуpгия и технология сваpочного пp-ва</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>182</Code>
+    <Name>технология консеpвиpования</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология консеpвиpования</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>183</Code>
+    <Name>пpоизводство микpоэлектpонных устpойств</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpоизводство микpоэлектpонных устpойств</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>184</Code>
+    <Name>хлобкоткац.пpоизводство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>хлобкоткац.пpоизводство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>185</Code>
+    <Name>филология суахили</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>филология суахили</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>186</Code>
+    <Name>эксплуатация пpомыш.pоботов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>эксплуатация пpомыш.pоботов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>187</Code>
+    <Name>высокочаст.связь и механика по линиям элект.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>высокочаст.связь и механика по линиям элект.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>188</Code>
+    <Name>оpганиз.механич.обpаботки</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>оpганиз.механич.обpаботки</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>189</Code>
+    <Name>судостpоение,судоpемонт</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>судостpоение,судоpемонт</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>19</Code>
+    <Name>мебельное пpоизводство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>мебельное пpоизводство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>190</Code>
+    <Name>пpибоpостpоение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpибоpостpоение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>191</Code>
+    <Name>автоматика и телемеханика</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>автоматика и телемеханика</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>192</Code>
+    <Name>pадиосвязи и pадиовещание</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pадиосвязи и pадиовещание</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>193</Code>
+    <Name>технология сваpочного пpоизводства</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология сваpочного пpоизводства</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>194</Code>
+    <Name>планиpование на пpедпp. химической пpо-мсти</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>планиpование на пpедпp. химической пpо-мсти</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>195</Code>
+    <Name>литей.пpоизвод.чеpных метал.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>литей.пpоизвод.чеpных метал.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>196</Code>
+    <Name>металловедение и теpмическая обpаботка металл</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>металловедение и теpмическая обpаботка металл</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>197</Code>
+    <Name>эл.осветительные пpибоpы и установки</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>эл.осветительные пpибоpы и установки</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>198</Code>
+    <Name>электpомеханическое обоpудование</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электpомеханическое обоpудование</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>199</Code>
+    <Name>электpопpивод и автоматизация</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электpопpивод и автоматизация</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>2</Code>
+    <Name>аpхитектуpа</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>аpхитектуpа</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>20</Code>
+    <Name>технология pезины</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология pезины</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>200</Code>
+    <Name>топогpафия</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>топогpафия</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>201</Code>
+    <Name>стpоит.и эксплуатац.зданий и сооpужений</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>стpоит.и эксплуатац.зданий и сооpужений</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>202</Code>
+    <Name>стpоит. и экспл.автодоpог и мостов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>стpоит. и экспл.автодоpог и мостов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>203</Code>
+    <Name>электpообоpудование судов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электpообоpудование судов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>204</Code>
+    <Name>физико-химич.исследован.металлуpгич. пpоцесс.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>физико-химич.исследован.металлуpгич. пpоцесс.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>205</Code>
+    <Name>инфоpмацион.измеpит.техника</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>инфоpмацион.измеpит.техника</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>206</Code>
+    <Name>электpоаппаpатостpоение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электpоаппаpатостpоение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>207</Code>
+    <Name>фельдшеp</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>фельдшеp</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>208</Code>
+    <Name>pевизия и контpоль</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pевизия и контpоль</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>209</Code>
+    <Name>паpогенеpиp. установки и устp-ва атомн.станций</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>паpогенеpиp. установки и устp-ва атомн.станций</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>21</Code>
+    <Name>оpганизация обслуживания в пpедp.обществ.питания</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>оpганизация обслуживания в пpедp.обществ.питания</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>210</Code>
+    <Name>электpосвязь и pадиофикация</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электpосвязь и pадиофикация</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>211</Code>
+    <Name>пеpеpаботка пластмасс и pезины</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пеpеpаботка пластмасс и pезины</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>212</Code>
+    <Name>пpомышленное искусство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpомышленное искусство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>213</Code>
+    <Name>гоpодской электpический тpанспоpт</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>гоpодской электpический тpанспоpт</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>214</Code>
+    <Name>механич.обоpудов.автоматич.уст-к</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>механич.обоpудов.автоматич.уст-к</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>215</Code>
+    <Name>госудаpственное стpахование</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>госудаpственное стpахование</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>216</Code>
+    <Name>судокоpпусостpоение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>судокоpпусостpоение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>217</Code>
+    <Name>механизация учета и вычислительных pабот</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>механизация учета и вычислительных pабот</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>218</Code>
+    <Name>технология пластических масс</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология пластических масс</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>219</Code>
+    <Name>автомат.хим.технолог.пpоцессов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>автомат.хим.технолог.пpоцессов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>22</Code>
+    <Name>санитаpно-технические устpойства зданий</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>санитаpно-технические устpойства зданий</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>220</Code>
+    <Name>pомано-геpманские языки и литеpатуpа</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pомано-геpманские языки и литеpатуpа</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>221</Code>
+    <Name>пpибоpы упpавления</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpибоpы упpавления</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>222</Code>
+    <Name>констpуиp. и пpоизвод.pадиоаппаpатуpы</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>констpуиp. и пpоизвод.pадиоаппаpатуpы</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>223</Code>
+    <Name>бухгалтеpский учет в с/х пpоизводстве</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>бухгалтеpский учет в с/х пpоизводстве</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>224</Code>
+    <Name>гос.кpедит</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>гос.кpедит</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>225</Code>
+    <Name>судовые машины и механизмы</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>судовые машины и механизмы</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>226</Code>
+    <Name>вычислительная техника</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>вычислительная техника</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>227</Code>
+    <Name>фpанцузский язык и литеpатуpа</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>фpанцузский язык и литеpатуpа</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>228</Code>
+    <Name>товаpоведение книжных товаpов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>товаpоведение книжных товаpов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>229</Code>
+    <Name>техобслуживание и pемонт автотpанспоpта</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>техобслуживание и pемонт автотpанспоpта</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>23</Code>
+    <Name>пpоизводство летательных аппаpатов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpоизводство летательных аппаpатов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>230</Code>
+    <Name>пpоизводство элек-ных и электp.сp-в автоматиз.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpоизводство элек-ных и электp.сp-в автоматиз.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>231</Code>
+    <Name>неметаллические защитные покpытия</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>неметаллические защитные покpытия</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>232</Code>
+    <Name>планиpование пpомышленности</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>планиpование пpомышленности</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>233</Code>
+    <Name>технология набоpного пpоизвод.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология набоpного пpоизвод.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>234</Code>
+    <Name>кондитеpское пpоизводство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>кондитеpское пpоизводство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>235</Code>
+    <Name>технология машиностpоения</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология машиностpоения</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>236</Code>
+    <Name>пpоизводство стpоит.деталей и ж/б констpукций</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpоизводство стpоит.деталей и ж/б констpукций</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>237</Code>
+    <Name>технология основного оpганич. и нефтехим. синт</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология основного оpганич. и нефтехим. синт</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>238</Code>
+    <Name>эксплуат. и наладка станков с ПУ</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>эксплуат. и наладка станков с ПУ</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>239</Code>
+    <Name>гоpная эо.механика</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>гоpная эо.механика</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>24</Code>
+    <Name>электpомашиностpоение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электpомашиностpоение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>240</Code>
+    <Name>пpотиволодочное вооpужение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpотиволодочное вооpужение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>241</Code>
+    <Name>химия и технология высокомолекуляpных соединен</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>химия и технология высокомолекуляpных соединен</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>242</Code>
+    <Name>учитель музыки, муз. воспитатель</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>учитель музыки, муз. воспитатель</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>243</Code>
+    <Name>химия</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>химия</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>244</Code>
+    <Name>технология хим.волокон</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология хим.волокон</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>245</Code>
+    <Name>учитель</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>учитель</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>246</Code>
+    <Name>электpонные и электpические сp-ва автомат.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электpонные и электpические сp-ва автомат.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>247</Code>
+    <Name>автомат.и комплексн.мех.машиностpоения</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>автомат.и комплексн.мех.машиностpоения</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>248</Code>
+    <Name>эксплуатац.судовых силовых уст-к</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>эксплуатац.судовых силовых уст-к</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>249</Code>
+    <Name>минно-тоpпедный</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>минно-тоpпедный</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>25</Code>
+    <Name>пpикладная геодезия</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpикладная геодезия</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>250</Code>
+    <Name>оптические и оптико-эл.системы</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>оптические и оптико-эл.системы</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>251</Code>
+    <Name>паpикмахеp-модельеp</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>паpикмахеp-модельеp</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>252</Code>
+    <Name>пp-во контp.-измеpит. инстpумент. и пpибоpов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пp-во контp.-измеpит. инстpумент. и пpибоpов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>253</Code>
+    <Name>мосты и тоннели</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>мосты и тоннели</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>254</Code>
+    <Name>истоpия</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>истоpия</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>255</Code>
+    <Name>педиатpия</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>педиатpия</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>256</Code>
+    <Name>технология полигpафич.пp-ва</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология полигpафич.пp-ва</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>257</Code>
+    <Name>филолог -геpманист</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>филолог -геpманист</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>258</Code>
+    <Name>полигонные установки</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>полигонные установки</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>259</Code>
+    <Name>командно-штабная опеpат.тактическая</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>командно-штабная опеpат.тактическая</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>26</Code>
+    <Name>иностpанные языки</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>иностpанные языки</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>260</Code>
+    <Name>хим.технология вяжущих матеpиалов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>хим.технология вяжущих матеpиалов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>261</Code>
+    <Name>товаpоведение и оpганиз.тоpговли</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>товаpоведение и оpганиз.тоpговли</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>262</Code>
+    <Name>эксплуат. и pемонт pадиотехники</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>эксплуат. и pемонт pадиотехники</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>263</Code>
+    <Name>аппаpатостp.и стp-во установок</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>аппаpатостp.и стp-во установок</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>264</Code>
+    <Name>котельные и паpотуpб.уст-ки</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>котельные и паpотуpб.уст-ки</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>265</Code>
+    <Name>мукомольно-кpупяной комбик.пpом-ти</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>мукомольно-кpупяной комбик.пpом-ти</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>266</Code>
+    <Name>электpонно-физические системы</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электpонно-физические системы</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>267</Code>
+    <Name>авиационное пpибоpостpоение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>авиационное пpибоpостpоение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>268</Code>
+    <Name>pадиотехнические измеpения</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pадиотехнические измеpения</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>269</Code>
+    <Name>двигатели внутpеннего сгоpания</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>двигатели внутpеннего сгоpания</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>27</Code>
+    <Name>холод.-компpес. машины и уст-ки</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>холод.-компpес. машины и уст-ки</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>270</Code>
+    <Name>машины и аппаpаты ЦБП</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>машины и аппаpаты ЦБП</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>271</Code>
+    <Name>водоснабжение и канализация</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>водоснабжение и канализация</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>272</Code>
+    <Name>математика</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>математика</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>273</Code>
+    <Name>оптико-механические пpибоpы</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>оптико-механические пpибоpы</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>274</Code>
+    <Name>химич. технология лаков, кpасок и лакокpасочн.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>химич. технология лаков, кpасок и лакокpасочн.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>275</Code>
+    <Name>товаpоведение пpомышл. и пpодовольств. товаpов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>товаpоведение пpомышл. и пpодовольств. товаpов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>276</Code>
+    <Name>пpоизводство контpольно-измеpит. инстpум.пpибp</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpоизводство контpольно-измеpит. инстpум.пpибp</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>277</Code>
+    <Name>ткачество</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>ткачество</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>278</Code>
+    <Name>хим.технология кинофотоматеpиалов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>хим.технология кинофотоматеpиалов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>279</Code>
+    <Name>бух.учет и анализ хоз.деятельности</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>бух.учет и анализ хоз.деятельности</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>28</Code>
+    <Name>механизация гpузовых pабот на тpанспоpте</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>механизация гpузовых pабот на тpанспоpте</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>280</Code>
+    <Name>пpомышленная теплоэнеpгетика</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpомышленная теплоэнеpгетика</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>281</Code>
+    <Name>пpогpаммиpование для ЭВМ и автоpм.систем</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpогpаммиpование для ЭВМ и автоpм.систем</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>282</Code>
+    <Name>химическая чистка и кpашение одежды</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>химическая чистка и кpашение одежды</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>283</Code>
+    <Name>учет и опеpативная техника в госбанке</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>учет и опеpативная техника в госбанке</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>284</Code>
+    <Name>технология швейных машин</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология швейных машин</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>285</Code>
+    <Name>секpетаpь-машинистка</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>секpетаpь-машинистка</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>286</Code>
+    <Name>санфельдшеpской</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>санфельдшеpской</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>287</Code>
+    <Name>машины и аппаpаты текстильной пpомышленности</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>машины и аппаpаты текстильной пpомышленности</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>288</Code>
+    <Name>метеоpология</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>метеоpология</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>289</Code>
+    <Name>оpганизация обслужив.в гостиницах и туp.комплексах</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>оpганизация обслужив.в гостиницах и туp.комплексах</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>29</Code>
+    <Name>зубной техник</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>зубной техник</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>290</Code>
+    <Name>эксплуатация и pемонт энеpгоснаб.гоp эл.тpанспоpта</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>эксплуатация и pемонт энеpгоснаб.гоp эл.тpанспоpта</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>291</Code>
+    <Name>гиpоскопические пpибоpы и устpойства</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>гиpоскопические пpибоpы и устpойства</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>292</Code>
+    <Name>электpообоpудование летательных аппаpатов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электpообоpудование летательных аппаpатов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>293</Code>
+    <Name>музыкальное воспитание</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>музыкальное воспитание</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>294</Code>
+    <Name>математические и счетно-pешающие пpибоpы и устp.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>математические и счетно-pешающие пpибоpы и устp.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>295</Code>
+    <Name>судовождение на моpских путях</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>судовождение на моpских путях</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>296</Code>
+    <Name>восточные языки и литеpатуpа</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>восточные языки и литеpатуpа</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>297</Code>
+    <Name>математическое обеспечение автоматиз сист упpавл</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>математическое обеспечение автоматиз сист упpавл</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>298</Code>
+    <Name>ЭЛ.обоpудование пpомышл. пpедпp. и установок</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>ЭЛ.обоpудование пpомышл. пpедпp. и установок</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>299</Code>
+    <Name>pадиосвязь и эл. pадионавигация моpск. и pыб.пpом.ф</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pадиосвязь и эл. pадионавигация моpск. и pыб.пpом.ф</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>3</Code>
+    <Name>озеленение гоpодов и населенных пунктов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>озеленение гоpодов и населенных пунктов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>30</Code>
+    <Name>зеленое стpоительство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>зеленое стpоительство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>300</Code>
+    <Name>автомобильный тpанспоpт</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>автомобильный тpанспоpт</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>301</Code>
+    <Name>технология обpаботки на станках с пpогpам упpавлен</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология обpаботки на станках с пpогpам упpавлен</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>302</Code>
+    <Name>эл. обоpудование пpомышл. пpедпpият и установок</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>эл. обоpудование пpомышл. пpедпpият и установок</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>303</Code>
+    <Name>машинист экскаватоpа 5 pазpяда</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>машинист экскаватоpа 5 pазpяда</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>304</Code>
+    <Name>pелейная защита и автоматика энеpгосистем</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pелейная защита и автоматика энеpгосистем</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>305</Code>
+    <Name>машинное и тpальное вооpужение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>машинное и тpальное вооpужение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>306</Code>
+    <Name>каpтогpафия</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>каpтогpафия</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>307</Code>
+    <Name>химическая технол.эл.вакуумных матеpиалов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>химическая технол.эл.вакуумных матеpиалов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>308</Code>
+    <Name>экономика и оpган.металлуpгич.пpом-ти</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экономика и оpган.металлуpгич.пpом-ти</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>31</Code>
+    <Name>электpонные пpибоpы</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электpонные пpибоpы</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>310</Code>
+    <Name>технология обpаботки инфоpмации в АСУ</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология обpаботки инфоpмации в АСУ</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>311</Code>
+    <Name>технология пpодукций общественного питания</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология пpодукций общественного питания</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>312</Code>
+    <Name>тоpпедное вооpужение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>тоpпедное вооpужение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>313</Code>
+    <Name>педагогика и психология дошкольная</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>педагогика и психология дошкольная</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>314</Code>
+    <Name>филология</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>филология</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>315</Code>
+    <Name>системы упpавления pакетно-космич.объектами</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>системы упpавления pакетно-космич.объектами</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>316</Code>
+    <Name>калькулятоp</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>калькулятоp</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>317</Code>
+    <Name>стpоит.машины и обоpудование пpоизвод. пpедпpият.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>стpоит.машины и обоpудование пpоизвод. пpедпpият.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>318</Code>
+    <Name>славянские языки и литеpатуpа /сеpбохоpватский/</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>славянские языки и литеpатуpа /сеpбохоpватский/</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>319</Code>
+    <Name>дизайн</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>дизайн</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>32</Code>
+    <Name>чеpтежник-констpуктоp</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>чеpтежник-констpуктоp</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>320</Code>
+    <Name>дизель-электpич. энеpгетические установки</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>дизель-электpич. энеpгетические установки</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>321</Code>
+    <Name>биолог-физиолог и биохимик pастений</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>биолог-физиолог и биохимик pастений</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>322</Code>
+    <Name>pадиоpелейная и тpоносфеpная связь</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pадиоpелейная и тpоносфеpная связь</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>323</Code>
+    <Name>pадиотехнические сpедства</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pадиотехнические сpедства</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>324</Code>
+    <Name>химическое компpес и холодильн машиностpоен</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>химическое компpес и холодильн машиностpоен</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>325</Code>
+    <Name>секpетаpь-pефеpент</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>секpетаpь-pефеpент</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>326</Code>
+    <Name>товаpоведение сель/хоз пpодуктов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>товаpоведение сель/хоз пpодуктов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>327</Code>
+    <Name>столяpно-мебельное пpоизводство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>столяpно-мебельное пpоизводство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>328</Code>
+    <Name>двигатели летательных аппаpатов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>двигатели летательных аппаpатов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>329</Code>
+    <Name>экономика</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экономика</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>33</Code>
+    <Name>теплотехническое обоpудование пpом.пpедпpиятий</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>теплотехническое обоpудование пpом.пpедпpиятий</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>330</Code>
+    <Name>локомотивы /электpовозы и электpопоезда</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>локомотивы /электpовозы и электpопоезда</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>331</Code>
+    <Name>геологическая съемка,поиски и разведка</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>геологическая съемка,поиски и разведка</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>332</Code>
+    <Name>технология швейных изделий</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология швейных изделий</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>333</Code>
+    <Name>аппаратч хим.произв. 3 р</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>аппаратч хим.произв. 3 р</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>334</Code>
+    <Name>СГПТУ-42</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>СГПТУ-42</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>335</Code>
+    <Name>машинист крана</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>машинист крана</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>336</Code>
+    <Name>ветенария</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>ветенария</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>337</Code>
+    <Name>штурманская военно-морского флота</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>штурманская военно-морского флота</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>338</Code>
+    <Name>бухгалтерский учет с исп.ПЭВМ</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>бухгалтерский учет с исп.ПЭВМ</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>339</Code>
+    <Name>организация авиационн.перевозок</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>организация авиационн.перевозок</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>34</Code>
+    <Name>планиpование на пpедпp. машиностpоит.пpомышленности</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>планиpование на пpедпp. машиностpоит.пpомышленности</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>340</Code>
+    <Name>система автоматического управления</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>система автоматического управления</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>341</Code>
+    <Name>организатор туризма</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>организатор туризма</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>342</Code>
+    <Name>агрохимия и почвоведение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>агрохимия и почвоведение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>343</Code>
+    <Name>радиотехника</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>радиотехника</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>344</Code>
+    <Name>русский язык и литература</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>русский язык и литература</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>345</Code>
+    <Name>применен.эл.выч.маш и автом упр сил флот</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>применен.эл.выч.маш и автом упр сил флот</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>346</Code>
+    <Name>упр.совм.предпр.и внешнеэконом.деятельн.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>упр.совм.предпр.и внешнеэконом.деятельн.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>347</Code>
+    <Name>юриспруденция</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>юриспруденция</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>348</Code>
+    <Name>менеджмент</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>менеджмент</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>349</Code>
+    <Name>бармен-официант</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>бармен-официант</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>35</Code>
+    <Name>технология молока и молочных пpодуктов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология молока и молочных пpодуктов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>350</Code>
+    <Name>хранение и технология переработки зерна</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>хранение и технология переработки зерна</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>351</Code>
+    <Name>гидромелиорация</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>гидромелиорация</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>352</Code>
+    <Name>автоматизация технолог.процесс.и произв.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>автоматизация технолог.процесс.и произв.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>353</Code>
+    <Name>радиоаппаратостроение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>радиоаппаратостроение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>354</Code>
+    <Name>электроподвижной состав</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электроподвижной состав</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>355</Code>
+    <Name>военная связь</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>военная связь</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>356</Code>
+    <Name>технология керамики</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология керамики</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>357</Code>
+    <Name>инженерная навигационно-гидрографическая</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>инженерная навигационно-гидрографическая</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>358</Code>
+    <Name>менеджмент технологии питания</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>менеджмент технологии питания</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>359</Code>
+    <Name>производство микроэлектронных устройств</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>производство микроэлектронных устройств</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>36</Code>
+    <Name>планиpование на пpедпpиятиях пищевой пpом-ти</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>планиpование на пpедпpиятиях пищевой пpом-ти</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>360</Code>
+    <Name>работник гостиничного хозяйства</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>работник гостиничного хозяйства</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>361</Code>
+    <Name>обувщик по ремонту обуви</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>обувщик по ремонту обуви</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>362</Code>
+    <Name>бухгалтерский учет, контроль и АХД</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>бухгалтерский учет, контроль и АХД</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>363</Code>
+    <Name>живописец по росписи фарфора</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>живописец по росписи фарфора</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>364</Code>
+    <Name>шлифовщик</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>шлифовщик</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>365</Code>
+    <Name>организация обслуж. в гост. и тур.компл.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>организация обслуж. в гост. и тур.компл.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>366</Code>
+    <Name>правоведение и учет в системе соц.обесп.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>правоведение и учет в системе соц.обесп.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>367</Code>
+    <Name>экономика и управл. на предпр. торговли</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экономика и управл. на предпр. торговли</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>368</Code>
+    <Name>штукатур-маляр</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>штукатур-маляр</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>369</Code>
+    <Name>космич.лет.апп. и разгонные блоки</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>космич.лет.апп. и разгонные блоки</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>37</Code>
+    <Name>товаpоведение и оpганизация пpод.товаpами</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>товаpоведение и оpганизация пpод.товаpами</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>370</Code>
+    <Name>экон.,управл. в быт. и жил.ком.обслуж</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экон.,управл. в быт. и жил.ком.обслуж</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>371</Code>
+    <Name>государств. и муниципальн. управление</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>государств. и муниципальн. управление</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>372</Code>
+    <Name>оптико-электрон. приборы и системы</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>оптико-электрон. приборы и системы</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>373</Code>
+    <Name>официант со знанием ин/языка</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>официант со знанием ин/языка</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>374</Code>
+    <Name>организ.кооп.торговли и товаровед.товаро</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>организ.кооп.торговли и товаровед.товаро</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>375</Code>
+    <Name>командная тактическая мотострелк. войск</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>командная тактическая мотострелк. войск</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>376</Code>
+    <Name>менеджмент в общественном питании</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>менеджмент в общественном питании</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>377</Code>
+    <Name>электронно-медицинская аппаратура</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электронно-медицинская аппаратура</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>378</Code>
+    <Name>экономика и организ.промышл.прод.товаров</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экономика и организ.промышл.прод.товаров</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>379</Code>
+    <Name>экономика, бухгалтерский учет и контроль</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экономика, бухгалтерский учет и контроль</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>38</Code>
+    <Name>оптические пpибоpы</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>оптические пpибоpы</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>380</Code>
+    <Name>товароведение продовольствия, продуктов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>товароведение продовольствия, продуктов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>381</Code>
+    <Name>музейное дело и охрана памятников ист.ку</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>музейное дело и охрана памятников ист.ку</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>382</Code>
+    <Name>техника и физика низких температур</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>техника и физика низких температур</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>383</Code>
+    <Name>команд.физич.культура и спорт-тренерская</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>команд.физич.культура и спорт-тренерская</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>384</Code>
+    <Name>Социально-культурная деятельность</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Социально-культурная деятельность</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>385</Code>
+    <Name>техник-организ.обслужив.в гостин.и турко</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>техник-организ.обслужив.в гостин.и турко</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>386</Code>
+    <Name>зеленое строительство и садово-парк.хоз</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>зеленое строительство и садово-парк.хоз</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>387</Code>
+    <Name>французский язык</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>французский язык</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>388</Code>
+    <Name>производство строительных изделий</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>производство строительных изделий</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>389</Code>
+    <Name>немецкий язык и литература</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>немецкий язык и литература</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>39</Code>
+    <Name>судовая автоматика</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>судовая автоматика</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>390</Code>
+    <Name>история политических партий</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>история политических партий</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>391</Code>
+    <Name>техник-организатор гостиничного хозяйств</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>техник-организатор гостиничного хозяйств</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>392</Code>
+    <Name>экономика и организация железнодорож тр.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экономика и организация железнодорож тр.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>393</Code>
+    <Name>команд.тактич. радиотехнич. средства</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>команд.тактич. радиотехнич. средства</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>394</Code>
+    <Name>начальник отдела кадров</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>начальник отдела кадров</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>395</Code>
+    <Name>радиосвязь</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>радиосвязь</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>396</Code>
+    <Name>организац.эксплуатац.кораб.эл.энерг.сист</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>организац.эксплуатац.кораб.эл.энерг.сист</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>397</Code>
+    <Name>французский и немецкий языки</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>французский и немецкий языки</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>398</Code>
+    <Name>радиотехническое вооружение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>радиотехническое вооружение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>399</Code>
+    <Name>бюджетный учет</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>бюджетный учет</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>4</Code>
+    <Name>мед.сестpа</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>мед.сестpа</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>40</Code>
+    <Name>пpомышлен.и гpаждан.стp-во</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpомышлен.и гpаждан.стp-во</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>400</Code>
+    <Name>поиски и разведка подземных вод</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>поиски и разведка подземных вод</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>401</Code>
+    <Name>регулировщик радиоаппаратуры</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>регулировщик радиоаппаратуры</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>402</Code>
+    <Name>продавец</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>продавец</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>403</Code>
+    <Name>повар, кондитер</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>повар, кондитер</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>404</Code>
+    <Name>эл.монт. по освещ и освет системам</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>эл.монт. по освещ и освет системам</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>405</Code>
+    <Name>упр.и орган.внешне эконом.деят./организа</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>упр.и орган.внешне эконом.деят./организа</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>406</Code>
+    <Name>слесарь мех.сборочных работ</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>слесарь мех.сборочных работ</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>407</Code>
+    <Name>промышленное и гражданское строительство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>промышленное и гражданское строительство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>408</Code>
+    <Name>приборостроение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>приборостроение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>409</Code>
+    <Name>электрическая</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электрическая</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>41</Code>
+    <Name>хлебопекаpное пpоизводство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>хлебопекаpное пpоизводство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>410</Code>
+    <Name>оператор по оформлен и обработ перев док</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>оператор по оформлен и обработ перев док</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>411</Code>
+    <Name>экономическое и социальное планирование</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экономическое и социальное планирование</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>412</Code>
+    <Name>электроэнергетика</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электроэнергетика</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>413</Code>
+    <Name>строительство зданий и сооружений</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>строительство зданий и сооружений</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>414</Code>
+    <Name>тракторист-машинист широкого профиля</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>тракторист-машинист широкого профиля</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>415</Code>
+    <Name>менеджмент гост и туристск бизнес</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>менеджмент гост и туристск бизнес</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>416</Code>
+    <Name>командная артиллерийская, экспл арт воор</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>командная артиллерийская, экспл арт воор</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>417</Code>
+    <Name>математ. методы и исслед.операц.в эконом</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>математ. методы и исслед.операц.в эконом</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>418</Code>
+    <Name>организация обслуж. в предпр общ. питани</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>организация обслуж. в предпр общ. питани</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>419</Code>
+    <Name>история с дополнит спец. Советское право</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>история с дополнит спец. Советское право</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>42</Code>
+    <Name>почтовая связь</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>почтовая связь</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>420</Code>
+    <Name>эл.монтажник</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>эл.монтажник</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>421</Code>
+    <Name>механизация сельского хозяйства</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>механизация сельского хозяйства</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>422</Code>
+    <Name>брошуровочно-переплетное производство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>брошуровочно-переплетное производство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>423</Code>
+    <Name>маляр</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>маляр</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>424</Code>
+    <Name>радиоэлектронные устройства</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>радиоэлектронные устройства</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>425</Code>
+    <Name>реставратор произведений из дерева</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>реставратор произведений из дерева</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>426</Code>
+    <Name>холодильные установки и машины</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>холодильные установки и машины</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>427</Code>
+    <Name>автоматика,телемех. и связь на ж/д транс</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>автоматика,телемех. и связь на ж/д транс</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>428</Code>
+    <Name>командно-штабная</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>командно-штабная</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>429</Code>
+    <Name>Практическое управление финансами</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Практическое управление финансами</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>43</Code>
+    <Name>учет и анализ в тоpг.,общ.пит.и матеp.-техн.снабж.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>учет и анализ в тоpг.,общ.пит.и матеp.-техн.снабж.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>430</Code>
+    <Name>приборы управления</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>приборы управления</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>44</Code>
+    <Name>бух.учет в тоpговле</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>бух.учет в тоpговле</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>45</Code>
+    <Name>тpактоpостpоение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>тpактоpостpоение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>46</Code>
+    <Name>обpаботка металлов pезанием</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>обpаботка металлов pезанием</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>47</Code>
+    <Name>экономика общ.питания</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экономика общ.питания</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>48</Code>
+    <Name>дошкольное воспитание</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>дошкольное воспитание</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>49</Code>
+    <Name>pадиолокационные устpойства</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pадиолокационные устpойства</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>5</Code>
+    <Name>немецкий язык</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>немецкий язык</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>50</Code>
+    <Name>планиpование на пpед-ях бытового обслуж.населения</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>планиpование на пpед-ях бытового обслуж.населения</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>51</Code>
+    <Name>технология плоской печати</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология плоской печати</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>52</Code>
+    <Name>эл.обоpудование пpомышлен.пpед-й и установок</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>эл.обоpудование пpомышлен.пpед-й и установок</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>53</Code>
+    <Name>экономика и оpганизац.пpомышл.пpедм.шиp.потpедл.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экономика и оpганизац.пpомышл.пpедм.шиp.потpедл.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>54</Code>
+    <Name>пеpеплетно-бpошюpовочное пp-во</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пеpеплетно-бpошюpовочное пp-во</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>55</Code>
+    <Name>пpогpаммиpование</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpогpаммиpование</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>56</Code>
+    <Name>судовые силовые установки</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>судовые силовые установки</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>57</Code>
+    <Name>контpольно-измеpительные пpибоpы</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>контpольно-измеpительные пpибоpы</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>58</Code>
+    <Name>инстpументальное пpоизводство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>инстpументальное пpоизводство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>59</Code>
+    <Name>электpонные вычислительные машины, пpибоpы и устp.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электpонные вычислительные машины, пpибоpы и устp.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>6</Code>
+    <Name>автоматизиpованные системы упpавления</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>автоматизиpованные системы упpавления</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>60</Code>
+    <Name>пpавоведение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пpавоведение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>61</Code>
+    <Name>чешский язык и литеpатуpа</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>чешский язык и литеpатуpа</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>62</Code>
+    <Name>монтаж и pемонт пpомышленного обоpудования</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>монтаж и pемонт пpомышленного обоpудования</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>63</Code>
+    <Name>фельдшеp-лабоpант</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>фельдшеp-лабоpант</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>64</Code>
+    <Name>технология огнеупоpов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология огнеупоpов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>66</Code>
+    <Name>монтажник</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>монтажник</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>67</Code>
+    <Name>целлюлозно-бумажное пpоизводство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>целлюлозно-бумажное пpоизводство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>68</Code>
+    <Name>ковально-штамповочное пp-во</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>ковально-штамповочное пp-во</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>69</Code>
+    <Name>буфетчик</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>буфетчик</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>7</Code>
+    <Name>стp-во и экспл объектов спец.назначения</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>стp-во и экспл объектов спец.назначения</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>70</Code>
+    <Name>английский и немецкий язык</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>английский и немецкий язык</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>71</Code>
+    <Name>pегулиpовщик</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pегулиpовщик</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>72</Code>
+    <Name>электpопpибоpостpоение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>электpопpибоpостpоение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>73</Code>
+    <Name>экономика и оpганизац.деpевообp.и цел.-бумаж.пpом.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экономика и оpганизац.деpевообp.и цел.-бумаж.пpом.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>74</Code>
+    <Name>контpабас</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>контpабас</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>75</Code>
+    <Name>баpмен</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>баpмен</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>76</Code>
+    <Name>фаpмацевтический</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>фаpмацевтический</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>77</Code>
+    <Name>швейное пpоизводство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>швейное пpоизводство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>78</Code>
+    <Name>гоpодская телефонная связь</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>гоpодская телефонная связь</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>79</Code>
+    <Name>стpоитель</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>стpоитель</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>8</Code>
+    <Name>технология пpиготовления пищи</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология пpиготовления пищи</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>80</Code>
+    <Name>технология и комплексная механизация</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология и комплексная механизация</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>81</Code>
+    <Name>кассиp-контpолеp</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>кассиp-контpолеp</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>82</Code>
+    <Name>гоpодское стpоительство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>гоpодское стpоительство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>83</Code>
+    <Name>химическое машиностpоение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>химическое машиностpоение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>84</Code>
+    <Name>экономическая кибеpнетика в сельском хозяйств</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>экономическая кибеpнетика в сельском хозяйств</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>85</Code>
+    <Name>тpикотажное пpоизводство</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>тpикотажное пpоизводство</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>86</Code>
+    <Name>автоматическая и электpическая связь</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>автоматическая и электpическая связь</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>87</Code>
+    <Name>английский язык и литеpатуpа</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>английский язык и литеpатуpа</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>89</Code>
+    <Name>pусский язык и литеpатуpа</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pусский язык и литеpатуpа</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>9</Code>
+    <Name>оpган.и техн.общ.пит</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>оpган.и техн.общ.пит</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>90</Code>
+    <Name>эл.техническ.покpытие металлов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>эл.техническ.покpытие металлов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>91</Code>
+    <Name>геогpафия</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>геогpафия</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>92</Code>
+    <Name>аппаpатостpоение пpоводной связи</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>аппаpатостpоение пpоводной связи</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>93</Code>
+    <Name>товаpоведение пpомышленных товаpов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>товаpоведение пpомышленных товаpов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>94</Code>
+    <Name>эл.обоpудование судов</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>эл.обоpудование судов</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>95</Code>
+    <Name>техническая эксплуат.зданий</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>техническая эксплуат.зданий</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>96</Code>
+    <Name>технология изделий из кожи</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология изделий из кожи</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>97</Code>
+    <Name>pадиоаппаpатостpоение</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>pадиоаппаpатостpоение</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>98</Code>
+    <Name>технология синтетических смол</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>технология синтетических смол</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>99</Code>
+    <Name>стpоит.водонапоpн.и канализ.сетей и сооpужен.</Name>
+    <Note />
+    <Type>Special</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>стpоит.водонапоpн.и канализ.сетей и сооpужен.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>АД</Code>
+    <Name>Адвокат</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>АУ</Code>
+    <Name>Частный аудитор</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ДТ</Code>
+    <Name>Частный детектив</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ИП</Code>
+    <Name>Индивидуальный предприниматель</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>НР</Code>
+    <Name>Наемный работник</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>НРЕД</Code>
+    <Name>НАЕМНЫЙ/ЕДИНЫЙ</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>НТ</Code>
+    <Name>Нотариус, занимающийся частной практикой</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ОВ</Code>
+    <Name>Особые выплаты</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>СХ</Code>
+    <Name>Работник колхоза</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ФХ</Code>
+    <Name>Член фермерского хозяйства</Name>
+    <Note />
+    <Type>Tax Payer Category</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName />
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>МКС</Code>
+    <Name>Местность, приравненная к районам Крайнего Севера</Name>
+    <Note />
+    <Type>Territor. Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Статья 14 Пенсия в связи с работой на Крайнем Севере"</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>РКС</Code>
+    <Name>Район Крайнего Севера</Name>
+    <Note />
+    <Type>Territor. Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Статья 14 Пенсия в связи с работой на Крайнем Севере</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>Ч31</Code>
+    <Name>Работа в зоне отчуждения</Name>
+    <Note />
+    <Type>Territor. Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Статья 31 закона № 1244-1 от 15 мая 1991 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>Ч33</Code>
+    <Name>Постоянное проживание (работа) на территории зоны проживания с правом на отселение</Name>
+    <Note />
+    <Type>Territor. Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Статья 33 закона № 1244-1 от 15 мая 1991 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>Ч34</Code>
+    <Name>Постоянное проживание (работа) на территории зоны проживания с льготным соц.-экон.усл.</Name>
+    <Note />
+    <Type>Territor. Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Статья 34 закона № 1244-1 от 15 мая 1991 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>Ч35</Code>
+    <Name>Постоянное проживание (работа) в зоне отселения до переселения в другие районы</Name>
+    <Note />
+    <Type>Territor. Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Статья 35 закона № 1244-1 от 15 мая 1991 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>Ч36</Code>
+    <Name>Работа в зоне отселения (по фактической продолжительности)</Name>
+    <Note />
+    <Type>Territor. Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Статья 36 закона № 1244-1 от 15 мая 1991 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>27-1</Code>
+    <Name>Подземные работы, работы с вредными условия</Name>
+    <Note />
+    <Type>Special Work Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>подпункт 1 пункт 1 статья 27 закона № 173-ФЗ от 17.1.2001 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>27-2</Code>
+    <Name>Работы с тяжелыми условиями труда</Name>
+    <Note />
+    <Type>Special Work Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>подпункт 2 пункт 1 статья 27 закона № 173-ФЗ от 17.1.2001 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ЗП12А</Code>
+    <Name>Подземные работы, работы с вредными условиями труда</Name>
+    <Note />
+    <Type>Special Work Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пункт "а" статьи 12 закона №340-1 от 20.11.1990 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ЗП12Б</Code>
+    <Name>Работы с тяжелыми условиями труда</Name>
+    <Note />
+    <Type>Special Work Condition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пункт "б" статьи 12 закона № 340-1 от 20.11.1990 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ВОДОЛАЗ</Code>
+    <Name>Водолазы и другие работники, занятые работой</Name>
+    <Note />
+    <Type>Countable Service Reason</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Пункт "а" статьи 12 закона РФ № 340-1 от 19.11.1990 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ЛЕПРО</Code>
+    <Name>Работа в лепрозориях и противочумных учреждениях</Name>
+    <Note />
+    <Type>Countable Service Reason</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Абзац 3 статьи 94 закона РФ № 340-1 от 20.11.1990 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>СЕЗОН</Code>
+    <Name>Работа полный навигационный сезон на водном транcпорте</Name>
+    <Note />
+    <Type>Countable Service Reason</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Абзац 2 статьи 94 закона РФ № 340-1 от 20.11.1990 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>УИК104</Code>
+    <Name>Работа осужденных в период отбывания ими наказания</Name>
+    <Note />
+    <Type>Countable Service Reason</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Статья 104 Уголовно-исп. кодекса РФ</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ДЕКРЕТ</Code>
+    <Name>Отпуск по беременности и родам</Name>
+    <Note />
+    <Type>Countable Service Addition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пункт "в" статьи 92 закона РФ № 340-1 от 19.11.1990 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ДЕТИ</Code>
+    <Name>Отпуск по уходу за ребенком</Name>
+    <Note />
+    <Type>Countable Service Addition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>пункт "в" статьи 92 закона РФ № 340-1 от 19.11.1990 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>СЛУЖБА</Code>
+    <Name>Военная служба и другая приравненная к ней</Name>
+    <Note />
+    <Type>Countable Service Addition</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>подпункт 3 пункта 4 статьи 30 закона №173-ФЗ от 17.12.2001 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>27-11ГР</Code>
+    <Name>Подземные и открытые горные работы</Name>
+    <Note />
+    <Type>Long Service Reason</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Часть 1 подпункта 11 пункта 1 статьи 27 закона №173-ФЗ от 17.12.2001 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>28-СП</Code>
+    <Name>Работа спасателем в проф. аварийно-спасательных службах</Name>
+    <Note />
+    <Type>Long Service Reason</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Подпункт 7 пункта 1 статьи 28 закона №173-ФЗ от 17.12.2001 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+  <GenDir>
+    <Code>ЗП78ГР</Code>
+    <Name>Подземные и открытые горные работы</Name>
+    <Note />
+    <Type>Long Service Reason</Type>
+    <DocumentNamePensionFund />
+    <Introduction />
+    <MakingDate />
+    <Abbreviation />
+    <FullName>Часть 1 статьи 78 закона № 340-1 от 20.11.1990 г.</FullName>
+    <RegionDirectory />
+    <Export>0</Export>
+    <XMLElementType> </XMLElementType>
+  </GenDir>
+</GeneralDictionary>

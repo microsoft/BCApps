@@ -104,6 +104,8 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
         Evaluate(EDocument."Amount Excl. VAT", GetNodeByPath(TempXMLBuffer, RootPath + '/cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount'), 9);
         Evaluate(EDocument."Amount Incl. VAT", GetNodeByPath(TempXMLBuffer, RootPath + '/cac:LegalMonetaryTotal/cbc:PayableAmount'), 9);
 
+        EDocument."Order No." := CopyStr(GetNodeByPath(TempXMLBuffer, RootPath + '/cac:OrderReference/cbc:ID'), 1, MaxStrLen(EDocument."Order No."));
+
         Currency := CopyStr(GetNodeByPath(TempXMLBuffer, RootPath + '/cbc:DocumentCurrencyCode'), 1, MaxStrLen(EDocument."Currency Code"));
         if LCYCode <> Currency then
             EDocument."Currency Code" := Currency;
@@ -609,7 +611,13 @@ codeunit 6166 "EDoc Import PEPPOL BIS 3.0"
 
     [EventSubscriber(ObjectType::Table, Database::"E-Document Log", 'OnBeforeExportDataStorage', '', false, false)]
     local procedure SetFileExt(EDocumentLog: Record "E-Document Log"; var FileName: Text)
+    var
+        FileManagement: Codeunit "File Management";
     begin
+        if EDocumentLog."Document Format" <> Enum::"E-Document Format"::"PEPPOL BIS 3.0" then
+            exit;
+        if FileManagement.GetExtension(FileName) <> '' then
+            exit;
         FileName += '.xml';
     end;
 

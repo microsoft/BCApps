@@ -244,6 +244,7 @@ page 1931 "Performance Profile List"
     var
     begin
         this.MapClientTypeToActivityType();
+        ScheduleDescription := ScheduleDisplayName();
         PlatformCallDuration := this.ComputePlatformCallDuration();
     end;
 

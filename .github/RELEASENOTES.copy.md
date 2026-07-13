@@ -1,3 +1,72 @@
+## v9.1
+
+### Resilient Pull Request Status Check for large builds
+
+The Pull Request Status Check action no longer fails on builds with more than one page of jobs (more than 100 jobs). The jobs API call now uses `--slurp` so multi-page responses are parsed as a single JSON array (previously `gh api --paginate | ConvertFrom-Json` failed with "Invalid JSON primitive" when more than one page was returned). The call is also retried, and requests a smaller page size, to tolerate the intermittent HTTP 502 responses that the GitHub jobs endpoint returns for large builds.
+
+### Use artifact manifest to pick .NET runtime for assembly probing
+
+When compiling apps with the workspace compiler, AL-Go now reads the `dotNetVersion` from the BC artifact's `manifest.json` (copied into the compiler folder by BcContainerHelper) and selects an installed .NET runtime whose major version matches. This avoids version drift between the build agent's highest installed runtime and the platform the artifact was built against. If the manifest does not declare a `dotNetVersion`, or no installed runtime matches the required major, versioned .NET assembly probing paths are omitted (a warning is logged in the latter case).
+
+### New compiler folder hooks
+
+Two new hooks are available for customizing the compiler folder creation process when workspace compilation is enabled:
+
+- **PreNewBcCompilerFolder.ps1** - Runs before `New-BcCompilerFolder` is called. Receives a `[hashtable] $parameters` argument containing the parameters that will be passed to `New-BcCompilerFolder`. The script can modify the hashtable in-place to customize the compiler folder creation (e.g., add a `platformArtifactUrl` to use a specific platform version).
+- **PostNewBcCompilerFolder.ps1** - Runs after the compiler folder is created. Receives `[hashtable] $parameters` and `[string] $compilerFolder` arguments.
+
+Place these scripts in your project's `.AL-Go` folder to use them.
+
+### New AL-Go hooks (experimental)
+
+AL-Go for GitHub now supports a new generic hook mechanism that is independent of BcContainerHelper. A new `RunHook` action invokes scripts placed in the project's `.AL-Go` folder at well-known extension points in the workflows. The first such extension point is `BuildInitialize`, which runs in the build workflow immediately after `Read settings` (so AL-Go settings are available as environment variables).
+
+To use it, add a `.AL-Go/BuildInitialize.ps1` script that accepts a `[Hashtable] $parameters` argument. If the script does not exist, the step is a silent no-op.
+
+The hook mechanism is intended to gradually replace the BcContainerHelper-based `Run-AlPipeline` script overrides as AL-Go moves away from `Run-AlPipeline`. See [Customizing AL-Go for GitHub](https://github.com/microsoft/AL-Go/blob/main/Scenarios/CustomizingALGoForGitHub.md#al-go-hooks) for details and the list of supported hook names.
+
+> **Experimental:** the set of supported hook names, the parameters passed to hook scripts, the location and timing of hook invocations, and the names of the underlying action and helpers may all change in future versions. Anything you build on top of this first iteration may break in a later update.
+
+### Conditional settings now support workflow trigger events
+
+`ConditionalSettings` now supports a `triggers` condition, allowing you to apply settings based on `GITHUB_EVENT_NAME` values such as `push`, `pull_request`, `schedule`, and `workflow_dispatch`.
+
+Example:
+
+```json
+"ConditionalSettings": [
+  {
+    "triggers": ["schedule", "workflow_dispatch"],
+    "settings": {
+      "additionalCountries": ["de", "us"]
+    }
+  }
+]
+```
+
+### Support for workspace compilation (Continued)
+
+- Added support for upgrade tests and using previously released artifacts as baselines for appsourcecop.json
+- Added support for BCPT app compilation with workspace compilation
+- Added support for incremental builds (`modifiedApps` mode) with workspace compilation. Unmodified apps are downloaded from the baseline workflow run and excluded from workspace compilation, matching the behavior of the container-based path.
+
+### Optimized dependency artifact downloads for multi-project repositories
+
+The `DownloadProjectDependencies` action now downloads only artifacts from dependency projects instead of all workflow artifacts. For repositories with many AL-Go projects, this reduces build runner bandwidth and speeds up the dependency download step.
+
+### Issues
+
+- Issue 2276 - Mitigate intermittent artifact action failures caused by the runner Node Maglev issue by setting `ACTIONS_RUNNER_DISABLE_NODE_MAGLEV` on generated artifact download and upload steps.
+- Issue 2277 Auto-exclude the `copilot` GitHub environment from CI/CD deployments. When the GitHub Copilot coding agent is enabled on a repository, GitHub auto-creates an environment named `copilot`. AL-Go now treats it the same way as `github-pages` and never attempts to deploy to it.
+- Issue 2236 - `GetDependencies` `buildMode` prefix leaks across dependency iterations, causing incorrect artifact mask names when multiple `appDependencyProbingPaths` entries use different build modes
+- Incremental builds (`modifiedApps` mode) now correctly identify unmodified apps for projects whose `appFolders` reference paths outside the project directory (e.g. using `../`)
+- Issue 2204 - Workspace compilation ignores vsixFile setting
+- Issue 2211 - Cannot create a release if a project contains only test apps
+- Issue 2214 - Workspace compilation not working with external dependencies
+- Issue 2235 - Workspace compilation: only the first `customCodeCops` entry resolved when multiple relative paths were configured. Relative `customCodeCops` paths are now resolved against the project folder before being passed to the compiler.
+- Issue 2265 - Creating a Performance Test App fails on Linux due to case-sensitive path lookup for the Performance Toolkit sample app
+- Issue 2284 - GitHub App authentication fails with `401 (Unauthorized)` on runners with minor clock drift. The JWT `iat` claim is now backdated by 60 seconds instead of 10, as recommended by GitHub, to tolerate runners whose clock runs slightly ahead of GitHub.
+
 ## v9.0
 
 ### Needs Context in Build job moved from environment variable to file
