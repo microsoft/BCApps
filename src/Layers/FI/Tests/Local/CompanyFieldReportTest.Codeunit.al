@@ -39,6 +39,8 @@ codeunit 144010 "Company Field Report Test"
             FeatureKeyUpdateStatus.Modify();
         end;
 
+        EnableVATVIESDeclarationFeature();
+
         LibraryReportDataset.Reset();
         CompanyInformation.FindFirst();
         CompanyInformation."Business Identity Code" := TenDigitsTxt + TenDigitsTxt;
@@ -221,7 +223,6 @@ codeunit 144010 "Company Field Report Test"
         VATVIESDeclarationTaxAuthReport: Report "VAT- VIES Declaration Tax Auth";
     begin
         Initialize();
-        EnableVATVIESDeclarationFeature();
 
         VATVIESDeclarationTaxAuthReport.UseRequestPage(true);
         VATVIESDeclarationTaxAuthReport.InitializeRequest(true, WorkDate(), WorkDate() + 365, '');

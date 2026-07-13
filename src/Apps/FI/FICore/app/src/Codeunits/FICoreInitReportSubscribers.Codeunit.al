@@ -24,6 +24,9 @@ codeunit 13411 "FICore InitReport Subscribers"
         if IsHandled then
             exit;
 
+        if not IsFeatureEnabled() then
+            exit;
+
         AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
 
         IsHandled := true;
@@ -33,6 +36,9 @@ codeunit 13411 "FICore InitReport Subscribers"
     local procedure OnInitReportForGlobalVariableInStandardSalesCreditMemo(var IsHandled: Boolean; var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
     begin
         if IsHandled then
+            exit;
+
+        if not IsFeatureEnabled() then
             exit;
 
         AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
@@ -46,6 +52,9 @@ codeunit 13411 "FICore InitReport Subscribers"
         if IsHandled then
             exit;
 
+        if not IsFeatureEnabled() then
+            exit;
+
         AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
 
         IsHandled := true;
@@ -55,6 +64,9 @@ codeunit 13411 "FICore InitReport Subscribers"
     local procedure OnInitReportForGlobalVariableInStandardSalesInvoice(var IsHandled: Boolean; var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
     begin
         if IsHandled then
+            exit;
+
+        if not IsFeatureEnabled() then
             exit;
 
         AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
@@ -68,6 +80,9 @@ codeunit 13411 "FICore InitReport Subscribers"
         if IsHandled then
             exit;
 
+        if not IsFeatureEnabled() then
+            exit;
+
         AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
 
         IsHandled := true;
@@ -77,6 +92,9 @@ codeunit 13411 "FICore InitReport Subscribers"
     local procedure OnInitReportForGlobalVariableInStandardSalesProFormaInv(var IsHandled: Boolean; var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
     begin
         if IsHandled then
+            exit;
+
+        if not IsFeatureEnabled() then
             exit;
 
         AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
@@ -90,6 +108,9 @@ codeunit 13411 "FICore InitReport Subscribers"
         if IsHandled then
             exit;
 
+        if not IsFeatureEnabled() then
+            exit;
+
         AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
 
         IsHandled := true;
@@ -99,6 +120,9 @@ codeunit 13411 "FICore InitReport Subscribers"
     local procedure OnInitReportForGlobalVariableInStandardSalesReturnRcpt(var IsHandled: Boolean; var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
     begin
         if IsHandled then
+            exit;
+
+        if not IsFeatureEnabled() then
             exit;
 
         AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
@@ -112,6 +136,9 @@ codeunit 13411 "FICore InitReport Subscribers"
         if IsHandled then
             exit;
 
+        if not IsFeatureEnabled() then
+            exit;
+
         AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
 
         IsHandled := true;
@@ -123,6 +150,9 @@ codeunit 13411 "FICore InitReport Subscribers"
         if IsHandled then
             exit;
 
+        if not IsFeatureEnabled() then
+            exit;
+
         AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
 
         IsHandled := true;
@@ -130,18 +160,23 @@ codeunit 13411 "FICore InitReport Subscribers"
 
     [EventSubscriber(ObjectType::Report, Report::"VAT- VIES Declaration Tax Auth", 'OnInitReportForGlobalVariable', '', false, false)]
     local procedure OnInitReportForGlobalVariableInVATVIESDeclaration(var IsHandled: Boolean; var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text; var ServiceSuppliesCode4CaptionTxt: Text)
-    var
-        VIESDeclarationFeature: Codeunit "FICore VIES Declaration Feature";
     begin
         if IsHandled then
             exit;
 
-        if not VIESDeclarationFeature.IsEnabled() then
+        if not IsFeatureEnabled() then
             exit;
 
         AssignVIESDeclarationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, RegisteredHomeCityTxt, RegisteredHomeCityLbl, ServiceSuppliesCode4CaptionTxt);
 
         IsHandled := true;
+    end;
+
+    local procedure IsFeatureEnabled(): Boolean
+    var
+        VIESDeclarationFeature: Codeunit "FICore VIES Declaration Feature";
+    begin
+        exit(VIESDeclarationFeature.IsEnabled());
     end;
 
     local procedure AssignLegalOfficeTexts(var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
