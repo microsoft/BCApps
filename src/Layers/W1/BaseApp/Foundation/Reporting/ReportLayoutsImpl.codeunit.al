@@ -44,6 +44,8 @@ codeunit 9660 "Report Layouts Impl."
         EmptyLayoutNameTxt: Label 'A layout name must be specified.';
         CannotUpdateLayoutTxt: Label 'The Layout could not be updated for export. The exported file will contain the original layout.';
         LayoutAlreadyExistsErr: Label 'A layout named "%1" already exists.', Comment = '%1 = Layout Name';
+        MixedScopeErr: Label 'The selected layouts have different scopes. Some apply to all companies and some only to the current company. Select layouts of a single scope and try again.';
+        GlobalScopeConfirmQst: Label 'One or more of the selected layouts apply to all companies. Changing the status will affect all companies, not only the current one. Do you want to continue?';
 
     internal procedure SetSelectedCompany(NewCompanyName: Text)
     begin
@@ -66,8 +68,10 @@ codeunit 9660 "Report Layouts Impl."
     begin
         if not ReportLayoutList."User Defined" then begin
             // Extension-installed layout: override the status rather than copying the layout.
-            // Company-specific by default (see CP0529-338 open question Q1 on scope).
-            UpsertLayoutOverride(ReportLayoutList, false, false, '', true, NewStatus, false, false);
+            // A layout that already has a global override is updated globally; otherwise the status
+            // override is company-specific (see CP0529-338 Q1). Mixed-scope selections and the
+            // global confirmation are handled by SetLayoutStatusBatch before this point.
+            UpsertLayoutOverride(ReportLayoutList, LayoutStatusIsGlobalScope(ReportLayoutList), false, '', true, NewStatus, false, false);
             exit(true);
         end;
 
@@ -77,6 +81,21 @@ codeunit 9660 "Report Layouts Impl."
             exit(true);
         end;
         exit(false);
+    end;
+
+    /// <summary>
+    /// Determines whether a status change to an extension-installed layout applies globally.
+    /// A company-specific override for the current company takes precedence (company scope); otherwise
+    /// an existing global override means the layout is global-scope. A layout with no override defaults
+    /// to company scope.
+    /// </summary>
+    local procedure LayoutStatusIsGlobalScope(ReportLayoutList: Record "Report Layout List"): Boolean
+    var
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+    begin
+        if TenantReportLayoutOverride.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", SelectedCompany) then
+            exit(false);
+        exit(TenantReportLayoutOverride.Get(ReportLayoutList."Report ID", ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''));
     end;
 
     /// <summary>
@@ -140,9 +159,33 @@ codeunit 9660 "Report Layouts Impl."
     var
         CustomDimensions: Dictionary of [Text, Text];
         UpdateCount: Integer;
+        HasGlobalScope: Boolean;
+        HasCompanyScope: Boolean;
     begin
         if not ReportLayoutList.FindSet() then
             exit(0);
+
+        // First pass: classify the scope of the extension-installed layouts in the selection.
+        // User-defined layouts update in place and are not part of the scope decision.
+        repeat
+            if not ReportLayoutList."User Defined" then
+                if LayoutStatusIsGlobalScope(ReportLayoutList) then
+                    HasGlobalScope := true
+                else
+                    HasCompanyScope := true;
+        until ReportLayoutList.Next() = 0;
+
+        // Keep each run to a single scope so the effect is unambiguous.
+        if HasGlobalScope and HasCompanyScope then
+            Error(MixedScopeErr);
+
+        // A global-scope change affects every company, so make the user confirm it explicitly.
+        if HasGlobalScope then
+            if not Confirm(GlobalScopeConfirmQst, false) then
+                exit(0);
+
+        // Second pass: apply the status change.
+        ReportLayoutList.FindSet();
         repeat
             if SetLayoutStatus(ReportLayoutList, NewStatus) then
                 UpdateCount += 1;
