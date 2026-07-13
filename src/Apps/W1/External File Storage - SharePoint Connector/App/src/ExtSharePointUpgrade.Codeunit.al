@@ -27,7 +27,7 @@ codeunit 4608 "Ext. SharePoint Upgrade"
         UpgradeTag.SetUpgradeTag(GetUseLegacyRestAPIUpgradeTag());
     end;
 
-    local procedure SetUseLegacyRestAPIForExistingAccounts()
+    internal procedure SetUseLegacyRestAPIForExistingAccounts()
     var
         ExtSharePointAccount: Record "Ext. SharePoint Account";
     begin

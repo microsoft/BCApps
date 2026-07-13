@@ -19,6 +19,9 @@ codeunit 4609 "Ext. SharePoint REST Helper"
     InherentPermissions = X;
     Permissions = tabledata "Ext. SharePoint Account" = rimd;
 
+    var
+        TestSharePointAuthorization: Interface "SharePoint Authorization";
+        UseTestSharePointAuthorization: Boolean;
 
     #region File Operations
 
@@ -207,23 +210,37 @@ codeunit 4609 "Ext. SharePoint REST Helper"
 
         Scopes.Add('00000003-0000-0ff1-ce00-000000000000/.default');
 
-        case SharePointAccount."Authentication Type" of
-            Enum::"Ext. SharePoint Auth Type"::"Client Secret":
-                SharePointAuthorization := SharePointAuth.CreateAuthorizationCode(
-                    Format(SharePointAccount."Tenant Id", 0, 4),
-                    Format(SharePointAccount."Client Id", 0, 4),
-                    SharePointAccount.GetClientSecret(SharePointAccount."Client Secret Key"),
-                    Scopes);
-            Enum::"Ext. SharePoint Auth Type"::Certificate:
-                SharePointAuthorization := SharePointAuth.CreateClientCredentials(
-                    Format(SharePointAccount."Tenant Id", 0, 4),
-                    Format(SharePointAccount."Client Id", 0, 4),
-                    SharePointAccount.GetCertificate(SharePointAccount."Certificate Key"),
-                    SharePointAccount.GetCertificatePassword(SharePointAccount."Certificate Password Key"),
-                    Scopes);
-        end;
+        // Tests inject a mock authorization because acquiring a token requires a real Entra ID app registration.
+        if UseTestSharePointAuthorization then
+            SharePointAuthorization := TestSharePointAuthorization
+        else
+            case SharePointAccount."Authentication Type" of
+                Enum::"Ext. SharePoint Auth Type"::"Client Secret":
+                    SharePointAuthorization := SharePointAuth.CreateAuthorizationCode(
+                        Format(SharePointAccount."Tenant Id", 0, 4),
+                        Format(SharePointAccount."Client Id", 0, 4),
+                        SharePointAccount.GetClientSecret(SharePointAccount."Client Secret Key"),
+                        Scopes);
+                Enum::"Ext. SharePoint Auth Type"::Certificate:
+                    SharePointAuthorization := SharePointAuth.CreateClientCredentials(
+                        Format(SharePointAccount."Tenant Id", 0, 4),
+                        Format(SharePointAccount."Client Id", 0, 4),
+                        SharePointAccount.GetCertificate(SharePointAccount."Certificate Key"),
+                        SharePointAccount.GetCertificatePassword(SharePointAccount."Certificate Password Key"),
+                        Scopes);
+            end;
 
         SharePointClient.Initialize(SharePointAccount."SharePoint Url", SharePointAuthorization);
+    end;
+
+    /// <summary>
+    /// Injects a mock authorization so tests can exercise the REST API flow without acquiring a real token.
+    /// Token acquisition goes through the platform OAuth stack and cannot be intercepted by test HTTP handlers.
+    /// </summary>
+    internal procedure SetAuthorizationForTest(NewSharePointAuthorization: Interface "SharePoint Authorization")
+    begin
+        TestSharePointAuthorization := NewSharePointAuthorization;
+        UseTestSharePointAuthorization := true;
     end;
 
     local procedure PathSeparator(): Text

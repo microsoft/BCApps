@@ -6,6 +6,8 @@
 namespace System.ExternalFileStorage;
 
 using System.DataAdministration;
+using System.Integration.Graph.Authorization;
+using System.Integration.Sharepoint;
 using System.Text;
 
 codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage Connector"
@@ -338,6 +340,16 @@ codeunit 4580 "Ext. SharePoint Connector Impl" implements "External File Storage
         TempFileAccount."Account Id" := NewExtSharePointAccount.Id;
         TempFileAccount.Name := NewExtSharePointAccount.Name;
         TempFileAccount.Connector := Enum::"Ext. File Storage Connector"::"SharePoint";
+    end;
+
+    /// <summary>
+    /// Injects mock authorizations into both helpers so tests can exercise the dispatching
+    /// between the Graph and REST stacks without acquiring real tokens.
+    /// </summary>
+    internal procedure SetAuthorizationsForTest(GraphAuthorization: Interface "Graph Authorization"; SharePointAuthorization: Interface "SharePoint Authorization")
+    begin
+        GraphHelper.SetAuthorizationForTest(GraphAuthorization);
+        RestHelper.SetAuthorizationForTest(SharePointAuthorization);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Environment Cleanup", OnClearCompanyConfig, '', false, false)]

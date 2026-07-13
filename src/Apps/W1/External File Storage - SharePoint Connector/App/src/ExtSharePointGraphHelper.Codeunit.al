@@ -23,6 +23,8 @@ codeunit 4610 "Ext. SharePoint Graph Helper"
 
     var
         SharePointGraphClient: Codeunit "SharePoint Graph Client";
+        TestGraphAuthorization: Interface "Graph Authorization";
+        UseTestGraphAuthorization: Boolean;
         ErrorOccurredErr: Label 'An error occurred.\%1', Comment = '%1 - Error message from Graph API';
 
     #region File Operations
@@ -290,32 +292,46 @@ codeunit 4610 "Ext. SharePoint Graph Helper"
         // Add required SharePoint scopes
         Scopes.Add('https://graph.microsoft.com/.default');
 
-        // Create authorization based on authentication type
-        case SharePointAccount."Authentication Type" of
-            SharePointAccount."Authentication Type"::"Client Secret":
-                begin
-                    ClientSecret := SharePointAccount.GetClientSecret(SharePointAccount."Client Secret Key");
-                    GraphAuthInterface := GraphAuthorization.CreateAuthorizationWithClientCredentials(
-                        Format(SharePointAccount."Tenant Id", 0, 4),
-                        Format(SharePointAccount."Client Id", 0, 4),
-                        ClientSecret,
-                        Scopes);
-                end;
-            SharePointAccount."Authentication Type"::Certificate:
-                begin
-                    Certificate := SharePointAccount.GetCertificate(SharePointAccount."Certificate Key");
-                    CertificatePassword := SharePointAccount.GetCertificatePassword(SharePointAccount."Certificate Password Key");
-                    GraphAuthInterface := GraphAuthorization.CreateAuthorizationWithClientCredentials(
-                        Format(SharePointAccount."Tenant Id", 0, 4),
-                        Format(SharePointAccount."Client Id", 0, 4),
-                        Certificate,
-                        CertificatePassword,
-                        Scopes);
-                end;
-        end;
+        // Create authorization based on authentication type.
+        // Tests inject a mock authorization because acquiring a token requires a real Entra ID app registration.
+        if UseTestGraphAuthorization then
+            GraphAuthInterface := TestGraphAuthorization
+        else
+            case SharePointAccount."Authentication Type" of
+                SharePointAccount."Authentication Type"::"Client Secret":
+                    begin
+                        ClientSecret := SharePointAccount.GetClientSecret(SharePointAccount."Client Secret Key");
+                        GraphAuthInterface := GraphAuthorization.CreateAuthorizationWithClientCredentials(
+                            Format(SharePointAccount."Tenant Id", 0, 4),
+                            Format(SharePointAccount."Client Id", 0, 4),
+                            ClientSecret,
+                            Scopes);
+                    end;
+                SharePointAccount."Authentication Type"::Certificate:
+                    begin
+                        Certificate := SharePointAccount.GetCertificate(SharePointAccount."Certificate Key");
+                        CertificatePassword := SharePointAccount.GetCertificatePassword(SharePointAccount."Certificate Password Key");
+                        GraphAuthInterface := GraphAuthorization.CreateAuthorizationWithClientCredentials(
+                            Format(SharePointAccount."Tenant Id", 0, 4),
+                            Format(SharePointAccount."Client Id", 0, 4),
+                            Certificate,
+                            CertificatePassword,
+                            Scopes);
+                    end;
+            end;
 
         // Initialize SharePoint Graph Client with Site URL and authorization
         SharePointGraphClient.Initialize(SharePointAccount."SharePoint Url", GraphAuthInterface);
+    end;
+
+    /// <summary>
+    /// Injects a mock authorization so tests can exercise the Graph API flow without acquiring a real token.
+    /// Token acquisition goes through the platform OAuth stack and cannot be intercepted by test HTTP handlers.
+    /// </summary>
+    internal procedure SetAuthorizationForTest(NewGraphAuthorization: Interface "Graph Authorization")
+    begin
+        TestGraphAuthorization := NewGraphAuthorization;
+        UseTestGraphAuthorization := true;
     end;
 
     local procedure ShowError(Response: Codeunit "SharePoint Graph Response")
