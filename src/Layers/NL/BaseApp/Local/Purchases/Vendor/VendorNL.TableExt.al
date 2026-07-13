@@ -5,6 +5,7 @@
 namespace Microsoft.Purchases.Vendor;
 
 using Microsoft.Bank.Payment;
+using Microsoft.Foundation.Company;
 
 tableextension 11300 "Vendor NL" extends Vendor
 {
@@ -20,6 +21,9 @@ tableextension 11300 "Vendor NL" extends Vendor
             var
                 TransactionMode: Record "Transaction Mode";
             begin
+                if not IsDutchCompany() then
+                    exit;
+
                 if "Transaction Mode Code" <> '' then begin
                     TransactionMode.Get(TransactionMode."Account Type"::Vendor, "Transaction Mode Code");
                     if TransactionMode."Payment Method Code" <> '' then
@@ -83,6 +87,13 @@ tableextension 11300 "Vendor NL" extends Vendor
             end;
         }
     }
+
+    local procedure IsDutchCompany(): Boolean
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        exit(CompanyInformation.Get() and (CompanyInformation."Country/Region Code" = 'NL'));
+    end;
 
     var
         UpdateBankAccountsQst: Label 'Do you want to update the bank accounts for this vendor to reflect the new value of %1?', Comment = '%1 = Field Caption';

@@ -5,6 +5,7 @@
 namespace Microsoft.Sales.Customer;
 
 using Microsoft.Bank.Payment;
+using Microsoft.Foundation.Company;
 
 /// <summary>
 /// Extends the Customer table with NL-specific telebanking fields.
@@ -27,6 +28,9 @@ tableextension 11462 "Customer NL" extends Customer
             var
                 TransactionMode: Record "Transaction Mode";
             begin
+                if not IsDutchCompany() then
+                    exit;
+
                 if "Transaction Mode Code" <> '' then begin
                     TransactionMode.Get(TransactionMode."Account Type"::Customer, "Transaction Mode Code");
                     if TransactionMode."Payment Method Code" <> '' then
@@ -91,6 +95,13 @@ tableextension 11462 "Customer NL" extends Customer
         }
     }
 
+    local procedure IsDutchCompany(): Boolean
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        exit(CompanyInformation.Get() and (CompanyInformation."Country/Region Code" = 'NL'));
+    end;
+
     var
         UpdateBankAccountsQst: Label 'Do you want to update the bank accounts for this customer to reflect the new value of %1?', Comment = '%1 = Field Caption';
         PartnerTypeMismatchQst: Label 'The Partner Type does not match the Partner Type defined in Transaction Mode. Do you still want to change the Partner Type?';
@@ -130,4 +141,3 @@ tableextension 11462 "Customer NL" extends Customer
     begin
     end;
 }
-
