@@ -78,15 +78,26 @@ codeunit 132802 "Upgrade Test Data Setup"
     var
         WarehouseRequest: Record "Warehouse Request";
     begin
-        WarehouseRequest.SetRange("Source No.", 'UPG-JOB-01');
+        WarehouseRequest.SetFilter("Source No.", '%1|%2', 'UPG-JOB-01', 'UPG-SALES-01');
         WarehouseRequest.DeleteAll();
 
+        // Legacy Job row that MUST be renamed to (Database::"Job Planning Line", Order) by the upgrade.
         WarehouseRequest.Init();
         WarehouseRequest.Type := WarehouseRequest.Type::Outbound;
         WarehouseRequest."Location Code" := '';
         WarehouseRequest."Source Type" := Database::Job;
         WarehouseRequest."Source Subtype" := 0;
         WarehouseRequest."Source No." := 'UPG-JOB-01';
+        WarehouseRequest.Insert();
+
+        // Non-job row (Sales Header) that MUST NOT be touched by the upgrade. Guards against a regression
+        // where the Warehouse Request FindSet() loop iterates without a Source Type / Source Subtype filter.
+        WarehouseRequest.Init();
+        WarehouseRequest.Type := WarehouseRequest.Type::Outbound;
+        WarehouseRequest."Location Code" := '';
+        WarehouseRequest."Source Type" := Database::"Sales Header";
+        WarehouseRequest."Source Subtype" := 1; // Sales Order
+        WarehouseRequest."Source No." := 'UPG-SALES-01';
         WarehouseRequest.Insert();
     end;
 }

@@ -4046,6 +4046,11 @@ codeunit 104000 "Upgrade - BaseApp"
         WhseWorksheetLineDataTransfer.CopyFields();
 
         // Upgrade Warehouse Request
+        // Restore the legacy-Job filters before FindSet(). Without them the loop would iterate every
+        // Warehouse Request (Sales, Purchase, Transfer, Prod. Order, etc.) and Rename it to
+        // Database::"Job Planning Line" whenever no target row already exists, corrupting non-job requests.
+        WarehouseRequest.SetRange("Source Type", Database::Job);
+        WarehouseRequest.SetRange("Source Subtype", 0);
         if WarehouseRequest.FindSet() then
             repeat
                 // Guard against a target record already existing with the new key values

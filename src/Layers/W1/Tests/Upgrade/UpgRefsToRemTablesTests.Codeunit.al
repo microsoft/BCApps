@@ -120,4 +120,40 @@ codeunit 135973 "Upg Refs To Rem. Tables Tests"
         Assert.IsTrue(WarehouseRequest.IsEmpty(),
             'Legacy Warehouse Request rows (Source Type = Job, Source Subtype = 0) still exist after upgrade.');
     end;
+
+    [Test]
+    procedure NonJobWarehouseRequestIsNotRenamedByJobPlanningLineUpgradeTest()
+    var
+        WarehouseRequest: Record "Warehouse Request";
+        UpgradeStatus: Codeunit "Upgrade Status";
+        UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
+        Assert: Codeunit "Library Assert";
+    begin
+        // Guards against a regression where the Warehouse Request loop in
+        // UpgradeWarehouseActivitySourceTypeForJobPlanningLine iterates without a Source Type / Source Subtype
+        // filter and renames Sales, Purchase, Transfer or other non-job warehouse requests to
+        // Database::"Job Planning Line".
+        if not UpgradeStatus.UpgradeTriggered() then
+            exit;
+
+        if UpgradeStatus.UpgradeTagPresentBeforeUpgrade(
+            UpgradeTagDefinitions.GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag())
+        then
+            exit;
+
+        // [GIVEN] A non-job Warehouse Request was seeded with Source Type = Sales Header / Source Subtype = 1 and Source No. = 'UPG-SALES-01'.
+        // [THEN] The row is still stored under its original primary key.
+        Assert.IsTrue(
+            WarehouseRequest.Get(WarehouseRequest.Type::Outbound, '', Database::"Sales Header", 1, 'UPG-SALES-01'),
+            'Non-job Warehouse Request (Sales Header) was renamed by the Job Planning Line upgrade.');
+        Assert.AreEqual(Database::"Sales Header", WarehouseRequest."Source Type",
+            'Non-job Warehouse Request Source Type was changed by the Job Planning Line upgrade.');
+        Assert.AreEqual(1, WarehouseRequest."Source Subtype",
+            'Non-job Warehouse Request Source Subtype was changed by the Job Planning Line upgrade.');
+
+        // [THEN] No stray Job Planning Line row was created from the Sales Header seed.
+        Assert.IsFalse(
+            WarehouseRequest.Get(WarehouseRequest.Type::Outbound, '', Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), 'UPG-SALES-01'),
+            'Non-job Warehouse Request was incorrectly renamed to Job Planning Line.');
+    end;
 }
