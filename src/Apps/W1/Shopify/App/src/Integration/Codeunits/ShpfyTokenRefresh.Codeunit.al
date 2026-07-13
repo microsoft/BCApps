@@ -80,6 +80,6 @@ codeunit 30431 "Shpfy Token Refresh"
         JobQueueEntry."Job Queue Category Code" := JobQueueCategoryLbl;
         // Do not let an enqueue failure abort the install/upgrade that schedules this job.
         if not Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry) then
-            Session.LogMessage('', StrSubstNo(ScheduleFailedTxt, GetLastErrorText()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+            Session.LogMessage('0000UJ6', StrSubstNo(ScheduleFailedTxt, GetLastErrorText()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
     end;
 }
