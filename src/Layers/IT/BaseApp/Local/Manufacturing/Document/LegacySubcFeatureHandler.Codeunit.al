@@ -1,0 +1,259 @@
+#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Manufacturing.Setup;
+
+using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Purchases.Document;
+using System.Apps;
+using System.Environment;
+using System.Environment.Configuration;
+
+codeunit 99008501 "Legacy Subc. Feature Handler"
+{
+    ObsoleteReason = 'Legacy Subcontracting will be discontinued, environments should move to the Subcontracting App.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
+
+    var
+        ITMigrationAppIdTok: Label '6d51d1f2-2b87-4e3a-bf5e-c27682fa0320', Locked = true;
+        SubcontractingAppIdTok: Label '1f32a50d-0057-4b95-b5df-cc04d7e89470', Locked = true;
+        SubcontractingAppInstalledErr: Label 'Cannot activate legacy subcontracting while the Subcontracting app is installed. Use the Subcontracting app features instead.';
+        OpenSubcontractingTransfersExistErr: Label 'There are still open transfer orders with WIP Items. All subcontracting transfer orders must be completed before disabling Legacy Subcontracting.';
+        OpenWIPPurchaseOrdersExistErr: Label 'There are still open subcontracting purchase orders. All subcontracting purchase orders must be completed before disabling Legacy Subcontracting.';
+        MigrationNotAllowedInProductionErr: Label 'To help you migrate safely, disabling Legacy Subcontracting and moving to the Subcontracting app is currently limited to sandbox environments. Test the migration in a sandbox copy of this environment first to validate the transition. Production environments will be enabled in a future release.';
+        InstallSubcontractingAppQst: Label 'The Subcontracting app is required to disable Legacy Subcontracting. Do you want to install it now?';
+        InstallITMigrationAppQst: Label 'The IT Subcontracting Migration app is needed to migrate your data. Do you want to install it now?';
+
+    /// <summary>
+    /// Returns whether Legacy Subcontracting is enabled in Manufacturing Setup.
+    /// </summary>
+    internal procedure IsLegacySubcontractingEnabled(): Boolean
+    var
+        ManufacturingSetup: Record "Manufacturing Setup";
+    begin
+        if not ManufacturingSetup.Get() then
+            exit(false);
+        exit(ManufacturingSetup."Legacy Subcontracting");
+    end;
+
+    local procedure IsMigrationAllowedInCurrentEnvironment(): Boolean
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+    begin
+        exit(EnvironmentInformation.IsSandbox());
+    end;
+
+    /// <summary>
+    /// Checks whether Legacy Subcontracting can be disabled and raises an error if the preconditions are not met.
+    /// When a required app is missing, it offers to install it inline and stops - after the install completes and the
+    /// session reloads, the user runs the disable action again (installing one app per run until both are present and migration proceeds).
+    /// </summary>
+    procedure CheckCanDisableLegacySubcontracting()
+    begin
+        if not IsMigrationAllowedInCurrentEnvironment() then
+            Error(MigrationNotAllowedInProductionErr);
+
+        if OpenSubcontractingTransfersExist() then
+            Error(OpenSubcontractingTransfersExistErr);
+
+        if OpenWIPPurchaseLinesExist() then
+            Error(OpenWIPPurchaseOrdersExistErr);
+
+        if not IsSubcontractingAppInstalled() then begin
+            OfferToInstallApp(SubcontractingAppIdTok, InstallSubcontractingAppQst);
+            exit;
+        end;
+
+        if DatabaseHasLegacySubcontractingData() then
+            if not IsITMigrationAppInstalled() then begin
+                OfferToInstallApp(ITMigrationAppIdTok, InstallITMigrationAppQst);
+                exit;
+            end;
+    end;
+
+    /// <summary>
+    /// Offers to install a required app inline. If the user accepts, the app is installed and the session is scheduled to reload.
+    /// </summary>
+    local procedure OfferToInstallApp(AppId: Text; InstallQst: Text)
+    var
+        ExtensionManagement: Codeunit "Extension Management";
+    begin
+        if Confirm(InstallQst, true) then
+            ExtensionManagement.InstallMarketplaceExtension(AppId);
+    end;
+
+    /// <summary>
+    /// Checks whether Legacy Subcontracting can be enabled and raises an error if the preconditions are not met.
+    /// </summary>
+    procedure CheckCanEnableLegacySubcontracting()
+    begin
+        if IsSubcontractingAppInstalled() then
+            Error(SubcontractingAppInstalledErr);
+    end;
+
+    /// <summary>
+    /// Returns whether the database contains Legacy Subcontracting data based on the presence of WIP Item related data in open transfer orders, open purchase orders, or capacity ledger entries.
+    /// </summary>
+    internal procedure DatabaseHasLegacySubcontractingData(): Boolean
+    begin
+        if WIPItemCapacityLedgerEntriesExist() then
+            exit(true);
+
+        if OpenSubcontractingTransfersExist() then
+            exit(true);
+
+        if OpenWIPPurchaseLinesExist() then
+            exit(true);
+
+        if SubcontractingPricesExist() then
+            exit(true);
+
+        if WIPItemProdOrderRoutingLinesExist() then
+            exit(true);
+
+        if WIPItemRoutingLinesExist() then
+            exit(true);
+
+        exit(false);
+    end;
+
+    internal procedure MigrateData()
+    begin
+        OnMigrationSubcontractingData();
+    end;
+
+    internal procedure SetLegacySubcontracting(var ManufacturingSetup: Record "Manufacturing Setup"; Enabled: Boolean)
+    begin
+        if ManufacturingSetup."Legacy Subcontracting" = Enabled then
+            exit;
+
+        if not Enabled then begin
+            CheckCanDisableLegacySubcontracting();
+            if DatabaseHasLegacySubcontractingData() then
+                MigrateData();
+        end else
+            CheckCanEnableLegacySubcontracting();
+
+        ManufacturingSetup."Legacy Subcontracting" := Enabled;
+        ManufacturingSetup.Modify(true);
+
+        RefreshApplicationAreaSetup();
+        RestartSession();
+    end;
+
+    local procedure RefreshApplicationAreaSetup()
+    var
+        ExperienceTierSetup: Record "Experience Tier Setup";
+        ApplicationAreaMgmtFacade: Codeunit "Application Area Mgmt. Facade";
+        ExperienceTier: Text;
+    begin
+        if ApplicationAreaMgmtFacade.GetExperienceTierCurrentCompany(ExperienceTier) then
+            if ExperienceTier = ExperienceTierSetup.FieldCaption(Custom) then
+                exit;
+
+        ApplicationAreaMgmtFacade.RefreshExperienceTierCurrentCompany();
+    end;
+
+    local procedure IsSubcontractingAppInstalled() Result: Boolean
+    var
+        ExtensionManagement: Codeunit "Extension Management";
+    begin
+        Result := ExtensionManagement.IsInstalledByAppId(SubcontractingAppIdTok);
+        OnCheckIsSubcontractingAppInstalled(Result);
+        exit(Result);
+    end;
+
+    local procedure IsITMigrationAppInstalled() Result: Boolean
+    var
+        ExtensionManagement: Codeunit "Extension Management";
+    begin
+        Result := ExtensionManagement.IsInstalledByAppId(ITMigrationAppIdTok);
+        OnCheckIsITMigrationAppInstalled(Result);
+        exit(Result);
+    end;
+
+    local procedure OpenSubcontractingTransfersExist(): Boolean
+    var
+        TransferLine: Record "Transfer Line";
+    begin
+        TransferLine.SetRange("WIP Item", true);
+        TransferLine.SetFilter("WIP Outstanding Qty.", '<>%1', 0);
+        exit(not TransferLine.IsEmpty());
+    end;
+
+    local procedure OpenWIPPurchaseLinesExist(): Boolean
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange("WIP Item", true);
+        exit(not PurchaseLine.IsEmpty());
+    end;
+
+#if not CLEAN28
+    local procedure WIPItemCapacityLedgerEntriesExist(): Boolean
+    var
+        CapacityLedgerEntry: Record "Capacity Ledger Entry";
+    begin
+        CapacityLedgerEntry.SetCurrentKey("Subcontr. Purch. Order No.", "Subcontr. Purch. Order Line");
+        CapacityLedgerEntry.SetFilter("Subcontractor No.", '<>%1', '');
+        CapacityLedgerEntry.SetFilter("Subcontr. Purch. Order No.", '<>%1', '');
+        CapacityLedgerEntry.SetFilter("WIP Item Qty.", '<>%1', 0);
+        exit(not CapacityLedgerEntry.IsEmpty());
+    end;
+
+    local procedure SubcontractingPricesExist(): Boolean
+    var
+        SubcontractingPrice: Record "Subcontractor Prices";
+    begin
+        exit(not SubcontractingPrice.IsEmpty());
+    end;
+#endif
+
+    local procedure WIPItemProdOrderRoutingLinesExist(): Boolean
+    var
+        ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+    begin
+        ProdOrderRoutingLine.SetRange("WIP Item", true);
+        ProdOrderRoutingLine.SetRange(Status, "Production Order Status"::Released);
+        exit(not ProdOrderRoutingLine.IsEmpty());
+    end;
+
+    local procedure WIPItemRoutingLinesExist(): Boolean
+    var
+        RoutingLine: Record "Routing Line";
+    begin
+        RoutingLine.SetRange("WIP Item", true);
+        exit(not RoutingLine.IsEmpty());
+    end;
+
+    internal procedure RestartSession()
+    var
+        SessionSetting: SessionSettings;
+    begin
+        SessionSetting.Init();
+        SessionSetting.RequestSessionUpdate(false);
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnCheckIsITMigrationAppInstalled(var Result: Boolean)
+    begin
+    end;
+
+    [InternalEvent(false)]
+    local procedure OnCheckIsSubcontractingAppInstalled(var Result: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnMigrationSubcontractingData()
+    begin
+    end;
+}
+#endif
