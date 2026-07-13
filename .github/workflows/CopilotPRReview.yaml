@@ -22,7 +22,7 @@ permissions:
 
 jobs:
   intake:
-    if: github.event.pull_request.draft == false
+    if: github.event.pull_request.draft == false && github.event.pull_request.user.login != 'business-central-bot[bot]'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -42,6 +42,8 @@ jobs:
 
       - name: Upload review input
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        env:
+          ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
         with:
           name: copilot-pr-review-input-${{ github.event.pull_request.number }}
           path: ${{ github.workspace }}/review-input

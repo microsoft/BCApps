@@ -38,7 +38,7 @@ page 30145 "Shpfy Refund"
                 field("Updated At"; Rec."Updated At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time when the refund was update in Shopify.';
+                    ToolTip = 'Specifies the date and time when the refund was updated in Shopify.';
                     Visible = false;
                 }
                 field("Sell-to Customer No."; Rec."Sell-to Customer No.")
@@ -238,11 +238,22 @@ page 30145 "Shpfy Refund"
                     Page.Run(Page::"Shpfy Order Tax Lines", OrderTaxLine);
                 end;
             }
+            action(Transactions)
+            {
+                ApplicationArea = All;
+                Caption = 'Transactions';
+                Image = Payment;
+                ToolTip = 'View the transactions created for this refund that results in exchange of money.';
+                RunObject = Page "Shpfy Order Transactions";
+                RunPageLink = "Refund Id" = field("Refund Id");
+                RunPageMode = View;
+            }
         }
         area(Promoted)
         {
             actionref(PromotedShippingLines; ShippingLines) { }
             actionref(PromotedTaxLines; TaxLines) { }
+            actionref(PromotedTransactions; Transactions) { }
             actionref(PromotedCreateCreditNoted; CreateCreditMemo) { }
             actionref(PromotedRetrievedShopifyData; RetrievedShopifyData) { }
         }

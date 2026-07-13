@@ -754,9 +754,15 @@ table 30102 "Shpfy Shop"
         }
         field(120; "Auto Create Catalog"; Boolean)
         {
-            Caption = 'Auto Create Catalog';
-            ToolTip = 'Specifies whether a catalog is automatically created for new companies.';
+            Caption = 'Auto Create B2B Catalog';
+            ToolTip = 'Specifies whether a B2B catalog is automatically created for new companies.';
             DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            begin
+                if Rec."Auto Create Catalog" and not Rec."Advanced Shopify Plan" then
+                    Error(AutoCreateCatalogPlanErr, Rec.FieldCaption("Auto Create Catalog"));
+            end;
         }
         field(121; "Company Import From Shopify"; Enum "Shpfy Company Import Range")
         {
@@ -942,6 +948,12 @@ table 30102 "Shpfy Shop"
         {
             Caption = 'Advanced Shopify Plan';
             DataClassification = SystemMetadata;
+
+            trigger OnValidate()
+            begin
+                if (not Rec."Advanced Shopify Plan") and Rec."Auto Create Catalog" then
+                    Rec.Validate("Auto Create Catalog", false);
+            end;
         }
         field(208; "Find Mapping by Barcode"; Boolean)
         {
@@ -981,6 +993,7 @@ table 30102 "Shpfy Shop"
     var
         CurrencyExchangeRateNotDefinedErr: Label 'The specified currency must have exchange rates configured. If your online shop uses the same currency as Business Central then leave the field empty.';
         AutoCreateErrorMsg: Label 'You cannot turn "%1" off if "%2" is set to the value of "%3".', Comment = '%1 = Field Caption of "Auto Create Orders", %2 = Field Caption of "Return and Refund Process", %3 = Field Value of "Return and Refund Process"';
+        AutoCreateCatalogPlanErr: Label '%1 can only be enabled for Shopify Plus, Plus Trial, Development, or Advanced plans.', Comment = '%1 = Field Caption of "Auto Create Catalog"';
         ExpirationNotificationTxt: Label 'Shopify API version 30 days before expiry notification sent.', Locked = true;
         BlockedNotificationTxt: Label 'Shopify API version expired notification sent.', Locked = true;
         CategoryTok: Label 'Shopify Integration', Locked = true;
@@ -1143,8 +1156,8 @@ table 30102 "Shpfy Shop"
         JResponse := CommunicationMgt.ExecuteGraphQL('{"query":"query { shop { name plan { publicDisplayName partnerDevelopment shopifyPlus } weightUnit } }"}');
         if JResponse.SelectToken('$.data.shop.plan', JItem) then
             if JItem.IsObject then
-                Rec."Advanced Shopify Plan" := JsonHelper.GetValueAsBoolean(JItem, 'shopifyPlus') or
-                                                (JsonHelper.GetValueAsText(JItem, 'publicDisplayName') in ['Plus Trial', 'Development', 'Advanced']);
+                Rec.Validate("Advanced Shopify Plan", JsonHelper.GetValueAsBoolean(JItem, 'shopifyPlus') or
+                                                (JsonHelper.GetValueAsText(JItem, 'publicDisplayName') in ['Plus Trial', 'Development', 'Advanced']));
         Rec."Weight Unit" := ConvertToWeightUnit(JsonHelper.GetValueAsText(JResponse, 'data.shop.weightUnit'));
     end;
 

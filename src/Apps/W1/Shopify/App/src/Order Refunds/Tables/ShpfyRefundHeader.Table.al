@@ -30,13 +30,13 @@ table 30142 "Shpfy Refund Header"
         }
         field(3; "Created At"; DateTime)
         {
-            Caption = 'Created At';
+            Caption = 'Created At (Shopify)';
             DataClassification = SystemMetadata;
             Editable = false;
         }
         field(4; "Updated At"; DateTime)
         {
-            Caption = 'Updated At';
+            Caption = 'Updated At (Shopify)';
             DataClassification = SystemMetadata;
             Editable = false;
         }

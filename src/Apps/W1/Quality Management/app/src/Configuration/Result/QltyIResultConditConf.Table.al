@@ -15,6 +15,7 @@ table 20412 "Qlty. I. Result Condit. Conf."
 {
     Caption = 'Quality Inspection Result Condition Configuration';
     DataClassification = CustomerContent;
+    Permissions = tabledata "Qlty. Inspection Result" = r;
 
     fields
     {
@@ -113,7 +114,7 @@ table 20412 "Qlty. I. Result Condit. Conf."
         field(11; "Result Visibility"; Enum "Qlty. Result Visibility")
         {
             Caption = 'Result Visibility';
-            ToolTip = 'Specifies whether to make this result more prominent. This can optionally be used on some reports and forms.';
+            ToolTip = 'Specifies whether to make this result more prominent. This can optionally be used on some reports and pages.';
         }
     }
 

@@ -20,6 +20,7 @@ using Microsoft.QualityManagement.Integration.Inventory;
 using Microsoft.QualityManagement.Integration.Inventory.Transfer;
 using Microsoft.QualityManagement.Reports;
 using Microsoft.QualityManagement.Setup;
+using Microsoft.QualityManagement.Telemetry;
 using Microsoft.QualityManagement.Utilities;
 using Microsoft.QualityManagement.Workflow;
 using System.Device;
@@ -34,8 +35,13 @@ table 20405 "Qlty. Inspection Header"
     DrillDownPageId = "Qlty. Inspection List";
     LookupPageId = "Qlty. Inspection List";
     DataClassification = CustomerContent;
-    Permissions = tabledata "Qlty. Inspection Line" = d,
-                  tabledata "Qlty. I. Result Condit. Conf." = d;
+    Permissions = tabledata "Qlty. Management Setup" = r,
+                  tabledata "Qlty. Inspection Result" = r,
+                  tabledata "Qlty. Inspection Template Hdr." = r,
+                  tabledata "Qlty. Inspection Template Line" = r,
+                  tabledata "Qlty. Inspection Header" = rm,
+                  tabledata "Qlty. Inspection Line" = rmd,
+                  tabledata "Qlty. I. Result Condit. Conf." = rd;
 
     fields
     {
@@ -92,13 +98,13 @@ table 20405 "Qlty. Inspection Header"
         {
             AutoFormatType = 0;
             Caption = 'Quantity (Base)';
-            ToolTip = 'Specifies a reference to the quantity involved.';
+            ToolTip = 'Specifies a reference to the quantity involved. Only users with the Quality Admin & Supervisor role can change this value.';
             DecimalPlaces = 0 : 5;
 
             trigger OnValidate()
             begin
                 if not Rec.IsTemporary() then
-                    if not GetIsCreating() then
+                    if not Rec.GetIsCreating() then
                         QltyPermissionMgmt.VerifyCanChangeSourceQuantity();
 
                 if Rec."Source Quantity (Base)" < 0 then
@@ -112,7 +118,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Pass Quantity';
             AutoFormatType = 0;
-            ToolTip = 'Specifies the quantity that passed inspection. A manually entered quantity for non-sampling inspections, or derived from the quantity of passed sampling lines for sampling inspections.';
+            ToolTip = 'Specifies the quantity that passed quality inspection. When the inspection is finished with acceptable results, this value is automatically derived from sample size or source quantity. It is reset to zero when the inspection is reopened. Only users with the Quality Admin & Supervisor role are allowed to manually change this value.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -131,7 +137,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Fail Quantity';
             AutoFormatType = 0;
-            ToolTip = 'Specifies the quantity that failed inspection. A manually entered quantity for non-sampling inspections, or derived from the quantity of failed sampling lines for sampling inspections.';
+            ToolTip = 'Specifies the quantity that failed quality inspection. When the inspection is finished with non-acceptable results, this value is automatically derived from sample size or source quantity. It is reset to zero when the inspection is reopened. Only users with the Quality Admin & Supervisor role are allowed to manually change this value.';
             DecimalPlaces = 0 : 5;
             MinValue = 0;
 
@@ -139,6 +145,7 @@ table 20405 "Qlty. Inspection Header"
             begin
                 if Rec.IsTemporary() then
                     exit;
+
                 if not Rec.GetIsCreating() then
                     QltyPermissionMgmt.VerifyCanChangeSourceQuantity();
 
@@ -148,12 +155,16 @@ table 20405 "Qlty. Inspection Header"
         field(17; "Sample Size"; Integer)
         {
             Caption = 'Sample Size';
-            ToolTip = 'Specifies the number of units that must be inspected. This will be used to fill out the sample size field on a Quality Inspection when possible based on the other characteristics that were applied.';
+            ToolTip = 'Specifies the number of units that must be inspected. This will be used to fill out the sample size field on a Quality Inspection when possible based on the other characteristics that were applied. Only users with the Quality Admin & Supervisor role can change this value.';
 
             trigger OnValidate()
             var
                 Math: Codeunit Math;
             begin
+                if not Rec.IsTemporary() then
+                    if not Rec.GetIsCreating() then
+                        QltyPermissionMgmt.VerifyCanChangeSourceQuantity();
+
                 if (Rec."Sample Size" > Rec."Source Quantity (Base)") and (Rec."Source Quantity (Base)" > 0) then begin
                     if GuiAllowed() and not Rec.GetIsCreating() and (not Rec.IsTemporary()) then
                         Message(SampleSizeInvalidMsg, Rec."Sample Size", Rec."No.", Rec."Source Quantity (Base)");
@@ -168,7 +179,7 @@ table 20405 "Qlty. Inspection Header"
             Editable = false;
             TableRelation = User."User Name";
             Caption = 'Assigned User ID';
-            ToolTip = 'Specifies the user this inspection is assigned to.';
+            ToolTip = 'Specifies the user this inspection is assigned to. Changing another user''s assignment requires the Quality Admin & Supervisor role.';
 
             trigger OnValidate()
             var
@@ -209,7 +220,7 @@ table 20405 "Qlty. Inspection Header"
             Editable = false;
             TableRelation = "Qlty. Inspection Result".Code;
             Caption = 'Result Code';
-            ToolTip = 'Specifies the result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the result automatically calculated from inspection test lines based on their evaluation sequence. The calculation prioritizes lines that failed the acceptable quality level and then lines that have the lowest evaluation sequence.';
 
             trigger OnValidate()
             var
@@ -228,7 +239,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Result';
             Editable = false;
-            ToolTip = 'Specifies the result description for this test result. The result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the description of the inspection result. This value is automatically retrieved from the result definition based on the Result Code field.';
             FieldClass = FlowField;
             CalcFormula = lookup("Qlty. Inspection Result"."Description" where("Code" = field("Result Code")));
         }
@@ -236,7 +247,7 @@ table 20405 "Qlty. Inspection Header"
         {
             Caption = 'Evaluation Sequence';
             Editable = false;
-            ToolTip = 'Specifies the associated evaluation sequence for this test result. The result is automatically determined based on the test value and result configuration.';
+            ToolTip = 'Specifies the associated evaluation sequence of the inspection result. The value is automatically determined from the result definition based on the Result Code field.';
         }
         field(35; "Location Code"; Code[10])
         {
@@ -349,7 +360,7 @@ table 20405 "Qlty. Inspection Header"
                 if (Rec.Status = Rec.Status::Finished) and (Rec."Source Serial No." <> xRec."Source Serial No.") then
                     Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
 
-                if not GetIsCreating() then
+                if not Rec.GetIsCreating() then
                     QltyPermissionMgmt.VerifyCanChangeItemTracking();
             end;
         }
@@ -364,7 +375,7 @@ table 20405 "Qlty. Inspection Header"
                 if (Rec.Status = Rec.Status::Finished) and (Rec."Source Lot No." <> xRec."Source Lot No.") then
                     Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
 
-                if not GetIsCreating() then
+                if not Rec.GetIsCreating() then
                     QltyPermissionMgmt.VerifyCanChangeItemTracking();
             end;
         }
@@ -379,7 +390,7 @@ table 20405 "Qlty. Inspection Header"
                 if (Rec.Status = Rec.Status::Finished) and (Rec."Source Package No." <> xRec."Source Package No.") then
                     Error(TrackingCannotChangeForFinishedInspectionErr, Rec."No.", Rec."Re-inspection No.");
 
-                if not GetIsCreating() then
+                if not Rec.GetIsCreating() then
                     QltyPermissionMgmt.VerifyCanChangeItemTracking();
             end;
         }
@@ -624,6 +635,7 @@ table 20405 "Qlty. Inspection Header"
         IsChangingStatus: Boolean;
         TrackingCannotChangeForFinishedInspectionErr: Label 'You cannot change item tracking on a finished inspection. %1-%2 is finished. Reopen this inspection to change the tracking.', Comment = '%1=Quality Inspection No., %2=Re-inspection No.';
         SampleSizeInvalidMsg: Label 'The sample size %1 is not valid on the inspection %2 because it exceeds the Source Quantity of %3. The sample size will be changed on this inspection to be the source quantity.', Comment = '%1=original sample size, %2=the inspection, %3=the source quantity';
+        SampleSizeCappedMsg: Label 'The calculated sample size on inspection %1 was reduced to the maximum allowed value of %2 because the source quantity is too large.', Comment = '%1=the inspection, %2=the maximum sample size';
         YouCannotChangeTheAssignmentOfTheInspectionErr: Label '%1 does not have permission to change the assigned user field on %2-%3. Permissions can be altered on the Quality Inspection function permissions.', Comment = '%1=the user, %2=the inspection no, %3=the re-inspection';
         UnableToSetTestValueErr: Label 'Unable to set the test field [%1] on the inspection [%2], there should be one matching inspection line, there are %3', Comment = '%1=the field being set, %2=the record id of the inspection, %3=the count.';
         ItemIsTrackingErr: Label 'The item [%1] is %2 tracked. Please define a %2 number before finishing the inspection. You can change whether this is required on the Quality Management Setup card.', Comment = '%1=the item number. %2=Item tracking token';
@@ -635,7 +647,7 @@ table 20405 "Qlty. Inspection Header"
         ReopenInspectionQst: Label 'Are you sure you want to Reopen the inspection %1 on %2?', Comment = '%1=the inspection details, %2=the source details.';
         MoreRecentReinspectionErr: Label 'This inspection cannot be Reopened because there is a more recent Re-inspection. Please work with the most recent Re-inspection instead.';
         CreateReinspectionQst: Label 'Are you sure you want to create a Re-inspection?';
-        FinishBeforeReinspectionErr: Label 'An inspection must be finished before a Re-inspection can be made. This is done automatically, but you do not have permission to finish an inspection. Ask your administrator to add the ability to finish an inspection in the Quality Inspection Permissions page.';
+        FinishBeforeReinspectionErr: Label 'An inspection must be finished before a Re-inspection can be made. This is done automatically, but you do not have permission to finish an inspection.';
         PictureNameTok: Label '%1_%2_%3', Locked = true;
         FileExtensionTok: Label 'jpeg', Locked = true;
         CameraNotAvailableErr: Label 'The camera is not available. Make sure to use this with a device that has a camera supported by Business Central.';
@@ -839,7 +851,11 @@ table 20405 "Qlty. Inspection Header"
     /// Finishes the inspection.
     /// </summary>
     procedure FinishInspection()
+    var
+        QltyMgmtFeatureTelemetry: Codeunit "Qlty. Mgmt. Feature Telemetry";
     begin
+        QltyMgmtFeatureTelemetry.LogFeatureUsage(ObjectType::Table, Database::"Qlty. Inspection Header", 'FinishInspection');
+
         FinishInspectionAndPrompt(true);
     end;
 
@@ -1285,6 +1301,8 @@ table 20405 "Qlty. Inspection Header"
             if QltyInspectionResult."Finish Allowed" <> QltyInspectionResult."Finish Allowed"::"Allow Finish" then
                 Error(CannotFinishInspectionBecauseTheInspectionIsInResultErr, Rec."No.", QltyInspectionResult.Code);
 
+        CalculatePassFailQuantities();
+
         Rec."Finished By User ID" := CopyStr(UserId(), 1, MaxStrLen(Rec."Finished By User ID"));
         Rec."Finished Date" := CurrentDateTime();
         Rec.Modify(false);
@@ -1300,8 +1318,11 @@ table 20405 "Qlty. Inspection Header"
     begin
         if xRec.Status <> xRec.Status::Finished then
             exit;
+
         if Rec.Status <> Rec.Status::Open then
             exit;
+
+        ClearPassFailQuantities();
 
         Rec.Modify(false);
 
@@ -1487,15 +1508,36 @@ table 20405 "Qlty. Inspection Header"
     local procedure UpdateSampleSize()
     var
         QltyInspectionTemplateHdr: Record "Qlty. Inspection Template Hdr.";
+        Math: Codeunit Math;
+        MaxSampleSize: Integer;
+        EffectiveMaxSampleSize: Integer;
+        CalculatedSampleSize: Decimal;
     begin
         if not QltyInspectionTemplateHdr.Get(Rec."Template Code") then
             exit;
+
+        MaxSampleSize := Power(2, 31) - 1; // Maximum value of an Integer field; protects the "Sample Size" field against overflow.
+        EffectiveMaxSampleSize := MaxSampleSize;
+
+        if (Rec."Source Quantity (Base)" > 0) and (Rec."Source Quantity (Base)" < MaxSampleSize) then
+            EffectiveMaxSampleSize := Math.Truncate(Rec."Source Quantity (Base)");
 
         case QltyInspectionTemplateHdr."Sample Source" of
             QltyInspectionTemplateHdr."Sample Source"::"Fixed Quantity":
                 Rec.Validate("Sample Size", QltyInspectionTemplateHdr."Sample Fixed Amount");
             QltyInspectionTemplateHdr."Sample Source"::"Percent of Quantity":
-                Rec.Validate("Sample Size", Round(Rec."Source Quantity (Base)" * QltyInspectionTemplateHdr."Sample Percentage" / 100.0, 1, '>'));
+                begin
+                    CalculatedSampleSize := Round(Rec."Source Quantity (Base)" * QltyInspectionTemplateHdr."Sample Percentage" / 100.0, 1, '>');
+                    if CalculatedSampleSize > EffectiveMaxSampleSize then begin
+                        if GuiAllowed() and not Rec.GetIsCreating() and (not Rec.IsTemporary()) then
+                            if EffectiveMaxSampleSize = MaxSampleSize then
+                                Message(SampleSizeCappedMsg, Rec."No.", MaxSampleSize)
+                            else
+                                Message(SampleSizeInvalidMsg, Math.Truncate(CalculatedSampleSize), Rec."No.", Rec."Source Quantity (Base)");
+                        CalculatedSampleSize := EffectiveMaxSampleSize;
+                    end;
+                    Rec.Validate("Sample Size", CalculatedSampleSize);
+                end;
         end;
     end;
 
@@ -1548,24 +1590,6 @@ table 20405 "Qlty. Inspection Header"
     end;
 
     /// <summary>
-    ///Returns the quantity of samples with acceptable measures for all sampling fields.
-    ///If no sampling fields, will return the sample size if all measures are acceptable.
-    /// </summary>
-    /// <returns>Quantity of samples</returns>
-    internal procedure GetPassSampleQuantity() PassQuantity: Decimal
-    begin
-    end;
-
-    /// <summary>
-    ///Returns the quantity of samples with any not acceptable measure for all sampling fields.
-    ///If no sampling fields, will return the sample size if any measures are not acceptable.
-    /// </summary>
-    /// <returns>Quantity of samples</returns>
-    internal procedure GetFailedSampleQuantity() FailQuantity: Decimal
-    begin
-    end;
-
-    /// <summary>
     /// Initializes the Qlty. Related Transfers page with the Quality Inspection record and runs it
     /// </summary>
     internal procedure RunModalRelatedTransfers()
@@ -1605,6 +1629,55 @@ table 20405 "Qlty. Inspection Header"
             DifferenceInPassFailQuantity := Rec."Pass Quantity" + Rec."Fail Quantity" - Rec."Source Quantity (Base)";
             Error(PassFailQuantityInvalidErr, Rec.FieldCaption("Pass Quantity"), Rec.FieldCaption("Fail Quantity"), Rec.FieldCaption("Source Quantity (Base)"), DifferenceInPassFailQuantity);
         end;
+    end;
+
+    /// <summary>
+    /// Calculates and assigns the Pass Quantity or Fail Quantity based on the inspection's Result Category.
+    /// Uses Sample Size when greater than zero; otherwise falls back to Source Quantity (Base).
+    /// Acceptable results populate Pass Quantity; any other category populates Fail Quantity.
+    /// The opposite quantity is always cleared so the values stay mutually exclusive.
+    /// Intended to be called when the inspection transitions to Finished.
+    /// </summary>
+    local procedure CalculatePassFailQuantities()
+    var
+        QltyInspectionResult: Record "Qlty. Inspection Result";
+        QuantityToApply: Decimal;
+    begin
+        if Rec."Result Code" = '' then
+            exit;
+
+        QltyInspectionResult.SetLoadFields("Result Category");
+        if not QltyInspectionResult.Get(Rec."Result Code") then
+            exit;
+
+        if (Rec."Sample Size" > Rec."Source Quantity (Base)") and (Rec."Source Quantity (Base)" > 0) then
+            exit;
+
+        if Rec."Sample Size" > 0 then
+            QuantityToApply := Rec."Sample Size"
+        else
+            QuantityToApply := Rec."Source Quantity (Base)";
+
+        if QuantityToApply <= 0 then
+            exit;
+
+        if QltyInspectionResult."Result Category" = QltyInspectionResult."Result Category"::Acceptable then begin
+            Rec."Pass Quantity" := QuantityToApply;
+            Rec."Fail Quantity" := 0;
+        end else begin
+            Rec."Fail Quantity" := QuantityToApply;
+            Rec."Pass Quantity" := 0;
+        end;
+    end;
+
+    /// <summary>
+    /// Resets the Pass Quantity and Fail Quantity to zero. Used when an inspection is reopened
+    /// so the values calculated at finish do not linger on the open inspection.
+    /// </summary>
+    local procedure ClearPassFailQuantities()
+    begin
+        Rec."Pass Quantity" := 0;
+        Rec."Fail Quantity" := 0;
     end;
 
     /// <summary>
