@@ -39,7 +39,6 @@ jobs:
     # Track the engine's floating `latest` release; keep the workflow ref and
     # engine_ref in sync. Pin both to a specific X.Y.Z only to test a version.
     uses: microsoft/BC-ALAgents/.github/workflows/review.yml@latest
-    secrets: inherit
     with:
       # Only the inputs BCApps customizes; everything else (BCQuality policy and
       # reviewer behaviour) inherits the engine template defaults.
