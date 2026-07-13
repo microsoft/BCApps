@@ -2893,11 +2893,17 @@ codeunit 12 "Gen. Jnl.-Post Line"
     procedure CreateGLEntryBalAcc(GenJnlLine: Record "Gen. Journal Line"; AccNo: Code[20]; Amount: Decimal; AmountAddCurr: Decimal; BalAccType: Enum "Gen. Journal Account Type"; BalAccNo: Code[20])
     var
         GLEntry: Record "G/L Entry";
+        AmountSrcCurr: Decimal;
     begin
         OnBeforeCreateGLEntryBalAcc(GenJnlLine, AccNo, Amount, AmountAddCurr, BalAccType, BalAccNo);
+        AmountAddCurr := AmountAddCurr - GenJnlLine."VAT Amount";
+        if GenJnlLine."Source Currency Code" <> '' then
+            AmountSrcCurr := AmountAddCurr
+        else
+            AmountSrcCurr := CalcAmountSrcCurr(GenJnlLine, Amount);
         InitGLEntry(
             GenJnlLine, GLEntry, AccNo, Amount, AmountAddCurr, true, true,
-            CalcAmountSrcCurr(GenJnlLine, Amount));
+            AmountSrcCurr);
         GLEntry."Bal. Account Type" := BalAccType;
         GLEntry."Bal. Account No." := BalAccNo;
         InsertGLEntry(GenJnlLine, GLEntry, true);
