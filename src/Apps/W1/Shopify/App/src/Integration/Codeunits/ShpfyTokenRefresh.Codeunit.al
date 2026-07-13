@@ -25,6 +25,11 @@ codeunit 30431 "Shpfy Token Refresh"
         RefreshAllShops();
     end;
 
+    var
+        CategoryTok: Label 'Shopify Integration', Locked = true;
+        TokenRefreshJobFailedTxt: Label 'The scheduled Shopify token refresh failed for a store.', Locked = true;
+        ScheduleFailedTxt: Label 'Failed to schedule the Shopify token refresh job.', Locked = true;
+
     local procedure RefreshAllShops()
     var
         Shop: Record "Shpfy Shop";
@@ -40,10 +45,23 @@ codeunit 30431 "Shpfy Token Refresh"
 
     local procedure LogRefreshFailure(ShopCode: Code[20]; ErrorText: Text)
     var
-        CategoryTok: Label 'Shopify Integration', Locked = true;
-        TokenRefreshJobFailedTxt: Label 'The scheduled Shopify token refresh failed for shop %1: %2', Comment = '%1 = shop code, %2 = error text', Locked = true;
+        Dimensions: Dictionary of [Text, Text];
     begin
-        Session.LogMessage('0000UIV', StrSubstNo(TokenRefreshJobFailedTxt, ShopCode, ErrorText), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+        // Keep the message generic; the error detail (which may carry customer content) goes into a
+        // custom dimension and the whole event is classified accordingly.
+        Dimensions.Add('Category', CategoryTok);
+        Dimensions.Add('ShopCode', ShopCode);
+        Dimensions.Add('ErrorText', ErrorText);
+        Session.LogMessage('0000UIV', TokenRefreshJobFailedTxt, Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, Dimensions);
+    end;
+
+    local procedure LogScheduleFailure(ErrorText: Text)
+    var
+        Dimensions: Dictionary of [Text, Text];
+    begin
+        Dimensions.Add('Category', CategoryTok);
+        Dimensions.Add('ErrorText', ErrorText);
+        Session.LogMessage('0000UJ6', ScheduleFailedTxt, Verbosity::Warning, DataClassification::CustomerContent, TelemetryScope::ExtensionPublisher, Dimensions);
     end;
 
     /// <summary>
@@ -54,8 +72,6 @@ codeunit 30431 "Shpfy Token Refresh"
         JobQueueEntry: Record "Job Queue Entry";
         JobQueueCategoryLbl: Label 'SHPFYAUTH', Locked = true;
         JobDescriptionTxt: Label 'Shopify: refresh expiring access tokens';
-        CategoryTok: Label 'Shopify Integration', Locked = true;
-        ScheduleFailedTxt: Label 'Failed to schedule the Shopify token refresh job: %1', Comment = '%1 = error text', Locked = true;
     begin
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
         JobQueueEntry.SetRange("Object ID to Run", Codeunit::"Shpfy Token Refresh");
@@ -80,6 +96,6 @@ codeunit 30431 "Shpfy Token Refresh"
         JobQueueEntry."Job Queue Category Code" := JobQueueCategoryLbl;
         // Do not let an enqueue failure abort the install/upgrade that schedules this job.
         if not Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry) then
-            Session.LogMessage('0000UJ6', StrSubstNo(ScheduleFailedTxt, GetLastErrorText()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+            LogScheduleFailure(GetLastErrorText());
     end;
 }
