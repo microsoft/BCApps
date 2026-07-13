@@ -103,13 +103,29 @@ table 6786 "Withholding Tax Posting Setup"
         {
             AutoFormatType = 2;
             AutoFormatExpression = '';
-            Caption = 'Withholding Tax Minimum Invoice Amount';
+            Caption = 'Withholding Threshold Amount';
         }
         field(25; "Wthldg. Tax Calculation Rule"; Option)
         {
-            Caption = 'Withholding Tax Calculation Rule';
+            Caption = 'Withholding Threshold Type';
             OptionCaption = 'Less than,Less than or equal to,Equal to,Greater than,Greater than or equal to';
             OptionMembers = "Less than","Less than or equal to","Equal to","Greater than","Greater than or equal to";
+        }
+        field(100; "Calculation Base"; Enum "Withholding Calculation Base")
+        {
+            Caption = 'Calculation Base';
+        }
+        field(101; "Calculation Method"; Enum "Withholding Calculation Method")
+        {
+            Caption = 'Calculation Method';
+        }
+        field(102; "WHT Threshold Base"; Enum "Withholding Threshold Base")
+        {
+            Caption = 'Withholding Threshold Base';
+        }
+        field(103; "WHT Threshold Period"; Enum "WHT Threshold Period Type")
+        {
+            Caption = 'Withholding Threshold Period';
         }
     }
 
