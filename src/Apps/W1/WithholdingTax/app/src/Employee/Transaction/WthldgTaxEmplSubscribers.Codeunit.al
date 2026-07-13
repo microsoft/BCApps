@@ -87,7 +87,6 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
             sender.InsertGLEntry(GenJnlLine, GLEntry, true);
         end;
 
-        // Insert Withholding Tax Entry
         WHTEmployeeCalc.InsertEmployeeWithholdingTaxEntry(
             GenJnlLine, TaxAmount, TaxBaseAmount, NextTransactionNo, NextTaxEntryNo);
     end;

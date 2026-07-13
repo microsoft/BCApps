@@ -2,9 +2,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.WithholdingTax;
+namespace Microsoft.ExpenseTaxIntegration;
 
-enum 6789 "Withholding Selection Mode"
+enum 7055 "Withholding Selection Mode"
 {
     Extensible = true;
     Caption = 'Withholding Selection Mode';
