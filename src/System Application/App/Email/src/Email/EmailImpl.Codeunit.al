@@ -747,11 +747,8 @@ codeunit 8900 "Email Impl"
         AllObj: Record AllObj;
         Email: Codeunit Email;
         SourceRecordRef: RecordRef;
-        IsHandled: Boolean;
     begin
-        Email.OnBeforeFilterRemovedSourceRecords(EmailRelatedRecord, IsHandled);
-        if IsHandled then
-            exit;
+        Email.OnBeforeFilterRemovedSourceRecords(EmailRelatedRecord);
 
         repeat
             if AllObj.Get(AllObj."Object Type"::Table, EmailRelatedRecord."Table Id") then begin
