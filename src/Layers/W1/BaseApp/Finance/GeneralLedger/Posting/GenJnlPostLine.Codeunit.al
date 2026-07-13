@@ -1933,7 +1933,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GLReg."User ID" := CopyStr(UserId(), 1, MaxStrLen(GLReg."User ID"));
         IsGLRegInserted := false;
 
-        OnAfterInitGLRegister(GLReg, GenJnlLine, NextTaxEntryNo);
+        OnAfterInitGLRegister(GLReg, GenJnlLine, NextTaxEntryNo, NextEntryNo, NextVATEntryNo, NextTransactionNo);
 
         GetCurrencyExchRate(GenJnlLine);
         TempGLEntryBuf.DeleteAll();
@@ -8818,7 +8818,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInitGLRegister(var GLRegister: Record "G/L Register"; var GenJournalLine: Record "Gen. Journal Line"; NextTaxEntryNo: Integer)
+    local procedure OnAfterInitGLRegister(var GLRegister: Record "G/L Register"; var GenJournalLine: Record "Gen. Journal Line"; NextTaxEntryNo: Integer; var NextEntryNo: Integer; var NextVATEntryNo: Integer; var NextTransactionNo: Integer)
     begin
     end;
 
