@@ -34,6 +34,8 @@ It uses `pull_request_target` for pull requests and checks out only the BCApps d
 
 The reusable workflow mints a short-lived GitHub App token scoped only to `microsoft/BCAppsTriage`, dispatches its `ownership-classification.yml`, waits for the correlated run, and downloads `ownership-result/ownership-result.json`. The App token cannot write BCApps. After strict schema and subject-identity validation, the BCApps `GITHUB_TOKEN` applies the labels.
 
+Producer v1 bounds results to 64 MiB of UTF-8 JSON, at most 6,000 evidence entries, 1,024 characters per evidence string field, and a 1,000-character reason. When verbose evidence would exceed 64 MiB, the producer deterministically compacts it and includes bounded API evidence describing omitted entries. The consumer enforces the same limits before applying labels.
+
 A required part of the producer contract is a workflow `run-name` containing `[${{ inputs.correlation_token }}]`. The consumer uses that marker to locate the unique dispatched run before it validates the same token inside the downloaded result.
 
 A missing, failed, oversized, malformed, or mismatched result fails the run before any subject-label mutation. Valid application adds the selected team before removing competing team labels, preserves all unrelated labels, and verifies the final exact-one state with bounded retries.

@@ -16,6 +16,10 @@ $script:SourceValues = @(
     'pull_request:incomplete-files'
 )
 $script:EvidenceKinds = @('path', 'localization', 'object', 'app_area', 'changed_file', 'api')
+$script:MaximumReasonLength = 1000
+$script:MaximumEvidenceEntries = 6000
+$script:MaximumEvidenceValueLength = 1024
+$script:MaximumResultBytes = 64MB
 $script:LabelDefinitions = @(
     [pscustomobject]@{ Name = 'Finance'; Color = '1d76db'; Description = 'Requests owned by the Finance team' },
     [pscustomobject]@{ Name = 'SCM'; Color = '60AFDE'; Description = 'Requests owned by the SCM team' },
@@ -36,6 +40,10 @@ function Get-TeamOwnershipConfiguration {
         ConfidenceValues = @($script:ConfidenceValues)
         SourceValues    = @($script:SourceValues)
         EvidenceKinds   = @($script:EvidenceKinds)
+        MaximumReasonLength = $script:MaximumReasonLength
+        MaximumEvidenceEntries = $script:MaximumEvidenceEntries
+        MaximumEvidenceValueLength = $script:MaximumEvidenceValueLength
+        MaximumResultBytes = $script:MaximumResultBytes
         LabelDefinitions = @($script:LabelDefinitions)
     }
 }
@@ -96,6 +104,9 @@ function Assert-BoundedString {
 
     if ($Value.Length -gt $MaximumLength) {
         throw "$Path exceeds the maximum length of $MaximumLength."
+    }
+    if ($Value -cmatch '[\u0000-\u001F\u007F]') {
+        throw "$Path must not contain control characters."
     }
 }
 
@@ -177,7 +188,8 @@ function Assert-OwnershipResult {
     if ($Result.ownership.source -isnot [string] -or $script:SourceValues -cnotcontains $Result.ownership.source) {
         throw "Invalid ownership source '$($Result.ownership.source)'."
     }
-    Assert-BoundedString -Value $Result.ownership.reason -Path 'result.ownership.reason' -MaximumLength 2000
+    Assert-BoundedString -Value $Result.ownership.reason -Path 'result.ownership.reason' `
+        -MaximumLength $script:MaximumReasonLength
     if ($Result.ownership.confidence -isnot [string] -or
         $script:ConfidenceValues -cnotcontains $Result.ownership.confidence) {
         throw "Invalid ownership confidence '$($Result.ownership.confidence)'."
@@ -188,8 +200,8 @@ function Assert-OwnershipResult {
     }
 
     $evidence = @($Result.ownership.evidence)
-    if ($evidence.Count -gt 100) {
-        throw 'result.ownership.evidence exceeds 100 entries.'
+    if ($evidence.Count -gt $script:MaximumEvidenceEntries) {
+        throw "result.ownership.evidence exceeds $($script:MaximumEvidenceEntries) entries."
     }
 
     for ($index = 0; $index -lt $evidence.Count; $index++) {
@@ -203,7 +215,8 @@ function Assert-OwnershipResult {
         if ($item.kind -isnot [string] -or $script:EvidenceKinds -cnotcontains $item.kind) {
             throw "Invalid evidence kind '$($item.kind)' at $path."
         }
-        Assert-BoundedString -Value $item.value -Path "$path.value" -MaximumLength 4096
+        Assert-BoundedString -Value $item.value -Path "$path.value" `
+            -MaximumLength $script:MaximumEvidenceValueLength
 
         if ($null -ne $item.team -and
             ($item.team -isnot [string] -or $script:TeamLabels -cnotcontains $item.team)) {
@@ -212,7 +225,8 @@ function Assert-OwnershipResult {
 
         foreach ($optionalName in @('path', 'previousPath', 'status', 'category')) {
             if (Test-HasProperty -Object $item -Name $optionalName) {
-                Assert-BoundedString -Value $item.$optionalName -Path "$path.$optionalName" -MaximumLength 4096
+                Assert-BoundedString -Value $item.$optionalName -Path "$path.$optionalName" `
+                    -MaximumLength $script:MaximumEvidenceValueLength
             }
         }
     }

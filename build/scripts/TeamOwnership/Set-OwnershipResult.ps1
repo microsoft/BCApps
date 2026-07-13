@@ -33,8 +33,9 @@ if (-not (Test-Path -LiteralPath $ResultPath -PathType Leaf)) {
     throw "Ownership result file '$ResultPath' does not exist."
 }
 $resultFile = Get-Item -LiteralPath $ResultPath
-if ($resultFile.Length -gt 1MB) {
-    throw "Ownership result file exceeds the 1 MiB limit."
+$contract = Get-TeamOwnershipConfiguration
+if ($resultFile.Length -gt $contract.MaximumResultBytes) {
+    throw "Ownership result file exceeds the 64 MiB producer v1 limit."
 }
 
 try {

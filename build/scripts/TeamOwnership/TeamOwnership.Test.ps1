@@ -133,6 +133,42 @@ Describe 'TeamOwnership contract validation' {
         { Assert-OwnershipResult -Result $result -ExpectedCorrelationToken 'test-token' `
                 -ExpectedSubjectKind issue -ExpectedSubjectNumber 42 } | Should -Throw '*path*'
     }
+
+    It 'accepts more than 100 evidence entries' {
+        $result = New-ValidOwnershipResult
+        $result.ownership.evidence = @($result.ownership.evidence[0]) * 101
+        { Assert-OwnershipResult -Result $result -ExpectedCorrelationToken 'test-token' `
+                -ExpectedSubjectKind issue -ExpectedSubjectNumber 42 } | Should -Not -Throw
+    }
+
+    It 'accepts 6000 evidence entries and rejects 6001' {
+        $result = New-ValidOwnershipResult
+        $item = $result.ownership.evidence[0]
+        $result.ownership.evidence = @($item) * 6000
+        { Assert-OwnershipResult -Result $result -ExpectedCorrelationToken 'test-token' `
+                -ExpectedSubjectKind issue -ExpectedSubjectNumber 42 } | Should -Not -Throw
+
+        $result.ownership.evidence = @($item) * 6001
+        { Assert-OwnershipResult -Result $result -ExpectedCorrelationToken 'test-token' `
+                -ExpectedSubjectKind issue -ExpectedSubjectNumber 42 } | Should -Throw '*6000*'
+    }
+
+    It 'uses the producer v1 string bounds and rejects control characters' {
+        $result = New-ValidOwnershipResult
+        $result.ownership.reason = 'r' * 1000
+        $result.ownership.evidence[0].value = 'v' * 1024
+        { Assert-OwnershipResult -Result $result -ExpectedCorrelationToken 'test-token' `
+                -ExpectedSubjectKind issue -ExpectedSubjectNumber 42 } | Should -Not -Throw
+
+        $result.ownership.reason += 'r'
+        { Assert-OwnershipResult -Result $result -ExpectedCorrelationToken 'test-token' `
+                -ExpectedSubjectKind issue -ExpectedSubjectNumber 42 } | Should -Throw '*1000*'
+
+        $result = New-ValidOwnershipResult
+        $result.ownership.evidence[0].value = "bad`nvalue"
+        { Assert-OwnershipResult -Result $result -ExpectedCorrelationToken 'test-token' `
+                -ExpectedSubjectKind issue -ExpectedSubjectNumber 42 } | Should -Throw '*control characters*'
+    }
 }
 
 Describe 'TeamOwnership label reconciliation' {
@@ -290,9 +326,17 @@ Describe 'TeamOwnership result application boundaries' {
         function Write-ApplicationResult {
             param(
                 [Parameter(Mandatory)][string] $Path,
-                [string] $Token = 'expected-token'
+                [string] $Token = 'expected-token',
+                [int] $EvidenceCount = 1,
+                [int] $EvidenceValueLength = 11
             )
 
+            $evidenceItem = [pscustomobject]@{
+                kind = 'path'
+                value = 'v' * $EvidenceValueLength
+                team = 'Finance'
+                path = 'p' * $EvidenceValueLength
+            }
             [pscustomobject]@{
                 schemaVersion = 1
                 correlationToken = $Token
@@ -306,9 +350,7 @@ Describe 'TeamOwnership result application boundaries' {
                     source = 'issue:path'
                     reason = 'Fixture'
                     confidence = 'high'
-                    evidence = @(
-                        [pscustomobject]@{ kind = 'path'; value = 'src/Finance'; team = 'Finance' }
-                    )
+                    evidence = @($evidenceItem) * $EvidenceCount
                 }
             } | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $Path -Encoding UTF8
         }
@@ -356,12 +398,39 @@ Describe 'TeamOwnership result application boundaries' {
         $global:OwnershipTestGhCalls | Should -Be 0
     }
 
+    It 'rejects an artifact above the producer v1 64 MiB cap before calling GitHub' {
+        $oversized = Join-Path $script:applicationTemp 'oversized.json'
+        $stream = [System.IO.File]::OpenWrite($oversized)
+        try {
+            $stream.SetLength((Get-TeamOwnershipConfiguration).MaximumResultBytes + 1)
+        } finally {
+            $stream.Dispose()
+        }
+
+        { & $script:setResultScript -ResultPath $oversized -ExpectedCorrelationToken expected-token `
+                -ExpectedSubjectKind issue -ExpectedSubjectNumber 42 -Repository microsoft/BCApps -DryRun } |
+            Should -Throw '*64 MiB*'
+        $global:OwnershipTestGhCalls | Should -Be 0
+    }
+
     It 'reads labels but performs no mutation during a valid dry run' {
         $valid = Join-Path $script:applicationTemp 'valid.json'
         Write-ApplicationResult -Path $valid
         $global:OwnershipTestGhResponse = '[[{"name":"SCM"},{"name":"bug"}]]'
 
         { & $script:setResultScript -ResultPath $valid -ExpectedCorrelationToken expected-token `
+                -ExpectedSubjectKind issue -ExpectedSubjectNumber 42 -Repository microsoft/BCApps -DryRun } |
+            Should -Not -Throw
+        $global:OwnershipTestGhCalls | Should -Be 1
+    }
+
+    It 'accepts a structurally valid artifact larger than the former 1 MiB cap' {
+        $large = Join-Path $script:applicationTemp 'large.json'
+        Write-ApplicationResult -Path $large -EvidenceCount 600 -EvidenceValueLength 1024
+        (Get-Item -LiteralPath $large).Length | Should -BeGreaterThan 1MB
+        $global:OwnershipTestGhResponse = '[[{"name":"Finance"}]]'
+
+        { & $script:setResultScript -ResultPath $large -ExpectedCorrelationToken expected-token `
                 -ExpectedSubjectKind issue -ExpectedSubjectNumber 42 -Repository microsoft/BCApps -DryRun } |
             Should -Not -Throw
         $global:OwnershipTestGhCalls | Should -Be 1
@@ -431,5 +500,77 @@ Describe 'TeamOwnership reconciliation batching integration' {
         { & $script:batchScript -Repository microsoft/BCApps -SubjectKind issue -Limit 101 } |
             Should -Throw '*between 1 and 100*'
         $global:OwnershipBatchGhCalls | Should -Be 0
+    }
+}
+
+Describe 'TeamOwnership concurrent label creation' {
+    BeforeAll {
+        Import-Module (Join-Path $PSScriptRoot 'TeamOwnershipGitHub.psm1') -Force
+        $script:raceDefinition = [pscustomobject]@{
+            Name = 'Finance'
+            Color = '1d76db'
+            Description = 'Requests owned by the Finance team'
+        }
+
+        function global:gh {
+            $global:OwnershipLabelGhCall++
+            $response = $global:OwnershipLabelGhResponses[$global:OwnershipLabelGhCall - 1]
+            $global:LASTEXITCODE = $response.ExitCode
+            return $response.Output
+        }
+    }
+
+    BeforeEach {
+        $global:OwnershipLabelGhCall = 0
+        $global:OwnershipLabelGhResponses = @()
+    }
+
+    AfterAll {
+        Remove-Item -Path Function:\global:gh -ErrorAction SilentlyContinue
+        Remove-Variable -Name OwnershipLabelGhCall -Scope Global -ErrorAction SilentlyContinue
+        Remove-Variable -Name OwnershipLabelGhResponses -Scope Global -ErrorAction SilentlyContinue
+    }
+
+    It 'accepts a duplicate-create 422 only after verifying expected metadata' {
+        $definition = $script:raceDefinition.PSObject.Copy()
+        $definition.Color = '1D76DB'
+        $global:OwnershipLabelGhResponses = @(
+            @{ ExitCode = 0; Output = '[[]]' },
+            @{ ExitCode = 1; Output = 'gh: Validation Failed (HTTP 422)' },
+            @{
+                ExitCode = 0
+                Output = '{"name":"Finance","color":"1d76db","description":"Requests owned by the Finance team"}'
+            }
+        )
+
+        { Set-GitHubOwnershipLabels -Repository microsoft/BCApps `
+                -Definitions @($definition) } | Should -Not -Throw
+        $global:OwnershipLabelGhCall | Should -Be 3
+    }
+
+    It 'rejects a duplicate-create 422 when expected metadata cannot be verified' {
+        $global:OwnershipLabelGhResponses = @(
+            @{ ExitCode = 0; Output = '[[]]' },
+            @{ ExitCode = 1; Output = 'gh: Validation Failed (HTTP 422)' },
+            @{
+                ExitCode = 0
+                Output = '{"name":"Finance","color":"ffffff","description":"Unexpected"}'
+            }
+        )
+
+        { Set-GitHubOwnershipLabels -Repository microsoft/BCApps `
+                -Definitions @($script:raceDefinition) } | Should -Throw '*could not be verified*'
+        $global:OwnershipLabelGhCall | Should -Be 3
+    }
+
+    It 'does not swallow a non-422 create failure' {
+        $global:OwnershipLabelGhResponses = @(
+            @{ ExitCode = 0; Output = '[[]]' },
+            @{ ExitCode = 1; Output = 'gh: Internal Server Error (HTTP 500)' }
+        )
+
+        { Set-GitHubOwnershipLabels -Repository microsoft/BCApps `
+                -Definitions @($script:raceDefinition) } | Should -Throw '*HTTP 500*'
+        $global:OwnershipLabelGhCall | Should -Be 2
     }
 }
