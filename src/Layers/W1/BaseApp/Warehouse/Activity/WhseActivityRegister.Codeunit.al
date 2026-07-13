@@ -337,6 +337,8 @@ codeunit 7307 "Whse.-Activity-Register"
             WhseJnlLine.Quantity := WhseActivLine."Qty. to Handle (Base)";
             WhseJnlLine."Unit of Measure Code" := WMSMgt.GetBaseUOM(WhseActivLine."Item No.");
             WhseJnlLine."Qty. per Unit of Measure" := 1;
+            WMSMgt.CalcCubageAndWeight(
+              WhseActivLine."Item No.", WhseJnlLine."Unit of Measure Code", Abs(WhseJnlLine.Quantity), WhseJnlLine.Cubage, WhseJnlLine.Weight);
         end;
         WhseJnlLine."Qty. (Base)" := WhseActivLine."Qty. to Handle (Base)";
         WhseJnlLine."Qty. (Absolute)" := WhseJnlLine.Quantity;
