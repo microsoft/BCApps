@@ -556,8 +556,13 @@ codeunit 30189 "Shpfy Variant API"
     begin
         Parameters.Add('VariantId', Format(ShopifyVariant.Id));
         JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType::Products_GetVariantById, Parameters);
-        if JsonHelper.GetJsonObject(JResponse.AsObject(), JData, 'data.productVariant') then
-            exit(UpdateShopifyVariantFields(ShopifyProduct, ShopifyVariant, ShopifyInventoryItem, JData));
+        // When the productVariant node is present, the variant still exists on Shopify, so report it as existing.
+        // UpdateShopifyVariantFields internally skips the field update when the local record is already up to date.
+        // Only a missing node (variant genuinely deleted on Shopify) returns false so the caller can delete the record.
+        if JsonHelper.GetJsonObject(JResponse.AsObject(), JData, 'data.productVariant') then begin
+            UpdateShopifyVariantFields(ShopifyProduct, ShopifyVariant, ShopifyInventoryItem, JData);
+            exit(true);
+        end;
     end;
 
     /// <summary> 
@@ -756,8 +761,7 @@ codeunit 30189 "Shpfy Variant API"
     /// <param name="ShopifyVariant">Parameter of type Record "Shopify Variant".</param>
     /// <param name="ShopifyInventoryItem">Parameter of type Record "Shopify Inventory Item".</param>
     /// <param name="JVariant">Parameter of type JsonObject.</param>
-    /// <returns>Return variable "Result" of type Boolean.</returns>
-    internal procedure UpdateShopifyVariantFields(ShopifyProduct: Record "Shpfy Product"; var ShopifyVariant: Record "Shpfy Variant"; var ShopifyInventoryItem: Record "Shpfy Inventory Item"; JVariant: JsonObject) Result: Boolean
+    internal procedure UpdateShopifyVariantFields(ShopifyProduct: Record "Shpfy Product"; var ShopifyVariant: Record "Shpfy Variant"; var ShopifyInventoryItem: Record "Shpfy Inventory Item"; JVariant: JsonObject)
     var
         RecordRef: RecordRef;
         UpdatedAt: DateTime;
@@ -768,9 +772,8 @@ codeunit 30189 "Shpfy Variant API"
     begin
         UpdatedAt := JsonHelper.GetValueAsDateTime(JVariant, 'updatedAt');
         if UpdatedAt < ShopifyVariant."Updated At" then
-            exit(false);
+            exit;
 
-        Result := true;
         ShopifyVariant."Updated At" := UpdatedAt;
         ShopifyVariant."Created At" := JsonHelper.GetValueAsDateTime(JVariant, 'createdAt');
         ShopifyVariant."Available For Sales" := JsonHelper.GetValueAsBoolean(JVariant, 'availableForSale');
