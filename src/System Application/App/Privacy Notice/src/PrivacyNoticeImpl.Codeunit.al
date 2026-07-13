@@ -101,20 +101,19 @@ codeunit 1565 "Privacy Notice Impl."
         if SkipCheckInEval and Company.Get(CompanyName()) and Company."Evaluation Company" then
             exit(true); // Auto-agree for evaluation companies if admin has not explicitly disagreed
 
-        // Resolve the runtime default (e.g. Copilot's geo/EUDB matrix or Microsoft Learn in geo). This is never persisted;
-        // it is only applied below after an explicit user approval. Per-user declines are not stored (see SetApprovalState),
-        // so a declined user is re-evaluated on every check; when the default is off, the user is prompted to decide.
-        ResolveDefaultApproval(PrivacyNoticeId, DefaultApproval);
-
         // Check if user made a decision and if so, return that
         PrivacyNotice.SetRange("User SID Filter", UserSecurityId());
-        PrivacyNotice.CalcFields(Enabled, Disabled);
+        PrivacyNotice.CalcFields(Enabled);
         if PrivacyNotice.Enabled then begin
             Session.LogMessage('0000GKB', StrSubstNo(PrivacyNoticeAutoApprovedByUserTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit(true); // If user clicked no, they will still be notified until admin makes a decision
         end;
 
-        // Apply the runtime default-approve hint (e.g. Microsoft Learn in geo).
+        // Resolve and apply the runtime default (e.g. Copilot's geo/EUDB matrix or Microsoft Learn in geo). The default is
+        // never persisted; admin Enabled/Disabled was already handled above, so it cannot override an admin decision. Per-user
+        // declines are not stored (see SetApprovalState), so a declined user is re-evaluated on every check; when the default
+        // is off, the user is prompted to decide.
+        ResolveDefaultApproval(PrivacyNoticeId, DefaultApproval);
         if DefaultApproval then begin
             Session.LogMessage('0000UHZ', StrSubstNo(PrivacyNoticeAutoApprovedByDefaultTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit(true);
@@ -163,11 +162,6 @@ codeunit 1565 "Privacy Notice Impl."
         if SkipCheckInEval and Company.Get(CompanyName()) and Company."Evaluation Company" then
             exit("Privacy Notice Approval State"::Agreed); // Auto-agree for evaluation companies if admin has not explicitly disagreed
 
-        // Resolve the runtime default (e.g. Copilot's geo/EUDB matrix or Microsoft Learn in geo). This is never persisted;
-        // it is only applied below after an explicit user approval. Per-user declines are not stored (see SetApprovalState),
-        // so a declined user is re-evaluated on every check; when the default is off, the state stays undecided ("Not set").
-        ResolveDefaultApproval(PrivacyNoticeId, DefaultApproval);
-
         // Check if user made a decision and if so, return that
         PrivacyNotice.SetRange("User SID Filter", UserSecurityId());
         PrivacyNotice.CalcFields(Enabled);
@@ -176,7 +170,11 @@ codeunit 1565 "Privacy Notice Impl."
             exit("Privacy Notice Approval State"::Agreed); // If user clicked no, they will still be notified until admin makes a decision
         end;
 
-        // Apply the runtime default-approve hint (e.g. Microsoft Learn in geo) without persisting an admin decision.
+        // Resolve and apply the runtime default (e.g. Copilot's geo/EUDB matrix or Microsoft Learn in geo) without persisting
+        // an admin decision. Admin Enabled/Disabled was already handled above, so it cannot override an admin decision. Per-user
+        // declines are not stored (see SetApprovalState), so a declined user is re-evaluated on every check; when the default
+        // is off, the state stays undecided ("Not set").
+        ResolveDefaultApproval(PrivacyNoticeId, DefaultApproval);
         if DefaultApproval then begin
             Session.LogMessage('0000UI0', StrSubstNo(PrivacyNoticeAutoApprovedByDefaultTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit("Privacy Notice Approval State"::Agreed);
