@@ -220,6 +220,24 @@ codeunit 5896 "Calc. Inventory Adjmt. - Order"
             InvtAdjmtEntryOrder.CalcIndirectCostFromCostShares();
             InvtAdjmtEntryOrder.CalcUnitCost();
         end;
+
+        // For assembly output only: recompute the manufacturing (indirect) overhead from the (now
+        // scaled) standard material/capacity cost shares via CalcOvhdCost - the same basis used for the
+        // actual output overhead in CalcActualUsageCosts. This ties the standard overhead to the stable
+        // material/capacity shares and "Indirect Cost %" instead of the per-unit "Single-Level Mfg. Ovhd
+        // Cost" (which is rounded to the Unit-Amount precision and rewritten by "Calc. Assembly Std.
+        // Cost"). Without it, re-running "Calc. Assembly Std. Cost" between cost adjustments shifts the
+        // standard overhead by a rounding delta when "Indirect Cost %" has more than 2 decimals (e.g.
+        // 1.12345), posting a spurious Manufacturing Overhead variance. This runs for both the
+        // GetCostsFromItem and the completely-invoiced branches because assembly output is normally
+        // completely invoiced. Production orders are not affected and keep their item/SKU-based standard
+        // overhead.
+        if InvtAdjmtEntryOrder."Order Type" = InvtAdjmtEntryOrder."Order Type"::Assembly then begin
+            InvtAdjmtEntryOrder.CalcOvhdCost(OutputQty);
+            InvtAdjmtEntryOrder.RoundCosts(1);
+            InvtAdjmtEntryOrder.CalcIndirectCostFromCostShares();
+            InvtAdjmtEntryOrder.CalcUnitCost();
+        end;
     end;
 
     local procedure CalcActualOutputCosts(var InvtAdjmtEntryOrder: Record "Inventory Adjmt. Entry (Order)"; ItemLedgerEntryNo: Integer)
