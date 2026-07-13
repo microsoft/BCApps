@@ -130,8 +130,13 @@ codeunit 13411 "FICore InitReport Subscribers"
 
     [EventSubscriber(ObjectType::Report, Report::"VAT- VIES Declaration Tax Auth", 'OnInitReportForGlobalVariable', '', false, false)]
     local procedure OnInitReportForGlobalVariableInVATVIESDeclaration(var IsHandled: Boolean; var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text)
+    var
+        VIESDeclarationFeature: Codeunit "FICore VIES Declaration Feature";
     begin
         if IsHandled then
+            exit;
+
+        if not VIESDeclarationFeature.IsEnabled() then
             exit;
 
         AssignVIESDeclarationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, RegisteredHomeCityTxt, RegisteredHomeCityLbl);

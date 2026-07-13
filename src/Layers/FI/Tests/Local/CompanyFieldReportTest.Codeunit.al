@@ -221,11 +221,29 @@ codeunit 144010 "Company Field Report Test"
         VATVIESDeclarationTaxAuthReport: Report "VAT- VIES Declaration Tax Auth";
     begin
         Initialize();
+        EnableVATVIESDeclarationFeature();
 
         VATVIESDeclarationTaxAuthReport.UseRequestPage(true);
         VATVIESDeclarationTaxAuthReport.InitializeRequest(true, WorkDate(), WorkDate() + 365, '');
         VATVIESDeclarationTaxAuthReport.Run();
         TestBusinessIdentityandHomeCity(3);
+    end;
+
+    local procedure EnableVATVIESDeclarationFeature()
+    var
+        FeatureKey: Record "Feature Key";
+        FeatureKeyUpdateStatus: Record "Feature Data Update Status";
+        FeatureIdTok: Label 'FIVATVIESDeclaration', Locked = true;
+    begin
+        if FeatureKey.Get(FeatureIdTok) then begin
+            FeatureKey.Enabled := FeatureKey.Enabled::"All Users";
+            FeatureKey.Modify();
+        end;
+        if FeatureKeyUpdateStatus.Get(FeatureIdTok, CompanyName()) then begin
+            FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Enabled;
+            FeatureKeyUpdateStatus.Modify();
+        end;
+        Commit();
     end;
 
 
