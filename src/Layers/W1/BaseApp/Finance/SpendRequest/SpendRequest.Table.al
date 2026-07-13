@@ -116,6 +116,7 @@ table 6840 "Spend Request"
             Editable = false;
             DecimalPlaces = 0 : 5;
             InitValue = 1;
+            AutoFormatType = 0;
             ToolTip = 'Specifies the most recent exchange rate for the specified currency (1 = pari).';
             trigger OnValidate()
             begin
@@ -358,6 +359,7 @@ table 6840 "Spend Request"
         ChangeCurrCodeOnLineQst: Label 'You have changed the currency code on the expense request. Do you also want to update the lines that had the same currency code?';
         SpendRequestIsUsedMsg: Label 'Spend request %1 was approved for %2 and current allocation is %3.', Comment = '%1 is a document no., %2 and %3 are amounts in local currency.';
         SpendRequestCloseQst: Label 'Do you want to close spend request %1 after posting this entry?', Comment = '%1 is a document no.';
+        SkipSpendRequestClose: Boolean;
 
     /// <summary>
     /// Returns the difference between estimated amount and actually spent amount
@@ -554,11 +556,11 @@ table 6840 "Spend Request"
     /// <param name="SpendRequestNo"></param>
     /// <param name="SpendRequestclose"></param>
     /// <param name="NewAmountLCY"></param>
-    procedure ValidateSpendRequest(SpendRequestNo: Code[20]; var SpendRequestclose: Boolean; NewAmountLCY: Decimal)
+    procedure ValidateSpendRequest(SpendRequestNo: Code[20]; var SpendRequestclose: Boolean; SourceCode: Code[10]; NewAmountLCY: Decimal)
     begin
-        ValidateSpendRequest(SpendRequestNo, SpendRequestclose);
+        ValidateSpendRequest(SpendRequestNo, SpendRequestclose, SourceCode);
         if NewAmountLCY <> 0 then
-            CheckSpendRequestAmount(SpendRequestNo, NewAmountLCY);
+            CheckSpendRequestAmount(SpendRequestNo, SourceCode, NewAmountLCY);
     end;
 
     /// <summary>
@@ -566,7 +568,9 @@ table 6840 "Spend Request"
     /// </summary>
     /// <param name="SpendRequestNo"></param>
     /// <param name="SpendRequestclose"></param>
-    procedure ValidateSpendRequest(SpendRequestNo: Code[20]; var SpendRequestclose: Boolean)
+    procedure ValidateSpendRequest(SpendRequestNo: Code[20]; var SpendRequestclose: Boolean; SourceCode: Code[10])
+    var
+        IsHandled: Boolean;
     begin
         if SpendRequestNo = '' then begin
             SpendRequestclose := false;
@@ -574,9 +578,23 @@ table 6840 "Spend Request"
         end;
         Rec.SetAutoCalcFields("Total Spent Amount (LCY)");
         Rec.Get(SpendRequestNo);
-        Rec.TestField(Status, Rec.Status::Approved);
-        if GuiAllowed() then
+        IsHandled := false;
+        OnValidateSpendRequestOnBeforeTestStatusApproved(Rec, SourceCode, IsHandled);
+        if not IsHandled then
+            Rec.TestField(Status, Rec.Status::Approved);
+
+        if GuiAllowed() and not SkipSpendRequestClose then
             SpendRequestclose := Confirm(SpendRequestCloseQst, true, Rec."No.");
+    end;
+
+    /// <summary>
+    /// Sets whether the confirmation to close the spend request should be skipped during validation.
+    /// When set to true, ValidateSpendRequest does not prompt to close the spend request.
+    /// </summary>
+    /// <param name="NewSkipSpendRequestClose">True to skip the close confirmation; otherwise false.</param>
+    procedure SetSkipSpendRequestClose(NewSkipSpendRequestClose: Boolean)
+    begin
+        SkipSpendRequestClose := NewSkipSpendRequestClose;
     end;
 
     /// <summary>
@@ -584,22 +602,46 @@ table 6840 "Spend Request"
     /// </summary>
     /// <param name="SpendRequestNo"></param>
     /// <param name="NewAmountLCY"></param>
-    procedure CheckSpendRequestAmount(SpendRequestNo: Code[20]; NewAmountLCY: Decimal)
+    procedure CheckSpendRequestAmount(SpendRequestNo: Code[20]; SourceCode: Code[10]; NewAmountLCY: Decimal)
     var
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         AlreadyAllocatedNotification: Notification;
+        IsHandled: Boolean;
     begin
         if NewAmountLCY = 0 then
             exit;
         NewAmountLCY := Abs(NewAmountLCY);
         Rec.SetAutoCalcFields("Total Spent Amount (LCY)");
         Rec.Get(SpendRequestNo);
-        Rec.TestField(Status, Rec.Status::Approved);
+        IsHandled := false;
+        OnCheckSpendRequestAmountOnBeforeTestStatusApproved(Rec, SourceCode, IsHandled);
+        if not IsHandled then
+            Rec.TestField(Status, Rec.Status::Approved);
         if GuiAllowed() then
             if Rec."Total Spent Amount (LCY)" + NewAmountLCY > Rec."Total Expected Amount (LCY)" then begin
                 AlreadyAllocatedNotification.Scope := AlreadyAllocatedNotification.Scope::LocalScope;
                 AlreadyAllocatedNotification.Message := StrSubstNo(SpendRequestIsUsedMsg, Rec."No.", Rec."Total Expected Amount (LCY)", Rec."Total Spent Amount (LCY)");
                 NotificationLifecycleMgt.SendNotification(AlreadyAllocatedNotification, Rec.RecordId);
             end;
+    end;
+
+    /// <summary>
+    /// Integration event raised before verifying that the spend request has the Approved status during validation.
+    /// </summary>
+    /// <param name="SpendRequest">The spend request being validated.</param>
+    /// <param name="IsHandled">Set to true to skip the standard approved-status check.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateSpendRequestOnBeforeTestStatusApproved(var SpendRequest: Record "Spend Request"; SourceCode: Code[10]; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised before verifying that the spend request has the Approved status while checking the amount.
+    /// </summary>
+    /// <param name="SpendRequest">The spend request being checked.</param>
+    /// <param name="IsHandled">Set to true to skip the standard approved-status check.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckSpendRequestAmountOnBeforeTestStatusApproved(var SpendRequest: Record "Spend Request"; SourceCode: Code[10]; var IsHandled: Boolean)
+    begin
     end;
 }
