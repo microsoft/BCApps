@@ -17,6 +17,7 @@ using System.Utilities;
 
 codeunit 10983 "Export Factur-X Document"
 {
+    Access = Internal;
     TableNo = "Record Export Buffer";
 
     var
