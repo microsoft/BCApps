@@ -2563,7 +2563,6 @@ codeunit 142085 PurchDocTotalsSalesEntryUI
         CreateVATPostingSetup();
         LibraryInventory.NoSeriesSetup(InventorySetup);
         LibraryERMCountryData.UpdateSalesReceivablesSetup();
-        LibraryApplicationArea.DisableApplicationAreaSetup();
 
         PurchasesPayablesSetup.Get();
         PurchasesPayablesSetup."Use Vendor's Tax Area Code" := true;
