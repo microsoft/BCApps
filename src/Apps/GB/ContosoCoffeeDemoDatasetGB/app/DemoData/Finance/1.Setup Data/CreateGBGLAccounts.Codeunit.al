@@ -128,6 +128,9 @@ codeunit 10506 "Create GB GL Accounts"
     var
         CreateGLAccount: Codeunit "Create G/L Account";
     begin
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogatoryAccountName(), '85000');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForDebitName(), '40500');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForCreditName(), '10900');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.BalanceSheetName(), '60000');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.AssetsName(), '60001');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.SalesofResourcesName(), '10200');

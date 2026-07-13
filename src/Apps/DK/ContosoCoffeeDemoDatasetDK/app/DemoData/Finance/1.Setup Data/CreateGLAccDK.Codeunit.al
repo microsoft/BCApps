@@ -395,6 +395,9 @@ codeunit 13721 "Create GL Acc. DK"
         CreateGLAccount: Codeunit "Create G/L Account";
     begin
         ModifyGLAccountForW1();
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogatoryAccountName(), '20400');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForDebitName(), '04400');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForCreditName(), '01900');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.RevenueName(), '01000');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.JobSalesName(), '01880');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.TotalRevenueName(), '01997');

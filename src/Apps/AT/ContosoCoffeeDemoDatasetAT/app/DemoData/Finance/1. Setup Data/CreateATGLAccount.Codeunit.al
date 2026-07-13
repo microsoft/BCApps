@@ -539,6 +539,9 @@ codeunit 11148 "Create AT GL Account"
         CreateGLAccount: Codeunit "Create G/L Account";
     begin
         ModifyGLAccountForW1();
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogatoryAccountName(), '9200');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForDebitName(), '7800');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForCreditName(), '4600');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.FixedAssetsName(), '0000');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.OperatingEquipmentName(), '0400');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.RawMaterialsName(), '1100');

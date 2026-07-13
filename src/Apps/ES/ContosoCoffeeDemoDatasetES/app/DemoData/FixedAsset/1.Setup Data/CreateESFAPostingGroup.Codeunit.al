@@ -20,6 +20,7 @@ codeunit 10807 "Create ES FA Posting Group"
     var
         CreateFAPostingGrp: Codeunit "Create FA Posting Group";
         CreateESGLAccounts: Codeunit "Create ES GL Accounts";
+        CreateGLAccount: Codeunit "Create G/L Account";
     begin
         case Rec.Code of
             CreateFAPostingGrp.Equipment(),
@@ -27,11 +28,11 @@ codeunit 10807 "Create ES FA Posting Group"
             CreateFAPostingGrp.Plant(),
             CreateFAPostingGrp.Property(),
             CreateFAPostingGrp.Vehicles():
-                ValidateRecordFields(Rec, CreateESGLAccounts.IndustrialMachinery(), CreateESGLAccounts.DepIndustrialMachinery(), CreateESGLAccounts.IndustrialMachinery(), CreateESGLAccounts.DepIndustrialMachinery(), '', CreateESGLAccounts.LossOnTangAssetsTransf(), CreateESGLAccounts.Repairs(), CreateESGLAccounts.DeprOfTangAssets(), CreateESGLAccounts.IndustrialMachinery());
+                ValidateRecordFields(Rec, CreateESGLAccounts.IndustrialMachinery(), CreateESGLAccounts.DepIndustrialMachinery(), CreateESGLAccounts.IndustrialMachinery(), CreateESGLAccounts.DepIndustrialMachinery(), '', CreateESGLAccounts.LossOnTangAssetsTransf(), CreateESGLAccounts.Repairs(), CreateESGLAccounts.DeprOfTangAssets(), CreateESGLAccounts.IndustrialMachinery(), CreateGLAccount.DerogatoryAccount(), CreateGLAccount.DerogatoryAccount(), CreateGLAccount.DerogExpenseAccForCredit(), CreateGLAccount.DerogExpenseAccForDebit());
         end;
     end;
 
-    local procedure ValidateRecordFields(var FAPostingGroup: Record "FA Posting Group"; AcquisitionCostAccount: Code[20]; AccumDepreciationAccount: Code[20]; AcqCostAccOnDisposal: Code[20]; AccumDeprAccOnDisposal: Code[20]; GainsAccOnDisposal: Code[20]; LossesAccOnDisposal: Code[20]; MaintenanceExpenseAccount: Code[20]; DepreciationExpenseAcc: Code[20]; AcquisitionCostBalAcc: Code[20])
+    local procedure ValidateRecordFields(var FAPostingGroup: Record "FA Posting Group"; AcquisitionCostAccount: Code[20]; AccumDepreciationAccount: Code[20]; AcqCostAccOnDisposal: Code[20]; AccumDeprAccOnDisposal: Code[20]; GainsAccOnDisposal: Code[20]; LossesAccOnDisposal: Code[20]; MaintenanceExpenseAccount: Code[20]; DepreciationExpenseAcc: Code[20]; AcquisitionCostBalAcc: Code[20]; DerogatoryAccount: Code[20]; DerogatoryAccountDecrease: Code[20]; DerogatoryBalDecreaseAcc: Code[20]; DerogatoryExpenseAcc: Code[20])
     begin
         FAPostingGroup.Validate("Acquisition Cost Account", AcquisitionCostAccount);
         FAPostingGroup.Validate("Accum. Depreciation Account", AccumDepreciationAccount);
@@ -42,5 +43,9 @@ codeunit 10807 "Create ES FA Posting Group"
         FAPostingGroup.Validate("Maintenance Expense Account", MaintenanceExpenseAccount);
         FAPostingGroup.Validate("Depreciation Expense Acc.", DepreciationExpenseAcc);
         FAPostingGroup.Validate("Acquisition Cost Bal. Acc.", AcquisitionCostBalAcc);
+        FAPostingGroup.Validate("Derogatory Acc.", DerogatoryAccount);
+        FAPostingGroup.Validate("Derogatory Account (Decrease)", DerogatoryAccountDecrease);
+        FAPostingGroup.Validate("Derog. Bal. Account (Decrease)", DerogatoryBalDecreaseAcc);
+        FAPostingGroup.Validate("Derogatory Expense Acc.", DerogatoryExpenseAcc);
     end;
 }
