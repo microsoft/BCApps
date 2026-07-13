@@ -2700,6 +2700,9 @@ codeunit 6610 "FS Int. Table Subscriber"
             exit;
 
         SourceRecordRef.SetTable(ServiceItem);
+        if CRMIntegrationRecord.FindByRecordID(ServiceItem.RecordId) then
+            exit;
+
         if ServiceItem."Item No." = '' then
             exit;
 
