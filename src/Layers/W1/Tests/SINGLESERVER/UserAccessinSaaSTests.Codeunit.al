@@ -180,6 +180,58 @@ codeunit 139460 "User Access in SaaS Tests"
     [Test]
     [TransactionModel(TransactionModel::AutoRollback)]
     [Scope('OnPrem')]
+    procedure TestUpdateUserAccessForSaaSDoesNotOverwriteExistingRoleCenter()
+    var
+        User: Record User;
+        UserPersonalization: Record "User Personalization";
+        AllProfile: Record "All Profile";
+        Company: Record Company;
+        LibraryPermissions: Codeunit "Library - Permissions";
+        AzureADPlanTestLibrary: Codeunit "Azure AD Plan Test Library";
+        PlanID: Guid;
+        CustomProfileID: Code[30];
+    begin
+        // [SCENARIO] An existing user who already picked a custom Role Center must keep it
+        // when the user access is re-synced from Microsoft 365 (regression from PR 213237).
+        Initialize();
+
+        // [GIVEN] A real (non-evaluation) company
+        Company.Get(CompanyName());
+        Company."Evaluation Company" := false;
+        Company.Modify();
+
+        // [GIVEN] SaaS with an existing user assigned to a Business Manager plan (Role Center 9022)
+        EnvironmentInfoTestLibrary.SetTestabilitySoftwareAsAService(true);
+        LibraryPermissions.CreateUser(User, UserEuropeDcst1FullTok, true);
+
+        PlanID := AzureADPlanTestLibrary.CreatePlan('TestPlan');
+        AzureADPlanTestLibrary.ChangePlanRoleCenterID(PlanID, 9022);
+        AzureADPlanTestLibrary.AssignUserToPlan(User."User Security ID", PlanID, true);
+
+        // [GIVEN] The user already personalized a custom Role Center (not Business Manager)
+        AllProfile.SetFilter("Profile ID", '<>%1&<>%2', 'Business Manager', 'Business Manager Evaluation');
+        AllProfile.SetRange(Enabled, true);
+        AllProfile.FindFirst();
+        CustomProfileID := AllProfile."Profile ID";
+        UserPersonalization.Validate("User SID", User."User Security ID");
+        UserPersonalization.Validate("App ID", AllProfile."App ID");
+        UserPersonalization.Validate("Profile ID", AllProfile."Profile ID");
+        UserPersonalization.Validate(Scope, AllProfile.Scope);
+        UserPersonalization.Insert(true);
+
+        // [WHEN] UpdateUserAccessForSaaS is called (e.g. Retrieve Users / plan re-sync)
+        PermissionManager.UpdateUserAccessForSaaS(User."User Security ID");
+
+        // [THEN] The user's custom Role Center is preserved and NOT overwritten to Business Manager
+        UserPersonalization.Get(User."User Security ID");
+        Assert.AreEqual(
+          CustomProfileID, UserPersonalization."Profile ID",
+          'Existing user custom Role Center must not be overwritten during plan re-sync.');
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [Scope('OnPrem')]
     procedure TestUpdateUserAccessForSaaSWithInvalidRoleCenter()
     var
         User: Record User;
