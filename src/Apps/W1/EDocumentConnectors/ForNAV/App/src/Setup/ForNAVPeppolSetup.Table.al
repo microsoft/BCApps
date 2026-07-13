@@ -183,6 +183,11 @@ table 6414 "ForNAV Peppol Setup"
             ToolTip = 'Specifies if the setup is for testing purposes.';
             DataClassification = CustomerContent;
             Access = Internal;
+
+            trigger OnValidate()
+            begin
+                ValidateTest();
+            end;
         }
         field(1000; "Identification Code"; Code[10])
         {
@@ -333,7 +338,7 @@ table 6414 "ForNAV Peppol Setup"
                 exit;
             end;
 
-        IsSaaS := EnvironmentInformation.IsSaaS();
+        IsSaaS := EnvironmentInformation.IsSaaSInfrastructure();
 
         Dlg.Open(DialogLbl);
         ResetForSetup();
@@ -527,6 +532,17 @@ table 6414 "ForNAV Peppol Setup"
     internal procedure PeppolId(): Text
     begin
         exit(Rec."Identification Code" + ':' + Rec."Identification Value");
+    end;
+
+    local procedure ValidateTest()
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+    begin
+        if test then
+            exit;
+
+        if EnvironmentInformation.IsSandbox() then
+            Error('The test checkbox can only be cleared in a production environment.');
     end;
 
     internal procedure IsTest(): Boolean

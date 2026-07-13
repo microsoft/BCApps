@@ -101,6 +101,13 @@ page 6413 "ForNAV Peppol Setup"
             group(ConnectionSetup)
             {
                 Caption = 'Connection Setup';
+                field(InstallationId; InstallationId)
+                {
+                    Caption = 'Installation Id';
+                    ToolTip = 'Specifies the Installation Id. It is filled automatically.';
+                    ApplicationArea = All;
+                    Editable = false;
+                }
                 field(ClientId; ClientId)
                 {
                     Caption = 'Client Id';
@@ -301,12 +308,13 @@ page 6413 "ForNAV Peppol Setup"
                 Image = TestDatabase;
                 ToolTip = 'Test the connection to the ForNAV Peppol endpoints.';
                 trigger OnAction()
+                var
+                    Response: Text;
                 begin
-                    if not PeppolOauth.TestOAuth() then
-                        Error(ConnectionFailedErr);
+                    PeppolOauth.TestOAuth(Response);
 
                     Rec.Authorized := true;
-                    Message(ConnectionOkMsg);
+                    Message(ConnectionOkMsg, Response);
                 end;
             }
             action(ServiceSetup)
@@ -345,6 +353,9 @@ page 6413 "ForNAV Peppol Setup"
                 ApplicationArea = All;
                 Visible = false;
                 Image = Permission;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Roles are no longer stored; role-based access is not used.';
+                ObsoleteTag = '1.0.0.10';
                 Caption = 'Roles';
                 ToolTip = 'Setup the roles for the ForNAV Peppol setup.';
                 RunObject = page "ForNAV Peppol Roles";
@@ -407,6 +418,8 @@ page 6413 "ForNAV Peppol Setup"
         ForNAVTenantId: Text;
         [NonDebuggable]
         ClientSecret: Text;
+        InstallationId: Text;
+
         Scope: Text;
         SecretValidFrom: DateTime;
         SecretValidTo: DateTime;
@@ -415,8 +428,7 @@ page 6413 "ForNAV Peppol Setup"
         EnableUnauthorize: Boolean;
         IsAuthorized: Boolean;
         AuthorizeLbl: Label 'Please Authorize';
-        ConnectionFailedErr: Label 'Connection failed';
-        ConnectionOkMsg: Label 'Connection succeeded';
+        ConnectionOkMsg: Label 'Connection succeeded\%1', Comment = '%1 = webservice response details';
 
     trigger OnInit()
     begin
@@ -450,6 +462,8 @@ page 6413 "ForNAV Peppol Setup"
     end;
 
     internal procedure ValidateEndpoint()
+    var
+        Response: Text;
     begin
         if not Rec.Authorized then
             exit;
@@ -458,11 +472,10 @@ page 6413 "ForNAV Peppol Setup"
             exit;
 
         Rec.Modify();
-        if not PeppolOauth.TestOAuth() then
-            Error(ConnectionFailedErr);
+        PeppolOauth.TestOAuth(Response);
 
         Rec.Authorized := true;
-        Message(ConnectionOkMsg);
+        Message(ConnectionOkMsg, Response);
     end;
 
     procedure SendEmail()
@@ -522,6 +535,7 @@ page 6413 "ForNAV Peppol Setup"
         IsAuthorized := Rec.TestAuthorized();
         EnableUnauthorize := IsAuthorized or (Rec."Oauth Setup Request Sent" <> 0D);
         PeppolSetupEditable := Rec.Status <> Rec.Status::Published;
+        InstallationId := PeppolOauth.GetInstallationId();
         ClientId := PeppolOauth.GetClientID();
         ForNAVTenantId := PeppolOauth.GetForNAVTenantID();
         ClientSecret := GetSecret();

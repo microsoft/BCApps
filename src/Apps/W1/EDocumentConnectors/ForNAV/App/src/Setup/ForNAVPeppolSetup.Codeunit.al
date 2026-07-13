@@ -55,8 +55,10 @@ codeunit 6424 "ForNAV Peppol Setup"
             PeppolOauth.GetNewSecurityKey();
 
         HttpRequestMessage := Http.GetHttpRequestMessage();
-        if not AddSecurityHeaders(HttpRequestMessage) then
+        if not AddSecurityHeaders(HttpRequestMessage) then begin
+            Dlg.Close();
             exit(407);
+        end;
         HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
         RemoveSecurityHeaders(HttpRequestMessage);
         Http.SetHttpResponseMessage(HttpResponseMessage);
@@ -197,7 +199,8 @@ codeunit 6424 "ForNAV Peppol Setup"
             LicenseObject.Add('IsProduction', EnvironmentInformation.IsProduction());
             LicenseObject.Add('EnvironmentName', EnvironmentInformation.GetEnvironmentName());
         end else
-            LicenseObject.Add('SerialNumber', Database.SerialNumber);
+            LicenseObject.Add('SerialNumber', Database.SerialNumber());
+
         NavApp.GetCurrentModuleInfo(AppModuleInfo);
         LicenseObject.Add('AppVersion', Format(AppModuleInfo.AppVersion));
         LicenseObject.Add('CurrAppVersion', Format(AppModuleInfo.AppVersion));
