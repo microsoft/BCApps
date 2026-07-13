@@ -476,11 +476,16 @@ page 9660 "Report Layouts"
                 }
             }
 
+            // Status changes apply to both user-defined layouts (updated in place in Tenant Report
+            // Layout) and extension-installed layouts (written to Tenant Report Layout Override). The
+            // platform's BaseSystemPermissionSet grants both tables together, so gating on
+            // Tenant Report Layout = M correctly represents "may manage layout status" and matches the
+            // page's own Tenant Report Layout permission.
             action(SetApproved)
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Set Approved';
-                ToolTip = 'Mark the selected user-defined layouts as approved. Only approved layouts are available for selection on report request pages.';
+                ToolTip = 'Mark the selected layouts as approved. Only approved layouts are available for selection on report request pages.';
                 Image = Approve;
                 Enabled = CanModifyStatus;
                 AccessByPermission = tabledata "Tenant Report Layout" = M;
@@ -494,7 +499,7 @@ page 9660 "Report Layouts"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Set Draft';
-                ToolTip = 'Mark the selected user-defined layouts as draft. Draft layouts are not available for selection on report request pages.';
+                ToolTip = 'Mark the selected layouts as draft. Draft layouts are not available for selection on report request pages.';
                 Image = OpenWorksheet;
                 Enabled = CanModifyStatus;
                 AccessByPermission = tabledata "Tenant Report Layout" = M;
@@ -508,7 +513,7 @@ page 9660 "Report Layouts"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Set Pending Approval';
-                ToolTip = 'Mark the selected user-defined layouts as pending approval. Pending layouts are not available for selection on report request pages.';
+                ToolTip = 'Mark the selected layouts as pending approval. Pending layouts are not available for selection on report request pages.';
                 Image = AddWatch;
                 Enabled = CanModifyStatus;
                 AccessByPermission = tabledata "Tenant Report Layout" = M;
@@ -522,7 +527,7 @@ page 9660 "Report Layouts"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Set Retired';
-                ToolTip = 'Mark the selected user-defined layouts as retired. Retired layouts are not available for selection on report request pages.';
+                ToolTip = 'Mark the selected layouts as retired. Retired layouts are not available for selection on report request pages.';
                 Image = Archive;
                 Enabled = CanModifyStatus;
                 AccessByPermission = tabledata "Tenant Report Layout" = M;

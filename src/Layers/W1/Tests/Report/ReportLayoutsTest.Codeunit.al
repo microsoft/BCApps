@@ -760,6 +760,47 @@ codeunit 139595 "Report Layouts Test"
     end;
 
     [Test]
+    procedure TestMixedScopeBatchStatusIsRejected()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] A batch status change spanning mixed scopes (one global, one company-default
+        // extension layout) is rejected, keeping each run to a single unambiguous scope.
+        // Driven through the internal impl codeunit (Tests-Report is in BaseApp internalsVisibleTo)
+        // because a TestPage cannot multi-select records for CurrPage.SetSelectionFilter.
+        EnsureNewLayoutsAreCleaned();
+
+        // Report 139595 ships two extension layouts; make the first global-scope, leave the second
+        // at company-default scope.
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        Assert.AreEqual(2, ReportLayoutList.Count(), 'The test report should ship two extension layouts.');
+        ReportLayoutList.FindFirst();
+
+        TenantReportLayoutOverride.Init();
+        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
+        TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
+        TenantReportLayoutOverride."Company Name" := '';
+        TenantReportLayoutOverride."Layout Status" := Enum::"Report Layout Status"::Draft;
+        TenantReportLayoutOverride."Override Layout Status" := true;
+        TenantReportLayoutOverride.Insert(true);
+
+        // Act - batch over BOTH extension layouts (mixed scope)
+        ReportLayoutList.Reset();
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        ReportLayoutsImpl.SetSelectedCompany(CompanyName());
+        asserterror ReportLayoutsImpl.SetLayoutStatusBatch(ReportLayoutList, Enum::"Report Layout Status"::Approved);
+
+        // Assert - rejected with the mixed-scope error
+        Assert.ExpectedError('different scopes');
+    end;
+
+    [Test]
     [HandlerFunctions('EditExtensionOverrideGlobalDescHandler')]
     procedure TestEditExtensionLayoutWritesGlobalDescriptionOverride()
     var

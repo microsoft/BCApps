@@ -27,5 +27,12 @@ report 139595 TestReportLayoutsReport
             Type = RDLC;
             LayoutFile = 'Layouts/TestReportLayoutsReport.rdl';
         }
+        // Second extension-installed layout so tests can exercise multi-layout scenarios
+        // (e.g. mixed global/company scope in a batch status change - CP0529-338).
+        layout(MYLAYOUT2)
+        {
+            Type = RDLC;
+            LayoutFile = 'Layouts/TestReportLayoutsReport.rdl';
+        }
     }
 }
