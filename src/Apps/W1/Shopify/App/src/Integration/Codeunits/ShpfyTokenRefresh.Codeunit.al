@@ -94,7 +94,11 @@ codeunit 30431 "Shpfy Token Refresh"
         JobQueueEntry."No. of Attempts to Run" := 5;
         JobQueueEntry.Description := CopyStr(JobDescriptionTxt, 1, MaxStrLen(JobQueueEntry.Description));
         JobQueueEntry."Job Queue Category Code" := JobQueueCategoryLbl;
-        // Do not let an enqueue failure abort the install/upgrade that schedules this job.
+        // Codeunit.Run cannot nest inside the caller's open write transaction, and the install/upgrade
+        // steps that schedule this job write before calling it, so commit first. This is a one-time
+        // install/upgrade action (not a loop), so a single commit here is safe. An enqueue failure must
+        // not abort that install/upgrade, hence the guarded Codeunit.Run.
+        Commit();
         if not Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry) then
             LogScheduleFailure(GetLastErrorText());
     end;
