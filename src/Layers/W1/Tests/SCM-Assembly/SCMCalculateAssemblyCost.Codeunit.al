@@ -15,6 +15,8 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
 using Microsoft.Manufacturing.StandardCost;
 using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using System.Environment.Configuration;
 
 codeunit 137911 "SCM Calculate Assembly Cost"
@@ -41,10 +43,12 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryPurchase: Codeunit "Library - Purchase";
         WorkDate2: Date;
         TEXT_PARENT: Label 'Parent';
         TEXT_CHILD: Label 'Child';
         TEXT_ItemA: Label 'ItemA';
+        AssemblyOutputCostDistortedErr: Label 'Running Calc. Assembly Std. Cost distorted the assembly output Cost Amount (Actual); a spurious Manufacturing Overhead variance was posted.';
         Initialized: Boolean;
 
     [Test]
@@ -501,6 +505,68 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         Assert.RecordCount(ValueEntry, 0);
     end;
 
+    [Test]
+    procedure CalcAssemblyStdCostDoesNotDistortAssemblyOutputActualCost()
+    var
+        AssemblyItem: Record Item;
+        ComponentItem: Record Item;
+        Resource: Record Resource;
+        BOMComponent: Record "BOM Component";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+    begin
+        // [FEATURE] [Assembly] [Standard Cost] [Cost Adjustment] [Item Charge]
+        // [SCENARIO 640456] After an item charge changes the component cost, adjusting a standard-cost assembly
+        // whose "Indirect Cost %" has more than two decimals (1.12345) must not post a spurious Manufacturing
+        // Overhead variance on the assembly output. Such a variance drifts "Cost Amount (Actual)" away from the
+        // rolled standard cost.
+        Initialize();
+        // Adjustment must run only on the explicit "Adjust Cost - Item Entries" calls below, so that the exact
+        // posting sequence that reproduces the bug is preserved.
+        LibraryInventory.SetAutomaticCostAdjmtNever();
+
+        // [GIVEN] A standard-cost assembly item with a sub-cent "Indirect Cost %" (1.12345)
+        CreateItem(AssemblyItem, AssemblyItem."Costing Method"::Standard, AssemblyItem."Replenishment System"::Assembly, 0);
+        AssemblyItem.Validate("Indirect Cost %", 1.12345);
+        AssemblyItem.Modify(true);
+
+        // [GIVEN] A FIFO component (quantity per 10) and a resource (quantity per 2) on the assembly BOM
+        CreateItem(ComponentItem, ComponentItem."Costing Method"::FIFO, ComponentItem."Replenishment System"::Purchase, 0);
+        Resource.Get(LibraryKitting.CreateResourceWithNewUOM(1, 1));
+        LibraryKitting.CreateBOMComponentLine(
+          AssemblyItem, BOMComponent.Type::Item, ComponentItem."No.", 10, ComponentItem."Base Unit of Measure", false);
+        LibraryKitting.CreateBOMComponentLine(
+          AssemblyItem, BOMComponent.Type::Resource, Resource."No.", 2, Resource."Base Unit of Measure", false);
+
+        // [GIVEN] The component is purchased (1000 @ 1.00), cost adjusted, and the assembly standard cost is calculated
+        PostPurchaseOrderReceiveInvoice(ComponentItem."No.", 1000, 1.0, PurchRcptLine);
+        LibraryCosting.AdjustCostItemEntries(ComponentItem."No.", '');
+        CalculateAssemblyStandardCost(AssemblyItem."No.");
+
+        // [GIVEN] An assembly order (qty 10) is posted and cost is adjusted
+        CreateAndPostAssemblyHeader(AssemblyItem."No.", 10, WorkDate2);
+        LibraryCosting.AdjustCostItemEntries(AssemblyItem."No.", '');
+
+        // [WHEN] A freight item charge (1000 @ 1.00) is assigned to the component receipt and cost is adjusted
+        PostFreightChargeToReceipt(PurchRcptLine, 1000, 1.0);
+        LibraryCosting.AdjustCostItemEntries(AssemblyItem."No.", '');
+
+        // [THEN] No spurious Manufacturing Overhead variance is posted on the assembly output
+        Assert.AreEqual(
+          0, GetAssemblyOutputOverheadVarianceCount(AssemblyItem."No."),
+          AssemblyOutputCostDistortedErr);
+    end;
+
+    local procedure GetAssemblyOutputOverheadVarianceCount(ItemNo: Code[20]): Integer
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        ValueEntry.SetRange("Item No.", ItemNo);
+        ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::"Assembly Output");
+        ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::Variance);
+        ValueEntry.SetRange("Variance Type", ValueEntry."Variance Type"::"Manufacturing Overhead");
+        exit(ValueEntry.Count());
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Calculate Assembly Cost");
@@ -607,6 +673,56 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         TestItem.Get(ItemNo);
         Assert.AreEqual(TestItem."Standard Cost", Expected,
           StrSubstNo('Standard cost is wrong for %1, Expected %2 got %3', TestItem."No.", Expected, TestItem."Standard Cost"))
+    end;
+
+    local procedure PostPurchaseOrderReceiveInvoice(ItemNo: Code[20]; Quantity: Decimal; DirectUnitCost: Decimal; var PurchRcptLine: Record "Purch. Rcpt. Line")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, Quantity);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.SetRange("No.", ItemNo);
+        PurchRcptLine.FindFirst();
+    end;
+
+    local procedure PostFreightChargeToReceipt(PurchRcptLine: Record "Purch. Rcpt. Line"; Quantity: Decimal; DirectUnitCost: Decimal)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, LibraryPurchase.CreateVendorNo());
+        LibraryPurchase.CreatePurchaseLine(
+          PurchaseLine, PurchaseHeader, PurchaseLine.Type::"Charge (Item)", LibraryInventory.CreateItemChargeNo(), Quantity);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Modify(true);
+        AssignItemChargeToReceipt(PurchaseLine, PurchRcptLine);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+    end;
+
+    local procedure AssignItemChargeToReceipt(PurchaseLine: Record "Purchase Line"; PurchRcptLine: Record "Purch. Rcpt. Line")
+    var
+        ItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)";
+    begin
+        ItemChargeAssgntPurch.Init();
+        ItemChargeAssgntPurch."Document Type" := PurchaseLine."Document Type";
+        ItemChargeAssgntPurch."Document No." := PurchaseLine."Document No.";
+        ItemChargeAssgntPurch."Document Line No." := PurchaseLine."Line No.";
+        ItemChargeAssgntPurch."Line No." := 10000;
+        ItemChargeAssgntPurch."Item Charge No." := PurchaseLine."No.";
+        ItemChargeAssgntPurch."Applies-to Doc. Type" := ItemChargeAssgntPurch."Applies-to Doc. Type"::Receipt;
+        ItemChargeAssgntPurch."Applies-to Doc. No." := PurchRcptLine."Document No.";
+        ItemChargeAssgntPurch."Applies-to Doc. Line No." := PurchRcptLine."Line No.";
+        ItemChargeAssgntPurch."Item No." := PurchRcptLine."No.";
+        ItemChargeAssgntPurch."Unit Cost" := PurchaseLine."Direct Unit Cost";
+        ItemChargeAssgntPurch.Insert();
+        ItemChargeAssgntPurch.Validate("Qty. to Assign", PurchaseLine.Quantity);
+        ItemChargeAssgntPurch.Modify(true);
     end;
 
     local procedure ValidateUnitCost(ItemNo: Code[20]; Expected: Decimal)
