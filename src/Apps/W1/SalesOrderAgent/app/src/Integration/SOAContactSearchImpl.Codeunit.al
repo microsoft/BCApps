@@ -9,8 +9,17 @@ using Microsoft.CRM.Contact;
 codeunit 4419 "SOA Contact Search Impl"
 {
     Access = Internal;
+    EventSubscriberInstance = Manual;
     InherentEntitlements = X;
     InherentPermissions = X;
+
+    var
+        AgentTaskID: BigInteger;
+
+    procedure SetAgentTaskID(NewAgentTaskID: BigInteger)
+    begin
+        AgentTaskID := NewAgentTaskID;
+    end;
 
     [EventSubscriber(ObjectType::Page, Page::"Contact List", OnBeforeFindRecord, '', false, false)]
     local procedure FindRecordContactFromList(var Rec: Record Contact; Which: Text; var Found: Boolean; var IsHandled: Boolean)
@@ -21,12 +30,8 @@ codeunit 4419 "SOA Contact Search Impl"
     procedure FindRecordContact(var Rec: Record Contact; Which: Text; var Found: Boolean; var IsHandled: Boolean)
     var
         SOATaskContactOverride: Record "SOA Task Contact Override";
-        SOAKPITrackAll: Codeunit "SOA - KPI Track All";
-        AgentTaskID: BigInteger;
-        IsAgentSession: Boolean;
     begin
-        IsAgentSession := SOAKPITrackAll.IsOrderTakerAgentSession(AgentTaskID);
-        if (not IsAgentSession) or (AgentTaskID = 0) then
+        if AgentTaskID = 0 then
             exit;
 
         SOATaskContactOverride.SetLoadFields("Contact No.");
