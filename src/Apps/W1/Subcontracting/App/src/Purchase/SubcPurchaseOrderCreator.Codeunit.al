@@ -216,10 +216,8 @@ codeunit 99001557 "Subc. Purchase Order Creator"
 
         CreatedPurchaseHeader.MarkedOnly(true);
         NoOfMarkedPurchaseOrders := CreatedPurchaseHeader.Count();
-        if NoOfMarkedPurchaseOrders = 0 then begin
-            CreatedPurchaseHeader.MarkedOnly(false);
+        if NoOfMarkedPurchaseOrders = 0 then
             exit;
-        end;
 
         if InstructionMgt.IsEnabled(SubcNotificationMgmt.GetShowCreatedSubContPurchOrderCode()) then
             if InstructionMgt.ShowConfirm(GetPurchOrderCreatedMessage(NoOfMarkedPurchaseOrders), SubcNotificationMgmt.GetShowCreatedSubContPurchOrderCode()) and
