@@ -88,12 +88,12 @@ codeunit 4581 "SOA Send Replies"
         AgentMessage: Codeunit "Agent Message";
         Email: Codeunit Email;
         EmailMessage: Codeunit "Email Message";
-        Body: Text;
-        Subject: Text;
-        MappedContactEmail: Text;
-        CCRecipients: List of [Text];
         BCCRecipients: List of [Text];
+        CCRecipients: List of [Text];
         ToRecipients: List of [Text];
+        Body: Text;
+        MappedContactEmail: Text;
+        Subject: Text;
     begin
         Subject := StrSubstNo(EmailSubjectTxt, InputAgentTaskMessage."Task ID");
         Body := AgentMessage.GetText(OutputAgentTaskMessage);
@@ -108,12 +108,12 @@ codeunit 4581 "SOA Send Replies"
             EmailMessage.CreateReply(ToRecipients, Subject, Body, true, InputAgentTaskMessage."External ID", CCRecipients, BCCRecipients);
             AddMessageAttachments(EmailMessage, OutputAgentTaskMessage);
             exit(Email.Reply(EmailMessage, SOASetup."Email Account ID", SOASetup."Email Connector"));
-        end else begin
-            // No mapped contact, reply to original sender
-            EmailMessage.CreateReplyAll(Subject, Body, true, InputAgentTaskMessage."External ID");
-            AddMessageAttachments(EmailMessage, OutputAgentTaskMessage);
-            exit(Email.ReplyAll(EmailMessage, SOASetup."Email Account ID", SOASetup."Email Connector"));
         end;
+
+        // No mapped contact, reply to original sender
+        EmailMessage.CreateReplyAll(Subject, Body, true, InputAgentTaskMessage."External ID");
+        AddMessageAttachments(EmailMessage, OutputAgentTaskMessage);
+        exit(Email.ReplyAll(EmailMessage, SOASetup."Email Account ID", SOASetup."Email Connector"));
     end;
 
     local procedure GetOriginEmailRecipients(InputAgentTaskMessage: Record "Agent Task Message"; var CCRecipients: List of [Text]; var BCCRecipients: List of [Text])
@@ -130,7 +130,9 @@ codeunit 4581 "SOA Send Replies"
         if not EmailInbox.Get(SOAEmail."Email Inbox ID") then
             exit;
 
-        OriginEmailMessage.Get(EmailInbox."Message Id");
+        if not OriginEmailMessage.Get(EmailInbox."Message Id") then
+            exit;
+
         OriginEmailMessage.GetRecipients(Enum::"Email Recipient Type"::Cc, CCRecipients);
         OriginEmailMessage.GetRecipients(Enum::"Email Recipient Type"::Bcc, BCCRecipients);
     end;

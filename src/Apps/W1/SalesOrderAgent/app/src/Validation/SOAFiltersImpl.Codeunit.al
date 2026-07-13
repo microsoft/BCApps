@@ -298,7 +298,7 @@ codeunit 4305 "SOA Filters Impl."
         NoTaskMessagesFoundTxt: Label 'No agent task messages found for given task ID.', Locked = true;
         LearnMoreLbl: Label 'Learn more';
         SelectContactOrCreateLbl: Label 'Select an existing contact, or create a new one';
-        ContactAlreadyHasEmail2Qst: Label 'Contact %1 already has email address 2 %2. Replace it with %3?', Comment = '%1 = Contact No., %2 = Existing email 2, %3 = New email';
+        ContactAlreadyHasEmail2Qst: Label 'Contact %1 already has %2 in E-Mail 2. Replace it with %3?', Comment = '%1 = Contact No., %2 = Existing E-Mail 2, %3 = New email';
         ContactActionsMenuQst: Label 'Create a new contact,Use another contact once,Use another contact always', Comment = 'Comma-separated StrMenu options - do not add spaces around commas';
         ContactActionsInstructionQst: Label 'Select one option for how this email should be handled.';
         SecurityFilteringDocumentationURLTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2298901', Locked = true;
