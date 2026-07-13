@@ -624,13 +624,19 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         LibraryWithholdingTax.CreateWHTBusinessPostingGroup(WHTBusPostingGroup);
         LibraryWithholdingTax.CreateWHTProductPostingGroup(WHTProdPostingGroup);
 
+        // [GIVEN] A fully-initialized Withholding Tax Posting Setup (all required accounts) so the invoice/payment posting pipeline does not resolve to a partial setup and produce inconsistent G/L entries.
+        CreateWHTPostingSetup(
+          WHTPostingSetup, WHTBusPostingGroup.Code, WHTProdPostingGroup.Code, '',
+          LibraryRandom.RandDecInRange(50, 100, 2));  // WHT Minimum Invoice Amount.
+
         // [GIVEN] A posted Purchase Invoice for a WHT liable Vendor with WHT absorb base updated and expected WHT Amount calculated.
         CreateGeneralJournalLineWithBalAccountType(
           GenJournalLine, GenJournalLine."Document Type"::Invoice, CreateVendor(VATPostingSetup."VAT Bus. Posting Group", WHTBusPostingGroup.Code), '',
           '', GenJournalLine."Bal. Account Type"::"G/L Account", CreateGLAccountWithVATBusPostingGroup(VATPostingSetup, WHTProdPostingGroup.Code),
           -LibraryRandom.RandDecInRange(100, 200, 2));  // Blank - WHT Bus Posting Group, Applies To Doc. No, Currency, Random - Direct unit cost.
         UpdateGenJournalLineWHTAbsorbBase(GenJournalLine);
-        FindWHTPostingSetup(WHTPostingSetup, GenJournalLine."Wthldg. Tax Bus. Post. Group", GenJournalLine."Wthldg. Tax Prod. Post. Group", '');  // Blank Currency Code.
+        GenJournalLine.TestField("Wthldg. Tax Bus. Post. Group", WHTBusPostingGroup.Code);
+        GenJournalLine.TestField("Wthldg. Tax Prod. Post. Group", WHTProdPostingGroup.Code);
         WHTAmount := GenJournalLine."Withholding Tax Absorb Base" * WHTPostingSetup."Withholding Tax %" / 100;
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
         DocumentNo := FindVendorLedgerEntry(GenJournalLine."Account No.");
@@ -659,6 +665,10 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         GenJournalLine2.SetRange("Document No.", StartingDocumentNo);
         GenJournalLine2.FindFirst();
         GenJournalLine2.TestField("Wthldg. Tax Prod. Post. Group", WHTProdPostingGroup.Code);
+
+        // [GIVEN] The generated Payment Journal Line is validated (Account No., Amount and posting groups)
+        GenJournalLine2.Validate("Wthldg. Tax Prod. Post. Group", WHTProdPostingGroup.Code);
+        GenJournalLine2.Modify(true);
 
         // [WHEN] The generated Payment Journal Line is posted.
         LibraryERM.PostGeneralJnlLine(GenJournalLine2);
