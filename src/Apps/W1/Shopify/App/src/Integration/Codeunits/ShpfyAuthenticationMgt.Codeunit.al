@@ -418,6 +418,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
         exit((StatusCode >= 200) and (StatusCode < 300));
     end;
 
+    [NonDebuggable]
     local procedure ResponseHasAccessToken(ResponseBody: Text): Boolean
     var
         JsonHelper: Codeunit "Shpfy Json Helper";

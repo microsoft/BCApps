@@ -72,7 +72,7 @@ table 30138 "Shpfy Registered Store New"
 
     internal procedure SetRefreshToken(RefreshToken: SecretText)
     begin
-        IsolatedStorage.Set('RefreshToken(' + Rec.SystemId + ')', RefreshToken, DataScope::Module);
+        IsolatedStorage.SetEncrypted('RefreshToken(' + Rec.SystemId + ')', RefreshToken, DataScope::Module);
     end;
 
     internal procedure GetRefreshToken() Result: SecretText

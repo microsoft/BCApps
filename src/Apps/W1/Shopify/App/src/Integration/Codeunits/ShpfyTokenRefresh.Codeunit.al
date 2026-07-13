@@ -32,8 +32,7 @@ codeunit 30431 "Shpfy Token Refresh"
         Shop.SetRange(Enabled, true);
         if Shop.FindSet() then
             repeat
-                Commit();
-                // Each shop runs in its own transaction so one failure does not abort the run.
+                // Each shop runs in its own transaction (Codeunit.Run) so one failure does not abort the run.
                 if not Codeunit.Run(Codeunit::"Shpfy Token Refresh Shop", Shop) then
                     LogRefreshFailure(Shop.Code, GetLastErrorText());
             until Shop.Next() = 0;
@@ -55,6 +54,8 @@ codeunit 30431 "Shpfy Token Refresh"
         JobQueueEntry: Record "Job Queue Entry";
         JobQueueCategoryLbl: Label 'SHPFYAUTH', Locked = true;
         JobDescriptionTxt: Label 'Shopify: refresh expiring access tokens';
+        CategoryTok: Label 'Shopify Integration', Locked = true;
+        ScheduleFailedTxt: Label 'Failed to schedule the Shopify token refresh job: %1', Comment = '%1 = error text', Locked = true;
     begin
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
         JobQueueEntry.SetRange("Object ID to Run", Codeunit::"Shpfy Token Refresh");
@@ -77,6 +78,8 @@ codeunit 30431 "Shpfy Token Refresh"
         JobQueueEntry."No. of Attempts to Run" := 5;
         JobQueueEntry.Description := CopyStr(JobDescriptionTxt, 1, MaxStrLen(JobQueueEntry.Description));
         JobQueueEntry."Job Queue Category Code" := JobQueueCategoryLbl;
-        Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry);
+        // Do not let an enqueue failure abort the install/upgrade that schedules this job.
+        if not Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry) then
+            Session.LogMessage('', StrSubstNo(ScheduleFailedTxt, GetLastErrorText()), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
     end;
 }
