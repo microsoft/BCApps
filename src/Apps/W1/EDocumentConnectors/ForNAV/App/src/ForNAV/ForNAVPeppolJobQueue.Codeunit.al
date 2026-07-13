@@ -22,8 +22,7 @@ codeunit 6412 "ForNAV Peppol Job Queue"
     begin
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
         JobQueueEntry.SetRange("Job Queue Category Code", Setup.GetForNAVCode());
-        JobQueueEntry.SetRange(Status, JobQueueEntry.Status::"On Hold");
-        JobQueueEntry.SetFilter(Status, '', JobQueueEntry.Status::"On Hold", JobQueueEntry.Status::Ready, JobQueueEntry.Status::Waiting, JobQueueEntry.Status::Error);
+        JobQueueEntry.SetFilter(Status, '%1|%2|%3|%4', JobQueueEntry.Status::"On Hold", JobQueueEntry.Status::Ready, JobQueueEntry.Status::Waiting, JobQueueEntry.Status::Error);
         if JobQueueEntry.FindSet() then
             repeat
                 case JobQueueEntry.Status of

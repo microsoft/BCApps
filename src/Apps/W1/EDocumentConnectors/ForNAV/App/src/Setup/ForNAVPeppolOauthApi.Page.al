@@ -51,6 +51,9 @@ page 6411 "ForNAV Peppol Oauth API"
                 field(endpoint; Endpoint)
                 {
                     ApplicationArea = All;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'No longer used. This field will be removed in a future version.';
+                    ObsoleteTag = '8.2.0.15';
                 }
                 field(hash; Hash)
                 {
@@ -66,6 +69,7 @@ page 6411 "ForNAV Peppol Oauth API"
         TenantId: Text;
         Hash: Text;
         SecretValidTo: DateTime;
+        [Obsolete('No longer used. This field will be removed in a future version.')]
         Endpoint: Text[20];
 
     trigger OnInsertRecord(BelowxRec: Boolean): Boolean

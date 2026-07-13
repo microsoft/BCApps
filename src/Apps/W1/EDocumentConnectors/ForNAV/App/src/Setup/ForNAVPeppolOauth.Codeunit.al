@@ -236,22 +236,15 @@ codeunit 6422 "ForNAV Peppol Oauth"
         DeleteIsolatedStorage(SetupKeyLbl);
     end;
 
-
-    internal procedure GetInstallationId() Result: SecretText
+    internal procedure GetInstallationId() Result: Text
     var
         AzureADTenant: Codeunit "Azure AD Tenant";
         EnvironmentInformation: Codeunit "Environment Information";
-        InstallationIdLbl: Label 'InstallationId', Locked = true;
     begin
-        if EnvironmentInformation.IsSaaS() then
+        if EnvironmentInformation.IsSaaSInfrastructure() then
             exit(AzureADTenant.GetAadTenantId());
 
-        Result := GetSecretStorage(InstallationIdLbl);
-        if not Result.IsEmpty() then
-            exit;
-
-        Result := Format(CreateGuid()).TrimStart('{').TrimEnd('}');
-        SetSecretStorage(InstallationIdLbl, Result);
+        exit(Database.SerialNumber());
     end;
 
     internal procedure ResetForSetup()
@@ -298,13 +291,15 @@ codeunit 6422 "ForNAV Peppol Oauth"
 
     [TryFunction]
     internal procedure TryTestOAuth()
+    var
+        Response: Text;
     begin
-        TestOAuth();
+        TestOAuth(Response);
     end;
 
-    internal procedure TestOAuth(): Boolean
+    internal procedure TestOAuth(var Response: Text)
     var
-        SendContex: Codeunit SendContext;
+        SendContext: Codeunit SendContext;
         Setup: Codeunit "ForNAV Peppol Setup";
         HttpClient: HttpClient;
         HttpRequestMessage: HttpRequestMessage;
@@ -317,24 +312,28 @@ codeunit 6422 "ForNAV Peppol Oauth"
         if GetClientID() = '' then
             Error(InvalidCLientIdErr);
 
-        HttpRequestMessage := SendContex.Http().GetHttpRequestMessage();
+        HttpRequestMessage := SendContext.Http().GetHttpRequestMessage();
         HttpRequestMessage.SetRequestUri(StrSubstNo(EndpointLbl, GetPeppolEndpointURL()));
         HttpRequestMessage.Method('GET');
 
-        ResponseCode := Setup.Send(HttpClient, SendContex.Http());
+        ResponseCode := Setup.Send(HttpClient, SendContext.Http());
+        SendContext.Http().GetHttpResponseMessage().Content.ReadAs(Response);
         if ResponseCode = 200 then
-            exit(true);
+            exit;
 
-        HttpResponseMessage := SendContex.Http().GetHttpResponseMessage();
+        HttpResponseMessage := SendContext.Http().GetHttpResponseMessage();
         if ResponseCode = 407 then
             Error(HttpErr, ResponseCode, GetLastErrorText())
         else
-            Error(HttpErr, ResponseCode, HttpResponseMessage.ReasonPhrase);
+            Error(HttpErr, ResponseCode, Response);
     end;
 
+    [Obsolete('Roles are no longer stored; role-based access is not used.', '1.0.0.0')]
     internal procedure StoreRoles(Roles: List of [Text])
     var
+#Pragma warning disable AL0432
         PeppolRole: Record "ForNAV Peppol Role";
+#Pragma warning restore AL0432
         i: Integer;
     begin
         PeppolRole.DeleteAll();
@@ -395,12 +394,13 @@ codeunit 6422 "ForNAV Peppol Oauth"
 
         HttpRequestMessage.Method('POST');
         HttpClient.Send(HttpRequestMessage, HttpResponseMessage);
-        if HttpResponseMessage.HttpStatusCode <> 200 then
-            Error(CannotRotateKeyErr, HttpResponseMessage.ReasonPhrase);
 
         HttpResponseMessage.Content.ReadAs(Response);
         if not ResponseObject.ReadFrom(Response) then
-            Error(HttpResponseMessage.ReasonPhrase);
+            Error(CannotRotateKeyErr, HttpResponseMessage.ReasonPhrase);
+
+        if HttpResponseMessage.HttpStatusCode <> 200 then
+            Error(CannotRotateKeyErr, HttpResponseMessage.ReasonPhrase);
 
         ResponseObject.Get('clientId', Token);
         if GetClientID() <> Token.AsValue().AsText() then

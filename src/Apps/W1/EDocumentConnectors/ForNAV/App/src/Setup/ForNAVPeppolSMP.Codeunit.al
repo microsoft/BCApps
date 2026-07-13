@@ -43,16 +43,19 @@ codeunit 6425 "ForNAV Peppol SMP"
         HttpRequestMessage.Content := HttpContent;
         HttpRequestMessage.Method(Req.ToUpper());
         SendContext.Http().SetHttpRequestMessage(HttpRequestMessage);
-        if PeppolSetup.Send(HttpClient, SendContext.Http()) = 401 then begin
-            Error := 401;
+        StatusCode := PeppolSetup.Send(HttpClient, SendContext.Http());
+        if StatusCode in [400, 401, 407, 418] then begin
+            Error := StatusCode;
             exit;
         end;
+
         HttpResponse := SendContext.Http().GetHttpResponseMessage();
         StatusCode := HttpResponse.HttpStatusCode;
         if (Error = -1) and (StatusCode = 0) then begin
             Error := StatusCode;
             exit;
         end;
+
         Message := HttpResponse.ReasonPhrase;
 
         SendContext.GetTempBlob().CreateInStream(InStr);
@@ -63,18 +66,17 @@ codeunit 6425 "ForNAV Peppol SMP"
                 StatusCode := Token.AsValue().AsInteger();
             if ResponseObject.Get('message', Token) and Token.IsValue and not Token.AsValue().IsNull then
                 Message := Token.AsValue().AsText();
-            if (StatusCode >= 300) and (Error <> -1) and (StatusCode <> Error) then begin
-                if ResponseObject.Get('payload', Token) then
-                    Message += ': ' + Token.AsValue().AsText();
-                Error(ServiceErr, action, StatusCode, Message);
-            end else
-                Error := StatusCode;
             if ResponseObject.Get('payload', Token) then
-                if Token.IsObject then
-                    OutputObject := Token.AsObject()
-                else
-                    if Token.IsValue and not Token.AsValue().IsNull then
+                case true of
+                    Token.IsObject:
+                        OutputObject := Token.AsObject();
+                    Token.IsValue and not Token.AsValue().IsNull:
                         OutputObject.ReadFrom(Token.AsValue().AsText());
+                end;
+            if (StatusCode >= 300) and (Error <> -1) and (StatusCode <> Error) then
+                Error(ServiceErr, action, StatusCode, Message)
+            else
+                Error := StatusCode;
         end else
             Error(ServiceErr, action, StatusCode, Message);
     end;
@@ -101,7 +103,9 @@ codeunit 6425 "ForNAV Peppol SMP"
         case result of
             0:
                 Setup.Status := Setup.Status::"Offline";
-            401, 418:
+            200:
+                Setup.Status := Setup.Status::Published;
+            400, 401, 407, 418:
                 begin
                     Setup.Authorized := false;
                     Message(ConnectionLbl, GetLastErrorText());
@@ -118,8 +122,6 @@ codeunit 6425 "ForNAV Peppol SMP"
                 end;
             404:
                 Setup.Status := Setup.Status::"Not published";
-            200:
-                Setup.Status := Setup.Status::Published;
             409:
                 begin
                     Message(SetupInAnotherBCInstanceLbl);
@@ -149,6 +151,7 @@ codeunit 6425 "ForNAV Peppol SMP"
         InputObject, OutputObject : JsonObject;
         Error: Integer;
         Message: Text;
+        ConflictErr: Label 'Conflict: %1', Comment = '%1 = message';
     begin
         // Used by Azure function - do not modify
         InputObject.Add('Identifier', Setup.ID());
@@ -158,7 +161,7 @@ codeunit 6425 "ForNAV Peppol SMP"
         error := 409;
         OutputObject := CallSMP('Post', InputObject, 'participant', error, message);
         if error = 409 then
-            Error('Conflict');
+            Error(ConflictErr, Message);
         Setup.Status := Setup.Status::Published;
         Setup.Modify();
     end;
