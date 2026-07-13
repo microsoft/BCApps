@@ -394,6 +394,22 @@ function Assert-ReconciliationLimit {
     return $Limit
 }
 
+function Assert-OwnershipResultFileSize {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [long] $Length
+    )
+
+    if ($Length -lt 0) {
+        throw 'Ownership result file length cannot be negative.'
+    }
+    if ($Length -gt $script:MaximumResultBytes) {
+        throw 'Ownership result file exceeds the 64 MiB producer v1 limit.'
+    }
+    return $Length
+}
+
 function Get-NextReconciliationState {
     [CmdletBinding()]
     param(
@@ -458,6 +474,7 @@ Export-ModuleMember -Function @(
     'Get-OwnershipEventOperation',
     'Get-OwnershipSubjectFromEvent',
     'Assert-ReconciliationLimit',
+    'Assert-OwnershipResultFileSize',
     'Get-NextReconciliationState',
     'ConvertTo-OwnershipMatrixJson',
     'Get-SafeOwnershipSummaryText'

@@ -437,6 +437,13 @@ Describe 'TeamOwnership result application boundaries' {
     }
 }
 
+Describe 'TeamOwnership artifact byte boundary' {
+    It 'accepts exactly 67,108,864 bytes and rejects one byte more' {
+        Assert-OwnershipResultFileSize -Length 67108864 | Should -Be 67108864
+        { Assert-OwnershipResultFileSize -Length 67108865 } | Should -Throw '*64 MiB*'
+    }
+}
+
 Describe 'TeamOwnership reconciliation batching integration' {
     BeforeAll {
         $script:batchTemp = Join-Path ([System.IO.Path]::GetTempPath()) "OwnershipBatch_$([guid]::NewGuid())"
