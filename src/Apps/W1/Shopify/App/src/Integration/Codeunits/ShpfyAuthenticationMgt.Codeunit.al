@@ -259,8 +259,12 @@ codeunit 30199 "Shpfy Authentication Mgt."
         if not RegisteredStoreNew.Get(Store) then
             exit;
 
-        if RegisteredStoreNew.HasRefreshToken() and not TokenNeedsRefresh(RegisteredStoreNew) then
-            exit;
+        if RegisteredStoreNew.HasRefreshToken() then begin
+            if not TokenNeedsRefresh(RegisteredStoreNew) then
+                exit;
+        end else
+            if not ShouldAttemptMigration(RegisteredStoreNew) then
+                exit;
 
         RegisteredStoreNew.LockTable();
         if not RegisteredStoreNew.Get(Store) then
@@ -270,8 +274,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
             if TokenNeedsRefresh(RegisteredStoreNew) then
                 RefreshAccessToken(Store, RegisteredStoreNew);
         end else
-            if not RegisteredStoreNew.GetAccessToken().IsEmpty() then
-                MigrateToExpiringToken(Store, RegisteredStoreNew);
+            TryMigrate(Store, RegisteredStoreNew);
 
         Commit();
     end;
@@ -296,10 +299,33 @@ codeunit 30199 "Shpfy Authentication Mgt."
         if RegisteredStoreNew.HasRefreshToken() then
             RefreshAccessToken(Store, RegisteredStoreNew)
         else
-            if not RegisteredStoreNew.GetAccessToken().IsEmpty() then
-                MigrateToExpiringToken(Store, RegisteredStoreNew);
+            TryMigrate(Store, RegisteredStoreNew);
 
         Commit();
+    end;
+
+    local procedure TryMigrate(Store: Text; var RegisteredStoreNew: Record "Shpfy Registered Store New")
+    begin
+        // Throttle migration attempts: a legacy store has no refresh token, so without this guard
+        // every API call in a sync loop would re-attempt a failing migration (lock + HTTP + commit).
+        if not ShouldAttemptMigration(RegisteredStoreNew) then
+            exit;
+        RegisteredStoreNew."Last Migration Attempt" := CurrentDateTime();
+        RegisteredStoreNew.Modify();
+        if not RegisteredStoreNew.GetAccessToken().IsEmpty() then
+            MigrateToExpiringToken(Store, RegisteredStoreNew);
+    end;
+
+    local procedure ShouldAttemptMigration(RegisteredStoreNew: Record "Shpfy Registered Store New"): Boolean
+    begin
+        if RegisteredStoreNew."Last Migration Attempt" = 0DT then
+            exit(true);
+        exit(CurrentDateTime() - RegisteredStoreNew."Last Migration Attempt" >= GetMigrationCooldown());
+    end;
+
+    local procedure GetMigrationCooldown(): Duration
+    begin
+        exit(60 * 60 * 1000); // Retry a failed migration at most once per hour.
     end;
 
     [NonDebuggable]

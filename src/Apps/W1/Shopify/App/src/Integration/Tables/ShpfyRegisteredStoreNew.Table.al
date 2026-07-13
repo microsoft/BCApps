@@ -51,6 +51,11 @@ table 30138 "Shpfy Registered Store New"
             Caption = 'Refresh Token Expires At';
             DataClassification = SystemMetadata;
         }
+        field(8; "Last Migration Attempt"; DateTime)
+        {
+            Caption = 'Last Migration Attempt';
+            DataClassification = SystemMetadata;
+        }
     }
     keys
     {

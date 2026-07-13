@@ -10,7 +10,7 @@ The connector authenticates to Shopify with **expiring offline access tokens** (
 
 - **Fast path** -- a valid expiring token is used as-is.
 - **Refresh** -- when the access token is within a 5-minute buffer of expiry, `RefreshAccessToken` exchanges the refresh token (`grant_type=refresh_token`) for a new access + refresh token. Transient failures are retried with the *same* refresh token (Shopify returns the same response for ~1 hour); a 401 or a lapsed refresh token is terminal and surfaces a "reconnect the store" error.
-- **Migration** -- a legacy non-expiring token (no refresh token stored) is migrated once via token exchange. This is best-effort: if it fails the existing token is kept (it still works until the deadline); on success Shopify revokes the old token, so the exchange is irreversible per shop.
+- **Migration** -- a legacy non-expiring token (no refresh token stored) is migrated once via token exchange. This is best-effort: if it fails the existing token is kept (it still works until the deadline); on success Shopify revokes the old token, so the exchange is irreversible per shop. Because a legacy store has no refresh token, the fast-path check never short-circuits it, so migration is throttled by a `Last Migration Attempt` timestamp (retried at most once per hour) to avoid re-attempting a failing migration on every API call in a sync loop.
 
 Refresh and migration are serialized with a table lock plus a double-checked re-read, because Shopify allows only one refreshable token per app and store -- this keeps concurrent sessions (or multiple BC companies sharing a shop) from thrashing the token. As a safety net, an unexpected 401 from a normal API call triggers a single forced refresh and retry.
 
