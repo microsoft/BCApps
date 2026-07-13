@@ -102,7 +102,8 @@ codeunit 1565 "Privacy Notice Impl."
             exit(true); // Auto-agree for evaluation companies if admin has not explicitly disagreed
 
         // Resolve the runtime default (e.g. Copilot's geo/EUDB matrix or Microsoft Learn in geo). This is never persisted;
-        // it is only applied below after honoring any explicit user decision. When it is off, the user is prompted to decide.
+        // it is only applied below after an explicit user approval. Per-user declines are not stored (see SetApprovalState),
+        // so a declined user is re-evaluated on every check; when the default is off, the user is prompted to decide.
         ResolveDefaultApproval(PrivacyNoticeId, DefaultApproval);
 
         // Check if user made a decision and if so, return that
@@ -163,7 +164,8 @@ codeunit 1565 "Privacy Notice Impl."
             exit("Privacy Notice Approval State"::Agreed); // Auto-agree for evaluation companies if admin has not explicitly disagreed
 
         // Resolve the runtime default (e.g. Copilot's geo/EUDB matrix or Microsoft Learn in geo). This is never persisted;
-        // it is only applied below after honoring any explicit user decision. When it is off, the state stays undecided ("Not set").
+        // it is only applied below after an explicit user approval. Per-user declines are not stored (see SetApprovalState),
+        // so a declined user is re-evaluated on every check; when the default is off, the state stays undecided ("Not set").
         ResolveDefaultApproval(PrivacyNoticeId, DefaultApproval);
 
         // Check if user made a decision and if so, return that
