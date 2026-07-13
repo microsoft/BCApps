@@ -293,6 +293,14 @@ codeunit 4305 "SOA Filters Impl."
         exit('''@' + LowerCase(FromEmail.TrimStart('"').TrimEnd('"').Trim()) + '''');
     end;
 
+    internal procedure FindContactByEmail2(var Contact: Record Contact; EmailAddress: Text; var ContactCount: Integer): Boolean
+    begin
+        Contact.Reset();
+        Contact.SetFilter("E-Mail 2", GetSafeFromEmailFilter(EmailAddress));
+        ContactCount := Contact.Count();
+        exit(Contact.FindFirst());
+    end;
+
     var
         NoContactsFoundTxt: Label 'No contacts found for given email.', Locked = true;
         NoTaskMessagesFoundTxt: Label 'No agent task messages found for given task ID.', Locked = true;

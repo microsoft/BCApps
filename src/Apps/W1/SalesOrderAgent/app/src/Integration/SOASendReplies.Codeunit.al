@@ -139,14 +139,24 @@ codeunit 4581 "SOA Send Replies"
 
     local procedure GetMappedContactEmail(TaskID: BigInteger; TaskMessageID: Guid): Text
     var
+        InputAgentTaskMessage: Record "Agent Task Message";
         SOATaskContactOverride: Record "SOA Task Contact Override";
         Contact: Record Contact;
+        SOAFiltersImpl: Codeunit "SOA Filters Impl.";
+        ContactCount: Integer;
     begin
         if SOATaskContactOverride.Get(TaskID, TaskMessageID) then begin
             Contact.SetLoadFields("E-Mail");
             if Contact.Get(SOATaskContactOverride."Contact No.") then
                 exit(Contact."E-Mail");
         end;
+
+        if not InputAgentTaskMessage.Get(TaskID, TaskMessageID) then
+            exit('');
+
+        if SOAFiltersImpl.FindContactByEmail2(Contact, InputAgentTaskMessage.From, ContactCount) then
+            exit(Contact."E-Mail");
+
         exit('');
     end;
 

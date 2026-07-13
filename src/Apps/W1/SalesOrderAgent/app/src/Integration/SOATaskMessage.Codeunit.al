@@ -90,6 +90,8 @@ codeunit 4398 "SOA Task Message"
         SentAgentTaskMessage: Record "Agent Task Message";
         SOATaskContactOverride: Record "SOA Task Contact Override";
         OverrideContact: Record Contact;
+        SOAFiltersImpl: Codeunit "SOA Filters Impl.";
+        ContactCount: Integer;
     begin
         Clear(ToAddress);
         if OutputAgentTaskMessage.Type <> OutputAgentTaskMessage.Type::Output then
@@ -108,6 +110,12 @@ codeunit 4398 "SOA Task Message"
                         ToAddress := OverrideContact."E-Mail";
                         exit(true);
                     end;
+            end;
+
+        if SOAFiltersImpl.FindContactByEmail2(OverrideContact, SentAgentTaskMessage.From, ContactCount) then
+            if OverrideContact."E-Mail" <> '' then begin
+                ToAddress := OverrideContact."E-Mail";
+                exit(true);
             end;
 
         ToAddress := SentAgentTaskMessage.From;
