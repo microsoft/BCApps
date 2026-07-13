@@ -56,6 +56,9 @@ table 1008 "Job Assigned Resource"
         {
             Clustered = true;
         }
+        key(ResourceNo; "Resource No.")
+        {
+        }
     }
 
     trigger OnInsert()
