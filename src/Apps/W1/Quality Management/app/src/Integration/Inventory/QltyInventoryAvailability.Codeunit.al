@@ -164,7 +164,7 @@ codeunit 20445 "Qlty. Inventory Availability"
                 LocationCode := QltyInspectionHeader."Location Code";
                 GetFromLocationAndBinBasedOnNamingConventions(RecordRefToSearch, LocationCode, BinCode, QuantityBaseValue);
                 if LocationCode <> '' then
-                    if not TryResolveBinsFromBinContent(QltyInspectionHeader, LocationCode, TempToMoveBinContent) then begin
+                    if not ResolveBinsFromBinContent(QltyInspectionHeader, LocationCode, TempToMoveBinContent) then begin
                         TempToMoveBinContent.Reset();
                         TempToMoveBinContent.SetRange("Location Code", LocationCode);
                         if BinCode <> '' then
@@ -189,7 +189,7 @@ codeunit 20445 "Qlty. Inventory Availability"
         end;
     end;
 
-    local procedure TryResolveBinsFromBinContent(QltyInspectionHeader: Record "Qlty. Inspection Header"; LocationCode: Code[10]; var TempToMoveBinContent: Record "Bin Content" temporary): Boolean
+    local procedure ResolveBinsFromBinContent(QltyInspectionHeader: Record "Qlty. Inspection Header"; LocationCode: Code[10]; var TempToMoveBinContent: Record "Bin Content" temporary): Boolean
     var
         Location: Record Location;
         BinContent: Record "Bin Content";
