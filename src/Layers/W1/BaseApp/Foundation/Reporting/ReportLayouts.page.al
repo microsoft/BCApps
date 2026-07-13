@@ -236,11 +236,10 @@ page 9660 "Report Layouts"
                 var
                     NewEditedLayoutName: Text;
                 begin
-                    if not Rec."User Defined" then begin
-                        if Dialog.Confirm(EditInfoExtensionLayoutTxt, false) then
-                            ReportLayoutsImpl.EditReportLayout(Rec, NewEditedLayoutName);
-                    end else
-                        ReportLayoutsImpl.EditReportLayout(Rec, NewEditedLayoutName);
+                    // Both user-defined and extension-installed layouts can be edited here. For an
+                    // extension layout the dialog writes a Tenant Report Layout Override record
+                    // (Description / IsObsolete) instead of copying the layout.
+                    ReportLayoutsImpl.EditReportLayout(Rec, NewEditedLayoutName);
                     SetFocusedRecord(Rec."Report ID", NewEditedLayoutName);
                 end;
             }
@@ -776,7 +775,6 @@ page 9660 "Report Layouts"
         DocumentReportExperienceEnabled: Boolean;
         WordLayoutSelected: Boolean;
         ModifyNonUserLayoutErr: Label 'Only user-defined layouts can be modified or removed.';
-        EditInfoExtensionLayoutTxt: Label 'It is not possible to modify the layout info for this layout because it is provided by an extension. Do you want to edit a copy of the layout instead ?';
         ReplaceConfirmationTxt: Label 'This action will replace the layout file of the currently selected layout "%1". Do you want to continue ?', Comment = '%1 = LayoutName';
         LayoutStatusChangedMsg: Label '%1 layout(s) set to %2.', Comment = '%1 = Number of layouts updated, %2 = Status name';
         DeletePartWithReferencesQst: Label 'Layout part "%1" is referenced in the Tenant Report Layout Configuration. Deleting it will clear those references and may result in reports rendering without the expected header/footer or theme. Do you want to continue?', Comment = '%1 = Layout Name';

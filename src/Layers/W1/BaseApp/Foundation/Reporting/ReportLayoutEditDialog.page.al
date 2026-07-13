@@ -40,6 +40,7 @@ page 9661 "Report Layout Edit Dialog"
                 ApplicationArea = Basic, Suite;
                 NotBlank = true;
                 ShowMandatory = true;
+                Editable = LayoutNameEditable;
                 Caption = 'Layout Name';
                 ToolTip = 'Specifies the name of the layout.';
 
@@ -74,16 +75,21 @@ page 9661 "Report Layout Edit Dialog"
 
                 trigger OnValidate()
                 begin
-                    if (CreateCopy) then
+                    // In override mode (extension layout) the user always chooses global vs company
+                    // scope, whether they override in place or opt into a copy.
+                    if OverrideMode then
                         AvailableInAllCompaniesEditable := true
                     else
-                        if (IsLayoutOwnedByCurrentCompany) then begin
-                            AvailableInAllCompaniesEditable := true;
-                            AvailableInAllCompanies := false;
-                        end else begin
-                            AvailableInAllCompaniesEditable := false;
-                            AvailableInAllCompanies := true;
-                        end;
+                        if (CreateCopy) then
+                            AvailableInAllCompaniesEditable := true
+                        else
+                            if (IsLayoutOwnedByCurrentCompany) then begin
+                                AvailableInAllCompaniesEditable := true;
+                                AvailableInAllCompanies := false;
+                            end else begin
+                                AvailableInAllCompaniesEditable := false;
+                                AvailableInAllCompanies := true;
+                            end;
                 end;
             }
             field(AvailableInAllCompanies; AvailableInAllCompanies)
@@ -98,7 +104,7 @@ page 9661 "Report Layout Edit Dialog"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Mark layout as obsolete';
                 ToolTip = 'Specifies whether the layout is obsolete.';
-                Editable = true;
+                Editable = IsObsoleteEditable;
             }
         }
     }
@@ -119,6 +125,9 @@ page 9661 "Report Layout Edit Dialog"
         AvailableInAllCompaniesEditable: Boolean;
         IsLayoutOwnedByCurrentCompany: Boolean;
         IsObsolete: Boolean;
+        LayoutNameEditable: Boolean;
+        IsObsoleteEditable: Boolean;
+        OverrideMode: Boolean;
 
     internal procedure SelectedLayoutDescription(): Text[250]
     begin
@@ -153,10 +162,20 @@ page 9661 "Report Layout Edit Dialog"
         OldLayoutName := ReportLayoutList."Caption";
         NewLayoutName := OldLayoutName;
         IsObsolete := ReportLayoutList.IsObsolete;
+        LayoutNameEditable := true;
+        IsObsoleteEditable := true;
+        OverrideMode := false;
 
         if not ReportLayoutList."User Defined" then begin
-            CreateCopy := true;
-            CreateCopyEditable := false;
+            // Override mode: edit the extension layout's Description / IsObsolete via a
+            // Tenant Report Layout Override record. The name/identity is fixed, and IsObsolete is
+            // one-way (a layout already obsolete in metadata cannot be un-obsoleted). Copy remains
+            // available as an opt-in escape hatch to fork the layout content into a user layout.
+            OverrideMode := true;
+            CreateCopy := false;
+            CreateCopyEditable := true;
+            LayoutNameEditable := false;
+            IsObsoleteEditable := not ReportLayoutList.IsObsolete;
             AvailableInAllCompaniesEditable := true;
             AvailableInAllCompanies := true;
 

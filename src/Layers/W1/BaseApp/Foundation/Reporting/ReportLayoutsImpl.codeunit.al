@@ -672,6 +672,21 @@ codeunit 9660 "Report Layouts Impl."
             AvailableInAllCompanies := ReportLayoutEditDialog.SelectedAvailableInAllCompanies();
             NewIsObsolete := ReportLayoutEditDialog.SelectedIsObsolete();
 
+            // Extension-installed layout, edited in place (not copied): write an override for the
+            // mutable properties (Description, IsObsolete) instead of copying the layout. The layout
+            // name/identity cannot change here, so NewLayoutName is not used.
+            if (not SelectedReportLayoutList."User Defined") and (not CreateCopy) then begin
+                UpsertLayoutOverride(SelectedReportLayoutList, AvailableInAllCompanies, true, NewDescription, false, Enum::"Report Layout Status"::Draft, true, NewIsObsolete);
+                NewEditedLayoutName := SelectedReportLayoutList.Name;
+
+                CustomDimensions.Add('ReportId', Format(SelectedReportLayoutList."Report ID"));
+                CustomDimensions.Add('LayoutName', SelectedReportLayoutList.Name);
+                CustomDimensions.Add('NewLayoutDescription', NewDescription);
+                AddReportLayoutDimensionsAction('EditOverride', CustomDimensions);
+                Log('0000N0H', 'Report layout properties overridden by user', CustomDimensions);
+                exit;
+            end;
+
             // Check if a layout having NewLayoutName already exists
             if TenantReportLayout.Get(SelectedReportLayoutList."Report ID", NewLayoutName, EmptyGuid) then
                 if CreateCopy or (SelectedReportLayoutList.Name <> NewLayoutName) then
