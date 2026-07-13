@@ -124,7 +124,7 @@ codeunit 8001 "Sub. Contr. Renewal Subcribers"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnPostSalesLineOnAfterTestSalesLine, '', false, false)]
     local procedure PerformRenewalForSalesLine(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var WhseShptHeader: Record "Warehouse Shipment Header"; WhseShip: Boolean; PreviewMode: Boolean; var CostBaseAmount: Decimal)
     begin
-        if not SalesLine.IsContractRenewal() then
+        if not IsContractRenewal(SalesLine) then
             exit;
         if not (SalesLine.Type = "Sales Line Type"::"Service Object") then
             exit;
@@ -171,7 +171,7 @@ codeunit 8001 "Sub. Contr. Renewal Subcribers"
     begin
         if not SalesHeader.Invoice then
             exit;
-        if SalesHeader.HasOnlyContractRenewalLines() then
+        if HasOnlyContractRenewalLines(SalesHeader) then
             IsHandled := true;
     end;
 
@@ -180,7 +180,7 @@ codeunit 8001 "Sub. Contr. Renewal Subcribers"
     begin
         if not SalesHeader.Invoice then
             exit;
-        if SalesHeader.HasOnlyContractRenewalLines() then
+        if HasOnlyContractRenewalLines(SalesHeader) then
             IsHandled := true;
     end;
 
@@ -189,84 +189,84 @@ codeunit 8001 "Sub. Contr. Renewal Subcribers"
     begin
         if not SalesHeader.Ship then
             exit;
-        if SalesHeader.HasOnlyContractRenewalLines() then
+        if HasOnlyContractRenewalLines(SalesHeader) then
             InsertShipmentHeaderNeeded := false;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnPostSalesLineOnBeforeInsertInvoiceLine, '', false, false)]
     local procedure SkipInsertSalesInvoiceLineOnPostSalesLineOnBeforeInsertInvoiceLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
-        if SalesLine.IsContractRenewal() or SalesHeader.HasOnlyContractRenewalLines() then
+        if IsContractRenewal(SalesLine) or HasOnlyContractRenewalLines(SalesHeader) then
             IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforeSalesInvLineInsert, '', false, false)]
     local procedure SkipInsertSalesInvoiceLineOnBeforeSalesInvLineInsert(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
-        if SalesLine.IsContractRenewal() or SalesHeader.HasOnlyContractRenewalLines() then
+        if IsContractRenewal(SalesLine) or HasOnlyContractRenewalLines(SalesHeader) then
             IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnPostSalesLineOnBeforeInsertShipmentLine, '', false, false)]
     local procedure SkipInsertSalesShipmentLineOnPostSalesLineOnBeforeInsertShipmentLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
-        if SalesLine.IsContractRenewal() or SalesHeader.HasOnlyContractRenewalLines() then
+        if IsContractRenewal(SalesLine) or HasOnlyContractRenewalLines(SalesHeader) then
             IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnPostSalesLineOnBeforeInsertReturnReceiptLine, '', false, false)]
     local procedure SkipInsertReturnReceiptLineOnPostSalesLineOnBeforeInsertReturnReceiptLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
-        if SalesLine.IsContractRenewal() or SalesHeader.HasOnlyContractRenewalLines() then
+        if IsContractRenewal(SalesLine) or HasOnlyContractRenewalLines(SalesHeader) then
             IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnPostSalesLineOnBeforeInsertCrMemoLine, '', false, false)]
     local procedure SkipInsertSalesCrMemoLineOnPostSalesLineOnBeforeInsertCrMemoLine(SalesHeader: Record "Sales Header"; SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
-        if SalesLine.IsContractRenewal() or SalesHeader.HasOnlyContractRenewalLines() then
+        if IsContractRenewal(SalesLine) or HasOnlyContractRenewalLines(SalesHeader) then
             IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnPostItemTrackingForShipmentOnBeforeShipmentInvoiceErr, '', false, false)]
     local procedure OnPostItemTrackingForShipmentOnBeforeShipmentInvoiceErr(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
-        if SalesLine.IsContractRenewal() then
+        if IsContractRenewal(SalesLine) then
             IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforePostItemTrackingCheckShipment, '', false, false)]
     local procedure OnBeforePostItemTrackingCheckShipment(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
-        if SalesLine.IsContractRenewal() then
+        if IsContractRenewal(SalesLine) then
             IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforeTestUpdatedSalesLine, '', false, false)]
     local procedure OnBeforeTestUpdatedSalesLine(SalesLine: Record "Sales Line"; var IsHandled: Boolean; var ErrorMessageManagement: Codeunit "Error Message Management")
     begin
-        if SalesLine.IsContractRenewal() then
+        if IsContractRenewal(SalesLine) then
             IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales Post Invoice Events", OnBeforePrepareLine, '', false, false)]
     local procedure OnBeforePrepareLine(SalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
-        if SalesLine.IsContractRenewal() then
+        if IsContractRenewal(SalesLine) then
             IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnPostSalesLineOnBeforePostSalesLine, '', false, false)]
     local procedure OnPostSalesLineOnBeforePostSalesLine(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; GenJnlLineDocNo: Code[20]; GenJnlLineExtDocNo: Code[35]; GenJnlLineDocType: Enum "Gen. Journal Document Type"; SrcCode: Code[10]; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; var IsHandled: Boolean)
     begin
-        if SalesLine.IsContractRenewal() then
+        if IsContractRenewal(SalesLine) then
             IsHandled := false; //IsHandled = ShouldPostLine
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforeTestSalesLine, '', false, false)]
     local procedure OnBeforeTestSalesLine(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; CommitIsSuppressed: Boolean; var IsHandled: Boolean)
     begin
-        if SalesLine.IsContractRenewal() then
+        if IsContractRenewal(SalesLine) then
             IsHandled := true;
     end;
 
@@ -275,7 +275,7 @@ codeunit 8001 "Sub. Contr. Renewal Subcribers"
     begin
         if not SalesHeader.Ship then
             exit;
-        if SalesHeader.HasOnlyContractRenewalLines() then
+        if HasOnlyContractRenewalLines(SalesHeader) then
             IsHandled := true;
     end;
 
@@ -284,7 +284,7 @@ codeunit 8001 "Sub. Contr. Renewal Subcribers"
     begin
         if not SalesHeader.Ship then
             exit;
-        if SalesHeader.HasOnlyContractRenewalLines() then
+        if HasOnlyContractRenewalLines(SalesHeader) then
             IsHandled := true;
     end;
 
@@ -298,7 +298,7 @@ codeunit 8001 "Sub. Contr. Renewal Subcribers"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnPostSalesLineOnAfterSetEverythingInvoiced, '', false, false)]
     local procedure SetEverythingInvoicedOnPostSalesLineOnAfterSetEverythingInvoiced(SalesLine: Record "Sales Line"; var EverythingInvoiced: Boolean; var IsHandled: Boolean)
     begin
-        if not SalesLine.IsContractRenewal() then
+        if not IsContractRenewal(SalesLine) then
             exit;
         EverythingInvoiced := true;
         IsHandled := true;
@@ -307,7 +307,7 @@ codeunit 8001 "Sub. Contr. Renewal Subcribers"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnRoundAmountOnBeforeIncrAmount, '', false, false)]
     local procedure OnRoundAmountOnBeforeIncrAmount(SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; SalesLineQty: Decimal; var TotalSalesLine: Record "Sales Line"; var TotalSalesLineLCY: Record "Sales Line"; var xSalesLine: Record "Sales Line"; var IsHandled: Boolean)
     begin
-        if not SalesLine.IsContractRenewal() then
+        if not IsContractRenewal(SalesLine) then
             exit;
         IsHandled := true;
     end;
@@ -315,7 +315,7 @@ codeunit 8001 "Sub. Contr. Renewal Subcribers"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforeRoundAmount, '', false, false)]
     local procedure OnBeforeRoundAmount(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; SalesLineQty: Decimal; var CurrExchRate: Record "Currency Exchange Rate")
     begin
-        if not SalesLine.IsContractRenewal() then
+        if not IsContractRenewal(SalesLine) then
             exit;
         SalesLine."Line Amount" := 0;
         SalesLine.Amount := 0;
@@ -337,7 +337,7 @@ codeunit 8001 "Sub. Contr. Renewal Subcribers"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforeSumSalesLines2, '', false, false)]
     local procedure OnBeforeSumSalesLines2(SalesHeader: Record "Sales Header"; var NewSalesLine: Record "Sales Line"; var OldSalesLine: Record "Sales Line"; QtyType: Option General,Invoicing,Shipping; InsertSalesLine: Boolean; CalcAdCostLCY: Boolean; var TotalAdjCostLCY: Decimal; IncludePrepayments: Boolean; var IsHandled: Boolean)
     begin
-        if not NewSalesLine.IsContractRenewal() then
+        if not IsContractRenewal(NewSalesLine) then
             exit;
         IsHandled := true;
     end;
@@ -419,7 +419,56 @@ codeunit 8001 "Sub. Contr. Renewal Subcribers"
         DocumentChangeManagement.SetSkipContractSalesHeaderModifyCheck(false);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnBeforePostSalesDoc, '', false, false)]
+    local procedure ClearContractRenewalCacheOnBeforePostSalesDoc()
+    begin
+        ClearContractRenewalCache();
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", OnAfterPostSalesDoc, '', false, false)]
+    local procedure ClearContractRenewalCacheOnAfterPostSalesDoc()
+    begin
+        ClearContractRenewalCache();
+    end;
+
+    local procedure ClearContractRenewalCache()
+    begin
+        Clear(HasOnlyContractRenewalLinesCache);
+        Clear(IsContractRenewalCache);
+    end;
+
+    // Cached wrapper for SalesHeader.HasOnlyContractRenewalLines(), keyed by document (SystemId).
+    // The result is stable during a posting run, so caching avoids re-evaluating every posted line
+    // (turning the repeated per-line checks from O(N^2) into O(N)). Cache is cleared at start/end of posting.
+    local procedure HasOnlyContractRenewalLines(SalesHeader: Record "Sales Header"): Boolean
     var
+        Result: Boolean;
+    begin
+        if HasOnlyContractRenewalLinesCache.Get(SalesHeader.SystemId, Result) then
+            exit(Result);
+        Result := SalesHeader.HasOnlyContractRenewalLines();
+        HasOnlyContractRenewalLinesCache.Set(SalesHeader.SystemId, Result);
+        exit(Result);
+    end;
+
+    // Cached wrapper for SalesLine.IsContractRenewal(), keyed by line (SystemId). Buffer records without a
+    // persisted SystemId bypass the cache to avoid key collisions. Cache is cleared at start/end of posting.
+    local procedure IsContractRenewal(SalesLine: Record "Sales Line"): Boolean
+    var
+        Result: Boolean;
+    begin
+        if IsNullGuid(SalesLine.SystemId) then
+            exit(SalesLine.IsContractRenewal());
+        if IsContractRenewalCache.Get(SalesLine.SystemId, Result) then
+            exit(Result);
+        Result := SalesLine.IsContractRenewal();
+        IsContractRenewalCache.Set(SalesLine.SystemId, Result);
+        exit(Result);
+    end;
+
+    var
+        HasOnlyContractRenewalLinesCache: Dictionary of [Guid, Boolean];
+        IsContractRenewalCache: Dictionary of [Guid, Boolean];
         ActionNotPermittedForContractRenewalQuoteErr: Label 'This action is not allowed for contract Renewal Quotes.';
         ContractRenewalLineWillNotBeCopiedMsg: Label 'One or more document lines were not copied since they are marked as "Contract Renewal".';
 }
