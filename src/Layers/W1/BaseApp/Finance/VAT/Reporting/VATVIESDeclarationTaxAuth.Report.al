@@ -106,6 +106,9 @@ report 19 "VAT- VIES Declaration Tax Auth"
             column(RegHomeCityCaption; RegisteredHomeCityLbl)
             {
             }
+            column(ServiceSuppliesCode4Caption; ServiceSuppliesCode4CaptionTxt)
+            {
+            }
 
             trigger OnAfterGetRecord()
             begin
@@ -288,7 +291,7 @@ report 19 "VAT- VIES Declaration Tax Auth"
         CountryRegionCodeCaption = 'Customer Country/Region Code';
         Customers_VAT_Registration_No_Caption = 'Customer VAT Registration No.';
         TotalValueofItemSuppliesCaption = 'Total Value of Item Supplies';
-        TotalValueOfServiceSuppliesCode4Caption = 'Total Value of Service Supplies(Code 4)';
+        CodeCaption = 'Code';
         EU3PartyItemTradeAmtCaption = 'EU 3-Party Item Trade Amount';
         TotalValueOfServiceSuppliesCaption = 'Total Value of Service Supplies';
         EU3PartyServiceTradeAmtCaption = 'EU 3-Party Service Trade Amount';
@@ -305,7 +308,7 @@ report 19 "VAT- VIES Declaration Tax Auth"
         GLSetup.Get();
 
         IsHandled := false;
-        OnInitReportForGlobalVariable(IsHandled, BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, RegisteredHomeCityTxt, RegisteredHomeCityLbl);
+        OnInitReportForGlobalVariable(IsHandled, BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, RegisteredHomeCityTxt, RegisteredHomeCityLbl, ServiceSuppliesCode4CaptionTxt);
     end;
 
     trigger OnPreReport()
@@ -347,6 +350,7 @@ report 19 "VAT- VIES Declaration Tax Auth"
         BusinessIdentityCodeLbl: Text;
         RegisteredHomeCityTxt: Text;
         RegisteredHomeCityLbl: Text;
+        ServiceSuppliesCode4CaptionTxt: Text;
 
     /// <summary>
     /// Initializes VIES declaration tax authority report with currency and period parameters.
@@ -365,7 +369,7 @@ report 19 "VAT- VIES Declaration Tax Auth"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnInitReportForGlobalVariable(var IsHandled: Boolean; var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text)
+    local procedure OnInitReportForGlobalVariable(var IsHandled: Boolean; var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text; var ServiceSuppliesCode4CaptionTxt: Text)
     begin
     end;
 }

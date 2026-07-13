@@ -227,6 +227,9 @@ codeunit 144010 "Company Field Report Test"
         VATVIESDeclarationTaxAuthReport.InitializeRequest(true, WorkDate(), WorkDate() + 365, '');
         VATVIESDeclarationTaxAuthReport.Run();
         TestBusinessIdentityandHomeCity(3);
+
+        LibraryReportDataset.LoadDataSetFile();
+        LibraryReportDataset.AssertElementWithValueExists('ServiceSuppliesCode4Caption', 'Total Value of Service Supplies(Code 4)');
     end;
 
     local procedure EnableVATVIESDeclarationFeature()

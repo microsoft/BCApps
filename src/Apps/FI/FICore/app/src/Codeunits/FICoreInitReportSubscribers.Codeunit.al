@@ -129,7 +129,7 @@ codeunit 13411 "FICore InitReport Subscribers"
     end;
 
     [EventSubscriber(ObjectType::Report, Report::"VAT- VIES Declaration Tax Auth", 'OnInitReportForGlobalVariable', '', false, false)]
-    local procedure OnInitReportForGlobalVariableInVATVIESDeclaration(var IsHandled: Boolean; var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text)
+    local procedure OnInitReportForGlobalVariableInVATVIESDeclaration(var IsHandled: Boolean; var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text; var ServiceSuppliesCode4CaptionTxt: Text)
     var
         VIESDeclarationFeature: Codeunit "FICore VIES Declaration Feature";
     begin
@@ -139,7 +139,7 @@ codeunit 13411 "FICore InitReport Subscribers"
         if not VIESDeclarationFeature.IsEnabled() then
             exit;
 
-        AssignVIESDeclarationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, RegisteredHomeCityTxt, RegisteredHomeCityLbl);
+        AssignVIESDeclarationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, RegisteredHomeCityTxt, RegisteredHomeCityLbl, ServiceSuppliesCode4CaptionTxt);
 
         IsHandled := true;
     end;
@@ -154,9 +154,10 @@ codeunit 13411 "FICore InitReport Subscribers"
         LegalOfficeLbl := CompanyInformation.FieldCaption(CompanyInformation."Registered Home City");
     end;
 
-    local procedure AssignVIESDeclarationTexts(var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text)
+    local procedure AssignVIESDeclarationTexts(var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text; var ServiceSuppliesCode4CaptionTxt: Text)
     var
         CompanyInformation: Record "Company Information";
+        ServiceSuppliesCode4CaptionLbl: Label 'Total Value of Service Supplies(Code 4)';
     begin
         CompanyInformation.Get();
 
@@ -164,5 +165,6 @@ codeunit 13411 "FICore InitReport Subscribers"
         BusinessIdentityCodeLbl := CompanyInformation.FieldCaption(CompanyInformation."Business Identity Code");
         RegisteredHomeCityTxt := CompanyInformation."Registered Home City";
         RegisteredHomeCityLbl := CompanyInformation.FieldCaption(CompanyInformation."Registered Home City");
+        ServiceSuppliesCode4CaptionTxt := ServiceSuppliesCode4CaptionLbl;
     end;
 }
