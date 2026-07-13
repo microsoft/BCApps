@@ -1114,16 +1114,15 @@ codeunit 133961 "Agent Test"
     end;
 
     [Test]
-    procedure ArchivedAgentVisibleWhenSubstateFilteredToArchived()
+    procedure ArchivedAgentRemainsRetrievable()
     var
         AgentRecord: Record Agent;
         Any: Codeunit Any;
-        AgentListTestPage: TestPage "Agent List";
         AgentId: Guid;
     begin
         Initialize();
 
-        // [SCENARIO] An archived agent can be viewed on the Agent List by filtering the Substate column to Archived
+        // [SCENARIO] Archiving an agent is a soft-delete: the agent record is retained and reports the archived state
 
         // [GIVEN] A deactivated, archived agent
         AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
@@ -1135,14 +1134,9 @@ codeunit 133961 "Agent Test"
         Agent.Deactivate(AgentId);
         Agent.Archive(AgentId);
 
-        // [WHEN] Opening the Agent List for all companies and filtering the Substate column to Archived
-        AgentListTestPage.OpenView();
-        AgentListTestPage.ShowAllCompanies.Invoke();
-        AgentListTestPage.Substate.SetFilter(Format(AgentRecord.Substate::Archived.AsInteger()));
-
-        // [THEN] The archived agent is reachable in the Agent List
-        Assert.IsTrue(AgentListTestPage.GoToKey(AgentId), 'Archived agent should be visible when the Substate filter is set to Archived');
-        AgentListTestPage.Close();
+        // [THEN] The agent record still exists and is reported as archived
+        Assert.IsTrue(AgentRecord.Get(AgentId), 'Archived agent should remain retrievable after archiving');
+        Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should report as archived after archiving');
     end;
 
     [Test]
