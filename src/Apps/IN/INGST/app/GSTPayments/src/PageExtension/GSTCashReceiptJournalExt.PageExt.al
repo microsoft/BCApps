@@ -114,7 +114,6 @@ pageextension 18256 "GST Cash Receipt Journal Ext" extends "Cash Receipt Journal
     var
         CalculateTax: Codeunit "Calculate Tax";
     begin
-        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }
