@@ -4,8 +4,6 @@
   "appFolders": [
     "../../../src/Tools/AI Test Toolkit Tests"
   ],
-  "testFolders": [
-    "../../../src/Tools/AI Test Toolkit Tests"
-  ],
+  "testFolders": [],
   "installOnlyReferencedApps": false
 }
