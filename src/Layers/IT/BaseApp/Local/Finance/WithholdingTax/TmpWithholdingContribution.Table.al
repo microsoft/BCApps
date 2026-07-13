@@ -425,12 +425,27 @@ table 12113 "Tmp Withholding Contribution"
     end;
 
     procedure CalculateWithholdingTax()
+    var
+        IsHandled: Boolean;
     begin
         WithholdCode.Get("Withholding Tax Code");
 
         WithholdingSocSec.WithholdLineFilter(WithholdCodeLine, "Withholding Tax Code",
           "Payment Date");
 
+        IsHandled := false;
+        OnCalculateWithholdingTaxOnBeforeAssignWithholdingTaxValues(IsHandled, WithholdCodeLine, Rec);
+        if not IsHandled then
+            AssignWithholdingTaxValues(WithholdCodeLine);
+
+        OnCalculateWithholdingTaxOnAfterAssignWithholdingTaxAmount(Rec);
+
+        if "Taxable Base" < 0 then
+            Error(NegativeTaxableBaseErr);
+    end;
+
+    local procedure AssignWithholdingTaxValues(WithholdCodeLine: Record "Withhold Code Line")
+    begin
         "Withholding Account" := WithholdCode."Withholding Taxes Payable Acc.";
         "Withholding Tax %" := WithholdCodeLine."Withholding Tax %";
         "Non Taxable %" := 100 - WithholdCodeLine."Taxable Base %";
@@ -445,10 +460,6 @@ table 12113 "Tmp Withholding Contribution"
           "Taxable Base";
 
         "Withholding Tax Amount" := Round("Taxable Base" * "Withholding Tax %" / 100);
-        OnCalculateWithholdingTaxOnAfterAssignWithholdingTaxAmount(Rec);
-
-        if "Taxable Base" < 0 then
-            Error(NegativeTaxableBaseErr);
     end;
 
     [Scope('OnPrem')]
@@ -613,6 +624,11 @@ table 12113 "Tmp Withholding Contribution"
 
     [IntegrationEvent(false, false)]
     local procedure OnCalculateWithholdingTaxOnAfterAssignWithholdingTaxAmount(var TmpWithholdingContribution: Record "Tmp Withholding Contribution")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalculateWithholdingTaxOnBeforeAssignWithholdingTaxValues(var IsHandled: Boolean; WithholdCodeLine: Record "Withhold Code Line"; var TmpWithholdingContribution: Record "Tmp Withholding Contribution")
     begin
     end;
 }
