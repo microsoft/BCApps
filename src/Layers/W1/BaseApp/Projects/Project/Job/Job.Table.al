@@ -502,7 +502,7 @@ table 167 Job
                 InitCustomerOnJobTasks();
 
                 if "Task Billing Method" <> xRec."Task Billing Method" then
-                    Modify();
+                    Modify(true);
             end;
         }
         field(117; Reserve; Enum "Reserve Method")
