@@ -4084,32 +4084,34 @@ codeunit 104000 "Upgrade - BaseApp"
         WhseWorksheetLineDataTransfer: DataTransfer;
     begin
         // Upgrade legacy Job-related warehouse records to use the new Source Type and Source Subtype values
+        // Old format: Source Type = Database::Job (167), Source Subtype = 0
+        // New format: Source Type = Database::"Job Planning Line" (1003), Source Subtype = Order (2)
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag()) then
             exit;
 
-        // Upgrade Warehouse Activity Line (Source Type / Source Subtype are not part of the primary key -> safe to use DataTransfer)
+        // Source Subtype is an Option field, so assign an Option-typed value to match the destination field type in DataTransfer.AddConstantValue
+        WarehouseActivityLine."Source Subtype" := "Job Planning Line Status"::Order.AsInteger();
+
         WarehouseActivityLineDataTransfer.SetTables(Database::"Warehouse Activity Line", Database::"Warehouse Activity Line");
         WarehouseActivityLineDataTransfer.AddSourceFilter(WarehouseActivityLine.FieldNo("Source Type"), '=%1', Database::Job);
         WarehouseActivityLineDataTransfer.AddSourceFilter(WarehouseActivityLine.FieldNo("Source Subtype"), '=%1', 0);
         WarehouseActivityLineDataTransfer.AddConstantValue(Database::"Job Planning Line", WarehouseActivityLine.FieldNo("Source Type"));
-        WarehouseActivityLineDataTransfer.AddConstantValue("Job Planning Line Status"::Order.AsInteger(), WarehouseActivityLine.FieldNo("Source Subtype"));
+        WarehouseActivityLineDataTransfer.AddConstantValue(WarehouseActivityLine."Source Subtype", WarehouseActivityLine.FieldNo("Source Subtype"));
         WarehouseActivityLineDataTransfer.UpdateAuditFields := false;
         WarehouseActivityLineDataTransfer.CopyFields();
 
         // Upgrade Whse. Worksheet Line (Source Type / Source Subtype are not part of the primary key -> safe to use DataTransfer)
+        WhseWorksheetLine."Source Subtype" := "Job Planning Line Status"::Order.AsInteger();
+
         WhseWorksheetLineDataTransfer.SetTables(Database::"Whse. Worksheet Line", Database::"Whse. Worksheet Line");
         WhseWorksheetLineDataTransfer.AddSourceFilter(WhseWorksheetLine.FieldNo("Source Type"), '=%1', Database::Job);
         WhseWorksheetLineDataTransfer.AddSourceFilter(WhseWorksheetLine.FieldNo("Source Subtype"), '=%1', 0);
         WhseWorksheetLineDataTransfer.AddConstantValue(Database::"Job Planning Line", WhseWorksheetLine.FieldNo("Source Type"));
-        WhseWorksheetLineDataTransfer.AddConstantValue("Job Planning Line Status"::Order.AsInteger(), WhseWorksheetLine.FieldNo("Source Subtype"));
+        WhseWorksheetLineDataTransfer.AddConstantValue(WhseWorksheetLine."Source Subtype", WhseWorksheetLine.FieldNo("Source Subtype"));
         WhseWorksheetLineDataTransfer.UpdateAuditFields := false;
         WhseWorksheetLineDataTransfer.CopyFields();
 
         // Upgrade Warehouse Request
-        // Source Type and Source Subtype are part of the primary key (Type, Location Code, Source Type, Source Subtype, Source No.),
-        // so DataTransfer cannot be used to update them. Rename each record to the new key values instead.
-        WarehouseRequest.SetRange("Source Type", Database::Job);
-        WarehouseRequest.SetRange("Source Subtype", 0);
         if WarehouseRequest.FindSet() then
             repeat
                 // Guard against a target record already existing with the new key values

@@ -2267,7 +2267,7 @@ codeunit 136317 "Inv. Pick On Job Planning"
     end;
 
     [Test]
-    [HandlerFunctions('MessageHandler,ConfirmHandlerTrue')]
+    [HandlerFunctions('MessageHandler')]
     [Scope('OnPrem')]
     procedure InvPickCreatedForMultipleReservedJobPlanningLinesAggregatesAvailability()
     var
