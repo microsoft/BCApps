@@ -214,6 +214,7 @@
 							"steps_include_numbering": "true",
 							"steps": [
 								"If an item appears more than once with different quantities, create a separate line for each quantity entry. Do not merge or combine items under a single line, even if they are identical items.",
+								"If the item availability result includes a Variant Code for the selected item, populate the sales line 'Variant Code' field with that value after selecting the item number. If the availability result has no Variant Code, leave the sales line 'Variant Code' field blank.",
 								{
 									"name": "capable_to_promise",
 									"value": "For each item in the search results, check carefully whether an earliest shipment date is provided. If it is, always populate the 'Shipment Date' field with either the earliest shipment date or the requested delivery date, whichever is later."

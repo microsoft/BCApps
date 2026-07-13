@@ -244,24 +244,31 @@ codeunit 4415 "SOA Create Task Impl"
         ExpectedInventory: Decimal;
         DummyQtyAvailable: Decimal;
         AvailableInventory: Decimal;
+        CacheKey: Text;
+        VariantFilter: Text;
     begin
         if SourceItem.Type <> SourceItem.Type::Inventory then
             exit(0);
 
-        if CachedAvailBalance.Get(SourceItem."No.", ProjAvailableBalance) then
+        VariantFilter := SourceItem.GetFilter("Variant Filter");
+        CacheKey := SourceItem."No." + '|' + VariantFilter;
+        if CachedAvailBalance.Get(CacheKey, ProjAvailableBalance) then
             exit(ProjAvailableBalance);
 
         Item.Copy(SourceItem);
         Item.SetRange("Date Filter", 0D, CalcDate('<CW+1W>', WorkDate()));
         Item.SetFilter("Location Filter", LocationCode);
         Item.SetRange("Drop Shipment Filter", false);
-        Item.SetRange("Variant Filter", '');
+        if VariantFilter = '' then
+            Item.SetRange("Variant Filter", '')
+        else
+            Item.SetFilter("Variant Filter", VariantFilter);
 
         ItemAvailFormsMgt.CalcAvailQuantities(Item, true,
             GrossRequirement, PlannedOrderRcpt, ScheduledRcpt,
             PlannedOrderReleases, ProjAvailableBalance, ExpectedInventory,
             DummyQtyAvailable, AvailableInventory);
-        CachedAvailBalance.Set(SourceItem."No.", ProjAvailableBalance);
+        CachedAvailBalance.Set(CacheKey, ProjAvailableBalance);
         exit(ProjAvailableBalance);
     end;
 
@@ -412,7 +419,7 @@ codeunit 4415 "SOA Create Task Impl"
 
     var
         GlobalAgentUserSecurityID: Guid;
-        CachedAvailBalance: Dictionary of [Code[20], Decimal];
+        CachedAvailBalance: Dictionary of [Text, Decimal];
         SelectedLocationCode: Code[10];
         SelectedLanguageCode: Code[10];
         SelectedContactNo: Code[20];
