@@ -920,9 +920,6 @@ report 11015 "Export Business Data"
         TempBlobZipArchive.CreateInStream(ZipArchiveInStream);
         ZipFileName := DataExportRecordDefinition."Data Exp. Rec. Type Code" + '.zip';
 
-        // When the report runs in the background (e.g. scheduled via Job Queue) there is no client
-        // to receive a file download callback. Save the result to the Report Inbox instead so the
-        // user can download it from there.
         if not GuiAllowed() then begin
             SaveZipToReportInbox(ZipArchiveInStream, DataExportRecordDefinition);
             exit;
