@@ -1,0 +1,198 @@
+name: Reusable Team Ownership Classification
+
+on:
+  workflow_call:
+    inputs:
+      subject_kind:
+        description: Subject kind to classify
+        required: true
+        type: string
+      subject_number:
+        description: Issue or pull request number
+        required: true
+        type: number
+      mode:
+        description: classify, audit, or audit-if-overridden
+        required: false
+        type: string
+        default: classify
+      dry_run:
+        description: Validate and report without writing labels
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ownership-${{ inputs.subject_kind }}-${{ inputs.subject_number }}
+  cancel-in-progress: true
+
+env:
+  AGENT_REPO: microsoft/BCAppsTriage
+  AGENT_REPO_NAME: BCAppsTriage
+  AGENT_REF: main
+  AGENT_WORKFLOW: ownership-classification.yml
+
+jobs:
+  classify:
+    name: "${{ inputs.subject_kind }} #${{ inputs.subject_number }}"
+    if: github.repository == 'microsoft/BCApps'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: triage
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
+        with:
+          egress-policy: audit
+
+      - name: Checkout trusted default branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Check manual ownership state
+        id: preflight
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          SUBJECT_NUMBER: ${{ inputs.subject_number }}
+          MODE: ${{ inputs.mode }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          $parameters = @{
+            Repository = $env:REPOSITORY
+            SubjectNumber = [int]$env:SUBJECT_NUMBER
+            Mode = $env:MODE
+          }
+          if ($env:DRY_RUN -eq 'true') {
+            $parameters.DryRun = $true
+          }
+          ./build/scripts/TeamOwnership/Test-OwnershipPreflight.ps1 @parameters
+
+      - name: Create correlation token
+        if: steps.preflight.outputs.dispatch == 'true'
+        id: correlation
+        shell: pwsh
+        run: |
+          "token=$([guid]::NewGuid().ToString())" | Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT
+
+      - name: Mint token for BCAppsTriage
+        if: steps.preflight.outputs.dispatch == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.TRIAGE_APP_ID }}
+          private-key: ${{ secrets.TRIAGE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ env.AGENT_REPO_NAME }}
+
+      - name: Dispatch ownership producer
+        if: steps.preflight.outputs.dispatch == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          SUBJECT_KIND: ${{ inputs.subject_kind }}
+          SUBJECT_NUMBER: ${{ inputs.subject_number }}
+          CORRELATION_TOKEN: ${{ steps.correlation.outputs.token }}
+        run: |
+          gh workflow run $env:AGENT_WORKFLOW --repo $env:AGENT_REPO --ref $env:AGENT_REF `
+            -f "repository=${{ github.repository }}" `
+            -f "subject_kind=$env:SUBJECT_KIND" `
+            -f "subject_number=$env:SUBJECT_NUMBER" `
+            -f "correlation_token=$env:CORRELATION_TOKEN"
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Failed to dispatch the ownership producer.'
+          }
+
+      - name: Await successful producer run
+        if: steps.preflight.outputs.dispatch == 'true'
+        id: await
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          CORRELATION_TOKEN: ${{ steps.correlation.outputs.token }}
+        run: |
+          $runId = $null
+          # The producer's run-name must include [correlation_token].
+          $marker = "[$env:CORRELATION_TOKEN]"
+          for ($attempt = 1; $attempt -le 30; $attempt++) {
+            $runs = gh run list --repo $env:AGENT_REPO --workflow $env:AGENT_WORKFLOW `
+              --event workflow_dispatch --limit 100 --json databaseId,displayTitle | ConvertFrom-Json
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Failed to list ownership producer runs.'
+            }
+            $match = @($runs | Where-Object { $_.displayTitle.Contains($marker) } |
+              Select-Object -First 1)
+            if ($match.Count -eq 1) {
+              $runId = [string]$match[0].databaseId
+              break
+            }
+            Start-Sleep -Seconds 10
+          }
+          if ([string]::IsNullOrWhiteSpace($runId)) {
+            throw 'Timed out waiting for the correlated ownership producer run to appear.'
+          }
+
+          "run_id=$runId" | Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT
+          gh run watch $runId --repo $env:AGENT_REPO --interval 15 --exit-status
+          $watchExitCode = $LASTEXITCODE
+          $conclusion = gh run view $runId --repo $env:AGENT_REPO --json conclusion --jq .conclusion
+          $viewExitCode = $LASTEXITCODE
+          if ($watchExitCode -ne 0 -or $viewExitCode -ne 0 -or $conclusion -cne 'success') {
+            throw "Ownership producer run $runId concluded '$conclusion' (watch exit $watchExitCode, view exit $viewExitCode)."
+          }
+
+      - name: Download ownership result
+        if: steps.preflight.outputs.dispatch == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          RUN_ID: ${{ steps.await.outputs.run_id }}
+        run: |
+          New-Item -ItemType Directory -Path result -Force | Out-Null
+          gh run download $env:RUN_ID --repo $env:AGENT_REPO `
+            --name ownership-result --dir result
+          if ($LASTEXITCODE -ne 0) {
+            throw 'The ownership producer did not publish the required ownership-result artifact.'
+          }
+          if (-not (Test-Path -LiteralPath result/ownership-result.json -PathType Leaf)) {
+            throw 'The ownership-result artifact does not contain ownership-result.json.'
+          }
+
+      - name: Validate and apply ownership result
+        if: steps.preflight.outputs.dispatch == 'true'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CORRELATION_TOKEN: ${{ steps.correlation.outputs.token }}
+          SUBJECT_KIND: ${{ inputs.subject_kind }}
+          SUBJECT_NUMBER: ${{ inputs.subject_number }}
+          REPOSITORY: ${{ github.repository }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          $parameters = @{
+            ResultPath = 'result/ownership-result.json'
+            ExpectedCorrelationToken = $env:CORRELATION_TOKEN
+            ExpectedSubjectKind = $env:SUBJECT_KIND
+            ExpectedSubjectNumber = [int]$env:SUBJECT_NUMBER
+            Repository = $env:REPOSITORY
+          }
+          if ($env:DRY_RUN -eq 'true') {
+            $parameters.DryRun = $true
+          }
+          ./build/scripts/TeamOwnership/Set-OwnershipResult.ps1 @parameters
+
+      - name: Report visible failure
+        if: failure()
+        shell: pwsh
+        run: |
+          @'
+          ### Ownership classification failed
+          No producer result was applied. Existing subject labels were preserved unless a valid result had already entered bounded label convergence; reconciliation will retry the subject.
+          '@ | Add-Content -Encoding UTF8 -Path $env:GITHUB_STEP_SUMMARY

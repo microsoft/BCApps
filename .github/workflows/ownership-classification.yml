@@ -1,0 +1,74 @@
+name: Team Ownership Classification
+
+on:
+  issues:
+    types: [opened, reopened, edited, labeled, unlabeled]
+  pull_request_target:
+    types: [opened, reopened, edited, synchronize, ready_for_review, labeled, unlabeled]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  issue:
+    name: Route issue ownership
+    if: >-
+      github.repository == 'microsoft/BCApps' &&
+      github.event.issue.state == 'open' && (
+        contains(fromJSON('["opened","reopened","edited"]'), github.event.action) ||
+        (
+          contains(fromJSON('["labeled","unlabeled"]'), github.event.action) &&
+          (
+            github.event.label.name == 'Ownership: Manual' ||
+            (
+              contains(fromJSON('["Finance","SCM","Integration","Other"]'), github.event.label.name) &&
+              contains(github.event.issue.labels.*.name, 'Ownership: Manual')
+            )
+          )
+        )
+      )
+    uses: ./.github/workflows/_ownership-classification.yml
+    with:
+      subject_kind: issue
+      subject_number: ${{ github.event.issue.number }}
+      mode: >-
+        ${{
+          github.event.action == 'labeled' && github.event.label.name == 'Ownership: Manual' && 'audit' ||
+          contains(fromJSON('["labeled","unlabeled"]'), github.event.action) &&
+            github.event.label.name != 'Ownership: Manual' && 'audit-if-overridden' ||
+          'classify'
+        }}
+      dry_run: false
+    secrets: inherit
+
+  pull-request:
+    name: Route pull request ownership
+    if: >-
+      github.repository == 'microsoft/BCApps' &&
+      github.event.pull_request.state == 'open' && (
+        contains(fromJSON('["opened","reopened","edited","synchronize","ready_for_review"]'), github.event.action) ||
+        (
+          contains(fromJSON('["labeled","unlabeled"]'), github.event.action) &&
+          (
+            github.event.label.name == 'Ownership: Manual' ||
+            (
+              contains(fromJSON('["Finance","SCM","Integration","Other"]'), github.event.label.name) &&
+              contains(github.event.pull_request.labels.*.name, 'Ownership: Manual')
+            )
+          )
+        )
+      )
+    uses: ./.github/workflows/_ownership-classification.yml
+    with:
+      subject_kind: pull_request
+      subject_number: ${{ github.event.pull_request.number }}
+      mode: >-
+        ${{
+          github.event.action == 'labeled' && github.event.label.name == 'Ownership: Manual' && 'audit' ||
+          contains(fromJSON('["labeled","unlabeled"]'), github.event.action) &&
+            github.event.label.name != 'Ownership: Manual' && 'audit-if-overridden' ||
+          'classify'
+        }}
+      dry_run: false
+    secrets: inherit
