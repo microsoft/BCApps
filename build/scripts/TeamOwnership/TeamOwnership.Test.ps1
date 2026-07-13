@@ -169,6 +169,49 @@ Describe 'TeamOwnership contract validation' {
         { Assert-OwnershipResult -Result $result -ExpectedCorrelationToken 'test-token' `
                 -ExpectedSubjectKind issue -ExpectedSubjectNumber 42 } | Should -Throw '*control characters*'
     }
+
+    It 'rejects ASCII-space-only and NBSP-only required provenance strings' {
+        foreach ($whitespace in @('   ', ([string][char]0x00A0 * 3))) {
+            $result = New-ValidOwnershipResult
+            $result.ownership.reason = $whitespace
+            { Assert-OwnershipResult -Result $result -ExpectedCorrelationToken 'test-token' `
+                    -ExpectedSubjectKind issue -ExpectedSubjectNumber 42 } | Should -Throw '*non-empty string*'
+
+            $result = New-ValidOwnershipResult
+            $result.ownership.evidence[0].value = $whitespace
+            { Assert-OwnershipResult -Result $result -ExpectedCorrelationToken 'test-token' `
+                    -ExpectedSubjectKind issue -ExpectedSubjectNumber 42 } | Should -Throw '*non-empty string*'
+        }
+    }
+
+    It 'rejects whitespace-only optional evidence fields when present' {
+        foreach ($field in @('path', 'previousPath', 'status', 'category')) {
+            foreach ($whitespace in @('   ', ([string][char]0x00A0 * 3))) {
+                $result = New-ValidOwnershipResult
+                $result.ownership.evidence[0] | Add-Member -NotePropertyName $field `
+                    -NotePropertyValue $whitespace -Force
+                { Assert-OwnershipResult -Result $result -ExpectedCorrelationToken 'test-token' `
+                        -ExpectedSubjectKind issue -ExpectedSubjectNumber 42 } | Should -Throw '*non-empty string*'
+            }
+        }
+    }
+
+    It 'accepts meaningful provenance strings with surrounding whitespace' {
+        $nbsp = [string][char]0x00A0
+        $result = New-ValidOwnershipResult
+        $result.ownership.reason = '  meaningful reason  '
+        $result.ownership.evidence[0].value = "$nbsp meaningful value $nbsp"
+        $result.ownership.evidence[0].path = '  src/Finance  '
+        $result.ownership.evidence[0] | Add-Member -NotePropertyName previousPath `
+            -NotePropertyValue "$nbsp previous/path $nbsp"
+        $result.ownership.evidence[0] | Add-Member -NotePropertyName status `
+            -NotePropertyValue '  modified  '
+        $result.ownership.evidence[0] | Add-Member -NotePropertyName category `
+            -NotePropertyValue "$nbsp production $nbsp"
+
+        { Assert-OwnershipResult -Result $result -ExpectedCorrelationToken 'test-token' `
+                -ExpectedSubjectKind issue -ExpectedSubjectNumber 42 } | Should -Not -Throw
+    }
 }
 
 Describe 'TeamOwnership label reconciliation' {
