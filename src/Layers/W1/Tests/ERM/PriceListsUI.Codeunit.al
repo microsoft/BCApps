@@ -34,6 +34,7 @@
         CustDiscountGroupDeleteErr: Label 'You cannot delete the Customer Discount Group %1 because it is used in Customer.', Comment = '%1= Customer Discount Group Code.';
         CustDiscountGroupCodeDeleteErr: Label 'The field Customer Disc. Group of table Sales Line contains a value (%1) that cannot be found in the related table (Customer Discount Group).', Comment = '%1= Customer Discount Group Code.';
         AllCustomersLinesNotShownErr: Label 'All Customers lines are not all shown';
+        MixedSourceLinesNotShownErr: Label 'Not all applicable price lines are shown for the customer';
 
     [Test]
     procedure T000_SalesPriceListsPageIsNotEditable()
@@ -4884,6 +4885,62 @@
                 ShownCount += 1;
             until not PriceListLineReview.Next();
         Assert.AreEqual(AllCustomersCount, ShownCount, AllCustomersLinesNotShownErr);
+    end;
+
+    [Test]
+    procedure T221_SalesPriceLinesFromCustomerCardMultipleSourceTypesSharingEmptyParent()
+    var
+        Customer: Record Customer;
+        CustomerPriceGroup: Record "Customer Price Group";
+        CustomerDiscountGroup: Record "Customer Discount Group";
+        PriceListLine: array[4] of Record "Price List Line";
+        CustomerCard: TestPage "Customer Card";
+        PriceListLineReview: TestPage "Price List Line Review";
+        ShownCount: Integer;
+    begin
+        // [SCENARIO 641061] Sales Price Review page opened from the Customer Card returns lines for every applicable
+        // Source Type (Customer, All Customers, Customer Price Group, Customer Disc. Group) sharing an empty Parent Source No.
+        Initialize(true);
+
+        // [GIVEN] A Customer Price Group "X" and a Customer Discount Group "Y".
+        LibrarySales.CreateCustomerPriceGroup(CustomerPriceGroup);
+        LibraryERM.CreateCustomerDiscountGroup(CustomerDiscountGroup);
+
+        // [GIVEN] A Customer "C" assigned to price group "X" and discount group "Y".
+        LibrarySales.CreateCustomer(Customer);
+        Customer."Customer Price Group" := CustomerPriceGroup.Code;
+        Customer."Customer Disc. Group" := CustomerDiscountGroup.Code;
+        Customer.Modify();
+
+        // [GIVEN] One sales price line for each source type applicable to Customer "C":
+        // [GIVEN] "All Customers", Customer "C", Customer Price Group "X", and Customer Disc. Group "Y".
+        LibraryPriceCalculation.CreateSalesPriceLine(
+            PriceListLine[1], LibraryUtility.GenerateGUID(), "Price Source Type"::"All Customers", '',
+            "Price Asset Type"::Item, LibraryInventory.CreateItemNo());
+        LibraryPriceCalculation.CreateSalesPriceLine(
+            PriceListLine[2], LibraryUtility.GenerateGUID(), "Price Source Type"::Customer, Customer."No.",
+            "Price Asset Type"::Item, LibraryInventory.CreateItemNo());
+        LibraryPriceCalculation.CreateSalesPriceLine(
+            PriceListLine[3], LibraryUtility.GenerateGUID(), "Price Source Type"::"Customer Price Group", CustomerPriceGroup.Code,
+            "Price Asset Type"::Item, LibraryInventory.CreateItemNo());
+        LibraryPriceCalculation.CreateSalesDiscountLine(
+            PriceListLine[4], LibraryUtility.GenerateGUID(), "Price Source Type"::"Customer Disc. Group", CustomerDiscountGroup.Code,
+            "Price Asset Type"::Item, LibraryInventory.CreateItemNo());
+
+        // [GIVEN] Open Customer Card for Customer "C".
+        CustomerCard.OpenEdit();
+        CustomerCard.Filter.SetFilter("No.", Customer."No.");
+
+        // [WHEN] Run action "Sales Prices".
+        PriceListLineReview.Trap();
+        CustomerCard.PriceLines.Invoke();
+
+        // [THEN] All four applicable price lines are shown on the Price List Line Review page.
+        if PriceListLineReview.First() then
+            repeat
+                ShownCount += 1;
+            until not PriceListLineReview.Next();
+        Assert.AreEqual(4, ShownCount, MixedSourceLinesNotShownErr);
     end;
 
     local procedure Initialize(Enable: Boolean)

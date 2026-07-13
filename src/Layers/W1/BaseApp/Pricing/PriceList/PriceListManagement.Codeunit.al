@@ -751,12 +751,12 @@ codeunit 7017 "Price List Management"
     local procedure BuildSourceFilters(var PriceListLine: Record "Price List Line"; PriceSourceList: Codeunit "Price Source List"; var MarkingIsUsed: Boolean)
     var
         PriceSource: Record "Price Source";
-        TypeFilter: TextBuilder;
-        ParentFilter: TextBuilder;
+        SharedSourceType: Enum "Price Source Type";
+        SharedParent: Code[20];
         NoFilter: TextBuilder;
         Sep: Text[1];
     begin
-        if SearchIfPriceExists or not CanCombineSourceFilters(PriceListLine, PriceSourceList) then begin
+        if SearchIfPriceExists or not CanCombineSourceFilters(PriceListLine, PriceSourceList, SharedSourceType, SharedParent) then begin
             BuildSourceFiltersByMarking(PriceListLine, PriceSourceList, MarkingIsUsed);
             exit;
         end;
@@ -769,15 +769,13 @@ codeunit 7017 "Price List Management"
                 PriceListLine.SetRange("Source No.", PriceSource."Source No.");
                 OnBuildSourceFiltersOnBeforeFindLines(PriceListLine, PriceSource);
                 if not PriceListLine.IsEmpty() then begin
-                    TypeFilter.Append(Sep + Format(PriceSource."Source Type"));
-                    ParentFilter.Append(Sep + GetFilterText(PriceSource."Parent Source No."));
-                    NoFilter.Append(Sep + GetFilterText(PriceSource."Source No."));
+                    NoFilter.Append(Sep + GetSafeFilterText(PriceSource."Source No."));
                     Sep := '|';
                 end;
             until not PriceSourceList.Next(PriceSource);
         ClearSourceFilters(PriceListLine);
-        PriceListLine.SetFilter("Source Type", TypeFilter.ToText());
-        PriceListLine.SetFilter("Parent Source No.", ParentFilter.ToText());
+        PriceListLine.SetRange("Source Type", SharedSourceType);
+        PriceListLine.SetRange("Parent Source No.", SharedParent);
         PriceListLine.SetFilter("Source No.", NoFilter.ToText());
     end;
 
@@ -794,6 +792,7 @@ codeunit 7017 "Price List Management"
                 PriceListLine.SetRange("Source Type", PriceSource."Source Type");
                 PriceListLine.SetRange("Parent Source No.", PriceSource."Parent Source No.");
                 PriceListLine.SetRange("Source No.", PriceSource."Source No.");
+                OnBuildSourceFiltersOnBeforeFindLines(PriceListLine, PriceSource);
                 if not PriceListLine.IsEmpty() then begin
                     if SearchIfPriceExists then begin
                         ClearSourceFilters(PriceListLine);
@@ -813,26 +812,26 @@ codeunit 7017 "Price List Management"
         ClearSourceFilters(PriceListLine);
     end;
 
-    local procedure CanCombineSourceFilters(var PriceListLine: Record "Price List Line"; PriceSourceList: Codeunit "Price Source List"): Boolean
+    local procedure CanCombineSourceFilters(var PriceListLine: Record "Price List Line"; PriceSourceList: Codeunit "Price Source List"; var SharedSourceType: Enum "Price Source Type"; var SharedParent: Code[20]): Boolean
     var
         PriceSource: Record "Price Source";
-        SharedParent: Code[20];
-        SharedParentSet: Boolean;
+        SharedSet: Boolean;
         NonEmptyCount: Integer;
     begin
         NonEmptyCount := 0;
-        SharedParentSet := false;
+        SharedSet := false;
         if PriceSourceList.First(PriceSource, 0) then
             repeat
                 PriceListLine.SetRange("Source Type", PriceSource."Source Type");
                 PriceListLine.SetRange("Parent Source No.", PriceSource."Parent Source No.");
                 PriceListLine.SetRange("Source No.", PriceSource."Source No.");
                 if not PriceListLine.IsEmpty() then begin
-                    if not SharedParentSet then begin
+                    if not SharedSet then begin
+                        SharedSourceType := PriceSource."Source Type";
                         SharedParent := PriceSource."Parent Source No.";
-                        SharedParentSet := true;
+                        SharedSet := true;
                     end else
-                        if PriceSource."Parent Source No." <> SharedParent then begin
+                        if (PriceSource."Source Type" <> SharedSourceType) or (PriceSource."Parent Source No." <> SharedParent) then begin
                             ClearSourceFilters(PriceListLine);
                             exit(false);
                         end;
@@ -842,6 +841,17 @@ codeunit 7017 "Price List Management"
         ClearSourceFilters(PriceListLine);
 
         exit(NonEmptyCount > 0);
+    end;
+
+    local procedure GetSafeFilterText(SourceNo: Code[20]): Text
+    var
+        SourceNoText: Text;
+    begin
+        if SourceNo = '' then
+            exit('''''');
+        SourceNoText := SourceNo;
+        SourceNoText := SourceNoText.Replace('''', '''''');
+        exit('''' + SourceNoText + '''');
     end;
 
     local procedure CheckIfPriceListLineMarkingIsNeededForSources(var PriceListLine: Record "Price List Line"; PriceSourceList: Codeunit "Price Source List"): Boolean;
