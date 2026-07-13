@@ -3230,7 +3230,7 @@
             ItemJournalLine, ItemJournalLine."Entry Type"::"Negative Adjmt.", ItemNo, LocationCode, BinCode, LibraryRandom.RandInt(5));
     end;
 
-    local procedure CreateItemJournalLineWithBin(var ItemJournalLine: Record "Item Journal Line"; EntryType: Enum "Item Ledger Document Type"; ItemNo: Code[20]; LocationCode: Code[10]; BinCode: Code[20]; Quantity: Decimal)
+    local procedure CreateItemJournalLineWithBin(var ItemJournalLine: Record "Item Journal Line"; EntryType: Enum "Item Ledger Entry Type"; ItemNo: Code[20]; LocationCode: Code[10]; BinCode: Code[20]; Quantity: Decimal)
     var
         ItemJournalBatch: Record "Item Journal Batch";
     begin
