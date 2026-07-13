@@ -553,12 +553,12 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         // [SCENARIO 638458] Subcontracting actions on Item Ledger Entries are disabled when the entry has no subcontracting production order or purchase order.
         Initialize();
 
-        // [GIVEN] An Item Ledger Entry that is NOT related to subcontracting (no Subc. Prod. Order No. or Subc. Purch. Order No.)
+        // [GIVEN] An Item Ledger Entry that is NOT related to subcontracting (no production order or Subc. Purch. Order No.)
         ItemLedgerEntry.Init();
         ItemLedgerEntry."Entry No." := GetNextItemLedgerEntryNo();
         ItemLedgerEntry."Item No." := 'TEST-ITEM';
         ItemLedgerEntry."Entry Type" := ItemLedgerEntry."Entry Type"::Purchase;
-        ItemLedgerEntry."Subc. Prod. Order No." := '';
+        ItemLedgerEntry."Order No." := '';
         ItemLedgerEntry."Subc. Purch. Order No." := '';
         ItemLedgerEntry.Insert();
 
@@ -595,8 +595,9 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         ItemLedgerEntry."Entry No." := GetNextItemLedgerEntryNo();
         ItemLedgerEntry."Item No." := 'TEST-ITEM';
         ItemLedgerEntry."Entry Type" := ItemLedgerEntry."Entry Type"::Purchase;
-        ItemLedgerEntry."Subc. Prod. Order No." := 'PO-SUBC-001';
-        ItemLedgerEntry."Subc. Prod. Order Line No." := 10000;
+        ItemLedgerEntry."Order Type" := ItemLedgerEntry."Order Type"::Production;
+        ItemLedgerEntry."Order No." := 'PO-SUBC-001';
+        ItemLedgerEntry."Order Line No." := 10000;
         ItemLedgerEntry."Subc. Purch. Order No." := 'PURCH-SUBC-001';
         ItemLedgerEntry."Subc. Purch. Order Line No." := 10000;
         ItemLedgerEntry.Insert();
@@ -613,6 +614,46 @@ codeunit 139990 "Subc. Subcontracting UI Test"
         Assert.IsTrue(ItemLedgerEntries."Production Order Components".Enabled(), ILEProdActionsNotEnabledErr);
         // [THEN] The Purchase Order action is enabled
         Assert.IsTrue(ItemLedgerEntries."Purchase Order".Enabled(), ILEPurchActionsNotEnabledErr);
+
+        ItemLedgerEntries.Close();
+
+        // Cleanup
+        ItemLedgerEntry.Delete();
+    end;
+
+    [Test]
+    procedure ItemLedgerEntriesSubcProdActionsEnabledForTransferViaSubcProdOrder()
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        ItemLedgerEntries: TestPage "Item Ledger Entries";
+    begin
+        // [SCENARIO 641405] Subcontracting production actions on Item Ledger Entries are enabled for a Transfer-type entry
+        // [SCENARIO 641405] whose production order is referenced only through the Subc. Prod. Order fields (the base Order No. holds the transfer order).
+        Initialize();
+
+        // [GIVEN] A Transfer-type Item Ledger Entry whose base Order fields point at a transfer order,
+        //         while the production order is only referenced through the Subc. Prod. Order fields
+        ItemLedgerEntry.Init();
+        ItemLedgerEntry."Entry No." := GetNextItemLedgerEntryNo();
+        ItemLedgerEntry."Item No." := 'TEST-ITEM';
+        ItemLedgerEntry."Entry Type" := ItemLedgerEntry."Entry Type"::Transfer;
+        ItemLedgerEntry."Order Type" := ItemLedgerEntry."Order Type"::Transfer;
+        ItemLedgerEntry."Order No." := 'TRANSFER-001';
+        ItemLedgerEntry."Order Line No." := 10000;
+        ItemLedgerEntry."Subc. Prod. Order No." := 'PO-SUBC-001';
+        ItemLedgerEntry."Subc. Prod. Order Line No." := 10000;
+        ItemLedgerEntry.Insert();
+
+        // [WHEN] The Item Ledger Entries page is opened for that entry
+        ItemLedgerEntries.OpenView();
+        ItemLedgerEntries.GoToRecord(ItemLedgerEntry);
+
+        // [THEN] The Production Order action is enabled
+        Assert.IsTrue(ItemLedgerEntries."Production Order".Enabled(), ILEProdActionsNotEnabledErr);
+        // [THEN] The Production Order Routing action is enabled
+        Assert.IsTrue(ItemLedgerEntries."Production Order Routing".Enabled(), ILEProdActionsNotEnabledErr);
+        // [THEN] The Production Order Components action is enabled
+        Assert.IsTrue(ItemLedgerEntries."Production Order Components".Enabled(), ILEProdActionsNotEnabledErr);
 
         ItemLedgerEntries.Close();
 
