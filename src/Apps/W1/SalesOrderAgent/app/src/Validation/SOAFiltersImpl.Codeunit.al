@@ -92,7 +92,17 @@ codeunit 4305 "SOA Filters Impl."
             From := GetSafeFromEmailFilter(AgentTaskMessage.From);
             if not ProcessedFromEmails.Contains(From) then begin
                 ProcessedFromEmails.Add(From);
+                Contact.Reset();
                 Contact.SetFilter("E-Mail", From);
+                Contact.ReadIsolation := IsolationLevel::ReadUncommitted;
+                if Contact.FindSet() then
+                    repeat
+                        if not ContactList.Contains(Contact."No.") then
+                            ContactList.Add(Contact."No.");
+                    until Contact.Next() = 0;
+
+                Contact.Reset();
+                Contact.SetFilter("E-Mail 2", From);
                 Contact.ReadIsolation := IsolationLevel::ReadUncommitted;
                 if Contact.FindSet() then
                     repeat

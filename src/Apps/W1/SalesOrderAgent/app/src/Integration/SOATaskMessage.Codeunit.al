@@ -127,6 +127,7 @@ codeunit 4398 "SOA Task Message"
         Contact: Record Contact;
         SOAFiltersImpl: Codeunit "SOA Filters Impl.";
         SOAInputMessageReview: Enum "SOA Input Message Review";
+        ContactCount: Integer;
     begin
         // If we have the same review setting for both registered and unregistered senders,
         // then we can skip trying to find the contact.
@@ -136,7 +137,7 @@ codeunit 4398 "SOA Task Message"
             // Check if the sender is a registered contact
             Contact.SetFilter("E-Mail", SOAFiltersImpl.GetSafeFromEmailFilter(EmailInbox."Sender Address"));
             Contact.ReadIsolation := IsolationLevel::ReadCommitted;
-            if Contact.IsEmpty() then
+            if Contact.IsEmpty() and not SOAFiltersImpl.FindContactByEmail2(Contact, EmailInbox."Sender Address", ContactCount) then
                 SOAInputMessageReview := SOASetup."Unknown Sender In. Msg. Review"
             else
                 SOAInputMessageReview := SOASetup."Known Sender In. Msg. Review";
