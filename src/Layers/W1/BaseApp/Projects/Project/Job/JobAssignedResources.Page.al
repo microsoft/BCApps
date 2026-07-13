@@ -32,6 +32,7 @@ page 1044 "Job Assigned Resources"
                 field("Resource No."; Rec."Resource No.")
                 {
                     ApplicationArea = Jobs;
+                    ShowMandatory = true;
 
                     trigger OnValidate()
                     begin
