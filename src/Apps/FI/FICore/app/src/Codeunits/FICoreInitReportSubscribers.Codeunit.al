@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.FinancialReports;
 
 using Microsoft.Foundation.Company;
+using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
@@ -127,6 +128,17 @@ codeunit 13411 "FICore InitReport Subscribers"
         IsHandled := true;
     end;
 
+    [EventSubscriber(ObjectType::Report, Report::"VAT- VIES Declaration Tax Auth", 'OnInitReportForGlobalVariable', '', false, false)]
+    local procedure OnInitReportForGlobalVariableInVATVIESDeclaration(var IsHandled: Boolean; var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text)
+    begin
+        if IsHandled then
+            exit;
+
+        AssignVIESDeclarationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, RegisteredHomeCityTxt, RegisteredHomeCityLbl);
+
+        IsHandled := true;
+    end;
+
     local procedure AssignLegalOfficeTexts(var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
     var
         CompanyInformation: Record "Company Information";
@@ -135,5 +147,17 @@ codeunit 13411 "FICore InitReport Subscribers"
 
         LegalOfficeTxt := CompanyInformation."Registered Home City";
         LegalOfficeLbl := CompanyInformation.FieldCaption(CompanyInformation."Registered Home City");
+    end;
+
+    local procedure AssignVIESDeclarationTexts(var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text)
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        CompanyInformation.Get();
+
+        BusinessIdentityCodeTxt := CompanyInformation."Business Identity Code";
+        BusinessIdentityCodeLbl := CompanyInformation.FieldCaption(CompanyInformation."Business Identity Code");
+        RegisteredHomeCityTxt := CompanyInformation."Registered Home City";
+        RegisteredHomeCityLbl := CompanyInformation.FieldCaption(CompanyInformation."Registered Home City");
     end;
 }
