@@ -46,6 +46,10 @@ codeunit 8700 "Table Information Cache Impl."
                 // The cache is keyed only on Company Name and Table No., so aggregate the sizes for such rows instead of
                 // failing the whole refresh with a duplicate primary key error.
                 if ExistingTableInformationCache.Get(TableInformationCache."Company Name", TableInformationCache."Table No.") then begin
+                    if TableInformationCache."Data Size (KB)" > ExistingTableInformationCache."Data Size (KB)" then
+                        ExistingTableInformationCache."Table Name" := TableInformationCache."Table Name";
+                    if TableInformationCache."Record Size" > ExistingTableInformationCache."Record Size" then
+                        ExistingTableInformationCache."Record Size" := TableInformationCache."Record Size";
                     ExistingTableInformationCache."No. of Records" += TableInformationCache."No. of Records";
                     ExistingTableInformationCache."Size (KB)" += TableInformationCache."Size (KB)";
                     ExistingTableInformationCache."Data Size (KB)" += TableInformationCache."Data Size (KB)";
