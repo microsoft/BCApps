@@ -6,7 +6,7 @@ using Microsoft.Inventory.Item;
 using System.TestTools.AITestToolkit;
 using System.TestTools.TestRunner;
 
-codeunit 30491 "Shpfy CTM Test Library"
+codeunit 134714 "Shpfy CTM Test Library"
 {
     Access = Internal;
 

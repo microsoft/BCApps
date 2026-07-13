@@ -5,13 +5,13 @@ using Microsoft.Sales.Document;
 using System.TestLibraries.Utilities;
 
 /// <summary>
-/// Codeunit Shpfy CT HITL Test (ID 30493).
+/// Codeunit Shpfy CT HITL Test (ID 134716).
 /// Plain (non-AITest) unit tests for the Human-in-the-Loop layer of Shopify Copilot Tax
 /// Matching: marker propagation from Shopify order to Sales Header, notification queue
 /// behavior, Activity Log helper invocations, and the Capitalize confidence mapping.
 /// No LLM call — these tests drive the helpers directly.
 /// </summary>
-codeunit 30493 "Shpfy CT HITL Test"
+codeunit 134716 "Shpfy CT HITL Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;

@@ -4,11 +4,11 @@ using System.TestLibraries.Utilities;
 using System.TestTools.TestRunner;
 
 /// <summary>
-/// Codeunit Shpfy CTM Guard Test (ID 30497).
+/// Codeunit Shpfy CTM Guard Test (ID 134719).
 /// Data-driven tests for guard/early exit scenarios.
 /// Bound to CTM-TS-Guard.yaml via XML suite.
 /// </summary>
-codeunit 30497 "Shpfy CTM Guard Test"
+codeunit 134719 "Shpfy CTM Guard Test"
 {
     Subtype = Test;
     TestType = AITest;

@@ -5,10 +5,10 @@ using System.TestTools.AITestToolkit;
 using System.TestTools.TestRunner;
 
 /// <summary>
-/// Codeunit Shpfy CTM Match Test (ID 30494).
+/// Codeunit Shpfy CTM Match Test (ID 134717).
 /// Data-driven tests: real LLM call via MatchTaxLines, then FindOrCreateTaxArea.
 /// </summary>
-codeunit 30494 "Shpfy CTM Match Test"
+codeunit 134717 "Shpfy CTM Match Test"
 {
     Subtype = Test;
     TestType = AITest;

@@ -2,7 +2,7 @@ namespace Microsoft.Integration.Shopify;
 
 using System.TestTools.AITestToolkit;
 
-codeunit 30490 "Shpfy CTM Tests Install"
+codeunit 134713 "Shpfy CTM Tests Install"
 {
     Subtype = Install;
     Access = Internal;

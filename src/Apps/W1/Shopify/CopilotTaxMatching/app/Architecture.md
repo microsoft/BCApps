@@ -341,7 +341,7 @@ Registration follows the standard BC Copilot pattern:
 
 ## Test App
 
-A separate test app (`CopilotTaxMatching/test/`, ID range 30490-30499) uses the **AI Test Toolkit** framework:
+A separate test app (`CopilotTaxMatching/test/`, ID range 134713-134732) uses the **AI Test Toolkit** framework:
 
 - Data-driven YAML scenarios iterated by the framework
 - Real LLM calls (no mocking) for matching tests

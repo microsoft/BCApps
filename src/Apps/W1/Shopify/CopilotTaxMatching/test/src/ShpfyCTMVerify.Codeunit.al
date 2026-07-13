@@ -4,7 +4,7 @@ using Microsoft.Finance.SalesTax;
 using System.TestLibraries.Utilities;
 using System.TestTools.TestRunner;
 
-codeunit 30492 "Shpfy CTM Verify"
+codeunit 134715 "Shpfy CTM Verify"
 {
     Access = Internal;
 

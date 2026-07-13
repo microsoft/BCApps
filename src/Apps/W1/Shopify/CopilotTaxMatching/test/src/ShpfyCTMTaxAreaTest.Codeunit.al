@@ -5,11 +5,11 @@ using System.TestLibraries.Utilities;
 using System.TestTools.TestRunner;
 
 /// <summary>
-/// Codeunit Shpfy CTM Tax Area Test (ID 30495).
+/// Codeunit Shpfy CTM Tax Area Test (ID 134718).
 /// Data-driven tests for Tax Area finding/creation.
 /// Bound to CTM-TS-TaxArea.yaml via XML suite.
 /// </summary>
-codeunit 30495 "Shpfy CTM Tax Area Test"
+codeunit 134718 "Shpfy CTM Tax Area Test"
 {
     Subtype = Test;
     TestType = AITest;
