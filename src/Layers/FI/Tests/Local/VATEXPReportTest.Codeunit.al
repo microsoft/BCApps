@@ -1,3 +1,5 @@
+#if not CLEAN29
+#pragma warning disable AL0432
 codeunit 144017 "VATEXP Report Test"
 {
     Subtype = Test;
@@ -196,3 +198,5 @@ codeunit 144017 "VATEXP Report Test"
         exit(SalesInvHeaderNo)
     end;
 }
+#pragma warning restore AL0432
+#endif
