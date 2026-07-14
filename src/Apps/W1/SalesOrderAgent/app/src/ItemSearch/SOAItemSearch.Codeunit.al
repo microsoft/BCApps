@@ -200,6 +200,9 @@ codeunit 4591 "SOA Item Search"
         SelectedMatchingItemVariants: Dictionary of [Text, Text];
         SelectedAlternativeItemVariants: Dictionary of [Text, Text];
         EmptyItemVariants: Dictionary of [Text, Text];
+        AvailableMatchingItemVariants: Dictionary of [Text, Text];
+        AvailableAlternativeItemVariants: Dictionary of [Text, Text];
+        AvailableItemVariants: Dictionary of [Text, Text];
         SearchType: Text;
         OriginalFilterGroup: Integer;
         CountBeforeAvailabilityCheck: Integer;
@@ -241,6 +244,8 @@ codeunit 4591 "SOA Item Search"
                 // Run item selection for all candidate payloads so variant resolution is consistent.
                 if CandidateArray.Count() > 0 then
                     if SelectBestItem(ItemFilter, BuildSearchQueryText(SearchKeyWordsTrimmed), CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants) then begin
+                        AddSameItemVariantAlternativesForMissingVariant(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, BuildSearchQueryText(SearchKeyWordsTrimmed));
+                        RemoveMatchingItemsWithBlankVariantAndSameItemAlternatives(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants);
                         ItemSelectorUsed := true;
                         TelemetryCustomDimension.Add('ItemSelectorUsed', 'true');
                         TelemetryCustomDimension.Add('ItemSelectorMatchingCount', Format(CountFilterItems(SelectedMatchingItemFilter)));
@@ -254,22 +259,22 @@ codeunit 4591 "SOA Item Search"
                 // When selector returns both sets, prefer available matching items.
                 // If none are available, retry availability filtering for alternatives.
                 if ItemSelectorUsed and (SelectedMatchingItemFilter <> '') then begin
-                    ItemFilter := BuildFilteredItemFilter(SelectedMatchingItemFilter, Rec, RequiredQuantity, InUOMCode, ApplyAvailabilityFilter, SelectedMatchingItemVariants);
+                    ItemFilter := BuildFilteredItemFilter(SelectedMatchingItemFilter, Rec, RequiredQuantity, InUOMCode, ApplyAvailabilityFilter, SelectedMatchingItemVariants, AvailableMatchingItemVariants);
                     if (ItemFilter = '') and (SelectedAlternativeItemFilter <> '') then begin
-                        ItemFilter := BuildFilteredItemFilter(SelectedAlternativeItemFilter, Rec, RequiredQuantity, InUOMCode, ApplyAvailabilityFilter, SelectedAlternativeItemVariants);
-                        StoreResolvedItemVariants(ItemFilter, SelectedAlternativeItemVariants);
+                        ItemFilter := BuildFilteredItemFilter(SelectedAlternativeItemFilter, Rec, RequiredQuantity, InUOMCode, ApplyAvailabilityFilter, SelectedAlternativeItemVariants, AvailableAlternativeItemVariants);
+                        StoreResolvedItemVariants(ItemFilter, AvailableAlternativeItemVariants);
                         MatchingItem := false;
                     end else begin
-                        StoreResolvedItemVariants(ItemFilter, SelectedMatchingItemVariants);
+                        StoreResolvedItemVariants(ItemFilter, AvailableMatchingItemVariants);
                         MatchingItem := true;
                     end;
                 end else
                     if ItemSelectorUsed and (SelectedAlternativeItemFilter <> '') then begin
-                        ItemFilter := BuildFilteredItemFilter(SelectedAlternativeItemFilter, Rec, RequiredQuantity, InUOMCode, ApplyAvailabilityFilter, SelectedAlternativeItemVariants);
-                        StoreResolvedItemVariants(ItemFilter, SelectedAlternativeItemVariants);
+                        ItemFilter := BuildFilteredItemFilter(SelectedAlternativeItemFilter, Rec, RequiredQuantity, InUOMCode, ApplyAvailabilityFilter, SelectedAlternativeItemVariants, AvailableAlternativeItemVariants);
+                        StoreResolvedItemVariants(ItemFilter, AvailableAlternativeItemVariants);
                         MatchingItem := false;
                     end else
-                        ItemFilter := BuildFilteredItemFilter(ItemFilter, Rec, RequiredQuantity, InUOMCode, ApplyAvailabilityFilter, EmptyItemVariants);
+                        ItemFilter := BuildFilteredItemFilter(ItemFilter, Rec, RequiredQuantity, InUOMCode, ApplyAvailabilityFilter, EmptyItemVariants, AvailableItemVariants);
             end;
 
         if ItemFilter <> '' then begin
@@ -340,6 +345,132 @@ codeunit 4591 "SOA Item Search"
                     exit(true);
             end;
         exit(false);
+    end;
+
+    local procedure AddSameItemVariantAlternativesForMissingVariant(SelectedMatchingItemFilter: Text; SelectedMatchingItemVariants: Dictionary of [Text, Text]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, Text]; SearchQuery: Text)
+    var
+        FallbackAlternativeItemVariants: Dictionary of [Text, Text];
+        ItemSystemId: Text;
+        AlternativeVariantCodes: Text;
+        VariantCodes: Text;
+        FallbackAlternativeItemFilter: Text;
+        MatchingVariantCodes: Text;
+    begin
+        if SelectedMatchingItemFilter = '' then
+            exit;
+
+        foreach ItemSystemId in SelectedMatchingItemFilter.Split('|') do begin
+            MatchingVariantCodes := '';
+            if SelectedMatchingItemVariants.ContainsKey(ItemSystemId) then
+                MatchingVariantCodes := SelectedMatchingItemVariants.Get(ItemSystemId);
+
+            if MatchingVariantCodes <> '' then
+                continue;
+            if SelectedAlternativeItemVariants.ContainsKey(ItemSystemId) then begin
+                AlternativeVariantCodes := SelectedAlternativeItemVariants.Get(ItemSystemId);
+                if AlternativeVariantCodes <> '' then
+                    continue;
+            end;
+
+            if HasVariantSignalForItem(ItemSystemId, SearchQuery) then begin
+                VariantCodes := GetItemVariantCodes(ItemSystemId);
+                if VariantCodes <> '' then begin
+                    if FallbackAlternativeItemFilter = '' then
+                        FallbackAlternativeItemFilter := ItemSystemId
+                    else
+                        FallbackAlternativeItemFilter += '|' + ItemSystemId;
+                    FallbackAlternativeItemVariants.Add(ItemSystemId, VariantCodes);
+                end;
+            end;
+        end;
+
+        if FallbackAlternativeItemFilter = '' then
+            exit;
+
+        SelectedAlternativeItemFilter := FallbackAlternativeItemFilter;
+        SelectedAlternativeItemVariants := FallbackAlternativeItemVariants;
+    end;
+
+    local procedure HasVariantSignalForItem(ItemSystemId: Text; SearchQuery: Text): Boolean
+    var
+        Item: Record Item;
+        SearchToken: Text;
+    begin
+        if not Item.GetBySystemId(ItemSystemId) then
+            exit(false);
+
+        SearchQuery := LowerCase(SearchQuery);
+        foreach SearchToken in SearchQuery.Split(' ') do begin
+            SearchToken := SearchToken.Trim();
+            if StrLen(SearchToken) <= 2 then
+                continue;
+            if StrPos(LowerCase(Item."No."), SearchToken) > 0 then
+                continue;
+            if StrPos(LowerCase(Item.Description), SearchToken) > 0 then
+                continue;
+            if StrPos(LowerCase(Item."Description 2"), SearchToken) > 0 then
+                continue;
+            exit(true);
+        end;
+
+        exit(false);
+    end;
+
+    local procedure GetItemVariantCodes(ItemSystemId: Text): Text
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        VariantCodes: Text;
+    begin
+        if not Item.GetBySystemId(ItemSystemId) then
+            exit('');
+
+        ItemVariant.SetRange("Item No.", Item."No.");
+        if ItemVariant.FindSet() then
+            repeat
+                if VariantCodes = '' then
+                    VariantCodes := ItemVariant.Code
+                else
+                    VariantCodes += '|' + ItemVariant.Code;
+            until ItemVariant.Next() = 0;
+
+        exit(VariantCodes);
+    end;
+
+    local procedure RemoveMatchingItemsWithBlankVariantAndSameItemAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, Text]; SelectedAlternativeItemVariants: Dictionary of [Text, Text])
+    var
+        NewSelectedMatchingItemVariants: Dictionary of [Text, Text];
+        ItemSystemId: Text;
+        AlternativeVariantCodes: Text;
+        MatchingVariantCodes: Text;
+        NewSelectedMatchingItemFilter: Text;
+    begin
+        if SelectedMatchingItemFilter = '' then
+            exit;
+
+        foreach ItemSystemId in SelectedMatchingItemFilter.Split('|') do begin
+            MatchingVariantCodes := '';
+            if SelectedMatchingItemVariants.ContainsKey(ItemSystemId) then
+                MatchingVariantCodes := SelectedMatchingItemVariants.Get(ItemSystemId);
+
+            if MatchingVariantCodes = '' then
+                if SelectedAlternativeItemVariants.ContainsKey(ItemSystemId) then begin
+                    AlternativeVariantCodes := SelectedAlternativeItemVariants.Get(ItemSystemId);
+                    if AlternativeVariantCodes <> '' then
+                        continue;
+                end;
+
+            if NewSelectedMatchingItemFilter = '' then
+                NewSelectedMatchingItemFilter := ItemSystemId
+            else
+                NewSelectedMatchingItemFilter += '|' + ItemSystemId;
+
+            if not NewSelectedMatchingItemVariants.ContainsKey(ItemSystemId) then
+                NewSelectedMatchingItemVariants.Add(ItemSystemId, MatchingVariantCodes);
+        end;
+
+        SelectedMatchingItemFilter := NewSelectedMatchingItemFilter;
+        SelectedMatchingItemVariants := NewSelectedMatchingItemVariants;
     end;
 
     local procedure BuildCandidateArrayFromItemFilter(ItemFilter: Text; var CandidateArray: JsonArray)
@@ -425,7 +556,7 @@ codeunit 4591 "SOA Item Search"
             end;
     end;
 
-    local procedure BuildFilteredItemFilter(SourceItemFilter: Text; var Rec: Record Item; RequiredQuantity: Decimal; InUOMCode: Code[10]; ApplyAvailabilityFilter: Boolean; SelectedItemVariants: Dictionary of [Text, Text]): Text
+    local procedure BuildFilteredItemFilter(SourceItemFilter: Text; var Rec: Record Item; RequiredQuantity: Decimal; InUOMCode: Code[10]; ApplyAvailabilityFilter: Boolean; SelectedItemVariants: Dictionary of [Text, Text]; var AvailableItemVariants: Dictionary of [Text, Text]): Text
     var
         Item: Record Item;
         ItemSystemId: Guid;
@@ -433,6 +564,8 @@ codeunit 4591 "SOA Item Search"
         FilteredItemFilter: Text;
         ResultCount: Integer;
     begin
+        Clear(AvailableItemVariants);
+
         if SourceItemFilter = '' then
             exit('');
 
@@ -440,17 +573,15 @@ codeunit 4591 "SOA Item Search"
             if ApplyAvailabilityFilter then begin
                 if Item.GetBySystemId(ItemSystemId) then begin
                     Item.CopyFilters(Rec);
-                    if SelectedItemVariants.ContainsKey(Format(ItemSystemId)) then begin
-                        VariantCode := SelectedItemVariants.Get(Format(ItemSystemId));
-                        Item.SetRange("Variant Filter", CopyStr(VariantCode, 1, MaxStrLen(Item."Variant Filter")));
-                    end;
-                    if IsRequiredQuantityAvailable(Item, RequiredQuantity, InUOMCode) then begin
+                    if FindFirstAvailableVariant(Item, Format(ItemSystemId), RequiredQuantity, InUOMCode, SelectedItemVariants, VariantCode) then begin
                         FilteredItemFilter += ItemSystemId + '|';
+                        AddAvailableItemVariant(AvailableItemVariants, Format(ItemSystemId), VariantCode);
                         ResultCount += 1;
                     end;
                 end;
             end else begin
                 FilteredItemFilter += ItemSystemId + '|';
+                AddAvailableItemVariant(AvailableItemVariants, Format(ItemSystemId), GetFirstVariantCode(Format(ItemSystemId), SelectedItemVariants));
                 ResultCount += 1;
             end;
 
@@ -459,6 +590,54 @@ codeunit 4591 "SOA Item Search"
         end;
 
         exit(FilteredItemFilter.TrimEnd('|'));
+    end;
+
+    local procedure FindFirstAvailableVariant(var Item: Record Item; ItemSystemId: Text; RequiredQuantity: Decimal; InUOMCode: Code[10]; SelectedItemVariants: Dictionary of [Text, Text]; var AvailableVariantCode: Text): Boolean
+    var
+        VariantCode: Text;
+        VariantCodes: Text;
+    begin
+        AvailableVariantCode := '';
+        if SelectedItemVariants.ContainsKey(ItemSystemId) then
+            VariantCodes := SelectedItemVariants.Get(ItemSystemId);
+
+        if VariantCodes = '' then begin
+            Item.SetRange("Variant Filter", '');
+            exit(IsRequiredQuantityAvailable(Item, RequiredQuantity, InUOMCode));
+        end;
+
+        foreach VariantCode in VariantCodes.Split('|') do begin
+            Item.SetRange("Variant Filter", CopyStr(VariantCode, 1, MaxStrLen(Item."Variant Filter")));
+            if IsRequiredQuantityAvailable(Item, RequiredQuantity, InUOMCode) then begin
+                AvailableVariantCode := VariantCode;
+                exit(true);
+            end;
+        end;
+
+        exit(false);
+    end;
+
+    local procedure GetFirstVariantCode(ItemSystemId: Text; SelectedItemVariants: Dictionary of [Text, Text]): Text
+    var
+        VariantCode: Text;
+        VariantCodes: Text;
+    begin
+        if not SelectedItemVariants.ContainsKey(ItemSystemId) then
+            exit('');
+
+        VariantCodes := SelectedItemVariants.Get(ItemSystemId);
+        foreach VariantCode in VariantCodes.Split('|') do
+            exit(VariantCode);
+
+        exit('');
+    end;
+
+    local procedure AddAvailableItemVariant(var AvailableItemVariants: Dictionary of [Text, Text]; ItemSystemId: Text; VariantCode: Text)
+    begin
+        if AvailableItemVariants.ContainsKey(ItemSystemId) then
+            AvailableItemVariants.Set(ItemSystemId, VariantCode)
+        else
+            AvailableItemVariants.Add(ItemSystemId, VariantCode);
     end;
 
     local procedure ExtractSearchKeyWords(SearchFilter: Text; var SplitSearchKeywords: Text; var SearchKeyWordsTrimmed: List of [Text])

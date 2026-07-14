@@ -96,6 +96,9 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
         if not IsAllowedItemNoFormat(ItemNo) then
             exit(false);
 
+        if ItemNoAlreadyInList(ItemList, ItemNo) then
+            exit(true);
+
         if ItemList = '' then
             ItemList := ItemNo
         else
@@ -104,14 +107,46 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
         exit(true);
     end;
 
+    local procedure ItemNoAlreadyInList(ItemList: Text; ItemNo: Text): Boolean
+    var
+        ExistingItemNo: Text;
+    begin
+        if ItemList = '' then
+            exit(false);
+
+        foreach ExistingItemNo in ItemList.Split('|') do
+            if ExistingItemNo = ItemNo then
+                exit(true);
+
+        exit(false);
+    end;
+
     local procedure AddVariantCodeToDictionary(var ItemVariants: Dictionary of [Text, Text]; ItemNo: Text; VariantCode: Text)
+    var
+        ExistingVariantCode: Text;
+        VariantCodes: Text;
     begin
         VariantCode := VariantCode.Trim();
         if not IsAllowedVariantCodeFormat(VariantCode) then
             VariantCode := '';
 
-        if not ItemVariants.ContainsKey(ItemNo) then
+        if not ItemVariants.ContainsKey(ItemNo) then begin
             ItemVariants.Add(ItemNo, VariantCode);
+            exit;
+        end;
+
+        if VariantCode = '' then
+            exit;
+
+        VariantCodes := ItemVariants.Get(ItemNo);
+        foreach ExistingVariantCode in VariantCodes.Split('|') do
+            if ExistingVariantCode = VariantCode then
+                exit;
+
+        if VariantCodes = '' then
+            ItemVariants.Set(ItemNo, VariantCode)
+        else
+            ItemVariants.Set(ItemNo, VariantCodes + '|' + VariantCode);
     end;
 
     local procedure IsAllowedItemNoFormat(ItemNo: Text): Boolean

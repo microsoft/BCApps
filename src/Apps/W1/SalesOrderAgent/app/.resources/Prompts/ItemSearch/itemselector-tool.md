@@ -9,7 +9,7 @@
       "properties": {
         "selected_items": {
           "type": "array",
-          "description": "Array of items with per-item confidence levels and optional variant codes. Return matching items first, followed by optional alternatives.",
+          "description": "Array of items with per-item confidence levels and optional variant codes. Return matching items first, followed by optional alternatives. The same item_no may appear more than once only for different variant_code alternatives.",
           "items": {
             "type": "object",
             "properties": {
@@ -44,6 +44,8 @@
     "Always return \"matching\" items first",
     "Return variant_code only when it exists in the candidate Variants data and the query identifies it explicitly or semantically",
     "Return an empty variant_code when the query names only the item and does not imply a specific variant",
+    "When the selected item has a specific matching variant_code, also return closely related same-item variant alternatives as separate selected_items entries with confidence \"alternative\"",
+    "When the requested variant is not present, return closely related same-item variant alternatives as separate selected_items entries with confidence \"alternative\"",
     "Include up to 3 \"alternative\" items if relevant",
     "Do not return unrelated items",
     "For each returned item, include \"reason\" with a concise description of why it was selected"
