@@ -19,7 +19,7 @@ codeunit 6121 "EDocument Json Helper"
     begin
         ContentObject := GetInnerObject(SourceJsonObject);
         if not ContentObject.Get('fields', JsonToken) then begin
-            Session.LogMessage('', StrSubstNo(MalformedAdiResponseTxt, 'fields'), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTxt);
+            Session.LogMessage('0000UK1', StrSubstNo(MalformedAdiResponseTxt, 'fields'), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTxt);
             exit(EmptyObject);
         end;
         exit(JsonToken.AsObject());
@@ -41,17 +41,17 @@ codeunit 6121 "EDocument Json Helper"
         OutputsObject, InnerObject, EmptyObject : JsonObject;
     begin
         if not SourceJsonObject.Get('outputs', JsonToken) then begin
-            Session.LogMessage('', StrSubstNo(MalformedAdiResponseTxt, 'outputs'), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTxt);
+            Session.LogMessage('0000UK2', StrSubstNo(MalformedAdiResponseTxt, 'outputs'), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTxt);
             exit(EmptyObject);
         end;
         OutputsObject := JsonToken.AsObject();
         if not OutputsObject.Get('1', JsonToken) then begin
-            Session.LogMessage('', StrSubstNo(MalformedAdiResponseTxt, '1'), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTxt);
+            Session.LogMessage('0000UK3', StrSubstNo(MalformedAdiResponseTxt, '1'), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTxt);
             exit(EmptyObject);
         end;
         InnerObject := JsonToken.AsObject();
         if not InnerObject.Get('result', JsonToken) then begin
-            Session.LogMessage('', StrSubstNo(MalformedAdiResponseTxt, 'result'), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTxt);
+            Session.LogMessage('0000UK4', StrSubstNo(MalformedAdiResponseTxt, 'result'), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTxt);
             exit(EmptyObject);
         end;
         exit(JsonToken.AsObject());
