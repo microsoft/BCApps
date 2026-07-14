@@ -2059,17 +2059,6 @@ codeunit 144008 "EB - Payment Journal Export"
         GeneralLedgerSetup.Modify(true);
     end;
 
-    local procedure SetShowCurrencyToLCYAndFCYSymbol()
-    var
-        GeneralLedgerSetup: Record "General Ledger Setup";
-    begin
-        GeneralLedgerSetup.Get();
-        GeneralLedgerSetup.Validate("Local Currency Symbol", '$');
-        GeneralLedgerSetup.Validate("Currency Symbol Position", GeneralLedgerSetup."Currency Symbol Position"::"Before Amount");
-        GeneralLedgerSetup.Validate("Show Currency", GeneralLedgerSetup."Show Currency"::"LCY and FCY Symbol");
-        GeneralLedgerSetup.Modify(true);
-    end;
-
     local procedure SetCurrencySymbol(CurrencyCode: Code[10])
     var
         Currency: Record Currency;
