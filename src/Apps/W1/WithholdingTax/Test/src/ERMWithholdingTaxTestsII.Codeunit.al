@@ -597,7 +597,7 @@ codeunit 148322 "ERM Withholding Tax Tests II"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('ConfirmHandler,CreatePaymentPageHandler,PaymentJournalPageHandler')]
+    [HandlerFunctions('ConfirmHandler,CreatePaymentPageHandler,PaymentJournalPageHandler,ApplyVendorEntriesModalPageHandler')]
     procedure WHTProdPostGroupTravelsFromInvoiceToJournalLineOnApplication()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -1201,5 +1201,13 @@ codeunit 148322 "ERM Withholding Tax Tests II"
     [Scope('OnPrem')]
     procedure PaymentJournalPageHandler(var PaymentJournal: TestPage "Payment Journal")
     begin
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure ApplyVendorEntriesModalPageHandler(var ApplyVendorEntries: TestPage "Apply Vendor Entries")
+    begin
+        ApplyVendorEntries.ActionSetAppliesToID.Invoke();
+        ApplyVendorEntries.OK().Invoke();
     end;
 }
