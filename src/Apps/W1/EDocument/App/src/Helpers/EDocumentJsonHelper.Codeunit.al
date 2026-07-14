@@ -11,10 +11,11 @@ codeunit 6121 "EDocument Json Helper"
     internal procedure GetHeaderFields(SourceJsonObject: JsonObject): JsonObject
     var
         JsonToken: JsonToken;
-        ContentObject: JsonObject;
+        ContentObject, EmptyObject : JsonObject;
     begin
         ContentObject := GetInnerObject(SourceJsonObject);
-        ContentObject.Get('fields', JsonToken);
+        if not ContentObject.Get('fields', JsonToken) then
+            exit(EmptyObject);
         exit(JsonToken.AsObject());
     end;
 
@@ -31,13 +32,16 @@ codeunit 6121 "EDocument Json Helper"
     internal procedure GetInnerObject(SourceJsonObject: JsonObject): JsonObject
     var
         JsonToken: JsonToken;
-        OutputsObject, InnerObject : JsonObject;
+        OutputsObject, InnerObject, EmptyObject : JsonObject;
     begin
-        SourceJsonObject.Get('outputs', JsonToken);
+        if not SourceJsonObject.Get('outputs', JsonToken) then
+            exit(EmptyObject);
         OutputsObject := JsonToken.AsObject();
-        OutputsObject.Get('1', JsonToken);
+        if not OutputsObject.Get('1', JsonToken) then
+            exit(EmptyObject);
         InnerObject := JsonToken.AsObject();
-        InnerObject.Get('result', JsonToken);
+        if not InnerObject.Get('result', JsonToken) then
+            exit(EmptyObject);
         exit(JsonToken.AsObject());
     end;
 
