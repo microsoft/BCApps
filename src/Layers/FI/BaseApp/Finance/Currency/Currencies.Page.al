@@ -265,14 +265,6 @@ page 5 Currencies
                     end;
                 }
             }
-            action("Import Exchange Rates")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Import Exchange Rates';
-                Image = Import;
-                RunObject = Codeunit "Currency Exchange Rate";
-                ToolTip = 'Update currency exchange rates.';
-            }
             action("Exch. &Rates")
             {
                 ApplicationArea = Suite;
