@@ -17,7 +17,7 @@ codeunit 4609 "Ext. SharePoint REST Helper"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Ext. SharePoint Account" = rimd;
+    Permissions = tabledata "Ext. SharePoint Account" = r;
 
     var
         TestSharePointAuthorization: Interface "SharePoint Authorization";
