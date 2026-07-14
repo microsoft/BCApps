@@ -5,6 +5,7 @@
 
 namespace Microsoft.Integration.Shopify.Test;
 
+using Microsoft.CRM.Setup;
 using Microsoft.Integration.Shopify;
 using Microsoft.Sales.Customer;
 using System.TestLibraries.Utilities;
@@ -58,8 +59,79 @@ codeunit 139565 "Shpfy Create Customer Test"
             LibraryAssert.AssertRecordNotFound();
     end;
 
+    [Test]
+    procedure UnitTestMapCustomerWithoutDefaultAddressStillCreatesCustomer()
+    var
+        Customer: Record Customer;
+        CustomerTempl: Record "Customer Templ.";
+        ShopifyCustomer: Record "Shpfy Customer";
+        ShopifyCustomerAddress: Record "Shpfy Customer Address";
+        ICustomerMapping: Interface "Shpfy ICustomer Mapping";
+        JCustomerInfo: JsonObject;
+        CustomerId: BigInteger;
+        ResultCode: Code[20];
+    begin
+        // [SCENARIO] A staged Shopify customer that is not yet linked to a BC customer and whose address is not flagged
+        // as default (Shopify defaultAddress = null) still gets a BC customer created when mapping allows creation.
+        Initialize();
+        if not CustomerTempl.FindFirst() then
+            exit;
+
+        // [GIVEN] A staged Shopify customer without a linked BC customer
+        CustomerId := CustomerInitTest.CreateShopifyCustomer(ShopifyCustomer);
+        // [GIVEN] The customer has an address that is not marked as default
+        ShopifyCustomerAddress := CustomerInitTest.CreateShopifyCustomerAddress(ShopifyCustomer);
+        ShopifyCustomerAddress.TestField(Default, false);
+
+        // [WHEN] Mapping the customer by email/phone with customer creation allowed
+        ICustomerMapping := "Shpfy Customer Mapping"::"By EMail/Phone";
+        JCustomerInfo := CustomerInitTest.CreateJsonCustomerInfo(Shop."Name Source", Shop."Name 2 Source");
+        ResultCode := ICustomerMapping.DoMapping(CustomerId, JCustomerInfo, Shop.Code, CustomerTempl.Code, true);
+
+        // [THEN] A BC customer is created, linked to the Shopify customer, even though no default address existed
+        LibraryAssert.AreNotEqual('', ResultCode, 'A customer should be created when the customer has no default address.');
+        LibraryAssert.IsTrue(Customer.Get(ResultCode), 'The mapped BC customer should exist.');
+        ShopifyCustomer.Get(CustomerId);
+        ShopifyCustomer.CalcFields("Customer No.");
+        LibraryAssert.AreEqual(ResultCode, ShopifyCustomer."Customer No.", 'The Shopify customer should be linked to the created BC customer.');
+    end;
+
+    [Test]
+    procedure UnitTestUpdateCustomerWithoutDefaultAddressDoesNotError()
+    var
+        Customer: Record Customer;
+        ShopifyCustomer: Record "Shpfy Customer";
+        ShopifyCustomerAddress: Record "Shpfy Customer Address";
+        UpdateCustomer: Codeunit "Shpfy Update Customer";
+    begin
+        // [SCENARIO] Updating a linked BC customer from a Shopify customer that has no default address
+        // (Shopify defaultAddress = null) falls back to an available address instead of erroring.
+        Initialize();
+
+        // [GIVEN] A BC customer linked to a Shopify customer
+        Customer.Init();
+        Customer."No." := CopyStr(Any.AlphanumericText(10), 1, MaxStrLen(Customer."No."));
+        Customer.Insert(true);
+        CustomerInitTest.CreateShopifyCustomer(ShopifyCustomer);
+        ShopifyCustomer."Customer SystemId" := Customer.SystemId;
+        ShopifyCustomer.Modify();
+
+        // [GIVEN] The Shopify customer has an address that is not marked as default
+        ShopifyCustomerAddress := CustomerInitTest.CreateShopifyCustomerAddress(ShopifyCustomer);
+        ShopifyCustomerAddress.TestField(Default, false);
+
+        // [WHEN] The customer is updated from Shopify
+        UpdateCustomer.SetShop(Shop);
+        UpdateCustomer.Run(ShopifyCustomer);
+
+        // [THEN] No error is raised and the customer address is filled from the available (non-default) address
+        Customer.Get(Customer."No.");
+        LibraryAssert.AreEqual(ShopifyCustomerAddress."Address 1", Customer.Address, 'Customer address should be updated from the available address.');
+    end;
+
     local procedure Initialize()
     var
+        MarketingSetup: Record "Marketing Setup";
         AccessToken: SecretText;
     begin
         if IsInitialized then
@@ -71,6 +143,17 @@ codeunit 139565 "Shpfy Create Customer Test"
         Shop.Modify(false);
         AccessToken := Any.AlphanumericText(20);
         InitializeTest.RegisterAccessTokenForShop(Shop.GetStoreName(), AccessToken);
+
+        // Disable duplicate-contact auto-search so creating/updating a customer (which cascades to
+        // contact creation) does not raise an interactive "Duplicate Contacts were found" confirm
+        // dialog during automated integration tests, where GuiAllowed is true and some localizations'
+        // demo data enables this setting.
+        if MarketingSetup.Get() then begin
+            MarketingSetup."Autosearch for Duplicates" := false;
+            MarketingSetup."Maintain Dupl. Search Strings" := false;
+            MarketingSetup.Modify(false);
+        end;
+
         Commit();
     end;
 
