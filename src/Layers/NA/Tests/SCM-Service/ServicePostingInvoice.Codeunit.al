@@ -2642,7 +2642,7 @@ codeunit 136108 "Service Posting - Invoice"
         CustomerNo: Code[20];
     begin
         // [FEATURE] [External Document No.]
-        // [SCENARIO 287958] External Document No. processing does not depend on SalesSetup.Ext. Doc. No. Mandatory
+        // [SCENARIO 287958] External Document No. is left blank when Ext. Doc. No. Mandatory is disabled and no External Document No. was entered
         Initialize();
 
         // [GIVEN] Set SalesSetup.Ext. Doc. No. Mandatory = No
@@ -3261,9 +3261,54 @@ codeunit 136108 "Service Posting - Invoice"
         ServiceInvoiceHeader.FindFirst();
         GLEntry.SetRange("Document Type", GLEntry."Document Type"::Invoice);
         GLEntry.SetRange("Document No.", ServiceInvoiceHeader."No.");
+        Assert.RecordIsNotEmpty(GLEntry);
         GLEntry.FindSet();
         repeat
             Assert.AreEqual('', GLEntry."External Document No.", 'External Document No. should be blank on G/L Entry when not specified on Service Order');
+        until GLEntry.Next() = 0;
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostServiceCreditMemoWithoutExternalDocNoLeavesGLEntriesBlank()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        ServiceCrMemoHeader: Record "Service Cr.Memo Header";
+        GLEntry: Record "G/L Entry";
+        Customer: Record Customer;
+        ServiceMgtSetup: Record "Service Mgt. Setup";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 638182] GL entries have blank External Document No. when service credit memo is posted without External Document No.
+        Initialize();
+
+        // [GIVEN] Service Mgt. Setup with "Ext. Doc. No. Mandatory" disabled
+        ServiceMgtSetup.Get();
+        ServiceMgtSetup.Validate("Ext. Doc. No. Mandatory", false);
+        ServiceMgtSetup.Modify(true);
+
+        // [GIVEN] Service Credit Memo for Customer "C" with blank External Document No.
+        LibrarySales.CreateCustomer(Customer);
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::"Credit Memo", Customer."No.");
+        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup());
+        ServiceLine.Validate(Quantity, LibraryRandom.RandInt(100));
+        ServiceLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
+        ServiceLine.Modify(true);
+        ServiceHeader.Validate("External Document No.", '');
+        ServiceHeader.Modify(true);
+
+        // [WHEN] Post service credit memo
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+
+        // [THEN] GL entries for posted service credit memo have blank External Document No.
+        FindServiceCreditMemoHeader(ServiceCrMemoHeader, ServiceHeader."No.");
+        GLEntry.SetRange("Document Type", GLEntry."Document Type"::"Credit Memo");
+        GLEntry.SetRange("Document No.", ServiceCrMemoHeader."No.");
+        Assert.RecordIsNotEmpty(GLEntry);
+        GLEntry.FindSet();
+        repeat
+            Assert.AreEqual('', GLEntry."External Document No.", 'External Document No. should be blank on G/L Entry when not specified on Service Credit Memo');
         until GLEntry.Next() = 0;
     end;
 
