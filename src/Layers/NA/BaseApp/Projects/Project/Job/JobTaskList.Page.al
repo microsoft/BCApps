@@ -125,6 +125,21 @@ page 1004 "Job Task List"
                                   "Job Task No." = field("Job Task No.");
                     ToolTip = 'View statistics for the project task.';
                 }
+                action("Assigned Resources")
+                {
+                    ApplicationArea = Jobs;
+                    Caption = 'Assigned Resources';
+                    Image = Users;
+                    ToolTip = 'View or edit the additional resources that are explicitly assigned to this project task. Project-level assignments are managed from the project and are not shown on the project tasks.';
+
+                    trigger OnAction()
+                    var
+                        JobAssignedResourcesPage: Page "Job Assigned Resources";
+                    begin
+                        if JobAssignedResourcesPage.SetJobTaskContext(Rec) then
+                            JobAssignedResourcesPage.Run();
+                    end;
+                }
             }
         }
         area(processing)
@@ -265,6 +280,9 @@ page 1004 "Job Task List"
                 actionref("Split Planning Lines_Promoted"; "Split Planning Lines")
                 {
                 }
+                actionref("Assigned Resources_Promoted"; "Assigned Resources")
+                {
+                }   
                 group(Category_Report)
                 {
                     Caption = 'Reports';
