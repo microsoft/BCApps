@@ -540,7 +540,7 @@ table 379 "Detailed Cust. Ledg. Entry"
 
         "Ledger Entry Amount" :=
             not (("Entry Type" = "Entry Type"::Application) or ("Entry Type" = "Entry Type"::"Appln. Rounding") or
-                 ("Entry Type" = "Entry Type"::Redrawal) or ("Entry Type" = "Entry Type"::Rejection]));
+                 ("Entry Type" = "Entry Type"::Redrawal) or ("Entry Type" = "Entry Type"::Rejection));
     end;
 
     /// <summary>
