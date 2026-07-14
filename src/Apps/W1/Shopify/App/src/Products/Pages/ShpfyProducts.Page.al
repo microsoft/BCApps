@@ -139,12 +139,12 @@ page 30126 "Shpfy Products"
                 field(CreatedAt; Rec."Created At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies when the product was created.';
+                    ToolTip = 'Specifies when the product was created in Shopify.';
                 }
                 field(UpdatedAt; Rec."Updated At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies when the product was updated.';
+                    ToolTip = 'Specifies when the product was updated in Shopify.';
                 }
                 field(ProductType; Rec."Product Type")
                 {
