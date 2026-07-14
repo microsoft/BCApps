@@ -51,8 +51,11 @@
   "idRanges": [
     {
       "from": 148001,
-      "to": 148002
+      "to": 148005
     }
+  ],
+  "resourceFolders": [
+    ".resources"
   ],
   "resourceExposurePolicy": {
     "allowDebugging": true,
