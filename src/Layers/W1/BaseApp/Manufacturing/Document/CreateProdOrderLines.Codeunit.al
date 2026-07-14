@@ -245,22 +245,22 @@ codeunit 99000787 "Create Prod. Order Lines"
         OnAfterCreateProdOrderLine(ProdOrder, VariantCode, ErrorOccured);
     end;
 
-    local procedure CreateProdOrderLineFromItem(ProdOrder: Record "Production Order"; VariantCode: Code[10]; var ErrorOccured: Boolean)
+    local procedure CreateProdOrderLineFromItem(var ProductionOrder: Record "Production Order"; VariantCode: Code[10]; var ErrorOccured: Boolean)
     begin
         OnCreateProdOrderLineOnBeforeInitProdOrderLine(InsertNew);
-        InitProdOrderLine(ProdOrder."Source No.", VariantCode, ProdOrder."Location Code");
-        ProdOrderLine.Description := ProdOrder.Description;
-        ProdOrderLine."Description 2" := ProdOrder."Description 2";
-        ProdOrderLine.Validate(Quantity, ProdOrder.Quantity);
+        InitProdOrderLine(ProductionOrder."Source No.", VariantCode, ProductionOrder."Location Code");
+        ProdOrderLine.Description := ProductionOrder.Description;
+        ProdOrderLine."Description 2" := ProductionOrder."Description 2";
+        ProdOrderLine.Validate(Quantity, ProductionOrder.Quantity);
         ProdOrderLine.UpdateDatetime();
         if SalesLineIsSet then
             CopyDimFromSalesLine(SalesLine, ProdOrderLine);
-        OnBeforeProdOrderLineInsert(ProdOrderLine, ProdOrder, SalesLineIsSet, SalesLine);
+        OnBeforeProdOrderLineInsert(ProdOrderLine, ProductionOrder, SalesLineIsSet, SalesLine);
         ProdOrderLine.Insert();
         if ProdOrderLine.HasErrorOccured() then
             ErrorOccured := true;
 
-        OnAfterProdOrderLineInsert(ProdOrder, ProdOrderLine, NextProdOrderLineNo);
+        OnAfterProdOrderLineInsert(ProductionOrder, ProdOrderLine, NextProdOrderLineNo);
     end;
 
     local procedure DeleteLinesForProductionOrder(ProductionOrder: Record "Production Order")
@@ -864,4 +864,3 @@ codeunit 99000787 "Create Prod. Order Lines"
     begin
     end;
 }
-
