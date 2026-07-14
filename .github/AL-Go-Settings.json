@@ -33,6 +33,17 @@
       }
     },
     {
+      "buildModes": [
+        "LegacyTestsBucket1"
+      ],
+      "settings": {
+        "additionalDemoDataTypes": [
+          "Standard",
+          "Evaluation"
+        ]
+      }
+    },
+    {
       "projects": [
         "."
       ],

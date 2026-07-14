@@ -13,31 +13,31 @@ codeunit 134154 "ERM Intercompany III"
     end;
 
     var
-        LibraryUtility: Codeunit "Library - Utility";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
-        LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        Assert: Codeunit Assert;
+        CodeCoverageMgt: Codeunit "Code Coverage Mgt.";
+        LibraryApplicationArea: Codeunit "Library - Application Area";
         LibraryDimension: Codeunit "Library - Dimension";
-        LibrarySales: Codeunit "Library - Sales";
-        LibraryPurchase: Codeunit "Library - Purchase";
-        LibraryRandom: Codeunit "Library - Random";
         LibraryERM: Codeunit "Library - ERM";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
+        LibrarySales: Codeunit "Library - Sales";
+        LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
-        LibraryXMLRead: Codeunit "Library - XML Read";
-        LibraryApplicationArea: Codeunit "Library - Application Area";
+        LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryWarehouse: Codeunit "Library - Warehouse";
-        CodeCoverageMgt: Codeunit "Code Coverage Mgt.";
-        Assert: Codeunit Assert;
-        SalesDocType: Enum "Sales Document Type";
-        PurchaseDocType: Enum "Purchase Document Type";
-        ICTransactionDocType: Enum "IC Transaction Document Type";
+        LibraryXMLRead: Codeunit "Library - XML Read";
         ICPartnerRefType: Enum "IC Partner Reference Type";
+        ICTransactionDocType: Enum "IC Transaction Document Type";
+        PurchaseDocType: Enum "Purchase Document Type";
+        SalesDocType: Enum "Sales Document Type";
         IsInitialized: Boolean;
-        SendAgainQst: Label '%1 %2 has already been sent to intercompany partner %3. Resending it will create a duplicate %1 for them. Do you want to send it again?';
         AcceptAgainQst: Label '%1 %2 has already been received from intercompany partner %3. Accepting it again will create a duplicate %1. Do you want to accept the %1?';
-        InsufficientQtyErr: Label 'You have insufficient quantity of Item';
         DirectUnitCostErr: Label 'Direct Unit Cost should be %1 but is %2';
+        InsufficientQtyErr: Label 'You have insufficient quantity of Item';
         LineAmountErr: Label 'Line Amount should be %1 but is %2';
+        SendAgainQst: Label '%1 %2 has already been sent to intercompany partner %3. Resending it will create a duplicate %1 for them. Do you want to send it again?';
 
     [Test]
     [HandlerFunctions('ComfirmHandlerNo')]
@@ -3536,6 +3536,61 @@ codeunit 134154 "ERM Intercompany III"
         // [THEN] GLSetup."Last IC Transaction No." has not changed
         GLSetup.Get();
         Assert.AreEqual(LastICTransNoBeforeTest, GLSetup."Last IC Transaction No.", 'GLSetup Last IC Transaction No. must not change');
+    end;
+
+    [Test]
+    procedure OpenICPurchaseInvoiceWithVendorOrderNoExceeding20Chars()
+    var
+        ICInboxPurchaseHeader: Record "IC Inbox Purchase Header";
+        ICInboxTransaction: Record "IC Inbox Transaction";
+        PurchaseHeader: Record "Purchase Header";
+        Vendor: Record Vendor;
+        ICInboxTransactions: TestPage "IC Inbox Transactions";
+        PurchaseInvoicePage: TestPage "Purchase Invoice";
+        DocumentNo: Code[20];
+        LongVendorOrderNo: Code[35];
+    begin
+        // [SCENARIO 641567] Opening an IC-created Purchase Invoice does not error when "Vendor Order No." exceeds 20 characters.
+        Initialize();
+        LibraryApplicationArea.EnableEssentialSetup();
+        CleanupIC(true, true, false, false);
+
+        // [GIVEN] Create a vendor with IC partner.
+        CreateVendorWithICPartner(Vendor);
+        DocumentNo := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] A purchase invoice IC inbox transaction that was accepted and created
+        MockICInboxTransaction(ICInboxTransaction, Vendor."IC Partner Code", ICInboxTransaction."IC Source Type"::"Purchase Document", ICInboxTransaction."Document Type"::Invoice, DocumentNo);
+        MockICInboxPurchaseDocument(ICInboxPurchaseHeader, ICInboxTransaction, Vendor."No.", LibraryRandom.RandIntInRange(100, 200));
+
+        // [GIVEN] Open IC IC Inbox Transactions page.
+        ICInboxTransactions.OpenEdit();
+        ICInboxTransactions.Filter.SetFilter("Transaction No.", Format(ICInboxTransaction."Transaction No."));
+        ICInboxTransactions.Accept.Invoke();
+        Commit();
+
+        // [GIVEN] The created purchase invoice has a "Vendor Order No." (Code[35]) longer than the 20-char "IC Reference Document No."
+        LongVendorOrderNo := '12345678910111213141516171819202122';
+        PurchaseHeader.SetRange("Document Type", PurchaseHeader."Document Type"::Invoice);
+        PurchaseHeader.SetRange("Buy-from Vendor No.", Vendor."No.");
+        PurchaseHeader.FindFirst();
+
+        PurchaseHeader."Vendor Order No." := LongVendorOrderNo;
+        PurchaseHeader.Modify(true);
+
+        // [WHEN] Opening the Purchase Invoice page on that record.
+        PurchaseInvoicePage.OpenView();
+        PurchaseInvoicePage.GoToRecord(PurchaseHeader);
+
+        // [THEN] The page opens on the correct record without a string-length overflow error
+        PurchaseInvoicePage."No.".AssertEquals(PurchaseHeader."No.");
+        PurchaseInvoicePage.Close();
+
+        // [THEN] The long "Vendor Order No." is retained on the purchase invoice
+        PurchaseHeader.Find();
+        Assert.AreEqual(LongVendorOrderNo, PurchaseHeader."Vendor Order No.", 'Vendor Order No. should be retained');
+
+        CleanupIC(true, true, false, false);
     end;
 
     local procedure Initialize()
