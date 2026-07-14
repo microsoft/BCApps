@@ -42,4 +42,10 @@ codeunit 4608 "Ext. SharePoint Upgrade"
     begin
         exit('MS-5833-SharePointUseLegacyRestAPI-20260313');
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
+    local procedure RegisterPerCompanyUpgradeTags(var PerCompanyUpgradeTags: List of [Code[250]])
+    begin
+        PerCompanyUpgradeTags.Add(GetUseLegacyRestAPIUpgradeTag());
+    end;
 }
