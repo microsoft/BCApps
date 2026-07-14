@@ -87,7 +87,7 @@ page 9003 "Acc. Receivables Adm. RC"
                 ToolTip = 'View various information for customers, such as customer posting group, discount group, finance charge and payment information, salesperson, the customer''s default currency and credit limit (in LCY), and the customer''s current balance (in LCY).';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '28.0';
             }
 #endif
             action("Customer - &Balance to Date")
@@ -107,7 +107,7 @@ page 9003 "Acc. Receivables Adm. RC"
                 ToolTip = 'View an overview of when your receivables from customers are due or overdue (divided into four periods). You must specify the date you want aging calculated from and the length of the period that each column will contain data for.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'This report has been replaced by the report Aged Accounts Receivable (Excel). This report will be removed in a future release.';
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '28.0';
             }
 #endif
             action("Customer - &Summary Aging Simp.")
@@ -177,7 +177,7 @@ page 9003 "Acc. Receivables Adm. RC"
                 ToolTip = 'View a list of payments.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '28.0';
             }
             action("GL/Cust. Ledger Reconciliation")
             {
@@ -188,7 +188,7 @@ page 9003 "Acc. Receivables Adm. RC"
                 ToolTip = 'View or print a separate page for each customer that sums up amounts from general ledger transactions based on payments and posted invoices. This is useful when you want to reconcile general ledger entries with customer ledger entries.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '28.0';
             }
 #endif
         }
@@ -302,7 +302,7 @@ page 9003 "Acc. Receivables Adm. RC"
                 ToolTip = 'View a list of payment slips.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '28.0';
             }
 #endif
             action(GeneralJournals)
@@ -408,7 +408,7 @@ page 9003 "Acc. Receivables Adm. RC"
                     ToolTip = 'View a list of payment slips that have been posted and archived.';
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '28.0';
                 }
 #endif
                 action("Posted Bank Deposits")
@@ -517,7 +517,7 @@ page 9003 "Acc. Receivables Adm. RC"
                 ToolTip = 'Use payment slips to manage customer and vendor payments. ';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '28.0';
             }
             action("Look/Edit Payment Line")
             {
@@ -527,7 +527,7 @@ page 9003 "Acc. Receivables Adm. RC"
                 ToolTip = 'View and edit all payment lines that belong to a payment class. The window shows a line for each payment status. ';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '28.0';
             }
             action("Payment Report")
             {
@@ -537,7 +537,7 @@ page 9003 "Acc. Receivables Adm. RC"
                 ToolTip = 'View all payment documents that belong to a payment class and have the same status.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '28.0';
             }
             action("Archive Payment Journals")
             {
@@ -548,7 +548,7 @@ page 9003 "Acc. Receivables Adm. RC"
                 ToolTip = 'Archive payment journals to separate them from active journals. You can enter criteria to specify the journals to archive.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '28.0';
             }
             action("Create Payment Slip")
             {
@@ -558,7 +558,7 @@ page 9003 "Acc. Receivables Adm. RC"
                 ToolTip = 'Manage information about customer and vendor payments.';
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                ObsoleteTag = '29.0';
+                ObsoleteTag = '28.0';
             }
 #endif
             action(Deposit)

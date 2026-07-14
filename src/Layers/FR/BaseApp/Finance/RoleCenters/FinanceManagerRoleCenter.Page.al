@@ -477,7 +477,7 @@ page 8901 "Finance Manager Role Center"
                             Tooltip = 'Run the Trial Balance report.';
                             ObsoleteState = Pending;
                             ObsoleteReason = 'This report has been replaced by the report Trial Balance (Excel). This report will be removed in a future release.';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '28.0';
                         }
                         action("Trial Balance/Budget")
                         {
@@ -487,7 +487,7 @@ page 8901 "Finance Manager Role Center"
                             Tooltip = 'Run the Trial Balance/Budget report.';
                             ObsoleteState = Pending;
                             ObsoleteReason = 'This report has been replaced by the report Trial Balance/Budget (Excel). This report will be removed in a future release.';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '28.0';
                         }
 #endif
                         action("Trial Balance/Previous Year")
@@ -725,7 +725,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "GL/Cust. Ledger Reconciliation";
                             ObsoleteState = Pending;
                             ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '28.0';
                         }
                         action("GL/Vend. Ledger Reconciliation")
                         {
@@ -734,7 +734,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "GL/Vend. Ledger Reconciliation";
                             ObsoleteState = Pending;
                             ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '28.0';
                         }
                         action("G/L Account Statement")
                         {
@@ -821,7 +821,7 @@ page 8901 "Finance Manager Role Center"
                     RunObject = page "Payment Slip List";
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '28.0';
                 }
 #endif
                 action("Deposit")
@@ -906,7 +906,7 @@ page 8901 "Finance Manager Role Center"
                     Caption = 'Payment Slip';
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '28.0';
                     action("View/Edit Payment Lines")
                     {
                         ApplicationArea = Basic, Suite;
@@ -914,7 +914,7 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "View/Edit Payment Line";
                         ObsoleteState = Pending;
                         ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '28.0';
                     }
                     action("Payment Report")
                     {
@@ -923,7 +923,7 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "Payment Report";
                         ObsoleteState = Pending;
                         ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '28.0';
                     }
                     action("Archive Payment Slips")
                     {
@@ -932,7 +932,7 @@ page 8901 "Finance Manager Role Center"
                         RunObject = report "Archive Payment Slips";
                         ObsoleteState = Pending;
                         ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '28.0';
                     }
                 }
 #endif
@@ -992,7 +992,7 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "Payment Slip List Archive";
                         ObsoleteState = Pending;
                         ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '28.0';
                     }
 #endif
                 }
@@ -1307,7 +1307,7 @@ page 8901 "Finance Manager Role Center"
                     RunObject = page "Payment Slip List";
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '28.0';
                 }
 #endif
                 action("Create Recurring Sales Invoice")
@@ -1507,7 +1507,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Run the Customer - List report.';
                         ObsoleteState = Pending;
                         ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '28.0';
                     }
 #endif
                     action("Customer - Summary Aging")
@@ -1551,7 +1551,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Run the Customer Top 10 List report.';
                         ObsoleteState = Pending;
                         ObsoleteReason = 'This report has been replaced by the report Customer - Top List (Excel). This report will be removed in a future release.';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '28.0';
                     }
 #endif
 #if not CLEAN28
@@ -1563,7 +1563,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Run the Sales Statistics report.';
                         ObsoleteState = Pending;
                         ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '28.0';
                     }
 #endif
                     action("Customer/Item Sales")
@@ -1596,7 +1596,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Run the Customer - Sales List report.';
                         ObsoleteState = Pending;
                         ObsoleteReason = 'This report is obsolete and will be removed in a future version.';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '28.0';
                     }
 #endif
 #if not CLEAN28
@@ -1608,7 +1608,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Run the Aged Accounts Receivable report.';
                         ObsoleteState = Pending;
                         ObsoleteReason = 'This report has been replaced by the report Aged Accounts Receivable (Excel). This report will be removed in a future release.';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '28.0';
                     }
 #endif
                     action("Customer - Trial Balance")
@@ -1696,7 +1696,7 @@ page 8901 "Finance Manager Role Center"
                     RunObject = page "Payment Slip List";
                     ObsoleteState = Pending;
                     ObsoleteReason = 'Moved to the Payment Management FR first-party app';
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '28.0';
                 }
 #endif
                 action("Incoming Documents")
@@ -1814,7 +1814,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Run the Aged Accounts Payable report.';
                         ObsoleteState = Pending;
                         ObsoleteReason = 'This report has been replaced by the report Aged Accounts Payable (Excel). This report will be removed in a future release.';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '28.0';
                     }
                     action("Payments on Hold")
                     {
@@ -1824,7 +1824,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Run the Payments on Hold report.';
                         ObsoleteState = Pending;
                         ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '28.0';
                     }
 #endif
                     action("Purchase Statistics")
@@ -1892,7 +1892,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Run the Vendor - List report.';
                         ObsoleteState = Pending;
                         ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '28.0';
                     }
 #endif
                     action("Vendor - Order Detail")
@@ -1925,7 +1925,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Run the Vendor - Summary Aging report.';
                         ObsoleteState = Pending;
                         ObsoleteReason = 'This report is obsolete and will be removed in a future release. See the documentation for alternative options.';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '28.0';
                     }
                     action("Vendor - Top 10 List")
                     {
@@ -1935,7 +1935,7 @@ page 8901 "Finance Manager Role Center"
                         Tooltip = 'Run the Vendor - Top 10 List report.';
                         ObsoleteState = Pending;
                         ObsoleteReason = 'This report has been replaced by the report Vendor - Top List (Excel). This report will be removed in a future release.';
-                        ObsoleteTag = '29.0';
+                        ObsoleteTag = '28.0';
                     }
 #endif
                     action("Vendor - Trial Balance")
@@ -2092,7 +2092,7 @@ page 8901 "Finance Manager Role Center"
                             Tooltip = 'Run the FA Analysis report.';
                             ObsoleteState = Pending;
                             ObsoleteReason = 'This report has been replaced by the report Fixed Asset Analysis (Excel). This report will be removed in a future release.';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '28.0';
                         }
 #endif
                         action("Book Value 01")
@@ -2118,7 +2118,7 @@ page 8901 "Finance Manager Role Center"
                             Tooltip = 'Run the FA Details report.';
                             ObsoleteState = Pending;
                             ObsoleteReason = 'This report has been replaced by the report Fixed Asset Details (Excel). This report will be removed in a future release.';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '28.0';
                         }
 #endif
                         action("G/L Analysis")
@@ -2144,7 +2144,7 @@ page 8901 "Finance Manager Role Center"
                             Tooltip = 'Run the FA Projected Value report.';
                             ObsoleteState = Pending;
                             ObsoleteReason = 'This report has been replaced by the report Fixed Asset Projected Value (Excel). This report will be removed in a future release.';
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '28.0';
                         }
                         action("FA Projected Value (Derogatory)")
                         {
@@ -2153,7 +2153,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "FA - Proj. Value (Derogatory)";
                             ObsoleteReason = 'This report is moved to FA Reports FR app.';
                             ObsoleteState = Pending;
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '28.0';
                         }
                         action("Professional Tax")
                         {
@@ -2162,7 +2162,7 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Fixed Asset-Professional Tax";
                             ObsoleteReason = 'This report is moved to FA Reports FR app.';
                             ObsoleteState = Pending;
-                            ObsoleteTag = '29.0';
+                            ObsoleteTag = '28.0';
                         }
 #endif
                     }
