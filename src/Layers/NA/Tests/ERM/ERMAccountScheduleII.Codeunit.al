@@ -3012,7 +3012,7 @@
 
     [Test]
     [Scope('OnPrem')]
-    procedure ExportAccScheduleToExcelWithDimFilter()
+    procedure ExportAccScheduleToExcelWithDimFilterPostedGLEntries()
     var
         GLAccount: Record "G/L Account";
         GenJournalLine: Record "Gen. Journal Line";
