@@ -444,16 +444,16 @@ table 12113 "Tmp Withholding Contribution"
             Error(NegativeTaxableBaseErr);
     end;
 
-    local procedure AssignWithholdingTaxValues(WithholdCodeLine: Record "Withhold Code Line")
+    local procedure AssignWithholdingTaxValues(WithholdCodeLineToAssign: Record "Withhold Code Line")
     begin
         "Withholding Account" := WithholdCode."Withholding Taxes Payable Acc.";
-        "Withholding Tax %" := WithholdCodeLine."Withholding Tax %";
-        "Non Taxable %" := 100 - WithholdCodeLine."Taxable Base %";
+        "Withholding Tax %" := WithholdCodeLineToAssign."Withholding Tax %";
+        "Non Taxable %" := 100 - WithholdCodeLineToAssign."Taxable Base %";
         "Taxable Base" := Round(((
                                   "Total Amount" -
                                   "Base - Excluded Amount" -
                                   "Non Taxable Amount By Treaty") *
-                                 WithholdCodeLine."Taxable Base %") / 100);
+                                 WithholdCodeLineToAssign."Taxable Base %") / 100);
         "Non Taxable Amount" := "Total Amount" -
           "Base - Excluded Amount" -
           "Non Taxable Amount By Treaty" -
@@ -628,7 +628,7 @@ table 12113 "Tmp Withholding Contribution"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCalculateWithholdingTaxOnBeforeAssignWithholdingTaxValues(var IsHandled: Boolean; WithholdCodeLine: Record "Withhold Code Line"; var TmpWithholdingContribution: Record "Tmp Withholding Contribution")
+    local procedure OnCalculateWithholdingTaxOnBeforeAssignWithholdingTaxValues(var IsHandled: Boolean; WithholdCodeLineToAssign: Record "Withhold Code Line"; var TmpWithholdingContribution: Record "Tmp Withholding Contribution")
     begin
     end;
 }
