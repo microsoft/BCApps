@@ -18,7 +18,7 @@ codeunit 4610 "Ext. SharePoint Graph Helper"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Ext. SharePoint Account" = rimd;
+    Permissions = tabledata "Ext. SharePoint Account" = r;
 
 
     var
