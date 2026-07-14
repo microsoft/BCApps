@@ -276,7 +276,7 @@ codeunit 799 "VAT Reporting Date Mgt"
         // Show the warning - and let the caller log the resulting error - only once per VAT date, so posting
         // does not raise the same warning or error message repeatedly. The cache is reset when a new posting starts.
         if VATReturnPeriodWarningHandled and (VATDate = VATReturnPeriodWarningDate) then
-            exit(true);
+            exit(VATReturnPeriodWarningResponse);
 
         VATReturnPeriodWarningResponse := ConfirmManagement.GetResponseOrDefault(WarningMsg, true);
         VATReturnPeriodWarningDate := VATDate;
