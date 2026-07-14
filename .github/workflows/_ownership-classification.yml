@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       subject_kind:
-        description: Subject kind to classify
+        description: issue or pull_request
         required: true
         type: string
       subject_number:
@@ -12,12 +12,12 @@ on:
         required: true
         type: number
       mode:
-        description: classify, audit, or audit-if-overridden
+        description: classify or audit
         required: false
         type: string
         default: classify
       dry_run:
-        description: Validate and report without writing labels
+        description: Validate and report without changing labels
         required: false
         type: boolean
         default: false
@@ -28,7 +28,7 @@ permissions:
 
 concurrency:
   group: ownership-${{ inputs.subject_kind }}-${{ inputs.subject_number }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 env:
   AGENT_REPO: microsoft/BCAppsTriage
@@ -49,38 +49,79 @@ jobs:
         with:
           egress-policy: audit
 
-      - name: Checkout trusted default branch
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          ref: ${{ github.event.repository.default_branch }}
-          persist-credentials: false
-
-      - name: Check manual ownership state
+      - name: Check labels and manual override
         id: preflight
-        shell: pwsh
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         env:
-          GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
           SUBJECT_NUMBER: ${{ inputs.subject_number }}
           MODE: ${{ inputs.mode }}
           DRY_RUN: ${{ inputs.dry_run }}
-        run: |
-          $parameters = @{
-            Repository = $env:REPOSITORY
-            SubjectNumber = [int]$env:SUBJECT_NUMBER
-            Mode = $env:MODE
-          }
-          if ($env:DRY_RUN -eq 'true') {
-            $parameters.DryRun = $true
-          }
-          ./build/scripts/TeamOwnership/Test-OwnershipPreflight.ps1 @parameters
+        with:
+          script: |
+            const required = [
+              'Finance', 'SCM', 'Integration', 'Other',
+              'Ownership: Manual', 'Ownership: Needs Review',
+            ];
+            const teams = required.slice(0, 4);
+            const issue_number = Number(process.env.SUBJECT_NUMBER);
+            const mode = process.env.MODE;
+            const dryRun = process.env.DRY_RUN === 'true';
+            if (!Number.isSafeInteger(issue_number) || issue_number <= 0) {
+              throw new Error('subject_number must be a positive integer');
+            }
+            if (!['classify', 'audit'].includes(mode)) {
+              throw new Error(`Unsupported ownership mode: ${mode}`);
+            }
+
+            const repoLabels = await github.paginate(github.rest.issues.listLabelsForRepo, {
+              ...context.repo, per_page: 100,
+            });
+            const available = new Set(repoLabels.map(label => label.name));
+            const missing = required.filter(name => !available.has(name));
+            if (missing.length) {
+              throw new Error(`Provision required ownership labels before running automation: ${missing.join(', ')}`);
+            }
+
+            const getLabels = async () => (await github.paginate(
+              github.rest.issues.listLabelsOnIssue,
+              { ...context.repo, issue_number, per_page: 100 },
+            )).map(label => label.name);
+            const labels = await getLabels();
+            const selected = teams.filter(team => labels.includes(team));
+            const manual = labels.includes('Ownership: Manual');
+
+            if (manual) {
+              core.setOutput('dispatch', 'false');
+              if (selected.length === 1) {
+                await core.summary.addHeading('Manual ownership override')
+                  .addRaw(`Preserving **${selected[0]}**; automated classification was skipped.`)
+                  .write();
+                return;
+              }
+              if (!dryRun && !labels.includes('Ownership: Needs Review')) {
+                await github.rest.issues.addLabels({
+                  ...context.repo, issue_number, labels: ['Ownership: Needs Review'],
+                });
+              }
+              await core.summary.addHeading('Invalid manual ownership override')
+                .addRaw(`Expected exactly one team label; found **${selected.length}**. Team labels were preserved.`)
+                .write();
+              throw new Error('Ownership: Manual requires exactly one team label');
+            }
+
+            if (mode !== 'classify') {
+              core.setOutput('dispatch', 'false');
+              core.info('No manual override is present; this label event requires no action.');
+              return;
+            }
+            core.setOutput('dispatch', 'true');
 
       - name: Create correlation token
         if: steps.preflight.outputs.dispatch == 'true'
         id: correlation
-        shell: pwsh
-        run: |
-          "token=$([guid]::NewGuid().ToString())" | Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: core.setOutput('token', require('crypto').randomUUID())
 
       - name: Mint token for BCAppsTriage
         if: steps.preflight.outputs.dispatch == 'true'
@@ -94,105 +135,270 @@ jobs:
 
       - name: Dispatch ownership producer
         if: steps.preflight.outputs.dispatch == 'true'
-        shell: pwsh
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           SUBJECT_KIND: ${{ inputs.subject_kind }}
           SUBJECT_NUMBER: ${{ inputs.subject_number }}
           CORRELATION_TOKEN: ${{ steps.correlation.outputs.token }}
         run: |
-          gh workflow run $env:AGENT_WORKFLOW --repo $env:AGENT_REPO --ref $env:AGENT_REF `
-            -f "repository=${{ github.repository }}" `
-            -f "subject_kind=$env:SUBJECT_KIND" `
-            -f "subject_number=$env:SUBJECT_NUMBER" `
-            -f "correlation_token=$env:CORRELATION_TOKEN"
-          if ($LASTEXITCODE -ne 0) {
-            throw 'Failed to dispatch the ownership producer.'
-          }
+          set -euo pipefail
+          gh workflow run "$AGENT_WORKFLOW" --repo "$AGENT_REPO" --ref "$AGENT_REF" \
+            -f repository="$GITHUB_REPOSITORY" \
+            -f subject_kind="$SUBJECT_KIND" \
+            -f subject_number="$SUBJECT_NUMBER" \
+            -f correlation_token="$CORRELATION_TOKEN"
 
       - name: Await successful producer run
         if: steps.preflight.outputs.dispatch == 'true'
         id: await
-        shell: pwsh
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           CORRELATION_TOKEN: ${{ steps.correlation.outputs.token }}
         run: |
-          $runId = $null
-          # The producer's run-name must include [correlation_token].
-          $marker = "[$env:CORRELATION_TOKEN]"
-          for ($attempt = 1; $attempt -le 30; $attempt++) {
-            $runs = gh run list --repo $env:AGENT_REPO --workflow $env:AGENT_WORKFLOW `
-              --event workflow_dispatch --limit 100 --json databaseId,displayTitle | ConvertFrom-Json
-            if ($LASTEXITCODE -ne 0) {
-              throw 'Failed to list ownership producer runs.'
-            }
-            $match = @($runs | Where-Object { $_.displayTitle.Contains($marker) } |
-              Select-Object -First 1)
-            if ($match.Count -eq 1) {
-              $runId = [string]$match[0].databaseId
-              break
-            }
-            Start-Sleep -Seconds 10
-          }
-          if ([string]::IsNullOrWhiteSpace($runId)) {
-            throw 'Timed out waiting for the correlated ownership producer run to appear.'
-          }
-
-          "run_id=$runId" | Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT
-          gh run watch $runId --repo $env:AGENT_REPO --interval 15 --exit-status
-          $watchExitCode = $LASTEXITCODE
-          $conclusion = gh run view $runId --repo $env:AGENT_REPO --json conclusion --jq .conclusion
-          $viewExitCode = $LASTEXITCODE
-          if ($watchExitCode -ne 0 -or $viewExitCode -ne 0 -or $conclusion -cne 'success') {
-            throw "Ownership producer run $runId concluded '$conclusion' (watch exit $watchExitCode, view exit $viewExitCode)."
-          }
+          set -euo pipefail
+          marker="[$CORRELATION_TOKEN]"
+          run_id=""
+          for _ in $(seq 1 30); do
+            run_id=$(gh run list --repo "$AGENT_REPO" --workflow "$AGENT_WORKFLOW" \
+              --event workflow_dispatch --limit 100 --json databaseId,displayTitle \
+              --jq ".[] | select(.displayTitle | contains(\"$marker\")) | .databaseId" |
+              head -n 1) || true
+            if [ -n "$run_id" ]; then break; fi
+            sleep 10
+          done
+          if [ -z "$run_id" ]; then
+            echo "::error::Timed out waiting for the correlated ownership producer run."
+            exit 1
+          fi
+          echo "run_id=$run_id" >> "$GITHUB_OUTPUT"
+          gh run watch "$run_id" --repo "$AGENT_REPO" --interval 15 --exit-status
+          conclusion=$(gh run view "$run_id" --repo "$AGENT_REPO" --json conclusion --jq .conclusion)
+          test "$conclusion" = "success"
 
       - name: Download ownership result
         if: steps.preflight.outputs.dispatch == 'true'
-        shell: pwsh
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           RUN_ID: ${{ steps.await.outputs.run_id }}
         run: |
-          New-Item -ItemType Directory -Path result -Force | Out-Null
-          gh run download $env:RUN_ID --repo $env:AGENT_REPO `
+          set -euo pipefail
+          mkdir result
+          gh run download "$RUN_ID" --repo "$AGENT_REPO" \
             --name ownership-result --dir result
-          if ($LASTEXITCODE -ne 0) {
-            throw 'The ownership producer did not publish the required ownership-result artifact.'
-          }
-          if (-not (Test-Path -LiteralPath result/ownership-result.json -PathType Leaf)) {
-            throw 'The ownership-result artifact does not contain ownership-result.json.'
-          }
+          test -f result/ownership-result.json
 
       - name: Validate and apply ownership result
         if: steps.preflight.outputs.dispatch == 'true'
-        shell: pwsh
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         env:
-          GH_TOKEN: ${{ github.token }}
+          RESULT_PATH: result/ownership-result.json
           CORRELATION_TOKEN: ${{ steps.correlation.outputs.token }}
           SUBJECT_KIND: ${{ inputs.subject_kind }}
           SUBJECT_NUMBER: ${{ inputs.subject_number }}
-          REPOSITORY: ${{ github.repository }}
           DRY_RUN: ${{ inputs.dry_run }}
-        run: |
-          $parameters = @{
-            ResultPath = 'result/ownership-result.json'
-            ExpectedCorrelationToken = $env:CORRELATION_TOKEN
-            ExpectedSubjectKind = $env:SUBJECT_KIND
-            ExpectedSubjectNumber = [int]$env:SUBJECT_NUMBER
-            Repository = $env:REPOSITORY
-          }
-          if ($env:DRY_RUN -eq 'true') {
-            $parameters.DryRun = $true
-          }
-          ./build/scripts/TeamOwnership/Set-OwnershipResult.ps1 @parameters
+        with:
+          script: |
+            const fs = require('fs');
+            const { TextDecoder } = require('util');
+            const required = [
+              'Finance', 'SCM', 'Integration', 'Other',
+              'Ownership: Manual', 'Ownership: Needs Review',
+            ];
+            const teams = required.slice(0, 4);
+            const confidenceValues = ['high', 'medium', 'low'];
+            const sources = [
+              'issue:path', 'issue:localization', 'issue:title-object',
+              'issue:title-phrase', 'issue:app-area', 'issue:body-object',
+              'issue:unresolved', 'pull_request:changed-files',
+              'pull_request:ambiguous', 'pull_request:unresolved',
+              'pull_request:incomplete-files',
+            ];
+            const issue_number = Number(process.env.SUBJECT_NUMBER);
+            const dryRun = process.env.DRY_RUN === 'true';
+            const bytes = fs.readFileSync(process.env.RESULT_PATH);
+            if (bytes.length > 67108864) {
+              throw new Error('ownership-result.json exceeds 67,108,864 UTF-8 bytes');
+            }
+            let result;
+            try {
+              result = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
+            } catch (error) {
+              throw new Error(`ownership-result.json is not valid UTF-8 JSON: ${error.message}`);
+            }
+            const object = value => value && typeof value === 'object' && !Array.isArray(value);
+            if (!object(result) || !object(result.subject) || !object(result.ownership)) {
+              throw new Error('ownership-result.json must contain the v1 result object');
+            }
+            const reason = result.ownership.reason;
+            if (
+              result.schemaVersion !== 1 ||
+              result.correlationToken !== process.env.CORRELATION_TOKEN ||
+              result.subject.repository !== context.payload.repository.full_name ||
+              result.subject.kind !== process.env.SUBJECT_KIND ||
+              result.subject.number !== issue_number ||
+              !Number.isSafeInteger(result.subject.number) ||
+              !teams.includes(result.ownership.team) ||
+              !confidenceValues.includes(result.ownership.confidence) ||
+              !sources.includes(result.ownership.source) ||
+              typeof reason !== 'string' ||
+              reason.length === 0 ||
+              reason.length > 1000 ||
+              reason.trim().length === 0 ||
+              /[\u0000-\u001F\u007F]/.test(reason)
+            ) {
+              throw new Error('ownership-result.json failed consumed-field validation');
+            }
+
+            const repoLabels = await github.paginate(github.rest.issues.listLabelsForRepo, {
+              ...context.repo, per_page: 100,
+            });
+            const available = new Set(repoLabels.map(label => label.name));
+            const missing = required.filter(name => !available.has(name));
+            if (missing.length) {
+              throw new Error(`Required ownership labels disappeared: ${missing.join(', ')}`);
+            }
+
+            const getLabels = async () => (await github.paginate(
+              github.rest.issues.listLabelsOnIssue,
+              { ...context.repo, issue_number, per_page: 100 },
+            )).map(label => label.name);
+            const auditOverride = async labels => {
+              if (!labels.includes('Ownership: Manual')) return false;
+              const selected = teams.filter(team => labels.includes(team));
+              if (selected.length === 1) {
+                core.info(`Manual override appeared; preserving ${selected[0]}.`);
+                return true;
+              }
+              if (!dryRun && !labels.includes('Ownership: Needs Review')) {
+                await github.rest.issues.addLabels({
+                  ...context.repo, issue_number, labels: ['Ownership: Needs Review'],
+                });
+              }
+              throw new Error(`Manual override appeared with ${selected.length} team labels; teams were preserved`);
+            };
+
+            let labels = await getLabels();
+            if (await auditOverride(labels)) return;
+            const team = result.ownership.team;
+            const needsReview = team === 'Other' || result.ownership.confidence === 'low';
+            const originalTeams = teams.filter(name => labels.includes(name));
+            const originalNeedsReview = labels.includes('Ownership: Needs Review');
+            const rollbackForOverride = async () => {
+              let current = await getLabels();
+              if (!current.includes('Ownership: Manual')) return false;
+
+              const restore = originalTeams.filter(name => !current.includes(name));
+              if (originalNeedsReview && !current.includes('Ownership: Needs Review')) {
+                restore.push('Ownership: Needs Review');
+              }
+              if (restore.length) {
+                await github.rest.issues.addLabels({
+                  ...context.repo, issue_number, labels: restore,
+                });
+              }
+              current = await getLabels();
+              if (!originalTeams.includes(team) && current.includes(team)) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    ...context.repo, issue_number, name: team,
+                  });
+                } catch (error) {
+                  if (error.status !== 404) throw error;
+                }
+              }
+              if (!originalNeedsReview && current.includes('Ownership: Needs Review')) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    ...context.repo, issue_number, name: 'Ownership: Needs Review',
+                  });
+                } catch (error) {
+                  if (error.status !== 404) throw error;
+                }
+              }
+
+              current = await getLabels();
+              const selected = teams.filter(name => current.includes(name));
+              if (selected.length !== 1) {
+                if (!current.includes('Ownership: Needs Review')) {
+                  await github.rest.issues.addLabels({
+                    ...context.repo, issue_number, labels: ['Ownership: Needs Review'],
+                  });
+                }
+                throw new Error(
+                  `Manual override appeared during mutation with ${selected.length} team labels; pre-mutation teams were restored`,
+                );
+              }
+              core.warning(`Manual override appeared during mutation; restored and preserved ${selected[0]}.`);
+              return true;
+            };
+            const safeReason = reason.replace(/[\r\n|]+/g, ' ').trim();
+            await core.summary.addHeading('Ownership decision').addTable([
+              [{ data: 'Field', header: true }, { data: 'Value', header: true }],
+              ['Subject', `${process.env.SUBJECT_KIND} #${issue_number}`],
+              ['Team', team],
+              ['Source', result.ownership.source],
+              ['Confidence', result.ownership.confidence],
+              ['Reason', safeReason],
+            ]).write();
+            if (dryRun) {
+              core.info(`Dry run: would reconcile team to ${team}; review=${needsReview}.`);
+              return;
+            }
+
+            for (let attempt = 1; attempt <= 3; attempt++) {
+              labels = await getLabels();
+              if (await auditOverride(labels)) return;
+              const additions = [];
+              if (!labels.includes(team)) additions.push(team);
+              if (needsReview && !labels.includes('Ownership: Needs Review')) {
+                additions.push('Ownership: Needs Review');
+              }
+              if (additions.length) {
+                await github.rest.issues.addLabels({ ...context.repo, issue_number, labels: additions });
+              }
+
+              if (await rollbackForOverride()) return;
+              labels = await getLabels();
+              for (const other of teams.filter(name => name !== team && labels.includes(name))) {
+                try {
+                  await github.rest.issues.removeLabel({ ...context.repo, issue_number, name: other });
+                } catch (error) {
+                  if (error.status !== 404) throw error;
+                }
+                if (await rollbackForOverride()) return;
+              }
+              if (!needsReview && labels.includes('Ownership: Needs Review')) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    ...context.repo, issue_number, name: 'Ownership: Needs Review',
+                  });
+                } catch (error) {
+                  if (error.status !== 404) throw error;
+                }
+                if (await rollbackForOverride()) return;
+              }
+
+              if (await rollbackForOverride()) return;
+              const verified = await getLabels();
+              if (verified.includes('Ownership: Manual')) {
+                if (await rollbackForOverride()) return;
+                continue;
+              }
+              const selected = teams.filter(name => verified.includes(name));
+              if (
+                selected.length === 1 &&
+                selected[0] === team &&
+                verified.includes('Ownership: Needs Review') === needsReview
+              ) {
+                core.info(`Applied and verified ${team} on attempt ${attempt}.`);
+                return;
+              }
+              await new Promise(resolve => setTimeout(resolve, attempt * 2000));
+            }
+            throw new Error('Ownership labels failed exact-one verification after three attempts');
 
       - name: Report visible failure
         if: failure()
-        shell: pwsh
         run: |
-          @'
-          ### Ownership classification failed
-          No producer result was applied. Existing subject labels were preserved unless a valid result had already entered bounded label convergence; reconciliation will retry the subject.
-          '@ | Add-Content -Encoding UTF8 -Path $env:GITHUB_STEP_SUMMARY
+          echo "### Ownership classification failed" >> "$GITHUB_STEP_SUMMARY"
+          echo "No unvalidated producer result was applied. Existing team labels were preserved on validation and override failures." >> "$GITHUB_STEP_SUMMARY"

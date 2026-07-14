@@ -1,86 +1,45 @@
 # Team ownership automation
 
-BCApps delegates team classification to the private `microsoft/BCAppsTriage` repository and remains the only repository that writes BCApps labels. This integration manages team ownership only; it does not assign a person or implement "whose turn."
+BCApps delegates classification to `microsoft/BCAppsTriage` and uses its own `GITHUB_TOKEN` to maintain exactly one team label: `Finance`, `SCM`, `Integration`, or `Other`. This automation does not assign an individual.
 
-## Labels
+## Architecture and security
 
-Exactly one team label is expected on every open issue and pull request:
+`ownership-classification.yml` handles open issue and pull request lifecycle events. Pull requests use `pull_request_target`; no workflow checks out or executes PR-head code. Trusted default-branch workflow code mints a short-lived GitHub App token scoped only to BCAppsTriage, dispatches its producer on `main`, waits for the exact correlation marker, requires success, and downloads the fixed `ownership-result` artifact.
 
-| Label | Color | Meaning |
-| --- | --- | --- |
-| `Finance` | `1d76db` | Owned by the Finance team |
-| `SCM` | `60AFDE` | Owned by the SCM team |
-| `Integration` | `DC57FE` | Owned by the Integration team |
-| `Other` | `6E7781` | Not mapped to the three named teams |
+Before any write, the consumer requires an artifact of at most 67,108,864 UTF-8 bytes and validates only consumed v1 fields: schema version, correlation and subject identity, team, confidence, source, and a meaningful bounded reason. Producer evidence is neither inspected nor logged.
 
-Two non-team labels control or expose automation state:
+The selected team is added before competing team labels are removed. Unrelated labels are preserved and the final exact-one state is re-fetched and retried up to three times.
 
-| Label | Color | Meaning |
-| --- | --- | --- |
-| `Ownership: Manual` | `FBCA04` | Preserve a maintainer-selected team |
-| `Ownership: Needs Review` | `D93F0B` | The automated result is `Other` or low confidence, or a manual override is invalid |
+## Labels and manual override
 
-The consumer creates missing labels and corrects their descriptions/colors before a live result is applied. `Ownership: Needs Review` does not count as a team label.
+`Ownership: Manual` preserves a maintainer-selected team. It is valid only with exactly one team label. Invalid overrides keep their team labels, receive `Ownership: Needs Review`, and fail visibly. Remove `Ownership: Manual` to trigger fresh classification.
 
-## Lifecycle
+Automated `Other` or low-confidence decisions receive `Ownership: Needs Review`; a valid non-`Other`, non-low decision removes it.
 
-`.github/workflows/ownership-classification.yml` classifies:
+## Reconciliation
 
-- issues on open, reopen, and edit;
-- pull requests on open, reopen, edit, synchronize, and ready-for-review; and
-- subjects when the manual override is removed.
+`ownership-reconciliation.yml` runs hourly and can be started manually in dry-run mode. It searches only open issues and PRs with zero or multiple team labels. Invalid manual overrides are audited in a separate bounded search, receive Needs Review, and fail the run without blocking later candidates. Audits and classifications together are limited to 25 scheduled candidates or 1-100 manually requested candidates, with five classification jobs in parallel. Successfully fixed candidates leave subsequent searches, allowing later runs to progress without cursor artifacts. Correctly labeled subjects are not reclassified; lifecycle events refresh stale decisions.
 
-It uses `pull_request_target` for pull requests and checks out only the BCApps default branch. It never checks out or executes pull request head code. Fork pull requests therefore cannot read the App private key.
+## One-time label provisioning
 
-The reusable workflow mints a short-lived GitHub App token scoped only to `microsoft/BCAppsTriage`, dispatches its `ownership-classification.yml`, waits for the correlated run, and downloads `ownership-result/ownership-result.json`. The App token cannot write BCApps. After strict schema and subject-identity validation, the BCApps `GITHUB_TOKEN` applies the labels.
+Run these commands once before enabling the workflows:
 
-Producer v1 bounds results to 64 MiB of UTF-8 JSON, at most 6,000 evidence entries, 1,024 characters per evidence string field, and a 1,000-character reason. When verbose evidence would exceed 64 MiB, the producer deterministically compacts it and includes bounded API evidence describing omitted entries. The consumer enforces the same limits before applying labels.
+```powershell
+gh label create "Finance" --repo microsoft/BCApps --color 1d76db --description "Requests owned by the Finance team" --force
+gh label create "SCM" --repo microsoft/BCApps --color 60AFDE --description "Requests owned by the SCM team" --force
+gh label create "Integration" --repo microsoft/BCApps --color DC57FE --description "Requests owned by the Integration team" --force
+gh label create "Other" --repo microsoft/BCApps --color 6E7781 --description "Requests not mapped to Finance, SCM, or Integration" --force
+gh label create "Ownership: Manual" --repo microsoft/BCApps --color FBCA04 --description "Preserve the manually selected team ownership" --force
+gh label create "Ownership: Needs Review" --repo microsoft/BCApps --color D93F0B --description "Ownership is Other, low confidence, or needs manual correction" --force
+```
 
-A required part of the producer contract is a workflow `run-name` containing `[${{ inputs.correlation_token }}]`. The consumer uses that marker to locate the unique dispatched run before it validates the same token inside the downloaded result.
+The workflows verify these names and fail clearly when provisioning is incomplete; they never create or update repository labels.
 
-A missing, failed, oversized, malformed, or mismatched result fails the run before any subject-label mutation. Valid application adds the selected team before removing competing team labels, preserves all unrelated labels, and verifies the final exact-one state with bounded retries.
+## Deployment
 
-## Manual override
+1. Merge and deploy [microsoft/BCAppsTriage#39](https://github.com/microsoft/BCAppsTriage/pull/39) to `main`.
+2. Provision the six labels above.
+3. Confirm the BCApps `triage` environment contains the App private key, App ID variable, and default-branch policy.
+4. Merge the BCApps consumer, run a small reconciliation dry run, then a limited live batch.
 
-To set ownership manually:
-
-1. Add `Ownership: Manual`.
-2. Leave exactly one of `Finance`, `SCM`, `Integration`, or `Other`.
-3. Check the resulting ownership workflow run. An override with zero or multiple team labels fails visibly and receives `Ownership: Needs Review`; automation does not choose or remove a team under the override.
-4. Remove `Ownership: Needs Review` after resolving an invalid override if it is no longer useful.
-
-Team-label changes while the override exists trigger another audit. To resume automation, remove `Ownership: Manual`; removal triggers a fresh classification. Automation re-checks the override immediately before writes, so an override added while the producer is running prevents the result from being applied.
-
-## Reconciliation and backfill
-
-`.github/workflows/ownership-reconciliation.yml` runs hourly. It:
-
-- scans open issues and pull requests with GraphQL cursors;
-- restores a small checkpoint artifact and rotates through both subject kinds;
-- processes at most 25 subjects per run with at most five producer runs in parallel;
-- audits overridden subjects; and
-- reclassifies every non-overridden subject in each cycle.
-
-Reclassifying the full bounded cycle repairs missing/conflicting labels and refreshes decisions after content changes even if a lifecycle event was missed. Current inventory counts and the next cursor are written to the run summary.
-
-For an operator backfill, run **Team Ownership Reconciliation** manually:
-
-1. Choose `issue` or `pull_request`.
-2. Set `max_items` from 1 through 100.
-3. Keep `dry_run` enabled for the first batch.
-4. Use the `next position` cursor from the summary as the next run's optional `cursor`.
-5. Disable `dry_run` only after reviewing the proposed decisions.
-
-Manual runs do not advance the scheduled checkpoint. Dry runs do not create labels, mutate subjects, or update checkpoint state.
-
-## Observability and failures
-
-Each classification summary includes subject, team, source, confidence, bounded reason, and application status. Reconciliation inventory summaries include selected, exact-one, missing, conflicting, overridden, and deferred counts. Raw evidence and secrets are never logged.
-
-Failures remain visible as failed workflow runs and summaries. Reconciliation eventually retries failed subjects after the cursor completes its cycle. If an invalid manual override is the cause, maintainers must correct its team labels.
-
-## Deployment order
-
-The producer from `microsoft/BCAppsTriage` commit `5db9ee1` must be merged and deployed on that repository's default branch before the BCApps consumer is merged.
-
-The BCApps change enables the ownership consumer and removes only the legacy AI triage team-label write in the same default-branch revision. AI triage continues posting comments and setting issue types. Before that revision AI triage still covers new issues; after it, the ownership workflow is authoritative. Run a small dry run and limited live reconciliation batch after deployment, then let the hourly sweep complete the migration.
+The same BCApps revision enables ownership automation and removes only AI triage's team-label write. AI triage comments and issue-type updates remain unchanged.

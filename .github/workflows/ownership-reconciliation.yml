@@ -9,27 +9,20 @@ on:
         description: Open subject kind to scan
         required: true
         type: choice
-        options:
-          - issue
-          - pull_request
-        default: issue
+        options: [all, issue, pull_request]
+        default: all
       max_items:
-        description: Maximum subjects in this batch (1-100)
+        description: Maximum candidates in this batch (1-100)
         required: true
         type: number
         default: 25
-      cursor:
-        description: Optional continuation cursor from an earlier manual run
-        required: false
-        type: string
       dry_run:
-        description: Classify and report without writing labels
+        description: Classify and report without changing labels
         required: true
         type: boolean
         default: true
 
 permissions:
-  actions: read
   contents: read
   issues: write
 
@@ -39,94 +32,143 @@ concurrency:
 
 jobs:
   inventory:
-    name: Build bounded reconciliation batch
+    name: Find missing or conflicting ownership
     if: github.repository == 'microsoft/BCApps'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
-      matrix: ${{ steps.batch.outputs.matrix }}
-      has_items: ${{ steps.batch.outputs.has_items }}
-      next_kind: ${{ steps.batch.outputs.next_kind }}
-      next_cursor: ${{ steps.batch.outputs.next_cursor }}
+      matrix: ${{ steps.candidates.outputs.matrix }}
+      has_items: ${{ steps.candidates.outputs.has_items }}
+      invalid_overrides: ${{ steps.candidates.outputs.invalid_overrides }}
     steps:
       - name: Harden Runner
         uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
           egress-policy: audit
 
-      - name: Checkout trusted default branch
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-        with:
-          ref: ${{ github.event.repository.default_branch }}
-          persist-credentials: false
-
-      - name: Locate latest scheduled checkpoint
-        if: github.event_name == 'schedule'
-        id: checkpoint
-        shell: pwsh
+      - name: Find bounded candidate batch
+        id: candidates
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         env:
-          GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
-        run: |
-          $response = gh api "repos/$env:REPOSITORY/actions/artifacts?name=ownership-reconciliation-state&per_page=1" |
-            ConvertFrom-Json
-          if ($LASTEXITCODE -ne 0) {
-            throw 'Failed to locate the latest ownership reconciliation checkpoint.'
-          }
-          $artifact = @($response.artifacts | Select-Object -First 1)
-          if ($artifact.Count -eq 1 -and -not $artifact[0].expired) {
-            "run_id=$($artifact[0].workflow_run.id)" | Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT
-          }
-
-      - name: Restore scheduled checkpoint
-        if: github.event_name == 'schedule' && steps.checkpoint.outputs.run_id != ''
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: ownership-reconciliation-state
-          path: ownership-state
-          github-token: ${{ github.token }}
-          run-id: ${{ steps.checkpoint.outputs.run_id }}
-
-      - name: Build reconciliation batch
-        id: batch
-        shell: pwsh
-        env:
-          GH_TOKEN: ${{ github.token }}
-          REPOSITORY: ${{ github.repository }}
-          SUBJECT_KIND: ${{ github.event_name == 'schedule' && 'issue' || inputs.subject_kind }}
-          LIMIT: ${{ github.event_name == 'schedule' && 25 || inputs.max_items }}
-          CURSOR: ${{ github.event_name == 'schedule' && '' || inputs.cursor }}
+          SUBJECT_KIND: ${{ github.event_name == 'schedule' && 'all' || inputs.subject_kind }}
+          MAX_ITEMS: ${{ github.event_name == 'schedule' && 25 || inputs.max_items }}
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
-          SCHEDULED: ${{ github.event_name == 'schedule' }}
-        run: |
-          $parameters = @{
-            Repository = $env:REPOSITORY
-            SubjectKind = $env:SUBJECT_KIND
-            Limit = [int]$env:LIMIT
-            Cursor = $env:CURSOR
-            StatePath = 'ownership-state/state.json'
-          }
-          if ($env:SCHEDULED -eq 'true') {
-            $parameters.Scheduled = $true
-          }
-          if ($env:DRY_RUN -eq 'true') {
-            $parameters.DryRun = $true
-          }
-          ./build/scripts/TeamOwnership/Get-OwnershipReconciliationBatch.ps1 @parameters
-
-      - name: Save scheduled checkpoint
-        if: success() && github.event_name == 'schedule'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: ownership-reconciliation-state
-          path: ownership-state/state.json
-          retention-days: 30
-          if-no-files-found: error
+          script: |
+            const teams = ['Finance', 'SCM', 'Integration', 'Other'];
+            const required = [...teams, 'Ownership: Manual', 'Ownership: Needs Review'];
+            const scope = process.env.SUBJECT_KIND;
+            const limit = Number(process.env.MAX_ITEMS);
+            const dryRun = process.env.DRY_RUN === 'true';
+            if (!['all', 'issue', 'pull_request'].includes(scope)) {
+              throw new Error(`Unsupported subject kind: ${scope}`);
+            }
+            if (!Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
+              throw new Error('max_items must be between 1 and 100');
+            }
+
+            const repoLabels = await github.paginate(github.rest.issues.listLabelsForRepo, {
+              ...context.repo, per_page: 100,
+            });
+            const available = new Set(repoLabels.map(label => label.name));
+            const missingLabels = required.filter(name => !available.has(name));
+            if (missingLabels.length) {
+              throw new Error(`Provision required ownership labels first: ${missingLabels.join(', ')}`);
+            }
+
+            const kinds = scope === 'all' ? ['issue', 'pull_request'] : [scope];
+            const candidates = new Map();
+            const overrides = new Map();
+            const missingQuery = teams.map(team => `-label:"${team}"`).join(' ');
+            const conflictQueries = [];
+            for (let left = 0; left < teams.length; left++) {
+              for (let right = left + 1; right < teams.length; right++) {
+                conflictQueries.push(`label:"${teams[left]}" label:"${teams[right]}"`);
+              }
+            }
+
+            for (const kind of kinds) {
+              const qualifier = kind === 'issue' ? 'is:issue' : 'is:pr';
+              for (const labels of [missingQuery, ...conflictQueries]) {
+                for (const [target, overrideQualifier] of [
+                  [candidates, '-label:"Ownership: Manual"'],
+                  [overrides, 'label:"Ownership: Manual" -label:"Ownership: Needs Review"'],
+                ]) {
+                  const response = await github.rest.search.issuesAndPullRequests({
+                    q: `repo:${context.repo.owner}/${context.repo.repo} is:open ${qualifier} ${labels} ${overrideQualifier}`,
+                    sort: 'created',
+                    order: 'asc',
+                    per_page: 100,
+                  });
+                  if (response.data.incomplete_results) {
+                    throw new Error(`GitHub returned incomplete ${kind} ownership candidates`);
+                  }
+                  for (const item of response.data.items) {
+                    target.set(`${kind}:${item.number}`, { kind, item });
+                  }
+                }
+              }
+            }
+
+            const selected = [
+              ...[...overrides.values()].map(value => ({ ...value, audit: true })),
+              ...[...candidates.values()].map(value => ({ ...value, audit: false })),
+            ].sort((left, right) =>
+              left.item.created_at.localeCompare(right.item.created_at) ||
+              left.kind.localeCompare(right.kind) ||
+              left.item.number - right.item.number
+            ).slice(0, limit);
+
+            const matrix = [];
+            let invalidOverrides = 0;
+            for (const candidate of selected) {
+              if (!candidate.audit) {
+                matrix.push({ kind: candidate.kind, number: candidate.item.number });
+                continue;
+              }
+
+              const response = await github.rest.issues.get({
+                ...context.repo, issue_number: candidate.item.number,
+              });
+              const names = response.data.labels.map(label =>
+                typeof label === 'string' ? label : label.name
+              );
+              const selectedTeams = teams.filter(team => names.includes(team));
+              if (!names.includes('Ownership: Manual') || selectedTeams.length === 1) {
+                continue;
+              }
+              invalidOverrides++;
+              if (!dryRun && !names.includes('Ownership: Needs Review')) {
+                  await github.rest.issues.addLabels({
+                    ...context.repo,
+                    issue_number: candidate.item.number,
+                    labels: ['Ownership: Needs Review'],
+                  });
+              }
+              core.warning(
+                `${candidate.kind} #${candidate.item.number} has an invalid manual override; team labels were preserved.`,
+              );
+            }
+
+            core.setOutput('matrix', JSON.stringify(matrix));
+            core.setOutput('has_items', String(matrix.length > 0));
+            core.setOutput('invalid_overrides', String(invalidOverrides));
+            await core.summary.addHeading('Ownership reconciliation candidates').addTable([
+              [{ data: 'Count', header: true }, { data: 'Value', header: true }],
+              ['Selected', String(selected.length)],
+              ['Queued for classification', String(matrix.length)],
+              ['Invalid manual overrides audited', String(invalidOverrides)],
+              ['Known candidates deferred', String(candidates.size + overrides.size - selected.length)],
+              ['Dry run', String(dryRun)],
+            ]).write();
+            if (invalidOverrides > 0) {
+              core.setFailed(`${invalidOverrides} invalid manual ownership override(s) require correction`);
+            }
 
   reconcile:
     name: "Reconcile ${{ matrix.subject.kind }} #${{ matrix.subject.number }}"
     needs: inventory
-    if: needs.inventory.outputs.has_items == 'true'
+    if: always() && needs.inventory.outputs.has_items == 'true'
     strategy:
       fail-fast: false
       max-parallel: 5
