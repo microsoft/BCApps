@@ -1,0 +1,29 @@
+{
+  "id": "2b88277b-ba73-4868-adaa-661f64c39122",
+  "name": "BCQuality Classification Validation",
+  "publisher": "Microsoft",
+  "brief": "Test sample that exercises the privacy DataClassification BCQuality article.",
+  "description": "Throwaway sample used only to validate the Copilot PR review against the updated privacy DataClassification and style Label-scope BCQuality articles. DO NOT MERGE.",
+  "version": "1.0.0.0",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2009036",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2115702",
+  "dependencies": [],
+  "screenshots": [],
+  "platform": "29.0.0.0",
+  "resourceExposurePolicy": {
+    "allowDebugging": false,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "application": "29.0.0.0",
+  "target": "Cloud",
+  "idRanges": [
+    {
+      "from": 50100,
+      "to": 50149
+    }
+  ]
+}
