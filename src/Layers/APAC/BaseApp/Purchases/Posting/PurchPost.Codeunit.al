@@ -6240,7 +6240,10 @@ codeunit 90 "Purch.-Post"
 
             if QtyToBeInvoiced <> 0 then begin
                 PurchLine."Qty. to Invoice" := QtyToBeInvoiced;
-                InvoicePostingInterface.PrepareJobLine(PurchHeader, PurchLine, PurchLineACY);
+                IsHandled := false;
+                OnPostItemJnlLineJobConsumptionOnBeforePrepareJobLine(PurchLine, QtyToBeInvoiced, PurchHeader, PurchLineACY, IsHandled);
+                if not IsHandled then
+                    InvoicePostingInterface.PrepareJobLine(PurchHeader, PurchLine, PurchLineACY);
             end;
         end;
     end;
@@ -10881,6 +10884,11 @@ codeunit 90 "Purch.-Post"
         var PurchaseHeader: Record "Purchase Header"; var PurchInvHeader: Record "Purch. Inv. Header"; var PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.";
         var PurchRcptHeader: Record "Purch. Rcpt. Header"; var ReturnShptHeader: Record "Return Shipment Header"; PurchaseLine: Record "Purchase Line";
         SrcCode: Code[10]; QtyToBeReceived: Decimal; var IsHandled: Boolean; QtyToBeInvoiced: Decimal)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostItemJnlLineJobConsumptionOnBeforePrepareJobLine(var PurchaseLine: Record "Purchase Line"; QuantityToBeInvoiced: Decimal; var PurchaseHeader: Record "Purchase Header"; var PurchaseLineACY: Record "Purchase Line"; var IsHandled: Boolean)
     begin
     end;
 
