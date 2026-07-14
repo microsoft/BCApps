@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.VAT.Calculation;
 
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Reporting;
@@ -58,7 +59,7 @@ codeunit 799 "VAT Reporting Date Mgt"
         VATDateNotAllowedErr: Label 'The VAT Date is not within the range of allowed VAT dates.';
         VATDateInPeriodNotAllowedErr: Label 'The specified VAT Date is in a %1 VAT Return Period which was not allowed', Comment = '%1 - VAT Return Period status';
         VATDateFromPeriodNotAllowedErr: Label 'The VAT Date is in a %1 VAT Return Period and was not allowed to change', Comment = '%1 - VAT Return Period status';
-        VATReturnPeriodWarningConfirmed: Boolean;
+        VATReturnPeriodWarningHandled: Boolean;
         VATReturnPeriodWarningDate: Date;
         VATReturnPeriodWarningResponse: Boolean;
 
@@ -271,20 +272,27 @@ codeunit 799 "VAT Reporting Date Mgt"
 
     local procedure GetVATReturnPeriodWarningResponse(VATDate: Date; WarningMsg: Text): Boolean
     begin
-        if VATReturnPeriodWarningConfirmed and (VATDate = VATReturnPeriodWarningDate) then
-            exit(VATReturnPeriodWarningResponse);
+        // Within a single posting the same VAT date is validated once per VAT posting group combination.
+        // Show the warning - and let the caller log the resulting error - only once per VAT date, so posting
+        // does not raise the same warning or error message repeatedly. The cache is reset when a new posting starts.
+        if VATReturnPeriodWarningHandled and (VATDate = VATReturnPeriodWarningDate) then
+            exit(true);
 
         VATReturnPeriodWarningResponse := ConfirmManagement.GetResponseOrDefault(WarningMsg, true);
-        if VATReturnPeriodWarningResponse then begin
-            VATReturnPeriodWarningDate := VATDate;
-            VATReturnPeriodWarningConfirmed := true;
-        end;
+        VATReturnPeriodWarningDate := VATDate;
+        VATReturnPeriodWarningHandled := true;
         exit(VATReturnPeriodWarningResponse);
     end;
 
     procedure ResetVATReturnPeriodWarning()
     begin
-        VATReturnPeriodWarningConfirmed := false;
+        VATReturnPeriodWarningHandled := false;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnAfterStartPosting, '', false, false)]
+    local procedure ResetVATReturnPeriodWarningOnAfterStartPosting()
+    begin
+        ResetVATReturnPeriodWarning();
     end;
 
     local procedure UpdateGLEntries(VATEntry: Record "VAT Entry")
