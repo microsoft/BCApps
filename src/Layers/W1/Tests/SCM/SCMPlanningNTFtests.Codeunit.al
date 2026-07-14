@@ -3712,7 +3712,7 @@ codeunit 137021 "SCM Planning - NTF tests"
         QtyPerUoM: Decimal;
         JobQuantity: Decimal;
     begin
-        // [SCENARIO 640455] Cannot delete Project Planning Line due to incorrect reservation entries
+        // [SCENARIO 640455] Job Planning Line with non-base Purchase UoM can be deleted after carrying out the planning Action Message, without orphan reservation entries.
 
         Initialize();
 
