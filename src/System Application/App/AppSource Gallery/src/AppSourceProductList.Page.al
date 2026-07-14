@@ -181,7 +181,7 @@ page 2515 "AppSource Product List"
         view("Microsoft")
         {
             Caption = 'Microsoft apps';
-            Filters = where(PublisherType = filter(Microsoft));
+            Filters = where(PublisherType = filter('Microsoft'));
         }
     }
 
