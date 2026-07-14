@@ -1702,7 +1702,7 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
         VendorLedgerEntry.SetLoadFields("Document No.", "Vendor No.");
         VendorLedgerEntry.Get(TempVendorPaymentBuffer."Vendor Ledg. Entry No.");
 
-        withholdingTaxEntry.SetLoadFields("Wthldg. Tax Prod. Post. Group");
+        WithholdingTaxEntry.SetLoadFields("Wthldg. Tax Prod. Post. Group");
         WithholdingTaxEntry.SetRange("Document No.", VendorLedgerEntry."Document No.");
         WithholdingTaxEntry.SetRange("Transaction Type", WithholdingTaxEntry."Transaction Type"::Purchase);
         WithholdingTaxEntry.SetRange("Document Type", WithholdingTaxEntry."Document Type"::Invoice);
