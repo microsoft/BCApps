@@ -209,6 +209,7 @@ codeunit 4591 "SOA Item Search"
         CountBeforeAvailabilityCheck: Integer;
         ApplyAvailabilityFilter: Boolean;
         ItemSelectorUsed: Boolean;
+        SameItemVariantAlternativeOnly: Boolean;
     begin
         MatchingItem := true;
         OriginalFilterGroup := Rec.FilterGroup();
@@ -246,7 +247,7 @@ codeunit 4591 "SOA Item Search"
                 if CandidateArray.Count() > 0 then begin
                     SearchQuery := BuildSearchQueryText(SearchKeyWordsTrimmed);
                     if SelectBestItem(ItemFilter, SearchQuery, CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants) then begin
-                        NormalizeVariantAlternatives(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, SearchQuery);
+                        SameItemVariantAlternativeOnly := NormalizeVariantAlternatives(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, SearchQuery);
                         ItemSelectorUsed := true;
                         TelemetryCustomDimension.Add('ItemSelectorUsed', 'true');
                         TelemetryCustomDimension.Add('ItemSelectorMatchingCount', Format(CountFilterItems(SelectedMatchingItemFilter)));
@@ -265,7 +266,7 @@ codeunit 4591 "SOA Item Search"
                     if (ItemFilter = '') and (SelectedAlternativeItemFilter <> '') then begin
                         ItemFilter := BuildFilteredItemFilter(SelectedAlternativeItemFilter, Rec, RequiredQuantity, InUOMCode, ApplyAvailabilityFilter, SelectedAlternativeItemVariants, AvailableAlternativeItemVariants);
                         StoreResolvedItemVariants(ItemFilter, AvailableAlternativeItemVariants);
-                        MatchingItem := false;
+                        MatchingItem := SameItemVariantAlternativeOnly;
                     end else begin
                         StoreResolvedItemVariants(ItemFilter, AvailableMatchingItemVariants);
                         MatchingItem := true;
@@ -274,7 +275,7 @@ codeunit 4591 "SOA Item Search"
                     if ItemSelectorUsed and (SelectedAlternativeItemFilter <> '') then begin
                         ItemFilter := BuildFilteredItemFilter(SelectedAlternativeItemFilter, Rec, RequiredQuantity, InUOMCode, ApplyAvailabilityFilter, SelectedAlternativeItemVariants, AvailableAlternativeItemVariants);
                         StoreResolvedItemVariants(ItemFilter, AvailableAlternativeItemVariants);
-                        MatchingItem := false;
+                        MatchingItem := SameItemVariantAlternativeOnly;
                     end else
                         ItemFilter := BuildFilteredItemFilter(ItemFilter, Rec, RequiredQuantity, InUOMCode, ApplyAvailabilityFilter, EmptyItemVariants, AvailableItemVariants);
             end;
@@ -349,11 +350,14 @@ codeunit 4591 "SOA Item Search"
         exit(false);
     end;
 
-    local procedure NormalizeVariantAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, Text]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, Text]; SearchQuery: Text)
+    local procedure NormalizeVariantAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, Text]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, Text]; SearchQuery: Text): Boolean
+    var
+        SameItemVariantAlternativeOnly: Boolean;
     begin
         AddSameItemVariantAlternativesForMissingVariant(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, SearchQuery);
-        KeepSameItemVariantAlternativesOnly(SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants);
+        SameItemVariantAlternativeOnly := KeepSameItemVariantAlternativesOnly(SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants);
         RemoveMatchingItemsWithBlankVariantAndSameItemAlternatives(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants);
+        exit(SameItemVariantAlternativeOnly);
     end;
 
     local procedure AddSameItemVariantAlternativesForMissingVariant(SelectedMatchingItemFilter: Text; SelectedMatchingItemVariants: Dictionary of [Text, Text]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, Text]; SearchQuery: Text)
@@ -400,7 +404,7 @@ codeunit 4591 "SOA Item Search"
         SelectedAlternativeItemVariants := FallbackAlternativeItemVariants;
     end;
 
-    local procedure KeepSameItemVariantAlternativesOnly(SelectedMatchingItemFilter: Text; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, Text])
+    local procedure KeepSameItemVariantAlternativesOnly(SelectedMatchingItemFilter: Text; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, Text]): Boolean
     var
         MatchingItemSystemIds: Dictionary of [Text, Boolean];
         SameItemAlternativeItemVariants: Dictionary of [Text, Text];
@@ -410,7 +414,7 @@ codeunit 4591 "SOA Item Search"
         SameItemAlternativeItemFilter: Text;
     begin
         if (SelectedMatchingItemFilter = '') or (SelectedAlternativeItemFilter = '') then
-            exit;
+            exit(false);
 
         foreach MatchingItemSystemId in SelectedMatchingItemFilter.Split('|') do
             if not MatchingItemSystemIds.ContainsKey(MatchingItemSystemId) then
@@ -436,10 +440,11 @@ codeunit 4591 "SOA Item Search"
         end;
 
         if SameItemAlternativeItemFilter = '' then
-            exit;
+            exit(false);
 
         SelectedAlternativeItemFilter := SameItemAlternativeItemFilter;
         SelectedAlternativeItemVariants := SameItemAlternativeItemVariants;
+        exit(true);
     end;
 
     local procedure HasVariantSignalForItem(ItemSystemId: Text; SearchQuery: Text): Boolean
