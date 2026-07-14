@@ -30,7 +30,7 @@ pageextension 30102 "Shpfy Order Processor RC" extends "Order Processor Role Cen
             group(Shpfy)
             {
                 Caption = 'Shopify';
-                ToolTip = 'Manage Shopify Shops, customers, products, orders, gift cards, transactions and payouts.';
+                ToolTip = 'Manage Shopify Shops, customers, companies, products, orders, gift cards, transactions and payouts.';
 
                 action("ShpfyShopify Shops")
                 {
@@ -47,6 +47,14 @@ pageextension 30102 "Shpfy Order Processor RC" extends "Order Processor Role Cen
                     Image = CustomerList;
                     RunObject = page "Shpfy Customers";
                     ToolTip = 'View or edit detailed information for the customers that you trade with through Shopify.';
+                }
+                action("ShpfyShopify Companies")
+                {
+                    ApplicationArea = All;
+                    Caption = 'Companies';
+                    Image = Company;
+                    RunObject = page "Shpfy Companies";
+                    ToolTip = 'View or edit detailed information for the companies that you trade with through Shopify.';
                 }
                 action("ShpfyShopify Products")
                 {
