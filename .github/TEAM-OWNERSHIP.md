@@ -16,9 +16,17 @@ The selected team is added before competing team labels are removed. Unrelated l
 
 Automated `Other` or low-confidence decisions receive `Ownership: Needs Review`; a valid non-`Other`, non-low decision removes it.
 
-## Reconciliation
+## Retry and rollout backfill
 
-`ownership-reconciliation.yml` runs hourly and can be started manually in dry-run mode. It searches only open issues and PRs with zero or multiple team labels. Invalid manual overrides are audited in a separate bounded search, receive Needs Review, and fail the run without blocking later candidates. Audits and classifications together are limited to 25 scheduled candidates or 1-100 manually requested candidates, with five classification jobs in parallel. Successfully fixed candidates leave subsequent searches, allowing later runs to progress without cursor artifacts. Correctly labeled subjects are not reclassified; lifecycle events refresh stale decisions.
+Lifecycle and ownership-label events drive ongoing automation. There is no scheduled reconciliation workflow or repository backfill script. As a rollout operation, maintainers run a one-time bounded backfill after deployment.
+
+To retry one failed or missed open item, run the workflow from the default branch:
+
+```powershell
+gh workflow run ownership-classification.yml --repo microsoft/BCApps --ref main -f subject_kind=issue -F subject_number=123
+```
+
+Use `subject_kind=pull_request` for a pull request. The tradeoff is explicit: a permanently missed or failed event is not recovered automatically, so failed workflow runs must be investigated and rerun manually.
 
 ## One-time label provisioning
 
@@ -40,6 +48,6 @@ The workflows verify these names and fail clearly when provisioning is incomplet
 1. Merge and deploy [microsoft/BCAppsTriage#39](https://github.com/microsoft/BCAppsTriage/pull/39) to `main`.
 2. Provision the six labels above.
 3. Confirm the BCApps `triage` environment contains the App private key, App ID variable, and default-branch policy.
-4. Merge the BCApps consumer, run a small reconciliation dry run, then a limited live batch.
+4. Merge the BCApps consumer, perform the one-time bounded operational backfill, and monitor failures for manual retry.
 
 The same BCApps revision enables ownership automation and removes only AI triage's team-label write. AI triage comments and issue-type updates remain unchanged.
