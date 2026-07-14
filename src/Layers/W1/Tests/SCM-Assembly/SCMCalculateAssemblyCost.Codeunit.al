@@ -632,6 +632,25 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         Item.Validate("Replenishment System", ReplenishmentSystem);
         Item.Validate("Standard Cost", StandardCostAmt);
         Item.Modify(true);
+        EnsureGeneralPostingSetupAccounts('', Item."Gen. Prod. Posting Group");
+    end;
+
+    local procedure EnsureGeneralPostingSetupAccounts(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        // Some localized demo data (e.g. CH) leaves the inventory/manufacturing accounts blank for the
+        // posting-group combination used by these items, which breaks cost adjustment posting. Ensure the
+        // required accounts exist so the test is independent of the country-specific General Posting Setup.
+        if not GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup) then begin
+            GeneralPostingSetup.Init();
+            GeneralPostingSetup.Validate("Gen. Bus. Posting Group", GenBusPostingGroup);
+            GeneralPostingSetup.Validate("Gen. Prod. Posting Group", GenProdPostingGroup);
+            GeneralPostingSetup.Insert(true);
+        end;
+        LibraryERM.SetGeneralPostingSetupInvtAccounts(GeneralPostingSetup);
+        LibraryERM.SetGeneralPostingSetupMfgAccounts(GeneralPostingSetup);
+        GeneralPostingSetup.Modify(true);
     end;
 
     local procedure PostPositiveAdjustment(ItemNo: Code[20]; Qty: Decimal)
