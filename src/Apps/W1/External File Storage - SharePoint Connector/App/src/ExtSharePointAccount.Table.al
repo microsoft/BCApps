@@ -52,6 +52,7 @@ table 4580 "Ext. SharePoint Account"
         {
             Caption = 'Client Secret Key';
             Access = Internal;
+            AllowInCustomizations = Never;
             DataClassification = SystemMetadata;
         }
         field(9; Disabled; Boolean)

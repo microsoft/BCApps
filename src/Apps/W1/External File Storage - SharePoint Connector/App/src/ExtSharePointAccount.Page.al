@@ -100,8 +100,6 @@ page 4580 "Ext. SharePoint Account"
             field("Use legacy REST API"; Rec."Use legacy REST API")
             {
                 trigger OnValidate()
-                var
-                    CheckBasePathMsg: Label 'The API type has been changed. Please verify that the Base Relative Folder Path is still correct for the selected API type.';
                 begin
                     Message(CheckBasePathMsg);
                 end;
@@ -110,6 +108,7 @@ page 4580 "Ext. SharePoint Account"
     }
 
     var
+        CheckBasePathMsg: Label 'The API type has been changed. Please verify that the Base Relative Folder Path is still correct for the selected API type.';
         PageEditable: Boolean;
         ClientSecretVisible: Boolean;
         CertificateVisible: Boolean;
