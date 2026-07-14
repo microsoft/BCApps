@@ -855,11 +855,16 @@ function New-TestCompany() {
         [switch]$EvaluationCompany
     )
 
-    # Delete existing companies in the container
+    # Best-effort delete: a failed removal must not abort demo data generation as tests run in the freshly created company below. See AB#642236.
     $existingCompanies = Get-CompanyInBcContainer -containerName $ContainerName
     foreach ($company in $existingCompanies) {
         Write-Host "Deleting company $($company.CompanyName) in container $ContainerName"
-        Remove-CompanyInBcContainer -containerName $ContainerName -companyName $company.CompanyName
+        try {
+            Remove-CompanyInBcContainer -containerName $ContainerName -companyName $company.CompanyName
+        }
+        catch {
+            Write-Host "::warning::Failed to delete company '$($company.CompanyName)' in container $ContainerName. Continuing with test company creation. Error was: $($_.Exception.Message)"
+        }
     }
 
     Write-Host "Creating new test company in container $ContainerName"
