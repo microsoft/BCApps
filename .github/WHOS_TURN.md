@@ -16,7 +16,8 @@ pull requests start with the partner. A partner comment, edit, review, or new
 non-draft commit hands the turn to Microsoft. A Microsoft team comment, inline
 comment, or review hands it to the partner; an approval returns it to Microsoft
 only when no Microsoft team reviewer's latest review still requests changes.
-Bot comments and reviews do not move the turn.
+Comment-only and pending reviews do not clear an earlier change request; a later
+approval or dismissal does. Bot comments and reviews do not move the turn.
 
 A human can select any turn label directly. `Turn: Blocked` is a sticky manual
 override: ordinary activity cannot replace it, but selecting either other turn
@@ -56,10 +57,22 @@ gh api --paginate "repos/microsoft/BCApps/issues?state=open&per_page=100" --jq '
 ## Boundaries
 
 The trusted workflow runs from the default branch, never checks out or executes
-pull request code, uses no secrets, and grants only issue-label write and pull
-request read access. Per-item runs are serialized; very close conflicting
-non-blocked events resolve in workflow processing order. Label changes made with
-`GITHUB_TOKEN` do not retrigger workflows, preventing event loops.
+pull request code, and uses no secrets. Direct review events on fork pull
+requests have a read-only token, so a zero-write bridge uploads only the event
+kind, repository, pull request number, and review/comment ID. The labeling
+workflow accepts only that bridge's successful run and one bounded raw artifact,
+then fetches the canonical review or comment from the API before making a
+decision. It independently resolves the originating pull request from trusted
+workflow-run metadata and requires the artifact to match. The canonical event
+must also uniquely match the run's source kind, actor, and creation time; reruns
+are rejected. Artifact actor, state, and label data are never trusted.
+Review submissions and dismissals both pass through this bridge.
+
+The bridge has no repository permissions. The labeling workflow grants Actions
+read, issue-label write, and pull-request read access. Per-item runs are
+serialized when GitHub supplies the pull request number; very close conflicting
+non-blocked events resolve in workflow processing order. Label changes made
+with `GITHUB_TOKEN` do not retrigger workflows, preventing event loops.
 
 The first pull request adding the workflow cannot classify itself before merge.
 The backfill does not replay historical conversation. CI failures and fork
