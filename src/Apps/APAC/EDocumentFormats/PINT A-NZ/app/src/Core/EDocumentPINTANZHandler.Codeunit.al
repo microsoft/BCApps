@@ -80,7 +80,7 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
         EDocReadablePurchaseDoc.Run();
     end;
 
-#pragma warning disable AA0139 // false positive: overflow handled by SetStringValueInField
+#pragma warning restore AA0139
     local procedure PopulateEDocumentForInvoice(PINTANZXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var EDocument: Record "E-Document")
     var
         EDocumentXMLHelper: Codeunit "EDocument XML Helper";
