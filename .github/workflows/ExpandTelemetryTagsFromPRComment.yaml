@@ -14,8 +14,7 @@ permissions:
   actions: read
   contents: write
   issues: write
-  pull-requests: write
-  id-token: write
+  pull-requests: read
 
 defaults:
   run:
@@ -37,7 +36,7 @@ jobs:
         github.event_name == 'workflow_dispatch' ||
         (
           github.event.issue.pull_request &&
-          startsWith(github.event.comment.body, '/telemetry-tags')
+          github.event.comment.body == '/telemetry-tags'
         )
       )
     runs-on: windows-latest
@@ -110,7 +109,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           repository: ${{ steps.context.outputs.headRepo }}
-          ref: ${{ steps.context.outputs.headRef }}
+          ref: ${{ steps.context.outputs.headSha }}
           path: pr
 
       - name: Expand telemetry tags
@@ -230,7 +229,9 @@ jobs:
           Add-Content -Path $env:GITHUB_OUTPUT -Value "artifactName=telemetry-tags-pr-${{ steps.context.outputs.prNumber }}"
 
       - name: Upload patch artifact
+        id: uploadPatch
         if: steps.patch.outputs.patchPath != ''
+        continue-on-error: true
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         env:
           ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
@@ -261,14 +262,23 @@ jobs:
                 $comment = "Telemetry tags were updated and pushed to `${{ steps.context.outputs.headRef }}` ✅"
               }
               else {
-                $comment = @"
-                Telemetry tags were updated, but I couldn't push to the PR branch from this workflow.
+                                if ("${{ steps.uploadPatch.outcome }}" -eq "success") {
+                                  $comment = @"
+                                  Telemetry tags were updated, but I couldn't push to the PR branch from this workflow.
 
-                A patch artifact was uploaded: `${{ steps.patch.outputs.artifactName }}`.
-                Please download and apply it locally, then commit and push.
+                                  A patch artifact was uploaded: `${{ steps.patch.outputs.artifactName }}`.
+                                  Please download and apply it locally, then commit and push.
                 "@
-              }
-            }
+                                }
+                                else {
+                                  $comment = @"
+                                  Telemetry tags were updated, but I couldn't push to the PR branch and patch artifact upload failed.
+
+                                  Please run `/telemetry-tags` again or update tags locally and push.
+                "@
+                                }
+                              }
+                            }
             "error" {
               $comment = @"
               Telemetry tag workflow ran, but expansion failed:
