@@ -3190,6 +3190,16 @@ table 5050 Contact
         exit(ContBusRel.FindFirst())
     end;
 
+    procedure ContactToVendBusinessRelationExist(): Boolean
+    var
+        ContactBusinessRelation: Record "Contact Business Relation";
+    begin
+        ContactBusinessRelation.Reset();
+        ContactBusinessRelation.SetRange("Contact No.", "No.");
+        ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Vendor);
+        exit(ContactBusinessRelation.FindFirst())
+    end;
+
     procedure CheckIfMinorForProfiles()
     begin
         if Minor then
