@@ -1955,6 +1955,57 @@ codeunit 144008 "EB - Payment Journal Export"
         FileMgt.DeleteServerFile(FileName);
     end;
 
+    [Test]
+    [HandlerFunctions('SuggestVendorPaymentsReportHandler,FileSEPAPaymentsReportHandlerNonEuro')]
+    procedure VerifyInstdAmtIsNumericWhenShowCurrencyIsFCYSymbolOnly()
+    var
+        FileName: Text;
+        CountryCode: Code[10];
+        ExportProtocol: Code[20];
+        FirstForeignCurrencyCodeIso: Code[3];
+        SecondForeignCurrencyCode: Code[10];
+        SecondForeignCurrencyCodeIso: Code[3];
+        Swift: Code[20];
+        VendorNo: Code[20];
+        VendorSwift: Code[20];
+        InvAmount1: Decimal;
+        InvAmount2: Decimal;
+    begin
+        // [SCENARIO 641821] Exported InstdAmt stays numeric when General Ledger Setup "Show Currency" = "FCY Symbol Only"
+        Initialize();
+
+        // [GIVEN] General Ledger Setup "Show Currency" set to "FCY Symbol Only"
+        SetShowCurrencyToFCYSymbolOnly();
+
+        // [GIVEN] Create a Country code and an Export Protocol for SEPA Payments.
+        CountryCode := FindCountryRegion();
+        ExportProtocol := CreateSEPAExportProtocol(false);
+
+        // [GIVEN] Create Two foreign currencies, each with a currency symbol, and two posted purchase invoices
+        SetCurrencySymbol(ForeignCurrencyCode);
+        VendorSwift := GenerateBankAccSwiftCode();
+        VendorNo := CreateVendor(CountryCode, ExportProtocol, VendorSwift, VendorIbanTxt);
+        InvAmount1 := CreateAndPostPurchInv(VendorNo, false);
+        FirstForeignCurrencyCodeIso := ForeignCurrencyIso;
+        CreateForeignCurrency(SecondForeignCurrencyCode, SecondForeignCurrencyCodeIso);
+        SetCurrencySymbol(SecondForeignCurrencyCode);
+        ForeignCurrencyCode := SecondForeignCurrencyCode;
+        ForeignCurrencyIso := SecondForeignCurrencyCodeIso;
+        InvAmount2 := CreateAndPostPurchInv(VendorNo, false);
+
+        // [WHEN] Suggest and Export Payments
+        Swift := GenerateBankAccSwiftCode();
+        ExportSuggestedPayment(
+          FileName, CountryCode, VendorNo, ExportProtocol, Swift, BankIbanTxt, ForeignCurrencyCode,
+          true, false, InterbankClearingCodeOptionRef::" ");
+
+        // [THEN] InstdAmt contains only the numeric amount and the Ccy attribute still contains the ISO currency code
+        VerifyXMLAmountCurrency(FileName, FirstForeignCurrencyCodeIso, SecondForeignCurrencyCodeIso, InvAmount1, InvAmount2);
+
+        FileMgt.DeleteServerFile(FileName);
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"EB - Payment Journal Export");
@@ -1997,6 +2048,35 @@ codeunit 144008 "EB - Payment Journal Export"
         CurrencyIso := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(3, 0), 1, 3);
         ForeignCurrency.Validate("ISO Code", CurrencyIso);
         ForeignCurrency.Modify(true);
+    end;
+
+    local procedure SetShowCurrencyToFCYSymbolOnly()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Show Currency", GeneralLedgerSetup."Show Currency"::"FCY Symbol Only");
+        GeneralLedgerSetup.Modify(true);
+    end;
+
+    local procedure SetShowCurrencyToLCYAndFCYSymbol()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Local Currency Symbol", '$');
+        GeneralLedgerSetup.Validate("Currency Symbol Position", GeneralLedgerSetup."Currency Symbol Position"::"Before Amount");
+        GeneralLedgerSetup.Validate("Show Currency", GeneralLedgerSetup."Show Currency"::"LCY and FCY Symbol");
+        GeneralLedgerSetup.Modify(true);
+    end;
+
+    local procedure SetCurrencySymbol(CurrencyCode: Code[10])
+    var
+        Currency: Record Currency;
+    begin
+        Currency.Get(CurrencyCode);
+        Currency.Validate(Symbol, '$');
+        Currency.Modify(true);
     end;
 
     local procedure CreateSEPAExportProtocol(UseEuro: Boolean): Code[20]
