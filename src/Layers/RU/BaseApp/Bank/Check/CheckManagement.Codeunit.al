@@ -266,13 +266,38 @@ codeunit 367 CheckManagement
         GenJnlLine2."Allow Zero-Amount Posting" := true;
         CheckUnpostedVendor(CheckLedgEntry, GenJnlLine2);
         OnFinancialVoidCheckOnBeforeCheckBalAccountType(GenJnlLine2, CheckLedgEntry, BankAccLedgEntry3);
+        IsHandled := false;
+        OnFinancialVoidCheckOnBeforePostBalanceAccount(GenJnlLine2, CheckLedgEntry, BankAccLedgEntry3, BalanceAmountLCY, IsHandled);
+        if not IsHandled then
+            FinancialVoidPostBalanceAccount(CheckLedgEntry, ConfirmFinancialVoid.GetVoidType(), ConfirmFinancialVoid.GetVoidDate(), BalanceAmountLCY);
+
+        if ConfirmFinancialVoid.GetVoidDate() = CheckLedgEntry."Check Date" then begin
+            BankAccLedgEntry2.Open := false;
+            BankAccLedgEntry2."Remaining Amount" := 0;
+            BankAccLedgEntry2."Statement Status" := BankAccLedgEntry2."Statement Status"::Closed;
+            BankAccLedgEntry2.Modify();
+        end;
+
+        // rounding error from currency conversion
+        if CheckAmountLCY + BalanceAmountLCY <> 0 then
+            PostRoundingAmount(BankAcc, CheckLedgEntry, ConfirmFinancialVoid.GetVoidDate(), -(CheckAmountLCY + BalanceAmountLCY));
+
+        MarkCheckEntriesVoid(CheckLedgEntry, ConfirmFinancialVoid.GetVoidDate());
+        Commit();
+        UpdateAnalysisView.UpdateAll(0, true);
+
+        OnAfterFinancialVoidCheck(CheckLedgEntry);
+    end;
+
+    local procedure FinancialVoidPostBalanceAccount(var CheckLedgEntry: Record "Check Ledger Entry"; VoidType: Integer; VoidDate: Date; var BalanceAmountLCY: Decimal)
+    begin
         case CheckLedgEntry."Bal. Account Type" of
             CheckLedgEntry."Bal. Account Type"::"G/L Account":
                 FinancialVoidPostGLAccount(GenJnlLine2, BankAccLedgEntry2, CheckLedgEntry, BalanceAmountLCY);
             CheckLedgEntry."Bal. Account Type"::Customer:
                 begin
-                    if ConfirmFinancialVoid.GetVoidType() = 0 then   // Unapply entry
-                        if UnApplyCustInvoices(CheckLedgEntry, ConfirmFinancialVoid.GetVoidDate()) then
+                    if VoidType = 0 then   // Unapply entry
+                        if UnApplyCustInvoices(CheckLedgEntry, VoidDate) then
                             GenJnlLine2."Applies-to ID" := CheckLedgEntry."Document No.";
                     CustLedgEntry.SetCurrentKey("Transaction No.");
                     CustLedgEntry.SetRange("Transaction No.", BankAccLedgEntry2."Transaction No.");
@@ -300,8 +325,8 @@ codeunit 367 CheckManagement
                 end;
             CheckLedgEntry."Bal. Account Type"::Vendor:
                 begin
-                    if ConfirmFinancialVoid.GetVoidType() = 0 then // Unapply entry
-                        if UnApplyVendInvoices(CheckLedgEntry, ConfirmFinancialVoid.GetVoidDate()) then
+                    if VoidType = 0 then // Unapply entry
+                        if UnApplyVendInvoices(CheckLedgEntry, VoidDate) then
                             GenJnlLine2."Applies-to ID" := CheckLedgEntry."Document No.";
                     VendorLedgEntry.SetCurrentKey("Transaction No.");
                     VendorLedgEntry.SetRange("Transaction No.", BankAccLedgEntry2."Transaction No.");
@@ -379,8 +404,8 @@ codeunit 367 CheckManagement
                 end;
             CheckLedgEntry."Bal. Account Type"::Employee:
                 begin
-                    if ConfirmFinancialVoid.GetVoidType() = 0 then // Unapply entry
-                        if UnApplyEmpInvoices(CheckLedgEntry, ConfirmFinancialVoid.GetVoidDate()) then
+                    if VoidType = 0 then // Unapply entry
+                        if UnApplyEmpInvoices(CheckLedgEntry, VoidDate) then
                             GenJnlLine2."Applies-to ID" := CheckLedgEntry."Document No.";
                     EmployeeLedgerEntry.SetCurrentKey("Transaction No.");
                     EmployeeLedgerEntry.SetRange("Transaction No.", BankAccLedgEntry2."Transaction No.");
@@ -414,23 +439,6 @@ codeunit 367 CheckManagement
                 OnFinancialVoidCheckOnAfterPostBalAccLine(GenJnlLine2, CheckLedgEntry, GenJnlPostLine);
             end;
         end;
-
-        if ConfirmFinancialVoid.GetVoidDate() = CheckLedgEntry."Check Date" then begin
-            BankAccLedgEntry2.Open := false;
-            BankAccLedgEntry2."Remaining Amount" := 0;
-            BankAccLedgEntry2."Statement Status" := BankAccLedgEntry2."Statement Status"::Closed;
-            BankAccLedgEntry2.Modify();
-        end;
-
-        // rounding error from currency conversion
-        if CheckAmountLCY + BalanceAmountLCY <> 0 then
-            PostRoundingAmount(BankAcc, CheckLedgEntry, ConfirmFinancialVoid.GetVoidDate(), -(CheckAmountLCY + BalanceAmountLCY));
-
-        MarkCheckEntriesVoid(CheckLedgEntry, ConfirmFinancialVoid.GetVoidDate());
-        Commit();
-        UpdateAnalysisView.UpdateAll(0, true);
-
-        OnAfterFinancialVoidCheck(CheckLedgEntry);
     end;
 
     procedure GenJournalLineGetSystemIdFromRecordId(GenJournalLineRecordId: RecordId): Guid
@@ -1254,6 +1262,23 @@ codeunit 367 CheckManagement
     /// </remarks>
     [IntegrationEvent(false, false)]
     local procedure OnFinancialVoidCheckOnBeforeCheckBalAccountType(var GenJournalLine: Record "Gen. Journal Line"; var CheckLedgerEntry: Record "Check Ledger Entry"; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised before posting the balance account entries during a financial void operation.
+    /// Enables subscribers to replace the standard balance account type posting.
+    /// </summary>
+    /// <param name="GenJournalLine">General journal line for the void operation</param>
+    /// <param name="CheckLedgerEntry">Check ledger entry being voided</param>
+    /// <param name="BankAccountLedgerEntry">Bank account ledger entry associated with the check</param>
+    /// <param name="BalanceAmountLCY">Running balancing amount in LCY. A subscriber that sets IsHandled must add the LCY amounts it posts so the caller's currency-rounding calculation stays balanced.</param>
+    /// <param name="IsHandled">Set to true to skip the standard balance account type posting</param>
+    /// <remarks>
+    /// Raised from FinancialVoidCheck procedure after OnFinancialVoidCheckOnBeforeCheckBalAccountType and before the balance account type posting.
+    /// </remarks>
+    [IntegrationEvent(false, false)]
+    local procedure OnFinancialVoidCheckOnBeforePostBalanceAccount(var GenJournalLine: Record "Gen. Journal Line"; var CheckLedgerEntry: Record "Check Ledger Entry"; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; var BalanceAmountLCY: Decimal; var IsHandled: Boolean)
     begin
     end;
 
