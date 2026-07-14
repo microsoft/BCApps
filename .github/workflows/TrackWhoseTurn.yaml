@@ -1,0 +1,367 @@
+name: Track whose turn
+
+on:
+  issues:
+    types: [opened, reopened, edited, labeled, unlabeled]
+  issue_comment:
+    types: [created]
+  pull_request_target:
+    types: [opened, reopened, edited, synchronize, ready_for_review, converted_to_draft, labeled, unlabeled]
+  pull_request_review:
+    types: [submitted]
+  pull_request_review_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      item_number:
+        description: Open issue or pull request number
+        required: true
+        type: number
+      turn:
+        description: Classification to apply
+        required: true
+        default: auto
+        type: choice
+        options:
+          - auto
+          - Microsoft
+          - Partner
+          - Blocked
+
+permissions:
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: whose-turn-${{ github.event.issue.number || github.event.pull_request.number || inputs.item_number }}
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  classify:
+    if: github.repository_owner == 'microsoft'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Classify next action
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            const LABELS = {
+              Microsoft: {
+                name: 'Turn: Microsoft',
+                description: 'Next action is with the BCApps team.',
+                color: '0E8A16',
+              },
+              Partner: {
+                name: 'Turn: Partner',
+                description: 'Next action is with the partner or contributor.',
+                color: '1D76DB',
+              },
+              Blocked: {
+                name: 'Turn: Blocked',
+                description: 'No action is expected until an explicit blocker is resolved.',
+                color: 'D73A4A',
+              },
+            };
+            const TURN_LABELS = Object.values(LABELS).map(label => label.name);
+            const TEAM_ASSOCIATIONS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR']);
+            const TEAM_PERMISSIONS = new Set(['write', 'push', 'maintain', 'admin']);
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const rawNumber = context.payload.issue?.number
+              ?? context.payload.pull_request?.number
+              ?? context.payload.inputs?.item_number;
+            const issue_number = Number(rawNumber);
+            if (!Number.isSafeInteger(issue_number) || issue_number < 1) {
+              throw new Error(`Invalid issue or pull request number: ${rawNumber}`);
+            }
+
+            function labelNames(issue) {
+              return issue.labels.map(label => typeof label === 'string' ? label : label.name);
+            }
+
+            function isHuman(user) {
+              return user?.type === 'User' && !/\[bot\]$/i.test(user.login ?? '');
+            }
+
+            async function actorKind(user, association = null) {
+              if (!isHuman(user)) {
+                return 'bot';
+              }
+              if (association && !TEAM_ASSOCIATIONS.has(association)) {
+                return 'partner';
+              }
+
+              try {
+                const response = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner,
+                  repo,
+                  username: user.login,
+                });
+                return TEAM_PERMISSIONS.has(response.data.permission) ? 'team' : 'partner';
+              } catch (error) {
+                if (error.status === 404) {
+                  return 'partner';
+                }
+                throw error;
+              }
+            }
+
+            async function readItem() {
+              const { data: issue } = await github.rest.issues.get({
+                owner,
+                repo,
+                issue_number,
+              });
+              if (issue.state !== 'open' || !issue.pull_request) {
+                return { issue, pull: null, open: issue.state === 'open' };
+              }
+
+              const { data: pull } = await github.rest.pulls.get({
+                owner,
+                repo,
+                pull_number: issue_number,
+              });
+              return { issue, pull, open: pull.state === 'open' };
+            }
+
+            function normalizedTurn(item) {
+              const current = labelNames(item.issue).filter(name => TURN_LABELS.includes(name));
+              if (current.includes(LABELS.Blocked.name)) {
+                return LABELS.Blocked.name;
+              }
+              if (current.length === 1) {
+                return current[0];
+              }
+              return item.pull?.draft ? LABELS.Partner.name : LABELS.Microsoft.name;
+            }
+
+            async function verifyLabelDefinitions() {
+              for (const expected of Object.values(LABELS)) {
+                let actual;
+                try {
+                  ({ data: actual } = await github.rest.issues.getLabel({
+                    owner,
+                    repo,
+                    name: expected.name,
+                  }));
+                } catch (error) {
+                  if (error.status === 404) {
+                    throw new Error(`Required label "${expected.name}" is not provisioned. See .github/WHOS_TURN.md.`);
+                  }
+                  throw error;
+                }
+
+                const description = actual.description ?? '';
+                if (actual.name !== expected.name
+                    || actual.color.toUpperCase() !== expected.color
+                    || description !== expected.description) {
+                  throw new Error(`Required label "${expected.name}" does not match .github/WHOS_TURN.md.`);
+                }
+              }
+            }
+
+            function eventActor() {
+              if (context.eventName === 'issue_comment') {
+                return {
+                  user: context.payload.comment.user,
+                  association: context.payload.comment.author_association,
+                };
+              }
+              if (context.eventName === 'pull_request_review') {
+                return {
+                  user: context.payload.review.user,
+                  association: context.payload.review.author_association,
+                };
+              }
+              if (context.eventName === 'pull_request_review_comment') {
+                return {
+                  user: context.payload.comment.user,
+                  association: context.payload.comment.author_association,
+                };
+              }
+              if (context.payload.action === 'opened') {
+                const subject = context.payload.issue ?? context.payload.pull_request;
+                return { user: subject.user, association: subject.author_association };
+              }
+              return { user: context.payload.sender, association: null };
+            }
+
+            async function hasOutstandingTeamChangesRequested() {
+              const reviews = await github.paginate(github.rest.pulls.listReviews, {
+                owner,
+                repo,
+                pull_number: issue_number,
+                per_page: 100,
+              });
+              const latestByReviewer = new Map();
+              for (const review of reviews) {
+                if (!review.user?.login || review.state === 'PENDING') {
+                  continue;
+                }
+                const key = review.user.login.toLowerCase();
+                const previous = latestByReviewer.get(key);
+                if (!previous || review.id > previous.id) {
+                  latestByReviewer.set(key, review);
+                }
+              }
+
+              for (const review of latestByReviewer.values()) {
+                if (review.state === 'CHANGES_REQUESTED'
+                    && await actorKind(review.user, review.author_association) === 'team') {
+                  return true;
+                }
+              }
+              return false;
+            }
+
+            async function classify(item) {
+              if (context.eventName === 'workflow_dispatch') {
+                const requested = context.payload.inputs.turn;
+                if (requested === 'auto') {
+                  return { kind: 'normalize', label: normalizedTurn(item) };
+                }
+                if (!Object.hasOwn(LABELS, requested)) {
+                  throw new Error(`Invalid turn classification: ${requested}`);
+                }
+                return { kind: 'explicit', label: LABELS[requested].name };
+              }
+
+              const action = context.payload.action;
+              if ((context.eventName === 'issues' || context.eventName === 'pull_request_target')
+                  && (action === 'labeled' || action === 'unlabeled')) {
+                const changedLabel = context.payload.label?.name;
+                if (action === 'labeled'
+                    && TURN_LABELS.includes(changedLabel)
+                    && isHuman(context.payload.sender)) {
+                  return { kind: 'explicit', label: changedLabel };
+                }
+                return { kind: 'normalize', label: normalizedTurn(item) };
+              }
+
+              if (labelNames(item.issue).includes(LABELS.Blocked.name)) {
+                return { kind: 'event', label: LABELS.Blocked.name };
+              }
+              if (item.pull?.draft) {
+                return { kind: 'event', label: LABELS.Partner.name };
+              }
+
+              if (context.eventName === 'issues') {
+                if (action === 'opened' || action === 'reopened') {
+                  return { kind: 'event', label: LABELS.Microsoft.name };
+                }
+                if (action === 'edited') {
+                  const actor = eventActor();
+                  const kind = await actorKind(actor.user, actor.association);
+                  return kind === 'partner'
+                    ? { kind: 'event', label: LABELS.Microsoft.name }
+                    : { kind: 'normalize', label: normalizedTurn(item) };
+                }
+              }
+
+              if (context.eventName === 'pull_request_target') {
+                if (['opened', 'reopened', 'ready_for_review', 'synchronize'].includes(action)) {
+                  return { kind: 'event', label: LABELS.Microsoft.name };
+                }
+                if (action === 'edited') {
+                  const actor = eventActor();
+                  const kind = await actorKind(actor.user, actor.association);
+                  return kind === 'partner'
+                    ? { kind: 'event', label: LABELS.Microsoft.name }
+                    : { kind: 'normalize', label: normalizedTurn(item) };
+                }
+              }
+
+              if (context.eventName === 'issue_comment'
+                  || context.eventName === 'pull_request_review_comment') {
+                const actor = eventActor();
+                const kind = await actorKind(actor.user, actor.association);
+                if (kind === 'team') {
+                  return { kind: 'event', label: LABELS.Partner.name };
+                }
+                if (kind === 'partner') {
+                  return { kind: 'event', label: LABELS.Microsoft.name };
+                }
+                return { kind: 'normalize', label: normalizedTurn(item) };
+              }
+
+              if (context.eventName === 'pull_request_review') {
+                const actor = eventActor();
+                const kind = await actorKind(actor.user, actor.association);
+                if (kind === 'partner') {
+                  return { kind: 'event', label: LABELS.Microsoft.name };
+                }
+                if (kind === 'bot') {
+                  return { kind: 'normalize', label: normalizedTurn(item) };
+                }
+
+                const state = context.payload.review.state.toUpperCase();
+                if (state === 'APPROVED') {
+                  const outstanding = await hasOutstandingTeamChangesRequested();
+                  return {
+                    kind: 'event',
+                    label: outstanding ? LABELS.Partner.name : LABELS.Microsoft.name,
+                  };
+                }
+                if (state === 'CHANGES_REQUESTED' || state === 'COMMENTED') {
+                  return { kind: 'event', label: LABELS.Partner.name };
+                }
+              }
+
+              return { kind: 'normalize', label: normalizedTurn(item) };
+            }
+
+            let item = await readItem();
+            if (!item.open) {
+              core.info(`#${issue_number} is closed; no labels were changed.`);
+              return;
+            }
+
+            await verifyLabelDefinitions();
+            const decision = await classify(item);
+
+            // Refetch immediately before mutation so close, block, and draft changes win.
+            item = await readItem();
+            if (!item.open) {
+              core.info(`#${issue_number} was closed; no labels were changed.`);
+              return;
+            }
+
+            let selected = decision.label;
+            if (decision.kind === 'normalize') {
+              selected = normalizedTurn(item);
+            } else if (decision.kind !== 'explicit') {
+              const current = labelNames(item.issue);
+              if (current.includes(LABELS.Blocked.name)) {
+                selected = LABELS.Blocked.name;
+              } else if (item.pull?.draft) {
+                selected = LABELS.Partner.name;
+              }
+            }
+
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number,
+              labels: [selected],
+            });
+            for (const name of TURN_LABELS) {
+              if (name === selected) {
+                continue;
+              }
+              try {
+                await github.rest.issues.removeLabel({ owner, repo, issue_number, name });
+              } catch (error) {
+                if (error.status !== 404) {
+                  throw error;
+                }
+              }
+            }
+
+            const verified = await readItem();
+            const remaining = labelNames(verified.issue).filter(name => TURN_LABELS.includes(name));
+            if (remaining.length !== 1 || remaining[0] !== selected) {
+              throw new Error(`Failed to enforce exactly one turn label; found: ${remaining.join(', ') || 'none'}`);
+            }
+            core.info(`#${issue_number}: ${selected}`);
