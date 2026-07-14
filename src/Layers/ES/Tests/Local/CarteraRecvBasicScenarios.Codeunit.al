@@ -37,6 +37,10 @@
         CarterDocExistErr: Label 'Carter Document Exists';
         DirectDebitMandateIDErr: Label 'The direct debit mandate should be the same.';
         CustVendorBankAccountErr: Label 'The customer bank account should be the same.';
+        RealizedGainLossMissingErr: Label 'A realized gain/loss detailed ledger entry was expected for the payment application.';
+        RealizedGainLossAmountErr: Label 'The realized gain/loss detailed ledger entry should have a non-zero amount.';
+        RealizedGainLossLinkErr: Label 'The realized gain/loss detailed ledger entry should be linked to a customer ledger entry.';
+        GLEntryNotReversedErr: Label 'All G/L entries for the payment transaction should be reversed after the revert.';
 
     [Test]
     [Scope('OnPrem')]
@@ -1481,6 +1485,10 @@
         LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, CustLedgerEntry."Document Type"::Payment, GenJournalLine."Document No.");
         TransactionNo := CustLedgerEntry."Transaction No.";
 
+        // [GIVEN] The payment application produced realized gain/loss detailed ledger entries that are linked to the ledger,
+        // and the gain/loss G/L entries were created (this is the sensitive posting the reversal must be able to undo)
+        VerifyRealizedGainLossDtldEntriesLinked(TransactionNo);
+
         // [WHEN] Unapply entries and revert transaction
         LibraryERM.UnapplyCustomerLedgerEntry(CustLedgerEntry);
         LibraryERM.ReverseTransaction(TransactionNo);
@@ -1491,6 +1499,43 @@
         CustLedgerEntry.SetRange("Document No.", GenJournalLine."Document No.");
         CustLedgerEntry.SetRange(Reversed, true);
         Assert.RecordIsNotEmpty(CustLedgerEntry);
+
+        // [THEN] Every G/L entry of the payment transaction (including the gain/loss entries) is reversed,
+        // proving the pre-allocated gain/loss entry number stayed in sync and the transaction is fully reversible
+        VerifyPaymentTransactionGLEntriesReversed(TransactionNo);
+    end;
+
+    local procedure VerifyRealizedGainLossDtldEntriesLinked(TransactionNo: Integer)
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        DetailedCustLedgEntry.SetRange("Transaction No.", TransactionNo);
+        DetailedCustLedgEntry.SetFilter(
+          "Entry Type", '%1|%2',
+          DetailedCustLedgEntry."Entry Type"::"Realized Loss",
+          DetailedCustLedgEntry."Entry Type"::"Realized Gain");
+        Assert.IsFalse(DetailedCustLedgEntry.IsEmpty(), RealizedGainLossMissingErr);
+
+        DetailedCustLedgEntry.FindSet();
+        repeat
+            Assert.AreNotEqual(0, DetailedCustLedgEntry."Amount (LCY)", RealizedGainLossAmountErr);
+            Assert.AreNotEqual(0, DetailedCustLedgEntry."Cust. Ledger Entry No.", RealizedGainLossLinkErr);
+            Assert.IsTrue(CustLedgerEntry.Get(DetailedCustLedgEntry."Cust. Ledger Entry No."), RealizedGainLossLinkErr);
+        until DetailedCustLedgEntry.Next() = 0;
+    end;
+
+    local procedure VerifyPaymentTransactionGLEntriesReversed(TransactionNo: Integer)
+    var
+        GLEntry: Record "G/L Entry";
+    begin
+        GLEntry.SetRange("Transaction No.", TransactionNo);
+        Assert.IsFalse(GLEntry.IsEmpty(), GLEntryNotReversedErr);
+
+        GLEntry.FindSet();
+        repeat
+            Assert.IsTrue(GLEntry.Reversed, GLEntryNotReversedErr);
+        until GLEntry.Next() = 0;
     end;
 
     local procedure Initialize()

@@ -8474,7 +8474,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NeedsSaveEntryNoFix: Boolean;
     begin
         //
-        NeedsSaveEntryNoFix := (SaveEntryNo <> 0) and (NextEntryNo2 <> NextEntryNo);
+        // The saved entry number is only reused by the "DocAmountLCY <> 0" branch below, so restrict the fix to that
+        // case. For the other branches (Disc/Coll/Rej/Fact) keep the original NextEntryNo decrement so NextEntryNo stays
+        // in sync when DocAmountLCY is 0 while one of those amounts is non-zero.
+        NeedsSaveEntryNoFix := (SaveEntryNo <> 0) and (NextEntryNo2 <> NextEntryNo) and (DocAmountLCY <> 0);
         if not NeedsSaveEntryNoFix then
             if (DocAmountLCY <> 0) or (DiscDocAmountLCY <> 0) or (CollDocAmountLCY <> 0) or (RejDocAmountLCY <> 0) or
                (DiscRiskFactAmountLCY <> 0) or (DiscUnriskFactAmountLCY <> 0) or (CollFactAmountLCY <> 0)
