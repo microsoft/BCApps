@@ -177,6 +177,12 @@ page 2515 "AppSource Product List"
             Caption = 'Recently changed apps';
             OrderBy = descending(LastModifiedDateTime);
         }
+
+        view("Microsoft")
+        {
+            Caption = 'Microsoft apps';
+            Filters = where(PublisherType = filter(Microsoft));
+        }
     }
 
     var
