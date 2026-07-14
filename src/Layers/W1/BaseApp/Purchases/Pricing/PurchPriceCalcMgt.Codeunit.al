@@ -298,6 +298,7 @@ codeunit 7010 "Purch. Price Calc. Mgt."
         BestPurchPrice: Record "Purchase Price";
         BestPurchPriceFound: Boolean;
         IsHandled: Boolean;
+        InMinQty: Boolean;
     begin
         IsHandled := false;
         OnBeforeCalcBestDirectUnitCost(PurchPrice, BestPurchPrice, BestPurchPriceFound, IsHandled, SKU, Item);
@@ -307,7 +308,9 @@ codeunit 7010 "Purch. Price Calc. Mgt."
         FoundPurchPrice := PurchPrice.Find('-');
         if FoundPurchPrice then
             repeat
-                if IsInMinQty(PurchPrice."Unit of Measure Code", PurchPrice."Minimum Quantity") then begin
+                InMinQty := IsInMinQty(PurchPrice."Unit of Measure Code", PurchPrice."Minimum Quantity");
+                OnCalcBestDirectUnitCostOnAfterIsInMinQty(PurchPrice, QtyPerUOM, Qty, InMinQty);
+                if InMinQty then begin
                     OnCalcBestDirectUnitCostOnBeforeConvertPriceToVAT(PurchPrice);
                     ConvertPriceToVAT(
                       Vend."Prices Including VAT", Item."VAT Prod. Posting Group",
@@ -315,22 +318,25 @@ codeunit 7010 "Purch. Price Calc. Mgt."
                     ConvertPriceToUoM(PurchPrice."Unit of Measure Code", PurchPrice."Direct Unit Cost");
                     ConvertPriceLCYToFCY(PurchPrice."Currency Code", PurchPrice."Direct Unit Cost");
 
-                    case true of
-                        ((BestPurchPrice."Currency Code" = '') and (PurchPrice."Currency Code" <> '')) or
-                        ((BestPurchPrice."Variant Code" = '') and (PurchPrice."Variant Code" <> '')):
-                            begin
-                                BestPurchPrice := PurchPrice;
-                                BestPurchPriceFound := true;
-                            end;
-                        ((BestPurchPrice."Currency Code" = '') or (PurchPrice."Currency Code" <> '')) and
-                      ((BestPurchPrice."Variant Code" = '') or (PurchPrice."Variant Code" <> '')):
-                            if (BestPurchPrice."Direct Unit Cost" = 0) or
-                               (CalcLineAmount(BestPurchPrice) > CalcLineAmount(PurchPrice))
-                            then begin
-                                BestPurchPrice := PurchPrice;
-                                BestPurchPriceFound := true;
-                            end;
-                    end;
+                    IsHandled := false;
+                    OnCalcBestDirectUnitCostOnBeforeCaseStatement(PurchPrice, BestPurchPrice, BestPurchPriceFound, IsHandled, LineDiscPerCent);
+                    if not IsHandled then
+                        case true of
+                            ((BestPurchPrice."Currency Code" = '') and (PurchPrice."Currency Code" <> '')) or
+                            ((BestPurchPrice."Variant Code" = '') and (PurchPrice."Variant Code" <> '')):
+                                begin
+                                    BestPurchPrice := PurchPrice;
+                                    BestPurchPriceFound := true;
+                                end;
+                            ((BestPurchPrice."Currency Code" = '') or (PurchPrice."Currency Code" <> '')) and
+                          ((BestPurchPrice."Variant Code" = '') or (PurchPrice."Variant Code" <> '')):
+                                if (BestPurchPrice."Direct Unit Cost" = 0) or
+                                   (CalcLineAmount(BestPurchPrice) > CalcLineAmount(PurchPrice))
+                                then begin
+                                    BestPurchPrice := PurchPrice;
+                                    BestPurchPriceFound := true;
+                                end;
+                        end;
                 end;
             until PurchPrice.Next() = 0;
         IsHandled := false;
@@ -341,7 +347,7 @@ codeunit 7010 "Purch. Price Calc. Mgt."
         // No price found in agreement
         if not BestPurchPriceFound then begin
             IsHandled := false;
-            OnCalcBestDirectUnitCostOnBeforeNoPriceFound(BestPurchPrice, Item, IsHandled);
+            OnCalcBestDirectUnitCostOnBeforeNoPriceFound(BestPurchPrice, Item, IsHandled, PriceInSKU, SKU);
             if not IsHandled then begin
                 PriceInSKU := PriceInSKU and (SKU."Last Direct Cost" <> 0);
                 if PriceInSKU then
@@ -1120,7 +1126,17 @@ codeunit 7010 "Purch. Price Calc. Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCalcBestDirectUnitCostOnBeforeNoPriceFound(var PurchasePrice: Record "Purchase Price"; Item: Record Item; var IsHandled: Boolean)
+    local procedure OnCalcBestDirectUnitCostOnBeforeNoPriceFound(var PurchasePrice: Record "Purchase Price"; Item: Record Item; var IsHandled: Boolean; var PriceInSKU: Boolean; var StockkeepingUnit: Record "Stockkeeping Unit")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcBestDirectUnitCostOnAfterIsInMinQty(var PurchasePrice: Record "Purchase Price"; QtyPerUOM: Decimal; Qty: Decimal; var InMinQty: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCalcBestDirectUnitCostOnBeforeCaseStatement(var PurchasePrice: Record "Purchase Price"; var BestPurchasePrice: Record "Purchase Price"; var BestPurchPriceFound: Boolean; var IsHandled: Boolean; LineDiscPerCent: Decimal)
     begin
     end;
 
