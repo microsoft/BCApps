@@ -20638,5 +20638,17 @@
     "codeunitName": "ERM Tax Calc Mgt.",
     "method": "*",
     "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 144021,
+    "codeunitName": "Exch.Rate Adjmt. Prepmt. Purch",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
+  },
+  {
+    "codeunitId": 144517,
+    "codeunitName": "ERM Tax Register Mgt.",
+    "method": "*",
+    "bug": "RU: tax accounting tests - RU tax-accounting demo data cannot be generated in W1 container (no RU language)"
   }
 ]
