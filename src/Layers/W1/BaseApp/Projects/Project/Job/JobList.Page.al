@@ -246,6 +246,16 @@ page 89 "Job List"
                     ShortCutKey = 'F7';
                     ToolTip = 'View this project''s statistics.';
                 }
+                action("Assigned Resources")
+                {
+                    ApplicationArea = Jobs;
+                    Caption = 'Assigned Resources';
+                    Image = Users;
+                    RunObject = Page "Job Assigned Resources";
+                    RunPageLink = "Job No." = field("No."),
+                                  "Job Task No." = const('');
+                    ToolTip = 'View or edit the resources that are assigned to this project. Project-level assignments apply to all tasks of the project.';
+                }
                 action(SalesInvoicesCreditMemos)
                 {
                     ApplicationArea = Jobs;
@@ -866,6 +876,9 @@ page 89 "Job List"
                 {
                 }
                 actionref("Job Task &Lines_Promoted"; "Job Task &Lines")
+                {
+                }
+                actionref("Assigned Resources_Promoted"; "Assigned Resources")
                 {
                 }
                 actionref("Ledger E&ntries_Promoted"; "Ledger E&ntries")
