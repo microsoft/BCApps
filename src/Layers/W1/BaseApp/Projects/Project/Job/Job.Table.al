@@ -889,7 +889,7 @@ table 167 Job
             AutoFormatType = 1;
             AutoFormatExpression = Rec."Currency Code";
             CalcFormula = - sum("Job WIP G/L Entry"."WIP Entry Amount" where("Job No." = field("No."),
-                                                                             Reverse = const(false),
+                                                                             Reversed = const(false),
                                                                              "Job Complete" = const(false),
                                                                              Type = filter("Applied Costs")));
             Caption = 'Applied Costs G/L Amount';
@@ -902,7 +902,7 @@ table 167 Job
             AutoFormatType = 1;
             AutoFormatExpression = Rec."Currency Code";
             CalcFormula = - sum("Job WIP G/L Entry"."WIP Entry Amount" where("Job No." = field("No."),
-                                                                             Reverse = const(false),
+                                                                             Reversed = const(false),
                                                                              "Job Complete" = const(false),
                                                                              Type = filter("Applied Sales")));
             Caption = 'Applied Sales G/L Amount';
@@ -1381,6 +1381,8 @@ table 167 Job
         JobArchiveManagement.AutoArchiveJob(Rec);
 
         DeleteRelatedJobTasks();
+
+        DeleteRelatedJobAssignedResources();
 
         CommentLine.SetRange("Table Name", CommentLine."Table Name"::Job);
         CommentLine.SetRange("No.", "No.");
@@ -2305,6 +2307,14 @@ table 167 Job
         JobTask.SetRange("Job No.", "No.");
         JobTask.SuspendDeletionCheck(true);
         JobTask.DeleteAll(true);
+    end;
+
+    local procedure DeleteRelatedJobAssignedResources()
+    var
+        JobAssignedResource: Record "Job Assigned Resource";
+    begin
+        JobAssignedResource.SetRange("Job No.", "No.");
+        JobAssignedResource.DeleteAll();
     end;
 
     procedure ToPriceSource(var PriceSource: Record "Price Source"; PriceType: Enum "Price Type")

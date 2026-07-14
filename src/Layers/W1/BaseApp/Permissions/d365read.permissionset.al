@@ -945,6 +945,8 @@ permissionset 1044 "D365 READ"
                   tabledata "Item Vendor" = R,
                   tabledata Job = R,
                   tabledata "Job Archive" = R,
+                  tabledata "Job Assigned Resource" = R,
+                  tabledata "Job Assigned Resource Archive" = R,
                   tabledata "Job Buffer" = R,
                   tabledata "Job Cue" = R,
                   tabledata "Job Difference Buffer" = R,

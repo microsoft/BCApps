@@ -22,36 +22,27 @@
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\Test Framework\\Test Libraries\\Any",
       "dvdFolder": "Applications\\TestFramework\\TestLibraries\\Any",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
-      "repositoryUrl": "https://github.com/microsoft/BCApps",
-      "allowedEnvironmentTypes": [
-        "Sandbox"
-      ]
+      "repositoryUrl": "https://github.com/microsoft/BCApps"
     },
     "Library Assert": {
       "isMultiCountry": true,
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\Test Framework\\Test Libraries\\Assert",
       "dvdFolder": "Applications\\TestFramework\\TestLibraries\\Assert",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
-      "repositoryUrl": "https://github.com/microsoft/BCApps",
-      "allowedEnvironmentTypes": [
-        "Sandbox"
-      ]
+      "repositoryUrl": "https://github.com/microsoft/BCApps"
     },
     "Library Variable Storage": {
       "isMultiCountry": true,
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\Test Framework\\Test Libraries\\Variable Storage",
       "dvdFolder": "Applications\\TestFramework\\TestLibraries\\Variable Storage",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
-      "repositoryUrl": "https://github.com/microsoft/BCApps",
-      "allowedEnvironmentTypes": [
-        "Sandbox"
-      ]
+      "repositoryUrl": "https://github.com/microsoft/BCApps"
     },
     "Prevent Metadata Updates": {
       "isMultiCountry": true,
@@ -59,7 +50,7 @@
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\Test Framework\\Test Stability Tools\\Prevent Metadata Updates",
       "dvdFolder": "Applications\\TestFramework\\TestStabilityTools\\PreventMetadataUpdates",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "repositoryUrl": "https://github.com/microsoft/BCApps"
     },
@@ -68,7 +59,7 @@
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\Test Framework\\Test Libraries\\Permissions Mock",
       "dvdFolder": "Applications\\TestFramework\\TestLibraries\\Permissions Mock",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "repositoryUrl": "https://github.com/microsoft/BCApps"
     },
@@ -77,19 +68,16 @@
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\Test Framework\\Test Runner",
       "dvdFolder": "Applications\\TestFramework\\TestRunner",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
-      "repositoryUrl": "https://github.com/microsoft/BCApps",
-      "allowedEnvironmentTypes": [
-        "Sandbox"
-      ]
+      "repositoryUrl": "https://github.com/microsoft/BCApps"
     },
     "Performance Toolkit": {
       "isMultiCountry": true,
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\Performance Toolkit\\App",
       "dvdFolder": "Applications\\TestFramework\\PerformanceToolkit",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "repositoryUrl": "https://github.com/microsoft/BCApps"
     },
@@ -98,7 +86,7 @@
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\Performance Toolkit\\Test",
       "dvdFolder": "Applications\\TestFramework\\PerformanceToolkit",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isTest": true,
       "repositoryUrl": "https://github.com/microsoft/BCApps",
@@ -111,7 +99,7 @@
       "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\BCPT-SampleTests\\app.json",
       "dvdFolder": "Applications\\TestFramework\\PerformanceToolkit",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "unsupportedCountries": [
         "NA"
@@ -124,7 +112,7 @@
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Tools\\AI Test Toolkit",
       "dvdFolder": "Applications\\TestFramework\\AITestToolkit",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "repositoryUrl": "https://github.com/microsoft/BCApps",
       "installOnEnvironmentUpdate": true,
@@ -137,7 +125,7 @@
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\System Application\\App",
       "dvdFolder": "Applications\\System Application\\Source",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "blockUninstall": true,
       "installOnEnvironmentUpdate": true,
@@ -203,7 +191,7 @@
       "projectPath": "$env:INETROOT\\App\\BCApps\\src\\Business Foundation\\App",
       "dvdFolder": "Applications\\BusinessFoundation\\Source",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "blockUninstall": true,
       "installOnEnvironmentUpdate": true,
@@ -272,7 +260,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\DotNetAliases",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -280,7 +268,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\Email",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -288,7 +276,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\Foundation\\Comments",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -296,7 +284,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\Foundation\\Comments",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -304,7 +292,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\ApplicationArea",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -312,7 +300,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\AzureADAuthentication",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -320,7 +308,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\DevTools\\CodeCoverage",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -328,7 +316,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\DatabaseInformation",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -336,7 +324,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\DesignerDiagnostics",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -344,7 +332,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\ExceptionHandling",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -352,7 +340,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\ErrorMessage",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -360,7 +348,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\EventRecorder",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -368,7 +356,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\FileOperations",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -376,7 +364,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\ForwardLinks",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "logLevel": "warning",
       "isInternal": true
@@ -385,7 +373,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\JobQueue",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "logLevel": "warning",
       "isInternal": true
@@ -394,7 +382,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\Logging",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -402,7 +390,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\MemoryStorage",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -410,7 +398,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\Notifications",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -418,7 +406,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\ObjectSelection",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -426,7 +414,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\DotNetWrappers",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -434,7 +422,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\OnboardingSignal",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -442,7 +430,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\PageDesigner",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -450,7 +438,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\PageInspection",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -458,7 +446,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\PermissionSets",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -466,7 +454,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\PowerAutomate",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -474,7 +462,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\PowerBI",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "logLevel": "warning",
       "isInternal": true
@@ -483,7 +471,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\Profile",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -491,7 +479,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\RecordConversion",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -499,7 +487,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\RecordLookup",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -507,7 +495,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\RequestPage",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -515,7 +503,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\DateAndTime",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -523,7 +511,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\Device",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -531,7 +519,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\ExtensionManagement",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -539,7 +527,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\Media",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -547,7 +535,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\Translation",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -555,7 +543,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\PrinterManagement",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -563,7 +551,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\User",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -571,7 +559,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\WebRequest",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -579,7 +567,7 @@
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\BaseApp\\Modules\\System\\Xml",
       "isGDLProject": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "isInternal": true
     },
@@ -1902,7 +1890,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "API - Cross Environment Intercompany": {
@@ -1924,7 +1912,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Dynamics BC Excel Reports Tests": {
@@ -1934,7 +1922,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
@@ -1995,7 +1983,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Essential Business Headlines Test": {
@@ -2005,7 +1993,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Integrations"
     },
@@ -2082,7 +2070,7 @@
       "hasTranslations": true,
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Shopify Connector Test": {
@@ -2092,7 +2080,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "assemblyProbingFolders": [
         "$env:ProgramFiles\\dotnet\\shared\\Microsoft.AspNetCore.App\\$env:dotNetVersion",
@@ -2123,7 +2111,7 @@
       "skipInstallOnPrem": true,
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\SCM"
     },
@@ -2134,7 +2122,7 @@
       "supportedCountries": "All",
       "hasTranslations": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Data Search Tests": {
@@ -2144,7 +2132,7 @@
       "skipInstallOnPrem": true,
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\SCM"
     },
@@ -2156,7 +2144,7 @@
       "supportedCountries": "All",
       "hasTranslations": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Error Messages with Recommendations Tests": {
@@ -2166,7 +2154,7 @@
       "skipInstallOnPrem": true,
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Integrations"
     },
@@ -2178,7 +2166,7 @@
       "supportedCountries": "All",
       "hasTranslations": true,
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Troubleshoot FA Ledger Entries": {
@@ -2188,7 +2176,7 @@
       "hasTranslations": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Intelligent Cloud Base": {
@@ -2752,7 +2740,7 @@
       ],
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "IRS Forms Test Library": {
@@ -2765,7 +2753,7 @@
       "runStaticCodeAnalysis": true,
       "isTest": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "IRS Forms Tests": {
@@ -2778,7 +2766,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
@@ -3303,7 +3291,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "hasTranslations": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "External File Storage - Azure Blob Service Connector Tests": {
@@ -3314,7 +3302,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "hasTranslations": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "External File Storage - Azure File Service Connector": {
@@ -3324,7 +3312,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "hasTranslations": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "External File Storage - Azure File Service Connector Tests": {
@@ -3335,7 +3323,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "hasTranslations": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "External File Storage - SharePoint Connector": {
@@ -3345,7 +3333,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "hasTranslations": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "External File Storage - SharePoint Connector Tests": {
@@ -3356,7 +3344,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "hasTranslations": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "External File Storage - SFTP Connector": {
@@ -3366,7 +3354,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "hasTranslations": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "External File Storage - SFTP Connector Tests": {
@@ -3377,7 +3365,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "hasTranslations": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "External Storage - Document Attachments": {
@@ -3387,7 +3375,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "hasTranslations": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "External Storage - Document Attachments Tests": {
@@ -3398,7 +3386,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "hasTranslations": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Making Tax Digital Localization for United Kingdom": {
@@ -3474,7 +3462,7 @@
       "installOnEnvironmentUpdate": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
@@ -3486,7 +3474,7 @@
       "installOnEnvironmentUpdate": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
@@ -3498,7 +3486,7 @@
       "hasTranslations": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Quality Management Test Library": {
@@ -3508,7 +3496,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\SCM"
     },
@@ -3519,7 +3507,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\SCM"
     },
@@ -3532,7 +3520,7 @@
       "hasTranslations": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Subcontracting-Tests": {
@@ -3542,7 +3530,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\SCM"
     },
@@ -3661,7 +3649,7 @@
       ],
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Send remittance advice by email Tests": {
@@ -3678,7 +3666,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
@@ -3755,7 +3743,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Simplified Bank Statement Import Test": {
@@ -3765,7 +3753,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
@@ -3776,7 +3764,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Universal Print Integration": {
@@ -3786,7 +3774,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Customs Declaration Tracking for Russia": {
@@ -5079,7 +5067,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "hasTranslations": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Manufacturing Tests": {
@@ -5101,7 +5089,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "hasTranslations": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Service Management Tests": {
@@ -5176,7 +5164,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Sustainability Copilot Tests": {
@@ -5241,7 +5229,7 @@
         "RU"
       ],
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Expense Agent (Preview)": {
@@ -5488,7 +5476,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "hasTranslations": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Bank Account Reconciliation With AI Tests": {
@@ -5498,7 +5486,7 @@
       "runStaticCodeAnalysis": true,
       "isTest": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
@@ -5510,7 +5498,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "hasTranslations": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Sales Lines Suggestions Tests": {
@@ -5520,7 +5508,7 @@
       "runStaticCodeAnalysis": true,
       "isTest": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\SCM"
     },
@@ -5532,7 +5520,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "hasTranslations": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Automatic Account Codes": {
@@ -5571,7 +5559,7 @@
       "installOnEnvironmentUpdate": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Audit File Export Tests": {
@@ -5581,7 +5569,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
@@ -5725,7 +5713,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Payment Practices Test Library": {
@@ -5735,7 +5723,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
@@ -5746,7 +5734,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
@@ -5831,7 +5819,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "PEPPOL Tests": {
@@ -5843,7 +5831,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "PEPPOL NO": {
@@ -5854,7 +5842,7 @@
       "supportedCountries": "NO",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "PEPPOL BE": {
@@ -5865,7 +5853,7 @@
       "supportedCountries": "BE",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "PEPPOL NA": {
@@ -5880,7 +5868,7 @@
       ],
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "PEPPOL DE": {
@@ -5891,7 +5879,7 @@
       "supportedCountries": "DE",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core": {
@@ -5902,7 +5890,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Tests": {
@@ -5913,7 +5901,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Integrations"
     },
@@ -5927,7 +5915,7 @@
       ],
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data IT": {
@@ -5937,7 +5925,7 @@
       "supportedCountries": "IT",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data (US)": {
@@ -5947,7 +5935,7 @@
       "hasTranslations": true,
       "supportedCountries": "US",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data (GB)": {
@@ -5957,7 +5945,7 @@
       "hasTranslations": true,
       "supportedCountries": "GB",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data (AU)": {
@@ -5967,7 +5955,7 @@
       "hasTranslations": true,
       "supportedCountries": "AU",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data (NZ)": {
@@ -5977,7 +5965,7 @@
       "hasTranslations": true,
       "supportedCountries": "NZ",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data (FR)": {
@@ -5987,7 +5975,7 @@
       "hasTranslations": true,
       "supportedCountries": "FR",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data (NL)": {
@@ -5997,7 +5985,7 @@
       "hasTranslations": true,
       "supportedCountries": "NL",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data ES": {
@@ -6007,7 +5995,7 @@
       "hasTranslations": true,
       "supportedCountries": "ES",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data (DK)": {
@@ -6017,7 +6005,7 @@
       "hasTranslations": true,
       "supportedCountries": "DK",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data (CA)": {
@@ -6027,7 +6015,7 @@
       "hasTranslations": true,
       "supportedCountries": "CA",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data (DE)": {
@@ -6038,7 +6026,7 @@
       "supportedCountries": "DE",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data (BE)": {
@@ -6048,7 +6036,7 @@
       "hasTranslations": true,
       "supportedCountries": "BE",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data (NO)": {
@@ -6058,7 +6046,7 @@
       "hasTranslations": true,
       "supportedCountries": "NO",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data (SE)": {
@@ -6068,7 +6056,7 @@
       "hasTranslations": true,
       "supportedCountries": "SE",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data CH": {
@@ -6078,7 +6066,7 @@
       "hasTranslations": true,
       "supportedCountries": "CH",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data CZ": {
@@ -6088,7 +6076,7 @@
       "hasTranslations": true,
       "supportedCountries": "CZ",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data FI": {
@@ -6098,7 +6086,7 @@
       "hasTranslations": true,
       "supportedCountries": "FI",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Core Demo Data AT": {
@@ -6108,7 +6096,7 @@
       "hasTranslations": true,
       "supportedCountries": "AT",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Nemhandel Notification in Denmark": {
@@ -6142,7 +6130,7 @@
       "supportedCountries": "DK",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "IS Core": {
@@ -6175,7 +6163,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Enforced Digital Vouchers Test Library": {
@@ -6185,7 +6173,7 @@
       "runStaticCodeAnalysis": true,
       "isTest": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Enforced Digital Vouchers Tests": {
@@ -6195,7 +6183,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
@@ -6207,7 +6195,7 @@
       "supportedCountries": "DK",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Enforced Digital Vouchers Tests (DK)": {
@@ -6228,7 +6216,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Connector - Pagero Tests": {
@@ -6238,7 +6226,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Integrations"
     },
@@ -6249,7 +6237,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Connector - Avalara Tests": {
@@ -6259,7 +6247,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Integrations"
     },
@@ -6270,7 +6258,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true
     },
@@ -6281,7 +6269,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true,
       "owningteam": "\\AI Business Solutions\\Finance"
@@ -6293,7 +6281,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Connector - Logiq Tests": {
@@ -6303,7 +6291,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Integrations"
     },
@@ -6314,7 +6302,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Connector - SignUp Tests": {
@@ -6324,7 +6312,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Integrations"
     },
@@ -6335,7 +6323,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Connector - B2Brouter Tests": {
@@ -6345,7 +6333,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Connector - Continia": {
@@ -6355,7 +6343,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Connector - Continia Tests": {
@@ -6365,7 +6353,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Connector - ForNAV": {
@@ -6375,7 +6363,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Connector - ForNAV Tests": {
@@ -6385,7 +6373,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document format for OIOUBL": {
@@ -6409,7 +6397,7 @@
       ],
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Format for PINT A-NZ Tests": {
@@ -6422,7 +6410,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
@@ -6434,7 +6422,7 @@
       "supportedCountries": "ES",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document Format for Factura-E Tests": {
@@ -6444,7 +6432,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Integrations"
     },
@@ -6456,7 +6444,7 @@
       "installOnEnvironmentUpdate": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
@@ -6469,7 +6457,7 @@
       "installOnEnvironmentUpdate": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
@@ -6481,7 +6469,7 @@
       "installOnEnvironmentUpdate": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
@@ -6492,7 +6480,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
@@ -6504,7 +6492,7 @@
       "supportedCountries": "DE",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document for Germany Tests": {
@@ -6514,7 +6502,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Integrations"
     },
@@ -6525,7 +6513,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true
     },
@@ -6536,7 +6524,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true
     },
@@ -6547,7 +6535,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true,
       "owningteam": "\\AI Business Solutions\\Integrations"
@@ -6560,7 +6548,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Subscription Billing Demo Data": {
@@ -6574,7 +6562,7 @@
       ],
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Subscription Billing Tests": {
@@ -6585,7 +6573,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "AI Evaluate Tool": {
@@ -6606,7 +6594,7 @@
       "isTest": false,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true,
       "hasTranslations": true,
@@ -6622,7 +6610,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true
     },
@@ -6633,7 +6621,7 @@
       "isTest": false,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true,
       "hasTranslations": true,
@@ -6649,7 +6637,7 @@
       "isTest": false,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true,
       "installOnEnvironmentUpdate": true,
@@ -6717,7 +6705,7 @@
       "installOnEnvironmentUpdate": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true,
       "hasTranslations": true
@@ -6729,7 +6717,7 @@
       "isTest": false,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true,
       "hasTranslations": true,
@@ -6757,7 +6745,7 @@
       "isTest": false,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true,
       "hasTranslations": true,
@@ -6773,7 +6761,7 @@
       "isTest": false,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true,
       "hasTranslations": true,
@@ -6789,7 +6777,7 @@
       "isTest": false,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true,
       "hasTranslations": true,
@@ -6945,7 +6933,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true
     },
@@ -6956,7 +6944,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "PowerBI Reports Test Library": {
@@ -6966,7 +6954,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "PowerBI Reports Tests": {
@@ -6976,7 +6964,7 @@
       "supportedCountries": "All",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
@@ -6988,7 +6976,7 @@
       "runStaticCodeAnalysis": true,
       "installOnEnvironmentUpdate": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
       "skipInstallOnPrem": true
     },
@@ -7033,7 +7021,7 @@
       "supportedCountries": "GB",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "VAT Audit Reports GB Tests": {
@@ -7043,7 +7031,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Reverse Charge VAT GB": {
@@ -7054,7 +7042,7 @@
       "supportedCountries": "GB",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Reverse Charge VAT GB Tests": {
@@ -7064,7 +7052,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Extended Bank Deposit NA": {
@@ -7079,7 +7067,7 @@
       ],
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "MCP Test": {
@@ -7101,7 +7089,7 @@
       "isTest": false,
       "runStaticCodeAnalysis": false,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "GovTalk": {
@@ -7112,7 +7100,7 @@
       "supportedCountries": "GB",
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "GovTalk Tests": {
@@ -7122,7 +7110,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "GovTalk Demo Data": {
@@ -7133,7 +7121,7 @@
       "hasTranslations": true,
       "supportedCountries": "GB",
       "runStaticCodeAnalysis": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Reports GB": {
@@ -7144,7 +7132,7 @@
       "installOnEnvironmentUpdate": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Reports GB Tests": {
@@ -7154,7 +7142,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Posting Date Check On Posting": {
@@ -7165,7 +7153,7 @@
       "installOnEnvironmentUpdate": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Posting Date Check On Posting Tests": {
@@ -7175,7 +7163,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "E-Document AI Tests": {
@@ -7197,7 +7185,7 @@
       "installOnEnvironmentUpdate": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "FA Reports FR Tests": {
@@ -7207,7 +7195,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Withholding Tax": {
@@ -7276,7 +7264,7 @@
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
       "installOnEnvironmentUpdate": true,
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Payment Management FR-Tests": {
@@ -7286,7 +7274,7 @@
       "isTest": true,
       "runStaticCodeAnalysis": true,
       "logLevel": "warning",
-      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\base.ruleset.json",
       "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
     },
     "Excise Taxes": {
