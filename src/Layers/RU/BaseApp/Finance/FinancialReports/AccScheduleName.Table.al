@@ -120,7 +120,17 @@ table 84 "Acc. Schedule Name"
             Caption = 'Status';
             DataClassification = CustomerContent;
             TableRelation = "Financial Report Status";
+            ValidateTableRelation = false;
             ToolTip = 'Specifies the status code for the row definition. The status code helps you organize the lifecycle of your row definitions.';
+
+            trigger OnValidate()
+            var
+                FinancialReportStatus: Record "Financial Report Status";
+            begin
+                if not FinancialReportStatus.Get(Rec.Status) then
+                    Rec.Status := '';
+            end;
+
         }
         field(7; "Status Blocked"; Boolean)
         {
