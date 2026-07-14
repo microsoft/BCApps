@@ -234,6 +234,42 @@ Describe "Invoke-AlRunTestsWithReruns" {
     }
 }
 
+Describe "ConvertFrom-AlBatchOutput" {
+    It "splits batched output into per-codeunit result maps" {
+        $lines = @(
+            "Running tests in 2 codeunit(s) (batched)...",
+            "===== Codeunit 134001 =====",
+            "Test run completed: 1 passed, 1 failed, 0 skipped.",
+            "",
+            "Results:",
+            "  PASS MethodA (10ms)",
+            "  FAIL MethodB (5ms)",
+            "       boom",
+            "AL Callstack:",
+            "frame one",
+            "===== Codeunit 134002 =====",
+            "Test run completed: 1 passed, 0 failed, 0 skipped.",
+            "",
+            "Results:",
+            "  PASS MethodC (7ms)",
+            "",
+            "Test run completed: 2 passed, 1 failed, 0 skipped."
+        )
+        $res = ConvertFrom-AlBatchOutput -OutputLines $lines
+        $res.Keys.Count | Should -Be 2
+        $res["134001"]["MethodA"].Outcome | Should -Be "Pass"
+        $res["134001"]["MethodB"].Outcome | Should -Be "Fail"
+        $res["134001"]["MethodB"].Message | Should -Be "boom"
+        $res["134002"]["MethodC"].Outcome | Should -Be "Pass"
+        # The trailing aggregate "Test run completed" line must not create a phantom codeunit.
+        $res.ContainsKey("") | Should -Be $false
+    }
+
+    It "returns empty for output with no codeunit markers" {
+        (ConvertFrom-AlBatchOutput -OutputLines @("no markers here","just text")).Keys.Count | Should -Be 0
+    }
+}
+
 Describe "Invoke-AlToolTestRun JUnit append behavior" {
     It "appends new testsuites to an existing per-tenant file instead of overwriting" {
         # Simulate two apps (two Invoke-AlToolTestRun calls) writing to the same per-tenant file.
