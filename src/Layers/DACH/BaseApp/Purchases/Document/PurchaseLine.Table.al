@@ -2148,6 +2148,7 @@ table 39 "Purchase Line"
             trigger OnValidate()
             var
                 SpendRequest: Record "Spend Request";
+                SourceCodeSetup: Record "Source Code Setup";
                 DimensionSetIDArr: array[10] of Integer;
             begin
                 if Rec."Spend Request No." = '' then begin
@@ -2155,7 +2156,8 @@ table 39 "Purchase Line"
                     exit;
                 end;
 
-                SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", Rec."Unit Cost (LCY)" * Quantity);
+                SourceCodeSetup.Get();
+                SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", SourceCodeSetup.Purchases, Rec."Unit Cost (LCY)" * Quantity);
 
                 if SpendRequest."Dimension Set ID" <> 0 then begin
                     DimensionSetIDArr[1] := Rec."Dimension Set ID";
@@ -5569,8 +5571,10 @@ table 39 "Purchase Line"
     local procedure CheckSpendRequestAmount()
     var
         SpendRequest: Record "Spend Request";
+        SourceCodeSetup: Record "Source Code Setup";
     begin
-        SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", Rec."Unit Cost (LCY)" * Quantity);
+        SourceCodeSetup.Get();
+        SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", SourceCodeSetup.Purchases, Rec."Unit Cost (LCY)" * Quantity);
     end;
 
     local procedure UpdateJobFields()

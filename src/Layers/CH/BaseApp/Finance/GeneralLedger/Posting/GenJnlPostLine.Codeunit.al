@@ -2170,6 +2170,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         SpendReqToGLLink: Record "Spend Request To G/L Link";
         SpendRequest: Record "Spend Request";
         SpendRequestDetail: Record "Spend Request Detail";
+        IsHandled: Boolean;
     begin
         if GenJnlLine."Spend Request No." = '' then
             exit;
@@ -2196,12 +2197,15 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if GenJnlLine."Spend Request Close" then begin
             SpendRequest.ReadIsolation(IsolationLevel::UpdLock);
             SpendRequest.Get(GenJnlLine."Spend Request No.");
-            if SpendRequest.Status = SpendRequest.Status::Approved then begin
-                SpendRequest.Status := SpendRequest.Status::Closed;
-                SpendRequest."Closed At" := CurrentDateTime();
-                SpendRequest."Closed By Document No." := GLEntry."Document No.";
-                SpendRequest.Modify();
-            end;
+            IsHandled := false;
+            OnUpdateSpendRequestOnBeforeCloseApprovedSpendRequest(SpendRequest, GenJnlLine, GLEntry, IsHandled);
+            if not IsHandled then
+                if SpendRequest.Status = SpendRequest.Status::Approved then begin
+                    SpendRequest.Status := SpendRequest.Status::Closed;
+                    SpendRequest."Closed At" := CurrentDateTime();
+                    SpendRequest."Closed By Document No." := GLEntry."Document No.";
+                    SpendRequest.Modify();
+                end;
         end;
     end;
 
@@ -11227,6 +11231,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnPostUnapplyOnBeforeInsertTempVATEntry(var VATEntry: Record "VAT Entry"; var UnapplyVATEntries: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateSpendRequestOnBeforeCloseApprovedSpendRequest(var SpendRequest: Record "Spend Request"; var GenJnlLine: Record "Gen. Journal Line"; var GLEntry: Record "G/L Entry"; var IsHandled: Boolean)
     begin
     end;
 }
