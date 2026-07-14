@@ -571,6 +571,105 @@ codeunit 139611 "Shpfy Order Refund Test"
         LibraryAssert.AreEqual(SubtotalAmount - RefundSubtotalAmount, OrderHeader."Subtotal Amount", 'Subtotal Amount must be reduced by refund subtotal.');
     end;
 
+    [Test]
+    procedure UnitTestDoesNotCreateCrMemoFromRefundWithPendingTransaction()
+    var
+        SalesHeader: Record "Sales Header";
+        Shop: Record "Shpfy Shop";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        RefundId: BigInteger;
+        OrderId, OrderLineId : BigInteger;
+        ReturnId: BigInteger;
+    begin
+        // [SCENARIO] A credit memo is not created from a refund while it still has a pending transaction (Bug 640432).
+        Initialize();
+
+        // [GIVEN] Shop configured to auto create credit memos
+        Shop := InitializeTest.CreateShop();
+        Shop."Process Returns As" := "Sales Document Type"::"Credit Memo";
+        Shop.Modify(false);
+
+        // [GIVEN] A processed Shopify order with a return and a refund that can create a credit memo
+        CerateProcessedShopifyOrder(OrderId, OrderLineId);
+        CreateShopifyReturn(ReturnId, OrderId);
+        RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, ReturnId, 156.38, Shop.Code);
+        OrderRefundsHelper.CreateRefundLine(RefundId, OrderLineId, "Shpfy Restock Type"::Return);
+        // [GIVEN] The refund still has a pending transaction in Shopify
+        OrderRefundsHelper.CreateRefundTransaction(OrderId, RefundId, 156.38, "Shpfy Transaction Status"::Pending);
+
+        // [WHEN] Execute IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId)
+        IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId);
+
+        // [THEN] No sales document is created (creation is skipped and retried on a later sync)
+        LibraryAssert.AreEqual('', SalesHeader."No.", 'No credit memo must be created while the refund has a pending transaction.');
+    end;
+
+    [Test]
+    procedure UnitTestCreatesCrMemoFromRefundWithSucceededTransaction()
+    var
+        SalesHeader: Record "Sales Header";
+        Shop: Record "Shpfy Shop";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        RefundId: BigInteger;
+        OrderId, OrderLineId : BigInteger;
+        ReturnId: BigInteger;
+    begin
+        // [SCENARIO] The pending-transaction guard only blocks pending transactions; a succeeded transaction still creates the credit memo (Bug 640432).
+        Initialize();
+
+        // [GIVEN] Shop configured to auto create credit memos
+        Shop := InitializeTest.CreateShop();
+        Shop."Process Returns As" := "Sales Document Type"::"Credit Memo";
+        Shop.Modify(false);
+
+        // [GIVEN] A processed Shopify order with a return and a refund that can create a credit memo
+        CerateProcessedShopifyOrder(OrderId, OrderLineId);
+        CreateShopifyReturn(ReturnId, OrderId);
+        RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, ReturnId, 156.38, Shop.Code);
+        OrderRefundsHelper.CreateRefundLine(RefundId, OrderLineId, "Shpfy Restock Type"::Return);
+        // [GIVEN] The refund transaction has already succeeded
+        OrderRefundsHelper.CreateRefundTransaction(OrderId, RefundId, 156.38, "Shpfy Transaction Status"::Success);
+
+        // [WHEN] Execute IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId)
+        IReturnRefundProcess := Enum::"Shpfy ReturnRefund ProcessType"::"Auto Create Credit Memo";
+        SalesHeader := IReturnRefundProcess.CreateSalesDocument(Enum::"Shpfy Source Document Type"::Refund, RefundId);
+
+        // [THEN] A credit memo is created
+        LibraryAssert.AreEqual(Enum::"Sales Document Type"::"Credit Memo", SalesHeader."Document Type", 'A credit memo must be created when the refund transaction has succeeded.');
+        LibraryAssert.AreNotEqual('', SalesHeader."No.", 'The credit memo must have a number.');
+    end;
+
+    [Test]
+    procedure UnitTestVerifyRefundCanCreateCreditMemoErrorsWithPendingTransaction()
+    var
+        Shop: Record "Shpfy Shop";
+        OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
+        RefundsAPI: Codeunit "Shpfy Refunds API";
+        RefundId: BigInteger;
+        OrderId, OrderLineId : BigInteger;
+        ReturnId: BigInteger;
+    begin
+        // [SCENARIO] Manually verifying a refund that still has a pending transaction throws an error (Bug 640432).
+        Initialize();
+        Shop := InitializeTest.CreateShop();
+
+        // [GIVEN] A refund that can create a credit memo but still has a pending transaction
+        CerateProcessedShopifyOrder(OrderId, OrderLineId);
+        CreateShopifyReturn(ReturnId, OrderId);
+        RefundId := OrderRefundsHelper.CreateRefundHeader(OrderId, ReturnId, 156.38, Shop.Code);
+        OrderRefundsHelper.CreateRefundLine(RefundId, OrderLineId, "Shpfy Restock Type"::Return);
+        OrderRefundsHelper.CreateRefundTransaction(OrderId, RefundId, 156.38, "Shpfy Transaction Status"::Pending);
+
+        // [WHEN] Execute RefundsAPI.VerifyRefundCanCreateCreditMemo
+        asserterror RefundsAPI.VerifyRefundCanCreateCreditMemo(RefundId);
+
+        // [THEN] It throws the pending-transactions error
+        LibraryAssert.ExpectedError('This refund cannot be used to create a credit memo or return order yet because it has one or more pending transactions. The refunded amount is only final once the related transactions succeed. Retry after the transactions are no longer pending.');
+    end;
+
     local procedure Initialize()
     var
         OrderRefundsHelper: Codeunit "Shpfy Order Refunds Helper";
