@@ -774,6 +774,10 @@ codeunit 7017 "Price List Management"
                 end;
             until not PriceSourceList.Next(PriceSource);
         ClearSourceFilters(PriceListLine);
+        if NoFilter.Length = 0 then begin
+            BuildSourceFiltersByMarking(PriceListLine, PriceSourceList, MarkingIsUsed);
+            exit;
+        end;
         PriceListLine.SetRange("Source Type", SharedSourceType);
         PriceListLine.SetRange("Parent Source No.", SharedParent);
         PriceListLine.SetFilter("Source No.", NoFilter.ToText());
@@ -825,6 +829,7 @@ codeunit 7017 "Price List Management"
                 PriceListLine.SetRange("Source Type", PriceSource."Source Type");
                 PriceListLine.SetRange("Parent Source No.", PriceSource."Parent Source No.");
                 PriceListLine.SetRange("Source No.", PriceSource."Source No.");
+                OnBuildSourceFiltersOnBeforeFindLines(PriceListLine, PriceSource);
                 if not PriceListLine.IsEmpty() then begin
                     if not SharedSet then begin
                         SharedSourceType := PriceSource."Source Type";
