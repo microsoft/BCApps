@@ -1864,6 +1864,7 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
     procedure SvcLvlCodeIsNurgForNonEuroPayment()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
+        Currency: Record Currency;
         GenJournalLine: Record "Gen. Journal Line";
         TempBlob: Codeunit "Temp Blob";
         BlobOutStream: OutStream;
@@ -1876,16 +1877,50 @@ codeunit 134403 "ERM Test SEPA Credit Transfers"
         GeneralLedgerSetup.Validate("SEPA Non-Euro Export", true);
         GeneralLedgerSetup.Modify();
 
-        // [GIVEN] A payment journal line for vendor "V".
+        // [GIVEN] A payment journal line for vendor "V" in a non-euro currency "C".
+        LibraryERM.CreateCurrency(Currency);
+        LibraryERM.CreateRandomExchangeRate(Currency.Code);
+        CreateGenJnlLine(GenJournalLine);
+        GenJournalLine.Validate("Currency Code", Currency.Code);
+        GenJournalLine.Modify(true);
+
+        // [WHEN] Export the journal line using XmlPort "SEPA CT pain.001.001.09".
+        TempBlob.CreateOutStream(BlobOutStream);
+        Xmlport.Export(BankAccount.GetPaymentExportXMLPortID(), BlobOutStream, GenJournalLine);
+
+        // [THEN] The payment is exported with charge bearer "SHAR" and the instructed amount in currency "C".
+        LibraryXPathXMLReader.InitializeWithBlob(TempBlob, NamespaceTxt);
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//PmtInf/ChrgBr', 'SHAR');
+        LibraryXPathXMLReader.VerifyAttributeValue('InstdAmt', 'Ccy', Currency.Code);
+
+        // [THEN] The "PmtTpInf/SvcLvl/Cd" tag has value "NURG".
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//PmtInf/PmtTpInf/SvcLvl/Cd', 'NURG');
+    end;
+
+    [Test]
+    procedure SvcLvlCodeIsSepaForEuroPayment()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        TempBlob: Codeunit "Temp Blob";
+        BlobOutStream: OutStream;
+    begin
+        // [SCENARIO 641065] Exporting a euro payment in SEPA format with charge bearer "SLEV" keeps "SEPA" in the "SvcLvl/Cd" tag.
+        Init();
+
+        // [GIVEN] "SEPA Non-Euro Export" is disabled in General Ledger Setup, so charge bearer is "SLEV".
+        // [GIVEN] A euro payment journal line for vendor "V".
         CreateGenJnlLine(GenJournalLine);
 
         // [WHEN] Export the journal line using XmlPort "SEPA CT pain.001.001.09".
         TempBlob.CreateOutStream(BlobOutStream);
         Xmlport.Export(BankAccount.GetPaymentExportXMLPortID(), BlobOutStream, GenJournalLine);
 
-        // [THEN] The "PmtTpInf/SvcLvl/Cd" tag has value "NURG".
+        // [THEN] The payment is exported with charge bearer "SLEV".
         LibraryXPathXMLReader.InitializeWithBlob(TempBlob, NamespaceTxt);
-        LibraryXPathXMLReader.VerifyNodeValueByXPath('//PmtInf/PmtTpInf/SvcLvl/Cd', 'NURG');
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//PmtInf/ChrgBr', 'SLEV');
+
+        // [THEN] The "PmtTpInf/SvcLvl/Cd" tag has value "SEPA".
+        LibraryXPathXMLReader.VerifyNodeValueByXPath('//PmtInf/PmtTpInf/SvcLvl/Cd', 'SEPA');
     end;
 
     local procedure Init()
