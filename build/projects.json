@@ -7212,6 +7212,7 @@
     },
     "Withholding Tax": {
       "projectPath": "$env:INETROOT\\App\\Apps\\W1\\WithholdingTax\\app",
+      "hasTranslations": true,
       "supportedCountries": [
         "AT",
         "BE",
