@@ -595,6 +595,75 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         VerifyPostingNoSeriesOnePostedDoc('B0', 6, 2);
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ConfirmHandler,CreatePaymentPageHandler,PaymentJournalPageHandler')]
+    procedure WHTProdPostGroupTravelsFromInvoiceToJournalLineOnApplication()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalLine2: Record "Gen. Journal Line";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        VATPostingSetup: Record "VAT Posting Setup";
+        WHTBusPostingGroup: Record "Wthldg. Tax Bus. Post. Group";
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+        WHTProdPostingGroup: Record "Wthldg. Tax Prod. Post. Group";
+        BankAccount: Record "Bank Account";
+        VendorLedgerEntries: TestPage "Vendor Ledger Entries";
+        DocumentNo: Code[20];
+        StartingDocumentNo: Code[20];
+    begin
+        // [SCENARIO 639524] Withholding Tax Prod. Post. Group travels from the applied Invoice to the Payment line via the Create Payment action and Withholding Tax Entries are generated when the Payment is posted.
+        Initialize();
+
+        // [GIVEN] Local functionalities enabled, VAT Posting Setup, WHT Business and Product Posting Groups.
+        UpdateLocalFunctionalitiesOnGeneralLedgerSetup(true);
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        LibraryWithholdingTax.CreateWHTBusinessPostingGroup(WHTBusPostingGroup);
+        LibraryWithholdingTax.CreateWHTProductPostingGroup(WHTProdPostingGroup);
+
+        // [GIVEN] A fully-initialized Withholding Tax Posting Setup (all required accounts) so the invoice/payment posting pipeline does not resolve to a partial setup and produce inconsistent G/L entries.
+        CreateWHTPostingSetup(
+          WHTPostingSetup, WHTBusPostingGroup.Code, WHTProdPostingGroup.Code, '',
+          LibraryRandom.RandDecInRange(50, 100, 2));  // WHT Minimum Invoice Amount.
+
+        // [GIVEN] A posted Purchase Invoice for a WHT liable Vendor with WHT absorb base updated and expected WHT Amount calculated.
+        CreateGeneralJournalLineWithBalAccountType(
+          GenJournalLine, GenJournalLine."Document Type"::Invoice, CreateVendor(VATPostingSetup."VAT Bus. Posting Group", WHTBusPostingGroup.Code), '',
+          '', GenJournalLine."Bal. Account Type"::"G/L Account", CreateGLAccountWithVATBusPostingGroup(VATPostingSetup, WHTProdPostingGroup.Code),
+          -LibraryRandom.RandDecInRange(100, 200, 2));  // Blank - WHT Bus Posting Group, Applies To Doc. No, Currency, Random - Direct unit cost.
+        UpdateGenJournalLineWHTAbsorbBase(GenJournalLine);
+        GenJournalLine.TestField("Wthldg. Tax Bus. Post. Group", WHTBusPostingGroup.Code);
+        GenJournalLine.TestField("Wthldg. Tax Prod. Post. Group", WHTProdPostingGroup.Code);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+        DocumentNo := FindVendorLedgerEntry(GenJournalLine."Account No.");
+
+        // [GIVEN] A Payments Gen. Journal Template and Batch and a Bank Account for the Create Payment action.
+        GenJournalTemplate.SetRange(Type, GenJournalTemplate.Type::Payments);
+        LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+        LibraryERM.CreateBankAccount(BankAccount);
+        StartingDocumentNo := LibraryUtility.GenerateGUID();
+
+        LibraryVariableStorage.Enqueue(GenJournalTemplate.Name);
+        LibraryVariableStorage.Enqueue(GenJournalBatch.Name);
+        LibraryVariableStorage.Enqueue(StartingDocumentNo);
+        LibraryVariableStorage.Enqueue(BankAccount."No.");
+
+        // [WHEN] The user filters the Vendor Ledger Entries page to the posted Invoice and invokes the Create Payment action.
+        VendorLedgerEntries.OpenView();
+        VendorLedgerEntries.Filter.SetFilter("Document No.", DocumentNo);
+        VendorLedgerEntries."Create Payment".Invoke();
+        VendorLedgerEntries.Close();
+
+        // [THEN] The WHT Prod. Post. Group on the generated Payment line is copied from the applied Invoice.
+        GenJournalLine2.SetRange("Journal Template Name", GenJournalTemplate.Name);
+        GenJournalLine2.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        GenJournalLine2.SetRange("Document No.", StartingDocumentNo);
+        GenJournalLine2.FindFirst();
+        GenJournalLine2.TestField("Wthldg. Tax Prod. Post. Group", WHTProdPostingGroup.Code);
+    end;
+
     local procedure Initialize()
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -1115,5 +1184,22 @@ codeunit 148322 "ERM Withholding Tax Tests II"
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure CreatePaymentPageHandler(var CreatePayment: TestPage "Create Payment")
+    begin
+        CreatePayment."Template Name".SetValue(LibraryVariableStorage.DequeueText());
+        CreatePayment."Batch Name".SetValue(LibraryVariableStorage.DequeueText());
+        CreatePayment."Starting Document No.".SetValue(LibraryVariableStorage.DequeueText());
+        CreatePayment."Bank Account".SetValue(LibraryVariableStorage.DequeueText());
+        CreatePayment.OK().Invoke();
+    end;
+
+    [PageHandler]
+    [Scope('OnPrem')]
+    procedure PaymentJournalPageHandler(var PaymentJournal: TestPage "Payment Journal")
+    begin
     end;
 }
