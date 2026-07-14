@@ -19,6 +19,7 @@ page 20405 "Qlty. Inspection Gen. Rules"
     SourceTable = "Qlty. Inspection Gen. Rule";
     PopulateAllFields = true;
     SourceTableView = sorting("Sort Order", Intent);
+    AccessByPermission = tabledata "Qlty. Inspection Gen. Rule" = R;
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
     AboutTitle = 'About Quality Inspection Generation Rules';

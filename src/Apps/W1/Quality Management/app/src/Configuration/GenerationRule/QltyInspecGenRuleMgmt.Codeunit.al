@@ -15,6 +15,10 @@ using Microsoft.QualityManagement.Utilities;
 /// </summary>
 codeunit 20405 "Qlty. Inspec. Gen. Rule Mgmt."
 {
+    Permissions =
+        tabledata "Qlty. Inspection Gen. Rule" = r,
+        tabledata "Qlty. Inspect. Source Config." = r;
+
     var
         QltyConfigurationHelpers: Codeunit "Qlty. Configuration Helpers";
         QltyTraversal: Codeunit "Qlty. Traversal";

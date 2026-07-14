@@ -1,5 +1,8 @@
 # How to add a new automation
 
+> [!NOTE]
+> Automations run through `RunAutomation` are automatically skipped on branches that are out of support (branches with the "Branch is out of support" ruleset). No pull request is created for those branches, so you don't need to handle this in your automation.
+
 1. Create a folder in `.github\actions\RunAutomations`. The name of the folder is the name of the automation, e.g. "_UpdateAppBaselines_".
 2. Create a `run.ps1` file in the new folder. It should contain the script with the automation's logic.
    - The script can accept the following parameters:

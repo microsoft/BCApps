@@ -369,6 +369,25 @@ codeunit 22 "Item Jnl.-Post Line"
     /// <returns>True if item journal line was posted, otherwise false.</returns>
     procedure PostSplitJnlLine(var ItemJnlLineToPost: Record "Item Journal Line"; TrackingSpecExists: Boolean): Boolean
     var
+        IgnoreCommit: Boolean;
+    begin
+        IgnoreCommit := true;
+        OnSetCommitBehavior(IgnoreCommit);
+
+        if IgnoreCommit then
+            exit(PostSplitJnlLineCommitBehaviorIgnore(ItemJnlLineToPost, TrackingSpecExists));
+
+        exit(RunPostSplitJnlLine(ItemJnlLineToPost, TrackingSpecExists));
+    end;
+
+    [CommitBehavior(CommitBehavior::Ignore)]
+    local procedure PostSplitJnlLineCommitBehaviorIgnore(var ItemJnlLineToPost: Record "Item Journal Line"; TrackingSpecExists: Boolean): Boolean
+    begin
+        exit(RunPostSplitJnlLine(ItemJnlLineToPost, TrackingSpecExists));
+    end;
+
+    local procedure RunPostSplitJnlLine(var ItemJnlLineToPost: Record "Item Journal Line"; TrackingSpecExists: Boolean): Boolean
+    var
         PostItemJnlLine: Boolean;
     begin
         PostItemJnlLine := SetupSplitJnlLine(ItemJnlLineToPost, TrackingSpecExists);
@@ -6303,6 +6322,11 @@ codeunit 22 "Item Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforePostItemJnlLine(var ItemJournalLine: Record "Item Journal Line"; CalledFromAdjustment: Boolean; CalledFromInvtPutawayPick: Boolean; var ItemRegister: Record "Item Register"; var ItemLedgEntryNo: Integer; var ValueEntryNo: Integer; var ItemApplnEntryNo: Integer; var PhysicalInventoryEntryNo: Integer; var CapacityLedgerEntryNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSetCommitBehavior(var IgnoreCommit: Boolean)
     begin
     end;
 

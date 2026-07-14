@@ -15,6 +15,7 @@ page 20416 "Qlty. Inspection Result List"
     SourceTable = "Qlty. Inspection Result";
     SourceTableView = sorting("Evaluation Sequence");
     CardPageId = "Qlty. Inspection Result Card";
+    AccessByPermission = tabledata "Qlty. Inspection Result" = R;
     PageType = List;
     ApplicationArea = QualityManagement;
     UsageCategory = Lists;
