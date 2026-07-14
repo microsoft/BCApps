@@ -2706,9 +2706,6 @@ codeunit 6610 "FS Int. Table Subscriber"
         if CRMIntegrationRecord.FindByRecordID(ServiceItem.RecordId) then
             exit;
 
-        if ServiceItem."Item No." = '' then
-            exit;
-
         if not Item.Get(ServiceItem."Item No.") then
             exit;
 
