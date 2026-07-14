@@ -9,9 +9,6 @@ dotnet
 {
     assembly("netstandard")
     {
-        type("System.Security.Cryptography.RSA"; RSATest)
-        {
-        }
         type("System.TimeZoneInfo"; TimeZoneInfoTest)
         {
         }

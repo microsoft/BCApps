@@ -55,15 +55,15 @@ codeunit 132617 "RSA Test"
     procedure ImportPrivateKeyFromPem()
     var
         RSA: Codeunit RSA;
+        RSAImpl: Codeunit "RSA Impl.";
         KeyXml: XmlDocument;
         Root: XmlElement;
         Node: XmlNode;
-        DotNetRSA: DotNet RSATest;
         PrivateKeyPem: SecretText;
         KeyXmlText: SecretText;
     begin
-        DotNetRSA := DotNetRSA.Create(2048);
-        PrivateKeyPem := SecretStrSubstNo('%1', DotNetRSA.ExportRSAPrivateKeyPem());
+        RSAImpl.InitializeRSA(2048);
+        PrivateKeyPem := RSAImpl.ExportRSAPrivateKeyPem();
 
         KeyXmlText := RSA.ToSecretXmlString(PrivateKeyPem, true);
 
