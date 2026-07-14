@@ -8,14 +8,20 @@ codeunit 6121 "EDocument Json Helper"
 {
     Access = Internal;
 
+    var
+        MalformedAdiResponseTxt: label 'ADI response is missing the expected ''%1'' property; returning an empty object.', Locked = true;
+        TelemetryCategoryTxt: label 'E-Document Matching Assistance', Locked = true;
+
     internal procedure GetHeaderFields(SourceJsonObject: JsonObject): JsonObject
     var
         JsonToken: JsonToken;
         ContentObject, EmptyObject : JsonObject;
     begin
         ContentObject := GetInnerObject(SourceJsonObject);
-        if not ContentObject.Get('fields', JsonToken) then
+        if not ContentObject.Get('fields', JsonToken) then begin
+            Session.LogMessage('', StrSubstNo(MalformedAdiResponseTxt, 'fields'), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTxt);
             exit(EmptyObject);
+        end;
         exit(JsonToken.AsObject());
     end;
 
@@ -34,14 +40,20 @@ codeunit 6121 "EDocument Json Helper"
         JsonToken: JsonToken;
         OutputsObject, InnerObject, EmptyObject : JsonObject;
     begin
-        if not SourceJsonObject.Get('outputs', JsonToken) then
+        if not SourceJsonObject.Get('outputs', JsonToken) then begin
+            Session.LogMessage('', StrSubstNo(MalformedAdiResponseTxt, 'outputs'), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTxt);
             exit(EmptyObject);
+        end;
         OutputsObject := JsonToken.AsObject();
-        if not OutputsObject.Get('1', JsonToken) then
+        if not OutputsObject.Get('1', JsonToken) then begin
+            Session.LogMessage('', StrSubstNo(MalformedAdiResponseTxt, '1'), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTxt);
             exit(EmptyObject);
+        end;
         InnerObject := JsonToken.AsObject();
-        if not InnerObject.Get('result', JsonToken) then
+        if not InnerObject.Get('result', JsonToken) then begin
+            Session.LogMessage('', StrSubstNo(MalformedAdiResponseTxt, 'result'), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', TelemetryCategoryTxt);
             exit(EmptyObject);
+        end;
         exit(JsonToken.AsObject());
     end;
 
