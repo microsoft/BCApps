@@ -200,8 +200,6 @@ codeunit 7000000 CarteraManagement
             exit;
         CarteraDocuments.GetSelected(CarteraDoc);
         Clear(CarteraDocuments);
-        if not CarteraDoc.Find('-') then
-            exit;
         InsertSelectedReceivableDocs(GroupNo, BillGr, CarteraDoc);
     end;
 
@@ -218,6 +216,9 @@ codeunit 7000000 CarteraManagement
         SelectedAmount: Decimal;
         CustLedgEntryFound: Boolean;
     begin
+        if not CarteraDoc.Find('-') then
+            exit;
+
         if (BillGr."Dealing Type" = BillGr."Dealing Type"::Discount) and
            BankAcc.Get(BillGr."Bank Account No.") and
            (BillGr.Factoring = BillGr.Factoring::" ")
