@@ -52,6 +52,26 @@ codeunit 132617 "RSA Test"
     end;
 
     [Test]
+    procedure ImportPrivateKeyFromPem()
+    var
+        RSA: Codeunit RSA;
+        KeyXml: XmlDocument;
+        Root: XmlElement;
+        Node: XmlNode;
+        PrivateKeyPem: SecretText;
+        KeyXmlText: SecretText;
+    begin
+        PrivateKeyPem := SecretStrSubstNo('-----BEGIN RSA PRIVATE KEY-----MIICXgIBAAKBgQDtxUm71hwHVfLImtOwbV5k4xLolqdJpVan+kZP0UA16oRdqeW0dBxxeNexesPsf3N5dE8hvCojpIxHxuoWf4ZS4sPwcXVnIz18NwfT+/UZ9hJ2hZoX/b4Ulo0Id7oqgvDAcNr1qvKztTLtw1CgxHiAOs3UksOmDPpkNt/Y8iMZVQIDAQABAoGBAJ7YqczSWsFP2zXHsdrxBhnyVeSLGVGrIrxwCF80lWgvt6R3Z51p4MKyD69jK9cownWGjYMlGSXcvVcKfcLwCUS2uWACl7EI93ojgKFpzXVwxBdneqvZVqtrZq13RsyiEuVk1UhgmiBlnburS+xtXBXpVsSVjqMnG/Erk+2/wJu1AkEA8N6PLramcbi8FQke+qFKGd3IUxC3MkATpX6JA++e7kz/o36CtWJ1BOt00HqVoeJ7e/pWXIp8k+DDlw/nwO756wJBAPy05eOKNS4CoV8q9TDzvPkWQebFQWh1TgLBRu3wkCXb5LpUutHbzk92p/5W7lHAO4AQ7Zb6e9FuMnOjMWlwKb8CQQCWXVllAADH3VsMhrUgIK/xldIIiNbUN8wL9AH0wxGkEc1EcyWFtgD3IUW7H8tpU8lii9R90LYUWqu/Ed7LQmQhAkEAk7CtwqQdnHxRD6utjSSGRxVpApQ6O/CC3T1UVO+Jb3bqYLPwU4IhO3PfjtgDhKfSnnBGSzytbKL4vXidAkBZRQJAeTNRxIni1ahNhiirada9UPj8RkF1EcUtxlwAckvPttvCGsQ+VWOe4DEyMneMvyFzgL0h+sHEu5l7qRGzlWf94Q==-----END RSA PRIVATE KEY-----');
+
+        KeyXmlText := RSA.ToSecretXmlString(PrivateKeyPem, true);
+
+        LibraryAssert.IsTrue(XmlDocument.ReadFrom(GetXmlString(KeyXmlText), KeyXml), 'RSA key is not valid xml data.');
+        LibraryAssert.IsTrue(KeyXml.GetRoot(Root), 'Could not get Root element of key.');
+        LibraryAssert.IsTrue(Root.SelectSingleNode('Modulus', Node), 'Could not find <Modulus> in key.');
+        LibraryAssert.IsTrue(Root.SelectSingleNode('DQ', Node), 'Could not find <DQ> in key.');
+    end;
+
+    [Test]
     procedure TestSignDataAndVerifyDataWithMD5AndPSS()
     begin
         LibraryAssert.IsTrue(SignAndVerifyData(enum::"Hash Algorithm"::MD5, enum::"RSA Signature Padding"::Pss), 'Failed to verify signed data');
