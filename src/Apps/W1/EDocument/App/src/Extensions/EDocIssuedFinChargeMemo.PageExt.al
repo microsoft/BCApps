@@ -41,7 +41,9 @@ pageextension 6149 "E-Doc. Issued Fin. Charge Memo" extends "Issued Finance Char
                         EDocumentProcessing: Codeunit "E-Document Processing";
                     begin
                         if EDocumentProcessing.CreateEDocumentFromPostedDocumentPage(Rec, Enum::"E-Document Type"::"Issued Finance Charge Memo") then
-                            Message(EDocumentCreatedMsg);
+                            Message(EDocumentCreatedMsg)
+                        else
+                            Message(EDocumentNotCreatedMsg);
                     end;
                 }
             }
@@ -51,6 +53,7 @@ pageextension 6149 "E-Doc. Issued Fin. Charge Memo" extends "Issued Finance Char
     var
         EDocumentExists: Boolean;
         EDocumentCreatedMsg: Label 'The e-document has been created.';
+        EDocumentNotCreatedMsg: Label 'The e-document could not be created.';
 
     trigger OnAfterGetRecord()
     var
