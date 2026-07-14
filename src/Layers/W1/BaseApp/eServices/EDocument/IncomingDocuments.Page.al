@@ -800,10 +800,9 @@ page 190 "Incoming Documents"
         UpdateOCRSetupVisibility();
 
         Rec.FilterGroup(0);
-        if Rec.GetFilter(Processed) = '' then begin
-            Rec.SetRange(Processed, false);
-            ShowAllDocsIsEnable := false;
-        end else
+        if Rec.GetFilter(Processed) = '' then
+            SetProcessedDocumentsVisibility(false)
+        else
             ShowAllDocsIsEnable := Rec.GetFilter(Processed) <> Format(false);
     end;
 
