@@ -755,7 +755,7 @@ report 12121 "G/L Book - Print"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnPreDataItemOnAfterSetGLBookEntryFilters(var CheckGLBookEntry: Record "GL Book Entry"; var GLBookEntry: Record "GL Book Entry")
+    local procedure OnPreDataItemOnAfterSetGLBookEntryFilters(var CheckGLBookEntry: Record "GL Book Entry"; var SourceGLBookEntry: Record "GL Book Entry")
     begin
     end;
 }
