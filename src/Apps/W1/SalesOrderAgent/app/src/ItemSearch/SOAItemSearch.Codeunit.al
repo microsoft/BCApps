@@ -193,6 +193,7 @@ codeunit 4591 "SOA Item Search"
         CandidateArray: JsonArray;
         SearchKeyWordsTrimmed: List of [Text];
         SearchFilter: Text;
+        SearchQuery: Text;
         SplitSearchKeywords: Text;
         ItemFilter: Text;
         SelectedMatchingItemFilter: Text;
@@ -242,10 +243,10 @@ codeunit 4591 "SOA Item Search"
                 ApplyAvailabilityFilter := CheckAvailability and (SOASetup."Search Only Available Items" and not SOASetup."Incl. Capable to Promise");
 
                 // Run item selection for all candidate payloads so variant resolution is consistent.
-                if CandidateArray.Count() > 0 then
-                    if SelectBestItem(ItemFilter, BuildSearchQueryText(SearchKeyWordsTrimmed), CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants) then begin
-                        AddSameItemVariantAlternativesForMissingVariant(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, BuildSearchQueryText(SearchKeyWordsTrimmed));
-                        RemoveMatchingItemsWithBlankVariantAndSameItemAlternatives(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants);
+                if CandidateArray.Count() > 0 then begin
+                    SearchQuery := BuildSearchQueryText(SearchKeyWordsTrimmed);
+                    if SelectBestItem(ItemFilter, SearchQuery, CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants) then begin
+                        NormalizeVariantAlternatives(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, SearchQuery);
                         ItemSelectorUsed := true;
                         TelemetryCustomDimension.Add('ItemSelectorUsed', 'true');
                         TelemetryCustomDimension.Add('ItemSelectorMatchingCount', Format(CountFilterItems(SelectedMatchingItemFilter)));
@@ -255,6 +256,7 @@ codeunit 4591 "SOA Item Search"
                         ItemSelectorUsed := false;
                         TelemetryCustomDimension.Add('ItemSelectorUsed', 'false');
                     end;
+                end;
 
                 // When selector returns both sets, prefer available matching items.
                 // If none are available, retry availability filtering for alternatives.
@@ -347,6 +349,13 @@ codeunit 4591 "SOA Item Search"
         exit(false);
     end;
 
+    local procedure NormalizeVariantAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, Text]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, Text]; SearchQuery: Text)
+    begin
+        AddSameItemVariantAlternativesForMissingVariant(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, SearchQuery);
+        KeepSameItemVariantAlternativesOnly(SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants);
+        RemoveMatchingItemsWithBlankVariantAndSameItemAlternatives(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants);
+    end;
+
     local procedure AddSameItemVariantAlternativesForMissingVariant(SelectedMatchingItemFilter: Text; SelectedMatchingItemVariants: Dictionary of [Text, Text]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, Text]; SearchQuery: Text)
     var
         FallbackAlternativeItemVariants: Dictionary of [Text, Text];
@@ -389,6 +398,48 @@ codeunit 4591 "SOA Item Search"
 
         SelectedAlternativeItemFilter := FallbackAlternativeItemFilter;
         SelectedAlternativeItemVariants := FallbackAlternativeItemVariants;
+    end;
+
+    local procedure KeepSameItemVariantAlternativesOnly(SelectedMatchingItemFilter: Text; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, Text])
+    var
+        MatchingItemSystemIds: Dictionary of [Text, Boolean];
+        SameItemAlternativeItemVariants: Dictionary of [Text, Text];
+        AlternativeItemSystemId: Text;
+        MatchingItemSystemId: Text;
+        VariantCodes: Text;
+        SameItemAlternativeItemFilter: Text;
+    begin
+        if (SelectedMatchingItemFilter = '') or (SelectedAlternativeItemFilter = '') then
+            exit;
+
+        foreach MatchingItemSystemId in SelectedMatchingItemFilter.Split('|') do
+            if not MatchingItemSystemIds.ContainsKey(MatchingItemSystemId) then
+                MatchingItemSystemIds.Add(MatchingItemSystemId, true);
+
+        foreach AlternativeItemSystemId in SelectedAlternativeItemFilter.Split('|') do begin
+            if not MatchingItemSystemIds.ContainsKey(AlternativeItemSystemId) then
+                continue;
+            if not SelectedAlternativeItemVariants.ContainsKey(AlternativeItemSystemId) then
+                continue;
+
+            VariantCodes := SelectedAlternativeItemVariants.Get(AlternativeItemSystemId);
+            if VariantCodes = '' then
+                continue;
+
+            if SameItemAlternativeItemFilter = '' then
+                SameItemAlternativeItemFilter := AlternativeItemSystemId
+            else
+                SameItemAlternativeItemFilter += '|' + AlternativeItemSystemId;
+
+            if not SameItemAlternativeItemVariants.ContainsKey(AlternativeItemSystemId) then
+                SameItemAlternativeItemVariants.Add(AlternativeItemSystemId, VariantCodes);
+        end;
+
+        if SameItemAlternativeItemFilter = '' then
+            exit;
+
+        SelectedAlternativeItemFilter := SameItemAlternativeItemFilter;
+        SelectedAlternativeItemVariants := SameItemAlternativeItemVariants;
     end;
 
     local procedure HasVariantSignalForItem(ItemSystemId: Text; SearchQuery: Text): Boolean
