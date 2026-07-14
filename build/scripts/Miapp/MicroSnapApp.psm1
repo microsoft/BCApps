@@ -31,7 +31,7 @@ function Invoke-MiSnapApp
 
         [string[]] $actualFiles = $Files | select -Unique
         [string[]] $expectedFiles = $actualFiles | % { GetBranchedObjectFileNames "$(Get-GitRoot)/$_" } | select -Unique
-        [string[]] $missingFiles = $expectedFiles | ? { ($actualFiles -inotcontains $_) -and (Test-CountryLayerObjectDiffersFromW1 $_) }
+        [string[]] $missingFiles = $expectedFiles | ? { $actualFiles -inotcontains $_ }
 
         if($missingFiles) {
             Throw ("The following file(s) aren't in the changelist and still need to be integrated:"`
@@ -94,29 +94,3 @@ function GetBranchedObjectFileNames {
 }
 
 Export-ModuleMember *-*
-
-<#
-.SYNOPSIS
-Returns $true if the given country-layer file differs from its corresponding W1-layer object,
-or if no W1-layer object can be determined (preserving existing behavior for non-country-layer files).
-#>
-function Test-CountryLayerObjectDiffersFromW1 {
-    [CmdletBinding()]
-    [OutputType([bool])]
-    param(
-        [Parameter(Mandatory=$true)]
-        [ValidateNotNullOrEmpty()]
-        [string] $File
-    )
-
-    [string] $w1RelPath = Get-IntegrationBaseFilePath "$(Get-GitRoot)/$File"
-    if (-not $w1RelPath) {
-        return $true
-    }
-    [string] $w1AbsFile = "$(Get-GitRoot)/$w1RelPath"
-    if (-not (Test-Path $w1AbsFile)) {
-        return $true
-    }
-    (Get-FileHash "$(Get-GitRoot)/$File").Hash -ne (Get-FileHash $w1AbsFile).Hash
-}
-
