@@ -44,6 +44,8 @@ codeunit 11 "Gen. Jnl.-Check Line"
 {
     Permissions = tabledata "General Posting Setup" = rimd,
                   tabledata "Cost Accounting Setup" = R,
+                  tabledata "G/L Account" = r,
+                  tabledata "Spend Request" = r,
                   tabledata "Payment Terms" = R;
     TableNo = "Gen. Journal Line";
 

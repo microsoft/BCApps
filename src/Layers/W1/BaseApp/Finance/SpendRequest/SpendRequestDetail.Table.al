@@ -30,6 +30,7 @@ table 6841 "Spend Request Detail"
         {
             Caption = 'Description';
             ToolTip = 'Specifies a description of the spend request detail.';
+
             trigger OnValidate()
             begin
                 TestReqStatusOpen();
@@ -41,6 +42,7 @@ table 6841 "Spend Request Detail"
             ToolTip = 'Specifies the currency used for estimation. The currency amount will automatically be converted into Total Expected Amount (LCY)';
             DataClassification = CustomerContent;
             TableRelation = Currency;
+
             trigger OnValidate()
             begin
                 TestReqStatusOpen();
@@ -53,6 +55,7 @@ table 6841 "Spend Request Detail"
             AutoFormatExpression = Rec."Currency Code";
             AutoFormatType = 1;
             ToolTip = 'Specifies the expected amount of the spend request detail.';
+
             trigger OnValidate()
             begin
                 TestReqStatusOpen();
@@ -67,6 +70,7 @@ table 6841 "Spend Request Detail"
             DecimalPlaces = 0 : 5;
             InitValue = 1;
             ToolTip = 'Specifies the most recent exchange rate for the specified currency (1 = pari).';
+
             trigger OnValidate()
             begin
                 TestReqStatusOpen();
@@ -94,6 +98,11 @@ table 6841 "Spend Request Detail"
             ToolTip = 'The G/L Account that the expenses will be posted to.';
             DataClassification = CustomerContent;
             TableRelation = "G/L Account";
+
+            trigger OnValidate()
+            begin
+                TestReqStatusOpen();
+            end;
         }
     }
     keys
