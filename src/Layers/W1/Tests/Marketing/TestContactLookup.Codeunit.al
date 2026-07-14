@@ -570,7 +570,7 @@ codeunit 134837 "Test Contact Lookup"
         SalesQuote: TestPage "Sales Quote";
     begin
         // [FEATURE] [Sales Quote]
-        // [SCENARIO 641671] When "Sell-to Customer No." is set in a Sales Quote then on contact look up the contact list is filtered by the customer's contact "Company No." instead of showing all contacts.
+        // [SCENARIO 642199] When "Sell-to Customer No." is set in a Sales Quote then on "Sell-to Contact No." look up the contact list is filtered by the customer's contact "Company No." instead of showing all contacts.
         Initialize();
 
         // [GIVEN] Create Customer with a Contact.
@@ -582,9 +582,9 @@ codeunit 134837 "Test Contact Lookup"
         SalesQuote.OpenEdit();
         SalesQuote.GotoRecord(SalesHeader);
 
-        // [WHEN] Look up contact list from "Sell-to Contact".
+        // [WHEN] Look up contact list from "Sell-to Contact No.".
         LibraryVariableStorage.Enqueue(Customer."Primary Contact No.");
-        SalesQuote."Sell-to Contact".Lookup();
+        SalesQuote."Sell-to Contact No.".Lookup();
 
         // [THEN] Verify the contact list is filtered by the "Company No." of the customer's contact.
         // Verification in ContactListModalPageHandler
