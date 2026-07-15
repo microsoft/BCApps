@@ -41,7 +41,9 @@ pageextension 6144 "E-Doc. Posted Sales Inv." extends "Posted Sales Invoice"
                         EDocumentProcessing: Codeunit "E-Document Processing";
                     begin
                         if EDocumentProcessing.CreateEDocumentFromPostedDocumentPage(Rec, Enum::"E-Document Type"::"Sales Invoice") then
-                            Message(EDocumentCreatedMsg);
+                            Message(EDocumentCreatedMsg)
+                        else
+                            Message(EDocumentNotCreatedMsg);
                     end;
                 }
             }
@@ -51,6 +53,7 @@ pageextension 6144 "E-Doc. Posted Sales Inv." extends "Posted Sales Invoice"
     var
         EDocumentExists: Boolean;
         EDocumentCreatedMsg: Label 'The e-document has been created.';
+        EDocumentNotCreatedMsg: Label 'The e-document could not be created.';
 
     trigger OnAfterGetRecord()
     var

@@ -490,7 +490,14 @@ table 98 "General Ledger Setup"
             TableRelation = Currency;
 
             trigger OnValidate()
+            var
+                IsHandled: Boolean;
             begin
+                IsHandled := false;
+                OnBeforeValidateAdditionalReportingCurrency("Additional Reporting Currency", xRec."Additional Reporting Currency", IsHandled);
+                if IsHandled then
+                    exit;
+
                 if ("Additional Reporting Currency" <> xRec."Additional Reporting Currency") and
                    ("Additional Reporting Currency" <> '')
                 then begin
@@ -1880,6 +1887,19 @@ table 98 "General Ledger Setup"
     /// <param name="NewDimensionCode">New dimension code that was assigned</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateDimValueGlobalDimNo(ShortCutDimNo: Integer; OldDimensionCode: Code[20]; NewDimensionCode: Code[20])
+    begin
+    end;
+
+
+    /// <summary>
+    /// Integration event raised before validating the Additional Reporting Currency field.
+    /// Enables custom validation logic and the ability to bypass the standard adjustment and analysis view processing.
+    /// </summary>
+    /// <param name="AdditionalReportingCurrency">New additional reporting currency code being validated, can be modified by subscribers</param>
+    /// <param name="xRecAdditionalReportingCurrency">Previous additional reporting currency code before the change</param>
+    /// <param name="IsHandled">Set to true to bypass standard validation logic</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateAdditionalReportingCurrency(var AdditionalReportingCurrency: Code[10]; xRecAdditionalReportingCurrency: Code[10]; var IsHandled: Boolean)
     begin
     end;
 }
