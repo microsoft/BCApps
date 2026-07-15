@@ -845,7 +845,7 @@ codeunit 99000787 "Create Prod. Order Lines"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCreateProdOrderLineOnBeforeCreateProdOrderLineFromItem(var IsHandled: Boolean; var ErrorOccured: Boolean; ProductionOrder: Record "Production Order"; VariantCode: Code[10])
+    local procedure OnCreateProdOrderLineOnBeforeCreateProdOrderLineFromItem(var IsHandled: Boolean; var ErrorOccured: Boolean; var ProductionOrder: Record "Production Order"; VariantCode: Code[10])
     begin
     end;
 
