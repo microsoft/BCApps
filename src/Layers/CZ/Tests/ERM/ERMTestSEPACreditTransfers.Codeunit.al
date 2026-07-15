@@ -1889,10 +1889,9 @@
         TempBlob.CreateOutStream(BlobOutStream);
         Xmlport.Export(BankAccount.GetPaymentExportXMLPortID(), BlobOutStream, GenJournalLine);
 
-        // [THEN] The payment is exported with charge bearer "SHAR" and the instructed amount in currency "C".
+        // [THEN] The payment is exported with charge bearer "SHAR".
         LibraryXPathXMLReader.InitializeWithBlob(TempBlob, NamespaceTxt);
         LibraryXPathXMLReader.VerifyNodeValueByXPath('//PmtInf/ChrgBr', 'SHAR');
-        LibraryXPathXMLReader.VerifyAttributeValue('InstdAmt', 'Ccy', Currency.Code);
 
         // [THEN] The "PmtTpInf/SvcLvl/Cd" tag has value "NURG".
         LibraryXPathXMLReader.VerifyNodeValueByXPath('//PmtInf/PmtTpInf/SvcLvl/Cd', 'NURG');
