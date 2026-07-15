@@ -1221,15 +1221,18 @@ codeunit 144008 "EB - Payment Journal Export"
         Initialize();
 
         // Preparation: create settings
+        SetShowCurrencyToFCYSymbolOnly();
         CountryCode := FindCountryRegion();
         ExportProtocol := CreateSEPAExportProtocol(false);
 
         // Create payments
+        SetCurrencySymbol(ForeignCurrencyCode);
         VendorSwift := GenerateBankAccSwiftCode();
         VendorNo := CreateVendor(CountryCode, ExportProtocol, VendorSwift, VendorIbanTxt);
         InvAmount1 := CreateAndPostPurchInv(VendorNo, false);
         FirstForeignCurrencyCodeIso := ForeignCurrencyIso;
         CreateForeignCurrency(SecondForeignCurrencyCode, SecondForeignCurrencyCodeIso);
+        SetCurrencySymbol(SecondForeignCurrencyCode);
         ForeignCurrencyCode := SecondForeignCurrencyCode;
         ForeignCurrencyIso := SecondForeignCurrencyCodeIso;
         InvAmount2 := CreateAndPostPurchInv(VendorNo, false);
@@ -1953,57 +1956,6 @@ codeunit 144008 "EB - Payment Journal Export"
 
         // Tear Down.
         FileMgt.DeleteServerFile(FileName);
-    end;
-
-    [Test]
-    [HandlerFunctions('SuggestVendorPaymentsReportHandler,FileSEPAPaymentsReportHandlerNonEuro')]
-    procedure VerifyInstdAmtIsNumericWhenShowCurrencyIsFCYSymbolOnly()
-    var
-        FileName: Text;
-        CountryCode: Code[10];
-        ExportProtocol: Code[20];
-        FirstForeignCurrencyCodeIso: Code[3];
-        SecondForeignCurrencyCode: Code[10];
-        SecondForeignCurrencyCodeIso: Code[3];
-        Swift: Code[20];
-        VendorNo: Code[20];
-        VendorSwift: Code[20];
-        InvAmount1: Decimal;
-        InvAmount2: Decimal;
-    begin
-        // [SCENARIO 641821] Exported InstdAmt stays numeric when General Ledger Setup "Show Currency" = "FCY Symbol Only"
-        Initialize();
-
-        // [GIVEN] General Ledger Setup "Show Currency" set to "FCY Symbol Only"
-        SetShowCurrencyToFCYSymbolOnly();
-
-        // [GIVEN] Create a Country code and an Export Protocol for SEPA Payments.
-        CountryCode := FindCountryRegion();
-        ExportProtocol := CreateSEPAExportProtocol(false);
-
-        // [GIVEN] Create Two foreign currencies, each with a currency symbol, and two posted purchase invoices
-        SetCurrencySymbol(ForeignCurrencyCode);
-        VendorSwift := GenerateBankAccSwiftCode();
-        VendorNo := CreateVendor(CountryCode, ExportProtocol, VendorSwift, VendorIbanTxt);
-        InvAmount1 := CreateAndPostPurchInv(VendorNo, false);
-        FirstForeignCurrencyCodeIso := ForeignCurrencyIso;
-        CreateForeignCurrency(SecondForeignCurrencyCode, SecondForeignCurrencyCodeIso);
-        SetCurrencySymbol(SecondForeignCurrencyCode);
-        ForeignCurrencyCode := SecondForeignCurrencyCode;
-        ForeignCurrencyIso := SecondForeignCurrencyCodeIso;
-        InvAmount2 := CreateAndPostPurchInv(VendorNo, false);
-
-        // [WHEN] Suggest and Export Payments
-        Swift := GenerateBankAccSwiftCode();
-        ExportSuggestedPayment(
-          FileName, CountryCode, VendorNo, ExportProtocol, Swift, BankIbanTxt, ForeignCurrencyCode,
-          true, false, InterbankClearingCodeOptionRef::" ");
-
-        // [THEN] InstdAmt contains only the numeric amount and the Ccy attribute still contains the ISO currency code
-        VerifyXMLAmountCurrency(FileName, FirstForeignCurrencyCodeIso, SecondForeignCurrencyCodeIso, InvAmount1, InvAmount2);
-
-        FileMgt.DeleteServerFile(FileName);
-        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
