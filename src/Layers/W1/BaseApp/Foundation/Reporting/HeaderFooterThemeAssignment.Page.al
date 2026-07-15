@@ -150,6 +150,7 @@ page 9667 "Header/Footer Theme Assignment"
             exit;
         Rec."Header Part Name" := CopyStr(Composite, 1, MaxStrLen(Rec."Header Part Name"));
         HeaderPartDisplay := LookupHelper.DecodeLayoutName(Composite);
+        Rec.Modify();
         CurrPage.Update(false);
     end;
 
@@ -161,6 +162,7 @@ page 9667 "Header/Footer Theme Assignment"
             exit;
         Rec."Theme Part Name" := CopyStr(Composite, 1, MaxStrLen(Rec."Theme Part Name"));
         ThemePartDisplay := LookupHelper.DecodeLayoutName(Composite);
+        Rec.Modify();
         CurrPage.Update(false);
     end;
 
