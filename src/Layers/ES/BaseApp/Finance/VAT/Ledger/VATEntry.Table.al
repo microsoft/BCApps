@@ -1618,7 +1618,6 @@ table 254 "VAT Entry"
     local procedure OnAfterSetGLAccountNo(var VATEntry: Record "VAT Entry"; var IsHandled: Boolean; WithUI: Boolean)
     begin
     end;
-<<<<<<< src/Layers/ES/BaseApp/Finance/VAT/Ledger/VATEntry.Table.al
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateRates(var VATEntry: Record "VAT Entry"; VATPostingSetup: Record "VAT Posting Setup")
