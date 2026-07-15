@@ -8,13 +8,17 @@ using Microsoft.Assembly.Document;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Inventory.BOM;
+using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
+using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.StandardCost;
 using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using System.Environment.Configuration;
 
 codeunit 137911 "SCM Calculate Assembly Cost"
@@ -41,10 +45,16 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryPurchase: Codeunit "Library - Purchase";
         WorkDate2: Date;
         TEXT_PARENT: Label 'Parent';
         TEXT_CHILD: Label 'Child';
         TEXT_ItemA: Label 'ItemA';
+        AsmOverheadMissingErr: Label 'Assembly output should carry a manufacturing overhead.';
+        ProdOverheadMissingErr: Label 'Production output should carry a manufacturing overhead.';
+        AsmOverheadDriftedErr: Label 'Assembly manufacturing overhead drifted after recalculating the standard cost between cost adjustments.';
+        AsmOverheadDriftedTwoDecimalErr: Label 'Assembly manufacturing overhead drifted for a two-decimal Indirect Cost percentage.';
+        ProdOverheadAffectedErr: Label 'Production manufacturing overhead should not be affected by the assembly overhead recomputation.';
         Initialized: Boolean;
 
     [Test]
@@ -501,6 +511,136 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         Assert.RecordCount(ValueEntry, 0);
     end;
 
+    [Test]
+    procedure AsmStdOverheadStableAfterRecalcBetweenAdjmtsWithFractionalIndirectCost()
+    var
+        ComponentItem: Record Item;
+        AssemblyItem: Record Item;
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        OverheadBeforeCharge: Decimal;
+        OverheadAfterCharge: Decimal;
+    begin
+        // [SCENARIO] A standard-cost assembly item with a fractional "Indirect Cost %" (more than two
+        // decimals) keeps a stable manufacturing overhead when "Calc. Assembly Std. Cost" is re-run
+        // between cost adjustments, so a later item charge on a component does not introduce a spurious
+        // Manufacturing Overhead variance in the assembly output value entries.
+        Initialize();
+        LibraryInventory.SetAutomaticCostPosting(false);
+
+        // [GIVEN] A standard-cost purchased component and a standard-cost assembly item with "Indirect Cost %" = 1.12345 and BOM quantity per = 10
+        CreateStdCostAssemblyItemWithComponent(AssemblyItem, ComponentItem, 1.12345, 10);
+
+        // [GIVEN] The component is received and invoiced (100 pcs at unit cost 1.00), cost adjusted and the assembly standard cost calculated
+        PostPurchaseReceiptAndInvoice(ComponentItem."No.", 100, 1.0, PurchRcptLine);
+        LibraryCosting.AdjustCostItemEntries(ComponentItem."No.", '');
+        CalculateAssemblyStandardCost(AssemblyItem."No.");
+
+        // [GIVEN] An assembly order for quantity 10 is posted and cost adjusted
+        CreateAndPostAssemblyHeader(AssemblyItem."No.", 10, WorkDate2);
+        LibraryCosting.AdjustCostItemEntries(AssemblyItem."No.", '');
+
+        // [GIVEN] The manufacturing overhead of the assembly output after the first adjustment
+        OverheadBeforeCharge := GetOutputMfgOverhead(AssemblyItem."No.", Enum::"Item Ledger Entry Type"::"Assembly Output");
+        Assert.IsTrue(OverheadBeforeCharge > 0, AsmOverheadMissingErr);
+
+        // [WHEN] An item charge is posted on the component receipt, the assembly standard cost is recalculated between the adjustments, and cost is adjusted again
+        PostItemChargeOnReceipt(PurchRcptLine, 1.0);
+        CalculateAssemblyStandardCost(AssemblyItem."No.");
+        LibraryCosting.AdjustCostItemEntries('', '');
+
+        // [THEN] The manufacturing overhead of the assembly output is unchanged (no spurious Manufacturing Overhead variance)
+        OverheadAfterCharge := GetOutputMfgOverhead(AssemblyItem."No.", Enum::"Item Ledger Entry Type"::"Assembly Output");
+        Assert.AreEqual(
+          OverheadBeforeCharge, OverheadAfterCharge,
+          AsmOverheadDriftedErr);
+    end;
+
+    [Test]
+    procedure AsmStdOverheadStableWithTwoDecimalIndirectCost()
+    var
+        ComponentItem: Record Item;
+        AssemblyItem: Record Item;
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        OverheadBeforeCharge: Decimal;
+        OverheadAfterCharge: Decimal;
+    begin
+        // [SCENARIO] The same recalculate-between-adjustments flow with an "Indirect Cost %" that has at
+        // most two decimals stays correct: the clean case keeps a stable manufacturing overhead and the
+        // fix does not alter it.
+        Initialize();
+        LibraryInventory.SetAutomaticCostPosting(false);
+
+        // [GIVEN] A standard-cost purchased component and a standard-cost assembly item with "Indirect Cost %" = 1.00 and BOM quantity per = 10
+        CreateStdCostAssemblyItemWithComponent(AssemblyItem, ComponentItem, 1.0, 10);
+
+        // [GIVEN] The component is received and invoiced (100 pcs at unit cost 1.00), cost adjusted and the assembly standard cost calculated
+        PostPurchaseReceiptAndInvoice(ComponentItem."No.", 100, 1.0, PurchRcptLine);
+        LibraryCosting.AdjustCostItemEntries(ComponentItem."No.", '');
+        CalculateAssemblyStandardCost(AssemblyItem."No.");
+
+        // [GIVEN] An assembly order for quantity 10 is posted and cost adjusted
+        CreateAndPostAssemblyHeader(AssemblyItem."No.", 10, WorkDate2);
+        LibraryCosting.AdjustCostItemEntries(AssemblyItem."No.", '');
+
+        // [GIVEN] The manufacturing overhead of the assembly output after the first adjustment
+        OverheadBeforeCharge := GetOutputMfgOverhead(AssemblyItem."No.", Enum::"Item Ledger Entry Type"::"Assembly Output");
+        Assert.IsTrue(OverheadBeforeCharge > 0, AsmOverheadMissingErr);
+
+        // [WHEN] An item charge is posted on the component receipt, the assembly standard cost is recalculated between the adjustments, and cost is adjusted again
+        PostItemChargeOnReceipt(PurchRcptLine, 1.0);
+        CalculateAssemblyStandardCost(AssemblyItem."No.");
+        LibraryCosting.AdjustCostItemEntries('', '');
+
+        // [THEN] The manufacturing overhead of the assembly output is unchanged
+        OverheadAfterCharge := GetOutputMfgOverhead(AssemblyItem."No.", Enum::"Item Ledger Entry Type"::"Assembly Output");
+        Assert.AreEqual(
+          OverheadBeforeCharge, OverheadAfterCharge,
+          AsmOverheadDriftedTwoDecimalErr);
+    end;
+
+    [Test]
+    procedure ProdOrderStdOverheadUnaffectedByAssemblyBranch()
+    var
+        ComponentItem: Record Item;
+        ProdItem: Record Item;
+        ProductionBOMHeader: Record "Production BOM Header";
+        OverheadBeforeRecalc: Decimal;
+        OverheadAfterRecalc: Decimal;
+    begin
+        // [SCENARIO] A standard-cost production item with a fractional "Indirect Cost %" is not affected
+        // by the assembly-only overhead recomputation: re-running "Calculate Standard Cost" (the same flow
+        // that runs the assembly overhead branch) keeps the production item's single-level manufacturing
+        // overhead cost share stable.
+        Initialize();
+
+        // [GIVEN] A standard-cost component with a standard cost of 1.00
+        CreateItem(ComponentItem, ComponentItem."Costing Method"::Standard, ComponentItem."Replenishment System"::Purchase, 1.0);
+
+        // [GIVEN] A standard-cost production item with "Indirect Cost %" = 1.12345 and a certified production BOM (quantity per = 10)
+        CreateItem(ProdItem, ProdItem."Costing Method"::Standard, ProdItem."Replenishment System"::"Prod. Order", 0);
+        ProdItem.Validate("Indirect Cost %", 1.12345);
+        ProdItem.Modify(true);
+        LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, ComponentItem."No.", 10);
+        ProdItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
+        ProdItem.Modify(true);
+
+        // [GIVEN] The standard cost is calculated, giving the production item a manufacturing overhead cost share
+        CalculateProdStandardCost(ProdItem."No.");
+        ProdItem.Get(ProdItem."No.");
+        OverheadBeforeRecalc := ProdItem."Single-Level Mfg. Ovhd Cost";
+        Assert.IsTrue(OverheadBeforeRecalc > 0, ProdOverheadMissingErr);
+
+        // [WHEN] The standard cost is recalculated (the same flow that also runs the assembly overhead branch)
+        CalculateProdStandardCost(ProdItem."No.");
+
+        // [THEN] The production item's manufacturing overhead cost share is unchanged (the assembly-only branch does not run for production)
+        ProdItem.Get(ProdItem."No.");
+        OverheadAfterRecalc := ProdItem."Single-Level Mfg. Ovhd Cost";
+        Assert.AreEqual(
+          OverheadBeforeRecalc, OverheadAfterRecalc,
+          ProdOverheadAffectedErr);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Calculate Assembly Cost");
@@ -544,6 +684,22 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         CalculateStdCost.CalcItem(ItemNo, true);
     end;
 
+    local procedure CalculateProdStandardCost(ItemNo: Code[20])
+    var
+        Item: Record Item;
+        TempItem: Record Item temporary;
+        CalculateStdCost: Codeunit "Calculate Standard Cost";
+        ItemCostMgt: Codeunit ItemCostManagement;
+    begin
+        Item.SetRange("No.", ItemNo);
+        CalculateStdCost.SetProperties(WorkDate2, true, false, false, '', false);
+        CalculateStdCost.CalcItems(Item, TempItem);
+        if TempItem.FindSet() then
+            repeat
+                ItemCostMgt.UpdateStdCostShares(TempItem);
+            until TempItem.Next() = 0;
+    end;
+
     local procedure CreateAndPostAssemblyHeader(ItemNo: Code[20]; Qty: Decimal; DueDate: Date)
     var
         AssemblyHeader: Record "Assembly Header";
@@ -566,6 +722,86 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         Item.Validate("Replenishment System", ReplenishmentSystem);
         Item.Validate("Standard Cost", StandardCostAmt);
         Item.Modify(true);
+        EnsureGeneralPostingSetup(Item."Gen. Prod. Posting Group");
+    end;
+
+    local procedure EnsureGeneralPostingSetup(GenProdPostingGroup: Code[20])
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        TemplateGeneralPostingSetup: Record "General Posting Setup";
+    begin
+        if GeneralPostingSetup.Get('', GenProdPostingGroup) and (GeneralPostingSetup."Inventory Adjmt. Account" <> '') then
+            exit;
+
+        // Copy all accounts from an existing, fully configured General Posting Setup so the created
+        // combination is valid for inventory posting to G/L (e.g. Inventory Adjmt. Account).
+        TemplateGeneralPostingSetup.SetFilter("Inventory Adjmt. Account", '<>%1', '');
+        TemplateGeneralPostingSetup.FindFirst();
+
+        if not GeneralPostingSetup.Get('', GenProdPostingGroup) then begin
+            GeneralPostingSetup := TemplateGeneralPostingSetup;
+            GeneralPostingSetup."Gen. Bus. Posting Group" := '';
+            GeneralPostingSetup."Gen. Prod. Posting Group" := GenProdPostingGroup;
+            GeneralPostingSetup.Insert();
+        end else begin
+            TemplateGeneralPostingSetup."Gen. Bus. Posting Group" := GeneralPostingSetup."Gen. Bus. Posting Group";
+            TemplateGeneralPostingSetup."Gen. Prod. Posting Group" := GeneralPostingSetup."Gen. Prod. Posting Group";
+            GeneralPostingSetup := TemplateGeneralPostingSetup;
+            GeneralPostingSetup.Modify();
+        end;
+    end;
+
+    local procedure CreateStdCostAssemblyItemWithComponent(var AssemblyItem: Record Item; var ComponentItem: Record Item; IndirectCostPct: Decimal; QtyPer: Decimal)
+    begin
+        CreateItem(ComponentItem, ComponentItem."Costing Method"::Standard, ComponentItem."Replenishment System"::Purchase, 1.0);
+        CreateItem(AssemblyItem, AssemblyItem."Costing Method"::Standard, AssemblyItem."Replenishment System"::Assembly, 0);
+        AssemblyItem.Validate("Indirect Cost %", IndirectCostPct);
+        AssemblyItem.Modify(true);
+        CreateAssemblyListComponent(AssemblyItem."No.", ComponentItem."No.", QtyPer);
+    end;
+
+    local procedure PostPurchaseReceiptAndInvoice(ItemNo: Code[20]; Qty: Decimal; UnitCost: Decimal; var PurchRcptLine: Record "Purch. Rcpt. Line")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        LibraryPurchase.CreatePurchaseLineWithUnitCost(PurchaseLine, PurchaseHeader, ItemNo, UnitCost, Qty);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.SetRange("No.", ItemNo);
+        PurchRcptLine.FindFirst();
+    end;
+
+    local procedure PostItemChargeOnReceipt(PurchRcptLine: Record "Purch. Rcpt. Line"; ChargeAmount: Decimal)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ItemCharge: Record "Item Charge";
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, PurchRcptLine."Buy-from Vendor No.");
+        LibraryPurchase.CreateItemChargePurchaseLine(PurchaseLine, ItemCharge, PurchaseHeader, 1, ChargeAmount);
+        LibraryCosting.AssignItemChargePurch(PurchaseLine, PurchRcptLine);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+    end;
+
+    local procedure GetOutputMfgOverhead(ItemNo: Code[20]; OutputEntryType: Enum "Item Ledger Entry Type"): Decimal
+    var
+        ValueEntry: Record "Value Entry";
+        TotalOverhead: Decimal;
+    begin
+        ValueEntry.SetRange("Item No.", ItemNo);
+        ValueEntry.SetRange("Item Ledger Entry Type", OutputEntryType);
+        if ValueEntry.FindSet() then
+            repeat
+                if (ValueEntry."Entry Type" = ValueEntry."Entry Type"::"Indirect Cost") or
+                   ((ValueEntry."Entry Type" = ValueEntry."Entry Type"::Variance) and
+                    (ValueEntry."Variance Type" = ValueEntry."Variance Type"::"Manufacturing Overhead"))
+                then
+                    TotalOverhead += ValueEntry."Cost Amount (Actual)";
+            until ValueEntry.Next() = 0;
+        exit(TotalOverhead);
     end;
 
     local procedure PostPositiveAdjustment(ItemNo: Code[20]; Qty: Decimal)
