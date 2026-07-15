@@ -1857,6 +1857,8 @@ codeunit 22 "Item Jnl.-Post Line"
 
     local procedure TestFirstApplyItemLedgerEntryTracking(ItemLedgEntry: Record "Item Ledger Entry"; OldItemLedgEntry: Record "Item Ledger Entry"; ItemTrackingCode: Record "Item Tracking Code");
     begin
+        OnBeforeTestFirstApplyItemLedgerEntryTracking(ItemLedgEntry, OldItemLedgEntry, ItemTrackingCode);
+
         if ItemTrackingCode."SN Specific Tracking" then
             OldItemLedgEntry.TestField("Serial No.", ItemLedgEntry."Serial No.");
         if ItemLedgEntry."Drop Shipment" and (OldItemLedgEntry."Serial No." <> '') then
@@ -7444,6 +7446,11 @@ codeunit 22 "Item Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnTestFirstApplyItemLedgEntryOnAfterTestFields(ItemLedgerEntry: Record "Item Ledger Entry"; OldItemLedgerEntry: Record "Item Ledger Entry"; ItemJournalLine: Record "Item Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeTestFirstApplyItemLedgerEntryTracking(ItemLedgEntry: Record "Item Ledger Entry"; OldItemLedgEntry: Record "Item Ledger Entry"; var ItemTrackingCode: Record "Item Tracking Code")
     begin
     end;
 
