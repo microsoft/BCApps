@@ -129,6 +129,16 @@ codeunit 149042 "AIT Test Run Iteration"
         CurrAITTestSuite := GlobalAITTestSuite;
     end;
 
+    /// <summary>
+    /// Indicates whether an AIT test suite is currently driving execution (the app-based runner). Returns false when
+    /// a language-first data-driven test is executed directly on the platform test runner, in which case the
+    /// <see cref="AIT Test Handler"/> owns the per-case bracketing and logging instead of the event subscribers here.
+    /// </summary>
+    internal procedure IsRunningUnderAITSuite(): Boolean
+    begin
+        exit(ActiveAITTestSuite.Code <> '');
+    end;
+
     procedure AddToNoOfLogEntriesExecuted()
     begin
         NoOfExecutedLogEntries += 1;

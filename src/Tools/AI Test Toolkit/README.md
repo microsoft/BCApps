@@ -77,11 +77,15 @@ and context so any app can adopt this with no per-app framework code.
 - Annotate each eval method with `[TestDataSource(Codeunit::"AIT Test Data Source", '<dataset>')]`.
 - The method takes a single parameter of type `interface "AIT Test Case Context"` (which extends the platform
   `ITestContext`) and exposes the same input/output surface as the classic `AIT Test Context` codeunit.
+- Register the toolkit's per-case handler with `TestHandlers = "AIT Test Handler"`. Under the **platform** test
+  runner (no Eval Suite) this handler brackets each case — resetting per-case accuracy/turns/token accounting and
+  writing one `AIT Log Entry` per case — the work the classic runner does through its event subscribers.
 
 ```
 codeunit 50100 "My Copilot Eval"
 {
     Subtype = Test;
+    TestHandlers = "AIT Test Handler";
 
     [TestDataSource(Codeunit::"AIT Test Data Source", 'MY-DATASET')]
     procedure TestCopilotFeature(context: interface "AIT Test Case Context")
@@ -125,7 +129,9 @@ codeunit:
 3. **Body:** remove the `AITestContext: Codeunit "AIT Test Context"` variable and call the same methods on the
    `context` parameter (`GetInput`, `GetQuery`, `GetExpectedData`, `SetTestOutput`, `SetAccuracy`, `NextTurn`, …) —
    the names/signatures are identical.
-4. Leave everything else unchanged — `Subtype = Test`, `TestType = AITest`, `TestPermissions`, `SingleInstance`,
+4. **Handler:** add `TestHandlers = "AIT Test Handler"` to the codeunit so per-case logging/metrics engage when the
+   eval runs on the platform test runner (outside an Eval Suite).
+5. Leave everything else unchanged — `Subtype = Test`, `TestType = AITest`, `TestPermissions`, `SingleInstance`,
    and the eval logic.
 
 ```AL
@@ -140,7 +146,8 @@ begin
     AITestContext.SetTestOutput(Context, Question, Answer);
 end;
 
-// After  (drop the "AIT Test Context" var; receive the context as a parameter)
+// After  (drop the "AIT Test Context" var; receive the context as a parameter;
+//          add TestHandlers = "AIT Test Handler" to the codeunit)
 [TestDataSource(Codeunit::"AIT Test Data Source", 'AI-SDK-E2E-GPT41.YAML')]
 procedure GenerateChatCompletion(AITestContext: interface "AIT Test Case Context")
 begin
@@ -167,6 +174,7 @@ end;
 - [ ] `[Test]` → `[TestDataSource(Codeunit::"AIT Test Data Source", '<dataset>')]`
 - [ ] add the `context: interface "AIT Test Case Context"` parameter
 - [ ] drop the `Codeunit "AIT Test Context"` variable; use `context`
+- [ ] add `TestHandlers = "AIT Test Handler"` to the codeunit
 - [ ] whole-codeunit only (no mixed styles)
 - [ ] verify via the platform runner (AL Test Tool / `al runtests`) — cases appear as `Method[caseName]`
 
