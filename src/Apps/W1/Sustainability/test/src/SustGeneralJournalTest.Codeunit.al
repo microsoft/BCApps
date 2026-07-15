@@ -963,6 +963,8 @@ codeunit 148188 "Sust. General Journal Test"
     end;
 
     [PageHandler]
+    [Scope('OnPrem')]
+    procedure GLPostingPreviewHandler(var GLPostingPreview: TestPage "G/L Posting Preview")
     begin
         GLPostingPreview.Filter.SetFilter("Table ID", Format(Database::"Sustainability Ledger Entry"));
         GLPostingPreview."No. of Records".AssertEquals(2);
