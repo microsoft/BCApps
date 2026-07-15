@@ -292,7 +292,7 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
              GenJnlLine."Wthldg. Tax Prod. Post. Group")
         then
             if WithholdingPostingSetup."Realized Withholding Tax Type" = WithholdingPostingSetup."Realized Withholding Tax Type"::Earliest then
-                if Abs(GenJnlLine.Amount) < WithholdingPostingSetup."Wthldg. Tax Min. Inv. Amount" then
+                if not WithholdingTaxMgmt.ShouldCreateWithholdingTax(GenJnlLine.Amount, WithholdingPostingSetup) then
                     WithholdingAmountLCY := 0;
     end;
 
@@ -433,7 +433,7 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
 
         if WithholdingPostingSetup.Get(GenJnlLine."Wthldg. Tax Bus. Post. Group", GenJnlLine."Wthldg. Tax Prod. Post. Group") then
             if WithholdingPostingSetup."Realized Withholding Tax Type" = WithholdingPostingSetup."Realized Withholding Tax Type"::Earliest then
-                if GenJnlLine.Amount < WithholdingPostingSetup."Wthldg. Tax Min. Inv. Amount" then
+                if not WithholdingTaxMgmt.ShouldCreateWithholdingTax(GenJnlLine.Amount, WithholdingPostingSetup) then
                     WHTAmountLCY := 0;
     end;
 
@@ -670,12 +670,13 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
     local procedure IsAboveWithholdingMinInvAmount(GenJnlLine: Record "Gen. Journal Line"): Boolean
     var
         WithholdingPostingSetup: Record "Withholding Tax Posting Setup";
+        WithholdingTaxMgmt: Codeunit "Withholding Tax Mgmt.";
     begin
         if not (GenJnlLine."Document Type" in [GenJnlLine."Document Type"::Invoice, GenJnlLine."Document Type"::"Credit Memo"]) then
             exit(true);
 
         if WithholdingPostingSetup.Get(GenJnlLine."Wthldg. Tax Bus. Post. Group", GenJnlLine."Wthldg. Tax Prod. Post. Group") then
-            exit(Abs(GenJnlLine.Amount) >= WithholdingPostingSetup."Wthldg. Tax Min. Inv. Amount");
+            exit(WithholdingTaxMgmt.ShouldCreateWithholdingTax(GenJnlLine.Amount, WithholdingPostingSetup));
 
         exit(false);
     end;
@@ -852,7 +853,7 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
 
         if WithholdingPostingSetup.Get(GenJnlLine."Wthldg. Tax Bus. Post. Group", GenJnlLine."Wthldg. Tax Prod. Post. Group") then
             if WithholdingPostingSetup."Realized Withholding Tax Type" = WithholdingPostingSetup."Realized Withholding Tax Type"::Earliest then
-                if Abs(GenJnlLine.Amount) < WithholdingPostingSetup."Wthldg. Tax Min. Inv. Amount" then
+                if not WithholdingTaxMgmt.ShouldCreateWithholdingTax(GenJnlLine.Amount, WithholdingPostingSetup) then
                     WithholdingAmountLCY := 0;
     end;
 
