@@ -156,7 +156,7 @@ codeunit 20130 "App Object Helper"
         end;
     end;
 
-    procedure SearchObject(Type: ObjectType; var ObjectID: Integer; var ObjectName: Text);
+    procedure SearchObjectByIdOrName(Type: ObjectType; var ObjectID: Integer; var ObjectName: Text);
     var
         AllObj: Record AllObj;
         TmpObjectID: Integer;
@@ -192,12 +192,12 @@ codeunit 20130 "App Object Helper"
 
         AllObj.Reset();
         AllObj.SetRange("Object Type", ObjectTypeToOption(Type));
-        AllObj.SetRange(Name, Name);
+        AllObj.SetRange(AllObj.Name, Name);
         if AllObj.FindFirst() then
             exit(AllObj."Object ID");
     end;
 
-    procedure OpenObjectLookup(Type: ObjectType; SearchText: Text; var ObjectID: Integer; var ObjectName: Text);
+    procedure OpenObjectLookupByName(Type: ObjectType; SearchText: Text; var ObjectID: Integer; var ObjectName: Text);
     var
         AllObj: Record AllObj;
     begin
@@ -217,6 +217,26 @@ codeunit 20130 "App Object Helper"
             ObjectID := AllObj."Object ID";
             ObjectName := AllObj.Name;
         end;
+    end;
+
+    [Obsolete('Use SearchObjectByIdOrName(... var ObjectName: Text). Agent-safe fix: rename SearchObject to SearchObjectByIdOrName and change the var argument type from Text[30] to Text.', '26.0')]
+    procedure SearchObject(Type: ObjectType; var ObjectID: Integer; var ObjectName: Text[30]);
+    var
+        ObjectNameText: Text;
+    begin
+        ObjectNameText := ObjectName;
+        SearchObjectByIdOrName(Type, ObjectID, ObjectNameText);
+        ObjectName := CopyStr(ObjectNameText, 1, MaxStrLen(ObjectName));
+    end;
+
+    [Obsolete('Use OpenObjectLookupByName(... var ObjectName: Text). Agent-safe fix: rename OpenObjectLookup to OpenObjectLookupByName and change the var argument type from Text[30] to Text.', '26.0')]
+    procedure OpenObjectLookup(Type: ObjectType; SearchText: Text; var ObjectID: Integer; var ObjectName: Text[30]);
+    var
+        ObjectNameText: Text;
+    begin
+        ObjectNameText := ObjectName;
+        OpenObjectLookupByName(Type, SearchText, ObjectID, ObjectNameText);
+        ObjectName := CopyStr(ObjectNameText, 1, MaxStrLen(ObjectName));
     end;
 
     local procedure ObjectTypeToOption(Type: ObjectType): Option;

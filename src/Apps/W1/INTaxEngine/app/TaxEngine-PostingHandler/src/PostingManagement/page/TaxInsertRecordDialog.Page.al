@@ -26,12 +26,12 @@ page 20334 "Tax Insert Record Dialog"
                     ToolTip = 'Specifies the table name for Insert Record.';
                     trigger OnValidate();
                     begin
-                        AppObjectHelper.SearchObject(ObjectType::Table, Rec."Table ID", IntoTableName)
+                        AppObjectHelper.SearchObjectByIdOrName(ObjectType::Table, Rec."Table ID", IntoTableName)
                     end;
 
                     trigger OnLookup(var Text: Text): Boolean;
                     begin
-                        AppObjectHelper.OpenObjectLookup(ObjectType::Table, Text, Rec."Table ID", IntoTableName);
+                        AppObjectHelper.OpenObjectLookupByName(ObjectType::Table, Text, Rec."Table ID", IntoTableName);
                     end;
                 }
 

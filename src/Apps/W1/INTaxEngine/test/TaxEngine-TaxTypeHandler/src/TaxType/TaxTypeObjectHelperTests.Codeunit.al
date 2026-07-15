@@ -27,7 +27,7 @@
 
         // [WHEN] The function SearchTaxTypeTable is called by using table id
         TableName := '18';
-        TaxTypeObjectHelper.SearchTaxTypeTable(TableID, TableName, 'VAT', false);
+        TaxTypeObjectHelper.SearchTaxTypeTableByIdOrName(TableID, TableName, 'VAT', false);
 
         // [THEN] Table ID should be udpated with 18 and table name should be updated with Customer
         Assert.AreEqual(Database::Customer, TableID, 'Table ID should be 18');
@@ -50,7 +50,7 @@
 
         // [WHEN] The function SearchTaxTypeTable is called by using table name
         TableName := 'Customer';
-        TaxTypeObjectHelper.SearchTaxTypeTable(TableID, TableName, 'VAT', false);
+        TaxTypeObjectHelper.SearchTaxTypeTableByIdOrName(TableID, TableName, 'VAT', false);
 
         // [THEN] Table ID should be udpated with 18 and table name should be updated with Customer
         Assert.AreEqual(Database::Customer, TableID, 'Table ID should be 18');
@@ -73,7 +73,7 @@
 
         // [WHEN] The function SearchTaxTypeTable is called by using table name
         TableName := 'Sales Line';
-        TaxTypeObjectHelper.SearchTaxTypeTable(TableID, TableName, 'VAT', false);
+        TaxTypeObjectHelper.SearchTaxTypeTableByIdOrName(TableID, TableName, 'VAT', false);
 
         // [THEN] Table ID should be udpated with 18 and table name should be updated with Customer
         Assert.AreEqual(Database::"Sales Line", TableID, 'Table ID should be 37');
@@ -97,7 +97,7 @@
 
         // [WHEN] The function SearchTaxTypeTable is called by using table name
         TableName := 'Sales Linex';
-        asserterror TaxTypeObjectHelper.SearchTaxTypeTable(TableID, TableName, 'VAT', false);
+        asserterror TaxTypeObjectHelper.SearchTaxTypeTableByIdOrName(TableID, TableName, 'VAT', false);
 
         // [THEN] function should throw an error
         Assert.AreEqual(StrSubstNo(InvalidTableNoErr, TableName), GetLastErrorText, 'worng error message');
@@ -169,7 +169,7 @@
 
         // [WHEN] The function OpenTaxTypeTableLookup is called
         SearchText := 'Customer';
-        TaxTypeObjectHelper.OpenTaxTypeTableLookup(TableID, TableName, SearchText, 'VAT');
+        TaxTypeObjectHelper.OpenTaxTypeTableLookupByName(TableID, TableName, SearchText, 'VAT');
 
         // [THEN] TableID and TableName should be updated with Customer table name and Id
         Assert.AreEqual(Database::Customer, TableID, 'Table ID should be 18');
@@ -193,7 +193,7 @@
 
         // [WHEN] The function OpenTaxTypeTableLookup is called
         SearchText := '18';
-        TaxTypeObjectHelper.OpenTaxTypeTableLookup(TableID, TableName, SearchText, 'VAT');
+        TaxTypeObjectHelper.OpenTaxTypeTableLookupByName(TableID, TableName, SearchText, 'VAT');
 
         // [THEN] TableID and TableName should be updated with Customer table name and Id
         Assert.AreEqual(Database::Customer, TableID, 'Table ID should be 18');
@@ -217,7 +217,7 @@
 
         // [WHEN] The function OpenTaxTypeTransactionTableLookup is called
         SearchText := '36';
-        TaxTypeObjectHelper.OpenTaxTypeTransactionTableLookup(TableID, TableName, SearchText, 'VAT');
+        TaxTypeObjectHelper.OpenTaxTypeTransactionTableLookupByName(TableID, TableName, SearchText, 'VAT');
 
         // [THEN] TableID and TableName should be updated with Customer table name and Id
         Assert.AreEqual(Database::"Sales Header", TableID, 'Table ID should be 36');
@@ -241,7 +241,7 @@
 
         // [WHEN] The function OpenTaxTypeTransactionTableLookup is called
         SearchText := 'Salses Header';
-        TaxTypeObjectHelper.OpenTaxTypeTransactionTableLookup(TableID, TableName, SearchText, 'VAT');
+        TaxTypeObjectHelper.OpenTaxTypeTransactionTableLookupByName(TableID, TableName, SearchText, 'VAT');
 
         // [THEN] TableID and TableName should be updated with Customer table name and Id
         Assert.AreEqual(Database::"Sales Header", TableID, 'Table ID should be 36');

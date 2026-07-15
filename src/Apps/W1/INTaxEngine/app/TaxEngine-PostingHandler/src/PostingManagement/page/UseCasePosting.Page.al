@@ -30,13 +30,13 @@ page 20337 "Use Case Posting"
                     ApplicationArea = Basic, Suite;
                     trigger OnValidate()
                     begin
-                        AppObjectHelper.SearchObject(ObjectType::Table, "Posting Table ID", PostingTableName);
+                        AppObjectHelper.SearchObjectByIdOrName(ObjectType::Table, "Posting Table ID", PostingTableName);
                         Validate("Posting Table ID");
                     end;
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
-                        AppObjectHelper.OpenObjectLookup(ObjectType::Table, Text, "Posting Table ID", PostingTableName);
+                        AppObjectHelper.OpenObjectLookupByName(ObjectType::Table, Text, "Posting Table ID", PostingTableName);
                         Validate("Posting Table ID");
                     end;
                 }

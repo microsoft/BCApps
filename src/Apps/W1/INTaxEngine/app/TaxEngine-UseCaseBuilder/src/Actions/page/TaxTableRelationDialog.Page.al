@@ -42,7 +42,7 @@ page 20286 "Tax Table Relation Dialog"
                     begin
                         xTableID := "Source ID";
                         TaxUseCase.Get("Case ID");
-                        TaxTypeObjectHelper.SearchTaxTypeTable(
+                        TaxTypeObjectHelper.SearchTaxTypeTableByIdOrName(
                             "Source ID",
                             LookupTableName,
                             TaxUseCase."Tax Type",
@@ -56,7 +56,7 @@ page 20286 "Tax Table Relation Dialog"
                     begin
                         xTableID := "Source ID";
                         TaxUseCase.Get("Case ID");
-                        TaxTypeObjectHelper.OpenTaxTypeTableLookup(
+                        TaxTypeObjectHelper.OpenTaxTypeTableLookupByName(
                             "Source ID",
                             LookupTableName,
                             LookupTableName,

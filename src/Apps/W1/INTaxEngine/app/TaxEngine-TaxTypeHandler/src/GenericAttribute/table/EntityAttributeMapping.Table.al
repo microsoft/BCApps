@@ -40,9 +40,9 @@ table 20232 "Entity Attribute Mapping"
                 GenericAttribute.SetRange(ID, "Attribute ID");
                 GenericAttribute.FindFirst();
                 if GenericAttribute."Tax Type" = '' then
-                    AppObjectHelper.SearchObject(ObjectType::Table, "Entity ID", "Entity Name")
+                    AppObjectHelper.SearchObjectByIdOrName(ObjectType::Table, "Entity ID", "Entity Name")
                 else
-                    TaxTypeObjectHelper.SearchTaxTypeTable("Entity ID", "Entity Name", GenericAttribute."Tax Type", false);
+                    TaxTypeObjectHelper.SearchTaxTypeTableByIdOrName("Entity ID", "Entity Name", GenericAttribute."Tax Type", false);
             end;
 
             trigger OnLookup()
@@ -52,9 +52,9 @@ table 20232 "Entity Attribute Mapping"
                 GenericAttribute.SetRange(ID, "Attribute ID");
                 GenericAttribute.FindFirst();
                 if GenericAttribute."Tax Type" = '' then
-                    AppObjectHelper.OpenObjectLookup(ObjectType::Table, "Entity Name", "Entity ID", "Entity Name")
+                    AppObjectHelper.OpenObjectLookupByName(ObjectType::Table, "Entity Name", "Entity ID", "Entity Name")
                 else
-                    TaxTypeObjectHelper.OpenTaxTypeTableLookup("Entity ID", "Entity Name", "Entity Name", GenericAttribute."Tax Type");
+                    TaxTypeObjectHelper.OpenTaxTypeTableLookupByName("Entity ID", "Entity Name", "Entity Name", GenericAttribute."Tax Type");
             end;
         }
         field(5; ID; Guid)

@@ -68,13 +68,13 @@ page 20257 "Tax Attribute"
                         ApplicationArea = Basic, Suite;
                         trigger OnValidate();
                         begin
-                            AppObjectHelper.SearchObject(ObjectType::Table, "Refrence Table ID", TableNameText2);
+                            AppObjectHelper.SearchObjectByIdOrName(ObjectType::Table, "Refrence Table ID", TableNameText2);
                             Validate("Refrence Table ID");
                         end;
 
                         trigger OnLookup(var Text: Text): Boolean
                         begin
-                            AppObjectHelper.OpenObjectLookup(ObjectType::Table, Text, "Refrence Table ID", TableNameText2);
+                            AppObjectHelper.OpenObjectLookupByName(ObjectType::Table, Text, "Refrence Table ID", TableNameText2);
                             Validate("Refrence Table ID");
                         end;
                     }
@@ -102,12 +102,12 @@ page 20257 "Tax Attribute"
                         ApplicationArea = Basic, Suite;
                         trigger OnValidate();
                         begin
-                            AppObjectHelper.SearchObject(ObjectType::Page, "Lookup Page ID", PageNameText2);
+                            AppObjectHelper.SearchObjectByIdOrName(ObjectType::Page, "Lookup Page ID", PageNameText2);
                         end;
 
                         trigger OnLookup(var Text: Text): Boolean
                         begin
-                            AppObjectHelper.OpenObjectLookup(ObjectType::Page, Text, "Lookup Page ID", PageNameText2);
+                            AppObjectHelper.OpenObjectLookupByName(ObjectType::Page, Text, "Lookup Page ID", PageNameText2);
                         end;
                     }
                     field("Grouped In SubLedger"; "Grouped In SubLedger")

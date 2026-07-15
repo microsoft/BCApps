@@ -9,7 +9,7 @@ using Microsoft.Finance.TaxEngine.UseCaseBuilder;
 
 codeunit 20232 "Tax Type Object Helper"
 {
-    procedure SearchTaxTypeTable(var TableID: Integer; var TableName: Text; TaxType: Code[20]; IsTransactionTable: Boolean)
+    procedure SearchTaxTypeTableByIdOrName(var TableID: Integer; var TableName: Text; TaxType: Code[20]; IsTransactionTable: Boolean)
     var
         TaxEntity: Record "Tax Entity";
         TmpObjectID: Integer;
@@ -59,7 +59,7 @@ codeunit 20232 "Tax Type Object Helper"
             Error(InvalidAttributeValueErr, AttributeValue);
     end;
 
-    procedure OpenTaxTypeTableLookup(var TableID: Integer; var TableName: Text; SearchText: Text; TaxType: Code[20]);
+    procedure OpenTaxTypeTableLookupByName(var TableID: Integer; var TableName: Text; SearchText: Text; TaxType: Code[20]);
     var
         TaxEntity: Record "Tax Entity";
     begin
@@ -70,7 +70,7 @@ codeunit 20232 "Tax Type Object Helper"
             TaxEntity.Find('<>=');
         end else
             if SearchText <> '' then begin
-                TaxEntity."Table Name" := CopyStr(SearchText, 1, 30);
+                TaxEntity."Table Name" := CopyStr(SearchText, 1, MaxStrLen(TaxEntity."Table Name"));
                 TaxEntity.Find('<>=');
             end;
 
@@ -80,7 +80,7 @@ codeunit 20232 "Tax Type Object Helper"
         end;
     end;
 
-    procedure OpenTaxTypeTransactionTableLookup(var TableID: Integer; var TableName: Text; SearchText: Text; TaxType: Code[20]);
+    procedure OpenTaxTypeTransactionTableLookupByName(var TableID: Integer; var TableName: Text; SearchText: Text; TaxType: Code[20]);
     var
         TaxEntity: Record "Tax Entity";
     begin
@@ -92,7 +92,7 @@ codeunit 20232 "Tax Type Object Helper"
             TaxEntity.Find('<>=');
         end else
             if SearchText <> '' then begin
-                TaxEntity."Table Name" := CopyStr(SearchText, 1, 30);
+                TaxEntity."Table Name" := CopyStr(SearchText, 1, MaxStrLen(TaxEntity."Table Name"));
                 TaxEntity.Find('<>=');
             end;
 
@@ -100,6 +100,36 @@ codeunit 20232 "Tax Type Object Helper"
             TableID := TaxEntity."Table ID";
             TableName := TaxEntity."Table Name";
         end;
+    end;
+
+    [Obsolete('Use SearchTaxTypeTableByIdOrName(... var TableName: Text). Agent-safe fix: rename SearchTaxTypeTable to SearchTaxTypeTableByIdOrName and change the var argument type from Text[30] to Text.', '26.0')]
+    procedure SearchTaxTypeTable(var TableID: Integer; var TableName: Text[30]; TaxType: Code[20]; IsTransactionTable: Boolean)
+    var
+        TableNameText: Text;
+    begin
+        TableNameText := TableName;
+        SearchTaxTypeTableByIdOrName(TableID, TableNameText, TaxType, IsTransactionTable);
+        TableName := CopyStr(TableNameText, 1, MaxStrLen(TableName));
+    end;
+
+    [Obsolete('Use OpenTaxTypeTableLookupByName(... var TableName: Text). Agent-safe fix: rename OpenTaxTypeTableLookup to OpenTaxTypeTableLookupByName and change the var argument type from Text[30] to Text.', '26.0')]
+    procedure OpenTaxTypeTableLookup(var TableID: Integer; var TableName: Text[30]; SearchText: Text; TaxType: Code[20]);
+    var
+        TableNameText: Text;
+    begin
+        TableNameText := TableName;
+        OpenTaxTypeTableLookupByName(TableID, TableNameText, SearchText, TaxType);
+        TableName := CopyStr(TableNameText, 1, MaxStrLen(TableName));
+    end;
+
+    [Obsolete('Use OpenTaxTypeTransactionTableLookupByName(... var TableName: Text). Agent-safe fix: rename OpenTaxTypeTransactionTableLookup to OpenTaxTypeTransactionTableLookupByName and change the var argument type from Text[30] to Text.', '26.0')]
+    procedure OpenTaxTypeTransactionTableLookup(var TableID: Integer; var TableName: Text[30]; SearchText: Text; TaxType: Code[20]);
+    var
+        TableNameText: Text;
+    begin
+        TableNameText := TableName;
+        OpenTaxTypeTransactionTableLookupByName(TableID, TableNameText, SearchText, TaxType);
+        TableName := CopyStr(TableNameText, 1, MaxStrLen(TableName));
     end;
 
     procedure CreateComponentFormula(TaxTypeCode: Code[20]; ID: Integer): Guid;
@@ -264,24 +294,24 @@ codeunit 20232 "Tax Type Object Helper"
         Values.Add(TaxComponentFormulaToken.Token, ValueVariant)
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Script Symbol Lookup Dialog", 'OnValidateLookupTableName', '', false, false)]
-    local procedure OnValidateLookupTableName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text; IsTransactionTable: Boolean)
+    [EventSubscriber(ObjectType::Page, Page::"Script Symbol Lookup Dialog", 'OnValidateLookupTableNameByIdOrName', '', false, false)]
+    local procedure OnValidateLookupTableNameByIdOrName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text; IsTransactionTable: Boolean)
     var
         TaxUseCase: Record "Tax Use Case";
     begin
         TaxUseCase.SetRange(id, CaseID);
         TaxUseCase.FindFirst();
-        SearchTaxTypeTable(TableID, TableName, TaxUseCase."Tax Type", IsTransactionTable);
+        SearchTaxTypeTableByIdOrName(TableID, TableName, TaxUseCase."Tax Type", IsTransactionTable);
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Script Symbol Lookup Dialog", 'OnLookupLookupTableName', '', false, false)]
-    local procedure OnLookupLookupTableName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text; SearchText: Text)
+    [EventSubscriber(ObjectType::Page, Page::"Script Symbol Lookup Dialog", 'OnLookupLookupTableNameByName', '', false, false)]
+    local procedure OnLookupLookupTableNameByName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text; SearchText: Text)
     var
         TaxUseCase: Record "Tax Use Case";
     begin
         TaxUseCase.SetRange(id, CaseID);
         TaxUseCase.FindFirst();
-        OpenTaxTypeTableLookup(TableID, TableName, SearchText, TaxUseCase."Tax Type");
+        OpenTaxTypeTableLookupByName(TableID, TableName, SearchText, TaxUseCase."Tax Type");
     end;
 
     [IntegrationEvent(false, false)]

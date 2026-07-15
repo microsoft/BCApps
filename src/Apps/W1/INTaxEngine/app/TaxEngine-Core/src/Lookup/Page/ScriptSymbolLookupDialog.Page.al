@@ -90,9 +90,9 @@ page 20142 "Script Symbol Lookup Dialog"
                         if "Source Type" = "Source Type"::Table then begin
                             xTableID := "Source ID";
                             if GetShowFullLookup() then
-                                AppObjectHelper.SearchObject(ObjectType::Table, "Source ID", LookupTableName)
+                                AppObjectHelper.SearchObjectByIdOrName(ObjectType::Table, "Source ID", LookupTableName)
                             else
-                                OnValidateLookupTableName("Case ID", "Script ID", "Source ID", LookupTableName, false);
+                                RaiseValidateLookupTableName("Case ID", "Script ID", "Source ID", LookupTableName, false);
 
                             HandleTableChange(xTableID)
                         end;
@@ -106,9 +106,9 @@ page 20142 "Script Symbol Lookup Dialog"
                         if "Source Type" = "Source Type"::Table then begin
                             xTableID := "Source ID";
                             if GetShowFullLookup() then
-                                AppObjectHelper.OpenObjectLookup(ObjectType::Table, Text, "Source ID", LookupTableName)
+                                AppObjectHelper.OpenObjectLookupByName(ObjectType::Table, Text, "Source ID", LookupTableName)
                             else
-                                OnLookupLookupTableName("Case ID", "Script ID", "Source ID", LookupTableName, Text);
+                                RaiseLookupLookupTableName("Case ID", "Script ID", "Source ID", LookupTableName, Text);
 
                             HandleTableChange(xTableID);
                         end;
@@ -291,9 +291,9 @@ page 20142 "Script Symbol Lookup Dialog"
                         if "Source Type" = "Source Type"::"Attribute Table" then begin
                             xTableID := "Source ID";
                             if GetShowFullLookup() then
-                                AppObjectHelper.SearchObject(ObjectType::Table, "Source ID", LookupTableName)
+                                AppObjectHelper.SearchObjectByIdOrName(ObjectType::Table, "Source ID", LookupTableName)
                             else
-                                OnValidateLookupTableName("Case ID", "Script ID", "Source ID", LookupTableName, false);
+                                RaiseValidateLookupTableName("Case ID", "Script ID", "Source ID", LookupTableName, false);
 
                             HandleTableChange(xTableID)
                         end;
@@ -307,9 +307,9 @@ page 20142 "Script Symbol Lookup Dialog"
                             xTableID := "Source ID";
 
                             if GetShowFullLookup() then
-                                AppObjectHelper.OpenObjectLookup(ObjectType::Table, Text, "Source ID", LookupTableName)
+                                AppObjectHelper.OpenObjectLookupByName(ObjectType::Table, Text, "Source ID", LookupTableName)
                             else
-                                OnLookupLookupTableName("Case ID", "Script ID", "Source ID", LookupTableName, Text);
+                                RaiseLookupLookupTableName("Case ID", "Script ID", "Source ID", LookupTableName, Text);
 
                             HandleTableChange(xTableID);
                         end;
@@ -530,6 +530,40 @@ page 20142 "Script Symbol Lookup Dialog"
         exit(ExpectedDatatype);
     end;
 
+    local procedure RaiseValidateLookupTableName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text; IsTransactionTable: Boolean)
+    var
+        LegacyTableID: Integer;
+        LegacyTableName: Text[30];
+        LegacyTableNameBefore: Text[30];
+    begin
+        OnValidateLookupTableNameByIdOrName(CaseID, ScriptID, TableID, TableName, IsTransactionTable);
+
+        LegacyTableID := TableID;
+        LegacyTableName := CopyStr(TableName, 1, MaxStrLen(LegacyTableName));
+        LegacyTableNameBefore := LegacyTableName;
+        OnValidateLookupTableName(CaseID, ScriptID, TableID, LegacyTableName, IsTransactionTable);
+
+        if (TableID <> LegacyTableID) or (LegacyTableName <> LegacyTableNameBefore) then
+            TableName := LegacyTableName;
+    end;
+
+    local procedure RaiseLookupLookupTableName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text; SearchText: Text)
+    var
+        LegacyTableID: Integer;
+        LegacyTableName: Text[30];
+        LegacyTableNameBefore: Text[30];
+    begin
+        OnLookupLookupTableNameByName(CaseID, ScriptID, TableID, TableName, SearchText);
+
+        LegacyTableID := TableID;
+        LegacyTableName := CopyStr(TableName, 1, MaxStrLen(LegacyTableName));
+        LegacyTableNameBefore := LegacyTableName;
+        OnLookupLookupTableName(CaseID, ScriptID, TableID, LegacyTableName, SearchText);
+
+        if (TableID <> LegacyTableID) or (LegacyTableName <> LegacyTableNameBefore) then
+            TableName := LegacyTableName;
+    end;
+
     [IntegrationEvent(true, false)]
     procedure OnIsSourceTypeSymbolType(
         SymbolType: Enum "Symbol Type";
@@ -549,12 +583,24 @@ page 20142 "Script Symbol Lookup Dialog"
     end;
 
     [IntegrationEvent(false, false)]
-    procedure OnValidateLookupTableName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text; IsTransactionTable: Boolean)
+    procedure OnValidateLookupTableNameByIdOrName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text; IsTransactionTable: Boolean)
+    begin
+    end;
+
+    [Obsolete('Use OnValidateLookupTableNameByIdOrName(... var TableName: Text). Agent-safe fix: subscribe to OnValidateLookupTableNameByIdOrName and change var parameter type from Text[30] to Text.', '26.0')]
+    [IntegrationEvent(false, false)]
+    procedure OnValidateLookupTableName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text[30]; IsTransactionTable: Boolean)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    procedure OnLookupLookupTableName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text; SearchText: Text)
+    procedure OnLookupLookupTableNameByName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text; SearchText: Text)
+    begin
+    end;
+
+    [Obsolete('Use OnLookupLookupTableNameByName(... var TableName: Text). Agent-safe fix: subscribe to OnLookupLookupTableNameByName and change var parameter type from Text[30] to Text.', '26.0')]
+    [IntegrationEvent(false, false)]
+    procedure OnLookupLookupTableName(CaseID: Guid; ScriptID: Guid; var TableID: Integer; var TableName: Text[30]; SearchText: Text)
     begin
     end;
 

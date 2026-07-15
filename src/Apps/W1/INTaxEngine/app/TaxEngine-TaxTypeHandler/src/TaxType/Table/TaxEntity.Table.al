@@ -31,12 +31,12 @@ table 20257 "Tax Entity"
             Caption = 'Table Name';
             trigger OnValidate()
             begin
-                AppObjectHelper.SearchObject(ObjectType::Table, "Table ID", "Table Name");
+                AppObjectHelper.SearchObjectByIdOrName(ObjectType::Table, "Table ID", "Table Name");
             end;
 
             trigger OnLookup()
             begin
-                AppObjectHelper.OpenObjectLookup(ObjectType::Table, "Table Name", "Table ID", "Table Name");
+                AppObjectHelper.OpenObjectLookupByName(ObjectType::Table, "Table Name", "Table ID", "Table Name");
             end;
         }
         field(4; "Entity Type"; Option)

@@ -27,7 +27,7 @@ page 20201 "Script Record Variable"
                     ToolTip = 'Specifies the table name on record.';
                     trigger OnValidate();
                     begin
-                        AppObjectHelper.SearchObject(ObjectType::Table, "Table ID", RecordTableName);
+                        AppObjectHelper.SearchObjectByIdOrName(ObjectType::Table, "Table ID", RecordTableName);
                         if xRec."Table ID" <> "Table ID" then
                             UpdateDictionary();
                         UpdateControls();
@@ -35,7 +35,7 @@ page 20201 "Script Record Variable"
 
                     trigger OnLookup(var Text: Text): Boolean;
                     begin
-                        AppObjectHelper.OpenObjectLookup(ObjectType::Table, Text, "Table ID", RecordTableName);
+                        AppObjectHelper.OpenObjectLookupByName(ObjectType::Table, Text, "Table ID", RecordTableName);
                         if xRec."Table ID" <> "Table ID" then
                             UpdateDictionary();
                     end;

@@ -38,14 +38,14 @@ page 20308 "Use Case Card"
                     ToolTip = 'Specifies the source table considered for computing tax components.';
                     trigger OnValidate()
                     begin
-                        TaxTypeObjectHelper.SearchTaxTypeTable("Tax Table ID", TaxEntityName, "Tax Type", true);
+                        TaxTypeObjectHelper.SearchTaxTypeTableByIdOrName("Tax Table ID", TaxEntityName, "Tax Type", true);
                         CurrPage.SaveRecord();
                         FormatLine();
                     end;
 
                     trigger OnLookup(var Text: Text): Boolean
                     begin
-                        TaxTypeObjectHelper.OpenTaxTypeTransactionTableLookup("Tax Table ID", TaxEntityName, Text, "Tax Type");
+                        TaxTypeObjectHelper.OpenTaxTypeTransactionTableLookupByName("Tax Table ID", TaxEntityName, Text, "Tax Type");
                         CurrPage.SaveRecord();
                         FormatLine();
                     end;

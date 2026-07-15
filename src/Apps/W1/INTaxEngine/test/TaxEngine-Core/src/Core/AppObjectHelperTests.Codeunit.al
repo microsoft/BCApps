@@ -303,7 +303,7 @@
 
         // [WHEN] The function SearchObject is called.
         ObjectName := format(AllObj."Object ID");
-        AppObjHelper.SearchObject(ObjectType::Table, ObjectID, ObjectName);
+        AppObjHelper.SearchObjectByIdOrName(ObjectType::Table, ObjectID, ObjectName);
 
         // [THEN] it should update ObjectName variable with the Table name G/l Account.
         Assert.AreEqual(AllObj.Name, ObjectName, StrSubstNo(ObjectNameLbl, AllObj.Name));
@@ -426,7 +426,7 @@
 
         // [WHEN] The function OpenObjectLookup is called.
         ObjectID := AllObj."Object ID";
-        AppObjHelper.OpenObjectLookup(ObjectType::Table, SearchObjectName, ObjectID, ObjectName);
+        AppObjHelper.OpenObjectLookupByName(ObjectType::Table, SearchObjectName, ObjectID, ObjectName);
 
         // [THEN] it should update ObjectID variable with the Table ID of G/l Account.
         Assert.AreEqual(AllObj.Name, ObjectName, StrSubstNo(ObjectNameLbl, AllObj.Name));

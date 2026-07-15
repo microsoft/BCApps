@@ -62,7 +62,7 @@ page 20298 "Use Case Tree"
                             Rec."Use Case ID" := EmptyGuid;
                         end;
 
-                        AppObjHelper.SearchObject(ObjectType::Table, Rec."Table ID", TaxEntityName);
+                        AppObjHelper.SearchObjectByIdOrName(ObjectType::Table, Rec."Table ID", TaxEntityName);
                         if TaxEntityName = '' then
                             UseCaseTreeConditionMgmt.SetTablesCondition(Rec, '');
 
@@ -75,7 +75,7 @@ page 20298 "Use Case Tree"
                     var
                         AppObjHelper: Codeunit "App Object Helper";
                     begin
-                        AppObjHelper.OpenObjectLookup(ObjectType::Table, Text, Rec."Table ID", TaxEntityName);
+                        AppObjHelper.OpenObjectLookupByName(ObjectType::Table, Text, Rec."Table ID", TaxEntityName);
                         CurrPage.SaveRecord();
                         FormatLine();
                     end;

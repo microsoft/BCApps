@@ -26,13 +26,13 @@ page 20171 "Action Loop Through Rec. Dlg"
                     ToolTip = 'Specifies the table name for Looping through the records.';
                     trigger OnValidate();
                     begin
-                        AppObjectHelper.SearchObject(ObjectType::Table, "Table ID", FromTableName);
+                        AppObjectHelper.SearchObjectByIdOrName(ObjectType::Table, "Table ID", FromTableName);
                         ResetFields();
                     end;
 
                     trigger OnLookup(var Text: Text): Boolean;
                     begin
-                        AppObjectHelper.OpenObjectLookup(ObjectType::Table, Text, "Table ID", FromTableName);
+                        AppObjectHelper.OpenObjectLookupByName(ObjectType::Table, Text, "Table ID", FromTableName);
                         ResetFields();
                     end;
                 }
