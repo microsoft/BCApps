@@ -1324,6 +1324,95 @@ codeunit 134897 "ERM Source Currency"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure PaymentJournalFCYSourceCurrencyConsistency()
+    var
+        BankAccount: Record "Bank Account";
+        BankAccountPostingGroup: Record "Bank Account Posting Group";
+        Currency: Record Currency;
+        CurrencyExchangeRate: Record "Currency Exchange Rate";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        GenJournalLine: Record "Gen. Journal Line";
+        GLEntry: Record "G/L Entry";
+        Vendor: Record Vendor;
+        PostingDate: Date;
+        SourceCurrencyBalance: Decimal;
+        PaymentAmount: Decimal;
+    begin
+        // [SCENARIO] Payment Journal posting should keep Source Currency Amount balanced when Check Source Curr. Consistency is enabled.
+        // Bug repro: Posting a payment journal with vendor and bank account lines in CZK should not raise a G/L Entry inconsistency error.
+        Initialize();
+
+        PostingDate := DMY2Date(1, 1, 2026);
+        WorkDate := PostingDate;
+
+        // [GIVEN] A currency with the exchange rate from the bug repro.
+        Currency.Get(LibraryERM.CreateCurrencyWithGLAccountSetup());
+        CurrencyExchangeRate.SetRange("Currency Code", Currency.Code);
+        CurrencyExchangeRate.DeleteAll();
+        CreateCurrencyExchangeRate(Currency.Code, PostingDate, 6.796134, 1);
+
+        // [GIVEN] A bank account in that currency.
+        BankAccountPostingGroup.SetFilter("G/L Account No.", '<>''''');
+        BankAccountPostingGroup.FindFirst();
+        LibraryERM.CreateBankAccount(BankAccount);
+        BankAccount.Validate("Currency Code", Currency.Code);
+        BankAccount.Validate("Bank Acc. Posting Group", BankAccountPostingGroup.Code);
+        BankAccount.Modify(true);
+
+        // [GIVEN] Check Source Curr. Consistency is enabled.
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.Validate("Check Source Curr. Consistency", true);
+        GeneralLedgerSetup.Modify(true);
+
+        // [GIVEN] A vendor and a payment journal batch.
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate.Validate(Type, GenJournalTemplate.Type::Payments);
+        GenJournalTemplate.Modify(true);
+        LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
+
+        PaymentAmount := 2343.55;
+
+        // [GIVEN] First payment journal line for the vendor.
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine,
+            GenJournalBatch."Journal Template Name",
+            GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Payment,
+            GenJournalLine."Account Type"::Vendor,
+            Vendor."No.",
+            PaymentAmount);
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine.Validate("Currency Code", Currency.Code);
+        GenJournalLine.Modify(true);
+
+        // [GIVEN] Second payment journal line for the bank account in the same document.
+        GenJournalLine."Line No." := LibraryUtility.GetNewRecNo(GenJournalLine, GenJournalLine.FieldNo("Line No."));
+        GenJournalLine.Insert();
+        GenJournalLine.Validate("Posting Date", PostingDate);
+        GenJournalLine.Validate("Account Type", GenJournalLine."Account Type"::"Bank Account");
+        GenJournalLine.Validate("Account No.", BankAccount."No.");
+        GenJournalLine.Validate("Currency Code", Currency.Code);
+        GenJournalLine.Validate(GenJournalLine.Amount, -PaymentAmount);
+        GenJournalLine.Modify(true);
+
+        // [WHEN] The payment journal lines are posted.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] Source Currency Amount on posted G/L Entries should balance to 0.
+        GetGLEntries(GLEntry, GenJournalLine."Document No.", GenJournalLine."Document Type"::Payment);
+        repeat
+            Assert.AreEqual(Currency.Code, GLEntry."Source Currency Code", SourceCurrencyCodeErr);
+            SourceCurrencyBalance += GLEntry."Source Currency Amount";
+        until GLEntry.Next() = 0;
+
+        Assert.AreEqual(0, SourceCurrencyBalance, TotalSCYAmountNotZeroErr);
+    end;
+
+    [Test]
     procedure SalesInvoiceFCYWithExchRateAdjmtAndPayment()
     var
         Customer: Record Customer;

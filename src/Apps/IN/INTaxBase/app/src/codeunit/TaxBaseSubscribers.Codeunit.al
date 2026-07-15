@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.TaxBase;
 
 using Microsoft;
+using Microsoft.Finance.Deferral;
 using Microsoft.Finance.Dimension;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
@@ -279,6 +280,12 @@ codeunit 18544 "Tax Base Subscribers"
     begin
         if PurchLine.GetSkipTaxCalculation() then
             IsHandled := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Deferral Utilities", 'OnBeforeCheckDeferralConditionForGenJournal', '', false, false)]
+    local procedure OnBeforeCheckDeferralConditionForGenJournal(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
+    begin
+        IsHandled := true;
     end;
 
     local procedure CallTaxEngineForPurchaseLines(var PurchaseHeader: Record "Purchase Header")
