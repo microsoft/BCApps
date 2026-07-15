@@ -101,6 +101,14 @@ page 8901 "Finance Manager Role Center"
 {
     Caption = 'Finance Manager Role Center';
     PageType = RoleCenter;
+
+    layout
+    {
+        area(rolecenter)
+        {
+        }
+    }
+
     actions
     {
         area(Sections)

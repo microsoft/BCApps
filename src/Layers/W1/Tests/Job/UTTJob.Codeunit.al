@@ -34,6 +34,7 @@ codeunit 136350 "UT T Job"
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryResource: Codeunit "Library - Resource";
         IsInitialized: Boolean;
         IncorrectSourceIDErr: Label 'Incorrect Source ID.';
         JobTaskDimDoesNotExistErr: Label 'Project Task Dimension does not exist.';
@@ -2354,6 +2355,39 @@ codeunit 136350 "UT T Job"
         JobPlanningLine.Get(Job."No.", JobTask."Job Task No.", JobPlanningLine."Line No.");
         asserterror JobPlanningLine.Delete(true);
         Assert.ExpectedError(StrSubstNo(ValidationError, PurchRcptLine."Document No."));
+    end;
+
+    [Test]
+    procedure DeletingJobDeletesAllAssignedResources()
+    var
+        LocalJob: Record Job;
+        LocalJobTask: Record "Job Task";
+        LocalJobsSetup: Record "Jobs Setup";
+        Resource: Record Resource;
+        JobAssignedResource: Record "Job Assigned Resource";
+    begin
+        // [FEATURE] [Assigned Resource]
+        // [SCENARIO] Deleting a project deletes all its assigned resources (project- and task-level).
+        Initialize();
+
+        // [GIVEN] Archiving on delete is disabled to avoid archive prompts.
+        LocalJobsSetup.Get();
+        LocalJobsSetup.Validate("Archive Jobs", LocalJobsSetup."Archive Jobs"::Never);
+        LocalJobsSetup.Modify();
+
+        // [GIVEN] A project with a task, a project-level and a task-level assigned resource.
+        LibraryJob.CreateJob(LocalJob);
+        LibraryJob.CreateJobTask(LocalJob, LocalJobTask);
+        LibraryResource.CreateResourceNew(Resource);
+        LibraryJob.CreateJobAssignedResource(LocalJob."No.", LocalJobTask."Job Task No.", Resource."No.", JobAssignedResource);
+        LibraryJob.CreateJobAssignedResource(LocalJob."No.", '', Resource."No.", JobAssignedResource);
+
+        // [WHEN] The project is deleted.
+        Assert.IsTrue(LocalJob.Delete(true), 'The project could not be deleted.');
+
+        // [THEN] No assigned resources remain for the project.
+        JobAssignedResource.SetRange("Job No.", LocalJob."No.");
+        Assert.RecordIsEmpty(JobAssignedResource);
     end;
 
     [Test]
