@@ -43,6 +43,7 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
         PINTANZXml: XmlDocument;
         XmlNamespaces: XmlNamespaceManager;
         XmlElement: XmlElement;
+        ProcessDraft: Enum "E-Doc. Process Draft";
     begin
         EDocumentPurchaseHeader.InsertForEDocument(EDocument);
 
@@ -54,15 +55,21 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
 
         PINTANZXml.GetRoot(XmlElement);
         case UpperCase(XmlElement.LocalName()) of
-            'INVOICE':
+            'INVOICE': begin
                 PopulateEDocumentForInvoice(PINTANZXml, XmlNamespaces, EDocumentPurchaseHeader, EDocument);
-            'CREDITNOTE':
+                ProcessDraft := Enum::"E-Doc. Process Draft"::"Purchase Invoice";
+            end;
+            'CREDITNOTE': begin
                 PopulateEDocumentForCreditNote(PINTANZXml, XmlNamespaces, EDocumentPurchaseHeader, EDocument);
+                ProcessDraft := Enum::"E-Doc. Process Draft"::"Purchase Credit Memo";
+            end;
+            else
+                Error('Unsupported XML root element: %1.', XmlElement.LocalName());
         end;
 
         EDocumentPurchaseHeader.Modify(false);
         EDocument.Direction := EDocument.Direction::Incoming;
-        exit(Enum::"E-Doc. Process Draft"::"Purchase Document");
+        exit(ProcessDraft);
     end;
 
     /// <summary>
@@ -72,15 +79,8 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
     /// <param name="EDocument">The E-Document record that contains the document to be displayed.</param>
     /// <param name="TempBlob">A temporary blob containing the document data (not used in current implementation).</param>
     internal procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
-    var
-        EDocPurchaseHeader: Record "E-Document Purchase Header";
-        EDocPurchaseLine: Record "E-Document Purchase Line";
-        EDocReadablePurchaseDoc: Page "E-Doc. Readable Purchase Doc.";
     begin
-        EDocPurchaseHeader.GetFromEDocument(EDocument);
-        EDocPurchaseLine.SetRange("E-Document Entry No.", EDocPurchaseHeader."E-Document Entry No.");
-        EDocReadablePurchaseDoc.SetBuffer(EDocPurchaseHeader, EDocPurchaseLine);
-        EDocReadablePurchaseDoc.Run();
+        Error('A view is not implemented for this handler.');
     end;
 
 #pragma warning disable AA0139 // false positive: overflow handled by SetStringValueInField
@@ -89,12 +89,12 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
         EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
         VendorNo: Code[20];
     begin
-        EDocumentPurchaseHeader."E-Document Type" := "E-Document Type"::"Purchase Invoice";
-        EDocumentXMLHelper.SetStringValueInField(PINTANZXml, XmlNamespaces, '/inv:Invoice/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."), EDocumentPurchaseHeader."Sales Invoice No.");
-        EDocumentXMLHelper.SetStringValueInField(PINTANZXml, XmlNamespaces, '/inv:Invoice/cac:OrderReference/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Purchase Order No."), EDocumentPurchaseHeader."Purchase Order No.");
+        EDocument."Document Type" := EDocument."Document Type"::"Purchase Invoice";
+        SetTextValueFromNode(PINTANZXml, XmlNamespaces, '/inv:Invoice/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."), EDocumentPurchaseHeader."Sales Invoice No.");
+        SetTextValueFromNode(PINTANZXml, XmlNamespaces, '/inv:Invoice/cac:OrderReference/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Purchase Order No."), EDocumentPurchaseHeader."Purchase Order No.");
         EDocumentXMLHelper.SetDateValueInField(PINTANZXml, XmlNamespaces, '/inv:Invoice/cbc:IssueDate', EDocumentPurchaseHeader."Document Date");
         EDocumentXMLHelper.SetDateValueInField(PINTANZXml, XmlNamespaces, '/inv:Invoice/cbc:DueDate', EDocumentPurchaseHeader."Due Date");
-        EDocumentXMLHelper.SetCurrencyValueInField(PINTANZXml, XmlNamespaces, '/inv:Invoice/cbc:DocumentCurrencyCode', MaxStrLen(EDocumentPurchaseHeader."Currency Code"), EDocumentPurchaseHeader."Currency Code");
+        SetCurrencyFromNode(PINTANZXml, XmlNamespaces, '/inv:Invoice/cbc:DocumentCurrencyCode', EDocumentPurchaseHeader."Currency Code");
         EDocumentXMLHelper.SetNumberValueInField(PINTANZXml, XmlNamespaces, '/inv:Invoice/cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount', EDocumentPurchaseHeader."Sub Total");
         EDocumentXMLHelper.SetNumberValueInField(PINTANZXml, XmlNamespaces, '/inv:Invoice/cac:LegalMonetaryTotal/cbc:PayableAmount', EDocumentPurchaseHeader.Total);
         EDocumentPurchaseHeader."Amount Due" := EDocumentPurchaseHeader.Total;
@@ -110,12 +110,12 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
         EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
         VendorNo: Code[20];
     begin
-        EDocumentPurchaseHeader."E-Document Type" := "E-Document Type"::"Purchase Credit Memo";
-        EDocumentXMLHelper.SetStringValueInField(PINTANZXml, XmlNamespaces, '/cn:CreditNote/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."), EDocumentPurchaseHeader."Sales Invoice No.");
-        EDocumentXMLHelper.SetStringValueInField(PINTANZXml, XmlNamespaces, '/cn:CreditNote/cac:OrderReference/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Purchase Order No."), EDocumentPurchaseHeader."Purchase Order No.");
+        EDocument."Document Type" := EDocument."Document Type"::"Purchase Credit Memo";
+        SetTextValueFromNode(PINTANZXml, XmlNamespaces, '/cn:CreditNote/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."), EDocumentPurchaseHeader."Sales Invoice No.");
+        SetTextValueFromNode(PINTANZXml, XmlNamespaces, '/cn:CreditNote/cac:OrderReference/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Purchase Order No."), EDocumentPurchaseHeader."Purchase Order No.");
         EDocumentXMLHelper.SetDateValueInField(PINTANZXml, XmlNamespaces, '/cn:CreditNote/cbc:IssueDate', EDocumentPurchaseHeader."Document Date");
         EDocumentXMLHelper.SetDateValueInField(PINTANZXml, XmlNamespaces, '/cn:CreditNote/cac:PaymentMeans/cbc:PaymentDueDate', EDocumentPurchaseHeader."Due Date");
-        EDocumentXMLHelper.SetCurrencyValueInField(PINTANZXml, XmlNamespaces, '/cn:CreditNote/cbc:DocumentCurrencyCode', MaxStrLen(EDocumentPurchaseHeader."Currency Code"), EDocumentPurchaseHeader."Currency Code");
+        SetCurrencyFromNode(PINTANZXml, XmlNamespaces, '/cn:CreditNote/cbc:DocumentCurrencyCode', EDocumentPurchaseHeader."Currency Code");
         EDocumentXMLHelper.SetNumberValueInField(PINTANZXml, XmlNamespaces, '/cn:CreditNote/cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount', EDocumentPurchaseHeader."Sub Total");
         EDocumentXMLHelper.SetNumberValueInField(PINTANZXml, XmlNamespaces, '/cn:CreditNote/cac:LegalMonetaryTotal/cbc:PayableAmount', EDocumentPurchaseHeader.Total);
         EDocumentPurchaseHeader."Amount Due" := EDocumentPurchaseHeader.Total;
@@ -138,10 +138,10 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
         BasePathTxt: Text;
     begin
         BasePathTxt := '/' + DocumentType + '/cac:AccountingSupplierParty/cac:Party';
-        EDocumentXMLHelper.SetStringValueInField(PINTANZXml, XmlNamespaces, BasePathTxt + '/cac:PartyName/cbc:Name', MaxStrLen(EDocumentPurchaseHeader."Vendor Company Name"), EDocumentPurchaseHeader."Vendor Company Name");
-        EDocumentXMLHelper.SetStringValueInField(PINTANZXml, XmlNamespaces, BasePathTxt + '/cac:PostalAddress/cbc:StreetName', MaxStrLen(EDocumentPurchaseHeader."Vendor Address"), EDocumentPurchaseHeader."Vendor Address");
-        EDocumentXMLHelper.SetStringValueInField(PINTANZXml, XmlNamespaces, BasePathTxt + '/cac:PartyTaxScheme/cbc:CompanyID', MaxStrLen(EDocumentPurchaseHeader."Vendor VAT Id"), EDocumentPurchaseHeader."Vendor VAT Id");
-        EDocumentXMLHelper.SetStringValueInField(PINTANZXml, XmlNamespaces, BasePathTxt + '/cac:Contact/cbc:Name', MaxStrLen(EDocumentPurchaseHeader."Vendor Contact Name"), EDocumentPurchaseHeader."Vendor Contact Name");
+        SetTextValueFromNode(PINTANZXml, XmlNamespaces, BasePathTxt + '/cac:PartyName/cbc:Name', MaxStrLen(EDocumentPurchaseHeader."Vendor Company Name"), EDocumentPurchaseHeader."Vendor Company Name");
+        SetTextValueFromNode(PINTANZXml, XmlNamespaces, BasePathTxt + '/cac:PostalAddress/cbc:StreetName', MaxStrLen(EDocumentPurchaseHeader."Vendor Address"), EDocumentPurchaseHeader."Vendor Address");
+        SetTextValueFromNode(PINTANZXml, XmlNamespaces, BasePathTxt + '/cac:PartyTaxScheme/cbc:CompanyID', MaxStrLen(EDocumentPurchaseHeader."Vendor VAT Id"), EDocumentPurchaseHeader."Vendor VAT Id");
+        SetTextValueFromNode(PINTANZXml, XmlNamespaces, BasePathTxt + '/cac:Contact/cbc:Name', MaxStrLen(EDocumentPurchaseHeader."Vendor Contact Name"), EDocumentPurchaseHeader."Vendor Contact Name");
         if PINTANZXml.SelectSingleNode(BasePathTxt + '/cbc:EndpointID/@schemeID', XmlNamespaces, XMLNode) then begin
             if XMLNode.AsXmlAttribute().Value() = ABNSchemeIdTok then
                 ABN := CopyStr(EDocumentXMLHelper.GetNodeValue(PINTANZXml, XmlNamespaces, BasePathTxt + '/cbc:EndpointID'), 1, MaxStrLen(ABN));
@@ -169,9 +169,9 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
         XMLNode: XmlNode;
     begin
         BasePathTxt := '/' + DocumentType + '/cac:AccountingCustomerParty/cac:Party';
-        EDocumentXMLHelper.SetStringValueInField(PINTANZXml, XmlNamespaces, BasePathTxt + '/cac:PartyName/cbc:Name', MaxStrLen(EDocumentPurchaseHeader."Customer Company Name"), EDocumentPurchaseHeader."Customer Company Name");
-        EDocumentXMLHelper.SetStringValueInField(PINTANZXml, XmlNamespaces, BasePathTxt + '/cac:PostalAddress/cbc:StreetName', MaxStrLen(EDocumentPurchaseHeader."Customer Address"), EDocumentPurchaseHeader."Customer Address");
-        EDocumentXMLHelper.SetStringValueInField(PINTANZXml, XmlNamespaces, BasePathTxt + '/cac:PartyTaxScheme/cbc:CompanyID', MaxStrLen(EDocumentPurchaseHeader."Customer VAT Id"), EDocumentPurchaseHeader."Customer VAT Id");
+        SetTextValueFromNode(PINTANZXml, XmlNamespaces, BasePathTxt + '/cac:PartyName/cbc:Name', MaxStrLen(EDocumentPurchaseHeader."Customer Company Name"), EDocumentPurchaseHeader."Customer Company Name");
+        SetTextValueFromNode(PINTANZXml, XmlNamespaces, BasePathTxt + '/cac:PostalAddress/cbc:StreetName', MaxStrLen(EDocumentPurchaseHeader."Customer Address"), EDocumentPurchaseHeader."Customer Address");
+        SetTextValueFromNode(PINTANZXml, XmlNamespaces, BasePathTxt + '/cac:PartyTaxScheme/cbc:CompanyID', MaxStrLen(EDocumentPurchaseHeader."Customer VAT Id"), EDocumentPurchaseHeader."Customer VAT Id");
         if PINTANZXml.SelectSingleNode(BasePathTxt + '/cbc:EndpointID/@schemeID', XmlNamespaces, XMLNode) then begin
             SchemaId := XMLNode.AsXmlAttribute().Value();
             CompanyIdentifierValue := EDocumentXMLHelper.GetNodeValue(PINTANZXml, XmlNamespaces, BasePathTxt + '/cbc:EndpointID');
@@ -220,27 +220,45 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
     var
         EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
     begin
-        EDocumentXMLHelper.SetStringValueInField(LineXML, XmlNamespaces, 'cac:InvoiceLine/cac:Item/cac:SellersItemIdentification/cbc:ID', MaxStrLen(EDocumentPurchaseLine."Product Code"), EDocumentPurchaseLine."Product Code");
+        SetTextValueFromNode(LineXML, XmlNamespaces, 'cac:InvoiceLine/cac:Item/cac:SellersItemIdentification/cbc:ID', MaxStrLen(EDocumentPurchaseLine."Product Code"), EDocumentPurchaseLine."Product Code");
         if EDocumentPurchaseLine."Product Code" = '' then
-            EDocumentXMLHelper.SetStringValueInField(LineXML, XmlNamespaces, 'cac:CreditNoteLine/cac:Item/cac:SellersItemIdentification/cbc:ID', MaxStrLen(EDocumentPurchaseLine."Product Code"), EDocumentPurchaseLine."Product Code");
-        EDocumentXMLHelper.SetStringValueInField(LineXML, XmlNamespaces, 'cac:InvoiceLine/cac:Item/cbc:Name', MaxStrLen(EDocumentPurchaseLine.Description), EDocumentPurchaseLine.Description);
+            SetTextValueFromNode(LineXML, XmlNamespaces, 'cac:CreditNoteLine/cac:Item/cac:SellersItemIdentification/cbc:ID', MaxStrLen(EDocumentPurchaseLine."Product Code"), EDocumentPurchaseLine."Product Code");
+        SetTextValueFromNode(LineXML, XmlNamespaces, 'cac:InvoiceLine/cac:Item/cbc:Name', MaxStrLen(EDocumentPurchaseLine.Description), EDocumentPurchaseLine.Description);
         if EDocumentPurchaseLine.Description = '' then
-            EDocumentXMLHelper.SetStringValueInField(LineXML, XmlNamespaces, 'cac:CreditNoteLine/cac:Item/cbc:Name', MaxStrLen(EDocumentPurchaseLine.Description), EDocumentPurchaseLine.Description);
+            SetTextValueFromNode(LineXML, XmlNamespaces, 'cac:CreditNoteLine/cac:Item/cbc:Name', MaxStrLen(EDocumentPurchaseLine.Description), EDocumentPurchaseLine.Description);
         EDocumentXMLHelper.SetNumberValueInField(LineXML, XmlNamespaces, 'cac:InvoiceLine/cbc:InvoicedQuantity', EDocumentPurchaseLine.Quantity);
         if EDocumentPurchaseLine.Quantity = 0 then
             EDocumentXMLHelper.SetNumberValueInField(LineXML, XmlNamespaces, 'cac:CreditNoteLine/cbc:CreditedQuantity', EDocumentPurchaseLine.Quantity);
-        EDocumentXMLHelper.SetStringValueInField(LineXML, XmlNamespaces, 'cac:InvoiceLine/cbc:InvoicedQuantity/@unitCode', MaxStrLen(EDocumentPurchaseLine."Unit of Measure"), EDocumentPurchaseLine."Unit of Measure");
+        SetTextValueFromNode(LineXML, XmlNamespaces, 'cac:InvoiceLine/cbc:InvoicedQuantity/@unitCode', MaxStrLen(EDocumentPurchaseLine."Unit of Measure"), EDocumentPurchaseLine."Unit of Measure");
         if EDocumentPurchaseLine."Unit of Measure" = '' then
-            EDocumentXMLHelper.SetStringValueInField(LineXML, XmlNamespaces, 'cac:CreditNoteLine/cbc:CreditedQuantity/@unitCode', MaxStrLen(EDocumentPurchaseLine."Unit of Measure"), EDocumentPurchaseLine."Unit of Measure");
+            SetTextValueFromNode(LineXML, XmlNamespaces, 'cac:CreditNoteLine/cbc:CreditedQuantity/@unitCode', MaxStrLen(EDocumentPurchaseLine."Unit of Measure"), EDocumentPurchaseLine."Unit of Measure");
         EDocumentXMLHelper.SetNumberValueInField(LineXML, XmlNamespaces, 'cac:InvoiceLine/cac:Price/cbc:PriceAmount', EDocumentPurchaseLine."Unit Price");
         if EDocumentPurchaseLine."Unit Price" = 0 then
             EDocumentXMLHelper.SetNumberValueInField(LineXML, XmlNamespaces, 'cac:CreditNoteLine/cac:Price/cbc:PriceAmount', EDocumentPurchaseLine."Unit Price");
         EDocumentXMLHelper.SetNumberValueInField(LineXML, XmlNamespaces, 'cac:InvoiceLine/cbc:LineExtensionAmount', EDocumentPurchaseLine."Sub Total");
         if EDocumentPurchaseLine."Sub Total" = 0 then
             EDocumentXMLHelper.SetNumberValueInField(LineXML, XmlNamespaces, 'cac:CreditNoteLine/cbc:LineExtensionAmount', EDocumentPurchaseLine."Sub Total");
-        EDocumentXMLHelper.SetCurrencyValueInField(LineXML, XmlNamespaces, 'cac:InvoiceLine/cbc:LineExtensionAmount/@currencyID', MaxStrLen(EDocumentPurchaseLine."Currency Code"), EDocumentPurchaseLine."Currency Code");
+        SetCurrencyFromNode(LineXML, XmlNamespaces, 'cac:InvoiceLine/cbc:LineExtensionAmount/@currencyID', EDocumentPurchaseLine."Currency Code");
         if EDocumentPurchaseLine."Currency Code" = '' then
-            EDocumentXMLHelper.SetCurrencyValueInField(LineXML, XmlNamespaces, 'cac:CreditNoteLine/cbc:LineExtensionAmount/@currencyID', MaxStrLen(EDocumentPurchaseLine."Currency Code"), EDocumentPurchaseLine."Currency Code");
+            SetCurrencyFromNode(LineXML, XmlNamespaces, 'cac:CreditNoteLine/cbc:LineExtensionAmount/@currencyID', EDocumentPurchaseLine."Currency Code");
+    end;
+
+    local procedure SetTextValueFromNode(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; MaxLength: Integer; var FieldValue: Text)
+    var
+        EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
+        Value: Text;
+    begin
+        if EDocumentXMLHelper.TryGetStringValue(XMLDocument, XMLNamespaces, Path, Value) then
+            FieldValue := CopyStr(Value, 1, MaxLength);
+    end;
+
+    local procedure SetCurrencyFromNode(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; var CurrencyCode: Code[10])
+    var
+        EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
+        CurrencyValue: Text;
+    begin
+        if EDocumentXMLHelper.TryGetStringValue(XMLDocument, XMLNamespaces, Path, CurrencyValue) then
+            EDocumentXMLHelper.SetCurrencyIfForeign(CurrencyValue, CurrencyCode);
     end;
 
     local procedure FindVendorByABN(var VendorNo: Code[20]; InputABN: Code[11]): Boolean

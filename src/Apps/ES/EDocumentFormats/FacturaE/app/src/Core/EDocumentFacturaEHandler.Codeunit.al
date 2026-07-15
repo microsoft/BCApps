@@ -5,7 +5,6 @@
 namespace Microsoft.eServices.EDocument.Format.FacturaE;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Format;
 using Microsoft.eServices.EDocument.Helpers;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
@@ -13,7 +12,6 @@ using Microsoft.eServices.EDocument.Processing.Interfaces;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.UOM;
 using Microsoft.Purchases.Vendor;
-using System.IO;
 using System.Utilities;
 
 codeunit 10766 "E-Document Factura-E Handler" implements IStructuredFormatReader
@@ -44,6 +42,7 @@ codeunit 10766 "E-Document Factura-E Handler" implements IStructuredFormatReader
         XmlNamespaces: XmlNamespaceManager;
         XmlElement: XmlElement;
         XMLNode: XmlNode;
+        ProcessDraft: Enum "E-Doc. Process Draft";
     begin
         EDocumentPurchaseHeader.InsertForEDocument(EDocument);
 
@@ -53,15 +52,19 @@ codeunit 10766 "E-Document Factura-E Handler" implements IStructuredFormatReader
         XmlNamespaces.AddNamespace('etsi', ETSINamespaceTok);
 
         FacturaEXML.GetRoot(XmlElement);
-        EDocumentPurchaseHeader."E-Document Type" := "E-Document Type"::"Purchase Invoice";
+        EDocument."Document Type" := EDocument."Document Type"::"Purchase Invoice";
+        ProcessDraft := Enum::"E-Doc. Process Draft"::"Purchase Invoice";
         if FacturaEXML.SelectSingleNode('/namespace:Facturae/Invoices/Invoice/InvoiceHeader/Corrective', XmlNamespaces, XMLNode) then
-            EDocumentPurchaseHeader."E-Document Type" := "E-Document Type"::"Purchase Credit Memo";
+            if XMLNode.IsXmlElement() then begin
+                EDocument."Document Type" := EDocument."Document Type"::"Purchase Credit Memo";
+                ProcessDraft := Enum::"E-Doc. Process Draft"::"Purchase Credit Memo";
+            end;
 
         PopulateFacturaEPurchaseInvoiceHeader(FacturaEXML, XmlNamespaces, EDocumentPurchaseHeader, EDocument);
         InsertFacturaEPurchaseInvoiceLines(FacturaEXML, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.");
         EDocumentPurchaseHeader.Modify(false);
         EDocument.Direction := EDocument.Direction::Incoming;
-        exit(Enum::"E-Doc. Process Draft"::"Purchase Document");
+        exit(ProcessDraft);
     end;
 
     /// <summary>
@@ -70,15 +73,8 @@ codeunit 10766 "E-Document Factura-E Handler" implements IStructuredFormatReader
     /// <param name="EDocument">The E-Document record to be displayed.</param>
     /// <param name="TempBlob">The temporary blob containing the document content (not used in this implementation).</param>
     internal procedure View(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob")
-    var
-        EDocPurchaseHeader: Record "E-Document Purchase Header";
-        EDocPurchaseLine: Record "E-Document Purchase Line";
-        EDocReadablePurchaseDoc: Page "E-Doc. Readable Purchase Doc.";
     begin
-        EDocPurchaseHeader.GetFromEDocument(EDocument);
-        EDocPurchaseLine.SetRange("E-Document Entry No.", EDocPurchaseHeader."E-Document Entry No.");
-        EDocReadablePurchaseDoc.SetBuffer(EDocPurchaseHeader, EDocPurchaseLine);
-        EDocReadablePurchaseDoc.Run();
+        Error('A view is not implemented for this handler.');
     end;
 
 #pragma warning disable AA0139 // false positive: overflow handled by SetStringValueInField
@@ -87,9 +83,9 @@ codeunit 10766 "E-Document Factura-E Handler" implements IStructuredFormatReader
         EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
         VendorNo: Code[20];
     begin
-        EDocumentXMLHelper.SetStringValueInField(FacturaEXML, XmlNamespaces, '/namespace:Facturae/Invoices/Invoice/InvoiceHeader/InvoiceNumber', MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."), EDocumentPurchaseHeader."Sales Invoice No.");
+        SetTextValueFromNode(FacturaEXML, XmlNamespaces, '/namespace:Facturae/Invoices/Invoice/InvoiceHeader/InvoiceNumber', MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."), EDocumentPurchaseHeader."Sales Invoice No.");
         EDocumentXMLHelper.SetDateValueInField(FacturaEXML, XmlNamespaces, '/namespace:Facturae/Invoices/Invoice/InvoiceIssueData/IssueDate', EDocumentPurchaseHeader."Document Date");
-        EDocumentXMLHelper.SetCurrencyValueInField(FacturaEXML, XmlNamespaces, '/namespace:Facturae/Invoices/Invoice/InvoiceIssueData/InvoiceCurrencyCode', MaxStrLen(EDocumentPurchaseHeader."Currency Code"), EDocumentPurchaseHeader."Currency Code");
+        SetCurrencyFromNode(FacturaEXML, XmlNamespaces, '/namespace:Facturae/Invoices/Invoice/InvoiceIssueData/InvoiceCurrencyCode', EDocumentPurchaseHeader."Currency Code");
         VendorNo := ParseSellerParty(FacturaEXML, XmlNamespaces, EDocument, EDocumentPurchaseHeader);
         ParseBuyerParty(FacturaEXML, XmlNamespaces, EDocumentPurchaseHeader);
         EDocumentXMLHelper.SetNumberValueInField(FacturaEXML, XmlNamespaces, '/namespace:Facturae/Invoices/Invoice/InvoiceTotals/TotalGrossAmountBeforeTaxes', EDocumentPurchaseHeader."Sub Total");
@@ -97,7 +93,7 @@ codeunit 10766 "E-Document Factura-E Handler" implements IStructuredFormatReader
         EDocumentXMLHelper.SetNumberValueInField(FacturaEXML, XmlNamespaces, '/namespace:Facturae/Invoices/Invoice/InvoiceTotals/InvoiceTotal', EDocumentPurchaseHeader.Total);
         EDocumentXMLHelper.SetNumberValueInField(FacturaEXML, XmlNamespaces, '/namespace:Facturae/Invoices/Invoice/InvoiceTotals/TotalOutstandingAmount', EDocumentPurchaseHeader."Amount Due");
         EDocumentXMLHelper.SetDateValueInField(FacturaEXML, XmlNamespaces, '/namespace:Facturae/Invoices/Invoice/InvoiceHeader/InvoiceDocumentReference/ReferencedDocumentDate', EDocumentPurchaseHeader."Due Date");
-        EDocumentXMLHelper.SetStringValueInField(FacturaEXML, XmlNamespaces, '/namespace:Facturae/Invoices/Invoice/InvoiceHeader/Corrective/InvoiceNumber', MaxStrLen(EDocumentPurchaseHeader."Purchase Order No."), EDocumentPurchaseHeader."Purchase Order No.");
+        SetTextValueFromNode(FacturaEXML, XmlNamespaces, '/namespace:Facturae/Invoices/Invoice/InvoiceHeader/Corrective/InvoiceNumber', MaxStrLen(EDocumentPurchaseHeader."Purchase Order No."), EDocumentPurchaseHeader."Purchase Order No.");
 
         if VendorNo <> '' then
             EDocumentPurchaseHeader."[BC] Vendor No." := VendorNo;
@@ -131,12 +127,12 @@ codeunit 10766 "E-Document Factura-E Handler" implements IStructuredFormatReader
         UOMCode: Text;
         XMLNode: XmlNode;
     begin
-        EDocumentXMLHelper.SetStringValueInField(LineXML, XmlNamespaces, 'InvoiceLine/ArticleCode', MaxStrLen(EDocumentPurchaseLine."Product Code"), EDocumentPurchaseLine."Product Code");
-        EDocumentXMLHelper.SetStringValueInField(LineXML, XmlNamespaces, 'InvoiceLine/ItemDescription', MaxStrLen(EDocumentPurchaseLine.Description), EDocumentPurchaseLine.Description);
+        SetTextValueFromNode(LineXML, XmlNamespaces, 'InvoiceLine/ArticleCode', MaxStrLen(EDocumentPurchaseLine."Product Code"), EDocumentPurchaseLine."Product Code");
+        SetTextValueFromNode(LineXML, XmlNamespaces, 'InvoiceLine/ItemDescription', MaxStrLen(EDocumentPurchaseLine.Description), EDocumentPurchaseLine.Description);
         EDocumentXMLHelper.SetNumberValueInField(LineXML, XmlNamespaces, 'InvoiceLine/Quantity', EDocumentPurchaseLine.Quantity);
         EDocumentXMLHelper.SetNumberValueInField(LineXML, XmlNamespaces, 'InvoiceLine/UnitPriceWithoutTax', EDocumentPurchaseLine."Unit Price");
         EDocumentXMLHelper.SetNumberValueInField(LineXML, XmlNamespaces, 'InvoiceLine/TotalCost', EDocumentPurchaseLine."Sub Total");
-        EDocumentXMLHelper.SetCurrencyValueInField(LineXML, XmlNamespaces, 'InvoiceLine/TotalCost/@currencyID', MaxStrLen(EDocumentPurchaseLine."Currency Code"), EDocumentPurchaseLine."Currency Code");
+        SetCurrencyFromNode(LineXML, XmlNamespaces, 'InvoiceLine/TotalCost/@currencyID', EDocumentPurchaseLine."Currency Code");
 
         // Handle Unit of Measure like in legacy system
         if LineXML.SelectSingleNode('InvoiceLine/UnitOfMeasure', XmlNamespaces, XMLNode) then begin
@@ -259,6 +255,24 @@ codeunit 10766 "E-Document Factura-E Handler" implements IStructuredFormatReader
         end else
             if FacturaEXML.SelectSingleNode(PathPrefix + 'LegalEntity/OverseasAddress/Address', XmlNamespaces, XMLNode) then
                 Address := XMLNode.AsXmlElement().InnerText();
+    end;
+
+    local procedure SetTextValueFromNode(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; MaxLength: Integer; var FieldValue: Text)
+    var
+        EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
+        Value: Text;
+    begin
+        if EDocumentXMLHelper.TryGetStringValue(XMLDocument, XMLNamespaces, Path, Value) then
+            FieldValue := CopyStr(Value, 1, MaxLength);
+    end;
+
+    local procedure SetCurrencyFromNode(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; var CurrencyCode: Code[10])
+    var
+        EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
+        CurrencyValue: Text;
+    begin
+        if EDocumentXMLHelper.TryGetStringValue(XMLDocument, XMLNamespaces, Path, CurrencyValue) then
+            EDocumentXMLHelper.SetCurrencyIfForeign(CurrencyValue, CurrencyCode);
     end;
 
     local procedure TryGetUOMCodeFromInternationalCode(ImportedUOMCode: Text) UOMCode: Code[10]
