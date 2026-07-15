@@ -1,0 +1,26 @@
+{
+  "id": "6f2c1e4a-8b3d-4c9e-a1f7-2d5b9c0e7a34",
+  "name": "Contoso Widget Management",
+  "publisher": "Contoso",
+  "brief": "Manage widgets and their loyalty program.",
+  "description": "Sample app used to validate the BC PR review agent. Contains deliberately planted code issues across all review domains.",
+  "version": "1.0.0.0",
+  "application": "26.0.0.0",
+  "platform": "26.0.0.0",
+  "idRanges": [
+    {
+      "from": 50000,
+      "to": 50149
+    }
+  ],
+  "target": "Cloud",
+  "resourceExposurePolicy": {
+    "allowDebugging": false,
+    "allowDownloadingSource": false,
+    "includeSourceInSymbolFile": false
+  },
+  "runtime": "13.0",
+  "features": [
+    "NoImplicitWith"
+  ]
+}

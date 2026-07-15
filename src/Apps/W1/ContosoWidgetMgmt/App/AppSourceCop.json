@@ -1,0 +1,4 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL/master/schemas/appsourcecop.schema.json",
+  "mandatoryAffixes": [ "CWM" ]
+}
