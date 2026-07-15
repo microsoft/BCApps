@@ -2217,8 +2217,10 @@ codeunit 134400 "ERM Incoming Documents"
         if ProcessedFilter <> '' then
             IncomingDocument.SetFilter(Processed, ProcessedFilter);
 
+        LibraryVariableStorage.Clear();
         LibraryVariableStorage.Enqueue(ExpectedProcessed);
         Page.RunModal(Page::"Incoming Documents", IncomingDocument);
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure GetIncomeStatementAcc(): Code[20]
