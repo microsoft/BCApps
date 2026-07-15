@@ -136,6 +136,7 @@
     "build/*",
     "src/rulesets/*",
     "src/Layers/*",
+    "src/DisabledTests/*",
     ".github/workflows/PullRequestHandler.yaml",
     ".github/workflows/_BuildALGoProject.yaml"
   ],
