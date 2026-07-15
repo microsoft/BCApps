@@ -1,6 +1,7 @@
 namespace Microsoft.Sustainability.Certificate;
 
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Sustainability.Account;
 using Microsoft.Sustainability.Codes;
 using Microsoft.Sustainability.EPR;
@@ -269,12 +270,19 @@ tableextension 6220 "Sust. Item" extends Item
             Caption = 'Carbon Tracking Method';
             ToolTip = 'Specifies the Carbon Tracking Method for this item.';
             DataClassification = CustomerContent;
+
+            trigger OnValidate()
+            begin
+                if Rec."Carbon Tracking Method" = Rec."Carbon Tracking Method"::Specific then
+                    CheckItemTrackingForSpecificCarbonTracking();
+            end;
         }
     }
 
     var
         SustainabilitySetup: Record "Sustainability Setup";
         AtLeastOneNonZeroEmissionValueErr: Label '%1, %2, %3 cannot all be zero. Please provide at least one non-zero value.', Comment = '%1, %2 , %3 = Field Caption';
+        SpecificCarbonTrackingNeedsItemTrackingErr: Label 'The %1 %2 requires an %3 with serial or lot specific tracking so that per-unit emissions can be resolved.', Comment = '%1 = Carbon Tracking Method field caption, %2 = Carbon Tracking Method value, %3 = Item Tracking Code field caption';
 
     local procedure UpdateCertificateInformation()
     var
@@ -312,5 +320,20 @@ tableextension 6220 "Sust. Item" extends Item
         Item.Validate("Default N2O Emission", 0);
         Item.Validate("Default CH4 Emission", 0);
         Item.Validate("Default CO2 Emission", 0);
+    end;
+
+    local procedure CheckItemTrackingForSpecificCarbonTracking()
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+    begin
+        if (Rec."Item Tracking Code" <> '') and ItemTrackingCode.Get(Rec."Item Tracking Code") then
+            if ItemTrackingCode."SN Specific Tracking" or ItemTrackingCode."Lot Specific Tracking" then
+                exit;
+
+        Error(
+            SpecificCarbonTrackingNeedsItemTrackingErr,
+            Rec.FieldCaption("Carbon Tracking Method"),
+            Format(Rec."Carbon Tracking Method"::Specific),
+            Rec.FieldCaption("Item Tracking Code"));
     end;
 }

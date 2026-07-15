@@ -12,6 +12,7 @@ using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Document;
@@ -59,6 +60,7 @@ codeunit 148187 "Sust. Certificate Test"
         LibrarySales: Codeunit "Library - Sales";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryJob: Codeunit "Library - Job";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
         AccountCodeLbl: Label 'AccountCode%1', Locked = true, Comment = '%1 = Number';
         CategoryCodeLbl: Label 'CategoryCode%1', Locked = true, Comment = '%1 = Number';
         SubcategoryCodeLbl: Label 'SubcategoryCode%1', Locked = true, Comment = '%1 = Number';
@@ -82,6 +84,7 @@ codeunit 148187 "Sust. Certificate Test"
         RecyclabilityPercentageMaxValueErr: Label 'The value must be less than or equal to %1. Value: %2.', Comment = '%1 = Maximum Value, %2 = Field Value';
         EmissionUOMCannotBeChangedErr: Label 'The value for %1 cannot be modified because there are existing sustainability ledger entries that use the unit of measure %2.', Comment = '%1 = Field Caption, %2 = Unit of Measure Code';
         FieldShouldNotBeEditableErr: Label '%1 should not be editable in Page %2', Comment = '%1 = Field Caption, %2 = Page Caption';
+        SpecificCarbonTrackingNeedsItemTrackingErr: Label 'The %1 %2 requires an %3 with serial or lot specific tracking so that per-unit emissions can be resolved.', Comment = '%1 = Carbon Tracking Method field caption, %2 = Carbon Tracking Method value, %3 = Item Tracking Code field caption';
 
     [Test]
     procedure VerifyHasValueFieldShouldThrowErrorWhenValueIsUpdated()
@@ -7253,6 +7256,122 @@ codeunit 148187 "Sust. Certificate Test"
         Assert.IsFalse(
             ServiceOrderSubform."Total CO2e".Visible(),
             StrSubstNo(FieldShouldNotBeVisibleErr, ServiceOrderSubform."Total CO2e".Caption(), ServiceOrderSubform.Caption()));
+    end;
+
+    [Test]
+    procedure VerifyCarbonTrackingMethodSpecificThrowsErrorWhenItemHasNoItemTrackingCode()
+    var
+        Item: Record Item;
+    begin
+        // [SCENARIO 641049] Verify "Carbon Tracking Method" Specific throws an error When Item has no Item Tracking Code.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] Create an Item without an Item Tracking Code.
+        LibraryInventory.CreateItem(Item);
+
+        // [WHEN] Update "Carbon Tracking Method" to Specific in an Item.
+        asserterror Item.Validate("Carbon Tracking Method", Item."Carbon Tracking Method"::Specific);
+
+        // [VERIFY] Verify "Carbon Tracking Method" Specific throws an error When Item has no Item Tracking Code.
+        Assert.ExpectedError(
+            StrSubstNo(
+                SpecificCarbonTrackingNeedsItemTrackingErr,
+                Item.FieldCaption("Carbon Tracking Method"),
+                Format(Item."Carbon Tracking Method"::Specific),
+                Item.FieldCaption("Item Tracking Code")));
+    end;
+
+    [Test]
+    procedure VerifyCarbonTrackingMethodSpecificThrowsErrorWhenItemTrackingCodeHasNoSerialOrLotTracking()
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+    begin
+        // [SCENARIO 641049] Verify "Carbon Tracking Method" Specific throws an error When Item Tracking Code has no serial or lot specific tracking.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] Create an Item Tracking Code without serial or lot specific tracking.
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, false);
+
+        // [GIVEN] Create an Item with the Item Tracking Code.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+
+        // [WHEN] Update "Carbon Tracking Method" to Specific in an Item.
+        asserterror Item.Validate("Carbon Tracking Method", Item."Carbon Tracking Method"::Specific);
+
+        // [VERIFY] Verify "Carbon Tracking Method" Specific throws an error When Item Tracking Code has no serial or lot specific tracking.
+        Assert.ExpectedError(
+            StrSubstNo(
+                SpecificCarbonTrackingNeedsItemTrackingErr,
+                Item.FieldCaption("Carbon Tracking Method"),
+                Format(Item."Carbon Tracking Method"::Specific),
+                Item.FieldCaption("Item Tracking Code")));
+    end;
+
+    [Test]
+    procedure VerifyCarbonTrackingMethodSpecificIsAllowedWhenItemTrackingCodeHasLotTracking()
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+    begin
+        // [SCENARIO 641049] Verify "Carbon Tracking Method" Specific is allowed When Item Tracking Code has lot specific tracking.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] Create an Item Tracking Code with lot specific tracking.
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, true);
+
+        // [GIVEN] Create an Item with the Item Tracking Code.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+
+        // [WHEN] Update "Carbon Tracking Method" to Specific in an Item.
+        Item.Validate("Carbon Tracking Method", Item."Carbon Tracking Method"::Specific);
+        Item.Modify(true);
+
+        // [VERIFY] Verify "Carbon Tracking Method" Specific is allowed When Item Tracking Code has lot specific tracking.
+        Assert.AreEqual(
+            Item."Carbon Tracking Method"::Specific,
+            Item."Carbon Tracking Method",
+            StrSubstNo(
+                ValueMustBeEqualErr,
+                Item.FieldCaption("Carbon Tracking Method"),
+                Format(Item."Carbon Tracking Method"::Specific),
+                Item.TableCaption()));
+    end;
+
+    [Test]
+    procedure VerifyCarbonTrackingMethodSpecificIsAllowedWhenItemTrackingCodeHasSerialTracking()
+    var
+        Item: Record Item;
+        ItemTrackingCode: Record "Item Tracking Code";
+    begin
+        // [SCENARIO 641049] Verify "Carbon Tracking Method" Specific is allowed When Item Tracking Code has serial specific tracking.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] Create an Item Tracking Code with serial specific tracking.
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, true, false);
+
+        // [GIVEN] Create an Item with the Item Tracking Code.
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
+        Item.Modify(true);
+
+        // [WHEN] Update "Carbon Tracking Method" to Specific in an Item.
+        Item.Validate("Carbon Tracking Method", Item."Carbon Tracking Method"::Specific);
+        Item.Modify(true);
+
+        // [VERIFY] Verify "Carbon Tracking Method" Specific is allowed When Item Tracking Code has serial specific tracking.
+        Assert.AreEqual(
+            Item."Carbon Tracking Method"::Specific,
+            Item."Carbon Tracking Method",
+            StrSubstNo(
+                ValueMustBeEqualErr,
+                Item.FieldCaption("Carbon Tracking Method"),
+                Format(Item."Carbon Tracking Method"::Specific),
+                Item.TableCaption()));
     end;
 
     local procedure CreateSustainabilityAccount(var AccountCode: Code[20]; var CategoryCode: Code[20]; var SubcategoryCode: Code[20]; i: Integer): Record "Sustainability Account"
