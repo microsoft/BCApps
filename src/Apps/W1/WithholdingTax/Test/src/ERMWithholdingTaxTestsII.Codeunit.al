@@ -639,9 +639,10 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
         DocumentNo := FindVendorLedgerEntry(GenJournalLine."Account No.");
 
-        // [GIVEN] A Payments Gen. Journal Template and Batch and a Bank Account for the Create Payment action.
-        GenJournalTemplate.SetRange(Type, GenJournalTemplate.Type::Payments);
-        LibraryERM.FindGenJournalTemplate(GenJournalTemplate);
+        // [GIVEN] A dedicated Payments Gen. Journal Template (ensures more than one Payments template exists so the template lookup always opens deterministically across localizations), a Batch and a Bank Account for the Create Payment action.
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate.Validate(Type, GenJournalTemplate.Type::Payments);
+        GenJournalTemplate.Modify(true);
         LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
         LibraryERM.CreateBankAccount(BankAccount);
         StartingDocumentNo := LibraryUtility.GenerateGUID();
