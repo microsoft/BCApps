@@ -4893,13 +4893,14 @@
         Customer: Record Customer;
         CustomerPriceGroup: Record "Customer Price Group";
         CustomerDiscountGroup: Record "Customer Discount Group";
-        PriceListLine: array[4] of Record "Price List Line";
+        PriceListLine: array[3] of Record "Price List Line";
         CustomerCard: TestPage "Customer Card";
         PriceListLineReview: TestPage "Price List Line Review";
         ShownCount: Integer;
     begin
-        // [SCENARIO 641061] Sales Price Review page opened from the Customer Card returns lines for every applicable
-        // Source Type (Customer, All Customers, Customer Price Group, Customer Disc. Group) sharing an empty Parent Source No.
+        // [SCENARIO 641061] Sales Price Review page opened from the Customer Card returns lines for every applicable price
+        // Source Type (Customer, All Customers, Customer Price Group) sharing an empty Parent Source No., exercising the
+        // marking fallback path in BuildSourceFilters when sources have mixed Source Types.
         Initialize(true);
 
         // [GIVEN] A Customer Price Group "X" and a Customer Discount Group "Y".
@@ -4907,13 +4908,15 @@
         LibraryERM.CreateCustomerDiscountGroup(CustomerDiscountGroup);
 
         // [GIVEN] A Customer "C" assigned to price group "X" and discount group "Y".
+        // "Customer Disc. Group" is added to the price source list by the Customer Card, but that source type only
+        // supports Discount amount type and is therefore filtered out by the Sales Prices action.
         LibrarySales.CreateCustomer(Customer);
         Customer."Customer Price Group" := CustomerPriceGroup.Code;
         Customer."Customer Disc. Group" := CustomerDiscountGroup.Code;
         Customer.Modify();
 
-        // [GIVEN] One sales price line for each source type applicable to Customer "C":
-        // [GIVEN] "All Customers", Customer "C", Customer Price Group "X", and Customer Disc. Group "Y".
+        // [GIVEN] One sales price line for each source type applicable to Customer "C" that supports Price amount type:
+        // [GIVEN] "All Customers", Customer "C", and Customer Price Group "X".
         LibraryPriceCalculation.CreateSalesPriceLine(
             PriceListLine[1], LibraryUtility.GenerateGUID(), "Price Source Type"::"All Customers", '',
             "Price Asset Type"::Item, LibraryInventory.CreateItemNo());
@@ -4922,9 +4925,6 @@
             "Price Asset Type"::Item, LibraryInventory.CreateItemNo());
         LibraryPriceCalculation.CreateSalesPriceLine(
             PriceListLine[3], LibraryUtility.GenerateGUID(), "Price Source Type"::"Customer Price Group", CustomerPriceGroup.Code,
-            "Price Asset Type"::Item, LibraryInventory.CreateItemNo());
-        LibraryPriceCalculation.CreateSalesDiscountLine(
-            PriceListLine[4], LibraryUtility.GenerateGUID(), "Price Source Type"::"Customer Disc. Group", CustomerDiscountGroup.Code,
             "Price Asset Type"::Item, LibraryInventory.CreateItemNo());
 
         // [GIVEN] Open Customer Card for Customer "C".
@@ -4935,12 +4935,12 @@
         PriceListLineReview.Trap();
         CustomerCard.PriceLines.Invoke();
 
-        // [THEN] All four applicable price lines are shown on the Price List Line Review page.
+        // [THEN] All three applicable price lines are shown on the Price List Line Review page.
         if PriceListLineReview.First() then
             repeat
                 ShownCount += 1;
             until not PriceListLineReview.Next();
-        Assert.AreEqual(4, ShownCount, MixedSourceLinesNotShownErr);
+        Assert.AreEqual(3, ShownCount, MixedSourceLinesNotShownErr);
     end;
 
     local procedure Initialize(Enable: Boolean)
