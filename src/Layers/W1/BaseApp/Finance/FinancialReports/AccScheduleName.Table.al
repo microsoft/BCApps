@@ -118,17 +118,7 @@ table 84 "Acc. Schedule Name"
             Caption = 'Status';
             DataClassification = CustomerContent;
             TableRelation = "Financial Report Status";
-            ValidateTableRelation = false;
             ToolTip = 'Specifies the status code for the row definition. The status code helps you organize the lifecycle of your row definitions.';
-
-            trigger OnValidate()
-            var
-                FinancialReportStatus: Record "Financial Report Status";
-            begin
-                if not FinancialReportStatus.Get(Rec.Status) then
-                    Rec.Status := '';
-            end;
-
         }
         field(7; "Status Blocked"; Boolean)
         {
@@ -362,9 +352,30 @@ table 84 "Acc. Schedule Name"
         if NewName = '' then
             Error(PackageImportErr);
 
+        ClearNonExistingStatusInPackage(PackageCode);
+
         ConfigPackageTable.SetRange("Package Code", PackageCode);
         ConfigPackageMgt.ApplyPackage(ConfigPackage, ConfigPackageTable, false);
         LogImportExportTelemetry(NewName, 'imported');
+    end;
+
+    local procedure ClearNonExistingStatusInPackage(PackageCode: Code[20])
+    var
+        AccScheduleName: Record "Acc. Schedule Name";
+        FinancialReportStatus: Record "Financial Report Status";
+        ConfigPackageData: Record "Config. Package Data";
+    begin
+        ConfigPackageData.SetRange("Package Code", PackageCode);
+        ConfigPackageData.SetRange("Table ID", Database::"Acc. Schedule Name");
+        ConfigPackageData.SetRange("Field ID", AccScheduleName.FieldNo(Status));
+        ConfigPackageData.SetFilter(Value, '<>%1', '');
+        if ConfigPackageData.FindSet() then
+            repeat
+                if not FinancialReportStatus.Get(CopyStr(ConfigPackageData.Value, 1, MaxStrLen(FinancialReportStatus.Code))) then begin
+                    ConfigPackageData.Value := '';
+                    ConfigPackageData.Modify();
+                end;
+            until ConfigPackageData.Next() = 0;
     end;
 
     local procedure GetPackageAccSchedName(PackageCode: Code[20]) NewName: Code[10]
