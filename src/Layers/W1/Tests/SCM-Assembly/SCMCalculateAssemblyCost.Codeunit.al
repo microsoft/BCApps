@@ -7,6 +7,7 @@ namespace Microsoft.Assembly.Test;
 using Microsoft.Assembly.Document;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
@@ -45,6 +46,8 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryPurchase: Codeunit "Library - Purchase";
         WorkDate2: Date;
+        VATBusPostingGroup: Code[20];
+        VATProdPostingGroup: Code[20];
         TEXT_PARENT: Label 'Parent';
         TEXT_CHILD: Label 'Child';
         TEXT_ItemA: Label 'ItemA';
@@ -513,6 +516,7 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         Resource: Record Resource;
         BOMComponent: Record "BOM Component";
         PurchRcptLine: Record "Purch. Rcpt. Line";
+        VATPostingSetup: Record "VAT Posting Setup";
     begin
         // [FEATURE] [Assembly] [Standard Cost] [Cost Adjustment] [Item Charge]
         // [SCENARIO 640456] After an item charge changes the component cost, adjusting a standard-cost assembly
@@ -523,6 +527,28 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         // Adjustment must run only on the explicit "Adjust Cost - Item Entries" calls below, so that the exact
         // posting sequence that reproduces the bug is preserved.
         LibraryInventory.SetAutomaticCostAdjmtNever();
+        // The scenario is verified on value entries only. Disable automatic cost posting to G/L so the test does
+        // not depend on country-specific General Posting Setup G/L accounts (e.g. CH leaves accounts such as
+        // "Inventory Adjmt. Account"/"Overhead Applied Account" blank for the blank-Gen.-Bus./MANUFACT combo).
+        LibraryInventory.SetAutomaticCostPosting(false);
+        // Also disable expected cost posting to G/L so order posting never posts interim inventory values to G/L
+        // either. With both automatic and expected G/L cost posting off, no assembly/adjustment step posts to G/L,
+        // so no General Posting Setup account (Inventory Adjmt./Overhead Applied/...) is ever required.
+        LibraryInventory.SetExpectedCostPosting(false);
+
+        // Belt-and-suspenders: also fill the inventory/manufacturing accounts on every existing General Posting
+        // Setup combination (the assembly output/resource capacity postings use the blank-Gen.-Bus./MANUFACT combo,
+        // which some localizations such as DK leave incomplete) so the test never depends on country-specific setup.
+        EnsureAllGeneralPostingSetupAccounts();
+
+        // The purchase postings below (component receipt+invoice and freight item charge invoice) post to G/L and
+        // therefore need a VAT Posting Setup for the vendor's "VAT Bus. Posting Group" and the line's "VAT Prod.
+        // Posting Group". Some localizations (e.g. US/CA) have no matching combination for the default library
+        // groups, so create one explicit VAT Posting Setup and use it consistently for the vendor, items and
+        // item charge, keeping the test independent of country-specific VAT setup.
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
+        VATBusPostingGroup := VATPostingSetup."VAT Bus. Posting Group";
+        VATProdPostingGroup := VATPostingSetup."VAT Prod. Posting Group";
 
         // [GIVEN] A standard-cost assembly item with a sub-cent "Indirect Cost %" (1.12345)
         CreateItem(AssemblyItem, AssemblyItem."Costing Method"::Standard, AssemblyItem."Replenishment System"::Assembly, 0);
@@ -631,26 +657,23 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         Item.Validate("Costing Method", CostingMethod);
         Item.Validate("Replenishment System", ReplenishmentSystem);
         Item.Validate("Standard Cost", StandardCostAmt);
+        Item.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
         Item.Modify(true);
-        EnsureGeneralPostingSetupAccounts('', Item."Gen. Prod. Posting Group");
     end;
 
-    local procedure EnsureGeneralPostingSetupAccounts(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
+    local procedure EnsureAllGeneralPostingSetupAccounts()
     var
         GeneralPostingSetup: Record "General Posting Setup";
     begin
-        // Some localized demo data (e.g. CH) leaves the inventory/manufacturing accounts blank for the
-        // posting-group combination used by these items, which breaks cost adjustment posting. Ensure the
-        // required accounts exist so the test is independent of the country-specific General Posting Setup.
-        if not GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup) then begin
-            GeneralPostingSetup.Init();
-            GeneralPostingSetup.Validate("Gen. Bus. Posting Group", GenBusPostingGroup);
-            GeneralPostingSetup.Validate("Gen. Prod. Posting Group", GenProdPostingGroup);
-            GeneralPostingSetup.Insert(true);
-        end;
-        LibraryERM.SetGeneralPostingSetupInvtAccounts(GeneralPostingSetup);
-        LibraryERM.SetGeneralPostingSetupMfgAccounts(GeneralPostingSetup);
-        GeneralPostingSetup.Modify(true);
+        // Fill the inventory/manufacturing accounts on every existing General Posting Setup combination so cost
+        // adjustment/assembly posting does not depend on country-specific demo data leaving accounts blank
+        // (e.g. the blank-Gen.-Bus./MANUFACT combo used by resource capacity postings in DK/CH).
+        if GeneralPostingSetup.FindSet() then
+            repeat
+                LibraryERM.SetGeneralPostingSetupInvtAccounts(GeneralPostingSetup);
+                LibraryERM.SetGeneralPostingSetupMfgAccounts(GeneralPostingSetup);
+                GeneralPostingSetup.Modify(true);
+            until GeneralPostingSetup.Next() = 0;
     end;
 
     local procedure PostPositiveAdjustment(ItemNo: Code[20]; Qty: Decimal)
@@ -699,7 +722,8 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
     begin
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorNo());
+        LibraryPurchase.CreatePurchHeader(
+          PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATBusPostingGroup));
         LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, Quantity);
         PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
         PurchaseLine.Modify(true);
@@ -715,13 +739,26 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
     begin
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, LibraryPurchase.CreateVendorNo());
+        LibraryPurchase.CreatePurchHeader(
+          PurchaseHeader, PurchaseHeader."Document Type"::Invoice, LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATBusPostingGroup));
         LibraryPurchase.CreatePurchaseLine(
-          PurchaseLine, PurchaseHeader, PurchaseLine.Type::"Charge (Item)", LibraryInventory.CreateItemChargeNo(), Quantity);
+          PurchaseLine, PurchaseHeader, PurchaseLine.Type::"Charge (Item)", CreateItemChargeNoWithVATProdGroup(), Quantity);
         PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
         PurchaseLine.Modify(true);
         AssignItemChargeToReceipt(PurchaseLine, PurchRcptLine);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+    end;
+
+    local procedure CreateItemChargeNoWithVATProdGroup(): Code[20]
+    var
+        ItemCharge: Record "Item Charge";
+    begin
+        // Use the test's own VAT Posting Setup so the freight invoice posts in every localization (the default
+        // library item charge picks a zero-VAT setup whose VAT Prod. Posting Group is blank in US/CA).
+        ItemCharge.Get(LibraryInventory.CreateItemChargeNoWithoutVAT());
+        ItemCharge.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
+        ItemCharge.Modify(true);
+        exit(ItemCharge."No.");
     end;
 
     local procedure AssignItemChargeToReceipt(PurchaseLine: Record "Purchase Line"; PurchRcptLine: Record "Purch. Rcpt. Line")
