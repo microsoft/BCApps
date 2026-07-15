@@ -597,7 +597,7 @@ codeunit 148322 "ERM Withholding Tax Tests II"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('ConfirmHandler,CreatePaymentPageHandler')]
+    [HandlerFunctions('ConfirmHandler,GeneralJournalTemplateListPageHandler,CreatePaymentPageHandler')]
     procedure WHTProdPostGroupTravelsFromInvoiceToJournalLineOnApplication()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -646,6 +646,7 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         LibraryERM.CreateBankAccount(BankAccount);
         StartingDocumentNo := LibraryUtility.GenerateGUID();
 
+        LibraryVariableStorage.Enqueue(GenJournalTemplate.Name);
         LibraryVariableStorage.Enqueue(GenJournalTemplate.Name);
         LibraryVariableStorage.Enqueue(GenJournalBatch.Name);
         LibraryVariableStorage.Enqueue(StartingDocumentNo);
@@ -1187,6 +1188,14 @@ codeunit 148322 "ERM Withholding Tax Tests II"
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure GeneralJournalTemplateListPageHandler(var GeneralJournalTemplateList: TestPage "General Journal Template List")
+    begin
+        GeneralJournalTemplateList.Filter.SetFilter(Name, LibraryVariableStorage.DequeueText());
+        GeneralJournalTemplateList.OK().Invoke();
     end;
 
     [ModalPageHandler]
