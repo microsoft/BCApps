@@ -1987,7 +1987,8 @@ codeunit 99000854 "Inventory Profile Offsetting"
 
             SupplyInvtProfile.Modify();
         end;
-
+        OnAfterDecreaseQty(var
+                               SupplyInvtProfile: Record "Inventory Profile");
         exit(SupplyInvtProfile."Untracked Quantity" = 0);
     end;
 
@@ -4968,6 +4969,11 @@ codeunit 99000854 "Inventory Profile Offsetting"
         Location.Get(LocationCode);
 
         exit(Location."Missing SKU Planning Policy" = Location."Missing SKU Planning Policy"::"Item Card");
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterDecreaseQty(var SupplyInvtProfile: Record "Inventory Profile")
+    begin
     end;
 
     [IntegrationEvent(false, false)]
