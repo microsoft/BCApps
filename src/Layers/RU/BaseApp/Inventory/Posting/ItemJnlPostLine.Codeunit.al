@@ -5327,7 +5327,7 @@ codeunit 22 "Item Jnl.-Post Line"
         exit((ItemJnlLine."Value Entry Type" = ItemJnlLine."Value Entry Type"::Revaluation) and (ItemJnlLine.Quantity <> 0));
     end;
 
-    local procedure InsertPostValueEntryToGL(ValueEntry: Record "Value Entry")
+    procedure InsertPostValueEntryToGL(ValueEntry: Record "Value Entry")
     var
         PostValueEntryToGL: Record "Post Value Entry to G/L";
     begin
