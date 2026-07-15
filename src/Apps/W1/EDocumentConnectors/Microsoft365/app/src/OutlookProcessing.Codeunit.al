@@ -94,6 +94,7 @@ codeunit 6385 "Outlook Processing"
         FolderConfigured := OutlookSetup."Email Folder Id" <> '';
 
         TempFilters."Load Attachments" := true;
+        TempFilters."Load Headers" := true;
         TempFilters."Max No. of Emails" := GetMaxNoOfEmails();
         // In folder mode, dedup is enforced server-side by the category-exclude filter only.
         // Applying "Earliest Email" would drop emails moved into the folder after that floor.
