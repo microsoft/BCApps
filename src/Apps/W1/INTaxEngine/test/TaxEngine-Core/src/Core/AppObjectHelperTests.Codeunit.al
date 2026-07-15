@@ -293,7 +293,7 @@
     var
         AllObj: Record AllObj;
         AppObjHelper: Codeunit "App Object Helper";
-        ObjectName: Text[100];
+        ObjectName: Text;
         ObjectID: Integer;
     begin
         // [SCENARIO] Pass the type of object as table and ID as table id of G/l Account table.
@@ -416,7 +416,7 @@
     var
         AllObj: Record AllObj;
         AppObjHelper: Codeunit "App Object Helper";
-        SearchObjectName, ObjectName : Text[100];
+        SearchObjectName, ObjectName : Text;
         ObjectID: Integer;
     begin
         // [SCENARIO] Pass the type of object as table and Name as table name of G/l Account table.

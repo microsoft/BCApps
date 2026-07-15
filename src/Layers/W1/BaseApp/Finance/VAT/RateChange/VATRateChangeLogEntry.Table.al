@@ -46,7 +46,7 @@ table 552 "VAT Rate Change Log Entry"
         /// <summary>
         /// Caption of the table containing the modified record.
         /// </summary>
-        field(11; "Table Caption"; Text[80])
+        field(11; "Table Caption"; Text[100])
         {
             CalcFormula = lookup(AllObj.Name where("Object Type" = const(Table),
                                                              "Object ID" = field("Table ID")));
@@ -150,4 +150,3 @@ table 552 "VAT Rate Change Log Entry"
         "New VAT Prod. Posting Group" := NewVATProdPostingGroup;
     end;
 }
-

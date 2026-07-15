@@ -20,7 +20,7 @@ table 3902 "Retention Policy Setup Line"
             DataClassification = SystemMetadata;
             Editable = false;
         }
-        field(2; "Table Name"; Text[30])
+        field(2; "Table Name"; Text[100])
         {
             FieldClass = FlowField;
             CalcFormula = lookup(AllObjWithCaption.Name where("Object Type" = const(Table), "Object ID" = field("Table Id")));

@@ -156,7 +156,7 @@ codeunit 20130 "App Object Helper"
         end;
     end;
 
-    procedure SearchObject(Type: ObjectType; var ObjectID: Integer; var ObjectName: Text[100]);
+    procedure SearchObject(Type: ObjectType; var ObjectID: Integer; var ObjectName: Text);
     var
         AllObj: Record AllObj;
         TmpObjectID: Integer;
@@ -197,7 +197,7 @@ codeunit 20130 "App Object Helper"
             exit(AllObj."Object ID");
     end;
 
-    procedure OpenObjectLookup(Type: ObjectType; SearchText: Text; var ObjectID: Integer; var ObjectName: Text[100]);
+    procedure OpenObjectLookup(Type: ObjectType; SearchText: Text; var ObjectID: Integer; var ObjectName: Text);
     var
         AllObj: Record AllObj;
     begin

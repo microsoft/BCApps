@@ -208,7 +208,7 @@ codeunit 9180 "Generic Chart Mgt"
         Clear(chartBuilder);
     end;
 
-    procedure LookUpObjectId(ObjType: Option " ","Table","Query"; var ObjID: Integer; var ObjName: Text[100])
+    procedure LookUpObjectId(ObjType: Option " ","Table","Query"; var ObjID: Integer; var ObjName: Text)
     var
         AllObjWithCaption: Record AllObjWithCaption;
     begin
@@ -219,7 +219,7 @@ codeunit 9180 "Generic Chart Mgt"
         end;
     end;
 
-    procedure ValidateObjectID(ObjType: Option " ","Table","Query"; var ObjID: Integer; var ObjName: Text[100])
+    procedure ValidateObjectID(ObjType: Option " ","Table","Query"; var ObjID: Integer; var ObjName: Text)
     var
         AllObjWithCaption: Record AllObjWithCaption;
     begin
@@ -975,4 +975,3 @@ codeunit 9180 "Generic Chart Mgt"
         LookupOK := GenericChartMgt.ChartCustomization(TempChart)
     end;
 }
-

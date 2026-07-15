@@ -13,7 +13,7 @@ table 130060 "Reference data - field list"
         {
             TableRelation = AllObj."Object ID" where("Object Type" = const(Table));
         }
-        field(3; "Table name"; Text[30])
+        field(3; "Table name"; Text[100])
         {
             CalcFormula = lookup(AllObj.Name where("Object Type" = const(Table),
                                                              "Object ID" = field("Table ID")));
@@ -66,4 +66,3 @@ table 130060 "Reference data - field list"
             Error(Text001, FieldName("Field ID"));
     end;
 }
-

@@ -26,7 +26,7 @@ tableextension 6374 "Transformation Rule" extends "Transformation Rule"
                     CalcFields("Lookup Table Name");
             end;
         }
-        field(6371; "Lookup Table Name"; Text[30])
+        field(6371; "Lookup Table Name"; Text[100])
         {
             CalcFormula = lookup(AllObjWithCaption.Name where("Object Type" = const(Table), "Object ID" = field("Lookup Table ID")));
             Caption = 'Lookup Table Name';

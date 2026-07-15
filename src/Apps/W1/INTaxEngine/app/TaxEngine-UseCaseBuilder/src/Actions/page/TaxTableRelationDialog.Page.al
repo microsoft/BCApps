@@ -148,7 +148,7 @@ page 20286 "Tax Table Relation Dialog"
         AppObjectHelper: Codeunit "App Object Helper";
         LookupDialogMgmt: Codeunit "Lookup Dialog Mgmt.";
         EmptyGuid: Guid;
-        LookupTableName: Text[100];
+        LookupTableName: Text;
         LookupTableFieldName: Text[30];
         LookupTableFilters: Text;
         IsCurrentRecord: Boolean;

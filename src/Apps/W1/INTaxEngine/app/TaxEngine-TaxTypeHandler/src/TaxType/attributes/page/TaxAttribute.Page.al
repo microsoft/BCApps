@@ -150,8 +150,8 @@ page 20257 "Tax Attribute"
         DatatypeMgmt: Codeunit "Use Case Data Type Mgmt.";
         ValuesDrillDownVisible: Boolean;
         UnitOfMeasureVisible: Boolean;
-        TableNameText2: Text[100];
-        PageNameText2: Text[100];
+        TableNameText2: Text;
+        PageNameText2: Text;
         FieldNameText2: Text[30];
 
     local procedure UpdateControlVisibility();

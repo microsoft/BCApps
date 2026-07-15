@@ -17,7 +17,7 @@
         TaxTypeObjectHelper: Codeunit "Tax Type Object Helper";
         LibraryTaxTypeTests: Codeunit "Library - Tax Type Tests";
         TableID: Integer;
-        TableName: Text[100];
+        TableName: Text;
     begin
         // [SCENARIO] To check function is returning the correct table name from tax entitiy table.
 
@@ -40,7 +40,7 @@
         TaxTypeObjectHelper: Codeunit "Tax Type Object Helper";
         LibraryTaxTypeTests: Codeunit "Library - Tax Type Tests";
         TableID: Integer;
-        TableName: Text[100];
+        TableName: Text;
     begin
         // [SCENARIO] To check function is returning the correct table name from tax entitiy table.
 
@@ -63,7 +63,7 @@
         TaxTypeObjectHelper: Codeunit "Tax Type Object Helper";
         LibraryTaxTypeTests: Codeunit "Library - Tax Type Tests";
         TableID: Integer;
-        TableName: Text[100];
+        TableName: Text;
     begin
         // [SCENARIO] To check function is returning the correct table name from tax entitiy table.
 
@@ -86,7 +86,7 @@
         TaxTypeObjectHelper: Codeunit "Tax Type Object Helper";
         LibraryTaxTypeTests: Codeunit "Library - Tax Type Tests";
         TableID: Integer;
-        TableName: Text[100];
+        TableName: Text;
         InvalidTableNoErr: Label 'You cannot enter ''%1'' in TableNo.', Comment = '%1, Table No. or Table Name';
     begin
         // [SCENARIO] To check function is throwing error is invalid table name passed for a tax entitiy table.
@@ -159,7 +159,7 @@
         TaxTypeObjectHelper: Codeunit "Tax Type Object Helper";
         LibraryTaxTypeTests: Codeunit "Library - Tax Type Tests";
         TableID: Integer;
-        TableName, SearchText : Text[100];
+        TableName, SearchText : Text;
     begin
         // [SCENARIO] To check function is opening the lookup page of Tax entities page and returns the correct table name.
 
@@ -183,7 +183,7 @@
         TaxTypeObjectHelper: Codeunit "Tax Type Object Helper";
         LibraryTaxTypeTests: Codeunit "Library - Tax Type Tests";
         TableID: Integer;
-        TableName, SearchText : Text[100];
+        TableName, SearchText : Text;
     begin
         // [SCENARIO] To check function is opening the lookup page of Tax entities page and returns the correct table name.
 
@@ -207,7 +207,7 @@
         TaxTypeObjectHelper: Codeunit "Tax Type Object Helper";
         LibraryTaxTypeTests: Codeunit "Library - Tax Type Tests";
         TableID: Integer;
-        TableName, SearchText : Text[100];
+        TableName, SearchText : Text;
     begin
         // [SCENARIO] To check function is opening the lookup page of Tax entities page and returns the correct table name.
 
@@ -231,7 +231,7 @@
         TaxTypeObjectHelper: Codeunit "Tax Type Object Helper";
         LibraryTaxTypeTests: Codeunit "Library - Tax Type Tests";
         TableID: Integer;
-        TableName, SearchText : Text[100];
+        TableName, SearchText : Text;
     begin
         // [SCENARIO] To check function is opening the lookup page of Tax entities page and returns the correct table name.
 
