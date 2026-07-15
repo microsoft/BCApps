@@ -444,6 +444,8 @@ codeunit 8001 "Sub. Contr. Renewal Subcribers"
     var
         Result: Boolean;
     begin
+        if IsNullGuid(SalesHeader.SystemId) then
+            exit(SalesHeader.HasOnlyContractRenewalLines());
         if HasOnlyContractRenewalLinesCache.Get(SalesHeader.SystemId, Result) then
             exit(Result);
         Result := SalesHeader.HasOnlyContractRenewalLines();
