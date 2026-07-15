@@ -101,7 +101,7 @@ codeunit 1565 "Privacy Notice Impl."
 
         // Check if user made a decision and if so, return that
         PrivacyNotice.SetRange("User SID Filter", UserSecurityId());
-        PrivacyNotice.CalcFields(Enabled);
+        PrivacyNotice.CalcFields(Enabled, Disabled);
         if PrivacyNotice.Enabled then begin
             Session.LogMessage('0000GKB', StrSubstNo(PrivacyNoticeAutoApprovedByUserTelemetryTxt, PrivacyNoticeId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryTxt);
             exit(true); // If user clicked no, they will still be notified until admin makes a decision
