@@ -964,6 +964,7 @@ codeunit 139515 "Digital Vouchers Tests"
         InitSetupGenerateAutomatically("Digital Voucher Entry Type"::"Sales Document", "Digital Voucher Check Type"::Attachment);
         LibraryLowerPermissions.SetO365Setup();
         LibraryLowerPermissions.AddSalesDocsPost();
+        LibraryLowerPermissions.AddeRead();
         // [WHEN] Post sales invoice
         SalesInvHeader.Get(ShipAndInvoiceSalesInvoice());
         // [THEN] "No. Printed" is 0 for the posted sales invoice
@@ -992,6 +993,7 @@ codeunit 139515 "Digital Vouchers Tests"
         InitSetupGenerateAutomatically("Digital Voucher Entry Type"::"Sales Document", "Digital Voucher Check Type"::Attachment);
         LibraryLowerPermissions.SetO365Setup();
         LibraryLowerPermissions.AddSalesDocsPost();
+        LibraryLowerPermissions.AddeRead();
         // [WHEN] Post sales credit memo
         SalesCrMemoHeader.Get(ReceiveAndInvoiceSalesCrMemo());
         // [THEN] "No. Printed" is 0 for the posted sales credit memo
