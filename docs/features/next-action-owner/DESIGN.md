@@ -1,4 +1,4 @@
-# Whose turn labels
+# Next-action owner labels
 
 Every open issue and pull request has exactly one label showing who should act
 next:
@@ -49,7 +49,7 @@ After deployment, perform the one-time backfill from an operator shell:
 ```bash
 gh api --paginate "repos/microsoft/BCApps/issues?state=open&per_page=100" --jq '.[].number' |
   while read -r number; do
-    gh workflow run TrackWhoseTurn.yaml --repo microsoft/BCApps \
+    gh workflow run ManageNextActionOwner.yaml --repo microsoft/BCApps \
       -f item_number="$number" -f turn=auto
   done
 ```

@@ -1,4 +1,4 @@
-name: Track whose turn
+name: Manage next action owner
 
 on:
   issues:
@@ -8,7 +8,7 @@ on:
   pull_request_target:
     types: [opened, reopened, edited, synchronize, ready_for_review, converted_to_draft, labeled, unlabeled]
   workflow_run:
-    workflows: [Capture whose turn review event]
+    workflows: [Capture PR review for next action owner]
     types: [completed]
   workflow_dispatch:
     inputs:
@@ -33,16 +33,16 @@ permissions:
   pull-requests: read
 
 env:
-  REVIEW_EVENT_ARTIFACT: whose-turn-review-event
-  REVIEW_EVENT_DIRECTORY: review-event
+  NEXT_ACTION_REVIEW_ARTIFACT: next-action-review-event
+  NEXT_ACTION_REVIEW_DIRECTORY: next-action-review-event
 
 jobs:
   resolve_review_bridge:
     if: >-
       github.repository_owner == 'microsoft' &&
       github.event_name == 'workflow_run' &&
-      github.event.workflow_run.name == 'Capture whose turn review event' &&
-      github.event.workflow_run.path == '.github/workflows/CaptureWhoseTurnReview.yaml' &&
+      github.event.workflow_run.name == 'Capture PR review for next action owner' &&
+      github.event.workflow_run.path == '.github/workflows/CaptureNextActionReview.yaml' &&
       (github.event.workflow_run.event == 'pull_request_review' ||
         github.event.workflow_run.event == 'pull_request_review_comment') &&
       github.event.workflow_run.conclusion == 'success'
@@ -53,25 +53,25 @@ jobs:
     outputs:
       pr_number: ${{ steps.resolve.outputs.result }}
     steps:
-      - name: Validate review event artifact
+      - name: Resolve next-action review event
         id: resolve
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           result-encoding: string
           script: |
             const run = context.payload.workflow_run;
-            if (run.name !== 'Capture whose turn review event'
-                || run.path !== '.github/workflows/CaptureWhoseTurnReview.yaml'
+            if (run.name !== 'Capture PR review for next action owner'
+                || run.path !== '.github/workflows/CaptureNextActionReview.yaml'
                 || !['pull_request_review', 'pull_request_review_comment'].includes(run.event)
                 || run.conclusion !== 'success'
                 || run.run_attempt !== 1) {
-              throw new Error('Unexpected review bridge workflow run.');
+              throw new Error('Unexpected next-action review workflow run.');
             }
 
             let pullNumber;
             const runPulls = run.pull_requests ?? [];
             if (runPulls.length > 1) {
-              throw new Error('Review bridge workflow run is associated with multiple pull requests.');
+              throw new Error('Next-action review workflow run is associated with multiple pull requests.');
             }
             if (runPulls.length === 1) {
               pullNumber = runPulls[0].number;
@@ -80,7 +80,7 @@ jobs:
               const headBranch = run.head_branch;
               const headSha = run.head_sha;
               if (!headOwner || !headBranch || !headSha) {
-                throw new Error('Review bridge workflow run lacks trusted pull request metadata.');
+                throw new Error('Next-action review workflow run lacks trusted pull request metadata.');
               }
               const candidates = await github.paginate(github.rest.pulls.list, {
                 owner: context.repo.owner,
@@ -91,12 +91,12 @@ jobs:
               });
               const matches = candidates.filter(pull => pull.head.sha === headSha);
               if (matches.length !== 1) {
-                throw new Error(`Expected one pull request for the review bridge run; found ${matches.length}.`);
+                throw new Error(`Expected one pull request for the next-action review run; found ${matches.length}.`);
               }
               pullNumber = matches[0].number;
             }
             if (!Number.isSafeInteger(pullNumber) || pullNumber < 1) {
-              throw new Error('Review bridge workflow run has an invalid pull request number.');
+              throw new Error('Next-action review workflow run has an invalid pull request number.');
             }
 
             const artifacts = await github.paginate(github.rest.actions.listWorkflowRunArtifacts, {
@@ -105,16 +105,20 @@ jobs:
               run_id: run.id,
               per_page: 100,
             });
-            const matches = artifacts.filter(artifact => artifact.name === process.env.REVIEW_EVENT_ARTIFACT);
+            const matches = artifacts.filter(
+              artifact => artifact.name === process.env.NEXT_ACTION_REVIEW_ARTIFACT,
+            );
             if (matches.length !== 1) {
-              throw new Error(`Expected one ${process.env.REVIEW_EVENT_ARTIFACT} artifact; found ${matches.length}.`);
+              throw new Error(
+                `Expected one ${process.env.NEXT_ACTION_REVIEW_ARTIFACT} artifact; found ${matches.length}.`,
+              );
             }
             const [artifact] = matches;
             if (artifact.expired
                 || !Number.isSafeInteger(artifact.size_in_bytes)
                 || artifact.size_in_bytes < 1
                 || artifact.size_in_bytes > 4 * 1024) {
-              throw new Error('Review event artifact is expired or outside the 4 KiB size limit.');
+              throw new Error('Next-action review artifact is expired or outside the 4 KiB size limit.');
             }
             return String(pullNumber);
 
@@ -131,22 +135,22 @@ jobs:
       issues: write
       pull-requests: read
     concurrency:
-      group: whose-turn-${{ github.event.issue.number || github.event.pull_request.number || needs.resolve_review_bridge.outputs.pr_number || inputs.item_number || github.run_id }}
+      group: next-action-owner-${{ github.event.issue.number || github.event.pull_request.number || needs.resolve_review_bridge.outputs.pr_number || inputs.item_number || github.run_id }}
       cancel-in-progress: false
       queue: max
     steps:
-      - name: Download review event artifact
+      - name: Download next-action review event
         if: github.event_name == 'workflow_run'
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: ${{ env.REVIEW_EVENT_ARTIFACT }}
-          path: ${{ github.workspace }}/${{ env.REVIEW_EVENT_DIRECTORY }}
+          name: ${{ env.NEXT_ACTION_REVIEW_ARTIFACT }}
+          path: ${{ github.workspace }}/${{ env.NEXT_ACTION_REVIEW_DIRECTORY }}
           repository: ${{ github.repository }}
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ github.token }}
           skip-decompress: true
 
-      - name: Classify next action
+      - name: Manage next action owner
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         env:
           BRIDGE_PR_NUMBER: ${{ needs.resolve_review_bridge.outputs.pr_number }}
@@ -175,8 +179,8 @@ jobs:
             const TEAM_ASSOCIATIONS = new Set(['OWNER', 'MEMBER', 'COLLABORATOR']);
             const TEAM_PERMISSIONS = new Set(['write', 'push', 'maintain', 'admin']);
             const OPINIONATED_REVIEW_STATES = new Set(['APPROVED', 'CHANGES_REQUESTED', 'DISMISSED']);
-            const BRIDGE_WORKFLOW = 'Capture whose turn review event';
-            const BRIDGE_WORKFLOW_PATH = '.github/workflows/CaptureWhoseTurnReview.yaml';
+            const BRIDGE_WORKFLOW = 'Capture PR review for next action owner';
+            const BRIDGE_WORKFLOW_PATH = '.github/workflows/CaptureNextActionReview.yaml';
             const owner = context.repo.owner;
             const repo = context.repo.repo;
             let eventName = context.eventName;
@@ -189,20 +193,23 @@ jobs:
                     .includes(payload.workflow_run.event)
                   || payload.workflow_run.conclusion !== 'success'
                   || payload.workflow_run.run_attempt !== 1) {
-                throw new Error('Unexpected review bridge workflow run.');
+                throw new Error('Unexpected next-action review workflow run.');
               }
 
-              const directory = path.join(process.env.GITHUB_WORKSPACE, process.env.REVIEW_EVENT_DIRECTORY);
+              const directory = path.join(
+                process.env.GITHUB_WORKSPACE,
+                process.env.NEXT_ACTION_REVIEW_DIRECTORY,
+              );
               const entries = fs.readdirSync(directory, { withFileTypes: true });
               if (entries.length !== 1
-                  || entries[0].name !== process.env.REVIEW_EVENT_ARTIFACT
+                  || entries[0].name !== process.env.NEXT_ACTION_REVIEW_ARTIFACT
                   || !entries[0].isFile()) {
-                throw new Error('Review event artifact must contain only the expected raw file.');
+                throw new Error('Next-action review artifact must contain only the expected raw file.');
               }
-              const eventPath = path.join(directory, process.env.REVIEW_EVENT_ARTIFACT);
+              const eventPath = path.join(directory, process.env.NEXT_ACTION_REVIEW_ARTIFACT);
               const stat = fs.lstatSync(eventPath);
               if (!stat.isFile() || stat.isSymbolicLink() || stat.size < 1 || stat.size > 4 * 1024) {
-                throw new Error('Review event payload is outside the 4 KiB size limit.');
+                throw new Error('Next-action review payload is outside the 4 KiB size limit.');
               }
 
               const bridged = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
@@ -211,7 +218,7 @@ jobs:
                   || typeof bridged !== 'object'
                   || Array.isArray(bridged)
                   || JSON.stringify(Object.keys(bridged).sort()) !== JSON.stringify(expectedKeys)) {
-                throw new Error('Review event payload has an invalid shape.');
+                throw new Error('Next-action review payload has an invalid shape.');
               }
               const allowedKinds = ['review_submitted', 'review_dismissed', 'review_comment_created'];
               if (bridged.repository !== `${owner}/${repo}`
@@ -220,24 +227,24 @@ jobs:
                   || bridged.pull_number < 1
                   || !Number.isSafeInteger(bridged.id)
                   || bridged.id < 1) {
-                throw new Error('Review event payload has invalid identifiers.');
+                throw new Error('Next-action review payload has invalid identifiers.');
               }
               const bridgePullNumber = Number(process.env.BRIDGE_PR_NUMBER);
               if (!Number.isSafeInteger(bridgePullNumber)
                   || bridged.pull_number !== bridgePullNumber) {
-                throw new Error('Review event pull request does not match its workflow run.');
+                throw new Error('Next-action review pull request does not match its workflow run.');
               }
 
               const expectedSourceEvent = bridged.kind === 'review_comment_created'
                 ? 'pull_request_review_comment'
                 : 'pull_request_review';
               if (payload.workflow_run.event !== expectedSourceEvent) {
-                throw new Error('Review event kind does not match its workflow run.');
+                throw new Error('Next-action review kind does not match its workflow run.');
               }
               const runActor = payload.workflow_run.actor?.login;
               const runCreatedAt = Date.parse(payload.workflow_run.created_at ?? '');
               if (!runActor || !Number.isFinite(runCreatedAt)) {
-                throw new Error('Review bridge workflow run lacks trusted event metadata.');
+                throw new Error('Next-action review workflow run lacks trusted event metadata.');
               }
               const sameActor = user => user?.login?.toLowerCase() === runActor.toLowerCase();
               const nearRunCreation = timestamp => {
@@ -247,7 +254,7 @@ jobs:
               };
               const requireUniqueEvent = (events, selectedId) => {
                 if (events.length !== 1 || selectedId(events[0]) !== bridged.id) {
-                  throw new Error('Review artifact does not match the unique triggering event.');
+                  throw new Error('Next-action review artifact does not match the unique triggering event.');
                 }
               };
 
@@ -421,7 +428,10 @@ jobs:
                   }));
                 } catch (error) {
                   if (error.status === 404) {
-                    throw new Error(`Required label "${expected.name}" is not provisioned. See .github/WHOS_TURN.md.`);
+                    throw new Error(
+                      `Required label "${expected.name}" is not provisioned. `
+                        + 'See docs/features/next-action-owner/DESIGN.md.',
+                    );
                   }
                   throw error;
                 }
@@ -430,7 +440,10 @@ jobs:
                 if (actual.name !== expected.name
                     || actual.color.toUpperCase() !== expected.color
                     || description !== expected.description) {
-                  throw new Error(`Required label "${expected.name}" does not match .github/WHOS_TURN.md.`);
+                  throw new Error(
+                    `Required label "${expected.name}" does not match `
+                      + 'docs/features/next-action-owner/DESIGN.md.',
+                  );
                 }
               }
             }
