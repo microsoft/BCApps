@@ -153,6 +153,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CurrencyFactor: Decimal;
         FirstEntryNo: Integer;
         NextEntryNo: Integer;
+        PreviousEntryNo: Integer;
         NextVATEntryNo: Integer;
         NextTaxEntryNo: Integer;
         FirstNewVATEntryNo: Integer;
@@ -490,10 +491,15 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if IsHandled then
             exit;
 
-        GLEntry.LockTable();
-        GLEntry.GetLastEntry(LastEntryNo, LastTransactionNo);
-        NextEntryNo := LastEntryNo + 1;
-        NextTransactionNo := LastTransactionNo + 1;
+        if not GLSetup.UseConcurrentPosting() then begin
+            GLEntry.LockTable();
+            GLEntry.GetLastEntry(LastEntryNo, LastTransactionNo);
+            NextEntryNo := LastEntryNo + 1;
+            NextTransactionNo := LastTransactionNo + 1;
+        end else begin
+            NextEntryNo := GlobalGLEntry.GetNextEntryNo();
+            NextTransactionNo := GlobalGLTransaction.GetNextTransactionNo();
+        end;
 
         OnAfterInitNextEntryNo(GLEntry, NextEntryNo, NextTransactionNo);
     end;
@@ -1970,7 +1976,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
             IsHandled := false;
             OnContinuePostingOnIncreaseNextTransactionNo(GenJnlLine, NextTransactionNo, IsHandled);
             if not IsHandled then
-                NextTransactionNo := NextTransactionNo + 1;
+                if GLSetup.UseConcurrentPosting() then
+                    NextTransactionNo := GetNextTransactionNo()
+                else
+                    NextTransactionNo := NextTransactionNo + 1;
             InitLastDocDate(GenJnlLine);
             FirstNewVATEntryNo := NextVATEntryNo;
         end;
@@ -2025,6 +2034,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         NextVATEntryNo := 0;
         FirstEntryNo := 0;
         FirstNewVATEntryNo := 0;
+        PreviousEntryNo := 0;
         IsGLRegInserted := false;
         TempGLEntryBuf.Reset();
         TempGLEntryBuf.DeleteAll();
@@ -7599,6 +7609,22 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     /// <summary>
+    /// Returns next G/L entry no. that should be used when creating next G/L entry with concurrent posting.
+    /// </summary>
+    /// <param name="NextGLEntryNo">Current G/L entry no.</param>
+    /// <returns>Next G/L entry no. to be used for posting</returns>
+    local procedure GetNextGLEntryNoForPosting(NextGLEntryNo: Integer): Integer
+    begin
+        PreviousEntryNo := NextGLEntryNo;
+
+        GetGLSetup();
+        if GLSetup.UseConcurrentPosting() then
+            exit(GlobalGLEntry.GetNextEntryNo());
+
+        exit(NextGLEntryNo + 1);
+    end;
+
+    /// <summary>
     /// Returns next VAT entry no. that should be used when creating next vat entry with concurrent posting.
     /// </summary>
     /// <param name="VATEntryNo">Current VAT entry no.</param>
@@ -7644,7 +7670,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeIncrNextEntryNo(NextEntryNo, IsHandled);
         if IsHandled then
             exit;
-        NextEntryNo := NextEntryNo + 1;
+
+        NextEntryNo := GetNextGLEntryNoForPosting(NextEntryNo);
     end;
 
     local procedure IsNotPayment(DocumentType: Enum "Gen. Journal Document Type") Result: Boolean
@@ -7711,7 +7738,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         if SavedEntryNo <> 0 then begin
             ExistingGLEntryNo := SavedEntryNo;
-            NextEntryNo := NextEntryNo - 1;
+            NextEntryNo := PreviousEntryNo;
             SavedEntryNo := 0;
         end;
     end;
