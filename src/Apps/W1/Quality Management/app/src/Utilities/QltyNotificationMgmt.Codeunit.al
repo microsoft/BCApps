@@ -18,6 +18,7 @@ using System.Reflection;
 codeunit 20437 "Qlty. Notification Mgmt."
 {
     Access = Internal;
+    Permissions = tabledata "Qlty. Inspection Header" = r;
 
     var
         AssignToSelfLbl: Label 'Assign to myself';
