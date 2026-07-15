@@ -14,6 +14,9 @@ using System.Testability;
 /// per-case bracketing that the classic <see cref="AIT Test Run Iteration"/> event subscribers provide under an AIT
 /// suite: it resets per-case metrics before each case and writes one <see cref="AIT Log Entry"/> after each case.
 /// Consuming test codeunits opt in via <c>TestHandlers = "AIT Test Handler"</c>.
+///
+/// The platform runs ITestHandler hooks OUTSIDE the per-function test-isolation scope, so the log entry written in
+/// <c>OnAfterTestCaseRun</c> survives the case-level rollback and is persisted directly (no buffering/flushing).
 /// </summary>
 codeunit 149050 "AIT Test Handler" implements ITestHandler
 {
@@ -38,20 +41,17 @@ codeunit 149050 "AIT Test Handler" implements ITestHandler
         // OnBeforeTestMethodRun setup so the test body's context.Set* calls attribute to this case.
         AITTestContextImpl.StartRunProcedureScenario();
         DDCurrentCase.SetCaseStart(CurrentDateTime(), AOAIToken.GetTotalServerSessionTokensConsumed());
-        DDCurrentCase.BeginPendingCase(Context.CodeunitId, Context.ProcedureName, Context.TestCaseName);
     end;
 
     procedure OnAfterTestCaseRun(Context: TestHandlerContext)
     var
         AITTestRunIteration: Codeunit "AIT Test Run Iteration";
-        DDCurrentCase: Codeunit "AIT DD Current Case";
+        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
     begin
         if AITTestRunIteration.IsRunningUnderAITSuite() then
             exit;
 
-        // NOTE (C8-A): this hook runs inside the per-function isolation scope, so DB writes here would be rolled back.
-        // Record the outcome into the in-memory buffer (survives rollback); the actual AIT Log Entry is written from
-        // AIT DD Current Case.OnAfterTestMethodRun, which runs outside that scope.
-        DDCurrentCase.SetPendingSuccess(Context.Success);
+        // This hook runs outside the per-function isolation scope, so the log entry persists past the case rollback.
+        AITTestSuiteMgt.AddDataDrivenLogEntry(Context.CodeunitId, Context.ProcedureName, Context.TestCaseName, Context.Success);
     end;
 }
