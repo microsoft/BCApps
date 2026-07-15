@@ -3,7 +3,7 @@ name: Submit Stability Job On Official Branches
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 04 * * *" # Run at 04:00 UTC every day
+    - cron: "0 0 * * *" # Run at 04:00 UTC every day
 
 permissions: read-all
 
