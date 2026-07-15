@@ -801,9 +801,7 @@ page 190 "Incoming Documents"
 
         Rec.FilterGroup(0);
         if Rec.GetFilter(Processed) = '' then
-            SetProcessedDocumentsVisibility(false)
-        else
-            ShowAllDocsIsEnable := Rec.GetFilter(Processed) <> Format(false);
+            SetProcessedDocumentsVisibility(false);
     end;
 
     var

@@ -2778,6 +2778,8 @@ codeunit 134400 "ERM Incoming Documents"
     begin
         IncomingDocuments.Processed.AssertEquals(LibraryVariableStorage.DequeueBoolean());
         Assert.IsFalse(IncomingDocuments.Next(), 'Expected the page to contain one incoming document.');
+        Assert.IsTrue(IncomingDocuments.ShowAll.Enabled(), 'Expected Show All to be enabled for a filtered view.');
+        Assert.IsFalse(IncomingDocuments.ShowUnprocessed.Enabled(), 'Expected Show Unprocessed to be disabled for a filtered view.');
         IncomingDocuments.OK().Invoke();
     end;
 
