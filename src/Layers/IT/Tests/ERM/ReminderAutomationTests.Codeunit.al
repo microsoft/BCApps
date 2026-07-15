@@ -1077,6 +1077,74 @@ codeunit 134979 "Reminder Automation Tests"
         Assert.AreEqual(1, TempBlobList.Count(), NoOfAttachmentsSameErr);
     end;
 
+    [HandlerFunctions('NewReminderActionModalPageHandler,CreateRemindersSetupModalPageHandler,IssueRemindersSetupModalPageHandler,SendRemindersSetupLogInteractionModalPageHandler,SelectRemTermsAutomationHandler')]
+    [Test]
+    procedure TestReminderAutomationLogsInteractionWithIssuedReminderNumber()
+    var
+        Contact: Record Contact;
+        Customer: Record Customer;
+        InteractionLogEntry: Record "Interaction Log Entry";
+        IssuedReminderHeader: Record "Issued Reminder Header";
+        JobQueueEntry: Record "Job Queue Entry";
+        ReminderActionGroup: Record "Reminder Action Group";
+        ReminderTerms: Record "Reminder Terms";
+        SendEmailMock: Codeunit "Send Email Mock";
+        ReminderAutomationJob: Codeunit "Reminders Automation Job";
+        ReminderAutomationCard: TestPage "Reminder Automation Card";
+        NumberOfOverdueEntries: Integer;
+    begin
+        // [FEATURE] [Reminder Automation] [Interaction] [AI test]
+        // [SCENARIO 639904] When Reminder Automation issues and sends reminders with Log Interaction enabled,
+        // the Contact History Description references the Issued Reminder number, not the original unissued reminder number.
+        Initialize();
+
+        // [GIVEN] An interaction template is set up for the "Sales Rmdr." document type
+        SetupSalesRmdrInteractionTemplate();
+
+        // [GIVEN] A customer that is linked to a contact and has reminder terms with overdue entries
+        CreateReminderTermsWithLevels(ReminderTerms, GetDefaultDueDatePeriodForReminderLevel(), Any.IntegerInRange(2, 5));
+        NumberOfOverdueEntries := Any.IntegerInRange(2, 5);
+        CreateCustomerWithContactAndOverdueEntries(Customer, Contact, ReminderTerms, NumberOfOverdueEntries);
+
+        // [GIVEN] A reminder automation group with create, issue and send (log interaction) actions
+        CreateReminderAutomationGroupViaUI(ReminderAutomationCard, ReminderTerms);
+        CreateReminderAction(ReminderAutomationCard, Enum::"Reminder Action"::"Create Reminder");
+        CreateReminderAction(ReminderAutomationCard, Enum::"Reminder Action"::"Issue Reminder");
+        CreateReminderAction(ReminderAutomationCard, Enum::"Reminder Action"::"Send Reminder");
+        ReminderActionGroup.Get(ReminderAutomationCard.Code.Value());
+
+        // [WHEN] The reminder automation runs (create + issue + send by email with log interaction)
+        BindSubscription(SendEmailMock);
+        SendEmailMock.AddSupportedScenario(Enum::"Email Scenario"::Reminder);
+        JobQueueEntry := CreateTestJobQueueEntry(ReminderActionGroup);
+        ReminderAutomationJob.Run(JobQueueEntry);
+        UnbindSubscription(SendEmailMock);
+
+        // [THEN] The job completed and an issued reminder was created with a number different from its pre-assigned (original) number
+        VerifyJobWasSuccesfull(ReminderActionGroup);
+        IssuedReminderHeader.SetRange("Customer No.", Customer."No.");
+        Assert.IsTrue(IssuedReminderHeader.FindFirst(), NoIssuedReminderCreatedErr);
+        Assert.AreNotEqual(
+          IssuedReminderHeader."Pre-Assigned No.", IssuedReminderHeader."No.",
+          IssuedReminderNoMustDifferErr);
+
+        // [THEN] An interaction log entry is created for the issued reminder and linked to the customer's contact
+        InteractionLogEntry.SetRange("Document Type", InteractionLogEntry."Document Type"::"Sales Rmdr.");
+        InteractionLogEntry.SetRange("Document No.", IssuedReminderHeader."No.");
+        Assert.IsTrue(InteractionLogEntry.FindLast(), NoInteractionLogEntryCreatedErr);
+        InteractionLogEntry.TestField("Contact No.", Contact."No.");
+
+        // [THEN] The Description references the Issued Reminder number, not the original (pre-assigned) reminder number
+        Assert.AreEqual(
+          StrSubstNo(ReminderPostingDescriptionLbl, IssuedReminderHeader."No."), InteractionLogEntry.Description,
+          InteractionDescriptionMustReferenceIssuedNoErr);
+        Assert.AreNotEqual(
+          StrSubstNo(ReminderPostingDescriptionLbl, IssuedReminderHeader."Pre-Assigned No."), InteractionLogEntry.Description,
+          InteractionDescriptionMustNotReferenceOriginalNoErr);
+
+        NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
     [ModalPageHandler()]
     procedure IssueRemindersSetupModalPageHandlerWithFilterSaveCheck(var IssueRemindersSetupPage: TestPage "Issue Reminders Setup")
     var
@@ -1614,6 +1682,53 @@ codeunit 134979 "Reminder Automation Tests"
         FeatureKey.Modify(true);
     end;
 
+    local procedure CreateCustomerWithContactAndOverdueEntries(var Customer: Record Customer; var Contact: Record Contact; var ReminderTerms: Record "Reminder Terms"; NumberOfEntries: Integer)
+    var
+        Item: Record Item;
+        ReminderLevel: Record "Reminder Level";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        PostingDate: Date;
+        I: Integer;
+    begin
+        ReminderLevel.SetRange("Reminder Terms Code", ReminderTerms.Code);
+        ReminderLevel.FindFirst();
+
+        // Create a customer that is linked to a contact through a business relation, so the logged interaction is tied to the contact
+        LibraryMarketing.CreateContactWithCustomer(Contact, Customer);
+        Customer.Validate("Reminder Terms Code", ReminderTerms.Code);
+        Customer.Modify(true);
+
+        PostingDate := WorkDate() + (WorkDate() - CalcDate(ReminderLevel."Due Date Calculation", WorkDate()));
+        PostingDate := CalcDate('<-5M>', PostingDate);
+
+        for I := 1 to NumberOfEntries do begin
+            LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, Customer."No.");
+            SalesHeader.Validate("Posting Date", PostingDate);
+            SalesHeader.Validate("Due Date", PostingDate);
+            SalesHeader.Validate("Document Date", PostingDate);
+            SalesHeader.Modify(true);
+            LibraryInventory.CreateItemWithUnitPriceAndUnitCost(
+              Item, Any.DecimalInRange(1, 100, 2), Any.DecimalInRange(1, 100, 2));
+            LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", Any.IntegerInRange(1, 10));
+            LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        end;
+    end;
+
+    local procedure SetupSalesRmdrInteractionTemplate()
+    var
+        InteractionTemplateSetup: Record "Interaction Template Setup";
+        InteractionTemplate: Record "Interaction Template";
+    begin
+        if not InteractionTemplateSetup.Get() then begin
+            InteractionTemplateSetup.Init();
+            InteractionTemplateSetup.Insert();
+        end;
+        LibraryMarketing.CreateInteractionTemplate(InteractionTemplate);
+        InteractionTemplateSetup.Validate("Sales Rmdr.", InteractionTemplate.Code);
+        InteractionTemplateSetup.Modify(true);
+    end;
+
     [StrMenuHandler]
     [Scope('OnPrem')]
     procedure CancelMailSendingStrMenuHandler(Options: Text; var Choice: Integer; Instruction: Text)
@@ -1684,6 +1799,15 @@ codeunit 134979 "Reminder Automation Tests"
         Assert.IsTrue(CreateReminderSetup.GetCustomerSelectionDisplayText() <> '', FiltersAreNotSavedErr);
     end;
 
+    [ModalPageHandler()]
+    procedure SendRemindersSetupLogInteractionModalPageHandler(var SendRemindersSetup: TestPage "Send Reminders Setup")
+    begin
+        SendRemindersSetup.SendByEmail.SetValue(true);
+        SendRemindersSetup.Print.SetValue(false);
+        SendRemindersSetup.LogInteraction.SetValue(true);
+        SendRemindersSetup.OK().Invoke();
+    end;
+
     [FilterPageHandler]
     procedure CreateReminderSetupPageCustomerFilterHandler(var CustomerRecordRef: RecordRef): Boolean
     var
@@ -1722,13 +1846,21 @@ codeunit 134979 "Reminder Automation Tests"
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryErm: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryMarketing: Codeunit "Library - Marketing";
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         Assert: Codeunit Assert;
         Any: Codeunit Any;
         IsInitialized: Boolean;
+        ReminderPostingDescriptionLbl: Label 'Reminder %1', Comment = '%1 = Reminder No.';
         FiltersAreNotSavedErr: Label 'Filters are not saved';
         EmailRelatedRecordNotFoundErr: Label 'Email related record not found';
         ReminderLevelNotFoundErr: Label 'No Reminder Level found for the created Reminder Terms';
         LanguageDoesNotMatchErr: Label 'Attachment language does not match global language';
         NoAttachmentsErr: Label 'The email has no attachments.';
         NoOfAttachmentsSameErr: Label 'The number of attachments must be the same.';
+        NoIssuedReminderCreatedErr: Label 'No issued reminder was created for the customer.';
+        IssuedReminderNoMustDifferErr: Label 'The issued reminder number must differ from the pre-assigned (original) reminder number.';
+        NoInteractionLogEntryCreatedErr: Label 'No interaction log entry was created for the issued reminder.';
+        InteractionDescriptionMustReferenceIssuedNoErr: Label 'Interaction Description must reference the issued reminder number.';
+        InteractionDescriptionMustNotReferenceOriginalNoErr: Label 'Interaction Description must not reference the original unissued reminder number.';
 }

@@ -23,6 +23,7 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Service.Archive;
 using Microsoft.Service.Document;
+using Microsoft.Service.Item;
 using Microsoft.Service.Setup;
 using Microsoft.Service.Test;
 using Microsoft.TestLibraries.DynamicsFieldService;
@@ -1570,6 +1571,112 @@ codeunit 139204 "FS Integration Test"
         // [THEN] Verify that Quantity Consumed is not written into Work Order record.
         WorkOrderProduct.Get(CRMIntegrationRecord."CRM ID");
         Assert.AreEqual(0, WorkOrderProduct.QuantityConsumed, 'Quantity Consumed should not be written into Work Order record for Posting Preview action.');
+    end;
+
+    [Test]
+    procedure IgnoreServiceItemWhenConvertToCustomerAssetIsFalse()
+    var
+        Item: Record Item;
+        TempServiceItem: Record "Service Item" temporary;
+        CRMProduct: Record "CRM Product";
+        CRMIntegrationRecord: Record "CRM Integration Record";
+        RecordRef: RecordRef;
+        IgnoreRecord: Boolean;
+        ProductId: Guid;
+    begin
+        // [FEATURE] [Service Item Mapping]
+        // [SCENARIO] Service Item is skipped when linked CRM Product has Convert to Customer Asset = No.
+        Initialize();
+        InitSetup(true, '');
+
+        Item.Get(CreateItem());
+        TempServiceItem."Item No." := Item."No.";
+        RecordRef.GetTable(TempServiceItem);
+
+        ProductId := CreateGuid();
+        CRMProduct.ProductId := ProductId;
+        CRMProduct.ConvertToCustomerAsset := false;
+        CRMProduct.Insert(false);
+
+        CRMIntegrationRecord.CoupleCRMIDToRecordID(ProductId, Item.RecordId());
+
+        FSIntegrationTestLibrary.IgnoreServiceItemsByConvertToCustomerAssetFlag(RecordRef, IgnoreRecord);
+
+        Assert.IsTrue(IgnoreRecord, 'Service Item should be ignored when Convert to Customer Asset is false.');
+    end;
+
+    [Test]
+    procedure DoNotIgnoreServiceItemWhenConvertToCustomerAssetIsTrue()
+    var
+        Item: Record Item;
+        TempServiceItem: Record "Service Item" temporary;
+        CRMProduct: Record "CRM Product";
+        CRMIntegrationRecord: Record "CRM Integration Record";
+        RecordRef: RecordRef;
+        IgnoreRecord: Boolean;
+        ProductId: Guid;
+    begin
+        // [FEATURE] [Service Item Mapping]
+        // [SCENARIO] Service Item is not skipped when linked CRM Product has Convert to Customer Asset = Yes.
+        Initialize();
+        InitSetup(true, '');
+
+        Item.Get(CreateItem());
+        TempServiceItem."Item No." := Item."No.";
+        RecordRef.GetTable(TempServiceItem);
+
+        ProductId := CreateGuid();
+        CRMProduct.ProductId := ProductId;
+        CRMProduct.ConvertToCustomerAsset := true;
+        CRMProduct.Insert(false);
+
+        CRMIntegrationRecord.CoupleCRMIDToRecordID(ProductId, Item.RecordId());
+
+        FSIntegrationTestLibrary.IgnoreServiceItemsByConvertToCustomerAssetFlag(RecordRef, IgnoreRecord);
+
+        Assert.IsFalse(IgnoreRecord, 'Service Item should not be ignored when Convert to Customer Asset is true.');
+    end;
+
+    [Test]
+    procedure DoNotIgnoreServiceItemWhenItemNoIsBlank()
+    var
+        TempServiceItem: Record "Service Item" temporary;
+        RecordRef: RecordRef;
+        IgnoreRecord: Boolean;
+    begin
+        // [FEATURE] [Service Item Mapping]
+        // [SCENARIO] Service Item with blank Item No. is not skipped by this filter.
+        Initialize();
+        InitSetup(true, '');
+
+        TempServiceItem."Item No." := '';
+        RecordRef.GetTable(TempServiceItem);
+
+        FSIntegrationTestLibrary.IgnoreServiceItemsByConvertToCustomerAssetFlag(RecordRef, IgnoreRecord);
+
+        Assert.IsFalse(IgnoreRecord, 'Service Item with blank Item No. should not be ignored by this filter.');
+    end;
+
+    [Test]
+    procedure DoNotIgnoreServiceItemWhenItemIsNotCoupled()
+    var
+        Item: Record Item;
+        TempServiceItem: Record "Service Item" temporary;
+        RecordRef: RecordRef;
+        IgnoreRecord: Boolean;
+    begin
+        // [FEATURE] [Service Item Mapping]
+        // [SCENARIO] Service Item with uncoupled Item is not skipped by this filter.
+        Initialize();
+        InitSetup(true, '');
+
+        Item.Get(CreateItem());
+        TempServiceItem."Item No." := Item."No.";
+        RecordRef.GetTable(TempServiceItem);
+
+        FSIntegrationTestLibrary.IgnoreServiceItemsByConvertToCustomerAssetFlag(RecordRef, IgnoreRecord);
+
+        Assert.IsFalse(IgnoreRecord, 'Service Item with uncoupled Item should not be ignored by this filter.');
     end;
 
     local procedure Initialize()
