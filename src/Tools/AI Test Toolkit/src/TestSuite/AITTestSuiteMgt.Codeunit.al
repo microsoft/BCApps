@@ -465,6 +465,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         DDCurrentCase: Codeunit "AIT DD Current Case";
         AITTestContextImpl: Codeunit "AIT Test Context Impl.";
         AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
+        AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         AOAIToken: Codeunit "AOAI Token";
         GroupCode: Code[100];
         InputCode: Code[100];
@@ -517,6 +518,7 @@ codeunit 149034 "AIT Test Suite Mgt."
             AITLogEntry.SetOutputBlob(TestOutput);
 
         AITLogEntry.Insert(true);
+        AgentTestContextImpl.LogAgentTasks(AITLogEntry);
         Commit();
     end;
 
