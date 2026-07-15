@@ -120,9 +120,13 @@ codeunit 132532 "Test Granules"
     var
         TempTableDataAllObj: Record AllObj temporary;
         TempAllLocalExpandedPermission: Record "Expanded Permission" temporary;
+        TypeHelper: Codeunit "Type Helper";
+        Errors: DotNet ArrayList;
+        String: DotNet String;
     begin
         // If this test fails, it means that you added a local Table but forgot to add it to the local permission set
         // If the table uses inherent permissions, it is excluded from this check by adding to GetTablesWithInherentEntitlements
+        Errors := Errors.ArrayList();
         CopyAllAppTableObjectsToTempBuffer(TempTableDataAllObj);
         RemoveNonLocalObjectsFromObjects(TempTableDataAllObj);
         CopyPSToTemp(TempAllLocalExpandedPermission, XLOCALTxt);
@@ -130,8 +134,12 @@ codeunit 132532 "Test Granules"
             repeat
                 TempAllLocalExpandedPermission.SetRange("Object Type", TempTableDataAllObj."Object Type");
                 TempAllLocalExpandedPermission.SetRange("Object ID", TempTableDataAllObj."Object ID");
-                Assert.IsFalse(TempAllLocalExpandedPermission.IsEmpty, StrSubstNo(TableDataNotInLocalPermissionSetTxt, TempTableDataAllObj."Object ID", TempTableDataAllObj."Object Name"));
+                if TempAllLocalExpandedPermission.IsEmpty() then
+                    Errors.Add(StrSubstNo(TableDataNotInLocalPermissionSetTxt, TempTableDataAllObj."Object ID", TempTableDataAllObj."Object Name"));
             until TempTableDataAllObj.Next() = 0;
+
+        if Errors.Count > 0 then
+            Error(String.Join(TypeHelper.NewLine(), Errors.ToArray()));
     end;
 
     [Test]
@@ -140,10 +148,14 @@ codeunit 132532 "Test Granules"
     var
         TempTableDataAllObj: Record AllObj temporary;
         TempAllLocalExpandedPermission: Record "Expanded Permission" temporary;
+        TypeHelper: Codeunit "Type Helper";
+        Errors: DotNet ArrayList;
+        String: DotNet String;
     begin
         // If this test fails, it means that you added a local Table but forgot to add it to the O365 Full Access permission set
         // To do this, open COD101982 and add the Object here.
         // If the table uses inherent permissions, it is excluded from this check by adding to GetTablesWithInherentEntitlements
+        Errors := Errors.ArrayList();
         CopyAllAppTableObjectsToTempBuffer(TempTableDataAllObj);
         RemoveNonLocalObjectsFromObjects(TempTableDataAllObj);
         CopyPSToTemp(TempAllLocalExpandedPermission, XO365FULLTxt);
@@ -151,8 +163,12 @@ codeunit 132532 "Test Granules"
             repeat
                 TempAllLocalExpandedPermission.SetRange("Object Type", TempTableDataAllObj."Object Type");
                 TempAllLocalExpandedPermission.SetRange("Object ID", TempTableDataAllObj."Object ID");
-                Assert.IsFalse(TempAllLocalExpandedPermission.IsEmpty, StrSubstNo(TableDataNotInFullPermissionSetTxt, TempTableDataAllObj."Object ID", TempTableDataAllObj."Object Name"));
+                if TempAllLocalExpandedPermission.IsEmpty() then
+                    Errors.Add(StrSubstNo(TableDataNotInFullPermissionSetTxt, TempTableDataAllObj."Object ID", TempTableDataAllObj."Object Name"));
             until TempTableDataAllObj.Next() = 0;
+
+        if Errors.Count > 0 then
+            Error(String.Join(TypeHelper.NewLine(), Errors.ToArray()));
     end;
 
     [Test]
@@ -161,10 +177,14 @@ codeunit 132532 "Test Granules"
     var
         TempTableDataAllObj: Record AllObj temporary;
         TempAllLocalExpandedPermission: Record "Expanded Permission" temporary;
+        TypeHelper: Codeunit "Type Helper";
+        Errors: DotNet ArrayList;
+        String: DotNet String;
     begin
         // If this test fails, it means that you added a local Table but forgot to add it to the O365 Bus Full Access permission set
         // To do this, open COD101982 and add the Object here.
         // If the table uses inherent permissions, it is excluded from this check by adding to GetTablesWithInherentEntitlements
+        Errors := Errors.ArrayList();
         CopyAllAppTableObjectsToTempBuffer(TempTableDataAllObj);
         RemoveNonLocalObjectsFromObjects(TempTableDataAllObj);
         CopyPSToTemp(TempAllLocalExpandedPermission, XO365BUSFULLTxt);
@@ -172,8 +192,12 @@ codeunit 132532 "Test Granules"
             repeat
                 TempAllLocalExpandedPermission.SetRange("Object Type", TempTableDataAllObj."Object Type");
                 TempAllLocalExpandedPermission.SetRange("Object ID", TempTableDataAllObj."Object ID");
-                Assert.IsFalse(TempAllLocalExpandedPermission.IsEmpty, StrSubstNo(TableDataNotInFullPermissionSetTxt, TempTableDataAllObj."Object ID", TempTableDataAllObj."Object Name"));
+                if TempAllLocalExpandedPermission.IsEmpty() then
+                    Errors.Add(StrSubstNo(TableDataNotInFullPermissionSetTxt, TempTableDataAllObj."Object ID", TempTableDataAllObj."Object Name"));
             until TempTableDataAllObj.Next() = 0;
+
+        if Errors.Count > 0 then
+            Error(String.Join(TypeHelper.NewLine(), Errors.ToArray()));
     end;
 
     [Test]
@@ -183,9 +207,13 @@ codeunit 132532 "Test Granules"
         TempTableDataAllObj: Record AllObj temporary;
         TempExpandedPermission: Record "Expanded Permission" temporary;
         TableMetadata: Record "Table Metadata";
+        TypeHelper: Codeunit "Type Helper";
+        Errors: DotNet ArrayList;
+        String: DotNet String;
     begin
 
         // CopyAllAppTableObjectsToTempBuffer and CopyAllTablePermissionsToTempBuffer to contain correct ranges
+        Errors := Errors.ArrayList();
         CopyAllAppTableObjectsToTempBuffer(TempTableDataAllObj);
         CopyAllTablePermissionsToTempBuffer(TempExpandedPermission);
         TempExpandedPermission.SetFilter("Object ID", '<%1', 130000);
@@ -199,8 +227,12 @@ codeunit 132532 "Test Granules"
                     not TableMetadata.Get(TempExpandedPermission."Object ID") or
                     (TableMetadata.TableType <> 6)) and
                     (TableMetadata.InherentEntitlements = '') and (TableMetadata.InherentPermissions = '') then // Do not validate tables with inherent permissions
-                Assert.IsFalse(TempTableDataAllObj.IsEmpty, StrSubstNo(PermissionDoesNotExistsTxt, TempExpandedPermission."Object ID", TempExpandedPermission."Role ID"));
+                if TempTableDataAllObj.IsEmpty() then
+                    Errors.Add(StrSubstNo(PermissionDoesNotExistsTxt, TempExpandedPermission."Object ID", TempExpandedPermission."Role ID"));
         until TempExpandedPermission.Next() = 0;
+
+        if Errors.Count > 0 then
+            Error(String.Join(TypeHelper.NewLine(), Errors.ToArray()));
     end;
 
     [Test]
@@ -521,7 +553,11 @@ codeunit 132532 "Test Granules"
     var
         AllObj: Record AllObj;
         ContainingExpandedPermission: Record "Expanded Permission";
+        TypeHelper: Codeunit "Type Helper";
+        Errors: DotNet ArrayList;
+        String: DotNet String;
     begin
+        Errors := Errors.ArrayList();
         BasePermissions.FindSet();
         repeat
             ContainingExpandedPermission.SetFilter("Role ID", ContainingPSRoleIDFilter);
@@ -544,7 +580,7 @@ codeunit 132532 "Test Granules"
               GetMaxAllowedPermission(BasePermissions."Execute Permission"));
             if ContainingExpandedPermission.IsEmpty() then begin
                 AllObj.Get(BasePermissions."Object Type", BasePermissions."Object ID");
-                Error(PermissionNotInPSWithSufficientPermissionsErr,
+                Errors.Add(StrSubstNo(PermissionNotInPSWithSufficientPermissionsErr,
                   BasePermissions."Object Type",
                   AllObj."Object Name",
                   BasePermissions."Object ID",
@@ -554,9 +590,12 @@ codeunit 132532 "Test Granules"
                   BasePermissions."Modify Permission",
                   BasePermissions."Delete Permission",
                   BasePermissions."Execute Permission",
-                  ContainingPSRoleIDFilter);
+                  ContainingPSRoleIDFilter));
             end;
         until BasePermissions.Next() = 0;
+
+        if Errors.Count > 0 then
+            Error(String.Join(TypeHelper.NewLine(), Errors.ToArray()));
     end;
 
     local procedure VerifyPSPartOfPS(BasePermissionSetRoleID: Code[20]; ContainingPermissionSetRoleID: Code[20])
