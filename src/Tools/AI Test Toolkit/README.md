@@ -67,6 +67,49 @@ In this example
 1. Alternatively, we could use `AITestContext.GetInput()` and get the line as `json` 
 
 
+## Writing language-first data-driven AI evals (recommended)
+
+AL supports data-driven testing as a first-class construct via the `[TestDataSource]` attribute, where the
+**platform** (not the toolkit) drives the per-case fan-out. The AI Test Toolkit ships a **shared** data source
+and context so any app can adopt this with no per-app framework code.
+
+### Defining the test codeunit
+- Annotate each eval method with `[TestDataSource(Codeunit::"AIT Test Data Source", '<dataset>')]`.
+- The method takes a single parameter of type `interface "AIT Test Case Context"` (which extends the platform
+  `ITestContext`) and exposes the same input/output surface as the classic `AIT Test Context` codeunit.
+
+```
+codeunit 50100 "My Copilot Eval"
+{
+    Subtype = Test;
+
+    [TestDataSource(Codeunit::"AIT Test Data Source", 'MY-DATASET')]
+    procedure TestCopilotFeature(context: interface "AIT Test Case Context")
+    var
+        Output: Integer;
+    begin
+        Output := CopilotFeature.CallLLM(context.GetQuery().ValueAsText());
+        context.SetTestOutput(Format(Output));
+        Assert.AreEqual(context.GetExpectedData().ValueAsInteger(), Output, '');
+    end;
+}
+```
+
+### Datasets and the shared data source
+- Datasets are authored as `.jsonl`/`.yaml` and imported into the shared `Test Input` tables (via the Eval Suite
+  / dataset import), exactly as for classic evals; each row's `name` becomes the case identifier.
+- The shared `"AIT Test Data Source"` provider resolves the dataset and returns one case per row:
+  - under an **Eval Suite**, it uses the dataset configured on the current suite line (so the same method can run
+    against multiple datasets across lines);
+  - **standalone**, it uses the `'<dataset>'` identifier from the attribute (a Test Input Group code or name).
+
+### Running under an Eval Suite (coexistence with classic evals)
+- On the eval line for a language-first codeunit, set **Language-First = true**. The toolkit then adds the
+  codeunit's methods once (no per-row expansion) and lets the platform fan out the cases — avoiding double
+  execution.
+- A codeunit must be **either** classic data-driven **or** language-first; do not mix both styles in the same
+  codeunit (plain `[Test]` methods may coexist with either).
+
 ### Defining Datasets
 Datasets are provided as `.jsonl` or `.yaml` files where each line/entry represents an eval case.
 

@@ -45,6 +45,9 @@ page 149034 "AIT Test Method Lines"
                 field(InputDataset; Rec."Input Dataset")
                 {
                 }
+                field("Language First"; Rec."Language First")
+                {
+                }
                 field(Description; Rec.Description)
                 {
                 }

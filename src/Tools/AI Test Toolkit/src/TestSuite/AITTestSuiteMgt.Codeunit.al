@@ -372,6 +372,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITTestRunIteration: Codeunit "AIT Test Run Iteration"; // single instance
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
+        DDCurrentCase: Codeunit "AIT DD Current Case";
         ModifiedOperation: Text;
         ModifiedExecutionSuccess: Boolean;
         ModifiedMessage: Text;
@@ -421,7 +422,12 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITLogEntry."Test Input Group Code" := CurrentTestMethodLine."Data Input Group Code";
         AITLogEntry."Test Input Code" := CurrentTestMethodLine."Data Input";
 
-        if TestInput.Get(CurrentTestMethodLine."Data Input Group Code", CurrentTestMethodLine."Data Input") then begin
+        // For language-first data-driven tests ([TestDataSource]) the platform drives the per-case fan-out and
+        // the Test Method Line Data Input fields are empty; fall back to the current data-driven case bridge.
+        if AITLogEntry."Test Input Code" = '' then
+            DDCurrentCase.TryGetCurrent(AITLogEntry."Test Input Group Code", AITLogEntry."Test Input Code");
+
+        if TestInput.Get(AITLogEntry."Test Input Group Code", AITLogEntry."Test Input Code") then begin
             TestInput.CalcFields("Test Input");
             AITLogEntry."Input Data" := TestInput."Test Input";
             AITLogEntry.Sensitive := TestInput.Sensitive;

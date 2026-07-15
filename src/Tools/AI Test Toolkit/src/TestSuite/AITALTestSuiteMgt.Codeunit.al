@@ -61,6 +61,14 @@ codeunit 149037 "AIT AL Test Suite Mgt"
     var
         TestInput: Record "Test Input";
     begin
+        // Language-first codeunits ([TestDataSource]): the platform drives the per-case fan-out, so add the
+        // codeunit's methods once (no per-row expansion) to avoid double fan-out. See design decision C9.
+        // Detection is automatic via CodeUnit Metadata; the "Language First" line flag is an explicit override.
+        if AITTestMethodLine."Language First" or CodeunitHasTestDataSource(AITTestMethodLine."Codeunit ID") then begin
+            AddCodeunitWithoutDataExpansion(AITTestMethodLine);
+            exit;
+        end;
+
         TestInput.SetRange("Test Input Group Code", AITTestMethodLine.GetTestInputCode());
         TestInput.ReadIsolation := TestInput.ReadIsolation::ReadUncommitted;
         if not TestInput.FindSet() then
@@ -69,6 +77,37 @@ codeunit 149037 "AIT AL Test Suite Mgt"
         repeat
             ExpandCodeunit(AITTestMethodLine, TestInput);
         until TestInput.Next() = 0;
+    end;
+
+    /// <summary>Returns true when the codeunit declares at least one data-driven ([TestDataSource]) test method.</summary>
+    local procedure CodeunitHasTestDataSource(CodeunitID: Integer): Boolean
+    var
+        CodeunitMetadata: Record "CodeUnit Metadata";
+    begin
+        if CodeunitMetadata.Get(CodeunitID) then
+            exit(CodeunitMetadata."Has Test Data Source");
+        exit(false);
+    end;
+
+    /// <summary>
+    /// Adds the codeunit's test methods to the AL test suite once, without expanding the dataset into per-row
+    /// Data Input lines. Used for language-first (<c>[TestDataSource]</c>) codeunits, where the platform performs
+    /// the per-case fan-out.
+    /// </summary>
+    local procedure AddCodeunitWithoutDataExpansion(var AITTestMethodLine: Record "AIT Test Method Line")
+    var
+        TempTestMethodLine: Record "Test Method Line" temporary;
+        ALTestSuite: Record "AL Test Suite";
+        TestInputsManagement: Codeunit "Test Inputs Management";
+    begin
+        ALTestSuite := GetOrCreateALTestSuite(AITTestMethodLine);
+
+        TempTestMethodLine."Line Type" := TempTestMethodLine."Line Type"::Codeunit;
+        TempTestMethodLine."Test Codeunit" := AITTestMethodLine."Codeunit ID";
+        TempTestMethodLine."Test Suite" := AITTestMethodLine."AL Test Suite";
+        TempTestMethodLine.Insert();
+
+        TestInputsManagement.InsertTestMethodLines(TempTestMethodLine, ALTestSuite);
     end;
 
     internal procedure ExpandCodeunit(var AITTestMethodLine: Record "AIT Test Method Line"; var TestInput: Record "Test Input")
