@@ -138,6 +138,7 @@ table 5409 "Prod. Order Routing Line"
                             MachineCtrTransferFields();
                         end;
                 end;
+                OnValidateNoOnBeforeModifyCapNeedEntries(Rec, xRec);
                 ModifyCapNeedEntries();
 
                 GetProdOrderLine();
@@ -1954,6 +1955,11 @@ table 5409 "Prod. Order Routing Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnValidateRoutingStatusOnBeforeConfirm(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidateNoOnBeforeModifyCapNeedEntries(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var xProdOrderRoutingLine: Record "Prod. Order Routing Line")
     begin
     end;
 
