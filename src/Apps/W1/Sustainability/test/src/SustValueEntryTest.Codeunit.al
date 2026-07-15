@@ -4178,6 +4178,194 @@ codeunit 148190 "Sust. Value Entry Test"
         Navigate.Run();
     end;
 
+    [Test]
+    procedure VerifyItemReclassUsesSpecificLotCO2eForSpecificCarbonTracking()
+    var
+        Item: Record Item;
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        SustainabilityValueEntry: Record "Sustainability Value Entry";
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+        LotNo: array[2] of Code[50];
+        LotTotalCO2e: array[2] of Decimal;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 641309] Item Reclassification (location move) of a Specific carbon tracking item must transfer the
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] Update "Enable Value Chain Tracking" in Sustainability Setup.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+
+        // [GIVEN] Create source and destination Locations.
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(FromLocation);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ToLocation);
+
+        // [GIVEN] Create a Sustainability Account.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+
+        // [GIVEN] Create a lot-tracked Item with Specific Carbon Tracking Method and a Default Sust. Account.
+        LibraryItemTracking.CreateLotItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        Item.Validate("Default Sust. Account", AccountCode);
+        Item.Modify();
+
+        // [GIVEN] Post inventory for two lots with clearly different tracked CO2e per unit (so specific <> average).
+        Quantity := LibraryRandom.RandIntInRange(10, 10);
+        PostTwoLotsWithSpecificCO2e(Item, FromLocation.Code, AccountCode, Quantity, LotNo, LotTotalCO2e);
+
+        // [GIVEN] Create an Item Reclassification (Transfer) line moving the full quantity of the second lot to another location.
+        CreateItemReclassLine(ItemJournalBatch, ItemJournalLine, Item."No.", FromLocation.Code, ToLocation.Code, Quantity);
+
+        // [GIVEN] Set an averaged (incorrect) Total CO2e on the line to satisfy the non-zero validation; posting must ignore it.
+        ItemJournalLine.Validate("Total CO2e", LotTotalCO2e[1]);
+        ItemJournalLine.Modify(true);
+
+        // [GIVEN] Assign item tracking selecting the second lot.
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo[2], Quantity);
+
+        // [WHEN] Post the Item Reclassification Journal.
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+
+        // [THEN] The Sustainability Value Entry reflects the specific tracked CO2e of the moved lot, not the averaged value.
+        SustainabilityValueEntry.SetRange("Item No.", Item."No.");
+        SustainabilityValueEntry.FindFirst();
+        Assert.AreEqual(
+            LotTotalCO2e[2],
+            SustainabilityValueEntry."CO2e Amount (Actual)",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e Amount (Actual)"), LotTotalCO2e[2], SustainabilityValueEntry.TableCaption()));
+    end;
+
+    [Test]
+    procedure VerifyItemReclassUsesFirstSelectedLotCO2eForSpecificCarbonTracking()
+    var
+        Item: Record Item;
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        SustainabilityValueEntry: Record "Sustainability Value Entry";
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+        LotNo: array[2] of Code[50];
+        LotTotalCO2e: array[2] of Decimal;
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 641309] Item Reclassification must follow the CO2e of whichever specific lot is moved (here the first lot).
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] Update "Enable Value Chain Tracking" in Sustainability Setup.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+
+        // [GIVEN] Create source and destination Locations.
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(FromLocation);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ToLocation);
+
+        // [GIVEN] Create a Sustainability Account.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+
+        // [GIVEN] Create a lot-tracked Item with Specific Carbon Tracking Method and a Default Sust. Account.
+        LibraryItemTracking.CreateLotItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        Item.Validate("Default Sust. Account", AccountCode);
+        Item.Modify();
+
+        // [GIVEN] Post inventory for two lots with clearly different tracked CO2e per unit.
+        Quantity := LibraryRandom.RandIntInRange(10, 10);
+        PostTwoLotsWithSpecificCO2e(Item, FromLocation.Code, AccountCode, Quantity, LotNo, LotTotalCO2e);
+
+        // [GIVEN] Create an Item Reclassification (Transfer) line moving the full quantity of the first lot to another location.
+        CreateItemReclassLine(ItemJournalBatch, ItemJournalLine, Item."No.", FromLocation.Code, ToLocation.Code, Quantity);
+
+        // [GIVEN] Set an averaged (incorrect) Total CO2e on the line to satisfy the non-zero validation; posting must ignore it.
+        ItemJournalLine.Validate("Total CO2e", LotTotalCO2e[2]);
+        ItemJournalLine.Modify(true);
+
+        // [GIVEN] Assign item tracking selecting the first lot.
+        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo[1], Quantity);
+
+        // [WHEN] Post the Item Reclassification Journal.
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+
+        // [THEN] The Sustainability Value Entry reflects the specific tracked CO2e of the first lot.
+        SustainabilityValueEntry.SetRange("Item No.", Item."No.");
+        SustainabilityValueEntry.FindFirst();
+        Assert.AreEqual(
+            LotTotalCO2e[1],
+            SustainabilityValueEntry."CO2e Amount (Actual)",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e Amount (Actual)"), LotTotalCO2e[1], SustainabilityValueEntry.TableCaption()));
+    end;
+
+    [Test]
+    procedure VerifyItemReclassSumsSpecificLotCO2eWhenMovingMultipleLots()
+    var
+        Item: Record Item;
+        FromLocation: Record Location;
+        ToLocation: Record Location;
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        SustainabilityValueEntry: Record "Sustainability Value Entry";
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+        LotNo: array[2] of Code[50];
+        LotTotalCO2e: array[2] of Decimal;
+        Quantity: Decimal;
+        Index: Integer;
+    begin
+        // [SCENARIO 641309] Moving two specific lots in one Item Reclassification must transfer the sum of the specific lot CO2e
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] Update "Enable Value Chain Tracking" in Sustainability Setup.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+
+        // [GIVEN] Create source and destination Locations.
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(FromLocation);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(ToLocation);
+
+        // [GIVEN] Create a Sustainability Account.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+
+        // [GIVEN] Create a lot-tracked Item with Specific Carbon Tracking Method and a Default Sust. Account.
+        LibraryItemTracking.CreateLotItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        Item.Validate("Default Sust. Account", AccountCode);
+        Item.Modify();
+
+        // [GIVEN] Post inventory for two lots with clearly different tracked CO2e per unit.
+        Quantity := LibraryRandom.RandIntInRange(10, 10);
+        PostTwoLotsWithSpecificCO2e(Item, FromLocation.Code, AccountCode, Quantity, LotNo, LotTotalCO2e);
+
+        // [GIVEN] Create an Item Reclassification (Transfer) line moving both lots (full quantity) to another location.
+        CreateItemReclassLine(ItemJournalBatch, ItemJournalLine, Item."No.", FromLocation.Code, ToLocation.Code, Quantity * ArrayLen(LotNo));
+
+        // [GIVEN] Set a non-zero Total CO2e on the line to satisfy the non-zero validation; posting must ignore it.
+        ItemJournalLine.Validate("Total CO2e", LotTotalCO2e[1]);
+        ItemJournalLine.Modify(true);
+
+        // [GIVEN] Assign item tracking selecting both lots.
+        for Index := 1 to ArrayLen(LotNo) do
+            LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo[Index], Quantity);
+
+        // [WHEN] Post the Item Reclassification Journal.
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+
+        // [THEN] The total transferred CO2e equals the sum of the specific lot CO2e values.
+        SustainabilityValueEntry.SetRange("Item No.", Item."No.");
+        SustainabilityValueEntry.CalcSums("CO2e Amount (Actual)");
+        Assert.AreEqual(
+            LotTotalCO2e[1] + LotTotalCO2e[2],
+            SustainabilityValueEntry."CO2e Amount (Actual)",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e Amount (Actual)"), LotTotalCO2e[1] + LotTotalCO2e[2], SustainabilityValueEntry.TableCaption()));
+    end;
+
     local procedure CreateSustainabilityAccount(var AccountCode: Code[20]; var CategoryCode: Code[20]; var SubcategoryCode: Code[20]; i: Integer): Record "Sustainability Account"
     begin
         CreateSustainabilitySubcategory(CategoryCode, SubcategoryCode, i);
@@ -4342,6 +4530,31 @@ codeunit 148190 "Sust. Value Entry Test"
         PurchaseLine.Modify();
 
         exit(LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true));
+    end;
+
+    local procedure PostTwoLotsWithSpecificCO2e(Item: Record Item; LocationCode: Code[10]; AccountCode: Code[20]; Quantity: Decimal; var LotNo: array[2] of Code[50]; var LotTotalCO2e: array[2] of Decimal)
+    var
+        Index: Integer;
+    begin
+        for Index := 1 to ArrayLen(LotNo) do
+            LotNo[Index] := LibraryUtility.GenerateGUID();
+
+        LotTotalCO2e[1] := LibraryRandom.RandDecInRange(100, 200, 2);
+        LotTotalCO2e[2] := LibraryRandom.RandDecInRange(400, 600, 2);
+
+        for Index := 1 to ArrayLen(LotNo) do
+            LibrarySustainability.PostPositiveAdjustmentWithItemTracking(
+                Item, LocationCode, AccountCode, '', Quantity, WorkDate(), '', LotNo[Index], LotTotalCO2e[Index]);
+    end;
+
+    local procedure CreateItemReclassLine(var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line"; ItemNo: Code[20]; FromLocationCode: Code[10]; ToLocationCode: Code[10]; Quantity: Decimal)
+    begin
+        SelectItemJournalTransferBatch(ItemJournalBatch);
+        LibraryInventory.CreateItemJournalLine(
+            ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+            ItemJournalLine."Entry Type"::Transfer, ItemNo, Quantity);
+        ItemJournalLine.Validate("Location Code", FromLocationCode);
+        ItemJournalLine.Validate("New Location Code", ToLocationCode);
     end;
 
     local procedure PostInventoryForItem(ItemNo: Code[20])
