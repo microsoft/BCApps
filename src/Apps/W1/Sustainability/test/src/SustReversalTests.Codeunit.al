@@ -1,4 +1,4 @@
-codeunit 148220 "Sust. Reversal Tests"
+codeunit 148222 "Sust. Reversal Tests"
 {
     Subtype = Test;
     TestPermissions = NonRestrictive;

@@ -1,6 +1,6 @@
 namespace Microsoft.Sustainability.Ledger;
 
-codeunit 6230 "Sust. Entry Reverse Mgt."
+codeunit 6243 "Sust. Entry Reverse Mgt."
 {
     Permissions = tabledata "Sustainability Ledger Entry" = rimd;
 

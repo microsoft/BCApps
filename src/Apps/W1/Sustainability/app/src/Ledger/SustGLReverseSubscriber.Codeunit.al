@@ -5,7 +5,7 @@ using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Reversal;
 
-codeunit 6231 "Sust. GL Reverse Subscriber"
+codeunit 6244 "Sust. GL Reverse Subscriber"
 {
     Permissions = tabledata "Sustainability Ledger Entry" = rimd;
 
