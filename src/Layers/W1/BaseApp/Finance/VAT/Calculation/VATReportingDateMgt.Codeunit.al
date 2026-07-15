@@ -59,9 +59,8 @@ codeunit 799 "VAT Reporting Date Mgt"
         VATDateNotAllowedErr: Label 'The VAT Date is not within the range of allowed VAT dates.';
         VATDateInPeriodNotAllowedErr: Label 'The specified VAT Date is in a %1 VAT Return Period which was not allowed', Comment = '%1 - VAT Return Period status';
         VATDateFromPeriodNotAllowedErr: Label 'The VAT Date is in a %1 VAT Return Period and was not allowed to change', Comment = '%1 - VAT Return Period status';
-        VATReturnPeriodWarningHandled: Boolean;
-        VATReturnPeriodWarningDate: Date;
-        VATReturnPeriodWarningResponse: Boolean;
+        ConfirmedVATReturnPeriodDates: List of [Date];
+        RejectedVATReturnPeriodDates: List of [Date];
 
     /// <summary>
     /// Updates linked entries when VAT entry VAT reporting date is modified.
@@ -272,27 +271,40 @@ codeunit 799 "VAT Reporting Date Mgt"
 
     local procedure GetVATReturnPeriodWarningResponse(VATDate: Date; WarningMsg: Text): Boolean
     begin
-        // Within a single posting the same VAT date is validated once per VAT posting group combination.
-        // Show the warning - and let the caller log the resulting error - only once per VAT date, so posting
-        // does not raise the same warning or error message repeatedly. The cache is reset when a new posting starts.
-        if VATReturnPeriodWarningHandled and (VATDate = VATReturnPeriodWarningDate) then
-            exit(VATReturnPeriodWarningResponse);
+        // A single posting validates the same VAT date once per VAT posting group combination, producing one VAT
+        // date check per generated general journal line. Remember the user's response per VAT date so the warning -
+        // and the error the caller logs when the user declines - is raised only once per date instead of once per
+        // line. The remembered dates are cleared when the posting transaction completes
+        // (see ResetVATReturnPeriodWarningOnAfterFinishPosting) and at the start of each manual VAT date change,
+        // so a subsequent posting or edit prompts the user again.
+        if ConfirmedVATReturnPeriodDates.Contains(VATDate) then
+            exit(true);
+        if RejectedVATReturnPeriodDates.Contains(VATDate) then
+            exit(false);
 
-        VATReturnPeriodWarningResponse := ConfirmManagement.GetResponseOrDefault(WarningMsg, true);
-        VATReturnPeriodWarningDate := VATDate;
-        VATReturnPeriodWarningHandled := true;
-        exit(VATReturnPeriodWarningResponse);
+        if ConfirmManagement.GetResponseOrDefault(WarningMsg, true) then begin
+            ConfirmedVATReturnPeriodDates.Add(VATDate);
+            exit(true);
+        end;
+
+        RejectedVATReturnPeriodDates.Add(VATDate);
+        exit(false);
     end;
 
     procedure ResetVATReturnPeriodWarning()
     begin
-        VATReturnPeriodWarningHandled := false;
+        Clear(ConfirmedVATReturnPeriodDates);
+        Clear(RejectedVATReturnPeriodDates);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnAfterStartPosting, '', false, false)]
-    local procedure ResetVATReturnPeriodWarningOnAfterStartPosting()
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnAfterFinishPosting, '', false, false)]
+    local procedure ResetVATReturnPeriodWarningOnAfterFinishPosting(var IsTransactionConsistent: Boolean)
     begin
-        ResetVATReturnPeriodWarning();
+        // Reset only when the whole transaction has been posted (balanced), not between the individual general
+        // journal lines of the same document. This keeps the warning deduplicated within a posting while still
+        // prompting again for the next posting.
+        if IsTransactionConsistent then
+            ResetVATReturnPeriodWarning();
     end;
 
     local procedure UpdateGLEntries(VATEntry: Record "VAT Entry")
