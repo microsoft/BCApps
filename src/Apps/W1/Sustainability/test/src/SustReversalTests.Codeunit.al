@@ -171,6 +171,32 @@ codeunit 148220 "Sust. Reversal Tests"
     end;
 
     [Test]
+    procedure ReversalPreservesPostingDate()
+    var
+        SustLedgEntry: Record "Sustainability Ledger Entry";
+        ReversalEntry: Record "Sustainability Ledger Entry";
+        SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
+        OriginalPostingDate: Date;
+    begin
+        // [SCENARIO] The reversal entry should post on the original entry's posting date (matches G/L Reverse), not WorkDate
+        // [GIVEN] A posted sustainability entry with a posting date different from WorkDate
+        Initialize();
+        CreateSustLedgerEntry(SustLedgEntry, 'SUSTJNL', 'DEFAULT');
+        OriginalPostingDate := CalcDate('<-1M>', WorkDate());
+        SustLedgEntry."Posting Date" := OriginalPostingDate;
+        SustLedgEntry.Modify();
+
+        // [WHEN] The entry is reversed
+        SustEntryReverseMgt.ReverseEntry(SustLedgEntry);
+
+        // [THEN] The reversal entry has the same Posting Date as the original
+        SustLedgEntry.Get(SustLedgEntry."Entry No.");
+        ReversalEntry.Get(SustLedgEntry."Reversed by Entry No.");
+        Assert.AreEqual(OriginalPostingDate, ReversalEntry."Posting Date",
+            'Reversal entry should post on the original entry''s posting date.');
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmYesHandler')]
     procedure ReverseMultipleEntriesConfirmYes()
     var

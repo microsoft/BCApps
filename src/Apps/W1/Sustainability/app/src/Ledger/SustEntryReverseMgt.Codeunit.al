@@ -87,7 +87,8 @@ codeunit 6230 "Sust. Entry Reverse Mgt."
         NewEntry.Init();
         NewEntry.TransferFields(OriginalEntry, false);
         NewEntry."Entry No." := NewEntryNo;
-        NewEntry."Posting Date" := WorkDate();
+        // Post the reversal on the original entry's posting date so emissions net to zero within the same period (matches G/L Reverse).
+        NewEntry."Posting Date" := OriginalEntry."Posting Date";
         NewEntry."Document No." := OriginalEntry."Document No.";
 
         // Negate emission values
