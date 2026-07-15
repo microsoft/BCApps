@@ -1,7 +1,5 @@
 namespace Microsoft.Sustainability.Ledger;
 
-using Microsoft.Sustainability.Setup;
-
 codeunit 6230 "Sust. Entry Reverse Mgt."
 {
     Permissions = tabledata "Sustainability Ledger Entry" = rimd;
@@ -15,28 +13,22 @@ codeunit 6230 "Sust. Entry Reverse Mgt."
     procedure ReverseEntry(var SustLedgEntry: Record "Sustainability Ledger Entry")
     var
         NewSustLedgEntry: Record "Sustainability Ledger Entry";
-        NextEntryNo: Integer;
     begin
         ValidateEntryForReversal(SustLedgEntry);
 
-        NextEntryNo := GetNextEntryNo();
-
-        CreateReversalEntry(SustLedgEntry, NewSustLedgEntry, NextEntryNo);
-        UpdateOriginalEntry(SustLedgEntry, NextEntryNo);
+        CreateReversalEntry(SustLedgEntry, NewSustLedgEntry);
+        UpdateOriginalEntry(SustLedgEntry, NewSustLedgEntry."Entry No.");
     end;
 
     procedure ReverseEntryFromGL(var SustLedgEntry: Record "Sustainability Ledger Entry")
     var
         NewSustLedgEntry: Record "Sustainability Ledger Entry";
-        NextEntryNo: Integer;
     begin
         if SustLedgEntry.Reversed then
             exit;
 
-        NextEntryNo := GetNextEntryNo();
-
-        CreateReversalEntry(SustLedgEntry, NewSustLedgEntry, NextEntryNo);
-        UpdateOriginalEntry(SustLedgEntry, NextEntryNo);
+        CreateReversalEntry(SustLedgEntry, NewSustLedgEntry);
+        UpdateOriginalEntry(SustLedgEntry, NewSustLedgEntry."Entry No.");
     end;
 
     procedure ReverseEntries(var SustLedgEntry: Record "Sustainability Ledger Entry"): Integer
@@ -82,14 +74,16 @@ codeunit 6230 "Sust. Entry Reverse Mgt."
             Error(DocumentEntryErr, SustLedgEntry."Entry No.");
     end;
 
-    local procedure CreateReversalEntry(OriginalEntry: Record "Sustainability Ledger Entry"; var NewEntry: Record "Sustainability Ledger Entry"; NewEntryNo: Integer)
+    local procedure CreateReversalEntry(OriginalEntry: Record "Sustainability Ledger Entry"; var NewEntry: Record "Sustainability Ledger Entry")
     begin
         NewEntry.Init();
         NewEntry.TransferFields(OriginalEntry, false);
-        NewEntry."Entry No." := NewEntryNo;
+        // AutoIncrement assigns the Entry No. on Insert (matches Sustainability Post Mgt and G/L reversal engine-assigned numbering).
+        NewEntry."Entry No." := 0;
         // Post the reversal on the original entry's posting date so emissions net to zero within the same period (matches G/L Reverse).
         NewEntry."Posting Date" := OriginalEntry."Posting Date";
         NewEntry."Document No." := OriginalEntry."Document No.";
+        NewEntry.Validate("User ID", CopyStr(UserId(), 1, MaxStrLen(NewEntry."User ID")));
 
         // Negate emission values
         NewEntry."Emission CO2" := -OriginalEntry."Emission CO2";
@@ -117,16 +111,5 @@ codeunit 6230 "Sust. Entry Reverse Mgt."
         OriginalEntry.Reversed := true;
         OriginalEntry."Reversed by Entry No." := ReversalEntryNo;
         OriginalEntry.Modify(true);
-    end;
-
-    local procedure GetNextEntryNo(): Integer
-    var
-        SustLedgEntry: Record "Sustainability Ledger Entry";
-    begin
-        SustLedgEntry.SetCurrentKey("Entry No.");
-        if SustLedgEntry.FindLast() then
-            exit(SustLedgEntry."Entry No." + 1)
-        else
-            exit(1);
     end;
 }

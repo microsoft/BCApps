@@ -197,6 +197,28 @@ codeunit 148220 "Sust. Reversal Tests"
     end;
 
     [Test]
+    procedure ReversalStampsUserId()
+    var
+        SustLedgEntry: Record "Sustainability Ledger Entry";
+        ReversalEntry: Record "Sustainability Ledger Entry";
+        SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
+    begin
+        // [SCENARIO] The reversal entry should stamp the current User ID (matches Sustainability posting and G/L Reverse)
+        // [GIVEN] A posted sustainability entry
+        Initialize();
+        CreateSustLedgerEntry(SustLedgEntry, 'SUSTJNL', 'DEFAULT');
+
+        // [WHEN] The entry is reversed
+        SustEntryReverseMgt.ReverseEntry(SustLedgEntry);
+
+        // [THEN] The reversal entry has the current User ID stamped
+        SustLedgEntry.Get(SustLedgEntry."Entry No.");
+        ReversalEntry.Get(SustLedgEntry."Reversed by Entry No.");
+        Assert.AreEqual(CopyStr(UserId(), 1, MaxStrLen(ReversalEntry."User ID")), ReversalEntry."User ID",
+            'Reversal entry should stamp the current User ID.');
+    end;
+
+    [Test]
     [HandlerFunctions('ConfirmYesHandler')]
     procedure ReverseMultipleEntriesConfirmYes()
     var
