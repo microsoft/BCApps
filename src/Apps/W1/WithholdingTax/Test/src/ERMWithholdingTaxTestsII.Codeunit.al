@@ -597,7 +597,7 @@ codeunit 148322 "ERM Withholding Tax Tests II"
 
     [Test]
     [Scope('OnPrem')]
-    [HandlerFunctions('ConfirmHandler,CreatePaymentPageHandler,PaymentJournalPageHandler')]
+    [HandlerFunctions('ConfirmHandler,CreatePaymentPageHandler')]
     procedure WHTProdPostGroupTravelsFromInvoiceToJournalLineOnApplication()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -610,6 +610,7 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         WHTProdPostingGroup: Record "Wthldg. Tax Prod. Post. Group";
         BankAccount: Record "Bank Account";
         VendorLedgerEntries: TestPage "Vendor Ledger Entries";
+        PaymentJournal: TestPage "Payment Journal";
         DocumentNo: Code[20];
         StartingDocumentNo: Code[20];
     begin
@@ -653,7 +654,9 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         // [WHEN] The user filters the Vendor Ledger Entries page to the posted Invoice and invokes the Create Payment action.
         VendorLedgerEntries.OpenView();
         VendorLedgerEntries.Filter.SetFilter("Document No.", DocumentNo);
+        PaymentJournal.Trap();
         VendorLedgerEntries."Create Payment".Invoke();
+        PaymentJournal.OK().Invoke();
         VendorLedgerEntries.Close();
 
         // [THEN] The WHT Prod. Post. Group on the generated Payment line is copied from the applied Invoice.
@@ -1195,11 +1198,5 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         CreatePayment."Starting Document No.".SetValue(LibraryVariableStorage.DequeueText());
         CreatePayment."Bank Account".SetValue(LibraryVariableStorage.DequeueText());
         CreatePayment.OK().Invoke();
-    end;
-
-    [PageHandler]
-    [Scope('OnPrem')]
-    procedure PaymentJournalPageHandler(var PaymentJournal: TestPage "Payment Journal")
-    begin
     end;
 }
