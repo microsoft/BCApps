@@ -7384,7 +7384,7 @@
 
     [Test]
     [HandlerFunctions('StrMenuHandler')]
-    procedure PaymentStampDatesMatchWhenPostingDateIsToday()
+    procedure PaymentStampDatesNearStampDateWhenPostingIsToday()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -9110,13 +9110,13 @@
     var
         ActualDate: Date;
         DaysDiff: Integer;
+        DateAssertionLbl: Label '%1. Expected: %2, Actual: %3 (difference: %4 days, tolerance: +/-1 day for timezone shifts)', Comment = '%1 = Error message, %2 = Expected date, %3 = Actual date, %4 = Days difference', Locked = true;
     begin
         ActualDate := ParseISODate(CopyStr(ActualDateText, 1, 10));
         DaysDiff := ActualDate - ExpectedDate;
         Assert.IsTrue(
             Abs(DaysDiff) <= 1,
-            StrSubstNo('%1. Expected: %2, Actual: %3 (difference: %4 days, tolerance: +/-1 day for timezone shifts)',
-                ErrorMessage, FormatDate(ExpectedDate), CopyStr(ActualDateText, 1, 10), DaysDiff));
+            StrSubstNo(DateAssertionLbl, ErrorMessage, FormatDate(ExpectedDate), CopyStr(ActualDateText, 1, 10), DaysDiff));
     end;
 
     local procedure GetCurrentDateTimeInUserTimeZone(): DateTime
