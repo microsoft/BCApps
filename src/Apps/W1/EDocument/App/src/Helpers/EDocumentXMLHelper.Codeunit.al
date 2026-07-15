@@ -7,7 +7,7 @@ namespace Microsoft.eServices.EDocument.Helpers;
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.Utilities;
 
-codeunit 6410 "EDocument XML Helper"
+codeunit 6430 "EDocument XML Helper"
 {
     Access = Public;
     InherentEntitlements = X;

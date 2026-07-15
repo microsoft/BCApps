@@ -22,6 +22,13 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
     var
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
         GLNSchemeIdTok: Label '0088', Locked = true;
+        CommonAggregateComponentsTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', Locked = true;
+        CommonBasicComponentsTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', Locked = true;
+        DefaultInvoiceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2', Locked = true;
+        DefaultCreditNoteTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2', Locked = true;
+        ABNSchemeIdTok: Label '0151', Locked = true;
+        InvoiceLinePathTok: Label '/inv:Invoice/cac:InvoiceLine', Locked = true;
+        CreditNoteLinePathTok: Label '/cn:CreditNote/cac:CreditNoteLine', Locked = true;
 
     /// <summary>
     /// Reads a PINT A-NZ format XML document and converts it into a draft purchase document.
@@ -36,10 +43,6 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
         PINTANZXml: XmlDocument;
         XmlNamespaces: XmlNamespaceManager;
         XmlElement: XmlElement;
-        CommonAggregateComponentsTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', Locked = true;
-        CommonBasicComponentsTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', Locked = true;
-        DefaultInvoiceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2', Locked = true;
-        DefaultCreditNoteTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2', Locked = true;
     begin
         EDocumentPurchaseHeader.InsertForEDocument(EDocument);
 
@@ -80,7 +83,7 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
         EDocReadablePurchaseDoc.Run();
     end;
 
-#pragma warning restore AA0139
+#pragma warning disable AA0139 // false positive: overflow handled by SetStringValueInField
     local procedure PopulateEDocumentForInvoice(PINTANZXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var EDocument: Record "E-Document")
     var
         EDocumentXMLHelper: Codeunit "EDocument XML Helper";
@@ -122,7 +125,7 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
             EDocumentPurchaseHeader."[BC] Vendor No." := VendorNo;
         InsertPINTANZPurchaseInvoiceLines(PINTANZXml, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.");
     end;
-#pragma warning disable AA0139 // false positive: overflow handled by SetStringValueInField
+#pragma warning restore AA0139
 
     local procedure ParseAccountingSupplierPartyForPurchaseHeader(PINTANZXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var EDocument: Record "E-Document"; DocumentType: Text) VendorNo: Code[20]
     var
@@ -132,7 +135,6 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
         GLN: Code[13];
         ABN: Code[11];
         XMLNode: XmlNode;
-        ABNSchemeIdTok: Label '0151', Locked = true;
         BasePathTxt: Text;
     begin
         BasePathTxt := '/' + DocumentType + '/cac:AccountingSupplierParty/cac:Party';
@@ -194,8 +196,6 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
         LineXMLList: XmlNodeList;
         LineXMLNode: XmlNode;
         i: Integer;
-        InvoiceLinePathTok: Label '/inv:Invoice/cac:InvoiceLine', Locked = true;
-        CreditNoteLinePathTok: Label '/cn:CreditNote/cac:CreditNoteLine', Locked = true;
     begin
         if not PINTANZXml.SelectNodes(InvoiceLinePathTok, XmlNamespaces, LineXMLList) then
             if not PINTANZXml.SelectNodes(CreditNoteLinePathTok, XmlNamespaces, LineXMLList) then

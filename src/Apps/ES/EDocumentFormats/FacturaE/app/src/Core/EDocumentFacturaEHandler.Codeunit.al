@@ -24,6 +24,12 @@ codeunit 10776 "E-Document Factura-E Handler" implements IStructuredFormatReader
 
     var
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        FacturaENamespaceTok: Label 'http://www.facturae.gob.es/formato/Versiones/Facturaev3_2_2.xml', Locked = true;
+        DigitalSignatureNamespaceTok: Label 'http://www.w3.org/2000/09/xmldsig#', Locked = true;
+        ETSINamespaceTok: Label 'http://uri.etsi.org/01903/v1.2.2#', Locked = true;
+        InvoiceLinePathTok: Label '/namespace:Facturae/Invoices/Invoice/Items/InvoiceLine', Locked = true;
+        IndividualTok: Label 'F', Locked = true;
+        ResidenceTok: Label 'R', Locked = true;
 
     /// <summary>
     /// Reads a Factura-E XML document and converts it into a draft purchase document.
@@ -37,9 +43,6 @@ codeunit 10776 "E-Document Factura-E Handler" implements IStructuredFormatReader
         FacturaEXML: XmlDocument;
         XmlNamespaces: XmlNamespaceManager;
         XmlElement: XmlElement;
-        FacturaENamespaceTok: Label 'http://www.facturae.gob.es/formato/Versiones/Facturaev3_2_2.xml', Locked = true;
-        DigitalSignatureNamespaceTok: Label 'http://www.w3.org/2000/09/xmldsig#', Locked = true;
-        ETSINamespaceTok: Label 'http://uri.etsi.org/01903/v1.2.2#', Locked = true;
         XMLNode: XmlNode;
     begin
         EDocumentPurchaseHeader.InsertForEDocument(EDocument);
@@ -107,7 +110,6 @@ codeunit 10776 "E-Document Factura-E Handler" implements IStructuredFormatReader
         NewLineXML: XmlDocument;
         LineXMLList: XmlNodeList;
         LineXMLNode: XmlNode;
-        InvoiceLinePathTok: Label '/namespace:Facturae/Invoices/Invoice/Items/InvoiceLine', Locked = true;
     begin
         if not FacturaEXML.SelectNodes(InvoiceLinePathTok, XmlNamespaces, LineXMLList) then
             exit;
@@ -227,7 +229,6 @@ codeunit 10776 "E-Document Factura-E Handler" implements IStructuredFormatReader
     var
         XMLNode: XmlNode;
         PersonTypeCode: Text;
-        IndividualTok: Label 'F', Locked = true;
     begin
         if FacturaEXML.SelectSingleNode(PathPrefix + 'TaxIdentification/PersonTypeCode', XmlNamespaces, XMLNode) then
             PersonTypeCode := XMLNode.AsXmlElement().InnerText();
@@ -248,7 +249,6 @@ codeunit 10776 "E-Document Factura-E Handler" implements IStructuredFormatReader
     var
         XMLNode: XmlNode;
         ResidenceTypeCode: Text;
-        ResidenceTok: Label 'R', Locked = true;
     begin
         if FacturaEXML.SelectSingleNode(PathPrefix + 'TaxIdentification/ResidenceTypeCode', XmlNamespaces, XMLNode) then
             ResidenceTypeCode := XMLNode.AsXmlElement().InnerText();
