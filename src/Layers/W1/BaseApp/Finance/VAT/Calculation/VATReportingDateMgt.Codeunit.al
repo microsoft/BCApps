@@ -5,6 +5,7 @@
 namespace Microsoft.Finance.VAT.Calculation;
 
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Reporting;
@@ -58,6 +59,8 @@ codeunit 799 "VAT Reporting Date Mgt"
         VATDateNotAllowedErr: Label 'The VAT Date is not within the range of allowed VAT dates.';
         VATDateInPeriodNotAllowedErr: Label 'The specified VAT Date is in a %1 VAT Return Period which was not allowed', Comment = '%1 - VAT Return Period status';
         VATDateFromPeriodNotAllowedErr: Label 'The VAT Date is in a %1 VAT Return Period and was not allowed to change', Comment = '%1 - VAT Return Period status';
+        ConfirmedVATReturnPeriodDates: List of [Date];
+        RejectedVATReturnPeriodDates: List of [Date];
 
     /// <summary>
     /// Updates linked entries when VAT entry VAT reporting date is modified.
@@ -253,7 +256,7 @@ codeunit 799 "VAT Reporting Date Mgt"
                         end;
                         VATReturnPeriod.CalcFields("VAT Return Status");
                         if VATReturnPeriod."VAT Return Status" in [VATReturnPeriod."VAT Return Status"::Released, VATReturnPeriod."VAT Return Status"::Submitted] then
-                            if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(VATReturnWarning, Format(VATReturnPeriod."VAT Return Status")), true) then
+                            if not GetVATReturnPeriodWarningResponse(VATDate, StrSubstNo(VATReturnWarning, Format(VATReturnPeriod."VAT Return Status"))) then
                                 ErrorMessageManagement.LogContextFieldError(ContextFieldNo, StrSubstNo(VATPeriodErr, VATReturnPeriod."VAT Return Status"), VATReturnPeriod, VATReturnPeriod.FieldNo(VATReturnPeriod."VAT Return Status"), ForwardLinkMgt.GetHelpCodeForAllowedVATDate());
                     end;
                 GLSetup."Control VAT Period"::"Block posting within closed period":
@@ -261,9 +264,41 @@ codeunit 799 "VAT Reporting Date Mgt"
                         ErrorMessageManagement.LogContextFieldError(ContextFieldNo, ClosedError, VATReturnPeriod, VATReturnPeriod.FieldNo(VATReturnPeriod.Status), ForwardLinkMgt.GetHelpCodeForAllowedVATDate());
                 GLSetup."Control VAT Period"::"Warn when posting in closed period":
                     if VATReturnPeriod.Status = VATReturnPeriod.Status::Closed then
-                        if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(VATReturnWarning, Format(VATReturnPeriod.Status::Closed)), true) then
+                        if not GetVATReturnPeriodWarningResponse(VATDate, StrSubstNo(VATReturnWarning, Format(VATReturnPeriod.Status::Closed))) then
                             ErrorMessageManagement.LogContextFieldError(ContextFieldNo, StrSubstNo(VATPeriodErr, VATReturnPeriod.Status), VATReturnPeriod, VATReturnPeriod.FieldNo(VATReturnPeriod.Status), ForwardLinkMgt.GetHelpCodeForAllowedVATDate());
             end;
+    end;
+
+    local procedure GetVATReturnPeriodWarningResponse(VATDate: Date; WarningMsg: Text): Boolean
+    begin
+        if ConfirmedVATReturnPeriodDates.Contains(VATDate) then
+            exit(true);
+        if RejectedVATReturnPeriodDates.Contains(VATDate) then
+            exit(false);
+
+        if ConfirmManagement.GetResponseOrDefault(WarningMsg, true) then begin
+            ConfirmedVATReturnPeriodDates.Add(VATDate);
+            exit(true);
+        end;
+
+        RejectedVATReturnPeriodDates.Add(VATDate);
+        exit(false);
+    end;
+
+    procedure ResetVATReturnPeriodWarning()
+    begin
+        Clear(ConfirmedVATReturnPeriodDates);
+        Clear(RejectedVATReturnPeriodDates);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnAfterFinishPosting, '', false, false)]
+    local procedure ResetVATReturnPeriodWarningOnAfterFinishPosting(var IsTransactionConsistent: Boolean)
+    begin
+        // Reset only when the whole transaction has been posted (balanced), not between the individual general
+        // journal lines of the same document. This keeps the warning deduplicated within a posting while still
+        // prompting again for the next posting.
+        if IsTransactionConsistent then
+            ResetVATReturnPeriodWarning();
     end;
 
     local procedure UpdateGLEntries(VATEntry: Record "VAT Entry")
