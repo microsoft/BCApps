@@ -763,6 +763,9 @@ table 254 "VAT Entry"
                 if Closed then
                     Error(VATDateModifiableClosedErr);
 
+                // Each manual VAT date change is an independent edit and must prompt the VAT Return Period warning on
+                // its own, so clear any responses remembered from a previous posting or edit before validating.
+                VATDateReportingMgt.ResetVATReturnPeriodWarning();
                 VATDateReportingMgt.CheckDateAllowed("VAT Reporting Date", Rec.FieldNo("VAT Reporting Date"), false);
                 VATDateReportingMgt.CheckDateAllowed(xRec."VAT Reporting Date", Rec.FieldNo("VAT Reporting Date"), true, false);
                 VATDateReportingMgt.UpdateLinkedEntries(Rec);
