@@ -765,6 +765,7 @@ table 254 "VAT Entry"
                 if Closed then
                     Error(VATDateModifiableClosedErr);
 
+                VATDateReportingMgt.ResetVATReturnPeriodWarning();
                 VATDateReportingMgt.CheckDateAllowed("VAT Reporting Date", Rec.FieldNo("VAT Reporting Date"), false);
                 VATDateReportingMgt.CheckDateAllowed(xRec."VAT Reporting Date", Rec.FieldNo("VAT Reporting Date"), true, false);
                 VATDateReportingMgt.UpdateLinkedEntries(Rec);
@@ -1617,6 +1618,7 @@ table 254 "VAT Entry"
     local procedure OnAfterSetGLAccountNo(var VATEntry: Record "VAT Entry"; var IsHandled: Boolean; WithUI: Boolean)
     begin
     end;
+<<<<<<< src/Layers/ES/BaseApp/Finance/VAT/Ledger/VATEntry.Table.al
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateRates(var VATEntry: Record "VAT Entry"; VATPostingSetup: Record "VAT Posting Setup")
