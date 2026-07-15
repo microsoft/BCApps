@@ -1050,6 +1050,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
                            (SupplyInvtProfile."Due Date" <= DemandInvtProfile."Due Date")
                         then
                             IncreaseQtyToMeetDemand(SupplyInvtProfile, DemandInvtProfile, false, RespectPlanningParm, false);
+                    OnBeforeDecreaseQtyForMaxQty(SupplyInvtProfile, DemandInvtProfile, RequisitionLine, TempSKU);
                     if (TempSKU."Reordering Policy" = TempSKU."Reordering Policy"::"Maximum Qty.") and DemandForAdditionalProfile then
                         DecreaseQtyForMaxQty(SupplyInvtProfile, SupplyIleInvtProfile."Untracked Quantity");
                     if SupplyInvtProfile."Untracked Quantity" < DemandInvtProfile."Untracked Quantity" then
@@ -4968,6 +4969,11 @@ codeunit 99000854 "Inventory Profile Offsetting"
         Location.Get(LocationCode);
 
         exit(Location."Missing SKU Planning Policy" = Location."Missing SKU Planning Policy"::"Item Card");
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeDecreaseQtyForMaxQty(var SupplyInvtProfile: Record "Inventory Profile"; var DemandInvtProfile: Record "Inventory Profile"; var RequisitionLine: Record "Requisition Line"; var TempSKU: Record "Stockkeeping Unit" temporary)
+    begin
     end;
 
     [IntegrationEvent(false, false)]
