@@ -86,7 +86,7 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
 #pragma warning disable AA0139 // false positive: overflow handled by SetStringValueInField
     local procedure PopulateEDocumentForInvoice(PINTANZXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var EDocument: Record "E-Document")
     var
-        EDocumentXMLHelper: Codeunit "EDocument XML Helper";
+        EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
         VendorNo: Code[20];
     begin
         EDocumentPurchaseHeader."E-Document Type" := "E-Document Type"::"Purchase Invoice";
@@ -107,7 +107,7 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
 
     local procedure PopulateEDocumentForCreditNote(PINTANZXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var EDocument: Record "E-Document")
     var
-        EDocumentXMLHelper: Codeunit "EDocument XML Helper";
+        EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
         VendorNo: Code[20];
     begin
         EDocumentPurchaseHeader."E-Document Type" := "E-Document Type"::"Purchase Credit Memo";
@@ -129,7 +129,7 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
 
     local procedure ParseAccountingSupplierPartyForPurchaseHeader(PINTANZXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var EDocument: Record "E-Document"; DocumentType: Text) VendorNo: Code[20]
     var
-        EDocumentXMLHelper: Codeunit "EDocument XML Helper";
+        EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
         VendorName, VendorAddress, VendorParticipantId : Text;
         VATRegistrationNo: Text[20];
         GLN: Code[13];
@@ -162,7 +162,7 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
 
     local procedure ParseAccountingCustomerPartyForPurchaseHeader(PINTANZXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; DocumentType: Text)
     var
-        EDocumentXMLHelper: Codeunit "EDocument XML Helper";
+        EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
         ReceivingId: Text[250];
         SchemaId, CompanyIdentifierValue : Text;
         BasePathTxt: Text;
@@ -218,7 +218,7 @@ codeunit 28008 "E-Document PINT A-NZ Handler" implements IStructuredFormatReader
 
     local procedure PopulatePINTANZPurchaseLine(LineXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var EDocumentPurchaseLine: Record "E-Document Purchase Line")
     var
-        EDocumentXMLHelper: Codeunit "EDocument XML Helper";
+        EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
     begin
         EDocumentXMLHelper.SetStringValueInField(LineXML, XmlNamespaces, 'cac:InvoiceLine/cac:Item/cac:SellersItemIdentification/cbc:ID', MaxStrLen(EDocumentPurchaseLine."Product Code"), EDocumentPurchaseLine."Product Code");
         if EDocumentPurchaseLine."Product Code" = '' then

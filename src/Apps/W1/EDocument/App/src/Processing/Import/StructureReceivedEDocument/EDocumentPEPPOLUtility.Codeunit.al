@@ -66,6 +66,16 @@ codeunit 6401 "E-Document PEPPOL Utility"
         exit(false);
     end;
 
+    procedure SetStringValueInField(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; MaxLength: Integer; var Field: Variant)
+    var
+        Value: Text;
+    begin
+        if not TryGetStringValue(XMLDocument, XMLNamespaces, Path, Value) then
+            exit;
+
+        Field := CopyStr(Value, 1, MaxLength);
+    end;
+
     procedure SetNumberValueInField(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; var DecimalValue: Decimal)
     var
         XMLNode: XmlNode;
@@ -92,6 +102,26 @@ codeunit 6401 "E-Document PEPPOL Utility"
 
         if XMLNode.AsXmlElement().InnerText() <> '' then
             Evaluate(DateValue, XMLNode.AsXmlElement().InnerText(), 9);
+    end;
+
+    procedure SetCurrencyValueInField(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text; MaxLength: Integer; var CurrencyCode: Code[10])
+    var
+        Value: Text;
+    begin
+        if not TryGetStringValue(XMLDocument, XMLNamespaces, Path, Value) then
+            exit;
+
+        SetCurrencyIfForeign(CopyStr(Value, 1, MaxLength), CurrencyCode);
+    end;
+
+    procedure GetNodeValue(XMLDocument: XmlDocument; XMLNamespaces: XmlNamespaceManager; Path: Text): Text
+    var
+        Value: Text;
+    begin
+        if TryGetStringValue(XMLDocument, XMLNamespaces, Path, Value) then
+            exit(Value);
+
+        exit('');
     end;
 
     #endregion XML Value Extraction

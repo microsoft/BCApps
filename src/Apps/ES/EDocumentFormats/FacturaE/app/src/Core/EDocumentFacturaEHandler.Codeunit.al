@@ -16,7 +16,7 @@ using Microsoft.Purchases.Vendor;
 using System.IO;
 using System.Utilities;
 
-codeunit 10776 "E-Document Factura-E Handler" implements IStructuredFormatReader
+codeunit 10766 "E-Document Factura-E Handler" implements IStructuredFormatReader
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -84,7 +84,7 @@ codeunit 10776 "E-Document Factura-E Handler" implements IStructuredFormatReader
 #pragma warning disable AA0139 // false positive: overflow handled by SetStringValueInField
     local procedure PopulateFacturaEPurchaseInvoiceHeader(FacturaEXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var EDocument: Record "E-Document")
     var
-        EDocumentXMLHelper: Codeunit "EDocument XML Helper";
+        EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
         VendorNo: Code[20];
     begin
         EDocumentXMLHelper.SetStringValueInField(FacturaEXML, XmlNamespaces, '/namespace:Facturae/Invoices/Invoice/InvoiceHeader/InvoiceNumber', MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."), EDocumentPurchaseHeader."Sales Invoice No.");
@@ -127,7 +127,7 @@ codeunit 10776 "E-Document Factura-E Handler" implements IStructuredFormatReader
 #pragma warning disable AA0139 // false positive: overflow handled by SetStringValueInField
     local procedure PopulateFacturaEPurchaseLine(LineXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var EDocumentPurchaseLine: Record "E-Document Purchase Line")
     var
-        EDocumentXMLHelper: Codeunit "EDocument XML Helper";
+        EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
         UOMCode: Text;
         XMLNode: XmlNode;
     begin
