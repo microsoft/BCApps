@@ -537,6 +537,10 @@ codeunit 905 "Assembly Line Management"
         if UpdateDimension then
             AssemblyLine.UpdateDim(AsmHeader."Dimension Set ID", OldAsmHeader."Dimension Set ID");
 
+        OnUpdateExistingLineOnBeforeModifyAssemblyLine(
+            AsmHeader, OldAsmHeader, CurrFieldNo, AssemblyLine, UpdateDueDate, UpdateLocation,
+            UpdateQuantity, UpdateUOM, UpdateQtyToConsume, UpdateDimension);
+
         AssemblyLine.Modify(true);
     end;
 
@@ -1034,6 +1038,11 @@ codeunit 905 "Assembly Line Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateExistingLine(var AsmHeader: Record "Assembly Header"; OldAsmHeader: Record "Assembly Header"; CurrFieldNo: Integer; var AssemblyLine: Record "Assembly Line"; UpdateDueDate: Boolean; UpdateLocation: Boolean; UpdateQuantity: Boolean; UpdateUOM: Boolean; UpdateQtyToConsume: Boolean; UpdateDimension: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateExistingLineOnBeforeModifyAssemblyLine(var AssemblyHeader: Record "Assembly Header"; OldAssemblyHeader: Record "Assembly Header"; CurrentFieldNo: Integer; var AssemblyLine: Record "Assembly Line"; UpdateDueDate: Boolean; UpdateLocation: Boolean; UpdateQuantity: Boolean; UpdateUOM: Boolean; UpdateQtyToConsume: Boolean; UpdateDimension: Boolean)
     begin
     end;
 

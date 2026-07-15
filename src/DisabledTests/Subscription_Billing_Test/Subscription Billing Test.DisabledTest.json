@@ -1,0 +1,8 @@
+[
+  {
+    "bug": "641478",
+    "codeunitId": 139913,
+    "codeunitName": "Vendor Deferrals Test",
+    "method": "DeferralsReleaseSucceedsWhenGLAccountHasDefaultDeferralTemplateAndJournalTemplNotMandatory"
+  }
+]

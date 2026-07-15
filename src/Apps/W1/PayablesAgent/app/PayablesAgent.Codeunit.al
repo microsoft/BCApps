@@ -22,7 +22,7 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
     InherentEntitlements = X;
     InherentPermissions = X;
     Subtype = Install;
-    Permissions = tabledata "Payables Agent Setup" = R, tabledata User = R;
+    Permissions = tabledata "Payables Agent Setup" = R, tabledata User = R, tabledata Agent = R, tabledata "Agent Task Message" = R;
 
     trigger OnInstallAppPerDatabase()
     begin
@@ -138,6 +138,7 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
 #endif
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Billing Log");
         DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Billing Task Setup");
+        DataClassificationEvalData.SetTableFieldsToNormal(Database::"PA Known Sender");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterProcessIncomingEDocument, '', false, false)]
@@ -176,11 +177,19 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
         if Agent.State = Agent.State::Disabled then
             exit;
 
-        BuildAgentTask(EDocument, Agent);
-
         PayablesAgentSetupRec.GetSetup();
         CustomDimensions.Set('Category', PayablesAgentSetup.FeatureName());
         CustomDimensions.Set('SystemId', EDocImpSessionTelemetry.CreateSystemIdText(EDocument.SystemId));
+        CustomDimensions.Set('EmailReviewPolicy', Format(PayablesAgentSetupRec."Email Review Policy", 0, 9));
+
+        // A sender explicitly set to Reject is a blocklist: no agent task is created.
+        if PayablesAgentSetup.IsSenderRejected(EDocument) then begin
+            Telemetry.LogMessage('0000QJ2', 'Payables Agent Task Skipped: sender rejected', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
+            exit;
+        end;
+
+        BuildAgentTask(EDocument, Agent);
+
         CustomDimensions.Set('ReviewIncomingInvoice', Format(PayablesAgentSetupRec."Review Incoming Invoice", 0, 9));
         Telemetry.LogMessage('0000PJA', 'Payables Agent Task Received', Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
         PayablesAgentKPI.InsertKPIEntry("PA KPI Scenario"::"Agent Tasks Received");
@@ -203,7 +212,7 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
         TrialModeTok: Label 'Agent Task created in trial mode. Skipping billing for invoice.', Locked = true;
     begin
         PayablesAgentSetup.GetSetup();
-        MustRequestReviewOfMessage := PayablesAgentSetup."Review Incoming Invoice";
+        MustRequestReviewOfMessage := PASetup.ShouldRequestReview(EDocument);
         Message := StrSubstNo(MessageLbl, EDocument."Entry No");
         AgentTaskTitle := CopyStr(StrSubstNo(TaskTitleLbl, LowerCase(EDocument."Source Details")), 1, MaxStrLen(AgentTaskTitle));
 
