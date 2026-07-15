@@ -730,12 +730,17 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         GeneralPostingSetup: Record "General Posting Setup";
         TemplateGeneralPostingSetup: Record "General Posting Setup";
     begin
-        if GeneralPostingSetup.Get('', GenProdPostingGroup) and (GeneralPostingSetup."Inventory Adjmt. Account" <> '') then
+        if GeneralPostingSetup.Get('', GenProdPostingGroup) and
+           (GeneralPostingSetup."Inventory Adjmt. Account" <> '') and
+           (GeneralPostingSetup."Overhead Applied Account" <> '')
+        then
             exit;
 
         // Copy all accounts from an existing, fully configured General Posting Setup so the created
-        // combination is valid for inventory posting to G/L (e.g. Inventory Adjmt. Account).
+        // combination is valid for inventory posting to G/L (e.g. Inventory Adjmt. Account and
+        // Overhead Applied Account, which are required when posting manufacturing overhead).
         TemplateGeneralPostingSetup.SetFilter("Inventory Adjmt. Account", '<>%1', '');
+        TemplateGeneralPostingSetup.SetFilter("Overhead Applied Account", '<>%1', '');
         TemplateGeneralPostingSetup.FindFirst();
 
         if not GeneralPostingSetup.Get('', GenProdPostingGroup) then begin
