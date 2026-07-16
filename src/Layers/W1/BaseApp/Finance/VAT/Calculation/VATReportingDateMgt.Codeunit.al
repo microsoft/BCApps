@@ -291,12 +291,16 @@ codeunit 799 "VAT Reporting Date Mgt"
         Clear(RejectedVATReturnPeriodDates);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnBeforeCode, '', false, false)]
+    local procedure ResetVATReturnPeriodWarningOnBeforeGenJnlPostLineCode(var GLEntryNo: Integer)
+    begin
+        if GLEntryNo = 0 then
+            ResetVATReturnPeriodWarning();
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnAfterFinishPosting, '', false, false)]
     local procedure ResetVATReturnPeriodWarningOnAfterFinishPosting(var IsTransactionConsistent: Boolean)
     begin
-        // Reset only when the whole transaction has been posted (balanced), not between the individual general
-        // journal lines of the same document. This keeps the warning deduplicated within a posting while still
-        // prompting again for the next posting.
         if IsTransactionConsistent then
             ResetVATReturnPeriodWarning();
     end;
