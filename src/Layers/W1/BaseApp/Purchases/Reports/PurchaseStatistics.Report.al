@@ -11,6 +11,7 @@ report 312 "Purchase Statistics"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Purchase Statistics';
+    ToolTip = 'View a list of amounts for purchases, invoice discount and payment discount in $ for each vendor.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
