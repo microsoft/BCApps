@@ -71,7 +71,6 @@ page 9014 "Job Resource Manager RC"
                 Caption = 'Resource &Statistics';
                 Image = "Report";
                 RunObject = Report "Resource Statistics";
-                ToolTip = 'View detailed information about usage and sales of each resource. The Resource Statistics window shows both the units of measure and the corresponding amounts.';
             }
             action("Resource &Utilization")
             {
@@ -79,7 +78,6 @@ page 9014 "Job Resource Manager RC"
                 Caption = 'Resource &Utilization';
                 Image = "Report";
                 RunObject = Report "Resource Usage";
-                ToolTip = 'View statistical information about the usage of each resource. The resource''s usage quantity is compared with its capacity and the remaining capacity (in the Balance field), according to this formula: Balance = Capacity - Usage (Qty.)';
             }
             action("Resource - &Price List")
             {
@@ -87,7 +85,6 @@ page 9014 "Job Resource Manager RC"
                 Caption = 'Resource - &Price List';
                 Image = "Report";
                 RunObject = Report "Resource - List";
-                ToolTip = 'View a list of unit prices for the resources. By default, a unit price is based on the price in the Resource Prices window. If there is no valid alternative price, then the unit price from the resource card is used. The report can be used by the company''s salespeople or sent to customers.';
             }
             action("Resource - Cost &Breakdown")
             {
@@ -95,7 +92,6 @@ page 9014 "Job Resource Manager RC"
                 Caption = 'Resource - Cost &Breakdown';
                 Image = "Report";
                 RunObject = Report "Resource - Cost Breakdown";
-                ToolTip = 'View the direct unit costs and the total direct costs for each resource. Only usage postings are considered in this report. Resource usage can be posted in the resource journal or the project journal.';
             }
         }
         area(embedding)
@@ -254,7 +250,6 @@ page 9014 "Job Resource Manager RC"
                 Caption = 'Adjust R&esource Costs/Prices';
                 Image = "Report";
                 RunObject = Report "Adjust Resource Costs/Prices";
-                ToolTip = 'Adjust one or more fields on the resource card. For example, you can change the direct unit cost by 10 percent on all resources from a specific resource group. The changes are processed immediately after the batch job is started. The fields on the resource card that are dependent on the adjusted field are also changed.';
             }
             action("Resource P&rice Changes")
             {
@@ -298,7 +293,6 @@ page 9014 "Job Resource Manager RC"
                 Caption = 'Create Time Sheets';
                 Image = NewTimesheet;
                 RunObject = Report "Create Time Sheets";
-                ToolTip = 'Create new time sheets for resources.';
             }
         }
     }

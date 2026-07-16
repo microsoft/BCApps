@@ -15,6 +15,7 @@ report 1011 "Job Suggested Billing"
     AdditionalSearchTerms = 'Job Suggested Billing';
     ApplicationArea = Jobs;
     Caption = 'Project Suggested Billing';
+    ToolTip = 'View a list of all projects, grouped by customer, how much the customer has already been invoiced, and how much remains to be invoiced, that is, the suggested billing.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

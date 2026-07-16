@@ -14,6 +14,7 @@ report 1086 "Job Calculate WIP"
     AdditionalSearchTerms = 'calculate work in process,calculate work in progress, Job Calculate WIP';
     ApplicationArea = Jobs;
     Caption = 'Project Calculate WIP';
+    ToolTip = 'Calculate the general ledger entries needed to update or close the project.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

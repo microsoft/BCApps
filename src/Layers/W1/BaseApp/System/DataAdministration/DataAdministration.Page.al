@@ -369,7 +369,6 @@ page 9035 "Data Administration"
                         Image = Resource;
                         RunObject = Report "Date Compress Resource Ledger";
                         Ellipsis = true;
-                        ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                     }
                     action("Date Compress FA Ledger Entries")
                     {
@@ -447,7 +446,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = Jobs;
                         Caption = 'Resource Registers';
-                        ToolTip = 'Resource Registers';
                         RunObject = report "Delete Empty Res. Registers";
                         Ellipsis = true;
                     }
