@@ -167,6 +167,48 @@ codeunit 148015 "Elec. VAT Decl. Tests"
         Assert.ExpectedError('overlaps the period received from SKAT');
     end;
 
+    [Test]
+    procedure ReportingFrequencyIsEnabledWhenKeyVaultFlagIsTrue()
+    var
+        ElecVATDeclAzKeyVault: Codeunit "Elec. VAT Decl. Az. Key Vault";
+    begin
+        SetReportingFrequencyKeyVaultFlag('true');
+
+        Assert.IsTrue(ElecVATDeclAzKeyVault.IsReportingFrequencyEnabled(), 'Reporting frequency must be enabled when the Key Vault flag is true.');
+    end;
+
+    [Test]
+    procedure ReportingFrequencyIsDisabledWhenKeyVaultFlagIsFalse()
+    var
+        ElecVATDeclAzKeyVault: Codeunit "Elec. VAT Decl. Az. Key Vault";
+    begin
+        SetReportingFrequencyKeyVaultFlag('false');
+
+        Assert.IsFalse(ElecVATDeclAzKeyVault.IsReportingFrequencyEnabled(), 'Reporting frequency must be disabled when the Key Vault flag is false.');
+    end;
+
+    [Test]
+    procedure ReportingFrequencyIsEnabledWhenKeyVaultFlagIsInvalid()
+    var
+        ElecVATDeclAzKeyVault: Codeunit "Elec. VAT Decl. Az. Key Vault";
+    begin
+        SetReportingFrequencyKeyVaultFlag('invalid');
+
+        Assert.IsTrue(ElecVATDeclAzKeyVault.IsReportingFrequencyEnabled(), 'Reporting frequency must default to enabled when the Key Vault flag is invalid.');
+    end;
+
+    [Test]
+    procedure ReportingFrequencyIsEnabledWhenKeyVaultFlagIsMissing()
+    var
+        ElecVATDeclAzKeyVault: Codeunit "Elec. VAT Decl. Az. Key Vault";
+        LibraryAzureKVMockMgmt: Codeunit "Library - Azure KV Mock Mgmt.";
+    begin
+        LibraryAzureKVMockMgmt.InitMockAzureKeyvaultSecretProvider();
+        LibraryAzureKVMockMgmt.UseAzureKeyvaultSecretProvider();
+
+        Assert.IsTrue(ElecVATDeclAzKeyVault.IsReportingFrequencyEnabled(), 'Reporting frequency must default to enabled when the Key Vault flag is missing.');
+    end;
+
     local procedure Initialize()
     var
         NoSeries: Record "No. Series";
@@ -193,6 +235,15 @@ codeunit 148015 "Elec. VAT Decl. Tests"
         exit(
             '<ns1:AngivelseBetalingFristStruktur><ns4:AngivelseFrekvensNavn>' + Frequency + '</ns4:AngivelseFrekvensNavn>' +
             '<ns4:AngivelseFristKalenderBetalingDato>' + DueDate + '</ns4:AngivelseFristKalenderBetalingDato></ns1:AngivelseBetalingFristStruktur>');
+    end;
+
+    local procedure SetReportingFrequencyKeyVaultFlag(FlagValue: Text)
+    var
+        LibraryAzureKVMockMgmt: Codeunit "Library - Azure KV Mock Mgmt.";
+    begin
+        LibraryAzureKVMockMgmt.InitMockAzureKeyvaultSecretProvider();
+        LibraryAzureKVMockMgmt.AddMockAzureKeyvaultSecretProviderMapping('DKElecVAT-ReportingFrequencyEnabled', FlagValue);
+        LibraryAzureKVMockMgmt.UseAzureKeyvaultSecretProvider();
     end;
 
     [MessageHandler]
