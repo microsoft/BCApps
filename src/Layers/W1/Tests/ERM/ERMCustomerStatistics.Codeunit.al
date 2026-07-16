@@ -494,20 +494,21 @@ codeunit 134389 "ERM Customer Statistics"
         // [SCENARIO 258948] When Drill Down on Balance Due (LCY) is called from Customer Card, Due Date filter on opened Customer Ledger Entries Page = Date Filter.
         Initialize();
 
-        // [GIVEN] Setup new Customer with a customer ledger entry
+        // [GIVEN] Setup new Customer with a customer ledger entry due on or before the work date
         LibrarySales.CreateCustomer(Customer);
         CreateBasicCustLedgerEntry(CustLedgerEntry, Customer."No.");
-        CustLedgerEntry.Validate("Due Date", LibraryRandom.RandDate(100));
+        CustLedgerEntry.Validate("Due Date", CalcDate('<-1M>', WorkDate()));
         CustLedgerEntry.Modify(true);
 
         // [WHEN] The user drills down on Balance Due (LCY) field from Customer Card
         CustomerCard.OpenView();
         CustomerLedgerEntries.Trap();
-        CustomerCard.FILTER.SetFilter("Date Filter", Format(CustLedgerEntry."Due Date"));
+        // [WHEN] A wider Date Filter is inherited on the Customer Card (document/journal path)
+        CustomerCard.FILTER.SetFilter("Date Filter", StrSubstNo('..%1', CalcDate('<1M>', WorkDate())));
         CustomerCard.GotoRecord(Customer);
         CustomerCard."Balance Due (LCY)".DrillDown();
 
-        // [THEN] Customer Ledger Entries window opens, Due Date filter = Date Filter from Customer List.
+        // [THEN] The Customer Card normalizes the Date Filter to 0D..WORKDATE (Bug 640988), and the opened Customer Ledger Entries Page Due Date filter = that Date Filter.
         Assert.AreEqual(CustomerCard.FILTER.GetFilter("Date Filter"), CustomerLedgerEntries.FILTER.GetFilter("Due Date"), '');
 
         // [THEN] Customer Ledger Entries window opens, showing the ledger entries for the selected customer
@@ -1301,7 +1302,7 @@ codeunit 134389 "ERM Customer Statistics"
         exit(SalesHeader."Amount Including VAT");
     end;
 
-    local procedure CreateAndPostInvoiceWithDueDate(CustomerNo: Code[20]; PostingDate: Date; DueDate: Date): Decimal
+    local procedure CreateAndPostInvoiceWithDueDate(CustomerNo: Code[20]; PostingDate: Date; DueDate: Date) AmountInclVAT: Decimal
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
@@ -1312,8 +1313,8 @@ codeunit 134389 "ERM Customer Statistics"
         LibrarySales.CreateSalesLine(
           SalesLine, SalesHeader, SalesLine.Type::Item, CreateItemWithUnitPrice(), LibraryRandom.RandDec(10, 2));
         SalesHeader.CalcFields("Amount Including VAT");
+        AmountInclVAT := SalesHeader."Amount Including VAT";
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
-        exit(SalesHeader."Amount Including VAT");
     end;
 
     local procedure CreateAndPostSalesDocument(CustomerNo: Code[20]; CurrencyCode: Code[10]): Decimal
