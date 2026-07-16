@@ -19,6 +19,7 @@ codeunit 13668 "Elec. VAT Decl. Az. Key Vault"
         AKVGetStatusEndpointKeyTok: Label 'DKElecVAT-GetStatusEndpoint', Locked = true;
         AKVReportingFrequencyEnabledTok: Label 'DKElecVAT-ReportingFrequencyEnabled', Locked = true;
         AVKCompanyCertTok: Label 'DKElecVAT-CompanyCert', Locked = true;
+        ReportingFrequencyConfigurationReadTxt: Label 'Reporting frequency configuration read', Locked = true;
 
     [NonDebuggable]
     procedure GetClientCertificateBase64FromAKV() ClientCertificateBase64: Text
@@ -57,11 +58,23 @@ codeunit 13668 "Elec. VAT Decl. Az. Key Vault"
         AzureKeyVault: Codeunit "Azure Key Vault";
         SecretValue: Text;
         Enabled: Boolean;
+        ConfigurationStatus: Text;
+        CustomDimensions: Dictionary of [Text, Text];
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret(AKVReportingFrequencyEnabledTok, SecretValue) then
-            exit(true);
-        if not Evaluate(Enabled, SecretValue.Trim()) then
-            exit(true);
+        if not AzureKeyVault.GetAzureKeyVaultSecret(AKVReportingFrequencyEnabledTok, SecretValue) then begin
+            Enabled := true;
+            ConfigurationStatus := 'Missing';
+        end else
+            if Evaluate(Enabled, SecretValue.Trim()) then
+                ConfigurationStatus := 'Valid'
+            else begin
+                Enabled := true;
+                ConfigurationStatus := 'Invalid';
+            end;
+
+        CustomDimensions.Add('Enabled', Format(Enabled, 0, 9));
+        CustomDimensions.Add('ConfigurationStatus', ConfigurationStatus);
+        FeatureTelemetry.LogUsage('0000M7M', FeatureNameTxt, ReportingFrequencyConfigurationReadTxt, CustomDimensions);
 
         exit(Enabled);
     end;
