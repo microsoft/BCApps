@@ -20528,7 +20528,7 @@
   {
     "codeunitId": 144001,
     "codeunitName": "MX CFDI",
-    "method": "PaymentStampDatesNearStampDateWhenPostingIsToday",
+    "method": "PaymentStampDatesMatchWhenPostingDateIsToday",
     "bug": "639636"
   }
 ]
