@@ -107,19 +107,29 @@ table 30122 "Shpfy Order Tax Line"
     var
         OrderHeader: Record "Shpfy Order Header";
         OrderLine: Record "Shpfy Order Line";
+        OrderShippingCharges: Record "Shpfy Order Shipping Charges";
     begin
-        if OrderLine.Get("Parent Id") then
+        if OrderLine.Get("Parent Id") then begin
             if OrderHeader.Get(OrderLine."Shopify Order Id") then
                 exit(OrderHeader."Currency Code");
+        end else
+            if OrderShippingCharges.Get("Parent Id") then
+                if OrderHeader.Get(OrderShippingCharges."Shopify Order Id") then
+                    exit(OrderHeader."Currency Code");
     end;
 
     local procedure OrderPresentmentCurrencyCode(): Code[10]
     var
         OrderHeader: Record "Shpfy Order Header";
         OrderLine: Record "Shpfy Order Line";
+        OrderShippingCharges: Record "Shpfy Order Shipping Charges";
     begin
-        if OrderLine.Get("Parent Id") then
+        if OrderLine.Get("Parent Id") then begin
             if OrderHeader.Get(OrderLine."Shopify Order Id") then
                 exit(OrderHeader."Presentment Currency Code");
+        end else
+            if OrderShippingCharges.Get("Parent Id") then
+                if OrderHeader.Get(OrderShippingCharges."Shopify Order Id") then
+                    exit(OrderHeader."Presentment Currency Code");
     end;
 }
