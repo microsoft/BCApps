@@ -504,7 +504,9 @@ codeunit 148182 "Library - Sustainability"
 
     procedure CreateItemWithSpecificCarbonTrackingMethod(var Item: Record Item)
     begin
-        LibraryInventory.CreateItem(Item);
+        // Specific carbon tracking requires an item tracking code with serial or lot specific tracking,
+        // so create a lot-tracked item before setting the Carbon Tracking Method to Specific.
+        LibraryItemTracking.CreateLotItem(Item);
         Item.Validate("Carbon Tracking Method", Item."Carbon Tracking Method"::Specific);
         Item.Modify();
     end;

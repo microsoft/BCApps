@@ -3828,9 +3828,9 @@ codeunit 148190 "Sust. Value Entry Test"
         PurchaseHeader."Buy-from Country/Region Code" := CountryRegion.Code;
         PurchaseHeader.Modify();
 
-        // [GIVEN] Create a Purchase Line of Item with Specific Carbon Tracking Method
-        LibrarySustainability.CreateItemWithSpecificCarbonTrackingMethod(Item);
-        CreatePurchaseLineWithEmissionValue(PurchaseLine, PurchaseHeader, Item."No.", '', '', LibraryRandom.RandIntInRange(10, 10), EmissionCO2[1], EmissionCH4[1], EmissionN2O[1], AccountCode);
+        // [GIVEN] Create a lot-tracked Item with Specific Carbon Tracking Method.
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        CreatePurchaseLineWithEmissionValue(PurchaseLine, PurchaseHeader, Item."No.", Item."Item Tracking Code", LibraryUtility.GenerateGUID(), LibraryRandom.RandIntInRange(10, 10), EmissionCO2[1], EmissionCH4[1], EmissionN2O[1], AccountCode);
 
         // [GIVEN] Save Expected CO2e
         for Index := 1 to ArrayLen(ExpectedCO2eEmission) do
@@ -4045,7 +4045,7 @@ codeunit 148190 "Sust. Value Entry Test"
         CreateSustainabilityAccount(AccountCode[3], CategoryCode, SubcategoryCode, LibraryRandom.RandIntInRange(3, 3));
 
         // [GIVEN] Update "Default Sust. Account","CO2e per Unit" in Production Item.
-        LibraryInventory.CreateItem(ProdItem);
+        LibraryItemTracking.CreateLotItem(ProdItem);
         LibrarySustainability.UpdateCarbonTrackingMethod(ProdItem, ProdItem."Carbon Tracking Method"::Specific);
         ProdItem.Validate("Default Sust. Account", AccountCode[3]);
         ProdItem.Validate("CO2e per Unit", LibraryRandom.RandInt(100));
@@ -4065,6 +4065,9 @@ codeunit 148190 "Sust. Value Entry Test"
         // [GIVEN] Create and Refresh Production Order.
         CreateAndRefreshProductionOrder(ProductionOrder, ProductionOrder.Status::Released, ProdItem."No.", LibraryRandom.RandIntInRange(10, 10));
         SetTrackingForProdOrderComponents(ProductionOrder, CompItem, LotNo[2]);
+
+        // [GIVEN] Assign a lot to the production output line (ProdItem uses Specific carbon tracking which requires item tracking).
+        SetTrackingForProdOrderOutput(ProductionOrder, ProdItem, LibraryUtility.GenerateGUID());
 
         // [GIVEN] Find Prod Order Routing Line.
         ProductionOrderRoutingLine.SetRange(Status, ProductionOrder.Status);
@@ -4633,6 +4636,15 @@ codeunit 148190 "Sust. Value Entry Test"
         ProdOrderComponent.SetRange("Item No.", CompItem."No.");
         if ProdOrderComponent.FindFirst() then
             LibraryManufacturing.CreateProdOrderCompItemTracking(ReservationEntry, ProdOrderComponent, '', LotNo, ProdOrderComponent."Expected Qty. (Base)");
+    end;
+
+    local procedure SetTrackingForProdOrderOutput(var ProductionOrder: Record "Production Order"; ProdItem: Record Item; LotNo: Code[50])
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        FindProdOrderLine(ProdOrderLine, ProductionOrder, ProdItem."No.");
+        LibraryManufacturing.CreateProdOrderItemTracking(ReservationEntry, ProdOrderLine, '', LotNo, ProdOrderLine.Quantity);
     end;
 
     local procedure DefineEmissionArrays(var EmissionCO2: array[2] of Decimal; var EmissionCH4: array[2] of Decimal; var EmissionN2O: array[2] of Decimal)
