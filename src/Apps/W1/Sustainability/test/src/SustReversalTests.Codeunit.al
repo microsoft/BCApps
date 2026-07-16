@@ -267,6 +267,7 @@ codeunit 148222 "Sust. Reversal Tests"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmYesHandler')]
     procedure ReverseMultipleWithOneAlreadyReversedThrowsError()
     var
         SustLedgEntry: Record "Sustainability Ledger Entry";
