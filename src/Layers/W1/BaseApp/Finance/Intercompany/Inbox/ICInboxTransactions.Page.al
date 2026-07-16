@@ -455,7 +455,7 @@ page 615 "IC Inbox Transactions"
         RunReport: Boolean;
         PurchaseInvoicePreviouslySentAsOrderMsg: Label 'A purchase order for this invoice has already been received from intercompany partner %1. Receiving it again can lead to duplicate information. Do you want to receive it?', Comment = '%1 - Intercompany Partner Code';
     begin
-        if ApplicationAreaMgmtFacade.IsFoundationEnabled() then
+        if ApplicationAreaMgmtFacade.IsBasicOnlyEnabled() then
             RunReport := false
         else
             RunReport := true;
