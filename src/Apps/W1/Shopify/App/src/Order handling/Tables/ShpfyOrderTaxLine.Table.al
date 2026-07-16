@@ -113,8 +113,11 @@ table 30122 "Shpfy Order Tax Line"
             if OrderHeader.Get(OrderLine."Shopify Order Id") then
                 exit(OrderHeader."Currency Code");
         end else
-            if OrderShippingCharges.Get("Parent Id") then
+            if OrderShippingCharges.Get("Parent Id") then begin
                 if OrderHeader.Get(OrderShippingCharges."Shopify Order Id") then
+                    exit(OrderHeader."Currency Code");
+            end else
+                if OrderHeader.Get("Parent Id") then
                     exit(OrderHeader."Currency Code");
     end;
 
@@ -128,8 +131,11 @@ table 30122 "Shpfy Order Tax Line"
             if OrderHeader.Get(OrderLine."Shopify Order Id") then
                 exit(OrderHeader."Presentment Currency Code");
         end else
-            if OrderShippingCharges.Get("Parent Id") then
+            if OrderShippingCharges.Get("Parent Id") then begin
                 if OrderHeader.Get(OrderShippingCharges."Shopify Order Id") then
+                    exit(OrderHeader."Presentment Currency Code");
+            end else
+                if OrderHeader.Get("Parent Id") then
                     exit(OrderHeader."Presentment Currency Code");
     end;
 }
