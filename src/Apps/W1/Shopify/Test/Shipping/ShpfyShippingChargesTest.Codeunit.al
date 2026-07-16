@@ -33,6 +33,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         IsInitialized: Boolean;
+        NextUniqueId: BigInteger;
         ShippingLineGIdTok: Label 'gid://shopify/ShippingLine/%1', Locked = true, Comment = '%1 = Shipping line id';
 
     trigger OnRun()
@@ -374,7 +375,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         CreateOrderHeaderForShop(OrderHeader);
 
         // [GIVEN] A shipping line with a single tax line where channelLiable is true
-        ShippingLineId := LibraryRandom.RandIntInRange(100000, 199999);
+        ShippingLineId := GetUniqueId();
         Clear(JTaxLines);
         AddTaxLineToArray(JTaxLines, 'TAX1', ChannelLiableScenario::TrueValue);
         AddShippingLine(JShippingLines, ShippingLineId, JTaxLines);
@@ -442,8 +443,8 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         CreateOrderHeaderForShop(OrderHeader);
 
         // [GIVEN] Two shipping lines: the first with two tax lines, the second with one
-        FirstShippingLineId := LibraryRandom.RandIntInRange(200000, 299999);
-        SecondShippingLineId := LibraryRandom.RandIntInRange(300000, 399999);
+        FirstShippingLineId := GetUniqueId();
+        SecondShippingLineId := GetUniqueId();
 
         AddTaxLineToArray(JFirstTaxLines, 'TAX1', ChannelLiableScenario::TrueValue);
         AddTaxLineToArray(JFirstTaxLines, 'TAX2', ChannelLiableScenario::FalseValue);
@@ -481,7 +482,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         CreateOrderHeaderForShop(OrderHeader);
 
         // [GIVEN] A shipping line with two tax lines is imported
-        ShippingLineId := LibraryRandom.RandIntInRange(400000, 499999);
+        ShippingLineId := GetUniqueId();
         Clear(JTaxLines);
         AddTaxLineToArray(JTaxLines, 'TAX1', ChannelLiableScenario::TrueValue);
         AddTaxLineToArray(JTaxLines, 'TAX2', ChannelLiableScenario::FalseValue);
@@ -529,8 +530,8 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         CreateOrderHeaderForShop(OrderHeader);
 
         // [GIVEN] Two shipping lines, each with a tax line, are imported
-        FirstShippingLineId := LibraryRandom.RandIntInRange(500000, 599999);
-        SecondShippingLineId := LibraryRandom.RandIntInRange(600000, 699999);
+        FirstShippingLineId := GetUniqueId();
+        SecondShippingLineId := GetUniqueId();
 
         AddTaxLineToArray(JFirstTaxLines, 'TAX1', ChannelLiableScenario::TrueValue);
         AddShippingLine(JShippingLines, FirstShippingLineId, JFirstTaxLines);
@@ -667,9 +668,17 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     local procedure CreateOrderHeaderForShop(var OrderHeader: Record "Shpfy Order Header")
     begin
         Clear(OrderHeader);
-        OrderHeader."Shopify Order Id" := LibraryRandom.RandIntInRange(700000, 999999);
+        OrderHeader."Shopify Order Id" := GetUniqueId();
         OrderHeader."Shop Code" := Shop.Code;
         OrderHeader.Insert();
+    end;
+
+    local procedure GetUniqueId(): BigInteger
+    begin
+        if NextUniqueId = 0 then
+            NextUniqueId := 100000;
+        NextUniqueId += 1;
+        exit(NextUniqueId);
     end;
 
     local procedure VerifyShippingTaxLineChannelLiable(ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue; ExpectedChannelLiable: Boolean)
@@ -688,7 +697,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         CreateOrderHeaderForShop(OrderHeader);
 
         // [GIVEN] A shipping line with a single tax line for the given channelLiable scenario
-        ShippingLineId := LibraryRandom.RandIntInRange(100000, 199999);
+        ShippingLineId := GetUniqueId();
         Clear(JTaxLines);
         AddTaxLineToArray(JTaxLines, 'TAX1', ChannelLiableScenario);
         AddShippingLine(JShippingLines, ShippingLineId, JTaxLines);
