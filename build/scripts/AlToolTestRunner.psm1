@@ -798,11 +798,6 @@ function Invoke-AlToolTestRun {
 
     Write-Host "altool run: app='$appName' extensionId=$extensionId testType='$TestType' company='$company' server='$($connection.Server)' instance='$($connection.ServerInstance)' port=$($connection.Port) tenant='$tenant'"
 
-    # Mirror BCH's rerun policy: non-Legacy test types get one rerun of failed tests (2 attempts);
-    # Legacy runs once (BCH uses maxAttempts=1 for Legacy - reruns don't recover its state-dependent
-    # failures and can introduce new ones).
-    $maxAttempts = if ($TestType -eq "Legacy") { 1 } else { 2 }
-
     $codeunits = @(Get-AlToolTestCodeunits -Parameters $Parameters)
     Write-Host "Enumerated $($codeunits.Count) test codeunit(s) for app '$appName'."
     if ($codeunits.Count -eq 0) {
@@ -856,35 +851,36 @@ function Invoke-AlToolTestRun {
     foreach ($k in $batch.Results.Keys) { $merged[$k] = $batch.Results[$k] }
     $totalElapsed = [double]$batch.ElapsedSec
 
-    # Rerun pass (mirrors BCH maxAttempts): collect still-failing (codeunit, methods) and re-run them
-    # in one more batched call, letting the latest outcome win.
-    $attempt = 1
-    while ($attempt -lt $maxAttempts) {
-        $attempt++
-        $rerunGroups = @()
-        foreach ($cu in $codeunits) {
-            $cid = "$($cu.Id)"
-            $requested = @($cu.Tests | ForEach-Object { "$_" })
-            $cuResults = $merged[$cid]
-            $failedMethods = @($requested | Where-Object {
-                $r = if ($cuResults) { $cuResults[$_] } else { $null }
-                ($null -eq $r) -or ($r.Outcome -eq 'Fail')
-            })
-            if ($failedMethods.Count -gt 0) {
-                $rerunGroups += @{ Id = $cid; Methods = $failedMethods }
-            }
+    # Isolated fallback + rerun pass. Two things are handled here, both by running each affected
+    # codeunit in its OWN `al runtests` call (a fresh session), NOT another batch:
+    #   1. No-result codeunits: batching runs everything in one shared session, so a state-sensitive
+    #      codeunit (e.g. Language Test, which mutates the session language) can produce no results at
+    #      all mid-batch. Re-running it in isolation restores the clean-session behavior it needs.
+    #   2. Flaky failures: mirrors BCH's rerun of failed tests (non-Legacy only).
+    # A method with no result is ALWAYS retried once (correctness); a Failed method is retried only for
+    # non-Legacy (BCH does not rerun Legacy failures). Bounded to a single isolated pass.
+    $isoGroups = @()
+    foreach ($cu in $codeunits) {
+        $cid = "$($cu.Id)"
+        $requested = @($cu.Tests | ForEach-Object { "$_" })
+        $cuResults = $merged[$cid]
+        $retryMethods = @($requested | Where-Object {
+            $r = if ($cuResults) { $cuResults[$_] } else { $null }
+            ($null -eq $r) -or (($r.Outcome -eq 'Fail') -and ($TestType -ne 'Legacy'))
+        })
+        if ($retryMethods.Count -gt 0) {
+            $isoGroups += @{ Id = $cid; Methods = $retryMethods; Name = $cu.Name }
         }
-        if ($rerunGroups.Count -eq 0) { break }
-
-        Write-Host ("rerun {0}/{1}: re-running failed methods in {2} codeunit(s)" -f $attempt, $maxAttempts, $rerunGroups.Count)
-        $rerun = Invoke-AlBatchRunTests -Groups $rerunGroups -ProjectPath $projectPath -Company $company `
-            -Tenant $tenant -Connection $connection
-        $totalElapsed += [double]$rerun.ElapsedSec
-        foreach ($cid in $rerun.Results.Keys) {
-            if (-not $merged.ContainsKey($cid)) { $merged[$cid] = @{} }
-            foreach ($mName in $rerun.Results[$cid].Keys) { $merged[$cid][$mName] = $rerun.Results[$cid][$mName] }
+    }
+    if ($isoGroups.Count -gt 0) {
+        Write-Host ("isolated fallback/rerun: {0} codeunit(s) (each in its own session)" -f $isoGroups.Count)
+        foreach ($g in $isoGroups) {
+            $iso = Invoke-AlRunTestsForCodeunit -CodeunitId $g.Id -Methods $g.Methods `
+                -ProjectPath $projectPath -Company $company -Tenant $tenant -Connection $connection
+            $totalElapsed += [double]$iso.ElapsedSec
+            if (-not $merged.ContainsKey($g.Id)) { $merged[$g.Id] = @{} }
+            foreach ($mName in $iso.Results.Keys) { $merged[$g.Id][$mName] = $iso.Results[$mName] }
         }
-        if (-not $rerun.Connected) { break }
     }
 
     # Build one JUnit <testsuite> per codeunit from the merged results.
