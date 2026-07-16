@@ -2122,6 +2122,38 @@ codeunit 134344 "Document Totals Pages"
         LibraryNotificationMgt.RecallNotificationsForRecord(SalesLine);
     end;
 
+    [Test]
+    procedure SalesOrderTotalsUnchangedWhenLineDescriptionChanged()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesOrder: TestPage "Sales Order";
+        ExpectedTotalInclVAT: Decimal;
+    begin
+        // [FEATURE] [Sales] [Order] [AI test 0.4]
+        // [SCENARIO 639659] Changing only the line Description on a Sales Order does not change the document totals
+        Initialize();
+
+        // [GIVEN] A Sales Order with one item line
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        CreateSalesLineWithAmount(SalesHeader, 1, LibraryRandom.RandDecInRange(100, 1000, 2));
+
+        // [GIVEN] The current document "Total Amount Incl. VAT"
+        SalesHeader.CalcFields("Amount Including VAT");
+        ExpectedTotalInclVAT := SalesHeader."Amount Including VAT";
+
+        // [GIVEN] The Sales Order page is open on the line
+        SalesOrder.OpenEdit();
+        SalesOrder.Filter.SetFilter("No.", SalesHeader."No.");
+
+        // [WHEN] Only the line Description is changed
+        SalesOrder.SalesLines.Description.SetValue(LibraryUtility.GenerateGUID());
+
+        // [THEN] The document "Total Amount Incl. VAT" is unchanged (not doubled)
+        Assert.AreEqual(
+          ExpectedTotalInclVAT, SalesOrder.SalesLines."Total Amount Incl. VAT".AsDecimal(),
+          VATAmountErr);
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();

@@ -500,6 +500,9 @@ table 167 Job
                         Error('');
 
                 InitCustomerOnJobTasks();
+
+                if "Task Billing Method" <> xRec."Task Billing Method" then
+                    Modify(true);
             end;
         }
         field(117; Reserve; Enum "Reserve Method")
@@ -1381,6 +1384,8 @@ table 167 Job
         JobArchiveManagement.AutoArchiveJob(Rec);
 
         DeleteRelatedJobTasks();
+
+        DeleteRelatedJobAssignedResources();
 
         CommentLine.SetRange("Table Name", CommentLine."Table Name"::Job);
         CommentLine.SetRange("No.", "No.");
@@ -2305,6 +2310,14 @@ table 167 Job
         JobTask.SetRange("Job No.", "No.");
         JobTask.SuspendDeletionCheck(true);
         JobTask.DeleteAll(true);
+    end;
+
+    local procedure DeleteRelatedJobAssignedResources()
+    var
+        JobAssignedResource: Record "Job Assigned Resource";
+    begin
+        JobAssignedResource.SetRange("Job No.", "No.");
+        JobAssignedResource.DeleteAll();
     end;
 
     procedure ToPriceSource(var PriceSource: Record "Price Source"; PriceType: Enum "Price Type")

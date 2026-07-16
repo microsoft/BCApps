@@ -250,9 +250,11 @@ page 46 "Sales Order Subform"
                         Rec.RestoreLookupSelection();
                         if Rec."No." <> xRec."No." then
                             NoOnAfterValidate();
-                        ResetxRecAmountValues();
-                        CalculateTotals();
-                        DeltaUpdateTotals();
+                        if Rec."No." <> xRec."No." then begin
+                            ResetxRecAmountValues();
+                            CalculateTotals();
+                            DeltaUpdateTotals();
+                        end;
                         if Rec."No." = xRec."No." then
                             exit;
 

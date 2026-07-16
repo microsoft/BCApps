@@ -1685,13 +1685,13 @@ page 52 "Purchase Credit Memo"
         CurrPage.ApprovalFactBox.PAGE.UpdateApprovalEntriesFromSourceRecord(Rec.RecordId);
         ShowWorkflowStatus := CurrPage.WorkflowStatus.PAGE.SetFilterOnWorkflowRecord(Rec.RecordId);
         StatusStyleTxt := Rec.GetStatusStyleText();
+        Rec.GetContactDetails(BuyFromContact, PayToContact);
     end;
 
     trigger OnAfterGetRecord()
     begin
         CalculateCurrentShippingOption();
-        BuyFromContact.GetOrClear(Rec."Buy-from Contact No.");
-        PayToContact.GetOrClear(Rec."Pay-to Contact No.");
+        Rec.GetContactDetails(BuyFromContact, PayToContact);
         CurrPage.IncomingDocAttachFactBox.Page.SetCurrentRecordID(Rec.RecordId);
 
         OnAfterOnAfterGetRecord(Rec);
