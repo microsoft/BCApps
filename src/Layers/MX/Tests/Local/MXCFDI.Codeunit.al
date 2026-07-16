@@ -9113,8 +9113,8 @@
 
     local procedure AssertDateWithinOneDayTolerance(ExpectedDate: Date; ActualDateText: Text; ErrorMessage: Text)
     var
-        ActualDate: Date;
         DaysDiff: Integer;
+        ActualDate: Date;
     begin
         ActualDate := ParseISODate(CopyStr(ActualDateText, 1, 10));
         DaysDiff := ActualDate - ExpectedDate;
