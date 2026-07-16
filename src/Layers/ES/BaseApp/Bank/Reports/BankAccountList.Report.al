@@ -20,6 +20,7 @@ report 1402 "Bank Account - List"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Bank Account - List';
+    ToolTip = 'View a list of general information about bank accounts, such as posting group, currency code, minimum balance, and balance.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

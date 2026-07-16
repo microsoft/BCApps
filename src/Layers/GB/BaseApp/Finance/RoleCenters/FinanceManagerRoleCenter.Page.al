@@ -794,35 +794,30 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Bank Account Register';
                         RunObject = report "Bank Account Register";
-                        Tooltip = 'Run the Bank Account Register report.';
                     }
                     action("Check Details")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Bank Account - Check Details';
                         RunObject = report "Bank Account - Check Details";
-                        Tooltip = 'Run the Bank Account - Check Details report.';
                     }
                     action("Labels")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Bank Account - Labels';
                         RunObject = report "Bank Account - Labels";
-                        Tooltip = 'Run the Bank Account - Labels report.';
                     }
                     action("List")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Bank Account - List';
                         RunObject = report "Bank Account - List";
-                        Tooltip = 'Run the Bank Account - List report.';
                     }
                     action("Detail Trial Bal.")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Bank Acc. - Detail Trial Bal.';
                         RunObject = report "Bank Acc. - Detail Trial Bal.";
-                        Tooltip = 'Run the Bank Acc. - Detail Trial Bal. report.';
                     }
                     action("Receivables-Payables1")
                     {

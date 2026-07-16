@@ -743,7 +743,6 @@ page 9018 "Administrator Role Center"
                     Caption = 'Date Compress Bank &Account Ledger Entries';
                     Image = BankAccount;
                     RunObject = Report "Date Compress Bank Acc. Ledger";
-                    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                 }
                 action("Date Compress G/L &Budget Entries")
                 {
