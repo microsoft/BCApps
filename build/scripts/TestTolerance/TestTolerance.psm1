@@ -930,7 +930,11 @@ function Add-FailedTestsToUnstableTests {
         }
         $ft = $FailedTests[$k]
         $sourceRunId = if ($ft.PSObject.Properties['SourceRunId']) { [string]$ft.SourceRunId } else { '' }
-        $merged.Add((ConvertTo-UnstableTestEntry -Test $ft -Reason "Manually added from CI/CD run $sourceRunId" -Repository $Repository)) | Out-Null
+        # Prefer a reason the test already carries (e.g. cross-PR detection sets its own). Passing an
+        # empty reason lets ConvertTo-UnstableTestEntry fall back to the test's own Reason property.
+        # Tests without a Reason (the additive-from-run path) get the default run-based reason.
+        $reason = if (($ft.PSObject.Properties['Reason']) -and $ft.Reason) { '' } else { "Manually added from CI/CD run $sourceRunId" }
+        $merged.Add((ConvertTo-UnstableTestEntry -Test $ft -Reason $reason -Repository $Repository)) | Out-Null
         $seenKeys[$k] = $true
         Write-Host "ADDED UNSTABLE: $k"
         $added++
@@ -938,6 +942,206 @@ function Add-FailedTestsToUnstableTests {
 
     Write-Host "Merged unstable tests list contains $($merged.Count) test(s) ($added newly added)."
     return $merged.ToArray()
+}
+
+<#
+.Synopsis
+    Correlation core: selects tests that failed across multiple distinct PRs.
+.Description
+    Pure, side-effect-free heuristic behind the cross-PR PR-build detector. Given a set of per-PR-build
+    observations (each carrying the PR number and the failing tests parsed from that build), it counts
+    how many *distinct* PRs each test failed on and returns the tests that meet the minimum distinct-PR
+    threshold.
+
+    The key idea: a test failing on a single PR is ambiguous (it could be that PR's own change), but the
+    same test failing across several unrelated PRs in a short window is almost never caused by any one
+    PR — it is an instability. Counting *distinct PR numbers* (not raw runs) makes the signal robust
+    against the same PR being retried multiple times.
+
+    'Observations' is an array of objects with:
+      - PrNumber   : the PR the build belongs to (used for distinct counting; reruns of the same PR count once)
+      - RunId      : the source run id (kept on the representative entry for traceability)
+      - FailedTests: the list of failing tests for that build (as produced by Get-FailedTestsFromResults)
+
+    Returns a hashtable keyed by the three-part test key, in the same shape Add-FailedTestsToUnstableTests
+    consumes, with each entry carrying a Reason describing the distinct-PR count and the target branch.
+#>
+function Select-CrossPrUnstableTests {
+    [CmdletBinding()]
+    [OutputType([hashtable])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Branch,
+
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
+        [psobject[]] $Observations,
+
+        [int] $MinDistinctPrs = 2,
+
+        [int] $WindowHours = 3
+    )
+
+    # For each test key, gather the set of distinct PR numbers it failed on plus a representative
+    # test object and source run id (first seen).
+    $byKey = @{}
+    foreach ($obs in $Observations) {
+        if ($null -eq $obs) { continue }
+        $pr = if ($obs.PSObject.Properties['PrNumber']) { [string]$obs.PrNumber } else { '' }
+        if ([string]::IsNullOrWhiteSpace($pr)) { continue }
+        $runId = if ($obs.PSObject.Properties['RunId']) { [string]$obs.RunId } else { '' }
+
+        foreach ($ft in @($obs.FailedTests)) {
+            if ($null -eq $ft) { continue }
+            $key = $ft.Key
+            if ([string]::IsNullOrWhiteSpace($key)) { continue }
+            if (-not $byKey.ContainsKey($key)) {
+                $byKey[$key] = [pscustomobject]@{
+                    Test  = $ft
+                    Prs   = (New-Object 'System.Collections.Generic.HashSet[string]')
+                    RunId = $runId
+                }
+            }
+            [void]$byKey[$key].Prs.Add($pr)
+            if ([string]::IsNullOrWhiteSpace($byKey[$key].RunId) -and $runId) { $byKey[$key].RunId = $runId }
+        }
+    }
+
+    $result = @{}
+    foreach ($key in @($byKey.Keys)) {
+        $entry = $byKey[$key]
+        $distinct = $entry.Prs.Count
+        if ($distinct -lt $MinDistinctPrs) { continue }
+
+        $ft = $entry.Test
+        $result[$key] = [pscustomobject]@{
+            ExtensionId    = if ($ft.PSObject.Properties['ExtensionId']) { $ft.ExtensionId } else { '' }
+            CodeunitId     = if ($ft.PSObject.Properties['CodeunitId']) { $ft.CodeunitId } else { 0 }
+            CodeunitName   = if ($ft.PSObject.Properties['CodeunitName']) { $ft.CodeunitName } else { '' }
+            TestMethod     = $ft.TestMethod
+            FailureMessage = if ($ft.PSObject.Properties['FailureMessage']) { $ft.FailureMessage } else { '' }
+            FailureDetail  = if ($ft.PSObject.Properties['FailureDetail']) { $ft.FailureDetail } else { '' }
+            SourceRunId    = $entry.RunId
+            Reason         = "Auto-detected: failed on $distinct distinct PRs targeting '$Branch' within the last $WindowHours h"
+        }
+        Write-Host "CROSS-PR UNSTABLE ($distinct distinct PRs): $key"
+    }
+
+    Write-Host "Selected $($result.Count) cross-PR unstable test(s) for branch '$Branch' (threshold: $MinDistinctPrs distinct PRs)."
+    return $result
+}
+
+<#
+.Synopsis
+    Detects cross-PR unstable tests from recent PR Build runs targeting a branch.
+.Description
+    The network-facing entry point for the cross-PR detector. It:
+    1. Lists completed 'Pull Request Build' runs created within the last WindowHours.
+    2. Resolves each run's PR number and base branch, keeping only failed runs that target Branch.
+    3. Downloads those runs' test result artifacts and parses their failing tests.
+    4. Delegates to Select-CrossPrUnstableTests to keep only tests that failed on >= MinDistinctPrs
+       distinct PRs.
+
+    Returns a hashtable of failing tests (keyed by the three-part test key) ready to be merged into the
+    per-branch unstable-tests artifact via Add-FailedTestsToUnstableTests. Returns an empty hashtable
+    when the branch is unsupported or nothing meets the threshold.
+
+    Requires the GH_TOKEN (or GITHUB_TOKEN) environment variable for 'gh' authentication.
+#>
+function Find-CrossPrUnstableTests {
+    [CmdletBinding()]
+    [OutputType([hashtable])]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Branch,
+
+        [Parameter(Mandatory = $true)]
+        [string] $Repository,
+
+        [int] $WindowHours = 3,
+
+        [int] $MinDistinctPrs = 2,
+
+        [string] $WorkflowFile = 'PullRequestHandler.yaml',
+
+        [int] $MaxRuns = 300,
+
+        [Parameter(Mandatory = $true)]
+        [string] $WorkDirectory
+    )
+
+    if (-not (Test-IsToleranceSupportedBranch -Branch $Branch)) {
+        Write-Host "Branch '$Branch' is not supported by the test tolerance feature. Skipping."
+        return @{}
+    }
+
+    $sinceIso = (Get-Date).ToUniversalTime().AddHours(-$WindowHours).ToString('yyyy-MM-ddTHH:mm:ssZ')
+    $createdFilter = [uri]::EscapeDataString(">=$sinceIso")
+    Write-Host "Listing completed '$WorkflowFile' runs created since $sinceIso targeting '$Branch' ..."
+
+    $jq = '.workflow_runs[] | {id, headSha: .head_sha, conclusion, createdAt: .created_at, prNumbers: [.pull_requests[]?.number], baseRefs: [.pull_requests[]?.base.ref]}'
+    $lines = @(gh api "/repos/$Repository/actions/workflows/$WorkflowFile/runs?event=pull_request&status=completed&per_page=100&created=$createdFilter" --paginate --jq $jq 2>$null)
+    if ($LASTEXITCODE -ne 0 -or $lines.Count -eq 0) {
+        Write-Host "No completed PR Build runs found in the window (or the listing failed)."
+        return @{}
+    }
+
+    $observations = New-Object System.Collections.Generic.List[object]
+    $processed = 0
+    foreach ($line in $lines) {
+        if ([string]::IsNullOrWhiteSpace($line)) { continue }
+        if ($processed -ge $MaxRuns) { Write-Host "Reached MaxRuns ($MaxRuns); stopping."; break }
+
+        $run = $null
+        try { $run = $line | ConvertFrom-Json } catch { continue }
+        if ($null -eq $run) { continue }
+
+        # Only failed runs can contain failing tests worth downloading.
+        if ($run.conclusion -ne 'failure') { continue }
+
+        # Resolve the PR number for this run's base branch. Same-repo PRs are present in pull_requests;
+        # fork PRs are not, so fall back to the commit->PRs API.
+        $prNumber = ''
+        $baseRefs = @($run.baseRefs)
+        $prNumbers = @($run.prNumbers)
+        for ($i = 0; $i -lt $baseRefs.Count; $i++) {
+            if ($baseRefs[$i] -eq $Branch -and $i -lt $prNumbers.Count) { $prNumber = [string]$prNumbers[$i]; break }
+        }
+        if ([string]::IsNullOrWhiteSpace($prNumber) -and $run.headSha) {
+            $prLines = @(gh api "/repos/$Repository/commits/$($run.headSha)/pulls" --jq '.[] | {number, base: .base.ref}' 2>$null)
+            foreach ($pl in $prLines) {
+                if ([string]::IsNullOrWhiteSpace($pl)) { continue }
+                try { $pr = $pl | ConvertFrom-Json } catch { continue }
+                if ($pr -and $pr.base -eq $Branch) { $prNumber = [string]$pr.number; break }
+            }
+        }
+        if ([string]::IsNullOrWhiteSpace($prNumber)) { continue }  # not targeting this branch
+
+        $processed++
+        $runId = [string]$run.id
+        $runDir = Join-Path $WorkDirectory "run-$runId"
+        Write-Host "Downloading test results from PR #$prNumber build (run $runId) ..."
+        gh run download $runId --repo $Repository --dir $runDir --pattern '*TestResult*' 2>&1 | ForEach-Object { Write-Verbose $_ }
+        if (-not (Test-Path $runDir)) { continue }
+
+        $runFailed = New-Object System.Collections.Generic.List[object]
+        foreach ($artifactDir in @(Get-ChildItem -Path $runDir -Directory)) {
+            if ($artifactDir.Name -match 'BcptTestResults|PageScriptingTestResult') { continue }
+            foreach ($xml in @(Get-ChildItem -Path $artifactDir.FullName -Filter '*.xml' -Recurse)) {
+                foreach ($ft in @(Get-FailedTestsFromResults -Path $xml.FullName)) { $runFailed.Add($ft) | Out-Null }
+            }
+        }
+        if ($runFailed.Count -eq 0) { continue }
+
+        $observations.Add([pscustomobject]@{
+            PrNumber    = $prNumber
+            RunId       = $runId
+            FailedTests = $runFailed
+        }) | Out-Null
+    }
+
+    Write-Host "Collected failing tests from $($observations.Count) PR build(s) targeting '$Branch'."
+    return (Select-CrossPrUnstableTests -Branch $Branch -Observations $observations.ToArray() -MinDistinctPrs $MinDistinctPrs -WindowHours $WindowHours)
 }
 
 Export-ModuleMember -Function `
@@ -956,4 +1160,6 @@ Export-ModuleMember -Function `
     Get-FailedTestsFromRuns, `
     ConvertTo-UnstableTestEntry, `
     Save-UnstableTestsArtifact, `
-    Add-FailedTestsToUnstableTests
+    Add-FailedTestsToUnstableTests, `
+    Select-CrossPrUnstableTests, `
+    Find-CrossPrUnstableTests

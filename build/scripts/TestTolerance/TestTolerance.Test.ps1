@@ -460,5 +460,104 @@ Describe "TestTolerance" {
             $merged[1].reason | Should -Be 'pre-existing'
             $merged[2].testMethod | Should -Be 'T2'
         }
+
+        It "uses the test's own Reason when the failed test carries one" {
+            $failed = @{
+                'ext-1::300::t1' = [pscustomobject]@{ ExtensionId = 'ext-1'; CodeunitId = 300; CodeunitName = 'A'; TestMethod = 'T1'; FailureMessage = 'm1'; SourceRunId = '2001'; Reason = 'Auto-detected: failed on 3 distinct PRs' }
+            }
+
+            $merged = @(Add-FailedTestsToUnstableTests -ExistingTests @() -FailedTests $failed -Repository 'owner/repo')
+            $merged.Count | Should -Be 1
+            $merged[0].reason | Should -Be 'Auto-detected: failed on 3 distinct PRs'
+        }
+    }
+
+    Context "Select-CrossPrUnstableTests" {
+        BeforeAll {
+            function New-FailedTest {
+                param([string] $Ext = '', [int] $Cu = 300, [string] $Method = 'T1', [string] $Key)
+                return [pscustomobject]@{
+                    ExtensionId    = $Ext
+                    CodeunitId     = $Cu
+                    CodeunitName   = 'A'
+                    TestMethod     = $Method
+                    FailureMessage = 'boom'
+                    FailureDetail  = 'stack'
+                    Key            = $Key
+                }
+            }
+        }
+
+        It "marks a test failing on two distinct PRs as unstable" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FailedTest -Key '::300::t1')) },
+                [pscustomobject]@{ PrNumber = 102; RunId = '901'; FailedTests = @((New-FailedTest -Key '::300::t1')) }
+            )
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -MinDistinctPrs 2
+            $result.Count | Should -Be 1
+            $result.ContainsKey('::300::t1') | Should -BeTrue
+            $result['::300::t1'].SourceRunId | Should -Be '900'
+        }
+
+        It "ignores a test failing on only one PR" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FailedTest -Key '::300::t1')) }
+            )
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -MinDistinctPrs 2
+            $result.Count | Should -Be 0
+        }
+
+        It "counts distinct PRs, not runs (same PR retried does not qualify)" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FailedTest -Key '::300::t1')) },
+                [pscustomobject]@{ PrNumber = 101; RunId = '901'; FailedTests = @((New-FailedTest -Key '::300::t1')) }
+            )
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -MinDistinctPrs 2
+            $result.Count | Should -Be 0
+        }
+
+        It "distinguishes tests by extensionId" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FailedTest -Ext 'ext-a' -Key 'ext-a::300::t1')) },
+                [pscustomobject]@{ PrNumber = 102; RunId = '901'; FailedTests = @((New-FailedTest -Ext 'ext-b' -Key 'ext-b::300::t1')) }
+            )
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -MinDistinctPrs 2
+            $result.Count | Should -Be 0
+        }
+
+        It "reason mentions the distinct PR count, branch, and window" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FailedTest -Key '::300::t1')) },
+                [pscustomobject]@{ PrNumber = 102; RunId = '901'; FailedTests = @((New-FailedTest -Key '::300::t1')) },
+                [pscustomobject]@{ PrNumber = 103; RunId = '902'; FailedTests = @((New-FailedTest -Key '::300::t1')) }
+            )
+            $result = Select-CrossPrUnstableTests -Branch 'releases/26.0' -Observations $obs -MinDistinctPrs 2 -WindowHours 6
+            $result['::300::t1'].Reason | Should -Match '3 distinct PRs'
+            $result['::300::t1'].Reason | Should -Match 'releases/26.0'
+            $result['::300::t1'].Reason | Should -Match '6 h'
+        }
+
+        It "respects a higher MinDistinctPrs threshold" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FailedTest -Key '::300::t1')) },
+                [pscustomobject]@{ PrNumber = 102; RunId = '901'; FailedTests = @((New-FailedTest -Key '::300::t1')) }
+            )
+            (Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -MinDistinctPrs 3).Count | Should -Be 0
+            (Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -MinDistinctPrs 2).Count | Should -Be 1
+        }
+
+        It "returns an empty hashtable for no observations" {
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations @() -MinDistinctPrs 2
+            $result.Count | Should -Be 0
+        }
+
+        It "skips observations without a PR number" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = ''; RunId = '900'; FailedTests = @((New-FailedTest -Key '::300::t1')) },
+                [pscustomobject]@{ PrNumber = 102; RunId = '901'; FailedTests = @((New-FailedTest -Key '::300::t1')) }
+            )
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -MinDistinctPrs 2
+            $result.Count | Should -Be 0
+        }
     }
 }
