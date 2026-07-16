@@ -34,6 +34,7 @@ codeunit 136350 "UT T Job"
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryWarehouse: Codeunit "Library - Warehouse";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryResource: Codeunit "Library - Resource";
         IsInitialized: Boolean;
         IncorrectSourceIDErr: Label 'Incorrect Source ID.';
         JobTaskDimDoesNotExistErr: Label 'Project Task Dimension does not exist.';
@@ -50,6 +51,7 @@ codeunit 136350 "UT T Job"
         UpdatePlanningLinesManuallyMsg: Label 'You must update the existing project planning lines manually.';
         SplitMessageTxt: Label '%1\%2', Comment = 'Some message text 1.\Some message text 2.', Locked = true;
         StatusErr: Label '%1 must be %2 in %3', Comment = '%1 = Status, %2 = Completed, %3 = Job';
+        AppliedGLAmountReverseErr: Label '%1 should include entries with Reverse = TRUE and Reversed = FALSE.', Comment = '%1 = Field caption, e.g. Applied Costs G/L Amount';
 
     [Test]
     [Scope('OnPrem')]
@@ -2355,6 +2357,70 @@ codeunit 136350 "UT T Job"
         Assert.ExpectedError(StrSubstNo(ValidationError, PurchRcptLine."Document No."));
     end;
 
+    [Test]
+    procedure DeletingJobDeletesAllAssignedResources()
+    var
+        LocalJob: Record Job;
+        LocalJobTask: Record "Job Task";
+        LocalJobsSetup: Record "Jobs Setup";
+        Resource: Record Resource;
+        JobAssignedResource: Record "Job Assigned Resource";
+    begin
+        // [FEATURE] [Assigned Resource]
+        // [SCENARIO] Deleting a project deletes all its assigned resources (project- and task-level).
+        Initialize();
+
+        // [GIVEN] Archiving on delete is disabled to avoid archive prompts.
+        LocalJobsSetup.Get();
+        LocalJobsSetup.Validate("Archive Jobs", LocalJobsSetup."Archive Jobs"::Never);
+        LocalJobsSetup.Modify();
+
+        // [GIVEN] A project with a task, a project-level and a task-level assigned resource.
+        LibraryJob.CreateJob(LocalJob);
+        LibraryJob.CreateJobTask(LocalJob, LocalJobTask);
+        LibraryResource.CreateResourceNew(Resource);
+        LibraryJob.CreateJobAssignedResource(LocalJob."No.", LocalJobTask."Job Task No.", Resource."No.", JobAssignedResource);
+        LibraryJob.CreateJobAssignedResource(LocalJob."No.", '', Resource."No.", JobAssignedResource);
+
+        // [WHEN] The project is deleted.
+        Assert.IsTrue(LocalJob.Delete(true), 'The project could not be deleted.');
+
+        // [THEN] No assigned resources remain for the project.
+        JobAssignedResource.SetRange("Job No.", LocalJob."No.");
+        Assert.RecordIsEmpty(JobAssignedResource);
+    end;
+
+    [Test]
+    procedure AppliedCostsAndSalesGLAmountIncludeReverseEntries()
+    var
+        JobWIPGLEntry: Record "Job WIP G/L Entry";
+        AppliedCostsAmount: Decimal;
+        AppliedSalesAmount: Decimal;
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 633963] "Applied Costs G/L Amount" and "Applied Sales G/L Amount" must include Job WIP G/L Entries
+        // that are created by Calculate WIP, which have Reverse = TRUE (the field's InitValue) but Reversed = FALSE.
+        Initialize();
+        SetUp(true);
+
+        // [GIVEN] An Applied Costs Job WIP G/L Entry created as Calculate WIP would create it: Reverse = TRUE, Reversed = FALSE.
+        AppliedCostsAmount := LibraryRandom.RandDecInRange(100, 1000, 2);
+        CreateJobWIPGLEntry(JobWIPGLEntry, Job."No.", JobWIPGLEntry.Type::"Applied Costs", -AppliedCostsAmount);
+
+        // [GIVEN] An Applied Sales Job WIP G/L Entry created as Calculate WIP would create it: Reverse = TRUE, Reversed = FALSE.
+        AppliedSalesAmount := LibraryRandom.RandDecInRange(100, 1000, 2);
+        CreateJobWIPGLEntry(JobWIPGLEntry, Job."No.", JobWIPGLEntry.Type::"Applied Sales", -AppliedSalesAmount);
+
+        // [WHEN] The flowfields are calculated.
+        Job.CalcFields("Applied Costs G/L Amount", "Applied Sales G/L Amount");
+
+        // [THEN] The applied amounts are picked up even though the entries have Reverse = TRUE.
+        Assert.AreEqual(AppliedCostsAmount, Job."Applied Costs G/L Amount", StrSubstNo(AppliedGLAmountReverseErr, Job.FieldCaption("Applied Costs G/L Amount")));
+        Assert.AreEqual(AppliedSalesAmount, Job."Applied Sales G/L Amount", StrSubstNo(AppliedGLAmountReverseErr, Job.FieldCaption("Applied Sales G/L Amount")));
+
+        TearDown();
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2774,6 +2840,23 @@ codeunit 136350 "UT T Job"
             LibraryPlanning.CreateManufUserTemplate(
               ManufacturingUserTemplate, UserId, MakeOrder, ManufacturingUserTemplate."Create Purchase Order"::"Make Purch. Orders",
               CreateProductionOrder, ManufacturingUserTemplate."Create Transfer Order"::"Make Trans. Orders");
+    end;
+
+    local procedure CreateJobWIPGLEntry(var JobWIPGLEntry: Record "Job WIP G/L Entry"; JobNo: Code[20]; EntryType: Enum "Job WIP Buffer Type"; WIPEntryAmount: Decimal)
+    begin
+        Clear(JobWIPGLEntry);
+        JobWIPGLEntry.Init();
+        if JobWIPGLEntry.FindLast() then
+            JobWIPGLEntry."Entry No." += 1
+        else
+            JobWIPGLEntry."Entry No." := 1;
+        JobWIPGLEntry."Job No." := JobNo;
+        JobWIPGLEntry.Type := EntryType;
+        JobWIPGLEntry.Reverse := true;
+        JobWIPGLEntry.Reversed := false;
+        JobWIPGLEntry."Job Complete" := false;
+        JobWIPGLEntry."WIP Entry Amount" := WIPEntryAmount;
+        JobWIPGLEntry.Insert();
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Job", 'OnAfterModifyEvent', '', false, false)]

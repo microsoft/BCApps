@@ -85,6 +85,7 @@ codeunit 5813 "Undo Purchase Receipt Line"
         ItemRcptEntryNo: Integer;
         DocLineNo: Integer;
         PostedWhseRcptLineFound: Boolean;
+        ShouldFindPostedWhseRcptLine: Boolean;
     begin
         OnBeforeCode(PurchRcptLine, UndoPostingMgt);
 
@@ -106,7 +107,9 @@ codeunit 5813 "Undo Purchase Receipt Line"
 
             UndoDropShipmentPurchRcptLine(PurchRcptLine);
 
-            if PurchRcptLine.Type = PurchRcptLine.Type::Item then begin
+            ShouldFindPostedWhseRcptLine := PurchRcptLine.Type = PurchRcptLine.Type::Item;
+            OnCodeOnBeforeFindPostedWhseRcptLine(PurchRcptLine, ShouldFindPostedWhseRcptLine);
+            if ShouldFindPostedWhseRcptLine then begin
                 PostedWhseRcptLineFound :=
                 WhseUndoQty.FindPostedWhseRcptLine(
                     PostedWhseRcptLine,
@@ -648,6 +651,11 @@ codeunit 5813 "Undo Purchase Receipt Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterInsertNewReceiptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var PostedWhseRcptLineFound: Boolean; DocLineNo: Integer; var PostedWhseRcptLine: Record "Posted Whse. Receipt Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCodeOnBeforeFindPostedWhseRcptLine(var PurchRcptLine: Record "Purch. Rcpt. Line"; var ShouldFindPostedWhseRcptLine: Boolean)
     begin
     end;
 

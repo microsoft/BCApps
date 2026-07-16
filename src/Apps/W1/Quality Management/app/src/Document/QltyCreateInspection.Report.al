@@ -72,6 +72,9 @@ report 20400 "Qlty. Create Inspection"
                             QltyInspectSourceConfigList: Page "Qlty. Ins. Source Config. List";
                             OldTableNo: Integer;
                         begin
+                            if not QltyInspecGenRuleMgmt.EnsureCompatibleGenerationRuleExists(QltInspectionTemplateToCreate) then
+                                exit(false);
+
                             OldTableNo := QltyInspectSourceConfig."From Table No.";
                             QltyInspectSourceConfig.Reset();
                             QltyInspectSourceConfig.FilterGroup(20);

@@ -73,6 +73,11 @@ table 3303 "Payables Agent Setup"
             Caption = 'Use MLLM Processing';
             DataClassification = SystemMetadata;
         }
+        field(12; "Email Review Policy"; Enum "PA Email Review Policy")
+        {
+            Caption = 'Email review';
+            DataClassification = CustomerContent;
+        }
     }
     keys
     {
