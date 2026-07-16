@@ -10,7 +10,7 @@ codeunit 20353 "Connectivity Apps Logo Mgt."
     Permissions = tabledata "Connectivity App Logo" = RIMD;
 
     var
-        CatalogApiUrlLbl: Label 'https://catalogapi.azure.com/products/%1?market=US&api-version=2023-05-01-preview&language=en', Locked = true;
+        CatalogApiUrlLbl: Label 'https://catalogapi.azure.com/products/PUBID.%1|AID.%2|PAPPID.%3?market=US&api-version=2023-05-01-preview&language=en', Locked = true;
         IncorrectAppSourceUrlLbl: Label '%1 is not a correct AppSource URL.', Locked = true, Comment = '%1 = App source URL';
         LogoDownloadFailedLbl: Label 'Logo download failed from Catalog API for PUBID.%1|AID.%2|PAPPID.%3', Locked = true, Comment = '%1 = Publisher ID, %2 = App ID, %3 = Plan App ID';
         TelemetryCategoryLbl: Label 'Connectivity Apps', Locked = true;
@@ -118,12 +118,12 @@ codeunit 20353 "Connectivity Apps Logo Mgt."
         ApiKey: SecretText;
     begin
         if not AzureKeyVault.GetAzureKeyVaultSecret(CatalogApiKeyVaultSecretNameLbl, ApiKey) then begin
-            Session.LogMessage('0000NEW', CannotGetApiKeyFromKeyVaultLbl, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+            Session.LogMessage('0000I4S', CannotGetApiKeyFromKeyVaultLbl, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
             exit(false);
         end;
 
         HttpClient.DefaultRequestHeaders().Add('X-API-Key', ApiKey);
-        HttpClient.Get(StrSubstNo(CatalogApiUrlLbl, PubId), HttpResponseMessage);
+        HttpClient.Get(StrSubstNo(CatalogApiUrlLbl, PubId, AId, PAppId), HttpResponseMessage);
         StatusCode := HttpResponseMessage.HttpStatusCode();
 
         if (StatusCode = 200) then begin

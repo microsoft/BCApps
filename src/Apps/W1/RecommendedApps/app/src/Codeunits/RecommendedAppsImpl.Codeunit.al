@@ -20,7 +20,7 @@ codeunit 4751 "Recommended Apps Impl."
             Comment = '%1 = App Id; %2 = App Source URL created with app info provided by the partner';
         CatalogApiUrlNotReachableErrLbl: Label 'Cannot add the recommended app with ID %1. The Marketplace Catalog API cannot be reached, and the HTTP status code is %2. Are you sure that the information about the app is correct?',
             Comment = '%1 = App Id; %2 = Http StatusCode';
-        CatalogApiUrlLbl: Label 'https://catalogapi.azure.com/products/%1?market=US&api-version=2023-05-01-preview&language=en', Locked = true;
+        CatalogApiUrlLbl: Label 'https://catalogapi.azure.com/products/PUBID.%1|AID.%2|PAPPID.%3?market=US&api-version=2023-05-01-preview&language=en', Locked = true;
         AppSourceURLNotFoundErrLbl: Label 'Cannot get the AppSource URL.';
         CatalogApiKeyVaultSecretNameLbl: Label 'MarketplaceCatalogApi-Key', Locked = true;
         CannotGetApiKeyFromKeyVaultErrLbl: Label 'Cannot retrieve the Marketplace Catalog API key from Azure Key Vault.', Locked = true;
@@ -39,7 +39,7 @@ codeunit 4751 "Recommended Apps Impl."
         // read the app information from the URL
         GetAppURLParametersFromAppSourceURL(Id, AppSourceURL, LanguageCode, PubId, AId, PAppId);
 
-        CheckIfURLExistsAndDownloadLogo(Id, LanguageCode, PubId, AId, PAppId, MemoryStream);
+        CheckIfURLExistsAndDownloadLogo(Id, PubId, AId, PAppId, MemoryStream);
 
         RecommendedApps.Init();
         RecommendedApps.Id := Id;
@@ -115,7 +115,7 @@ codeunit 4751 "Recommended Apps Impl."
         end;
 
         if (RecommendedApps."Language Code" <> LanguageCode) or (RecommendedApps.PubId <> PubId) or (RecommendedApps.AId <> AId) or (RecommendedApps.PAppId <> PAppId) then begin
-            CheckIfURLExistsAndDownloadLogo(Id, LanguageCode, PubId, AId, PAppId, MemoryStream);
+            CheckIfURLExistsAndDownloadLogo(Id, PubId, AId, PAppId, MemoryStream);
             RecommendedApps.Logo.ImportStream(MemoryStream, 'logo', 'image/png');
             RecommendedApps."Language Code" := LanguageCode;
             RecommendedApps.PubId := PubId;
@@ -138,7 +138,7 @@ codeunit 4751 "Recommended Apps Impl."
         if not RecommendedApps.Get(Id) then
             exit(false);
 
-        CheckIfURLExistsAndDownloadLogo(Id, RecommendedApps."Language Code", RecommendedApps.PubId, RecommendedApps.AId, RecommendedApps.PAppId, MemoryStream);
+        CheckIfURLExistsAndDownloadLogo(Id, RecommendedApps.PubId, RecommendedApps.AId, RecommendedApps.PAppId, MemoryStream);
         RecommendedApps.Logo.ImportStream(MemoryStream, 'logo', 'image/png');
 
         exit(RecommendedApps.Modify());
@@ -194,7 +194,7 @@ codeunit 4751 "Recommended Apps Impl."
     end;
 
     [NonDebuggable]
-    local procedure CheckIfURLExistsAndDownloadLogo(Id: Guid; LanguageCode: Text; PubId: Text; AId: Text; PAppId: Text; var MemoryStream: DotNet MemoryStream)
+    local procedure CheckIfURLExistsAndDownloadLogo(Id: Guid; PubId: Text; AId: Text; PAppId: Text; var MemoryStream: DotNet MemoryStream)
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
         WebClient: DotNet WebClient;
@@ -212,7 +212,7 @@ codeunit 4751 "Recommended Apps Impl."
             Error(CannotGetApiKeyFromKeyVaultErrLbl);
 
         HttpClient.DefaultRequestHeaders().Add('X-API-Key', ApiKey);
-        HttpClient.Get(StrSubstNo(CatalogApiUrlLbl, PubId), HttpResponseMessage);
+        HttpClient.Get(StrSubstNo(CatalogApiUrlLbl, PubId, AId, PAppId), HttpResponseMessage);
         StatusCode := HttpResponseMessage.HttpStatusCode();
 
         if (StatusCode = 200) then begin
