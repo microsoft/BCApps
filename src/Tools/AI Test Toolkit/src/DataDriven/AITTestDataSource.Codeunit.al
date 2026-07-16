@@ -16,35 +16,55 @@ using System.TestTools.TestRunner;
 /// </summary>
 codeunit 149038 "AIT Test Data Source" implements ITestDataSource
 {
+    var
+        NoDatasetErr: Label 'No dataset could be resolved for the data-driven test identifier ''%1''. Ensure the Test Input Group exists.', Comment = '%1 = the dataset identifier from the [TestDataSource] attribute';
+        EmptyDatasetErr: Label 'The dataset ''%1'' for the data-driven test resolved to zero rows. A data-driven test must have at least one case.', Comment = '%1 = the resolved Test Input Group code';
+
     /// <summary>
-    /// Returns one context per row of the dataset identified by <paramref name="DataSetIdentifier"/>.
+    /// Enumerates the identifiers (dataset row codes) of every case for the dataset identified by
+    /// <paramref name="DataSetIdentifier"/>. Returned up front so the runtime knows the full set of cases.
     /// </summary>
     /// <param name="DataSetIdentifier">The dataset id from the attribute: a Test Input Group code or group name.</param>
     /// <param name="context">Metadata about the calling test (codeunit id, app id).</param>
-    procedure GetDataRows(DataSetIdentifier: Text; context: DataSourceContext): List of [Interface ITestContext]
+    procedure ListTestCases(DataSetIdentifier: Text; context: DataSourceContext): List of [Text]
     var
         TestInput: Record "Test Input";
-        Rows: List of [Interface ITestContext];
+        Ids: List of [Text];
         GroupCode: Code[100];
     begin
         GroupCode := ResolveGroupCode(DataSetIdentifier);
         if GroupCode = '' then
-            exit(Rows);
+            Error(NoDatasetErr, DataSetIdentifier);
 
         TestInput.SetRange("Test Input Group Code", GroupCode);
         if TestInput.FindSet() then
             repeat
-                Rows.Add(CreateContext(GroupCode, TestInput.Code));
+                Ids.Add(TestInput.Code);
             until TestInput.Next() = 0;
 
-        exit(Rows);
+        if Ids.Count() = 0 then
+            Error(EmptyDatasetErr, GroupCode);
+
+        exit(Ids);
     end;
 
-    local procedure CreateContext(GroupCode: Code[100]; RowCode: Code[100]): Interface ITestContext
+    /// <summary>
+    /// Materializes the context for a single dataset row on demand. Called only for cases that actually run.
+    /// </summary>
+    /// <param name="DataSetIdentifier">The dataset id from the attribute.</param>
+    /// <param name="TestCaseIndex">The 1-based position of the case in the <see cref="ListTestCases"/> result.</param>
+    /// <param name="TestCaseIdentifier">The row code of the case to materialize.</param>
+    /// <param name="context">Metadata about the calling test (codeunit id, app id).</param>
+    procedure GetTestCase(DataSetIdentifier: Text; TestCaseIndex: Integer; TestCaseIdentifier: Text; context: DataSourceContext): interface ITestContext
     var
         DDTestContext: Codeunit "AIT DD Test Context";
+        GroupCode: Code[100];
     begin
-        DDTestContext.Init(GroupCode, RowCode);
+        GroupCode := ResolveGroupCode(DataSetIdentifier);
+        if GroupCode = '' then
+            Error(NoDatasetErr, DataSetIdentifier);
+
+        DDTestContext.Init(GroupCode, CopyStr(TestCaseIdentifier, 1, 100));
         exit(DDTestContext);
     end;
 

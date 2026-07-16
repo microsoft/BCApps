@@ -16,6 +16,9 @@ using System.TestTools.TestRunner;
 /// </summary>
 interface "AIT Test Case Context" extends ITestContext
 {
+    /// <summary>Returns the stable identifier (dataset row code) of the current case.</summary>
+    procedure Identifier(): Text;
+
     /// <summary>Returns the full input for the current data row.</summary>
     procedure GetInput(): Codeunit "Test Input Json";
 
