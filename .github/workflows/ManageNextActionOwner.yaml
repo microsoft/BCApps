@@ -474,6 +474,11 @@ jobs:
               return { user: payload.sender, association: null };
             }
 
+            async function currentActorKind() {
+              const actor = eventActor();
+              return actorKind(actor.user, actor.association);
+            }
+
             async function hasOutstandingTeamChangesRequested() {
               const reviews = await github.paginate(github.rest.pulls.listReviews, {
                 owner,
@@ -508,6 +513,21 @@ jobs:
                 }
               }
               return false;
+            }
+
+            async function editedDecision(item) {
+              const kind = await currentActorKind();
+              return kind === 'partner'
+                ? { kind: 'event', label: LABELS.Microsoft.name }
+                : { kind: 'normalize', label: normalizedTurn(item) };
+            }
+
+            async function reviewClearedDecision() {
+              const outstanding = await hasOutstandingTeamChangesRequested();
+              return {
+                kind: 'event',
+                label: outstanding ? LABELS.Partner.name : LABELS.Microsoft.name,
+              };
             }
 
             async function classify(item) {
@@ -546,11 +566,7 @@ jobs:
                   return { kind: 'event', label: LABELS.Microsoft.name };
                 }
                 if (action === 'edited') {
-                  const actor = eventActor();
-                  const kind = await actorKind(actor.user, actor.association);
-                  return kind === 'partner'
-                    ? { kind: 'event', label: LABELS.Microsoft.name }
-                    : { kind: 'normalize', label: normalizedTurn(item) };
+                  return editedDecision(item);
                 }
               }
 
@@ -559,18 +575,13 @@ jobs:
                   return { kind: 'event', label: LABELS.Microsoft.name };
                 }
                 if (action === 'edited') {
-                  const actor = eventActor();
-                  const kind = await actorKind(actor.user, actor.association);
-                  return kind === 'partner'
-                    ? { kind: 'event', label: LABELS.Microsoft.name }
-                    : { kind: 'normalize', label: normalizedTurn(item) };
+                  return editedDecision(item);
                 }
               }
 
               if (eventName === 'issue_comment'
                   || eventName === 'pull_request_review_comment') {
-                const actor = eventActor();
-                const kind = await actorKind(actor.user, actor.association);
+                const kind = await currentActorKind();
                 if (kind === 'team') {
                   return { kind: 'event', label: LABELS.Partner.name };
                 }
@@ -583,15 +594,10 @@ jobs:
               if (eventName === 'pull_request_review') {
                 const state = payload.review.state.toUpperCase();
                 if (state === 'DISMISSED') {
-                  const outstanding = await hasOutstandingTeamChangesRequested();
-                  return {
-                    kind: 'event',
-                    label: outstanding ? LABELS.Partner.name : LABELS.Microsoft.name,
-                  };
+                  return reviewClearedDecision();
                 }
 
-                const actor = eventActor();
-                const kind = await actorKind(actor.user, actor.association);
+                const kind = await currentActorKind();
                 if (kind === 'partner') {
                   return { kind: 'event', label: LABELS.Microsoft.name };
                 }
@@ -600,11 +606,7 @@ jobs:
                 }
 
                 if (state === 'APPROVED') {
-                  const outstanding = await hasOutstandingTeamChangesRequested();
-                  return {
-                    kind: 'event',
-                    label: outstanding ? LABELS.Partner.name : LABELS.Microsoft.name,
-                  };
+                  return reviewClearedDecision();
                 }
                 if (state === 'CHANGES_REQUESTED' || state === 'COMMENTED') {
                   return { kind: 'event', label: LABELS.Partner.name };
