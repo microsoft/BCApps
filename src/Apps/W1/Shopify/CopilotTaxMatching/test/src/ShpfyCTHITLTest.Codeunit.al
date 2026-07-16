@@ -40,7 +40,6 @@ codeunit 134716 "Shpfy CT HITL Test"
     var
         OrderHeader: Record "Shpfy Order Header";
         SalesHeader: Record "Sales Header";
-        CopilotTaxNotification: Record "Shpfy Copilot Tax Notification";
         CopilotTaxEvents: Codeunit "Shpfy Copilot Tax Events";
     begin
         Cleanup();
@@ -50,60 +49,52 @@ codeunit 134716 "Shpfy CT HITL Test"
         CopilotTaxEvents.HandleSalesHeaderCreated(OrderHeader, SalesHeader);
 
         LibraryAssert.IsFalse(SalesHeader."Copilot Tax Match Applied", 'Sales Header marker must remain false when Order Header marker is false.');
-
-        CopilotTaxNotification.SetRange("Sales Header SystemId", SalesHeader.SystemId);
-        LibraryAssert.IsTrue(CopilotTaxNotification.IsEmpty(), 'No notification row should be queued when the marker did not propagate.');
     end;
 
     // HITL-3
     [Test]
-    procedure NotificationRowInsertedOnPropagation()
+    procedure MarkReviewedSetsOrderReviewed()
     var
         OrderHeader: Record "Shpfy Order Header";
         SalesHeader: Record "Sales Header";
-        CopilotTaxNotification: Record "Shpfy Copilot Tax Notification";
-        CopilotTaxEvents: Codeunit "Shpfy Copilot Tax Events";
+        CopilotTaxNotify: Codeunit "Shpfy Copilot Tax Notify";
+        Notif: Notification;
     begin
         Cleanup();
-        CreateOrderHeader(OrderHeader, true);
-        OrderHeader."Tax Area Code" := 'SHPFY-NYTAX';
-        OrderHeader.Modify();
         CreateSalesHeader(SalesHeader, 'HITL-3');
-        SalesHeader."Tax Area Code" := 'SHPFY-NYTAX';
-        SalesHeader.Modify();
+        CreateOrderHeader(OrderHeader, true);
+        OrderHeader."Sales Order No." := SalesHeader."No.";
+        OrderHeader.Modify();
 
-        CopilotTaxEvents.HandleSalesHeaderCreated(OrderHeader, SalesHeader);
+        Notif.SetData('SalesHeaderSystemId', Format(SalesHeader.SystemId));
+        CopilotTaxNotify.MarkReviewed(Notif);
 
-        LibraryAssert.IsTrue(CopilotTaxNotification.Get(SalesHeader.SystemId, UserId()),
-            'A Shpfy Copilot Tax Notification row should exist keyed by (Sales Header SystemId, current user).');
-        LibraryAssert.IsFalse(CopilotTaxNotification.Reviewed, 'New notification rows must default to Reviewed = false.');
-        LibraryAssert.AreEqual('SHPFY-NYTAX', CopilotTaxNotification."Tax Area Code", 'Notification row should capture the Tax Area Code.');
+        OrderHeader.Get(OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(OrderHeader."Copilot Tax Match Reviewed",
+            'MarkReviewed should set the originating order''s Copilot Tax Match Reviewed flag (resolved via Sales Order No.).');
     end;
 
     // HITL-4
     [Test]
-    procedure MarkReviewedFlipsReviewed()
+    procedure DisableForUserMarksOrderReviewed()
     var
+        OrderHeader: Record "Shpfy Order Header";
         SalesHeader: Record "Sales Header";
-        CopilotTaxNotification: Record "Shpfy Copilot Tax Notification";
         CopilotTaxNotify: Codeunit "Shpfy Copilot Tax Notify";
         Notif: Notification;
     begin
         Cleanup();
         CreateSalesHeader(SalesHeader, 'HITL-4');
-
-        CopilotTaxNotification.Init();
-        CopilotTaxNotification."Sales Header SystemId" := SalesHeader.SystemId;
-        CopilotTaxNotification."User Id" := CopyStr(UserId(), 1, MaxStrLen(CopilotTaxNotification."User Id"));
-        CopilotTaxNotification.Created := CurrentDateTime();
-        CopilotTaxNotification.Reviewed := false;
-        CopilotTaxNotification.Insert();
+        CreateOrderHeader(OrderHeader, true);
+        OrderHeader."Sales Order No." := SalesHeader."No.";
+        OrderHeader.Modify();
 
         Notif.SetData('SalesHeaderSystemId', Format(SalesHeader.SystemId));
-        CopilotTaxNotify.MarkReviewed(Notif);
+        CopilotTaxNotify.DisableForUser(Notif);
 
-        LibraryAssert.IsTrue(CopilotTaxNotification.Get(SalesHeader.SystemId, UserId()), 'Notification row should still exist after MarkReviewed.');
-        LibraryAssert.IsTrue(CopilotTaxNotification.Reviewed, 'MarkReviewed should set Reviewed = true on the row.');
+        OrderHeader.Get(OrderHeader."Shopify Order Id");
+        LibraryAssert.IsTrue(OrderHeader."Copilot Tax Match Reviewed",
+            'DisableForUser should also mark the order reviewed so the prompt stops firing.');
     end;
 
     // HITL-5
@@ -199,14 +190,12 @@ codeunit 134716 "Shpfy CT HITL Test"
 
     local procedure Cleanup()
     var
-        CopilotTaxNotification: Record "Shpfy Copilot Tax Notification";
         OrderHeader: Record "Shpfy Order Header";
         OrderLine: Record "Shpfy Order Line";
         OrderTaxLine: Record "Shpfy Order Tax Line";
         SalesHeader: Record "Sales Header";
         StartOrderId: BigInteger;
     begin
-        CopilotTaxNotification.DeleteAll();
         OrderTaxLine.DeleteAll();
         OrderLine.DeleteAll();
         StartOrderId := 950000000;

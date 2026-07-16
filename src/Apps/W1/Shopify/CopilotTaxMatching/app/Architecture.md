@@ -38,18 +38,17 @@ This feature uses an LLM to automate the mapping from free-text Shopify tax desc
 | 30470 | PageExtension | Shpfy Copilot Tax Shop Card | "Copilot Tax Matching" group on Shop Card |
 | 30470 | EnumExtension | Shpfy Copilot Tax Cap. | `"Shpfy Tax Matching"` value on `Copilot Capability` enum |
 | 30470 | PermissionSet | Shpfy Copilot Tax Matching | RIMD on tax tables + all codeunits; includes `Shpfy - Edit` |
-| 30476 | Codeunit | Shpfy Copilot Tax Notify | Owns both review notifications (Sales Order + Shopify Order), plus the review-page drills (`RunReviewForSalesHeader`, `OpenReviewForOrder`) and `SyncReviewedFromOrder` |
+| 30476 | Codeunit | Shpfy Copilot Tax Notify | Owns both review notifications (Sales Order + Shopify Order) and the review-page drills (`RunReviewForSalesHeader`, `OpenReviewForOrder`, single `RunReviewPage`). Notifications are stateless — no table |
 | 30477 | Codeunit | Shpfy CT Activity Log | Wraps `Activity Log Builder` chain for per-line + per-area AI audit entries |
-| 30476 | Table | Shpfy Copilot Tax Notification | Per-(Sales Header, user) review-prompt log; key `(Sales Header SystemId, User Id)` |
-| 30476 | TableExtension | Shpfy CT Order Header | Two markers: `Copilot Tax Match Applied` (set by matcher) + `Copilot Tax Match Reviewed` (set by the review page's Review/Review and Approve action) on `Shpfy Order Header` |
+| 30476 | TableExtension | Shpfy CT Order Header | Two markers: `Copilot Tax Match Applied` (set by matcher) + `Copilot Tax Match Reviewed` (set by the review page's Approve action) on `Shpfy Order Header` |
 | 30477 | TableExtension | Shpfy CT Sales Header | `Copilot Tax Match Applied` Boolean marker on `Sales Header` |
 | 30480 | TableExtension | Shpfy CT Order Tax Line | `Tax Jurisdiction Code` (Code[10], `TableRelation = "Tax Jurisdiction"`) — moved out of the connector since the connector itself does not read or write it |
 | 30470 | TableExtension | Shpfy Copilot Tax Shop | 5 config fields on `Shpfy Shop` (incl. `Tax Match Review Required` for blocking mode) |
 | 30478 | PageExtension | Shpfy CT Order Tax Lines | Adds the Tax Jurisdiction Code column to the standalone Tax Lines list, visible only when the parent order's shop has Copilot Tax Matching enabled |
-| 30471 | Page (Card) | Shpfy Copilot Tax Review | Per-order review summary: resolved Tax Area (with AI confidence indicator), ship-to context, and the tax lines ListPart. Hosts the **Review and Approve** (blocking) / **Review** (non-blocking) action that sets `Copilot Tax Match Reviewed` |
+| 30471 | Page (Card) | Shpfy Copilot Tax Review | Per-order review summary: resolved Tax Area (with AI confidence indicator), ship-to context, and the tax lines ListPart (each line shows the item it taxes). Hosts the **Approve** action that sets `Copilot Tax Match Reviewed` |
 | 30479 | Page (ListPart) | Shpfy CT Order Tax Lines Part | Tax lines list embedded as a subform on the **Copilot Tax Match Review page** so the platform AI confidence indicator renders on the Tax Jurisdiction Code cell; `SetTaxLineFilter` scopes it to one order |
-| 30479 | PageExtension | Shpfy CT Order | Adds the **Review and Approve** / **Review** entry actions (Copilot `SparkleFilled` icon) that open the review page, and fires the actionable order-page review notification |
-| 30476 | PageExtension | Shpfy CT Sales Order | Read-only badge field, "Show Copilot Tax Decisions" action (opens the review page), `OnAfterGetCurrRecord` notification trigger |
+| 30479 | PageExtension | Shpfy CT Order | Adds the review entry action (Copilot `SparkleFilled` icon) that opens the review page — captioned **Review and Approve Copilot Tax Match** while approval is pending, else **Review Copilot Tax Match** — and fires the actionable order-page review notification |
+| 30476 | PageExtension | Shpfy CT Sales Order | Read-only badge field, **Review Copilot Tax Match** action (opens the review page), `OnAfterGetCurrRecord` notification trigger |
 
 ## Execution Flow
 
@@ -135,7 +134,7 @@ ShpfyProcessOrder.CreateHeaderFromShopifyOrder()
         |        |-- Handled := true  (connector skips Sales Doc creation)
         |        |-- Order stays in pending-review state until the user opens the
         |              Copilot Tax Match Review page (via the Shpfy Order page action
-        |              or the order-page notification) and clicks Review and Approve
+          |              or the order-page notification) and clicks Approve
   |
   |  (only when Handled = false — i.e. blocking off, or user already approved)
   v
@@ -146,23 +145,24 @@ ShpfyProcessOrder.CreateHeaderFromShopifyOrder()
       Copilot Tax Events (30473) — OnAfterCreateSalesHeader subscriber
         |-- If OrderHeader."Copilot Tax Match Applied" -> true:
         |     |-- Set SalesHeader."Copilot Tax Match Applied" = true
-        |     |-- If NOT OrderHeader."Copilot Tax Match Reviewed":
-        |           |-- Shpfy Copilot Tax Notify (30476):
-        |                 QueueNotificationFor — insert one row into
-        |                 Shpfy Copilot Tax Notification keyed
-        |                 (SalesHeader.SystemId, UserId())
-        |     (in blocking mode the user just approved — no redundant prompt)
+        |           (badge only — no notification queued; the Sales Order prompt
+        |            is derived live on page open)
         |
         v
-  Review surfaces (both open the Copilot Tax Match Review page 30471):
-    - Shpfy Order page (30479): Review / Review and Approve actions + an
+  Review surfaces (all open the Copilot Tax Match Review page 30471):
+    - Shpfy Order page (30479): review entry action (Review and Approve
+      Copilot Tax Match when approval is pending, else Review Copilot Tax
+      Match) + an
       actionable "Review" notification fired on open (once per order/session)
       while the order is matched and not yet reviewed.
     - Sales Order page (30476): OnAfterGetCurrRecord sends one notification
-      (non-blocking mode) with Show Copilot Tax Decisions / Mark as reviewed /
-      Don't show again.
-    Approving on the review page sets Copilot Tax Match Reviewed and syncs the
-    Sales Header notification row so no redundant prompt fires.
+      (once per session) when the Sales Header is marked and the originating
+      order is not yet reviewed — Show Copilot Tax Decisions / Mark as reviewed /
+      Don't show again. No table: the prompt reads the order's
+      Copilot Tax Match Reviewed flag + the per-user My Notifications toggle.
+    Approving on the review page (or Mark as reviewed) sets the order's
+    Copilot Tax Match Reviewed flag — the single source of truth that stops
+    both prompts.
 ```
 
 ## Human-in-the-loop
@@ -171,15 +171,15 @@ The matcher runs synchronously during order import without prompting the user, b
 
 1. **Audit trail** — `Shpfy CT Activity Log` (30477) writes a System Application `Activity Log` entry (Type = `AI`) for each matched tax line and one for the resulting Tax Area. Each entry carries the LLM confidence (`Low`/`Medium`/`High`), the LLM's reasoning text, and a drill-back URL to the Tax Jurisdiction or Tax Area card. The platform automatically renders a confidence indicator next to the field on the originating record (Shpfy Order Tax Line for per-line — shown in the review page's tax lines ListPart; Shpfy Order Header for per-area — shown on the review page's Tax Area Code field).
 
-2. **Persistent badge** — a `Copilot Tax Match Applied` Boolean on `Shpfy Order Header` (field 30476, set by `ShpfyCopilotTaxEvents` after `FindOrCreateTaxArea` succeeds) propagates to `Sales Header` (field 30476) via the existing `OnAfterCreateSalesHeader` event in `ShpfyOrderEvents`. The Sales Order page extension shows this as a read-only field (`Importance = Additional`) plus a "Show Copilot Tax Decisions" action that opens the review page.
+2. **Persistent badge** — a `Copilot Tax Match Applied` Boolean on `Shpfy Order Header` (field 30476, set by `ShpfyCopilotTaxEvents` after `FindOrCreateTaxArea` succeeds) propagates to `Sales Header` (field 30476) via the existing `OnAfterCreateSalesHeader` event in `ShpfyOrderEvents`. The Sales Order page extension shows this as a read-only field (`Importance = Additional`) plus a **Review Copilot Tax Match** action that opens the review page.
 
-3. **Review page** (page 30471) — the single canonical review surface for an order. Hosts a **Review and Approve** action (blocking mode, before approval) and a **Review** action (non-blocking mode, or after approval) — both use the Copilot `SparkleFilled` icon. Either sets `Copilot Tax Match Reviewed` and calls `SyncReviewedFromOrder` so the linked Sales Header notification row is also marked reviewed (no redundant prompt). The tax lines ListPart is scoped to the order via `SetTaxLineFilter` (tax lines link to order lines, so the page passes the order's order line ids). The standalone tax lines ListPart is **no longer embedded on the Shopify Order Card** — it lives only on this review page.
+3. **Review page** (page 30471) — the single canonical review surface for an order. It summarizes the resolved Tax Area (with AI confidence indicator), the ship-to context, and the tax lines (each line shows the **item it taxes** — the applies-to Item No. and description — plus its matched Tax Jurisdiction Code with AI confidence indicators). Hosts a single **Approve** action (Approve icon) that sets `Copilot Tax Match Reviewed` — the single source of truth that also stops the Sales Order and order-page prompts. If the shop requires review and the user closes the page without approving, `OnQueryClosePage` warns them (the Sales Document will not be created until approved). The tax lines ListPart is scoped to the order via `SetTaxLineFilter` (tax lines link to order lines, so the page passes the order's order line ids). The standalone tax lines ListPart is **no longer embedded on the Shopify Order Card** — it lives only on this review page.
 
-4. **Configurable blocking review (default on)** — a per-shop `Tax Match Review Required` Boolean (field 30474, default `true`) and a per-order `Copilot Tax Match Reviewed` Boolean (field 30477) gate Sales Document creation. `ShpfyCopilotTaxEvents` subscribes to `OnBeforeCreateSalesHeader` and sets `Handled := true` when the shop requires review, the order has the marker, and the user has not yet approved — so the connector skips Sales Doc creation. The **Shpfy Order page** exposes the **Review and Approve** entry action (visible only when blocking is on, marker is set, and not yet reviewed) which opens the review page where the match is approved. On the next process run (auto or manual) the order proceeds. Customers can clear the shop toggle to opt into non-blocking mode.
+4. **Configurable blocking review (default on)** — a per-shop `Tax Match Review Required` Boolean (field 30474, default `true`) and a per-order `Copilot Tax Match Reviewed` Boolean (field 30477) gate Sales Document creation. `ShpfyCopilotTaxEvents` subscribes to `OnBeforeCreateSalesHeader` and sets `Handled := true` when the shop requires review, the order has the marker, and the user has not yet approved — so the connector skips Sales Doc creation. The **Shpfy Order page** exposes a **Review and Approve Copilot Tax Match** entry action (shown while approval is pending; captioned just **Review Copilot Tax Match** once approved or in non-blocking mode) which opens the review page where the match is approved. If the user closes the review page while approval is still pending, an `OnQueryClosePage` confirm warns them the Sales Document will not be created until it is approved. On the next process run (auto or manual) the order proceeds. Customers can clear the shop toggle to opt into non-blocking mode.
 
 5. **Active notifications** — two actionable, dismissible BC `Notification`s prompt the user to review, each with its own `MyNotifications` GUID so "Don't show again" is scoped per surface:
    - **Shopify Order page** (both modes) — `ShpfyCopilotTaxEvents`/the Order page extension fires (once per order per page session, via `SendOrderReviewNotification`) when the order was Copilot-matched and not yet reviewed: "Copilot set Tax Area %1 on this Shopify order. Review the matched tax jurisdictions." Actions: **Review** (opens the review page) and **Don't show again**.
-   - **Sales Order page** (non-blocking mode) — when the marker propagates onto a Sales Header for an order the user has *not* already approved, `ShpfyCopilotTaxNotify` queues a row in `Shpfy Copilot Tax Notification` keyed on `(SalesHeader.SystemId, UserId())`; the Sales Order page's `OnAfterGetCurrRecord` fires a notification with **Show Copilot Tax Decisions** (opens the review page), **Mark as reviewed**, and **Don't show again**. Suppressed when the user already approved in blocking mode.
+   - **Sales Order page** (non-blocking mode) — on open, the page's `OnAfterGetCurrRecord` calls `SendForCurrentSalesHeader`, which fires a notification when the Sales Header is marked `Copilot Tax Match Applied` and the originating Shopify order (resolved via `Sales Order No.`) has `Copilot Tax Match Reviewed = false` and the user hasn't disabled the prompt. **No table or queue** — the decision is derived live from the order's `Reviewed` flag plus the per-user `My Notifications` toggle, and a per-session dedupe var prevents re-firing on refresh. Actions: **Show Copilot Tax Decisions** (opens the review page), **Mark as reviewed** (sets the order's `Reviewed` flag), and **Don't show again** (`My Notifications.Disable`). Naturally suppressed once the order is reviewed (blocking-mode approval already sets that flag).
 
 For safety, `ShpfyCopilotTaxEvents.OnAfterMapShopifyOrder` resets both the marker and the reviewed flag to `false` before each matcher run so re-matching (after a user manually clears Tax Area Code on the Shpfy Order Header) cannot leave stale flags from a prior run.
 
@@ -259,14 +259,14 @@ The Copilot's matching itself runs silently during order import — no dialog, w
 | Tax Area Naming Pattern | Text[20] | `SHPFY-` | Enabled **and** Auto Create Tax Areas | Prefix for auto-generated Tax Area codes |
 | Copilot Tax Match Review Required | Boolean | true | Copilot Tax Matching Enabled | When enabled, the Sales Document is not created until a user approves the match on the Copilot Tax Match Review page. Default is on per RAI guidance; clear it to opt into non-blocking mode. |
 
-**Copilot Tax Match Review page** (page 30471) — the single canonical review surface. A Card showing the resolved Tax Area (with AI confidence indicator), the ship-to context, and a tax lines ListPart (per-line Tax Jurisdiction Code with AI confidence indicators). Hosts the **Review and Approve** (blocking, pre-approval) / **Review** (non-blocking or post-approval) action, both with the Copilot `SparkleFilled` icon.
+**Copilot Tax Match Review page** (page 30471) — the single canonical review surface. A Card showing the resolved Tax Area (with AI confidence indicator), the ship-to context, and a tax lines ListPart where each line shows the item it taxes (applies-to Item No. + description) and its per-line Tax Jurisdiction Code with AI confidence indicators. Hosts a single **Approve** action (Approve icon). The Copilot review-drill actions on the Shopify Order and Sales Order pages both use the Copilot `SparkleFilled` icon.
 
-**Shopify Order page** — adds **Review and Approve** / **Review** entry actions (Copilot `SparkleFilled` icon) that open the review page, and fires an actionable **Review** notification on open when the order was Copilot-matched and not yet reviewed. The tax lines are no longer embedded here — they live on the review page.
+**Shopify Order page** — adds a review entry action (Copilot `SparkleFilled` icon) that opens the review page — captioned **Review and Approve Copilot Tax Match** while approval is pending, else **Review Copilot Tax Match** — and fires an actionable **Review** notification on open when the order was Copilot-matched and not yet reviewed. The tax lines are no longer embedded here — they live on the review page.
 
 **BC Sales Order page** — a secondary HITL surface:
 
 - Read-only `Copilot Tax Match Applied` field (next to Tax Liable, `Importance = Additional`).
-- "Show Copilot Tax Decisions" navigation action (visible when the marker is set) that opens the review page for the originating order.
+- **Review Copilot Tax Match** navigation action (visible when the marker is set) that opens the review page for the originating order.
 - One-time non-blocking notification on first open of the Sales Order (non-blocking mode), with actions to open the review page, mark reviewed, or suppress per-user.
 
 ## Data Model
@@ -312,7 +312,7 @@ internal procedure OnAfterCreateSalesHeader(OrderHeader: Record "Shpfy Order Hea
 
 - `OnAfterMapShopifyOrder` fires after `OrderMapping.DoMapping()` completes; the Copilot subscriber runs the matcher (the connector's `MapTaxArea` runs first via address-based lookup; Copilot only activates if that lookup didn't find a Tax Area).
 - `OnBeforeCreateSalesHeader` fires at the top of `ShpfyProcessOrder.CreateHeaderFromShopifyOrder()`; the Copilot subscriber sets `Handled := true` to skip Sales Doc creation when the shop requires review and the order hasn't yet been approved.
-- `OnAfterCreateSalesHeader` fires after the connector's existing Tax Area Code propagation; the Copilot subscriber uses it to propagate the marker flag and queue the review notification.
+- `OnAfterCreateSalesHeader` fires after the connector's existing Tax Area Code propagation; the Copilot subscriber uses it to propagate the marker flag onto the Sales Header (the review prompt itself is derived live on page open, not queued).
 
 ## Capability Registration
 
@@ -337,7 +337,6 @@ Registration follows the standard BC Copilot pattern:
 | 0000SH9 | Usage | Events | Match successful |
 | 0000SHA | Usage | Events | Copilot Tax Match Applied marker set on Order Header |
 | 0000SHB | Usage | Events | Marker propagated to Sales Header |
-| 0000SHC | Usage | Notify | Notification row queued |
 | 0000SHD | Usage | Notify | Notification sent to user |
 | 0000SHE | Usage | Notify | User clicked "Show Copilot Tax Decisions" |
 | 0000SHF | Usage | Notify | User marked notification reviewed |

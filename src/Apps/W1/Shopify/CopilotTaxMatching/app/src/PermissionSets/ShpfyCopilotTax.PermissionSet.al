@@ -14,7 +14,6 @@ permissionset 30470 "Shpfy Copilot Tax"
         tabledata "Tax Area Line" = RIMD,
         tabledata "Tax Detail" = RIMD,
         tabledata "Tax Jurisdiction" = RIMD,
-        tabledata "Shpfy Copilot Tax Notification" = RIMD,
         codeunit "Shpfy Copilot Tax Register" = X,
         codeunit "Shpfy Copilot Tax Matcher" = X,
         codeunit "Shpfy Tax Area Builder" = X,

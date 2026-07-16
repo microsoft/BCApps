@@ -16,7 +16,7 @@ tableextension 30477 "Shpfy CT Sales Header" extends "Sales Header"
             Caption = 'Copilot Tax Match Applied';
             DataClassification = SystemMetadata;
             Editable = false;
-            ToolTip = 'Specifies that Copilot populated the Tax Area Code on the originating Shopify order. Use the Show Copilot Tax Decisions action to review the AI-generated decisions.';
+            ToolTip = 'Specifies that Copilot populated the Tax Area Code on the originating Shopify order. Use the Review Copilot Tax Match action to review the AI-generated decisions.';
         }
     }
 }

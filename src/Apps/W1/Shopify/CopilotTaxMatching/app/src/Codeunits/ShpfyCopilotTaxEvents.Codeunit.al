@@ -117,13 +117,13 @@ codeunit 30473 "Shpfy Copilot Tax Events"
 
     /// <summary>
     /// Propagates the Copilot Tax Match Applied marker from the originating Shopify Order
-    /// Header onto the BC Sales Header, and queues the review notification. Exposed as
-    /// internal so tests can drive the propagation without going through the connector's
-    /// CreateHeaderFromShopifyOrder path.
+    /// Header onto the BC Sales Header. Exposed as internal so tests can drive the
+    /// propagation without going through the connector's CreateHeaderFromShopifyOrder path.
+    /// The Sales Order review prompt is derived live from this marker plus the order's
+    /// Copilot Tax Match Reviewed flag — nothing is queued here.
     /// </summary>
     internal procedure HandleSalesHeaderCreated(OrderHeader: Record "Shpfy Order Header"; var SalesHeader: Record "Sales Header")
     var
-        CopilotTaxNotify: Codeunit "Shpfy Copilot Tax Notify";
         CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
@@ -134,13 +134,6 @@ codeunit 30473 "Shpfy Copilot Tax Events"
         SalesHeader.Modify();
 
         FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax marker propagated to Sales Header');
-
-        // When the user has explicitly approved the match (blocking-mode flow), skip the
-        // review notification: they have already done the review, the prompt would be noise.
-        if OrderHeader."Copilot Tax Match Reviewed" then
-            exit;
-
-        CopilotTaxNotify.QueueNotificationFor(SalesHeader, OrderHeader);
     end;
 
     var

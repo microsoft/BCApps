@@ -4,9 +4,9 @@ namespace Microsoft.Integration.Shopify;
 /// Page Shpfy Copilot Tax Review (ID 30471).
 /// Card view that summarizes what Copilot tax matching did for a single Shopify order:
 /// the resolved Tax Area (with the platform AI confidence indicator), the ship-to context
-/// Copilot reasoned over, and each tax line with its matched Tax Jurisdiction Code. Hosts
-/// the Review / Review and Approve action that releases the order from review-blocked state
-/// (when the shop requires review) or simply records the review (when it does not).
+/// Copilot reasoned over, and each tax line with the item it taxes and its matched Tax
+/// Jurisdiction Code. Hosts the Approve action that releases the order from review-blocked
+/// state (when the shop requires review) or simply records the review (when it does not).
 /// </summary>
 page 30471 "Shpfy Copilot Tax Review"
 {
@@ -28,7 +28,7 @@ page 30471 "Shpfy Copilot Tax Review"
         {
             group(General)
             {
-                Caption = 'Copilot Tax Match';
+                Caption = 'Overview';
 
                 field("Shopify Order No."; Rec."Shopify Order No.")
                 {
@@ -45,7 +45,7 @@ page 30471 "Shpfy Copilot Tax Review"
                 field("Copilot Tax Match Reviewed"; Rec."Copilot Tax Match Reviewed")
                 {
                     Caption = 'Reviewed';
-                    ToolTip = 'Specifies whether the Copilot tax match has been reviewed. When the shop requires review, a Sales Document is not created until this is set via the Review and Approve action.';
+                    ToolTip = 'Specifies whether the Copilot tax match has been reviewed. When the shop requires review, a Sales Document is not created until this is set via the Approve action.';
                 }
             }
             group(ShipTo)
@@ -78,34 +78,17 @@ page 30471 "Shpfy Copilot Tax Review"
     {
         area(processing)
         {
-            action(ReviewAndApprove)
+            action(Approve)
             {
                 ApplicationArea = All;
-                Caption = 'Review and Approve';
-                Image = SparkleFilled;
+                Caption = 'Approve';
+                Image = Approve;
                 Promoted = true;
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                Visible = ReviewRequired and not Rec."Copilot Tax Match Reviewed";
-                ToolTip = 'Confirms that you have reviewed the Copilot tax match for this order and approves it. Because the shop requires review, a Sales Document is not created until you approve. Review the resolved Tax Area and the per-line Tax Jurisdiction Codes, together with the AI confidence indicators, before approving.';
-
-                trigger OnAction()
-                begin
-                    ApproveReview();
-                end;
-            }
-            action(MarkReviewed)
-            {
-                ApplicationArea = All;
-                Caption = 'Review';
-                Image = SparkleFilled;
-                Promoted = true;
-                PromotedCategory = Process;
-                PromotedIsBig = true;
-                PromotedOnly = true;
-                Visible = (not ReviewRequired) and not Rec."Copilot Tax Match Reviewed";
-                ToolTip = 'Marks the Copilot tax match for this order as reviewed so the review prompt no longer appears. The shop does not require approval before the Sales Document is created.';
+                Visible = not Rec."Copilot Tax Match Reviewed";
+                ToolTip = 'Confirms that you have reviewed the Copilot tax match for this order and approves it. When the shop requires review, a Sales Document is not created until you approve. Review the resolved Tax Area and the per-line Tax Jurisdiction Codes, together with the AI confidence indicators, before approving.';
 
                 trigger OnAction()
                 begin
@@ -124,6 +107,14 @@ page 30471 "Shpfy Copilot Tax Review"
     begin
         ResolveShopSettings();
         CurrPage.TaxLines.Page.SetTaxLineFilter(BuildTaxLineFilter());
+    end;
+
+    trigger OnQueryClosePage(CloseAction: Action): Boolean
+    begin
+        ResolveShopSettings();
+        if ReviewRequired and not Rec."Copilot Tax Match Reviewed" then
+            exit(Confirm(CloseWithoutApproveQst, false));
+        exit(true);
     end;
 
     local procedure ResolveShopSettings()
@@ -154,12 +145,10 @@ page 30471 "Shpfy Copilot Tax Review"
     local procedure ApproveReview()
     var
         OrderHeader: Record "Shpfy Order Header";
-        CopilotTaxNotify: Codeunit "Shpfy Copilot Tax Notify";
     begin
         OrderHeader := Rec;
         OrderHeader."Copilot Tax Match Reviewed" := true;
         OrderHeader.Modify();
-        CopilotTaxNotify.SyncReviewedFromOrder(OrderHeader);
         CurrPage.Update(false);
 
         if ReviewRequired then
@@ -176,6 +165,7 @@ page 30471 "Shpfy Copilot Tax Review"
     var
         ReviewRequired: Boolean;
         ApprovedMsg: Label 'Copilot tax match approved. The Sales Document will be created the next time this order is processed.';
-        ReviewedMsg: Label 'Copilot tax match marked as reviewed.';
+        ReviewedMsg: Label 'Copilot tax match approved.';
+        CloseWithoutApproveQst: Label 'The Copilot tax match for this order has not been approved. The Sales Document will not be created until it is approved. Close without approving?';
         DataCaptionTok: Label 'Copilot Tax Match Review - Order %1', Comment = '%1 = Shopify Order No.';
 }

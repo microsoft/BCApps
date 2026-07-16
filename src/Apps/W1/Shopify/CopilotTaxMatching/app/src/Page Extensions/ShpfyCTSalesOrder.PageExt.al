@@ -5,8 +5,9 @@ using Microsoft.Sales.Document;
 /// <summary>
 /// PageExtension Shpfy CT Sales Order (ID 30476) extends Sales Order (page 42).
 /// Surfaces the Copilot Tax Match Applied marker as a read-only badge on the Sales Order
-/// and adds an action that takes the user to the originating Shopify order, where the BC
-/// platform shows AI confidence indicators on each Copilot-decided field.
+/// and adds a Review Copilot Tax Match action that opens the Copilot Tax Match Review page
+/// for the originating Shopify order, where the resolved Tax Area and per-line Tax
+/// Jurisdiction Codes are shown with AI confidence indicators.
 /// </summary>
 pageextension 30476 "Shpfy CT Sales Order" extends "Sales Order"
 {
@@ -19,7 +20,7 @@ pageextension 30476 "Shpfy CT Sales Order" extends "Sales Order"
                 ApplicationArea = All;
                 Editable = false;
                 Importance = Additional;
-                ToolTip = 'Specifies that Copilot populated the Tax Area Code on the originating Shopify order. Use the Show Copilot Tax Decisions action to review the AI-generated decisions.';
+                ToolTip = 'Specifies that Copilot populated the Tax Area Code on the originating Shopify order. Use the Review Copilot Tax Match action to review the AI-generated decisions.';
             }
         }
     }
@@ -27,12 +28,12 @@ pageextension 30476 "Shpfy CT Sales Order" extends "Sales Order"
     {
         addlast(navigation)
         {
-            action(ShpfyShowCopilotTaxDecisions)
+            action(ShpfyReviewCopilotTaxMatch)
             {
                 ApplicationArea = All;
-                Caption = 'Show Copilot Tax Decisions';
-                Image = Sparkle;
-                ToolTip = 'Opens the Copilot Tax Match Review for the originating Shopify order, where you can see the resolved Tax Area and per-line Tax Jurisdiction Codes together with the AI confidence and explanation for each Copilot-matched field.';
+                Caption = 'Review Copilot Tax Match';
+                Image = SparkleFilled;
+                ToolTip = 'Opens the Copilot tax match review for the originating Shopify order, where you can see the resolved Tax Area and per-line Tax Jurisdiction Codes together with the AI confidence and explanation for each Copilot-matched field.';
                 Visible = Rec."Copilot Tax Match Applied";
 
                 trigger OnAction()
@@ -54,7 +55,14 @@ pageextension 30476 "Shpfy CT Sales Order" extends "Sales Order"
     var
         CopilotTaxNotify: Codeunit "Shpfy Copilot Tax Notify";
     begin
-        if Rec."Copilot Tax Match Applied" then
-            CopilotTaxNotify.SendForCurrentSalesHeader(Rec);
+        if not Rec."Copilot Tax Match Applied" then
+            exit;
+        if NotifiedSystemId = Rec.SystemId then
+            exit;
+        NotifiedSystemId := Rec.SystemId;
+        CopilotTaxNotify.SendForCurrentSalesHeader(Rec);
     end;
+
+    var
+        NotifiedSystemId: Guid;
 }

@@ -6,10 +6,11 @@ using System.Telemetry;
 
 /// <summary>
 /// Codeunit Shpfy Copilot Tax Notify (ID 30476).
-/// Owns the non-blocking review notification that fires once when a user opens a Sales
-/// Order whose tax fields were populated by Copilot. The notification queue is recorded
-/// in the Shpfy Copilot Tax Notification table so the prompt can be replayed across
-/// sessions until the user marks it reviewed or suppresses the feature notification.
+/// Owns the Copilot tax review notifications (on the BC Sales Order and the Shopify Order)
+/// and the review-page drills. The notifications are stateless: whether to prompt is
+/// derived live from the Sales Header marker, the originating Shopify order's
+/// Copilot Tax Match Reviewed flag, and the per-user My Notifications toggle — there is no
+/// dedicated notification table.
 /// </summary>
 codeunit 30476 "Shpfy Copilot Tax Notify"
 {
@@ -17,29 +18,15 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
     InherentPermissions = X;
     InherentEntitlements = X;
 
-    procedure QueueNotificationFor(SalesHeader: Record "Sales Header"; OrderHeader: Record "Shpfy Order Header")
-    var
-        CopilotTaxNotification: Record "Shpfy Copilot Tax Notification";
-        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-    begin
-        if CopilotTaxNotification.Get(SalesHeader.SystemId, UserId()) then
-            exit;
-
-        CopilotTaxNotification.Init();
-        CopilotTaxNotification."Sales Header SystemId" := SalesHeader.SystemId;
-        CopilotTaxNotification."User Id" := CopyStr(UserId(), 1, MaxStrLen(CopilotTaxNotification."User Id"));
-        CopilotTaxNotification."Notification ID" := GetFeatureNotificationId();
-        CopilotTaxNotification.Created := CurrentDateTime();
-        CopilotTaxNotification."Tax Area Code" := SalesHeader."Tax Area Code";
-        CopilotTaxNotification.Reviewed := false;
-        if CopilotTaxNotification.Insert() then
-            FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax notification queued');
-    end;
-
+    /// <summary>
+    /// Fires the review prompt on the Sales Order when Copilot populated its tax fields and
+    /// the originating Shopify order has not yet been reviewed. Stateless — whether to prompt
+    /// comes from the order's Copilot Tax Match Reviewed flag plus the per-user My
+    /// Notifications toggle, so no per-user row is stored.
+    /// </summary>
     procedure SendForCurrentSalesHeader(SalesHeader: Record "Sales Header")
     var
-        CopilotTaxNotification: Record "Shpfy Copilot Tax Notification";
+        OrderHeader: Record "Shpfy Order Header";
         MyNotifications: Record "My Notifications";
         CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
         FeatureTelemetry: Codeunit "Feature Telemetry";
@@ -47,10 +34,9 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
     begin
         if not GuiAllowed() then
             exit;
-
-        if not CopilotTaxNotification.Get(SalesHeader.SystemId, UserId()) then
+        if not FindOrderForReview(SalesHeader, OrderHeader) then
             exit;
-        if CopilotTaxNotification.Reviewed then
+        if OrderHeader."Copilot Tax Match Reviewed" then
             exit;
 
         if MyNotifications.WritePermission() then
@@ -58,8 +44,8 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
         if not MyNotifications.IsEnabled(GetFeatureNotificationId()) then
             exit;
 
-        Notif.Id := CopilotTaxNotification."Notification ID";
-        Notif.Message(StrSubstNo(NotifMsgLbl, CopilotTaxNotification."Tax Area Code"));
+        Notif.Id := GetFeatureNotificationId();
+        Notif.Message(StrSubstNo(NotifMsgLbl, SalesHeader."Tax Area Code"));
         Notif.Scope := NotificationScope::LocalScope;
         Notif.SetData('SalesHeaderSystemId', Format(SalesHeader.SystemId));
         Notif.AddAction(ShowDecisionsActionLbl, Codeunit::"Shpfy Copilot Tax Notify", 'OpenShopifyOrder');
@@ -136,8 +122,7 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
         if not OrderHeader.GetBySystemId(OrderSystemId) then
             exit;
 
-        OrderHeader.SetRecFilter();
-        Page.Run(Page::"Shpfy Copilot Tax Review", OrderHeader);
+        RunReviewPage(OrderHeader);
 
         FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax order review opened');
     end;
@@ -160,52 +145,41 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
     var
         OrderHeader: Record "Shpfy Order Header";
     begin
-        if SalesHeader."No." = '' then
+        if not FindOrderForReview(SalesHeader, OrderHeader) then
             exit(false);
 
-        OrderHeader.SetRange("Sales Order No.", SalesHeader."No.");
-        if not OrderHeader.FindFirst() then
-            exit(false);
-
-        OrderHeader.SetRecFilter();
-        Page.Run(Page::"Shpfy Copilot Tax Review", OrderHeader);
+        RunReviewPage(OrderHeader);
         exit(true);
     end;
 
     /// <summary>
-    /// When a user approves/reviews on the review page, also mark the corresponding Sales
-    /// Header notification row reviewed so the Sales Order prompt does not fire redundantly.
+    /// The single entry point that opens the Copilot Tax Match Review page for a Shopify
+    /// order. All review surfaces (order-page action, order-page notification, Sales Order
+    /// action, Sales Order notification) resolve their Shpfy Order Header and route through
+    /// here, so the page is opened one consistent way.
     /// </summary>
-    procedure SyncReviewedFromOrder(OrderHeader: Record "Shpfy Order Header")
-    var
-        SalesHeader: Record "Sales Header";
-        CopilotTaxNotification: Record "Shpfy Copilot Tax Notification";
+    internal procedure RunReviewPage(var OrderHeader: Record "Shpfy Order Header")
     begin
-        if OrderHeader."Sales Order No." = '' then
-            exit;
-        if not SalesHeader.Get(SalesHeader."Document Type"::Order, OrderHeader."Sales Order No.") then
-            exit;
-        if not CopilotTaxNotification.Get(SalesHeader.SystemId, UserId()) then
-            exit;
-
-        CopilotTaxNotification.Reviewed := true;
-        CopilotTaxNotification.Modify();
+        OrderHeader.SetRecFilter();
+        Page.Run(Page::"Shpfy Copilot Tax Review", OrderHeader);
     end;
 
     procedure MarkReviewed(Notif: Notification)
     var
-        CopilotTaxNotification: Record "Shpfy Copilot Tax Notification";
         SalesHeader: Record "Sales Header";
+        OrderHeader: Record "Shpfy Order Header";
         CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
         FeatureTelemetry: Codeunit "Feature Telemetry";
     begin
         if not TryGetSalesHeader(Notif, SalesHeader) then
             exit;
-        if not CopilotTaxNotification.Get(SalesHeader.SystemId, UserId()) then
+        if not FindOrderForReview(SalesHeader, OrderHeader) then
+            exit;
+        if OrderHeader."Copilot Tax Match Reviewed" then
             exit;
 
-        CopilotTaxNotification.Reviewed := true;
-        CopilotTaxNotification.Modify();
+        OrderHeader."Copilot Tax Match Reviewed" := true;
+        OrderHeader.Modify();
 
         FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax notification marked reviewed');
     end;
@@ -222,6 +196,19 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
         MarkReviewed(Notif);
 
         FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax notification disabled per user');
+    end;
+
+    /// <summary>
+    /// Resolves the originating Shopify order for a Sales Header via
+    /// Shpfy Order Header."Sales Order No.". Returns false when the Sales Header has no
+    /// number or no linked Shopify order.
+    /// </summary>
+    local procedure FindOrderForReview(SalesHeader: Record "Sales Header"; var OrderHeader: Record "Shpfy Order Header"): Boolean
+    begin
+        if SalesHeader."No." = '' then
+            exit(false);
+        OrderHeader.SetRange("Sales Order No.", SalesHeader."No.");
+        exit(OrderHeader.FindFirst());
     end;
 
     local procedure TryGetSalesHeader(Notif: Notification; var SalesHeader: Record "Sales Header"): Boolean

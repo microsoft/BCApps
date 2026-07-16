@@ -120,17 +120,18 @@ jurisdiction.
 | # | Scenario | Expected Result |
 |---|----------|-----------------|
 | HITL-1 | Order Header marker set; Sales Header created | `Sales Header."Copilot Tax Match Applied" = true` (propagated via `OnAfterCreateSalesHeader`) |
-| HITL-2 | Order Header marker false; Sales Header created | Sales Header marker stays false; no notification row queued |
-| HITL-3 | Order Header marker propagated to Sales Header | One row inserted in `Shpfy Copilot Tax Notification` keyed `(SalesHeader.SystemId, UserId())` |
-| HITL-4 | `MarkReviewed` called on a queued row | Row's `Reviewed` flips to `true`; `SendForCurrentSalesHeader` returns silently next time |
+| HITL-2 | Order Header marker false; Sales Header created | Sales Header marker stays false (no propagation) |
+| HITL-3 | `MarkReviewed` from the Sales Order notification | Sets the originating order's `Copilot Tax Match Reviewed = true` (resolved via `Sales Order No.`) |
+| HITL-4 | `DisableForUser` from the Sales Order notification | Sets the order's `Copilot Tax Match Reviewed = true` and disables the prompt via `My Notifications` |
 | HITL-5 | Successful match applied | `Activity Log Entry` count for the Order Header `Tax Area Code` field ≥ 1; per-line entries on each matched `Shpfy Order Tax Line` |
 | HITL-6 | LLM returns 'low'/'medium'/'high'/unknown confidence | `Capitalize` helper maps to 'Low'/'Medium'/'High'/'Low' (safe fallback); `Activity Log Builder.SetConfidence` does not error |
-| HITL-7 | Review page approve (blocking) | On the Copilot Tax Match Review page, **Review and Approve** sets `Copilot Tax Match Reviewed = true`; the order's Sales Document is created on the next process run |
-| HITL-8 | Review page review (non-blocking) | With review not required, the page shows a **Review** action that sets `Copilot Tax Match Reviewed = true` (records the review) |
-| HITL-9 | Review page scoping | The tax lines ListPart shows exactly the tax lines of the current order (filtered by the order's order line ids via `SetTaxLineFilter`); AI confidence indicators render on Tax Jurisdiction Code |
-| HITL-10 | `SyncReviewedFromOrder` after approve | The linked `Shpfy Copilot Tax Notification` row (resolved via `Sales Order No.`) is marked `Reviewed = true`, suppressing the Sales Order prompt |
+| HITL-7 | Review page approve (blocking) | On the Copilot Tax Match Review page, **Approve** sets `Copilot Tax Match Reviewed = true`; the order's Sales Document is created on the next process run |
+| HITL-8 | Review page approve (non-blocking) | With review not required, the page's **Approve** action still sets `Copilot Tax Match Reviewed = true` (records the review) |
+| HITL-9 | Review page scoping + content | The tax lines ListPart shows exactly the tax lines of the current order (filtered by the order's order line ids via `SetTaxLineFilter`), each with its applies-to Item No./description; AI confidence indicators render on Tax Jurisdiction Code |
+| HITL-10 | Sales Order prompt is stateless | With `Sales Header."Copilot Tax Match Applied"` set, the prompt fires iff the originating order's `Copilot Tax Match Reviewed = false` and `My Notifications` is enabled; no `Shpfy Copilot Tax Notification` table exists |
 | HITL-11 | Order-page review notification | On opening a matched, not-yet-reviewed Shopify order, `SendOrderReviewNotification` fires once per order/session; **Review** opens the review page; **Don't show again** disables it via `MyNotifications` |
-| HITL-12 | Order-page entry action captions | Blocking + not reviewed → **Review and Approve** visible; non-blocking or already reviewed → **Review** visible; neither visible when the order was not Copilot-matched |
+| HITL-12 | Page review actions | Shpfy Order page: **Review and Approve Copilot Tax Match** shows while the shop requires review and it isn't yet approved, else **Review Copilot Tax Match**; both open the review page (hidden when not Copilot-matched). BC Sales Order page: **Review Copilot Tax Match** opens the review page when the marker is set |
+| HITL-13 | Review page close guard | When the shop requires review and the order is not yet approved, closing the Copilot Tax Match Review page raises the `OnQueryClosePage` confirmation; declining keeps the page open. No warning when review is not required or the order is already approved |
 
 **Shop Card field dependencies (SC scenarios)**
 

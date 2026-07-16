@@ -26,6 +26,20 @@ page 30479 "Shpfy CT Order Tax Lines Part"
         {
             repeater(Group)
             {
+                field(AppliesToItemNo; AppliesToItemNo)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Applies-to Item No.';
+                    Editable = false;
+                    ToolTip = 'Specifies the item number of the order line this tax line is charged on.';
+                }
+                field(AppliesToItem; AppliesToItemDescription)
+                {
+                    ApplicationArea = All;
+                    Caption = 'Applies-to Item';
+                    Editable = false;
+                    ToolTip = 'Specifies the description of the order line this tax line is charged on, so you can see which item each tax line corresponds to.';
+                }
                 field(Title; Rec.Title)
                 {
                     ApplicationArea = All;
@@ -68,6 +82,8 @@ page 30479 "Shpfy CT Order Tax Lines Part"
 
     var
         PresentmentCurrencyVisible: Boolean;
+        AppliesToItemNo: Code[20];
+        AppliesToItemDescription: Text[100];
 
     trigger OnOpenPage()
     begin
@@ -77,7 +93,7 @@ page 30479 "Shpfy CT Order Tax Lines Part"
 
     trigger OnAfterGetRecord()
     begin
-        SetShowPresentmentCurrencyVisibility();
+        ResolveLineContext();
     end;
 
     /// <summary>
@@ -94,16 +110,23 @@ page 30479 "Shpfy CT Order Tax Lines Part"
         CurrPage.Update(false);
     end;
 
-    local procedure SetShowPresentmentCurrencyVisibility()
+    local procedure ResolveLineContext()
     var
         OrderHeader: Record "Shpfy Order Header";
         OrderLine: Record "Shpfy Order Line";
     begin
+        Clear(AppliesToItemNo);
+        Clear(AppliesToItemDescription);
+        PresentmentCurrencyVisible := false;
+
         OrderLine.SetRange("Line Id", Rec."Parent Id");
         if not OrderLine.FindFirst() then
             exit;
-        if not OrderHeader.Get(OrderLine."Shopify Order Id") then
-            exit;
-        PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
+
+        AppliesToItemNo := OrderLine."Item No.";
+        AppliesToItemDescription := OrderLine.Description;
+
+        if OrderHeader.Get(OrderLine."Shopify Order Id") then
+            PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
     end;
 }
