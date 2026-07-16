@@ -49,7 +49,7 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
                 {
                     ApplicationArea = Subcontracting;
                     Caption = 'Production Order';
-                    Enabled = (Rec."Order Type" = Rec."Order Type"::Production) and (Rec."Order No." <> '');
+                    Enabled = ((Rec."Order Type" = Rec."Order Type"::Production) and (Rec."Order No." <> '')) or (Rec."Subc. Prod. Order No." <> '');
                     Image = Production;
                     ToolTip = 'View the related production order.';
                     trigger OnAction()
@@ -61,7 +61,7 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
                 {
                     ApplicationArea = Subcontracting;
                     Caption = 'Production Order Routing';
-                    Enabled = (Rec."Order Type" = Rec."Order Type"::Production) and (Rec."Order No." <> '');
+                    Enabled = ((Rec."Order Type" = Rec."Order Type"::Production) and (Rec."Order No." <> '')) or (Rec."Subc. Prod. Order No." <> '');
                     Image = Route;
                     ToolTip = 'View the related production order routing.';
                     trigger OnAction()
@@ -73,7 +73,7 @@ pageextension 99001501 "Subc. ILEntries" extends "Item Ledger Entries"
                 {
                     ApplicationArea = Subcontracting;
                     Caption = 'Production Order Components';
-                    Enabled = (Rec."Order Type" = Rec."Order Type"::Production) and (Rec."Order No." <> '');
+                    Enabled = ((Rec."Order Type" = Rec."Order Type"::Production) and (Rec."Order No." <> '')) or (Rec."Subc. Prod. Order No." <> '');
                     Image = Components;
                     ToolTip = 'View the related production order components.';
                     trigger OnAction()
