@@ -248,7 +248,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = CostAccounting;
                         Caption = 'Delete Cost Budget Entries';
-                        ToolTip = 'Delete Cost Budget Entries';
 
                         RunObject = report "Delete Cost Budget Entries";
                         Ellipsis = true;
@@ -257,7 +256,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = CostAccounting;
                         Caption = 'Delete Cost Entries';
-                        ToolTip = 'Delete Cost Entries';
 
                         RunObject = report "Delete Cost Entries";
                         Ellipsis = true;
@@ -266,7 +264,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = CostAccounting;
                         Caption = 'Delete Old Cost Entries';
-                        ToolTip = 'Delete Old Cost Entries';
 
                         RunObject = report "Delete Old Cost Entries";
                         Ellipsis = true;
