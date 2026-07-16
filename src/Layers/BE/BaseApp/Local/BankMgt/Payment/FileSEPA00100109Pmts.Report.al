@@ -484,7 +484,7 @@ report 2000007 "File SEPA 001.001.09 Pmts"
         AddElement(XMLNodeCurr, 'Amt', '', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
 
-        AddElement(XMLNodeCurr, 'InstdAmt', Format(PmtJnlLine.Amount, 0, 9), '', XMLNewChild);
+        AddElement(XMLNodeCurr, 'InstdAmt', Format(PmtJnlLine.Amount, 0, '<Precision,2:2><Standard Format,9>'), '', XMLNewChild);
         AddAttribute(XMLDomDoc, XMLNewChild, 'Ccy', 'EUR');
         XMLNodeCurr := XMLNodeCurr.ParentNode;
         AddElement(XMLNodeCurr, 'CdtrAgt', '', '', XMLNewChild);
