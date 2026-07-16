@@ -127,6 +127,15 @@ jobs:
             if (manual) {
               core.setOutput('dispatch', 'false');
               if (selected.length === 1) {
+                if (labels.includes('Ownership: Needs Review')) {
+                  try {
+                    await github.rest.issues.removeLabel({
+                      ...context.repo, issue_number, name: 'Ownership: Needs Review',
+                    });
+                  } catch (error) {
+                    if (error.status !== 404) throw error;
+                  }
+                }
                 await core.summary.addHeading('Manual ownership override')
                   .addRaw(`Preserving **${selected[0]}**; automated classification was skipped.`)
                   .write();
@@ -296,6 +305,15 @@ jobs:
             if (labels.includes('Ownership: Manual')) {
               const selected = teams.filter(team => labels.includes(team));
               if (selected.length === 1) {
+                if (labels.includes('Ownership: Needs Review')) {
+                  try {
+                    await github.rest.issues.removeLabel({
+                      ...context.repo, issue_number, name: 'Ownership: Needs Review',
+                    });
+                  } catch (error) {
+                    if (error.status !== 404) throw error;
+                  }
+                }
                 await core.summary.addHeading('Manual ownership override')
                   .addRaw(`Preserving **${selected[0]}**; automated classification was skipped.`)
                   .write();
