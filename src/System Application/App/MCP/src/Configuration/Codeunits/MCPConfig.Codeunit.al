@@ -172,6 +172,17 @@ codeunit 8350 "MCP Config"
     end;
 
     /// <summary>
+    /// Creates a new API tool for the specified configuration and codeunit.
+    /// </summary>
+    /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>
+    /// <param name="CodeunitAPIId">The ID of the API codeunit.</param>
+    /// <returns>The SystemId (GUID) of the created tool.</returns>
+    procedure CreateCodeunitAPITool(ConfigId: Guid; CodeunitAPIId: Integer): Guid
+    begin
+        exit(MCPConfigImplementation.CreateAPICodeunitTool(ConfigId, CodeunitAPIId));
+    end;
+
+    /// <summary>
     /// Retrieves the SystemId (GUID) of a tool by its configuration ID, object ID and object type.
     /// </summary>
     /// <param name="ConfigId">The SystemId (GUID) of the configuration.</param>

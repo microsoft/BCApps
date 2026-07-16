@@ -29,6 +29,8 @@ codeunit 8351 "MCP Config Implementation"
         QueryNotFoundErr: Label 'Query not found.';
         InvalidPageTypeErr: Label 'Only API pages are supported.';
         InvalidQueryTypeErr: Label 'Only API queries are supported.';
+        CodeunitNotFoundErr: Label 'Codeunit not found.';
+        InvalidCodeunitTypeErr: Label 'Only API codeunits are supported.';
         InvalidAPIVersionErr: Label 'Only API v2.0 objects are supported.';
         APIToolNotSupportedErr: Label 'This API page is not available for MCP configuration.';
         DefaultMCPConfigurationDescriptionLbl: Label 'Default MCP configuration';
@@ -479,6 +481,28 @@ codeunit 8351 "MCP Config Implementation"
         exit(MCPConfigurationTool.SystemId);
     end;
 
+    internal procedure CreateAPICodeunitTool(ConfigId: Guid; CodeunitAPIId: Integer): Guid
+    var
+        MCPConfiguration: Record "MCP Configuration";
+        MCPConfigurationTool: Record "MCP Configuration Tool";
+    begin
+        if not MCPConfiguration.GetBySystemId(ConfigId) then
+            Error(ConfigurationNotFoundErr);
+
+        if IsDefaultConfiguration(MCPConfiguration) then
+            Error(ToolsCannotBeAddedToDefaultConfigErr);
+
+        ValidateAPICodeunitTool(CodeunitAPIId);
+
+        MCPConfigurationTool.ID := ConfigId;
+        MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Codeunit;
+        MCPConfigurationTool."Object ID" := CodeunitAPIId;
+        MCPConfigurationTool."Allow Read" := false;
+        MCPConfigurationTool."Allow Bound Actions" := true;
+        MCPConfigurationTool.Insert();
+        exit(MCPConfigurationTool.SystemId);
+    end;
+
     internal procedure DeleteTool(ToolId: Guid)
     var
         MCPConfigurationTool: Record "MCP Configuration Tool";
@@ -599,6 +623,21 @@ codeunit 8351 "MCP Config Implementation"
             exit(false);
 
         MCPQueryConfigToolLookup.SetSelectionFilter(QueryMetadata);
+        exit(true);
+    end;
+
+    internal procedure LookupAPICodeunitTools(var CodeunitMetadata: Record "Codeunit Metadata"): Boolean
+    var
+        MCPCUConfigToolLookup: Page "MCP CU Config Tool Lookup";
+    begin
+        CodeunitMetadata.SetFilter("AL Namespace", '@Microsoft.API.Codeunits*');
+
+        MCPCUConfigToolLookup.LookupMode := true;
+        MCPCUConfigToolLookup.SetTableView(CodeunitMetadata);
+        if MCPCUConfigToolLookup.RunModal() <> Action::LookupOK then
+            exit(false);
+
+        MCPCUConfigToolLookup.SetSelectionFilter(CodeunitMetadata);
         exit(true);
     end;
 
@@ -731,6 +770,19 @@ codeunit 8351 "MCP Config Implementation"
         exit(QueryMetadata);
     end;
 
+    internal procedure ValidateAPICodeunitTool(CodeunitId: Integer): Record "Codeunit Metadata"
+    var
+        CodeunitMetadata: Record "Codeunit Metadata";
+    begin
+        if not CodeunitMetadata.Get(CodeunitId) then
+            Error(CodeunitNotFoundErr);
+
+        if not CodeunitMetadata."AL Namespace".StartsWith('Microsoft.API.Codeunits') then
+            Error(InvalidCodeunitTypeErr);
+
+        exit(CodeunitMetadata);
+    end;
+
     internal procedure AddToolsByAPIGroup(ConfigId: Guid)
     var
         MCPToolsByAPIGroup: Page "MCP Tools By API Group";
@@ -843,6 +895,8 @@ codeunit 8351 "MCP Config Implementation"
                 ObjectType := ObjectType::Page;
             MCPConfigurationTool."Object Type"::Query:
                 ObjectType := ObjectType::Query;
+            MCPConfigurationTool."Object Type"::Codeunit:
+                ObjectType := ObjectType::Codeunit;
         end;
 
         if AllObjWithCaption.Get(ObjectType, MCPConfigurationTool."Object ID") then
@@ -1306,6 +1360,8 @@ codeunit 8351 "MCP Config Implementation"
                 MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Page;
             if ObjectTypeText = 'Query' then
                 MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Query;
+            if ObjectTypeText = 'Codeunit' then
+                MCPConfigurationTool."Object Type" := MCPConfigurationTool."Object Type"::Codeunit;
         end;
 
         if ToolJson.Contains('objectId') then

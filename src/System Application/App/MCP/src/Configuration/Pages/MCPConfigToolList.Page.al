@@ -34,6 +34,7 @@ page 8352 "MCP Config Tool List"
                     var
                         PageMetadata: Record "Page Metadata";
                         QueryMetadata: Record "Query Metadata";
+                        CodeunitMetadata: Record "Codeunit Metadata";
                     begin
                         case Rec."Object Type" of
                             Rec."Object Type"::Page:
@@ -64,6 +65,20 @@ page 8352 "MCP Config Tool List"
                                         MCPConfig.CreateQueryAPITool(Rec.ID, QueryMetadata.ID);
                                     until QueryMetadata.Next() = 0;
                                 end;
+                            Rec."Object Type"::Codeunit:
+                                begin
+                                    if not MCPConfigImplementation.LookupAPICodeunitTools(CodeunitMetadata) then
+                                        exit;
+
+                                    if not CodeunitMetadata.FindSet() then
+                                        exit;
+
+                                    repeat
+                                        if MCPConfigImplementation.CheckAPIToolExists(Rec.ID, CodeunitMetadata.ID, Rec."Object Type") then
+                                            continue;
+                                        MCPConfig.CreateCodeunitAPITool(Rec.ID, CodeunitMetadata.ID);
+                                    until CodeunitMetadata.Next() = 0;
+                                end;
                         end;
 
                         if not IsNullGuid(Rec.SystemId) then
@@ -87,6 +102,8 @@ page 8352 "MCP Config Tool List"
                                     QueryMetadata := MCPConfigImplementation.ValidateAPIQueryTool(Rec."Object Id");
                                     Rec."API Version" := MCPConfigImplementation.GetHighestAPIQueryVersion(QueryMetadata);
                                 end;
+                            Rec."Object Type"::Codeunit:
+                                MCPConfigImplementation.ValidateAPICodeunitTool(Rec."Object Id");
                         end;
                         SetPermissions();
                     end;
@@ -100,6 +117,7 @@ page 8352 "MCP Config Tool List"
                 field("Allow Read"; Rec."Allow Read")
                 {
                     ToolTip = 'Specifies whether read operations are allowed for this tool.';
+                    Editable = Rec."Object Type" <> Rec."Object Type"::Codeunit;
                 }
                 field("Allow Create"; Rec."Allow Create")
                 {
@@ -176,6 +194,7 @@ page 8352 "MCP Config Tool List"
                 var
                     PageMetadata: Record "Page Metadata";
                     QueryMetadata: Record "Query Metadata";
+                    CodeunitMetadata: Record "Codeunit Metadata";
                 begin
                     case Rec."Object Type" of
                         Rec."Object Type"::Page:
@@ -205,6 +224,20 @@ page 8352 "MCP Config Tool List"
                                         continue;
                                     MCPConfig.CreateQueryAPITool(Rec.ID, QueryMetadata.ID);
                                 until QueryMetadata.Next() = 0;
+                            end;
+                        Rec."Object Type"::Codeunit:
+                            begin
+                                if not MCPConfigImplementation.LookupAPICodeunitTools(CodeunitMetadata) then
+                                    exit;
+
+                                if not CodeunitMetadata.FindSet() then
+                                    exit;
+
+                                repeat
+                                    if MCPConfigImplementation.CheckAPIToolExists(Rec.ID, CodeunitMetadata.ID, Rec."Object Type") then
+                                        continue;
+                                    MCPConfig.CreateCodeunitAPITool(Rec.ID, CodeunitMetadata.ID);
+                                until CodeunitMetadata.Next() = 0;
                             end;
                     end;
 
@@ -262,7 +295,8 @@ page 8352 "MCP Config Tool List"
 
     trigger OnNewRecord(BelowxRec: Boolean)
     begin
-        Rec."Allow Read" := true;
+        if Rec."Object Type" <> Rec."Object Type"::Codeunit then
+            Rec."Allow Read" := true;
     end;
 
     var
@@ -278,6 +312,13 @@ page 8352 "MCP Config Tool List"
     var
         PageMetadata: Record "Page Metadata";
     begin
+        if Rec."Object Type" <> Rec."Object Type"::Page then begin
+            AllowCreateEditable := false;
+            AllowModifyEditable := false;
+            AllowDeleteEditable := false;
+            exit;
+        end;
+
         if not PageMetadata.Get(Rec."Object Id") then
             exit;
 
