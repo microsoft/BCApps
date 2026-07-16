@@ -2659,6 +2659,8 @@ codeunit 10780 "Create ES GL Accounts"
         UpdateIncomeStmtBalAcc(CreateGLAccount.ExtraordinaryExpenses(), ProfitOrLoss());
         UpdateIncomeStmtBalAcc(CreateGLAccount.Miscellaneous(), ProfitOrLoss());
         UpdateIncomeStmtBalAcc(CreateGLAccount.ExtraordinaryIncome(), ProfitOrLoss());
+        UpdateIncomeStmtBalAcc(CreateGLAccount.DerogExpenseAccForDebit(), ProfitOrLoss());
+        UpdateIncomeStmtBalAcc(CreateGLAccount.DerogExpenseAccForCredit(), ProfitOrLoss());
         UpdateIncomeStmtBalAcc(NationalPurchases(), ProfitOrLoss());
         UpdateIncomeStmtBalAcc(EuPurchases(), ProfitOrLoss());
         UpdateIncomeStmtBalAcc(IntNonEuPurch(), ProfitOrLoss());
