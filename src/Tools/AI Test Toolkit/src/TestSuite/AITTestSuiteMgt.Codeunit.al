@@ -513,7 +513,10 @@ codeunit 149034 "AIT Test Suite Mgt."
             AITLogEntry."Test Input Description" := TestInput.Description;
         end;
 
-        TestOutput := GetTestOutput(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl());
+        // Read the accumulated per-case output through the SingleInstance "AIT Test Context Impl." — the same
+        // instance the test body wrote it to. Reading it from this handler's own "AIT Test Suite Mgt." instance
+        // would always be empty (a different, non-SingleInstance object).
+        TestOutput := AITTestContextImpl.ConsumeRunProcedureOutput();
         if TestOutput <> '' then
             AITLogEntry.SetOutputBlob(TestOutput);
 

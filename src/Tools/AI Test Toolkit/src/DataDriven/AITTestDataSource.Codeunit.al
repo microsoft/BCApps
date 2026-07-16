@@ -58,13 +58,22 @@ codeunit 149038 "AIT Test Data Source" implements ITestDataSource
     procedure GetTestCase(DataSetIdentifier: Text; TestCaseIndex: Integer; TestCaseIdentifier: Text; context: DataSourceContext): interface ITestContext
     var
         DDTestContext: Codeunit "AIT DD Test Context";
+        DDCurrentCase: Codeunit "AIT DD Current Case";
         GroupCode: Code[100];
+        RowCode: Code[100];
     begin
         GroupCode := ResolveGroupCode(DataSetIdentifier);
         if GroupCode = '' then
             Error(NoDatasetErr, DataSetIdentifier);
 
-        DDTestContext.Init(GroupCode, CopyStr(TestCaseIdentifier, 1, 100));
+        RowCode := CopyStr(TestCaseIdentifier, 1, MaxStrLen(RowCode));
+        DDTestContext.Init(GroupCode, RowCode);
+
+        // Bind the current case eagerly at materialization so the per-case log lineage is correct even if the
+        // test body never reads its input (the context's own Preload is lazy). GetTestCase runs once per
+        // executing case, before the test body and the OnAfterTestCaseRun log write.
+        DDCurrentCase.SetCurrent(GroupCode, RowCode);
+
         exit(DDTestContext);
     end;
 
