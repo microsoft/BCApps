@@ -7,7 +7,6 @@
 namespace Microsoft.Agent.SalesOrderAgent;
 
 using System.Agents;
-using System.Email;
 using System.Telemetry;
 
 codeunit 4581 "SOA Send Replies"
@@ -30,17 +29,13 @@ codeunit 4581 "SOA Send Replies"
         TelemetryEmailReplyFailedToSendLbl: Label 'Email reply failed to send.', Locked = true;
         TelemetryEmailReplyExternalIdEmptyLbl: Label 'Email reply failed to be sent due to input agent task message containing empty External Id.', Locked = true;
         TelemetryFailedToGetInputAgentTaskMessageLbl: Label 'Failed to get input agent task message.', Locked = true;
-        TelemetryFailedToGetAgentTaskMessageAttachmentLbl: Label 'Failed to get agent task message attachment.', Locked = true;
-        TelemetryAttachmentAddedToEmailLbl: Label 'Attachment added to email.', Locked = true;
-        EmailSubjectTxt: Label 'Sales order agent reply to task %1', Comment = '%1 = Agent Task id';
 
     local procedure SendEmailReplies(SOASetup: Record "SOA Setup")
     var
         OutputAgentTaskMessage: Record "Agent Task Message";
-        InputAgentTaskMessage: Record "Agent Task Message";
-        EmailOutbox: Record "Email Outbox";
-        AgentMessage: Codeunit "Agent Message";
+        SOAReplyRetryMgt: Codeunit "SOA Reply Retry Mgt.";
         TelemetryDimensions: Dictionary of [Text, Text];
+        AttemptCount: Integer;
     begin
         AllSentSuccessfully := true;
 
@@ -53,27 +48,16 @@ codeunit 4581 "SOA Send Replies"
             exit;
 
         repeat
-            Clear(EmailOutbox);
-            TelemetryDimensions.Set('AgentTaskID', Format(OutputAgentTaskMessage."Task ID"));
-            TelemetryDimensions.Set('AgentTaskMessageID', OutputAgentTaskMessage."ID");
+            Clear(TelemetryDimensions);
+            TelemetryDimensions.Add('AgentTaskID', Format(OutputAgentTaskMessage."Task ID"));
+            TelemetryDimensions.Add('AgentTaskMessageID', OutputAgentTaskMessage."ID");
 
-            if not InputAgentTaskMessage.Get(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage."Input Message ID") then begin
-                FeatureTelemetry.LogError('0000NDQ', SOASetupCU.GetFeatureName(), 'Get Input Agent Task Message', TelemetryFailedToGetInputAgentTaskMessageLbl, GetLastErrorCallStack(), TelemetryDimensions);
-                exit;
-            end;
-            if (InputAgentTaskMessage."External ID" = '') then begin
-                FeatureTelemetry.LogUsage('0000NDR', SOASetupCU.GetFeatureName(), TelemetryEmailReplyExternalIdEmptyLbl, TelemetryDimensions);
-                exit;
-            end;
-
-            if TryReply(InputAgentTaskMessage, OutputAgentTaskMessage, SOASetup) then begin
-                AgentMessage.SetStatusToSent(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage."ID");
-                FeatureTelemetry.LogUsage('0000NDS', SOASetupCU.GetFeatureName(), TelemetryEmailReplySentLbl, TelemetryDimensions);
-            end else begin
+            if SOAReplyRetryMgt.TryReserveAttempt(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage.ID, AttemptCount) then begin
+                Commit();
+                SetAttemptTelemetryDimensions(TelemetryDimensions, AttemptCount, SOAReplyRetryMgt.GetMaxAttempts());
+                SendEmailReply(OutputAgentTaskMessage, TelemetryDimensions);
+            end else
                 AllSentSuccessfully := false;
-                TelemetryDimensions.Set('Error', GetLastErrorText());
-                FeatureTelemetry.LogError('0000OAB', SOASetupCU.GetFeatureName(), 'Send Email Reply', TelemetryEmailReplyFailedToSendLbl, GetLastErrorCallStack(), TelemetryDimensions);
-            end;
         until OutputAgentTaskMessage.Next() = 0;
     end;
 
@@ -82,44 +66,40 @@ codeunit 4581 "SOA Send Replies"
         exit(AllSentSuccessfully);
     end;
 
-    local procedure TryReply(InputAgentTaskMessage: Record "Agent Task Message"; OutputAgentTaskMessage: Record "Agent Task Message"; SOASetup: Record "SOA Setup"): Boolean
+    local procedure SendEmailReply(OutputAgentTaskMessage: Record "Agent Task Message"; var TelemetryDimensions: Dictionary of [Text, Text])
     var
+        InputAgentTaskMessage: Record "Agent Task Message";
         AgentMessage: Codeunit "Agent Message";
-        Email: Codeunit Email;
-        EmailMessage: Codeunit "Email Message";
-        Body: Text;
-        Subject: Text;
+        SOAReplyRetryMgt: Codeunit "SOA Reply Retry Mgt.";
     begin
-        Subject := StrSubstNo(EmailSubjectTxt, InputAgentTaskMessage."Task ID");
-        Body := AgentMessage.GetText(OutputAgentTaskMessage);
-        EmailMessage.CreateReplyAll(Subject, Body, true, InputAgentTaskMessage."External ID");
-        AddMessageAttachments(EmailMessage, OutputAgentTaskMessage);
+        if not InputAgentTaskMessage.Get(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage."Input Message ID") then begin
+            AllSentSuccessfully := false;
+            FeatureTelemetry.LogError('0000NDQ', SOASetupCU.GetFeatureName(), 'Get Input Agent Task Message', TelemetryFailedToGetInputAgentTaskMessageLbl, GetLastErrorCallStack(), TelemetryDimensions);
+            exit;
+        end;
 
-        exit(Email.ReplyAll(EmailMessage, SOASetup."Email Account ID", SOASetup."Email Connector"));
+        if InputAgentTaskMessage."External ID" = '' then begin
+            AllSentSuccessfully := false;
+            FeatureTelemetry.LogUsage('0000NDR', SOASetupCU.GetFeatureName(), TelemetryEmailReplyExternalIdEmptyLbl, TelemetryDimensions);
+            exit;
+        end;
+
+        ClearLastError();
+        if Codeunit.Run(Codeunit::"SOA Reply Retry Mgt.", OutputAgentTaskMessage) then begin
+            AgentMessage.SetStatusToSent(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage."ID");
+            SOAReplyRetryMgt.ResetAttempts(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage.ID);
+            FeatureTelemetry.LogUsage('0000NDS', SOASetupCU.GetFeatureName(), TelemetryEmailReplySentLbl, TelemetryDimensions);
+        end else begin
+            AllSentSuccessfully := false;
+            TelemetryDimensions.Set('Error', GetLastErrorText());
+            FeatureTelemetry.LogError('0000OAB', SOASetupCU.GetFeatureName(), 'Send Email Reply', TelemetryEmailReplyFailedToSendLbl, GetLastErrorCallStack(), TelemetryDimensions);
+        end;
     end;
 
-    local procedure AddMessageAttachments(var EmailMessage: Codeunit "Email Message"; var AgentTaskMessage: Record "Agent Task Message")
-    var
-        AgentTaskFile: Record "Agent Task File";
-        AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
-        AgentTaskFileInStream: InStream;
-        TelemetryDimensions: Dictionary of [Text, Text];
+    local procedure SetAttemptTelemetryDimensions(var TelemetryDimensions: Dictionary of [Text, Text]; AttemptCount: Integer; MaxAttempts: Integer)
     begin
-        AgentTaskMessageAttachment.SetRange("Task ID", AgentTaskMessage."Task ID");
-        AgentTaskMessageAttachment.SetRange("Message ID", AgentTaskMessage.ID);
-        if not AgentTaskMessageAttachment.FindSet() then
-            exit;
-
-        repeat
-            if not AgentTaskFile.Get(AgentTaskMessageAttachment."Task ID", AgentTaskMessageAttachment."File ID") then begin
-                FeatureTelemetry.LogError('0000NE7', SOASetupCU.GetFeatureName(), 'Get Agent Task Message Attachment', TelemetryFailedToGetAgentTaskMessageAttachmentLbl, '', TelemetryDimensions);
-                exit;
-            end;
-            AgentTaskFile.CalcFields(Content);
-            //TODO: Refactor to a better interface 
-            AgentTaskFile.Content.CreateInStream(AgentTaskFileInStream, TextEncoding::UTF8);
-            EmailMessage.AddAttachment(AgentTaskFile."File Name", AgentTaskFile."File MIME Type", AgentTaskFileInStream);
-            FeatureTelemetry.LogUsage('0000NE8', SOASetupCU.GetFeatureName(), TelemetryAttachmentAddedToEmailLbl, TelemetryDimensions);
-        until AgentTaskMessageAttachment.Next() = 0;
+        TelemetryDimensions.Set('AttemptCount', Format(AttemptCount));
+        TelemetryDimensions.Set('MaxAttempts', Format(MaxAttempts));
+        TelemetryDimensions.Set('AttemptsExhausted', Format(AttemptCount >= MaxAttempts));
     end;
 }

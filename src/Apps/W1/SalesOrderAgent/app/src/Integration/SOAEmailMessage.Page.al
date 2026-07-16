@@ -244,6 +244,33 @@ page 4404 "SOA Email Message"
         }
     }
 
+    actions
+    {
+        area(Processing)
+        {
+            action(RetrySending)
+            {
+                ApplicationArea = All;
+                Caption = 'Retry sending';
+                Image = Refresh;
+                ToolTip = 'Reset the failed sending attempts so the reply is retried during the next agent run.';
+                Visible = RetrySendingVisible;
+
+                trigger OnAction()
+                var
+                    SOAReplyRetryMgt: Codeunit "SOA Reply Retry Mgt.";
+                begin
+                    if not Confirm(RetrySendingQst) then
+                        exit;
+
+                    SOAReplyRetryMgt.ResetAttempts(Rec."Task ID", Rec.ID);
+                    Message(RetrySendingScheduledMsg);
+                    UpdateControls();
+                end;
+            }
+        }
+    }
+
     trigger OnAfterGetRecord()
     begin
         UpdateControls();
@@ -256,11 +283,13 @@ page 4404 "SOA Email Message"
 
     local procedure UpdateControls()
     var
+        SOAReplyRetryMgt: Codeunit "SOA Reply Retry Mgt.";
         EmailAddress: Text;
     begin
         UpdatePageCaption();
         UpdateEmailFields(EmailAddress);
         UpdateContactInformation(EmailAddress);
+        RetrySendingVisible := (Rec.Type = Rec.Type::Output) and (Rec.Status = Rec.Status::Reviewed) and SOAReplyRetryMgt.IsExhausted(Rec."Task ID", Rec.ID);
         CurrPage.Attachments.Page.LoadRecords(Rec);
     end;
 
@@ -422,8 +451,11 @@ page 4404 "SOA Email Message"
         ShowAttachmentTxt: Text;
         AttachmentsVisible: Boolean;
         BlockedStatusVisible: Boolean;
+        RetrySendingVisible: Boolean;
         OutgoingMessageTxt: Label 'Outgoing email';
         IncomingMessageTxt: Label 'Incoming email';
         SelectContactOrCreateLbl: Label 'Select an existing contact, or create a new one';
         ShowAttachmentLbl: Label 'Show attachments (%1)', Comment = '%1 = Attachment count';
+        RetrySendingQst: Label 'Do you want to retry sending this reply?';
+        RetrySendingScheduledMsg: Label 'The reply will be retried during the next agent run.';
 }
