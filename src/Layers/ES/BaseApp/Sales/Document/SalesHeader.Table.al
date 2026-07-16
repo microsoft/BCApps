@@ -9664,7 +9664,7 @@ table 36 "Sales Header"
             exit(Result);
 
         Contact.FilterGroup(2);
-        if ("Sell-to Customer No." <> '') and ("Document Type" <> "Document Type"::Quote) then
+        if "Sell-to Customer No." <> '' then
             if Contact.Get("Sell-to Contact No.") then
                 Contact.SetRange("Company No.", Contact."Company No.")
             else
