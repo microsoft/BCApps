@@ -288,7 +288,6 @@ page 9004 "Bookkeeper Role Center"
                 Caption = 'G/L - VAT Reconciliation';
                 Image = "Report";
                 RunObject = Report "G/L - VAT Reconciliation";
-                ToolTip = 'Verify that the VAT amounts on the VAT statements match the amounts from the G/L entries.';
             }
             action("VAT - Form")
             {

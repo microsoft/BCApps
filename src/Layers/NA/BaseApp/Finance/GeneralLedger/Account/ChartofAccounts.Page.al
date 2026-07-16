@@ -501,7 +501,6 @@ page 16 "Chart of Accounts"
                     Caption = 'G/L Currency Revaluation';
                     Image = CurrencyExchangeRates;
                     RunObject = Report "G/L Currency Revaluation";
-                    ToolTip = 'Create general journal lines with currency revaluation for G/L accounts with posting in source currency.';
                 }
                 action("Close Income Statement")
                 {
@@ -509,7 +508,6 @@ page 16 "Chart of Accounts"
                     Caption = 'Close Income Statement';
                     Image = CloseYear;
                     RunObject = Report "Close Income Statement";
-                    ToolTip = 'Start the transfer of the year''s result to an account in the balance sheet and close the income statement accounts.';
                 }
                 action("Export Electr. Accounting")
                 {

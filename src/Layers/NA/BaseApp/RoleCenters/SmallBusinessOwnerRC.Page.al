@@ -368,7 +368,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'Sales Taxes Collected';
                 Image = "Report";
                 RunObject = Report "Sales Taxes Collected";
-                ToolTip = 'View a report that shows the sales taxes that have been collected on behalf of the authorities.';
             }
             action("VAT Statement")
             {
@@ -383,7 +382,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'G/L - VAT Reconciliation';
                 Image = "Report";
                 RunObject = Report "G/L - VAT Reconciliation";
-                ToolTip = 'Verify that the VAT amounts on the VAT statements match the amounts from the G/L entries.';
             }
         }
         area(embedding)
