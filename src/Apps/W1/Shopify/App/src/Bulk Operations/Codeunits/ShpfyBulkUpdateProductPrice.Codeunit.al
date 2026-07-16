@@ -88,7 +88,8 @@ codeunit 30281 "Shpfy Bulk UpdateProductPrice" implements "Shpfy IBulk Operation
                     ShopifyVariant.Price := JVariant.GetDecimal('price');
                     ShopifyVariant."Compare at Price" := JVariant.GetDecimal('compareAtPrice');
                     ShopifyVariant."Updated At" := JVariant.GetDateTime('updatedAt');
-                    ShopifyVariant."Unit Cost" := JVariant.GetDecimal('unitCost');
+                    if JVariant.Contains('unitCost') then
+                        ShopifyVariant."Unit Cost" := JVariant.GetDecimal('unitCost');
                     ShopifyVariant.Modify();
                 end;
         end;

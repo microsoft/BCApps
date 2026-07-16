@@ -19,7 +19,6 @@ using System.Utilities;
 
 codeunit 6152 "E-Doc. Data Exchange Impl." implements "E-Document"
 {
-    Access = Internal;
     procedure Check(var SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service"; EDocumentProcessingPhase: Enum "E-Document Processing Phase")
     var
         SalesHeader: Record "Sales Header";
