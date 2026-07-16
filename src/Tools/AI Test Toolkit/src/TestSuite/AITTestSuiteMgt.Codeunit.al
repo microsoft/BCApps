@@ -525,6 +525,44 @@ codeunit 149034 "AIT Test Suite Mgt."
         Commit();
     end;
 
+    /// <summary>
+    /// Writes one Skipped <see cref="AIT Log Entry"/> for a language-first data-driven case that was skipped on the
+    /// platform test runner (no AIT test suite context) — e.g. by <see cref="AIT Test Handler"/> when the monthly
+    /// Copilot-credit limit is reached. Mirrors <see cref="AddDataDrivenLogEntry"/> but records Status = Skipped and a
+    /// reason, and does not run the body (no output/accuracy/token capture). The case's dataset lineage may not be
+    /// bound yet (the skip is decided before the case is materialized), so the platform-provided TestCaseName is used
+    /// as the input code.
+    /// </summary>
+    internal procedure LogSkippedDataDrivenEval(CodeunitId: Integer; ProcedureName: Text; TestCaseName: Text; Reason: Text)
+    var
+        AITLogEntry: Record "AIT Log Entry";
+        DDCurrentCase: Codeunit "AIT DD Current Case";
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
+        GroupCode: Code[100];
+        InputCode: Code[100];
+    begin
+        if DDCurrentCase.TryGetCurrent(GroupCode, InputCode) then;
+        if InputCode = '' then
+            InputCode := CopyStr(TestCaseName, 1, MaxStrLen(InputCode));
+
+        AITLogEntry."Run ID" := DDCurrentCase.GetRunId();
+        AITLogEntry."Codeunit ID" := CodeunitId;
+        AITLogEntry."Procedure Name" := CopyStr(ProcedureName, 1, MaxStrLen(AITLogEntry."Procedure Name"));
+        AITLogEntry.Operation := CopyStr(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), 1, MaxStrLen(AITLogEntry.Operation));
+        AITLogEntry."Original Operation" := CopyStr(AITLogEntry.Operation, 1, MaxStrLen(AITLogEntry."Original Operation"));
+        AITLogEntry."Entry No." := 0;
+        AITLogEntry."Test Input Group Code" := GroupCode;
+        AITLogEntry."Test Input Code" := InputCode;
+        AITLogEntry.Status := AITLogEntry.Status::Skipped;
+        AITLogEntry."Original Status" := AITLogEntry.Status::Skipped;
+        AITLogEntry.SetMessage(Reason);
+        AITLogEntry."Start Time" := CurrentDateTime();
+        AITLogEntry."End Time" := CurrentDateTime();
+        AITLogEntry.Insert(true);
+
+        Commit();
+    end;
+
     internal procedure LogSkippedEval(AITTestMethodLine: Record "AIT Test Method Line"; FunctionName: Text[128])
     var
         AITLogEntry: Record "AIT Log Entry";

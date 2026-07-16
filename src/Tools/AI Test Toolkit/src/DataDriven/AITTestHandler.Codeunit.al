@@ -29,13 +29,25 @@ codeunit 149050 "AIT Test Handler" implements ITestHandler
     var
         AITTestRunIteration: Codeunit "AIT Test Run Iteration";
         AITTestContextImpl: Codeunit "AIT Test Context Impl.";
+        AITTestSuiteMgt: Codeunit "AIT Test Suite Mgt.";
         DDCurrentCase: Codeunit "AIT DD Current Case";
+        MonthlyCopilotCredLimit: Codeunit "AIT Eval Monthly Copilot Cred.";
         AOAIToken: Codeunit "AOAI Token";
     begin
         // Under an AIT test suite the classic Test Runner - Mgt subscribers perform this bracketing and logging;
         // avoid duplicating it when the app-based runner is driving the suite.
         if AITTestRunIteration.IsRunningUnderAITSuite() then
             exit;
+
+        // Honor the global monthly Copilot-credit limit for standalone platform-runner evals, mirroring the classic
+        // app-suite behavior (AIT Test Run Iteration.OnBeforeTestMethodRun). When enforcement is enabled and the limit
+        // is reached, skip the case (reported Skipped by the platform runner) and log a Skipped entry so the skip is
+        // visible. Enforcement disabled (the default) -> IsLimitReached is false -> no-op.
+        if MonthlyCopilotCredLimit.IsLimitReached() then begin
+            Context.Skip(CreditLimitReachedLbl);
+            AITTestSuiteMgt.LogSkippedDataDrivenEval(Context.CodeunitId(), Context.ProcedureName(), Context.TestCaseName(), CreditLimitReachedLbl);
+            exit;
+        end;
 
         // Reset per-case accuracy/turns and open the run-procedure output scope, mirroring the classic
         // OnBeforeTestMethodRun setup so the test body's context.Set* calls attribute to this case.
@@ -54,4 +66,7 @@ codeunit 149050 "AIT Test Handler" implements ITestHandler
         // This hook runs outside the per-function isolation scope, so the log entry persists past the case rollback.
         AITTestSuiteMgt.AddDataDrivenLogEntry(Context.CodeunitId, Context.ProcedureName, Context.TestCaseName, Context.Success);
     end;
+
+    var
+        CreditLimitReachedLbl: Label 'The monthly Copilot credit limit for AI evaluations has been reached. This case was skipped.';
 }
