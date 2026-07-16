@@ -31,17 +31,20 @@ pageextension 30476 "Shpfy CT Sales Order" extends "Sales Order"
             {
                 ApplicationArea = All;
                 Caption = 'Show Copilot Tax Decisions';
-                Image = Log;
-                ToolTip = 'Opens the Shopify order where the Business Central platform displays the AI confidence and explanation for each Copilot-matched tax field.';
+                Image = Sparkle;
+                ToolTip = 'Opens the Copilot Tax Match Review for the originating Shopify order, where you can see the resolved Tax Area and per-line Tax Jurisdiction Codes together with the AI confidence and explanation for each Copilot-matched field.';
                 Visible = Rec."Copilot Tax Match Applied";
 
                 trigger OnAction()
                 var
+                    CopilotTaxNotify: Codeunit "Shpfy Copilot Tax Notify";
                     OrderMgt: Codeunit "Shpfy Order Mgt.";
                     VariantRec: Variant;
                 begin
-                    VariantRec := Rec;
-                    OrderMgt.ShowShopifyOrder(VariantRec);
+                    if not CopilotTaxNotify.RunReviewForSalesHeader(Rec) then begin
+                        VariantRec := Rec;
+                        OrderMgt.ShowShopifyOrder(VariantRec);
+                    end;
                 end;
             }
         }

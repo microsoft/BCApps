@@ -125,6 +125,20 @@ jurisdiction.
 | HITL-4 | `MarkReviewed` called on a queued row | Row's `Reviewed` flips to `true`; `SendForCurrentSalesHeader` returns silently next time |
 | HITL-5 | Successful match applied | `Activity Log Entry` count for the Order Header `Tax Area Code` field ≥ 1; per-line entries on each matched `Shpfy Order Tax Line` |
 | HITL-6 | LLM returns 'low'/'medium'/'high'/unknown confidence | `Capitalize` helper maps to 'Low'/'Medium'/'High'/'Low' (safe fallback); `Activity Log Builder.SetConfidence` does not error |
+| HITL-7 | Review page approve (blocking) | On the Copilot Tax Match Review page, **Review and Approve** sets `Copilot Tax Match Reviewed = true`; the order's Sales Document is created on the next process run |
+| HITL-8 | Review page review (non-blocking) | With review not required, the page shows a **Review** action that sets `Copilot Tax Match Reviewed = true` (records the review) |
+| HITL-9 | Review page scoping | The tax lines ListPart shows exactly the tax lines of the current order (filtered by the order's order line ids via `SetTaxLineFilter`); AI confidence indicators render on Tax Jurisdiction Code |
+| HITL-10 | `SyncReviewedFromOrder` after approve | The linked `Shpfy Copilot Tax Notification` row (resolved via `Sales Order No.`) is marked `Reviewed = true`, suppressing the Sales Order prompt |
+| HITL-11 | Order-page review notification | On opening a matched, not-yet-reviewed Shopify order, `SendOrderReviewNotification` fires once per order/session; **Review** opens the review page; **Don't show again** disables it via `MyNotifications` |
+| HITL-12 | Order-page entry action captions | Blocking + not reviewed → **Review and Approve** visible; non-blocking or already reviewed → **Review** visible; neither visible when the order was not Copilot-matched |
+
+**Shop Card field dependencies (SC scenarios)**
+
+| # | Scenario | Expected Result |
+|---|----------|-----------------|
+| SC-1 | Copilot Tax Matching Enabled = No | Auto Create Jurisdictions/Areas, Naming Pattern, and Review Required are disabled (greyed out) |
+| SC-2 | Enabled = Yes, Auto Create Tax Areas = No | Tax Area Naming Pattern is disabled; the other three are enabled |
+| SC-3 | Enabled = Yes, Auto Create Tax Areas = Yes | Tax Area Naming Pattern is enabled |
 
 ---
 
