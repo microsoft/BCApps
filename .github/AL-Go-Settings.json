@@ -162,6 +162,7 @@
     ]
   },
   "runNumberOffset": 60000,
+  "shortLivedArtifactsRetentionDays": 3,
   "incrementalBuilds": {
     "onPush": false,
     "onPull_Request": true,
