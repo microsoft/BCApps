@@ -105,7 +105,6 @@ page 5656 "Insurance Registers"
                 Caption = 'Delete Empty Registers';
                 Image = Delete;
                 RunObject = Report "Delete Empty Insurance Reg.";
-                ToolTip = 'Find and delete empty insurance registers.';
             }
         }
         area(Promoted)

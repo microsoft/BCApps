@@ -378,7 +378,6 @@ page 9035 "Data Administration"
                         Image = FixedAssets;
                         RunObject = Report "Date Compress FA Ledger";
                         Ellipsis = true;
-                        ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                     }
                     action("Date Compress Maintenance Ledger Entries")
                     {
@@ -387,7 +386,6 @@ page 9035 "Data Administration"
                         Image = Tools;
                         RunObject = Report "Date Compress Maint. Ledger";
                         Ellipsis = true;
-                        ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                     }
                     action("Date Compress Insurance Ledger Entries")
                     {
@@ -396,7 +394,6 @@ page 9035 "Data Administration"
                         Image = Insurance;
                         RunObject = Report "Date Compress Insurance Ledger";
                         Ellipsis = true;
-                        ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                     }
                     action("Date Compress Warehouse Entries")
                     {
@@ -431,7 +428,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = FixedAssets;
                         Caption = 'Fixed Asset Registers';
-                        ToolTip = 'Fixed Asset Registers';
                         RunObject = Report "Delete Empty FA Registers";
                         Ellipsis = true;
                     }
@@ -439,7 +435,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = FixedAssets;
                         Caption = 'Insurance Registers';
-                        ToolTip = 'Insurance Registers';
                         RunObject = report "Delete Empty Insurance Reg.";
                         Ellipsis = true;
                     }

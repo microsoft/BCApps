@@ -12,6 +12,7 @@ using Microsoft.FixedAssets.Setup;
 report 5684 "Copy FA Entries to G/L Budget"
 {
     Caption = 'Copy FA Entries to G/L Budget';
+    ToolTip = 'Copy the fixed asset ledger entries to budget entries.';
     ProcessingOnly = true;
 
     dataset
