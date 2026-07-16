@@ -7385,7 +7385,7 @@
 
     [Test]
     [HandlerFunctions('StrMenuHandler')]
-    procedure PaymentStampDatesNearStampDateWhenPostingIsToday()
+    procedure PaymentStampDatesMatchWhenPostingDateIsToday()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
         CustLedgerEntry: Record "Cust. Ledger Entry";
