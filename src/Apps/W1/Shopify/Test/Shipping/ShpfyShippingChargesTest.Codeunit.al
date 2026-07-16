@@ -33,7 +33,6 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         IsInitialized: Boolean;
-        NextUniqueId: BigInteger;
         ShippingLineGIdTok: Label 'gid://shopify/ShippingLine/%1', Locked = true, Comment = '%1 = Shipping line id';
 
     trigger OnRun()
@@ -357,6 +356,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     end;
 
     [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
     procedure UnitTestImportShippingTaxLineWithChannelLiableTrue()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -370,12 +370,12 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         // [SCENARIO] The tax line of a shipping line is persisted against the shipping charge with all values preserved and Channel Liable = true.
         Initialize();
 
-        // [GIVEN] Shopify Shop and a Shopify order header
+        // [GIVEN] Shopify Shop and an imported Shopify order
         Shop := CommunicationMgt.GetShopRecord();
-        CreateOrderHeaderForShop(OrderHeader);
+        CreateImportedOrderHeader(OrderHeader);
 
         // [GIVEN] A shipping line with a single tax line where channelLiable is true
-        ShippingLineId := GetUniqueId();
+        ShippingLineId := LibraryRandom.RandInt(100000);
         Clear(JTaxLines);
         AddTaxLineToArray(JTaxLines, 'TAX1', ChannelLiableScenario::TrueValue);
         AddShippingLine(JShippingLines, ShippingLineId, JTaxLines);
@@ -396,6 +396,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     end;
 
     [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
     procedure UnitTestImportShippingTaxLineWithChannelLiableFalse()
     var
         ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
@@ -405,6 +406,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     end;
 
     [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
     procedure UnitTestImportShippingTaxLineWithChannelLiableNull()
     var
         ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
@@ -414,6 +416,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     end;
 
     [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
     procedure UnitTestImportShippingTaxLineWithChannelLiableMissing()
     var
         ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
@@ -423,6 +426,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     end;
 
     [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
     procedure UnitTestImportShippingTaxLinesForMultipleShippingLinesAreSeparated()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -438,13 +442,13 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         // [SCENARIO] Tax lines of multiple shipping lines are kept separated per shipping charge.
         Initialize();
 
-        // [GIVEN] Shopify Shop and a Shopify order header
+        // [GIVEN] Shopify Shop and an imported Shopify order
         Shop := CommunicationMgt.GetShopRecord();
-        CreateOrderHeaderForShop(OrderHeader);
+        CreateImportedOrderHeader(OrderHeader);
 
         // [GIVEN] Two shipping lines: the first with two tax lines, the second with one
-        FirstShippingLineId := GetUniqueId();
-        SecondShippingLineId := GetUniqueId();
+        FirstShippingLineId := LibraryRandom.RandInt(100000);
+        SecondShippingLineId := LibraryRandom.RandInt(100000);
 
         AddTaxLineToArray(JFirstTaxLines, 'TAX1', ChannelLiableScenario::TrueValue);
         AddTaxLineToArray(JFirstTaxLines, 'TAX2', ChannelLiableScenario::FalseValue);
@@ -464,6 +468,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     end;
 
     [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
     procedure UnitTestReimportShippingTaxLinesReplacesWithoutDuplicates()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -477,12 +482,12 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         // [SCENARIO] Reimporting the same shipping line replaces its tax lines without duplicates or stale rows.
         Initialize();
 
-        // [GIVEN] Shopify Shop and a Shopify order header
+        // [GIVEN] Shopify Shop and an imported Shopify order
         Shop := CommunicationMgt.GetShopRecord();
-        CreateOrderHeaderForShop(OrderHeader);
+        CreateImportedOrderHeader(OrderHeader);
 
         // [GIVEN] A shipping line with two tax lines is imported
-        ShippingLineId := GetUniqueId();
+        ShippingLineId := LibraryRandom.RandInt(100000);
         Clear(JTaxLines);
         AddTaxLineToArray(JTaxLines, 'TAX1', ChannelLiableScenario::TrueValue);
         AddTaxLineToArray(JTaxLines, 'TAX2', ChannelLiableScenario::FalseValue);
@@ -507,6 +512,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     end;
 
     [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
     procedure UnitTestShippingTaxLinesRemovedWhenShippingLineRemoved()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -525,13 +531,13 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         // [SCENARIO] When a shipping line is no longer returned by Shopify, its shipping charge and tax lines are removed.
         Initialize();
 
-        // [GIVEN] Shopify Shop and a Shopify order header
+        // [GIVEN] Shopify Shop and an imported Shopify order
         Shop := CommunicationMgt.GetShopRecord();
-        CreateOrderHeaderForShop(OrderHeader);
+        CreateImportedOrderHeader(OrderHeader);
 
         // [GIVEN] Two shipping lines, each with a tax line, are imported
-        FirstShippingLineId := GetUniqueId();
-        SecondShippingLineId := GetUniqueId();
+        FirstShippingLineId := LibraryRandom.RandInt(100000);
+        SecondShippingLineId := LibraryRandom.RandInt(100000);
 
         AddTaxLineToArray(JFirstTaxLines, 'TAX1', ChannelLiableScenario::TrueValue);
         AddShippingLine(JShippingLines, FirstShippingLineId, JFirstTaxLines);
@@ -665,20 +671,11 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         OrderShippingCharges.Insert(true);
     end;
 
-    local procedure CreateOrderHeaderForShop(var OrderHeader: Record "Shpfy Order Header")
+    local procedure CreateImportedOrderHeader(var OrderHeader: Record "Shpfy Order Header")
+    var
+        ImportOrder: Codeunit "Shpfy Import Order";
     begin
-        Clear(OrderHeader);
-        OrderHeader."Shopify Order Id" := GetUniqueId();
-        OrderHeader."Shop Code" := Shop.Code;
-        OrderHeader.Insert();
-    end;
-
-    local procedure GetUniqueId(): BigInteger
-    begin
-        if NextUniqueId = 0 then
-            NextUniqueId := 100000;
-        NextUniqueId += 1;
-        exit(NextUniqueId);
+        ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
     end;
 
     local procedure VerifyShippingTaxLineChannelLiable(ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue; ExpectedChannelLiable: Boolean)
@@ -692,12 +689,12 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     begin
         Initialize();
 
-        // [GIVEN] Shopify Shop and a Shopify order header
+        // [GIVEN] Shopify Shop and an imported Shopify order
         Shop := CommunicationMgt.GetShopRecord();
-        CreateOrderHeaderForShop(OrderHeader);
+        CreateImportedOrderHeader(OrderHeader);
 
         // [GIVEN] A shipping line with a single tax line for the given channelLiable scenario
-        ShippingLineId := GetUniqueId();
+        ShippingLineId := LibraryRandom.RandInt(100000);
         Clear(JTaxLines);
         AddTaxLineToArray(JTaxLines, 'TAX1', ChannelLiableScenario);
         AddShippingLine(JShippingLines, ShippingLineId, JTaxLines);

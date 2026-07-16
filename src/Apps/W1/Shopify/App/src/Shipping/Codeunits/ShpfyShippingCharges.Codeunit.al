@@ -130,7 +130,7 @@ codeunit 30191 "Shpfy Shipping Charges"
     begin
         OrderTaxLine.SetRange("Parent Id", ParentId);
         if not OrderTaxLine.IsEmpty() then
-            OrderTaxLine.DeleteAll();
+            OrderTaxLine.DeleteAll(false);
         foreach JToken in JTaxLines do begin
             RecordRef.Open(Database::"Shpfy Order Tax Line");
             RecordRef.Init();
