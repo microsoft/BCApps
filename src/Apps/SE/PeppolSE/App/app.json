@@ -20,7 +20,13 @@
       "version": "29.0.0.0"
     }
   ],
-  "internalsVisibleTo": [],
+  "internalsVisibleTo": [
+    {
+      "id": "13c6f48e-6655-4381-ac1b-68e42719b41b",
+      "name": "PEPPOL SE Tests",
+      "publisher": "Microsoft"
+    }
+  ],
   "platform": "29.0.0.0",
   "idRanges": [
     {

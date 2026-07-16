@@ -14,11 +14,17 @@ codeunit 37453 "PEPPOL30 SE Initialize"
     Access = Internal;
 
     trigger OnInstallAppPerCompany()
+    var
+        AppInfo: ModuleInfo;
     begin
-        SetSEFormatsOnExistingSetup();
+        // Only run on the first install: OnInstallAppPerCompany also fires on a reinstall
+        // over preserved data, which must not re-apply the migration.
+        NavApp.GetCurrentModuleInfo(AppInfo);
+        if AppInfo.DataVersion() = Version.Create('0.0.0.0') then
+            SetSEFormatsOnExistingSetup();
     end;
 
-    local procedure SetSEFormatsOnExistingSetup()
+    internal procedure SetSEFormatsOnExistingSetup()
     var
         PeppolSetup: Record "PEPPOL 3.0 Setup";
     begin

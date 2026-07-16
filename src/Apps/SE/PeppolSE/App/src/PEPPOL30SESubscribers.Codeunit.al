@@ -17,6 +17,8 @@ codeunit 37452 "PEPPOL30 SE Subscribers"
     begin
         if Rec.IsTemporary() then
             exit;
+        if not RunTrigger then
+            exit;
 
         Rec."PEPPOL 3.0 Sales Format" := Rec."PEPPOL 3.0 Sales Format"::"PEPPOL 3.0 - SE Sales";
         Rec."PEPPOL 3.0 Service Format" := Rec."PEPPOL 3.0 Service Format"::"PEPPOL 3.0 - SE Service";

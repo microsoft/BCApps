@@ -11,6 +11,7 @@ using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Peppol;
+using Microsoft.Peppol.SE;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -181,8 +182,7 @@ codeunit 148165 "PEPPOL SE BIS Billing Tests"
 
         // [THEN] EndpointID keeps the full VAT (scheme 9955 expects the VAT, not the organisation number)
         Assert.AreEqual(GetSEVATSchemeID(), SupplierSchemeID, '');
-        Assert.AreNotEqual(GetExpectedSEOrgNo(), SupplierEndpointID, 'VAT must not be stripped to the organisation number when the scheme is 9955.');
-        Assert.IsTrue(StrPos(SupplierEndpointID, '733078715601') > 0, 'EndpointID must retain the full Swedish VAT digits under scheme 9955.');
+        Assert.AreEqual(GetSETestVATRegNo(), SupplierEndpointID, 'EndpointID must keep the full Swedish VAT under scheme 9955.');
     end;
 
     [Test]
@@ -205,8 +205,7 @@ codeunit 148165 "PEPPOL SE BIS Billing Tests"
         PartyInfoProvider.GetAccountingSupplierPartyTaxScheme(CompanyID, CompanyIDSchemeID, TaxSchemeID);
 
         // [THEN] CompanyID keeps the full VAT, not the stripped organisation number
-        Assert.AreNotEqual(GetExpectedSEOrgNo(), CompanyID, 'PartyTaxScheme CompanyID must not be the stripped organisation number.');
-        Assert.IsTrue(StrPos(CompanyID, '733078715601') > 0, 'PartyTaxScheme CompanyID must retain the full Swedish VAT digits.');
+        Assert.AreEqual(GetSETestVATRegNo(), CompanyID, 'PartyTaxScheme CompanyID must retain the full Swedish VAT.');
     end;
 
     [Test]
@@ -225,6 +224,58 @@ codeunit 148165 "PEPPOL SE BIS Billing Tests"
         PeppolSetup.GetSetup();
 
         // [THEN] Sales and Service formats default to the SE formats
+        Assert.AreEqual(PeppolSetup."PEPPOL 3.0 Sales Format"::"PEPPOL 3.0 - SE Sales", PeppolSetup."PEPPOL 3.0 Sales Format", '');
+        Assert.AreEqual(PeppolSetup."PEPPOL 3.0 Service Format"::"PEPPOL 3.0 - SE Service", PeppolSetup."PEPPOL 3.0 Service Format", '');
+    end;
+
+    [Test]
+    procedure InstallMovesExistingSetupFromW1DefaultsToSEFormats()
+    var
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
+        PEPPOL30SEInitialize: Codeunit "PEPPOL30 SE Initialize";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 7723] The install migration moves an existing PEPPOL 3.0 Setup from the W1 default formats to the SE formats.
+        Initialize();
+
+        // [GIVEN] An existing setup record on the W1 default formats (inserted without running triggers)
+        PeppolSetup.DeleteAll();
+        PeppolSetup.Init();
+        PeppolSetup."PEPPOL 3.0 Sales Format" := PeppolSetup."PEPPOL 3.0 Sales Format"::"PEPPOL 3.0 - Sales";
+        PeppolSetup."PEPPOL 3.0 Service Format" := PeppolSetup."PEPPOL 3.0 Service Format"::"PEPPOL 3.0 - Service";
+        PeppolSetup.Insert();
+
+        // [WHEN] The install migration runs
+        PEPPOL30SEInitialize.SetSEFormatsOnExistingSetup();
+
+        // [THEN] The setup is moved to the SE formats
+        PeppolSetup.Get();
+        Assert.AreEqual(PeppolSetup."PEPPOL 3.0 Sales Format"::"PEPPOL 3.0 - SE Sales", PeppolSetup."PEPPOL 3.0 Sales Format", '');
+        Assert.AreEqual(PeppolSetup."PEPPOL 3.0 Service Format"::"PEPPOL 3.0 - SE Service", PeppolSetup."PEPPOL 3.0 Service Format", '');
+    end;
+
+    [Test]
+    procedure InstallKeepsDeliberatelyConfiguredFormats()
+    var
+        PeppolSetup: Record "PEPPOL 3.0 Setup";
+        PEPPOL30SEInitialize: Codeunit "PEPPOL30 SE Initialize";
+    begin
+        // [FEATURE] [UT]
+        // [SCENARIO 7723] The install migration only moves setups that still use the W1 defaults; any other configured format is kept.
+        Initialize();
+
+        // [GIVEN] An existing setup record on formats that differ from the W1 defaults (inserted without running triggers)
+        PeppolSetup.DeleteAll();
+        PeppolSetup.Init();
+        PeppolSetup."PEPPOL 3.0 Sales Format" := PeppolSetup."PEPPOL 3.0 Sales Format"::"PEPPOL 3.0 - SE Sales";
+        PeppolSetup."PEPPOL 3.0 Service Format" := PeppolSetup."PEPPOL 3.0 Service Format"::"PEPPOL 3.0 - SE Service";
+        PeppolSetup.Insert();
+
+        // [WHEN] The install migration runs
+        PEPPOL30SEInitialize.SetSEFormatsOnExistingSetup();
+
+        // [THEN] The configured formats are unchanged
+        PeppolSetup.Get();
         Assert.AreEqual(PeppolSetup."PEPPOL 3.0 Sales Format"::"PEPPOL 3.0 - SE Sales", PeppolSetup."PEPPOL 3.0 Sales Format", '');
         Assert.AreEqual(PeppolSetup."PEPPOL 3.0 Service Format"::"PEPPOL 3.0 - SE Service", PeppolSetup."PEPPOL 3.0 Service Format", '');
     end;
