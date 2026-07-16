@@ -253,9 +253,18 @@ codeunit 57 "Document Totals"
     end;
 
     procedure RefreshSalesLine(var SalesLine: Record "Sales Line")
+    var
+        Description: Text[100];
+        Description2: Text[50];
     begin
-        if NeedRefreshSalesLine and (SalesLine."Line No." <> 0) then
-            if SalesLine.Find() then;
+        if NeedRefreshSalesLine and (SalesLine."Line No." <> 0) then begin
+            Description := SalesLine.Description;
+            Description2 := SalesLine."Description 2";
+            if SalesLine.Find() then begin
+                SalesLine.Description := Description;
+                SalesLine."Description 2" := Description2;
+            end;
+        end;
     end;
 
     procedure RefreshPurchaseLine(var PurchaseLine: Record "Purchase Line")
