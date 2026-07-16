@@ -3413,6 +3413,48 @@
         ActivityLog.DeleteAll();
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure ContactEmailDisplayedOnNewPurchaseInvoice()
+    var
+        Contact: Record Contact;
+        ContactBusinessRelation: Record "Contact Business Relation";
+        CompanyContact: Record Contact;
+        Vendor: Record Vendor;
+        PurchaseHeader: Record "Purchase Header";
+        PurchInvoice: TestPage "Purchase Invoice";
+        ContactEmail: Text[80];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 625599] Contact email is displayed on a new Purchase Invoice created from Vendor Card when Vendor "V" has a primary Contact "CO" with email
+        Initialize();
+
+        // [GIVEN] Vendor "V" with a primary Contact "CO" that has an email address
+        ContactEmail := CopyStr(LibraryUtility.GenerateRandomEmail(), 1, MaxStrLen(ContactEmail));
+        LibraryPurchase.CreateVendor(Vendor);
+        ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Vendor);
+        ContactBusinessRelation.SetRange("No.", Vendor."No.");
+        ContactBusinessRelation.FindFirst();
+        CompanyContact.Get(ContactBusinessRelation."Contact No.");
+        Contact.Init();
+        Contact.Type := Contact.Type::Person;
+        Contact.Validate("Company No.", CompanyContact."No.");
+        Contact.Insert(true);
+        Contact.Validate("E-Mail", ContactEmail);
+        Contact.Modify(true);
+        Vendor.Validate("Primary Contact No.", Contact."No.");
+        Vendor.Modify(true);
+
+        // [WHEN] Purchase Invoice is created from Vendor Card
+        LibraryPurchase.CreatePurchHeader(
+           PurchaseHeader, PurchaseHeader."Document Type"::Invoice, Vendor."No.");
+
+        // [THEN] Buy-from Contact email is Contact "CO" email
+        PurchInvoice.OpenView();
+        PurchInvoice.FILTER.SetFilter("No.", PurchaseHeader."No.");
+        PurchInvoice.BuyFromContactEmail.AssertEquals(ContactEmail);
+    end;
+
     local procedure Initialize()
     var
         ICSetup: Record "IC Setup";
