@@ -18,6 +18,8 @@ codeunit 133963 "Agent Message Test"
         AgentTask: Codeunit "Agent Task";
         AgentMessage: Codeunit "Agent Message";
         LibraryTestAgent: Codeunit "Library Mock Agent";
+        IgnoredAttachmentExternalIdTok: Label 'MSGBLD-TEST-019', Locked = true;
+        ExceedsFileSizeReasonTok: Label 'Exceeds file size limit', Locked = true;
 
     local procedure Initialize()
     begin
@@ -1284,8 +1286,6 @@ codeunit 133963 "Agent Message Test"
         AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
         AgentMessage: Codeunit "Agent Message";
         AgentUserId: Guid;
-        ExternalIdTok: Label 'MSGBLD-TEST-019', Locked = true;
-        IgnoredReasonTok: Label 'Exceeds file size limit';
     begin
         Initialize();
 
@@ -1300,14 +1300,14 @@ codeunit 133963 "Agent Message Test"
 
         AgentTaskBuilder
             .Initialize(AgentUserId, 'Ignored Attachment Metadata Test Task')
-            .SetExternalId(ExternalIdTok);
+            .SetExternalId(IgnoredAttachmentExternalIdTok);
         AgentTaskRecord := AgentTaskBuilder.Create(false, false);
 
         // [WHEN] A message is created with an ignored attachment without content
         AgentTaskMessageBuilder
             .Initialize('Sender', 'Message with ignored attachment metadata')
             .SetAgentTask(AgentTaskRecord)
-            .AddIgnoredAttachment('oversized.pdf', 'application/pdf', IgnoredReasonTok);
+            .AddIgnoredAttachment('oversized.pdf', 'application/pdf', ExceedsFileSizeReasonTok);
         AgentTaskMessageRecord := AgentTaskMessageBuilder.Create(false);
 
         AgentMessage.GetAttachments(AgentTaskRecord.Id, AgentTaskMessageRecord.Id, TempAgentTaskFile);
@@ -1326,7 +1326,7 @@ codeunit 133963 "Agent Message Test"
         AgentTaskMessageAttachment.SetRange("File ID", TempAgentTaskFile.ID);
         Assert.IsTrue(AgentTaskMessageAttachment.FindFirst(), 'Attachment link should exist');
         Assert.IsTrue(AgentTaskMessageAttachment.Ignored, 'Attachment should be ignored');
-        Assert.AreEqual(IgnoredReasonTok, AgentTaskMessageAttachment."Ignored Reason", 'Ignored reason should match');
+        Assert.AreEqual(ExceedsFileSizeReasonTok, AgentTaskMessageAttachment."Ignored Reason", 'Ignored reason should match');
     end;
 
     [Test]
