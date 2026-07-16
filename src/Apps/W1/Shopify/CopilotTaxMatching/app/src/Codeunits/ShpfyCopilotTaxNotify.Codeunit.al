@@ -77,8 +77,9 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
     end;
 
     /// <summary>
-    /// Sends the actionable review prompt on the Shopify order itself, once per order per
-    /// page session. Clicking Review opens the Copilot Tax Match Review page.
+    /// Sends the actionable review prompt on the Shopify order itself. The order page calls
+    /// this once per order per page session. Clicking Review opens the Copilot Tax Match
+    /// Review page.
     /// </summary>
     procedure SendOrderReviewNotification(OrderHeader: Record "Shpfy Order Header")
     var

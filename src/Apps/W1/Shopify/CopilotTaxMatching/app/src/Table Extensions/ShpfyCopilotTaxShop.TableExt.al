@@ -38,7 +38,7 @@ tableextension 30470 "Shpfy Copilot Tax Shop" extends "Shpfy Shop"
             Caption = 'Copilot Tax Match Review Required';
             DataClassification = CustomerContent;
             InitValue = true;
-            ToolTip = 'Specifies whether Sales Document creation is held until a user explicitly approves the Copilot tax match. When enabled (default), an order whose Tax Area was populated by Copilot cannot become a Sales Order until the Approve Copilot Tax Match action is taken on the Shopify order. When disabled, Sales Documents are created automatically and the user reviews them after the fact via the notification on the Sales Order page.';
+            ToolTip = 'Specifies whether Sales Document creation is held until a user explicitly approves the Copilot tax match. When enabled (default), an order whose Tax Area was populated by Copilot cannot become a Sales Order until the match is approved on the Copilot Tax Match Review page (opened via the Review Copilot Tax Match action on the Shopify order). When disabled, Sales Documents are created automatically and the user reviews them after the fact via the notification on the Sales Order page.';
         }
     }
 }

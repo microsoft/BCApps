@@ -138,5 +138,5 @@ codeunit 30473 "Shpfy Copilot Tax Events"
 
     var
         StartingMatchMsg: Label 'Shopify Copilot Tax Matching: Starting match for order %1', Locked = true, Comment = '%1 = Shopify Order Id';
-        ReviewRequiredErr: Label 'The Sales Document for Shopify order %1 cannot be created until the Copilot tax match has been approved. Click Approve Copilot Tax Match on the Shopify order, or clear Copilot Tax Match Review Required on the Shopify Shop Card.', Comment = '%1 = Shopify Order No.';
+        ReviewRequiredErr: Label 'The Sales Document for Shopify order %1 cannot be created until the Copilot tax match has been approved. Open the order, choose Review Copilot Tax Match, and approve the match on the review page — or clear Copilot Tax Match Review Required on the Shopify Shop Card.', Comment = '%1 = Shopify Order No.';
 }

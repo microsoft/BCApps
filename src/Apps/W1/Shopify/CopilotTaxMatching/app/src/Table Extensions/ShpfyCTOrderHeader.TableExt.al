@@ -21,7 +21,7 @@ tableextension 30476 "Shpfy CT Order Header" extends "Shpfy Order Header"
             Caption = 'Copilot Tax Match Reviewed';
             DataClassification = SystemMetadata;
             Editable = false;
-            ToolTip = 'Specifies whether a user has approved the Copilot tax match for this order. When the shop has Copilot Tax Match Review Required enabled, a Sales Document is not created until this flag is set via the Approve Copilot Tax Match action.';
+            ToolTip = 'Specifies whether a user has approved the Copilot tax match for this order. When the shop has Copilot Tax Match Review Required enabled, a Sales Document is not created until the match is approved on the Copilot Tax Match Review page.';
         }
     }
 }
