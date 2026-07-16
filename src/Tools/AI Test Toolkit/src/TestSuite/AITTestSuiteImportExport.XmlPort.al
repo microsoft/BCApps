@@ -191,10 +191,6 @@ xmlport 149031 "AIT Test Suite Import/Export"
                     {
                         Occurrence = Optional;
                     }
-                    fieldattribute(LanguageFirst; AITestMethodLine."Language First")
-                    {
-                        Occurrence = Optional;
-                    }
                     tableelement(AITLineEvaluator; "AIT Evaluator")
                     {
                         LinkFields = "Test Suite Code" = field("Test Suite Code"), "Test Method Line" = field("Line No.");

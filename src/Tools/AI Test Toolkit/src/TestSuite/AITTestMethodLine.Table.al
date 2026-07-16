@@ -94,12 +94,6 @@ table 149032 "AIT Test Method Line"
                 AITTestSuiteLanguage.UpdateLanguagesFromDataset(Rec."Test Suite Code", Rec."Input Dataset");
             end;
         }
-        field(8; "Language First"; Boolean)
-        {
-            Caption = 'Language-First';
-            DataClassification = SystemMetadata;
-            ToolTip = 'Specifies that the codeunit uses language-first data-driven tests ([TestDataSource]). When set, the platform drives the per-case fan-out and the toolkit does not expand the dataset per row. Interim flag until CodeUnit Metadata surfaces this automatically.';
-        }
         field(9; "Status"; Enum "AIT Line Status")
         {
             Caption = 'Status';

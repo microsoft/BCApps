@@ -63,8 +63,8 @@ codeunit 149037 "AIT AL Test Suite Mgt"
     begin
         // Language-first codeunits ([TestDataSource]): the platform drives the per-case fan-out, so add the
         // codeunit's methods once (no per-row expansion) to avoid double fan-out. See design decision C9.
-        // Detection is automatic via CodeUnit Metadata; the "Language First" line flag is an explicit override.
-        if AITTestMethodLine."Language First" or CodeunitHasTestDataSource(AITTestMethodLine."Codeunit ID") then begin
+        // Detection is automatic via CodeUnit Metadata."Has Test Data Source" (platform field 12).
+        if CodeunitHasTestDataSource(AITTestMethodLine."Codeunit ID") then begin
             AddCodeunitWithoutDataExpansion(AITTestMethodLine);
             exit;
         end;
