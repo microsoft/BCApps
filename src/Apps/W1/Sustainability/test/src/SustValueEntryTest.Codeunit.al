@@ -4219,7 +4219,7 @@ codeunit 148190 "Sust. Value Entry Test"
         PostTwoLotsWithSpecificCO2e(Item, FromLocation.Code, AccountCode, Quantity, LotNo, LotTotalCO2e);
 
         // [GIVEN] Create an Item Reclassification (Transfer) line moving the full quantity of the second lot to another location.
-        CreateItemReclassLine(ItemJournalBatch, ItemJournalLine, Item."No.", FromLocation.Code, ToLocation.Code, Quantity);
+        CreateItemReclassLine(ItemJournalBatch, ItemJournalLine, Item."No.", FromLocation.Code, ToLocation.Code, AccountCode, Quantity);
 
         // [GIVEN] Set an averaged (incorrect) Total CO2e on the line to satisfy the non-zero validation; posting must ignore it.
         ItemJournalLine.Validate("Total CO2e", LotTotalCO2e[1]);
@@ -4281,7 +4281,7 @@ codeunit 148190 "Sust. Value Entry Test"
         PostTwoLotsWithSpecificCO2e(Item, FromLocation.Code, AccountCode, Quantity, LotNo, LotTotalCO2e);
 
         // [GIVEN] Create an Item Reclassification (Transfer) line moving the full quantity of the first lot to another location.
-        CreateItemReclassLine(ItemJournalBatch, ItemJournalLine, Item."No.", FromLocation.Code, ToLocation.Code, Quantity);
+        CreateItemReclassLine(ItemJournalBatch, ItemJournalLine, Item."No.", FromLocation.Code, ToLocation.Code, AccountCode, Quantity);
 
         // [GIVEN] Set an averaged (incorrect) Total CO2e on the line to satisfy the non-zero validation; posting must ignore it.
         ItemJournalLine.Validate("Total CO2e", LotTotalCO2e[2]);
@@ -4344,7 +4344,7 @@ codeunit 148190 "Sust. Value Entry Test"
         PostTwoLotsWithSpecificCO2e(Item, FromLocation.Code, AccountCode, Quantity, LotNo, LotTotalCO2e);
 
         // [GIVEN] Create an Item Reclassification (Transfer) line moving both lots (full quantity) to another location.
-        CreateItemReclassLine(ItemJournalBatch, ItemJournalLine, Item."No.", FromLocation.Code, ToLocation.Code, Quantity * ArrayLen(LotNo));
+        CreateItemReclassLine(ItemJournalBatch, ItemJournalLine, Item."No.", FromLocation.Code, ToLocation.Code, AccountCode, Quantity * ArrayLen(LotNo));
 
         // [GIVEN] Set a non-zero Total CO2e on the line to satisfy the non-zero validation; posting must ignore it.
         ItemJournalLine.Validate("Total CO2e", LotTotalCO2e[1]);
@@ -4547,7 +4547,7 @@ codeunit 148190 "Sust. Value Entry Test"
                 Item, LocationCode, AccountCode, '', Quantity, WorkDate(), '', LotNo[Index], LotTotalCO2e[Index]);
     end;
 
-    local procedure CreateItemReclassLine(var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line"; ItemNo: Code[20]; FromLocationCode: Code[10]; ToLocationCode: Code[10]; Quantity: Decimal)
+    local procedure CreateItemReclassLine(var ItemJournalBatch: Record "Item Journal Batch"; var ItemJournalLine: Record "Item Journal Line"; ItemNo: Code[20]; FromLocationCode: Code[10]; ToLocationCode: Code[10]; AccountCode: Code[20]; Quantity: Decimal)
     begin
         SelectItemJournalTransferBatch(ItemJournalBatch);
         LibraryInventory.CreateItemJournalLine(
@@ -4555,6 +4555,7 @@ codeunit 148190 "Sust. Value Entry Test"
             ItemJournalLine."Entry Type"::Transfer, ItemNo, Quantity);
         ItemJournalLine.Validate("Location Code", FromLocationCode);
         ItemJournalLine.Validate("New Location Code", ToLocationCode);
+        ItemJournalLine.Validate("Sust. Account No.", AccountCode);
     end;
 
     local procedure PostInventoryForItem(ItemNo: Code[20])
