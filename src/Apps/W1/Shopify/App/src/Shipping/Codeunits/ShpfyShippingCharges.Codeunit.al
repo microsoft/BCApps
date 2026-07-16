@@ -53,6 +53,7 @@ codeunit 30191 "Shpfy Shipping Charges"
         OrderShippingCharges: Record "Shpfy Order Shipping Charges";
         ShipmentMethodMapping: Record "Shpfy Shipment Method Mapping";
         DataCapture: Record "Shpfy Data Capture";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
         RecordRef: RecordRef;
         Id: BigInteger;
         JToken: JsonToken;
@@ -83,7 +84,7 @@ codeunit 30191 "Shpfy Shipping Charges"
             else
                 OrderShippingCharges.Modify();
             RecordRef.Close();
-            AddTaxLines(OrderShippingCharges."Shopify Shipping Line Id", JsonHelper.GetJsonArray(JToken, 'taxLines'));
+            OrderTaxLine.ImportFromJson(OrderShippingCharges."Shopify Shipping Line Id", JsonHelper.GetJsonArray(JToken, 'taxLines'));
             DataCapture.Add(Database::"Shpfy Order Shipping Charges", OrderShippingCharges.SystemId, JToken);
             if not ShipmentMethodMapping.Get(OrderHeader."Shop Code", OrderShippingCharges.Title) then begin
                 Clear(ShipmentMethodMapping);
@@ -120,29 +121,5 @@ codeunit 30191 "Shpfy Shipping Charges"
         Result := 0;
         foreach JAllocationAmountSet in JDiscountAllocations do
             Result += JsonHelper.GetValueAsDecimal(JAllocationAmountSet, StrSubstNo(amountLbl, MoneyType));
-    end;
-
-    local procedure AddTaxLines(ParentId: BigInteger; JTaxLines: JsonArray)
-    var
-        OrderTaxLine: Record "Shpfy Order Tax Line";
-        RecordRef: RecordRef;
-        JToken: JsonToken;
-    begin
-        OrderTaxLine.SetRange("Parent Id", ParentId);
-        if not OrderTaxLine.IsEmpty() then
-            OrderTaxLine.DeleteAll(false);
-        foreach JToken in JTaxLines do begin
-            RecordRef.Open(Database::"Shpfy Order Tax Line");
-            RecordRef.Init();
-            RecordRef.Field(OrderTaxLine.FieldNo("Parent Id")).Value := ParentId;
-            JsonHelper.GetValueIntoField(JToken, 'title', RecordRef, OrderTaxLine.FieldNo(Title));
-            JsonHelper.GetValueIntoField(JToken, 'rate', RecordRef, OrderTaxLine.FieldNo(Rate));
-            JsonHelper.GetValueIntoField(JToken, 'ratePercentage', RecordRef, OrderTaxLine.FieldNo("Rate %"));
-            JsonHelper.GetValueIntoField(JToken, 'priceSet.shopMoney.amount', RecordRef, OrderTaxLine.FieldNo(Amount));
-            JsonHelper.GetValueIntoField(JToken, 'priceSet.presentmentMoney.amount', RecordRef, OrderTaxLine.FieldNo("Presentment Amount"));
-            JsonHelper.GetValueIntoField(JToken, 'channelLiable', RecordRef, OrderTaxLine.FieldNo("Channel Liable"));
-            RecordRef.Insert(true);
-            RecordRef.Close();
-        end;
     end;
 }

@@ -151,6 +151,7 @@ codeunit 30161 "Shpfy Import Order"
     var
         OrderLine: Record "Shpfy Order Line";
         DataCapture: Record "Shpfy Data Capture";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
         Hash: Codeunit "Shpfy Hash";
         JOrderLine: JsonToken;
         LineIds: Text;
@@ -172,7 +173,7 @@ codeunit 30161 "Shpfy Import Order"
                 OrderLine.Copy(TempOrderLine);
                 UpdateLocationIdAndDeliveryMethodOnOrderLine(OrderLine);
                 OrderLine.Insert();
-                AddTaxLines(OrderLine."Line Id", JsonHelper.GetJsonArray(JOrderLine, 'taxLines'));
+                OrderTaxLine.ImportFromJson(OrderLine."Line Id", JsonHelper.GetJsonArray(JOrderLine, 'taxLines'));
                 ImportCustomAttributtes(OrderLine."Shopify Order Id", OrderLine.SystemId, JsonHelper.GetJsonArray(JOrderLine, 'customAttributes'));
             end;
             DataCapture.Add(Database::"Shpfy Order Line", OrderLine.SystemId, Format(JOrderLine));
@@ -268,6 +269,7 @@ codeunit 30161 "Shpfy Import Order"
 
     local procedure SetAndCreateRelatedRecords(JOrder: JsonObject; var OrderHeader: Record "Shpfy Order Header")
     var
+        OrderTaxLine: Record "Shpfy Order Tax Line";
         FulfillmentOrdersAPI: Codeunit "Shpfy Fulfillment Orders API";
         ShippingCharges: Codeunit "Shpfy Shipping Charges";
         Transactions: Codeunit "Shpfy Transactions";
@@ -275,7 +277,7 @@ codeunit 30161 "Shpfy Import Order"
         RefundsAPI: Codeunit "Shpfy Refunds API";
         IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
     begin
-        AddTaxLines(OrderHeader."Shopify Order Id", JsonHelper.GetJsonArray(JOrder, 'taxLines'));
+        OrderTaxLine.ImportFromJson(OrderHeader."Shopify Order Id", JsonHelper.GetJsonArray(JOrder, 'taxLines'));
         OrderHeader.SetWorkDescription(JsonHelper.GetValueAsText(JOrder, 'note'));
         ImportCustomAttributtes(OrderHeader."Shopify Order Id", JsonHelper.GetJsonArray(JOrder, 'customAttributes'));
         OrderHeader.UpdateTags(JsonHelper.GetArrayAsText(JOrder, 'tags'));
@@ -792,35 +794,6 @@ codeunit 30161 "Shpfy Import Order"
         if not StaffMember.Get(ShopCode, StaffMemberId) then
             exit;
         OrderHeaderRecordRef.Field(OrderHeader.FieldNo("Salesperson Code")).Value := StaffMember."Salesperson Code";
-    end;
-
-    /// <summary> 
-    /// Add Tax Lines.
-    /// </summary>
-    /// <param name="ParentId">Parameter of type BigInteger.</param>
-    /// <param name="JTaxLines">Parameter of type JsonArray.</param>
-    local procedure AddTaxLines(ParentId: BigInteger; JTaxLines: JsonArray)
-    var
-        OrderTaxLine: Record "Shpfy Order Tax Line";
-        RecordRef: RecordRef;
-        JToken: JsonToken;
-    begin
-        OrderTaxLine.SetRange("Parent Id", ParentId);
-        if not OrderTaxLine.IsEmpty() then
-            OrderTaxLine.DeleteAll();
-        foreach JToken in JTaxLines do begin
-            RecordRef.Open(Database::"Shpfy Order Tax Line");
-            RecordRef.Init();
-            RecordRef.Field(OrderTaxLine.FieldNo("Parent Id")).Value := ParentId;
-            JsonHelper.GetValueIntoField(JToken, 'title', RecordRef, OrderTaxLine.FieldNo(Title));
-            JsonHelper.GetValueIntoField(JToken, 'rate', RecordRef, OrderTaxLine.FieldNo(Rate));
-            JsonHelper.GetValueIntoField(JToken, 'ratePercentage', RecordRef, OrderTaxLine.FieldNo("Rate %"));
-            JsonHelper.GetValueIntoField(JToken, 'priceSet.shopMoney.amount', RecordRef, OrderTaxLine.FieldNo(Amount));
-            JsonHelper.GetValueIntoField(JToken, 'priceSet.presentmentMoney.amount', RecordRef, OrderTaxLine.FieldNo("Presentment Amount"));
-            JsonHelper.GetValueIntoField(JToken, 'channelLiable', RecordRef, OrderTaxLine.FieldNo("Channel Liable"));
-            RecordRef.Insert(true);
-            RecordRef.Close();
-        end;
     end;
 
     /// <summary> 

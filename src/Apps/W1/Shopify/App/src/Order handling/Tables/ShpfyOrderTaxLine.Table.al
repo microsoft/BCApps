@@ -103,6 +103,31 @@ table 30122 "Shpfy Order Tax Line"
         end;
     end;
 
+    internal procedure ImportFromJson(ParentId: BigInteger; JTaxLines: JsonArray)
+    var
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        JsonHelper: Codeunit "Shpfy Json Helper";
+        RecordRef: RecordRef;
+        JToken: JsonToken;
+    begin
+        OrderTaxLine.SetRange("Parent Id", ParentId);
+        if not OrderTaxLine.IsEmpty() then
+            OrderTaxLine.DeleteAll(false);
+        foreach JToken in JTaxLines do begin
+            RecordRef.Open(Database::"Shpfy Order Tax Line");
+            RecordRef.Init();
+            RecordRef.Field(OrderTaxLine.FieldNo("Parent Id")).Value := ParentId;
+            JsonHelper.GetValueIntoField(JToken, 'title', RecordRef, OrderTaxLine.FieldNo(Title));
+            JsonHelper.GetValueIntoField(JToken, 'rate', RecordRef, OrderTaxLine.FieldNo(Rate));
+            JsonHelper.GetValueIntoField(JToken, 'ratePercentage', RecordRef, OrderTaxLine.FieldNo("Rate %"));
+            JsonHelper.GetValueIntoField(JToken, 'priceSet.shopMoney.amount', RecordRef, OrderTaxLine.FieldNo(Amount));
+            JsonHelper.GetValueIntoField(JToken, 'priceSet.presentmentMoney.amount', RecordRef, OrderTaxLine.FieldNo("Presentment Amount"));
+            JsonHelper.GetValueIntoField(JToken, 'channelLiable', RecordRef, OrderTaxLine.FieldNo("Channel Liable"));
+            RecordRef.Insert(true);
+            RecordRef.Close();
+        end;
+    end;
+
     local procedure OrderCurrencyCode(): Code[10]
     var
         OrderHeader: Record "Shpfy Order Header";
