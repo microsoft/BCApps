@@ -1273,6 +1273,63 @@ codeunit 133963 "Agent Message Test"
     end;
 
     [Test]
+    procedure AddIgnoredAttachmentWithoutContent()
+    var
+        AgentRecord: Record Agent;
+        AgentTaskRecord: Record "Agent Task";
+        AgentTaskMessageRecord: Record "Agent Task Message";
+        AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
+        TempAgentTaskFile: Record "Agent Task File" temporary;
+        AgentTaskBuilder: Codeunit "Agent Task Builder";
+        AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
+        AgentMessage: Codeunit "Agent Message";
+        AgentUserId: Guid;
+        ExternalIdTok: Label 'MSGBLD-TEST-019', Locked = true;
+        IgnoredReasonTok: Label 'Exceeds file size limit';
+    begin
+        Initialize();
+
+        // [SCENARIO] Add an ignored attachment without storing its content
+
+        // [GIVEN] A test agent with a task
+        AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            'MSGBLDAGENT19',
+            'Message Builder Test Agent 19',
+            'You are a test agent for ignored attachment metadata testing.');
+
+        AgentTaskBuilder
+            .Initialize(AgentUserId, 'Ignored Attachment Metadata Test Task')
+            .SetExternalId(ExternalIdTok);
+        AgentTaskRecord := AgentTaskBuilder.Create(false, false);
+
+        // [WHEN] A message is created with an ignored attachment without content
+        AgentTaskMessageBuilder
+            .Initialize('Sender', 'Message with ignored attachment metadata')
+            .SetAgentTask(AgentTaskRecord)
+            .AddIgnoredAttachment('oversized.pdf', 'application/pdf', IgnoredReasonTok);
+        AgentTaskMessageRecord := AgentTaskMessageBuilder.Create(false);
+
+        AgentMessage.GetAttachments(AgentTaskRecord.Id, AgentTaskMessageRecord.Id, TempAgentTaskFile);
+
+        // [THEN] The attachment metadata exists without file content
+        Assert.AreEqual(1, TempAgentTaskFile.Count(), 'One attachment should exist');
+        TempAgentTaskFile.FindFirst();
+        TempAgentTaskFile.CalcFields(Content);
+        Assert.AreEqual('oversized.pdf', TempAgentTaskFile."File Name", 'Attachment file name should match');
+        Assert.AreEqual('application/pdf', TempAgentTaskFile."File MIME Type", 'Attachment MIME type should match');
+        Assert.IsFalse(TempAgentTaskFile.Content.HasValue(), 'Ignored attachment should not store content');
+
+        // [THEN] The attachment is ignored with the supplied reason
+        AgentTaskMessageAttachment.SetRange("Task ID", AgentTaskRecord.Id);
+        AgentTaskMessageAttachment.SetRange("Message ID", AgentTaskMessageRecord.Id);
+        AgentTaskMessageAttachment.SetRange("File ID", TempAgentTaskFile.ID);
+        Assert.IsTrue(AgentTaskMessageAttachment.FindFirst(), 'Attachment link should exist');
+        Assert.IsTrue(AgentTaskMessageAttachment.Ignored, 'Attachment should be ignored');
+        Assert.AreEqual(IgnoredReasonTok, AgentTaskMessageAttachment."Ignored Reason", 'Ignored reason should match');
+    end;
+
+    [Test]
     procedure GetLastAttachmentFromBuilder()
     var
         AgentRecord: Record Agent;
