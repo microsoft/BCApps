@@ -5,7 +5,10 @@
 namespace Microsoft.eServices.EDocument.Test;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Integration;
+using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
+using Microsoft.Purchases.Vendor;
 
 codeunit 135648 "E-Doc Purch Draft Totals Tests"
 {
@@ -58,11 +61,17 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         EDocumentNotificationRec.DeleteAll();
         EDocumentNotification.AddSubTotalMismatchNotification(EntryNo);
 
+        // [GIVEN] The notification was actually persisted
+        EDocumentNotificationRec.SetRange("E-Document Entry No.", EntryNo);
+        EDocumentNotificationRec.SetRange(Type, "E-Document Notification Type"::"Sub Total Mismatch");
+        Assert.RecordCount(EDocumentNotificationRec, 1);
+
         // [WHEN] Removing it
         EDocumentNotification.RemoveSubTotalMismatchNotification(EntryNo);
 
         // [THEN] No record remains for that entry no
         EDocumentNotificationRec.SetRange("E-Document Entry No.", EntryNo);
+        EDocumentNotificationRec.SetRange(Type);
         Assert.RecordIsEmpty(EDocumentNotificationRec);
     end;
 
@@ -71,14 +80,18 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
     procedure EditingLineDoesNotOverwriteHeaderSubTotal()
     var
         EDocument: Record "E-Document";
+        EDocumentNotificationRec: Record "E-Document Notification";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
+        Vendor: Record Vendor;
         EDocumentPurchaseDraft: TestPage "E-Document Purchase Draft";
         HeaderSubTotalBefore: Decimal;
         HeaderTotalBefore: Decimal;
     begin
         // [SCENARIO] Editing a draft line no longer overwrites the extracted header Sub Total / Total
         // [GIVEN] An inbound e-document with header Sub Total intentionally different from the sum of the lines
+        LibraryEDoc.SetupStandardVAT();
+        LibraryEDoc.SetupStandardPurchaseScenario(Vendor, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::Mock, Enum::"E-Document Import Process"::"Version 2.0");
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
 
         EDocumentPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
@@ -107,6 +120,13 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         // [THEN] The header Sub Total / Total are unchanged (no overwrite from the sum of the lines)
         Assert.AreEqual(HeaderSubTotalBefore, EDocumentPurchaseHeader."Sub Total", 'Header Sub Total must not be overwritten by the sum of the lines.');
         Assert.AreEqual(HeaderTotalBefore, EDocumentPurchaseHeader.Total, 'Header Total must not be overwritten by the sum of the lines.');
+
+        EDocumentNotificationRec.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocumentNotificationRec.SetRange(Type, "E-Document Notification Type"::"Sub Total Mismatch");
+        EDocumentNotificationRec.DeleteAll();
+        EDocumentPurchaseLine.Delete();
+        EDocumentPurchaseHeader.Delete();
+        EDocument.Delete();
     end;
 
     [SendNotificationHandler]
