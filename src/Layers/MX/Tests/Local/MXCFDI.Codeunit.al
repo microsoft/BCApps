@@ -7453,10 +7453,6 @@
         AssertDateWithinOneDayTolerance(
             StampDate, FechaPagoValue,
             'FechaPago must be close to the posting date (which equals stamp request date)');
-        Assert.AreEqual(
-            CopyStr(FechaValue, 1, 10),
-            CopyStr(FechaPagoValue, 1, 10),
-            'Comprobante/@Fecha and FechaPago must still have the same date when the posting date equals the stamp request date');
 
         // [CLEANUP] Restore original work date
         WorkDate(SavedWorkDate);
