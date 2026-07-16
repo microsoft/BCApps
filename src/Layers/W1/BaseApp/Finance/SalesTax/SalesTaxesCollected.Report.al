@@ -15,6 +15,7 @@ using System.Utilities;
 report 24 "Sales Taxes Collected"
 {
     Caption = 'Sales Taxes Collected';
+    ToolTip = 'View a report that shows the sales taxes that have been collected on behalf of the authorities.';
     DefaultRenderingLayout = RDLCLayout;
 
     dataset

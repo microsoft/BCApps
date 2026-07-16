@@ -334,7 +334,6 @@ page 9022 "Business Manager Role Center"
                         Caption = 'Sales Taxes Collected';
                         Image = "Report";
                         RunObject = Report "Sales Taxes Collected";
-                        ToolTip = 'View a report that shows the sales taxes that have been collected on behalf of the authorities.';
                     }
                 }
             }
