@@ -1036,9 +1036,13 @@ function Select-CrossPrUnstableTests {
     Detects cross-PR unstable tests from recent PR Build runs targeting a branch.
 .Description
     The network-facing entry point for the cross-PR detector. It:
-    1. Lists completed 'Pull Request Build' runs created within the last WindowHours.
-    2. Resolves each run's PR number and base branch, keeping only failed runs that target Branch.
-    3. Downloads those runs' test result artifacts and parses their failing tests.
+    1. Lists 'Pull Request Build' runs created within the last WindowHours that are either completed or
+       still in progress. Including in-progress runs lets an instability be caught from a build whose
+       test job has already finished (and uploaded results) even before the whole build completes.
+    2. Resolves each run's PR number and base branch, keeping only runs that target Branch and either
+       failed (completed) or are still running.
+    3. Downloads those runs' test result artifacts and parses their failing tests (a running build may
+       not have uploaded any yet, in which case it is simply skipped).
     4. Delegates to Select-CrossPrUnstableTests to keep only tests that failed on >= MinDistinctPrs
        distinct PRs.
 
@@ -1077,12 +1081,14 @@ function Find-CrossPrUnstableTests {
 
     $sinceIso = (Get-Date).ToUniversalTime().AddHours(-$WindowHours).ToString('yyyy-MM-ddTHH:mm:ssZ')
     $createdFilter = [uri]::EscapeDataString(">=$sinceIso")
-    Write-Host "Listing completed '$WorkflowFile' runs created since $sinceIso targeting '$Branch' ..."
+    Write-Host "Listing '$WorkflowFile' runs (completed or in progress) created since $sinceIso targeting '$Branch' ..."
 
-    $jq = '.workflow_runs[] | {id, headSha: .head_sha, conclusion, createdAt: .created_at, prNumbers: [.pull_requests[]?.number], baseRefs: [.pull_requests[]?.base.ref]}'
-    $lines = @(gh api "/repos/$Repository/actions/workflows/$WorkflowFile/runs?event=pull_request&status=completed&per_page=100&created=$createdFilter" --paginate --jq $jq 2>$null)
+    # No status filter: we want completed runs (kept only when they failed) and in-progress runs (kept
+    # best-effort in case their test job already uploaded results).
+    $jq = '.workflow_runs[] | {id, headSha: .head_sha, status, conclusion, createdAt: .created_at, prNumbers: [.pull_requests[]?.number], baseRefs: [.pull_requests[]?.base.ref]}'
+    $lines = @(gh api "/repos/$Repository/actions/workflows/$WorkflowFile/runs?event=pull_request&per_page=100&created=$createdFilter" --paginate --jq $jq 2>$null)
     if ($LASTEXITCODE -ne 0 -or $lines.Count -eq 0) {
-        Write-Host "No completed PR Build runs found in the window (or the listing failed)."
+        Write-Host "No PR Build runs found in the window (or the listing failed)."
         return @{}
     }
 
@@ -1096,8 +1102,16 @@ function Find-CrossPrUnstableTests {
         try { $run = $line | ConvertFrom-Json } catch { continue }
         if ($null -eq $run) { continue }
 
-        # Only failed runs can contain failing tests worth downloading.
-        if ($run.conclusion -ne 'failure') { continue }
+        # A completed run only matters if it failed. An in-progress run may already have uploaded test
+        # results from a finished test job, so include it best-effort. Everything else (completed and
+        # not failed, queued/waiting, etc.) is skipped.
+        $isCompleted = ($run.status -eq 'completed')
+        if ($isCompleted) {
+            if ($run.conclusion -ne 'failure') { continue }
+        }
+        elseif ($run.status -ne 'in_progress') {
+            continue
+        }
 
         # Resolve the PR number for this run's base branch. Same-repo PRs are present in pull_requests;
         # fork PRs are not, so fall back to the commit->PRs API.
@@ -1120,7 +1134,7 @@ function Find-CrossPrUnstableTests {
         $processed++
         $runId = [string]$run.id
         $runDir = Join-Path $WorkDirectory "run-$runId"
-        Write-Host "Downloading test results from PR #$prNumber build (run $runId) ..."
+        Write-Host "Downloading test results from PR #$prNumber build (run $runId, status '$($run.status)') ..."
         gh run download $runId --repo $Repository --dir $runDir --pattern '*TestResult*' 2>&1 | ForEach-Object { Write-Verbose $_ }
         if (-not (Test-Path $runDir)) { continue }
 

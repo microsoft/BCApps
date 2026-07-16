@@ -1,57 +1,62 @@
 name: Update Unstable Tests List
-run-name: "Detect unstable tests from the last ${{ inputs.runLimit || 3 }} CI/CD runs across official branches"
+run-name: "Detect unstable tests from recent CI/CD runs and PR builds across official branches"
 
-# Automatically detects unstable tests by analyzing recent CI/CD run results.
+# Maintains the per-branch unstable-tests artifact from two complementary signals, combined into a
+# single artifact write per branch:
 #
-# Runs after each CI/CD completion (scoped to the branch that ran), twice daily on a schedule,
-# and on manual dispatch with configurable filters.
-# For each official branch (main, releases/*), the workflow:
-#   1. Fetches the last 3 completed CI/CD runs (filtered by selected event types).
-#   2. Downloads all test result artifacts from those runs.
-#   3. Identifies tests that failed in at least one run → marks them as unstable.
-#   4. Publishes an updated unstable-tests artifact per branch.
+#   Path A - CI/CD sliding window (authoritative recompute):
+#     Fetches the last few completed CI/CD runs on the branch and marks every test that failed in at
+#     least one of them as unstable. Because it fully recomputes, tests that stop failing across the
+#     window drop off the list (self-healing).
 #
-# PR builds consume this artifact to tolerate known-unstable test failures, preventing
-# unstable tests from blocking unrelated pull requests.
+#   Path B - cross-PR detection (additive):
+#     Looks at PR builds created in the last few hours - completed OR still running - and additively
+#     adds any test that failed across multiple distinct PRs. A test failing on a single PR is
+#     ambiguous (could be that PR's own change); the same test failing across several unrelated PRs is
+#     almost always an instability. Including running builds lets an instability be caught as soon as a
+#     build's test job has uploaded results, before the whole build completes.
 #
-# The list is self-healing: tests that pass consistently across all examined runs are
-# automatically removed from the unstable list.
+# PR builds consume the resulting per-branch artifact to tolerate known-unstable test failures,
+# preventing unstable tests from blocking unrelated pull requests. The workflow runs on a schedule so
+# both signals stay fresh (the cross-PR window is only a few hours), and can be dispatched manually.
 
 on:
   workflow_dispatch:
     inputs:
       runLimit:
-        description: 'Number of recent CI/CD runs to examine'
+        description: 'Path A: number of recent CI/CD runs to examine'
         required: false
         type: number
         default: 3
       filterPush:
-        description: 'Include runs triggered by push'
+        description: 'Path A: include CI/CD runs triggered by push'
         required: false
         type: boolean
         default: false
       filterWorkflowDispatch:
-        description: 'Include runs triggered by workflow_dispatch'
+        description: 'Path A: include CI/CD runs triggered by workflow_dispatch'
         required: false
         type: boolean
         default: true
-  workflow_run:
-    # Refresh the list as soon as a CI/CD run completes so newly-unstable tests are tolerated
-    # within minutes instead of waiting for the next scheduled run (up to ~12h later).
-    workflows: [' CI/CD']
-    types: [completed]
+      windowHours:
+        description: 'Path B: how many hours of recent PR builds to examine'
+        required: false
+        type: number
+        default: 3
+      minDistinctPrs:
+        description: 'Path B: minimum number of distinct PRs a test must fail on to be marked unstable'
+        required: false
+        type: number
+        default: 2
   schedule:
-    - cron: '0 10,22 * * *'  # Twice daily at 10:00 and 22:00 UTC
+    - cron: '15 * * * *'  # Hourly, at minute 15 - keeps the few-hour cross-PR window fresh.
 
 permissions: read-all
 
 jobs:
   GetBranches:
     name: Get Official Branches
-    # On workflow_run, only act when the completed CI/CD run's own trigger event is one the
-    # sliding window includes (workflow_dispatch by default); skip push-triggered completions
-    # so we don't run wasteful no-op recomputes.
-    if: github.repository_owner == 'microsoft' && (github.event_name != 'workflow_run' || github.event.workflow_run.event == 'workflow_dispatch')
+    if: github.repository_owner == 'microsoft'
     runs-on: ubuntu-latest
     outputs:
       updateBranches: ${{ steps.ensureArray.outputs.branchesJson }}
@@ -65,27 +70,12 @@ jobs:
       - name: Ensure JSON array
         id: ensureArray
         shell: pwsh
-        env:
-          _eventName: ${{ github.event_name }}
-          _triggerBranch: ${{ github.event.workflow_run.head_branch }}
         run: |
           $raw = '${{ steps.getOfficialBranches.outputs.branchesJson }}'
           $parsed = @($raw | ConvertFrom-Json)
-
-          # When triggered by a completed CI/CD run, only refresh the branch that just ran,
-          # and only if it is an official branch. All other events refresh every official branch.
-          if ($env:_eventName -eq 'workflow_run') {
-              $triggerBranch = $env:_triggerBranch
-              Write-Host "Triggered by CI/CD completion on branch '$triggerBranch'"
-              $parsed = @($parsed | Where-Object { $_ -eq $triggerBranch })
-              if ($parsed.Count -eq 0) {
-                  Write-Host "Branch '$triggerBranch' is not an official branch; nothing to update."
-              }
-          }
-
-          # The leading unary comma forces array context so a single branch still serializes
-          # as a JSON array (e.g. ["main"]) and an empty result serializes as []. Either way
-          # the downstream matrix always receives valid JSON.
+          # The leading unary comma forces array context so a single branch still serializes as a JSON
+          # array (e.g. ["main"]) and an empty result serializes as []. Either way the downstream matrix
+          # always receives valid JSON.
           $json = ,@($parsed) | ConvertTo-Json -Compress
           Write-Host "Branches: $json"
           Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "branchesJson=$json"
@@ -103,32 +93,43 @@ jobs:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
-      - name: Calculate run IDs
-        id: calc
+      - name: Update unstable tests
+        id: update
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
           _branch: ${{ matrix.branch }}
-          _repository: ${{ github.repository }}
           _runLimit: ${{ inputs.runLimit || 3 }}
           _filterPush: ${{ inputs.filterPush || false }}
           _filterWorkflowDispatch: ${{ inputs.filterWorkflowDispatch || true }}
+          _windowHours: ${{ inputs.windowHours || 3 }}
+          _minDistinctPrs: ${{ inputs.minDistinctPrs || 2 }}
         run: |
-          # Discover the recent window of completed runs that produced test result artifacts.
           Import-Module ./build/scripts/TestTolerance/TestTolerance.psm1 -Force
-          $runIds = Find-UnstableTestRunIds `
+          $outputPath = Join-Path '.unstable-tests' 'unstable-tests.json'
+          ./build/scripts/TestTolerance/UpdateUnstableTestsCombined.ps1 `
             -Branch $env:_branch `
-            -Repository $env:_repository `
             -RunLimit ([int]$env:_runLimit) `
             -FilterPush:($env:_filterPush -eq 'true') `
-            -FilterWorkflowDispatch:($env:_filterWorkflowDispatch -eq 'true')
-          $csv = ($runIds -join ',')
-          Write-Host "Run IDs: $csv"
-          Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "runIds=$csv"
+            -FilterWorkflowDispatch:($env:_filterWorkflowDispatch -eq 'true') `
+            -WindowHours ([int]$env:_windowHours) `
+            -MinDistinctPrs ([int]$env:_minDistinctPrs) `
+            -OutputPath $outputPath
 
-      - name: Update unstable tests
-        if: steps.calc.outputs.runIds != ''
-        uses: microsoft/BCApps/.github/actions/UpdateUnstableTests@main
+          # Expose the artifact name only when the file was produced, so the upload step is skipped when
+          # nothing changed.
+          if (Test-Path $outputPath) {
+            $artifactName = Get-UnstableTestsArtifactName -Branch $env:_branch
+            Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "artifactName=$artifactName"
+          }
+
+      - name: Upload unstable tests artifact
+        if: steps.update.outputs.artifactName != ''
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        env:
+          ACTIONS_RUNNER_DISABLE_NODE_MAGLEV: 1
         with:
-          branch: ${{ matrix.branch }}
-          run-id: ${{ steps.calc.outputs.runIds }}
+          name: ${{ steps.update.outputs.artifactName }}
+          path: .unstable-tests/unstable-tests.json
+          if-no-files-found: warn
+          retention-days: 30

@@ -39,22 +39,22 @@ Allow specific tests that are known to be unstable to be tolerated during build 
 
 ### 6.1 How a test is marked as unstable
 
-Unstable tests are tracked via a **per-branch artifact** (`unstable-tests-<normalized-branch>`) maintained by the UpdateUnstableTests workflow that runs after each CI/CD completion. Tests are never annotated in source; the list lives entirely in the artifact.
+Unstable tests are tracked via a **per-branch artifact** (`unstable-tests-<normalized-branch>`) maintained by the UpdateUnstableTests workflow, which runs on an hourly schedule. Tests are never annotated in source; the list lives entirely in the artifact.
 
 - The artifact is **branch-scoped**: its name encodes the branch it applies to, so each branch can have its own set of unstable tests.
   - Naming pattern: `unstable-tests-<normalized-branch>`, where the branch name is normalized by replacing non-alphanumeric characters (except `.`, `_`, `-`) with `-`. For example, `releases/26.0` becomes `unstable-tests-releases-26.0`.
 - Supported branches: **`main`** and all **`releases/*`** branches only. Other branches do not produce or consume the artifact.
 
-**Sliding window heuristic**
+**Sliding window heuristic (Path A)**
 
-After each CI/CD run completes, the UpdateUnstableTests workflow examines the last **3** completed CI/CD runs on the branch (the default window). The unstable-tests list is **fully recomputed** from those runs — no incremental merging.
+On each scheduled run, the UpdateUnstableTests workflow examines the last **3** completed CI/CD runs on the branch (the default window). The unstable-tests list is **fully recomputed** from those runs — no incremental merging.
 
 - **ADD**: Any test that failed in at least one of the last 3 runs is added to the list.
 - **REMOVE**: Any test that did not fail in any of the last 3 runs is dropped from the list (i.e., self-healing is automatic over a 3-run window).
 
 The artifact records the `runIds` field listing the exact runs examined, for traceability.
 
-The window size (default 3) is a parameter of the workflow's "Calculate run IDs" step (passed through to `Find-UnstableTestRunIds`) and can be changed without modifying the schema.
+The window size (default 3) is the `RunLimit` parameter of the combined updater (passed through to `Find-UnstableTestRunIds`) and can be changed without modifying the schema.
 
 **Manual additive path (AddUnstableTestsFromRun)**
 
@@ -67,24 +67,24 @@ In addition to the automatic sliding-window heuristic, the **AddUnstableTestsFro
 
 Unlike the sliding window, this path **never removes** entries; it is purely additive. Entries added this way carry the reason `Manually added from CI/CD run <runId>` and a `sourceRunUrl` for traceability. The next scheduled UpdateUnstableTests run will recompute the list from the window and may drop manually-added entries if they have stopped failing — this is the intended self-healing behavior.
 
-Both modes run the **same** composite action (`UpdateUnstableTests`), which simply takes a comma-separated `run-id` list and an `additive` flag and invokes the shared updater script `UpdateUnstableTestsArtifact.ps1` in `build/scripts/TestTolerance` (which collects failing tests from those runs via `Get-FailedTestsFromRuns`, builds the list, and writes the artifact). The two differences are pushed entirely to the **calling workflow**: **how the run ids are obtained** — the scheduled `UpdateUnstableTests.yaml` workflow has a "Calculate run IDs" step that discovers the sliding window via `Find-UnstableTestRunIds` and passes the result as `run-id`, while `AddUnstableTestsFromRun.yaml` passes the explicit run id from its input — and **how the collected failures are merged** — the additive workflow sets `additive: true` (merge via `Add-FailedTestsToUnstableTests`), whereas the scheduled workflow leaves it at the default (recompute via `Update-UnstableTestsList`).
+The `AddUnstableTestsFromRun` path runs the composite action (`UpdateUnstableTests`), which takes a comma-separated `run-id` list and an `additive` flag and invokes the shared updater script `UpdateUnstableTestsArtifact.ps1` in `build/scripts/TestTolerance` (it collects failing tests from those runs via `Get-FailedTestsFromRuns`, merges them additively via `Add-FailedTestsToUnstableTests`, and writes the artifact). The scheduled `UpdateUnstableTests.yaml` workflow does **not** use this action — it runs the combined driver described below, which recomputes Path A and layers Path B on top in a single artifact write. Both ultimately reuse the same building blocks in `TestTolerance.psm1`, so the artifact schema stays identical.
 
 The additive path is wired through the `AddUnstableTestsFromRun.yaml` workflow (manual `workflow_dispatch` with `branch` and `runId` inputs), which calls the shared `UpdateUnstableTests` action with `additive: true`. The `branch` input is a comma-separated filter (default `main, releases/*`) that is converted to a JSON array and expanded against the official branches via the `GetGitBranches` action; the workflow then fans out over the matching branches with a matrix, applying the run's failing tests to each selected branch's list. The run is always read from the current repository.
 
-**Cross-PR automatic additive path (DetectUnstableTestsFromPrBuilds)**
+**Cross-PR automatic additive path (Path B)**
 
-The `AddUnstableTestsFromRun` path above is manual. The **DetectUnstableTestsFromPrBuilds** workflow provides an *automatic* additive path that reacts within minutes by correlating failures **across PR builds**, closing the latency gap of the twice-daily sliding window.
+The `AddUnstableTestsFromRun` path above is manual. The scheduled `UpdateUnstableTests` workflow also runs an *automatic* additive path in the **same** run, right after the Path A recompute, that reacts quickly by correlating failures **across PR builds**.
 
-The signal it exploits: a test failing on a *single* PR is ambiguous (it could be that PR's own change), but the same test failing across **multiple unrelated PRs** in a short window is almost never caused by any one PR — it is an instability. The workflow runs hourly (and on demand) and, for each official branch:
+The signal it exploits: a test failing on a *single* PR is ambiguous (it could be that PR's own change), but the same test failing across **multiple unrelated PRs** in a short window is almost never caused by any one PR — it is an instability. On each hourly run, for each official branch it:
 
-1. Lists `Pull Request Build` runs completed in the last `windowHours` (default **3**) hours.
-2. Resolves each run's PR number and base branch (same-repo PRs come from the run's `pull_requests`; fork PRs fall back to the commit→PRs API), keeping only **failed** runs that target the branch.
-3. Downloads those runs' test result artifacts and identifies the failing tests.
-4. Marks any test that failed on at least `minDistinctPrs` (default **2**) **distinct PRs** as unstable, and merges it into the existing `unstable-tests-<normalized-branch>` artifact via the same `Add-FailedTestsToUnstableTests` additive merge (existing entries preserved).
+1. Lists `Pull Request Build` runs created in the last `windowHours` (default **3**) hours that are either **completed** or **still running**. Including in-progress builds lets an instability be caught as soon as a build's test job has uploaded results, before the whole build completes.
+2. Resolves each run's PR number and base branch (same-repo PRs come from the run's `pull_requests`; fork PRs fall back to the commit→PRs API), keeping only runs that target the branch and either failed (completed) or are still running.
+3. Downloads those runs' test result artifacts and identifies the failing tests (a running build that has not uploaded results yet is simply skipped).
+4. Marks any test that failed on at least `minDistinctPrs` (default **2**) **distinct PRs** as unstable, and merges it into the Path A base list via the same `Add-FailedTestsToUnstableTests` additive merge (existing entries preserved).
 
-Distinctness is counted by **PR number**, so retrying the same PR does not inflate the count. Entries carry the reason `Auto-detected: failed on <N> distinct PRs targeting '<branch>' within the last <windowHours> h` and a `sourceRunUrl`. Like the other additive path it **never removes** entries; the next scheduled `UpdateUnstableTests` recompute may drop them if they stop failing in CI/CD, and the detector re-adds them on its next run if they keep recurring across PRs.
+Distinctness is counted by **PR number**, so retrying the same PR does not inflate the count. Entries carry the reason `Auto-detected: failed on <N> distinct PRs targeting '<branch>' within the last <windowHours> h` and a `sourceRunUrl`. This path **never removes** entries; because Path A recomputes from CI/CD in the same run, a cross-PR-added entry is dropped once it stops failing in CI/CD, and Path B re-adds it on the next run if it keeps recurring across PRs — the intended self-healing behavior.
 
-The correlation logic lives in `TestTolerance.psm1`, split into a pure, unit-tested core (`Select-CrossPrUnstableTests`, which counts distinct PRs and applies the threshold) and a thin `gh`-facing wrapper (`Find-CrossPrUnstableTests`, which lists runs, resolves PRs, and downloads artifacts). The `UpdateUnstableTestsFromPrBuilds.ps1` script drives detection → additive merge → artifact write, and the workflow uploads the per-branch artifact only when something new was detected. Because `Receive-UnstableTestsArtifact` always downloads the most recent artifact by name, the detector's hourly additive publish and the scheduled recompute interleave correctly (latest wins).
+The correlation logic lives in `TestTolerance.psm1`, split into a pure, unit-tested core (`Select-CrossPrUnstableTests`, which counts distinct PRs and applies the threshold) and a thin `gh`-facing wrapper (`Find-CrossPrUnstableTests`, which lists runs, resolves PRs, and downloads artifacts). The `UpdateUnstableTestsCombined.ps1` script drives the whole run: Path A recompute (or, when no CI/CD runs are available, preserving the existing list so it is never wiped) → Path B cross-PR detection → a single additive merge → one artifact write. Because both signals are merged before writing, PR builds always consume one coherent artifact and there is no interleaving race between separate publishers.
 
 > **Confidence trade-off:** the default threshold (`minDistinctPrs = 2`, no base-branch guard) is deliberately aggressive for speed. It can, in the worst case, tolerate a *real* regression that has just landed on the base branch and is therefore failing across many PRs. This is accepted because the scheduled recompute self-heals the list and the exposure is time-bounded; raising `minDistinctPrs` or adding a base-branch check would trade speed for a lower masking risk.
 
