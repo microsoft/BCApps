@@ -110,7 +110,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
                     trigger OnValidate()
                     begin
-                        UpdateCalculatedAmounts(true);
+                        UpdateCalculatedAmounts();
                     end;
                 }
                 field("Direct Unit Cost"; Rec."Unit Price")
@@ -119,7 +119,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     Editable = true;
                     trigger OnValidate()
                     begin
-                        UpdateCalculatedAmounts(true);
+                        UpdateCalculatedAmounts();
                     end;
                 }
                 field("Total Discount"; Rec."Total Discount")
@@ -129,7 +129,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     Editable = true;
                     trigger OnValidate()
                     begin
-                        UpdateCalculatedAmounts(true);
+                        UpdateCalculatedAmounts();
                     end;
                 }
                 field("Line Amount"; LineAmount)
@@ -353,7 +353,6 @@ page 6183 "E-Doc. Purchase Draft Subform"
         DimVisible1, DimVisible2, HasAdditionalColumns, IsEDocumentMatchedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings, VATProdPostGroupIsVisible : Boolean;
         HistoryCantBeRetrievedErr: Label 'The purchase invoice that matched historically with this line can''t be opened.';
         SubTotalMismatchNoToleranceTxt: Label 'E-Document purchase draft header Sub Total differs from the sum of the lines.', Locked = true;
-        SubTotalMismatchBeyondToleranceTxt: Label 'E-Document purchase draft header Sub Total differs from the sum of the lines beyond the rounding tolerance.', Locked = true;
         SubTotalMismatchNotificationShownTxt: Label 'E-Document purchase draft Sub Total mismatch notification shown.', Locked = true;
 
     trigger OnOpenPage()
@@ -379,7 +378,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         AdditionalColumns := Rec.AdditionalColumnsDisplayText();
         MatchedEntityName := Rec.GetMatchedEntityName();
         SetHasAdditionalColumns();
-        UpdateCalculatedAmounts(false);
+        UpdateCalculatedAmounts();
         IsLineMatchedToOrderLine := EDocPOMatching.IsEDocumentLineMatchedToAnyPOLine(EDocumentPurchaseLine);
         IsLineMatchedToReceiptLine := EDocPOMatching.IsEDocumentLineMatchedToAnyReceiptLine(EDocumentPurchaseLine);
         OrderMatchedCaption := IsLineMatchedToOrderLine ? GetSummaryOfMatchedOrders() : '';
@@ -412,7 +411,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         VATProdPostGroupIsVisible := PurchSetup."Resolve VAT Group Purch EDoc";
     end;
 
-    local procedure UpdateCalculatedAmounts(UpdateParentRecord: Boolean)
+    local procedure UpdateCalculatedAmounts()
     var
         LineSubtotal: Decimal;
         DiscountExceedsSubtotalErr: Label 'Discount should not exceed the subtotal of the line';
@@ -426,8 +425,6 @@ page 6183 "E-Doc. Purchase Draft Subform"
         else
             if Rec."Total Discount" / LineSubtotal > 1 then
                 Error(DiscountExceedsSubtotalErr);
-        if not UpdateParentRecord then
-            exit;
         if not EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then
             exit;
         CheckSubTotalMatchesLines(EDocumentPurchaseHeader);
@@ -467,7 +464,6 @@ page 6183 "E-Doc. Purchase Draft Subform"
             Telemetry.LogMessage('', SubTotalMismatchNoToleranceTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
 
         if Difference > Tolerance then begin
-            Telemetry.LogMessage('', SubTotalMismatchBeyondToleranceTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
             Telemetry.LogMessage('', SubTotalMismatchNotificationShownTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
             EDocumentNotification.AddSubTotalMismatchNotification(EDocPurchaseHeader."E-Document Entry No.");
             EDocumentNotification.SendPurchaseDocumentDraftNotifications(EDocPurchaseHeader."E-Document Entry No.");
