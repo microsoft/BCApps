@@ -85,13 +85,11 @@ codeunit 3684 "BOM Tree Node"
     end;
 
     procedure IsChild(ChildKey: Text): Boolean
-    var
-        Child: Codeunit "BOM Tree Node";
     begin
         // Look the child up directly by key instead of enumerating. Enumerating relies on the
         // dictionary's single shared enumerator, and exiting the loop early on a match left the
         // enumerator mid-collection, causing later calls on the same parent to miss existing
         // children and wrongly return false (leading to a duplicate node insert error).
-        exit(ChildNodes.TryGet(ChildKey, Child));
+        exit(ChildNodes.ContainsKey(ChildKey));
     end;
 }
