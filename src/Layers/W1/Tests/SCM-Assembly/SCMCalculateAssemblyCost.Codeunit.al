@@ -7,6 +7,7 @@ namespace Microsoft.Assembly.Test;
 using Microsoft.Assembly.Document;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
@@ -19,6 +20,7 @@ using Microsoft.Manufacturing.StandardCost;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
 using System.Environment.Configuration;
 
 codeunit 137911 "SCM Calculate Assembly Cost"
@@ -56,6 +58,8 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         AsmOverheadDriftedTwoDecimalErr: Label 'Assembly manufacturing overhead drifted for a two-decimal Indirect Cost percentage.';
         ProdOverheadAffectedErr: Label 'Production manufacturing overhead should not be affected by the assembly overhead recomputation.';
         Initialized: Boolean;
+        GlobalVATBusPostingGroup: Code[20];
+        GlobalVATProdPostingGroup: Code[20];
 
     [Test]
     [Scope('OnPrem')]
@@ -720,6 +724,7 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         LibraryInventory.CreateItem(Item);
         Item.Validate("Costing Method", CostingMethod);
         Item.Validate("Replenishment System", ReplenishmentSystem);
+        Item.Validate("VAT Prod. Posting Group", GetSharedVATProdPostingGroup());
         Item.Validate("Standard Cost", StandardCostAmt);
         Item.Modify(true);
         EnsureGeneralPostingSetup(Item."Gen. Prod. Posting Group");
@@ -770,7 +775,7 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
     begin
-        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, CreateVendorWithSharedVAT());
         LibraryPurchase.CreatePurchaseLineWithUnitCost(PurchaseLine, PurchaseHeader, ItemNo, UnitCost, Qty);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
@@ -787,8 +792,47 @@ codeunit 137911 "SCM Calculate Assembly Cost"
     begin
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, PurchRcptLine."Buy-from Vendor No.");
         LibraryPurchase.CreateItemChargePurchaseLine(PurchaseLine, ItemCharge, PurchaseHeader, 1, ChargeAmount);
+        PurchaseLine.Validate("VAT Prod. Posting Group", GetSharedVATProdPostingGroup());
+        PurchaseLine.Modify(true);
         LibraryCosting.AssignItemChargePurch(PurchaseLine, PurchRcptLine);
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+    end;
+
+    local procedure CreateVendorWithSharedVAT(): Code[20]
+    var
+        Vendor: Record Vendor;
+    begin
+        LibraryPurchase.CreateVendor(Vendor);
+        Vendor.Validate("VAT Bus. Posting Group", GetSharedVATBusPostingGroup());
+        Vendor.Modify(true);
+        exit(Vendor."No.");
+    end;
+
+    local procedure GetSharedVATBusPostingGroup(): Code[20]
+    begin
+        EnsureSharedVATPostingSetup();
+        exit(GlobalVATBusPostingGroup);
+    end;
+
+    local procedure GetSharedVATProdPostingGroup(): Code[20]
+    begin
+        EnsureSharedVATPostingSetup();
+        exit(GlobalVATProdPostingGroup);
+    end;
+
+    local procedure EnsureSharedVATPostingSetup()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        // Create a single, fully configured 0% VAT Posting Setup and share its VAT Bus./Prod. Posting
+        // Groups across the created items, vendor and item charge so purchase posting has a valid VAT
+        // Posting Setup in every localization (e.g. the VAT combination is not present in demo data).
+        if (GlobalVATProdPostingGroup <> '') and VATPostingSetup.Get(GlobalVATBusPostingGroup, GlobalVATProdPostingGroup) then
+            exit;
+
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
+        GlobalVATBusPostingGroup := VATPostingSetup."VAT Bus. Posting Group";
+        GlobalVATProdPostingGroup := VATPostingSetup."VAT Prod. Posting Group";
     end;
 
     local procedure GetOutputMfgOverhead(ItemNo: Code[20]; OutputEntryType: Enum "Item Ledger Entry Type"): Decimal
