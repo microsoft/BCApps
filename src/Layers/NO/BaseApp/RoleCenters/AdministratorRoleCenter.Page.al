@@ -429,7 +429,6 @@ page 9018 "Administrator Role Center"
                 Caption = 'Relocate &Attachments';
                 Image = ChangeTo;
                 RunObject = Report "Relocate Attachments";
-                ToolTip = 'Specify where to store attachments.';
             }
             action("Create Warehouse &Location")
             {
@@ -763,7 +762,6 @@ page 9018 "Administrator Role Center"
                     Caption = 'Create Contacts from &Customer';
                     Image = CustomerContact;
                     RunObject = Report "Create Conts. from Customers";
-                    ToolTip = 'Create a contact card from information about the customer''s contact person.';
                 }
                 action("Create Contacts from &Vendor")
                 {
@@ -771,7 +769,6 @@ page 9018 "Administrator Role Center"
                     Caption = 'Create Contacts from &Vendor';
                     Image = VendorContact;
                     RunObject = Report "Create Conts. from Vendors";
-                    ToolTip = 'Create a contact card from information about the vendor''s contact person.';
                 }
                 action("Create Contacts from &Bank Account")
                 {
@@ -779,7 +776,6 @@ page 9018 "Administrator Role Center"
                     Caption = 'Create Contacts from &Bank Account';
                     Image = BankContact;
                     RunObject = Report "Create Conts. from Bank Accs.";
-                    ToolTip = 'Create a contact card from information about the bank account''s contact person.';
                 }
                 action("Task &Activities")
                 {
