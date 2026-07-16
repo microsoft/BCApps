@@ -234,6 +234,36 @@ Describe "Invoke-AlRunTestsWithReruns" {
     }
 }
 
+Describe "ConvertTo-AlTestPlanJson" {
+    It "emits a JSON array even for a single codeunit with a single method" {
+        # Regression: ConvertTo-Json collapses single-element arrays, which the al --testplan rejects.
+        $json = ConvertTo-AlTestPlanJson -Groups @(@{ Id = "134001"; Methods = @("A") })
+        $json | Should -Be '[{"codeunitId":134001,"testMethods":["A"]}]'
+        # Must round-trip as an array of one object.
+        $parsed = $json | ConvertFrom-Json
+        @($parsed).Count | Should -Be 1
+        @($parsed)[0].codeunitId | Should -Be 134001
+        @(@($parsed)[0].testMethods).Count | Should -Be 1
+    }
+
+    It "handles multiple codeunits and empty method lists" {
+        $json = ConvertTo-AlTestPlanJson -Groups @(
+            @{ Id = "134001"; Methods = @("A", "B") },
+            @{ Id = "134002"; Methods = @() }
+        )
+        $json | Should -Be '[{"codeunitId":134001,"testMethods":["A","B"]},{"codeunitId":134002,"testMethods":[]}]'
+    }
+
+    It "escapes method names that need quoting" {
+        $json = ConvertTo-AlTestPlanJson -Groups @(@{ Id = "1"; Methods = @('Has "Quote"') })
+        ($json | ConvertFrom-Json) | ForEach-Object { $_.testMethods[0] | Should -Be 'Has "Quote"' }
+    }
+
+    It "emits an empty array for no groups" {
+        (ConvertTo-AlTestPlanJson -Groups @()) | Should -Be '[]'
+    }
+}
+
 Describe "ConvertFrom-AlBatchOutput" {
     It "splits batched output into per-codeunit result maps" {
         $lines = @(

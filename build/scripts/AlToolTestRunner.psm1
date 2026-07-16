@@ -512,6 +512,36 @@ function ConvertFrom-AlBatchOutput {
 
 <#
 .SYNOPSIS
+    Serializes a batch of test groups into the JSON array the al `--testplan` option expects.
+.DESCRIPTION
+    Built by hand (not ConvertTo-Json) because PowerShell's ConvertTo-Json collapses single-element
+    arrays to a scalar/object - a one-codeunit plan would become {..} not [{..}], and a one-method
+    list "M" not ["M"] - which the al tool rejects. This guarantees arrays at both levels for any count.
+.PARAMETER Groups
+    Array of @{ Id; Methods } describing the codeunits (and enabled methods) to run.
+.OUTPUTS
+    [string] JSON array: [{ "codeunitId": N, "testMethods": [ ... ] }, ...]
+#>
+function ConvertTo-AlTestPlanJson {
+    param(
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][object[]]$Groups
+    )
+
+    $sb = New-Object System.Text.StringBuilder
+    [void]$sb.Append('[')
+    $firstGroup = $true
+    foreach ($g in $Groups) {
+        if (-not $firstGroup) { [void]$sb.Append(',') }
+        $firstGroup = $false
+        $methodsJson = @($g.Methods | ForEach-Object { "$_" | ConvertTo-Json -Compress })
+        [void]$sb.Append(('{{"codeunitId":{0},"testMethods":[{1}]}}' -f [int]$g.Id, ($methodsJson -join ',')))
+    }
+    [void]$sb.Append(']')
+    return $sb.ToString()
+}
+
+<#
+.SYNOPSIS
     Runs a batch of codeunits in ONE `al runtests --testplan` invocation (single connection + auth +
     session) and returns per-codeunit results. This is the batched analogue of
     Invoke-AlRunTestsForCodeunit and is what removes the per-codeunit connect/auth tax.
@@ -529,12 +559,9 @@ function Invoke-AlBatchRunTests {
         [Parameter(Mandatory = $true)][hashtable]$Connection
     )
 
-    # Write the test plan to a temp JSON file (avoids command-line length limits with many codeunits).
-    $plan = @($Groups | ForEach-Object {
-        [ordered]@{ codeunitId = [int]$_.Id; testMethods = @($_.Methods | ForEach-Object { "$_" }) }
-    })
+    # Write the test plan as a JSON file (avoids command-line length limits with many codeunits).
     $planFile = Join-Path ([System.IO.Path]::GetTempPath()) ("altool-plan-" + [System.Guid]::NewGuid().ToString('N') + ".json")
-    ($plan | ConvertTo-Json -Depth 5) | Set-Content -Path $planFile -Encoding utf8
+    Set-Content -Path $planFile -Value (ConvertTo-AlTestPlanJson -Groups $Groups) -Encoding utf8
 
     try {
         $alArgs = @(
@@ -898,4 +925,5 @@ function Invoke-AlToolTestRun {
 
 Export-ModuleMember -Function Install-AlTool, Resolve-AlExe, Get-AlToolConnection, New-AlToolProject, Get-AlToolCompany, `
     Get-DisabledTestKeySet, Get-AlToolTestCodeunits, ConvertFrom-AlRunTestsOutput, ConvertFrom-AlBatchOutput, `
-    Invoke-AlRunTestsForCodeunit, Invoke-AlBatchRunTests, Invoke-AlRunTestsWithReruns, Add-JUnitTestSuite, Invoke-AlToolTestRun
+    ConvertTo-AlTestPlanJson, Invoke-AlRunTestsForCodeunit, Invoke-AlBatchRunTests, Invoke-AlRunTestsWithReruns, `
+    Add-JUnitTestSuite, Invoke-AlToolTestRun
