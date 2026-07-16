@@ -17,6 +17,7 @@ codeunit 13668 "Elec. VAT Decl. Az. Key Vault"
         AKVGetPeriodsEndpointKeyTok: Label 'DKElecVAT-EndpointGetPeriods', Locked = true;
         AKVSubmitDraftEndpointKeyTok: Label 'DKElecVAT-SubmitDraftEndpoint', Locked = true;
         AKVGetStatusEndpointKeyTok: Label 'DKElecVAT-GetStatusEndpoint', Locked = true;
+        AKVReportingFrequencyEnabledTok: Label 'DKElecVAT-ReportingFrequencyEnabled', Locked = true;
         AVKCompanyCertTok: Label 'DKElecVAT-CompanyCert', Locked = true;
 
     [NonDebuggable]
@@ -48,5 +49,20 @@ codeunit 13668 "Elec. VAT Decl. Az. Key Vault"
             FeatureTelemetry.LogError('0000M7K', FeatureNameTxt, '', StrSubstNo(CannotGetSecretFromKeyVaultErr, KeyName));
             Error(CannotGetSecretFromKeyVaultErr, KeyName);
         end;
+    end;
+
+    [NonDebuggable]
+    procedure IsReportingFrequencyEnabled(): Boolean
+    var
+        AzureKeyVault: Codeunit "Azure Key Vault";
+        SecretValue: Text;
+        Enabled: Boolean;
+    begin
+        if not AzureKeyVault.GetAzureKeyVaultSecret(AKVReportingFrequencyEnabledTok, SecretValue) then
+            exit(true);
+        if not Evaluate(Enabled, SecretValue.Trim()) then
+            exit(true);
+
+        exit(Enabled);
     end;
 }
