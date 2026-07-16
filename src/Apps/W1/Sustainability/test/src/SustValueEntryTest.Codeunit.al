@@ -3829,6 +3829,7 @@ codeunit 148190 "Sust. Value Entry Test"
         PurchaseHeader.Modify();
 
         // [GIVEN] Create a lot-tracked Item with Specific Carbon Tracking Method.
+        LibraryItemTracking.CreateLotItem(Item);
         LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
         CreatePurchaseLineWithEmissionValue(PurchaseLine, PurchaseHeader, Item."No.", Item."Item Tracking Code", LibraryUtility.GenerateGUID(), LibraryRandom.RandIntInRange(10, 10), EmissionCO2[1], EmissionCH4[1], EmissionN2O[1], AccountCode);
 
