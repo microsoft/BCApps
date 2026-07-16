@@ -923,9 +923,38 @@ codeunit 7314 "Warehouse Availability Mgt."
         if not (Location.Get(LocationCode) and Location."Bin Mandatory" and (Location."Shipment Bin Code" <> '')) then
             exit;
 
-        QtyOnShipmentBin := CalcQtyOnBin(LocationCode, Location."Shipment Bin Code", ItemNo, VariantCode, ItemTrackingSetup);
+        // The quantity picked but not yet shipped can sit in any Ship-type bin, not only the location's default Shipment Bin,
+        // because a shipment can be assigned a different ship bin. Sum across all Ship-type bins to avoid falsely zeroing QtyPicked.
+        QtyOnShipmentBin := CalcQtyOnShipmentBins(LocationCode, ItemNo, VariantCode, ItemTrackingSetup);
         if QtyOnShipmentBin = 0 then
             QtyPicked := 0
+    end;
+
+    local procedure CalcQtyOnShipmentBins(LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; WhseItemTrackingSetup: Record "Item Tracking Setup"): Decimal
+    var
+        WarehouseEntry: Record "Warehouse Entry";
+        BinType: Record "Bin Type";
+        ShipBinTypeFilter: Text;
+    begin
+        BinType.SetRange(Ship, true);
+        if BinType.FindSet() then
+            repeat
+                if ShipBinTypeFilter = '' then
+                    ShipBinTypeFilter := BinType.Code
+                else
+                    ShipBinTypeFilter += '|' + BinType.Code;
+            until BinType.Next() = 0;
+        if ShipBinTypeFilter = '' then
+            exit(0);
+
+        WarehouseEntry.SetLoadFields("Qty. (Base)");
+        WarehouseEntry.SetRange("Item No.", ItemNo);
+        WarehouseEntry.SetRange("Location Code", LocationCode);
+        WarehouseEntry.SetRange("Variant Code", VariantCode);
+        WarehouseEntry.SetFilter("Bin Type Code", ShipBinTypeFilter);
+        WarehouseEntry.SetTrackingFilterFromItemTrackingSetupIfNotBlank(WhseItemTrackingSetup);
+        WarehouseEntry.CalcSums("Qty. (Base)");
+        exit(WarehouseEntry."Qty. (Base)");
     end;
 
     [IntegrationEvent(false, false)]

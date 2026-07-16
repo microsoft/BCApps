@@ -2165,6 +2165,7 @@ codeunit 7312 "Create Pick"
         CalcPickableQtyFromWhseEntry.SetRange(Location_Code, LocationCode);
         CalcPickableQtyFromWhseEntry.SetRange(Item_No_, ItemNo);
         CalcPickableQtyFromWhseEntry.SetRange(Variant_Code, VariantCode);
+        CalcPickableQtyFromWhseEntry.SetFilter(Bin_Type_Code, GetBinTypeFilter(3)); // Only pick bins - exclude quantity sitting in receive/ship bins
         CalcPickableQtyFromWhseEntry.Open();
         if CalcPickableQtyFromWhseEntry.Read() then
             QtyInBinNotBlockedNotDedicatedWithoutItemTrackingFilter := CalcPickableQtyFromWhseEntry.TotalPickableQtyBase;
