@@ -967,7 +967,6 @@ page 1007 "Job Planning Lines"
                 Caption = 'Project Analysis';
                 Image = "Report";
                 RunObject = Report "Job Analysis";
-                ToolTip = 'Analyze the project, such as the scheduled prices, usage prices, and contract prices, and then compares the three sets of prices.';
             }
             action("Job - Planning Lines")
             {
@@ -975,7 +974,6 @@ page 1007 "Job Planning Lines"
                 Caption = 'Project - Planning Lines';
                 Image = "Report";
                 RunObject = Report "Job - Planning Lines";
-                ToolTip = 'View all planning lines for the project. You use this window to plan what items, resources, and general ledger expenses that you expect to use on a project (Budget) or you can specify what you actually agreed with your customer that he should pay for the project (Billable).';
             }
             action("Job - Suggested Billing")
             {

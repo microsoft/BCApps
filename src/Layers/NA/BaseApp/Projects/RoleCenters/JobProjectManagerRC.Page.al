@@ -535,7 +535,6 @@ page 9015 "Job Project Manager RC"
                     Caption = 'Project &Create Sales Invoice';
                     Image = CreateJobSalesInvoice;
                     RunObject = Report "Job Create Sales Invoice";
-                    ToolTip = 'Use a function to automatically create a sales invoice for one or more projects.';
                 }
                 action("Update Job I&tem Cost")
                 {
@@ -544,7 +543,6 @@ page 9015 "Job Project Manager RC"
                     Caption = 'Update Project I&tem Cost';
                     Image = "Report";
                     RunObject = Report "Update Job Item Cost";
-                    ToolTip = 'Use a function to automatically update the cost of items used in projects.';
                 }
             }
             group(Reports)
@@ -576,7 +574,6 @@ page 9015 "Job Project Manager RC"
                         Caption = 'Project &Analysis';
                         Image = "Report";
                         RunObject = Report "Job Analysis";
-                        ToolTip = 'Analyze your projects. For example, you can create a report that shows you the scheduled prices, usage prices, and contract prices, and then compares the three sets of prices.';
                     }
                     action("Job Actual To &Budget (Cost)")
                     {
@@ -608,7 +605,6 @@ page 9015 "Job Project Manager RC"
                         Caption = 'Project - Pla&nning Line';
                         Image = "Report";
                         RunObject = Report "Job - Planning Lines";
-                        ToolTip = 'Define project tasks to capture any information that you want to track for a project. You can use planning lines to add information such as what resources are required or to capture what items are needed to perform the project.';
                     }
                     separator(Action16)
                     {
@@ -643,7 +639,6 @@ page 9015 "Job Project Manager RC"
                         Caption = 'Items per &Project';
                         Image = "Report";
                         RunObject = Report "Items per Job";
-                        ToolTip = 'View which items are used for which projects.';
                     }
                     action("Jobs per &Item")
                     {
@@ -651,7 +646,6 @@ page 9015 "Job Project Manager RC"
                         Caption = 'Projects per &Item';
                         Image = "Report";
                         RunObject = Report "Jobs per Item";
-                        ToolTip = 'View on which project a specific item is used.';
                     }
                 }
                 group("Absence Reports")
@@ -691,7 +685,6 @@ page 9015 "Job Project Manager RC"
                         Caption = 'Create Time Sheets';
                         Image = JobTimeSheet;
                         RunObject = Report "Create Time Sheets";
-                        ToolTip = 'As the time sheet administrator, create time sheets for resources that have the Use Time Sheet check box selected on the resource card. Afterwards, view the time sheets that you have created in the Time Sheets window.';
                     }
                     action("Manage Time Sheets")
                     {
@@ -729,7 +722,6 @@ page 9015 "Job Project Manager RC"
                         Caption = 'Project Calculate &WIP';
                         Image = CalculateWIP;
                         RunObject = Report "Job Calculate WIP";
-                        ToolTip = 'Calculate the general ledger entries needed to update or close the project.';
                     }
                     action("Jo&b Post WIP to G/L")
                     {
@@ -737,7 +729,6 @@ page 9015 "Job Project Manager RC"
                         Caption = 'Jo&b Post WIP to G/L';
                         Image = PostOrder;
                         RunObject = Report "Job Post WIP to G/L";
-                        ToolTip = 'Post to the general ledger the entries calculated for your projects.';
                     }
                     action("Job WIP")
                     {
