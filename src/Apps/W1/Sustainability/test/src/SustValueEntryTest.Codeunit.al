@@ -4225,14 +4225,17 @@ codeunit 148190 "Sust. Value Entry Test"
         ItemJournalLine.Validate("Total CO2e", LotTotalCO2e[1]);
         ItemJournalLine.Modify(true);
 
-        // [GIVEN] Assign item tracking selecting the second lot.
-        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo[2], Quantity);
+        // [GIVEN] Assign reclassification item tracking selecting the second lot (keeping the same lot on the new location).
+        LibraryItemTracking.CreateItemReclassJnLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo[2], Quantity);
+        ReservationEntry.Validate("New Lot No.", ReservationEntry."Lot No.");
+        ReservationEntry.Modify();
 
         // [WHEN] Post the Item Reclassification Journal.
         LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
 
         // [THEN] The Sustainability Value Entry reflects the specific tracked CO2e of the moved lot, not the averaged value.
         SustainabilityValueEntry.SetRange("Item No.", Item."No.");
+        SustainabilityValueEntry.SetRange("Item Ledger Entry Type", SustainabilityValueEntry."Item Ledger Entry Type"::Transfer);
         SustainabilityValueEntry.FindFirst();
         Assert.AreEqual(
             LotTotalCO2e[2],
@@ -4287,14 +4290,17 @@ codeunit 148190 "Sust. Value Entry Test"
         ItemJournalLine.Validate("Total CO2e", LotTotalCO2e[2]);
         ItemJournalLine.Modify(true);
 
-        // [GIVEN] Assign item tracking selecting the first lot.
-        LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo[1], Quantity);
+        // [GIVEN] Assign reclassification item tracking selecting the first lot (keeping the same lot on the new location).
+        LibraryItemTracking.CreateItemReclassJnLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo[1], Quantity);
+        ReservationEntry.Validate("New Lot No.", ReservationEntry."Lot No.");
+        ReservationEntry.Modify();
 
         // [WHEN] Post the Item Reclassification Journal.
         LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
 
         // [THEN] The Sustainability Value Entry reflects the specific tracked CO2e of the first lot.
         SustainabilityValueEntry.SetRange("Item No.", Item."No.");
+        SustainabilityValueEntry.SetRange("Item Ledger Entry Type", SustainabilityValueEntry."Item Ledger Entry Type"::Transfer);
         SustainabilityValueEntry.FindFirst();
         Assert.AreEqual(
             LotTotalCO2e[1],
@@ -4350,15 +4356,19 @@ codeunit 148190 "Sust. Value Entry Test"
         ItemJournalLine.Validate("Total CO2e", LotTotalCO2e[1]);
         ItemJournalLine.Modify(true);
 
-        // [GIVEN] Assign item tracking selecting both lots.
-        for Index := 1 to ArrayLen(LotNo) do
-            LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo[Index], Quantity);
+        // [GIVEN] Assign reclassification item tracking selecting both lots (keeping the same lot on the new location).
+        for Index := 1 to ArrayLen(LotNo) do begin
+            LibraryItemTracking.CreateItemReclassJnLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo[Index], Quantity);
+            ReservationEntry.Validate("New Lot No.", ReservationEntry."Lot No.");
+            ReservationEntry.Modify();
+        end;
 
         // [WHEN] Post the Item Reclassification Journal.
         LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
 
         // [THEN] The total transferred CO2e equals the sum of the specific lot CO2e values.
         SustainabilityValueEntry.SetRange("Item No.", Item."No.");
+        SustainabilityValueEntry.SetRange("Item Ledger Entry Type", SustainabilityValueEntry."Item Ledger Entry Type"::Transfer);
         SustainabilityValueEntry.CalcSums("CO2e Amount (Actual)");
         Assert.AreEqual(
             LotTotalCO2e[1] + LotTotalCO2e[2],
