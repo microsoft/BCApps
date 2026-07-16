@@ -9,6 +9,8 @@ using Microsoft.Purchases.Document;
 
 codeunit 11321 PurchPostPrepayNL
 {
+    Access = Internal;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purchase-Post Prepayments", 'OnPostVendorEntryOnAfterInitNewLine', '', false, false)]
     local procedure OnPostVendorEntryOnAfterInitNewLine(var GenJnlLine: Record "Gen. Journal Line"; PurchHeader: Record "Purchase Header")
     begin

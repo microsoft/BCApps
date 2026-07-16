@@ -8,6 +8,8 @@ using Microsoft.Finance.GeneralLedger.Journal;
 
 codeunit 11328 VendorLedgerEntryNL
 {
+    Access = Internal;
+
     [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", 'OnAfterCopyVendLedgerEntryFromGenJnlLine', '', false, false)]
     local procedure OnAfterCopyVendLedgerEntryFromGenJnlLine(var VendorLedgerEntry: Record "Vendor Ledger Entry"; GenJournalLine: Record "Gen. Journal Line")
     begin

@@ -13,7 +13,7 @@ tableextension 11379 "Company Information NL" extends "Company Information"
         field(11400; "Fiscal Entity No."; Text[20])
         {
             Caption = 'Fiscal Entity No.';
-            DataClassification = CustomerContent;
+            DataClassification = OrganizationIdentifiableInformation;
 
             trigger OnValidate()
             var

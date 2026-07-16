@@ -6,6 +6,7 @@ namespace Microsoft.Finance.GeneralLedger.Ledger;
 
 codeunit 11382 "G/L Entry NL"
 {
+    Access = Internal;
 
     [EventSubscriber(ObjectType::Table, Database::"G/L Entry", OnAfterUpdateDebitCredit, '', false, false)]
     local procedure OnAfterUpdateDebitCredit(var GLEntry: Record "G/L Entry"; Correction: Boolean)

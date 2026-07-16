@@ -6,6 +6,8 @@ namespace Microsoft.Purchases.Document;
 
 codeunit 11327 PurchInvoiceSubformNL
 {
+    Access = Internal;
+
     [EventSubscriber(ObjectType::Page, Page::"Purch. Invoice Subform", 'OnAfterNoOnAfterValidate', '', false, false)]
     local procedure OnAfterNoOnAfterValidate(var PurchaseLine: Record "Purchase Line"; xPurchaseLine: Record "Purchase Line")
     begin

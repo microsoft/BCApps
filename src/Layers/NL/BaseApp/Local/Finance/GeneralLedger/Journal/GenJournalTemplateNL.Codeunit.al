@@ -10,6 +10,8 @@ using Microsoft.Foundation.AuditCodes;
 
 codeunit 11340 "Gen. Journal Template NL"
 {
+    Access = Internal;
+
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Template", OnAfterValidateType, '', false, false)]
     local procedure OnAfterValidateType(var GenJournalTemplate: Record "Gen. Journal Template"; SourceCodeSetup: Record "Source Code Setup")
     begin

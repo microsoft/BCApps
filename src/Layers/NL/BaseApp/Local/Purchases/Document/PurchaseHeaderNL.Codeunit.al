@@ -8,6 +8,8 @@ using Microsoft.Purchases.Vendor;
 
 codeunit 11323 PurchaseHeaderNL
 {
+    Access = Internal;
+
     [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnAfterCopyPayToVendorFieldsFromVendor', '', false, false)]
     local procedure OnAfterCopyPayToVendorFieldsFromVendor(var PurchaseHeader: Record "Purchase Header"; Vendor: Record Vendor; xPurchaseHeader: Record "Purchase Header")
     begin

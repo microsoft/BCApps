@@ -6,6 +6,7 @@ namespace Microsoft.HumanResources.Payables;
 
 codeunit 11356 "Empl. Entry-Edit NL"
 {
+    Access = Internal;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Empl. Entry-Edit", OnBeforeEmplLedgEntryModify, '', false, false)]
     local procedure OnBeforeEmplLedgEntryModify(var EmplLedgEntry: Record "Employee Ledger Entry"; FromEmplLedgEntry: Record "Employee Ledger Entry")

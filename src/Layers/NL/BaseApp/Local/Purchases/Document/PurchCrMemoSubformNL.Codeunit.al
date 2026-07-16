@@ -6,6 +6,8 @@ namespace Microsoft.Purchases.Document;
 
 codeunit 11325 PurchCrMemoSubformNL
 {
+    Access = Internal;
+
     [EventSubscriber(ObjectType::Page, Page::"Purch. Cr. Memo Subform", 'OnAfterNoOnAfterValidate', '', false, false)]
     local procedure OnAfterNoOnAfterValidate(var PurchaseLine: Record "Purchase Line"; var xPurchaseLine: Record "Purchase Line")
     begin

@@ -10,6 +10,7 @@ using Microsoft.Utilities;
 
 codeunit 11364 "Employee NL"
 {
+    Access = Internal;
 
     [EventSubscriber(ObjectType::Table, Database::Employee, 'OnAfterModifyEvent', '', false, false)]
     local procedure OnAfterModifyEvent(var Rec: Record Employee; var xRec: Record Employee)

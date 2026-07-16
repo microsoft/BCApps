@@ -9,6 +9,8 @@ using Microsoft.Sales.Document;
 
 codeunit 11339 SalesPostPrepayNL
 {
+    Access = Internal;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post Prepayments", 'OnBeforePostCustomerEntry', '', false, false)]
     local procedure OnBeforePostCustomerEntry(var GenJnlLine: Record "Gen. Journal Line"; SalesHeader: Record "Sales Header")
     begin

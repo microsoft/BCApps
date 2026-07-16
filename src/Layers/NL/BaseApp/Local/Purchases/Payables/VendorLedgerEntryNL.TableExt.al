@@ -50,7 +50,7 @@ tableextension 11317 "Vendor Ledger Entry NL" extends "Vendor Ledger Entry"
 
     keys
     {
-        key(TransactionMode; "Transaction Mode Code")
+        key(TransactionMode; Open, "On Hold", "Transaction Mode Code")
         {
         }
     }

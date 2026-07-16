@@ -29,7 +29,7 @@ report 11000000 "Get Proposal Entries"
             dataitem("Cust. Ledger Entry"; "Cust. Ledger Entry")
             {
                 DataItemLink = "Transaction Mode Code" = field(Code);
-                DataItemTableView = sorting("Transaction Mode Code") where(Open = const(true), "On Hold" = const(''));
+                DataItemTableView = sorting(Open, "On Hold", "Transaction Mode Code") where(Open = const(true), "On Hold" = const(''));
                 RequestFilterFields = "Customer No.", "Recipient Bank Account";
 
                 trigger OnAfterGetRecord()
@@ -75,7 +75,7 @@ report 11000000 "Get Proposal Entries"
             dataitem("Vendor Ledger Entry"; "Vendor Ledger Entry")
             {
                 DataItemLink = "Transaction Mode Code" = field(Code);
-                DataItemTableView = sorting("Transaction Mode Code") where(Open = const(true), "On Hold" = const(''));
+                DataItemTableView = sorting(Open, "On Hold", "Transaction Mode Code") where(Open = const(true), "On Hold" = const(''));
                 RequestFilterFields = "Vendor No.", "Recipient Bank Account";
 
                 trigger OnAfterGetRecord()

@@ -12,6 +12,7 @@ using Microsoft.Sales.Document;
 
 codeunit 11384 "Gen. Journal Line NL"
 {
+    Access = Internal;
 
     [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterCopyGenJnlLineFromPurchHeaderPayment', '', false, false)]
     local procedure OnAfterCopyGenJnlLineFromPurchHeaderPayment(PurchaseHeader: Record "Purchase Header"; var GenJournalLine: Record "Gen. Journal Line")

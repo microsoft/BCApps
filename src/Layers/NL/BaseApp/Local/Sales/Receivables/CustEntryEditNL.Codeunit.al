@@ -6,6 +6,8 @@ namespace Microsoft.Sales.Receivables;
 
 codeunit 11322 CustEntryEditNL
 {
+    Access = Internal;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Cust. Entry-Edit", 'OnBeforeCustLedgEntryModify', '', false, false)]
     local procedure OnBeforeCustLedgEntryModify(var CustLedgEntry: Record "Cust. Ledger Entry"; FromCustLedgEntry: Record "Cust. Ledger Entry")
     begin

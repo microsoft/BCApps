@@ -72,7 +72,7 @@ tableextension 11468 "Cust. Ledger Entry NL" extends "Cust. Ledger Entry"
 
     keys
     {
-        key(TransactionMode; "Transaction Mode Code")
+        key(TransactionMode; Open, "On Hold", "Transaction Mode Code")
         {
         }
     }
