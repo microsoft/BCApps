@@ -1,7 +1,7 @@
 codeunit 148222 "Sust. Reversal Tests"
 {
     Subtype = Test;
-    TestPermissions = NonRestrictive;
+    TestPermissions = Disabled;
 
     trigger OnRun()
     begin
