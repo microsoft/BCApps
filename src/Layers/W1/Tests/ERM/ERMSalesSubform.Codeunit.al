@@ -45,6 +45,8 @@ codeunit 134393 "ERM Sales Subform"
         PositiveLineNoRemainUnchangedLbl: Label 'Positive Line No. should remain unchanged';
         SalesLineDescriptionMustMatchExtendedTextErr: Label 'Sales Line Description must match Extended Text';
         TotalAmountErr: Label 'The total amount incl. vat was not calculated.';
+        ModifiedDescriptionLbl: Label 'Custom Modified Description';
+        DescriptionRevertedErr: Label 'The modified Description must be preserved and not reverted to the original value.';
 
     [Test]
     [HandlerFunctions('SalesStatisticsHandler')]
@@ -4605,6 +4607,36 @@ codeunit 134393 "ERM Sales Subform"
 
         // [THEN] Verify that Total Amount Incl. VAT is calculated.
         Assert.AreNotEqual(0, SalesOrder.SalesLines."Total Amount Incl. VAT".AsDecimal(), TotalAmountErr);
+    end;
+
+    [Test]
+    procedure ModifiedDescriptionIsPreservedWithCalcInvDiscount()
+    var
+        Customer: Record Customer;
+        Item: Record Item;
+        SalesOrder: TestPage "Sales Order";
+    begin
+        // [FEATURE] [Sales] [Order]
+        // [SCENARIO 638838] A user-modified line Description is preserved (not reverted) when "Calc. Inv. Discount" is enabled.
+        Initialize();
+
+        // [GIVEN] "Calc. Inv. Discount" is enabled (done in Initialize).
+        // [GIVEN] Create a customer and an item with a unit price.
+        LibrarySales.CreateCustomer(Customer);
+        CreateItem(Item, LibraryRandom.RandIntInRange(100, 1000));
+
+        // [GIVEN] Create a Sales Order with a line for the item and a Quantity, which flags the invoice discount to be recalculated.
+        SalesOrder.OpenNew();
+        SalesOrder."Sell-to Customer No.".SetValue(Customer."No.");
+        SalesOrder.SalesLines.New();
+        SalesOrder.SalesLines."No.".SetValue(Item."No.");
+        SalesOrder.SalesLines.Quantity.SetValue(LibraryRandom.RandIntInRange(1, 100));
+
+        // [WHEN] The user modifies the Description to a custom value and leaves the field.
+        SalesOrder.SalesLines.Description.SetValue(ModifiedDescriptionLbl);
+
+        // [THEN] Verify the modified Description is kept on the page and is not reverted to the item description.
+        Assert.AreEqual(ModifiedDescriptionLbl, SalesOrder.SalesLines.Description.Value(), DescriptionRevertedErr);
     end;
 
     local procedure Initialize()
