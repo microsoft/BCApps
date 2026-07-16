@@ -13,7 +13,9 @@ using System.Telemetry;
 codeunit 4582 "SOA Retrieve Emails"
 {
     Access = Internal;
-    Permissions = tabledata "Email Inbox" = rd;
+    Permissions = tabledata "Email Inbox" = rd,
+                  tabledata "Agent Task File" = i,
+                  tabledata "Agent Task Message Attachment" = i;
     InherentEntitlements = X;
     InherentPermissions = X;
     TableNo = "SOA Setup";
@@ -175,6 +177,7 @@ codeunit 4582 "SOA Retrieve Emails"
     procedure AddEmailToNewAgentTask(var SOASetup: Record "SOA Setup"; var EmailInbox: Record "Email Inbox"; var SOAEmail: Record "SOA Email")
     var
         AgentTaskMessage: Record "Agent Task Message";
+        TempIgnoredAgentTaskFile: Record "Agent Task File" temporary;
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         AgentMessageBuilder: Codeunit "Agent Task Message Builder";
         EmailMessage: Codeunit "Email Message";
@@ -196,10 +199,11 @@ codeunit 4582 "SOA Retrieve Emails"
             .SetExternalId(EmailInbox."Conversation Id")
             .AddTaskMessage(AgentMessageBuilder);
 
-        AddEmailAttachmentToTaskMessage(AgentMessageBuilder, EmailMessage, SOASetup);
+        AddEmailAttachmentToTaskMessage(AgentMessageBuilder, EmailMessage, SOASetup, TempIgnoredAgentTaskFile);
         AgentTaskBuilder.Create();
 
         AgentTaskMessage := AgentTaskBuilder.GetAgentTaskMessageCreated();
+        AddIgnoredOversizedAttachments(AgentTaskMessage, TempIgnoredAgentTaskFile);
         SOAEmail.SetAgentMessageFields(AgentTaskMessage);
         SetAttachmentsTransferred(SOAEmail, EmailMessage);
         SOAEmail.Modify();
@@ -207,7 +211,7 @@ codeunit 4582 "SOA Retrieve Emails"
         FeatureTelemetry.LogUsage('0000NDP', SOASetupCU.GetFeatureName(), TelemetryEmailAddedAsTaskLbl, TelemetryDimensions);
     end;
 
-    local procedure AddEmailAttachmentToTaskMessage(AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder"; var EmailMessage: Codeunit "Email Message"; var SOASetupRec: Record "SOA Setup")
+    local procedure AddEmailAttachmentToTaskMessage(AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder"; var EmailMessage: Codeunit "Email Message"; var SOASetupRec: Record "SOA Setup"; var TempIgnoredAgentTaskFile: Record "Agent Task File" temporary)
     var
         TempAgentTaskFile: Record "Agent Task File" temporary;
         SOASetup: Codeunit "SOA Setup";
@@ -231,44 +235,49 @@ codeunit 4582 "SOA Retrieve Emails"
         NoOfAttachments := 0;
         repeat
             if not EmailMessage.Attachments_IsInline() then begin
-                EmailMessage.Attachments_GetContent(InStream);
-                Clear(TempAgentTaskFile);
-                TempAgentTaskFile.Content.CreateOutStream(OutStream);
-                CopyStream(OutStream, InStream);
-                AttachmentSizeInBytes := TempAgentTaskFile.Content.Length();
-                ExceedsFileSizeThreshold := AttachmentSizeInBytes > GetMaxAttachmentSizeInBytes();
-                TempAgentTaskFile.Content.CreateInStream(InStream);
+                Ignore := false;
+                AttachmentSizeInBytes := EmailMessage.Attachments_GetLength();
+                ExceedsFileSizeThreshold := AttachmentSizeInBytes > SOASetup.GetMaxAttachmentSizeInBytes();
                 FileMIMEType := CopyStr(EmailMessage.Attachments_GetContentType(), 1, 100);
 
-                if not SOASetupRec."Analyze Attachments" then begin
+                if ExceedsFileSizeThreshold then begin
                     Ignore := true;
-                    IgnoredReason := CopyStr(Format(Enum::"SOA Email Attachment Status"::AnalyzeAttachmentsNotEnabled), 1, MaxStrLen(IgnoredReason));
-                    AgentTaskMessageBuilder.AddAttachment(EmailMessage.Attachments_GetName(), FileMIMEType, InStream, Ignore, IgnoredReason);
+                    IgnoredReason := CopyStr(Format(Enum::"SOA Email Attachment Status"::ExceedsFileSize), 1, MaxStrLen(IgnoredReason));
+                    BufferOversizedAttachment(TempIgnoredAgentTaskFile, EmailMessage.Attachments_GetName(), FileMIMEType);
                     LogIgnoredAttachmentTelemetry(SOASetup, IgnoredReason, FileMIMEType, AttachmentSizeInBytes);
                 end else begin
+                    EmailMessage.Attachments_GetContent(InStream);
+                    Clear(TempAgentTaskFile);
+                    TempAgentTaskFile.Content.CreateOutStream(OutStream);
+                    CopyStream(OutStream, InStream);
+                    TempAgentTaskFile.Content.CreateInStream(InStream);
                     ExceedsPageCountThreshold := false;
-                    IsFileMimeTypeSupported := SOASetup.SupportedAttachmentContentType(FileMIMEType);
-                    if IsFileMimeTypeSupported then begin
-                        PdfContent := SOASetup.IsPdfAttachmentContentType(FileMIMEType);
-                        if PdfContent then begin
-                            if not SOASetup.DocumentExceedsPageCountThreshold(InStream, ExceedsPageCountThreshold) then
-                                FeatureTelemetry.LogError('0000QHK', SOASetup.GetFeatureName(), 'Document exceeds page count threshold', PageCountCallFailedTelemetryTxt);
-                            if ExceedsPageCountThreshold then
-                                FeatureTelemetry.LogUsage('0000QHL', SOASetup.GetFeatureName(), StrSubstNo(PageCountExceededTelemetryTxt, Format(SOASetup.PageCountThreshold())));
+                    if SOASetupRec."Analyze Attachments" then begin
+                        IsFileMimeTypeSupported := SOASetup.SupportedAttachmentContentType(FileMIMEType);
+                        if IsFileMimeTypeSupported then begin
+                            PdfContent := SOASetup.IsPdfAttachmentContentType(FileMIMEType);
+                            if PdfContent then begin
+                                if not SOASetup.DocumentExceedsPageCountThreshold(InStream, ExceedsPageCountThreshold) then
+                                    FeatureTelemetry.LogError('0000QHK', SOASetup.GetFeatureName(), 'Document exceeds page count threshold', PageCountCallFailedTelemetryTxt);
+                                if ExceedsPageCountThreshold then
+                                    FeatureTelemetry.LogUsage('0000QHL', SOASetup.GetFeatureName(), StrSubstNo(PageCountExceededTelemetryTxt, Format(SOASetup.PageCountThreshold())));
+                            end;
                         end;
                     end;
 
-                    Ignore := IgnoreAttachment(IsFileMimeTypeSupported, ExceedsPageCountThreshold, ExceedsFileSizeThreshold, NoOfAttachments, SOASetupRec, IgnoredReason);
+                    Ignore := IgnoreAttachment(IsFileMimeTypeSupported, ExceedsPageCountThreshold, NoOfAttachments, SOASetupRec, IgnoredReason);
+                    TempAgentTaskFile.Content.CreateInStream(InStream);
                     AgentTaskMessageBuilder.AddAttachment(EmailMessage.Attachments_GetName(), FileMIMEType, InStream, Ignore, IgnoredReason);
 
                     if Ignore then
                         LogIgnoredAttachmentTelemetry(SOASetup, IgnoredReason, FileMIMEType, AttachmentSizeInBytes);
 
                     // Log telemetry for SOA session
-                    if IsFileMimeTypeSupported then
-                        FeatureTelemetry.LogUsage('0000QBM', SOASetup.GetFeatureName(), StrSubstNo(SupportedAttachmentLbl, FileMIMEType))
-                    else
-                        FeatureTelemetry.LogUsage('0000QBN', SOASetup.GetFeatureName(), StrSubstNo(UnsupportedAttachmentLbl, FileMIMEType));
+                    if SOASetupRec."Analyze Attachments" then
+                        if IsFileMimeTypeSupported then
+                            FeatureTelemetry.LogUsage('0000QBM', SOASetup.GetFeatureName(), StrSubstNo(SupportedAttachmentLbl, FileMIMEType))
+                        else
+                            FeatureTelemetry.LogUsage('0000QBN', SOASetup.GetFeatureName(), StrSubstNo(UnsupportedAttachmentLbl, FileMIMEType));
                 end;
 
                 if not Ignore then
@@ -280,17 +289,48 @@ codeunit 4582 "SOA Retrieve Emails"
             FeatureTelemetry.LogUsage('0000QK9', SOASetup.GetFeatureName(), MaxAttachmentsExceededTelemetryTxt);
     end;
 
-    local procedure IgnoreAttachment(IsFileMimeTypeSupported: Boolean; ExceedsPageCountThreshold: Boolean; ExceedsFileSizeThreshold: Boolean; NoOfAttachments: Integer; var SOASetupRec: Record "SOA Setup"; var IgnoredReason: Text[250]): Boolean
+    local procedure BufferOversizedAttachment(var TempIgnoredAgentTaskFile: Record "Agent Task File" temporary; FileName: Text[250]; FileMIMEType: Text[100])
+    begin
+        Clear(TempIgnoredAgentTaskFile);
+        TempIgnoredAgentTaskFile.ID := TempIgnoredAgentTaskFile.Count() + 1;
+        TempIgnoredAgentTaskFile."File Name" := FileName;
+        TempIgnoredAgentTaskFile."File MIME Type" := FileMIMEType;
+        TempIgnoredAgentTaskFile.Insert();
+    end;
+
+    local procedure AddIgnoredOversizedAttachments(AgentTaskMessage: Record "Agent Task Message"; var TempIgnoredAgentTaskFile: Record "Agent Task File" temporary)
+    var
+        AgentTaskFile: Record "Agent Task File";
+        AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
+        IgnoredReason: Text[250];
+    begin
+        if not TempIgnoredAgentTaskFile.FindSet() then
+            exit;
+
+        IgnoredReason := CopyStr(Format(Enum::"SOA Email Attachment Status"::ExceedsFileSize), 1, MaxStrLen(IgnoredReason));
+        repeat
+            Clear(AgentTaskFile);
+            AgentTaskFile."Task ID" := AgentTaskMessage."Task ID";
+            AgentTaskFile."File Name" := TempIgnoredAgentTaskFile."File Name";
+            AgentTaskFile."File MIME Type" := TempIgnoredAgentTaskFile."File MIME Type";
+            AgentTaskFile.Insert();
+
+            Clear(AgentTaskMessageAttachment);
+            AgentTaskMessageAttachment."Task ID" := AgentTaskMessage."Task ID";
+            AgentTaskMessageAttachment."Message ID" := AgentTaskMessage.ID;
+            AgentTaskMessageAttachment."File ID" := AgentTaskFile.ID;
+            AgentTaskMessageAttachment.Ignored := true;
+            AgentTaskMessageAttachment."Ignored Reason" := IgnoredReason;
+            AgentTaskMessageAttachment.Insert();
+        until TempIgnoredAgentTaskFile.Next() = 0;
+    end;
+
+    local procedure IgnoreAttachment(IsFileMimeTypeSupported: Boolean; ExceedsPageCountThreshold: Boolean; NoOfAttachments: Integer; var SOASetupRec: Record "SOA Setup"; var IgnoredReason: Text[250]): Boolean
     begin
         IgnoredReason := '';
 
         if not SOASetupRec."Analyze Attachments" then begin
             IgnoredReason := CopyStr(Format(Enum::"SOA Email Attachment Status"::AnalyzeAttachmentsNotEnabled), 1, MaxStrLen(IgnoredReason));
-            exit(true);
-        end;
-
-        if ExceedsFileSizeThreshold then begin
-            IgnoredReason := CopyStr(Format(Enum::"SOA Email Attachment Status"::ExceedsFileSize), 1, MaxStrLen(IgnoredReason));
             exit(true);
         end;
 
@@ -312,11 +352,6 @@ codeunit 4582 "SOA Retrieve Emails"
         exit(false);
     end;
 
-    local procedure GetMaxAttachmentSizeInBytes(): Integer
-    begin
-        exit(25 * 1024 * 1024);
-    end;
-
     local procedure LogIgnoredAttachmentTelemetry(SOASetup: Codeunit "SOA Setup"; IgnoredReason: Text[250]; FileMIMEType: Text[100]; AttachmentSizeInBytes: Integer)
     var
         TelemetryDimensions: Dictionary of [Text, Text];
@@ -336,6 +371,7 @@ codeunit 4582 "SOA Retrieve Emails"
     var
         AgentTaskRecord: Record "Agent Task";
         AgentTaskMessage: Record "Agent Task Message";
+        TempIgnoredAgentTaskFile: Record "Agent Task File" temporary;
         AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
         EmailMessage: Codeunit "Email Message";
         SOABilling: Codeunit "SOA Billing";
@@ -366,8 +402,9 @@ codeunit 4582 "SOA Retrieve Emails"
             .SetIgnoreAttachment(not SOASetup."Analyze Attachments")
             .SetAgentTask(AgentTaskRecord);
 
-        AddEmailAttachmentToTaskMessage(AgentTaskMessageBuilder, EmailMessage, SOASetup);
+        AddEmailAttachmentToTaskMessage(AgentTaskMessageBuilder, EmailMessage, SOASetup, TempIgnoredAgentTaskFile);
         AgentTaskMessage := AgentTaskMessageBuilder.Create();
+        AddIgnoredOversizedAttachments(AgentTaskMessage, TempIgnoredAgentTaskFile);
 
         SOAEmail.SetAgentMessageFields(AgentTaskMessage);
         SetAttachmentsTransferred(SOAEmail, EmailMessage);
