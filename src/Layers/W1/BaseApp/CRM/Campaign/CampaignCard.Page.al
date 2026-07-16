@@ -324,7 +324,6 @@ page 5086 "Campaign Card"
                 Caption = 'Campaign Details';
                 Image = "Report";
                 RunObject = Report "Campaign - Details";
-                ToolTip = 'Show detailed information about the campaign.';
             }
         }
         area(Promoted)

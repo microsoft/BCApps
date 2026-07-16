@@ -13,6 +13,7 @@ report 5193 "Create Conts. from Bank Accs."
 {
     ApplicationArea = RelationshipMgmt;
     Caption = 'Create Contacts from Bank Accounts';
+    ToolTip = 'Create a contact card from information about the bank account''s contact person.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

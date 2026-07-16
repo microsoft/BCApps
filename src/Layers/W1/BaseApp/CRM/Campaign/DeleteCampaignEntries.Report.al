@@ -7,6 +7,7 @@ namespace Microsoft.CRM.Campaign;
 report 5189 "Delete Campaign Entries"
 {
     Caption = 'Delete Campaign Entries';
+    ToolTip = 'Find and delete canceled campaign entries.';
     ProcessingOnly = true;
 
     dataset

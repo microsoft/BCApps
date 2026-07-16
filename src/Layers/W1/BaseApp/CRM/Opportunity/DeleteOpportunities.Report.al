@@ -9,6 +9,7 @@ using Microsoft.CRM.Comment;
 report 5182 "Delete Opportunities"
 {
     Caption = 'Delete Opportunities';
+    ToolTip = 'Find and delete closed opportunity entries.';
     ProcessingOnly = true;
 
     dataset
