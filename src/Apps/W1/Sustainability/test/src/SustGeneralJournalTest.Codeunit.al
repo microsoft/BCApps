@@ -1,6 +1,7 @@
 namespace Microsoft.Test.Sustainability;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
@@ -905,8 +906,8 @@ codeunit 148188 "Sust. General Journal Test"
         GenJournalLine: Record "Gen. Journal Line";
         GLEntry: Record "G/L Entry";
         ReversalEntry: Record "Reversal Entry";
-        BankAccount: Record "Bank Account";
-        Vendor: Record Vendor;
+        GLAccount: Record "G/L Account";
+        BalGLAccount: Record "G/L Account";
         EmissionCO2: Decimal;
         OriginalEntryNo: Integer;
         DocumentNo: Code[20];
@@ -922,16 +923,19 @@ codeunit 148188 "Sust. General Journal Test"
         SustainabilityAccount.Get(AccountCode);
         EmissionCO2 := LibraryRandom.RandIntInRange(10, 20);
 
-        LibraryERM.CreateBankAccount(BankAccount);
-        LibraryPurchase.CreateVendor(Vendor);
+        // Post a plain G/L-to-G/L journal line with a blank document type so the reversal is
+        // localization-neutral (invoice documents cannot be reversed in some localizations, and
+        // bank/cash posting groups are not configured with a G/L account in every demo database).
+        LibraryERM.CreateGLAccount(GLAccount);
+        LibraryERM.CreateGLAccount(BalGLAccount);
         LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
         LibraryERM.CreateGenJournalBatch(GenJournalBatch, GenJournalTemplate.Name);
         LibraryERM.CreateGeneralJnlLine(
             GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
-            GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Vendor, Vendor."No.",
-            -LibraryRandom.RandIntInRange(100, 200));
-        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"Bank Account");
-        GenJournalLine.Validate("Bal. Account No.", BankAccount."No.");
+            GenJournalLine."Document Type"::" ", GenJournalLine."Account Type"::"G/L Account", GLAccount."No.",
+            LibraryRandom.RandIntInRange(100, 200));
+        GenJournalLine.Validate("Bal. Account Type", GenJournalLine."Bal. Account Type"::"G/L Account");
+        GenJournalLine.Validate("Bal. Account No.", BalGLAccount."No.");
         GenJournalLine.Validate("Sust. Account No.", SustainabilityAccount."No.");
         GenJournalLine.Validate("Total Emission CO2", EmissionCO2);
         GenJournalLine.Modify(true);
