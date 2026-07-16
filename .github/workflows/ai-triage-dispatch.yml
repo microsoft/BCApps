@@ -34,6 +34,12 @@ env:
   # Bare repository name — the create-github-app-token `repositories` input takes
   # names without the owner prefix when `owner` is set.
   AGENT_REPO_NAME: BCAppsTriage
+  # Branch of the agent repo to dispatch against. Passing an explicit --ref avoids
+  # a `repository.defaultBranchRef` GraphQL lookup that `gh workflow run` would
+  # otherwise do — the App token (Actions + Metadata only, no Contents) is not
+  # permitted to read that field, which fails with
+  # "unable to determine default branch ... Resource not accessible by integration".
+  AGENT_REF: main
 
 jobs:
   triage:
@@ -58,7 +64,7 @@ jobs:
 
       - name: Mint token for the agent repo
         id: app-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ vars.TRIAGE_APP_ID }}
           private-key: ${{ secrets.TRIAGE_APP_PRIVATE_KEY }}
@@ -72,7 +78,7 @@ jobs:
           RUN_TOKEN: ${{ steps.token.outputs.run_token }}
         run: |
           set -euo pipefail
-          gh workflow run "$AGENT_WORKFLOW" -R "$AGENT_REPO" \
+          gh workflow run "$AGENT_WORKFLOW" -R "$AGENT_REPO" --ref "$AGENT_REF" \
             -f issue_number="$ISSUE_NUMBER" \
             -f run_token="$RUN_TOKEN"
 
@@ -121,7 +127,7 @@ jobs:
 
       - name: Apply triage result
         if: steps.download.outputs.have_result == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -181,7 +187,7 @@ jobs:
 
       - name: Report triage failure
         if: always() && (steps.await.outputs.run_id == '' || steps.download.outputs.have_result == 'false')
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.issues.createComment({
