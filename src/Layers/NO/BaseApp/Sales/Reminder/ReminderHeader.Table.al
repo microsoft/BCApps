@@ -55,7 +55,7 @@ table 295 "Reminder Header"
                     NoSeries.TestManual(GetNoSeriesCode());
                     "No. Series" := '';
                 end;
-                "Posting Description" := StrSubstNo(ReminderNoLbl, "No.");
+                "Posting Description" := GetDefaultPostingDescription("No.");
             end;
         }
         /// <summary>
@@ -811,7 +811,7 @@ table 295 "Reminder Header"
     begin
         SalesSetup.Get();
         SetReminderNo();
-        "Posting Description" := StrSubstNo(ReminderNoLbl, "No.");
+        "Posting Description" := GetDefaultPostingDescription("No.");
 
         OnInsertOnBeforeInitNoSeries(Rec, xRec, IsHandled);
         if not IsHandled then
@@ -874,6 +874,16 @@ table 295 "Reminder Header"
         GapInNumberSeriesIfDeleteTxt: Label 'Deleting this document will cause a gap in the number series for reminders. ';
         CreateEmptyReminderTxt: Label 'An empty reminder %1 will be created to fill this gap in the number series.\\', Comment = '%1 = Reminder No.';
         UnexpectedLineTypeErr: Label 'Unexpected line type %1 in reminder %2', Comment = '%1 = Line Type, %2 = Reminder No.';
+
+    /// <summary>
+    /// Returns the default posting description text for the given reminder number.
+    /// </summary>
+    /// <param name="ReminderNo">The reminder number to embed in the posting description.</param>
+    /// <returns>The default posting description text.</returns>
+    internal procedure GetDefaultPostingDescription(ReminderNo: Code[20]): Text[100]
+    begin
+        exit(StrSubstNo(ReminderNoLbl, ReminderNo));
+    end;
 
     /// <summary>
     /// Opens a dialog to assist with selecting a number from related number series.
