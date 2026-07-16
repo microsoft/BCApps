@@ -1812,7 +1812,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Vendor - Trial Balance';
                         RunObject = report "Vendor - Trial Balance";
-                        Tooltip = 'Run the Vendor - Trial Balance report.';
                     }
                     action("Vendor/Item Purchases")
                     {

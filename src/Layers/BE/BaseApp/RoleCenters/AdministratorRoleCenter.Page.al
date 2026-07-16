@@ -758,7 +758,6 @@ page 9018 "Administrator Role Center"
                     Caption = 'Date Compress V&endor Ledger Entries';
                     Image = Vendor;
                     RunObject = Report "Date Compress Vendor Ledger";
-                    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                 }
                 action("Date Compress &Resource Ledger Entries")
                 {

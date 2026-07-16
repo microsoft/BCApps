@@ -13,6 +13,7 @@ report 307 "Vendor - Order Summary"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Vendor - Order Summary';
+    ToolTip = 'View the order detail (the quantity not yet received) for each vendor in three periods of 30 days each, starting from a selected date. There are also columns with orders before and after the three periods and a column with the total order detail for each vendor. The report can be used to analyze a company''s expected purchase volume.';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = Vendor;
     DefaultRenderingLayout = RDLCLayout;
