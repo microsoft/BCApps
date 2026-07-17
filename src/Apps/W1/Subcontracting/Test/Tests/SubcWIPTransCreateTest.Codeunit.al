@@ -358,6 +358,80 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
     end;
 
     [Test]
+    [HandlerFunctions('HandleMultipleTransferOrders')]
+    procedure MultipleWIPTransferOrdersFromPurchaseOrderOpenTransferOrdersPage()
+    var
+        Item: Record Item;
+        Location: array[2] of Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        ProductionOrder: array[2] of Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        RequisitionLine: Record "Requisition Line";
+        RequisitionWkshName: Record "Requisition Wksh. Name";
+        TransferHeader: Record "Transfer Header";
+        WorkCenter: array[2] of Record "Work Center";
+        SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
+        CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
+        PurchaseHeaderPage: TestPage "Purchase Order";
+    begin
+        // [SCENARIO 641284] Creating WIP transfer orders for purchase lines from production orders at different locations opens all transfer orders.
+        Initialize();
+
+        // [GIVEN] A subcontracting item with WIP transfer enabled
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SetTransferWIPItemOnRoutingLine(Item."Routing No.", WorkCenter[2]."No.", true);
+
+        // [GIVEN] Two released production orders for the item at different locations
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location[1]);
+        LibraryWarehouse.CreateLocationWithInventoryPostingSetup(Location[2]);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder[1], "Production Order Status"::Released,
+            ProductionOrder[1]."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5, Location[1].Code);
+        SubcontractingMgmtLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder[2], "Production Order Status"::Released,
+            ProductionOrder[2]."Source Type"::Item, Item."No.", LibraryRandom.RandInt(10) + 5, Location[2].Code);
+
+        // [GIVEN] One subcontracting purchase order containing a line for each production order
+        SubcontractingMgmtLibrary.CreateReqWkshTemplateAndName(ReqWkshTemplate, RequisitionWkshName);
+        RequisitionLine."Worksheet Template Name" := RequisitionWkshName."Worksheet Template Name";
+        RequisitionLine."Journal Batch Name" := RequisitionWkshName.Name;
+        WorkCenter[2].SetRecFilter();
+        SubcCalculateSubContracts.SetTableView(WorkCenter[2]);
+        SubcCalculateSubContracts.SetWkShLine(RequisitionLine);
+        SubcCalculateSubContracts.UseRequestPage(false);
+        SubcCalculateSubContracts.RunModal();
+
+        RequisitionLine.SetRange("Worksheet Template Name", RequisitionWkshName."Worksheet Template Name");
+        RequisitionLine.SetRange("Journal Batch Name", RequisitionWkshName.Name);
+        Assert.RecordCount(RequisitionLine, 2);
+        RequisitionLine.FindFirst();
+        CarryOutActionMsgReq.SetReqWkshLine(RequisitionLine);
+        CarryOutActionMsgReq.UseRequestPage(false);
+        CarryOutActionMsgReq.RunModal();
+
+        PurchaseLine.SetRange("Document Type", PurchaseLine."Document Type"::Order);
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.SetRange("Work Center No.", WorkCenter[2]."No.");
+        PurchaseLine.FindFirst();
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        Assert.RecordCount(PurchaseLine, 2);
+
+        // [WHEN] Create Transfer Order to Subcontractor is invoked from the purchase order
+        PurchaseHeaderPage.OpenView();
+        PurchaseHeaderPage.GoToRecord(PurchaseHeader);
+        PurchaseHeaderPage.CreateTransfOrdToSubcontractor.Invoke();
+
+        // [THEN] A transfer order was created for each production order location
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        TransferHeader.SetRange("Subc. Return Order", false);
+        Assert.RecordCount(TransferHeader, 2);
+    end;
+
+    [Test]
     [HandlerFunctions('DoNotConfirmShowCreatedPurchOrderForSubcontracting,HandleTransferOrder')]
     procedure WIPTransferOrderNotCreatedWhenFlagIsOff()
     var
@@ -1709,6 +1783,19 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
     procedure HandleTransferOrders(var TransfOrderPage: TestPage "Transfer Orders")
     begin
         TransfOrderPage.OK().Invoke();
+    end;
+
+    [PageHandler]
+    procedure HandleMultipleTransferOrders(var TransferOrders: TestPage "Transfer Orders")
+    var
+        NoOfTransferOrders: Integer;
+    begin
+        if TransferOrders.First() then
+            repeat
+                NoOfTransferOrders += 1;
+            until not TransferOrders.Next();
+        Assert.AreEqual(2, NoOfTransferOrders, 'The Transfer Orders page must show all transfer orders created for the purchase order.');
+        TransferOrders.OK().Invoke();
     end;
 
     [MessageHandler]
