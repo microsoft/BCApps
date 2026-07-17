@@ -85,6 +85,16 @@ jobs:
     if: github.repository_owner == 'microsoft' && needs.GetBranches.outputs.updateBranches != '[]' && needs.GetBranches.outputs.updateBranches != ''
     runs-on: windows-latest
     needs: GetBranches
+    # Serialize runs per branch. The hourly schedule can overlap when a branch's run takes longer than an
+    # hour (heavy 'gh api'/'gh run download' work, or API rate limiting). Without this, two runs for the
+    # same branch would race to read the 'latest' unstable-tests artifact and upload their own copy, which
+    # could let a slightly older recompute land after a newer one and transiently reintroduce tests that
+    # were just removed. cancel-in-progress: false queues the newer run behind the in-progress one, so the
+    # newest recompute is always the last to upload. Each branch uses its own group (artifacts are
+    # branch-scoped), so 'main' and 'releases/*' never block each other.
+    concurrency:
+      group: unstable-tests-${{ matrix.branch }}
+      cancel-in-progress: false
     strategy:
       matrix:
         branch: ${{ fromJson(needs.GetBranches.outputs.updateBranches) }}
@@ -132,4 +142,6 @@ jobs:
           name: ${{ steps.update.outputs.artifactName }}
           path: .unstable-tests/unstable-tests.json
           if-no-files-found: warn
-          retention-days: 30
+          # A fresh artifact is produced on every hourly run and PR builds only ever consume the latest,
+          # so a long retention just multiplies storage. 7 days still buffers a multi-day scheduler outage.
+          retention-days: 7

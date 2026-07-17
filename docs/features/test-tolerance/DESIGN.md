@@ -97,7 +97,9 @@ Each test is identified by a three-part normalized key: `extensionId::codeunit::
 
 **Artifact lifecycle**
 
-Artifacts are retained for 90 days. If the artifact expires before a new CI/CD run produces a replacement, tolerance silently stops applying until the next UpdateUnstableTests run. Each UpdateUnstableTests run publishes a fresh artifact, resetting the 90-day clock. A test that is removed from the codebase entirely stays on the unstable list until the artifact expires.
+The scheduled `UpdateUnstableTests` workflow publishes a fresh per-branch artifact on every hourly run, retained for **7 days**. Because a replacement is produced hourly and PR builds only ever read the latest copy, the short retention still buffers a multi-day scheduler outage while keeping storage bounded (the manual `AddUnstableTestsFromRun` path, which runs the shared composite action, retains for 30 days). If the artifact expires before a new run produces a replacement, tolerance silently stops applying until the next run. A test that is removed from the codebase entirely stays on the unstable list until the next recompute drops it (or the artifact expires).
+
+Per-branch runs are serialized with a `concurrency` group (`unstable-tests-<branch>`, `cancel-in-progress: false`): if an hourly run for a branch runs long and the next one starts, the newer run queues behind it so the newest recompute is always the last to upload, avoiding a stale copy overwriting a fresher one. Different branches use different groups (artifacts are branch-scoped) and never block each other.
 
 ### 6.2 Branch resolution
 
