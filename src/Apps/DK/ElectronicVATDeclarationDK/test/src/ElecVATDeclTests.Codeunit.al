@@ -64,7 +64,7 @@ codeunit 148015 "Elec. VAT Decl. Tests"
             GetPeriodXml('Måned', '2026-05-01') +
             GetPeriodXml('Halvår', '2026-12-01'));
 
-        ElecVATDeclGetPeriods.GetVATReturnPeriodsFromResponseText(ResponseText);
+        ElecVATDeclGetPeriods.GetVATReturnPeriodsFromResponseText(ResponseText, true);
 
         VATReturnPeriod.SetRange("Start Date", 20260401D);
         VATReturnPeriod.SetRange("End Date", 20260430D);
@@ -87,8 +87,8 @@ codeunit 148015 "Elec. VAT Decl. Tests"
         Initialize();
         ResponseText := GetResponseXml(GetPeriodXml('Kvartal', '2026-09-01'));
 
-        ElecVATDeclGetPeriods.GetVATReturnPeriodsFromResponseText(ResponseText);
-        ElecVATDeclGetPeriods.GetVATReturnPeriodsFromResponseText(ResponseText);
+        ElecVATDeclGetPeriods.GetVATReturnPeriodsFromResponseText(ResponseText, true);
+        ElecVATDeclGetPeriods.GetVATReturnPeriodsFromResponseText(ResponseText, true);
 
         VATReturnPeriod.SetRange("Start Date", 20260401D);
         VATReturnPeriod.SetRange("End Date", 20260630D);
@@ -114,7 +114,7 @@ codeunit 148015 "Elec. VAT Decl. Tests"
         ResponseText := GetResponseXml(
             '<ns1:AngivelseBetalingFristStruktur><ns4:AngivelseFristKalenderBetalingDato>2026-05-01</ns4:AngivelseFristKalenderBetalingDato></ns1:AngivelseBetalingFristStruktur>');
 
-        asserterror ElecVATDeclGetPeriods.GetVATReturnPeriodsFromResponseText(ResponseText);
+        asserterror ElecVATDeclGetPeriods.GetVATReturnPeriodsFromResponseText(ResponseText, true);
 
         Assert.ExpectedError('does not contain a reporting frequency');
     end;
@@ -145,7 +145,7 @@ codeunit 148015 "Elec. VAT Decl. Tests"
         ElecVATDeclGetPeriods: Codeunit "Elec. VAT Decl. Get Periods";
     begin
         asserterror ElecVATDeclGetPeriods.GetVATReturnPeriodsFromResponseText(
-            GetResponseXml(GetPeriodXml('Ugentlig', '2026-05-01')));
+            GetResponseXml(GetPeriodXml('Ugentlig', '2026-05-01')), true);
 
         Assert.ExpectedError('is not supported');
     end;
@@ -162,7 +162,7 @@ codeunit 148015 "Elec. VAT Decl. Tests"
         VATReturnPeriod.Insert(true);
 
         asserterror ElecVATDeclGetPeriods.GetVATReturnPeriodsFromResponseText(
-            GetResponseXml(GetPeriodXml('Måned', '2026-04-01')));
+            GetResponseXml(GetPeriodXml('Måned', '2026-04-01')), true);
 
         Assert.ExpectedError('overlaps the period received from SKAT');
     end;
