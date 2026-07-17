@@ -832,55 +832,93 @@ function Invoke-AlToolTestRun {
     }
 
     $allPassed = $true
+    $merged = @{}         # merged[codeunitId] = @{ method -> result }
+    $totalElapsed = 0.0
 
-    # BATCHED execution: run every codeunit for this app in a SINGLE `al runtests --testplan`
-    # invocation (one auth + one hub connection + one server Initialize), then re-run only the failed
-    # methods once more (non-Legacy) in a second batched call. This removes the per-codeunit connect/
-    # auth tax that dominates unit-test suites.
-    $groups = @($codeunits | ForEach-Object { @{ Id = "$($_.Id)"; Methods = @($_.Tests | ForEach-Object { "$_" }) } })
-
-    $batch = Invoke-AlBatchRunTests -Groups $groups -ProjectPath $projectPath -Company $company `
-        -Tenant $tenant -Connection $connection
-    if (-not $batch.Connected) {
-        Write-Host "::warning::batched al runtests did not complete for app '$appName'. Raw output:"
-        Write-Host $batch.Raw
-        $allPassed = $false
+    if ($TestType -eq 'Legacy') {
+        # Legacy is heavily state-dependent: running its codeunits in one shared batched session causes
+        # widespread mid-batch "no result" casualties, and the isolated fallback then re-runs most of
+        # the bucket one-by-one - which is SLOWER than just running isolated up front and blew past the
+        # 6h job limit. Batching's win is on many-fast-codeunit unit suites, not Legacy, so run Legacy
+        # per-codeunit in isolation (a fresh session each), mirroring the pre-batching behavior.
+        Write-Host "TestType=Legacy: running $($codeunits.Count) codeunit(s) in isolation (batching disabled for Legacy)."
+        $idx = 0
+        foreach ($cu in $codeunits) {
+            $idx++
+            $methods = @($cu.Tests | ForEach-Object { "$_" })
+            $run = Invoke-AlRunTestsWithReruns -CodeunitId "$($cu.Id)" -Methods $methods `
+                -ProjectPath $projectPath -Company $company -Tenant $tenant -Connection $connection `
+                -MaxAttempts 1 -CodeunitName "$($cu.Name)"
+            $totalElapsed += [double]$run.ElapsedSec
+            if (-not $run.Connected) {
+                Write-Host "::warning::al runtests did not complete for codeunit $($cu.Id) '$($cu.Name)'."
+                $allPassed = $false
+            }
+            $merged["$($cu.Id)"] = $run.Results
+        }
     }
-    # merged[codeunitId] = @{ method -> result }; start from the first pass.
-    $merged = @{}
-    foreach ($k in $batch.Results.Keys) { $merged[$k] = $batch.Results[$k] }
-    $totalElapsed = [double]$batch.ElapsedSec
+    else {
+        # BATCHED execution: run every codeunit for this app in a SINGLE `al runtests --testplan`
+        # invocation (one auth + one hub connection + one server Initialize). This removes the
+        # per-codeunit connect/auth tax that dominates unit-test suites.
+        $groups = @($codeunits | ForEach-Object { @{ Id = "$($_.Id)"; Methods = @($_.Tests | ForEach-Object { "$_" }) } })
 
-    # Isolated fallback + rerun pass. Two things are handled here, both by running each affected
-    # codeunit in its OWN `al runtests` call (a fresh session), NOT another batch:
-    #   1. No-result codeunits: batching runs everything in one shared session, so a state-sensitive
-    #      codeunit (e.g. Language Test, which mutates the session language) can produce no results at
-    #      all mid-batch. Re-running it in isolation restores the clean-session behavior it needs.
-    #   2. Flaky failures: mirrors BCH's rerun of failed tests (non-Legacy only).
-    # A method with no result is ALWAYS retried once (correctness); a Failed method is retried only for
-    # non-Legacy (BCH does not rerun Legacy failures). Bounded to a single isolated pass.
-    $isoGroups = @()
+        $batch = Invoke-AlBatchRunTests -Groups $groups -ProjectPath $projectPath -Company $company `
+            -Tenant $tenant -Connection $connection
+        if (-not $batch.Connected) {
+            Write-Host "::warning::batched al runtests did not complete for app '$appName'. Raw output:"
+            Write-Host $batch.Raw
+            $allPassed = $false
+        }
+        foreach ($k in $batch.Results.Keys) { $merged[$k] = $batch.Results[$k] }
+        $totalElapsed = [double]$batch.ElapsedSec
+
+        # Isolated fallback + rerun pass. Each affected codeunit runs in its OWN `al runtests` call (a
+        # fresh session), NOT another batch:
+        #   1. No-result codeunits: batching runs everything in one shared session, so a state-sensitive
+        #      codeunit (e.g. Language Test, which mutates the session language) can produce no results
+        #      mid-batch. Re-running it in isolation restores the clean-session behavior it needs.
+        #   2. Flaky failures: mirrors BCH's rerun of failed tests.
+        # A method with no result is ALWAYS retried once (correctness); a Failed method is retried too
+        # (non-Legacy path only reaches here). Bounded to a single isolated pass.
+        $isoGroups = @()
+        foreach ($cu in $codeunits) {
+            $cid = "$($cu.Id)"
+            $requested = @($cu.Tests | ForEach-Object { "$_" })
+            $cuResults = $merged[$cid]
+            $retryMethods = @($requested | Where-Object {
+                $r = if ($cuResults) { $cuResults[$_] } else { $null }
+                ($null -eq $r) -or ($r.Outcome -eq 'Fail')
+            })
+            if ($retryMethods.Count -gt 0) {
+                $isoGroups += @{ Id = $cid; Methods = $retryMethods; Name = $cu.Name }
+            }
+        }
+        if ($isoGroups.Count -gt 0) {
+            Write-Host ("isolated fallback/rerun: {0} codeunit(s) (each in its own session)" -f $isoGroups.Count)
+            foreach ($g in $isoGroups) {
+                $iso = Invoke-AlRunTestsForCodeunit -CodeunitId $g.Id -Methods $g.Methods `
+                    -ProjectPath $projectPath -Company $company -Tenant $tenant -Connection $connection
+                $totalElapsed += [double]$iso.ElapsedSec
+                if (-not $merged.ContainsKey($g.Id)) { $merged[$g.Id] = @{} }
+                foreach ($mName in $iso.Results.Keys) { $merged[$g.Id][$mName] = $iso.Results[$mName] }
+            }
+        }
+    }
+
+    # Distribute the app's REAL al wall-clock ($totalElapsed) across its codeunits so the JUnit suite
+    # times sum to the real execution time. NOTE: al's per-method `ms` drastically UNDER-reports real
+    # work (it counts only AL code, not the server-side page/commit/setup time), so using the raw
+    # method-ms sum as suite time makes the JUnit total look ~5x faster than reality. We therefore
+    # weight the real total by each codeunit's method-ms share (equal split as a fallback).
+    $cuMsShare = @{}
+    $grandMs = 0.0
     foreach ($cu in $codeunits) {
-        $cid = "$($cu.Id)"
-        $requested = @($cu.Tests | ForEach-Object { "$_" })
-        $cuResults = $merged[$cid]
-        $retryMethods = @($requested | Where-Object {
-            $r = if ($cuResults) { $cuResults[$_] } else { $null }
-            ($null -eq $r) -or (($r.Outcome -eq 'Fail') -and ($TestType -ne 'Legacy'))
-        })
-        if ($retryMethods.Count -gt 0) {
-            $isoGroups += @{ Id = $cid; Methods = $retryMethods; Name = $cu.Name }
-        }
-    }
-    if ($isoGroups.Count -gt 0) {
-        Write-Host ("isolated fallback/rerun: {0} codeunit(s) (each in its own session)" -f $isoGroups.Count)
-        foreach ($g in $isoGroups) {
-            $iso = Invoke-AlRunTestsForCodeunit -CodeunitId $g.Id -Methods $g.Methods `
-                -ProjectPath $projectPath -Company $company -Tenant $tenant -Connection $connection
-            $totalElapsed += [double]$iso.ElapsedSec
-            if (-not $merged.ContainsKey($g.Id)) { $merged[$g.Id] = @{} }
-            foreach ($mName in $iso.Results.Keys) { $merged[$g.Id][$mName] = $iso.Results[$mName] }
-        }
+        $cuResults = $merged["$($cu.Id)"]
+        $ms = 0.0
+        if ($cuResults) { foreach ($mName in $cuResults.Keys) { $ms += [double]$cuResults[$mName].Ms } }
+        $cuMsShare["$($cu.Id)"] = $ms
+        $grandMs += $ms
     }
 
     # Build one JUnit <testsuite> per codeunit from the merged results.
@@ -891,10 +929,13 @@ function Invoke-AlToolTestRun {
         $cuResults = $merged["$($cu.Id)"]
         if ($null -eq $cuResults) { $cuResults = @{} }
 
-        # Per-codeunit wall-clock isn't available in batched mode; approximate suite time with the sum
-        # of per-method server execution (ms). Total app wall-clock is logged separately.
-        $suiteSec = 0.0
-        foreach ($mName in $cuResults.Keys) { $suiteSec += ([double]$cuResults[$mName].Ms / 1000.0) }
+        if ($grandMs -gt 0) {
+            $suiteSec = $totalElapsed * ($cuMsShare["$($cu.Id)"] / $grandMs)
+        } elseif ($codeunits.Count -gt 0) {
+            $suiteSec = $totalElapsed / $codeunits.Count
+        } else {
+            $suiteSec = 0.0
+        }
 
         $failed = Add-JUnitTestSuite -Doc $doc -TestSuitesNode $suites -Codeunit $cu `
             -RequestedMethods $methods -MethodResults $cuResults -ExtensionId $extensionId `
@@ -905,7 +946,8 @@ function Invoke-AlToolTestRun {
         Write-Host ("[{0}/{1}] cu {2} '{3}' -> {4} failed of {5} method(s)" -f `
             $idx, $codeunits.Count, $cu.Id, $cu.Name, $failed, $methods.Count)
     }
-    Write-Host ("Batched run for app '{0}': {1} codeunit(s) in {2}s total al wall-clock." -f $appName, $codeunits.Count, [Math]::Round($totalElapsed, 2))
+    Write-Host ("Run for app '{0}': {1} codeunit(s) in {2}s real al wall-clock (mode={3})." -f `
+        $appName, $codeunits.Count, [Math]::Round($totalElapsed, 2), $(if ($TestType -eq 'Legacy') { 'isolated' } else { 'batched' }))
 
     if (-not [string]::IsNullOrWhiteSpace($junitFile)) {
         $dir = [System.IO.Path]::GetDirectoryName($junitFile)
