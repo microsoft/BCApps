@@ -7419,7 +7419,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeTestFirstApplyItemLedgerEntryTracking(ItemLedgEntry: Record "Item Ledger Entry"; OldItemLedgEntry: Record "Item Ledger Entry"; var ItemTrackingCode: Record "Item Tracking Code")
+    local procedure OnBeforeTestFirstApplyItemLedgerEntryTracking(ItemLedgerEntry: Record "Item Ledger Entry"; OldItemLedgerEntry: Record "Item Ledger Entry"; var ItemTrackingCode: Record "Item Tracking Code")
     begin
     end;
 
@@ -8970,4 +8970,3 @@ codeunit 22 "Item Jnl.-Post Line"
     begin
     end;
 }
-
