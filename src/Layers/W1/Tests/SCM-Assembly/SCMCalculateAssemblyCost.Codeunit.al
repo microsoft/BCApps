@@ -52,6 +52,7 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         TEXT_CHILD: Label 'Child';
         TEXT_ItemA: Label 'ItemA';
         AssemblyOutputCostDistortedErr: Label 'Running Calc. Assembly Std. Cost distorted the assembly output Cost Amount (Actual); a spurious Manufacturing Overhead variance was posted.';
+        AssemblyOutputIndirectCostErr: Label 'Running Calc. Assembly Std. Cost distorted the assembly output indirect (Manufacturing Overhead) cost; the Cost Amount (Actual) no longer matches the rolled standard overhead.';
         Initialized: Boolean;
 
     [Test]
@@ -517,6 +518,7 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         BOMComponent: Record "BOM Component";
         PurchRcptLine: Record "Purch. Rcpt. Line";
         VATPostingSetup: Record "VAT Posting Setup";
+        OrderQty: Decimal;
     begin
         // [FEATURE] [Assembly] [Standard Cost] [Cost Adjustment] [Item Charge]
         // [SCENARIO 640456] After an item charge changes the component cost, adjusting a standard-cost assembly
@@ -569,7 +571,8 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         CalculateAssemblyStandardCost(AssemblyItem."No.");
 
         // [GIVEN] An assembly order (qty 10) is posted and cost is adjusted
-        CreateAndPostAssemblyHeader(AssemblyItem."No.", 10, WorkDate2);
+        OrderQty := 10;
+        CreateAndPostAssemblyHeader(AssemblyItem."No.", OrderQty, WorkDate2);
         LibraryCosting.AdjustCostItemEntries(AssemblyItem."No.", '');
 
         // [WHEN] A freight item charge (1000 @ 1.00) is assigned to the component receipt and cost is adjusted
@@ -580,6 +583,16 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         Assert.AreEqual(
           0, GetAssemblyOutputOverheadVarianceCount(AssemblyItem."No."),
           AssemblyOutputCostDistortedErr);
+
+        // [THEN] The customer-visible indirect (Manufacturing Overhead) cost on the assembly output equals the
+        // rolled standard overhead (1.12). This asserts the actual end-state Cost Amount (Actual) of the overhead
+        // against the rolled standard cost, so the test fails if the overhead drifts to an incorrect amount
+        // (e.g. 1.17 as reported in the bug) rather than only checking for the absence of a variance entry.
+        AssemblyItem.Get(AssemblyItem."No.");
+        Assert.AreEqual(
+          ExpectedRolledIndirectCost(AssemblyItem, OrderQty),
+          GetAssemblyOutputIndirectCostAmount(AssemblyItem."No."),
+          AssemblyOutputIndirectCostErr);
     end;
 
     local procedure GetAssemblyOutputOverheadVarianceCount(ItemNo: Code[20]): Integer
@@ -591,6 +604,42 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::Variance);
         ValueEntry.SetRange("Variance Type", ValueEntry."Variance Type"::"Manufacturing Overhead");
         exit(ValueEntry.Count());
+    end;
+
+    local procedure GetAssemblyOutputIndirectCostAmount(ItemNo: Code[20]) IndirectCost: Decimal
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        // The customer-visible manufacturing overhead on the assembly output is the sum of the applied indirect
+        // cost value entries and any Manufacturing Overhead variance entries. A spurious variance (the bug) drifts
+        // this total away from the rolled standard overhead.
+        ValueEntry.SetRange("Item No.", ItemNo);
+        ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::"Assembly Output");
+        ValueEntry.SetFilter(
+          "Entry Type", '%1|%2', ValueEntry."Entry Type"::"Indirect Cost", ValueEntry."Entry Type"::Variance);
+        ValueEntry.SetLoadFields("Entry Type", "Variance Type", "Cost Amount (Actual)");
+        if ValueEntry.FindSet() then
+            repeat
+                if (ValueEntry."Entry Type" = ValueEntry."Entry Type"::"Indirect Cost") or
+                   (ValueEntry."Variance Type" = ValueEntry."Variance Type"::"Manufacturing Overhead")
+                then
+                    IndirectCost += ValueEntry."Cost Amount (Actual)";
+            until ValueEntry.Next() = 0;
+    end;
+
+    local procedure ExpectedRolledIndirectCost(Item: Record Item; Qty: Decimal): Decimal
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        DirectCostShare: Decimal;
+    begin
+        // Recreate the rolled standard overhead the same way CalcOvhdCost does: "Indirect Cost %" applied to the
+        // standard material/capacity direct-cost shares (which stay stable across cost adjustments), scaled to the
+        // posted output quantity and rounded once to the amount rounding precision.
+        GeneralLedgerSetup.Get();
+        DirectCostShare :=
+          (Item."Single-Level Material Cost" + Item."Single-Level Capacity Cost" +
+           Item."Single-Level Subcontrd. Cost" + Item."Single-Level Cap. Ovhd Cost") * Qty;
+        exit(Round(DirectCostShare * Item."Indirect Cost %" / 100, GeneralLedgerSetup."Amount Rounding Precision"));
     end;
 
     local procedure Initialize()
