@@ -789,10 +789,17 @@ codeunit 7017 "Price List Management"
                 end;
             until not PriceSourceList.Next(PriceSource);
 
-        if NonEmptyCount = 1 then
-            PriceListLine.SetView(FirstMatchView)
-        else
-            ClearSourceFilters(PriceListLine);
+        case NonEmptyCount of
+            0:
+                begin
+                    MarkingIsUsed := true;
+                    ClearSourceFilters(PriceListLine);
+                end;
+            1:
+                PriceListLine.SetView(FirstMatchView);
+            else
+                ClearSourceFilters(PriceListLine);
+        end;
     end;
 
     local procedure MarkPriceListLines(var PriceListLine: Record "Price List Line")

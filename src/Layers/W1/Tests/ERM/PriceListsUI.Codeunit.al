@@ -35,6 +35,7 @@
         CustDiscountGroupCodeDeleteErr: Label 'The field Customer Disc. Group of table Sales Line contains a value (%1) that cannot be found in the related table (Customer Discount Group).', Comment = '%1= Customer Discount Group Code.';
         AllCustomersLinesNotShownErr: Label 'All Customers lines are not all shown';
         MixedSourceLinesNotShownErr: Label 'Not all applicable price lines are shown for the customer';
+        UnrelatedLinesShownErr: Label 'Unrelated price lines are shown for the customer';
 
     [Test]
     procedure T000_SalesPriceListsPageIsNotEditable()
@@ -4941,6 +4942,53 @@
                 ShownCount += 1;
             until not PriceListLineReview.Next();
         Assert.AreEqual(3, ShownCount, MixedSourceLinesNotShownErr);
+    end;
+
+    [Test]
+    procedure T222_SalesPriceLinesFromCustomerCardNoMatchingSourceLinesShowsEmpty()
+    var
+        Customer: Record Customer;
+        OtherCustomer: Record Customer;
+        CustomerPriceGroup: Record "Customer Price Group";
+        PriceListLine: Record "Price List Line";
+        CustomerCard: TestPage "Customer Card";
+        PriceListLineReview: TestPage "Price List Line Review";
+        ShownCount: Integer;
+    begin
+        // [SCENARIO 641061] Sales Price Review page opened from a Customer Card whose sources have no matching price lines
+        // returns zero lines, even when unrelated sales price lines exist in the database.
+        Initialize(true);
+
+        // [GIVEN] A Customer Price Group "X" and two Customers: "C1" (assigned to no price group) and "C2" (assigned to "X").
+        LibrarySales.CreateCustomerPriceGroup(CustomerPriceGroup);
+        LibrarySales.CreateCustomer(Customer);
+        LibrarySales.CreateCustomer(OtherCustomer);
+        OtherCustomer."Customer Price Group" := CustomerPriceGroup.Code;
+        OtherCustomer.Modify();
+
+        // [GIVEN] Sales price lines exist only for the other customer's sources (Customer "C2" and Price Group "X").
+        // [GIVEN] No price line exists for "All Customers", for Customer "C1", or for any price group Customer "C1" belongs to.
+        LibraryPriceCalculation.CreateSalesPriceLine(
+            PriceListLine, LibraryUtility.GenerateGUID(), "Price Source Type"::Customer, OtherCustomer."No.",
+            "Price Asset Type"::Item, LibraryInventory.CreateItemNo());
+        LibraryPriceCalculation.CreateSalesPriceLine(
+            PriceListLine, LibraryUtility.GenerateGUID(), "Price Source Type"::"Customer Price Group", CustomerPriceGroup.Code,
+            "Price Asset Type"::Item, LibraryInventory.CreateItemNo());
+
+        // [GIVEN] Open Customer Card for Customer "C1".
+        CustomerCard.OpenEdit();
+        CustomerCard.Filter.SetFilter("No.", Customer."No.");
+
+        // [WHEN] Run action "Sales Prices".
+        PriceListLineReview.Trap();
+        CustomerCard.PriceLines.Invoke();
+
+        // [THEN] No price lines are shown on the Price List Line Review page.
+        if PriceListLineReview.First() then
+            repeat
+                ShownCount += 1;
+            until not PriceListLineReview.Next();
+        Assert.AreEqual(0, ShownCount, UnrelatedLinesShownErr);
     end;
 
     local procedure Initialize(Enable: Boolean)
