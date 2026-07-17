@@ -2901,6 +2901,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
 
     local procedure UpdateReqLineQuantity(var SupplyInventoryProfile: Record "Inventory Profile")
     var
+        QtyRoundingPrecisionBase: Decimal;
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -2912,9 +2913,12 @@ codeunit 99000854 "Inventory Profile Offsetting"
             Quantity,
             Round(SupplyInventoryProfile."Remaining Quantity (Base)" / SupplyInventoryProfile."Qty. per Unit of Measure", UOMMgt.QtyRndPrecision()));
 
-        // Rounding the quantity to the base unit of measure can differ from the demand by up to half a rounding step per unit of measure.
-        // When the difference is only caused by this conversion rounding, align the base quantity with the demand to avoid invalid reservation entries.
-        if Abs(ReqLine."Quantity (Base)" - SupplyInventoryProfile."Remaining Quantity (Base)") <= SupplyInventoryProfile."Qty. per Unit of Measure" * UOMMgt.QtyRndPrecision() / 2 then
+        QtyRoundingPrecisionBase := ReqLine."Qty. Rounding Precision (Base)";
+        if QtyRoundingPrecisionBase = 0 then
+            QtyRoundingPrecisionBase := UOMMgt.QtyRndPrecision();
+        if Abs(ReqLine."Quantity (Base)" - SupplyInventoryProfile."Remaining Quantity (Base)") <=
+            (SupplyInventoryProfile."Qty. per Unit of Measure" * UOMMgt.QtyRndPrecision() + QtyRoundingPrecisionBase) / 2
+        then
             if ReqLine."Quantity (Base)" <> SupplyInventoryProfile."Remaining Quantity (Base)" then begin
                 ReqLine."Remaining Qty. (Base)" += SupplyInventoryProfile."Remaining Quantity (Base)" - ReqLine."Quantity (Base)";
                 ReqLine."Quantity (Base)" := SupplyInventoryProfile."Remaining Quantity (Base)";
