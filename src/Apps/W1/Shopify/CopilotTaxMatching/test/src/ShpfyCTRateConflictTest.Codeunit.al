@@ -106,6 +106,60 @@ codeunit 134720 "Shpfy CT Rate Conflict Test"
         LibraryAssert.IsFalse(TaxDetail.IsEmpty(), 'A Tax Detail should have been seeded at Shopify''s rate.');
     end;
 
+    // JC2 regression — every matched jurisdiction with a blank Report-to (auto-created or
+    // pre-existing) gets Report-to = the first (state) jurisdiction, including the state itself.
+    [Test]
+    procedure ReapplySetsReportToOnBlankJurisdictions()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+        Shop: Record "Shpfy Shop";
+        CopilotTaxMatcher: Codeunit "Shpfy Copilot Tax Matcher";
+        MatchedJurisdictions: List of [Code[10]];
+        MatchLog: JsonArray;
+        HasRateConflict: Boolean;
+    begin
+        Cleanup();
+        Shop := CreateShop();
+        // Two product lines with pre-existing jurisdictions that both have a BLANK Report-to
+        // (mirrors a DB where jurisdictions already exist from earlier runs).
+        CreateTwoLineJurisdictionScenario(OrderHeader, Shop);
+
+        CopilotTaxMatcher.ReapplyFromAssignedLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict);
+
+        TaxJurisdiction.Get('NYSTAX');
+        LibraryAssert.AreEqual('NYSTAX', TaxJurisdiction."Report-to Jurisdiction", 'The state jurisdiction must report to itself, not stay blank.');
+        TaxJurisdiction.Get('NYCTAX');
+        LibraryAssert.AreEqual('NYSTAX', TaxJurisdiction."Report-to Jurisdiction", 'The city jurisdiction must report to the state.');
+    end;
+
+    // An existing admin-maintained Report-to must never be overwritten.
+    [Test]
+    procedure ReapplyPreservesExistingReportTo()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+        Shop: Record "Shpfy Shop";
+        CopilotTaxMatcher: Codeunit "Shpfy Copilot Tax Matcher";
+        MatchedJurisdictions: List of [Code[10]];
+        MatchLog: JsonArray;
+        HasRateConflict: Boolean;
+    begin
+        Cleanup();
+        Shop := CreateShop();
+        CreateTwoLineJurisdictionScenario(OrderHeader, Shop);
+        // Admin has NYCTAX reporting to a custom jurisdiction, not the state.
+        EnsureJurisdiction('CUSTOMRPT');
+        TaxJurisdiction.Get('NYCTAX');
+        TaxJurisdiction."Report-to Jurisdiction" := 'CUSTOMRPT';
+        TaxJurisdiction.Modify();
+
+        CopilotTaxMatcher.ReapplyFromAssignedLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict);
+
+        TaxJurisdiction.Get('NYCTAX');
+        LibraryAssert.AreEqual('CUSTOMRPT', TaxJurisdiction."Report-to Jurisdiction", 'An existing Report-to must be preserved, not overwritten.');
+    end;
+
     // Shipping tax line is first-class: its own rate seeds the shipping-group Tax Detail.
     [Test]
     procedure ReapplySeedsShippingBracketFromShippingTaxLine()
@@ -382,6 +436,46 @@ codeunit 134720 "Shpfy CT Rate Conflict Test"
             CreateTaxDetail('NYSTAX', 'TAXABLE', ExistingBcRate, 20260101D);
 
         if TaxJurisdiction.Get('NYSTAX') then;
+    end;
+
+    local procedure CreateTwoLineJurisdictionScenario(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop")
+    var
+        OrderLine: Record "Shpfy Order Line";
+        LineId: BigInteger;
+    begin
+        // Both jurisdictions pre-exist with a blank Report-to (as after earlier runs).
+        EnsureJurisdiction('NYSTAX');
+        EnsureJurisdiction('NYCTAX');
+        EnsureItem('ITEM001', 'TAXABLE');
+
+        OrderHeader.Init();
+        OrderHeader."Shopify Order Id" := NextId();
+        OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader."Document Date" := 20260115D;
+        OrderHeader.Insert();
+
+        LineId := OrderHeader."Shopify Order Id" + 1;
+        OrderLine.Init();
+        OrderLine."Shopify Order Id" := OrderHeader."Shopify Order Id";
+        OrderLine."Line Id" := LineId;
+        OrderLine."Item No." := 'ITEM001';
+        OrderLine.Insert();
+
+        InsertMatchedTaxLine(LineId, 1, 'NEW YORK STATE TAX', 4, 'NYSTAX');
+        InsertMatchedTaxLine(LineId, 2, 'NEW YORK CITY TAX', 4.5, 'NYCTAX');
+    end;
+
+    local procedure InsertMatchedTaxLine(ParentId: BigInteger; LineNo: Integer; LineTitle: Text; RatePct: Decimal; JurisdictionCode: Code[10])
+    var
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+    begin
+        OrderTaxLine.Init();
+        OrderTaxLine."Parent Id" := ParentId;
+        OrderTaxLine."Line No." := LineNo;
+        OrderTaxLine.Title := CopyStr(LineTitle, 1, MaxStrLen(OrderTaxLine.Title));
+        OrderTaxLine."Rate %" := RatePct;
+        OrderTaxLine."Tax Jurisdiction Code" := JurisdictionCode;
+        OrderTaxLine.Insert();
     end;
 
     local procedure CreateShippingScenario(var OrderHeader: Record "Shpfy Order Header"; var Shop: Record "Shpfy Shop"; ShopifyRate: Decimal; ExistingBcRate: Decimal)

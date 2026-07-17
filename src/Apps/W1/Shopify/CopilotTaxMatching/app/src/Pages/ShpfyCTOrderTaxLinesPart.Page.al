@@ -124,6 +124,7 @@ page 30479 "Shpfy CT Order Tax Lines Part"
         AppliesToItemDescription: Text[100];
         BCRatePct: Decimal;
         RateStyleExpr: Text;
+        ShippingAppliesToLbl: Label 'Shipping charge: %1', Comment = '%1 = shipping method title';
 
     /// <summary>
     /// Scopes the part to the tax lines of a single order. The host passes a filter
@@ -162,7 +163,7 @@ page 30479 "Shpfy CT Order Tax Lines Part"
         end;
 
         if ShippingCharge.Get(Rec."Parent Id") then begin
-            AppliesToItemDescription := CopyStr(ShippingCharge.Title, 1, MaxStrLen(AppliesToItemDescription));
+            AppliesToItemDescription := CopyStr(StrSubstNo(ShippingAppliesToLbl, ShippingCharge.Title), 1, MaxStrLen(AppliesToItemDescription));
             if OrderHeader.Get(ShippingCharge."Shopify Order Id") then
                 PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
         end;
