@@ -572,6 +572,10 @@ dotnet
         type("Microsoft.Dynamics.Nav.LicensingService.Model.UserInfo"; "UserInfo")
         {
         }
+
+        type("Microsoft.Dynamics.Nav.LicensingService.Model.VerifiedDomainInfo"; "VerifiedDomainInfo")
+        {
+        }
     }
 
     assembly("Microsoft.Dynamics.Nav.NavUserAccount")
