@@ -112,9 +112,11 @@ ApplyMatches()
   |     |     |-- Otherwise: seed a Tax Detail for (jurisdiction × that tax group) at Shopify's
   |     |         rate if none exists. Each tax line (product or shipping) seeds its own bracket
   |     |         from its OWN rate — there is no product-line-derived shipping inference.
-  |-- FixReportToJurisdictions() if >1 jurisdiction matched — points only the jurisdictions
-  |     this run auto-created (and only when their Report-to is blank) at the state, so an
-  |     existing admin-maintained reporting hierarchy is never overwritten
+  |-- FixReportToJurisdictions() if >1 jurisdiction matched — points every matched jurisdiction
+  |     whose Report-to is still blank at the state (this covers jurisdictions auto-created this
+  |     run AND pre-existing ones that never had a rollup target, including the state itself,
+  |     which reports to itself), so the Tax Area rolls up correctly; a jurisdiction that already
+  |     has a Report-to (admin-maintained hierarchy) is left untouched
   |-- Return matched jurisdiction list + HasRateConflict
   |
   v

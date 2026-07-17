@@ -46,6 +46,7 @@
 | JC3 | Report-to — single jurisdiction | Only 1 jurisdiction matched: FixReportToJurisdictions not called (guard: Count > 1) |
 | JC4 | Jurisdiction already exists | LLM suggests code that already exists: existing jurisdiction used as-is (not modified, not re-created) |
 | JC5 | Description | New jurisdiction description = jurisdiction code (e.g. "NYSTAX") |
+| JC6 | Report-to on a pre-existing blank jurisdiction | A matched jurisdiction already exists with a blank Report-to (e.g. from an earlier run): its Report-to is set to the state-level jurisdiction, not left blank (covered by `ReapplySetsReportToOnBlankJurisdictions`); a jurisdiction that already has a non-blank Report-to is preserved (`ReapplyPreservesExistingReportTo`) |
 
 ---
 
@@ -229,6 +230,6 @@ These scenarios test the LLM's ability to handle ambiguous, misleading, or compl
 | `Shpfy CTM Tax Area Test` | 134718 | Tax Area find/create (TA*) — `FindOrCreateTaxArea` |
 | `Shpfy CTM Guard Test` | 134719 | Guard / early-exit (GD*, P1–P6) |
 | `Shpfy CT HITL Test` | 134716 | HITL-1…6 — marker propagation, `MarkReviewed`, `DisableForUser`, Activity Log helpers, `Capitalize` |
-| `Shpfy CT Rate Conflict Test` | 134720 | Rate-conflict recheck/flip on approve (RD1/RD5/RD6 core via `ReapplyFromAssignedLines`), including **shipping** tax lines (shipping bracket seeded from the shipping line's own rate; shipping rate conflict holds — S7); the creation gate RD3/RD4 + released cases (`IsSalesDocumentCreationHeld`), the business guards P4/tax-exempt/enabled (`ShouldAttemptMatch`), and Undo Approval RD9 (`UndoApproval`) |
+| `Shpfy CT Rate Conflict Test` | 134720 | Rate-conflict recheck/flip on approve (RD1/RD5/RD6 core via `ReapplyFromAssignedLines`), including **shipping** tax lines (shipping bracket seeded from the shipping line's own rate; shipping rate conflict holds — S7); the Report-to rollup on re-apply (JC6 — `ReapplySetsReportToOnBlankJurisdictions` sets a blank Report-to on any matched jurisdiction incl. the state; `ReapplyPreservesExistingReportTo` leaves an admin-set one untouched); the creation gate RD3/RD4 + released cases (`IsSalesDocumentCreationHeld`), the business guards P4/tax-exempt/enabled (`ShouldAttemptMatch`), and Undo Approval RD9 (`UndoApproval`) |
 
 **Verified manually / by TestPage (not unit-automated):** the page-property scenarios — Approve/Undo action visibility, BC-rate column + green/red styling (RD7), edit-revert-on-close (RD8), review-page close guard (HITL-13), page action captions (HITL-12), notification prompts (HITL-10/11), and Shop Card field enable/disable (SC-1…3) — as these are page-lifecycle/UI behaviors best exercised through the client.
