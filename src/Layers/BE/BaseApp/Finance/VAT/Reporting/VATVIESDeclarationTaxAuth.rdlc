@@ -172,7 +172,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Parameters!CodeCaption.Value</Value>
+                                  <Value>=IIf(Fields!ServiceSuppliesCode4Caption.Value = "", Parameters!CodeCaption.Value, Fields!ServiceSuppliesCode4Caption.Value)</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
@@ -872,7 +872,7 @@
                   <Style />
                 </Paragraph>
               </Paragraphs>
-              <Top>2.8in</Top>
+              <Top>3.1875in</Top>
               <Height>0.16656in</Height>
               <Width>1.625in</Width>
               <ZIndex>1</ZIndex>
@@ -2858,6 +2858,126 @@
                 <PaddingBottom>2pt</PaddingBottom>
               </Style>
             </Textbox>
+            <Textbox Name="CompanyInfoBusinessIdentityCodeCaption">
+              <CanGrow>true</CanGrow>
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Value>=Fields!BusinessIdentityCodeCaption.Value</Value>
+                      <Style>
+                        <FontSize>7pt</FontSize>
+                      </Style>
+                    </TextRun>
+                  </TextRuns>
+                  <Style />
+                </Paragraph>
+              </Paragraphs>
+              <Top>2.81402in</Top>
+              <Height>0.423cm</Height>
+              <Width>1.625in</Width>
+              <ZIndex>72</ZIndex>
+              <Style>
+                <PaddingLeft>2pt</PaddingLeft>
+                <PaddingRight>2pt</PaddingRight>
+                <PaddingTop>2pt</PaddingTop>
+                <PaddingBottom>2pt</PaddingBottom>
+              </Style>
+            </Textbox>
+            <Textbox Name="CompanyInfoBusinessIdentityCode">
+              <CanGrow>true</CanGrow>
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Value>=Fields!CompanyInfoBusinessIdentityCode.Value</Value>
+                      <Style>
+                        <FontSize>7pt</FontSize>
+                        <Format>N0</Format>
+                      </Style>
+                    </TextRun>
+                  </TextRuns>
+                  <Style>
+                    <TextAlign>Left</TextAlign>
+                  </Style>
+                </Paragraph>
+              </Paragraphs>
+              <Top>2.8in</Top>
+              <Left>2.125in</Left>
+              <Height>0.423cm</Height>
+              <Width>1.5in</Width>
+              <ZIndex>73</ZIndex>
+              <DataElementOutput>NoOutput</DataElementOutput>
+              <Style>
+                <Border />
+                <PaddingLeft>2pt</PaddingLeft>
+                <PaddingRight>2pt</PaddingRight>
+                <PaddingTop>2pt</PaddingTop>
+                <PaddingBottom>2pt</PaddingBottom>
+              </Style>
+            </Textbox>
+            <Textbox Name="CompanyInfoRegisteredHomeCityCaption">
+              <CanGrow>true</CanGrow>
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Value>=Fields!RegHomeCityCaption.Value</Value>
+                      <Style>
+                        <FontSize>7pt</FontSize>
+                      </Style>
+                    </TextRun>
+                  </TextRuns>
+                  <Style />
+                </Paragraph>
+              </Paragraphs>
+              <Top>2.99458in</Top>
+              <Height>0.423cm</Height>
+              <Width>1.625in</Width>
+              <ZIndex>74</ZIndex>
+              <Style>
+                <PaddingLeft>2pt</PaddingLeft>
+                <PaddingRight>2pt</PaddingRight>
+                <PaddingTop>2pt</PaddingTop>
+                <PaddingBottom>2pt</PaddingBottom>
+              </Style>
+            </Textbox>
+            <Textbox Name="CompanyInfoRegisteredHomeCity">
+              <CanGrow>true</CanGrow>
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Value>=Fields!CompanyInfoRegisteredHomeCity.Value</Value>
+                      <Style>
+                        <FontSize>7pt</FontSize>
+                        <Format>N0</Format>
+                      </Style>
+                    </TextRun>
+                  </TextRuns>
+                  <Style>
+                    <TextAlign>Left</TextAlign>
+                  </Style>
+                </Paragraph>
+              </Paragraphs>
+              <Top>2.98056in</Top>
+              <Left>2.125in</Left>
+              <Height>0.423cm</Height>
+              <Width>1.5in</Width>
+              <ZIndex>75</ZIndex>
+              <DataElementOutput>NoOutput</DataElementOutput>
+              <Style>
+                <Border />
+                <PaddingLeft>2pt</PaddingLeft>
+                <PaddingRight>2pt</PaddingRight>
+                <PaddingTop>2pt</PaddingTop>
+                <PaddingBottom>2pt</PaddingBottom>
+              </Style>
+            </Textbox>
           </ReportItems>
           <Style />
         </PageHeader>
@@ -4146,6 +4266,21 @@ End Function
         </Field>
         <Field Name="HeaderText">
           <DataField>HeaderText</DataField>
+        </Field>
+        <Field Name="CompanyInfoBusinessIdentityCode">
+          <DataField>CompanyInfoBusinessIdentityCode</DataField>
+        </Field>
+        <Field Name="CompanyInfoRegisteredHomeCity">
+          <DataField>CompanyInfoRegisteredHomeCity</DataField>
+        </Field>
+        <Field Name="BusinessIdentityCodeCaption">
+          <DataField>BusinessIdentityCodeCaption</DataField>
+        </Field>
+        <Field Name="RegHomeCityCaption">
+          <DataField>RegHomeCityCaption</DataField>
+        </Field>
+        <Field Name="ServiceSuppliesCode4Caption">
+          <DataField>ServiceSuppliesCode4Caption</DataField>
         </Field>
       </Fields>
       <Query>

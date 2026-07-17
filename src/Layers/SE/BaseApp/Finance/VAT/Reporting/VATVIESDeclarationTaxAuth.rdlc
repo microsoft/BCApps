@@ -172,7 +172,7 @@
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Parameters!CodeCaption.Value</Value>
+                                  <Value>=IIf(Fields!ServiceSuppliesCode4Caption.Value = "", Parameters!CodeCaption.Value, Fields!ServiceSuppliesCode4Caption.Value)</Value>
                                   <Style>
                                     <FontSize>7pt</FontSize>
                                     <FontWeight>Bold</FontWeight>
@@ -4314,6 +4314,21 @@ End Function
         </Field>
         <Field Name="HeaderText">
           <DataField>HeaderText</DataField>
+        </Field>
+        <Field Name="CompanyInfoBusinessIdentityCode">
+          <DataField>CompanyInfoBusinessIdentityCode</DataField>
+        </Field>
+        <Field Name="CompanyInfoRegisteredHomeCity">
+          <DataField>CompanyInfoRegisteredHomeCity</DataField>
+        </Field>
+        <Field Name="BusinessIdentityCodeCaption">
+          <DataField>BusinessIdentityCodeCaption</DataField>
+        </Field>
+        <Field Name="RegHomeCityCaption">
+          <DataField>RegHomeCityCaption</DataField>
+        </Field>
+        <Field Name="ServiceSuppliesCode4Caption">
+          <DataField>ServiceSuppliesCode4Caption</DataField>
         </Field>
       </Fields>
       <Query>

@@ -1002,6 +1002,16 @@ page 88 "Job Card"
                         JobPlanningLines.Run();
                     end;
                 }
+                action("Assigned Resources")
+                {
+                    ApplicationArea = Jobs;
+                    Caption = 'Assigned Resources';
+                    Image = Users;
+                    RunObject = Page "Job Assigned Resources";
+                    RunPageLink = "Job No." = field("No."),
+                                  "Job Task No." = const('');
+                    ToolTip = 'View or edit the resources that are assigned to this project. Project-level assignments apply to all tasks of the project.';
+                }
                 action("&Dimensions")
                 {
                     ApplicationArea = Dimensions;
@@ -1772,6 +1782,9 @@ page 88 "Job Card"
                 }
 
                 actionref(JobPlanningLines_Promoted; JobPlanningLines)
+                {
+                }
+                actionref("Assigned Resources_Promoted"; "Assigned Resources")
                 {
                 }
                 actionref(SalesInvoicesCreditMemos_Promoted; SalesInvoicesCreditMemos)
