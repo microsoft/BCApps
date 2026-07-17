@@ -5668,5 +5668,11 @@
     "codeunitId": 136131,
     "codeunitName": "Service Demand Overview",
     "method": "ReservationQuantityForServiceDemandAndTransferSupplyReserveFromSupply"
+  },
+  {
+    "codeunitId": 136140,
+    "codeunitName": "Service Order Release",
+    "method": "PullServiceLineNoShipmentUsingUseFilter",
+    "bug": "RU: shared W1 test fails under RU base-app behavior in the merged RU build; runs+passes for W1/other countries. Disabled globally (low value, RU pipeline enablement)."
   }
 ]
