@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -127,7 +127,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
         DeferralUtilities: Codeunit "Deferral Utilities";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
-        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
         DeferralDocType: Enum "Deferral Document Type";
         LastDocType: Enum "Gen. Journal Document Type";
         AddCurrencyCode: Code[10];
@@ -208,6 +207,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     procedure RunWithCheck(var GenJnlLine2: Record "Gen. Journal Line"): Integer
     var
         GenJnlLine: Record "Gen. Journal Line";
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -215,7 +215,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if IsHandled then
             exit(GLEntryNo);
 
-        if GLReg."No." = 0 then
+        if GLReg."No." = 0 then  // first time in this transaction?
             SequenceNoMgt.ClearSequenceNoCheck();
 
         GenJnlLine.Copy(GenJnlLine2);
@@ -234,12 +234,16 @@ codeunit 12 "Gen. Jnl.-Post Line"
     procedure RunWithoutCheck(var GenJnlLine2: Record "Gen. Journal Line"): Integer
     var
         GenJnlLine: Record "Gen. Journal Line";
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeRunWithoutCheck(GenJnlLine, GenJnlLine2, GLEntryNo, isHandled);
         if IsHandled then
             exit(GLEntryNo);
+
+        if GLReg."No." = 0 then  // first time in this transaction?
+            SequenceNoMgt.ClearSequenceNoCheck();
 
         GenJnlLine.Copy(GenJnlLine2);
         Code(GenJnlLine, false);
@@ -273,13 +277,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
             exit;
         end;
 
-        if GenJnlLine."VAT Reporting Date" = 0D then begin
-            GLSetup.Get();
+        if GenJnlLine."VAT Reporting Date" = 0D then
             if (GenJnlLine."Document Date" = 0D) and (GLSetup."VAT Reporting Date" = GLSetup."VAT Reporting Date"::"Document Date") then
                 GenJnlLine."VAT Reporting Date" := GenJnlLine."Posting Date"
             else
                 GenJnlLine."VAT Reporting Date" := GLSetup.GetVATDate(GenJnlLine."Posting Date", GenJnlLine."Document Date");
-        end;
 
         CheckGenJnlLine(GenJnlLine, CheckLine);
         OnCodeOnAfterCheckGenJnlLine(GenJnlLine, CheckLine);
@@ -497,6 +499,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             NextEntryNo := LastEntryNo + 1;
             NextTransactionNo := LastTransactionNo + 1;
         end else begin
+            PreviousEntryNo := 0;
             NextEntryNo := GlobalGLEntry.GetNextEntryNo();
             NextTransactionNo := GlobalGLTransaction.GetNextTransactionNo();
         end;
@@ -1912,7 +1915,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CurrentBalance := 0;
 
         FiscalYearStartDate := AccountingPeriodMgt.GetPeriodStartingDate();
-
         GetGLSetup();
 
         if not GenJnlTemplate.Get(GenJnlLine."Journal Template Name") then
@@ -2013,6 +2015,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Transaction", 'r')]
     [InherentPermissions(PermissionObjectType::TableData, Database::"VAT Entry", 'r')]
     local procedure ValidateSequenceNo(LedgEntryNo: Integer; xLedgEntryNo: Integer; TableNo: Integer)
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
         if LedgEntryNo = xLedgEntryNo then
             exit;
@@ -3910,6 +3914,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary;
         CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         GenJnlLine: Record "Gen. Journal Line";
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+        xGLEntryNo: Integer;
+        xVATEntryNo: Integer;
         DtldLedgEntryInserted: Boolean;
         IsHandled: Boolean;
     begin
@@ -3917,6 +3924,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeCustPostApplyCustLedgEntry(GenJnlLinePostApply, CustLedgEntryPostApply, IsHandled);
         if IsHandled then
             exit;
+
+        if GLReg."No." = 0 then  // first time in this transaction?
+            SequenceNoMgt.ClearSequenceNoCheck();
+
+        xGLEntryNo := GLEntryNo;
+        xVATEntryNo := NextVATEntryNo;
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
 
         GenJnlLine := GenJnlLinePostApply;
         CustLedgEntry.TransferFields(CustLedgEntryPostApply);
@@ -3978,6 +3993,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnCustPostApplyCustLedgEntryOnBeforeFinishPosting(GenJnlLine, CustLedgEntry);
 
         FinishPosting(GenJnlLine);
+
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
 
         OnAfterCustPostApplyCustLedgEntry(GenJnlLine, GLReg, CustLedgEntry);
     end;
@@ -4703,10 +4721,21 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary;
         CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         GenJnlLine: Record "Gen. Journal Line";
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+        xGLEntryNo: Integer;
+        xVATEntryNo: Integer;
         DtldLedgEntryInserted: Boolean;
         IsHandled: Boolean;
     begin
         OnBeforeVendPostApplyVendLedgEntry(GenJnlLinePostApply, VendLedgEntryPostApply);
+
+        if GLReg."No." = 0 then  // first time in this transaction?
+            SequenceNoMgt.ClearSequenceNoCheck();
+
+        xGLEntryNo := GLEntryNo;
+        xVATEntryNo := NextVATEntryNo;
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
 
         GenJnlLine := GenJnlLinePostApply;
         VendLedgEntry.TransferFields(VendLedgEntryPostApply);
@@ -4768,6 +4797,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnVendPostApplyVendLedgEntryOnBeforeFinishPosting(GenJnlLine, VendLedgEntry);
 
         FinishPosting(GenJnlLine);
+
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
+
         OnAfterVendPostApplyVendLedgEntry(GenJnlLine, GLReg);
     end;
 
@@ -4786,6 +4819,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary;
         CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         GenJnlLine: Record "Gen. Journal Line";
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+        xGLEntryNo: Integer;
+        xVATEntryNo: Integer;
         DtldLedgEntryInserted: Boolean;
         IsHandled: Boolean;
     begin
@@ -4793,6 +4829,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeEmplPostApplyEmplLedgEntry(GenJnlLinePostApply, EmplLedgEntryPostApply, IsHandled);
         if IsHandled then
             exit;
+
+        if GLReg."No." = 0 then  // first time in this transaction?
+            SequenceNoMgt.ClearSequenceNoCheck();
+
+        xGLEntryNo := GLEntryNo;
+        xVATEntryNo := NextVATEntryNo;
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
 
         GenJnlLine := GenJnlLinePostApply;
         EmplLedgEntry.TransferFields(EmplLedgEntryPostApply);
@@ -4843,6 +4887,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
                 DtldEmplLedgEntry.SetZeroTransNo(NextTransactionNo);
 
         FinishPosting(GenJnlLine);
+
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
     end;
 
     local procedure PrepareTempVendLedgEntry(var GenJnlLine: Record "Gen. Journal Line"; var NewCVLedgEntryBuf: Record "CV Ledger Entry Buffer"; var TempOldVendLedgEntry: Record "Vendor Ledger Entry" temporary; Vend: Record Vendor; var ApplyingDate: Date): Boolean
@@ -5941,8 +5988,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempVATEntry2: Record "VAT Entry" temporary;
         CurrencyLCY: Record Currency;
         TempDimensionPostingBuffer: Record "Dimension Posting Buffer" temporary;
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
         AdjAmount: array[4] of Decimal;
         NextDtldLedgEntryNo: Integer;
+        xGLEntryNo: Integer;
+        xVATEntryNo: Integer;
         UnapplyVATEntries: Boolean;
         PmtDiscTolExists: Boolean;
         IsHandled: Boolean;
@@ -5951,6 +6001,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeUnapplyCustLedgEntry(GenJournalLine, DetailedCustLedgEntry, IsHandled);
         if IsHandled then
             exit;
+
+        if GLReg."No." = 0 then  // first time in this transaction?
+            SequenceNoMgt.ClearSequenceNoCheck();
+
+        xGLEntryNo := GLEntryNo;
+        xVATEntryNo := NextVATEntryNo;
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
 
         GenJournalLineToPost.TransferFields(GenJournalLine);
         if GenJournalLineToPost."Document Date" = 0D then
@@ -6102,6 +6160,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         OnUnapplyCustLedgEntryOnBeforeFinishPosting(GenJournalLine, GlobalGLEntry, CustomerPostingGroup);
         FinishPosting(GenJournalLineToPost);
+
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
     end;
 
     local procedure CheckDetailedCustLedgEntryUnapply(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
@@ -6142,8 +6203,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempVATEntry2: Record "VAT Entry" temporary;
         CurrencyLCY: Record Currency;
         TempDimensionPostingBuffer: Record "Dimension Posting Buffer" temporary;
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
         AdjAmount: array[4] of Decimal;
         NextDtldLedgEntryNo: Integer;
+        xGLEntryNo: Integer;
+        xVATEntryNo: Integer;
         UnapplyVATEntries: Boolean;
         PmtDiscTolExists: Boolean;
         IsHandled: Boolean;
@@ -6152,6 +6216,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnBeforeUnapplyVendLedgEntry(GenJournalLine, DetailedVendorLedgEntry, IsHandled);
         if IsHandled then
             exit;
+
+        if GLReg."No." = 0 then  // first time in this transaction?
+            SequenceNoMgt.ClearSequenceNoCheck();
+
+        xGLEntryNo := GLEntryNo;
+        xVATEntryNo := NextVATEntryNo;
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
 
         GenJournalLineToPost.TransferFields(GenJournalLine);
         if GenJournalLineToPost."Document Date" = 0D then
@@ -6288,6 +6360,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
         FinishPosting(GenJournalLineToPost);
 
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
+
         OnAfterUnapplyVendLedgEntry(GenJournalLine, DetailedVendorLedgEntry);
     end;
 
@@ -6326,14 +6401,25 @@ codeunit 12 "Gen. Jnl.-Post Line"
         DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer";
         CurrencyLCY: Record Currency;
         TempDimensionPostingBuffer: Record "Dimension Posting Buffer" temporary;
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
         AdjAmount: array[4] of Decimal;
         NextDtldLedgEntryNo: Integer;
+        xGLEntryNo: Integer;
+        xVATEntryNo: Integer;
         IsHandled: Boolean;
     begin
         IsHandled := false;
         OnBeforeUnapplyEmplLedgEntry(GenJournalLine, DetailedEmployeeLedgerEntry, IsHandled);
         if IsHandled then
             exit;
+
+        if GLReg."No." = 0 then  // first time in this transaction?
+            SequenceNoMgt.ClearSequenceNoCheck();
+
+        xGLEntryNo := GLEntryNo;
+        xVATEntryNo := NextVATEntryNo;
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
 
         GenJournalLineToPost.TransferFields(GenJournalLine);
         if GenJournalLineToPost."Document Date" = 0D then
@@ -6419,6 +6505,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
             DetailedEmployeeLedgerEntry.SetZeroTransNo(NextTransactionNo);
 
         FinishPosting(GenJournalLineToPost);
+
+        ValidateSequenceNo(GLEntryNo, xGLEntryNo, Database::"G/L Entry");
+        ValidateSequenceNo(NextVATEntryNo, xVATEntryNo, Database::"VAT Entry");
 
         OnAfterUnapplyEmplLedgEntry(GenJournalLine, DetailedEmployeeLedgerEntry);
     end;
@@ -7614,14 +7703,17 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// <param name="NextGLEntryNo">Current G/L entry no.</param>
     /// <returns>Next G/L entry no. to be used for posting</returns>
     local procedure GetNextGLEntryNoForPosting(NextGLEntryNo: Integer): Integer
+    var
+        NewNextGLEntryNo: Integer;
     begin
         PreviousEntryNo := NextGLEntryNo;
 
-        GetGLSetup();
         if GLSetup.UseConcurrentPosting() then
-            exit(GlobalGLEntry.GetNextEntryNo());
+            NewNextGLEntryNo := GlobalGLEntry.GetNextEntryNo()
+        else
+            NewNextGLEntryNo := NextGLEntryNo + 1;
 
-        exit(NextGLEntryNo + 1);
+        exit(NewNextGLEntryNo);
     end;
 
     /// <summary>
@@ -7631,7 +7723,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     /// <returns>Next VAT entry no. to be used for posting</returns>
     local procedure GetNextVATEntryNoForPosting(VATEntryNo: Integer): Integer
     begin
-        GetGLSetup();
         if GLSetup.UseConcurrentPosting() then
             exit(VATEntry.GetNextEntryNo());
 
@@ -7738,7 +7829,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         if SavedEntryNo <> 0 then begin
             ExistingGLEntryNo := SavedEntryNo;
-            NextEntryNo := PreviousEntryNo;
+            if GLSetup.UseConcurrentPosting() then
+                NextEntryNo := PreviousEntryNo
+            else
+                NextEntryNo := NextEntryNo - 1;
             SavedEntryNo := 0;
         end;
     end;
@@ -7842,7 +7936,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GLEntry."Bal. Account Type" := GenJnlLine."Bal. Account Type";
         GLEntry."Bal. Account No." := GenJnlLine."Bal. Account No.";
         UpdateGLEntryNo(GLEntry."Entry No.", SavedEntryNo);
-
         IsHandled := false;
         OnCreateGLEntryForTotalAmountsOnBeforeInsertGLEntry(GenJnlLine, GLEntry, IsHandled, TempGLEntryVATEntryLink);
         if IsHandled then
