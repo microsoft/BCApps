@@ -518,7 +518,7 @@ table 4 Currency
                                                                            "Initial Entry Due Date" = field("Date Filter"),
                                                                            "Posting Date" = field(upperlimit("Date Filter")),
                                                                            "Currency Code" = field(Code),
-                                                                           "Excluded from calculation" = const(false)),
+                                                                           "Excluded from calculation" = const(false),
                                                                            "Agreement No." = field("Agreement Filter")));
             Caption = 'Vendor Balance Due';
             ToolTip = 'Specifies the payment amount that you owe the vendor for completed purchases where the payment date is exceeded.';
@@ -538,7 +538,7 @@ table 4 Currency
                                                                                  "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                                  "Posting Date" = field("Date Filter"),
                                                                                  "Currency Code" = field(Code),
-                                                                                 "Excluded from calculation" = const(false)),
+                                                                                 "Excluded from calculation" = const(false),
                                                                                  "Agreement No." = field("Agreement Filter")));
             Caption = 'Customer Balance (LCY)';
             Editable = false;
@@ -558,7 +558,7 @@ table 4 Currency
                                                                                    "Initial Entry Global Dim. 2" = field("Global Dimension 2 Filter"),
                                                                                    "Posting Date" = field("Date Filter"),
                                                                                    "Currency Code" = field(Code),
-                                                                                   "Excluded from calculation" = const(false)),
+                                                                                   "Excluded from calculation" = const(false),
                                                                                    "Agreement No." = field("Agreement Filter")));
             Caption = 'Vendor Balance (LCY)';
             Editable = false;
