@@ -26,6 +26,7 @@ using System.Utilities;
 report 96 "Copy G/L Budget"
 {
     Caption = 'Copy G/L Budget';
+    ToolTip = 'Create a copy of the current budget.';
     ProcessingOnly = true;
 
     dataset

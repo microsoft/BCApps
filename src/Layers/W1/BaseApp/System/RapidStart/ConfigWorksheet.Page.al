@@ -506,7 +506,6 @@ page 8632 "Config. Worksheet"
                     Caption = 'Create G/L Journal Lines';
                     Image = "Report";
                     RunObject = Report "Create G/L Acc. Journal Lines";
-                    ToolTip = 'Create G/L journal lines for the legacy account balances that you will transfer to the new company.';
                 }
                 action("Create Customer Journal Lines")
                 {
@@ -514,7 +513,6 @@ page 8632 "Config. Worksheet"
                     Caption = 'Create Customer Journal Lines';
                     Image = "Report";
                     RunObject = Report "Create Customer Journal Lines";
-                    ToolTip = 'Create journal lines during the setup of the new company.';
                 }
                 action("Create Vendor Journal Lines")
                 {
@@ -522,7 +520,6 @@ page 8632 "Config. Worksheet"
                     Caption = 'Create Vendor Journal Lines';
                     Image = "Report";
                     RunObject = Report "Create Vendor Journal Lines";
-                    ToolTip = 'Prepare to transfer legacy vendor balances to the newly configured company.';
                 }
                 action("Create Item Journal Lines")
                 {
@@ -530,7 +527,6 @@ page 8632 "Config. Worksheet"
                     Caption = 'Create Item Journal Lines';
                     Image = "Report";
                     RunObject = Report "Create Item Journal Lines";
-                    ToolTip = 'Prepare to transfer legacy inventory balances to the newly configured company.';
                 }
             }
         }

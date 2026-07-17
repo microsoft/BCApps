@@ -22,6 +22,7 @@ report 4 "Detail Trial Balance"
     AdditionalSearchTerms = 'payment due,order status';
     ApplicationArea = Basic, Suite;
     Caption = 'Detail Trial Balance';
+    ToolTip = 'View detail general ledger account balances and activities for all the selected accounts, one transaction per line.';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;

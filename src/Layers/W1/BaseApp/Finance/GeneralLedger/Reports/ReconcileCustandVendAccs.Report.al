@@ -27,6 +27,7 @@ report 33 "Reconcile Cust. and Vend. Accs"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Reconcile Customer and Vendor Accounts';
+    ToolTip = 'View if a certain general ledger account reconciles the balance on a certain date for the corresponding posting group. The report shows the accounts that are included in the reconciliation with the general ledger balance and the customer or the vendor ledger balance for each account and shows any differences between the general ledger balance and the customer or vendor ledger balance.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

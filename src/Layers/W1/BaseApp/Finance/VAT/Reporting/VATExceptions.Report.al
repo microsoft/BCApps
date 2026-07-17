@@ -15,6 +15,7 @@ report 31 "VAT Exceptions"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'VAT Exceptions';
+    ToolTip = 'View the VAT entries that were posted and placed in a general ledger register in connection with a VAT difference. The report is used to document adjustments made to VAT amounts that were calculated for use in internal or external auditing.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

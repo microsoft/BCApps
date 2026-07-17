@@ -28,6 +28,7 @@ report 512 "IC Transactions"
     RDLCLayout = './Finance/Intercompany/Reports/ICTransactions.rdlc';
     ApplicationArea = Intercompany;
     Caption = 'Intercompany Transactions';
+    ToolTip = 'Run the IC Transaction report.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

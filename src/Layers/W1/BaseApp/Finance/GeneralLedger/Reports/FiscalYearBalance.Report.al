@@ -24,6 +24,7 @@ report 36 "Fiscal Year Balance"
     AdditionalSearchTerms = 'closing balance';
     ApplicationArea = Basic, Suite;
     Caption = 'Fiscal Year Balance';
+    ToolTip = 'View, print, or send a report that shows balance sheet movements for selected periods. The report shows the closing balance by the end of the previous fiscal year for the selected ledger accounts. It also shows the fiscal year until this date, the fiscal year by the end of the selected period, and the balance by the end of the selected period, excluding the closing entries. The report can be used at the close of an accounting period or fiscal year.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

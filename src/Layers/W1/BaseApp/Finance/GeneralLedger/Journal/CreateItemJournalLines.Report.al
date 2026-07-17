@@ -20,6 +20,7 @@ report 8613 "Create Item Journal Lines"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Create Item Journal Lines';
+    ToolTip = 'Prepare to transfer legacy inventory balances to the newly configured company.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

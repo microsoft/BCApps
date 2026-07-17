@@ -21,6 +21,7 @@ report 151 "Balance Sheet"
     AccessByPermission = TableData "G/L Account" = R;
     ApplicationArea = Basic, Suite;
     Caption = 'Balance Sheet';
+    ToolTip = 'View a report that shows your company''s assets, liabilities, and equity.';
     ProcessingOnly = true;
     UsageCategory = ReportsAndAnalysis;
     UseRequestPage = false;

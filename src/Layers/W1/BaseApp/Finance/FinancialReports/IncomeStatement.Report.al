@@ -21,6 +21,7 @@ report 154 "Income Statement"
     AccessByPermission = TableData "G/L Account" = R;
     ApplicationArea = Basic, Suite;
     Caption = 'Income Statement';
+    ToolTip = 'View a report that shows your company''s income and expenses.';
     ProcessingOnly = true;
     UsageCategory = ReportsAndAnalysis;
     UseRequestPage = false;

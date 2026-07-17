@@ -24,6 +24,7 @@ using System.Utilities;
 report 97 "Date Compr. G/L Budget Entries"
 {
     Caption = 'Date Compr. G/L Budget Entries';
+    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
     Permissions = TableData "Date Compr. Register" = rimd;
     ProcessingOnly = true;
 

@@ -710,7 +710,6 @@ page 9018 "Administrator Role Center"
                     Caption = 'Date Compress &G/L Entries';
                     Image = GeneralLedger;
                     RunObject = Report "Date Compress General Ledger";
-                    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                 }
                 action("Date Compress &VAT Entries")
                 {
@@ -718,7 +717,6 @@ page 9018 "Administrator Role Center"
                     Caption = 'Date Compress &VAT Entries';
                     Image = VATStatement;
                     RunObject = Report "Date Compress VAT Entries";
-                    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                 }
                 action("Date Compress Bank &Account Ledger Entries")
                 {
@@ -734,7 +732,6 @@ page 9018 "Administrator Role Center"
                     Caption = 'Date Compress G/L &Budget Entries';
                     Image = LedgerBudget;
                     RunObject = Report "Date Compr. G/L Budget Entries";
-                    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                 }
                 action("Date Compress &Customer Ledger Entries")
                 {

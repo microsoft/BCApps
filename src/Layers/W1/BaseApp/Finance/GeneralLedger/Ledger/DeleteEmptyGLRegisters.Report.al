@@ -24,6 +24,7 @@ using System.Utilities;
 report 99 "Delete Empty G/L Registers"
 {
     Caption = 'Delete Empty G/L Registers';
+    ToolTip = 'Find and delete empty G/L registers.';
     Permissions = TableData "G/L Register" = rimd;
     ProcessingOnly = true;
 

@@ -19,6 +19,7 @@ using System.IO;
 report 88 "VAT- VIES Declaration Disk"
 {
     Caption = 'VAT- VIES Declaration Disk';
+    ToolTip = 'Report your sales to other EU countries or regions to the customs and tax authorities. If the information must be printed out on a printer, you can use the VAT- VIES Declaration Tax Auth report. The information is shown in the same format as in the declaration list from the customs and tax authorities.';
     Permissions = TableData "VAT Entry" = rimd;
     ProcessingOnly = true;
     UsageCategory = ReportsAndAnalysis;

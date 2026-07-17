@@ -24,6 +24,7 @@ report 30 "Check Value Posting"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Dimension Check Value Posting';
+    ToolTip = 'Find out whether the value posting rules that are specified for individual default dimensions conflict with the rules specified for the account type default dimensions. For example, if you have set up a customer account with value posting No Code and then specify that all customer accounts should have a particular default dimension value code, this report will show that a conflict exists.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
