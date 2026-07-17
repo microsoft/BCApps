@@ -158,7 +158,6 @@ page 9001 "Accounting Manager Role Center"
                 Caption = '&Account Schedule';
                 Image = "Report";
                 RunObject = Report "Account Schedule";
-                ToolTip = 'Open an account schedule to analyze figures in general ledger accounts or to compare general ledger entries with general ledger budget entries.';
             }
             action("Bu&dget")
             {

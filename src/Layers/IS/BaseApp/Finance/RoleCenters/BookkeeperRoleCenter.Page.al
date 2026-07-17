@@ -100,7 +100,6 @@ page 9004 "Bookkeeper Role Center"
                 Caption = 'A&ccount Schedule';
                 Image = "Report";
                 RunObject = Report "Account Schedule";
-                ToolTip = 'Analyze figures in general ledger accounts or compare general ledger entries with general ledger budget entries. For example, you can view the G/L entries as percentages of the budget entries. You use the Account Schedule window to set up account schedules.';
             }
             group("&Trial Balance")
             {

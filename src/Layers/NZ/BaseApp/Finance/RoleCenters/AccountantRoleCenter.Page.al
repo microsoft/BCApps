@@ -189,7 +189,6 @@ page 9027 "Accountant Role Center"
                     Caption = '&Account Schedule';
                     Image = "Report";
                     RunObject = Report "Account Schedule";
-                    ToolTip = 'Open an account schedule to analyze figures in general ledger accounts or to compare general ledger entries with general ledger budget entries.';
                 }
                 action("Bu&dget")
                 {
@@ -246,7 +245,6 @@ page 9027 "Accountant Role Center"
                     Caption = 'Dimensions - Total';
                     Image = "Report";
                     RunObject = Report "Dimensions - Total";
-                    ToolTip = 'View how dimensions or dimension sets are used on entries based on total amounts over a specified period and for a specified analysis view.';
                 }
             }
             group("Cash Flow")

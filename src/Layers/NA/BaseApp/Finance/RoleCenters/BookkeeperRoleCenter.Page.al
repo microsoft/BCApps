@@ -223,7 +223,6 @@ page 9004 "Bookkeeper Role Center"
                 Caption = 'Account Schedule';
                 Image = "Report";
                 RunObject = Report "Account Schedule";
-                ToolTip = 'Set up the account schedule to analyze figures in general ledger accounts.';
             }
             action("Account Balances by GIFI Code")
             {

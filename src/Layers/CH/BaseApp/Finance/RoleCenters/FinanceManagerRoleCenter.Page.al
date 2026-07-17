@@ -427,7 +427,6 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Financial Report';
                             RunObject = report "Account Schedule";
-                            Tooltip = 'Run the Account Schedule report.';
                             Visible = false;
                         }
 #if not CLEAN28
@@ -564,7 +563,6 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'G/L Deferral Summary';
                             RunObject = report "Deferral Summary - G/L";
-                            Tooltip = 'Run the G/L Deferral Summary report.';
                         }
                     }
                     group("Group11")

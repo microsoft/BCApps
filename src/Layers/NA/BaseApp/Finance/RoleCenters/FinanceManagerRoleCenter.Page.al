@@ -419,7 +419,6 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Dimensions;
                             Caption = 'Dimensions - Total';
                             RunObject = report "Dimensions - Total";
-                            Tooltip = 'Run the Dimensions - Total report.';
                         }
                         action("Check Value Posting")
                         {
@@ -639,7 +638,6 @@ page 8901 "Finance Manager Role Center"
                         {
                             Caption = 'G/L Deferral Summary';
                             RunObject = report "Deferral Summary - G/L";
-                            Tooltip = 'Run the G/L Deferral Summary report.';
                         }
                     }
                     group("Group11")
