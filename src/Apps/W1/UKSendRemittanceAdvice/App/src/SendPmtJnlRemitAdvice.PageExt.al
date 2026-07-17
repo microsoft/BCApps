@@ -10,6 +10,10 @@ using Microsoft.Foundation.Reporting;
 
 pageextension 4022 SendPmtJnlRemitAdvice extends "Payment Journal"
 {
+    ObsoleteReason = 'The Send Remittance Advice action is now available natively on page "Payment Journal" (action SendVendorRemittanceAdvice) in Microsoft.Finance.GeneralLedger.Journal.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+
     layout
     {
         // Add changes to page layout here
