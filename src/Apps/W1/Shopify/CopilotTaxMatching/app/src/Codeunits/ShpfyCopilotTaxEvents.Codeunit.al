@@ -41,16 +41,10 @@ codeunit 30473 "Shpfy Copilot Tax Events"
         if not Result then
             exit;
 
-        if ShopifyOrderHeader."Tax Area Code" <> '' then
-            exit;
-
-        if ShopifyOrderHeader."Tax Exempt" then
-            exit;
-
         if not Shop.Get(ShopifyOrderHeader."Shop Code") then
             exit;
 
-        if not Shop."Copilot Tax Matching Enabled" then
+        if not ShouldAttemptMatch(ShopifyOrderHeader, Shop) then
             exit;
 
         if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Shpfy Tax Matching") then
@@ -123,6 +117,24 @@ codeunit 30473 "Shpfy Copilot Tax Events"
                 Error(RateConflictBlockErr, ShopifyOrderHeader."Shopify Order No.")
             else
                 Error(ReviewRequiredErr, ShopifyOrderHeader."Shopify Order No.");
+    end;
+
+    /// <summary>
+    /// Business guards deciding whether Copilot tax matching should run for an order: the shop
+    /// must have the feature enabled, the order must not already have a Tax Area (idempotency —
+    /// e.g. address-based MapTaxArea already resolved one, or this is a re-import), and the order
+    /// must not be tax exempt. Capability-registration/active checks are evaluated separately in
+    /// the subscriber. Exposed as internal so the guards can be tested without the connector flow.
+    /// </summary>
+    internal procedure ShouldAttemptMatch(ShopifyOrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"): Boolean
+    begin
+        if not Shop."Copilot Tax Matching Enabled" then
+            exit(false);
+        if ShopifyOrderHeader."Tax Area Code" <> '' then
+            exit(false);
+        if ShopifyOrderHeader."Tax Exempt" then
+            exit(false);
+        exit(true);
     end;
 
     /// <summary>

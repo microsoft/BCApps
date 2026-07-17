@@ -172,6 +172,7 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         Parts: List of [Text];
         JurisdictionValid: Boolean;
         AnyMatched: Boolean;
+        AutoCreatedJurisdictions: List of [Code[10]];
     begin
         if not MatchResults.Get('matches', MatchesToken) then
             exit(false);
@@ -206,6 +207,7 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
                         else begin
                             CreateTaxJurisdiction(TaxJurisdiction, JurisdictionCode, OrderHeader);
                             JurisdictionValid := true;
+                            AutoCreatedJurisdictions.Add(JurisdictionCode);
                         end;
 
                     if JurisdictionValid and OrderTaxLine.Get(ParentId, LineNo) then begin
@@ -216,9 +218,11 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
             end;
         end;
 
-        // Fix up Report-to Jurisdiction for auto-created jurisdictions
+        // Point auto-created jurisdictions at the top-level (state) jurisdiction so the Tax Area
+        // rolls up correctly. Only jurisdictions created in this run are touched, so an existing
+        // admin-maintained reporting hierarchy is never overwritten.
         if AnyMatched and (MatchedJurisdictions.Count() > 1) then
-            FixReportToJurisdictions(MatchedJurisdictions);
+            FixReportToJurisdictions(MatchedJurisdictions, AutoCreatedJurisdictions);
 
         exit(AnyMatched);
     end;
@@ -282,6 +286,7 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         OrderTaxLine: Record "Shpfy Order Tax Line";
         TaxJurisdiction: Record "Tax Jurisdiction";
         AnyMatched: Boolean;
+        NoAutoCreated: List of [Code[10]];
     begin
         HasRateConflict := false;
 
@@ -303,8 +308,10 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
                 until OrderTaxLine.Next() = 0;
         until OrderLine.Next() = 0;
 
+        // Re-applying works only from jurisdictions that already exist on the lines — nothing is
+        // auto-created here, so no Report-to hierarchy is (re)written (empty auto-created list).
         if AnyMatched and (MatchedJurisdictions.Count() > 1) then
-            FixReportToJurisdictions(MatchedJurisdictions);
+            FixReportToJurisdictions(MatchedJurisdictions, NoAutoCreated);
 
         exit(AnyMatched);
     end;
@@ -345,21 +352,24 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         TaxJurisdiction.Insert(true);
     end;
 
-    local procedure FixReportToJurisdictions(MatchedJurisdictions: List of [Code[10]])
+    local procedure FixReportToJurisdictions(MatchedJurisdictions: List of [Code[10]]; AutoCreatedJurisdictions: List of [Code[10]])
     var
         TaxJurisdiction: Record "Tax Jurisdiction";
         StateJurisdictionCode: Code[10];
         JurisdictionCode: Code[10];
     begin
-        // First jurisdiction in the list = highest level (state)
+        // First matched jurisdiction in the list = highest level (state). Only jurisdictions this
+        // run auto-created are adjusted, and only when their Report-to is still blank, so an
+        // administrator's existing reporting hierarchy on pre-existing jurisdictions is preserved.
         StateJurisdictionCode := MatchedJurisdictions.Get(1);
 
-        foreach JurisdictionCode in MatchedJurisdictions do
-            if TaxJurisdiction.Get(JurisdictionCode) then
-                if TaxJurisdiction."Report-to Jurisdiction" <> StateJurisdictionCode then begin
-                    TaxJurisdiction."Report-to Jurisdiction" := StateJurisdictionCode;
-                    TaxJurisdiction.Modify();
-                end;
+        foreach JurisdictionCode in AutoCreatedJurisdictions do
+            if JurisdictionCode <> StateJurisdictionCode then
+                if TaxJurisdiction.Get(JurisdictionCode) then
+                    if TaxJurisdiction."Report-to Jurisdiction" = '' then begin
+                        TaxJurisdiction."Report-to Jurisdiction" := StateJurisdictionCode;
+                        TaxJurisdiction.Modify();
+                    end;
     end;
 
     local procedure TryFindEffectiveTaxDetail(OrderHeader: Record "Shpfy Order Header"; TaxJurisdiction: Record "Tax Jurisdiction"; TaxGroupCode: Code[20]; var ExistingRate: Decimal): Boolean

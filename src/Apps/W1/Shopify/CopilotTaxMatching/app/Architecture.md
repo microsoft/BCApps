@@ -105,7 +105,9 @@ ApplyMatches()
   |     |           |-- Once for the item line's Tax Group Code (Item.Tax Group Code)
   |     |           |-- Once for the Shop's Shipping Charges Account Tax Group Code (at the same
   |     |               rate; shipping rate divergence is logged as a warning but does not block)
-  |-- FixReportToJurisdictions() if >1 jurisdiction matched
+  |-- FixReportToJurisdictions() if >1 jurisdiction matched — points only the jurisdictions
+  |     this run auto-created (and only when their Report-to is blank) at the state, so an
+  |     existing admin-maintained reporting hierarchy is never overwritten
   |-- Return matched jurisdiction list + HasRateConflict
   |
   v

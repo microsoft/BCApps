@@ -179,6 +179,7 @@ page 30471 "Shpfy Copilot Tax Review"
         UndoApprovalQst: Label 'Undo the approval for this order? It will be held for review again and no Sales Document will be created until it is approved once more.';
         RateConflictGuidanceMsg: Label 'One or more tax lines have a rate that differs from Business Central''s Tax Detail (highlighted in red). Approving accepts Business Central''s rates for this order. To use a different rate, correct the Tax Detail, or change the Tax Jurisdiction on the line, before approving.';
         UnmatchedLinesErr: Label 'One or more tax lines do not have a Tax Jurisdiction Code. Assign a Tax Jurisdiction to every tax line before approving, so the order''s tax is fully resolved.';
+        NoTaxAreaErr: Label 'A Tax Area could not be resolved for the selected Tax Jurisdictions. Turn on Auto Create Tax Areas on the Shopify Shop Card, or create a Tax Area that covers these jurisdictions, then approve again. The order stays held for review until then.';
         LineKeyTok: Label '%1|%2', Locked = true, Comment = '%1 = Parent Id, %2 = Line No.';
         DataCaptionTok: Label 'Copilot Tax Match Review - Order %1', Comment = '%1 = Shopify Order No.';
 
@@ -297,14 +298,19 @@ page 30471 "Shpfy Copilot Tax Review"
 
         // Rebuild the Tax Area from the jurisdictions currently on the tax lines (the human may
         // have changed or completed them), re-seeding brackets and re-detecting rate conflicts.
-        // Recheck the rate conflict and flip the stored flag so a conflict the user resolved
-        // (by changing the jurisdiction or correcting the Tax Detail) clears on approve.
-        if Shop.Get(OrderHeader."Shop Code") then
-            if CopilotTaxMatcher.ReapplyFromAssignedLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict) then begin
-                OrderHeader."Copilot Tax Rate Conflict" := HasRateConflict;
-                if TaxAreaBuilder.FindOrCreateTaxArea(OrderHeader, Shop, MatchedJurisdictions, ResolvedTaxAreaCode, TaxAreaWasCreated) then
-                    CTActivityLog.LogTaxAreaEntry(OrderHeader, ResolvedTaxAreaCode, TaxAreaWasCreated, MatchedJurisdictions);
-            end;
+        // If a Tax Area cannot be resolved for the selected jurisdictions (e.g. the reviewer
+        // changed them to a set with no existing Tax Area and Auto Create Tax Areas is off), do
+        // NOT release the order — otherwise it would be created against the pre-edit Tax Area and
+        // post the wrong tax. Surface an actionable error instead and keep the order held.
+        if not Shop.Get(OrderHeader."Shop Code") then
+            Error(NoTaxAreaErr);
+        if not CopilotTaxMatcher.ReapplyFromAssignedLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict) then
+            Error(NoTaxAreaErr);
+        if not TaxAreaBuilder.FindOrCreateTaxArea(OrderHeader, Shop, MatchedJurisdictions, ResolvedTaxAreaCode, TaxAreaWasCreated) then
+            Error(NoTaxAreaErr);
+
+        OrderHeader."Copilot Tax Rate Conflict" := HasRateConflict;
+        CTActivityLog.LogTaxAreaEntry(OrderHeader, ResolvedTaxAreaCode, TaxAreaWasCreated, MatchedJurisdictions);
 
         OrderHeader."Copilot Tax Match Reviewed" := true;
         OrderHeader.Modify();

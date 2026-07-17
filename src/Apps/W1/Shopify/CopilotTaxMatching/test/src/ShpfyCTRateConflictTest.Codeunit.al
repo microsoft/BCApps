@@ -170,6 +170,56 @@ codeunit 134720 "Shpfy CT Rate Conflict Test"
             'An order Copilot did not match must not be held.');
     end;
 
+    // Guard — matching runs only when enabled, no Tax Area yet, and not tax exempt.
+    [Test]
+    procedure ShouldAttemptMatchWhenEligible()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        CopilotTaxEvents: Codeunit "Shpfy Copilot Tax Events";
+    begin
+        BuildGuardRecords(OrderHeader, Shop, true, '', false);
+        LibraryAssert.IsTrue(CopilotTaxEvents.ShouldAttemptMatch(OrderHeader, Shop),
+            'Matching should run for an enabled shop, no existing Tax Area, not tax exempt.');
+    end;
+
+    [Test]
+    procedure ShouldNotAttemptMatchWhenDisabled()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        CopilotTaxEvents: Codeunit "Shpfy Copilot Tax Events";
+    begin
+        BuildGuardRecords(OrderHeader, Shop, false, '', false);
+        LibraryAssert.IsFalse(CopilotTaxEvents.ShouldAttemptMatch(OrderHeader, Shop),
+            'Matching must not run when the shop has Copilot Tax Matching disabled.');
+    end;
+
+    // P4 idempotency — a Tax Area already resolved (e.g. by address-based MapTaxArea or re-import).
+    [Test]
+    procedure ShouldNotAttemptMatchWhenTaxAreaAlreadySet()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        CopilotTaxEvents: Codeunit "Shpfy Copilot Tax Events";
+    begin
+        BuildGuardRecords(OrderHeader, Shop, true, 'EXISTING', false);
+        LibraryAssert.IsFalse(CopilotTaxEvents.ShouldAttemptMatch(OrderHeader, Shop),
+            'Matching must not run when the order already has a Tax Area Code.');
+    end;
+
+    [Test]
+    procedure ShouldNotAttemptMatchWhenTaxExempt()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        CopilotTaxEvents: Codeunit "Shpfy Copilot Tax Events";
+    begin
+        BuildGuardRecords(OrderHeader, Shop, true, '', true);
+        LibraryAssert.IsFalse(CopilotTaxEvents.ShouldAttemptMatch(OrderHeader, Shop),
+            'Matching must not run for a tax-exempt order.');
+    end;
+
     // RD9 — Undo Approval clears the reviewed flag, so a held order is held again.
     [Test]
     procedure UndoApprovalReholdsOrder()
@@ -233,6 +283,19 @@ codeunit 134720 "Shpfy CT Rate Conflict Test"
         OrderHeader."Copilot Tax Match Applied" := Applied;
         OrderHeader."Copilot Tax Match Reviewed" := Reviewed;
         OrderHeader."Copilot Tax Rate Conflict" := RateConflict;
+    end;
+
+    local procedure BuildGuardRecords(var OrderHeader: Record "Shpfy Order Header"; var Shop: Record "Shpfy Shop"; Enabled: Boolean; ExistingTaxAreaCode: Code[20]; TaxExempt: Boolean)
+    begin
+        // In-memory records — ShouldAttemptMatch only reads these fields.
+        Clear(Shop);
+        Shop.Code := 'CTMTEST';
+        Shop."Copilot Tax Matching Enabled" := Enabled;
+
+        Clear(OrderHeader);
+        OrderHeader."Shopify Order Id" := NextId();
+        OrderHeader."Tax Area Code" := ExistingTaxAreaCode;
+        OrderHeader."Tax Exempt" := TaxExempt;
     end;
 
     local procedure CreateConflictScenario(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; ShopifyRate: Decimal; ExistingBcRate: Decimal)
