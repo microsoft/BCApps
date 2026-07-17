@@ -89,19 +89,21 @@ effect on Approve and are reverted if the page is closed without approving.
 
 ## Shipping Tax Scenarios
 
-For each matched jurisdiction the matcher seeds a Tax Detail for the Shop's
-`Shipping Charges Account` Tax Group Code at the same Shopify rate as the
-item-line tax line. Idempotent across multiple item lines that match the same
-jurisdiction.
+Shipping-charge tax lines (stored by the connector on `Shpfy Order Tax Line` with
+`Parent Id = "Shopify Shipping Line Id"`) are treated as **first-class** tax lines: the LLM
+matches each to a jurisdiction, and it seeds a Tax Detail for the Shop's `Shipping Charges
+Account` Tax Group Code at the **shipping line's own rate** (not derived from product lines).
+A shipping-line rate conflict holds the order for review exactly like a product-line one.
 
-| # | Scenario | Shop Setup | Existing Jurisdictions | Expected Result |
-|---|----------|------------|------------------------|-----------------|
-| S1 | Shipping detail seeded for existing jurisdiction | Shipping Charges Account configured (`GLA-SHIP`, group `SHIPGRP`) | NYSTAX exists | Both `(NYSTAX × TAXABLE)` and `(NYSTAX × SHIPGRP)` Tax Detail rows exist at Shopify rate |
-| S2 | Shipping detail seeded for new jurisdiction | Same + Auto Create Jurisdictions = Yes | None | Jurisdiction created; both `(NYSTAX × TAXABLE)` and `(NYSTAX × SHIPGRP)` Tax Detail rows exist |
-| S3 | No shipping account configured | `Shipping Charges Account` blank | None | Only item-side Tax Detail seeded; no shipping detail; no error |
-| S4 | Shipping account with empty Tax Group Code | `Shipping Charges Account` = `GLA-SHIP`, but G/L Account.Tax Group Code blank | None | Item-group detail seeded plus a `(Jurisdiction × '')` detail for the shipping account (mirrors item-side TD5/TD6) |
-| S5 | Shipping group same as item group | Shipping account's group = `TAXABLE` (same as item) | NYSTAX exists | Single `(NYSTAX × TAXABLE)` row; second call short-circuits via existing-detail check (count = 1) |
-| S6 | Multiple item lines, same jurisdiction | Shipping account's group `SHIPGRP` differs from item | NYSTAX exists | Three item-line tax lines all match NYSTAX; exactly one `(NYSTAX × SHIPGRP)` row created (idempotency) |
+| # | Scenario | Shop Setup | Order Data | Expected Result |
+|---|----------|------------|------------|-----------------|
+| S1 | Shipping bracket seeded at its own rate | Shipping Charges Account `GLA-SHIP`, group `SHIPGRP`; NYSTAX exists | Item tax line NYSTAX @ 4%, shipping tax line NYSTAX @ **3%** | `(NYSTAX × TAXABLE)` @ 4% and `(NYSTAX × SHIPGRP)` @ **3%** — the shipping bracket comes from the shipping line's own rate |
+| S2 | Shipping bracket under new jurisdiction | Same + Auto Create Jurisdictions = Yes | Item + shipping tax lines, no existing jurisdictions | Jurisdiction created; both `(NYSTAX × TAXABLE)` and `(NYSTAX × SHIPGRP)` seeded |
+| S3 | Shipping charge without tax lines | Shipping account configured | Shipping charge present but **no** shipping tax lines (untaxed) | Only the item-side detail seeded; `(NYSTAX × SHIPGRP)` count = 0; no error |
+| S4 | Shipping account with empty Tax Group Code | `GLA-SHIP` with blank Tax Group Code | Item + shipping tax lines | Item-group detail plus a `(Jurisdiction × '')` detail from the shipping line |
+| S5 | Shipping group same as item group | Shipping account's group = `TAXABLE` (same as item), same jurisdiction & rate | Item + shipping tax lines both NYSTAX @ 4% | Single `(NYSTAX × TAXABLE)` row (idempotent seeding, count = 1) |
+| S6 | Multiple shipping charges, same jurisdiction | Shipping account group `SHIPGRP` | Two shipping charges both NYSTAX @ 4% | Exactly one `(NYSTAX × SHIPGRP)` row (idempotency); no rate conflict |
+| S7 | Shipping rate conflict holds order | Shipping account group `FREIGHT`; existing `(NYSTAX × FREIGHT)` @ 5% | Shipping tax line NYSTAX @ 8% | Shipping line matched; existing 5% untouched; `Copilot Tax Rate Conflict` set; order held (covered by `Shpfy CT Rate Conflict Test`) |
 
 ---
 
@@ -227,6 +229,6 @@ These scenarios test the LLM's ability to handle ambiguous, misleading, or compl
 | `Shpfy CTM Tax Area Test` | 134718 | Tax Area find/create (TA*) — `FindOrCreateTaxArea` |
 | `Shpfy CTM Guard Test` | 134719 | Guard / early-exit (GD*, P1–P6) |
 | `Shpfy CT HITL Test` | 134716 | HITL-1…6 — marker propagation, `MarkReviewed`, `DisableForUser`, Activity Log helpers, `Capitalize` |
-| `Shpfy CT Rate Conflict Test` | 134720 | Rate-conflict recheck/flip on approve (RD1/RD5/RD6 core via `ReapplyFromAssignedLines`), the creation gate RD3/RD4 + released cases (`IsSalesDocumentCreationHeld`), the business guards P4/tax-exempt/enabled (`ShouldAttemptMatch`), and Undo Approval RD9 (`UndoApproval`) |
+| `Shpfy CT Rate Conflict Test` | 134720 | Rate-conflict recheck/flip on approve (RD1/RD5/RD6 core via `ReapplyFromAssignedLines`), including **shipping** tax lines (shipping bracket seeded from the shipping line's own rate; shipping rate conflict holds — S7); the creation gate RD3/RD4 + released cases (`IsSalesDocumentCreationHeld`), the business guards P4/tax-exempt/enabled (`ShouldAttemptMatch`), and Undo Approval RD9 (`UndoApproval`) |
 
 **Verified manually / by TestPage (not unit-automated):** the page-property scenarios — Approve/Undo action visibility, BC-rate column + green/red styling (RD7), edit-revert-on-close (RD8), review-page close guard (HITL-13), page action captions (HITL-12), notification prompts (HITL-10/11), and Shop Card field enable/disable (SC-1…3) — as these are page-lifecycle/UI behaviors best exercised through the client.

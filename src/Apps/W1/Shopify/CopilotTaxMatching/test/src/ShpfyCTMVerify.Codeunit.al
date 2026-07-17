@@ -119,19 +119,16 @@ codeunit 134715 "Shpfy CTM Verify"
 
     local procedure VerifyAllTaxLinesMatched(OrderHeader: Record "Shpfy Order Header")
     var
-        OrderLine: Record "Shpfy Order Line";
         OrderTaxLine: Record "Shpfy Order Tax Line";
     begin
-        OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
-        if OrderLine.FindSet() then
+        // Include product-line and shipping-charge tax lines.
+        if not SetAllTaxLinesFilter(OrderTaxLine, OrderHeader) then
+            exit;
+        if OrderTaxLine.FindSet() then
             repeat
-                OrderTaxLine.SetRange("Parent Id", OrderLine."Line Id");
-                if OrderTaxLine.FindSet() then
-                    repeat
-                        LibraryAssert.AreNotEqual('', OrderTaxLine."Tax Jurisdiction Code",
-                            StrSubstNo(TaxLineShouldBeMatchedLbl, OrderTaxLine."Parent Id", OrderTaxLine."Line No."));
-                    until OrderTaxLine.Next() = 0;
-            until OrderLine.Next() = 0;
+                LibraryAssert.AreNotEqual('', OrderTaxLine."Tax Jurisdiction Code",
+                    StrSubstNo(TaxLineShouldBeMatchedLbl, OrderTaxLine."Parent Id", OrderTaxLine."Line No."));
+            until OrderTaxLine.Next() = 0;
     end;
 
     local procedure VerifyCreatedJurisdictionCountryRegion(OrderHeader: Record "Shpfy Order Header"; ExpectedCountryRegion: Text)
@@ -187,7 +184,6 @@ codeunit 134715 "Shpfy CTM Verify"
     local procedure VerifyTaxDetailExists(ExpectedArray: Codeunit "Test Input Json"; OrderHeader: Record "Shpfy Order Header")
     var
         TaxDetail: Record "Tax Detail";
-        OrderLine: Record "Shpfy Order Line";
         OrderTaxLine: Record "Shpfy Order Tax Line";
         ExpectedItem: Codeunit "Test Input Json";
         TaxGroupCode: Code[20];
@@ -205,27 +201,61 @@ codeunit 134715 "Shpfy CTM Verify"
             if EffectiveDateExists then
                 Evaluate(ExpectedEffectiveDate, ExpectedItem.Element('effectiveDate').ValueAsText());
 
-            // Find matched tax lines to get the jurisdiction code
-            OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
-            if OrderLine.FindSet() then
-                repeat
-                    OrderTaxLine.SetRange("Parent Id", OrderLine."Line Id");
-                    OrderTaxLine.SetRange("Rate %", RatePct);
-                    OrderTaxLine.SetFilter("Tax Jurisdiction Code", '<>%1', '');
-                    if OrderTaxLine.FindFirst() then begin
-                        TaxDetail.SetRange("Tax Jurisdiction Code", OrderTaxLine."Tax Jurisdiction Code");
-                        TaxDetail.SetRange("Tax Group Code", TaxGroupCode);
-                        TaxDetail.SetRange("Tax Below Maximum", RatePct);
-                        LibraryAssert.IsTrue(TaxDetail.FindFirst(),
-                            StrSubstNo(TaxDetailShouldExistLbl,
-                                OrderTaxLine."Tax Jurisdiction Code", TaxGroupCode, RatePct));
+            // Scan all of the order's tax lines — product-line and shipping-charge — for one at
+            // this rate with a matched jurisdiction, then assert the seeded Tax Detail for that
+            // jurisdiction + expected tax group exists.
+            if SetAllTaxLinesFilter(OrderTaxLine, OrderHeader) then begin
+                OrderTaxLine.SetRange("Rate %", RatePct);
+                OrderTaxLine.SetFilter("Tax Jurisdiction Code", '<>%1', '');
+                if OrderTaxLine.FindFirst() then begin
+                    TaxDetail.SetRange("Tax Jurisdiction Code", OrderTaxLine."Tax Jurisdiction Code");
+                    TaxDetail.SetRange("Tax Group Code", TaxGroupCode);
+                    TaxDetail.SetRange("Tax Below Maximum", RatePct);
+                    LibraryAssert.IsTrue(TaxDetail.FindFirst(),
+                        StrSubstNo(TaxDetailShouldExistLbl,
+                            OrderTaxLine."Tax Jurisdiction Code", TaxGroupCode, RatePct));
 
-                        if EffectiveDateExists then
-                            LibraryAssert.AreEqual(ExpectedEffectiveDate, TaxDetail."Effective Date",
-                                StrSubstNo(TaxDetailEffectiveDateLbl, OrderTaxLine."Tax Jurisdiction Code", TaxGroupCode));
-                    end;
-                until OrderLine.Next() = 0;
+                    if EffectiveDateExists then
+                        LibraryAssert.AreEqual(ExpectedEffectiveDate, TaxDetail."Effective Date",
+                            StrSubstNo(TaxDetailEffectiveDateLbl, OrderTaxLine."Tax Jurisdiction Code", TaxGroupCode));
+                end;
+            end;
         end;
+    end;
+
+    /// <summary>
+    /// Filters OrderTaxLine to every tax line on the order — product-line tax lines
+    /// (Parent Id = order line "Line Id") and shipping-charge tax lines (Parent Id =
+    /// "Shopify Shipping Line Id"). Returns false when the order has neither.
+    /// </summary>
+    local procedure SetAllTaxLinesFilter(var OrderTaxLine: Record "Shpfy Order Tax Line"; OrderHeader: Record "Shpfy Order Header"): Boolean
+    var
+        OrderLine: Record "Shpfy Order Line";
+        ShippingCharge: Record "Shpfy Order Shipping Charges";
+        FilterBuilder: TextBuilder;
+    begin
+        OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        if OrderLine.FindSet() then
+            repeat
+                AppendParentId(FilterBuilder, OrderLine."Line Id");
+            until OrderLine.Next() = 0;
+        ShippingCharge.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        if ShippingCharge.FindSet() then
+            repeat
+                AppendParentId(FilterBuilder, ShippingCharge."Shopify Shipping Line Id");
+            until ShippingCharge.Next() = 0;
+        if FilterBuilder.Length() = 0 then
+            exit(false);
+        OrderTaxLine.Reset();
+        OrderTaxLine.SetFilter("Parent Id", FilterBuilder.ToText());
+        exit(true);
+    end;
+
+    local procedure AppendParentId(var FilterBuilder: TextBuilder; ParentId: BigInteger)
+    begin
+        if FilterBuilder.Length() > 0 then
+            FilterBuilder.Append('|');
+        FilterBuilder.Append(Format(ParentId));
     end;
 
     local procedure VerifyCreatedJurisdictionDescriptionEqualsCode(OrderHeader: Record "Shpfy Order Header")

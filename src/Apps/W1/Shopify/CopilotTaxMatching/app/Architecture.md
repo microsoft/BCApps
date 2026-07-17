@@ -73,10 +73,14 @@ Copilot Tax Events (30473) — Event Subscriber
   |
   v
 Copilot Tax Matcher (30471) — MatchTaxLines()
-  |-- Walk the order's tax lines:
+  |-- Walk the order's tax lines — BOTH product-line tax lines (Parent Id = order line
+  |   "Line Id") AND shipping-charge tax lines (Parent Id = "Shopify Shipping Line Id",
+  |   iterated from Shpfy Order Shipping Charges):
   |     |-- Tax Jurisdiction Code = '' -> send to the LLM (unmatched)
   |     |-- Tax Jurisdiction Code set (from a prior run) -> carry into MatchedJurisdictions
   |         so the Tax Area is built from the order's COMPLETE jurisdiction set on a re-run
+  |   (product lines first to preserve state -> ... -> city ordering; shipping jurisdictions
+  |    usually duplicate product ones and are de-duplicated)
   |-- Gather all BC Tax Jurisdictions (code + description)
   |-- Build ship-to address context (country, state, city)
   |-- Construct user prompt from template
@@ -97,14 +101,17 @@ ApplyMatches()
   |     |-- Validate jurisdiction exists, or create if auto-create enabled
   |     |-- ApplyAssignedJurisdiction(): write jurisdiction code to Shpfy Order Tax Line
   |     |   (the match is always applied — the jurisdiction is correct) and:
-  |     |     |-- Rate-conflict check (item line's Tax Group Code): if a Tax Detail bracket
-  |     |     |   valid at the order date already EXISTS with a DIFFERENT rate than Shopify's,
+  |     |     |-- Resolve the tax line's Tax Group Code by owner: a product-line tax line uses
+  |     |     |   the order line item's Tax Group Code; a shipping-charge tax line uses the Shop's
+  |     |     |   Shipping Charges Account Tax Group Code.
+  |     |     |-- Rate-conflict check: if a Tax Detail bracket valid at the order date already
+  |     |     |   EXISTS for (jurisdiction × that tax group) with a DIFFERENT rate than Shopify's,
   |     |     |   set HasRateConflict, log telemetry 0000UMR + a per-line "matched, but rate
-  |     |     |   differs" entry, and leave the existing (admin-maintained) rate untouched
-  |     |     |-- Otherwise: seed Tax Detail
-  |     |           |-- Once for the item line's Tax Group Code (Item.Tax Group Code)
-  |     |           |-- Once for the Shop's Shipping Charges Account Tax Group Code (at the same
-  |     |               rate; shipping rate divergence is logged as a warning but does not block)
+  |     |     |   differs" entry, and leave the existing (admin-maintained) rate untouched. This
+  |     |     |   applies equally to product-line and shipping-charge tax lines.
+  |     |     |-- Otherwise: seed a Tax Detail for (jurisdiction × that tax group) at Shopify's
+  |     |         rate if none exists. Each tax line (product or shipping) seeds its own bracket
+  |     |         from its OWN rate — there is no product-line-derived shipping inference.
   |-- FixReportToJurisdictions() if >1 jurisdiction matched — points only the jurisdictions
   |     this run auto-created (and only when their Report-to is blank) at the state, so an
   |     existing admin-maintained reporting hierarchy is never overwritten
@@ -317,7 +324,7 @@ The feature reads from and writes to the standard Shopify connector tables and B
 | Tax Jurisdiction | Read for matching; created when `Auto Create Tax Jurisdictions` enabled |
 | Tax Area | Read for exact-match search; created when `Auto Create Tax Areas` enabled |
 | Tax Area Line | Read/created as part of Tax Area |
-| Tax Detail | Seeded per matched tax line: once for the item line's Tax Group Code (`Item.Tax Group Code`) and once for the Shop's `Shipping Charges Account` Tax Group Code (`G/L Account.Tax Group Code`), both at Shopify's reported rate. For each seed, look for the latest Tax Detail with `Effective Date <= order date` for the jurisdiction + tax group + tax type. If none exists, insert a new one at the order date with Shopify's rate. If one exists with the same rate, do nothing. **Rate conflict (item tax group):** if the item-group bracket exists with a *different* rate, the existing (admin-maintained) rate is left untouched, telemetry `0000UMR` is logged, and the order is flagged (`Copilot Tax Rate Conflict`) — the jurisdiction is still matched and the Tax Area is built, but the order is held for review so a human accepts BC's rate or corrects the detail (see Human-in-the-loop). **Rate conflict (shipping tax group):** left untouched and logged as a warning only (telemetry `0000UMS`, does not block), since shipping is a best-effort secondary seed. Empty Tax Group Code is a valid value for both seeds (an item or shipping account with no group results in a `(Jurisdiction × '')` Tax Detail row). The shipping seed is skipped only when the Shop has no `Shipping Charges Account` configured at all (no target). |
+| Tax Detail | Seeded per matched tax line for `(jurisdiction × the tax line's Tax Group)` at Shopify's reported rate. The Tax Group is resolved by what the tax line is charged on: a product-line tax line uses the order line item's `Tax Group Code`; a shipping-charge tax line uses the Shop's `Shipping Charges Account` Tax Group Code (`G/L Account.Tax Group Code`). For each seed, look for the latest Tax Detail with `Effective Date <= order date` for the jurisdiction + tax group + tax type. If none exists, insert a new one at the order date with Shopify's rate. If one exists with the same rate, do nothing. **Rate conflict:** if the bracket exists with a *different* rate, the existing (admin-maintained) rate is left untouched, telemetry `0000UMR` is logged, and the order is flagged (`Copilot Tax Rate Conflict`) — the jurisdiction is still matched and the Tax Area is built, but the order is held for review so a human accepts BC's rate or corrects the detail (see Human-in-the-loop). This applies uniformly to product-line and shipping-charge tax lines (a shipping rate conflict holds the order too). Empty Tax Group Code is a valid value (an item or shipping account with no group results in a `(Jurisdiction × '')` Tax Detail row). |
 
 ## Integration Points
 
@@ -362,8 +369,7 @@ Registration follows the standard BC Copilot pattern:
 | 0000UMO | Error | Matcher | Function execution failed |
 | 0000UMP | Normal | Matcher | Low-confidence match skipped |
 | 0000UMQ | Warning | Matcher | Jurisdiction not found, auto-create disabled |
-| 0000UMR | Warning | Matcher | Item-group Tax Detail rate differs from Shopify's — jurisdiction still matched, order held for review |
-| 0000UMS | Warning | Matcher | Shipping-group Tax Detail rate differs from Shopify's — existing left untouched (warning only) |
+| 0000UMR | Warning | Matcher | A matched tax line's Tax Detail rate differs from Shopify's (item or shipping tax group) — jurisdiction still matched, order held for review |
 | 0000UMT | Usage | Notify | Sales Order review notification sent |
 | 0000UMU | Usage | Notify | User opened the review from the Sales Order notification |
 | 0000UMV | Usage | Notify | Order-page review notification sent |

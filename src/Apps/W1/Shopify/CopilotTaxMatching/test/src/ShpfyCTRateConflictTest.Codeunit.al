@@ -1,5 +1,6 @@
 namespace Microsoft.Integration.Shopify;
 
+using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Inventory.Item;
 using System.TestLibraries.Utilities;
@@ -103,6 +104,54 @@ codeunit 134720 "Shpfy CT Rate Conflict Test"
         TaxDetail.SetRange("Tax Jurisdiction Code", 'NYSTAX');
         TaxDetail.SetRange("Tax Group Code", 'TAXABLE');
         LibraryAssert.IsFalse(TaxDetail.IsEmpty(), 'A Tax Detail should have been seeded at Shopify''s rate.');
+    end;
+
+    // Shipping tax line is first-class: its own rate seeds the shipping-group Tax Detail.
+    [Test]
+    procedure ReapplySeedsShippingBracketFromShippingTaxLine()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TaxDetail: Record "Tax Detail";
+        Shop: Record "Shpfy Shop";
+        CopilotTaxMatcher: Codeunit "Shpfy Copilot Tax Matcher";
+        MatchedJurisdictions: List of [Code[10]];
+        MatchLog: JsonArray;
+        HasRateConflict: Boolean;
+    begin
+        Cleanup();
+        Shop := CreateShop();
+        // Shipping charge with its own tax line at 8%, no existing shipping-group bracket.
+        CreateShippingScenario(OrderHeader, Shop, 8, 0);
+
+        CopilotTaxMatcher.ReapplyFromAssignedLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict);
+
+        LibraryAssert.IsFalse(HasRateConflict, 'No existing shipping bracket means no conflict.');
+        TaxDetail.SetRange("Tax Jurisdiction Code", 'NYSTAX');
+        TaxDetail.SetRange("Tax Group Code", 'FREIGHT');
+        TaxDetail.SetRange("Tax Below Maximum", 8);
+        LibraryAssert.IsFalse(TaxDetail.IsEmpty(), 'A shipping-group Tax Detail should be seeded at the shipping tax line''s own rate.');
+    end;
+
+    // Shipping rate conflict now holds like product lines (BC shipping rate != Shopify's).
+    [Test]
+    procedure ReapplyDetectsShippingRateConflict()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        CopilotTaxMatcher: Codeunit "Shpfy Copilot Tax Matcher";
+        MatchedJurisdictions: List of [Code[10]];
+        MatchLog: JsonArray;
+        HasRateConflict: Boolean;
+    begin
+        Cleanup();
+        Shop := CreateShop();
+        // BC has NYSTAX x FREIGHT at 5%, but the shipping tax line charged 8%.
+        CreateShippingScenario(OrderHeader, Shop, 8, 5);
+
+        CopilotTaxMatcher.ReapplyFromAssignedLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict);
+
+        LibraryAssert.IsTrue(HasRateConflict, 'A shipping tax line whose rate differs from BC must flag a rate conflict.');
+        LibraryAssert.AreEqual(5, GetEffectiveBcRate('NYSTAX', 'FREIGHT'), 'The existing shipping Tax Detail rate must be left untouched.');
     end;
 
     // RD3 — order held for creation when the shop requires review.
@@ -335,6 +384,62 @@ codeunit 134720 "Shpfy CT Rate Conflict Test"
         if TaxJurisdiction.Get('NYSTAX') then;
     end;
 
+    local procedure CreateShippingScenario(var OrderHeader: Record "Shpfy Order Header"; var Shop: Record "Shpfy Shop"; ShopifyRate: Decimal; ExistingBcRate: Decimal)
+    var
+        ShippingCharge: Record "Shpfy Order Shipping Charges";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        ShippingLineId: BigInteger;
+    begin
+        EnsureJurisdiction('NYSTAX');
+        EnsureShippingAccount(Shop, 'SHIPACC', 'FREIGHT');
+
+        OrderHeader.Init();
+        OrderHeader."Shopify Order Id" := NextId();
+        OrderHeader."Shop Code" := Shop.Code;
+        OrderHeader."Document Date" := 20260115D;
+        OrderHeader.Insert();
+
+        ShippingLineId := OrderHeader."Shopify Order Id" + 5000;
+        ShippingCharge.Init();
+        ShippingCharge."Shopify Shipping Line Id" := ShippingLineId;
+        ShippingCharge."Shopify Order Id" := OrderHeader."Shopify Order Id";
+        ShippingCharge.Title := 'Standard Shipping';
+        ShippingCharge.Insert();
+
+        OrderTaxLine.Init();
+        OrderTaxLine."Parent Id" := ShippingLineId;
+        OrderTaxLine."Line No." := 1;
+        OrderTaxLine.Title := 'NEW YORK STATE TAX';
+        OrderTaxLine."Rate %" := ShopifyRate;
+        OrderTaxLine."Tax Jurisdiction Code" := 'NYSTAX';
+        OrderTaxLine.Insert();
+
+        if ExistingBcRate <> 0 then
+            CreateTaxDetail('NYSTAX', 'FREIGHT', ExistingBcRate, 20260101D);
+    end;
+
+    local procedure EnsureShippingAccount(var Shop: Record "Shpfy Shop"; AccountNo: Code[20]; TaxGroupCode: Code[20])
+    var
+        GLAccount: Record "G/L Account";
+        TaxGroup: Record "Tax Group";
+    begin
+        if not TaxGroup.Get(TaxGroupCode) then begin
+            TaxGroup.Init();
+            TaxGroup.Code := TaxGroupCode;
+            TaxGroup.Description := TaxGroupCode;
+            TaxGroup.Insert(true);
+        end;
+        if not GLAccount.Get(AccountNo) then begin
+            GLAccount.Init();
+            GLAccount."No." := AccountNo;
+            GLAccount.Name := AccountNo;
+            GLAccount."Tax Group Code" := TaxGroupCode;
+            GLAccount.Insert(false);
+        end;
+        Shop."Shipping Charges Account" := AccountNo;
+        Shop.Modify();
+    end;
+
     local procedure CreateTaxDetail(JurisdictionCode: Code[10]; TaxGroupCode: Code[20]; Rate: Decimal; EffectiveDate: Date)
     var
         TaxDetail: Record "Tax Detail";
@@ -420,14 +525,17 @@ codeunit 134720 "Shpfy CT Rate Conflict Test"
         OrderHeader: Record "Shpfy Order Header";
         OrderLine: Record "Shpfy Order Line";
         OrderTaxLine: Record "Shpfy Order Tax Line";
+        ShippingCharge: Record "Shpfy Order Shipping Charges";
         Shop: Record "Shpfy Shop";
         TaxJurisdiction: Record "Tax Jurisdiction";
         TaxDetail: Record "Tax Detail";
         TaxGroup: Record "Tax Group";
         Item: Record Item;
+        GLAccount: Record "G/L Account";
     begin
         OrderTaxLine.DeleteAll();
         OrderLine.DeleteAll();
+        ShippingCharge.DeleteAll();
         OrderHeader.SetFilter("Shopify Order Id", '>=%1', 960000000);
         OrderHeader.DeleteAll();
         Shop.SetRange(Code, 'CTMTEST');
@@ -436,5 +544,7 @@ codeunit 134720 "Shpfy CT Rate Conflict Test"
         TaxJurisdiction.DeleteAll();
         TaxGroup.DeleteAll();
         Item.DeleteAll();
+        if GLAccount.Get('SHIPACC') then
+            GLAccount.Delete();
     end;
 }

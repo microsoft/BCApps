@@ -30,7 +30,7 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
     procedure MatchTaxLines(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean): Boolean
     var
         OrderLine: Record "Shpfy Order Line";
-        OrderTaxLine: Record "Shpfy Order Tax Line";
+        ShippingCharge: Record "Shpfy Order Shipping Charges";
         TaxJurisdiction: Record "Tax Jurisdiction";
         FeatureTelemetry: Codeunit "Feature Telemetry";
         CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
@@ -46,27 +46,24 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         HasRateConflict := false;
         FeatureTelemetry.LogUptake('0000UML', CopilotTaxRegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
 
-        // Gather the order's tax lines. Lines without a jurisdiction go to the LLM; lines that
-        // already have one (assigned on a prior run — e.g. before a rate conflict left a sibling
-        // line blank) are carried into MatchedJurisdictions so the Tax Area is built from the
-        // order's complete jurisdiction set, not just this run's matches. Pre-existing codes are
-        // added first (in line order) so the state -> ... -> city ordering the Tax Area Builder
-        // relies on is preserved when a re-run fills in the remaining line.
+        // Gather the order's tax lines — both product-line tax lines (Parent Id = order line
+        // "Line Id") and shipping-charge tax lines (Parent Id = "Shopify Shipping Line Id"). Lines
+        // without a jurisdiction go to the LLM; lines already assigned on a prior run are carried
+        // into MatchedJurisdictions so the Tax Area is built from the order's complete jurisdiction
+        // set. Product lines are gathered first (in line order) so the state -> ... -> city
+        // ordering the Tax Area Builder relies on is preserved; shipping jurisdictions typically
+        // duplicate product ones and are de-duplicated.
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
-        if not OrderLine.FindSet() then
-            exit(false);
+        if OrderLine.FindSet() then
+            repeat
+                GatherTaxLines(OrderLine."Line Id", TaxLinesArray, MatchedJurisdictions);
+            until OrderLine.Next() = 0;
 
-        repeat
-            OrderTaxLine.SetRange("Parent Id", OrderLine."Line Id");
-            if OrderTaxLine.FindSet() then
-                repeat
-                    if OrderTaxLine."Tax Jurisdiction Code" = '' then
-                        TaxLinesArray.Add(BuildTaxLineJson(OrderTaxLine))
-                    else
-                        if not MatchedJurisdictions.Contains(OrderTaxLine."Tax Jurisdiction Code") then
-                            MatchedJurisdictions.Add(OrderTaxLine."Tax Jurisdiction Code");
-                until OrderTaxLine.Next() = 0;
-        until OrderLine.Next() = 0;
+        ShippingCharge.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        if ShippingCharge.FindSet() then
+            repeat
+                GatherTaxLines(ShippingCharge."Shopify Shipping Line Id", TaxLinesArray, MatchedJurisdictions);
+            until ShippingCharge.Next() = 0;
 
         if TaxLinesArray.Count() = 0 then
             exit(false);
@@ -229,22 +226,23 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
 
     /// <summary>
     /// Applies one matched jurisdiction to a tax line and records the effect on the shared
-    /// state (MatchedJurisdictions, MatchLog, HasRateConflict). The jurisdiction itself is
-    /// always assigned — a match is a match. If BC already has a Tax Detail for this
-    /// jurisdiction + the item's tax group whose rate differs from Shopify's, the order is
-    /// flagged as a rate conflict (held for review) and the existing admin-maintained rate is
-    /// left untouched; otherwise a missing bracket is seeded at Shopify's rate and the shipping
-    /// bracket is seeded best-effort.
+    /// state (MatchedJurisdictions, MatchLog, HasRateConflict). Works for both product-line and
+    /// shipping-charge tax lines — the applicable Tax Group is resolved per line (item tax group
+    /// vs the shop's shipping-charges-account tax group). The jurisdiction is always assigned. If
+    /// BC already has a Tax Detail for this jurisdiction + tax group whose rate differs from
+    /// Shopify's, the order is flagged as a rate conflict (held for review) and the existing
+    /// admin-maintained rate is left untouched; otherwise a missing bracket is seeded at Shopify's
+    /// rate.
     /// </summary>
     local procedure ApplyAssignedJurisdiction(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; var OrderTaxLine: Record "Shpfy Order Tax Line"; TaxJurisdiction: Record "Tax Jurisdiction"; Confidence: Text; Reason: Text; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean)
     var
         CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
-        ItemTaxGroupCode: Code[20];
+        TaxGroupCode: Code[20];
         ExistingRate: Decimal;
-        ItemBracketExists: Boolean;
+        BracketExists: Boolean;
     begin
-        ItemTaxGroupCode := GetItemTaxGroupCode(OrderTaxLine);
-        ItemBracketExists := TryFindEffectiveTaxDetail(OrderHeader, TaxJurisdiction, ItemTaxGroupCode, ExistingRate);
+        TaxGroupCode := GetTaxGroupCodeForTaxLine(OrderTaxLine, Shop);
+        BracketExists := TryFindEffectiveTaxDetail(OrderHeader, TaxJurisdiction, TaxGroupCode, ExistingRate);
 
         OrderTaxLine."Tax Jurisdiction Code" := TaxJurisdiction.Code;
         OrderTaxLine.Modify();
@@ -252,24 +250,22 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         if not MatchedJurisdictions.Contains(TaxJurisdiction.Code) then
             MatchedJurisdictions.Add(TaxJurisdiction.Code);
 
-        if ItemBracketExists and (ExistingRate <> OrderTaxLine."Rate %") then begin
+        if BracketExists and (ExistingRate <> OrderTaxLine."Rate %") then begin
             // Jurisdiction is correct, but BC's existing Tax Detail rate differs from Shopify's.
             // Keep the assignment (and build the Tax Area) but flag the order so it is always held
             // for review: the reviewer sees Shopify's rate next to BC's on the review page and
             // decides whether to accept BC's rate or fix the Tax Detail. The existing rate is not
-            // overwritten.
+            // overwritten. This applies equally to product-line and shipping-charge tax lines.
             HasRateConflict := true;
             Session.LogMessage('0000UMR',
-                StrSubstNo(TaxDetailRateMismatchMsg, TaxJurisdiction.Code, ItemTaxGroupCode, ExistingRate, OrderTaxLine."Rate %"),
+                StrSubstNo(TaxDetailRateMismatchMsg, TaxJurisdiction.Code, TaxGroupCode, ExistingRate, OrderTaxLine."Rate %"),
                 Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CopilotTaxRegister.FeatureName());
             MatchLog.Add(BuildMatchLogEntry(OrderTaxLine."Parent Id", OrderTaxLine."Line No.", TaxJurisdiction.Code, Confidence,
-                StrSubstNo(RateConflictReasonTok, OrderTaxLine."Rate %", ExistingRate, ItemTaxGroupCode), true));
+                StrSubstNo(RateConflictReasonTok, OrderTaxLine."Rate %", ExistingRate, TaxGroupCode), true));
         end else begin
             MatchLog.Add(BuildMatchLogEntry(OrderTaxLine."Parent Id", OrderTaxLine."Line No.", TaxJurisdiction.Code, Confidence, Reason, false));
-            if not ItemBracketExists then
-                InsertTaxDetail(OrderHeader, OrderTaxLine, TaxJurisdiction, ItemTaxGroupCode);
-            if Shop."Shipping Charges Account" <> '' then
-                SeedShippingTaxDetail(OrderHeader, OrderTaxLine, TaxJurisdiction, Shop);
+            if not BracketExists then
+                InsertTaxDetail(OrderHeader, OrderTaxLine, TaxJurisdiction, TaxGroupCode);
         end;
     end;
 
@@ -283,36 +279,52 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
     procedure ReapplyFromAssignedLines(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean): Boolean
     var
         OrderLine: Record "Shpfy Order Line";
-        OrderTaxLine: Record "Shpfy Order Tax Line";
-        TaxJurisdiction: Record "Tax Jurisdiction";
+        ShippingCharge: Record "Shpfy Order Shipping Charges";
         AnyMatched: Boolean;
         NoAutoCreated: List of [Code[10]];
     begin
         HasRateConflict := false;
 
+        // Re-apply from the jurisdictions currently on both product-line and shipping-charge tax
+        // lines. Product lines first (in line order) to preserve the state -> ... -> city ordering
+        // the Tax Area Builder relies on; shipping jurisdictions typically duplicate product ones.
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
-        if not OrderLine.FindSet() then
-            exit(false);
+        if OrderLine.FindSet() then
+            repeat
+                if ReapplyTaxLinesForParent(OrderHeader, Shop, OrderLine."Line Id", MatchedJurisdictions, MatchLog, HasRateConflict) then
+                    AnyMatched := true;
+            until OrderLine.Next() = 0;
 
-        // Iterate in line order so the state -> ... -> city ordering the Tax Area Builder relies
-        // on is preserved.
-        repeat
-            OrderTaxLine.SetRange("Parent Id", OrderLine."Line Id");
-            if OrderTaxLine.FindSet() then
-                repeat
-                    if OrderTaxLine."Tax Jurisdiction Code" <> '' then
-                        if TaxJurisdiction.Get(OrderTaxLine."Tax Jurisdiction Code") then begin
-                            AnyMatched := true;
-                            ApplyAssignedJurisdiction(OrderHeader, Shop, OrderTaxLine, TaxJurisdiction, 'High', '', MatchedJurisdictions, MatchLog, HasRateConflict);
-                        end;
-                until OrderTaxLine.Next() = 0;
-        until OrderLine.Next() = 0;
+        ShippingCharge.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        if ShippingCharge.FindSet() then
+            repeat
+                if ReapplyTaxLinesForParent(OrderHeader, Shop, ShippingCharge."Shopify Shipping Line Id", MatchedJurisdictions, MatchLog, HasRateConflict) then
+                    AnyMatched := true;
+            until ShippingCharge.Next() = 0;
 
         // Re-applying works only from jurisdictions that already exist on the lines — nothing is
         // auto-created here, so no Report-to hierarchy is (re)written (empty auto-created list).
         if AnyMatched and (MatchedJurisdictions.Count() > 1) then
             FixReportToJurisdictions(MatchedJurisdictions, NoAutoCreated);
 
+        exit(AnyMatched);
+    end;
+
+    local procedure ReapplyTaxLinesForParent(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; ParentId: BigInteger; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean): Boolean
+    var
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+        AnyMatched: Boolean;
+    begin
+        OrderTaxLine.SetRange("Parent Id", ParentId);
+        if OrderTaxLine.FindSet() then
+            repeat
+                if OrderTaxLine."Tax Jurisdiction Code" <> '' then
+                    if TaxJurisdiction.Get(OrderTaxLine."Tax Jurisdiction Code") then begin
+                        AnyMatched := true;
+                        ApplyAssignedJurisdiction(OrderHeader, Shop, OrderTaxLine, TaxJurisdiction, 'High', '', MatchedJurisdictions, MatchLog, HasRateConflict);
+                    end;
+            until OrderTaxLine.Next() = 0;
         exit(AnyMatched);
     end;
 
@@ -325,22 +337,21 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
     procedure TryGetEffectiveItemRate(OrderTaxLine: Record "Shpfy Order Tax Line"; var BCRate: Decimal): Boolean
     var
         OrderHeader: Record "Shpfy Order Header";
-        OrderLine: Record "Shpfy Order Line";
         TaxJurisdiction: Record "Tax Jurisdiction";
-        ItemTaxGroupCode: Code[20];
+        Shop: Record "Shpfy Shop";
+        TaxGroupCode: Code[20];
     begin
         Clear(BCRate);
         if OrderTaxLine."Tax Jurisdiction Code" = '' then
             exit(false);
         if not TaxJurisdiction.Get(OrderTaxLine."Tax Jurisdiction Code") then
             exit(false);
-        OrderLine.SetRange("Line Id", OrderTaxLine."Parent Id");
-        if not OrderLine.FindFirst() then
+        if not TryGetOrderHeaderForTaxLine(OrderTaxLine, OrderHeader) then
             exit(false);
-        if not OrderHeader.Get(OrderLine."Shopify Order Id") then
+        if not Shop.Get(OrderHeader."Shop Code") then
             exit(false);
-        ItemTaxGroupCode := GetItemTaxGroupCode(OrderTaxLine);
-        exit(TryFindEffectiveTaxDetail(OrderHeader, TaxJurisdiction, ItemTaxGroupCode, BCRate));
+        TaxGroupCode := GetTaxGroupCodeForTaxLine(OrderTaxLine, Shop);
+        exit(TryFindEffectiveTaxDetail(OrderHeader, TaxJurisdiction, TaxGroupCode, BCRate));
     end;
 
     local procedure CreateTaxJurisdiction(var TaxJurisdiction: Record "Tax Jurisdiction"; JurisdictionCode: Code[10]; OrderHeader: Record "Shpfy Order Header")
@@ -404,38 +415,59 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         TaxDetail.Insert(true);
     end;
 
-    local procedure SeedShippingTaxDetail(OrderHeader: Record "Shpfy Order Header"; OrderTaxLine: Record "Shpfy Order Tax Line"; TaxJurisdiction: Record "Tax Jurisdiction"; Shop: Record "Shpfy Shop")
+    local procedure GatherTaxLines(ParentId: BigInteger; var TaxLinesArray: JsonArray; var MatchedJurisdictions: List of [Code[10]])
     var
-        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
-        ShippingTaxGroupCode: Code[20];
-        ExistingRate: Decimal;
+        OrderTaxLine: Record "Shpfy Order Tax Line";
     begin
-        // Best-effort secondary seed for the Shop's shipping-charges-account tax group. Unlike the
-        // item group, a rate mismatch here does not block the match — it is logged as a warning and
-        // the existing (admin-maintained) rate is left untouched. If no bracket exists, seed one at
-        // Shopify's rate.
-        ShippingTaxGroupCode := GetShippingTaxGroupCode(Shop);
-        if TryFindEffectiveTaxDetail(OrderHeader, TaxJurisdiction, ShippingTaxGroupCode, ExistingRate) then begin
-            if ExistingRate <> OrderTaxLine."Rate %" then
-                Session.LogMessage('0000UMS',
-                    StrSubstNo(TaxDetailRateMismatchMsg, TaxJurisdiction.Code, ShippingTaxGroupCode, ExistingRate, OrderTaxLine."Rate %"),
-                    Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All,
-                    'Category', CopilotTaxRegister.FeatureName());
-        end else
-            InsertTaxDetail(OrderHeader, OrderTaxLine, TaxJurisdiction, ShippingTaxGroupCode);
+        OrderTaxLine.SetRange("Parent Id", ParentId);
+        if OrderTaxLine.FindSet() then
+            repeat
+                if OrderTaxLine."Tax Jurisdiction Code" = '' then
+                    TaxLinesArray.Add(BuildTaxLineJson(OrderTaxLine))
+                else
+                    if not MatchedJurisdictions.Contains(OrderTaxLine."Tax Jurisdiction Code") then
+                        MatchedJurisdictions.Add(OrderTaxLine."Tax Jurisdiction Code");
+            until OrderTaxLine.Next() = 0;
     end;
 
-    local procedure GetItemTaxGroupCode(OrderTaxLine: Record "Shpfy Order Tax Line"): Code[20]
+    /// <summary>
+    /// Resolves the BC Tax Group Code that applies to a tax line, depending on what it is charged
+    /// on: a product line's tax line uses the order line item's Tax Group Code; a shipping-charge
+    /// tax line (Parent Id = "Shopify Shipping Line Id") uses the shop's shipping-charges-account
+    /// Tax Group Code. Returns blank when the owner or item/account has no tax group.
+    /// </summary>
+    local procedure GetTaxGroupCodeForTaxLine(OrderTaxLine: Record "Shpfy Order Tax Line"; Shop: Record "Shpfy Shop"): Code[20]
     var
         OrderLine: Record "Shpfy Order Line";
+        ShippingCharge: Record "Shpfy Order Shipping Charges";
         Item: Record Item;
     begin
         OrderLine.SetRange("Line Id", OrderTaxLine."Parent Id");
-        if OrderLine.FindFirst() then
+        if OrderLine.FindFirst() then begin
             if Item.Get(OrderLine."Item No.") then
                 exit(Item."Tax Group Code");
-
+            exit('');
+        end;
+        if ShippingCharge.Get(OrderTaxLine."Parent Id") then
+            exit(GetShippingTaxGroupCode(Shop));
         exit('');
+    end;
+
+    /// <summary>
+    /// Resolves the originating order header for a tax line via its owner — a product order line
+    /// (Parent Id = "Line Id") or a shipping charge (Parent Id = "Shopify Shipping Line Id").
+    /// </summary>
+    local procedure TryGetOrderHeaderForTaxLine(OrderTaxLine: Record "Shpfy Order Tax Line"; var OrderHeader: Record "Shpfy Order Header"): Boolean
+    var
+        OrderLine: Record "Shpfy Order Line";
+        ShippingCharge: Record "Shpfy Order Shipping Charges";
+    begin
+        OrderLine.SetRange("Line Id", OrderTaxLine."Parent Id");
+        if OrderLine.FindFirst() then
+            exit(OrderHeader.Get(OrderLine."Shopify Order Id"));
+        if ShippingCharge.Get(OrderTaxLine."Parent Id") then
+            exit(OrderHeader.Get(ShippingCharge."Shopify Order Id"));
+        exit(false);
     end;
 
     local procedure GetShippingTaxGroupCode(Shop: Record "Shpfy Shop"): Code[20]

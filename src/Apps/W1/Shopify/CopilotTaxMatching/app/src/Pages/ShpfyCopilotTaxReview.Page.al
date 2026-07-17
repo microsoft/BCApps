@@ -200,62 +200,59 @@ page 30471 "Shpfy Copilot Tax Review"
     /// </summary>
     local procedure SnapshotTaxLines()
     var
-        OrderLine: Record "Shpfy Order Line";
         OrderTaxLine: Record "Shpfy Order Tax Line";
+        FilterText: Text;
     begin
         Clear(SnapshotJurisdictions);
-        OrderLine.SetRange("Shopify Order Id", Rec."Shopify Order Id");
-        if OrderLine.FindSet() then
+        FilterText := BuildTaxLineFilter();
+        if FilterText = '' then
+            exit;
+        OrderTaxLine.SetFilter("Parent Id", FilterText);
+        if OrderTaxLine.FindSet() then
             repeat
-                OrderTaxLine.SetRange("Parent Id", OrderLine."Line Id");
-                if OrderTaxLine.FindSet() then
-                    repeat
-                        SnapshotJurisdictions.Set(LineKey(OrderTaxLine), OrderTaxLine."Tax Jurisdiction Code");
-                    until OrderTaxLine.Next() = 0;
-            until OrderLine.Next() = 0;
+                SnapshotJurisdictions.Set(LineKey(OrderTaxLine), OrderTaxLine."Tax Jurisdiction Code");
+            until OrderTaxLine.Next() = 0;
     end;
 
     local procedure HasPendingEdits(): Boolean
     var
-        OrderLine: Record "Shpfy Order Line";
         OrderTaxLine: Record "Shpfy Order Tax Line";
         LineKeyText: Text;
+        FilterText: Text;
     begin
-        OrderLine.SetRange("Shopify Order Id", Rec."Shopify Order Id");
-        if OrderLine.FindSet() then
+        FilterText := BuildTaxLineFilter();
+        if FilterText = '' then
+            exit(false);
+        OrderTaxLine.SetFilter("Parent Id", FilterText);
+        if OrderTaxLine.FindSet() then
             repeat
-                OrderTaxLine.SetRange("Parent Id", OrderLine."Line Id");
-                if OrderTaxLine.FindSet() then
-                    repeat
-                        LineKeyText := LineKey(OrderTaxLine);
-                        if SnapshotJurisdictions.ContainsKey(LineKeyText) then
-                            if SnapshotJurisdictions.Get(LineKeyText) <> OrderTaxLine."Tax Jurisdiction Code" then
-                                exit(true);
-                    until OrderTaxLine.Next() = 0;
-            until OrderLine.Next() = 0;
+                LineKeyText := LineKey(OrderTaxLine);
+                if SnapshotJurisdictions.ContainsKey(LineKeyText) then
+                    if SnapshotJurisdictions.Get(LineKeyText) <> OrderTaxLine."Tax Jurisdiction Code" then
+                        exit(true);
+            until OrderTaxLine.Next() = 0;
         exit(false);
     end;
 
     local procedure RevertTaxLineEdits()
     var
-        OrderLine: Record "Shpfy Order Line";
         OrderTaxLine: Record "Shpfy Order Tax Line";
         LineKeyText: Text;
+        FilterText: Text;
     begin
-        OrderLine.SetRange("Shopify Order Id", Rec."Shopify Order Id");
-        if OrderLine.FindSet() then
+        FilterText := BuildTaxLineFilter();
+        if FilterText = '' then
+            exit;
+        OrderTaxLine.SetFilter("Parent Id", FilterText);
+        if OrderTaxLine.FindSet() then
             repeat
-                OrderTaxLine.SetRange("Parent Id", OrderLine."Line Id");
-                if OrderTaxLine.FindSet() then
-                    repeat
-                        LineKeyText := LineKey(OrderTaxLine);
-                        if SnapshotJurisdictions.ContainsKey(LineKeyText) then
-                            if OrderTaxLine."Tax Jurisdiction Code" <> SnapshotJurisdictions.Get(LineKeyText) then begin
-                                OrderTaxLine."Tax Jurisdiction Code" := SnapshotJurisdictions.Get(LineKeyText);
-                                OrderTaxLine.Modify();
-                            end;
-                    until OrderTaxLine.Next() = 0;
-            until OrderLine.Next() = 0;
+                LineKeyText := LineKey(OrderTaxLine);
+                if SnapshotJurisdictions.ContainsKey(LineKeyText) then
+                    if OrderTaxLine."Tax Jurisdiction Code" <> SnapshotJurisdictions.Get(LineKeyText) then begin
+                        OrderTaxLine."Tax Jurisdiction Code" := SnapshotJurisdictions.Get(LineKeyText);
+                        OrderTaxLine.Modify();
+                    end;
+            until OrderTaxLine.Next() = 0;
     end;
 
     local procedure LineKey(OrderTaxLine: Record "Shpfy Order Tax Line"): Text
@@ -263,19 +260,36 @@ page 30471 "Shpfy Copilot Tax Review"
         exit(StrSubstNo(LineKeyTok, OrderTaxLine."Parent Id", OrderTaxLine."Line No."));
     end;
 
+    /// <summary>
+    /// Builds a Parent Id filter covering every tax line on the order — both product-line tax
+    /// lines (Parent Id = order line "Line Id") and shipping-charge tax lines (Parent Id =
+    /// "Shopify Shipping Line Id") — so the tax-lines part, the snapshot/revert, and the
+    /// unmatched/edit checks all see the full set.
+    /// </summary>
     local procedure BuildTaxLineFilter(): Text
     var
         OrderLine: Record "Shpfy Order Line";
+        ShippingCharge: Record "Shpfy Order Shipping Charges";
         FilterBuilder: TextBuilder;
     begin
         OrderLine.SetRange("Shopify Order Id", Rec."Shopify Order Id");
         if OrderLine.FindSet() then
             repeat
-                if FilterBuilder.Length() > 0 then
-                    FilterBuilder.Append('|');
-                FilterBuilder.Append(Format(OrderLine."Line Id"));
+                AppendParentId(FilterBuilder, OrderLine."Line Id");
             until OrderLine.Next() = 0;
+        ShippingCharge.SetRange("Shopify Order Id", Rec."Shopify Order Id");
+        if ShippingCharge.FindSet() then
+            repeat
+                AppendParentId(FilterBuilder, ShippingCharge."Shopify Shipping Line Id");
+            until ShippingCharge.Next() = 0;
         exit(FilterBuilder.ToText());
+    end;
+
+    local procedure AppendParentId(var FilterBuilder: TextBuilder; ParentId: BigInteger)
+    begin
+        if FilterBuilder.Length() > 0 then
+            FilterBuilder.Append('|');
+        FilterBuilder.Append(Format(ParentId));
     end;
 
     local procedure ApproveReview()
@@ -341,18 +355,15 @@ page 30471 "Shpfy Copilot Tax Review"
 
     local procedure HasUnmatchedTaxLine(): Boolean
     var
-        OrderLine: Record "Shpfy Order Line";
         OrderTaxLine: Record "Shpfy Order Tax Line";
+        FilterText: Text;
     begin
-        OrderLine.SetRange("Shopify Order Id", Rec."Shopify Order Id");
-        if OrderLine.FindSet() then
-            repeat
-                OrderTaxLine.SetRange("Parent Id", OrderLine."Line Id");
-                OrderTaxLine.SetRange("Tax Jurisdiction Code", '');
-                if not OrderTaxLine.IsEmpty() then
-                    exit(true);
-            until OrderLine.Next() = 0;
-        exit(false);
+        FilterText := BuildTaxLineFilter();
+        if FilterText = '' then
+            exit(false);
+        OrderTaxLine.SetFilter("Parent Id", FilterText);
+        OrderTaxLine.SetRange("Tax Jurisdiction Code", '');
+        exit(not OrderTaxLine.IsEmpty());
     end;
 
     local procedure DataCaption(): Text

@@ -143,20 +143,29 @@ page 30479 "Shpfy CT Order Tax Lines Part"
     var
         OrderHeader: Record "Shpfy Order Header";
         OrderLine: Record "Shpfy Order Line";
+        ShippingCharge: Record "Shpfy Order Shipping Charges";
     begin
         Clear(AppliesToItemNo);
         Clear(AppliesToItemDescription);
         PresentmentCurrencyVisible := false;
 
+        // A tax line is charged either on a product order line (Parent Id = "Line Id") or on a
+        // shipping charge (Parent Id = "Shopify Shipping Line Id"). Show the item for the former
+        // and the shipping title for the latter.
         OrderLine.SetRange("Line Id", Rec."Parent Id");
-        if not OrderLine.FindFirst() then
+        if OrderLine.FindFirst() then begin
+            AppliesToItemNo := OrderLine."Item No.";
+            AppliesToItemDescription := OrderLine.Description;
+            if OrderHeader.Get(OrderLine."Shopify Order Id") then
+                PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
             exit;
+        end;
 
-        AppliesToItemNo := OrderLine."Item No.";
-        AppliesToItemDescription := OrderLine.Description;
-
-        if OrderHeader.Get(OrderLine."Shopify Order Id") then
-            PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
+        if ShippingCharge.Get(Rec."Parent Id") then begin
+            AppliesToItemDescription := CopyStr(ShippingCharge.Title, 1, MaxStrLen(AppliesToItemDescription));
+            if OrderHeader.Get(ShippingCharge."Shopify Order Id") then
+                PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
+        end;
     end;
 
     local procedure ResolveBcRate()

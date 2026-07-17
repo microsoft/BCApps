@@ -223,7 +223,54 @@ codeunit 134714 "Shpfy CTM Test Library"
             CreateOrderLinesFromInput(OrderHeader, OrderLinesArray);
         end;
 
+        // Create shipping charges and their tax lines (Parent Id = Shopify Shipping Line Id)
+        SetupInput.ElementExists('shippingCharges', ElementExists);
+        if ElementExists then
+            CreateShippingChargesFromInput(OrderHeader, SetupInput.Element('shippingCharges'));
+
         exit(OrderHeader);
+    end;
+
+    local procedure CreateShippingChargesFromInput(OrderHeader: Record "Shpfy Order Header"; ShippingArray: Codeunit "Test Input Json")
+    var
+        ShippingCharge: Record "Shpfy Order Shipping Charges";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        ChargeInput: Codeunit "Test Input Json";
+        TaxLinesArray: Codeunit "Test Input Json";
+        TaxLineInput: Codeunit "Test Input Json";
+        ElementExists: Boolean;
+        i: Integer;
+        j: Integer;
+        ShippingLineId: BigInteger;
+    begin
+        for i := 0 to ShippingArray.GetElementCount() - 1 do begin
+            ChargeInput := ShippingArray.ElementAt(i);
+            Evaluate(ShippingLineId, ChargeInput.Element('shippingLineId').ValueAsText());
+
+            ShippingCharge.Init();
+            ShippingCharge."Shopify Shipping Line Id" := ShippingLineId;
+            ShippingCharge."Shopify Order Id" := OrderHeader."Shopify Order Id";
+            ChargeInput.ElementExists('title', ElementExists);
+            if ElementExists then
+                ShippingCharge.Title := CopyStr(ChargeInput.Element('title').ValueAsText(), 1, MaxStrLen(ShippingCharge.Title));
+            ShippingCharge.Insert();
+
+            ChargeInput.ElementExists('taxLines', ElementExists);
+            if ElementExists then begin
+                TaxLinesArray := ChargeInput.Element('taxLines');
+                for j := 0 to TaxLinesArray.GetElementCount() - 1 do begin
+                    TaxLineInput := TaxLinesArray.ElementAt(j);
+
+                    OrderTaxLine.Init();
+                    OrderTaxLine."Parent Id" := ShippingLineId;
+                    Evaluate(OrderTaxLine."Line No.", TaxLineInput.Element('lineNo').ValueAsText());
+                    OrderTaxLine.Title := CopyStr(TaxLineInput.Element('title').ValueAsText(), 1, MaxStrLen(OrderTaxLine.Title));
+                    OrderTaxLine."Rate %" := TaxLineInput.Element('ratePct').ValueAsDecimal();
+                    OrderTaxLine."Channel Liable" := TaxLineInput.Element('channelLiable').ValueAsBoolean();
+                    OrderTaxLine.Insert();
+                end;
+            end;
+        end;
     end;
 
     local procedure CreateOrderLinesFromInput(OrderHeader: Record "Shpfy Order Header"; OrderLinesArray: Codeunit "Test Input Json")
@@ -389,6 +436,7 @@ codeunit 134714 "Shpfy CTM Test Library"
         OrderHeader: Record "Shpfy Order Header";
         OrderLine: Record "Shpfy Order Line";
         OrderTaxLine: Record "Shpfy Order Tax Line";
+        ShippingCharge: Record "Shpfy Order Shipping Charges";
         Shop: Record "Shpfy Shop";
         TaxJurisdiction: Record "Tax Jurisdiction";
         TaxArea: Record "Tax Area";
@@ -400,6 +448,7 @@ codeunit 134714 "Shpfy CTM Test Library"
     begin
         OrderTaxLine.DeleteAll();
         OrderLine.DeleteAll();
+        ShippingCharge.DeleteAll();
         OrderHeader.DeleteAll();
         Shop.SetRange(Code, ShopCodeTok);
         Shop.DeleteAll();
