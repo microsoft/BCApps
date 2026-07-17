@@ -40,10 +40,10 @@ codeunit 134149 "ERM Fixed Assets - Local"
         BookValueAmountErr: Label 'The book-value amount is not correct';
         NoGLEntryErr: Label 'Number of G/L entries did not match the expected';
         NumberFAEntryErr: Label 'Number of FA entries did not match the expected';
+        DerogatoryAcqErr: Label 'The derogatory book did not receive the acquisition cost from the purchase invoice.';
         CompletionStatsTok: Label 'The depreciation has been calculated.';
 
     [Test]
-    [Scope('OnPrem')]
     procedure DerogatoryWithModifiedFAPostingDate()
     var
         FANo: Code[20];
@@ -61,7 +61,6 @@ codeunit 134149 "ERM Fixed Assets - Local"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure PostPurchInvoiceWithFALine()
     var
         FANo: Code[20];
@@ -77,7 +76,6 @@ codeunit 134149 "ERM Fixed Assets - Local"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure PostFAJournalLine()
     var
         FANo: Code[20];
@@ -94,7 +92,6 @@ codeunit 134149 "ERM Fixed Assets - Local"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure BookValueAmountsInNormalBookWithDerogatory()
     var
         FANo: Code[20];
@@ -113,7 +110,6 @@ codeunit 134149 "ERM Fixed Assets - Local"
     end;
 
     [Test]
-    [Scope('OnPrem')]
     procedure BookValueAmountsInTaxBookWithDerogatory()
     var
         FANo: Code[20];
@@ -133,7 +129,6 @@ codeunit 134149 "ERM Fixed Assets - Local"
 
     [Test]
     [HandlerFunctions('DepreciationCalcConfirmHandler')]
-    [Scope('OnPrem')]
     procedure CalculateDepreciationWithoutGLIntegration()
     var
         FAJournalLine: Record "FA Journal Line";
@@ -159,7 +154,6 @@ codeunit 134149 "ERM Fixed Assets - Local"
 
     [Test]
     [HandlerFunctions('DepreciationCalcConfirmHandler')]
-    [Scope('OnPrem')]
     procedure FinalDepreciationWithNegativeDerogatory()
     var
         FANo: Code[20];
@@ -187,7 +181,6 @@ codeunit 134149 "ERM Fixed Assets - Local"
 
     [Test]
     [HandlerFunctions('DepreciationCalcConfirmHandler')]
-    [Scope('OnPrem')]
     procedure CheckBookValueForDepreciationWithDerogatory()
     var
         FADepreciationBook: Record "FA Depreciation Book";
@@ -216,7 +209,6 @@ codeunit 134149 "ERM Fixed Assets - Local"
 
     [Test]
     [HandlerFunctions('DepreciationCalcConfirmHandler')]
-    [Scope('OnPrem')]
     procedure CheckDerogAmountAddAcqCost()
     var
         FAJournalLine: Record "FA Journal Line";
@@ -269,7 +261,6 @@ codeunit 134149 "ERM Fixed Assets - Local"
 
     [Test]
     [HandlerFunctions('DepreciationCalcConfirmHandler')]
-    [Scope('OnPrem')]
     procedure ErrPostingAddAcqViaFAJnlWithGLInt()
     var
         FAJournalLine: Record "FA Journal Line";
@@ -319,7 +310,6 @@ codeunit 134149 "ERM Fixed Assets - Local"
 
     [Test]
     [HandlerFunctions('DepreciationCalcConfirmHandler')]
-    [Scope('OnPrem')]
     procedure CheckDerogAmountAddAcqCostGL()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -372,7 +362,6 @@ codeunit 134149 "ERM Fixed Assets - Local"
 
     [Test]
     [HandlerFunctions('CancelFALedgerEntryRequestPageHandler,MessageHandler,DepreciationCalcConfirmHandler')]
-    [Scope('OnPrem')]
     procedure CancelDerogEntryAddAcqCost()
     var
         FAJournalLine: Record "FA Journal Line";
@@ -426,7 +415,6 @@ codeunit 134149 "ERM Fixed Assets - Local"
 
     [Test]
     [HandlerFunctions('ReverseFALedgerEntriesPageHandler,MessageHandler,DepreciationCalcConfirmHandler')]
-    [Scope('OnPrem')]
     procedure ReverseDerogEntryAddAcqCost()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -486,7 +474,6 @@ codeunit 134149 "ERM Fixed Assets - Local"
 
     [Test]
     [HandlerFunctions('ReverseFALedgerEntriesPageHandler,MessageHandler,DepreciationCalcConfirmHandler')]
-    [Scope('OnPrem')]
     procedure ReverseDerogEntryInitAcqCost()
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -540,14 +527,40 @@ codeunit 134149 "ERM Fixed Assets - Local"
         Assert.AreEqual(ExpectedBookValue, FADepreciationBook."Book Value", BookValueAmountErr);
     end;
 
+    [Test]
+    procedure AcquisitionViaPurchInvoiceMirrorsToDerogatoryBook()
+    var
+        FANormalDeprBook: Record "FA Depreciation Book";
+        FATaxDeprBook: Record "FA Depreciation Book";
+        FANo: Code[20];
+        NormalDeprBookCode: Code[10];
+        TaxDeprBookCode: Code[10];
+    begin
+        // [SCENARIO 617319] An acquisition cost posted from a purchase invoice mirrors to the derogatory (tax) book
+
+        // [GIVEN] A fixed asset with a normal and a tax (derogatory) depreciation book
+        FANo := CreateFAWithNormalAndTaxFADeprBooks(NormalDeprBookCode, TaxDeprBookCode);
+
+        // [WHEN] An acquisition cost is posted via a purchase invoice on the normal book
+        CreateAndPostPurchaseInvoice(FANo, NormalDeprBookCode);
+
+        // [THEN] The tax book received the same acquisition cost as the normal book
+        FANormalDeprBook.Get(FANo, NormalDeprBookCode);
+        FANormalDeprBook.CalcFields("Acquisition Cost");
+        FATaxDeprBook.Get(FANo, TaxDeprBookCode);
+        FATaxDeprBook.CalcFields("Acquisition Cost");
+        Assert.AreNotEqual(0, FATaxDeprBook."Acquisition Cost", DerogatoryAcqErr);
+        Assert.AreEqual(FANormalDeprBook."Acquisition Cost", FATaxDeprBook."Acquisition Cost", DerogatoryAcqErr);
+    end;
+
     local procedure CreateFAWithNormalAndTaxFADeprBooks(var NormalDeprBookCode: Code[10]; var TaxDeprBookCode: Code[10]): Code[20]
     var
         FixedAsset: Record "Fixed Asset";
     begin
         CreateNormalAndTaxDeprBooks(NormalDeprBookCode, TaxDeprBookCode);
         CreateFAPostingGroup(FixedAsset);
-        CreateFADeprBook(FixedAsset."No.", NormalDeprBookCode, FixedAsset."FA Posting Group");
-        CreateFADeprBook(FixedAsset."No.", TaxDeprBookCode, FixedAsset."FA Posting Group");
+        CreateFADeprBookWithDates(FixedAsset."No.", NormalDeprBookCode, FixedAsset."FA Posting Group", WorkDate(), CalcDate('<5Y>', WorkDate()));
+        CreateFADeprBookWithDates(FixedAsset."No.", TaxDeprBookCode, FixedAsset."FA Posting Group", WorkDate(), CalcDate('<3Y>', WorkDate()));
         exit(FixedAsset."No.");
     end;
 
@@ -599,7 +612,7 @@ codeunit 134149 "ERM Fixed Assets - Local"
         GenJnlLine: Record "Gen. Journal Line";
     begin
         AcqCostAmount := LibraryRandom.RandIntInRange(10000, 50000);
-        DerogAmount := AcqCostAmount / 3;
+        DerogAmount := Round(AcqCostAmount / 3, LibraryERM.GetAmountRoundingPrecision());
         CreatePostGenJnlLine(
           GenJnlLine, WorkDate(), GenJnlLine."FA Posting Type"::"Acquisition Cost",
           FANo, DeprBookCode, AcqCostAmount);
@@ -648,12 +661,6 @@ codeunit 134149 "ERM Fixed Assets - Local"
           FANo, Amount);
         FAJournalLine.Validate("Depreciation Book Code", DepreciationBookCode);
         FAJournalLine.Modify(true);
-    end;
-
-    local procedure CreateFADeprBook(FANo: Code[20]; DeprBookCode: Code[10]; FAPostingGroup: Code[20])
-    begin
-        CreateFADeprBookWithDates(
-          FANo, DeprBookCode, FAPostingGroup, WorkDate(), CalcDate('<' + Format(LibraryRandom.RandIntInRange(2, 5)) + 'Y>', WorkDate()));
     end;
 
     local procedure CreateFADeprBookWithDates(FANo: Code[20]; DeprBookCode: Code[10]; FAPostingGroup: Code[20]; StartingDate: Date; EndingDate: Date)
@@ -769,6 +776,11 @@ codeunit 134149 "ERM Fixed Assets - Local"
         RecRef.SetTable(FAPostingGroup2);
 
         FAPostingGroup.TransferFields(FAPostingGroup2, false);
+        // The demo-data FA posting group may not have derogatory accounts set; set them so derogatory postings succeed.
+        FAPostingGroup.Validate("Derogatory Acc.", FAPostingGroup."Accum. Depreciation Account");
+        FAPostingGroup.Validate("Derogatory Account (Decrease)", FAPostingGroup."Accum. Depreciation Account");
+        FAPostingGroup.Validate("Derogatory Expense Acc.", FAPostingGroup."Depreciation Expense Acc.");
+        FAPostingGroup.Validate("Derog. Bal. Account (Decrease)", FAPostingGroup."Depreciation Expense Acc.");
         FAPostingGroup.Modify(true);
     end;
 
@@ -981,27 +993,23 @@ codeunit 134149 "ERM Fixed Assets - Local"
     end;
 
     [MessageHandler]
-    [Scope('OnPrem')]
     procedure MessageHandler(Message: Text)
     begin
     end;
 
     [RequestPageHandler]
-    [Scope('OnPrem')]
     procedure CancelFALedgerEntryRequestPageHandler(var CancelFAEntries: TestRequestPage "Cancel FA Entries")
     begin
         CancelFAEntries.OK().Invoke();
     end;
 
     [ModalPageHandler]
-    [Scope('OnPrem')]
     procedure ReverseFALedgerEntriesPageHandler(var ReverseTransactionEntries: TestPage "Reverse Transaction Entries")
     begin
         ReverseTransactionEntries.Reverse.Invoke();
     end;
 
     [ConfirmHandler]
-    [Scope('OnPrem')]
     procedure DepreciationCalcConfirmHandler(Message: Text[1024]; var Reply: Boolean)
     begin
         if 0 <> StrPos(Message, CompletionStatsTok) then
