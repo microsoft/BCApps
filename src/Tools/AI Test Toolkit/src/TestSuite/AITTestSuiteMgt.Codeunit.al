@@ -369,7 +369,6 @@ codeunit 149034 "AIT Test Suite Mgt."
     local procedure AddLogEntry(var AITTestMethodLine: Record "AIT Test Method Line"; CurrentTestMethodLine: Record "Test Method Line"; Operation: Text; ExecutionSuccess: Boolean; Message: Text; StartTime: DateTime; EndTime: Datetime)
     var
         AITLogEntry: Record "AIT Log Entry";
-        TestInput: Record "Test Input";
         AITTestRunIteration: Codeunit "AIT Test Run Iteration"; // single instance
         TestSuiteMgt: Codeunit "Test Suite Mgt.";
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
@@ -417,7 +416,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITLogEntry."End Time" := EndTime;
         AITLogEntry."Start Time" := StartTime;
 
-        if AITLogEntry."Start Time" = 0DT then
+        if AITLogEntry."Start Time" <> 0DT then
             AITLogEntry."Duration (ms)" := AITLogEntry."End Time" - AITLogEntry."Start Time";
 
         AITLogEntry."Test Input Group Code" := CurrentTestMethodLine."Data Input Group Code";
@@ -428,12 +427,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         if AITLogEntry."Test Input Code" = '' then
             DDCurrentCase.TryGetCurrent(AITLogEntry."Test Input Group Code", AITLogEntry."Test Input Code");
 
-        if TestInput.Get(AITLogEntry."Test Input Group Code", AITLogEntry."Test Input Code") then begin
-            TestInput.CalcFields("Test Input");
-            AITLogEntry."Input Data" := TestInput."Test Input";
-            AITLogEntry.Sensitive := TestInput.Sensitive;
-            AITLogEntry."Test Input Description" := TestInput.Description;
-        end;
+        EnrichLogEntryFromTestInput(AITLogEntry);
 
         TestOutput := GetTestOutput(Operation);
         if TestOutput <> '' then
@@ -461,32 +455,17 @@ codeunit 149034 "AIT Test Suite Mgt."
     internal procedure AddDataDrivenLogEntry(CodeunitId: Integer; ProcedureName: Text; TestCaseName: Text; ExecutionSuccess: Boolean)
     var
         AITLogEntry: Record "AIT Log Entry";
-        TestInput: Record "Test Input";
         DDCurrentCase: Codeunit "AIT DD Current Case";
         AITTestContextImpl: Codeunit "AIT Test Context Impl.";
-        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
         AgentTestContextImpl: Codeunit "Agent Test Context Impl.";
         AOAIToken: Codeunit "AOAI Token";
-        GroupCode: Code[100];
-        InputCode: Code[100];
         StartTime: DateTime;
         StartTokens: Integer;
         Accuracy: Decimal;
         TestOutput: Text;
     begin
-        DDCurrentCase.TryGetCurrent(GroupCode, InputCode);
-        if InputCode = '' then
-            InputCode := CopyStr(TestCaseName, 1, MaxStrLen(InputCode));
+        InitDataDrivenLogEntryHeader(AITLogEntry, CodeunitId, ProcedureName, TestCaseName);
         DDCurrentCase.GetCaseStart(StartTime, StartTokens);
-
-        AITLogEntry."Run ID" := DDCurrentCase.GetRunId();
-        AITLogEntry."Codeunit ID" := CodeunitId;
-        AITLogEntry."Procedure Name" := CopyStr(ProcedureName, 1, MaxStrLen(AITLogEntry."Procedure Name"));
-        AITLogEntry.Operation := CopyStr(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), 1, MaxStrLen(AITLogEntry.Operation));
-        AITLogEntry."Original Operation" := CopyStr(AITLogEntry.Operation, 1, MaxStrLen(AITLogEntry."Original Operation"));
-        AITLogEntry."Entry No." := 0;
-        AITLogEntry."Test Input Group Code" := GroupCode;
-        AITLogEntry."Test Input Code" := InputCode;
 
         if ExecutionSuccess then begin
             AITLogEntry.Status := AITLogEntry.Status::Success;
@@ -506,12 +485,7 @@ codeunit 149034 "AIT Test Suite Mgt."
         if AITTestContextImpl.GetAccuracy(Accuracy) then
             AITLogEntry."Test Method Line Accuracy" := Accuracy;
 
-        if TestInput.Get(GroupCode, InputCode) then begin
-            TestInput.CalcFields("Test Input");
-            AITLogEntry."Input Data" := TestInput."Test Input";
-            AITLogEntry.Sensitive := TestInput.Sensitive;
-            AITLogEntry."Test Input Description" := TestInput.Description;
-        end;
+        EnrichLogEntryFromTestInput(AITLogEntry);
 
         // Read the accumulated per-case output through the SingleInstance "AIT Test Context Impl." — the same
         // instance the test body wrote it to. Reading it from this handler's own "AIT Test Suite Mgt." instance
@@ -536,23 +510,8 @@ codeunit 149034 "AIT Test Suite Mgt."
     internal procedure LogSkippedDataDrivenEval(CodeunitId: Integer; ProcedureName: Text; TestCaseName: Text; Reason: Text)
     var
         AITLogEntry: Record "AIT Log Entry";
-        DDCurrentCase: Codeunit "AIT DD Current Case";
-        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
-        GroupCode: Code[100];
-        InputCode: Code[100];
     begin
-        if DDCurrentCase.TryGetCurrent(GroupCode, InputCode) then;
-        if InputCode = '' then
-            InputCode := CopyStr(TestCaseName, 1, MaxStrLen(InputCode));
-
-        AITLogEntry."Run ID" := DDCurrentCase.GetRunId();
-        AITLogEntry."Codeunit ID" := CodeunitId;
-        AITLogEntry."Procedure Name" := CopyStr(ProcedureName, 1, MaxStrLen(AITLogEntry."Procedure Name"));
-        AITLogEntry.Operation := CopyStr(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), 1, MaxStrLen(AITLogEntry.Operation));
-        AITLogEntry."Original Operation" := CopyStr(AITLogEntry.Operation, 1, MaxStrLen(AITLogEntry."Original Operation"));
-        AITLogEntry."Entry No." := 0;
-        AITLogEntry."Test Input Group Code" := GroupCode;
-        AITLogEntry."Test Input Code" := InputCode;
+        InitDataDrivenLogEntryHeader(AITLogEntry, CodeunitId, ProcedureName, TestCaseName);
         AITLogEntry.Status := AITLogEntry.Status::Skipped;
         AITLogEntry."Original Status" := AITLogEntry.Status::Skipped;
         AITLogEntry.SetMessage(Reason);
@@ -561,6 +520,42 @@ codeunit 149034 "AIT Test Suite Mgt."
         AITLogEntry.Insert(true);
 
         Commit();
+    end;
+
+    /// <summary>Populates the header fields shared by the language-first data-driven log writers (Run ID, codeunit/procedure, operation, dataset lineage), resolving the case from <see cref="AIT DD Current Case"/> with <paramref name="TestCaseName"/> as fallback.</summary>
+    local procedure InitDataDrivenLogEntryHeader(var AITLogEntry: Record "AIT Log Entry"; CodeunitId: Integer; ProcedureName: Text; TestCaseName: Text)
+    var
+        DDCurrentCase: Codeunit "AIT DD Current Case";
+        AITALTestSuiteMgt: Codeunit "AIT AL Test Suite Mgt";
+        GroupCode: Code[100];
+        InputCode: Code[100];
+    begin
+        DDCurrentCase.TryGetCurrent(GroupCode, InputCode);
+        if InputCode = '' then
+            InputCode := CopyStr(TestCaseName, 1, MaxStrLen(InputCode));
+
+        AITLogEntry."Run ID" := DDCurrentCase.GetRunId();
+        AITLogEntry."Codeunit ID" := CodeunitId;
+        AITLogEntry."Procedure Name" := CopyStr(ProcedureName, 1, MaxStrLen(AITLogEntry."Procedure Name"));
+        AITLogEntry.Operation := CopyStr(AITALTestSuiteMgt.GetDefaultRunProcedureOperationLbl(), 1, MaxStrLen(AITLogEntry.Operation));
+        AITLogEntry."Original Operation" := CopyStr(AITLogEntry.Operation, 1, MaxStrLen(AITLogEntry."Original Operation"));
+        // "Entry No." is the table's AutoIncrement clustered key; 0 lets the platform assign the next number on Insert.
+        AITLogEntry."Entry No." := 0;
+        AITLogEntry."Test Input Group Code" := GroupCode;
+        AITLogEntry."Test Input Code" := InputCode;
+    end;
+
+    /// <summary>Enriches a log entry with the current case's dataset row (input data, sensitivity, description) from the shared <c>Test Input</c> table. Shared by <see cref="AddLogEntry"/> and <see cref="AddDataDrivenLogEntry"/>.</summary>
+    local procedure EnrichLogEntryFromTestInput(var AITLogEntry: Record "AIT Log Entry")
+    var
+        TestInput: Record "Test Input";
+    begin
+        if TestInput.Get(AITLogEntry."Test Input Group Code", AITLogEntry."Test Input Code") then begin
+            TestInput.CalcFields("Test Input");
+            AITLogEntry."Input Data" := TestInput."Test Input";
+            AITLogEntry.Sensitive := TestInput.Sensitive;
+            AITLogEntry."Test Input Description" := TestInput.Description;
+        end;
     end;
 
     internal procedure LogSkippedEval(AITTestMethodLine: Record "AIT Test Method Line"; FunctionName: Text[128])
