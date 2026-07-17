@@ -7,6 +7,7 @@ namespace Microsoft.eServices.EDocument.Formats.Test;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Formats;
 using Microsoft.eServices.EDocument.Processing.Message;
+using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
@@ -298,6 +299,12 @@ codeunit 148146 "Identification Tests"
         asserterror FREInvoiceLifecycle.Modify();
 
         Assert.ExpectedError('The regulatory identity and values of a French electronic invoice lifecycle occurrence cannot be changed.');
+
+        FREInvoiceLifecycle.Get(FREInvoiceLifecycle."Entry No.");
+        FREInvoiceLifecycle."Sender Platform ID" := 'CHANGED';
+        asserterror FREInvoiceLifecycle.Modify();
+
+        Assert.ExpectedError('The regulatory identity and values of a French electronic invoice lifecycle occurrence cannot be changed.');
     end;
 
     [Test]
@@ -319,6 +326,230 @@ codeunit 148146 "Identification Tests"
         Assert.AreEqual(1250, FREInvoiceLifecycle."Reported Amount", 'The collected amount must be positive.');
         Assert.AreEqual(DetailedCustLedgEntry."Entry No.", FREInvoiceLifecycle."Detailed Ledger Entry No.", 'The source detail entry must be retained.');
         Assert.AreEqual(DetailedCustLedgEntry.SystemId, FREInvoiceLifecycle."Source Occurrence ID", 'The detail entry system ID must identify the occurrence.');
+        Assert.AreEqual(EDocument."Document Date", FREInvoiceLifecycle."Invoice Issue Date", 'The invoice issue date must be frozen at capture.');
+        Assert.AreEqual(EDocument."Clearance Date", FREInvoiceLifecycle."Invoice Receipt At", 'The PPF receipt timestamp must be frozen at capture.');
+        Assert.AreEqual('PLATFORM-ID', FREInvoiceLifecycle."Sender Platform ID", 'The sender platform identifier must be frozen at capture.');
+        Assert.AreEqual('123456789', FREInvoiceLifecycle."Invoice Issuer ID", 'The seller SIREN must be frozen at capture.');
+    end;
+
+    [Test]
+    procedure DetailedApplicationCreatesPPFLifecycleMessage()
+    var
+        EDocument: Record "E-Document";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        XmlDoc: XmlDocument;
+        XmlNode: XmlNode;
+    begin
+        // [SCENARIO] A real French invoice occurrence creates the PPF einvoicingF2 lifecycle envelope
+        CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
+        FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+        FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceLifecycle.FindFirst();
+
+        FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
+
+        EDocMessageMgt.GetMessageBlob(FREInvoiceLifecycle."E-Document Message Entry No.", TempBlob);
+        TempBlob.CreateInStream(InStream);
+        XmlDocument.ReadFrom(InStream, XmlDoc);
+        AssertXmlValue(XmlDoc, '//*[local-name()="GuidelineSpecifiedDocumentContextParameter"]/*[local-name()="ID"]', 'urn.cpro.gouv.fr:1p0:CDV:einvoicingF2');
+        AssertXmlValue(XmlDoc, '//*[local-name()="SenderTradeParty"]/*[local-name()="GlobalID"]', 'PLATFORM-ID');
+        AssertXmlAttribute(XmlDoc, '//*[local-name()="SenderTradeParty"]/*[local-name()="GlobalID"]', 'schemeID', '0238');
+        AssertXmlValue(XmlDoc, '//*[local-name()="SenderTradeParty"]/*[local-name()="RoleCode"]', 'WK');
+        AssertXmlValue(XmlDoc, '//*[local-name()="ExchangedDocument"]/*[local-name()="IssuerTradeParty"]/*[local-name()="GlobalID"]', '123456789');
+        AssertXmlAttribute(XmlDoc, '//*[local-name()="ExchangedDocument"]/*[local-name()="IssuerTradeParty"]/*[local-name()="GlobalID"]', 'schemeID', '0002');
+        AssertXmlValue(XmlDoc, '//*[local-name()="ExchangedDocument"]/*[local-name()="IssuerTradeParty"]/*[local-name()="RoleCode"]', 'SE');
+        AssertXmlValue(XmlDoc, '//*[local-name()="RecipientTradeParty"]/*[local-name()="GlobalID"]', '9998');
+        AssertXmlAttribute(XmlDoc, '//*[local-name()="RecipientTradeParty"]/*[local-name()="GlobalID"]', 'schemeID', '0238');
+        AssertXmlValue(XmlDoc, '//*[local-name()="RecipientTradeParty"]/*[local-name()="RoleCode"]', 'DFH');
+        AssertXmlValue(XmlDoc, '//*[local-name()="ReferenceReferencedDocument"]/*[local-name()="ReferenceTypeCode"]', 'urn.cpro.gouv.fr:1p0:CDV:einvoicingF2');
+        AssertXmlValue(
+            XmlDoc, '//*[local-name()="ReferenceReferencedDocument"]/*[local-name()="ReceiptDateTime"]/*[local-name()="DateTimeString"]',
+            Format(EDocument."Clearance Date", 0, '<Year4><Month,2><Day,2><Hours24,2><Minutes,2><Seconds,2>'));
+        AssertXmlAttribute(XmlDoc, '//*[local-name()="ReferenceReferencedDocument"]/*[local-name()="ReceiptDateTime"]/*[local-name()="DateTimeString"]', 'format', '204');
+        AssertXmlValue(
+            XmlDoc, '//*[local-name()="ReferenceReferencedDocument"]/*[local-name()="FormattedIssueDateTime"]/*[local-name()="DateTimeString"]',
+            Format(EDocument."Document Date", 0, '<Year4><Month,2><Day,2>'));
+        AssertXmlAttribute(XmlDoc, '//*[local-name()="ReferenceReferencedDocument"]/*[local-name()="FormattedIssueDateTime"]/*[local-name()="DateTimeString"]', 'format', '102');
+        AssertXmlValue(XmlDoc, '//*[local-name()="ReferenceReferencedDocument"]/*[local-name()="IssuerTradeParty"]/*[local-name()="GlobalID"]', '123456789');
+        AssertXmlAttribute(XmlDoc, '//*[local-name()="ReferenceReferencedDocument"]/*[local-name()="IssuerTradeParty"]/*[local-name()="GlobalID"]', 'schemeID', '0002');
+        Assert.IsFalse(XmlDoc.SelectSingleNode('//*[local-name()="BusinessProcessSpecifiedDocumentContextParameter"]', XmlNode), 'The PPF profile must not contain the generic REGULATED business process context.');
+    end;
+
+    [Test]
+    procedure DetailedApplicationAggregatesVATEntriesWithSameRate()
+    var
+        EDocument: Record "E-Document";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        // [SCENARIO] Multiple invoice VAT entries with the same rate create one lifecycle amount
+        CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
+        SetInvoiceVATRate(EDocument."Document No.", 20, false);
+
+        FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+
+        FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceLifecycle.FindFirst();
+        FREInvoiceLifecycleVAT.SetRange("Lifecycle Entry No.", FREInvoiceLifecycle."Entry No.");
+        Assert.RecordCount(FREInvoiceLifecycleVAT, 1);
+        FREInvoiceLifecycleVAT.FindFirst();
+        Assert.AreEqual(20, FREInvoiceLifecycleVAT."VAT %", 'The aggregated lifecycle amount must retain the common VAT rate.');
+        Assert.AreEqual(1000, FREInvoiceLifecycleVAT."Reported Amount", 'The aggregated lifecycle amount must equal the collected amount.');
+    end;
+
+    [Test]
+    procedure DetailedApplicationSupportsZeroRatedVAT()
+    var
+        EDocument: Record "E-Document";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        // [SCENARIO] A zero-rated invoice retains VAT rate zero in the lifecycle breakdown
+        CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
+        SetInvoiceVATRate(EDocument."Document No.", 0, true);
+
+        FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+
+        FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceLifecycle.FindFirst();
+        FREInvoiceLifecycleVAT.SetRange("Lifecycle Entry No.", FREInvoiceLifecycle."Entry No.");
+        Assert.RecordCount(FREInvoiceLifecycleVAT, 1);
+        FREInvoiceLifecycleVAT.FindFirst();
+        Assert.AreEqual(0, FREInvoiceLifecycleVAT."VAT %", 'The lifecycle breakdown must retain the zero VAT rate.');
+        Assert.AreEqual(1000, FREInvoiceLifecycleVAT."Reported Amount", 'The zero-rated lifecycle amount must equal the collected amount.');
+    end;
+
+    [Test]
+    procedure DetailedApplicationUsesForeignCurrencyRoundingPrecision()
+    var
+        Currency: Record Currency;
+        EDocument: Record "E-Document";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+        CurrencyCode: Code[10];
+    begin
+        // [SCENARIO] Foreign-currency VAT allocation uses that currency's rounding precision and preserves the remainder
+        CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
+        CurrencyCode := CopyStr(CreateGuid(), 1, MaxStrLen(CurrencyCode));
+        Currency.Code := CurrencyCode;
+        Currency."Amount Rounding Precision" := 0.05;
+        Currency.Insert();
+        DetailedCustLedgEntry.Amount := -1000.03;
+        DetailedCustLedgEntry."Currency Code" := CurrencyCode;
+        DetailedCustLedgEntry.Modify();
+        SetInvoiceVATCurrency(EDocument."Document No.", CurrencyCode);
+
+        FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+
+        FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceLifecycle.FindFirst();
+        FREInvoiceLifecycleVAT.SetRange("Lifecycle Entry No.", FREInvoiceLifecycle."Entry No.");
+        FREInvoiceLifecycleVAT.SetRange("VAT %", 20);
+        FREInvoiceLifecycleVAT.FindFirst();
+        Assert.AreEqual(480, FREInvoiceLifecycleVAT."Reported Amount", 'The first VAT amount must use the foreign currency rounding precision.');
+        FREInvoiceLifecycleVAT.SetRange("VAT %", 10);
+        FREInvoiceLifecycleVAT.FindFirst();
+        Assert.AreEqual(520.03, FREInvoiceLifecycleVAT."Reported Amount", 'The final VAT amount must retain the exact allocation remainder.');
+    end;
+
+    [Test]
+    procedure DetailedApplicationRejectsMissingVATBreakdown()
+    var
+        EDocument: Record "E-Document";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        VATEntry: Record "VAT Entry";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        // [SCENARIO] A French lifecycle occurrence is not retained when its posted invoice has no VAT breakdown
+        CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
+        VATEntry.SetRange("Document No.", EDocument."Document No.");
+        VATEntry.DeleteAll();
+
+        asserterror FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+
+        Assert.ExpectedError('A VAT breakdown could not be determined for posted sales invoice');
+        FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.RecordIsEmpty(FREInvoiceLifecycle);
+    end;
+
+    [Test]
+    procedure DetailedApplicationRejectsMissingSenderPlatformSetup()
+    var
+        EDocument: Record "E-Document";
+        EDocumentService: Record "E-Document Service";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        // [SCENARIO] A PPF lifecycle occurrence is not retained when the sender platform identity is incomplete
+        CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
+        EDocumentService.Get(EDocument.Service);
+        Clear(EDocumentService."FR Sender Platform ID");
+        EDocumentService.Modify();
+
+        asserterror FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+
+        Assert.ExpectedError('FR Sender Platform ID must have a value');
+        FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.RecordIsEmpty(FREInvoiceLifecycle);
+    end;
+
+    [Test]
+    procedure DetailedApplicationRejectsMissingVATPostingSetup()
+    var
+        EDocument: Record "E-Document";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        VATEntry: Record "VAT Entry";
+        VATPostingSetup: Record "VAT Posting Setup";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        // [SCENARIO] A lifecycle occurrence is not retained when a posted VAT entry has no matching setup
+        CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
+        VATEntry.SetRange("Document No.", EDocument."Document No.");
+        VATEntry.FindFirst();
+        VATPostingSetup.Get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
+        VATPostingSetup.Delete();
+
+        asserterror FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+
+        Assert.ExpectedError('VAT Posting Setup does not exist');
+        FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.RecordIsEmpty(FREInvoiceLifecycle);
+    end;
+
+    [Test]
+    procedure LifecycleOccurrenceAndVATBreakdownRejectDeletion()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        // [SCENARIO] Captured lifecycle occurrences and their VAT rows cannot be deleted
+        CreateEDocument(EDocument);
+        FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
+            EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
+            1250, 'EUR', WorkDate(), 0, 0, 0, 0);
+        CreateLifecycleVATBreakdown(FREInvoiceLifecycle, 20, 1250);
+
+        asserterror FREInvoiceLifecycle.Delete();
+        Assert.ExpectedError('A French electronic invoice lifecycle occurrence cannot be deleted.');
+        FREInvoiceLifecycleVAT.Get(FREInvoiceLifecycle."Entry No.", 10000);
+        asserterror FREInvoiceLifecycleVAT.Delete();
+        Assert.ExpectedError('A French electronic invoice lifecycle VAT breakdown cannot be changed.');
     end;
 
     [Test]
@@ -482,6 +713,9 @@ codeunit 148146 "Identification Tests"
         Assert.AreEqual('MEN', StatusNode.AsXmlElement().InnerText(), 'The payload must qualify the amount as Montant encaissé.');
         Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="GuidelineSpecifiedDocumentContextParameter"]/*[local-name()="ID"]', ProfileNode), 'The payload must identify the French invoice lifecycle profile.');
         Assert.AreEqual('urn.cpro.gouv.fr:1p0:CDV:invoice', ProfileNode.AsXmlElement().InnerText(), 'The payload must use the general French invoice lifecycle profile.');
+        AssertXmlValue(XmlDoc, '//*[local-name()="BusinessProcessSpecifiedDocumentContextParameter"]/*[local-name()="ID"]', 'REGULATED');
+        Assert.IsFalse(XmlDoc.SelectSingleNode('//*[local-name()="SenderTradeParty"]', ProfileNode), 'The general lifecycle profile must not contain PPF sender information.');
+        Assert.IsFalse(XmlDoc.SelectSingleNode('//*[local-name()="RecipientTradeParty"]', ProfileNode), 'The general lifecycle profile must not contain the PPF recipient.');
         Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ValueAmount"]', AmountNode), 'The payload must contain the collected amount.');
         AmountElement := AmountNode.AsXmlElement();
         Assert.AreEqual('EUR', AmountElement.GetAttribute('currencyID').Value(), 'The collected amount must identify its currency.');
@@ -659,6 +893,7 @@ codeunit 148146 "Identification Tests"
     begin
         EDocumentService.Code := CopyStr(CreateGuid(), 1, MaxStrLen(EDocumentService.Code));
         EDocumentService."Document Format" := "E-Document Format"::"Factur-X FR";
+        ConfigurePPFService(EDocumentService);
         EDocumentService.Insert();
 
         EDocument.Init();
@@ -667,6 +902,8 @@ codeunit 148146 "Identification Tests"
         EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
         EDocument.Direction := EDocument.Direction::Outgoing;
         EDocument.Service := EDocumentService.Code;
+        EDocument."Document Date" := WorkDate();
+        EDocument."Clearance Date" := CurrentDateTime();
         EDocument.Insert();
     end;
 
@@ -708,6 +945,7 @@ codeunit 148146 "Identification Tests"
 
         EDocumentService.Code := CopyStr(CreateGuid(), 1, MaxStrLen(EDocumentService.Code));
         EDocumentService."Document Format" := EDocumentFormat;
+        ConfigurePPFService(EDocumentService);
         EDocumentService.Insert();
 
         EDocument."Document Record ID" := SalesInvoiceHeader.RecordId;
@@ -715,6 +953,8 @@ codeunit 148146 "Identification Tests"
         EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
         EDocument.Direction := EDocument.Direction::Outgoing;
         EDocument.Service := EDocumentService.Code;
+        EDocument."Document Date" := WorkDate();
+        EDocument."Clearance Date" := CurrentDateTime();
         EDocument.Insert();
 
         InvoiceCustLedgerEntry."Entry No." := GetNextCustLedgerEntryNo();
@@ -830,5 +1070,65 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycleVAT."Reported Amount" := ReportedAmount;
         FREInvoiceLifecycleVAT."Currency Code" := FREInvoiceLifecycle."Currency Code";
         FREInvoiceLifecycleVAT.Insert();
+    end;
+
+    local procedure SetInvoiceVATRate(DocumentNo: Code[20]; VATRate: Decimal; ClearVATAmount: Boolean)
+    var
+        VATEntry: Record "VAT Entry";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        VATEntry.SetRange("Document No.", DocumentNo);
+        VATEntry.FindSet();
+        repeat
+            VATPostingSetup.Get(VATEntry."VAT Bus. Posting Group", VATEntry."VAT Prod. Posting Group");
+            VATPostingSetup."VAT %" := VATRate;
+            VATPostingSetup.Modify();
+            if ClearVATAmount then begin
+                VATEntry."Source Currency VAT Amount" := 0;
+                VATEntry.Modify();
+            end;
+        until VATEntry.Next() = 0;
+    end;
+
+    local procedure SetInvoiceVATCurrency(DocumentNo: Code[20]; CurrencyCode: Code[10])
+    var
+        VATEntry: Record "VAT Entry";
+    begin
+        VATEntry.SetRange("Document No.", DocumentNo);
+        VATEntry.FindSet();
+        repeat
+            VATEntry."Source Currency Code" := CurrencyCode;
+            VATEntry.Modify();
+        until VATEntry.Next() = 0;
+    end;
+
+    local procedure ConfigurePPFService(var EDocumentService: Record "E-Document Service")
+    var
+        CompanyInformation: Record "Company Information";
+    begin
+        EDocumentService."FR Sender Platform ID" := 'PLATFORM-ID';
+        EDocumentService."FR Sender Platform Scheme" := '0238';
+        EDocumentService."FR Sender Platform Name" := 'Test Approved Platform';
+        CompanyInformation.Get();
+        CompanyInformation."Registration No." := '123456789';
+        CompanyInformation.Modify();
+    end;
+
+    local procedure AssertXmlValue(XmlDoc: XmlDocument; XPath: Text; ExpectedValue: Text)
+    var
+        XmlNode: XmlNode;
+    begin
+        Assert.IsTrue(XmlDoc.SelectSingleNode(XPath, XmlNode), StrSubstNo('The payload must contain XML node %1.', XPath));
+        Assert.AreEqual(ExpectedValue, XmlNode.AsXmlElement().InnerText(), StrSubstNo('The XML node %1 has an unexpected value.', XPath));
+    end;
+
+    local procedure AssertXmlAttribute(XmlDoc: XmlDocument; XPath: Text; AttributeName: Text; ExpectedValue: Text)
+    var
+        XmlAttribute: XmlAttribute;
+        XmlNode: XmlNode;
+    begin
+        Assert.IsTrue(XmlDoc.SelectSingleNode(XPath, XmlNode), StrSubstNo('The payload must contain XML node %1.', XPath));
+        Assert.IsTrue(XmlNode.AsXmlElement().Attributes().Get(AttributeName, XmlAttribute), StrSubstNo('The XML node %1 must contain attribute %2.', XPath, AttributeName));
+        Assert.AreEqual(ExpectedValue, XmlAttribute.Value(), StrSubstNo('The XML attribute %1 on node %2 has an unexpected value.', AttributeName, XPath));
     end;
 }

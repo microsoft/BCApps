@@ -12,6 +12,7 @@ using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
+using Microsoft.Foundation.Company;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
@@ -107,6 +108,8 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         FREInvoiceLifecycle."Detailed Ledger Entry No." := DetailedLedgerEntryNo;
         FREInvoiceLifecycle."Processing Status" := FREInvoiceLifecycle."Processing Status"::Captured;
         FREInvoiceLifecycle."Created At" := CurrentDateTime();
+        if InvoiceCustLedgerEntryNo <> 0 then
+            PopulatePPFContext(FREInvoiceLifecycle);
         FREInvoiceLifecycle.Insert();
 
         if InvoiceCustLedgerEntryNo <> 0 then
@@ -114,6 +117,33 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
                 CreateVATBreakdown(FREInvoiceLifecycle)
             else
                 CreateReversalVATBreakdown(FREInvoiceLifecycle, OriginalOccurrenceEntryNo);
+    end;
+
+    local procedure PopulatePPFContext(var FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle")
+    var
+        CompanyInformation: Record "Company Information";
+        EDocument: Record "E-Document";
+        EDocumentService: Record "E-Document Service";
+    begin
+        EDocument.Get(FREInvoiceLifecycle."E-Document Entry No.");
+        EDocument.TestField("Document Date");
+        EDocument.TestField("Clearance Date");
+        EDocumentService.Get(EDocument.Service);
+        EDocumentService.TestField("FR Sender Platform ID");
+        EDocumentService.TestField("FR Sender Platform Scheme");
+        EDocumentService.TestField("FR Sender Platform Name");
+        CompanyInformation.Get();
+        CompanyInformation.TestField("Registration No.");
+        CompanyInformation.TestField(Name);
+
+        FREInvoiceLifecycle."Invoice Issue Date" := EDocument."Document Date";
+        FREInvoiceLifecycle."Invoice Receipt At" := EDocument."Clearance Date";
+        FREInvoiceLifecycle."Sender Platform ID" := EDocumentService."FR Sender Platform ID";
+        FREInvoiceLifecycle."Sender Platform Scheme" := EDocumentService."FR Sender Platform Scheme";
+        FREInvoiceLifecycle."Sender Platform Name" := EDocumentService."FR Sender Platform Name";
+        FREInvoiceLifecycle."Invoice Issuer ID" := CopyStr(CompanyInformation."Registration No.", 1, 9);
+        FREInvoiceLifecycle."Invoice Issuer Scheme" := SIRENSchemeTok;
+        FREInvoiceLifecycle."Invoice Issuer Name" := CompanyInformation.Name;
     end;
 
     local procedure CreateVATBreakdown(FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle")
@@ -405,4 +435,5 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         VATBreakdownErr: Label 'A VAT breakdown could not be determined for posted sales invoice %1.', Comment = '%1 = posted sales invoice number';
         VATEntryCurrencyErr: Label 'VAT entry %1 does not contain amounts in lifecycle currency %2.', Comment = '%1 = VAT entry number, %2 = currency code';
         OriginalVATBreakdownErr: Label 'The VAT breakdown for original lifecycle occurrence %1 does not exist.', Comment = '%1 = lifecycle occurrence entry number';
+        SIRENSchemeTok: Label '0002', Locked = true;
 }

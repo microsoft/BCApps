@@ -102,6 +102,46 @@ table 10970 "FR E-Invoice Lifecycle"
             Caption = 'Last Error';
             DataClassification = CustomerContent;
         }
+        field(16; "Invoice Issue Date"; Date)
+        {
+            Caption = 'Invoice Issue Date';
+            DataClassification = CustomerContent;
+        }
+        field(17; "Invoice Receipt At"; DateTime)
+        {
+            Caption = 'Invoice Receipt At';
+            DataClassification = CustomerContent;
+        }
+        field(18; "Sender Platform ID"; Text[50])
+        {
+            Caption = 'Sender Platform ID';
+            DataClassification = CustomerContent;
+        }
+        field(19; "Sender Platform Scheme"; Code[4])
+        {
+            Caption = 'Sender Platform Scheme';
+            DataClassification = CustomerContent;
+        }
+        field(20; "Sender Platform Name"; Text[100])
+        {
+            Caption = 'Sender Platform Name';
+            DataClassification = CustomerContent;
+        }
+        field(21; "Invoice Issuer ID"; Text[50])
+        {
+            Caption = 'Invoice Issuer ID';
+            DataClassification = CustomerContent;
+        }
+        field(22; "Invoice Issuer Scheme"; Code[4])
+        {
+            Caption = 'Invoice Issuer Scheme';
+            DataClassification = CustomerContent;
+        }
+        field(23; "Invoice Issuer Name"; Text[100])
+        {
+            Caption = 'Invoice Issuer Name';
+            DataClassification = CustomerContent;
+        }
     }
 
     keys
@@ -144,7 +184,15 @@ table 10970 "FR E-Invoice Lifecycle"
            (Rec."Invoice Cust. Ledger Entry No." <> xRec."Invoice Cust. Ledger Entry No.") or
            (Rec."Payment Cust. Ledger Entry No." <> xRec."Payment Cust. Ledger Entry No.") or
            (Rec."Detailed Ledger Entry No." <> xRec."Detailed Ledger Entry No.") or
-           (Rec."Created At" <> xRec."Created At")
+              (Rec."Created At" <> xRec."Created At") or
+              (Rec."Invoice Issue Date" <> xRec."Invoice Issue Date") or
+              (Rec."Invoice Receipt At" <> xRec."Invoice Receipt At") or
+              (Rec."Sender Platform ID" <> xRec."Sender Platform ID") or
+              (Rec."Sender Platform Scheme" <> xRec."Sender Platform Scheme") or
+              (Rec."Sender Platform Name" <> xRec."Sender Platform Name") or
+              (Rec."Invoice Issuer ID" <> xRec."Invoice Issuer ID") or
+              (Rec."Invoice Issuer Scheme" <> xRec."Invoice Issuer Scheme") or
+              (Rec."Invoice Issuer Name" <> xRec."Invoice Issuer Name")
         then
             Error(ImmutableOccurrenceErr);
     end;

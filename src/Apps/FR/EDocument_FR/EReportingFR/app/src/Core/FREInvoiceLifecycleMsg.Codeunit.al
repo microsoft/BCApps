@@ -54,23 +54,28 @@ codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
         RootElement.Add(XmlAttribute.CreateNamespaceDeclaration('ram', RamNamespaceTok));
         RootElement.Add(XmlAttribute.CreateNamespaceDeclaration('rsm', RsmNamespaceTok));
 
-        AddExchangedDocumentContext(RootElement);
+        if IsPPFMessage(FREInvoiceLifecycle) then
+            ValidatePPFContext(FREInvoiceLifecycle);
+
+        AddExchangedDocumentContext(RootElement, FREInvoiceLifecycle);
         AddExchangedDocument(RootElement, FREInvoiceLifecycle);
         AddAcknowledgementDocument(RootElement, EDocument, FREInvoiceLifecycle);
     end;
 
-    local procedure AddExchangedDocumentContext(var RootElement: XmlElement)
+    local procedure AddExchangedDocumentContext(var RootElement: XmlElement; FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle")
     var
         BusinessProcessElement: XmlElement;
         ContextElement: XmlElement;
         GuidelineElement: XmlElement;
     begin
         ContextElement := XmlElement.Create('ExchangedDocumentContext', RsmNamespaceTok);
-        BusinessProcessElement := XmlElement.Create('BusinessProcessSpecifiedDocumentContextParameter', RamNamespaceTok);
-        BusinessProcessElement.Add(XmlElement.Create('ID', RamNamespaceTok, RegulatedBusinessProcessTok));
-        ContextElement.Add(BusinessProcessElement);
+        if not IsPPFMessage(FREInvoiceLifecycle) then begin
+            BusinessProcessElement := XmlElement.Create('BusinessProcessSpecifiedDocumentContextParameter', RamNamespaceTok);
+            BusinessProcessElement.Add(XmlElement.Create('ID', RamNamespaceTok, RegulatedBusinessProcessTok));
+            ContextElement.Add(BusinessProcessElement);
+        end;
         GuidelineElement := XmlElement.Create('GuidelineSpecifiedDocumentContextParameter', RamNamespaceTok);
-        GuidelineElement.Add(XmlElement.Create('ID', RamNamespaceTok, CDVInvoiceProfileTok));
+        GuidelineElement.Add(XmlElement.Create('ID', RamNamespaceTok, GetProfileID(FREInvoiceLifecycle)));
         ContextElement.Add(GuidelineElement);
         RootElement.Add(ContextElement);
     end;
@@ -86,6 +91,18 @@ codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
         IssueDateTimeElement := XmlElement.Create('IssueDateTime', RamNamespaceTok);
         IssueDateTimeElement.Add(CreateDateTimeString(FREInvoiceLifecycle."Created At"));
         ExchangedDocumentElement.Add(IssueDateTimeElement);
+        if IsPPFMessage(FREInvoiceLifecycle) then begin
+            ExchangedDocumentElement.Add(
+                CreateTradeParty(
+                    'SenderTradeParty', FREInvoiceLifecycle."Sender Platform ID", FREInvoiceLifecycle."Sender Platform Scheme",
+                    FREInvoiceLifecycle."Sender Platform Name", SenderRoleCodeTok));
+            ExchangedDocumentElement.Add(
+                CreateTradeParty(
+                    'IssuerTradeParty', FREInvoiceLifecycle."Invoice Issuer ID", FREInvoiceLifecycle."Invoice Issuer Scheme",
+                    FREInvoiceLifecycle."Invoice Issuer Name", SellerRoleCodeTok));
+            ExchangedDocumentElement.Add(
+                CreateTradeParty('RecipientTradeParty', PPFIdentifierTok, PPFIdentifierSchemeTok, PPFNameTok, PPFRoleCodeTok));
+        end;
         RootElement.Add(ExchangedDocumentElement);
     end;
 
@@ -112,8 +129,18 @@ codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
         ReferenceDocumentElement.Add(XmlElement.Create('IssuerAssignedID', RamNamespaceTok, EDocument."Document No."));
         ReferenceDocumentElement.Add(XmlElement.Create('StatusCode', RamNamespaceTok, InvoiceReferenceStatusCodeTok));
         ReferenceDocumentElement.Add(XmlElement.Create('TypeCode', RamNamespaceTok, InvoiceTypeCodeTok));
+        if IsPPFMessage(FREInvoiceLifecycle) then begin
+            ReferenceDocumentElement.Add(CreateDateTimeElement('ReceiptDateTime', FREInvoiceLifecycle."Invoice Receipt At"));
+            ReferenceDocumentElement.Add(XmlElement.Create('ReferenceTypeCode', RamNamespaceTok, PPFInvoiceProfileTok));
+            ReferenceDocumentElement.Add(CreateFormattedIssueDateTime(FREInvoiceLifecycle."Invoice Issue Date"));
+        end;
         ReferenceDocumentElement.Add(XmlElement.Create('ProcessConditionCode', RamNamespaceTok, CollectedStatusCodeTok));
         ReferenceDocumentElement.Add(XmlElement.Create('ProcessCondition', RamNamespaceTok, CollectedStatusNameTok));
+        if IsPPFMessage(FREInvoiceLifecycle) then
+            ReferenceDocumentElement.Add(
+                CreateTradeParty(
+                    'IssuerTradeParty', FREInvoiceLifecycle."Invoice Issuer ID", FREInvoiceLifecycle."Invoice Issuer Scheme",
+                    '', ''));
         AddVATBreakdown(ReferenceDocumentElement, FREInvoiceLifecycle);
         AcknowledgementDocumentElement.Add(ReferenceDocumentElement);
         RootElement.Add(AcknowledgementDocumentElement);
@@ -157,6 +184,60 @@ codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
         DateTimeStringElement.Add(XmlAttribute.Create('format', DateTimeFormatCodeTok));
     end;
 
+    local procedure CreateDateTimeElement(ElementName: Text; Value: DateTime) DateTimeElement: XmlElement
+    begin
+        DateTimeElement := XmlElement.Create(ElementName, RamNamespaceTok);
+        DateTimeElement.Add(CreateDateTimeString(Value));
+    end;
+
+    local procedure CreateFormattedIssueDateTime(Value: Date) FormattedIssueDateTimeElement: XmlElement
+    var
+        DateTimeStringElement: XmlElement;
+    begin
+        FormattedIssueDateTimeElement := XmlElement.Create('FormattedIssueDateTime', RamNamespaceTok);
+        DateTimeStringElement := XmlElement.Create('DateTimeString', QdtNamespaceTok, Format(Value, 0, '<Year4><Month,2><Day,2>'));
+        DateTimeStringElement.Add(XmlAttribute.Create('format', DateFormatCodeTok));
+        FormattedIssueDateTimeElement.Add(DateTimeStringElement);
+    end;
+
+    local procedure CreateTradeParty(ElementName: Text; Identifier: Text; IdentifierScheme: Text; PartyName: Text; RoleCode: Text) TradePartyElement: XmlElement
+    var
+        GlobalIDElement: XmlElement;
+    begin
+        TradePartyElement := XmlElement.Create(ElementName, RamNamespaceTok);
+        GlobalIDElement := XmlElement.Create('GlobalID', RamNamespaceTok, Identifier);
+        GlobalIDElement.Add(XmlAttribute.Create('schemeID', IdentifierScheme));
+        TradePartyElement.Add(GlobalIDElement);
+        if PartyName <> '' then
+            TradePartyElement.Add(XmlElement.Create('Name', RamNamespaceTok, PartyName));
+        if RoleCode <> '' then
+            TradePartyElement.Add(XmlElement.Create('RoleCode', RamNamespaceTok, RoleCode));
+    end;
+
+    local procedure IsPPFMessage(FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle"): Boolean
+    begin
+        exit(FREInvoiceLifecycle."Sender Platform ID" <> '');
+    end;
+
+    local procedure GetProfileID(FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle"): Text
+    begin
+        if IsPPFMessage(FREInvoiceLifecycle) then
+            exit(PPFInvoiceProfileTok);
+        exit(CDVInvoiceProfileTok);
+    end;
+
+    local procedure ValidatePPFContext(FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle")
+    begin
+        FREInvoiceLifecycle.TestField("Invoice Issue Date");
+        FREInvoiceLifecycle.TestField("Invoice Receipt At");
+        FREInvoiceLifecycle.TestField("Sender Platform ID");
+        FREInvoiceLifecycle.TestField("Sender Platform Scheme");
+        FREInvoiceLifecycle.TestField("Sender Platform Name");
+        FREInvoiceLifecycle.TestField("Invoice Issuer ID");
+        FREInvoiceLifecycle.TestField("Invoice Issuer Scheme");
+        FREInvoiceLifecycle.TestField("Invoice Issuer Name");
+    end;
+
     local procedure ValidatePaymentStatus(LifecycleStatus: Enum "FR E-Invoice Lifecycle Status")
     begin
         if not (LifecycleStatus in [LifecycleStatus::Collected, LifecycleStatus::"Negative Collected"]) then
@@ -174,6 +255,7 @@ codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
         UdtNamespaceTok: Label 'urn:un:unece:uncefact:data:standard:UnqualifiedDataType:100', Locked = true;
         RegulatedBusinessProcessTok: Label 'REGULATED', Locked = true;
         CDVInvoiceProfileTok: Label 'urn.cpro.gouv.fr:1p0:CDV:invoice', Locked = true;
+        PPFInvoiceProfileTok: Label 'urn.cpro.gouv.fr:1p0:CDV:einvoicingF2', Locked = true;
         InformationTypeCodeTok: Label '23', Locked = true;
         InvoiceReferenceStatusCodeTok: Label '47', Locked = true;
         InvoiceTypeCodeTok: Label '380', Locked = true;
@@ -181,4 +263,11 @@ codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
         CollectedStatusNameTok: Label 'Encaissée', Locked = true;
         CollectedAmountTypeCodeTok: Label 'MEN', Locked = true;
         DateTimeFormatCodeTok: Label '204', Locked = true;
+        DateFormatCodeTok: Label '102', Locked = true;
+        SenderRoleCodeTok: Label 'WK', Locked = true;
+        SellerRoleCodeTok: Label 'SE', Locked = true;
+        PPFIdentifierTok: Label '9998', Locked = true;
+        PPFIdentifierSchemeTok: Label '0238', Locked = true;
+        PPFNameTok: Label 'PPF', Locked = true;
+        PPFRoleCodeTok: Label 'DFH', Locked = true;
 }
