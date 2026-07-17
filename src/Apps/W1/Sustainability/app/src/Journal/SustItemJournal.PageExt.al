@@ -22,6 +22,12 @@ pageextension 6288 "Sust. Item Journal" extends "Item Journal"
         }
         addafter("Unit Cost")
         {
+            field("CO2e per Unit"; Rec."CO2e per Unit")
+            {
+                Visible = SustainabilityVisible;
+                ApplicationArea = Basic, Suite;
+                ToolTip = 'Specifies the value of the CO2e per Unit field.';
+            }
             field("Total CO2e"; Rec."Total CO2e")
             {
                 Visible = SustainabilityVisible;
