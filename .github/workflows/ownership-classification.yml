@@ -248,7 +248,8 @@ jobs:
             const confidenceValues = ['high', 'medium', 'low'];
             const sources = [
               'issue:path', 'issue:localization', 'issue:title-object',
-              'issue:title-phrase', 'issue:app-area', 'issue:body-object',
+              'issue:title-phrase', 'issue:title-keyword', 'issue:app-area',
+              'issue:body-object', 'issue:body-keyword',
               'issue:unresolved', 'pull_request:changed-files',
               'pull_request:ambiguous', 'pull_request:unresolved',
               'pull_request:incomplete-files',
