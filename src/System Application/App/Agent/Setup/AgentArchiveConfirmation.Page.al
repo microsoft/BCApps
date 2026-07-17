@@ -66,23 +66,11 @@ page 4337 "Agent Archive Confirmation"
         if CloseAction <> Action::OK then
             exit(true);
 
-        if (EnteredDisplayName = '') or (not IsExactMatch(EnteredDisplayName, ExpectedDisplayName)) then
+        // Case-sensitive by design: in-memory AL Text "<>" is ordinal, so the user must type the display name exactly.
+        if EnteredDisplayName <> ExpectedDisplayName then
             Error(NameMismatchErr);
 
         Confirmed := true;
-        exit(true);
-    end;
-
-    local procedure IsExactMatch(Entered: Text; Expected: Text): Boolean
-    var
-        Index: Integer;
-    begin
-        // AL Text equality is case-insensitive; compare char-by-char so the user must type the name exactly.
-        if StrLen(Entered) <> StrLen(Expected) then
-            exit(false);
-        for Index := 1 to StrLen(Expected) do
-            if Entered[Index] <> Expected[Index] then
-                exit(false);
         exit(true);
     end;
 }
