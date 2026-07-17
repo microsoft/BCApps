@@ -6,9 +6,11 @@ namespace Microsoft.Integration.Shopify;
 /// Copilot Tax Match Review page (page 30471). The platform renders AI confidence indicators
 /// on Activity Log-anchored fields when they appear on a Card or in a ListPart embedded
 /// in a Card — so embedding this part is what makes per-tax-line Copilot indicators
-/// visible. The host page calls SetTaxLineFilter to scope the part to a single order's
-/// tax lines (tax lines link to order lines via Parent Id, so the host passes the order's
-/// order line ids).
+/// visible. The Tax Jurisdiction Code is editable so a reviewer can correct or complete a
+/// match, and each line shows Business Central's Tax Detail rate next to Shopify's rate with
+/// the row highlighted green when they agree and red when they differ. The host page calls
+/// SetTaxLineFilter to scope the part to a single order's tax lines (tax lines link to order
+/// lines via Parent Id, so the host passes the order's order line ids).
 /// </summary>
 page 30479 "Shpfy CT Order Tax Lines Part"
 {
@@ -16,9 +18,9 @@ page 30479 "Shpfy CT Order Tax Lines Part"
     PageType = ListPart;
     SourceTable = "Shpfy Order Tax Line";
     DeleteAllowed = false;
-    Editable = false;
+    Editable = true;
     InsertAllowed = false;
-    ModifyAllowed = false;
+    ModifyAllowed = true;
 
     layout
     {
@@ -43,47 +45,66 @@ page 30479 "Shpfy CT Order Tax Lines Part"
                 field(Title; Rec.Title)
                 {
                     ApplicationArea = All;
+                    Editable = false;
                     ToolTip = 'Specifies the title of the tax line as imported from Shopify.';
                 }
                 field(Rate; Rec.Rate)
                 {
                     ApplicationArea = All;
+                    Editable = false;
                     ToolTip = 'Specifies the rate of the tax line.';
                 }
                 field(Amount; Rec.Amount)
                 {
                     ApplicationArea = All;
+                    Editable = false;
                     ToolTip = 'Specifies the amount of the tax line.';
                 }
                 field("Presentment Amount"; Rec."Presentment Amount")
                 {
                     ApplicationArea = All;
+                    Editable = false;
                     ToolTip = 'Specifies the amount of the tax line in presentment currency.';
                     Visible = PresentmentCurrencyVisible;
                 }
                 field("Rate %"; Rec."Rate %")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the rate percentage of the tax line.';
+                    Caption = 'Shopify Rate %';
+                    Editable = false;
+                    StyleExpr = RateStyleExpr;
+                    ToolTip = 'Specifies the rate percentage Shopify charged on this tax line.';
+                }
+                field(BCRate; BCRatePct)
+                {
+                    ApplicationArea = All;
+                    Caption = 'BC Rate %';
+                    AutoFormatType = 0;
+                    BlankZero = true;
+                    Editable = false;
+                    StyleExpr = RateStyleExpr;
+                    ToolTip = 'Specifies the Business Central Tax Detail rate that applies to this line''s item for the assigned Tax Jurisdiction as of the order date. When it differs from Shopify''s rate the line is highlighted red; approving the order posts at this Business Central rate. It is blank when no Tax Jurisdiction is assigned or no Tax Detail exists yet.';
                 }
                 field("Channel Liable"; Rec."Channel Liable")
                 {
                     ApplicationArea = All;
+                    Editable = false;
                     ToolTip = 'Specifies if the channel that submitted the tax line is liable for remitting.';
                 }
                 field("Tax Jurisdiction Code"; Rec."Tax Jurisdiction Code")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the Business Central Tax Jurisdiction matched to this Shopify tax line.';
+                    StyleExpr = RateStyleExpr;
+                    ToolTip = 'Specifies the Business Central Tax Jurisdiction matched to this Shopify tax line. You can change it to correct or complete the match; the Tax Area is rebuilt from these codes when you approve.';
+
+                    trigger OnValidate()
+                    begin
+                        CurrPage.Update(true);
+                    end;
                 }
             }
         }
     }
-
-    var
-        PresentmentCurrencyVisible: Boolean;
-        AppliesToItemNo: Code[20];
-        AppliesToItemDescription: Text[100];
 
     trigger OnOpenPage()
     begin
@@ -94,7 +115,15 @@ page 30479 "Shpfy CT Order Tax Lines Part"
     trigger OnAfterGetRecord()
     begin
         ResolveLineContext();
+        ResolveBcRate();
     end;
+
+    var
+        PresentmentCurrencyVisible: Boolean;
+        AppliesToItemNo: Code[20];
+        AppliesToItemDescription: Text[100];
+        BCRatePct: Decimal;
+        RateStyleExpr: Text;
 
     /// <summary>
     /// Scopes the part to the tax lines of a single order. The host passes a filter
@@ -128,5 +157,22 @@ page 30479 "Shpfy CT Order Tax Lines Part"
 
         if OrderHeader.Get(OrderLine."Shopify Order Id") then
             PresentmentCurrencyVisible := OrderHeader.IsPresentmentCurrencyOrder();
+    end;
+
+    local procedure ResolveBcRate()
+    var
+        CopilotTaxMatcher: Codeunit "Shpfy Copilot Tax Matcher";
+    begin
+        Clear(BCRatePct);
+        if not CopilotTaxMatcher.TryGetEffectiveItemRate(Rec, BCRatePct) then begin
+            // No jurisdiction assigned yet or no Tax Detail bracket — nothing to compare.
+            RateStyleExpr := 'Standard';
+            exit;
+        end;
+
+        if BCRatePct = Rec."Rate %" then
+            RateStyleExpr := 'Favorable'
+        else
+            RateStyleExpr := 'Unfavorable';
     end;
 }

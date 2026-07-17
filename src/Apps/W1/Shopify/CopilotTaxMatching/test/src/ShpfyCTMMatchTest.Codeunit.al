@@ -33,6 +33,7 @@ codeunit 134717 "Shpfy CTM Match Test"
         Result: Boolean;
         ExpectedResult: Boolean;
         ElementExists: Boolean;
+        HasRateConflict: Boolean;
     begin
         // Arrange
         CTMTestLibrary.CleanupTestData();
@@ -43,10 +44,18 @@ codeunit 134717 "Shpfy CTM Match Test"
         SetupExistingData(CTMTestLibrary, Input.Element('setup'));
         OrderHeader := CTMTestLibrary.SetupOrder(Input.Element('setup'), Shop);
 
-        // Act — real LLM call + tax area
-        Result := CopilotTaxMatcher.MatchTaxLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog);
+        // Act — real LLM call + tax area. A rate conflict still matches (the jurisdiction is
+        // correct) and builds the Tax Area; the order is flagged for review.
+        Result := CopilotTaxMatcher.MatchTaxLines(OrderHeader, Shop, MatchedJurisdictions, MatchLog, HasRateConflict);
         if Result and (MatchedJurisdictions.Count() > 0) then
             TaxAreaBuilder.FindOrCreateTaxArea(OrderHeader, Shop, MatchedJurisdictions, ResolvedTaxAreaCode, TaxAreaWasCreated);
+
+        // Mirror the events codeunit: persist the rate-conflict flag from the match result so
+        // verification can assert it (the harness calls the matcher directly, bypassing events).
+        if Result then begin
+            OrderHeader."Copilot Tax Rate Conflict" := HasRateConflict;
+            OrderHeader.Modify();
+        end;
 
         // Log test output
         LogTestOutput(Input, OrderHeader, MatchedJurisdictions, Result);

@@ -18,6 +18,21 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
     InherentPermissions = X;
     InherentEntitlements = X;
 
+    var
+        FeatureNotificationIdLbl: Label '{e9d8c7b6-a5f4-4e32-9d10-cb87a65f43e2}', Locked = true;
+        OrderNotificationIdLbl: Label '{a7c3f1e2-9b4d-4c8a-8e6f-2d1b0a9c8e7d}', Locked = true;
+        NotifMsgLbl: Label 'Copilot set Tax Area %1 on this Shopify order. Review before posting.', Comment = '%1 = Tax Area Code';
+        OrderNotifMsgLbl: Label 'Copilot set Tax Area %1 on this Shopify order. Review the matched tax jurisdictions.', Comment = '%1 = Tax Area Code';
+        OrderNotifConflictMsgLbl: Label 'Copilot set Tax Area %1 on this Shopify order, but one or more tax rates differ from Business Central. Review the highlighted rates before creating the sales document.', Comment = '%1 = Tax Area Code';
+        ShowDecisionsActionLbl: Label 'Show Copilot Tax Decisions';
+        OrderReviewActionLbl: Label 'Review';
+        MarkReviewedActionLbl: Label 'Mark as reviewed';
+        DisableActionLbl: Label 'Don''t show again';
+        MyNotificationCaptionLbl: Label 'Shopify Copilot Tax Matching review prompt';
+        MyNotificationDescriptionLbl: Label 'Shows a one-time prompt on each Sales Order where Copilot populated tax fields from a Shopify order, so you can review the AI-generated decisions before posting.';
+        OrderMyNotifCaptionLbl: Label 'Shopify Copilot Tax Matching order review prompt';
+        OrderMyNotifDescriptionLbl: Label 'Shows a prompt on a Shopify order whose tax was matched by Copilot, so you can review and approve the AI-generated tax match.';
+
     /// <summary>
     /// Fires the review prompt on the Sales Order when Copilot populated its tax fields and
     /// the originating Shopify order has not yet been reviewed. Stateless — whether to prompt
@@ -53,7 +68,7 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
         Notif.AddAction(DisableActionLbl, Codeunit::"Shpfy Copilot Tax Notify", 'DisableForUser');
         Notif.Send();
 
-        FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax notification sent');
+        FeatureTelemetry.LogUsage('0000UMT', CopilotTaxRegister.FeatureName(), 'Copilot tax notification sent');
     end;
 
     procedure OpenShopifyOrder(Notif: Notification)
@@ -73,7 +88,7 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
             OrderMgt.ShowShopifyOrder(VariantRec);
         end;
 
-        FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax review opened');
+        FeatureTelemetry.LogUsage('0000UMU', CopilotTaxRegister.FeatureName(), 'Copilot tax review opened');
     end;
 
     /// <summary>
@@ -97,14 +112,17 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
             exit;
 
         Notif.Id := GetOrderNotificationId();
-        Notif.Message(StrSubstNo(OrderNotifMsgLbl, OrderHeader."Tax Area Code"));
+        if OrderHeader."Copilot Tax Rate Conflict" then
+            Notif.Message(StrSubstNo(OrderNotifConflictMsgLbl, OrderHeader."Tax Area Code"))
+        else
+            Notif.Message(StrSubstNo(OrderNotifMsgLbl, OrderHeader."Tax Area Code"));
         Notif.Scope := NotificationScope::LocalScope;
         Notif.SetData('ShpfyOrderSystemId', Format(OrderHeader.SystemId));
         Notif.AddAction(OrderReviewActionLbl, Codeunit::"Shpfy Copilot Tax Notify", 'OpenReviewForOrder');
         Notif.AddAction(DisableActionLbl, Codeunit::"Shpfy Copilot Tax Notify", 'DisableOrderNotifForUser');
         Notif.Send();
 
-        FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax order review notification sent');
+        FeatureTelemetry.LogUsage('0000UMV', CopilotTaxRegister.FeatureName(), 'Copilot tax order review notification sent');
     end;
 
     procedure OpenReviewForOrder(Notif: Notification)
@@ -125,7 +143,7 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
 
         RunReviewPage(OrderHeader);
 
-        FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax order review opened');
+        FeatureTelemetry.LogUsage('0000UMW', CopilotTaxRegister.FeatureName(), 'Copilot tax order review opened');
     end;
 
     procedure DisableOrderNotifForUser(Notif: Notification)
@@ -182,7 +200,26 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
         OrderHeader."Copilot Tax Match Reviewed" := true;
         OrderHeader.Modify();
 
-        FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax notification marked reviewed');
+        FeatureTelemetry.LogUsage('0000UMX', CopilotTaxRegister.FeatureName(), 'Copilot tax notification marked reviewed');
+    end;
+
+    /// <summary>
+    /// Reverses an approval: clears the order's Copilot Tax Match Reviewed flag so the order is
+    /// held for review again (it is created only once re-approved). Exposed as internal so the
+    /// review page's Undo Approval action and tests both drive the same state change.
+    /// </summary>
+    internal procedure UndoApproval(var OrderHeader: Record "Shpfy Order Header")
+    var
+        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        if not OrderHeader."Copilot Tax Match Reviewed" then
+            exit;
+
+        OrderHeader."Copilot Tax Match Reviewed" := false;
+        OrderHeader.Modify();
+
+        FeatureTelemetry.LogUsage('0000UN7', CopilotTaxRegister.FeatureName(), 'Copilot tax match approval undone');
     end;
 
     procedure DisableForUser(Notif: Notification)
@@ -196,7 +233,7 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
                 MyNotifications.InsertDefault(GetFeatureNotificationId(), MyNotificationCaptionLbl, MyNotificationDescriptionLbl, false);
         MarkReviewed(Notif);
 
-        FeatureTelemetry.LogUsage('', CopilotTaxRegister.FeatureName(), 'Copilot tax notification disabled per user');
+        FeatureTelemetry.LogUsage('0000UMY', CopilotTaxRegister.FeatureName(), 'Copilot tax notification disabled per user');
     end;
 
     /// <summary>
@@ -240,18 +277,4 @@ codeunit 30476 "Shpfy Copilot Tax Notify"
         Evaluate(OrderNotificationId, OrderNotificationIdLbl);
         exit(OrderNotificationId);
     end;
-
-    var
-        FeatureNotificationIdLbl: Label '{e9d8c7b6-a5f4-4e32-9d10-cb87a65f43e2}', Locked = true;
-        OrderNotificationIdLbl: Label '{a7c3f1e2-9b4d-4c8a-8e6f-2d1b0a9c8e7d}', Locked = true;
-        NotifMsgLbl: Label 'Copilot set Tax Area %1 on this Shopify order. Review before posting.', Comment = '%1 = Tax Area Code';
-        OrderNotifMsgLbl: Label 'Copilot set Tax Area %1 on this Shopify order. Review the matched tax jurisdictions.', Comment = '%1 = Tax Area Code';
-        ShowDecisionsActionLbl: Label 'Show Copilot Tax Decisions';
-        OrderReviewActionLbl: Label 'Review';
-        MarkReviewedActionLbl: Label 'Mark as reviewed';
-        DisableActionLbl: Label 'Don''t show again';
-        MyNotificationCaptionLbl: Label 'Shopify Copilot Tax Matching review prompt';
-        MyNotificationDescriptionLbl: Label 'Shows a one-time prompt on each Sales Order where Copilot populated tax fields from a Shopify order, so you can review the AI-generated decisions before posting.';
-        OrderMyNotifCaptionLbl: Label 'Shopify Copilot Tax Matching order review prompt';
-        OrderMyNotifDescriptionLbl: Label 'Shows a prompt on a Shopify order whose tax was matched by Copilot, so you can review and approve the AI-generated tax match.';
 }

@@ -14,6 +14,10 @@ codeunit 30470 "Shpfy Copilot Tax Register"
     InherentPermissions = X;
     InherentEntitlements = X;
 
+    var
+        LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2179727', Locked = true;
+        FeatureNameTxt: Label 'Shopify Tax Jurisdiction Matching with AI', Locked = true;
+
     procedure RegisterCopilotCapability()
     var
         CopilotCapability: Codeunit "Copilot Capability";
@@ -25,7 +29,7 @@ codeunit 30470 "Shpfy Copilot Tax Register"
 
         if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"Shpfy Tax Matching") then begin
             CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"Shpfy Tax Matching", LearnMoreUrlTxt);
-            FeatureTelemetry.LogUptake('', FeatureNameTxt, Enum::"Feature Uptake Status"::"Set up");
+            FeatureTelemetry.LogUptake('0000UMZ', FeatureNameTxt, Enum::"Feature Uptake Status"::"Set up");
         end;
     end;
 
@@ -39,8 +43,4 @@ codeunit 30470 "Shpfy Copilot Tax Register"
     begin
         RegisterCopilotCapability();
     end;
-
-    var
-        LearnMoreUrlTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2179727', Locked = true;
-        FeatureNameTxt: Label 'Shopify Tax Jurisdiction Matching with AI', Locked = true;
 }

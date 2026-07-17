@@ -121,11 +121,12 @@ tests:
           ratePct: 4.0
       matchResult: true
 
-  - name: TD3-RateMismatchExistingBracketWins
-    description: Valid Tax Detail at earlier date with different rate — Copilot does not override; existing rate is preserved (divergence logged in telemetry)
+  - name: TD3-RateConflictMatchesButHoldsForReview
+    description: Existing Tax Detail rate differs from Shopify's — Copilot still matches the (correct) jurisdiction and builds the Tax Area, but flags the order as a rate conflict so it is held for review. The existing Tax Detail is left untouched (not overwritten or duplicated); the reviewer accepts BC's rate or corrects the detail before posting.
     setup:
       shopSettings:
         autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
       taxJurisdictions:
         - Code: NYSTAX
           Description: New York State Tax
@@ -157,6 +158,8 @@ tests:
         jurisdictionCode: NYSTAX
         taxGroupCode: TAXABLE
         count: 1
+      taxAreaAssigned: true
+      rateConflict: true
       matchResult: true
 
   - name: TD4-SameJurisdictionDifferentTaxGroup

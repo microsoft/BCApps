@@ -17,6 +17,15 @@ codeunit 30477 "Shpfy CT Activity Log"
     InherentPermissions = X;
     InherentEntitlements = X;
 
+    var
+        PerLineExplanationLbl: Label 'Matched Shopify tax line "%1" (%2%) to Tax Jurisdiction %3.', Comment = '%1 = tax line title, %2 = rate percentage, %3 = jurisdiction code';
+        PerLineExplanationWithReasonLbl: Label 'Matched Shopify tax line "%1" (%2%) to Tax Jurisdiction %3. %4', Comment = '%1 = tax line title, %2 = rate percentage, %3 = jurisdiction code, %4 = LLM reason';
+        PerLineConflictLbl: Label 'Matched Shopify tax line "%1" (%2%) to Tax Jurisdiction %3, but its rate differs from Business Central. %4', Comment = '%1 = tax line title, %2 = rate percentage, %3 = jurisdiction code, %4 = conflict reason';
+        TaxAreaCreatedLbl: Label 'Created new Tax Area %1 from Copilot-matched jurisdictions: %2.', Comment = '%1 = tax area code, %2 = comma-separated jurisdictions';
+        TaxAreaReusedLbl: Label 'Reused existing Tax Area %1 covering Copilot-matched jurisdictions: %2.', Comment = '%1 = tax area code, %2 = comma-separated jurisdictions';
+        TaxJurisdictionTitleLbl: Label 'Tax Jurisdiction %1', Comment = '%1 = jurisdiction code';
+        TaxAreaTitleLbl: Label 'Tax Area %1', Comment = '%1 = tax area code';
+
     procedure LogPerLineEntries(var OrderHeader: Record "Shpfy Order Header"; MatchLog: JsonArray)
     var
         OrderTaxLine: Record "Shpfy Order Tax Line";
@@ -32,6 +41,7 @@ codeunit 30477 "Shpfy CT Activity Log"
         JurisdictionCode: Code[10];
         Confidence: Text;
         Reason: Text;
+        Explanation: Text;
     begin
         foreach MatchToken in MatchLog do begin
             MatchObj := MatchToken.AsObject();
@@ -52,16 +62,21 @@ codeunit 30477 "Shpfy CT Activity Log"
 
             JurisdictionRef.GetTable(TaxJurisdiction);
 
+            if GetBooleanField(MatchObj, 'conflict', false) then
+                Explanation := StrSubstNo(PerLineConflictLbl, OrderTaxLine.Title, OrderTaxLine."Rate %", JurisdictionCode, Reason)
+            else
+                Explanation := BuildPerLineExplanation(OrderTaxLine, JurisdictionCode, Reason);
+
             ActivityLogBuilder
                 .Init(Database::"Shpfy Order Tax Line", OrderTaxLine.FieldNo("Tax Jurisdiction Code"), OrderTaxLine.SystemId)
                 .SetType(Enum::"Activity Log Type"::"AI")
                 .SetConfidence(Confidence)
-                .SetExplanation(BuildPerLineExplanation(OrderTaxLine, JurisdictionCode, Reason))
+                .SetExplanation(Explanation)
                 .SetReferenceSource(Page::"Tax Jurisdictions", JurisdictionRef)
                 .SetReferenceTitle(StrSubstNo(TaxJurisdictionTitleLbl, JurisdictionCode))
                 .Log();
 
-            FeatureTelemetry.LogUptake('', CopilotTaxRegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
+            FeatureTelemetry.LogUptake('0000UN0', CopilotTaxRegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
         end;
     end;
 
@@ -101,7 +116,7 @@ codeunit 30477 "Shpfy CT Activity Log"
             .SetReferenceTitle(StrSubstNo(TaxAreaTitleLbl, TaxAreaCode))
             .Log();
 
-        FeatureTelemetry.LogUptake('', CopilotTaxRegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
+        FeatureTelemetry.LogUptake('0000UN1', CopilotTaxRegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
     end;
 
     local procedure BuildPerLineExplanation(OrderTaxLine: Record "Shpfy Order Tax Line"; JurisdictionCode: Code[10]; Reason: Text): Text
@@ -157,11 +172,14 @@ codeunit 30477 "Shpfy CT Activity Log"
         exit(true);
     end;
 
+    local procedure GetBooleanField(Obj: JsonObject; FieldName: Text; DefaultValue: Boolean): Boolean
     var
-        PerLineExplanationLbl: Label 'Matched Shopify tax line "%1" (%2%) to Tax Jurisdiction %3.', Comment = '%1 = tax line title, %2 = rate percentage, %3 = jurisdiction code';
-        PerLineExplanationWithReasonLbl: Label 'Matched Shopify tax line "%1" (%2%) to Tax Jurisdiction %3. %4', Comment = '%1 = tax line title, %2 = rate percentage, %3 = jurisdiction code, %4 = LLM reason';
-        TaxAreaCreatedLbl: Label 'Created new Tax Area %1 from Copilot-matched jurisdictions: %2.', Comment = '%1 = tax area code, %2 = comma-separated jurisdictions';
-        TaxAreaReusedLbl: Label 'Reused existing Tax Area %1 covering Copilot-matched jurisdictions: %2.', Comment = '%1 = tax area code, %2 = comma-separated jurisdictions';
-        TaxJurisdictionTitleLbl: Label 'Tax Jurisdiction %1', Comment = '%1 = jurisdiction code';
-        TaxAreaTitleLbl: Label 'Tax Area %1', Comment = '%1 = tax area code';
+        Token: JsonToken;
+    begin
+        if not Obj.Get(FieldName, Token) then
+            exit(DefaultValue);
+        if not Token.IsValue() then
+            exit(DefaultValue);
+        exit(Token.AsValue().AsBoolean());
+    end;
 }

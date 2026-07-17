@@ -21,6 +21,9 @@ pageextension 30478 "Shpfy CT Order Tax Lines" extends "Shpfy Order Tax Lines"
         }
     }
 
+    var
+        CopilotTaxMatchingEnabled: Boolean;
+
     trigger OnAfterGetRecord()
     var
         OrderLine: Record "Shpfy Order Line";
@@ -37,7 +40,4 @@ pageextension 30478 "Shpfy CT Order Tax Lines" extends "Shpfy Order Tax Lines"
             exit;
         CopilotTaxMatchingEnabled := Shop."Copilot Tax Matching Enabled";
     end;
-
-    var
-        CopilotTaxMatchingEnabled: Boolean;
 }

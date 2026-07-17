@@ -16,7 +16,18 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
     InherentPermissions = X;
     InherentEntitlements = X;
 
-    procedure MatchTaxLines(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray): Boolean
+    var
+        TaxLineIdTok: Label '%1-%2', Locked = true;
+        UserPromptTok: Label 'Match the following Shopify tax lines to BC Tax Jurisdictions.\n\nTax lines:\n%1\n\nAvailable Tax Jurisdictions:\n%2\n\nShip-to address:\n%3\n\nAuto Create Tax Jurisdictions: %4\nIf auto-create is enabled (Yes) and no existing jurisdiction matches, suggest a new jurisdiction code derived from the tax line title (max 10 chars, no spaces). Use standard abbreviations (e.g. NYSTAX, NYCTAX, MTATAX).', Locked = true;
+        NotSuccessfulRequestErr: Label 'Shopify Tax Matching Chat Completion Status Code: %1, Error: %2', Locked = true;
+        NoFunctionCallErr: Label 'Shopify Tax Matching: tool_calls not found in the completion answer', Locked = true;
+        FunctionCallErr: Label 'Shopify Tax Matching: Function call to %1 failed', Locked = true, Comment = '%1 = Function name';
+        SkippedLowConfidenceMsg: Label 'Shopify Tax Matching: Skipped low-confidence match for tax line %1', Locked = true, Comment = '%1 = Tax line ID';
+        JurisdictionNotFoundMsg: Label 'Shopify Tax Matching: Jurisdiction %1 not found and auto-create disabled', Locked = true, Comment = '%1 = Jurisdiction code';
+        TaxDetailRateMismatchMsg: Label 'Shopify Tax Matching: Existing Tax Detail for jurisdiction %1, tax group %2 has rate %3, but Shopify reported %4. Existing detail left untouched.', Locked = true, Comment = '%1 = jurisdiction code, %2 = tax group code, %3 = BC rate, %4 = Shopify rate';
+        RateConflictReasonTok: Label 'Shopify charged %1%, but Business Central has a Tax Detail rate of %2% for tax group %3. Business Central will post at its own rate unless you correct the Tax Detail.', Comment = '%1 = Shopify rate, %2 = existing BC rate, %3 = tax group code';
+
+    procedure MatchTaxLines(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean): Boolean
     var
         OrderLine: Record "Shpfy Order Line";
         OrderTaxLine: Record "Shpfy Order Tax Line";
@@ -32,19 +43,28 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         JurisdictionsText: Text;
         AddressText: Text;
     begin
-        FeatureTelemetry.LogUptake('', CopilotTaxRegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
+        HasRateConflict := false;
+        FeatureTelemetry.LogUptake('0000UML', CopilotTaxRegister.FeatureName(), Enum::"Feature Uptake Status"::Used);
 
-        // Gather unmatched tax lines
+        // Gather the order's tax lines. Lines without a jurisdiction go to the LLM; lines that
+        // already have one (assigned on a prior run — e.g. before a rate conflict left a sibling
+        // line blank) are carried into MatchedJurisdictions so the Tax Area is built from the
+        // order's complete jurisdiction set, not just this run's matches. Pre-existing codes are
+        // added first (in line order) so the state -> ... -> city ordering the Tax Area Builder
+        // relies on is preserved when a re-run fills in the remaining line.
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
         if not OrderLine.FindSet() then
             exit(false);
 
         repeat
             OrderTaxLine.SetRange("Parent Id", OrderLine."Line Id");
-            OrderTaxLine.SetRange("Tax Jurisdiction Code", '');
             if OrderTaxLine.FindSet() then
                 repeat
-                    TaxLinesArray.Add(BuildTaxLineJson(OrderTaxLine));
+                    if OrderTaxLine."Tax Jurisdiction Code" = '' then
+                        TaxLinesArray.Add(BuildTaxLineJson(OrderTaxLine))
+                    else
+                        if not MatchedJurisdictions.Contains(OrderTaxLine."Tax Jurisdiction Code") then
+                            MatchedJurisdictions.Add(OrderTaxLine."Tax Jurisdiction Code");
                 until OrderTaxLine.Next() = 0;
         until OrderLine.Next() = 0;
 
@@ -72,12 +92,14 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         UserPrompt := StrSubstNo(UserPromptTok, TaxLinesText, JurisdictionsText, AddressText,
             Format(Shop."Auto Create Tax Jurisdictions"));
 
-        // Call LLM and process results
-        exit(CallLLMAndApplyMatches(OrderHeader, Shop, UserPrompt, MatchedJurisdictions, MatchLog));
+        // Call LLM and process results. HasRateConflict is accumulated per line inside
+        // ApplyMatches -> ApplyAssignedJurisdiction, then stored on the order by the caller as the
+        // single source of truth.
+        exit(CallLLMAndApplyMatches(OrderHeader, Shop, UserPrompt, MatchedJurisdictions, MatchLog, HasRateConflict));
     end;
 
     // [NonDebuggable]
-    local procedure CallLLMAndApplyMatches(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; UserPrompt: Text; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray): Boolean
+    local procedure CallLLMAndApplyMatches(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; UserPrompt: Text; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean): Boolean
     var
         AzureOpenAI: Codeunit "Azure OpenAi";
         AOAIDeployments: Codeunit "AOAI Deployments";
@@ -107,29 +129,29 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
 
         if not AOAIOperationResponse.IsSuccess() then begin
-            Session.LogMessage('', StrSubstNo(NotSuccessfulRequestErr, AOAIOperationResponse.GetStatusCode(), AOAIOperationResponse.GetError()),
+            Session.LogMessage('0000UMM', StrSubstNo(NotSuccessfulRequestErr, AOAIOperationResponse.GetStatusCode(), AOAIOperationResponse.GetError()),
                 Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CopilotTaxRegister.FeatureName());
             exit(false);
         end;
 
         if not AOAIOperationResponse.IsFunctionCall() then begin
-            Session.LogMessage('', NoFunctionCallErr,
+            Session.LogMessage('0000UMN', NoFunctionCallErr,
                 Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CopilotTaxRegister.FeatureName());
             exit(false);
         end;
 
         AOAIFunctionResponse := AOAIOperationResponse.GetFunctionResponses().Get(1);
         if not AOAIFunctionResponse.IsSuccess() then begin
-            Session.LogMessage('', StrSubstNo(FunctionCallErr, AOAIFunctionResponse.GetFunctionName()),
+            Session.LogMessage('0000UMO', StrSubstNo(FunctionCallErr, AOAIFunctionResponse.GetFunctionName()),
                 Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CopilotTaxRegister.FeatureName());
             exit(false);
         end;
 
         MatchResults := AOAIFunctionResponse.GetResult();
-        exit(ApplyMatches(OrderHeader, Shop, MatchResults, MatchedJurisdictions, MatchLog));
+        exit(ApplyMatches(OrderHeader, Shop, MatchResults, MatchedJurisdictions, MatchLog, HasRateConflict));
     end;
 
-    local procedure ApplyMatches(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; MatchResults: JsonObject; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray): Boolean
+    local procedure ApplyMatches(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; MatchResults: JsonObject; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean): Boolean
     var
         TaxJurisdiction: Record "Tax Jurisdiction";
         OrderTaxLine: Record "Shpfy Order Tax Line";
@@ -171,7 +193,7 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
                     Reason := ReasonToken.AsValue().AsText();
 
             if (JurisdictionCode = '') or ((Confidence = 'low') and not Shop."Auto Create Tax Jurisdictions") then
-                Session.LogMessage('', StrSubstNo(SkippedLowConfidenceMsg, TaxLineId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CopilotTaxRegister.FeatureName())
+                Session.LogMessage('0000UMP', StrSubstNo(SkippedLowConfidenceMsg, TaxLineId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CopilotTaxRegister.FeatureName())
             else begin
                 // Parse tax line ID (format: ParentId-LineNo)
                 Parts := TaxLineId.Split('-');
@@ -180,27 +202,16 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
                     JurisdictionValid := TaxJurisdiction.Get(JurisdictionCode);
                     if not JurisdictionValid then
                         if not Shop."Auto Create Tax Jurisdictions" then
-                            Session.LogMessage('', StrSubstNo(JurisdictionNotFoundMsg, JurisdictionCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CopilotTaxRegister.FeatureName())
+                            Session.LogMessage('0000UMQ', StrSubstNo(JurisdictionNotFoundMsg, JurisdictionCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CopilotTaxRegister.FeatureName())
                         else begin
                             CreateTaxJurisdiction(TaxJurisdiction, JurisdictionCode, OrderHeader);
                             JurisdictionValid := true;
                         end;
 
-                    if JurisdictionValid then
-                        if OrderTaxLine.Get(ParentId, LineNo) then begin
-                            OrderTaxLine."Tax Jurisdiction Code" := JurisdictionCode;
-                            OrderTaxLine.Modify();
-                            AnyMatched := true;
-
-                            if not MatchedJurisdictions.Contains(JurisdictionCode) then
-                                MatchedJurisdictions.Add(JurisdictionCode);
-
-                            MatchLog.Add(BuildMatchLogEntry(ParentId, LineNo, JurisdictionCode, Capitalize(Confidence), Reason));
-
-                            EnsureTaxDetail(OrderHeader, OrderTaxLine, TaxJurisdiction, GetItemTaxGroupCode(OrderTaxLine));
-                            if Shop."Shipping Charges Account" <> '' then
-                                EnsureTaxDetail(OrderHeader, OrderTaxLine, TaxJurisdiction, GetShippingTaxGroupCode(Shop));
-                        end;
+                    if JurisdictionValid and OrderTaxLine.Get(ParentId, LineNo) then begin
+                        AnyMatched := true;
+                        ApplyAssignedJurisdiction(OrderHeader, Shop, OrderTaxLine, TaxJurisdiction, Capitalize(Confidence), Reason, MatchedJurisdictions, MatchLog, HasRateConflict);
+                    end;
                 end;
             end;
         end;
@@ -210,6 +221,119 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
             FixReportToJurisdictions(MatchedJurisdictions);
 
         exit(AnyMatched);
+    end;
+
+    /// <summary>
+    /// Applies one matched jurisdiction to a tax line and records the effect on the shared
+    /// state (MatchedJurisdictions, MatchLog, HasRateConflict). The jurisdiction itself is
+    /// always assigned — a match is a match. If BC already has a Tax Detail for this
+    /// jurisdiction + the item's tax group whose rate differs from Shopify's, the order is
+    /// flagged as a rate conflict (held for review) and the existing admin-maintained rate is
+    /// left untouched; otherwise a missing bracket is seeded at Shopify's rate and the shipping
+    /// bracket is seeded best-effort.
+    /// </summary>
+    local procedure ApplyAssignedJurisdiction(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; var OrderTaxLine: Record "Shpfy Order Tax Line"; TaxJurisdiction: Record "Tax Jurisdiction"; Confidence: Text; Reason: Text; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean)
+    var
+        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
+        ItemTaxGroupCode: Code[20];
+        ExistingRate: Decimal;
+        ItemBracketExists: Boolean;
+    begin
+        ItemTaxGroupCode := GetItemTaxGroupCode(OrderTaxLine);
+        ItemBracketExists := TryFindEffectiveTaxDetail(OrderHeader, TaxJurisdiction, ItemTaxGroupCode, ExistingRate);
+
+        OrderTaxLine."Tax Jurisdiction Code" := TaxJurisdiction.Code;
+        OrderTaxLine.Modify();
+
+        if not MatchedJurisdictions.Contains(TaxJurisdiction.Code) then
+            MatchedJurisdictions.Add(TaxJurisdiction.Code);
+
+        if ItemBracketExists and (ExistingRate <> OrderTaxLine."Rate %") then begin
+            // Jurisdiction is correct, but BC's existing Tax Detail rate differs from Shopify's.
+            // Keep the assignment (and build the Tax Area) but flag the order so it is always held
+            // for review: the reviewer sees Shopify's rate next to BC's on the review page and
+            // decides whether to accept BC's rate or fix the Tax Detail. The existing rate is not
+            // overwritten.
+            HasRateConflict := true;
+            Session.LogMessage('0000UMR',
+                StrSubstNo(TaxDetailRateMismatchMsg, TaxJurisdiction.Code, ItemTaxGroupCode, ExistingRate, OrderTaxLine."Rate %"),
+                Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', CopilotTaxRegister.FeatureName());
+            MatchLog.Add(BuildMatchLogEntry(OrderTaxLine."Parent Id", OrderTaxLine."Line No.", TaxJurisdiction.Code, Confidence,
+                StrSubstNo(RateConflictReasonTok, OrderTaxLine."Rate %", ExistingRate, ItemTaxGroupCode), true));
+        end else begin
+            MatchLog.Add(BuildMatchLogEntry(OrderTaxLine."Parent Id", OrderTaxLine."Line No.", TaxJurisdiction.Code, Confidence, Reason, false));
+            if not ItemBracketExists then
+                InsertTaxDetail(OrderHeader, OrderTaxLine, TaxJurisdiction, ItemTaxGroupCode);
+            if Shop."Shipping Charges Account" <> '' then
+                SeedShippingTaxDetail(OrderHeader, OrderTaxLine, TaxJurisdiction, Shop);
+        end;
+    end;
+
+    /// <summary>
+    /// Re-applies the tax match from the jurisdiction codes currently assigned on the order's
+    /// tax lines (e.g. after a human edited or completed them on the review page). Runs the same
+    /// per-line seeding/conflict logic as the LLM path but takes the human's jurisdictions as
+    /// given, then reports whether any assigned rate still conflicts with BC. The caller builds
+    /// the Tax Area from the returned MatchedJurisdictions.
+    /// </summary>
+    procedure ReapplyFromAssignedLines(var OrderHeader: Record "Shpfy Order Header"; Shop: Record "Shpfy Shop"; var MatchedJurisdictions: List of [Code[10]]; var MatchLog: JsonArray; var HasRateConflict: Boolean): Boolean
+    var
+        OrderLine: Record "Shpfy Order Line";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+        AnyMatched: Boolean;
+    begin
+        HasRateConflict := false;
+
+        OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        if not OrderLine.FindSet() then
+            exit(false);
+
+        // Iterate in line order so the state -> ... -> city ordering the Tax Area Builder relies
+        // on is preserved.
+        repeat
+            OrderTaxLine.SetRange("Parent Id", OrderLine."Line Id");
+            if OrderTaxLine.FindSet() then
+                repeat
+                    if OrderTaxLine."Tax Jurisdiction Code" <> '' then
+                        if TaxJurisdiction.Get(OrderTaxLine."Tax Jurisdiction Code") then begin
+                            AnyMatched := true;
+                            ApplyAssignedJurisdiction(OrderHeader, Shop, OrderTaxLine, TaxJurisdiction, 'High', '', MatchedJurisdictions, MatchLog, HasRateConflict);
+                        end;
+                until OrderTaxLine.Next() = 0;
+        until OrderLine.Next() = 0;
+
+        if AnyMatched and (MatchedJurisdictions.Count() > 1) then
+            FixReportToJurisdictions(MatchedJurisdictions);
+
+        exit(AnyMatched);
+    end;
+
+    /// <summary>
+    /// Returns the Business Central Tax Detail rate that would apply to a tax line's item, given
+    /// the jurisdiction currently assigned to the line and the order's effective date. Used by
+    /// the review page to show BC's rate next to Shopify's and highlight a difference. Returns
+    /// false when no jurisdiction is assigned or no effective bracket exists.
+    /// </summary>
+    procedure TryGetEffectiveItemRate(OrderTaxLine: Record "Shpfy Order Tax Line"; var BCRate: Decimal): Boolean
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderLine: Record "Shpfy Order Line";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+        ItemTaxGroupCode: Code[20];
+    begin
+        Clear(BCRate);
+        if OrderTaxLine."Tax Jurisdiction Code" = '' then
+            exit(false);
+        if not TaxJurisdiction.Get(OrderTaxLine."Tax Jurisdiction Code") then
+            exit(false);
+        OrderLine.SetRange("Line Id", OrderTaxLine."Parent Id");
+        if not OrderLine.FindFirst() then
+            exit(false);
+        if not OrderHeader.Get(OrderLine."Shopify Order Id") then
+            exit(false);
+        ItemTaxGroupCode := GetItemTaxGroupCode(OrderTaxLine);
+        exit(TryFindEffectiveTaxDetail(OrderHeader, TaxJurisdiction, ItemTaxGroupCode, BCRate));
     end;
 
     local procedure CreateTaxJurisdiction(var TaxJurisdiction: Record "Tax Jurisdiction"; JurisdictionCode: Code[10]; OrderHeader: Record "Shpfy Order Header")
@@ -238,31 +362,29 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
                 end;
     end;
 
-    local procedure EnsureTaxDetail(OrderHeader: Record "Shpfy Order Header"; OrderTaxLine: Record "Shpfy Order Tax Line"; TaxJurisdiction: Record "Tax Jurisdiction"; TaxGroupCode: Code[20])
+    local procedure TryFindEffectiveTaxDetail(OrderHeader: Record "Shpfy Order Header"; TaxJurisdiction: Record "Tax Jurisdiction"; TaxGroupCode: Code[20]; var ExistingRate: Decimal): Boolean
     var
         TaxDetail: Record "Tax Detail";
-        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
     begin
-        // Find the latest Tax Detail valid as of the order's effective date — that's the
-        // bracket BC will use when posting tax for this order. If one exists, leave it alone:
-        // the matcher's job is to seed initial tax data when none exists, not to override
-        // admin-maintained rates. If Shopify's rate differs from the existing bracket's rate
-        // we emit a telemetry signal (event 0000SHK) rather than inserting a new bracket —
-        // auto-inserting would propagate the new rate to every order posting after this date,
-        // which is admin territory.
+        // Returns the latest Tax Detail bracket valid as of the order's effective date — that's
+        // the bracket BC uses when posting tax for this order. Read-only: callers decide what to
+        // do with the result (seed when absent, block/warn on a rate mismatch).
         TaxDetail.SetRange("Tax Jurisdiction Code", TaxJurisdiction.Code);
         TaxDetail.SetRange("Tax Group Code", TaxGroupCode);
         TaxDetail.SetRange("Tax Type", TaxDetail."Tax Type"::"Sales and Use Tax");
         TaxDetail.SetFilter("Effective Date", '<=%1', OrderHeader."Document Date");
-        if TaxDetail.FindLast() then begin
-            if TaxDetail."Tax Below Maximum" <> OrderTaxLine."Rate %" then
-                Session.LogMessage('',
-                    StrSubstNo(TaxDetailRateMismatchMsg, TaxJurisdiction.Code, TaxGroupCode, TaxDetail."Tax Below Maximum", OrderTaxLine."Rate %"),
-                    Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All,
-                    'Category', CopilotTaxRegister.FeatureName());
-            exit;
-        end;
+        if not TaxDetail.FindLast() then
+            exit(false);
+        ExistingRate := TaxDetail."Tax Below Maximum";
+        exit(true);
+    end;
 
+    local procedure InsertTaxDetail(OrderHeader: Record "Shpfy Order Header"; OrderTaxLine: Record "Shpfy Order Tax Line"; TaxJurisdiction: Record "Tax Jurisdiction"; TaxGroupCode: Code[20])
+    var
+        TaxDetail: Record "Tax Detail";
+    begin
+        // Pure seeding: only called when no bracket exists for this jurisdiction + tax group as
+        // of the order date, so the posted Sales Document computes a non-zero tax rate.
         TaxDetail.Init();
         TaxDetail."Tax Jurisdiction Code" := TaxJurisdiction.Code;
         TaxDetail."Tax Group Code" := TaxGroupCode;
@@ -270,6 +392,27 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         TaxDetail."Effective Date" := OrderHeader."Document Date";
         TaxDetail."Tax Below Maximum" := OrderTaxLine."Rate %";
         TaxDetail.Insert(true);
+    end;
+
+    local procedure SeedShippingTaxDetail(OrderHeader: Record "Shpfy Order Header"; OrderTaxLine: Record "Shpfy Order Tax Line"; TaxJurisdiction: Record "Tax Jurisdiction"; Shop: Record "Shpfy Shop")
+    var
+        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
+        ShippingTaxGroupCode: Code[20];
+        ExistingRate: Decimal;
+    begin
+        // Best-effort secondary seed for the Shop's shipping-charges-account tax group. Unlike the
+        // item group, a rate mismatch here does not block the match — it is logged as a warning and
+        // the existing (admin-maintained) rate is left untouched. If no bracket exists, seed one at
+        // Shopify's rate.
+        ShippingTaxGroupCode := GetShippingTaxGroupCode(Shop);
+        if TryFindEffectiveTaxDetail(OrderHeader, TaxJurisdiction, ShippingTaxGroupCode, ExistingRate) then begin
+            if ExistingRate <> OrderTaxLine."Rate %" then
+                Session.LogMessage('0000UMS',
+                    StrSubstNo(TaxDetailRateMismatchMsg, TaxJurisdiction.Code, ShippingTaxGroupCode, ExistingRate, OrderTaxLine."Rate %"),
+                    Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All,
+                    'Category', CopilotTaxRegister.FeatureName());
+        end else
+            InsertTaxDetail(OrderHeader, OrderTaxLine, TaxJurisdiction, ShippingTaxGroupCode);
     end;
 
     local procedure GetItemTaxGroupCode(OrderTaxLine: Record "Shpfy Order Tax Line"): Code[20]
@@ -328,7 +471,7 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         end;
     end;
 
-    local procedure BuildMatchLogEntry(ParentId: BigInteger; LineNo: Integer; JurisdictionCode: Code[10]; Confidence: Text; Reason: Text): JsonObject
+    local procedure BuildMatchLogEntry(ParentId: BigInteger; LineNo: Integer; JurisdictionCode: Code[10]; Confidence: Text; Reason: Text; Conflict: Boolean): JsonObject
     var
         Entry: JsonObject;
     begin
@@ -340,16 +483,7 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         Entry.Add('jurisdictionCode', JurisdictionCode);
         Entry.Add('confidence', Confidence);
         Entry.Add('reason', Reason);
+        Entry.Add('conflict', Conflict);
         exit(Entry);
     end;
-
-    var
-        TaxLineIdTok: Label '%1-%2', Locked = true;
-        UserPromptTok: Label 'Match the following Shopify tax lines to BC Tax Jurisdictions.\n\nTax lines:\n%1\n\nAvailable Tax Jurisdictions:\n%2\n\nShip-to address:\n%3\n\nAuto Create Tax Jurisdictions: %4\nIf auto-create is enabled (Yes) and no existing jurisdiction matches, suggest a new jurisdiction code derived from the tax line title (max 10 chars, no spaces). Use standard abbreviations (e.g. NYSTAX, NYCTAX, MTATAX).', Locked = true;
-        NotSuccessfulRequestErr: Label 'Shopify Tax Matching Chat Completion Status Code: %1, Error: %2', Locked = true;
-        NoFunctionCallErr: Label 'Shopify Tax Matching: tool_calls not found in the completion answer', Locked = true;
-        FunctionCallErr: Label 'Shopify Tax Matching: Function call to %1 failed', Locked = true, Comment = '%1 = Function name';
-        SkippedLowConfidenceMsg: Label 'Shopify Tax Matching: Skipped low-confidence match for tax line %1', Locked = true, Comment = '%1 = Tax line ID';
-        JurisdictionNotFoundMsg: Label 'Shopify Tax Matching: Jurisdiction %1 not found and auto-create disabled', Locked = true, Comment = '%1 = Jurisdiction code';
-        TaxDetailRateMismatchMsg: Label 'Shopify Tax Matching: Existing Tax Detail for jurisdiction %1, tax group %2 has rate %3, but Shopify reported %4. Existing detail left untouched.', Locked = true, Comment = '%1 = jurisdiction code, %2 = tax group code, %3 = BC rate, %4 = Shopify rate';
 }

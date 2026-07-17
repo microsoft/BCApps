@@ -51,6 +51,9 @@ pageextension 30476 "Shpfy CT Sales Order" extends "Sales Order"
         }
     }
 
+    var
+        NotifiedSystemId: Guid;
+
     trigger OnAfterGetCurrRecord()
     var
         CopilotTaxNotify: Codeunit "Shpfy Copilot Tax Notify";
@@ -62,7 +65,4 @@ pageextension 30476 "Shpfy CT Sales Order" extends "Sales Order"
         NotifiedSystemId := Rec.SystemId;
         CopilotTaxNotify.SendForCurrentSalesHeader(Rec);
     end;
-
-    var
-        NotifiedSystemId: Guid;
 }

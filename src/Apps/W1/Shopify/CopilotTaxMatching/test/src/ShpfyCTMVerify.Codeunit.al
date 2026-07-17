@@ -59,6 +59,12 @@ codeunit 134715 "Shpfy CTM Verify"
             LibraryAssert.AreEqual(Expected.Element('taxLiable').ValueAsBoolean(), OrderHeader."Tax Liable", 'Order Tax Liable');
         end;
 
+        Expected.ElementExists('rateConflict', ElementExists);
+        if ElementExists then begin
+            OrderHeader.Find();
+            LibraryAssert.AreEqual(Expected.Element('rateConflict').ValueAsBoolean(), OrderHeader."Copilot Tax Rate Conflict", 'Order Copilot Tax Rate Conflict');
+        end;
+
         Expected.ElementExists('existingTaxAreaKept', ElementExists);
         if ElementExists then begin
             OrderHeader.Find();

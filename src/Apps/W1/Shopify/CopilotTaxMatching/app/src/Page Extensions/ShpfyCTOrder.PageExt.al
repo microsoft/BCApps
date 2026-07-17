@@ -6,10 +6,10 @@ namespace Microsoft.Integration.Shopify;
 /// review action (Copilot icon) that opens the Copilot Tax Match Review page (page 30471),
 /// where the resolved Tax Area and per-line Tax Jurisdiction Codes are shown with AI
 /// confidence indicators and the match is approved. The action is captioned "Review and
-/// Approve Copilot Tax Match" while approval is still pending (shop requires review and the
-/// order is not yet approved) and "Review Copilot Tax Match" otherwise. When the shop has
-/// Copilot Tax Match Review Required enabled, the connector skips Sales Document creation
-/// until the match is approved on the review page.
+/// Approve Copilot Tax Match" while approval is still pending (the order is held — the shop
+/// requires review or there is a rate conflict — and it is not yet approved) and "Review
+/// Copilot Tax Match" otherwise. A held order's Sales Document is not created until the match
+/// is approved on the review page.
 /// </summary>
 pageextension 30479 "Shpfy CT Order" extends "Shpfy Order"
 {
@@ -26,8 +26,8 @@ pageextension 30479 "Shpfy CT Order" extends "Shpfy Order"
                 PromotedCategory = Process;
                 PromotedIsBig = true;
                 PromotedOnly = true;
-                ToolTip = 'Opens the Copilot tax match review for this order. Because the shop requires review, the Sales Document is not created until you approve the match on the review page.';
-                Visible = ShowReviewEntry and ReviewRequired and not Rec."Copilot Tax Match Reviewed";
+                ToolTip = 'Opens the Copilot tax match review for this order. Because this order is held for review, the Sales Document is not created until you approve the match on the review page.';
+                Visible = ShowReviewEntry and not Rec."Copilot Tax Match Reviewed" and (ReviewRequired or Rec."Copilot Tax Rate Conflict");
 
                 trigger OnAction()
                 begin
@@ -44,7 +44,7 @@ pageextension 30479 "Shpfy CT Order" extends "Shpfy Order"
                 PromotedIsBig = true;
                 PromotedOnly = true;
                 ToolTip = 'Opens the Copilot tax match review for this order, where you can see the resolved Tax Area and the per-line Tax Jurisdiction Codes that Copilot matched.';
-                Visible = ShowReviewEntry and ((not ReviewRequired) or Rec."Copilot Tax Match Reviewed");
+                Visible = ShowReviewEntry and (Rec."Copilot Tax Match Reviewed" or not (ReviewRequired or Rec."Copilot Tax Rate Conflict"));
 
                 trigger OnAction()
                 begin
@@ -75,6 +75,12 @@ pageextension 30479 "Shpfy CT Order" extends "Shpfy Order"
         end;
     end;
 
+    var
+        CopilotTaxMatchingEnabled: Boolean;
+        ReviewRequired: Boolean;
+        ShowReviewEntry: Boolean;
+        NotifiedOrderId: BigInteger;
+
     local procedure OpenReviewPage()
     var
         OrderHeader: Record "Shpfy Order Header";
@@ -84,10 +90,4 @@ pageextension 30479 "Shpfy CT Order" extends "Shpfy Order"
         CopilotTaxNotify.RunReviewPage(OrderHeader);
         CurrPage.Update(false);
     end;
-
-    var
-        CopilotTaxMatchingEnabled: Boolean;
-        ReviewRequired: Boolean;
-        ShowReviewEntry: Boolean;
-        NotifiedOrderId: BigInteger;
 }

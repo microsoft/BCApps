@@ -55,12 +55,35 @@
 |---|----------|---------------------|-----------------|
 | TD1 | No existing detail | None for this jurisdiction + tax group | Tax Detail created with rate from tax line |
 | TD2 | Exact detail exists | Same jurisdiction, tax group, and rate | No duplicate created |
-| TD3 | Same jurisdiction, different rate | Valid bracket exists at earlier date with different rate | Existing detail preserved; rate divergence logged (telemetry `0000SHK`); no new detail inserted |
+| TD3 | Same jurisdiction, different rate | Valid bracket exists at earlier date with a different rate than Shopify's | **Line is matched** to the (correct) jurisdiction and the **Tax Area is built**; existing detail preserved (not overwritten or duplicated); rate conflict logged (telemetry `0000UMR`) and flagged on the order (`Copilot Tax Rate Conflict`); the order is held for review; the line is highlighted red (BC rate vs Shopify rate) on the review page (see RD1) |
 | TD4 | Same jurisdiction, different tax group | Detail exists with different Tax Group Code | New Tax Detail created for the new tax group |
 | TD5 | Item has no tax group | Order line item has blank Tax Group Code | Tax Detail created with blank Tax Group Code |
 | TD6 | Order line has no item | Item No. is blank on order line | Tax Detail created with blank Tax Group Code |
 | TD7 | Multiple tax lines across jurisdictions | Two tax lines on different jurisdictions, auto-create on | One Tax Detail per jurisdiction |
 | TD8 | Effective date | Order Document Date = 2026-01-15 | Tax Detail has Effective Date = 2026-01-15 |
+
+---
+
+## Rate Divergence Scenarios
+
+When a matched jurisdiction's existing Tax Detail (for the line's item tax group, valid as of
+the order date) has a rate that differs from Shopify's, Copilot still matches the (correct)
+jurisdiction and builds the Tax Area, but sets the stored `Copilot Tax Rate Conflict` flag and
+holds the order for human review. That flag is the single source of truth (gate, notifications,
+order-page caption, review-page guidance + Approve all read it). The reviewer sees Shopify's and
+BC's rates side by side (green/red) on the review page and decides whether to accept BC's rate,
+change the jurisdiction, or correct the Tax Detail. Jurisdiction edits on the page only take
+effect on Approve and are reverted if the page is closed without approving.
+
+| # | Scenario | Setup | Expected Result |
+|---|----------|-------|-----------------|
+| RD1 | Item-group rate conflict | `NYSTAX × FURNITURE` Tax Detail = 10%; order line taxed at 20% for NYSTAX (group FURNITURE) | Line matched to NYSTAX; existing 10% detail untouched; telemetry `0000UMR`; `Copilot Tax Match Applied` + `Copilot Tax Rate Conflict` set; **Tax Area built**; Activity Log entry on the line noting the rate difference; order held (see RD3/RD4) |
+| RD2 | Partial conflict, multi-line | Lines A (NYSTAX, no existing detail) and B (NYCTAX × FURNITURE conflict) | A matched (code written, detail seeded); B matched (code written, existing detail untouched); **Tax Area built from both**; order flagged `Copilot Tax Rate Conflict` and held |
+| RD3 | Held in blocking mode | RD1 + shop Review Required = Yes | `OnBeforeCreateSalesHeader` sets `Handled := true`; no Sales Document created |
+| RD4 | Held in non-blocking mode | RD1 + shop Review Required = No | Still held — the gate holds because `Copilot Tax Rate Conflict` is set, regardless of the toggle, so a rate difference is never auto-posted without review |
+| RD5 | Resolved then approved / re-run | After RD1 the reviewer either (a) accepts BC's 10% and clicks Approve, or (b) corrects the Tax Detail rate to 20% then Approves (or re-runs Find Mappings on the Shopify order) | On Approve the Tax Area is rebuilt from the line jurisdictions, `Copilot Tax Rate Conflict` is recomputed (clears when rates now agree), and the order is released. A re-run rebuilds from the order's **full** jurisdiction set (carried in from persisted codes), not just the re-matched line |
+| RD8 | Edit discarded on close | On a held order the reviewer changes a line's Tax Jurisdiction Code, then closes the page **without** Approve | A confirmation warns the edit will be discarded; on confirm the line's Tax Jurisdiction Code is reverted to its pre-edit value and `Copilot Tax Rate Conflict` is unchanged (still authoritative) |
+| RD9 | Undo Approval | On an approved, held order with no Sales Document yet (`Sales Order No.`/`Sales Invoice No.` blank), **Undo Approval** (after a confirm) clears `Copilot Tax Match Reviewed` so the order is held again; the action is hidden once a Sales Document exists or the order is not held-when-unapproved |
 
 ---
 
@@ -125,13 +148,15 @@ jurisdiction.
 | HITL-4 | `DisableForUser` from the Sales Order notification | Sets the order's `Copilot Tax Match Reviewed = true` and disables the prompt via `My Notifications` |
 | HITL-5 | Successful match applied | `Activity Log Entry` count for the Order Header `Tax Area Code` field ≥ 1; per-line entries on each matched `Shpfy Order Tax Line` |
 | HITL-6 | LLM returns 'low'/'medium'/'high'/unknown confidence | `Capitalize` helper maps to 'Low'/'Medium'/'High'/'Low' (safe fallback); `Activity Log Builder.SetConfidence` does not error |
-| HITL-7 | Review page approve (blocking) | On the Copilot Tax Match Review page, **Approve** sets `Copilot Tax Match Reviewed = true`; the order's Sales Document is created on the next process run |
-| HITL-8 | Review page approve (non-blocking) | With review not required, the page's **Approve** action still sets `Copilot Tax Match Reviewed = true` (records the review) |
+| HITL-7 | Review page Approve visibility (held order) | On a held order (shop requires review, or a live rate conflict) that isn't yet approved, **Approve** is visible; it sets `Copilot Tax Match Reviewed = true` and the order's Sales Document is created on the next process run |
+| HITL-8 | Review page Approve hidden (non-blocking, no conflict) | With review not required and no rate conflict, the order isn't held (its Sales Document is created automatically), so the page's **Approve** action is hidden and the page is informational |
 | HITL-9 | Review page scoping + content | The tax lines ListPart shows exactly the tax lines of the current order (filtered by the order's order line ids via `SetTaxLineFilter`), each with its applies-to Item No./description; AI confidence indicators render on Tax Jurisdiction Code |
 | HITL-10 | Sales Order prompt is stateless | With `Sales Header."Copilot Tax Match Applied"` set, the prompt fires iff the originating order's `Copilot Tax Match Reviewed = false` and `My Notifications` is enabled; no `Shpfy Copilot Tax Notification` table exists |
 | HITL-11 | Order-page review notification | On opening a matched, not-yet-reviewed Shopify order, `SendOrderReviewNotification` fires once per order/session; **Review** opens the review page; **Don't show again** disables it via `MyNotifications` |
-| HITL-12 | Page review actions | Shpfy Order page: **Review and Approve Copilot Tax Match** shows while the shop requires review and it isn't yet approved, else **Review Copilot Tax Match**; both open the review page (hidden when not Copilot-matched). BC Sales Order page: **Review Copilot Tax Match** opens the review page when the marker is set |
-| HITL-13 | Review page close guard | When the shop requires review and the order is not yet approved, closing the Copilot Tax Match Review page raises the `OnQueryClosePage` confirmation; declining keeps the page open. No warning when review is not required or the order is already approved |
+| HITL-12 | Page review actions | Shpfy Order page: **Review and Approve Copilot Tax Match** shows while the order is held (shop requires review or a live rate conflict) and it isn't yet approved, else **Review Copilot Tax Match**; both open the review page (hidden when not Copilot-matched). BC Sales Order page: **Review Copilot Tax Match** opens the review page when the marker is set |
+| HITL-13 | Review page close guard | When the order is being held (shop requires review, or a rate conflict) and it is not yet approved, closing the Copilot Tax Match Review page raises the `OnQueryClosePage` confirmation; declining keeps the page open. No warning once the order is approved |
+| RD6 | Approve rebuilds Tax Area | On a **held**, not-yet-reviewed order the **Approve** action is shown; it re-applies the line jurisdictions (re-seeding brackets, re-detecting conflicts), rebuilds the Tax Area, refreshes `Copilot Tax Rate Conflict`, and sets `Copilot Tax Match Reviewed`. Approve is blocked (error) while any tax line has a blank Tax Jurisdiction Code |
+| RD7 | Rate comparison + edit | Each tax line shows Shopify's rate next to Business Central's Tax Detail rate; the row is green when they agree, red when they differ. Editing a line's Tax Jurisdiction Code recomputes the BC rate/colour; on a rate conflict, the Overview tab shows a guidance message that approving posts at BC's rate |
 
 **Shop Card field dependencies (SC scenarios)**
 
@@ -191,3 +216,17 @@ These scenarios test the LLM's ability to handle ambiguous, misleading, or compl
 | F4 | Re-import same order | Same as F1 | Same order imported again | Tax lines already matched, Tax Area already set; Copilot skipped entirely (guard: Tax Area Code <> '') |
 | F5 | Address-based match wins | Enabled | Order where MapTaxArea finds a match by address | Tax Area set by MapTaxArea; Copilot never runs (guard: Tax Area Code <> '') |
 | F6 | Sales document creation | After F1 completes | Create Sales Order from Shopify order | Sales Header has Tax Area Code = `SHPFY-MTATAX`, Tax Liable = Yes |
+
+---
+
+## Automated Test Coverage
+
+| Test codeunit | ID | Covers |
+|---------------|----|--------|
+| `Shpfy CTM Match Test` | 134717 | Jurisdiction matching (J*), creation (JC*), Tax Detail incl. rate-conflict TD3/RD1, shipping (ST*) — data-driven via the real LLM + `MatchTaxLines` |
+| `Shpfy CTM Tax Area Test` | 134718 | Tax Area find/create (TA*) — `FindOrCreateTaxArea` |
+| `Shpfy CTM Guard Test` | 134719 | Guard / early-exit (GD*, P1–P6) |
+| `Shpfy CT HITL Test` | 134716 | HITL-1…6 — marker propagation, `MarkReviewed`, `DisableForUser`, Activity Log helpers, `Capitalize` |
+| `Shpfy CT Rate Conflict Test` | 134720 | Rate-conflict recheck/flip on approve (RD1/RD5/RD6 core via `ReapplyFromAssignedLines`), the creation gate RD3/RD4 + released cases (`IsSalesDocumentCreationHeld`), and Undo Approval RD9 (`UndoApproval`) |
+
+**Verified manually / by TestPage (not unit-automated):** the page-property scenarios — Approve/Undo action visibility, BC-rate column + green/red styling (RD7), edit-revert-on-close (RD8), review-page close guard (HITL-13), page action captions (HITL-12), notification prompts (HITL-10/11), and Shop Card field enable/disable (SC-1…3) — as these are page-lifecycle/UI behaviors best exercised through the client.

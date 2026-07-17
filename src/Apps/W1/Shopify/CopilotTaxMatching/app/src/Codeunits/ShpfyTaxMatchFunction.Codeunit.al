@@ -13,6 +13,9 @@ codeunit 30474 "Shpfy Tax Match Function" implements "AOAI Function"
     InherentPermissions = X;
     InherentEntitlements = X;
 
+    var
+        FunctionNameLbl: Label 'match_tax_jurisdictions', Locked = true;
+
     procedure GetPrompt() Prompt: JsonObject
     begin
         Prompt.ReadFrom(NavApp.GetResourceAsText('AITools/TaxMatchFunction-ToolDef.json', TextEncoding::UTF8));
@@ -27,7 +30,4 @@ codeunit 30474 "Shpfy Tax Match Function" implements "AOAI Function"
     begin
         exit(FunctionNameLbl);
     end;
-
-    var
-        FunctionNameLbl: Label 'match_tax_jurisdictions', Locked = true;
 }
