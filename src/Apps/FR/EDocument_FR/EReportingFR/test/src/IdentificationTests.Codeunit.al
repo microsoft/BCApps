@@ -6,13 +6,20 @@ namespace Microsoft.eServices.EDocument.Formats.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Formats;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.Company;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
 
 codeunit 148146 "Identification Tests"
 {
     Subtype = Test;
     Permissions = tabledata "Company Information" = rimd,
                   tabledata "E-Document" = rimd,
+                  tabledata "E-Document Service" = rimd,
+                  tabledata "Sales Invoice Header" = rimd,
+                  tabledata "Cust. Ledger Entry" = rimd,
+                  tabledata "Detailed Cust. Ledg. Entry" = rimd,
                   tabledata "FR E-Invoice Lifecycle" = rimd;
 
     trigger OnRun()
@@ -254,6 +261,71 @@ codeunit 148146 "Identification Tests"
         Assert.ExpectedError('The regulatory identity and values of a French electronic invoice lifecycle occurrence cannot be changed.');
     end;
 
+    [Test]
+    procedure DetailedApplicationCapturesCollectedForFREInvoice()
+    var
+        EDocument: Record "E-Document";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        // [SCENARIO] Applying a payment to a French electronic invoice captures a Collected occurrence
+        CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
+
+        FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+
+        FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceLifecycle.FindFirst();
+        Assert.AreEqual(FREInvoiceLifecycle."Lifecycle Status"::Collected, FREInvoiceLifecycle."Lifecycle Status", 'A payment application must create a Collected occurrence.');
+        Assert.AreEqual(1250, FREInvoiceLifecycle."Reported Amount", 'The collected amount must be positive.');
+        Assert.AreEqual(DetailedCustLedgEntry."Entry No.", FREInvoiceLifecycle."Detailed Ledger Entry No.", 'The source detail entry must be retained.');
+        Assert.AreEqual(DetailedCustLedgEntry.SystemId, FREInvoiceLifecycle."Source Occurrence ID", 'The detail entry system ID must identify the occurrence.');
+    end;
+
+    [Test]
+    procedure DetailedApplicationIgnoresNonFREInvoice()
+    var
+        EDocument: Record "E-Document";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        // [SCENARIO] Applying a payment to an electronic invoice in a non-French format creates no French lifecycle occurrence
+        CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"PEPPOL BIS 3.0");
+
+        FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+
+        FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.RecordIsEmpty(FREInvoiceLifecycle);
+    end;
+
+    [Test]
+    procedure DetailedUnapplicationCapturesLinkedNegativeCollected()
+    var
+        EDocument: Record "E-Document";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        CollectedLifecycle: Record "FR E-Invoice Lifecycle";
+        NegativeCollectedLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        // [SCENARIO] Unapplying a captured payment creates an exact linked Negative Collected occurrence
+        CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Peppol BIS 3.0 FR");
+        FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+        CollectedLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
+        CollectedLifecycle.FindFirst();
+        CreateUnapplicationDetail(NewDetailedCustLedgEntry, DetailedCustLedgEntry);
+
+        FREInvoiceLifecycleMgt.ProcessDetailedLedgerUnapplication(DetailedCustLedgEntry, NewDetailedCustLedgEntry);
+
+        NegativeCollectedLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
+        NegativeCollectedLifecycle.SetRange("Lifecycle Status", NegativeCollectedLifecycle."Lifecycle Status"::"Negative Collected");
+        NegativeCollectedLifecycle.FindFirst();
+        Assert.AreEqual(-CollectedLifecycle."Reported Amount", NegativeCollectedLifecycle."Reported Amount", 'The unapplication must exactly negate the collected amount.');
+        Assert.AreEqual(CollectedLifecycle."Entry No.", NegativeCollectedLifecycle."Original Occurrence Entry No.", 'The unapplication must reference the Collected occurrence.');
+        Assert.AreEqual(NewDetailedCustLedgEntry."Entry No.", NegativeCollectedLifecycle."Detailed Ledger Entry No.", 'The unapplication detail entry must be retained.');
+    end;
+
     local procedure CreateEDocument(var EDocument: Record "E-Document")
     begin
         EDocument.Init();
@@ -261,5 +333,78 @@ codeunit 148146 "Identification Tests"
         EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
         EDocument.Direction := EDocument.Direction::Outgoing;
         EDocument.Insert();
+    end;
+
+    local procedure CreatePostedInvoiceApplication(var EDocument: Record "E-Document"; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; EDocumentFormat: Enum "E-Document Format")
+    var
+        EDocumentService: Record "E-Document Service";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
+        PaymentCustLedgerEntry: Record "Cust. Ledger Entry";
+        DocumentNo: Code[20];
+    begin
+        DocumentNo := CopyStr(CreateGuid(), 1, MaxStrLen(DocumentNo));
+        SalesInvoiceHeader."No." := DocumentNo;
+        SalesInvoiceHeader.Insert();
+
+        EDocumentService.Code := CopyStr(CreateGuid(), 1, MaxStrLen(EDocumentService.Code));
+        EDocumentService."Document Format" := EDocumentFormat;
+        EDocumentService.Insert();
+
+        EDocument."Document Record ID" := SalesInvoiceHeader.RecordId;
+        EDocument."Document No." := DocumentNo;
+        EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
+        EDocument.Direction := EDocument.Direction::Outgoing;
+        EDocument.Service := EDocumentService.Code;
+        EDocument.Insert();
+
+        InvoiceCustLedgerEntry."Entry No." := GetNextCustLedgerEntryNo();
+        InvoiceCustLedgerEntry."Document Type" := InvoiceCustLedgerEntry."Document Type"::Invoice;
+        InvoiceCustLedgerEntry."Document No." := DocumentNo;
+        InvoiceCustLedgerEntry.Insert();
+
+        PaymentCustLedgerEntry."Entry No." := InvoiceCustLedgerEntry."Entry No." + 1;
+        PaymentCustLedgerEntry."Document Type" := PaymentCustLedgerEntry."Document Type"::Payment;
+        PaymentCustLedgerEntry."Document No." := CopyStr(CreateGuid(), 1, MaxStrLen(PaymentCustLedgerEntry."Document No."));
+        PaymentCustLedgerEntry.Insert();
+
+        DetailedCustLedgEntry."Entry No." := GetNextDetailedCustLedgerEntryNo();
+        DetailedCustLedgEntry."Cust. Ledger Entry No." := InvoiceCustLedgerEntry."Entry No.";
+        DetailedCustLedgEntry."Applied Cust. Ledger Entry No." := PaymentCustLedgerEntry."Entry No.";
+        DetailedCustLedgEntry."Entry Type" := DetailedCustLedgEntry."Entry Type"::Application;
+        DetailedCustLedgEntry."Initial Document Type" := DetailedCustLedgEntry."Initial Document Type"::Invoice;
+        DetailedCustLedgEntry.Amount := -1250;
+        DetailedCustLedgEntry."Currency Code" := 'EUR';
+        DetailedCustLedgEntry."Posting Date" := WorkDate();
+        DetailedCustLedgEntry.Insert(true);
+    end;
+
+    local procedure CreateUnapplicationDetail(var NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    begin
+        NewDetailedCustLedgEntry := DetailedCustLedgEntry;
+        NewDetailedCustLedgEntry."Entry No." := GetNextDetailedCustLedgerEntryNo();
+        NewDetailedCustLedgEntry.Amount := -DetailedCustLedgEntry.Amount;
+        NewDetailedCustLedgEntry."Posting Date" := WorkDate() + 1;
+        NewDetailedCustLedgEntry.Unapplied := true;
+        NewDetailedCustLedgEntry."Unapplied by Entry No." := DetailedCustLedgEntry."Entry No.";
+        NewDetailedCustLedgEntry.Insert(true);
+    end;
+
+    local procedure GetNextCustLedgerEntryNo(): Integer
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        if CustLedgerEntry.FindLast() then
+            exit(CustLedgerEntry."Entry No." + 1);
+        exit(1);
+    end;
+
+    local procedure GetNextDetailedCustLedgerEntryNo(): Integer
+    var
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+    begin
+        if DetailedCustLedgEntry.FindLast() then
+            exit(DetailedCustLedgEntry."Entry No." + 1);
+        exit(1);
     end;
 }

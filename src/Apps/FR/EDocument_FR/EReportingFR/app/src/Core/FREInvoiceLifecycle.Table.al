@@ -117,6 +117,9 @@ table 10970 "FR E-Invoice Lifecycle"
         key(EDocument; "E-Document Entry No.", "Created At")
         {
         }
+        key(DetailedLedgerEntry; "Lifecycle Status", "Detailed Ledger Entry No.")
+        {
+        }
     }
 
     trigger OnModify()

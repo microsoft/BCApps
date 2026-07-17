@@ -5,6 +5,10 @@
 namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Posting;
+using Microsoft.Sales.History;
+using Microsoft.Sales.Receivables;
 
 codeunit 10971 "FR E-Invoice Lifecycle Mgt."
 {
@@ -12,6 +16,59 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
     InherentEntitlements = X;
     InherentPermissions = X;
     Permissions = tabledata "FR E-Invoice Lifecycle" = rim;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnAfterInsertDtldCustLedgEntry', '', false, false)]
+    local procedure OnAfterInsertDtldCustLedgEntry(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; GenJournalLine: Record "Gen. Journal Line"; DtldCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; Offset: Integer)
+    begin
+        ProcessDetailedLedgerApplication(DtldCustLedgEntry);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnAfterInsertDtldCustLedgEntryUnapply', '', false, false)]
+    local procedure OnAfterInsertDtldCustLedgEntryUnapply(var CustomerPostingGroup: Record "Customer Posting Group"; var OldDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; var GenJnlLine: Record "Gen. Journal Line"; var NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    begin
+        ProcessDetailedLedgerUnapplication(OldDetailedCustLedgEntry, NewDetailedCustLedgEntry);
+    end;
+
+    internal procedure ProcessDetailedLedgerApplication(DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    var
+        EDocument: Record "E-Document";
+        InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
+        PaymentCustLedgerEntry: Record "Cust. Ledger Entry";
+    begin
+        if not IsInvoiceApplication(DetailedCustLedgEntry) then
+            exit;
+        if not InvoiceCustLedgerEntry.Get(DetailedCustLedgEntry."Cust. Ledger Entry No.") then
+            exit;
+        if not PaymentCustLedgerEntry.Get(DetailedCustLedgEntry."Applied Cust. Ledger Entry No.") then
+            exit;
+        if PaymentCustLedgerEntry."Document Type" <> PaymentCustLedgerEntry."Document Type"::Payment then
+            exit;
+        if not FindInvoiceEDocuments(EDocument, InvoiceCustLedgerEntry) then
+            exit;
+
+        repeat
+            if IsFREInvoiceEDocument(EDocument) then
+                CapturePaymentOccurrence(
+                    EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, DetailedCustLedgEntry.SystemId,
+                    -DetailedCustLedgEntry.Amount, DetailedCustLedgEntry."Currency Code", DetailedCustLedgEntry."Posting Date",
+                    InvoiceCustLedgerEntry."Entry No.", PaymentCustLedgerEntry."Entry No.", DetailedCustLedgEntry."Entry No.", 0);
+        until EDocument.Next() = 0;
+    end;
+
+    internal procedure ProcessDetailedLedgerUnapplication(OldDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
+    var
+        CollectedLifecycle: Record "FR E-Invoice Lifecycle";
+    begin
+        if not IsInvoiceApplication(OldDetailedCustLedgEntry) then
+            exit;
+        if not FindCollectedOccurrence(CollectedLifecycle, OldDetailedCustLedgEntry."Entry No.") then
+            exit;
+
+        CapturePaymentOccurrence(
+            CollectedLifecycle."E-Document Entry No.", "FR E-Invoice Lifecycle Status"::"Negative Collected", NewDetailedCustLedgEntry.SystemId,
+            -CollectedLifecycle."Reported Amount", CollectedLifecycle."Currency Code", NewDetailedCustLedgEntry."Posting Date",
+            CollectedLifecycle."Invoice Cust. Ledger Entry No.", CollectedLifecycle."Payment Cust. Ledger Entry No.", NewDetailedCustLedgEntry."Entry No.", CollectedLifecycle."Entry No.");
+    end;
 
     internal procedure CapturePaymentOccurrence(EDocumentEntryNo: Integer; LifecycleStatus: Enum "FR E-Invoice Lifecycle Status"; SourceOccurrenceID: Guid; ReportedAmount: Decimal; CurrencyCode: Code[10]; EventDate: Date; InvoiceCustLedgerEntryNo: Integer; PaymentCustLedgerEntryNo: Integer; DetailedLedgerEntryNo: Integer; OriginalOccurrenceEntryNo: Integer) FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle"
     begin
@@ -79,6 +136,48 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         FREInvoiceLifecycle.SetRange("Source Occurrence ID", SourceOccurrenceID);
         FREInvoiceLifecycle.SetRange("Lifecycle Status", LifecycleStatus);
         exit(FREInvoiceLifecycle.FindFirst());
+    end;
+
+    local procedure FindCollectedOccurrence(var FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle"; DetailedLedgerEntryNo: Integer): Boolean
+    begin
+        FREInvoiceLifecycle.SetRange("Lifecycle Status", FREInvoiceLifecycle."Lifecycle Status"::Collected);
+        FREInvoiceLifecycle.SetRange("Detailed Ledger Entry No.", DetailedLedgerEntryNo);
+        exit(FREInvoiceLifecycle.FindFirst());
+    end;
+
+    local procedure FindInvoiceEDocuments(var EDocument: Record "E-Document"; InvoiceCustLedgerEntry: Record "Cust. Ledger Entry"): Boolean
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+    begin
+        if InvoiceCustLedgerEntry."Document Type" <> InvoiceCustLedgerEntry."Document Type"::Invoice then
+            exit(false);
+        if not SalesInvoiceHeader.Get(InvoiceCustLedgerEntry."Document No.") then
+            exit(false);
+
+        EDocument.SetRange("Document Record ID", SalesInvoiceHeader.RecordId);
+        EDocument.SetRange(Direction, EDocument.Direction::Outgoing);
+        EDocument.SetRange("Document Type", EDocument."Document Type"::"Sales Invoice");
+        exit(EDocument.FindSet());
+    end;
+
+    local procedure IsFREInvoiceEDocument(EDocument: Record "E-Document"): Boolean
+    var
+        EDocumentService: Record "E-Document Service";
+    begin
+        exit(EDocumentService.Get(EDocument.Service) and IsFREInvoiceFormat(EDocumentService."Document Format"));
+    end;
+
+    local procedure IsFREInvoiceFormat(EDocumentFormat: Enum "E-Document Format"): Boolean
+    begin
+        exit(EDocumentFormat in [EDocumentFormat::"Peppol BIS 3.0 FR", EDocumentFormat::"Factur-X FR"]);
+    end;
+
+    local procedure IsInvoiceApplication(DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"): Boolean
+    begin
+        exit(
+            (DetailedCustLedgEntry."Entry Type" = DetailedCustLedgEntry."Entry Type"::Application) and
+            (DetailedCustLedgEntry."Initial Document Type" = DetailedCustLedgEntry."Initial Document Type"::Invoice) and
+            (DetailedCustLedgEntry.Amount < 0));
     end;
 
     local procedure VerifyReplay(FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle"; ReportedAmount: Decimal; CurrencyCode: Code[10]; EventDate: Date; InvoiceCustLedgerEntryNo: Integer; PaymentCustLedgerEntryNo: Integer; DetailedLedgerEntryNo: Integer; OriginalOccurrenceEntryNo: Integer)
