@@ -675,6 +675,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
     var
         ImportOrder: Codeunit "Shpfy Import Order";
     begin
+        ImportOrder.SetShop(Shop.Code);
         ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
     end;
 
