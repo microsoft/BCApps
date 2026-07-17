@@ -419,6 +419,7 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
     procedure ShowTransferOrdersFromPurchaseOrder(PurchaseHeader: Record "Purchase Header"; IsReturn: Boolean)
     var
         TransferHeader: Record "Transfer Header";
+        PageManagement: Codeunit "Page Management";
     begin
 #if not CLEAN29
 #pragma warning disable AL0432
@@ -430,9 +431,9 @@ codeunit 99001560 "Subc. Purch. Factbox Mgmt."
         TransferHeader.SetRange("Subc. Return Order", IsReturn);
         if TransferHeader.Count() = 1 then begin
             TransferHeader.FindFirst();
-            Page.Run(Page::"Transfer Order", TransferHeader);
+            PageManagement.PageRun(TransferHeader);
         end else
-            Page.Run(Page::"Transfer Orders", TransferHeader);
+            PageManagement.PageRunList(TransferHeader);
     end;
 
     /// <summary>
