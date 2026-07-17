@@ -210,6 +210,9 @@ report 11000015 "SEPA ISO20022 Pain 008.001.08"
         TotalAmount: Text[50];
         LineCount: Text[20];
         BtchBookg: Text[250];
+        StreetName: Text[70];
+        PostalCode: Text[16];
+        TownName: Text[35];
     begin
         BtchBookg := 'false';
         Customer.Get(PaymentHistoryLine."Account No.");
@@ -263,7 +266,17 @@ report 11000015 "SEPA ISO20022 Pain 008.001.08"
         AddElement(XMLNodeCurr, 'Nm', BankAcc."Account Holder Name", '', XMLNewChild);
         AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
-        AddElement(XMLNodeCurr, 'AdrLine', BankAcc."Account Holder Address", '', XMLNewChild);
+        StreetName := CopyStr(DelChr(BankAcc."Account Holder Address", '<>'), 1, MaxStrLen(StreetName));
+        PostalCode := CopyStr(DelChr(BankAcc."Account Holder Post Code", '<>'), 1, MaxStrLen(PostalCode));
+        TownName := CopyStr(DelChr(BankAcc."Account Holder City", '<>'), 1, MaxStrLen(TownName));
+        if StreetName <> '' then
+            AddElement(XMLNodeCurr, 'StrtNm', StreetName, '', XMLNewChild);
+        if PostalCode <> '' then
+            AddElement(XMLNodeCurr, 'PstCd', PostalCode, '', XMLNewChild);
+        if TownName <> '' then
+            AddElement(XMLNodeCurr, 'TwnNm', TownName, '', XMLNewChild);
+        if BankAcc."Acc. Hold. Country/Region Code" <> '' then
+            AddElement(XMLNodeCurr, 'Ctry', CopyStr(BankAcc."Acc. Hold. Country/Region Code", 1, 2), '', XMLNewChild);
         XMLNodeCurr := XMLNodeCurr.ParentNode;
         XMLNodeCurr := XMLNodeCurr.ParentNode;
 
@@ -293,7 +306,17 @@ report 11000015 "SEPA ISO20022 Pain 008.001.08"
         AddElement(XMLNodeCurr, 'Nm', CompanyInfo.Name, '', XMLNewChild);
         AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
-        AddElement(XMLNodeCurr, 'AdrLine', CompanyInfo.Address, '', XMLNewChild);
+        StreetName := CopyStr(DelChr(CompanyInfo.Address, '<>') + ' ' + DelChr(CompanyInfo."Address 2", '<>'), 1, MaxStrLen(StreetName));
+        PostalCode := CopyStr(DelChr(CompanyInfo."Post Code", '<>'), 1, MaxStrLen(PostalCode));
+        TownName := CopyStr(DelChr(CompanyInfo.City, '<>'), 1, MaxStrLen(TownName));
+        if StreetName <> '' then
+            AddElement(XMLNodeCurr, 'StrtNm', StreetName, '', XMLNewChild);
+        if PostalCode <> '' then
+            AddElement(XMLNodeCurr, 'PstCd', PostalCode, '', XMLNewChild);
+        if TownName <> '' then
+            AddElement(XMLNodeCurr, 'TwnNm', TownName, '', XMLNewChild);
+        if CompanyInfo."Country/Region Code" <> '' then
+            AddElement(XMLNodeCurr, 'Ctry', CopyStr(CompanyInfo."Country/Region Code", 1, 2), '', XMLNewChild);
         XMLNodeCurr := XMLNodeCurr.ParentNode;
         XMLNodeCurr := XMLNodeCurr.ParentNode;
 
@@ -333,6 +356,9 @@ report 11000015 "SEPA ISO20022 Pain 008.001.08"
         XMLParent: DotNet XmlNode;
         AddrLine: array[3] of Text[70];
         UnstructuredRemitInfo: Text[140];
+        StreetName: Text[70];
+        PostalCode: Text[16];
+        TownName: Text[35];
     begin
         XMLParent := XMLNodeCurr;
         Customer.Get(PaymentHistoryLine."Account No.");
@@ -383,12 +409,18 @@ report 11000015 "SEPA ISO20022 Pain 008.001.08"
             AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
             XMLNodeCurr := XMLNewChild;
 
+            StreetName := CopyStr(PaymentHistoryLine."Account Holder Address", 1, MaxStrLen(StreetName));
+            PostalCode := CopyStr(PaymentHistoryLine."Account Holder Post Code", 1, MaxStrLen(PostalCode));
+            TownName := CopyStr(PaymentHistoryLine."Account Holder City", 1, MaxStrLen(TownName));
+
+            if StreetName <> '' then
+                AddElement(XMLNodeCurr, 'StrtNm', StreetName, '', XMLNewChild);
+            if PostalCode <> '' then
+                AddElement(XMLNodeCurr, 'PstCd', PostalCode, '', XMLNewChild);
+            if TownName <> '' then
+                AddElement(XMLNodeCurr, 'TwnNm', TownName, '', XMLNewChild);
             if AddrLine[1] <> '' then
                 AddElement(XMLNodeCurr, 'Ctry', AddrLine[1], '', XMLNewChild);
-            if AddrLine[2] <> '' then
-                AddElement(XMLNodeCurr, 'AdrLine', AddrLine[2], '', XMLNewChild);
-            if AddrLine[3] <> '' then
-                AddElement(XMLNodeCurr, 'AdrLine', AddrLine[3], '', XMLNewChild);
 
             XMLNodeCurr := XMLNodeCurr.ParentNode;
             XMLNodeCurr := XMLNodeCurr.ParentNode;
@@ -410,7 +442,17 @@ report 11000015 "SEPA ISO20022 Pain 008.001.08"
         AddElement(XMLNodeCurr, 'Nm', Customer.Name, '', XMLNewChild);
         AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
-        AddElement(XMLNodeCurr, 'AdrLine', Customer.Address, '', XMLNewChild);
+        StreetName := CopyStr(DelChr(Customer.Address, '<>') + ' ' + DelChr(Customer."Address 2", '<>'), 1, MaxStrLen(StreetName));
+        PostalCode := CopyStr(DelChr(Customer."Post Code", '<>'), 1, MaxStrLen(PostalCode));
+        TownName := CopyStr(DelChr(Customer.City, '<>'), 1, MaxStrLen(TownName));
+        if StreetName <> '' then
+            AddElement(XMLNodeCurr, 'StrtNm', StreetName, '', XMLNewChild);
+        if PostalCode <> '' then
+            AddElement(XMLNodeCurr, 'PstCd', PostalCode, '', XMLNewChild);
+        if TownName <> '' then
+            AddElement(XMLNodeCurr, 'TwnNm', TownName, '', XMLNewChild);
+        if Customer."Country/Region Code" <> '' then
+            AddElement(XMLNodeCurr, 'Ctry', CopyStr(Customer."Country/Region Code", 1, 2), '', XMLNewChild);
         XMLNodeCurr := XMLNodeCurr.ParentNode;
         XMLNodeCurr := XMLNodeCurr.ParentNode;
 
