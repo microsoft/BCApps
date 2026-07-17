@@ -25,6 +25,7 @@ tableextension 6211 "Sustainability Purch. Line" extends "Purchase Line"
             trigger OnValidate()
             var
                 SustainabilityAccount: Record "Sustainability Account";
+                SustainabilityAccountCategory: Record "Sustain. Account Category";
             begin
                 Rec.TestStatusOpen();
                 if Rec."Sust. Account No." <> xRec."Sust. Account No." then
@@ -44,6 +45,9 @@ tableextension 6211 "Sustainability Purch. Line" extends "Purchase Line"
                     Rec.Validate("Sust. Account Category", SustainabilityAccount.Category);
                     Rec.Validate("Sust. Account Subcategory", SustainabilityAccount.Subcategory);
                     UpdateDefaultEmissionOnPurchLine(Rec);
+                    if SustainabilityAccountCategory.Get(SustainabilityAccount.Category) then
+                        if SustainabilityAccountCategory."Calculation Foundation" = SustainabilityAccountCategory."Calculation Foundation"::Distance then
+                            Rec.Validate("Installation Multiplier", 1);
                 end;
 
                 CreateDimFromDefaultDim(FieldNo(Rec."Sust. Account No."));
