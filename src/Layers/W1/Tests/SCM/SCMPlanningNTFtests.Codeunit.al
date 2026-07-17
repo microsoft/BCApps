@@ -334,12 +334,16 @@ codeunit 137021 "SCM Planning - NTF tests"
     local procedure VerifyReservEntryQtyBase(SourceType: Integer; SourceSubtype: Integer; SourceID: Code[20]; ExpectedQtyBase: Decimal)
     var
         ReservationEntry: Record "Reservation Entry";
+        TotalQtyBase: Decimal;
     begin
         ReservationEntry.SetRange("Source Type", SourceType);
         ReservationEntry.SetRange("Source Subtype", SourceSubtype);
         ReservationEntry.SetRange("Source ID", SourceID);
-        ReservationEntry.FindFirst();
-        Assert.AreEqual(ExpectedQtyBase, Abs(ReservationEntry."Quantity (Base)"),
+        if ReservationEntry.FindSet() then
+            repeat
+                TotalQtyBase += Abs(ReservationEntry."Quantity (Base)");
+            until ReservationEntry.Next() = 0;
+        Assert.AreEqual(ExpectedQtyBase, TotalQtyBase,
           'Reservation Entry Quantity (Base) must match demand.');
     end;
 
@@ -3712,14 +3716,14 @@ codeunit 137021 "SCM Planning - NTF tests"
         QtyPerUoM: Decimal;
         JobQuantity: Decimal;
     begin
-        // [SCENARIO 640455] Job Planning Line with non-base Purchase UoM can be deleted after carrying out the planning Action Message, without orphan reservation entries.
+        // [SCENARIO 642150] Job Planning Line with non-base Purchase UoM can be deleted after carrying out the planning Action Message, without orphan reservation entries.
 
         Initialize();
 
-        // [GIVEN] Item "I" with non-base Purchase UoM "U" with Qty per UoM = 12, Reordering Policy = Lot-for-Lot, and Job Planning Line "J" with quantity = 1.
-        // [GIVEN] Qty per UoM = 12 and quantity = 1 reproduce the base-quantity conversion rounding mismatch (1/12 rounded to 0.00001 precision converts back to 0.99996).
+        // [GIVEN] Item "I" with non-base Purchase UoM "U" with Qty per UoM = 1.5, Reordering Policy = Lot-for-Lot, and Job Planning Line "J" with quantity = 1.
+        // [GIVEN] Qty per UoM = 1.5 and quantity = 1 reproduce a base-quantity conversion rounding mismatch that also depends on the base rounding step (1/1.5 rounded to 0.00001 precision converts back to 1.00001).
         TestSetup();
-        QtyPerUoM := 12;
+        QtyPerUoM := 1.5;
         JobQuantity := 1;
         CreateItemWithNonBasePurchUoM(Item, ItemUnitOfMeasure, QtyPerUoM);
         CreateJobAndPlanningLine(JobTask, JobPlanningLine, Item."No.", JobQuantity, true);
