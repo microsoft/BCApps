@@ -27,28 +27,28 @@ codeunit 4609 "Ext. SharePoint REST Helper"
 
     internal procedure ListFiles(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
-        TempSharePointFile: Record "SharePoint File";
+        SharePointFile: Record "SharePoint File";
         SharePointClient: Codeunit "SharePoint Client";
         OriginalPath: Text;
     begin
         OriginalPath := Path;
         InitPath(SharePointAccount, Path);
         InitSharePointClient(SharePointAccount, SharePointClient);
-        if not SharePointClient.GetFolderFilesByServerRelativeUrl(Path, TempSharePointFile) then
+        if not SharePointClient.GetFolderFilesByServerRelativeUrl(Path, SharePointFile) then
             ShowError(SharePointClient);
 
         FilePaginationData.SetEndOfListing(true);
 
-        if not TempSharePointFile.FindSet() then
+        if not SharePointFile.FindSet() then
             exit;
 
         repeat
             TempFileAccountContent.Init();
-            TempFileAccountContent.Name := TempSharePointFile.Name;
+            TempFileAccountContent.Name := SharePointFile.Name;
             TempFileAccountContent.Type := TempFileAccountContent.Type::"File";
             TempFileAccountContent."Parent Directory" := CopyStr(OriginalPath, 1, MaxStrLen(TempFileAccountContent."Parent Directory"));
             TempFileAccountContent.Insert();
-        until TempSharePointFile.Next() = 0;
+        until SharePointFile.Next() = 0;
     end;
 
     internal procedure GetFile(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text; Stream: InStream)
@@ -70,14 +70,14 @@ codeunit 4609 "Ext. SharePoint REST Helper"
 
     internal procedure CreateFile(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text; Stream: InStream)
     var
-        TempSharePointFile: Record "SharePoint File";
+        SharePointFile: Record "SharePoint File";
         SharePointClient: Codeunit "SharePoint Client";
         ParentPath, FileName : Text;
     begin
         InitPath(SharePointAccount, Path);
         InitSharePointClient(SharePointAccount, SharePointClient);
         SplitPath(Path, ParentPath, FileName);
-        if SharePointClient.AddFileToFolder(ParentPath, FileName, Stream, TempSharePointFile, false) then
+        if SharePointClient.AddFileToFolder(ParentPath, FileName, Stream, SharePointFile, false) then
             exit;
 
         ShowError(SharePointClient);
@@ -102,16 +102,16 @@ codeunit 4609 "Ext. SharePoint REST Helper"
 
     internal procedure FileExists(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text): Boolean
     var
-        TempSharePointFile: Record "SharePoint File";
+        SharePointFile: Record "SharePoint File";
         SharePointClient: Codeunit "SharePoint Client";
     begin
         InitPath(SharePointAccount, Path);
         InitSharePointClient(SharePointAccount, SharePointClient);
-        if not SharePointClient.GetFolderFilesByServerRelativeUrl(GetParentPath(Path), TempSharePointFile) then
+        if not SharePointClient.GetFolderFilesByServerRelativeUrl(GetParentPath(Path), SharePointFile) then
             ShowError(SharePointClient);
 
-        TempSharePointFile.SetRange(Name, GetFileName(Path));
-        exit(not TempSharePointFile.IsEmpty());
+        SharePointFile.SetRange(Name, GetFileName(Path));
+        exit(not SharePointFile.IsEmpty());
     end;
 
     internal procedure DeleteFile(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text)
@@ -132,38 +132,38 @@ codeunit 4609 "Ext. SharePoint REST Helper"
 
     internal procedure ListDirectories(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text; FilePaginationData: Codeunit "File Pagination Data"; var TempFileAccountContent: Record "File Account Content" temporary)
     var
-        TempSharePointFolder: Record "SharePoint Folder";
+        SharePointFolder: Record "SharePoint Folder";
         SharePointClient: Codeunit "SharePoint Client";
         OriginalPath: Text;
     begin
         OriginalPath := Path;
         InitPath(SharePointAccount, Path);
         InitSharePointClient(SharePointAccount, SharePointClient);
-        if not SharePointClient.GetSubFoldersByServerRelativeUrl(Path, TempSharePointFolder) then
+        if not SharePointClient.GetSubFoldersByServerRelativeUrl(Path, SharePointFolder) then
             ShowError(SharePointClient);
 
         FilePaginationData.SetEndOfListing(true);
 
-        if not TempSharePointFolder.FindSet() then
+        if not SharePointFolder.FindSet() then
             exit;
 
         repeat
             TempFileAccountContent.Init();
-            TempFileAccountContent.Name := TempSharePointFolder.Name;
+            TempFileAccountContent.Name := SharePointFolder.Name;
             TempFileAccountContent.Type := TempFileAccountContent.Type::Directory;
             TempFileAccountContent."Parent Directory" := CopyStr(OriginalPath, 1, MaxStrLen(TempFileAccountContent."Parent Directory"));
             TempFileAccountContent.Insert();
-        until TempSharePointFolder.Next() = 0;
+        until SharePointFolder.Next() = 0;
     end;
 
     internal procedure CreateDirectory(SharePointAccount: Record "Ext. SharePoint Account"; Path: Text)
     var
-        TempSharePointFolder: Record "SharePoint Folder";
+        SharePointFolder: Record "SharePoint Folder";
         SharePointClient: Codeunit "SharePoint Client";
     begin
         InitPath(SharePointAccount, Path);
         InitSharePointClient(SharePointAccount, SharePointClient);
-        if SharePointClient.CreateFolder(Path, TempSharePointFolder) then
+        if SharePointClient.CreateFolder(Path, SharePointFolder) then
             exit;
 
         ShowError(SharePointClient);
