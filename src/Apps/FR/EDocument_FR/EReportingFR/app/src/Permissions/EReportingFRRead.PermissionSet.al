@@ -11,5 +11,6 @@ permissionset 10971 "E-Reporting FR - Read"
 
     IncludedPermissionSets = "E-Reporting FR - Objects";
 
-    Permissions = tabledata "FR E-Invoice Lifecycle" = R;
+    Permissions = tabledata "FR E-Invoice Lifecycle" = R,
+                  tabledata "FR E-Invoice Lifecycle VAT" = R;
 }

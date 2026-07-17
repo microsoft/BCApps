@@ -9,6 +9,8 @@ using Microsoft.eServices.EDocument.Formats;
 using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Ledger;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -26,7 +28,10 @@ codeunit 148146 "Identification Tests"
                   tabledata "Sales Invoice Header" = rimd,
                   tabledata "Cust. Ledger Entry" = rimd,
                   tabledata "Detailed Cust. Ledg. Entry" = rimd,
-                  tabledata "FR E-Invoice Lifecycle" = rimd;
+                  tabledata "FR E-Invoice Lifecycle" = rimd,
+                  tabledata "FR E-Invoice Lifecycle VAT" = rimd,
+                  tabledata "VAT Entry" = rimd,
+                  tabledata "VAT Posting Setup" = rimd;
 
     trigger OnRun()
     begin
@@ -404,6 +409,8 @@ codeunit 148146 "Identification Tests"
         NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
         CollectedLifecycle: Record "FR E-Invoice Lifecycle";
         NegativeCollectedLifecycle: Record "FR E-Invoice Lifecycle";
+        CollectedLifecycleVAT: Record "FR E-Invoice Lifecycle VAT";
+        NegativeCollectedLifecycleVAT: Record "FR E-Invoice Lifecycle VAT";
         FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
     begin
         // [SCENARIO] Unapplying a captured payment creates an exact linked Negative Collected occurrence
@@ -421,6 +428,22 @@ codeunit 148146 "Identification Tests"
         Assert.AreEqual(-CollectedLifecycle."Reported Amount", NegativeCollectedLifecycle."Reported Amount", 'The unapplication must exactly negate the collected amount.');
         Assert.AreEqual(CollectedLifecycle."Entry No.", NegativeCollectedLifecycle."Original Occurrence Entry No.", 'The unapplication must reference the Collected occurrence.');
         Assert.AreEqual(NewDetailedCustLedgEntry."Entry No.", NegativeCollectedLifecycle."Detailed Ledger Entry No.", 'The unapplication detail entry must be retained.');
+        CollectedLifecycleVAT.SetRange("Lifecycle Entry No.", CollectedLifecycle."Entry No.");
+        Assert.RecordCount(CollectedLifecycleVAT, 2);
+        CollectedLifecycleVAT.SetRange("VAT %", 20);
+        CollectedLifecycleVAT.FindFirst();
+        Assert.AreEqual(480, CollectedLifecycleVAT."Reported Amount", 'The payment amount must be allocated proportionally to the 20% VAT gross amount.');
+        CollectedLifecycleVAT.SetRange("VAT %", 10);
+        CollectedLifecycleVAT.FindFirst();
+        Assert.AreEqual(520, CollectedLifecycleVAT."Reported Amount", 'The payment remainder must be allocated to the 10% VAT gross amount.');
+        CollectedLifecycleVAT.SetRange("VAT %");
+        CollectedLifecycleVAT.FindSet();
+        repeat
+            NegativeCollectedLifecycleVAT.Get(NegativeCollectedLifecycle."Entry No.", CollectedLifecycleVAT."Line No.");
+            Assert.AreEqual(CollectedLifecycleVAT."VAT %", NegativeCollectedLifecycleVAT."VAT %", 'The reversal must retain each VAT rate.');
+            Assert.AreEqual(-CollectedLifecycleVAT."Reported Amount", NegativeCollectedLifecycleVAT."Reported Amount", 'The reversal must exactly negate each VAT-rate amount.');
+            Assert.AreEqual(CollectedLifecycleVAT."Currency Code", NegativeCollectedLifecycleVAT."Currency Code", 'The reversal must retain the currency of each VAT-rate amount.');
+        until CollectedLifecycleVAT.Next() = 0;
     end;
 
     [Test]
@@ -433,13 +456,18 @@ codeunit 148146 "Identification Tests"
         TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
         XmlDoc: XmlDocument;
+        AmountElement: XmlElement;
+        AmountNode: XmlNode;
+        ProfileNode: XmlNode;
         StatusNode: XmlNode;
+        VATPercentNode: XmlNode;
     begin
         // [SCENARIO] A captured occurrence creates and links a PR 8698 E-Document Message payload
         CreateEDocument(EDocument);
         FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
             1250, 'EUR', WorkDate(), 0, 0, 0, 0);
+        CreateLifecycleVATBreakdown(FREInvoiceLifecycle, 20, 1250);
 
         FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
 
@@ -448,8 +476,17 @@ codeunit 148146 "Identification Tests"
         EDocMessageMgt.GetMessageBlob(FREInvoiceLifecycle."E-Document Message Entry No.", TempBlob);
         TempBlob.CreateInStream(InStream);
         XmlDocument.ReadFrom(InStream, XmlDoc);
-        Assert.IsTrue(XmlDoc.SelectSingleNode('/InvoiceLifecycleMessage/Status', StatusNode), 'The payload must contain the lifecycle status.');
-        Assert.AreEqual('COLLECTED', StatusNode.AsXmlElement().InnerText(), 'The payload must map Collected to its wire code.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ProcessConditionCode"]', StatusNode), 'The payload must contain the lifecycle status.');
+        Assert.AreEqual('212', StatusNode.AsXmlElement().InnerText(), 'The payload must map Collected to the French Encaissée status code.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="SpecifiedDocumentCharacteristic"]/*[local-name()="TypeCode"]', StatusNode), 'The payload must qualify the reported amount.');
+        Assert.AreEqual('MEN', StatusNode.AsXmlElement().InnerText(), 'The payload must qualify the amount as Montant encaissé.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="GuidelineSpecifiedDocumentContextParameter"]/*[local-name()="ID"]', ProfileNode), 'The payload must identify the French invoice lifecycle profile.');
+        Assert.AreEqual('urn.cpro.gouv.fr:1p0:CDV:invoice', ProfileNode.AsXmlElement().InnerText(), 'The payload must use the general French invoice lifecycle profile.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ValueAmount"]', AmountNode), 'The payload must contain the collected amount.');
+        AmountElement := AmountNode.AsXmlElement();
+        Assert.AreEqual('EUR', AmountElement.GetAttribute('currencyID').Value(), 'The collected amount must identify its currency.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ValuePercent"]', VATPercentNode), 'The payload must contain the VAT percentage.');
+        Assert.AreEqual('20', VATPercentNode.AsXmlElement().InnerText(), 'The payload must retain the frozen VAT percentage.');
     end;
 
     [Test]
@@ -465,6 +502,7 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
             1250, 'EUR', WorkDate(), 0, 0, 0, 0);
+        CreateLifecycleVATBreakdown(FREInvoiceLifecycle, 20, 1250);
         FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
         MessageEntryNo := FREInvoiceLifecycle."E-Document Message Entry No.";
 
@@ -474,7 +512,7 @@ codeunit 148146 "Identification Tests"
     end;
 
     [Test]
-    procedure CreateNegativeCollectedMessageIncludesOriginalOccurrence()
+    procedure CreateNegativeCollectedMessageUses212AndNegativeAmount()
     var
         EDocument: Record "E-Document";
         CollectedLifecycle: Record "FR E-Invoice Lifecycle";
@@ -484,27 +522,29 @@ codeunit 148146 "Identification Tests"
         TempBlob: Codeunit "Temp Blob";
         InStream: InStream;
         XmlDoc: XmlDocument;
-        OriginalOccurrenceNode: XmlNode;
+        AmountNode: XmlNode;
         StatusNode: XmlNode;
     begin
-        // [SCENARIO] A Negative Collected message identifies its status and original Collected occurrence
+        // [SCENARIO] A Negative Collected occurrence uses status 212 with a negative collected amount
         CreateEDocument(EDocument);
         CollectedLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
             1250, 'EUR', WorkDate(), 0, 0, 0, 0);
+        CreateLifecycleVATBreakdown(CollectedLifecycle, 20, 1250);
         NegativeCollectedLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
             EDocument."Entry No", "FR E-Invoice Lifecycle Status"::"Negative Collected", CreateGuid(),
             -1250, 'EUR', WorkDate() + 1, 0, 0, 0, CollectedLifecycle."Entry No.");
+        CreateLifecycleVATBreakdown(NegativeCollectedLifecycle, 20, -1250);
 
         FREInvoiceLifecycleMgt.CreateLifecycleMessage(NegativeCollectedLifecycle);
 
         EDocMessageMgt.GetMessageBlob(NegativeCollectedLifecycle."E-Document Message Entry No.", TempBlob);
         TempBlob.CreateInStream(InStream);
         XmlDocument.ReadFrom(InStream, XmlDoc);
-        Assert.IsTrue(XmlDoc.SelectSingleNode('/InvoiceLifecycleMessage/Status', StatusNode), 'The payload must contain the lifecycle status.');
-        Assert.AreEqual('NEGATIVE_COLLECTED', StatusNode.AsXmlElement().InnerText(), 'The payload must map Negative Collected to its wire code.');
-        Assert.IsTrue(XmlDoc.SelectSingleNode('/InvoiceLifecycleMessage/OriginalOccurrenceID', OriginalOccurrenceNode), 'The payload must contain the original occurrence ID.');
-        Assert.AreEqual(Format(CollectedLifecycle."Source Occurrence ID"), OriginalOccurrenceNode.AsXmlElement().InnerText(), 'The payload must identify the original Collected occurrence.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ProcessConditionCode"]', StatusNode), 'The payload must contain the lifecycle status.');
+        Assert.AreEqual('212', StatusNode.AsXmlElement().InnerText(), 'An unapplication must retain the Encaissée status code.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('//*[local-name()="ValueAmount"]', AmountNode), 'The payload must contain the collected amount.');
+        Assert.AreEqual('-1250', AmountNode.AsXmlElement().InnerText(), 'An unapplication must report a negative collected amount.');
     end;
 
     [Test]
@@ -538,6 +578,7 @@ codeunit 148146 "Identification Tests"
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
         CustLedgerEntry: Record "Cust. Ledger Entry";
         DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT";
         GenJournalLine: Record "Gen. Journal Line";
         GenJournalBatch: Record "Gen. Journal Batch";
         PostedDocNo: Code[20];
@@ -580,6 +621,9 @@ codeunit 148146 "Identification Tests"
         Assert.IsTrue(FREInvoiceLifecycle."Reported Amount" > 0, 'The collected amount must be positive.');
         Assert.AreEqual(DetailedCustLedgEntry."Posting Date", FREInvoiceLifecycle."Event Date", 'The event date must match the DCLE posting date.');
         Assert.AreEqual(DetailedCustLedgEntry.SystemId, FREInvoiceLifecycle."Source Occurrence ID", 'The source occurrence ID must match the DCLE system ID.');
+        FREInvoiceLifecycleVAT.SetRange("Lifecycle Entry No.", FREInvoiceLifecycle."Entry No.");
+        FREInvoiceLifecycleVAT.CalcSums("Reported Amount");
+        Assert.AreEqual(FREInvoiceLifecycle."Reported Amount", FREInvoiceLifecycleVAT."Reported Amount", 'The VAT breakdown must equal the collected amount.');
     end;
 
     local procedure Initialize()
@@ -652,7 +696,11 @@ codeunit 148146 "Identification Tests"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
         PaymentCustLedgerEntry: Record "Cust. Ledger Entry";
+        VATEntry: Record "VAT Entry";
+        VATPostingSetup: Record "VAT Posting Setup";
         DocumentNo: Code[20];
+        VATBusPostingGroup: Code[20];
+        VATProdPostingGroup: Code[20];
     begin
         DocumentNo := CopyStr(CreateGuid(), 1, MaxStrLen(DocumentNo));
         SalesInvoiceHeader."No." := DocumentNo;
@@ -672,7 +720,51 @@ codeunit 148146 "Identification Tests"
         InvoiceCustLedgerEntry."Entry No." := GetNextCustLedgerEntryNo();
         InvoiceCustLedgerEntry."Document Type" := InvoiceCustLedgerEntry."Document Type"::Invoice;
         InvoiceCustLedgerEntry."Document No." := DocumentNo;
+        InvoiceCustLedgerEntry."Posting Date" := WorkDate();
+        InvoiceCustLedgerEntry."Transaction No." := InvoiceCustLedgerEntry."Entry No.";
         InvoiceCustLedgerEntry.Insert();
+
+        VATBusPostingGroup := CopyStr(CreateGuid(), 1, MaxStrLen(VATBusPostingGroup));
+        VATProdPostingGroup := CopyStr(CreateGuid(), 1, MaxStrLen(VATProdPostingGroup));
+        VATPostingSetup."VAT Bus. Posting Group" := VATBusPostingGroup;
+        VATPostingSetup."VAT Prod. Posting Group" := VATProdPostingGroup;
+        VATPostingSetup."VAT %" := 20;
+        VATPostingSetup.Insert();
+
+        VATEntry."Entry No." := GetNextVATEntryNo();
+        VATEntry.Type := VATEntry.Type::Sale;
+        VATEntry."Document Type" := VATEntry."Document Type"::Invoice;
+        VATEntry."Document No." := DocumentNo;
+        VATEntry."Posting Date" := WorkDate();
+        VATEntry."Transaction No." := InvoiceCustLedgerEntry."Transaction No.";
+        VATEntry."VAT Bus. Posting Group" := VATBusPostingGroup;
+        VATEntry."VAT Prod. Posting Group" := VATProdPostingGroup;
+        VATEntry."Source Currency Code" := 'EUR';
+        VATEntry."Source Currency VAT Base" := -500;
+        VATEntry."Source Currency VAT Amount" := -100;
+        VATEntry.Insert();
+
+        Clear(VATPostingSetup);
+        VATBusPostingGroup := CopyStr(CreateGuid(), 1, MaxStrLen(VATBusPostingGroup));
+        VATProdPostingGroup := CopyStr(CreateGuid(), 1, MaxStrLen(VATProdPostingGroup));
+        VATPostingSetup."VAT Bus. Posting Group" := VATBusPostingGroup;
+        VATPostingSetup."VAT Prod. Posting Group" := VATProdPostingGroup;
+        VATPostingSetup."VAT %" := 10;
+        VATPostingSetup.Insert();
+
+        Clear(VATEntry);
+        VATEntry."Entry No." := GetNextVATEntryNo();
+        VATEntry.Type := VATEntry.Type::Sale;
+        VATEntry."Document Type" := VATEntry."Document Type"::Invoice;
+        VATEntry."Document No." := DocumentNo;
+        VATEntry."Posting Date" := WorkDate();
+        VATEntry."Transaction No." := InvoiceCustLedgerEntry."Transaction No.";
+        VATEntry."VAT Bus. Posting Group" := VATBusPostingGroup;
+        VATEntry."VAT Prod. Posting Group" := VATProdPostingGroup;
+        VATEntry."Source Currency Code" := 'EUR';
+        VATEntry."Source Currency VAT Base" := -590.91;
+        VATEntry."Source Currency VAT Amount" := -59.09;
+        VATEntry.Insert();
 
         PaymentCustLedgerEntry."Entry No." := InvoiceCustLedgerEntry."Entry No." + 1;
         PaymentCustLedgerEntry."Document Type" := PaymentCustLedgerEntry."Document Type"::Payment;
@@ -684,7 +776,7 @@ codeunit 148146 "Identification Tests"
         DetailedCustLedgEntry."Applied Cust. Ledger Entry No." := PaymentCustLedgerEntry."Entry No.";
         DetailedCustLedgEntry."Entry Type" := DetailedCustLedgEntry."Entry Type"::Application;
         DetailedCustLedgEntry."Initial Document Type" := DetailedCustLedgEntry."Initial Document Type"::Invoice;
-        DetailedCustLedgEntry.Amount := -1250;
+        DetailedCustLedgEntry.Amount := -1000;
         DetailedCustLedgEntry."Currency Code" := 'EUR';
         DetailedCustLedgEntry."Posting Date" := WorkDate();
         DetailedCustLedgEntry.Insert(true);
@@ -717,5 +809,26 @@ codeunit 148146 "Identification Tests"
         if DetailedCustLedgEntry.FindLast() then
             exit(DetailedCustLedgEntry."Entry No." + 1);
         exit(1);
+    end;
+
+    local procedure GetNextVATEntryNo(): Integer
+    var
+        VATEntry: Record "VAT Entry";
+    begin
+        if VATEntry.FindLast() then
+            exit(VATEntry."Entry No." + 1);
+        exit(1);
+    end;
+
+    local procedure CreateLifecycleVATBreakdown(FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle"; VATRate: Decimal; ReportedAmount: Decimal)
+    var
+        FREInvoiceLifecycleVAT: Record "FR E-Invoice Lifecycle VAT";
+    begin
+        FREInvoiceLifecycleVAT."Lifecycle Entry No." := FREInvoiceLifecycle."Entry No.";
+        FREInvoiceLifecycleVAT."Line No." := 10000;
+        FREInvoiceLifecycleVAT."VAT %" := VATRate;
+        FREInvoiceLifecycleVAT."Reported Amount" := ReportedAmount;
+        FREInvoiceLifecycleVAT."Currency Code" := FREInvoiceLifecycle."Currency Code";
+        FREInvoiceLifecycleVAT.Insert();
     end;
 }

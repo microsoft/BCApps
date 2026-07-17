@@ -10,6 +10,7 @@ permissionset 10970 "E-Reporting FR - Objects"
     Assignable = false;
 
     Permissions = table "FR E-Invoice Lifecycle" = X,
+                  table "FR E-Invoice Lifecycle VAT" = X,
                   codeunit "FR E-Invoice Lifecycle Mgt." = X,
                   codeunit "FR E-Invoice Lifecycle Msg." = X,
                   codeunit "FR E-Invoice Lifecycle Worker" = X,

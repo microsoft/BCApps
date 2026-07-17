@@ -127,6 +127,11 @@ table 10970 "FR E-Invoice Lifecycle"
         TestImmutableFields();
     end;
 
+    trigger OnDelete()
+    begin
+        Error(ImmutableOccurrenceErr);
+    end;
+
     local procedure TestImmutableFields()
     begin
         if (Rec."E-Document Entry No." <> xRec."E-Document Entry No.") or
