@@ -559,8 +559,6 @@ codeunit 4301 "Agent Impl."
         SetupPageId: Integer;
         UserSecurityIdTok: Label 'User Security ID', Locked = true;
     begin
-        EnsureNotArchived(AgentUserSecurityID);
-
         AgentMetadata := AgentMetadataProvider;
         SetupPageId := AgentMetadata.GetSetupPageId(AgentUserSecurityID);
 

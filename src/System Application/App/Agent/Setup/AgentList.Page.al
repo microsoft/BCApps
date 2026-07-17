@@ -70,7 +70,7 @@ page 4316 "Agent List"
                 Caption = 'Configure';
                 ToolTip = 'Configure the agent';
                 Image = SetupLines;
-                Enabled = Rec."Can Curr. User Configure Agent" and not AgentIsArchived;
+                Enabled = Rec."Can Curr. User Configure Agent";
 
                 trigger OnAction()
                 var

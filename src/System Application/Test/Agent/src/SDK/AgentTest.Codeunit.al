@@ -1232,6 +1232,37 @@ codeunit 133961 "Agent Test"
     end;
 
     [Test]
+    procedure ArchivedAgentConfigureActionEnabledOnCard()
+    var
+        AgentRecord: Record Agent;
+        AgentCardPage: TestPage "Agent Card";
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] The Configure action stays enabled on the card for an archived agent, so its configuration can still be reviewed
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [WHEN] Opening the agent card for the archived agent
+        AgentCardPage.OpenView();
+        AgentCardPage.GoToKey(AgentId);
+
+        // [THEN] The Configure action is enabled - the setup page opens for review; instructions stay frozen at the platform and providers make their own config read-only for archived agents
+        Assert.IsTrue(AgentCardPage.AgentSetup.Enabled(), 'Configure action should be enabled for an archived agent so its configuration can be reviewed');
+
+        AgentCardPage.Close();
+    end;
+
+    [Test]
     procedure UpdateLocalizationSettingsOnArchivedAgentErrors()
     var
         AgentRecord: Record Agent;
@@ -1291,7 +1322,7 @@ codeunit 133961 "Agent Test"
     end;
 
     [Test]
-    procedure UpdateAgentAccessControlOnArchivedAgentErrors()
+    procedure UpdateAgentAccessControlOnArchivedAgentSucceeds()
     var
         AgentRecord: Record Agent;
         TempAgentAccessControl: Record "Agent Access Control" temporary;
@@ -1300,7 +1331,7 @@ codeunit 133961 "Agent Test"
     begin
         Initialize();
 
-        // [SCENARIO] Updating access control on an archived agent is rejected by the platform
+        // [SCENARIO] Access control is authorization metadata, not agent data, so it stays administrable on an archived agent
 
         // [GIVEN] A deactivated, archived agent
         AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
@@ -1311,10 +1342,17 @@ codeunit 133961 "Agent Test"
         Agent.Deactivate(AgentId);
         Agent.Archive(AgentId);
 
+        TempAgentAccessControl."Agent User Security ID" := AgentId;
+        TempAgentAccessControl."User Security ID" := UserSecurityId();
+        TempAgentAccessControl.Insert();
+
         // [WHEN] Updating access control on the archived agent
-        // [THEN] An error is raised that the operation is not allowed because the associated agent is archived
-        asserterror Agent.UpdateAgentAccessControl(AgentId, TempAgentAccessControl);
-        Assert.ExpectedError('The operation on Agent Access Control is not allowed because the associated agent is archived.');
+        Agent.UpdateAgentAccessControl(AgentId, TempAgentAccessControl);
+
+        // [THEN] The grant is applied - archiving freezes agent data, not who may access it
+        Clear(TempAgentAccessControl);
+        Agent.GetUserAccess(AgentId, TempAgentAccessControl);
+        Assert.AreEqual(1, TempAgentAccessControl.Count(), 'Access control should be administrable on an archived agent');
     end;
 
     [Test]

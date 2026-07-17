@@ -171,7 +171,7 @@ page 4315 "Agent Card"
                 Caption = 'Configure';
                 ToolTip = 'Configure agent';
                 Image = SetupLines;
-                Enabled = Rec."Can Curr. User Configure Agent" and not AgentIsArchived;
+                Enabled = Rec."Can Curr. User Configure Agent";
 
                 trigger OnAction()
                 begin
