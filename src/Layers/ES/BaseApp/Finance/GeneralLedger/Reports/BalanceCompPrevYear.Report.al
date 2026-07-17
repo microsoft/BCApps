@@ -24,6 +24,7 @@ report 37 "Balance Comp. - Prev. Year"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Balance Comp. - Prev. Year';
+    ToolTip = 'View a report that shows your company''s assets, liabilities, and equity compared to the previous year.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

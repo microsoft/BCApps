@@ -531,7 +531,6 @@ page 16 "Chart of Accounts"
                 Caption = 'Detail Trial Balance';
                 Image = "Report";
                 RunObject = Report "Detail Trial Balance";
-                ToolTip = 'View a detail trial balance for the general ledger accounts that you specify.';
             }
 #if not CLEAN28
             action("Trial Balance")
@@ -556,7 +555,6 @@ page 16 "Chart of Accounts"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Trial Balance by Period";
-                ToolTip = 'View the opening balance by general ledger account, the movements in the selected period of month, quarter, or year, and the resulting closing balance.';
             }
             action(Action1900210206)
             {
@@ -564,7 +562,6 @@ page 16 "Chart of Accounts"
                 Caption = 'G/L Register';
                 Image = "Report";
                 RunObject = Report "G/L Register";
-                ToolTip = 'View posted G/L entries.';
             }
             action("Transaction Detail Report")
             {
@@ -584,7 +581,6 @@ page 16 "Chart of Accounts"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Income Statement";
-                ToolTip = 'View the income statement.';
             }
             action("Balance Sheet")
             {
@@ -594,7 +590,6 @@ page 16 "Chart of Accounts"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Balance Sheet";
-                ToolTip = 'Print the legal report that is required in Australia for accounts auditing. You can choose to round the amounts in display by tens, hundreds, thousands, hundred thousands or millions factor.';
             }
             action("Financial Analysis Report")
             {

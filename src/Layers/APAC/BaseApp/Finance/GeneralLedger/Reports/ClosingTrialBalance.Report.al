@@ -24,6 +24,7 @@ report 10 "Closing Trial Balance"
     AdditionalSearchTerms = 'year closing balance,close accounting period balance,close fiscal year balance';
     ApplicationArea = Basic, Suite;
     Caption = 'Closing Trial Balance';
+    ToolTip = 'View, print, or send a report that shows this year''s and last year''s figures as an ordinary trial balance. The closing of the income statement accounts is posted at the end of a fiscal year. The report can be used in connection with closing a fiscal year.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

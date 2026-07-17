@@ -153,7 +153,6 @@ page 9004 "Bookkeeper Role Center"
                     Caption = 'Trial Balance by &Period';
                     Image = "Report";
                     RunObject = Report "Trial Balance by Period";
-                    ToolTip = 'Show the opening balance by general ledger account, the movements in the selected period of month, quarter, or year, and the resulting closing balance.';
                 }
                 action("Closing Tria&l Balance")
                 {
@@ -161,7 +160,6 @@ page 9004 "Bookkeeper Role Center"
                     Caption = 'Closing Tria&l Balance';
                     Image = "Report";
                     RunObject = Report "Closing Trial Balance";
-                    ToolTip = 'View this year''s and last year''s figures as an ordinary trial balance. For income statement accounts, the balances are shown without closing entries. Closing entries are listed on a fictitious date that falls between the last day of one fiscal year and the first day of the next one. The closing of the income statement accounts is posted at the end of a fiscal year. The report can be used in connection with closing a fiscal year.';
                 }
             }
             action("&Fiscal Year Balance")
@@ -170,7 +168,6 @@ page 9004 "Bookkeeper Role Center"
                 Caption = '&Fiscal Year Balance';
                 Image = "Report";
                 RunObject = Report "Fiscal Year Balance";
-                ToolTip = 'View, print, or send a report that shows balance sheet movements for selected periods. The report shows the closing balance by the end of the previous fiscal year for the selected ledger accounts. It also shows the fiscal year until this date, the fiscal year by the end of the selected period, and the balance by the end of the selected period, excluding the closing entries. The report can be used at the close of an accounting period or fiscal year.';
             }
             action("Balance C&omp. . Prev. Year")
             {
@@ -178,7 +175,6 @@ page 9004 "Bookkeeper Role Center"
                 Caption = 'Balance C&omp. . Prev. Year';
                 Image = "Report";
                 RunObject = Report "Balance Comp. - Prev. Year";
-                ToolTip = 'View a report that shows your company''s assets, liabilities, and equity compared to the previous year.';
             }
             group("Aged Accounts")
             {
@@ -213,7 +209,6 @@ page 9004 "Bookkeeper Role Center"
                     Caption = 'Reconcile Customer and &Vendor Accounts';
                     Image = "Report";
                     RunObject = Report "Reconcile Cust. and Vend. Accs";
-                    ToolTip = 'View if a certain general ledger account reconciles the balance on a certain date for the corresponding posting group. The report shows the accounts that are included in the reconciliation with the general ledger balance and the customer or the vendor ledger balance for each account and shows any differences between the general ledger balance and the customer or vendor ledger balance.';
                 }
             }
             group(VAT)
@@ -1047,7 +1042,6 @@ page 9004 "Bookkeeper Role Center"
                     Ellipsis = true;
                     Image = SettleOpenTransactions;
                     RunObject = Report "Calc. and Post VAT Settlement";
-                    ToolTip = 'Close open VAT entries and transfers purchase and sales VAT amounts to the VAT settlement account. For every VAT posting group, the batch job finds all the VAT entries in the VAT Entry table that are included in the filters in the definition window.';
                     Visible = false;
                 }
             }

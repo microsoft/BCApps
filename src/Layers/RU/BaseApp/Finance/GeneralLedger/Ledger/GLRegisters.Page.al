@@ -338,7 +338,6 @@ page 116 "G/L Registers"
                     Caption = 'Delete Empty Registers';
                     Image = Delete;
                     RunObject = Report "Delete Empty G/L Registers";
-                    ToolTip = 'Find and delete empty G/L registers.';
                 }
             }
         }
@@ -350,7 +349,6 @@ page 116 "G/L Registers"
                 Caption = 'Detail Trial Balance';
                 Image = "Report";
                 RunObject = Report "Detail Trial Balance";
-                ToolTip = 'Print or save a detail trial balance for the general ledger accounts that you specify.';
             }
 #if not CLEAN28
             action("Trial Balance")
@@ -373,7 +371,6 @@ page 116 "G/L Registers"
                 Caption = 'Trial Balance by Period';
                 Image = "Report";
                 RunObject = Report "Trial Balance by Period";
-                ToolTip = 'Print or save the opening balance by general ledger account, the movements in the selected period of month, quarter, or year, and the resulting closing balance.';
             }
             action("G/L Register")
             {
@@ -381,7 +378,6 @@ page 116 "G/L Registers"
                 Caption = 'G/L Register';
                 Image = "Report";
                 RunObject = Report "G/L Register";
-                ToolTip = 'View posted G/L entries.';
             }
         }
         area(Promoted)

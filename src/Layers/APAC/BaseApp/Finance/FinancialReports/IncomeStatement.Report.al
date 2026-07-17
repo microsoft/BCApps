@@ -25,6 +25,7 @@ report 28025 "Income Statement"
     RDLCLayout = './Finance/FinancialReports/IncomeStatement.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Income Statement';
+    ToolTip = 'View a report that shows your company''s income and expenses.';
     UsageCategory = ReportsAndAnalysis;
 
     dataset

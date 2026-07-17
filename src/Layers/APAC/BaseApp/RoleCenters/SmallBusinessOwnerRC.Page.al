@@ -232,7 +232,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'Trial Balance by &Period';
                 Image = "Report";
                 RunObject = Report "Trial Balance by Period";
-                ToolTip = 'Show the opening balance by general ledger account, the movements in the selected period of month, quarter, or year, and the resulting closing balance.';
             }
             action("Closing T&rial Balance")
             {
@@ -240,7 +239,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'Closing T&rial Balance';
                 Image = "Report";
                 RunObject = Report "Closing Trial Balance";
-                ToolTip = 'View this year''s and last year''s figures as an ordinary trial balance. For income statement accounts, the balances are shown without closing entries. Closing entries are listed on a fictitious date that falls between the last day of one fiscal year and the first day of the next one. The closing of the income statement accounts is posted at the end of a fiscal year. The report can be used in connection with closing a fiscal year.';
             }
             separator(Action49)
             {
@@ -251,7 +249,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'Balance Sheet';
                 Image = "Report";
                 RunObject = Report "Balance Sheet";
-                ToolTip = 'Print the legal report that is required in Australia for accounts auditing. You can choose to round the amounts in display by tens, hundreds, thousands, hundred thousands or millions factor.';
             }
             action("Income Statement")
             {
@@ -259,7 +256,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'Income Statement';
                 Image = "Report";
                 RunObject = Report "Income Statement";
-                ToolTip = 'View the income statement.';
             }
             action("Financial Analysis Report")
             {
@@ -310,7 +306,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'Reconcile Cust. and &Vend. Accs';
                 Image = "Report";
                 RunObject = Report "Reconcile Cust. and Vend. Accs";
-                ToolTip = 'View if a certain general ledger account reconciles the balance on a certain date for the corresponding posting group. The report shows the accounts that are included in the reconciliation with the general ledger balance and the customer or the vendor ledger balance for each account and shows any differences between the general ledger balance and the customer or vendor ledger balance.';
             }
             action("Aged Acc. Rec. (BackDating)")
             {
@@ -345,7 +340,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'VAT Registration No. Chec&k';
                 Image = "Report";
                 RunObject = Report "VAT Registration No. Check";
-                ToolTip = 'Use an EU VAT number validation service to validated the VAT number of a business partner.';
             }
             action("VAT E&xceptions")
             {
@@ -353,7 +347,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'VAT E&xceptions';
                 Image = "Report";
                 RunObject = Report "VAT Exceptions";
-                ToolTip = 'View the VAT entries that were posted and placed in a general ledger register in connection with a VAT difference. The report is used to document adjustments made to VAT amounts that were calculated for use in internal or external auditing.';
             }
             action("V&AT Statement")
             {
@@ -361,7 +354,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'V&AT Statement';
                 Image = "Report";
                 RunObject = Report "VAT Statement";
-                ToolTip = 'View a statement of posted VAT and calculate the duty liable to the customs authorities for the selected period.';
             }
             action("G/L - VAT Reconciliation")
             {
@@ -408,7 +400,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'VAT-VIES Declaration Tax A&uth';
                 Image = "Report";
                 RunObject = Report "VAT- VIES Declaration Tax Auth";
-                ToolTip = 'View information to the customs and tax authorities for sales to other EU countries/regions. If the information must be printed to a file, you can use the VAT- VIES Declaration Disk report.';
             }
             action("VAT - VIES Declaration &Disk")
             {
@@ -416,7 +407,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'VAT - VIES Declaration &Disk';
                 Image = "Report";
                 RunObject = Report "VAT- VIES Declaration Disk";
-                ToolTip = 'Report your sales to other EU countries or regions to the customs and tax authorities. If the information must be printed out on a printer, you can use the VAT- VIES Declaration Tax Auth report. The information is shown in the same format as in the declaration list from the customs and tax authorities.';
             }
             action("EC Sal&es List")
             {
@@ -424,7 +414,6 @@ page 9020 "Small Business Owner RC"
                 Caption = 'EC Sal&es List';
                 Image = "Report";
                 RunObject = Report "EC Sales List";
-                ToolTip = 'Calculate VAT amounts from sales, and submit the amounts to a tax authority.';
             }
             separator(Action1500017)
             {
@@ -1212,7 +1201,6 @@ page 9020 "Small Business Owner RC"
                     Ellipsis = true;
                     Image = SettleOpenTransactions;
                     RunObject = Report "Calc. and Post VAT Settlement";
-                    ToolTip = 'Close open VAT entries and transfers purchase and sales VAT amounts to the VAT settlement account. For every VAT posting group, the batch job finds all the VAT entries in the VAT Entry table that are included in the filters in the definition window.';
                 }
                 action("Calc. and Post WHT Settlement")
                 {
