@@ -4,15 +4,18 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
-permissionset 10970 "E-Reporting FR - Objects"
+codeunit 10985 "FR E-Invoice Lifecycle Error"
 {
     Access = Internal;
-    Assignable = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+    Permissions = tabledata "FR E-Invoice Lifecycle" = m;
+    TableNo = "FR E-Invoice Lifecycle";
 
-    Permissions = table "FR E-Invoice Lifecycle" = X,
-                  codeunit "FR E-Invoice Lifecycle Mgt." = X,
-                  codeunit "FR E-Invoice Lifecycle Msg." = X,
-                  codeunit "FR E-Invoice Lifecycle Worker" = X,
-                  codeunit "FR E-Invoice Lifecycle Error" = X,
-                  page "FR E-Invoice Lifecycles" = X;
+    trigger OnRun()
+    begin
+        Rec."Processing Status" := Rec."Processing Status"::Failed;
+        Rec."Last Error" := CopyStr(GetLastErrorText(), 1, MaxStrLen(Rec."Last Error"));
+        Rec.Modify();
+    end;
 }

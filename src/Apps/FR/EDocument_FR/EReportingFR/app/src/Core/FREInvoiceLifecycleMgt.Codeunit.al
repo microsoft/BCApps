@@ -5,10 +5,12 @@
 namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
+using System.Utilities;
 
 codeunit 10971 "FR E-Invoice Lifecycle Mgt."
 {
@@ -32,6 +34,7 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
     internal procedure ProcessDetailedLedgerApplication(DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     var
         EDocument: Record "E-Document";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
         InvoiceCustLedgerEntry: Record "Cust. Ledger Entry";
         PaymentCustLedgerEntry: Record "Cust. Ledger Entry";
     begin
@@ -47,27 +50,33 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
             exit;
 
         repeat
-            if IsFREInvoiceEDocument(EDocument) then
-                CapturePaymentOccurrence(
+            if IsFREInvoiceEDocument(EDocument) then begin
+                FREInvoiceLifecycle := CapturePaymentOccurrence(
                     EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, DetailedCustLedgEntry.SystemId,
                     -DetailedCustLedgEntry.Amount, DetailedCustLedgEntry."Currency Code", DetailedCustLedgEntry."Posting Date",
                     InvoiceCustLedgerEntry."Entry No.", PaymentCustLedgerEntry."Entry No.", DetailedCustLedgEntry."Entry No.", 0);
+                ScheduleMessageCreation(FREInvoiceLifecycle);
+            end;
         until EDocument.Next() = 0;
     end;
 
     internal procedure ProcessDetailedLedgerUnapplication(OldDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; NewDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     var
         CollectedLifecycle: Record "FR E-Invoice Lifecycle";
+        NegativeCollectedLifecycle: Record "FR E-Invoice Lifecycle";
     begin
         if not IsInvoiceApplication(OldDetailedCustLedgEntry) then
             exit;
-        if not FindCollectedOccurrence(CollectedLifecycle, OldDetailedCustLedgEntry."Entry No.") then
+        if not FindCollectedOccurrences(CollectedLifecycle, OldDetailedCustLedgEntry."Entry No.") then
             exit;
 
-        CapturePaymentOccurrence(
-            CollectedLifecycle."E-Document Entry No.", "FR E-Invoice Lifecycle Status"::"Negative Collected", NewDetailedCustLedgEntry.SystemId,
-            -CollectedLifecycle."Reported Amount", CollectedLifecycle."Currency Code", NewDetailedCustLedgEntry."Posting Date",
-            CollectedLifecycle."Invoice Cust. Ledger Entry No.", CollectedLifecycle."Payment Cust. Ledger Entry No.", NewDetailedCustLedgEntry."Entry No.", CollectedLifecycle."Entry No.");
+        repeat
+            NegativeCollectedLifecycle := CapturePaymentOccurrence(
+                CollectedLifecycle."E-Document Entry No.", "FR E-Invoice Lifecycle Status"::"Negative Collected", NewDetailedCustLedgEntry.SystemId,
+                -CollectedLifecycle."Reported Amount", CollectedLifecycle."Currency Code", NewDetailedCustLedgEntry."Posting Date",
+                CollectedLifecycle."Invoice Cust. Ledger Entry No.", CollectedLifecycle."Payment Cust. Ledger Entry No.", NewDetailedCustLedgEntry."Entry No.", CollectedLifecycle."Entry No.");
+            ScheduleMessageCreation(NegativeCollectedLifecycle);
+        until CollectedLifecycle.Next() = 0;
     end;
 
     internal procedure CapturePaymentOccurrence(EDocumentEntryNo: Integer; LifecycleStatus: Enum "FR E-Invoice Lifecycle Status"; SourceOccurrenceID: Guid; ReportedAmount: Decimal; CurrencyCode: Code[10]; EventDate: Date; InvoiceCustLedgerEntryNo: Integer; PaymentCustLedgerEntryNo: Integer; DetailedLedgerEntryNo: Integer; OriginalOccurrenceEntryNo: Integer) FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle"
@@ -93,6 +102,32 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         FREInvoiceLifecycle."Processing Status" := FREInvoiceLifecycle."Processing Status"::Captured;
         FREInvoiceLifecycle."Created At" := CurrentDateTime();
         FREInvoiceLifecycle.Insert();
+    end;
+
+    internal procedure CreateLifecycleMessage(var FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle")
+    var
+        EDocument: Record "E-Document";
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        FREInvoiceLifecycleMsg: Codeunit "FR E-Invoice Lifecycle Msg.";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        if FREInvoiceLifecycle."E-Document Message Entry No." <> 0 then
+            exit;
+
+        EDocument.Get(FREInvoiceLifecycle."E-Document Entry No.");
+        FREInvoiceLifecycleMsg.BuildLifecycleMessage(EDocument, FREInvoiceLifecycle, TempBlob);
+        FREInvoiceLifecycle."E-Document Message Entry No." := EDocMessageMgt.CreateMessage(
+            EDocument, "E-Document Message Type"::"FR Invoice Lifecycle", EDocument.Direction::Outgoing, TempBlob);
+        FREInvoiceLifecycle."Processing Status" := FREInvoiceLifecycle."Processing Status"::"Message Created";
+        Clear(FREInvoiceLifecycle."Last Error");
+        FREInvoiceLifecycle.Modify();
+    end;
+
+    internal procedure RetryLifecycleMessage(var FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle")
+    begin
+        FREInvoiceLifecycle.TestField("Processing Status", FREInvoiceLifecycle."Processing Status"::Failed);
+        FREInvoiceLifecycle.TestField("E-Document Message Entry No.", 0);
+        ScheduleMessageCreation(FREInvoiceLifecycle);
     end;
 
     local procedure ValidatePaymentOccurrence(EDocumentEntryNo: Integer; LifecycleStatus: Enum "FR E-Invoice Lifecycle Status"; SourceOccurrenceID: Guid; ReportedAmount: Decimal; EventDate: Date; OriginalOccurrenceEntryNo: Integer)
@@ -138,11 +173,21 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
         exit(FREInvoiceLifecycle.FindFirst());
     end;
 
-    local procedure FindCollectedOccurrence(var FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle"; DetailedLedgerEntryNo: Integer): Boolean
+    local procedure FindCollectedOccurrences(var FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle"; DetailedLedgerEntryNo: Integer): Boolean
     begin
         FREInvoiceLifecycle.SetRange("Lifecycle Status", FREInvoiceLifecycle."Lifecycle Status"::Collected);
         FREInvoiceLifecycle.SetRange("Detailed Ledger Entry No.", DetailedLedgerEntryNo);
-        exit(FREInvoiceLifecycle.FindFirst());
+        exit(FREInvoiceLifecycle.FindSet());
+    end;
+
+    local procedure ScheduleMessageCreation(var FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle")
+    begin
+        FREInvoiceLifecycle."Processing Status" := FREInvoiceLifecycle."Processing Status"::Queued;
+        Clear(FREInvoiceLifecycle."Last Error");
+        FREInvoiceLifecycle.Modify();
+        TaskScheduler.CreateTask(
+            Codeunit::"FR E-Invoice Lifecycle Worker", Codeunit::"FR E-Invoice Lifecycle Error", true,
+            CompanyName(), CurrentDateTime(), FREInvoiceLifecycle.RecordId);
     end;
 
     local procedure FindInvoiceEDocuments(var EDocument: Record "E-Document"; InvoiceCustLedgerEntry: Record "Cust. Ledger Entry"): Boolean

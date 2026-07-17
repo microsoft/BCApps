@@ -49,6 +49,11 @@ page 10970 "FR E-Invoice Lifecycles"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the processing status of the lifecycle occurrence.';
                 }
+                field("E-Document Message Entry No."; Rec."E-Document Message Entry No.")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the related E-Document message entry.';
+                }
                 field("Created At"; Rec."Created At")
                 {
                     ApplicationArea = Basic, Suite;
@@ -59,6 +64,35 @@ page 10970 "FR E-Invoice Lifecycles"
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the last processing error for the lifecycle occurrence.';
                 }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(RetryMessageCreation)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Retry Message Creation';
+                Enabled = Rec."Processing Status" = Rec."Processing Status"::Failed;
+                Image = Reopen;
+                ToolTip = 'Schedules another attempt to create the lifecycle message.';
+
+                trigger OnAction()
+                var
+                    FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+                begin
+                    FREInvoiceLifecycleMgt.RetryLifecycleMessage(Rec);
+                    CurrPage.Update(false);
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            actionref(RetryMessageCreationPromoted; RetryMessageCreation)
+            {
             }
         }
     }

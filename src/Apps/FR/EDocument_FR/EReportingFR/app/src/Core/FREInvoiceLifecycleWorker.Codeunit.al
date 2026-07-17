@@ -4,15 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
-permissionset 10970 "E-Reporting FR - Objects"
+codeunit 10976 "FR E-Invoice Lifecycle Worker"
 {
     Access = Internal;
-    Assignable = false;
+    InherentEntitlements = X;
+    InherentPermissions = X;
+    TableNo = "FR E-Invoice Lifecycle";
 
-    Permissions = table "FR E-Invoice Lifecycle" = X,
-                  codeunit "FR E-Invoice Lifecycle Mgt." = X,
-                  codeunit "FR E-Invoice Lifecycle Msg." = X,
-                  codeunit "FR E-Invoice Lifecycle Worker" = X,
-                  codeunit "FR E-Invoice Lifecycle Error" = X,
-                  page "FR E-Invoice Lifecycles" = X;
+    trigger OnRun()
+    var
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        FREInvoiceLifecycleMgt.CreateLifecycleMessage(Rec);
+    end;
 }

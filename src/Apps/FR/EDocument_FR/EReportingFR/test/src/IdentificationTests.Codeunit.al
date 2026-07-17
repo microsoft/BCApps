@@ -6,10 +6,12 @@ namespace Microsoft.eServices.EDocument.Formats.Test;
 
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Formats;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
+using System.Utilities;
 
 codeunit 148146 "Identification Tests"
 {
@@ -324,6 +326,56 @@ codeunit 148146 "Identification Tests"
         Assert.AreEqual(-CollectedLifecycle."Reported Amount", NegativeCollectedLifecycle."Reported Amount", 'The unapplication must exactly negate the collected amount.');
         Assert.AreEqual(CollectedLifecycle."Entry No.", NegativeCollectedLifecycle."Original Occurrence Entry No.", 'The unapplication must reference the Collected occurrence.');
         Assert.AreEqual(NewDetailedCustLedgEntry."Entry No.", NegativeCollectedLifecycle."Detailed Ledger Entry No.", 'The unapplication detail entry must be retained.');
+    end;
+
+    [Test]
+    procedure CreateLifecycleMessageStoresPayloadThroughEDocumentMessageMgt()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        XmlDoc: XmlDocument;
+        StatusNode: XmlNode;
+    begin
+        // [SCENARIO] A captured occurrence creates and links a PR 8698 E-Document Message payload
+        CreateEDocument(EDocument);
+        FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
+            EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
+            1250, 'EUR', WorkDate(), 0, 0, 0, 0);
+
+        FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
+
+        Assert.IsTrue(FREInvoiceLifecycle."E-Document Message Entry No." <> 0, 'The lifecycle occurrence must link to the created E-Document Message.');
+        Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::"Message Created", FREInvoiceLifecycle."Processing Status", 'The occurrence must record successful message creation.');
+        EDocMessageMgt.GetMessageBlob(FREInvoiceLifecycle."E-Document Message Entry No.", TempBlob);
+        TempBlob.CreateInStream(InStream);
+        XmlDocument.ReadFrom(InStream, XmlDoc);
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/InvoiceLifecycleMessage/Status', StatusNode), 'The payload must contain the lifecycle status.');
+        Assert.AreEqual('COLLECTED', StatusNode.AsXmlElement().InnerText(), 'The payload must map Collected to its wire code.');
+    end;
+
+    [Test]
+    procedure CreateLifecycleMessageIsIdempotent()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+        MessageEntryNo: Integer;
+    begin
+        // [SCENARIO] Retrying message creation does not create or link a second message
+        CreateEDocument(EDocument);
+        FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
+            EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
+            1250, 'EUR', WorkDate(), 0, 0, 0, 0);
+        FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
+        MessageEntryNo := FREInvoiceLifecycle."E-Document Message Entry No.";
+
+        FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
+
+        Assert.AreEqual(MessageEntryNo, FREInvoiceLifecycle."E-Document Message Entry No.", 'A retry must retain the existing message link.');
     end;
 
     local procedure CreateEDocument(var EDocument: Record "E-Document")
