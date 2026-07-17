@@ -170,10 +170,10 @@ codeunit 13610 "Elec. VAT Decl. Get Periods"
         case ReportingFrequency of
             ReportingFrequency::Monthly:
                 exit(CalcDate('<-1M+CM>', DueDate));
+            ReportingFrequency::Quarterly:
+                exit(CalcDate('<-3M+CM>', DueDate));
             ReportingFrequency::"Semi-Annual":
                 exit(CalcDate('<-6M+CM>', DueDate));
-            else
-                exit(CalcDate('<-3M+CM>', DueDate));
         end;
     end;
 
@@ -182,10 +182,10 @@ codeunit 13610 "Elec. VAT Decl. Get Periods"
         case ReportingFrequency of
             ReportingFrequency::Monthly:
                 exit(CalcDate('<-CM>', EndDate));
+            ReportingFrequency::Quarterly:
+                exit(CalcDate('<-CQ>', EndDate));
             ReportingFrequency::"Semi-Annual":
                 exit(CalcDate('<-5M-CM>', EndDate));
-            else
-                exit(CalcDate('<-CQ>', EndDate));
         end;
     end;
 }
