@@ -59,6 +59,7 @@ codeunit 13668 "Elec. VAT Decl. Az. Key Vault"
         SecretValue: Text;
         Enabled: Boolean;
         ConfigurationStatus: Text;
+        CustomDimensions: Dictionary of [Text, Text];
     begin
         if not AzureKeyVault.GetAzureKeyVaultSecret(AKVReportingFrequencyEnabledTok, SecretValue) then begin
             Enabled := true;
@@ -71,9 +72,12 @@ codeunit 13668 "Elec. VAT Decl. Az. Key Vault"
                 ConfigurationStatus := 'Invalid';
             end;
 
+        CustomDimensions.Add('FeatureName', FeatureNameTxt);
+        CustomDimensions.Add('Enabled', Format(Enabled, 0, 9));
+        CustomDimensions.Add('ConfigurationStatus', ConfigurationStatus);
         Session.LogMessage(
             '0000M7M', ReportingFrequencyConfigurationReadTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher,
-            'FeatureName', FeatureNameTxt, 'Enabled', Format(Enabled, 0, 9), 'ConfigurationStatus', ConfigurationStatus);
+            CustomDimensions);
 
         exit(Enabled);
     end;
