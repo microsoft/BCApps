@@ -399,8 +399,7 @@
             PostFAJournalLines(PostingDate);
 
             // Post Tax Accounting Disposal
-            if DemoDataSetup."Tax Accounting" then
-                PostTaxAccountingDisposal(PostingDate);
+            PostTaxAccountingDisposal(PostingDate);
         end;
 
         // IF IsEndYearDate(PostingDate) THEN BEGIN
