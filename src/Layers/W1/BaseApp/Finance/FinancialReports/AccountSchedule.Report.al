@@ -36,6 +36,7 @@ report 25 "Account Schedule"
     ApplicationArea = Basic, Suite;
     DefaultRenderingLayout = LandscapeLayout;
     Caption = 'Run Financial Report';
+    ToolTip = 'Open an account schedule to analyze figures in general ledger accounts or to compare general ledger entries with general ledger budget entries.';
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
     AllowScheduling = false;
