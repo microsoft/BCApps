@@ -10,8 +10,10 @@ using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
+using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
+using Microsoft.Sales.Setup;
 using System.Utilities;
 
 codeunit 148146 "Identification Tests"
@@ -20,6 +22,7 @@ codeunit 148146 "Identification Tests"
     Permissions = tabledata "Company Information" = rimd,
                   tabledata "E-Document" = rimd,
                   tabledata "E-Document Service" = rimd,
+                  tabledata "General Ledger Setup" = rimd,
                   tabledata "Sales Invoice Header" = rimd,
                   tabledata "Cust. Ledger Entry" = rimd,
                   tabledata "Detailed Cust. Ledg. Entry" = rimd,
@@ -32,7 +35,12 @@ codeunit 148146 "Identification Tests"
 
     var
         Assert: Codeunit Assert;
+        LibraryERM: Codeunit "Library - ERM";
+        LibrarySales: Codeunit "Library - Sales";
+        LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
         EDocHelpers: Codeunit "EDoc. Helpers";
+        IsInitialized: Boolean;
 
     [Test]
     procedure CheckSIRENNotEmptyRaisesErrorWhenEmpty()
@@ -169,7 +177,10 @@ codeunit 148146 "Identification Tests"
     begin
         // [SCENARIO] A local-currency payment occurrence stores the configured LCY code
         GeneralLedgerSetup.Get();
-        GeneralLedgerSetup.TestField("LCY Code");
+        if GeneralLedgerSetup."LCY Code" = '' then begin
+            GeneralLedgerSetup."LCY Code" := 'EUR';
+            GeneralLedgerSetup.Modify(true);
+        end;
         CreateEDocument(EDocument);
 
         FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
@@ -347,6 +358,45 @@ codeunit 148146 "Identification Tests"
     end;
 
     [Test]
+    procedure DetailedApplicationReplayDoesNotDuplicateQueuedOccurrence()
+    var
+        EDocument: Record "E-Document";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        // [SCENARIO] Replaying an application while message creation is queued does not duplicate the occurrence
+        CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
+        FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+
+        FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+
+        FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
+        Assert.RecordCount(FREInvoiceLifecycle, 1);
+        FREInvoiceLifecycle.FindFirst();
+        Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::Queued, FREInvoiceLifecycle."Processing Status", 'A replay must retain the queued status.');
+    end;
+
+    [Test]
+    procedure DetailedApplicationCapturesOccurrenceForEachFREDocument()
+    var
+        EDocument: Record "E-Document";
+        AdditionalEDocument: Record "E-Document";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        // [SCENARIO] Applying a payment creates an occurrence for every eligible E-Document of the invoice
+        CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
+        CreateAdditionalEDocument(AdditionalEDocument, EDocument);
+
+        FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+
+        FREInvoiceLifecycle.SetRange("Source Occurrence ID", DetailedCustLedgEntry.SystemId);
+        Assert.RecordCount(FREInvoiceLifecycle, 2);
+    end;
+
+    [Test]
     procedure DetailedUnapplicationCapturesLinkedNegativeCollected()
     var
         EDocument: Record "E-Document";
@@ -423,6 +473,159 @@ codeunit 148146 "Identification Tests"
         Assert.AreEqual(MessageEntryNo, FREInvoiceLifecycle."E-Document Message Entry No.", 'A retry must retain the existing message link.');
     end;
 
+    [Test]
+    procedure CreateNegativeCollectedMessageIncludesOriginalOccurrence()
+    var
+        EDocument: Record "E-Document";
+        CollectedLifecycle: Record "FR E-Invoice Lifecycle";
+        NegativeCollectedLifecycle: Record "FR E-Invoice Lifecycle";
+        EDocMessageMgt: Codeunit "E-Doc. Message Mgt.";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+        TempBlob: Codeunit "Temp Blob";
+        InStream: InStream;
+        XmlDoc: XmlDocument;
+        OriginalOccurrenceNode: XmlNode;
+        StatusNode: XmlNode;
+    begin
+        // [SCENARIO] A Negative Collected message identifies its status and original Collected occurrence
+        CreateEDocument(EDocument);
+        CollectedLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
+            EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
+            1250, 'EUR', WorkDate(), 0, 0, 0, 0);
+        NegativeCollectedLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
+            EDocument."Entry No", "FR E-Invoice Lifecycle Status"::"Negative Collected", CreateGuid(),
+            -1250, 'EUR', WorkDate() + 1, 0, 0, 0, CollectedLifecycle."Entry No.");
+
+        FREInvoiceLifecycleMgt.CreateLifecycleMessage(NegativeCollectedLifecycle);
+
+        EDocMessageMgt.GetMessageBlob(NegativeCollectedLifecycle."E-Document Message Entry No.", TempBlob);
+        TempBlob.CreateInStream(InStream);
+        XmlDocument.ReadFrom(InStream, XmlDoc);
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/InvoiceLifecycleMessage/Status', StatusNode), 'The payload must contain the lifecycle status.');
+        Assert.AreEqual('NEGATIVE_COLLECTED', StatusNode.AsXmlElement().InnerText(), 'The payload must map Negative Collected to its wire code.');
+        Assert.IsTrue(XmlDoc.SelectSingleNode('/InvoiceLifecycleMessage/OriginalOccurrenceID', OriginalOccurrenceNode), 'The payload must contain the original occurrence ID.');
+        Assert.AreEqual(Format(CollectedLifecycle."Source Occurrence ID"), OriginalOccurrenceNode.AsXmlElement().InnerText(), 'The payload must identify the original Collected occurrence.');
+    end;
+
+    [Test]
+    procedure RetryFailedLifecycleMessageQueuesOccurrence()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        // [SCENARIO] Retrying failed message creation queues the occurrence and clears its error
+        CreateEDocument(EDocument);
+        FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
+            EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
+            1250, 'EUR', WorkDate(), 0, 0, 0, 0);
+        FREInvoiceLifecycle."Processing Status" := FREInvoiceLifecycle."Processing Status"::Failed;
+        FREInvoiceLifecycle."Last Error" := 'Message creation failed.';
+        FREInvoiceLifecycle.Modify();
+
+        FREInvoiceLifecycleMgt.RetryLifecycleMessage(FREInvoiceLifecycle);
+
+        Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::Queued, FREInvoiceLifecycle."Processing Status", 'A retry must queue the occurrence.');
+        Assert.AreEqual('', FREInvoiceLifecycle."Last Error", 'A retry must clear the previous error.');
+    end;
+
+    [Test]
+    procedure PostedPaymentApplicationCreatesCollectedLifecycle()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        EDocument: Record "E-Document";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        PostedDocNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO] Posting a payment applied to a Factur-X FR sales invoice creates a Collected lifecycle occurrence
+        Initialize();
+
+        // [GIVEN] A posted sales invoice "SI" with an outgoing Factur-X FR E-Document
+        LibrarySales.CreateSalesInvoice(SalesHeader);
+        PostedDocNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        SalesInvoiceHeader.Get(PostedDocNo);
+        CreateFRFacturXEDocument(EDocument, SalesInvoiceHeader);
+
+        // [GIVEN] The remaining amount on the invoice customer ledger entry for "SI"
+        CustLedgerEntry.SetRange("Document Type", CustLedgerEntry."Document Type"::Invoice);
+        CustLedgerEntry.SetRange("Document No.", PostedDocNo);
+        CustLedgerEntry.FindFirst();
+        CustLedgerEntry.CalcFields("Remaining Amount");
+
+        // [WHEN] A customer payment is posted and applied to "SI"
+        LibraryERM.SelectGenJnlBatch(GenJournalBatch);
+        LibraryERM.ClearGenJournalLines(GenJournalBatch);
+        LibraryERM.CreateGeneralJnlLine(
+            GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
+            GenJournalLine."Document Type"::Payment, GenJournalLine."Account Type"::Customer,
+            SalesHeader."Sell-to Customer No.", -CustLedgerEntry."Remaining Amount");
+        GenJournalLine.Validate("Applies-to Doc. Type", GenJournalLine."Applies-to Doc. Type"::Invoice);
+        GenJournalLine.Validate("Applies-to Doc. No.", PostedDocNo);
+        GenJournalLine.Modify(true);
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] A Collected lifecycle occurrence is created from the actual posted Detailed Cust. Ledg. Entry
+        FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceLifecycle.SetRange("Lifecycle Status", FREInvoiceLifecycle."Lifecycle Status"::Collected);
+        FREInvoiceLifecycle.FindFirst();
+        DetailedCustLedgEntry.Get(FREInvoiceLifecycle."Detailed Ledger Entry No.");
+        Assert.AreEqual("FR E-Invoice Lifecycle Status"::Collected, FREInvoiceLifecycle."Lifecycle Status", 'The lifecycle status must be Collected.');
+        Assert.AreEqual(-DetailedCustLedgEntry.Amount, FREInvoiceLifecycle."Reported Amount", 'The reported amount must equal the negated DCLE amount.');
+        Assert.IsTrue(FREInvoiceLifecycle."Reported Amount" > 0, 'The collected amount must be positive.');
+        Assert.AreEqual(DetailedCustLedgEntry."Posting Date", FREInvoiceLifecycle."Event Date", 'The event date must match the DCLE posting date.');
+        Assert.AreEqual(DetailedCustLedgEntry.SystemId, FREInvoiceLifecycle."Source Occurrence ID", 'The source occurrence ID must match the DCLE system ID.');
+    end;
+
+    local procedure Initialize()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+    begin
+        LibraryTestInitialize.OnTestInitialize(Codeunit::"Identification Tests");
+        if IsInitialized then
+            exit;
+        LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"Identification Tests");
+
+        GeneralLedgerSetup.Get();
+        if GeneralLedgerSetup."LCY Code" = '' then begin
+            GeneralLedgerSetup."LCY Code" := 'EUR';
+            GeneralLedgerSetup.Modify(true);
+        end;
+
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Posted Invoice Nos."));
+
+        IsInitialized := true;
+        Commit();
+
+        LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Identification Tests");
+    end;
+
+    local procedure CreateFRFacturXEDocument(var EDocument: Record "E-Document"; SalesInvoiceHeader: Record "Sales Invoice Header")
+    var
+        EDocumentService: Record "E-Document Service";
+    begin
+        EDocumentService.Code := CopyStr(CreateGuid(), 1, MaxStrLen(EDocumentService.Code));
+        EDocumentService."Document Format" := "E-Document Format"::"Factur-X FR";
+        EDocumentService.Insert();
+
+        EDocument.Init();
+        EDocument."Document Record ID" := SalesInvoiceHeader.RecordId;
+        EDocument."Document No." := SalesInvoiceHeader."No.";
+        EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
+        EDocument.Direction := EDocument.Direction::Outgoing;
+        EDocument.Service := EDocumentService.Code;
+        EDocument.Insert();
+    end;
+
     local procedure CreateEDocument(var EDocument: Record "E-Document")
     begin
         EDocument.Init();
@@ -430,6 +633,17 @@ codeunit 148146 "Identification Tests"
         EDocument."Document Type" := EDocument."Document Type"::"Sales Invoice";
         EDocument.Direction := EDocument.Direction::Outgoing;
         EDocument.Insert();
+    end;
+
+    local procedure CreateAdditionalEDocument(var AdditionalEDocument: Record "E-Document"; EDocument: Record "E-Document")
+    begin
+        AdditionalEDocument.Init();
+        AdditionalEDocument."Document Record ID" := EDocument."Document Record ID";
+        AdditionalEDocument."Document No." := EDocument."Document No.";
+        AdditionalEDocument."Document Type" := EDocument."Document Type";
+        AdditionalEDocument.Direction := EDocument.Direction;
+        AdditionalEDocument.Service := EDocument.Service;
+        AdditionalEDocument.Insert();
     end;
 
     local procedure CreatePostedInvoiceApplication(var EDocument: Record "E-Document"; var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; EDocumentFormat: Enum "E-Document Format")

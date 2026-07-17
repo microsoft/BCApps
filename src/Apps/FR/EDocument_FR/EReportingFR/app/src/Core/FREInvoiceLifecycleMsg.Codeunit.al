@@ -19,8 +19,10 @@ codeunit 10975 "FR E-Invoice Lifecycle Msg." implements IEDocMessageBuilder
     var
         FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
     begin
+        FREInvoiceLifecycle.SetCurrentKey("E-Document Entry No.", "Created At");
         FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
         FREInvoiceLifecycle.SetRange("E-Document Message Entry No.", 0);
+        FREInvoiceLifecycle.SetRange("Processing Status", FREInvoiceLifecycle."Processing Status"::Queued);
         if not FREInvoiceLifecycle.FindFirst() then
             Error(NoCapturedOccurrenceErr, EDocument."Entry No");
 
