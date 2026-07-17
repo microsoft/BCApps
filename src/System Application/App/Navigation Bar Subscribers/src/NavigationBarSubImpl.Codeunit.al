@@ -47,6 +47,17 @@ codeunit 1818 "Navigation Bar Sub. Impl."
             Error(SettingsNotAvailableErr);
     end;
 
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"System Action Triggers", OpenCopilotCapabilities, '', false, false)]
+    local procedure DefaultOpenCopilotCapabilities()
+    var
+        NavigationBarSubscribers: Codeunit "Navigation Bar Subscribers";
+        Handled: Boolean;
+    begin
+        NavigationBarSubscribers.OnBeforeDefaultOpenCopilotCapabilities(Handled);
+        if not Handled then
+            Error(SettingsNotAvailableErr);
+    end;
+
     var
         SettingsNotAvailableErr: Label 'There are currently no settings available for this choice.';
 }
