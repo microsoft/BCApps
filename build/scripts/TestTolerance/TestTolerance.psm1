@@ -1086,8 +1086,31 @@ function Find-CrossPrUnstableTests {
     # No status filter: we want completed runs (kept only when they failed) and in-progress runs (kept
     # best-effort in case their test job already uploaded results).
     $jq = '.workflow_runs[] | {id, headSha: .head_sha, status, conclusion, createdAt: .created_at, prNumbers: [.pull_requests[]?.number], baseRefs: [.pull_requests[]?.base.ref]}'
-    $lines = @(gh api "/repos/$Repository/actions/workflows/$WorkflowFile/runs?event=pull_request&per_page=100&created=$createdFilter" --paginate --jq $jq 2>$null)
-    if ($LASTEXITCODE -ne 0 -or $lines.Count -eq 0) {
+
+    # Page manually instead of 'gh api --paginate', which would eagerly fetch every matching page even
+    # though we only ever process the first MaxRuns runs. We request only as many pages as are needed to
+    # cover MaxRuns and stop early on the last (short) page, keeping API traffic bounded during the
+    # hourly schedule. The jq filter emits one compact JSON object per run, so a page yielding fewer than
+    # per_page lines is the last page.
+    $perPage = [math]::Min(100, [math]::Max(1, $MaxRuns))
+    $maxPages = [math]::Max(1, [int][math]::Ceiling($MaxRuns / [double]$perPage))
+    $lines = New-Object System.Collections.Generic.List[string]
+    for ($page = 1; $page -le $maxPages; $page++) {
+        $pageLines = @(gh api "/repos/$Repository/actions/workflows/$WorkflowFile/runs?event=pull_request&per_page=$perPage&page=$page&created=$createdFilter" --jq $jq 2>$null)
+        if ($LASTEXITCODE -ne 0) {
+            if ($page -eq 1) {
+                Write-Host "No PR Build runs found in the window (or the listing failed)."
+                return @{}
+            }
+            Write-Host "::warning::Listing PR Build runs failed on page $page; proceeding with $($lines.Count) run(s) already fetched."
+            break
+        }
+        $pageLines = @($pageLines | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        if ($pageLines.Count -eq 0) { break }
+        $lines.AddRange([string[]]$pageLines)
+        if ($pageLines.Count -lt $perPage) { break }  # last page
+    }
+    if ($lines.Count -eq 0) {
         Write-Host "No PR Build runs found in the window (or the listing failed)."
         return @{}
     }
