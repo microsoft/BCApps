@@ -527,6 +527,7 @@ report 31240 "Calculate Depreciation CZF"
         if GuiAllowed() then
             WindowDialog.Update(3, LineNo);
         GenJournalLine."Posting Date" := PostingDate;
+        GenJournalLine."VAT Reporting Date" := PostingDate;
         GenJournalLine."FA Posting Date" := DeprUntilDate;
         if GenJournalLine."Posting Date" = GenJournalLine."FA Posting Date" then
             GenJournalLine."FA Posting Date" := 0D;
