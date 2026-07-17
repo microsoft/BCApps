@@ -5,10 +5,14 @@
 namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.Processing.Interfaces;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Inventory.Transfer;
+using Microsoft.Peppol;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
+using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
@@ -434,6 +438,9 @@ codeunit 6102 "E-Doc. Export"
                 PopulateShipmentEDocument(EDocument, SourceDocumentHeader);
             Database::"Transfer Shipment Header":
                 this.PopulateTransferShipmentEDocument(EDocument, SourceDocumentHeader);
+            Database::"Gen. Journal Line", Database::"Vendor Ledger Entry":
+                if EDocument."Document Type" = EDocument."Document Type"::"Remittance Advice" then
+                    PopulateRemittanceAdviceEDocument(EDocument, SourceDocumentHeader);
         end;
 
     end;
@@ -485,6 +492,43 @@ codeunit 6102 "E-Doc. Export"
         EDocument."Bill-to/Pay-to No." := SourceDocumentHeader.Field(TransferShipmentHeader.FieldNo("Transfer-to Code")).Value;
         EDocument."Bill-to/Pay-to Name" := SourceDocumentHeader.Field(TransferShipmentHeader.FieldNo("Transfer-to Name")).Value;
         EDocument."Source Type" := EDocument."Source Type"::Location;
+    end;
+
+    local procedure PopulateRemittanceAdviceEDocument(var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef)
+    var
+        Vendor: Record Vendor;
+        GenJournalLine: Record "Gen. Journal Line";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        TempRemitAdviceBuffer: Record "Remit. Advice Buffer" temporary;
+        RemitAdviceBufferMgt: Codeunit "Remit. Advice Buffer Mgt.";
+    begin
+        case SourceDocumentHeader.Number of
+            Database::"Gen. Journal Line":
+                begin
+                    SourceDocumentHeader.SetTable(GenJournalLine);
+                    RemitAdviceBufferMgt.BuildFromJournalPayment(GenJournalLine, TempRemitAdviceBuffer);
+                    EDocument."Journal Line System ID" := SourceDocumentHeader.Field(SourceDocumentHeader.SystemIdNo).Value;
+                end;
+            Database::"Vendor Ledger Entry":
+                begin
+                    SourceDocumentHeader.SetTable(VendorLedgerEntry);
+                    RemitAdviceBufferMgt.BuildFromPostedPayment(VendorLedgerEntry, TempRemitAdviceBuffer);
+                end;
+        end;
+
+        TempRemitAdviceBuffer.SetRange("Line No.", 0);
+        TempRemitAdviceBuffer.FindFirst();
+
+        EDocument."Document No." := TempRemitAdviceBuffer."Payment Document No.";
+        if Vendor.Get(TempRemitAdviceBuffer."Vendor No.") then;
+        EDocument."Bill-to/Pay-to No." := TempRemitAdviceBuffer."Vendor No.";
+        EDocument."Bill-to/Pay-to Name" := Vendor.Name;
+        EDocument."Posting Date" := TempRemitAdviceBuffer."Payment Date";
+        EDocument."Document Date" := TempRemitAdviceBuffer."Payment Date";
+        EDocument."Currency Code" := TempRemitAdviceBuffer."Currency Code";
+        EDocument."Source Type" := EDocument."Source Type"::Vendor;
+        EDocument."Amount Excl. VAT" := Abs(TempRemitAdviceBuffer."Total Paid Amount");
+        EDocument."Amount Incl. VAT" := Abs(TempRemitAdviceBuffer."Total Paid Amount");
     end;
 
     local procedure CreateEDocumentBatch(EDocService: Record "E-Document Service"; var EDocument: Record "E-Document"; var SourceDocumentHeader: RecordRef; var SourceDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
