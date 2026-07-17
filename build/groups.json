@@ -1743,14 +1743,6 @@
     ]
   },
   {
-    "name": "VAT Core FI",
-    "groups": [
-      {
-        "name": "LocalBaseExtensions"
-      }
-    ]
-  },
-  {
     "name": "FI Core Tests",
     "groups": [
       {
