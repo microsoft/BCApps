@@ -14,19 +14,6 @@ tableextension 11468 "Cust. Ledger Entry NL" extends "Cust. Ledger Entry"
     fields
     {
         /// <summary>
-        /// Specifies the transaction mode used in telebanking for this customer ledger entry.
-        /// </summary>
-        field(11000000; "Transaction Mode Code"; Code[20])
-        {
-            Caption = 'Transaction Mode Code';
-            DataClassification = CustomerContent;
-            TableRelation = "Transaction Mode".Code where("Account Type" = const(Customer));
-
-            trigger OnValidate()
-            begin
-            end;
-        }
-        /// <summary>
         /// Specifies the total amount of payments or collections in process for this entry.
         /// </summary>
         field(11000002; "Payments in Process"; Decimal)
@@ -67,13 +54,6 @@ tableextension 11468 "Cust. Ledger Entry NL" extends "Cust. Ledger Entry"
         {
             Caption = 'Our Bank Filter';
             FieldClass = FlowFilter;
-        }
-    }
-
-    keys
-    {
-        key(TransactionMode; Open, "On Hold", "Transaction Mode Code")
-        {
         }
     }
 }
