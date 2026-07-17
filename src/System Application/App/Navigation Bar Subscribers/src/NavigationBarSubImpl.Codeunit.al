@@ -53,6 +53,7 @@ codeunit 1818 "Navigation Bar Sub. Impl."
         NavigationBarSubscribers: Codeunit "Navigation Bar Subscribers";
         Handled: Boolean;
     begin
+        Handled := false;
         NavigationBarSubscribers.OnBeforeDefaultOpenCopilotCapabilities(Handled);
         if not Handled then
             Error(SettingsNotAvailableErr);

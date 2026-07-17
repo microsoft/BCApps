@@ -521,6 +521,8 @@ codeunit 7774 "Copilot Capability Impl"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Navigation Bar Subscribers", 'OnBeforeDefaultOpenCopilotCapabilities', '', false, false)]
     local procedure OpenCopilotCapabilities(var Handled: Boolean)
     begin
+        if Handled then
+            exit;
         Page.Run(Page::"Copilot AI Capabilities");
         Handled := true;
     end;

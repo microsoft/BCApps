@@ -53,8 +53,8 @@ codeunit 7760 "Copilot Capability Install"
     local procedure OnGetRequiredPrivacyNotices(CopilotCapability: Enum "Copilot Capability"; AppId: Guid; var RequiredPrivacyNotices: List of [Code[50]])
     var
         SystemPrivacyNoticeReg: Codeunit "System Privacy Notice Reg.";
-        ALCopilotFunctions: DotNet ALCopilotFunctions;
         ModuleInfo: ModuleInfo;
+        BizChatEnabled: Boolean;
     begin
         NavApp.GetCurrentModuleInfo(ModuleInfo);
 
@@ -66,11 +66,20 @@ codeunit 7760 "Copilot Capability Install"
 
         // In environments where the BizChat (Microsoft 365 Copilot) experience is enabled, the Chat capability
         // relies on the Microsoft Copilot privacy notice; otherwise it relies on the Microsoft Learn privacy notice.
-        if ALCopilotFunctions.IsBizChatEnabled() then begin
+        // The BizChat check is a DotNet interop call that can raise; if it fails we degrade gracefully to the Microsoft Learn notice.
+        if TryGetBizChatEnabled(BizChatEnabled) and BizChatEnabled then begin
             if not RequiredPrivacyNotices.Contains(SystemPrivacyNoticeReg.GetMicrosoftCopilotID()) then
                 RequiredPrivacyNotices.Add(SystemPrivacyNoticeReg.GetMicrosoftCopilotID());
         end else
             if not RequiredPrivacyNotices.Contains(SystemPrivacyNoticeReg.GetMicrosoftLearnID()) then
                 RequiredPrivacyNotices.Add(SystemPrivacyNoticeReg.GetMicrosoftLearnID());
+    end;
+
+    [TryFunction]
+    local procedure TryGetBizChatEnabled(var BizChatEnabled: Boolean)
+    var
+        ALCopilotFunctions: DotNet ALCopilotFunctions;
+    begin
+        BizChatEnabled := ALCopilotFunctions.IsBizChatEnabled();
     end;
 }
