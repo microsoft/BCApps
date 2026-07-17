@@ -889,7 +889,7 @@ codeunit 4037 "Helper Functions"
             PaymentTerm := DELCHR(GPPaymentTerms.PYMTRMID, '>', ' ');
             PaymentTerm_New := DELCHR(GPPaymentTerms.PYMTRMID_New, '>', ' ');
             // if the "old" and "new" payment terms are the same, skip
-            if PaymentTerm <> PaymentTerm_New then begin
+            if not StringEqualsCaseInsensitive(PaymentTerm, PaymentTerm_New) then begin
                 // update the payment terms in the tables that have this field
                 Clear(GPCustomer);
                 GPCustomer.SetRange(GPCustomer."PYMTRMID", PaymentTerm);
@@ -1748,7 +1748,7 @@ codeunit 4037 "Helper Functions"
         DueDateCalculation: DateFormula;
         DiscountDateCalculation: DateFormula;
         SeedValue: integer;
-        PaymentTerm: Text[10];
+        PaymentTerm: Code[10];
         DueDateCalculationText: Text[50];
         DiscountDateCalculationText: Text[50];
         LogMigrationArea: Text[50];
@@ -1769,6 +1769,7 @@ codeunit 4037 "Helper Functions"
                     end else
                         PaymentTerm := CopyStr(DelChr(GPPaymentTerms.PYMTRMID, '>', ' '), 1, 10);
 
+                    GPPaymentTerms.PYMTRMID_New := PaymentTerm;
                     if not PaymentTerms.Get(PaymentTerm) then begin
                         PaymentTerms.Init();
                         PaymentTerms.Validate(Code, PaymentTerm);
@@ -1790,8 +1791,8 @@ codeunit 4037 "Helper Functions"
                         PaymentTerms.Insert(true);
 
                         GPPaymentTerms.PYMTRMID_New := PaymentTerm;
-                        GPPaymentTerms.Modify();
                     end;
+                    GPPaymentTerms.Modify();
                 end else
                     GPMigrationWarnings.InsertWarning(LogMigrationArea, PaymentTerm, 'Payment Term ' + GPPaymentTerms.PYMTRMID + ' was handled.');
             until GPPaymentTerms.Next() = 0;
