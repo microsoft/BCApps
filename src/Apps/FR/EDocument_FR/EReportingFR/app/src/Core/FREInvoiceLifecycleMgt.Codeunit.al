@@ -8,6 +8,7 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 using System.Utilities;
@@ -81,6 +82,7 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
 
     internal procedure CapturePaymentOccurrence(EDocumentEntryNo: Integer; LifecycleStatus: Enum "FR E-Invoice Lifecycle Status"; SourceOccurrenceID: Guid; ReportedAmount: Decimal; CurrencyCode: Code[10]; EventDate: Date; InvoiceCustLedgerEntryNo: Integer; PaymentCustLedgerEntryNo: Integer; DetailedLedgerEntryNo: Integer; OriginalOccurrenceEntryNo: Integer) FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle"
     begin
+        CurrencyCode := ResolveCurrencyCode(CurrencyCode);
         ValidatePaymentOccurrence(EDocumentEntryNo, LifecycleStatus, SourceOccurrenceID, ReportedAmount, EventDate, OriginalOccurrenceEntryNo);
 
         if FindOccurrence(FREInvoiceLifecycle, EDocumentEntryNo, LifecycleStatus, SourceOccurrenceID) then begin
@@ -182,12 +184,29 @@ codeunit 10971 "FR E-Invoice Lifecycle Mgt."
 
     local procedure ScheduleMessageCreation(var FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle")
     begin
+        if FREInvoiceLifecycle."E-Document Message Entry No." <> 0 then
+            exit;
+        if FREInvoiceLifecycle."Processing Status" = FREInvoiceLifecycle."Processing Status"::Queued then
+            exit;
+
         FREInvoiceLifecycle."Processing Status" := FREInvoiceLifecycle."Processing Status"::Queued;
         Clear(FREInvoiceLifecycle."Last Error");
         FREInvoiceLifecycle.Modify();
         TaskScheduler.CreateTask(
             Codeunit::"FR E-Invoice Lifecycle Worker", Codeunit::"FR E-Invoice Lifecycle Error", true,
             CompanyName(), CurrentDateTime(), FREInvoiceLifecycle.RecordId);
+    end;
+
+    local procedure ResolveCurrencyCode(CurrencyCode: Code[10]): Code[10]
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        if CurrencyCode <> '' then
+            exit(CurrencyCode);
+
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.TestField("LCY Code");
+        exit(GeneralLedgerSetup."LCY Code");
     end;
 
     local procedure FindInvoiceEDocuments(var EDocument: Record "E-Document"; InvoiceCustLedgerEntry: Record "Cust. Ledger Entry"): Boolean

@@ -8,6 +8,7 @@ using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Formats;
 using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
@@ -159,6 +160,26 @@ codeunit 148146 "Identification Tests"
     end;
 
     [Test]
+    procedure CaptureCollectedOccurrenceUsesLCYForBlankCurrency()
+    var
+        EDocument: Record "E-Document";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+    begin
+        // [SCENARIO] A local-currency payment occurrence stores the configured LCY code
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup.TestField("LCY Code");
+        CreateEDocument(EDocument);
+
+        FREInvoiceLifecycle := FREInvoiceLifecycleMgt.CapturePaymentOccurrence(
+            EDocument."Entry No", "FR E-Invoice Lifecycle Status"::Collected, CreateGuid(),
+            1250, '', WorkDate(), 0, 0, 0, 0);
+
+        Assert.AreEqual(GeneralLedgerSetup."LCY Code", FREInvoiceLifecycle."Currency Code", 'A blank ledger currency must resolve to the LCY code.');
+    end;
+
+    [Test]
     procedure CaptureCollectedOccurrenceReplayReturnsExistingLifecycle()
     var
         EDocument: Record "E-Document";
@@ -299,6 +320,30 @@ codeunit 148146 "Identification Tests"
 
         FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
         Assert.RecordIsEmpty(FREInvoiceLifecycle);
+    end;
+
+    [Test]
+    procedure DetailedApplicationReplayDoesNotRequeueCreatedMessage()
+    var
+        EDocument: Record "E-Document";
+        DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry";
+        FREInvoiceLifecycle: Record "FR E-Invoice Lifecycle";
+        FREInvoiceLifecycleMgt: Codeunit "FR E-Invoice Lifecycle Mgt.";
+        MessageEntryNo: Integer;
+    begin
+        // [SCENARIO] Replaying an application whose lifecycle message exists does not requeue the occurrence
+        CreatePostedInvoiceApplication(EDocument, DetailedCustLedgEntry, "E-Document Format"::"Factur-X FR");
+        FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+        FREInvoiceLifecycle.SetRange("E-Document Entry No.", EDocument."Entry No");
+        FREInvoiceLifecycle.FindFirst();
+        FREInvoiceLifecycleMgt.CreateLifecycleMessage(FREInvoiceLifecycle);
+        MessageEntryNo := FREInvoiceLifecycle."E-Document Message Entry No.";
+
+        FREInvoiceLifecycleMgt.ProcessDetailedLedgerApplication(DetailedCustLedgEntry);
+
+        FREInvoiceLifecycle.Get(FREInvoiceLifecycle."Entry No.");
+        Assert.AreEqual(FREInvoiceLifecycle."Processing Status"::"Message Created", FREInvoiceLifecycle."Processing Status", 'A replay must not requeue an occurrence whose message exists.');
+        Assert.AreEqual(MessageEntryNo, FREInvoiceLifecycle."E-Document Message Entry No.", 'A replay must retain the existing message link.');
     end;
 
     [Test]
