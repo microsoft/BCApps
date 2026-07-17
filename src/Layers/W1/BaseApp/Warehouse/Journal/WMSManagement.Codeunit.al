@@ -1733,7 +1733,7 @@ codeunit 7302 "WMS Management"
 
     procedure GetATOJobPlanningLine(SourceType: Integer; SourceID: Code[20]; SourceRefNo: Integer; SourceLineNo: Integer; var JobPlanningLine: Record "Job Planning Line"): Boolean
     begin
-        if SourceType <> Database::Job then
+        if not (SourceType in [Database::Job, Database::"Job Planning Line"]) then
             exit(false);
         JobPlanningLine.SetRange("Job No.", SourceID);
         JobPlanningLine.SetRange("Job Contract Entry No.", SourceRefNo);
@@ -1755,7 +1755,7 @@ codeunit 7302 "WMS Management"
     begin
         WarehouseActivityLine.SetRange(WarehouseActivityLine."Activity Type", WarehouseActivityLine."Activity Type"::"Invt. Pick");
         WarehouseActivityLine.SetSourceFilter(
-            Database::"Job", 0, JobPlanningLine."Document No.", JobPlanningLine."Job Contract Entry No.", JobPlanningLine."Line No.", false);
+                    Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), JobPlanningLine."Job No.", JobPlanningLine."Job Contract Entry No.", JobPlanningLine."Line No.", false);
         WarehouseActivityLine.SetRange(WarehouseActivityLine."Assemble to Order", true);
         WarehouseActivityLine.SetTrackingFilterIfNotEmpty();
     end;
