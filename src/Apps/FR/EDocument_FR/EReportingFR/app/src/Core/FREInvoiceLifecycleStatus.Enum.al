@@ -16,20 +16,4 @@ enum 10973 "FR E-Invoice Lifecycle Status"
     {
         Caption = 'Negative Collected';
     }
-    value(2; Refused)
-    {
-        Caption = 'Refused';
-    }
-    value(3; Submitted)
-    {
-        Caption = 'Submitted';
-    }
-    value(4; Rejected)
-    {
-        Caption = 'Rejected';
-    }
-    value(5; Accepted)
-    {
-        Caption = 'Accepted';
-    }
 }
