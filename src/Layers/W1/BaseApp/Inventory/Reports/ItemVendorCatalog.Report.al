@@ -15,6 +15,7 @@ report 720 "Item/Vendor Catalog"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Item/Vendor Catalog';
+    ToolTip = 'View a list of the vendors for the selected items. For each combination of item and vendor, it shows direct unit cost, lead time calculation and the vendor''s item number.';
     DefaultRenderingLayout = Excel;
     PreviewMode = PrintLayout;
     UsageCategory = ReportsAndAnalysis;
