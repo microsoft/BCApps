@@ -800,7 +800,6 @@ page 9006 "Order Processor Role Center"
                         Caption = 'Inventory - Sales &Back Orders';
                         Image = "Report";
                         RunObject = Report "Inventory - Sales Back Orders";
-                        ToolTip = 'View a list with the order lines whose shipment date has been exceeded. The following information is shown for the individual orders for each item: number, customer name, customer''s telephone number, shipment date, order quantity and quantity on back order. The report also shows whether there are other items for the customer on back order.';
                     }
                     action("Sales Order Status")
                     {

@@ -154,7 +154,6 @@ page 9007 "Purchasing Agent Role Center"
                 Caption = 'Inventory &Purchase Orders';
                 Image = "Report";
                 RunObject = Report "Inventory Purchase Orders";
-                ToolTip = 'View a list of items on order from vendors. The report also shows the expected receipt date and the quantity and amount on back orders. The report can be used, for example, to see when items should be received and whether a reminder of a back order should be issued.';
             }
             action("Inventory - &Vendor Purchases")
             {
@@ -162,7 +161,6 @@ page 9007 "Purchasing Agent Role Center"
                 Caption = 'Inventory - &Vendor Purchases';
                 Image = "Report";
                 RunObject = Report "Inventory - Vendor Purchases";
-                ToolTip = 'View a list of the vendors that your company has purchased items from within a selected period. It shows invoiced quantity, amount and discount. The report can be used to analyze a company''s item purchases.';
             }
             action("Inventory &Cost and Price List")
             {
