@@ -8,12 +8,16 @@ using Microsoft.Bank.Reconciliation;
 using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.eServices.EDocument.Integration.Send;
 using Microsoft.eServices.EDocument.OrderMatch;
+#if not CLEAN29
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
+#endif
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Service;
 using Microsoft.Foundation.Attachment;
+#if not CLEAN29
 using System.Telemetry;
+#endif
 using System.Utilities;
 
 page 6121 "E-Document"
@@ -599,8 +603,10 @@ page 6121 "E-Document"
         EDocService: Record "E-Document Service";
         EDocServiceStatus2: Record "E-Document Service Status";
         EDocLog: Codeunit "E-Document Log";
+#if not CLEAN29
         FeatureTelemetry: Codeunit "Feature Telemetry";
         EDocPOCopilotMatching: Codeunit "E-Doc. PO Copilot Matching";
+#endif
     begin
         if not IsIncomingDoc then
             exit;
@@ -610,7 +616,9 @@ page 6121 "E-Document"
             EDocServiceStatus2.Get(Rec."Entry No", EDocService.Code);
             ShowMapToOrder := EDocServiceStatus2.Status = Enum::"E-Document Service Status"::"Order Linked";
             ShowRelink := true;
+#if not CLEAN29
             FeatureTelemetry.LogUptake('0000MMK', EDocPOCopilotMatching.FeatureName(), Enum::"Feature Uptake Status"::Discovered);
+#endif
         end;
     end;
 

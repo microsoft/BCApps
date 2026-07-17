@@ -1,10 +1,14 @@
 namespace Microsoft.eServices.EDocument.OrderMatch;
 
 using Microsoft.eServices.EDocument;
+#if not CLEAN29
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
+#endif
 using Microsoft.Purchases.Document;
+#if not CLEAN29
 using System.AI;
 using System.Telemetry;
+#endif
 page 6167 "E-Doc. Order Line Matching"
 {
     Caption = 'Purchase Order Matching';
@@ -165,12 +169,16 @@ page 6167 "E-Doc. Order Line Matching"
         }
         area(Prompting)
         {
+#if not CLEAN29
             action(MatchCopilot)
             {
                 Caption = 'Match with Copilot';
                 ToolTip = 'Match e-document lines with the assistance of Copilot';
                 ApplicationArea = All;
                 Image = SparkleFilled;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated.';
+                ObsoleteTag = '29.0';
 
                 trigger OnAction()
                 begin
@@ -178,6 +186,7 @@ page 6167 "E-Doc. Order Line Matching"
                     SetUserInteractions();
                 end;
             }
+#endif
         }
         area(Navigation)
         {
@@ -203,7 +212,14 @@ page 6167 "E-Doc. Order Line Matching"
             }
             group(Matching)
             {
-                actionref(MatchCopilot_Promoted; MatchCopilot) { }
+#if not CLEAN29
+                actionref(MatchCopilot_Promoted; MatchCopilot)
+                {
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated.';
+                    ObsoleteTag = '29.0';
+                }
+#endif
                 actionref(MatchManual_Promoted; MatchManual) { }
                 actionref(MatchAuto_Promoted; MatchAutomatic) { }
                 actionref(RemoveMatch_Promoted; RemoveMatch) { }
@@ -218,17 +234,23 @@ page 6167 "E-Doc. Order Line Matching"
     }
 
     var
+#if not CLEAN29
         FeatureTelemetry: Codeunit "Feature Telemetry";
+#endif
         EDocMatchOrderLines: Codeunit "E-Doc. Line Matching";
         CostNotification: Notification;
         AutoRunCopilot: Boolean;
         LineCostVaryMatchMsg: Label 'Matched e-document lines (%1) has cost different from matched purchase order line. Please verify matches are correct.', Comment = '%1 - Line number';
+#if not CLEAN29
         NoMatchesFoundMsg: Label 'Copilot could not find any line matches. Please review manually';
+#endif
         GlobalDataCaptionExpressionTxt: Label 'Purchase Order %1', Comment = '%1 - Purchase order number';
 
     trigger OnAfterGetRecord()
+#if not CLEAN29
     var
         EDocOrderMatch: Record "E-Doc. Order Match";
+#endif
     begin
         CurrPage.OrderLines.Page.SetEDocumentBeingMatched(Rec);
         CurrPage.ImportedLines.Page.SetEDocumentBeingMatched(Rec);
@@ -236,12 +258,14 @@ page 6167 "E-Doc. Order Line Matching"
 
         OpenPurchaseHeader();
 
+#if not CLEAN29
         if AutoRunCopilot then begin
             AutoRunCopilot := false;
             EDocOrderMatch.SetRange("E-Document Entry No.", Rec."Entry No");
             if EDocOrderMatch.IsEmpty() then
                 MatchWithCopilot(false);
         end;
+#endif
     end;
 
     local procedure OpenPurchaseHeader()
@@ -313,6 +337,7 @@ page 6167 "E-Doc. Order Line Matching"
         end;
     end;
 
+#if not CLEAN29
     local procedure MatchWithCopilot(CheckToOverwrite: Boolean)
     var
         TempEDocImportedLines: Record "E-Doc. Imported Line" temporary;
@@ -342,6 +367,7 @@ page 6167 "E-Doc. Order Line Matching"
 
         CurrPage.Update();
     end;
+#endif
 
     local procedure SetUserInteractions()
     begin

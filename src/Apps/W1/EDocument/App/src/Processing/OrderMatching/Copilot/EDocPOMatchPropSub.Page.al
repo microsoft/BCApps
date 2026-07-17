@@ -1,3 +1,4 @@
+#if not CLEAN29
 namespace Microsoft.eServices.EDocument.OrderMatch.Copilot;
 
 using Microsoft.eServices.EDocument.OrderMatch;
@@ -15,6 +16,9 @@ page 6163 "E-Doc. PO Match Prop. Sub"
     InsertAllowed = false;
     InherentPermissions = X;
     InherentEntitlements = X;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated.';
+    ObsoleteTag = '29.0';
 
     layout
     {
@@ -119,3 +123,4 @@ page 6163 "E-Doc. PO Match Prop. Sub"
         TempEDocOrderMatches.Reset();
     end;
 }
+#endif
