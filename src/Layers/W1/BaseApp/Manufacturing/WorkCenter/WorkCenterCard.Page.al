@@ -337,7 +337,6 @@ page 99000754 "Work Center Card"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Subcontractor - Dispatch List";
-                ToolTip = 'View the list of material to be sent to manufacturing subcontractors.';
             }
         }
         area(Promoted)
