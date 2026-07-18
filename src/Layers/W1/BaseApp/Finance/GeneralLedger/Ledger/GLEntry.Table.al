@@ -180,6 +180,7 @@ table 17 "G/L Entry"
         {
             Caption = 'SIFT Bucket No.';
             ToolTip = 'Specifies an automatically generated number that is used by the system to enable better concurrency.';
+            DataClassification = SystemMetadata;
             Editable = false;
         }
         /// <summary>
