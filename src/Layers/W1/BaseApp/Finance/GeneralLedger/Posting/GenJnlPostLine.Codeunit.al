@@ -127,6 +127,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         PaymentToleranceMgt: Codeunit "Payment Tolerance Management";
         DeferralUtilities: Codeunit "Deferral Utilities";
         NonDeductibleVAT: Codeunit "Non-Deductible VAT";
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
         DeferralDocType: Enum "Deferral Document Type";
         LastDocType: Enum "Gen. Journal Document Type";
         AddCurrencyCode: Code[10];
@@ -207,7 +208,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     procedure RunWithCheck(var GenJnlLine2: Record "Gen. Journal Line"): Integer
     var
         GenJnlLine: Record "Gen. Journal Line";
-        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -215,7 +215,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if IsHandled then
             exit(GLEntryNo);
 
-        if GLReg."No." = 0 then  // first time in this transaction?
+        if GLReg."No." = 0 then
             SequenceNoMgt.ClearSequenceNoCheck();
 
         GenJnlLine.Copy(GenJnlLine2);
@@ -234,7 +234,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     procedure RunWithoutCheck(var GenJnlLine2: Record "Gen. Journal Line"): Integer
     var
         GenJnlLine: Record "Gen. Journal Line";
-        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -242,7 +241,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if IsHandled then
             exit(GLEntryNo);
 
-        if GLReg."No." = 0 then  // first time in this transaction?
+        if GLReg."No." = 0 then
             SequenceNoMgt.ClearSequenceNoCheck();
 
         GenJnlLine.Copy(GenJnlLine2);
@@ -277,11 +276,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
             exit;
         end;
 
-        if GenJnlLine."VAT Reporting Date" = 0D then
+        if GenJnlLine."VAT Reporting Date" = 0D then begin
+            GLSetup.Get();
             if (GenJnlLine."Document Date" = 0D) and (GLSetup."VAT Reporting Date" = GLSetup."VAT Reporting Date"::"Document Date") then
                 GenJnlLine."VAT Reporting Date" := GenJnlLine."Posting Date"
             else
                 GenJnlLine."VAT Reporting Date" := GLSetup.GetVATDate(GenJnlLine."Posting Date", GenJnlLine."Document Date");
+        end;
 
         CheckGenJnlLine(GenJnlLine, CheckLine);
         OnCodeOnAfterCheckGenJnlLine(GenJnlLine, CheckLine);
@@ -1915,6 +1916,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CurrentBalance := 0;
 
         FiscalYearStartDate := AccountingPeriodMgt.GetPeriodStartingDate();
+
         GetGLSetup();
 
         if not GenJnlTemplate.Get(GenJnlLine."Journal Template Name") then
@@ -2015,8 +2017,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
     [InherentPermissions(PermissionObjectType::TableData, Database::"G/L Transaction", 'r')]
     [InherentPermissions(PermissionObjectType::TableData, Database::"VAT Entry", 'r')]
     local procedure ValidateSequenceNo(LedgEntryNo: Integer; xLedgEntryNo: Integer; TableNo: Integer)
-    var
-        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
     begin
         if LedgEntryNo = xLedgEntryNo then
             exit;
@@ -3914,7 +3914,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary;
         CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         GenJnlLine: Record "Gen. Journal Line";
-        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
         xGLEntryNo: Integer;
         xVATEntryNo: Integer;
         DtldLedgEntryInserted: Boolean;
@@ -3925,7 +3924,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if IsHandled then
             exit;
 
-        if GLReg."No." = 0 then  // first time in this transaction?
+        if GLReg."No." = 0 then
             SequenceNoMgt.ClearSequenceNoCheck();
 
         xGLEntryNo := GLEntryNo;
@@ -4721,7 +4720,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary;
         CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         GenJnlLine: Record "Gen. Journal Line";
-        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
         xGLEntryNo: Integer;
         xVATEntryNo: Integer;
         DtldLedgEntryInserted: Boolean;
@@ -4729,7 +4727,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
         OnBeforeVendPostApplyVendLedgEntry(GenJnlLinePostApply, VendLedgEntryPostApply);
 
-        if GLReg."No." = 0 then  // first time in this transaction?
+        if GLReg."No." = 0 then
             SequenceNoMgt.ClearSequenceNoCheck();
 
         xGLEntryNo := GLEntryNo;
@@ -4819,7 +4817,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary;
         CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         GenJnlLine: Record "Gen. Journal Line";
-        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
         xGLEntryNo: Integer;
         xVATEntryNo: Integer;
         DtldLedgEntryInserted: Boolean;
@@ -4830,7 +4827,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if IsHandled then
             exit;
 
-        if GLReg."No." = 0 then  // first time in this transaction?
+        if GLReg."No." = 0 then
             SequenceNoMgt.ClearSequenceNoCheck();
 
         xGLEntryNo := GLEntryNo;
@@ -5988,7 +5985,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempVATEntry2: Record "VAT Entry" temporary;
         CurrencyLCY: Record Currency;
         TempDimensionPostingBuffer: Record "Dimension Posting Buffer" temporary;
-        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
         AdjAmount: array[4] of Decimal;
         NextDtldLedgEntryNo: Integer;
         xGLEntryNo: Integer;
@@ -6002,7 +5998,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if IsHandled then
             exit;
 
-        if GLReg."No." = 0 then  // first time in this transaction?
+        if GLReg."No." = 0 then
             SequenceNoMgt.ClearSequenceNoCheck();
 
         xGLEntryNo := GLEntryNo;
@@ -6203,7 +6199,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempVATEntry2: Record "VAT Entry" temporary;
         CurrencyLCY: Record Currency;
         TempDimensionPostingBuffer: Record "Dimension Posting Buffer" temporary;
-        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
         AdjAmount: array[4] of Decimal;
         NextDtldLedgEntryNo: Integer;
         xGLEntryNo: Integer;
@@ -6217,7 +6212,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if IsHandled then
             exit;
 
-        if GLReg."No." = 0 then  // first time in this transaction?
+        if GLReg."No." = 0 then
             SequenceNoMgt.ClearSequenceNoCheck();
 
         xGLEntryNo := GLEntryNo;
@@ -6401,7 +6396,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         DetailedCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer";
         CurrencyLCY: Record Currency;
         TempDimensionPostingBuffer: Record "Dimension Posting Buffer" temporary;
-        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
         AdjAmount: array[4] of Decimal;
         NextDtldLedgEntryNo: Integer;
         xGLEntryNo: Integer;
@@ -6413,7 +6407,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if IsHandled then
             exit;
 
-        if GLReg."No." = 0 then  // first time in this transaction?
+        if GLReg."No." = 0 then
             SequenceNoMgt.ClearSequenceNoCheck();
 
         xGLEntryNo := GLEntryNo;
