@@ -51,7 +51,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                 field(MatchWarnings; MatchWarningsCaption)
                 {
                     ApplicationArea = All;
-                    Caption = 'Order match warnings';
+                    Caption = 'Warnings';
                     Editable = false;
                     Visible = HasEDocumentOrderMatchWarnings;
                     StyleExpr = MatchWarningsStyleExpr;
@@ -196,9 +196,9 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     action(MatchToOrderLine)
                     {
                         ApplicationArea = All;
-                        Caption = 'Match to order line';
+                        Caption = 'Match to order lines';
                         Image = LinkWithExisting;
-                        ToolTip = 'Match this incoming invoice line to a purchase order line.';
+                        ToolTip = 'Match this incoming invoice line to purchase order lines.';
                         Scope = Repeater;
 
                         trigger OnAction()
@@ -219,9 +219,9 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     action(SpecifyReceiptLines)
                     {
                         ApplicationArea = All;
-                        Caption = 'Specify receipt line';
+                        Caption = 'Specify receipt lines';
                         Image = ReceiptLines;
-                        ToolTip = 'Specify the corresponding receipt line to the matched order line.';
+                        ToolTip = 'Specify the corresponding receipt lines to the matched order lines.';
                         Scope = Repeater;
                         Enabled = IsLineMatchedToOrderLine;
 
@@ -243,9 +243,9 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     action(OpenMatchedOrder)
                     {
                         ApplicationArea = All;
-                        Caption = 'Open matched order';
+                        Caption = 'Open matched orders';
                         Image = ViewOrder;
-                        ToolTip = 'Opens the matched purchase order.';
+                        ToolTip = 'Opens the matched purchase orders.';
                         Scope = Repeater;
                         Enabled = IsLineMatchedToOrderLine;
 
@@ -257,9 +257,9 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     action(OpenMatchedReceipt)
                     {
                         ApplicationArea = All;
-                        Caption = 'Open matched receipt';
+                        Caption = 'Open matched receipts';
                         Image = PostedReceipt;
-                        ToolTip = 'Opens the matched purchase receipt.';
+                        ToolTip = 'Opens the matched purchase receipts.';
                         Scope = Repeater;
                         Enabled = IsLineMatchedToReceiptLine;
 
@@ -476,7 +476,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
             Page.Run(Page::"Purchase Order", PurchaseOrder);
             exit;
         end;
-        Page.Run(Page::"Purchase Orders", TempPurchaseOrders);
+        Page.Run(Page::"Purchase Order List", TempPurchaseOrders);
     end;
 
     local procedure UpdatePOMatching()
@@ -516,6 +516,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         ExceedsInvoiceableQtyLbl: Label 'Exceeds quantity received';
         ExceedsRemainingToInvoiceLbl: Label 'Exceeds remaining to invoice';
         OverReceiptLbl: Label 'Over-receipt';
+        PriceDifferenceLbl: Label 'Price difference';
         NoWarningsLbl: Label 'No warnings';
         MultipleWarningsLbl: Label 'Multiple warnings';
         MostSevereStyle: Text;
@@ -556,6 +557,12 @@ page 6183 "E-Doc. Purchase Draft Subform"
                             MatchWarningsCaption := OverReceiptLbl;
                             MostSevereStyle := 'Subordinate';
                         end;
+                    Enum::"E-Doc PO Match Warning"::AmountMismatch:
+                        begin
+                            CurrentSeverity := 2;
+                            MatchWarningsCaption := PriceDifferenceLbl;
+                            MostSevereStyle := 'Ambiguous';
+                        end;
                 end;
                 if CurrentSeverity > SeverityLevel then begin
                     SeverityLevel := CurrentSeverity;
@@ -582,7 +589,8 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     WarningDetails.AppendLine('• ' + MissingInfoDetailLbl);
                 Enum::"E-Doc PO Match Warning"::ExceedsInvoiceableQty,
                 Enum::"E-Doc PO Match Warning"::ExceedsRemainingToInvoice,
-                Enum::"E-Doc PO Match Warning"::OverReceipt:
+                Enum::"E-Doc PO Match Warning"::OverReceipt,
+                Enum::"E-Doc PO Match Warning"::AmountMismatch:
                     WarningDetails.AppendLine('• ' + TempEDocumentPOMatchWarnings."Warning Message");
             end;
         until TempEDocumentPOMatchWarnings.Next() = 0;

@@ -11,6 +11,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
+using Microsoft.Purchases.Vendor;
 using System.Telemetry;
 using System.Text;
 
@@ -19,15 +20,96 @@ codeunit 5826 "Matched Order Line Mgmt."
     Access = Public;
     Permissions = TableData "Posted Matched Order Line" = RIMD;
 
+    internal procedure ApplyVendorsReceiptOnInvoicePolicy(var PurchaseHeader: Record "Purchase Header")
+    var
+        Vendor: Record Vendor;
+        NewReceiptOnInvoice: Boolean;
+        ResetReceiptOnInvoiceQst: Label 'The vendor''s receipt on invoice policy disables %1, which is currently enabled on this document. Do you want to reset it on the document and its lines?', Comment = '%1 = Receipt on Invoice field caption';
+    begin
+        if not Vendor.Get(PurchaseHeader."Buy-from Vendor No.") then
+            exit;
+        case Vendor."Receipt on Invoice Policy" of
+            Vendor."Receipt on Invoice Policy"::Enabled:
+                NewReceiptOnInvoice := true;
+            Vendor."Receipt on Invoice Policy"::Manual:
+                NewReceiptOnInvoice := false;
+            else
+                exit;
+        end;
+
+        if PurchaseHeader."Receipt on Invoice" = NewReceiptOnInvoice then
+            exit;
+
+        // Turning off a flag that is currently enabled: confirm in interactive sessions before discarding it
+        if PurchaseHeader."Receipt on Invoice" and (not NewReceiptOnInvoice) then
+            if GuiAllowed() then
+                if not Confirm(ResetReceiptOnInvoiceQst, false, PurchaseHeader.FieldCaption("Receipt on Invoice")) then
+                    exit;
+
+        PurchaseHeader."Receipt on Invoice" := NewReceiptOnInvoice;
+
+        ApplyReceiptOnInvoiceToEligibleLines(PurchaseHeader);
+    end;
+
+    /// <summary>
+    /// Mirrors the document's Receipt on Invoice flag onto all its lines by validating the field on each line, so
+    /// the per-line eligibility check (WMS location / item tracking), quantity-to-receive initialization and match
+    /// synchronization all run through the field's own logic. This is the preferred entry point: an incompatible
+    /// line raises a specific error instead of being silently left in an invalid state.
+    /// </summary>
+    /// <param name="PurchaseHeader"></param>
+    internal procedure ApplyReceiptOnInvoiceToLines(PurchaseHeader: Record "Purchase Header")
+    var
+        PurchaseLine: Record "Purchase Line";
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        if PurchaseLine.FindSet() then
+            repeat
+                PurchaseLine.Validate("Receipt on Invoice", PurchaseHeader."Receipt on Invoice");
+                PurchaseLine.Modify();
+            until PurchaseLine.Next() = 0;
+    end;
+
+    /// <summary>
+    /// Mirrors the document's Receipt on Invoice flag onto each line through the field's validation, but when
+    /// enabling skips lines that fail the WMS location / item-tracking eligibility check, leaving them disabled
+    /// instead of raising an error. Used by vendor-policy driven updates, which must not block vendor selection
+    /// because of a single incompatible line.
+    /// </summary>
+    /// <param name="PurchaseHeader"></param>
+    local procedure ApplyReceiptOnInvoiceToEligibleLines(PurchaseHeader: Record "Purchase Header")
+    var
+        PurchaseLine: Record "Purchase Line";
+        LineReceiptOnInvoice: Boolean;
+        ReceiptOnInvoiceNotAllowedReason: Text;
+    begin
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        if PurchaseLine.FindSet() then
+            repeat
+                LineReceiptOnInvoice := PurchaseHeader."Receipt on Invoice";
+                if LineReceiptOnInvoice and (not IsLineReceiptOnInvoiceAllowed(PurchaseLine, ReceiptOnInvoiceNotAllowedReason)) then
+                    LineReceiptOnInvoice := false;
+                PurchaseLine.Validate("Receipt on Invoice", LineReceiptOnInvoice);
+                PurchaseLine.Modify();
+            until PurchaseLine.Next() = 0;
+    end;
+
     internal procedure ProcessMatchedReceiptOnInvoice(var PurchaseLine: Record "Purchase Line")
     var
         MatchedOrderLine: Record "Matched Order Line";
         PurchaseHeaderOrder: Record "Purchase Header";
         PurchaseLineOrder: Record "Purchase Line";
         TempPurchaseHeader: Record "Purchase Header" temporary;
+        MatchedOrderContext: Codeunit "Matched Order Context";
         PurchPost: Codeunit "Purch.-Post";
+        QtyToReceive: Decimal;
     begin
-        PurchaseLine.SetLoadFields(SystemId);
+        PurchaseLine.SetLoadFields(SystemId, Quantity);
+        // Drive the quantity to receive from the match. The context keeps InitQtyToReceive from forcing it back to
+        // zero on these receipt-on-invoice lines, so the value can be assigned through ordinary field validation.
+        MatchedOrderContext.StartReceivingMatchedOrderLines();
         if PurchaseLine.FindSet() then
             repeat
                 MatchedOrderLine.SetRange("Document Line SystemId", PurchaseLine.SystemId);
@@ -38,22 +120,47 @@ codeunit 5826 "Matched Order Line Mgmt."
                     repeat
                         PurchaseLineOrder.GetBySystemId(MatchedOrderLine."Matched Order Line SystemId");
 
+                        PurchaseLineOrder.TestField("Receipt on Invoice");
+                        CheckLineReceiptOnInvoiceAllowed(PurchaseLineOrder);
                         PurchaseHeaderOrder.Get(PurchaseLineOrder."Document Type", PurchaseLineOrder."Document No.");
-                        PurchaseHeaderOrder.TestField("Receipt on Invoice");
                         TempPurchaseHeader := PurchaseHeaderOrder;
                         if TempPurchaseHeader.Insert() then;
 
-                        PurchaseLineOrder.Validate("Qty. to Receive", MatchedOrderLine."Qty. to Invoice");
+                        // Receive only what the invoice needs beyond what the order line already has received but not
+                        // invoiced, so quantity already on hand (e.g. a prior manual receipt) is not received again.
+                        // The matcher filters ensure the order line shares the invoice line's unit of measure.
+                        QtyToReceive := PurchaseLine.Quantity - PurchaseLineOrder."Qty. Rcd. Not Invoiced";
+                        if QtyToReceive < 0 then
+                            QtyToReceive := 0;
+                        if QtyToReceive > PurchaseLineOrder."Outstanding Quantity" then
+                            QtyToReceive := PurchaseLineOrder."Outstanding Quantity";
+                        PurchaseLineOrder.Validate("Qty. to Receive", QtyToReceive);
 
                         // used to store from which purchase invoice line the order line is auto-received
                         PurchaseLineOrder."Invoicing From Line SystemId" := PurchaseLine.SystemId;
                         PurchaseLineOrder.Modify(true);
                     until MatchedOrderLine.Next() = 0;
             until PurchaseLine.Next() = 0;
+        MatchedOrderContext.StopReceivingMatchedOrderLines();
 
         if TempPurchaseHeader.FindSet() then
             repeat
                 PurchaseHeaderOrder.Get(TempPurchaseHeader."Document Type", TempPurchaseHeader."No.");
+
+                // Receive only the lines this invoice posting drives (marked above). Suppress the rest; the posting
+                // routine re-initializes their quantity to receive afterwards.
+                PurchaseLineOrder.Reset();
+                PurchaseLineOrder.SetRange("Document Type", PurchaseHeaderOrder."Document Type");
+                PurchaseLineOrder.SetRange("Document No.", PurchaseHeaderOrder."No.");
+                PurchaseLineOrder.SetRange("Invoicing From Line SystemId", NullGuid);
+                PurchaseLineOrder.SetFilter("Qty. to Receive", '<>%1', 0);
+                if PurchaseLineOrder.FindSet() then
+                    repeat
+                        PurchaseLineOrder."Qty. to Receive" := 0;
+                        PurchaseLineOrder."Qty. to Receive (Base)" := 0;
+                        PurchaseLineOrder.Modify();
+                    until PurchaseLineOrder.Next() = 0;
+
                 PurchaseHeaderOrder.Receive := true;
                 PurchaseHeaderOrder.Invoice := false;
 
@@ -61,6 +168,7 @@ codeunit 5826 "Matched Order Line Mgmt."
                 PurchPost.Run(PurchaseHeaderOrder);
                 Clear(PurchPost);
 
+                PurchaseLineOrder.Reset();
                 PurchaseLineOrder.SetRange("Document Type", TempPurchaseHeader."Document Type");
                 PurchaseLineOrder.SetRange("Document No.", TempPurchaseHeader."No.");
                 PurchaseLineOrder.ModifyAll("Invoicing From Line SystemId", NullGuid);
@@ -95,10 +203,6 @@ codeunit 5826 "Matched Order Line Mgmt."
     begin
         if not (PurchaseHeader."Document Type" in [PurchaseHeader."Document Type"::Invoice, PurchaseHeader."Document Type"::Order]) then
             exit;
-
-        if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Order then
-            if PurchaseHeader."Receipt on Invoice" and IsNullGuid(PurchaseLine."Invoicing From Line SystemId") then
-                Error(ReceiptOnInvoicePostFromMatchedInvoiceErr, PurchaseHeader.FieldCaption("Receipt on Invoice"));
 
         if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::Invoice then begin
             if not PurchaseLine.IsMatchedToOrder() then
@@ -669,7 +773,7 @@ codeunit 5826 "Matched Order Line Mgmt."
                     if PurchaseHeaderOrder."No." <> PurchaseLineOrder."Document No." then
                         PurchaseHeaderOrder.Get(PurchaseLineOrder."Document Type", PurchaseLineOrder."Document No.");
 
-                    InsertMatchedOrderLine(PurchaseLineInvoice.SystemId, PurchaseLineOrder.SystemId, NullGuid, PurchaseLineOrder."Qty. Rcd. Not Invoiced", PurchaseLineOrder."Qty. Rcd. Not Invoiced (Base)", PurchaseHeaderOrder."Receipt on Invoice");
+                    InsertMatchedOrderLine(PurchaseLineInvoice.SystemId, PurchaseLineOrder.SystemId, NullGuid, PurchaseLineOrder."Qty. Rcd. Not Invoiced", PurchaseLineOrder."Qty. Rcd. Not Invoiced (Base)", PurchaseLineOrder."Receipt on Invoice");
 
                     PurchRcptLine.SetRange("Order No.", PurchaseLineOrder."Document No.");
                     PurchRcptLine.SetRange("Order Line No.", PurchaseLineOrder."Line No.");
@@ -737,7 +841,7 @@ codeunit 5826 "Matched Order Line Mgmt."
                     if IsNullGuid(DetailedMatchedOrderLine."Matched Order Line SystemId") then begin
                         PurchaseLineOrder.Get(PurchaseLineOrder."Document Type"::Order, PurchRcptLine."Order No.", PurchRcptLine."Order Line No.");
                         PurchaseHeaderOrder.Get(PurchaseLineOrder."Document Type", PurchaseLineOrder."Document No.");
-                        InsertMatchedOrderLine(PurchaseLineInvoice.SystemId, PurchaseLineOrder.SystemId, NullGuid, PurchaseLineOrder."Qty. Rcd. Not Invoiced", PurchaseLineOrder."Qty. Rcd. Not Invoiced (Base)", PurchaseHeaderOrder."Receipt on Invoice");
+                        InsertMatchedOrderLine(PurchaseLineInvoice.SystemId, PurchaseLineOrder.SystemId, NullGuid, PurchaseLineOrder."Qty. Rcd. Not Invoiced", PurchaseLineOrder."Qty. Rcd. Not Invoiced (Base)", PurchaseLineOrder."Receipt on Invoice");
                     end;
                     ItemTrackingMgt.CopyMatchedItemTrkgToPurchLine(
                         PurchaseLineOrder,
@@ -967,7 +1071,7 @@ codeunit 5826 "Matched Order Line Mgmt."
                         QtyBase := PurchaseLineOrder."Outstanding Qty. (Base)";
                     end;
 
-                    InsertMatchedOrderLine(PurchaseLineInvoice.SystemId, PurchaseLineOrder.SystemId, NullGuid, Qty, QtyBase, PurchaseHeaderOrder."Receipt on Invoice");
+                    InsertMatchedOrderLine(PurchaseLineInvoice.SystemId, PurchaseLineOrder.SystemId, NullGuid, Qty, QtyBase, PurchaseLineOrder."Receipt on Invoice");
 
                     PurchRcptLine.SetRange("Order No.", PurchaseLineOrder."Document No.");
                     PurchRcptLine.SetRange("Order Line No.", PurchaseLineOrder."Line No.");
@@ -999,79 +1103,84 @@ codeunit 5826 "Matched Order Line Mgmt."
 
     internal procedure CheckReceiptOnInvoiceAllowed(PurchaseHeader: Record "Purchase Header")
     var
-        Item: Record Item;
-        ItemTrackingCode: record "Item Tracking Code";
-        Location: Record Location;
         PurchaseLine: Record "Purchase Line";
-        PurchRcptLine: Record "Purch. Rcpt. Line";
     begin
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
         PurchaseLine.SetLoadFields(Type, "No.", "Location Code");
         if PurchaseLine.FindSet() then
             repeat
-                if Location.Get(PurchaseLine."Location Code") and Location."Directed Put-away and Pick" then
-                    Error(ReceiptOnInvoiceLocationErr, PurchaseHeader.FieldCaption("Receipt on Invoice"), PurchaseLine."Location Code", PurchaseLine."Line No.");
-                if PurchaseLine.Type = PurchaseLine.Type::Item then
-                    if Item.Get(PurchaseLine."No.") and (Item."Item Tracking Code" <> '') then
-                        if ItemTrackingCode.Get(Item."Item Tracking Code") and (ItemTrackingCode."SN Specific Tracking" or ItemTrackingCode."Lot Specific Tracking" or ItemTrackingCode."Package Specific Tracking") then
-                            Error(ReceiptOnInvoiceItemTrackingErr, PurchaseHeader.FieldCaption("Receipt on Invoice"), PurchaseLine."No.", PurchaseLine."Line No.");
-
-                PurchRcptLine.SetRange("Order No.", PurchaseLine."Document No.");
-                PurchRcptLine.SetRange("Order Line No.", PurchaseLine."Line No.");
-                if not PurchRcptLine.IsEmpty() then
-                    Error(ReceiptOnInvoicePostedReceiptErr, PurchaseHeader.FieldCaption("Receipt on Invoice"), PurchaseLine."Line No.");
+                CheckLineReceiptOnInvoiceAllowed(PurchaseLine);
             until PurchaseLine.Next() = 0;
+    end;
+
+    internal procedure CheckLineReceiptOnInvoiceAllowed(PurchaseLine: Record "Purchase Line")
+    var
+        ErrorMessage: Text;
+    begin
+        if not IsLineReceiptOnInvoiceAllowed(PurchaseLine, ErrorMessage) then
+            Error(ErrorMessage);
+    end;
+
+    internal procedure IsLineReceiptOnInvoiceAllowed(PurchaseLine: Record "Purchase Line"; var ErrorMessage: Text): Boolean
+    var
+        Item: Record Item;
+        ReceiptOnInvoiceCaption: Text;
+    begin
+        ReceiptOnInvoiceCaption := PurchaseLine.FieldCaption("Receipt on Invoice");
+        if not IsReceiptOnInvoiceAllowedForLocation(PurchaseLine."Location Code") then begin
+            ErrorMessage := StrSubstNo(ReceiptOnInvoiceLocationErr, ReceiptOnInvoiceCaption, PurchaseLine."Location Code", PurchaseLine."Line No.");
+            exit(false);
+        end;
+        if (PurchaseLine.Type = PurchaseLine.Type::Item) and Item.Get(PurchaseLine."No.") then
+            if not IsReceiptOnInvoiceAllowedForItem(Item) then begin
+                ErrorMessage := StrSubstNo(ReceiptOnInvoiceItemTrackingErr, ReceiptOnInvoiceCaption, PurchaseLine."No.", PurchaseLine."Line No.");
+                exit(false);
+            end;
+        exit(true);
+    end;
+
+    internal procedure IsReceiptOnInvoiceAllowedForItem(Item: Record Item): Boolean
+    var
+        ItemTrackingCode: Record "Item Tracking Code";
+    begin
+        if Item."Item Tracking Code" = '' then
+            exit(true);
+        if ItemTrackingCode.Get(Item."Item Tracking Code") then
+            if ItemTrackingCode."SN Specific Tracking" or ItemTrackingCode."Lot Specific Tracking" or ItemTrackingCode."Package Specific Tracking" then
+                exit(false);
+        exit(true);
+    end;
+
+    internal procedure IsReceiptOnInvoiceAllowedForLocation(LocationCode: Code[10]): Boolean
+    var
+        Location: Record Location;
+    begin
+        if Location.Get(LocationCode) then
+            if Location."Directed Put-away and Pick" then
+                exit(false);
+        exit(true);
+    end;
+
+    internal procedure ApplyPurchaseLineReceiptSettingToMatches(PurchaseLine: Record "Purchase Line")
+    var
+        MatchedOrderLine: Record "Matched Order Line";
+    begin
+        MatchedOrderLine.SetRange("Matched Order Line SystemId", PurchaseLine.SystemId);
+        MatchedOrderLine.ModifyAll("Receipt on Invoice", PurchaseLine."Receipt on Invoice");
     end;
 
     internal procedure RefreshMatchedOrderLineReceipt(PurchaseHeader: Record "Purchase Header")
     var
         PurchaseLine: Record "Purchase Line";
-        PurchaseLineSystemIDFilter: Text;
-        FilterValueCount: Integer;
     begin
         PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
         PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
-        PurchaseLine.SetLoadFields(SystemId);
+        PurchaseLine.SetLoadFields("Receipt on Invoice");
         if PurchaseLine.FindSet() then
             repeat
-                PurchaseLineSystemIDFilter += Format(PurchaseLine.SystemId) + '|';
-                FilterValueCount += 1;
-                if FilterValueCount = MaxFilterValues() then begin
-                    RefreshMatchedOrderLinesBatch(PurchaseLineSystemIDFilter, PurchaseHeader."Receipt on Invoice");
-                    Clear(PurchaseLineSystemIDFilter);
-                    FilterValueCount := 0;
-                end;
+                ApplyPurchaseLineReceiptSettingToMatches(PurchaseLine);
             until PurchaseLine.Next() = 0;
-
-        if PurchaseLineSystemIDFilter <> '' then
-            RefreshMatchedOrderLinesBatch(PurchaseLineSystemIDFilter, PurchaseHeader."Receipt on Invoice");
-    end;
-
-    local procedure RefreshMatchedOrderLinesBatch(SystemIDFilter: Text; ReceiptOnInvoice: Boolean)
-    var
-        MatchedOrderLine: Record "Matched Order Line";
-    begin
-        MatchedOrderLine.SetFilter("Matched Order Line SystemId", CopyStr(SystemIDFilter, 1, StrLen(SystemIDFilter) - 1));
-        MatchedOrderLine.ModifyAll("Receipt on Invoice", ReceiptOnInvoice);
-    end;
-
-    internal procedure CheckReceiptOnInvoiceAllowedForItem(Item: Record Item; PurchHeader: Record "Purchase Header")
-    var
-        ItemTrackingCode: Record "Item Tracking Code";
-    begin
-        if PurchHeader."Receipt on Invoice" and (Item."Item Tracking Code" <> '') then
-            if ItemTrackingCode.Get(Item."Item Tracking Code") and (ItemTrackingCode."SN Specific Tracking" or ItemTrackingCode."Lot Specific Tracking" or ItemTrackingCode."Package Specific Tracking") then
-                Error(ReceiptOnInvoiceItemTrackingLineValidationErr, Item."No.", PurchHeader.FieldCaption("Receipt on Invoice"));
-    end;
-
-    internal procedure CheckReceiptOnInvoiceAllowedForLocation("Location Code": Code[10]; PurchHeader: Record "Purchase Header")
-    var
-        Location: Record Location;
-    begin
-        if PurchHeader."Receipt on Invoice" then
-            if Location.Get("Location Code") and Location."Directed Put-away and Pick" then
-                Error(ReceiptOnInvoiceLocationLineValidationErr, "Location Code", PurchHeader.FieldCaption("Receipt on Invoice"));
     end;
 
     internal procedure LineCanBeDeleted(var DetailedMatchedOrderLine: Record "Detailed Matched Order Line"; SourceIsOpenDocument: Boolean): Boolean
@@ -1156,6 +1265,21 @@ codeunit 5826 "Matched Order Line Mgmt."
         FeatureTelemetry.LogUptake('0000SIX', MatchedOrderLinesTok, Enum::"Feature Uptake Status"::"Set up");
     end;
 
+    /// <summary>
+    /// Creates a matched order line linking an invoice/credit memo line to a purchase order line and, optionally, a posted receipt/shipment line.
+    /// Public entry point for apps that build matches outside the Base Application
+    /// </summary>
+    /// <param name="InvoicePurchLineSystemId">SystemId of the invoice/credit memo purchase line.</param>
+    /// <param name="OrderPurchLineSystemId">SystemId of the matched purchase order line.</param>
+    /// <param name="ReceiptLineSystemId">SystemId of the matched posted receipt/shipment line, or a null Guid for an order-only (receive on invoice) match.</param>
+    /// <param name="QtyToInvoice">Quantity to invoice for the match.</param>
+    /// <param name="QtyToInvoiceBase">Base quantity to invoice for the match.</param>
+    /// <param name="ReceiptOnInvoice">Whether the order line is to be received automatically when the invoice is posted.</param>
+    procedure CreateMatchedOrderLine(InvoicePurchLineSystemId: Guid; OrderPurchLineSystemId: Guid; ReceiptLineSystemId: Guid; QtyToInvoice: Decimal; QtyToInvoiceBase: Decimal; ReceiptOnInvoice: Boolean)
+    begin
+        InsertMatchedOrderLine(InvoicePurchLineSystemId, OrderPurchLineSystemId, ReceiptLineSystemId, QtyToInvoice, QtyToInvoiceBase, ReceiptOnInvoice);
+    end;
+
     local procedure MaxFilterValues(): Integer
     begin
         // Business Central supports up to about 2000 filter values in a single request.
@@ -1181,10 +1305,6 @@ codeunit 5826 "Matched Order Line Mgmt."
         MustBeMatchedToReceiptErr: Label 'Line No. %1 must be matched to at least one receipt or shipment line.', Comment = ' %1 = Line No.';
         ReceiptOnInvoiceLocationErr: Label 'You cannot use %1 Directed Put-away and Pick Location %2 on Line %3.', Comment = '%1 = Receipt on Invoice field name, %2 = Location Code, %3 = Line No.';
         ReceiptOnInvoiceItemTrackingErr: Label 'You cannot use %1 because Item %2 on Line %3 requires item tracking.', Comment = '%1 = Receipt on Invoice field name, %2 = Item No., %3 = Line No.';
-        ReceiptOnInvoiceLocationLineValidationErr: Label 'You cannot use Directed Put-away and Pick location %1 on purchase orders with %2 enabled.', Comment = '%1 = Location Code, %2 = Receipt on Invoice field name';
-        ReceiptOnInvoiceItemTrackingLineValidationErr: Label 'You cannot use item %1 with specific tracking on purchase orders with %2 enabled.', Comment = '%1 = Item No., %2 = Receipt on Invoice field name';
-        ReceiptOnInvoicePostedReceiptErr: Label 'You cannot use %1 because Line %2 already has posted receipts.', Comment = '%1 = Receipt on Invoice field name, %2 = Line No.';
-        ReceiptOnInvoicePostFromMatchedInvoiceErr: Label 'Purchase Order with %1 selected can only be posted from matched purchase invoice', Comment = '%1 = Receipt on Invoice field name';
         DeletePostedLinesErr: Label 'You cannot delete posted document lines.';
         LocationRequiresReceiveErr: Label 'You cannot delete the last matched order line because %1 location requires Directed Put-away and Pick. Please delete the document line.', Comment = '%1 - Location Code';
         NullGuid: Guid;

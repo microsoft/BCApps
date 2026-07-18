@@ -1,3 +1,4 @@
+#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12,6 +13,9 @@ using Microsoft.Purchases.History;
 query 6100 "E-Doc. Line by Receipt"
 {
     Access = Internal;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'No longer used; e-document invoice lines are no longer grouped by receipt number when creating the purchase invoice.';
+    ObsoleteTag = '29.0';
     OrderBy = ascending(ReceiptNo);
     InherentEntitlements = X;
     InherentPermissions = X;
@@ -47,3 +51,4 @@ query 6100 "E-Doc. Line by Receipt"
         }
     }
 }
+#endif
