@@ -1979,7 +1979,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnContinuePostingOnIncreaseNextTransactionNo(GenJnlLine, NextTransactionNo, IsHandled);
             if not IsHandled then
                 if GLSetup.UseConcurrentPosting() then
-                    NextTransactionNo := GetNextTransactionNo()
+                    NextTransactionNo := GlobalGLTransaction.GetNextTransactionNo()
                 else
                     NextTransactionNo := NextTransactionNo + 1;
             InitLastDocDate(GenJnlLine);
