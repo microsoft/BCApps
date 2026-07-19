@@ -1083,6 +1083,36 @@ codeunit 133961 "Agent Test"
     end;
 
     [Test]
+    procedure ReactivateArchivedAgentErrors()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] An archived agent cannot be reactivated
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [WHEN] Activating the archived agent
+        // [THEN] The platform rejects the modification because the agent is archived
+        asserterror Agent.Activate(AgentId);
+        Assert.ExpectedError('An archived agent cannot be modified.');
+
+        // [THEN] The agent remains archived and disabled
+        Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should remain archived after a failed reactivation');
+        Assert.IsFalse(Agent.IsActive(AgentId), 'Agent should remain inactive after a failed reactivation');
+    end;
+
+    [Test]
     procedure ArchivedAgentHiddenFromAgentList()
     var
         AgentRecord: Record Agent;
@@ -1204,8 +1234,8 @@ codeunit 133961 "Agent Test"
     procedure ArchivedAgentUserSettingsActionDisabledOnCard()
     var
         AgentRecord: Record Agent;
-        AgentCardPage: TestPage "Agent Card";
         Any: Codeunit Any;
+        AgentCardPage: TestPage "Agent Card";
         AgentId: Guid;
     begin
         Initialize();
@@ -1235,8 +1265,8 @@ codeunit 133961 "Agent Test"
     procedure ArchivedAgentConfigureActionEnabledOnCard()
     var
         AgentRecord: Record Agent;
-        AgentCardPage: TestPage "Agent Card";
         Any: Codeunit Any;
+        AgentCardPage: TestPage "Agent Card";
         AgentId: Guid;
     begin
         Initialize();

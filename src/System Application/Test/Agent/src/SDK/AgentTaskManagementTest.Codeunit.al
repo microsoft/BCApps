@@ -764,6 +764,37 @@ codeunit 133962 "Agent Task Management Test"
         Assert.ExpectedError('does not exist or is not active');
     end;
 
+    [Test]
+    procedure AddingMessageToArchivedAgentTaskIsBlocked()
+    var
+        Task: Record "Agent Task";
+        AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
+        Any: Codeunit Any;
+        AgentUserId: Guid;
+        MessageFrom: Text[250];
+        MessageText: Text;
+    begin
+        Initialize();
+
+        // [SCENARIO] Additional messages cannot be added to a task once its owning agent has been archived
+
+        // [GIVEN] An agent that owns a stopped task
+        AgentUserId := CreateAgentWithStoppedTask(Task, 'Task of Agent To Archive');
+
+        // [GIVEN] The agent is deactivated and archived
+        DeactivateAndArchiveAgent(AgentUserId);
+
+        MessageFrom := CopyStr(Any.AlphanumericText(MaxStrLen(MessageFrom)), 1, MaxStrLen(MessageFrom));
+        MessageText := Any.AlphanumericText(2048);
+
+        // [WHEN] Adding a new message to the archived agent's task
+        // [THEN] The operation is rejected because the associated agent is archived
+        AgentTaskMessageBuilder.Initialize(MessageFrom, MessageText);
+        AgentTaskMessageBuilder.SetAgentTask(Task.Id);
+        asserterror AgentTaskMessageBuilder.Create();
+        Assert.ExpectedError('is not allowed because the associated agent is archived');
+    end;
+
     local procedure CreateAgentWithStoppedTask(var AgentTaskRecord: Record "Agent Task"; TaskTitle: Text[150]) AgentUserId: Guid
     var
         AgentRecord: Record Agent;
