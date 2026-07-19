@@ -110,51 +110,78 @@ table Bin
 			
 			VAR Endpoint = "&page=7318&"
 			VAR BaseLink = [Base Link] & Endpoint
-			// Filter Context
-			VAR Items = CONCATENATEX(VALUES('Warehouse Entries'[Item No.]),'Warehouse Entries'[Item No.], "|")
+			// Project the URL length from the raw filter values without building the(possibly huge) URL string
 			VAR BinCode = SELECTEDVALUE('Bin'[Bin Code])
 			VAR LocationCode = SELECTEDVALUE(Bin[Bin Location Code])
 			
-			VAR BinCodeFilter = "filter='Warehouse Entry'.'Bin Code' IS '" & BinCode & "'"
-			VAR ItemFilter = " AND 'Warehouse Entry'.'Item No.' IS '" & Items & "'"
-			VAR LocationFilter = " AND 'Warehouse Entry'.'Location Code' IS '" & LocationCode & "'"
-			
+			VAR ProjectedLength =
+			    LEN ( BaseLink )
+			    + LEN ( "filter='Warehouse Entry'.'Bin Code' IS ''" ) + LEN ( BinCode )
+			    + LEN ( " AND 'Warehouse Entry'.'Item No.' IS ''" )
+			    + SUMX ( VALUES ( 'Warehouse Entries'[Item No.] ), LEN ( 'Warehouse Entries'[Item No.] ) + 1 )
+			    + LEN ( " AND 'Warehouse Entry'.'Location Code' IS ''" ) + LEN ( LocationCode )
 			RETURN
-			BaseLink & BinCodeFilter & ItemFilter & LocationFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        BaseLink
+			            & "filter='Warehouse Entry'.'Bin Code' IS '" & BinCode & "'"
+			            & " AND 'Warehouse Entry'.'Item No.' IS '" & CONCATENATEX ( VALUES ( 'Warehouse Entries'[Item No.] ), 'Warehouse Entries'[Item No.], "|" ) & "'"
+			            & " AND 'Warehouse Entry'.'Location Code' IS '" & LocationCode & "'",
+			BaseLink
+			    )
 		lineageTag: 0d8d0644-43c7-4675-bbc9-c23b96954f4c
 
 	measure 'Pick Quantity Link' =
 			
 			VAR Endpoint = "&page=5785&"
 			VAR BaseLink = [Base Link] & Endpoint
-			// Filter Context
-			VAR Items = CONCATENATEX(VALUES('Warehouse Activity Lines'[itemNo]),'Warehouse Activity Lines'[itemNo], "|")
+			// Project the URL length from the raw filter values without building the(possibly huge) URL string
 			VAR BinCode = SELECTEDVALUE('Bin'[Bin Code])
 			VAR LocationCode = SELECTEDVALUE(Bin[Bin Location Code])
 			
-			VAR BinCodeFilter = "filter='Warehouse Activity Line'.'Bin Code' IS '" & BinCode & "'"
-			VAR ItemFilter = " AND 'Warehouse Activity Line'.'Item No.' IS '" & Items & "'"
-			VAR LocationFilter = " AND 'Warehouse Activity Line'.'Location Code' IS '" & LocationCode & "'"
-			
+			VAR ProjectedLength =
+			    LEN ( BaseLink )
+			    + LEN ( "filter='Warehouse Activity Line'.'Bin Code' IS ''" ) + LEN ( BinCode )
+			    + LEN ( " AND 'Warehouse Activity Line'.'Item No.' IS ''" )
+			    + SUMX ( VALUES ( 'Warehouse Activity Lines'[itemNo] ), LEN ( 'Warehouse Activity Lines'[itemNo] ) + 1 )
+			    + LEN ( " AND 'Warehouse Activity Line'.'Location Code' IS ''" ) + LEN ( LocationCode )
 			RETURN
-			BaseLink & BinCodeFilter & ItemFilter & LocationFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        BaseLink
+			            & "filter='Warehouse Activity Line'.'Bin Code' IS '" & BinCode & "'"
+			            & " AND 'Warehouse Activity Line'.'Item No.' IS '" & CONCATENATEX ( VALUES ( 'Warehouse Activity Lines'[itemNo] ), 'Warehouse Activity Lines'[itemNo], "|" ) & "'"
+			            & " AND 'Warehouse Activity Line'.'Location Code' IS '" & LocationCode & "'",
+			BaseLink
+			    )
 		lineageTag: 37053bd0-f109-4bb0-a5ee-8d0351d2cc82
 
 	measure 'Warehouse Journal Link' =
 			
 			VAR Endpoint = "&page=7319&"
 			VAR BaseLink = [Base Link] & Endpoint
-			// Filter Context
-			VAR Items = CONCATENATEX(VALUES('Warehouse Journal Lines (From Bin)'[itemNo]),'Warehouse Journal Lines (From Bin)'[itemNo], "|")
+			// Project the URL length from the raw filter values without building the(possibly huge) URL string
 			VAR BinCode = SELECTEDVALUE('Bin'[Bin Code])
 			VAR LocationCode = SELECTEDVALUE(Bin[Bin Location Code])
 			
-			VAR BinCodeFilter = "filter='Warehouse Journal Line'.'Bin Code' IS '" & BinCode & "'"
-			VAR ItemFilter = " AND 'Warehouse Journal Line'.'Item No.' IS '" & Items & "'"
-			VAR LocationFilter = " AND 'Warehouse Journal Line'.'Location Code' IS '" & LocationCode & "'"
-			
+			VAR ProjectedLength =
+			    LEN ( BaseLink )
+			    + LEN ( "filter='Warehouse Journal Line'.'Bin Code' IS ''" ) + LEN ( BinCode )
+			    + LEN ( " AND 'Warehouse Journal Line'.'Item No.' IS ''" )
+			    + SUMX ( VALUES ( 'Warehouse Journal Lines (From Bin)'[itemNo] ), LEN ( 'Warehouse Journal Lines (From Bin)'[itemNo] ) + 1 )
+			    + LEN ( " AND 'Warehouse Journal Line'.'Location Code' IS ''" ) + LEN ( LocationCode )
 			RETURN
-			BaseLink & BinCodeFilter & ItemFilter & LocationFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        BaseLink
+			            & "filter='Warehouse Journal Line'.'Bin Code' IS '" & BinCode & "'"
+			            & " AND 'Warehouse Journal Line'.'Item No.' IS '" & CONCATENATEX ( VALUES ( 'Warehouse Journal Lines (From Bin)'[itemNo] ), 'Warehouse Journal Lines (From Bin)'[itemNo], "|" ) & "'"
+			            & " AND 'Warehouse Journal Line'.'Location Code' IS '" & LocationCode & "'",
+			BaseLink
+			    )
 		displayFolder: _Bin Measures
 		lineageTag: 7982ebca-d5e6-4981-8626-7925caaabf6c
 

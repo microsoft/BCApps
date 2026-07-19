@@ -768,6 +768,7 @@ table 254 "VAT Entry"
                 if Closed then
                     Error(VATDateModifiableClosedErr);
 
+                VATDateReportingMgt.ResetVATReturnPeriodWarning();
                 VATDateReportingMgt.CheckDateAllowed("VAT Reporting Date", Rec.FieldNo("VAT Reporting Date"), false);
                 VATDateReportingMgt.CheckDateAllowed(xRec."VAT Reporting Date", Rec.FieldNo("VAT Reporting Date"), true, false);
                 VATDateReportingMgt.UpdateLinkedEntries(Rec);

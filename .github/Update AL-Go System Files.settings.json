@@ -1,13 +1,23 @@
 {
-    "workflowSchedule": {
-        "cron": "25 12 * * 3",
-        "includeBranches": [
-            "main",
-            "releases/25.*",
-            "releases/26.*",
-            "releases/27.*",
-            "releases/28.*"
-        ]
-    }
+  "workflowSchedule": {
+    "cron": "25 12 * * 3",
+    "includeBranches": [
+      "main",
+      "releases/26.4",
+      "releases/26.5",
+      "releases/26.x",
+      "releases/27.0",
+      "releases/27.1",
+      "releases/27.2",
+      "releases/27.3",
+      "releases/27.4",
+      "releases/27.5",
+      "releases/27.x",
+      "releases/28.0",
+      "releases/28.1",
+      "releases/28.2",
+      "releases/28.3",
+      "releases/28.x"
+    ]
+  }
 }
-
