@@ -70,7 +70,8 @@ codeunit 6256 "Sust. Item Post Subscriber"
                 TempSplitItemJournalLine."Total CO2e" := Abs(CO2eAmount / CO2eQuantity) * TempSplitItemJournalLine.Quantity;
                 TempSplitItemJournalLine."CO2e per Unit" := Abs(CO2eAmount / CO2eQuantity);
             end;
-        end;
+        end else
+            TempSplitItemJournalLine."Total CO2e" := ItemJournalLine."Total CO2e" / ItemJournalLine.Quantity * TempSplitItemJournalLine.Quantity;
 
         TempSplitItemJournalLine.Modify();
     end;

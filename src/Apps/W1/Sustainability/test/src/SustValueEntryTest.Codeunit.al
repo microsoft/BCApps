@@ -4178,6 +4178,111 @@ codeunit 148190 "Sust. Value Entry Test"
         Navigate.Run();
     end;
 
+    [Test]
+    procedure VerifySpecificCarbonTrackingSplitsTotalCO2eAcrossSerialNos()
+    var
+        Item: Record Item;
+        SustainabilityAccount: Record "Sustainability Account";
+        EmissionFee: array[3] of Record "Emission Fee";
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        SerialNo: array[2] of Code[50];
+        Qty: Decimal;
+        TotalCO2e: Decimal;
+        Index: Integer;
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+    begin
+        // [SCENARIO 641051] The Total CO2e entered on an Item Journal line is split proportionally by quantity across the assigned Serial Nos for a Specific carbon tracking item.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] Update "Enable Value Chain Tracking" in Sustainability Setup.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+
+        // [GIVEN] Create a Sustainability Account and Emission Fee.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SustainabilityAccount.Get(AccountCode);
+        CreateEmissionFeeWithEmissionScope(EmissionFee, SustainabilityAccount."Emission Scope", '');
+
+        // [GIVEN] Create a Serial No. tracked Item with Specific Carbon Tracking Method and a default Sust. Account.
+        LibraryItemTracking.CreateSerialItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        Item.Validate("Default Sust. Account", AccountCode);
+        Item.Modify();
+
+        // [GIVEN] Create an Item Journal line with quantity matching the number of Serial Nos (one unit each).
+        Qty := ArrayLen(SerialNo);
+        TotalCO2e := LibraryRandom.RandIntInRange(600, 600);
+        CreateItemJournalLineWithCO2e(ItemJournalLine, Item."No.", Qty, AccountCode, TotalCO2e);
+
+        // [GIVEN] Assign two Serial Nos with one unit each.
+        for Index := 1 to ArrayLen(SerialNo) do begin
+            SerialNo[Index] := LibraryUtility.GenerateGUID();
+            LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, SerialNo[Index], '', 1);
+        end;
+
+        // [WHEN] Post the Item Journal.
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [THEN] Each Sustainability Value Entry gets the Total CO2e split by quantity (300 each) and the entries sum to the line Total CO2e.
+        VerifySplitSustValueEntries(Item."No.", ArrayLen(SerialNo), TotalCO2e / Qty, TotalCO2e);
+    end;
+
+    [Test]
+    procedure VerifySpecificCarbonTrackingSplitsTotalCO2eAcrossLots()
+    var
+        Item: Record Item;
+        SustainabilityAccount: Record "Sustainability Account";
+        EmissionFee: array[3] of Record "Emission Fee";
+        ItemJournalLine: Record "Item Journal Line";
+        ReservationEntry: Record "Reservation Entry";
+        LotNo: array[2] of Code[50];
+        LotQty: array[2] of Decimal;
+        Qty: Decimal;
+        TotalCO2e: Decimal;
+        Index: Integer;
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+    begin
+        // [SCENARIO 641051] The Total CO2e entered on an Item Journal line is split proportionally by quantity across the assigned Lots for a Specific carbon tracking item.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] Update "Enable Value Chain Tracking" in Sustainability Setup.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+
+        // [GIVEN] Create a Sustainability Account and Emission Fee.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SustainabilityAccount.Get(AccountCode);
+        CreateEmissionFeeWithEmissionScope(EmissionFee, SustainabilityAccount."Emission Scope", '');
+
+        // [GIVEN] Create a Lot tracked Item with Specific Carbon Tracking Method and a default Sust. Account.
+        LibraryItemTracking.CreateLotItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        Item.Validate("Default Sust. Account", AccountCode);
+        Item.Modify();
+
+        // [GIVEN] Create an Item Journal line with Total CO2e, split across two lots.
+        LotQty[1] := LibraryRandom.RandIntInRange(4, 10);
+        LotQty[2] := LibraryRandom.RandIntInRange(4, 10);
+        Qty := LotQty[1] + LotQty[2];
+        TotalCO2e := LibraryRandom.RandIntInRange(1000, 1000);
+        CreateItemJournalLineWithCO2e(ItemJournalLine, Item."No.", Qty, AccountCode, TotalCO2e);
+
+        // [GIVEN] Assign two Lots with different quantities.
+        for Index := 1 to ArrayLen(LotNo) do begin
+            LotNo[Index] := LibraryUtility.GenerateGUID();
+            LibraryItemTracking.CreateItemJournalLineItemTracking(ReservationEntry, ItemJournalLine, '', LotNo[Index], LotQty[Index]);
+        end;
+
+        // [WHEN] Post the Item Journal.
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [THEN] The value entries split the Total CO2e proportionally by quantity and sum to the line Total CO2e.
+        VerifySplitSustValueEntries(Item."No.", ArrayLen(LotNo), TotalCO2e / Qty, TotalCO2e);
+    end;
+
     local procedure CreateSustainabilityAccount(var AccountCode: Code[20]; var CategoryCode: Code[20]; var SubcategoryCode: Code[20]; i: Integer): Record "Sustainability Account"
     begin
         CreateSustainabilitySubcategory(CategoryCode, SubcategoryCode, i);
@@ -4622,6 +4727,56 @@ codeunit 148190 "Sust. Value Entry Test"
         LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, SerialNo, LotNo, Quantity);
 
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateItemJournalLineWithCO2e(var ItemJournalLine: Record "Item Journal Line"; ItemNo: Code[20]; Qty: Decimal; AccountCode: Code[20]; TotalCO2e: Decimal)
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+    begin
+        LibraryInventory.SelectItemJournalTemplateName(ItemJournalTemplate, ItemJournalTemplate.Type::Item);
+        LibraryInventory.SelectItemJournalBatchName(ItemJournalBatch, ItemJournalTemplate.Type, ItemJournalTemplate.Name);
+        LibraryInventory.ClearItemJournal(ItemJournalTemplate, ItemJournalBatch);
+
+        LibraryInventory.CreateItemJournalLine(
+            ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name,
+            ItemJournalLine."Entry Type"::"Positive Adjmt.", ItemNo, Qty);
+        ItemJournalLine.Validate("Sust. Account No.", AccountCode);
+        ItemJournalLine.Validate("Total CO2e", TotalCO2e);
+        ItemJournalLine.Modify(true);
+    end;
+
+    local procedure VerifySplitSustValueEntries(ItemNo: Code[20]; ExpectedCount: Integer; ExpectedCO2ePerUnit: Decimal; ExpectedTotalCO2e: Decimal)
+    var
+        SustainabilityValueEntry: Record "Sustainability Value Entry";
+        SustainabilitySetup: Record "Sustainability Setup";
+    begin
+        SustainabilitySetup.Get();
+
+#pragma warning disable AA0210
+        SustainabilityValueEntry.SetRange("Item No.", ItemNo);
+        SustainabilityValueEntry.SetRange("Item Ledger Entry Type", SustainabilityValueEntry."Item Ledger Entry Type"::"Positive Adjmt.");
+        Assert.RecordCount(SustainabilityValueEntry, ExpectedCount);
+#pragma warning restore AA0210
+        SustainabilityValueEntry.FindSet();
+        repeat
+            Assert.AreNearlyEqual(
+                ExpectedCO2ePerUnit,
+                SustainabilityValueEntry."CO2e per Unit",
+                SustainabilitySetup."Emission Rounding Precision",
+                StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e per Unit"), ExpectedCO2ePerUnit, SustainabilityValueEntry.TableCaption()));
+            Assert.AreNearlyEqual(
+                ExpectedCO2ePerUnit * SustainabilityValueEntry."Valued Quantity",
+                SustainabilityValueEntry."CO2e Amount (Actual)",
+                SustainabilitySetup."Emission Rounding Precision",
+                StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e Amount (Actual)"), ExpectedCO2ePerUnit * SustainabilityValueEntry."Valued Quantity", SustainabilityValueEntry.TableCaption()));
+        until SustainabilityValueEntry.Next() = 0;
+
+        SustainabilityValueEntry.CalcSums("CO2e Amount (Actual)");
+        Assert.AreEqual(
+            ExpectedTotalCO2e,
+            SustainabilityValueEntry."CO2e Amount (Actual)",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e Amount (Actual)"), ExpectedTotalCO2e, SustainabilityValueEntry.TableCaption()));
     end;
 
     local procedure SetTrackingForProdOrderComponents(var ProductionOrder: Record "Production Order"; CompItem: Record Item; LotNo: Code[50])
