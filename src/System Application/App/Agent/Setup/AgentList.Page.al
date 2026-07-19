@@ -238,7 +238,7 @@ page 4316 "Agent List"
     begin
         CopilotAvailabilityTxt := AgentImpl.GetCopilotAvailabilityDisplayText(Rec);
         AgentIsArchived := Rec.Substate = Rec.Substate::Archived;
-        ArchiveActionEnabled := (Rec.State = Rec.State::Disabled) and (not AgentIsArchived);
+        ArchiveActionEnabled := (Rec.State = Rec.State::Disabled) and (not AgentIsArchived) and Rec."Can Curr. User Configure Agent";
     end;
 
     local procedure SetCompanyFilter()
