@@ -2055,11 +2055,14 @@ codeunit 12 "Gen. Jnl.-Post Line"
         FirstNewVATEntryNo := NextVATEntryNo;
 
         OnStartPostingOnAfterSetNextTaxEntryNo(NextTaxEntryNo);
-        GLReg.LockTable();
-        if GLReg.FindLast() then
-            GLReg."No." := GLReg."No." + 1
-        else
-            GLReg."No." := 1;
+        if not GLSetup.UseConcurrentPosting() then begin
+            GLReg.LockTable();
+            if GLReg.FindLast() then
+                GLReg."No." := GLReg."No." + 1
+            else
+                GLReg."No." := 1;
+        end else
+            GLReg."No." := GLReg.GetNextRegisterNo();
         GLReg.Init();
         GLReg."From Entry No." := NextEntryNo;
         GLReg."From VAT Entry No." := NextVATEntryNo;
@@ -6219,7 +6222,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
     procedure PostUnrealVATEntry(GenJnlLine: Record "Gen. Journal Line"; var VATEntry2: Record "VAT Entry"; VATAmount: Decimal; VATBase: Decimal; VATAmountAddCurr: Decimal; VATBaseAddCurr: Decimal; GLEntryNo: Integer; RealizedVATAmount: Decimal; RealizedVATBase: Decimal; RealizedVATAmountAddCurr: Decimal; RealizedVATBaseAddCurr: Decimal)
     begin
         OnBeforePostUnrealVATEntry(GenJnlLine, VATEntry);
-        VATEntry.LockTable();
+        if not GLSetup.UseConcurrentPosting() then
+            VATEntry.LockTable();
         VATEntry := VATEntry2;
         VATEntry."Entry No." := NextVATEntryNo;
         VATEntry.CopyPostingDataFromGenJnlLine(GenJnlLine);
@@ -6427,7 +6431,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         CustomerPostingGroup.Get(GenJournalLineToPost."Posting Group");
         GetCustomerReceivablesAccount(GenJournalLineToPost, CustomerPostingGroup);
 
-        VATEntry.LockTable();
+        if not GLSetup.UseConcurrentPosting() then
+            VATEntry.LockTable();
         DetailedCustLedgEntry.LockTable();
         CustLedgerEntry.LockTable();
 
@@ -6641,7 +6646,8 @@ codeunit 12 "Gen. Jnl.-Post Line"
         GetVendorPostingGroup(GenJournalLineToPost, VendorPostingGroup);
         VendorPostingGroup.GetPayablesAccount();
 
-        VATEntry.LockTable();
+        if not GLSetup.UseConcurrentPosting() then
+            VATEntry.LockTable();
         DetailedVendorLedgEntry.LockTable();
         VendorLedgerEntry.LockTable();
 
