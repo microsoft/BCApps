@@ -19,12 +19,12 @@ codeunit 133961 "Agent Test"
         Assert: Codeunit "Library Assert";
         Agent: Codeunit Agent;
         LibraryTestAgent: Codeunit "Library Mock Agent";
-        ArchiveConfirmDisplayNameToType: Text[80];
-        ArchiveConfirmCloseWithOK: Boolean;
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
 
     local procedure Initialize()
     begin
         LibraryTestAgent.DeleteAllAgents();
+        LibraryVariableStorage.Clear();
     end;
 
     #region Create Agent Tests
@@ -1400,14 +1400,15 @@ codeunit 133961 "Agent Test"
         AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
 
         // [GIVEN] The confirmation dialog will receive the exact display name and be accepted with OK
-        ArchiveConfirmDisplayNameToType := AgentRecord."Display Name";
-        ArchiveConfirmCloseWithOK := true;
+        LibraryVariableStorage.Enqueue(AgentRecord."Display Name");
+        LibraryVariableStorage.Enqueue(true);
 
         // [WHEN] Invoking the Archive action from the Agent List
         InvokeArchiveActionFromList(AgentId);
 
         // [THEN] The agent is archived
         Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should be archived after confirming with the exact display name');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -1425,14 +1426,15 @@ codeunit 133961 "Agent Test"
         AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
 
         // [GIVEN] The user types the display name in upper case (the mixed-case original differs character-by-character)
-        ArchiveConfirmDisplayNameToType := UpperCase(AgentRecord."Display Name");
-        ArchiveConfirmCloseWithOK := true;
+        LibraryVariableStorage.Enqueue(UpperCase(AgentRecord."Display Name"));
+        LibraryVariableStorage.Enqueue(true);
 
         // [WHEN] Invoking the Archive action and confirming with OK
         // [THEN] The name-mismatch error is raised and the agent is not archived
         asserterror InvokeArchiveActionFromList(AgentId);
         Assert.ExpectedError('The name you entered does not match the agent''s display name.');
         Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when the typed name differs only in case');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -1450,18 +1452,19 @@ codeunit 133961 "Agent Test"
         AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
 
         // [GIVEN] The user types the name with the final character replaced by a space (same length, char mismatch)
-        ArchiveConfirmDisplayNameToType :=
+        LibraryVariableStorage.Enqueue(
             CopyStr(
                 CopyStr(AgentRecord."Display Name", 1, StrLen(AgentRecord."Display Name") - 1) + ' ',
                 1,
-                MaxStrLen(ArchiveConfirmDisplayNameToType));
-        ArchiveConfirmCloseWithOK := true;
+                MaxStrLen(AgentRecord."Display Name")));
+        LibraryVariableStorage.Enqueue(true);
 
         // [WHEN] Invoking the Archive action and confirming with OK
         // [THEN] The name-mismatch error is raised and the agent is not archived
         asserterror InvokeArchiveActionFromList(AgentId);
         Assert.ExpectedError('The name you entered does not match the agent''s display name.');
         Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when extra whitespace is typed');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -1479,14 +1482,15 @@ codeunit 133961 "Agent Test"
         AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
 
         // [GIVEN] The user types the name with the last character missing
-        ArchiveConfirmDisplayNameToType := CopyStr(AgentRecord."Display Name", 1, StrLen(AgentRecord."Display Name") - 1);
-        ArchiveConfirmCloseWithOK := true;
+        LibraryVariableStorage.Enqueue(CopyStr(AgentRecord."Display Name", 1, StrLen(AgentRecord."Display Name") - 1));
+        LibraryVariableStorage.Enqueue(true);
 
         // [WHEN] Invoking the Archive action and confirming with OK
         // [THEN] The name-mismatch error is raised and the agent is not archived
         asserterror InvokeArchiveActionFromList(AgentId);
         Assert.ExpectedError('The name you entered does not match the agent''s display name.');
         Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when the typed name has the wrong length');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -1504,14 +1508,15 @@ codeunit 133961 "Agent Test"
         AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
 
         // [GIVEN] The user leaves the input empty and chooses OK
-        ArchiveConfirmDisplayNameToType := '';
-        ArchiveConfirmCloseWithOK := true;
+        LibraryVariableStorage.Enqueue('');
+        LibraryVariableStorage.Enqueue(true);
 
         // [WHEN] Invoking the Archive action and confirming with OK
         // [THEN] The name-mismatch error is raised and the agent is not archived
         asserterror InvokeArchiveActionFromList(AgentId);
         Assert.ExpectedError('The name you entered does not match the agent''s display name.');
         Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when no name is typed');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -1529,21 +1534,27 @@ codeunit 133961 "Agent Test"
         AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
 
         // [GIVEN] The user dismisses the dialog with Cancel (even though the exact name was typed)
-        ArchiveConfirmDisplayNameToType := AgentRecord."Display Name";
-        ArchiveConfirmCloseWithOK := false;
+        LibraryVariableStorage.Enqueue(AgentRecord."Display Name");
+        LibraryVariableStorage.Enqueue(false);
 
         // [WHEN] Invoking the Archive action and cancelling the dialog
         InvokeArchiveActionFromList(AgentId);
 
         // [THEN] No error is raised and the agent is not archived
         Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when the confirmation is cancelled');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [ModalPageHandler]
     procedure AgentArchiveConfirmationModalHandler(var AgentArchiveConfirmation: TestPage "Agent Archive Confirmation")
+    var
+        NameToType: Text;
+        CloseWithOK: Boolean;
     begin
-        AgentArchiveConfirmation.DisplayNameConfirmation.SetValue(ArchiveConfirmDisplayNameToType);
-        if ArchiveConfirmCloseWithOK then
+        NameToType := LibraryVariableStorage.DequeueText();
+        CloseWithOK := LibraryVariableStorage.DequeueBoolean();
+        AgentArchiveConfirmation.DisplayNameConfirmation.SetValue(NameToType);
+        if CloseWithOK then
             AgentArchiveConfirmation.OK().Invoke()
         else
             AgentArchiveConfirmation.Cancel().Invoke();
