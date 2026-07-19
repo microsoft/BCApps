@@ -254,9 +254,6 @@ codeunit 8060 "Create Billing Documents"
         CustomerContractLine.Get(TempBillingLine."Subscription Contract No.", TempBillingLine."Subscription Contract Line No.");
         OnAfterCustomerContractLineGetInInsertSalesLineFromTempBillingLine(CustomerContractLine, SalesHeader, TempBillingLine);
 
-        // Skip the redundant unit price/cost engine while validating the line - the values are taken from
-        // the Billing Line and assigned explicitly below. All other validation side effects still run.
-        BindSubscription(BillingPriceCalcSkip);
         SalesLine.InitFromSalesHeader(SalesHeader);
         SubContractsItemManagement.SetAllowInsertOfInvoicingItem(true);
         if (ServiceCommitment."Invoicing Item No." <> '') and
@@ -295,7 +292,6 @@ codeunit 8060 "Create Billing Documents"
         SalesLine."Description 2" := '';
 
         SetInvoicePriceFromUsageDataBilling(SalesLine, TempBillingLine);
-        UnbindSubscription(BillingPriceCalcSkip);
         OnBeforeInsertSalesLineFromContractLine(SalesLine, TempBillingLine);
         SalesLine.Insert(false);
 
@@ -384,9 +380,6 @@ codeunit 8060 "Create Billing Documents"
         ServiceObject.Get(TempBillingLine."Subscription Header No.");
         ServiceCommitment.Get(TempBillingLine."Subscription Line Entry No.");
 
-        // Skip the redundant unit price/cost engine while validating the line - the values are taken from
-        // the Billing Line and assigned explicitly below. All other validation side effects still run.
-        BindSubscription(BillingPriceCalcSkip);
         InitPurchaseLine(PurchaseLine);
         SubContractsItemManagement.SetAllowInsertOfInvoicingItem(true);
         if (ServiceCommitment."Invoicing Item No." <> '') and
@@ -414,7 +407,6 @@ codeunit 8060 "Create Billing Documents"
         PurchaseLine.Description := ServiceCommitment.Description;
         PurchaseLine."Description 2" := CopyStr(ServiceObject.Description, 1, MaxStrLen(PurchaseLine."Description 2"));
         SetInvoicePriceFromUsageDataBilling(PurchaseLine, TempBillingLine);
-        UnbindSubscription(BillingPriceCalcSkip);
 
         OnBeforeInsertPurchaseLineFromContractLine(PurchaseLine, TempBillingLine);
         PurchaseLine.Insert(false);
@@ -1492,7 +1484,6 @@ codeunit 8060 "Create Billing Documents"
         DocumentChangeManagement: Codeunit "Document Change Management";
         Language: Codeunit Language;
         ProgressTracker: Codeunit "Progress Tracker";
-        BillingPriceCalcSkip: Codeunit "Billing Price Calc. Skip";
         BillingLineNoByTempEntryNo: Dictionary of [Integer, Integer];
         DocumentDate: Date;
         PostingDate: Date;

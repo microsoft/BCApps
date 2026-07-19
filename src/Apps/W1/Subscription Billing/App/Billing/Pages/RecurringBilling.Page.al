@@ -638,14 +638,47 @@ page 8067 "Recurring Billing"
     local procedure RefreshGroups(GroupKeys: List of [Code[20]])
     var
         CurrentEntryNo: Integer;
+        SavedGroupKey: Code[20];
+        IsHeaderRow: Boolean;
     begin
-        CurrentEntryNo := Rec."Entry No.";
+        // Detail rows keep their stable Billing Line Entry No. across a rebuild, but group header rows are
+        // reinserted with new negative Entry Nos. every time. So for a header row we remember its group key
+        // (contract no. or partner no.) and re-locate the rebuilt header by that key afterwards.
+        IsHeaderRow := Rec."Entry No." < 0;
+        if IsHeaderRow then
+            SavedGroupKey := GetGroupKey(Rec."Partner No.", Rec."Subscription Contract No.")
+        else
+            CurrentEntryNo := Rec."Entry No.";
         Clear(ContractDescriptionCache);
         Clear(PartnerNameCache);
         BillingProposal.RefreshGroupsInTempTable(Rec, GroupBy, GroupKeys);
+        if IsHeaderRow then
+            CurrentEntryNo := FindHeaderEntryNo(SavedGroupKey);
+        // Get positions by primary key regardless of the page's view filters (User ID / Partner), so the
+        // page's own filtering is left untouched; fall back to the first visible row if the target is gone.
         if not Rec.Get(CurrentEntryNo) then
             if Rec.FindFirst() then;
         CurrPage.Update(false);
+    end;
+
+    // Locates the rebuilt group header for GroupKey and returns its (new, negative) Entry No., searching a
+    // shared-table copy so the page record's own filters are never disturbed. Returns 0 if no header matches.
+    local procedure FindHeaderEntryNo(GroupKey: Code[20]): Integer
+    var
+        TempHeaderBillingLine: Record "Billing Line" temporary;
+    begin
+        TempHeaderBillingLine.Copy(Rec, true); // shared-table copy — same temp data, independent cursor/filters
+        TempHeaderBillingLine.Reset();
+        TempHeaderBillingLine.SetRange(Indent, 0); // header rows only; detail rows are Indent 1
+        case GroupBy of
+            GroupBy::Contract:
+                TempHeaderBillingLine.SetRange("Subscription Contract No.", GroupKey);
+            GroupBy::"Contract Partner":
+                TempHeaderBillingLine.SetRange("Partner No.", GroupKey);
+        end;
+        if TempHeaderBillingLine.FindFirst() then
+            exit(TempHeaderBillingLine."Entry No.");
+        exit(0);
     end;
 
     local procedure GetCachedContractDescription(Partner: Enum "Service Partner"; ContractNo: Code[20]): Text
