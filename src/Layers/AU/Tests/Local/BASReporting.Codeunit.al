@@ -887,6 +887,40 @@ codeunit 145302 "BAS Reporting"
         BASReport.Close();
     end;
 
+    [Test]
+    [HandlerFunctions('BASImportExportReportHandler')]
+    [Scope('OnPrem')]
+    procedure ExportBASGroupCompanyWithConsolidation()
+    var
+        BASCalculationSheet: Record "BAS Calculation Sheet";
+        GLSetup: Record "General Ledger Setup";
+        BASManagement: Codeunit "BAS Management";
+    begin
+        // [SCENARIO 642597] Group company can export consolidated BAS calculation sheet
+        Initialize();
+
+        // [GIVEN] General Ledger Setup with "BAS Group Company" = TRUE, "BAS to be Lodged as a Group" = TRUE
+        GLSetup.Get();
+        GLSetup.Validate("BAS to be Lodged as a Group", true);
+        GLSetup.Validate("BAS Group Company", true);
+        GLSetup.Modify(true);
+
+        // [GIVEN] BAS Calculation Sheet "B" with Updated = TRUE, Consolidated = TRUE, "Group Consolidated" = TRUE
+        CreateBASCalcSheetForExport(BASCalculationSheet, true, true);
+
+        // [WHEN] Run Export via BAS Management (bypasses file I/O for test)
+        asserterror BASManagement.ExportBAS(BASCalculationSheet);
+
+        // [THEN] Export logic proceeds past consolidation check (error is file-related, not consolidation-related)
+        Assert.ExpectedError('Please select a file to export');
+
+        // Cleanup
+        CleanupBASCalcSheet(BASCalculationSheet);
+        GLSetup.Validate("BAS Group Company", false);
+        GLSetup.Validate("BAS to be Lodged as a Group", false);
+        GLSetup.Modify(true);
+    end;
+
     local procedure Initialize()
     var
         GLSetup: Record "General Ledger Setup";
@@ -1021,6 +1055,37 @@ codeunit 145302 "BAS Reporting"
         BASReport.SuggestLines.Invoke();
     end;
 
+    local procedure CreateBASCalcSheetForExport(var BASCalculationSheet: Record "BAS Calculation Sheet"; Consolidated: Boolean; GroupConsolidated: Boolean)
+    var
+        BASSetupName: Record "BAS Setup Name";
+        BASSetup: Record "BAS Setup";
+        LibraryAPACLocalization: Codeunit "Library - APAC Localization";
+    begin
+        LibraryAPACLocalization.CreateBASSetupName(BASSetupName);
+        LibraryAPACLocalization.CreateBASSetup(BASSetup, BASSetupName.Name);
+        LibraryAPACLocalization.CreateBASCalculationSheet(BASCalculationSheet);
+        BASCalculationSheet.Validate("BAS Setup Name", BASSetupName.Name);
+        BASCalculationSheet.Validate(A3, WorkDate());
+        BASCalculationSheet.Validate(A4, WorkDate());
+        BASCalculationSheet.Validate(Updated, true);
+        BASCalculationSheet.Validate(Consolidated, Consolidated);
+        BASCalculationSheet.Validate("Group Consolidated", GroupConsolidated);
+        BASCalculationSheet.Modify(true);
+    end;
+
+    local procedure CleanupBASCalcSheet(var BASCalculationSheet: Record "BAS Calculation Sheet")
+    var
+        BASSetup: Record "BAS Setup";
+        BASSetupName: Record "BAS Setup Name";
+    begin
+        if BASSetupName.Get(BASCalculationSheet."BAS Setup Name") then begin
+            BASSetup.SetRange("Setup Name", BASSetupName.Name);
+            BASSetup.DeleteAll(true);
+            BASSetupName.Delete(true);
+        end;
+        BASCalculationSheet.Delete(true);
+    end;
+
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure VATStatementTemplateListModalHandler(var VATStatementTemplateList: TestPage "VAT Statement Template List")
@@ -1088,6 +1153,13 @@ codeunit 145302 "BAS Reporting"
         Assert.AreEqual(Enabled, CalcAndPostVATSettlement.StartingDate.Editable(), '');
         Assert.AreEqual(Enabled, CalcAndPostVATSettlement.EndDateReq.Editable(), '');
         Assert.AreEqual(Enabled, CalcAndPostVATSettlement.DocumentNo.Editable(), '');
+    end;
+
+    [RequestPageHandler]
+    [Scope('OnPrem')]
+    procedure BASImportExportReportHandler(var BASImportExport: TestRequestPage "BAS - Import/Export")
+    begin
+        // Handler for BAS - Import/Export report
     end;
 }
 
