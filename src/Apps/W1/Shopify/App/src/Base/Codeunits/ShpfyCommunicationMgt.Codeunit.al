@@ -21,6 +21,7 @@ codeunit 30103 "Shpfy Communication Mgt."
         Shop: Record "Shpfy Shop";
         GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
         NextExecutionTime: DateTime;
+        BackstopScheduleChecked: Boolean;
         VersionTok: Label '2026-07', Locked = true;
         OutgoingRequestsNotEnabledConfirmLbl: Label 'Importing data to your Shopify shop is not enabled, do you want to go to shop card to enable?';
         OutgoingRequestsNotEnabledErr: Label 'Importing data to your Shopify shop is not enabled, navigate to shop card to enable.';
@@ -383,6 +384,7 @@ codeunit 30103 "Shpfy Communication Mgt."
         NoAccessTokenErr: label 'No Access token for the store "%1".\Please request an access token for this store.', Comment = '%1 = Store';
         ChangedScopeErr: Label 'The application scope is changed, please request a new access token for the store "%1".', Comment = '%1 = Store';
     begin
+        EnsureBackstopScheduled();
         AuthenticationMgt.EnsureValidAccessToken(Store);
         if RegisteredStoreNew.Get(Store) then
             if RegisteredStoreNew."Requested Scope" = AuthenticationMgt.GetScope() then begin
@@ -394,6 +396,21 @@ codeunit 30103 "Shpfy Communication Mgt."
             end else
                 Error(ChangedScopeErr, Store);
         Error(NoAccessTokenErr, Store);
+    end;
+
+    local procedure EnsureBackstopScheduled()
+    var
+        TokenRefresh: Codeunit "Shpfy Token Refresh";
+    begin
+        // Schedule the recurring token-refresh backstop lazily, the first time the connector makes an
+        // API call in this session. It cannot be scheduled from the install/upgrade codeunits because
+        // enqueuing a Job Queue Entry implicitly commits, which is not allowed in those triggers.
+        // ScheduleRefreshJob is idempotent (it exits when the job already exists), so this only
+        // enqueues once and is a no-op thereafter.
+        if BackstopScheduleChecked then
+            exit;
+        BackstopScheduleChecked := true;
+        if TokenRefresh.ScheduleRefreshJob() then;
     end;
 
     /// <summary> 
