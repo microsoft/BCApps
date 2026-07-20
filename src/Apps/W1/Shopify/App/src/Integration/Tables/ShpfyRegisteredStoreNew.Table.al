@@ -72,7 +72,12 @@ table 30138 "Shpfy Registered Store New"
 
     internal procedure SetAccessToken(AccessToken: SecretText)
     begin
-        IsolatedStorage.SetEncrypted('AccessToken(' + Rec.SystemId + ')', AccessToken, DataScope::Module);
+        // Encrypt at rest when encryption is configured; fall back to unencrypted storage otherwise
+        // (e.g. on-prem without an encryption key), matching the base app OAuth token pattern.
+        if EncryptionEnabled() then
+            IsolatedStorage.SetEncrypted('AccessToken(' + Rec.SystemId + ')', AccessToken, DataScope::Module)
+        else
+            IsolatedStorage.Set('AccessToken(' + Rec.SystemId + ')', AccessToken, DataScope::Module);
     end;
 
     internal procedure GetAccessToken() Result: SecretText
@@ -82,7 +87,10 @@ table 30138 "Shpfy Registered Store New"
 
     internal procedure SetRefreshToken(RefreshToken: SecretText)
     begin
-        IsolatedStorage.SetEncrypted('RefreshToken(' + Rec.SystemId + ')', RefreshToken, DataScope::Module);
+        if EncryptionEnabled() then
+            IsolatedStorage.SetEncrypted('RefreshToken(' + Rec.SystemId + ')', RefreshToken, DataScope::Module)
+        else
+            IsolatedStorage.Set('RefreshToken(' + Rec.SystemId + ')', RefreshToken, DataScope::Module);
     end;
 
     internal procedure GetRefreshToken() Result: SecretText
