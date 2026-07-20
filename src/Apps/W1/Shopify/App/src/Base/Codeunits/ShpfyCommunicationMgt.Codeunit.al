@@ -21,7 +21,6 @@ codeunit 30103 "Shpfy Communication Mgt."
         Shop: Record "Shpfy Shop";
         GraphQLQueries: Codeunit "Shpfy GraphQL Queries";
         NextExecutionTime: DateTime;
-        BackstopScheduleChecked: Boolean;
         VersionTok: Label '2026-07', Locked = true;
         OutgoingRequestsNotEnabledConfirmLbl: Label 'Importing data to your Shopify shop is not enabled, do you want to go to shop card to enable?';
         OutgoingRequestsNotEnabledErr: Label 'Importing data to your Shopify shop is not enabled, navigate to shop card to enable.';
@@ -257,9 +256,6 @@ codeunit 30103 "Shpfy Communication Mgt."
         ResponseHeaders := HttpResponseMessage.Headers();
         LogShopifyRequest(Url, Method, Request, HttpResponseMessage, Response, RetryCounter);
         Commit();
-        // Schedule the recurring backstop after the request's own commit, when no write transaction
-        // is open, so enqueuing (which runs Codeunit.Run) never nests in or commits a caller transaction.
-        EnsureBackstopScheduled();
     end;
 
     [NonDebuggable]
@@ -398,21 +394,6 @@ codeunit 30103 "Shpfy Communication Mgt."
             end else
                 Error(ChangedScopeErr, Store);
         Error(NoAccessTokenErr, Store);
-    end;
-
-    local procedure EnsureBackstopScheduled()
-    var
-        TokenRefresh: Codeunit "Shpfy Token Refresh";
-    begin
-        // Schedule the recurring token-refresh backstop lazily, once per session, and only from the
-        // end of ExecuteWebRequest (right after its Commit) so no caller write transaction is open:
-        // enqueuing runs Codeunit.Run("Job Queue - Enqueue"), which must not nest in or implicitly
-        // commit a caller's transaction. It cannot be scheduled from install/upgrade for the same
-        // reason. ScheduleRefreshJob is idempotent (exits when the job already exists).
-        if BackstopScheduleChecked then
-            exit;
-        BackstopScheduleChecked := true;
-        if TokenRefresh.ScheduleRefreshJob() then;
     end;
 
     /// <summary> 
