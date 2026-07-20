@@ -104,7 +104,7 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Update unstable tests
-        uses: microsoft/BCApps/.github/actions/UpdateUnstableTestsCombined@main
+        uses: microsoft/BCApps/.github/actions/UpdateUnstableTestsCombined@mazhelez-expert-chainsaw
         with:
           branch: ${{ matrix.branch }}
           run-limit: ${{ inputs.runLimit || 3 }}
