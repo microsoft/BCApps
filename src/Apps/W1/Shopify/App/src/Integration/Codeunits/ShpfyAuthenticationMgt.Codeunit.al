@@ -508,8 +508,6 @@ codeunit 30199 "Shpfy Authentication Mgt."
 
     local procedure CreateReconnectErrorInfo(Store: Text) ReconnectError: ErrorInfo
     begin
-        // The message and custom dimension embed the store domain (customer-bearing), and ErrorInfo
-        // content flows to telemetry, so classify as CustomerContent (consistent with LogRefreshFailure).
         ReconnectError.DataClassification := ReconnectError.DataClassification::CustomerContent;
         ReconnectError.ErrorType := ReconnectError.ErrorType::Client;
         ReconnectError.Verbosity := ReconnectError.Verbosity::Error;
