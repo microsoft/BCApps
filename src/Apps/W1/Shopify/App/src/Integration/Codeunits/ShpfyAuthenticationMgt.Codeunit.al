@@ -250,20 +250,10 @@ codeunit 30199 "Shpfy Authentication Mgt."
     end;
 
     /// <summary>
-    /// Ensures the store has a valid, non-expired offline access token before it is used.
-    /// Legacy non-expiring tokens are migrated to expiring tokens on first use, and expiring
-    /// tokens are refreshed when they are close to expiry.
-    ///
-    /// Concurrency: a cheap check runs outside any lock; only when a refresh or migration is
-    /// actually needed does the code take a table lock and re-read the row (double-checked
-    /// locking). Concurrent sessions in the same company therefore serialize on the store row and,
-    /// on the second pass, find the token already fresh and return without a second HTTP call. The
-    /// lock is intentionally held across the token request to Shopify (a single round-trip on the
-    /// happy path; short backoff retries only on transient errors) so parallel sessions cannot
-    /// retire each other's refresh token - a deliberate trade-off of brief blocking for
-    /// correctness. Note the lock is per-company: two BC companies connected to the same shop keep
-    /// separate rows and cannot block each other, so cross-company safety relies on Shopify
-    /// returning the same tokens for ~1 hour after a rotation rather than on this lock.
+    /// Ensures the store has a valid, non-expired offline access token before use: legacy
+    /// non-expiring tokens are migrated on first use, expiring tokens refreshed near expiry.
+    /// Uses double-checked locking; the row lock is held across the token request so concurrent
+    /// sessions cannot retire each other's refresh token. The lock is per-company.
     /// </summary>
     /// <param name="Store">The store URL.</param>
     internal procedure EnsureValidAccessToken(Store: Text)
@@ -295,13 +285,8 @@ codeunit 30199 "Shpfy Authentication Mgt."
     end;
 
     /// <summary>
-    /// Forces a token refresh (or migration) regardless of the remaining lifetime. Used when an
-    /// API call unexpectedly returns 401, indicating the current access token is no longer valid.
-    /// A short cooldown prevents re-refreshing on every request when a store returns 401 for a
-    /// reason other than token expiry (e.g. revoked access), which would otherwise hammer the
-    /// refresh endpoint and serialize sessions once per record during a bulk sync.
-    /// Returns true if a refresh/migration was attempted (so the caller can retry the request),
-    /// false if it was skipped by the cooldown.
+    /// Forces a token refresh (or migration) on an unexpected 401, throttled to at most once per
+    /// minute per store. Returns true if a refresh was attempted (caller may retry), false if throttled.
     /// </summary>
     /// <param name="Store">The store URL.</param>
     internal procedure ForceTokenRefresh(Store: Text): Boolean
@@ -323,10 +308,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
 
         RegisteredStoreNew."Last Force Refresh At" := CurrentDateTime();
         RegisteredStoreNew.Modify();
-        // Persist the cooldown BEFORE attempting the refresh: RefreshAccessToken raises the reconnect
-        // error on a terminal failure, which would otherwise roll back this Modify and let every
-        // subsequent 401 in a bulk sync re-enter and re-hit the refresh endpoint. Committing here
-        // keeps the throttle effective on the failing path.
+        // Persist the cooldown before the refresh so a terminal-failure rollback can't discard it.
         Commit();
 
         if RegisteredStoreNew.HasRefreshToken() then
@@ -447,11 +429,8 @@ codeunit 30199 "Shpfy Authentication Mgt."
             Sleep(1000 * Attempt);
         end;
 
-        // Transient failures exhausted. The refresh token is still valid (it passed the expiry
-        // check above and we never hit a 401), so this is a temporary Shopify/network problem, not
-        // a reconnect situation. If the current access token is already expired the store cannot
-        // make calls right now, so surface a non-actionable "try again later" error; otherwise keep
-        // the still-valid token and let the caller proceed.
+        // Transient failures only (refresh token still valid, no 401): temporary Shopify/network
+        // problem, not a reconnect. Error only if the current token is already expired.
         if TokenExpired(RegisteredStoreNew) then
             Error(TokenRefreshTransientErr, Store);
         Session.LogMessage('0000UJ1', TokenRefreshTransientTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
