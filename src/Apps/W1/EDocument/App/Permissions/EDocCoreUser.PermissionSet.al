@@ -11,6 +11,7 @@ using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.EServices.EDocument.Processing.Import.Sales;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Finance.GeneralLedger.Journal;
 
@@ -38,6 +39,7 @@ permissionset 6105 "E-Doc. Core - User"
         tabledata "E-Document Log" = imd,
         tabledata "E-Doc. Data Storage" = imd,
         tabledata "E-Document Integration Log" = imd,
+        tabledata "E-Document Message" = imd,
     #endregion Logging
         tabledata "E-Doc. Imported Line" = IMD,
         tabledata "E-Doc. Order Match" = IMD,
