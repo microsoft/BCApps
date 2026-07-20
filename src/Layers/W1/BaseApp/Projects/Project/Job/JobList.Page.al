@@ -246,6 +246,16 @@ page 89 "Job List"
                     ShortCutKey = 'F7';
                     ToolTip = 'View this project''s statistics.';
                 }
+                action("Assigned Resources")
+                {
+                    ApplicationArea = Jobs;
+                    Caption = 'Assigned Resources';
+                    Image = Users;
+                    RunObject = Page "Job Assigned Resources";
+                    RunPageLink = "Job No." = field("No."),
+                                  "Job Task No." = const('');
+                    ToolTip = 'View or edit the resources that are assigned to this project. Project-level assignments apply to all tasks of the project.';
+                }
                 action(SalesInvoicesCreditMemos)
                 {
                     ApplicationArea = Jobs;
@@ -868,6 +878,9 @@ page 89 "Job List"
                 actionref("Job Task &Lines_Promoted"; "Job Task &Lines")
                 {
                 }
+                actionref("Assigned Resources_Promoted"; "Assigned Resources")
+                {
+                }
                 actionref("Ledger E&ntries_Promoted"; "Ledger E&ntries")
                 {
                 }
@@ -1013,8 +1026,8 @@ page 89 "Job List"
 
         WarehouseActivityLine.Reset();
         WarehouseActivityLine.SetCurrentKey("Source Type", "Source Subtype", "Source No.", "Source Line No.", "Source Subline No.", "Unit of Measure Code", "Action Type", "Breakbulk No.", "Original Breakbulk");
-        WarehouseActivityLine.SetRange("Source Type", Database::Job);
-        WarehouseActivityLine.SetRange("Source Subtype", 0);
+        WarehouseActivityLine.SetFilter("Source Type", '%1|%2', Database::Job, Database::"Job Planning Line");
+        WarehouseActivityLine.SetFilter("Source Subtype", '%1|%2', 0, "Job Planning Line Status"::Order.AsInteger());
         WarehouseActivityLine.SetRange("Source No.", Rec."No.");
         if WarehouseActivityLine.FindSet() then
             repeat
