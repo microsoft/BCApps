@@ -560,6 +560,14 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         // [GIVEN] A FIFO component (quantity per 10) and a resource (quantity per 2) on the assembly BOM
         CreateItem(ComponentItem, ComponentItem."Costing Method"::FIFO, ComponentItem."Replenishment System"::Purchase, 0);
         Resource.Get(LibraryKitting.CreateResourceWithNewUOM(1, 1));
+        // Align the resource's "Gen. Prod. Posting Group" with the assembly item's. The resource capacity posting
+        // during assembly output uses the assembly header's "Gen. Bus. Posting Group" together with the resource's
+        // "Gen. Prod. Posting Group"; in some localizations the resource defaults to a group (e.g. FREIGHT) that has
+        // no General Posting Setup for that Gen. Bus. group, so posting fails with "General Posting Setup does not
+        // exist". Reusing the assembly item's group guarantees a valid combination (the assembly output posts with
+        // the same pair) whose accounts EnsureAllGeneralPostingSetupAccounts has already filled.
+        Resource.Validate("Gen. Prod. Posting Group", AssemblyItem."Gen. Prod. Posting Group");
+        Resource.Modify(true);
         LibraryKitting.CreateBOMComponentLine(
           AssemblyItem, BOMComponent.Type::Item, ComponentItem."No.", 10, ComponentItem."Base Unit of Measure", false);
         LibraryKitting.CreateBOMComponentLine(
@@ -575,8 +583,11 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         CreateAndPostAssemblyHeader(AssemblyItem."No.", OrderQty, WorkDate2);
         LibraryCosting.AdjustCostItemEntries(AssemblyItem."No.", '');
 
-        // [WHEN] A freight item charge (1000 @ 1.00) is assigned to the component receipt and cost is adjusted
+        // [WHEN] A freight item charge (1000 @ 1.00) is assigned to the component receipt, the assembly standard
+        // cost is recalculated (this intermediate recalculation is what reproduces the bug - the reported issue
+        // only occurs when Calc. Assembly Std. Cost runs between the two cost adjustments), and cost is adjusted
         PostFreightChargeToReceipt(PurchRcptLine, 1000, 1.0);
+        CalculateAssemblyStandardCost(AssemblyItem."No.");
         LibraryCosting.AdjustCostItemEntries(AssemblyItem."No.", '');
 
         // [THEN] No spurious Manufacturing Overhead variance is posted on the assembly output
