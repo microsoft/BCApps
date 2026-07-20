@@ -32,6 +32,8 @@ codeunit 30199 "Shpfy Authentication Mgt."
         InvalidShopUrlErr: Label 'The URL must refer to the internal shop location at myshopify.com. It must not be the public URL that customers use, such as myshop.com.';
         NotSupportedOnPremErr: Label 'Shopify connector is only supported in SaaS environments.';
         RefreshTokenExpiredErr: Label 'The Shopify access token for store "%1" has expired and could not be refreshed automatically. Open the Shopify Shop card and reconnect the store to continue.', Comment = '%1 = Store';
+        ReconnectActionLbl: Label 'Reconnect';
+        StoreDimensionTok: Label 'Store', Locked = true;
         TokenExchangeGrantTypeTok: Label 'urn:ietf:params:oauth:grant-type:token-exchange', Locked = true;
         RefreshTokenGrantTypeTok: Label 'refresh_token', Locked = true;
         OfflineAccessTokenTypeTok: Label 'urn:shopify:params:oauth:token-type:offline-access-token', Locked = true;
@@ -378,7 +380,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
     begin
         if RefreshTokenExpired(RegisteredStoreNew) then begin
             Session.LogMessage('0000UIY', TokenRefreshExpiredTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
-            Error(RefreshTokenExpiredErr, Store);
+            Error(CreateReconnectErrorInfo(Store));
         end;
 
         MaxAttempts := 3;
@@ -404,7 +406,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
             // A 401 with an inactive refresh token is terminal: the merchant must reconnect.
             if StatusCode = 401 then begin
                 Session.LogMessage('0000UJ0', TokenRefreshExpiredTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
-                Error(RefreshTokenExpiredErr, Store);
+                Error(CreateReconnectErrorInfo(Store));
             end;
 
             Sleep(1000 * Attempt);
@@ -413,7 +415,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
         // Transient failures exhausted. If the current access token is already expired the store
         // cannot make calls, so surface the reconnect error; otherwise keep the still-valid token.
         if TokenExpired(RegisteredStoreNew) then
-            Error(RefreshTokenExpiredErr, Store);
+            Error(CreateReconnectErrorInfo(Store));
         Session.LogMessage('0000UJ1', TokenRefreshTransientTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
     end;
 
@@ -502,6 +504,36 @@ codeunit 30199 "Shpfy Authentication Mgt."
                 Shop.GetShopSettings();
                 Shop.Modify();
             end;
+    end;
+
+    local procedure CreateReconnectErrorInfo(Store: Text) ReconnectError: ErrorInfo
+    begin
+        ReconnectError.DataClassification := ReconnectError.DataClassification::SystemMetadata;
+        ReconnectError.ErrorType := ReconnectError.ErrorType::Client;
+        ReconnectError.Verbosity := ReconnectError.Verbosity::Error;
+        ReconnectError.Message := StrSubstNo(RefreshTokenExpiredErr, Store);
+        ReconnectError.CustomDimensions.Add(StoreDimensionTok, Store);
+        ReconnectError.AddAction(ReconnectActionLbl, Codeunit::"Shpfy Authentication Mgt.", 'ReconnectFromError');
+    end;
+
+    internal procedure ReconnectFromError(ErrorInfo: ErrorInfo)
+    var
+        Shop: Record "Shpfy Shop";
+        Store: Text;
+    begin
+        if not ErrorInfo.CustomDimensions.ContainsKey(StoreDimensionTok) then
+            exit;
+        Store := ErrorInfo.CustomDimensions.Get(StoreDimensionTok).ToLower();
+        Shop.SetRange(Enabled, true);
+        if Shop.FindSet() then
+            repeat
+                if Shop.GetStoreName() = Store then begin
+                    Shop.RequestAccessToken();
+                    Shop.GetShopSettings();
+                    Shop.Modify();
+                    exit;
+                end;
+            until Shop.Next() = 0;
     end;
 
     internal procedure AssertValidShopUrl(ShopUrl: Text)
