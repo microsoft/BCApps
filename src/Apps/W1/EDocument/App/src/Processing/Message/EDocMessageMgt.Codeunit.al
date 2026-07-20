@@ -8,12 +8,13 @@ using Microsoft.eServices.EDocument;
 using System.Utilities;
 
 /// <summary>
-/// Public API for creating and reading E-Document messages.
-/// Format apps call CreateMessage to store a response/message blob linked to an E-Document.
+/// Internal helper for creating and reading E-Document messages, used by other
+/// codeunits within this app (e.g. format handlers) to store or retrieve a
+/// response/message blob linked to an E-Document.
 /// </summary>
 codeunit 6433 "E-Doc. Message Mgt."
 {
-    Access = Public;
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
