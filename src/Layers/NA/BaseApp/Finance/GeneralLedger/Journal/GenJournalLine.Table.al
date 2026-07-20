@@ -2601,7 +2601,7 @@ table 81 "Gen. Journal Line"
         {
             Caption = 'Spend Request No.';
             ToolTip = 'Specifies the spend request that this journal line relates to.';
-            TableRelation = "Spend Request" where(Status = const(Approved));
+            TableRelation = "Spend Request";
             DataClassification = CustomerContent;
 
             trigger OnValidate()
@@ -2613,7 +2613,8 @@ table 81 "Gen. Journal Line"
                     "Spend Request Close" := false;
                     exit;
                 end;
-                SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", Rec."Amount (LCY)");
+                SpendRequest.SetSkipSpendRequestClose(SkipSpendRequestClose);
+                SpendRequest.ValidateSpendRequest(Rec."Spend Request No.", Rec."Spend Request Close", Rec."Source Code", Rec."Amount (LCY)");
                 if SpendRequest."Dimension Set ID" <> 0 then begin
                     DimensionSetIDArr[1] := Rec."Dimension Set ID";
                     DimensionSetIDArr[2] := SpendRequest."Dimension Set ID";
@@ -4298,6 +4299,7 @@ table 81 "Gen. Journal Line"
         GeneralLedgerSetupRead: Boolean;
         HideValidationDialog: Boolean;
         SkipTaxCalculation: Boolean;
+        SkipSpendRequestClose: Boolean;
 
     local procedure GetAdditionalReportingCurrencyCode(): Code[10]
     begin
@@ -4365,6 +4367,15 @@ table 81 "Gen. Journal Line"
     procedure SetSkipTaxCalulation(Skip: Boolean)
     begin
         SkipTaxCalculation := Skip;
+    end;
+
+    /// <summary>
+    /// Sets whether the confirmation to close the related spend request should be skipped during validation.
+    /// </summary>
+    /// <param name="NewSkipSpendRequestClose">True to skip the close confirmation; otherwise false.</param>
+    procedure SetSkipSpendRequestClose(NewSkipSpendRequestClose: Boolean)
+    begin
+        SkipSpendRequestClose := NewSkipSpendRequestClose;
     end;
 
     /// <summary>
@@ -5306,7 +5317,7 @@ table 81 "Gen. Journal Line"
     var
         SpendRequest: Record "Spend Request";
     begin
-        SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", Rec."Amount (LCY)");
+        SpendRequest.CheckSpendRequestAmount(Rec."Spend Request No.", Rec."Source Code", Rec."Amount (LCY)");
     end;
 
     local procedure UpdateApplyToAmount()
