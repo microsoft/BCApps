@@ -29,7 +29,7 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IE
     var
         PeppolUtility: Codeunit "E-Document PEPPOL Utility";
         BillingReferenceEmptyTelemetryTxt: Label 'CreditNote BillingReference is empty - no originating invoice reference found.', Locked = true;
-        OrderResponseNoMatchTelemetryTxt: Label 'Inbound Order Response discarded: no matching outbound E-Document found for order reference %1.', Locked = true, Comment = '%1 = order reference ID from the XML';
+        OrderResponseNoMatchTelemetryTxt: Label 'Inbound Order Response discarded: no matching outbound E-Document found for order reference.', Locked = true;
         UnsupportedRootElementErr: Label 'Unsupported XML root element: %1. Only Invoice, CreditNote, Order, and OrderResponse are supported.', Comment = '%1 = XML root element name';
 
     procedure ReadIntoDraft(EDocument: Record "E-Document"; TempBlob: Codeunit "Temp Blob"): Enum "E-Doc. Process Draft"
@@ -550,7 +550,7 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IE
         if OutboundEDocument.FindLast() then
             EDocMessageMgt.CreateMessage(OutboundEDocument, "E-Document Message Type"::"PEPPOL Order Response", "E-Document Direction"::Incoming, ResponseType, TempBlob)
         else
-            Session.LogMessage('', StrSubstNo(OrderResponseNoMatchTelemetryTxt, OrderRefId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
+            Session.LogMessage('', OrderResponseNoMatchTelemetryTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', 'E-Document');
 
         // Response stored on the outbound E-Document; inbound carrier must not continue through the import pipeline.
         EDocument.DeleteOrphanedImport();
