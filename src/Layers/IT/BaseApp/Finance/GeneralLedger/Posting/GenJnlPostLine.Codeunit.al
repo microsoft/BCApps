@@ -9192,12 +9192,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
         InsertGLEntry(GenJournalLine, GLEntry, true);
     end;
 
-    local procedure InsertDeferralNonDeductibleVATGLEntries(HasNonDeductibleVAT: Boolean; DeferralPostingBuffer: Record "Deferral Posting Buffer"; VATPostingSetup: Record "VAT Posting Setup"; GenJournalLine: Record "Gen. Journal Line"; DeferralTemplate: Record "Deferral Template"; var VATAmountRounding: Decimal; var PositiveNDVATAmountRounding: Decimal; var NegativeNDVATAmountRounding: Decimal)
+    local procedure InsertDeferralNonDeductibleVATGLEntries(HasNonDeductibleVAT: Boolean; DeferralPostingBuffer: Record "Deferral Posting Buffer"; VATPostingSetup: Record "VAT Posting Setup"; GenJournalLine: Record "Gen. Journal Line"; DeferralTemplate: Record "Deferral Template"; var PositiveVATAmountRounding: Decimal; var NegativeVATAmountRounding: Decimal; var PositiveNDVATAmountRounding: Decimal; var NegativeNDVATAmountRounding: Decimal)
     var
         GLEntry: Record "G/L Entry";
         NonDeductibleVATAmount: Decimal;
         VATAmount: Decimal;
         UnroundedVATAmount: Decimal;
+        VATAmountRounding: Decimal;
         DeferralVATAmountRounding: Decimal;
         PostingGLAccountNo: Code[20];
         DeferralGLAccountNo: Code[20];
@@ -9209,11 +9210,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if DeferralTemplate."Deferral Account" <> DeferralPostingBuffer."Deferral Account" then begin
             DeferralGLAccountNo := DeferralPostingBuffer."G/L Account";
             PostingGLAccountNo := DeferralPostingBuffer."Deferral Account";
+            VATAmountRounding := PositiveVATAmountRounding;
             DeferralVATAmountRounding := PositiveNDVATAmountRounding;
             Sign := 1;
         end else begin
             DeferralGLAccountNo := DeferralPostingBuffer."Deferral Account";
             PostingGLAccountNo := DeferralPostingBuffer."G/L Account";
+            VATAmountRounding := NegativeVATAmountRounding;
             DeferralVATAmountRounding := NegativeNDVATAmountRounding;
             Sign := -1;
         end;
@@ -9228,10 +9231,13 @@ codeunit 12 "Gen. Jnl.-Post Line"
             VATPostingSetup."Deductible %",
             GLSetup."Amount Rounding Precision", DeferralVATAmountRounding);
 
-        if Sign = 1 then
-            PositiveNDVATAmountRounding := DeferralVATAmountRounding
-        else
+        if Sign = 1 then begin
+            PositiveVATAmountRounding := VATAmountRounding;
+            PositiveNDVATAmountRounding := DeferralVATAmountRounding;
+        end else begin
+            NegativeVATAmountRounding := VATAmountRounding;
             NegativeNDVATAmountRounding := DeferralVATAmountRounding;
+        end;
 
         InitGLEntry(
             GenJournalLine, GLEntry, DeferralGLAccountNo, NonDeductibleVATAmount, NonDeductibleVATAmount, true, true,
