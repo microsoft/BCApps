@@ -1161,18 +1161,10 @@ page 291 "Req. Worksheet"
             SetControlAppearanceFromWkshBatch();
             exit;
         end;
-        // When the page is opened positioned on a specific worksheet batch (for example, from the
-        // Open Record action on an approval entry), use the batch from the record instead of the
-        // previously saved batch name that SaveValues would otherwise restore.
-        if (Rec."Journal Batch Name" <> '') and (Rec."Worksheet Template Name" <> '') then begin
-            CurrentJnlBatchName := Rec."Journal Batch Name";
-            Rec.FilterGroup := 2;
-            Rec.SetRange("Worksheet Template Name", Rec."Worksheet Template Name");
-            Rec.FilterGroup := 0;
-            ReqJnlManagement.OpenJnl(CurrentJnlBatchName, Rec);
-            SetControlAppearanceFromWkshBatch();
+
+        if GetCurrentJnlBatchName() then
             exit;
-        end;
+
         OnBeforeTemplateSelection(Rec, CurrentJnlBatchName);
         ReqJnlManagement.WkshTemplateSelection(
             PAGE::"Req. Worksheet", false, Enum::"Req. Worksheet Template Type"::"Req.", Rec, JnlSelected);
@@ -1251,6 +1243,21 @@ page 291 "Req. Worksheet"
 
         ShowWorkflowStatusOnBatch := CurrPage.WorkflowStatusBatch.Page.SetFilterOnWorkflowRecord(RequisitionWkshName.RecordId());
         RequisitionWkshName.SetApprovalStateForWkshBatch(RequisitionWkshName, Rec, OpenApprovalEntriesExistForCurrUser, OpenApprovalEntriesOnWkshBatchExist, CanCancelApprovalForWkshBatch, CanRequestFlowApprovalForWkshBatch, CanCancelFlowApprovalForWkshBatch, ApprovalEntriesExistSentByCurrentUser, EnabledWkshBatchWorkflowsExist);
+    end;
+
+    local procedure GetCurrentJnlBatchName(): boolean
+    begin
+        if (Rec."Journal Batch Name" <> '') and (Rec."Worksheet Template Name" <> '') then begin
+            CurrentJnlBatchName := Rec."Journal Batch Name";
+            Rec.FilterGroup := 2;
+            Rec.SetRange("Worksheet Template Name", Rec."Worksheet Template Name");
+            Rec.FilterGroup := 0;
+            ReqJnlManagement.OpenJnl(CurrentJnlBatchName, Rec);
+            SetControlAppearanceFromWkshBatch();
+            exit(true);
+        end
+        else
+            exit(false);
     end;
 
     [IntegrationEvent(false, false)]
