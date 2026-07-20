@@ -136,6 +136,7 @@
     "build/*",
     "src/rulesets/*",
     "src/Layers/*",
+    "src/DisabledTests/*",
     ".github/workflows/PullRequestHandler.yaml",
     ".github/workflows/_BuildALGoProject.yaml"
   ],
@@ -161,6 +162,7 @@
     ]
   },
   "runNumberOffset": 60000,
+  "shortLivedArtifactsRetentionDays": 3,
   "incrementalBuilds": {
     "onPush": false,
     "onPull_Request": true,
