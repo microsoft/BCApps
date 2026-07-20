@@ -37,6 +37,10 @@ page 28008 "PINT A-NZ Vendor Sample"
                 {
                     ApplicationArea = Basic, Suite;
                 }
+                field("PINT ANZ Sample Note"; Rec."PINT ANZ Sample Note")
+                {
+                    ApplicationArea = Basic, Suite;
+                }
             }
         }
     }
