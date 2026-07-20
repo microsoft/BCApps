@@ -257,6 +257,9 @@ codeunit 30103 "Shpfy Communication Mgt."
         ResponseHeaders := HttpResponseMessage.Headers();
         LogShopifyRequest(Url, Method, Request, HttpResponseMessage, Response, RetryCounter);
         Commit();
+        // Schedule the recurring backstop after the request's own commit, when no write transaction
+        // is open, so enqueuing (which runs Codeunit.Run) never nests in or commits a caller transaction.
+        EnsureBackstopScheduled();
     end;
 
     [NonDebuggable]
@@ -384,7 +387,6 @@ codeunit 30103 "Shpfy Communication Mgt."
         NoAccessTokenErr: label 'No Access token for the store "%1".\Please request an access token for this store.', Comment = '%1 = Store';
         ChangedScopeErr: Label 'The application scope is changed, please request a new access token for the store "%1".', Comment = '%1 = Store';
     begin
-        EnsureBackstopScheduled();
         AuthenticationMgt.EnsureValidAccessToken(Store);
         if RegisteredStoreNew.Get(Store) then
             if RegisteredStoreNew."Requested Scope" = AuthenticationMgt.GetScope() then begin
@@ -402,11 +404,11 @@ codeunit 30103 "Shpfy Communication Mgt."
     var
         TokenRefresh: Codeunit "Shpfy Token Refresh";
     begin
-        // Schedule the recurring token-refresh backstop lazily, the first time the connector makes an
-        // API call in this session. It cannot be scheduled from the install/upgrade codeunits because
-        // enqueuing a Job Queue Entry implicitly commits, which is not allowed in those triggers.
-        // ScheduleRefreshJob is idempotent (it exits when the job already exists), so this only
-        // enqueues once and is a no-op thereafter.
+        // Schedule the recurring token-refresh backstop lazily, once per session, and only from the
+        // end of ExecuteWebRequest (right after its Commit) so no caller write transaction is open:
+        // enqueuing runs Codeunit.Run("Job Queue - Enqueue"), which must not nest in or implicitly
+        // commit a caller's transaction. It cannot be scheduled from install/upgrade for the same
+        // reason. ScheduleRefreshJob is idempotent (exits when the job already exists).
         if BackstopScheduleChecked then
             exit;
         BackstopScheduleChecked := true;
