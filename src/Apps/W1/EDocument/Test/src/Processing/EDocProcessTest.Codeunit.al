@@ -1535,4 +1535,47 @@ codeunit 139883 "E-Doc Process Test"
         Assert.IsTrue(MatchedByAddress, 'Empty document address should be treated as an address match.');
     end;
 
+    [Test]
+    procedure GetVendor_NameOnlyMatch_LogsVendorNoInfotip()
+    var
+        VendorLocal: Record Vendor;
+        EDocument: Record "E-Document";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        MatchedVendor: Record Vendor;
+        EDocProviders: Codeunit "E-Doc. Providers";
+        ActivityLogBuilder: Codeunit "Activity Log Builder";
+        UniqueName: Text[100];
+        ActivityLogJson: Text;
+    begin
+        // [SCENARIO] The V2 provider matches a vendor by name only and logs an infotip on the Vendor No. field.
+
+        // [GIVEN] A vendor whose name is unique and whose address differs from the document
+        UniqueName := CopyStr('VMN ' + Format(CreateGuid()), 1, 100);
+        LibraryPurchase.CreateVendor(VendorLocal);
+        VendorLocal.Name := CopyStr(UniqueName, 1, MaxStrLen(VendorLocal.Name));
+        VendorLocal.Address := CopyStr('123 Alpha Street', 1, MaxStrLen(VendorLocal.Address));
+        VendorLocal.Modify();
+
+        // [GIVEN] An E-Document with a purchase header carrying that vendor name but a different address
+        EDocument.Init();
+        EDocument.Insert(true);
+        EDocumentPurchaseHeader.InsertForEDocument(EDocument);
+        EDocumentPurchaseHeader."Vendor Company Name" := CopyStr(UniqueName, 1, MaxStrLen(EDocumentPurchaseHeader."Vendor Company Name"));
+        EDocumentPurchaseHeader."Vendor Address" := CopyStr('999 Beta Avenue', 1, MaxStrLen(EDocumentPurchaseHeader."Vendor Address"));
+        // Unique External Id so the service-participant lookup in GetVendor cannot match a stray participant
+        EDocumentPurchaseHeader."Vendor External Id" := CopyStr('EXT ' + Format(CreateGuid()), 1, MaxStrLen(EDocumentPurchaseHeader."Vendor External Id"));
+        EDocumentPurchaseHeader.Modify();
+
+        // [WHEN] The provider resolves the vendor
+        MatchedVendor := EDocProviders.GetVendor(EDocument);
+
+        // [THEN] It returns the name-only vendor
+        Assert.AreEqual(VendorLocal."No.", MatchedVendor."No.", 'The provider should accept the name-only vendor match.');
+
+        // [THEN] An activity-log infotip exists on the E-Document Purchase Header record
+        EDocumentPurchaseHeader.GetFromEDocument(EDocument);
+        ActivityLogJson := ActivityLogBuilder.Query(Database::"E-Document Purchase Header", EDocumentPurchaseHeader.SystemId);
+        Assert.IsTrue(StrPos(ActivityLogJson, 'name only') > 0, 'An infotip explaining the name-only match should be logged. Got: ' + ActivityLogJson);
+    end;
+
 }
