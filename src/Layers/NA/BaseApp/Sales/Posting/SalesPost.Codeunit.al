@@ -1968,7 +1968,8 @@ codeunit 80 "Sales-Post"
         if TempWhseJnlLine2.FindSet() then
             repeat
                 OnPostItemJnlLineWhseLineOnBeforePostTempWhseJnlLine2(TempWhseJnlLine2, WhseShip, WhseReceive, InvtPickPutaway);
-                WMSMgt.CheckWhseJnlLine(TempWhseJnlLine2, 1, 0, false);
+                if TempWhseJnlLine2."Location Code" <> '' then
+                    WMSMgt.CheckWhseJnlLine(TempWhseJnlLine2, 1, 0, false);
                 WhseJnlPostLine.Run(TempWhseJnlLine2);
             until TempWhseJnlLine2.Next() = 0;
         TempWhseTrackingSpecification.DeleteAll();

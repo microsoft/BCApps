@@ -2566,6 +2566,31 @@
                 Location.Code, Bin.Code, Item."No.", '', Item."Base Unit of Measure"));
     end;
 
+    [Test]
+    procedure SalesOrderWithoutLocationPostsSuccessfully()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [Item Journal] [Sales] [Bin Content] [AI test 0.4]
+        // [SCENARIO 639575] Sales posting without a location is not blocked by the bin content movement check
+        Initialize();
+
+        // [GIVEN] Item "I" in inventory without a location
+        CreateStockItemWithoutLocation(Item);
+
+        // [WHEN] Ship and invoice a Sales Order for item "I" without a location or bin
+        CreateReleasedSalesOrder(SalesHeader, SalesLine, Item."No.", '', '');
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The sale is posted without the "Location Code must have a value" error
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        Assert.RecordCount(ItemLedgerEntry, 1);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -3246,9 +3271,20 @@
     begin
         LibrarySales.CreateSalesDocumentWithItem(
             SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '', ItemNo, 1, LocationCode, WorkDate());
-        SalesLine.Validate("Bin Code", BinCode);
+        if BinCode <> '' then
+            SalesLine.Validate("Bin Code", BinCode);
         SalesLine.Modify(true);
         LibrarySales.ReleaseSalesDocument(SalesHeader);
+    end;
+
+    local procedure CreateStockItemWithoutLocation(var Item: Record Item)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryInventory.CreateItem(Item);
+        CreateItemJournalLineWithBin(
+            ItemJournalLine, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", '', '', LibraryRandom.RandIntInRange(50, 100));
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
     end;
 
     procedure EnqueItrLotQty(Iteration: Integer; LotNo: Code[10]; Qty: Integer)
