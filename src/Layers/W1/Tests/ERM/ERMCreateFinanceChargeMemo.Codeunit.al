@@ -90,7 +90,7 @@ codeunit 134911 "ERM Create Finance Charge Memo"
 
         // 1. Setup: Create Customer and Sales Invoice.
         Initialize();
-        Customer.Get(CreateCustomer());
+        Customer.Get(CreateCustomerForFinanceChargeMemoSuggestion());
         MIRHelperFunctions.CreateAndPostSalesInvoiceBySalesJournal(Customer."No.");
         CreationDate := CalcDate('<' + Format(2 * LibraryRandom.RandInt(5)) + 'M>', WorkDate());
 
@@ -115,7 +115,7 @@ codeunit 134911 "ERM Create Finance Charge Memo"
 
         // 1. Setup: Create Customer and Sales Invoice.
         Initialize();
-        CustomerNo := CreateCustomer();
+        CustomerNo := CreateCustomerForFinanceChargeMemoSuggestion();
         MIRHelperFunctions.CreateAndPostSalesInvoiceBySalesJournal(CustomerNo);
 
         // 2. Exercise: Create Finance Charge Memo using suggest line.
@@ -606,6 +606,11 @@ codeunit 134911 "ERM Create Finance Charge Memo"
         exit(CreateCustomerWithFinanceChargeTerms(FindFinChargeTermsWithoutMIR()));
     end;
 
+    local procedure CreateCustomerForFinanceChargeMemoSuggestion(): Code[20]
+    begin
+        exit(CreateCustomerWithFinanceChargeTerms(CreateFinanceChargeTermsWithoutMIRAndMinimumAmount(1)));
+    end;
+
     local procedure FindFinChargeTermsWithoutMIR(): Code[10]
     var
         FinanceChargeTerms: Record "Finance Charge Terms";
@@ -653,6 +658,22 @@ codeunit 134911 "ERM Create Finance Charge Memo"
         Evaluate(VarDateFormula, '<+' + Format(DueDateMonths) + 'M>');
         FinanceChargeTerms.Validate("Due Date Calculation", VarDateFormula);
         FinanceChargeTerms.Modify();
+        exit(FinanceChargeTerms.Code);
+    end;
+
+    local procedure CreateFinanceChargeTermsWithoutMIRAndMinimumAmount(DueDateMonths: Integer): Code[10]
+    var
+        FinanceChargeTerms: Record "Finance Charge Terms";
+        VarDateFormula: DateFormula;
+    begin
+        LibraryERM.CreateFinanceChargeTerms(FinanceChargeTerms);
+        Evaluate(VarDateFormula, '<+' + Format(DueDateMonths) + 'M>');
+        FinanceChargeTerms.Validate("Due Date Calculation", VarDateFormula);
+        FinanceChargeTerms.Validate("Minimum Amount (LCY)", 0);
+        FinanceChargeTerms.Validate("Additional Fee (LCY)", LibraryERM.GetAmountRoundingPrecision());
+        FinanceChargeTerms.Validate("Post Additional Fee", true);
+        FinanceChargeTerms.Modify(true);
+        ClearFinanceChargeInterestRate(FinanceChargeTerms.Code);
         exit(FinanceChargeTerms.Code);
     end;
 
@@ -1028,4 +1049,3 @@ codeunit 134911 "ERM Create Finance Charge Memo"
         ActiveDirectoryMockEvents.Enable();
     end;
 }
-
