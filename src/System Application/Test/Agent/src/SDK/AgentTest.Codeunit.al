@@ -1358,6 +1358,7 @@ codeunit 133961 "Agent Test"
         TempAgentAccessControl: Record "Agent Access Control" temporary;
         Any: Codeunit Any;
         AgentId: Guid;
+        SecondUserId: Guid;
     begin
         Initialize();
 
@@ -1372,17 +1373,25 @@ codeunit 133961 "Agent Test"
         Agent.Deactivate(AgentId);
         Agent.Archive(AgentId);
 
+        // [GIVEN] The current user plus a second user staged in the access-control buffer
         TempAgentAccessControl."Agent User Security ID" := AgentId;
         TempAgentAccessControl."User Security ID" := UserSecurityId();
+        TempAgentAccessControl.Insert();
+
+        SecondUserId := Any.GuidValue();
+        TempAgentAccessControl."User Security ID" := SecondUserId;
         TempAgentAccessControl.Insert();
 
         // [WHEN] Updating access control on the archived agent
         Agent.UpdateAgentAccessControl(AgentId, TempAgentAccessControl);
 
-        // [THEN] The grant is applied - archiving freezes agent data, not who may access it
+        // [THEN] The second user - which the create baseline does not include - was granted access, proving the
+        // update path actually applied on an archived agent instead of silently no-opping (archiving freezes agent
+        // data, not who may access it).
         Clear(TempAgentAccessControl);
         Agent.GetUserAccess(AgentId, TempAgentAccessControl);
-        Assert.AreEqual(1, TempAgentAccessControl.Count(), 'Access control should be administrable on an archived agent');
+        TempAgentAccessControl.SetRange("User Security ID", SecondUserId);
+        Assert.IsFalse(TempAgentAccessControl.IsEmpty(), 'The newly granted user should be present after updating an archived agent''s access control');
     end;
 
     [Test]
