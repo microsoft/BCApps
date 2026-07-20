@@ -12,6 +12,8 @@ pageextension 6110 "E-Doc. Payment Journal" extends "Payment Journal"
             field("Remit. Advice E-Doc. Created"; Rec."Remit. Advice E-Doc. Created")
             {
                 ApplicationArea = Basic, Suite;
+                Caption = 'Remit. Advice E-Doc. Created';
+                ToolTip = 'Specifies whether a remittance advice electronic document has been created for the payment.';
             }
         }
     }
