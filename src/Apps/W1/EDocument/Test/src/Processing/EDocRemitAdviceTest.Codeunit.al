@@ -19,7 +19,7 @@ using Microsoft.Sales.Customer;
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
-codeunit 139500 "E-Doc. Remit. Advice Test"
+codeunit 139520 "E-Doc. Remit. Advice Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;

@@ -5,7 +5,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Purchases.Payables;
 
-codeunit 6411 "E-Doc. Remit. Advice Export"
+codeunit 6531 "E-Doc. Remit. Advice Export"
 {
     Access = Internal;
 

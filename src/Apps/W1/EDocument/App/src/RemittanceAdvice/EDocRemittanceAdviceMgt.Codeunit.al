@@ -6,7 +6,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Peppol;
 using Microsoft.Purchases.Payables;
 
-codeunit 6410 "E-Doc. Remittance Advice Mgt."
+codeunit 6530 "E-Doc. Remittance Advice Mgt."
 {
     Access = Internal;
 

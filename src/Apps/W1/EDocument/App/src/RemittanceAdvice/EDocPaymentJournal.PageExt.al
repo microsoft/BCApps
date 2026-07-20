@@ -3,7 +3,7 @@ namespace Microsoft.eServices.EDocument.RemittanceAdvice;
 using Microsoft.eServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
 
-pageextension 6100 "E-Doc. Payment Journal" extends "Payment Journal"
+pageextension 6110 "E-Doc. Payment Journal" extends "Payment Journal"
 {
     layout
     {
