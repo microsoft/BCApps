@@ -20,7 +20,7 @@ page 20412 "Qlty. Ins. Source Config. List"
     UsageCategory = None;
     ApplicationArea = QualityManagement;
     AboutTitle = 'Populating data from tables in Business Central';
-    AboutText = 'This page defines how data is automatically populated into quality inspections from other tables, including how records are linked between source and target tables. It is read-only in most scenarios and intended for advanced configuration.';
+    AboutText = 'This page defines how data is automatically populated into quality inspections from other tables, including how records are linked between source and target tables. These configurations should not be changed under normal circumstances and should only be modified as part of advanced configuration by users who understand the impact of their changes.';
 
     layout
     {
