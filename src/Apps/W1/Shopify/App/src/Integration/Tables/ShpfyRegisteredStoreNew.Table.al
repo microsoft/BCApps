@@ -56,6 +56,11 @@ table 30138 "Shpfy Registered Store New"
             Caption = 'Last Migration Attempt';
             DataClassification = SystemMetadata;
         }
+        field(9; "Last Force Refresh At"; DateTime)
+        {
+            Caption = 'Last Force Refresh At';
+            DataClassification = SystemMetadata;
+        }
     }
     keys
     {

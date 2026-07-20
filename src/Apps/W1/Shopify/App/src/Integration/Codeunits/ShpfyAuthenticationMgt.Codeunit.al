@@ -32,6 +32,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
         InvalidShopUrlErr: Label 'The URL must refer to the internal shop location at myshopify.com. It must not be the public URL that customers use, such as myshop.com.';
         NotSupportedOnPremErr: Label 'Shopify connector is only supported in SaaS environments.';
         RefreshTokenExpiredErr: Label 'The Shopify access token for store "%1" has expired and could not be refreshed automatically. Open the Shopify Shop card and reconnect the store to continue.', Comment = '%1 = Store';
+        TokenRefreshTransientErr: Label 'The Shopify access token for store "%1" could not be refreshed because of a temporary problem contacting Shopify. Please try again later.', Comment = '%1 = Store';
         ReconnectActionLbl: Label 'Reconnect';
         StoreDimensionTok: Label 'Store', Locked = true;
         TokenExchangeGrantTypeTok: Label 'urn:ietf:params:oauth:grant-type:token-exchange', Locked = true;
@@ -293,19 +294,32 @@ codeunit 30199 "Shpfy Authentication Mgt."
     /// <summary>
     /// Forces a token refresh (or migration) regardless of the remaining lifetime. Used when an
     /// API call unexpectedly returns 401, indicating the current access token is no longer valid.
+    /// A short cooldown prevents re-refreshing on every request when a store returns 401 for a
+    /// reason other than token expiry (e.g. revoked access), which would otherwise hammer the
+    /// refresh endpoint and serialize sessions once per record during a bulk sync.
+    /// Returns true if a refresh/migration was attempted (so the caller can retry the request),
+    /// false if it was skipped by the cooldown.
     /// </summary>
     /// <param name="Store">The store URL.</param>
-    internal procedure ForceTokenRefresh(Store: Text)
+    internal procedure ForceTokenRefresh(Store: Text): Boolean
     var
         RegisteredStoreNew: Record "Shpfy Registered Store New";
     begin
         Store := Store.ToLower();
         if not RegisteredStoreNew.Get(Store) then
-            exit;
+            exit(false);
+
+        if not ShouldForceRefresh(RegisteredStoreNew) then
+            exit(false);
 
         RegisteredStoreNew.LockTable();
         if not RegisteredStoreNew.Get(Store) then
-            exit;
+            exit(false);
+        if not ShouldForceRefresh(RegisteredStoreNew) then
+            exit(false);
+
+        RegisteredStoreNew."Last Force Refresh At" := CurrentDateTime();
+        RegisteredStoreNew.Modify();
 
         if RegisteredStoreNew.HasRefreshToken() then
             RefreshAccessToken(Store, RegisteredStoreNew)
@@ -313,6 +327,19 @@ codeunit 30199 "Shpfy Authentication Mgt."
             TryMigrate(Store, RegisteredStoreNew);
 
         Commit();
+        exit(true);
+    end;
+
+    local procedure ShouldForceRefresh(RegisteredStoreNew: Record "Shpfy Registered Store New"): Boolean
+    begin
+        if RegisteredStoreNew."Last Force Refresh At" = 0DT then
+            exit(true);
+        exit(CurrentDateTime() - RegisteredStoreNew."Last Force Refresh At" >= GetForceRefreshCooldown());
+    end;
+
+    local procedure GetForceRefreshCooldown(): Duration
+    begin
+        exit(60 * 1000); // Force a reactive refresh for a store at most once per minute.
     end;
 
     local procedure TryMigrate(Store: Text; var RegisteredStoreNew: Record "Shpfy Registered Store New")
@@ -412,10 +439,13 @@ codeunit 30199 "Shpfy Authentication Mgt."
             Sleep(1000 * Attempt);
         end;
 
-        // Transient failures exhausted. If the current access token is already expired the store
-        // cannot make calls, so surface the reconnect error; otherwise keep the still-valid token.
+        // Transient failures exhausted. The refresh token is still valid (it passed the expiry
+        // check above and we never hit a 401), so this is a temporary Shopify/network problem, not
+        // a reconnect situation. If the current access token is already expired the store cannot
+        // make calls right now, so surface a non-actionable "try again later" error; otherwise keep
+        // the still-valid token and let the caller proceed.
         if TokenExpired(RegisteredStoreNew) then
-            Error(CreateReconnectErrorInfo(Store));
+            Error(TokenRefreshTransientErr, Store);
         Session.LogMessage('0000UJ1', TokenRefreshTransientTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
     end;
 

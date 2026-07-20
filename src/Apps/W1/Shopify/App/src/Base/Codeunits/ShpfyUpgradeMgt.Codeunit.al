@@ -544,9 +544,10 @@ codeunit 30106 "Shpfy Upgrade Mgt."
         if UpgradeTag.HasUpgradeTag(GetScheduleTokenRefreshJobUpgradeTag()) then
             exit;
 
-        TokenRefresh.ScheduleRefreshJob();
-
-        UpgradeTag.SetUpgradeTag(GetScheduleTokenRefreshJobUpgradeTag());
+        // Only record the upgrade tag once the job is actually scheduled; otherwise a transient
+        // enqueue failure would permanently suppress the backstop on later upgrade runs.
+        if TokenRefresh.ScheduleRefreshJob() then
+            UpgradeTag.SetUpgradeTag(GetScheduleTokenRefreshJobUpgradeTag());
     end;
 
     internal procedure GetAllowOutgoingRequestseUpgradeTag(): Code[250]

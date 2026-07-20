@@ -550,8 +550,7 @@ codeunit 30103 "Shpfy Communication Mgt."
         Store := Shop.GetStoreName();
         if Store = '' then
             exit(false);
-        AuthenticationMgt.ForceTokenRefresh(Store);
-        exit(true);
+        exit(AuthenticationMgt.ForceTokenRefresh(Store));
     end;
 
     /// <summary> 

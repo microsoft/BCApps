@@ -69,15 +69,18 @@ codeunit 30431 "Shpfy Token Refresh"
 
     /// <summary>
     /// Creates the recurring Job Queue Entry that runs this codeunit, unless one already exists.
+    /// Returns true when the job exists after the call (already present or successfully enqueued),
+    /// false when enqueuing failed - so an upgrade caller only records its upgrade tag on success
+    /// and retries on a later run instead of permanently suppressing the backstop.
     /// </summary>
-    internal procedure ScheduleRefreshJob()
+    internal procedure ScheduleRefreshJob(): Boolean
     var
         JobQueueEntry: Record "Job Queue Entry";
     begin
         JobQueueEntry.SetRange("Object Type to Run", JobQueueEntry."Object Type to Run"::Codeunit);
         JobQueueEntry.SetRange("Object ID to Run", Codeunit::"Shpfy Token Refresh");
         if not JobQueueEntry.IsEmpty() then
-            exit;
+            exit(true);
 
         Clear(JobQueueEntry);
         JobQueueEntry.Init();
@@ -98,7 +101,9 @@ codeunit 30431 "Shpfy Token Refresh"
         // This runs from the install/upgrade flow, where COMMIT (explicit or implicit) is not allowed.
         // "Job Queue - Enqueue" performs no implicit commit, so no prior commit is needed; the guarded
         // Codeunit.Run keeps an enqueue failure from aborting the install/upgrade.
-        if not Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry) then
-            LogScheduleFailure(GetLastErrorText());
+        if Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry) then
+            exit(true);
+        LogScheduleFailure(GetLastErrorText());
+        exit(false);
     end;
 }
