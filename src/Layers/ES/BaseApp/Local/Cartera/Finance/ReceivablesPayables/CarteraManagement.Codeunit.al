@@ -209,7 +209,7 @@ codeunit 7000000 CarteraManagement
         CarteraSetup: Record "Cartera Setup";
         Cust: Record Customer;
         CustLedgEntry: Record "Cust. Ledger Entry";
-        CheckDiscCreditLimit: Page "Check Discount Credit Limit";
+        CheckDiscountCreditLimit: Page "Check Discount Credit Limit";
         SelectedEntryNos: List of [Integer];
         EntryNo: Integer;
         SelectedAmount: Decimal;
