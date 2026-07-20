@@ -81,6 +81,8 @@ codeunit 139965 "Qlty. Tests - More Tests"
         OrderTypeProductionConditionFilterTok: Label 'WHERE(Order Type=FILTER(Production))', Locked = true;
         EntryTypeOutputConditionFilterTok: Label 'WHERE(Entry Type=FILTER(Output))', Locked = true;
         PassFailQuantityInvalidErr: Label 'The %1 and %2 cannot exceed the %3. The %3 is currently exceeded by %4.', Comment = '%1=the passed quantity caption, %2=the failed quantity caption, %3=the source quantity caption, %4=the quantity exceeded';
+        ShippedDefaultCodeTok: Label 'TRACKINGSPEC', Locked = true;
+        ModifiedDescriptionTok: Label 'MODIFIED DEFAULT DESCRIPTION', Locked = true;
 
     [Test]
     procedure TestTable_ValidateExpressionFormula()
@@ -2393,6 +2395,168 @@ codeunit 139965 "Qlty. Tests - More Tests"
         LibraryAssert.AreEqual(ExpressionFormula2Tok, QltyInspectionTemplateLine."Expression Formula", 'Expression Formula should be updated when the test code is changed.');
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure QltyInsSourceConfigList_RecreateMissingDefaults()
+    var
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        QltyInsSourceConfigList: TestPage "Qlty. Ins. Source Config. List";
+        CustomCode: Code[20];
+    begin
+        // [SCENARIO] Invoking the Recreate missing default configurations action restores deleted shipped defaults only when the user confirms, and preserves custom configurations.
+        Initialize();
+
+        // [GIVEN] All shipped default source configurations exist
+        QltyInspectionUtility.EnsureAtLeastOneSourceConfigurationExist(true);
+
+        // [WHEN] A shipped default source configuration is deleted
+        LibraryAssert.IsTrue(QltyInspectSourceConfig.Get(ShippedDefaultCodeTok), 'Shipped default should exist before deletion.');
+        QltyInspectSourceConfig.Delete(true);
+
+        // [THEN] The previously deleted shipped default is deleted
+        LibraryAssert.IsFalse(QltyInspectSourceConfig.Get(ShippedDefaultCodeTok), 'Shipped default should be deleted after the action.');
+
+        // [GIVEN] A custom source configuration is created
+        CustomCode := CreateCustomSourceConfiguration();
+
+        // [GIVEN] The list page is opened
+        QltyInsSourceConfigList.OpenView();
+
+        // [WHEN] Recreate missing default configurations action is invoked and the user confirms (ConfirmHandler)
+        QltyInsSourceConfigList.RecreateMissingDefaultConfigurations.Invoke();
+        QltyInsSourceConfigList.Close();
+
+        // [THEN] The previously deleted shipped default is recreated
+        LibraryAssert.IsTrue(QltyInspectSourceConfig.Get(ShippedDefaultCodeTok), 'Shipped default should be recreated after the action.');
+
+        // [THEN] The custom source configuration is preserved
+        LibraryAssert.IsTrue(QltyInspectSourceConfig.Get(CustomCode), 'Custom source configuration should be preserved.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure QltyInsSourceConfigList_ResetOnlyDefaults()
+    var
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        QltyInsSourceConfigList: TestPage "Qlty. Ins. Source Config. List";
+        OriginalDescription: Text[100];
+        ModifiedDescription: Text[100];
+        CustomCode: Code[20];
+    begin
+        // [SCENARIO] Invoking the Reset only default configurations action restores shipped defaults only when the user confirms, and preserves custom configurations.
+        Initialize();
+
+        // [GIVEN] All shipped default source configurations exist
+        QltyInspectionUtility.EnsureAtLeastOneSourceConfigurationExist(true);
+
+        // [GIVEN] The description of a shipped default source configuration is modified
+        QltyInspectSourceConfig.Get(ShippedDefaultCodeTok);
+        OriginalDescription := QltyInspectSourceConfig.Description;
+        ModifiedDescription := CopyStr(ModifiedDescriptionTok, 1, MaxStrLen(QltyInspectSourceConfig.Description));
+        QltyInspectSourceConfig.Description := ModifiedDescription;
+        QltyInspectSourceConfig.Modify();
+
+        // [GIVEN] A custom source configuration is created
+        CustomCode := CreateCustomSourceConfiguration();
+
+        // [GIVEN] The list page is opened
+        QltyInsSourceConfigList.OpenView();
+
+        // [WHEN] Reset only default configurations action is invoked and the user confirms (ConfirmHandler)
+        QltyInsSourceConfigList.ResetOnlyDefaultConfigurations.Invoke();
+        QltyInsSourceConfigList.Close();
+
+        // [THEN] The shipped default's description is reset to its original value
+        QltyInspectSourceConfig.Get(ShippedDefaultCodeTok);
+        LibraryAssert.AreEqual(OriginalDescription, QltyInspectSourceConfig.Description, 'Shipped default description should be reset.');
+
+        // [THEN] The custom source configuration is preserved
+        LibraryAssert.IsTrue(QltyInspectSourceConfig.Get(CustomCode), 'Custom source configuration should be preserved.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure QltyInsSourceConfigList_ResetAllConfigurations()
+    var
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        QltyInsSourceConfigList: TestPage "Qlty. Ins. Source Config. List";
+        CustomCode: Code[20];
+    begin
+        // [SCENARIO] Invoking the Reset all configurations action deletes every source configuration only when the user confirms, and then recreates shipped defaults.
+        Initialize();
+
+        // [GIVEN] All shipped default source configurations exist
+        QltyInspectionUtility.EnsureAtLeastOneSourceConfigurationExist(true);
+
+        // [GIVEN] A custom source configuration is created
+        CustomCode := CreateCustomSourceConfiguration();
+        LibraryAssert.IsTrue(QltyInspectSourceConfig.Get(CustomCode), 'Custom source configuration should exist before the action is invoked.');
+
+        // [GIVEN] The list page is opened
+        QltyInsSourceConfigList.OpenView();
+
+
+        // [WHEN] Reset all configurations action is invoked and the user confirms (ConfirmHandler)
+        QltyInsSourceConfigList.ResetAllConfigurations.Invoke();
+        QltyInsSourceConfigList.Close();
+
+        // [THEN] The custom source configuration is deleted
+        LibraryAssert.IsFalse(QltyInspectSourceConfig.Get(CustomCode), 'Custom source configuration should be deleted.');
+
+        // [THEN] The shipped default source configurations are recreated
+        LibraryAssert.IsTrue(QltyInspectSourceConfig.Get(ShippedDefaultCodeTok), 'Shipped default should exist after reset all.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure QltyInspectSourceConfig_ResetDefaultConfiguration()
+    var
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        QltyInspectSourceConfigCard: TestPage "Qlty. Inspect. Source Config.";
+        OriginalDescription: Text[100];
+        ModifiedDescription: Text[100];
+    begin
+        // [SCENARIO] Invoking the Reset default configuration action on the card page resets the shipped default only when the user confirms.
+        Initialize();
+
+        // [GIVEN] All shipped default source configurations exist
+        QltyInspectionUtility.EnsureAtLeastOneSourceConfigurationExist(true);
+
+        // [GIVEN] The description of a shipped default source configuration is modified
+        QltyInspectSourceConfig.Get(ShippedDefaultCodeTok);
+        OriginalDescription := QltyInspectSourceConfig.Description;
+        ModifiedDescription := CopyStr(ModifiedDescriptionTok, 1, MaxStrLen(QltyInspectSourceConfig.Description));
+        QltyInspectSourceConfig.Description := ModifiedDescription;
+        QltyInspectSourceConfig.Modify();
+
+        // [GIVEN] The card page is opened on the shipped default configuration
+        QltyInspectSourceConfigCard.OpenView();
+        QltyInspectSourceConfigCard.GoToRecord(QltyInspectSourceConfig);
+
+
+        // [WHEN] Reset default configuration action is invoked and the user confirms (ConfirmHandler)
+        QltyInspectSourceConfigCard.ResetDefaultConfiguration.Invoke();
+        QltyInspectSourceConfigCard.Close();
+
+        // [THEN] The shipped default's description is reset to its original value
+        QltyInspectSourceConfig.Get(ShippedDefaultCodeTok);
+        LibraryAssert.AreEqual(OriginalDescription, QltyInspectSourceConfig.Description, 'Shipped default description should be reset.');
+    end;
+
+    local procedure CreateCustomSourceConfiguration() CustomCode: Code[20]
+    var
+        QltyInspectSourceConfig: Record "Qlty. Inspect. Source Config.";
+        RandomText: Text;
+    begin
+        QltyInspectionUtility.GenerateRandomCharacters(17, RandomText);
+        CustomCode := CopyStr('CUS' + RandomText, 1, MaxStrLen(QltyInspectSourceConfig.Code));
+        QltyInspectSourceConfig.Init();
+        QltyInspectSourceConfig.Code := CustomCode;
+        QltyInspectSourceConfig.Description := CopyStr('Custom Test Configuration', 1, MaxStrLen(QltyInspectSourceConfig.Description));
+        QltyInspectSourceConfig.Validate("To Type", QltyInspectSourceConfig."To Type"::Inspection);
+        QltyInspectSourceConfig.Insert(true);
+    end;
+
     local procedure Initialize()
     begin
         if IsInitialized then
@@ -2470,6 +2634,12 @@ codeunit 139965 "Qlty. Tests - More Tests"
     procedure ConfirmHandler(Question: Text; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerFalse(Question: Text; var Reply: Boolean)
+    begin
+        Reply := false;
     end;
 
     [MessageHandler]
