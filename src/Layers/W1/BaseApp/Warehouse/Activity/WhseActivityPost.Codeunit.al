@@ -1262,6 +1262,15 @@ codeunit 7324 "Whse.-Activity-Post"
                                 TempWarehouseActivityLineForItemTrackingChecking."Qty. to Handle (Base)",
                                 TempWarehouseActivityLineForItemTrackingChecking."Qty. to Handle (Base)", true, InvoiceSourceDoc);
                         end;
+                    Database::"Job Planning Line":
+                        // New format: Warehouse activity line already uses Job Planning Line source type
+                        TrackingSpecification.CheckItemTrackingQuantity(
+                            TempWarehouseActivityLineForItemTrackingChecking."Source Type",
+                            TempWarehouseActivityLineForItemTrackingChecking."Source Subtype",
+                            TempWarehouseActivityLineForItemTrackingChecking."Source No.",
+                            TempWarehouseActivityLineForItemTrackingChecking."Source Line No.",
+                            TempWarehouseActivityLineForItemTrackingChecking."Qty. to Handle (Base)",
+                            TempWarehouseActivityLineForItemTrackingChecking."Qty. to Handle (Base)", true, InvoiceSourceDoc);
                     else
                         TrackingSpecification.CheckItemTrackingQuantity(TempWarehouseActivityLineForItemTrackingChecking."Source Type", TempWarehouseActivityLineForItemTrackingChecking."Source Subtype", TempWarehouseActivityLineForItemTrackingChecking."Source No.", TempWarehouseActivityLineForItemTrackingChecking."Source Line No.", TempWarehouseActivityLineForItemTrackingChecking."Qty. to Handle (Base)", TempWarehouseActivityLineForItemTrackingChecking."Qty. to Handle (Base)", true, InvoiceSourceDoc);
                 end;
