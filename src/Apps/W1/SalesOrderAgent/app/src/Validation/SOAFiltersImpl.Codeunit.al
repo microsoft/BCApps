@@ -246,6 +246,7 @@ codeunit 4305 "SOA Filters Impl."
         ContactList: Page "Contact List";
     begin
         ContactList.LookupMode(true);
+        Commit();
         if ContactList.RunModal() <> Action::LookupOK then
             exit;
         ContactList.GetRecord(SelectedContact);

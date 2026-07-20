@@ -7,6 +7,7 @@ namespace Microsoft.EServices.EDocumentConnector.B2Brouter;
 permissionset 6491 "B2Brouter Read"
 {
     Assignable = true;
+    IncludedPermissionSets = "B2Brouter Objects";
     Permissions =
         tabledata "B2Brouter Setup" = r;
 }
