@@ -1231,6 +1231,7 @@ codeunit 133961 "Agent Test"
     end;
 
     [Test]
+    [HandlerFunctions('SendArchivedAgentNotificationHandler')]
     procedure ArchivedAgentUserSettingsActionDisabledOnCard()
     var
         AgentRecord: Record Agent;
@@ -1262,6 +1263,7 @@ codeunit 133961 "Agent Test"
     end;
 
     [Test]
+    [HandlerFunctions('SendArchivedAgentNotificationHandler')]
     procedure ArchivedAgentConfigureActionEnabledOnCard()
     var
         AgentRecord: Record Agent;
@@ -1567,6 +1569,12 @@ codeunit 133961 "Agent Test"
             AgentArchiveConfirmation.OK().Invoke()
         else
             AgentArchiveConfirmation.Cancel().Invoke();
+    end;
+
+    [SendNotificationHandler]
+    procedure SendArchivedAgentNotificationHandler(var ArchivedNotification: Notification): Boolean
+    begin
+        exit(true);
     end;
 
     local procedure CreateDeactivatedAgent(var AgentRecord: Record Agent; DisplayName: Text[80]) AgentId: Guid
