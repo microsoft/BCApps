@@ -351,6 +351,49 @@ codeunit 30471 "Shpfy Copilot Tax Matcher"
         exit(TryFindEffectiveTaxDetail(OrderHeader, TaxJurisdiction, TaxGroupCode, BCRate));
     end;
 
+    /// <summary>
+    /// Creates — or, when one already exists on the order's document date, updates — a Tax Detail
+    /// for the tax line's Tax Jurisdiction and resolved tax group so Business Central posts the rate
+    /// Shopify charged, effective the order's document date. This mutates shared BC tax setup: it is
+    /// NOT scoped to a single order, so it affects every document that posts that jurisdiction and
+    /// tax group on or after that date. Used by the review page to let a reviewer resolve a rate
+    /// conflict by deliberately adopting Shopify's rate over the existing Business Central rate.
+    /// Returns false when the line has no jurisdiction assigned or the owning order/shop cannot be
+    /// resolved.
+    /// </summary>
+    procedure SeedTaxDetailFromShopifyRate(OrderTaxLine: Record "Shpfy Order Tax Line"): Boolean
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        Shop: Record "Shpfy Shop";
+        TaxJurisdiction: Record "Tax Jurisdiction";
+        TaxDetail: Record "Tax Detail";
+        TaxGroupCode: Code[20];
+    begin
+        if OrderTaxLine."Tax Jurisdiction Code" = '' then
+            exit(false);
+        if not TaxJurisdiction.Get(OrderTaxLine."Tax Jurisdiction Code") then
+            exit(false);
+        if not TryGetOrderHeaderForTaxLine(OrderTaxLine, OrderHeader) then
+            exit(false);
+        if not Shop.Get(OrderHeader."Shop Code") then
+            exit(false);
+        TaxGroupCode := GetTaxGroupCodeForTaxLine(OrderTaxLine, Shop);
+
+        // A Tax Detail is keyed by jurisdiction + tax group + tax type + effective date. Adopt
+        // Shopify's rate on the order's document date: modify a bracket that already exists on that
+        // exact date, otherwise seed a new one. Later brackets (if any) are left untouched.
+        TaxDetail.SetRange("Tax Jurisdiction Code", TaxJurisdiction.Code);
+        TaxDetail.SetRange("Tax Group Code", TaxGroupCode);
+        TaxDetail.SetRange("Tax Type", TaxDetail."Tax Type"::"Sales and Use Tax");
+        TaxDetail.SetRange("Effective Date", OrderHeader."Document Date");
+        if TaxDetail.FindFirst() then begin
+            TaxDetail."Tax Below Maximum" := OrderTaxLine."Rate %";
+            TaxDetail.Modify(true);
+        end else
+            InsertTaxDetail(OrderHeader, OrderTaxLine, TaxJurisdiction, TaxGroupCode);
+        exit(true);
+    end;
+
     local procedure CreateTaxJurisdiction(var TaxJurisdiction: Record "Tax Jurisdiction"; JurisdictionCode: Code[10]; OrderHeader: Record "Shpfy Order Header")
     begin
         TaxJurisdiction.Init();

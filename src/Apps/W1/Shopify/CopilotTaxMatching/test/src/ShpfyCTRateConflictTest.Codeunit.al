@@ -133,6 +133,66 @@ codeunit 134720 "Shpfy CT Rate Conflict Test"
         LibraryAssert.AreEqual('NYSTAX', TaxJurisdiction."Report-to Jurisdiction", 'The city jurisdiction must report to the state.');
     end;
 
+    // RD10 — Use Shopify Rate: seeds a Tax Detail at the order's document date with Shopify's rate
+    // so BC posts what the customer paid; the earlier (conflicting) admin bracket is left untouched.
+    [Test]
+    procedure UseShopifyRateSeedsBracketAtDocumentDate()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        TaxDetail: Record "Tax Detail";
+        Shop: Record "Shpfy Shop";
+        CopilotTaxMatcher: Codeunit "Shpfy Copilot Tax Matcher";
+        BCRate: Decimal;
+    begin
+        Cleanup();
+        Shop := CreateShop();
+        // BC has NYSTAX x TAXABLE at 10% effective 2026-01-01; Shopify charged 20%; doc date 2026-01-15.
+        CreateConflictScenario(OrderHeader, Shop, 20, 10);
+        OrderTaxLine.Get(GetLineId(OrderHeader), 1);
+
+        LibraryAssert.IsTrue(CopilotTaxMatcher.SeedTaxDetailFromShopifyRate(OrderTaxLine), 'Seeding Shopify''s rate should succeed for a matched line.');
+
+        // A new bracket exists at the document date with Shopify's rate.
+        LibraryAssert.IsTrue(TaxDetail.Get('NYSTAX', 'TAXABLE', TaxDetail."Tax Type"::"Sales and Use Tax", OrderHeader."Document Date"), 'A Tax Detail should exist at the order''s document date.');
+        LibraryAssert.AreEqual(20, TaxDetail."Tax Below Maximum", 'The document-date bracket should carry Shopify''s rate.');
+
+        // The earlier admin bracket is untouched.
+        LibraryAssert.IsTrue(TaxDetail.Get('NYSTAX', 'TAXABLE', TaxDetail."Tax Type"::"Sales and Use Tax", 20260101D), 'The earlier bracket must remain.');
+        LibraryAssert.AreEqual(10, TaxDetail."Tax Below Maximum", 'The earlier bracket rate must be left untouched.');
+
+        // The effective rate as of the document date is now Shopify's — conflict resolved.
+        LibraryAssert.IsTrue(CopilotTaxMatcher.TryGetEffectiveItemRate(OrderTaxLine, BCRate), 'An effective bracket should now exist.');
+        LibraryAssert.AreEqual(20, BCRate, 'BC should now post Shopify''s rate as of the document date.');
+    end;
+
+    // RD10 — Use Shopify Rate when a bracket already exists on the document date: it is updated in
+    // place (no duplicate insert), adopting Shopify's rate.
+    [Test]
+    procedure UseShopifyRateUpdatesSameDateBracket()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        TaxDetail: Record "Tax Detail";
+        Shop: Record "Shpfy Shop";
+        CopilotTaxMatcher: Codeunit "Shpfy Copilot Tax Matcher";
+    begin
+        Cleanup();
+        Shop := CreateShop();
+        // No earlier bracket; instead an existing bracket sits on the document date itself at 10%.
+        CreateConflictScenario(OrderHeader, Shop, 20, 0);
+        CreateTaxDetail('NYSTAX', 'TAXABLE', 10, 20260115D);
+        OrderTaxLine.Get(GetLineId(OrderHeader), 1);
+
+        LibraryAssert.IsTrue(CopilotTaxMatcher.SeedTaxDetailFromShopifyRate(OrderTaxLine), 'Seeding Shopify''s rate should succeed.');
+
+        TaxDetail.SetRange("Tax Jurisdiction Code", 'NYSTAX');
+        TaxDetail.SetRange("Tax Group Code", 'TAXABLE');
+        LibraryAssert.AreEqual(1, TaxDetail.Count(), 'The same-date bracket should be updated in place, not duplicated.');
+        TaxDetail.FindFirst();
+        LibraryAssert.AreEqual(20, TaxDetail."Tax Below Maximum", 'The same-date bracket should now carry Shopify''s rate.');
+    end;
+
     // An existing admin-maintained Report-to must never be overwritten.
     [Test]
     procedure ReapplyPreservesExistingReportTo()
@@ -372,6 +432,48 @@ codeunit 134720 "Shpfy CT Rate Conflict Test"
         CopilotTaxNotify.UndoApproval(OrderHeader);
 
         LibraryAssert.IsFalse(OrderHeader."Copilot Tax Match Reviewed", 'Undo Approval on a not-reviewed order stays not-reviewed.');
+    end;
+
+    // Install/upgrade backfill: a shop that pre-dates the config fields (zero-values) gets the
+    // documented defaults applied — Tax Area auto-creation on, blocking review on, SHPFY- prefix.
+    [Test]
+    procedure BackfillAppliesShopDefaults()
+    var
+        Shop: Record "Shpfy Shop";
+        CopilotTaxUpgrade: Codeunit "Shpfy Copilot Tax Upgrade";
+    begin
+        Cleanup();
+        Shop := CreateShop();
+        // Simulate a shop created before the fields existed: platform zero-values.
+        Shop."Auto Create Tax Areas" := false;
+        Shop."Tax Area Naming Pattern" := '';
+        Shop."Tax Match Review Required" := false;
+        Shop.Modify();
+
+        CopilotTaxUpgrade.ApplyShopDefaults(Shop);
+
+        LibraryAssert.IsTrue(Shop."Auto Create Tax Areas", 'Auto Create Tax Areas should be defaulted to true.');
+        LibraryAssert.AreEqual('SHPFY-', Shop."Tax Area Naming Pattern", 'Tax Area Naming Pattern should be defaulted to SHPFY-.');
+        LibraryAssert.IsTrue(Shop."Tax Match Review Required", 'Tax Match Review Required should be defaulted to true.');
+    end;
+
+    // The backfill must not flip the two intentionally-false defaults on.
+    [Test]
+    procedure BackfillLeavesOptInFieldsUntouched()
+    var
+        Shop: Record "Shpfy Shop";
+        CopilotTaxUpgrade: Codeunit "Shpfy Copilot Tax Upgrade";
+    begin
+        Cleanup();
+        Shop := CreateShop();
+        Shop."Copilot Tax Matching Enabled" := false;
+        Shop."Auto Create Tax Jurisdictions" := false;
+        Shop.Modify();
+
+        CopilotTaxUpgrade.ApplyShopDefaults(Shop);
+
+        LibraryAssert.IsFalse(Shop."Copilot Tax Matching Enabled", 'Copilot Tax Matching Enabled must stay off (opt-in).');
+        LibraryAssert.IsFalse(Shop."Auto Create Tax Jurisdictions", 'Auto Create Tax Jurisdictions must stay off (opt-in).');
     end;
 
     local procedure BuildOrderAndShop(var OrderHeader: Record "Shpfy Order Header"; var Shop: Record "Shpfy Shop"; Applied: Boolean; Reviewed: Boolean; ReviewRequired: Boolean; RateConflict: Boolean)

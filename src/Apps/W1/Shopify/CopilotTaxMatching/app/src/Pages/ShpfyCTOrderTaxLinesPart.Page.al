@@ -1,5 +1,7 @@
 namespace Microsoft.Integration.Shopify;
 
+using System.Telemetry;
+
 /// <summary>
 /// Page Shpfy CT Order Tax Lines Part (ID 30479).
 /// ListPart variant of the Shopify Order Tax Lines surface, embedded as a subform on the
@@ -106,6 +108,26 @@ page 30479 "Shpfy CT Order Tax Lines Part"
         }
     }
 
+    actions
+    {
+        area(Processing)
+        {
+            action(UseShopifyRate)
+            {
+                ApplicationArea = All;
+                Caption = 'Use Shopify Rate';
+                Image = Apply;
+                Enabled = UseShopifyRateEnabled;
+                ToolTip = 'Creates or updates a Business Central Tax Detail for this line''s Tax Jurisdiction and tax group, effective the order''s document date, using the rate Shopify charged. This changes your shared Business Central tax setup - it is not limited to this order and affects every document that posts this Tax Jurisdiction and tax group on or after that date, overwriting any existing rate on that date.';
+
+                trigger OnAction()
+                begin
+                    UseShopifyRateForCurrentLine();
+                end;
+            }
+        }
+    }
+
     trigger OnOpenPage()
     begin
         // Start empty; the host page scopes the part to a single order via SetTaxLineFilter.
@@ -116,6 +138,9 @@ page 30479 "Shpfy CT Order Tax Lines Part"
     begin
         ResolveLineContext();
         ResolveBcRate();
+        // Offer the rate fix only when a jurisdiction is assigned and BC's rate is not already the
+        // same as Shopify's (i.e. a conflict, or no BC bracket yet). Nothing to do when they agree.
+        UseShopifyRateEnabled := (Rec."Tax Jurisdiction Code" <> '') and (RateStyleExpr <> 'Favorable');
     end;
 
     var
@@ -124,7 +149,12 @@ page 30479 "Shpfy CT Order Tax Lines Part"
         AppliesToItemDescription: Text[100];
         BCRatePct: Decimal;
         RateStyleExpr: Text;
+        UseShopifyRateEnabled: Boolean;
         ShippingAppliesToLbl: Label 'Shipping charge: %1', Comment = '%1 = shipping method title';
+        NoJurisdictionErr: Label 'Assign a Tax Jurisdiction to this line before using Shopify''s rate.';
+        UseShopifyRateQst: Label 'This changes your shared Business Central tax setup for Tax Jurisdiction %1, not just this order: it sets the tax rate to Shopify''s %2 %, effective the order''s document date, and affects every document that posts this Tax Jurisdiction and tax group on or after that date. Do you want to continue?', Comment = '%1 = Tax Jurisdiction Code, %2 = Shopify rate percentage';
+        UseShopifyRateDoneMsg: Label 'Business Central will now post %1 %% for Tax Jurisdiction %2 as of the order''s document date. Approve the order to rebuild the Tax Area and clear the rate conflict.', Comment = '%1 = Shopify rate percentage, %2 = Tax Jurisdiction Code';
+        SeedFailedErr: Label 'The Business Central tax rate could not be updated for this tax line.';
 
     /// <summary>
     /// Scopes the part to the tax lines of a single order. The host passes a filter
@@ -184,5 +214,28 @@ page 30479 "Shpfy CT Order Tax Lines Part"
             RateStyleExpr := 'Favorable'
         else
             RateStyleExpr := 'Unfavorable';
+    end;
+
+    local procedure UseShopifyRateForCurrentLine()
+    var
+        CopilotTaxMatcher: Codeunit "Shpfy Copilot Tax Matcher";
+        CopilotTaxRegister: Codeunit "Shpfy Copilot Tax Register";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        if Rec."Tax Jurisdiction Code" = '' then
+            Error(NoJurisdictionErr);
+
+        if not Confirm(StrSubstNo(UseShopifyRateQst, Rec."Tax Jurisdiction Code", Rec."Rate %"), false) then
+            exit;
+
+        if not CopilotTaxMatcher.SeedTaxDetailFromShopifyRate(Rec) then
+            Error(SeedFailedErr);
+
+        FeatureTelemetry.LogUsage('0000UNP', CopilotTaxRegister.FeatureName(), 'Reviewer adopted Shopify rate into Tax Detail');
+
+        ResolveBcRate();
+        UseShopifyRateEnabled := (Rec."Tax Jurisdiction Code" <> '') and (RateStyleExpr <> 'Favorable');
+        CurrPage.Update(false);
+        Message(StrSubstNo(UseShopifyRateDoneMsg, Rec."Rate %", Rec."Tax Jurisdiction Code"));
     end;
 }

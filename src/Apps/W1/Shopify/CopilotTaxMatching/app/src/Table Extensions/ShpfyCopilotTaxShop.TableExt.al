@@ -24,6 +24,7 @@ tableextension 30470 "Shpfy Copilot Tax Shop" extends "Shpfy Shop"
         {
             Caption = 'Auto Create Tax Areas';
             DataClassification = CustomerContent;
+            InitValue = true;
             ToolTip = 'Specifies whether the system can create new Tax Areas when no exact match exists.';
         }
         field(30473; "Tax Area Naming Pattern"; Text[20])
