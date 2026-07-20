@@ -8021,6 +8021,12 @@ table 38 "Purchase Header"
                 exit(GetRangeMax("Buy-from Contact No."));
     end;
 
+    procedure GetContactDetails(var BuyFromContact: Record Contact; var PayToContact: Record Contact)
+    begin
+        BuyFromContact.GetOrClear("Buy-from Contact No.");
+        PayToContact.GetOrClear("Pay-to Contact No.");
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitDefaultDimensionSources(var PurchaseHeader: Record "Purchase Header"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer)
     begin

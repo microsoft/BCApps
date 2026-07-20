@@ -677,6 +677,7 @@ permissionset 732 "D365 BASIC ISV"
                   tabledata "Item Unit of Measure" = RIMD,
                   tabledata "Item Variant" = RIMD,
                   tabledata Job = RIMD,
+                  tabledata "Job Assigned Resource" = RIMD,
                   tabledata "Job Cue" = RIMD,
                   tabledata "Job Entry No." = RIMD,
                   tabledata "Job G/L Account Price" = RIMD,

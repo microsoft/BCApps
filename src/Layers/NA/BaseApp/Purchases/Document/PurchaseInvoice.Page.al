@@ -1855,6 +1855,7 @@ page 51 "Purchase Invoice"
         CurrPage.ApprovalFactBox.PAGE.UpdateApprovalEntriesFromSourceRecord(Rec.RecordId);
         ShowWorkflowStatus := CurrPage.WorkflowStatus.PAGE.SetFilterOnWorkflowRecord(Rec.RecordId);
         StatusStyleTxt := Rec.GetStatusStyleText();
+        Rec.GetContactDetails(BuyFromContact, PayToContact);
     end;
 
     trigger OnAfterGetRecord()
@@ -1863,8 +1864,7 @@ page 51 "Purchase Invoice"
     begin
         RejectICPurchaseInvoiceEnabled := ICInboxOutboxMgt.IsPurchaseHeaderFromIncomingIC(Rec);
         CalculateCurrentShippingAndPayToOption();
-        BuyFromContact.GetOrClear(Rec."Buy-from Contact No.");
-        PayToContact.GetOrClear(Rec."Pay-to Contact No.");
+        Rec.GetContactDetails(BuyFromContact, PayToContact);
         FillRemitToFields(false);
         CurrPage.IncomingDocAttachFactBox.Page.SetCurrentRecordID(Rec.RecordId);
         IsVendorInvoiceEditable := not Rec."Self-Billing Invoice";

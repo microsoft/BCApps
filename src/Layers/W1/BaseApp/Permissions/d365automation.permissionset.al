@@ -996,6 +996,8 @@ permissionset 5117 "D365 AUTOMATION"
                   tabledata "Item Vendor" = RIMD,
                   tabledata Job = RIMD,
                   tabledata "Job Archive" = RIMD,
+                  tabledata "Job Assigned Resource" = RIMD,
+                  tabledata "Job Assigned Resource Archive" = RIMD,
                   tabledata "Job Buffer" = Rimd,
                   tabledata "Job Cue" = RIMD,
                   tabledata "Job Difference Buffer" = Rimd,
