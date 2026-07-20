@@ -2636,12 +2636,6 @@ codeunit 139965 "Qlty. Tests - More Tests"
         Reply := true;
     end;
 
-    [ConfirmHandler]
-    procedure ConfirmHandlerFalse(Question: Text; var Reply: Boolean)
-    begin
-        Reply := false;
-    end;
-
     [MessageHandler]
     procedure MessageHandler(MessageText: Text)
     begin

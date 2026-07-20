@@ -198,7 +198,7 @@ page 20412 "Qlty. Ins. Source Config. List"
         RecreateMissingDefaultConfigurationsCompletedMsg: Label 'The missing default source configurations have been recreated.';
         ResetOnlyDefaultConfigurationsQst: Label 'This will delete and recreate the default source configurations shipped with Quality Management, discarding any customizations you have made to them. Custom source configurations that you have added will be preserved. This action cannot be undone. Do you want to continue?';
         ResetOnlyDefaultConfigurationsCompletedMsg: Label 'The default source configurations have been reset.';
-        ResetAllConfigurationsQst: Label 'This will delete every source configuration, including custom ones that you have added, and then recreate the defaults shipped with Quality Management. This action cannot be undone. This action cannot be undone. Do you want to continue?';
+        ResetAllConfigurationsQst: Label 'This will delete every source configuration, including custom ones that you have added, and then recreate the defaults shipped with Quality Management. This action cannot be undone. Do you want to continue?';
         ResetAllConfigurationsCompletedMsg: Label 'All source configurations have been reset to defaults.';
 
     trigger OnInit()
