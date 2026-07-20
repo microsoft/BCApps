@@ -265,16 +265,14 @@ codeunit 7324 "Whse.-Activity-Post"
         if not (Location."Require Pick" and Location."Require Receive") then
             exit;
 
-        Item.SetLoadFields("Order Tracking Policy");
-        Item.Get(WarehouseActivityLine."Item No.");
-        if (Item."Order Tracking Policy" = Item."Order Tracking Policy"::None) then
-            exit;
-
         WarehouseActivityLine2.CopyFilters(WarehouseActivityLine);
         WarehouseActivityLine2.SetFilter("Activity Type", '%1|%2', WarehouseActivityLine2."Activity Type"::"Invt. Pick", WarehouseActivityLine2."Activity Type"::"Invt. Put-away");
+        WarehouseActivityLine2.SetRange("Assemble to Order", false);
+        Item.SetLoadFields("Order Tracking Policy");
         if WarehouseActivityLine2.FindSet() then
             repeat
-                if not WarehouseActivityLine2."Assemble to Order" then
+                Item.Get(WarehouseActivityLine2."Item No.");
+                if Item."Order Tracking Policy" <> Item."Order Tracking Policy"::None then
                     if CheckItemTracking(WarehouseActivityLine2) then begin
                         CreateWhseJnlLine(TempWhseJnlLine, WarehouseActivityLine2);
                         if TempWhseJnlLine."Entry Type" = TempWhseJnlLine."Entry Type"::"Negative Adjmt." then
