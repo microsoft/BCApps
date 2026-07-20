@@ -1,4 +1,4 @@
-codeunit 148002 "E-Document Structured Tests"
+codeunit 148002 "Factura-E Structured Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;
