@@ -8,6 +8,8 @@ namespace System.MCP;
 codeunit 8368 "MCP Data Query Tools Feature" implements "MCP Server Features"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     procedure SetActive(ConfigId: Guid; Active: Boolean)
     var

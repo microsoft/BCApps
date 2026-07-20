@@ -8,6 +8,8 @@ namespace System.MCP;
 codeunit 8369 "MCP API Tools Feature" implements "MCP Server Features"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     procedure SetActive(ConfigId: Guid; Active: Boolean)
     var

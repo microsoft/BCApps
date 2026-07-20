@@ -8,6 +8,8 @@ namespace System.MCP;
 codeunit 8370 "MCP Dyn. Tool Mode Feature" implements "MCP Server Features"
 {
     Access = Internal;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     procedure SetActive(ConfigId: Guid; Active: Boolean)
     var
