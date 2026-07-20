@@ -170,7 +170,6 @@ codeunit 148002 "E-Document Structured Tests"
         TransformationRule: Record "Transformation Rule";
         EDocument: Record "E-Document";
         EDocDataStorage: Record "E-Doc. Data Storage";
-        EDocumentsSetup: Record "E-Documents Setup";
         EDocumentServiceStatus: Record "E-Document Service Status";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
@@ -198,7 +197,6 @@ codeunit 148002 "E-Document Structured Tests"
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::"Factura-E";
         EDocumentService.Modify(false);
-        EDocumentsSetup.InsertNewExperienceSetup();
 
         // Set a currency that can be used across all localizations
         MockCurrencyCode := 'XYZ';
