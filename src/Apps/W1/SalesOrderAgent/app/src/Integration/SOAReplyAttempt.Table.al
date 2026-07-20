@@ -20,13 +20,16 @@ table 4589 "SOA Reply Attempt"
     {
         field(1; "Task ID"; BigInteger)
         {
+            DataClassification = SystemMetadata;
             TableRelation = "Agent Task".ID;
         }
         field(2; "Message ID"; Guid)
         {
+            DataClassification = SystemMetadata;
         }
         field(3; "Attempt Count"; Integer)
         {
+            DataClassification = SystemMetadata;
         }
     }
 
