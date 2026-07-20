@@ -13,30 +13,6 @@ codeunit 6123 "E-Document Notification"
     InherentPermissions = X;
 
     /// <summary>
-    /// Adds a notification that informs a user of Purchase Document Draft that a vendor is matched by name but not by address.
-    /// <param name="EDocumentEntryNo">Id of e-document</param>
-    /// </summary>
-    procedure AddVendorMatchedByNameNotAddressNotification(EDocumentEntryNo: Integer)
-    var
-        EDocumentNotification: Record "E-Document Notification";
-        MyNotifications: Record "My Notifications";
-        VendorMatchedByNameNotAddressMsg: Label 'Vendor matched by name but not by address.';
-    begin
-        if not GuiAllowed() then
-            exit;
-        if not MyNotifications.IsEnabled(GetVendorMatchedByNameNotAddressNotificationId()) then
-            exit;
-        if EDocumentNotification.Get(EDocumentEntryNo, GetVendorMatchedByNameNotAddressNotificationId(), UserId()) then
-            exit;
-        EDocumentNotification.Validate("E-Document Entry No.", EDocumentEntryNo);
-        EDocumentNotification.Validate(ID, GetVendorMatchedByNameNotAddressNotificationId());
-        EDocumentNotification.Validate("User Id", UserId());
-        EDocumentNotification.Validate(Type, "E-Document Notification Type"::"Vendor Matched By Name Not Address");
-        EDocumentNotification.Validate(Message, VendorMatchedByNameNotAddressMsg);
-        EDocumentNotification.Insert(true);
-    end;
-
-    /// <summary>
     /// Send notifications for Purchase Document Draft page
     /// <param name="EDocumentEntryNo">Id of e-document</param>
     /// </summary>
