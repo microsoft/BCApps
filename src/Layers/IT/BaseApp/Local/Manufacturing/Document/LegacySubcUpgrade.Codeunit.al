@@ -41,8 +41,8 @@ codeunit 99008502 "Legacy Subc. Upgrade"
         ManufacturingSetup.SetLoadFields("Legacy Subcontracting");
         if ManufacturingSetup.Get() then begin
             HasLegacySubcontractingData := LegacySubcFeatureHandler.DatabaseHasLegacySubcontractingData();
-            if ManufacturingSetup."Legacy Subcontracting" <> HasLegacySubcontractingData then begin
-                ManufacturingSetup."Legacy Subcontracting" := HasLegacySubcontractingData;
+            if not ManufacturingSetup."Legacy Subcontracting" and HasLegacySubcontractingData then begin
+                ManufacturingSetup."Legacy Subcontracting" := true;
                 ManufacturingSetup.Modify();
             end;
         end;
