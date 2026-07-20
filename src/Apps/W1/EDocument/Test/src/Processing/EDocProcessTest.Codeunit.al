@@ -26,6 +26,9 @@ using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using System.IO;
+#pragma warning disable AL0792
+using System.Log;
+#pragma warning restore AL0792
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
@@ -1441,6 +1444,95 @@ codeunit 139883 "E-Doc Process Test"
         ItemReference."Reference Type No." := Vendor."No.";
         ItemReference."Reference No." := 'TESTITMREFNO';
         ItemReference.Insert();
+    end;
+
+    [Test]
+    procedure FindVendorByNameAndAddress_FullMatch_ReturnsVendorAndMatchedByAddressTrue()
+    var
+        VendorLocal: Record Vendor;
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        UniqueName: Text[100];
+        UniqueAddress: Text[100];
+        MatchedByAddress: Boolean;
+        ResultNo: Code[20];
+    begin
+        // [SCENARIO] Name and address both match -> vendor returned, MatchedByAddress = true.
+        UniqueName := CopyStr('VMN ' + Format(CreateGuid()), 1, 100);
+        UniqueAddress := CopyStr('ADDR ' + Format(CreateGuid()), 1, 100);
+        LibraryPurchase.CreateVendor(VendorLocal);
+        VendorLocal.Name := CopyStr(UniqueName, 1, MaxStrLen(VendorLocal.Name));
+        VendorLocal.Address := CopyStr(UniqueAddress, 1, MaxStrLen(VendorLocal.Address));
+        VendorLocal.Modify();
+
+        ResultNo := EDocumentImportHelper.FindVendorByNameAndAddress(UniqueName, UniqueAddress, MatchedByAddress);
+
+        Assert.AreEqual(VendorLocal."No.", ResultNo, 'Full match should return the vendor.');
+        Assert.IsTrue(MatchedByAddress, 'MatchedByAddress should be true for a full match.');
+        Assert.AreEqual(VendorLocal."No.", EDocumentImportHelper.FindVendorByNameAndAddress(UniqueName, UniqueAddress), 'Legacy 2-arg should also return the vendor on a full match.');
+    end;
+
+    [Test]
+    procedure FindVendorByNameAndAddress_NameOnly_ReturnsVendorAndMatchedByAddressFalse()
+    var
+        VendorLocal: Record Vendor;
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        UniqueName: Text[100];
+        DifferentAddress: Text[100];
+        MatchedByAddress: Boolean;
+        ResultNo: Code[20];
+    begin
+        // [SCENARIO] Name matches, address differs -> name-only candidate returned, MatchedByAddress = false;
+        //            legacy 2-arg still returns '' (strict).
+        UniqueName := CopyStr('VMN ' + Format(CreateGuid()), 1, 100);
+        DifferentAddress := CopyStr('OTHER ' + Format(CreateGuid()), 1, 100);
+        LibraryPurchase.CreateVendor(VendorLocal);
+        VendorLocal.Name := CopyStr(UniqueName, 1, MaxStrLen(VendorLocal.Name));
+        VendorLocal.Address := CopyStr('123 Alpha Street', 1, MaxStrLen(VendorLocal.Address));
+        VendorLocal.Modify();
+
+        ResultNo := EDocumentImportHelper.FindVendorByNameAndAddress(UniqueName, DifferentAddress, MatchedByAddress);
+
+        Assert.AreEqual(VendorLocal."No.", ResultNo, 'Name-only match should return the vendor via the 3-arg overload.');
+        Assert.IsFalse(MatchedByAddress, 'MatchedByAddress should be false when only the name matches.');
+        Assert.AreEqual('', EDocumentImportHelper.FindVendorByNameAndAddress(UniqueName, DifferentAddress), 'Legacy 2-arg must stay strict and return empty on a name-only match.');
+    end;
+
+    [Test]
+    procedure FindVendorByNameAndAddress_NoMatch_ReturnsEmpty()
+    var
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        NonExistentName: Text[100];
+        MatchedByAddress: Boolean;
+        ResultNo: Code[20];
+    begin
+        // [SCENARIO] No vendor matches the name -> '' and MatchedByAddress = false.
+        NonExistentName := CopyStr('NOVENDOR ' + Format(CreateGuid()), 1, 100);
+
+        ResultNo := EDocumentImportHelper.FindVendorByNameAndAddress(NonExistentName, 'nowhere', MatchedByAddress);
+
+        Assert.AreEqual('', ResultNo, 'No name match should return empty.');
+        Assert.IsFalse(MatchedByAddress, 'MatchedByAddress should be false when there is no match.');
+    end;
+
+    [Test]
+    procedure FindVendorByNameAndAddress_EmptyDocumentAddress_TreatedAsMatched()
+    var
+        VendorLocal: Record Vendor;
+        EDocumentImportHelper: Codeunit "E-Document Import Helper";
+        UniqueName: Text[100];
+        MatchedByAddress: Boolean;
+        ResultNo: Code[20];
+    begin
+        // [SCENARIO] Empty document address counts as an address match -> MatchedByAddress = true.
+        UniqueName := CopyStr('VMN ' + Format(CreateGuid()), 1, 100);
+        LibraryPurchase.CreateVendor(VendorLocal);
+        VendorLocal.Name := CopyStr(UniqueName, 1, MaxStrLen(VendorLocal.Name));
+        VendorLocal.Modify();
+
+        ResultNo := EDocumentImportHelper.FindVendorByNameAndAddress(UniqueName, '', MatchedByAddress);
+
+        Assert.AreEqual(VendorLocal."No.", ResultNo, 'Vendor should match by name when the document address is empty.');
+        Assert.IsTrue(MatchedByAddress, 'Empty document address should be treated as an address match.');
     end;
 
 }

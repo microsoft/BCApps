@@ -550,34 +550,45 @@ codeunit 6109 "E-Document Import Helper"
     end;
 
     /// <summary>
-    /// Use it to find a vendor by name and address.
+    /// Use it to find a vendor by name and address. Returns a vendor only when both the name and the address match.
     /// </summary>
     /// <param name="VendorName">Vendor's name.</param>
     /// <param name="VendorAddress">Vendor's address.</param>
-    /// <returns>Vendor number if exists or empty string.</returns>
+    /// <returns>Vendor number when name and address match, otherwise empty string.</returns>
     procedure FindVendorByNameAndAddress(VendorName: Text; VendorAddress: Text): Code[20]
+    var
+        VendorNo: Code[20];
+        MatchedByAddress: Boolean;
     begin
-        exit(FindVendorByNameAndAddressWithNotification(VendorName, VendorAddress, 0));
+        VendorNo := FindBestVendorMatchByNameAndAddress(VendorName, VendorAddress, MatchedByAddress);
+        if not MatchedByAddress then
+            exit('');
+        exit(VendorNo);
     end;
 
     /// <summary>
-    /// Use it to find a vendor by name and address and raise a notification if vendor is found by name but not by address.
+    /// Use it to find a vendor by name and address, also reporting whether the address matched.
+    /// Returns a full name+address match when available, otherwise the first name-only candidate.
     /// </summary>
-    /// <param name="VendorName">Name of a vendor</param>
-    /// <param name="VendorAddress">Address of a vendor</param>
-    /// <param name="EDocumentEntryNo">Id of e-document</param>
-    /// <returns>Vendor number if exists or empty string.</returns>
-    procedure FindVendorByNameAndAddressWithNotification(VendorName: Text; VendorAddress: Text; EDocEntryNoForNotification: Integer): Code[20]
+    /// <param name="VendorName">Vendor's name.</param>
+    /// <param name="VendorAddress">Vendor's address.</param>
+    /// <param name="MatchedByAddress">Set to true when the returned vendor also matched by address.</param>
+    /// <returns>Vendor number if a name match exists, otherwise empty string.</returns>
+    procedure FindVendorByNameAndAddress(VendorName: Text; VendorAddress: Text; var MatchedByAddress: Boolean): Code[20]
+    begin
+        exit(FindBestVendorMatchByNameAndAddress(VendorName, VendorAddress, MatchedByAddress));
+    end;
+
+    local procedure FindBestVendorMatchByNameAndAddress(VendorName: Text; VendorAddress: Text; var MatchedByAddress: Boolean): Code[20]
     var
         Vendor: Record Vendor;
         RecordMatchMgt: Codeunit "Record Match Mgt.";
-        EDocumentNotification: Codeunit "E-Document Notification";
         EDocImpSessionTelemetry: Codeunit "E-Doc. Imp. Session Telemetry";
         NameNearness: Integer;
         AddressNearness: Integer;
-        MatchedByAddress: Boolean;
-        NameOnlyCandidateFound: Boolean;
+        NameOnlyVendorNo: Code[20];
     begin
+        MatchedByAddress := false;
         Vendor.SetCurrentKey(Blocked);
         Vendor.SetLoadFields(Name, Address);
         if Vendor.FindSet() then
@@ -588,17 +599,18 @@ codeunit 6109 "E-Document Import Helper"
                 else
                     AddressNearness := RecordMatchMgt.CalculateStringNearness(VendorAddress, Vendor.Address, MatchThreshold(), NormalizingFactor());
                 if NameNearness >= RequiredNearness() then begin
-                    MatchedByAddress := AddressNearness >= RequiredNearness();
-                    if MatchedByAddress then
+                    if AddressNearness >= RequiredNearness() then begin
+                        MatchedByAddress := true;
                         exit(Vendor."No.");
-                    NameOnlyCandidateFound := true;
-                    if EDocEntryNoForNotification <> 0 then
-                        EDocumentNotification.AddVendorMatchedByNameNotAddressNotification(EDocEntryNoForNotification);
+                    end;
+                    if NameOnlyVendorNo = '' then
+                        NameOnlyVendorNo := Vendor."No.";
                 end;
             until Vendor.Next() = 0;
 
-        if NameOnlyCandidateFound then
+        if NameOnlyVendorNo <> '' then
             EDocImpSessionTelemetry.SetBool('Vendor Matched By Name Not Address', true);
+        exit(NameOnlyVendorNo);
     end;
 
     /// <summary>
