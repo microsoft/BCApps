@@ -76,14 +76,13 @@ codeunit 4581 "SOA Send Replies"
 
         if InputAgentTaskMessage."External ID" = '' then begin
             AllSentSuccessfully := false;
-            FeatureTelemetry.LogUsage('0000NDR', SOASetupCU.GetFeatureName(), TelemetryEmailReplyExternalIdEmptyLbl, TelemetryDimensions);
+            FeatureTelemetry.LogError('0000NDR', SOASetupCU.GetFeatureName(), 'Send Email Reply', TelemetryEmailReplyExternalIdEmptyLbl, '', TelemetryDimensions);
             exit;
         end;
 
         Clear(SOAReplyRetryMgt);
         if not SOAReplyRetryMgt.Run(OutputAgentTaskMessage) then begin
             AllSentSuccessfully := false;
-            TelemetryDimensions.Set('Error', GetLastErrorText());
             FeatureTelemetry.LogError('0000OAB', SOASetupCU.GetFeatureName(), 'Send Email Reply', TelemetryEmailReplyFailedToSendLbl, GetLastErrorCallStack(), TelemetryDimensions);
             exit;
         end;
@@ -93,20 +92,11 @@ codeunit 4581 "SOA Send Replies"
             exit;
         end;
 
-        SetAttemptTelemetryDimensions(TelemetryDimensions, SOAReplyRetryMgt.GetAttemptCount(), SOAReplyRetryMgt.GetMaxAttempts());
         if SOAReplyRetryMgt.WasReplySent() then
             FeatureTelemetry.LogUsage('0000NDS', SOASetupCU.GetFeatureName(), TelemetryEmailReplySentLbl, TelemetryDimensions)
         else begin
             AllSentSuccessfully := false;
-            TelemetryDimensions.Set('Error', SOAReplyRetryMgt.GetReplyErrorText());
             FeatureTelemetry.LogError('0000OAB', SOASetupCU.GetFeatureName(), 'Send Email Reply', TelemetryEmailReplyFailedToSendLbl, SOAReplyRetryMgt.GetReplyErrorCallStack(), TelemetryDimensions);
         end;
-    end;
-
-    local procedure SetAttemptTelemetryDimensions(var TelemetryDimensions: Dictionary of [Text, Text]; AttemptCount: Integer; MaxAttempts: Integer)
-    begin
-        TelemetryDimensions.Set('AttemptCount', Format(AttemptCount));
-        TelemetryDimensions.Set('MaxAttempts', Format(MaxAttempts));
-        TelemetryDimensions.Set('AttemptsExhausted', Format(AttemptCount >= MaxAttempts));
     end;
 }

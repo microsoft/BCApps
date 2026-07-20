@@ -10,7 +10,7 @@ using System.Agents;
 using System.Email;
 using System.Telemetry;
 
-codeunit 4580 "SOA Reply Retry Mgt."
+codeunit 4418 "SOA Reply Retry Mgt."
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -28,7 +28,7 @@ codeunit 4580 "SOA Reply Retry Mgt."
         Rec.Get(Rec."Task ID", Rec.ID);
         ValidateReplyMessage(Rec, SOASetup);
 
-        if not TryReserveAttempt(Rec."Task ID", Rec.ID, AttemptCount) then
+        if not TryReserveAttempt(Rec."Task ID", Rec.ID) then
             exit;
 
         AttemptReserved := true;
@@ -59,13 +59,12 @@ codeunit 4580 "SOA Reply Retry Mgt."
         EmailReplyFailedDetailErr: Label 'The email reply could not be sent. %1', Comment = '%1 = detailed error message';
         ReplyNotAuthorizedErr: Label 'You are not authorized to send this reply.';
         InvalidReplyMessageErr: Label 'Only reviewed output messages can be sent as replies.';
-        AttemptCount: Integer;
         AttemptReserved: Boolean;
         ReplySent: Boolean;
         ReplyErrorCallStack: Text;
         ReplyErrorText: Text;
 
-    local procedure TryReserveAttempt(TaskId: BigInteger; MessageId: Guid; var ReservedAttemptCount: Integer): Boolean
+    local procedure TryReserveAttempt(TaskId: BigInteger; MessageId: Guid): Boolean
     var
         SOAReplyAttempt: Record "SOA Reply Attempt";
     begin
@@ -83,7 +82,6 @@ codeunit 4580 "SOA Reply Retry Mgt."
             SOAReplyAttempt.Insert();
         end;
 
-        ReservedAttemptCount := SOAReplyAttempt."Attempt Count";
         exit(true);
     end;
 
@@ -120,16 +118,6 @@ codeunit 4580 "SOA Reply Retry Mgt."
     internal procedure WasReplySent(): Boolean
     begin
         exit(ReplySent);
-    end;
-
-    internal procedure GetAttemptCount(): Integer
-    begin
-        exit(AttemptCount);
-    end;
-
-    internal procedure GetReplyErrorText(): Text
-    begin
-        exit(ReplyErrorText);
     end;
 
     internal procedure GetReplyErrorCallStack(): Text
@@ -216,7 +204,6 @@ codeunit 4580 "SOA Reply Retry Mgt."
 
     local procedure ClearRunResult()
     begin
-        Clear(AttemptCount);
         Clear(AttemptReserved);
         Clear(ReplySent);
         Clear(ReplyErrorCallStack);
@@ -229,5 +216,14 @@ codeunit 4580 "SOA Reply Retry Mgt."
     begin
         if SOAReplyAttempt.Get(TaskId, MessageId) then
             SOAReplyAttempt.Delete();
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Agent Task Message", 'OnAfterDeleteEvent', '', false, false)]
+    local procedure DeleteAttemptsOnAfterDeleteAgentTaskMessage(var Rec: Record "Agent Task Message"; RunTrigger: Boolean)
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        DeleteAttempts(Rec."Task ID", Rec.ID);
     end;
 }
