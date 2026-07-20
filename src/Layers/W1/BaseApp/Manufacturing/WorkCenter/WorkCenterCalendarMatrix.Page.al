@@ -6,6 +6,7 @@ namespace Microsoft.Manufacturing.WorkCenter;
 
 using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.Comment;
+using Microsoft.Manufacturing.Setup;
 using System.Utilities;
 
 page 9291 "Work Center Calendar Matrix"
@@ -604,6 +605,7 @@ page 9291 "Work Center Calendar Matrix"
         MATRIX_CurrentNoOfMatrixColumn: Integer;
         MATRIX_CellData: array[32] of Decimal;
         MATRIX_CaptionSet: array[32] of Text[80];
+        CapacityUoM: Code[10];
 
     local procedure SetDateFilter(MATRIX_ColumnOrdinal: Integer)
     begin
@@ -612,12 +614,22 @@ page 9291 "Work Center Calendar Matrix"
         else
             Rec.SetRange("Date Filter", MatrixRecords[MATRIX_ColumnOrdinal]."Period Start", MatrixRecords[MATRIX_ColumnOrdinal]."Period End")
     end;
-
     procedure Load(MatrixColumns1: array[32] of Text[1024]; var MatrixRecords1: array[32] of Record Date; CurrentNoOfMatrixColumns: Integer)
+    var
+        MfgSetup: Record "Manufacturing Setup";
+    begin
+        MfgSetup.SetLoadFields("Show Capacity In");
+        MfgSetup.Get();
+        MfgSetup.TestField("Show Capacity In");
+        CapacityUoM := MfgSetup."Show Capacity In";
+        Load(MatrixColumns1, MatrixRecords1, CurrentNoOfMatrixColumns, CapacityUoM);
+    end;
+    procedure Load(MatrixColumns1: array[32] of Text[1024]; var MatrixRecords1: array[32] of Record Date; CurrentNoOfMatrixColumns: Integer; SetCapacityUoM: Code[10])
     begin
         CopyArray(MATRIX_CaptionSet, MatrixColumns1, 1);
         CopyArray(MatrixRecords, MatrixRecords1, 1);
         MATRIX_CurrentNoOfMatrixColumn := CurrentNoOfMatrixColumns;
+        CapacityUoM := SetCapacityUoM;
     end;
 
     local procedure MATRIX_OnDrillDown(MATRIX_ColumnOrdinal: Integer)
@@ -637,10 +649,18 @@ page 9291 "Work Center Calendar Matrix"
     end;
 
     local procedure MATRIX_OnAfterGetRecord(MATRIX_ColumnOrdinal: Integer)
+    var
+        CalendarMgt: Codeunit "Shop Calendar Management";
     begin
         SetDateFilter(MATRIX_ColumnOrdinal);
         Rec.CalcFields("Capacity (Effective)");
-        MATRIX_CellData[MATRIX_ColumnOrdinal] := Rec."Capacity (Effective)";
+        if (CapacityUoM <> '') and (Rec."Unit of Measure Code" <> '') then
+            MATRIX_CellData[MATRIX_ColumnOrdinal] :=
+                Rec."Capacity (Effective)" *
+                CalendarMgt.TimeFactor(Rec."Unit of Measure Code") /
+                CalendarMgt.TimeFactor(CapacityUoM)
+        else
+            MATRIX_CellData[MATRIX_ColumnOrdinal] := Rec."Capacity (Effective)";
     end;
 }
 
