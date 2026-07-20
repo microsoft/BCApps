@@ -4,12 +4,12 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Format;
 
-using Microsoft.eServices.EDocument;
-using Microsoft.eServices.EDocument.Service.Participant;
-using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Purchases.Vendor;
-using System.IO;
 using System.Utilities;
+using Microsoft.Purchases.Vendor;
+using Microsoft.eServices.EDocument;
+using System.IO;
+using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.eServices.EDocument.Service.Participant;
 
 codeunit 28007 "PINT A-NZ Import"
 {
