@@ -351,5 +351,8 @@ report 19 "VAT- VIES Declaration Tax Auth"
         VATRegistrationNoFilter := SetVATRegistrationNoFilter;
     end;
 
-}
+    procedure TestMiAppSkill()
+    begin
+    end;
 
+}
