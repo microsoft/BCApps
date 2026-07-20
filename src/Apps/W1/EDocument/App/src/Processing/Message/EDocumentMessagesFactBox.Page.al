@@ -16,6 +16,7 @@ page 6434 "E-Document Messages FactBox"
     Caption = 'Messages';
     PageType = ListPart;
     SourceTable = "E-Document Message";
+    SourceTableView = sorting("Entry No.") order(descending);
     Editable = false;
     InsertAllowed = false;
     DeleteAllowed = false;
