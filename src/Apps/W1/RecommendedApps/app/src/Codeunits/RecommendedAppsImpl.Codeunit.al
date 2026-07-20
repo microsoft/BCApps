@@ -205,11 +205,14 @@ codeunit 4751 "Recommended Apps Impl."
         StatusCode: Integer;
         HttpResponseBodyText: Text;
         LogoURL: Text;
-        ErrMsg: Text;
         ApiKey: SecretText;
+        KeyVaultErrorInfo: ErrorInfo;
     begin
-        if not AzureKeyVault.GetAzureKeyVaultSecret(CatalogApiKeyVaultSecretNameLbl, ApiKey) then
-            Error(CannotGetApiKeyFromKeyVaultErrLbl);
+        if not AzureKeyVault.GetAzureKeyVaultSecret(CatalogApiKeyVaultSecretNameLbl, ApiKey) then begin
+            KeyVaultErrorInfo.ErrorType := ErrorType::Internal;
+            KeyVaultErrorInfo.Message := CannotGetApiKeyFromKeyVaultErrLbl;
+            Error(KeyVaultErrorInfo);
+        end;
 
         HttpClient.DefaultRequestHeaders().Add('X-API-Key', ApiKey);
         HttpClient.Get(StrSubstNo(CatalogApiUrlLbl, PubId, AId, PAppId), HttpResponseMessage);
@@ -226,7 +229,6 @@ codeunit 4751 "Recommended Apps Impl."
             exit;
         end;
 
-        ErrMsg := StrSubstNo(CatalogApiUrlNotReachableErrLbl, Id, StatusCode);
-        Error(ErrMsg);
+        Error(CatalogApiUrlNotReachableErrLbl, Id, StatusCode);
     end;
 }

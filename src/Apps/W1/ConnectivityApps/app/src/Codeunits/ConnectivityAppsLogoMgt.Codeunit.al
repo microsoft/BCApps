@@ -137,7 +137,7 @@ codeunit 20353 "Connectivity Apps Logo Mgt."
             exit(true);
         end;
 
-        Session.LogMessage('0000I4J', StrSubstNo(LogoDownloadFailedLbl, PubId, AId, PAppId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+        Session.LogMessage('0000I4J', StrSubstNo(LogoDownloadFailedLbl, PubId, AId, PAppId), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
         exit(false);
     end;
 
