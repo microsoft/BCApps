@@ -4,6 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.QualityManagement.Configuration.SourceConfiguration;
 
+using Microsoft.QualityManagement.Configuration;
+using System.Utilities;
+
 /// <summary>
 /// Use this page to configure what will automatically populate from other tables into your quality inspections. This is also used to tell Business Central how to find one record from another, by setting which field in the ''From'' table connects to which field in the ''To'' table.
 /// </summary>
@@ -14,7 +17,6 @@ page 20410 "Qlty. Inspect. Source Config."
     PageType = ListPlus;
     SourceTable = "Qlty. Inspect. Source Config.";
     RefreshOnActivate = true;
-    Editable = false;
     UsageCategory = None;
     ApplicationArea = QualityManagement;
     AboutTitle = 'Populating data from tables in Business Central';
@@ -131,10 +133,49 @@ page 20410 "Qlty. Inspect. Source Config."
         }
     }
 
+    actions
+    {
+        area(Processing)
+        {
+            action(ResetDefaultConfiguration)
+            {
+                AccessByPermission = tabledata "Qlty. Inspect. Source Config." = I;
+                ApplicationArea = QualityManagement;
+                Caption = 'Reset default configuration';
+                ToolTip = 'Resets this default source configuration shipped with Quality Management, discarding any customizations made to it.';
+                Image = RefreshText;
+                Visible = IsShippedDefault;
+
+                trigger OnAction()
+                var
+                    QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
+                    ConfirmManagement: Codeunit "Confirm Management";
+                begin
+                    if not ConfirmManagement.GetResponseOrDefault(StrSubstNo(ResetDefaultConfigurationQst, Rec.Code), false) then
+                        exit;
+
+                    QltyAutoConfigure.ResetShippedDefaultSourceConfiguration(Rec.Code);
+
+                    CurrPage.Update(false);
+                    Message(StrSubstNo(ResetDefaultConfigurationCompletedMsg, Rec.Code));
+                end;
+            }
+        }
+        area(Promoted)
+        {
+            actionref(ResetDefaultConfiguration_Promoted; ResetDefaultConfiguration)
+            {
+            }
+        }
+    }
+
     var
         ShowToTable: Boolean;
+        IsShippedDefault: Boolean;
         BlankLineText: Text;
         DataCaptionExprLbl: Label '%1 - %2 - %3', Locked = true, Comment = '%1=the code for this configuration, %2=The table to connect from, %3=the Table to connect to.';
+        ResetDefaultConfigurationQst: Label 'This will reset the default source configuration %1, discarding any customizations you have made to it. This action cannot be undone. Do you want to continue?', Comment = '%1=the code of the source configuration to reset';
+        ResetDefaultConfigurationCompletedMsg: Label 'The default source configuration %1 has been reset.', Comment = '%1=the code of the source configuration that was reset';
 
     trigger OnOpenPage()
     begin
@@ -147,8 +188,11 @@ page 20410 "Qlty. Inspect. Source Config."
     end;
 
     local procedure UpdateControls()
+    var
+        QltyAutoConfigure: Codeunit "Qlty. Auto Configure";
     begin
         ShowToTable := Rec."To Type" <> Rec."To Type"::Inspection;
+        IsShippedDefault := QltyAutoConfigure.IsShippedDefaultSourceConfiguration(Rec.Code);
     end;
 
     local procedure GetDataCaptionExpression(): Text
