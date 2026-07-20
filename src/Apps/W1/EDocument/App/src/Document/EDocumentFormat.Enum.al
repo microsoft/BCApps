@@ -13,6 +13,7 @@ enum 6101 "E-Document Format" implements "E-Document", IEDocResponseProvider
 {
     Extensible = true;
     DefaultImplementation = IEDocResponseProvider = "E-Doc. Unspecified Impl.";
+    UnknownValueImplementation = IEDocResponseProvider = "E-Doc. Unspecified Impl.";
 
     value(0; "Data Exchange")
     {
