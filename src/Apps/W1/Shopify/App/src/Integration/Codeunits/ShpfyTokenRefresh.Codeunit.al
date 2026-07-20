@@ -6,6 +6,7 @@
 namespace Microsoft.Integration.Shopify;
 
 using System.Threading;
+using System.Upgrade;
 
 /// <summary>
 /// Codeunit Shpfy Token Refresh (ID 30431).
@@ -68,11 +69,33 @@ codeunit 30431 "Shpfy Token Refresh"
     end;
 
     /// <summary>
+    /// Ensures the recurring backstop job is scheduled at most once per company. An upgrade tag is
+    /// used as a persistent marker so that, once scheduled, the job is never silently re-created -
+    /// if an administrator deletes the Job Queue Entry, it stays deleted. Safe to call repeatedly
+    /// (e.g. from the Shop Card open) since it becomes a no-op after the first successful schedule.
+    /// </summary>
+    internal procedure EnsureBackstopScheduled()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetScheduledUpgradeTag()) then
+            exit;
+        // Only record the tag once the job is actually scheduled, so a transient enqueue failure is
+        // retried on a later call rather than permanently suppressing the backstop.
+        if ScheduleRefreshJob() then
+            UpgradeTag.SetUpgradeTag(GetScheduledUpgradeTag());
+    end;
+
+    local procedure GetScheduledUpgradeTag(): Code[250]
+    begin
+        exit('MS-637954-ScheduleTokenRefreshJob-20260711');
+    end;
+
+    /// <summary>
     /// Creates the recurring Job Queue Entry that runs this codeunit, unless one already exists.
-    /// Called lazily from the connector's runtime path (before the first API call in a session), not
-    /// from install/upgrade: enqueuing a Job Queue Entry implicitly commits, which is not allowed in
-    /// install/upgrade triggers. Returns true when the job exists after the call (already present or
-    /// successfully enqueued), false when enqueuing failed.
+    /// Not called from install/upgrade triggers: enqueuing a Job Queue Entry implicitly commits,
+    /// which is not allowed there. Returns true when the job exists after the call (already present
+    /// or successfully enqueued), false when enqueuing failed.
     /// </summary>
     internal procedure ScheduleRefreshJob(): Boolean
     var
@@ -99,8 +122,7 @@ codeunit 30431 "Shpfy Token Refresh"
         JobQueueEntry."No. of Attempts to Run" := 5;
         JobQueueEntry.Description := CopyStr(JobDescriptionTxt, 1, MaxStrLen(JobQueueEntry.Description));
         JobQueueEntry."Job Queue Category Code" := JobQueueCategoryLbl;
-        // An enqueue failure must not surface to the caller's API operation; it is logged and retried
-        // on a later call (the once-per-session guard resets each session).
+        // An enqueue failure must not surface to the caller; it is logged and retried on a later call.
         if Codeunit.Run(Codeunit::"Job Queue - Enqueue", JobQueueEntry) then
             exit(true);
         LogScheduleFailure(GetLastErrorText());

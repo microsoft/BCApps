@@ -1248,10 +1248,9 @@ page 30101 "Shpfy Shop Card"
             ApiVersionExpiryDate := DT2Date(ApiVersionExpiryDateTime);
             Rec.CheckApiVersionExpiryDate(ApiVersion, ApiVersionExpiryDateTime);
 
-            // Ensure the recurring token-refresh backstop exists (idempotent). Scheduled from page
-            // open rather than the API request path so enqueuing never runs inside a caller's
-            // business transaction.
-            if TokenRefresh.ScheduleRefreshJob() then;
+            // Ensure the recurring token-refresh backstop exists. Scheduled once per company (guarded
+            // by an upgrade tag) so an administrator can delete the job without it being recreated.
+            TokenRefresh.EnsureBackstopScheduled();
 
             if AuthenticationMgt.CheckScopeChange(Rec) then
                 if Confirm(StrSubstNo(ScopeChangeConfirmLbl, Rec.Code)) then begin
