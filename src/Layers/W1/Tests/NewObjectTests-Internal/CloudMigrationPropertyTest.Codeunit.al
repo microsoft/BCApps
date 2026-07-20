@@ -59,7 +59,10 @@ codeunit 135160 "Cloud Migration Property Test"
         repeat
             if not (ListOfTablesToMigrate.Contains(IntelligentCloudStatus."Table Id")) then begin
                 TableMetadata.Get(IntelligentCloudStatus."Table Id");
-                if (TableMetadata.Name <> 'Certificate') and
+                // Obsolete-removed tables are on their way out and cannot be resolved to their owning
+                // app via AllObj, so they are excluded here (consistent with the sibling permission tests).
+                if (TableMetadata.ObsoleteState <> TableMetadata.ObsoleteState::Removed) and
+                   (TableMetadata.Name <> 'Certificate') and
                    (TableMetadata.Name <> 'G/L Accounts Equivalence Tool') and
                    not IsTablePendingCloudMigrationProperty(IntelligentCloudStatus."Table Id", AppsPendingCloudMigrationProperty)
                 then
