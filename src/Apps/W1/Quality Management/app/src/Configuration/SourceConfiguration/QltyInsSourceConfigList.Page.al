@@ -175,7 +175,6 @@ page 20412 "Qlty. Ins. Source Config. List"
 
                 group(Category_Category4)
                 {
-                    Caption = 'Restore defaults';
                     ShowAs = SplitButton;
 
                     actionref(RecreateMissingDefaultConfigurations_Promoted; RecreateMissingDefaultConfigurations)
