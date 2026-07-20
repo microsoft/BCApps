@@ -62,9 +62,6 @@ page 367 "Post Codes"
 
     actions
     {
-        area(navigation)
-        {
-        }
     }
 }
 

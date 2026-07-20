@@ -113,14 +113,8 @@ table 79 "Company Information"
         field(14; "Bank Account No."; Text[30])
         {
             Caption = 'Bank Account No.';
-            MaskType = Concealed;
             ToolTip = 'Specifies the company''s bank account number.';
-
-            trigger OnValidate()
-            begin
-                if not LocalFunctionalityMgt.CheckBankAccNo("Bank Account No.", "Country/Region Code", "Bank Account No.") then
-                    Message(Text1000001, "Bank Account No.");
-            end;
+            MaskType = Concealed;
         }
         field(15; "Payment Routing No."; Text[20])
         {
@@ -339,8 +333,8 @@ table 79 "Company Information"
         field(38; IBAN; Code[50])
         {
             Caption = 'IBAN';
-            MaskType = Concealed;
             ToolTip = 'Specifies the international bank account number of your primary bank account.';
+            MaskType = Concealed;
 
             trigger OnValidate()
             begin
@@ -537,8 +531,6 @@ table 79 "Company Information"
         RecordHasBeenRead: Boolean;
 
         NotValidIBANErr: Label 'The number %1 that you entered may not be a valid International Bank Account Number (IBAN). Do you want to continue?', Comment = '%1 - an actual IBAN';
-        LocalFunctionalityMgt: Codeunit "Local Functionality Mgt.";
-        Text1000001: Label 'Bank Account No. %1 may be incorrect.';
         NoPaymentInfoQst: Label 'No payment information is provided in %1. Do you want to update it now?', Comment = '%1 = Company Information';
 #pragma warning disable AA0470
         NoPaymentInfoMsg: Label 'No payment information is provided in %1. Review the report.';
