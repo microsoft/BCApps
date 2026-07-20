@@ -1297,4 +1297,5 @@ table 25 "Vendor Ledger Entry"
     local procedure OnAfterClearDocumentFilters(var Rec: Record "Vendor Ledger Entry")
     begin
     end;
+
 }

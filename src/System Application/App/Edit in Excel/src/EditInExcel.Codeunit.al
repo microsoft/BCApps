@@ -6,6 +6,7 @@
 namespace System.Integration.Excel;
 
 using System.Integration;
+using System.Reflection;
 
 /// <summary>
 /// This codeunit provides an interface to running Edit in Excel for a specific page.
@@ -81,6 +82,18 @@ codeunit 1481 "Edit in Excel"
         EditInExcelImpl.GetEndPointAndCreateWorkbookWStructuredFilter(TenantWebService."Service Name", EditinExcelFilters, '');
     end;
 
+    /// <summary>
+    /// Converts a name (e.g. a field name or service name) to its OData externalized form. Mimics the conversion the Edit in Excel runtime applies to field and service names when generating the workbook payload, so that other apps can derive the same external names without duplicating the conversion logic.
+    /// </summary>
+    /// <param name="Name">The name to convert.</param>
+    /// <returns>The OData-externalized name.</returns>
+    procedure ExternalizeODataObjectName(Name: Text): Text
+    var
+        EditInExcelImpl: Codeunit "Edit in Excel Impl.";
+    begin
+        exit(EditInExcelImpl.ExternalizeODataObjectName(Name));
+    end;
+
 
     /// <summary>
     /// This event is called when Edit in Excel is invoked, handling JSON structured filters. It also allows overriding the Edit in Excel functionality.
@@ -106,6 +119,16 @@ codeunit 1481 "Edit in Excel"
     //  <param name="Handled">Specifies whether the event has been handled and no further execution should occur.</param>
     [IntegrationEvent(false, false)]
     internal procedure OnEditInExcelWithFilters(ServiceName: Text[240]; var EditinExcelFilters: Codeunit "Edit in Excel Filters"; SearchFilter: Text; var Handled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// This event is raised before iterating the Page Control Field record set used to build the Edit in Excel workbook column bindings. Subscribers can add further filters or change the sort order to control which page fields are exported to Excel (for example, to honor user personalization).
+    /// </summary>
+    /// <param name="PageControlField">The Page Control Field record with relevant filters and sorting already applied. Subscribers can add further filters.</param>
+    /// <param name="PageId">The ID of the page being exported.</param>
+    [IntegrationEvent(false, false)]
+    internal procedure OnBeforePageControlFieldFindSet(var PageControlField: Record "Page Control Field"; PageId: Integer)
     begin
     end;
 }

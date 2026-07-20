@@ -149,6 +149,7 @@ table 21 "Cust. Ledger Entry"
             AutoFormatType = 1;
             CalcFormula = sum("Detailed Cust. Ledg. Entry".Amount where("Cust. Ledger Entry No." = field("Entry No."),
                                                                          "Posting Date" = field("Date Filter"),
+                                                                         "Excluded from calculation" = const(false),
                                                                          "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Remaining Amount';
             Editable = false;
@@ -180,6 +181,7 @@ table 21 "Cust. Ledger Entry"
             AutoFormatExpression = '';
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Cust. Ledger Entry No." = field("Entry No."),
                                                                                  "Posting Date" = field("Date Filter"),
+                                                                                 "Excluded from calculation" = const(false),
                                                                                  "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Remaining Amt. (LCY)';
             Editable = false;

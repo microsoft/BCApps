@@ -26,13 +26,13 @@ table 30127 "Shpfy Product"
         }
         field(2; "Created At"; DateTime)
         {
-            Caption = 'Created At';
+            Caption = 'Created At (Shopify)';
             DataClassification = CustomerContent;
             Editable = false;
         }
         field(3; "Updated At"; DateTime)
         {
-            Caption = 'Updated At';
+            Caption = 'Updated At (Shopify)';
             DataClassification = CustomerContent;
             Editable = false;
         }

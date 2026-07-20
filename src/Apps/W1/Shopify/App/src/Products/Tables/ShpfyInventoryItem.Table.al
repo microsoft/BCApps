@@ -75,7 +75,7 @@ table 30126 "Shpfy Inventory Item"
         }
         field(12; "Updated At"; DateTime)
         {
-            Caption = 'Updated At';
+            Caption = 'Updated At (Shopify)';
             DataClassification = CustomerContent;
         }
     }

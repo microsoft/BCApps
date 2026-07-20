@@ -47,7 +47,7 @@ codeunit 7314 "Warehouse Availability Mgt."
     begin
         // Returns the reserved quantity against ILE for the demand line
         case SourceType of
-            Database::Job:
+            Database::Job, Database::"Job Planning Line":
                 begin
                     ReservEntry.SetSourceFilter(
                       Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), SourceNo, SourceLineNo, true);
@@ -906,7 +906,13 @@ codeunit 7314 "Warehouse Availability Mgt."
         Location: Record Location;
         ItemTrackingSetup: Record "Item Tracking Setup";
         QtyOnShipmentBin: Decimal;
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeValidateQtyPickedInShipmentBin(QtyPicked, LocationCode, ItemNo, VariantCode, TrackingSpecification, SourceType, IsHandled);
+        if IsHandled then
+            exit;
+
         if not (Location.RequireShipment(LocationCode) and (QtyPicked <> 0)) then
             exit;
 
@@ -924,6 +930,11 @@ codeunit 7314 "Warehouse Availability Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcQtyPicked(var Item: Record Item; var QtyPicked: Decimal; Location: Record Location)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateQtyPickedInShipmentBin(var QtyPicked: Decimal; LocationCode: Code[10]; ItemNo: Code[20]; VariantCode: Code[10]; TrackingSpecification: Record "Tracking Specification"; SourceType: Integer; var IsHandled: Boolean)
     begin
     end;
 
