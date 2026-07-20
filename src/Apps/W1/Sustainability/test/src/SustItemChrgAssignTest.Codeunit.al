@@ -2848,6 +2848,109 @@ codeunit 148210 "Sust. Item Chrg Assign. Test"
     end;
 
     [Test]
+    procedure VerifyChargeItemCO2eIsSplitAcrossLotTrackedReturnReceiptEntries()
+    var
+        Item: Record Item;
+        SustainabilityAccount: Record "Sustainability Account";
+        SustainabilityValueEntry: Record "Sustainability Value Entry";
+        EmissionFee: array[3] of Record "Emission Fee";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ReturnReceiptLine: Record "Return Receipt Line";
+        ChargePurchaseHeader: Record "Purchase Header";
+        ChargePurchaseLine: Record "Purchase Line";
+        ItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)";
+        ReservationEntry: Record "Reservation Entry";
+        LotNo: array[2] of Code[50];
+        LotQty: array[2] of Decimal;
+        EmissionCO2: Decimal;
+        EmissionCH4: Decimal;
+        EmissionN2O: Decimal;
+        ExpectedTotalCO2e: Decimal;
+        TotalQty: Decimal;
+        Index: Integer;
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+        PostedInvoiceNo: Code[20];
+    begin
+        // [SCENARIO 641051] The CO2e of a purchase Item Charge assigned to a lot-tracked Sales Return Receipt is split proportionally across the returned lots (positive entries) and is not inflated.
+        Initialize();
+
+        // [GIVEN] Update "Enable Value Chain Tracking" in Sustainability Setup.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+
+        // [GIVEN] Create a Sustainability Account and Emission Fee.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SustainabilityAccount.Get(AccountCode);
+        CreateEmissionFeeWithEmissionScope(EmissionFee, SustainabilityAccount."Emission Scope", '');
+
+        // [GIVEN] Generate Emission for the Charge.
+        EmissionCO2 := LibraryRandom.RandIntInRange(10, 100);
+        EmissionCH4 := LibraryRandom.RandIntInRange(10, 100);
+        EmissionN2O := LibraryRandom.RandIntInRange(10, 100);
+
+        // [GIVEN] Receive a Lot tracked Item back on a Sales Return Order as two lots with different quantities.
+        LibraryItemTracking.CreateLotItem(Item);
+        LotQty[1] := LibraryRandom.RandIntInRange(1, 10);
+        LotQty[2] := LibraryRandom.RandIntInRange(1, 10);
+        TotalQty := LotQty[1] + LotQty[2];
+        for Index := 1 to ArrayLen(LotNo) do
+            LotNo[Index] := LibraryUtility.GenerateGUID();
+
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::"Return Order", LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, "Sales Line Type"::Item, Item."No.", TotalQty);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandIntInRange(10, 200));
+        SalesLine.Modify();
+        for Index := 1 to ArrayLen(LotNo) do
+            LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, '', LotNo[Index], LotQty[Index]);
+
+        // [GIVEN] Post the Sales Return Order (posts a Sales Return Receipt with two positive entries).
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [GIVEN] Find the posted Sales Return Receipt Line.
+        FindReturnReceiptLine(ReturnReceiptLine, SalesHeader."No.", Item."No.");
+
+        // [GIVEN] Create a Purchase Order with a Charge Item that carries emissions and assign it to the Return Receipt.
+        LibraryPurchase.CreatePurchHeader(ChargePurchaseHeader, "Purchase Document Type"::Order, LibraryPurchase.CreateVendorNo());
+        LibraryPurchase.CreatePurchaseLine(ChargePurchaseLine, ChargePurchaseHeader, "Purchase Line Type"::"Charge (Item)", LibraryInventory.CreateItemChargeNo(), TotalQty);
+        ChargePurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandIntInRange(10, 200));
+        ChargePurchaseLine.Validate("Sust. Account No.", AccountCode);
+        ChargePurchaseLine.Validate("Emission CO2", EmissionCO2);
+        ChargePurchaseLine.Validate("Emission CH4", EmissionCH4);
+        ChargePurchaseLine.Validate("Emission N2O", EmissionN2O);
+        ChargePurchaseLine.Modify();
+
+        LibraryInventory.CreateItemChargeAssignPurchase(
+            ItemChargeAssignmentPurch, ChargePurchaseLine,
+            ItemChargeAssignmentPurch."Applies-to Doc. Type"::"Return Receipt",
+            ReturnReceiptLine."Document No.", ReturnReceiptLine."Line No.", ReturnReceiptLine."No.");
+
+        // [GIVEN] Save the expected total CO2e emission for the whole charge.
+        ExpectedTotalCO2e := EmissionCH4 * EmissionFee[1]."Carbon Equivalent Factor" + EmissionCO2 * EmissionFee[2]."Carbon Equivalent Factor" + EmissionN2O * EmissionFee[3]."Carbon Equivalent Factor";
+
+        // [WHEN] Post the Purchase Order with the Charge Item.
+        PostedInvoiceNo := LibraryPurchase.PostPurchaseDocument(ChargePurchaseHeader, true, true);
+
+        // [THEN] The charge creates one Sustainability Value Entry per returned lot.
+        SustainabilityValueEntry.SetRange("Document No.", PostedInvoiceNo);
+        SustainabilityValueEntry.SetRange(Type, SustainabilityValueEntry.Type::"Charge (Item)");
+        SustainabilityValueEntry.SetRange("No.", ChargePurchaseLine."No.");
+        Assert.RecordCount(SustainabilityValueEntry, ArrayLen(LotNo));
+
+        // [THEN] The split entries sum to the whole charge CO2e (it must not be inflated).
+        SustainabilityValueEntry.CalcSums("CO2e Amount (Actual)");
+        Assert.AreEqual(
+            Round(ExpectedTotalCO2e),
+            Round(SustainabilityValueEntry."CO2e Amount (Actual)"),
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e Amount (Actual)"), Round(ExpectedTotalCO2e), SustainabilityValueEntry.TableCaption()));
+
+        // [THEN] Each returned lot entry carries the CO2e proportional to its lot quantity (positive valued quantity).
+        VerifyCO2eAmountActualInSustValueEntry(PostedInvoiceNo, ChargePurchaseLine."No.", LotQty[1], ExpectedTotalCO2e * LotQty[1] / TotalQty);
+        VerifyCO2eAmountActualInSustValueEntry(PostedInvoiceNo, ChargePurchaseLine."No.", LotQty[2], ExpectedTotalCO2e * LotQty[2] / TotalQty);
+    end;
+
+    [Test]
     procedure VerifyChargeItemCO2eIsSplitAcrossLotAndSerialTrackedReceiptEntries()
     var
         Item: Record Item;

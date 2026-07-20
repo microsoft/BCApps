@@ -109,7 +109,10 @@ codeunit 6256 "Sust. Item Post Subscriber"
         SustainabilityJnlLine."Shortcut Dimension 2 Code" := ItemJournalLine."Shortcut Dimension 2 Code";
         if ItemLedgerEntry."Entry No." <> 0 then
             GetTotalCO2eFromProdOrder(ItemJournalLine, ValueEntry.Type);
-        SustainabilityPostMgt.GetTotalCO2eAmount(ItemLedgerEntry, ValueEntry.Type, ItemJournalLine."Total CO2e", ItemJournalLine."CO2e per Unit");
+
+        if (ValueEntry."Item Ledger Entry Type" <> ValueEntry."Item Ledger Entry Type"::Purchase) or (ValueEntry."Item Charge No." = '') then
+            SustainabilityPostMgt.GetTotalCO2eAmount(ItemLedgerEntry, ValueEntry.Type, ItemJournalLine."Total CO2e", ItemJournalLine."CO2e per Unit");
+
         if ItemJournalLine.ShouldUpdateJournalLineWithPostingSign() then
             SustainabilityJnlLine.Validate("CO2e Emission", Sign * ItemJournalLine."Total CO2e")
         else

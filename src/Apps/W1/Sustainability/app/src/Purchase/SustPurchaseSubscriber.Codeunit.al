@@ -5,13 +5,17 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Preview;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.Inventory.Costing;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Tracking;
+using Microsoft.Inventory.Transfer;
 using Microsoft.Projects.Resources.Resource;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Posting;
+using Microsoft.Sales.History;
 using Microsoft.Sustainability.Account;
 using Microsoft.Sustainability.Calculation;
 using Microsoft.Sustainability.Journal;
@@ -85,9 +89,17 @@ codeunit 6225 "Sust. Purchase Subscriber"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnBeforeItemJnlPostLine', '', false, false)]
     local procedure OnBeforeItemJnlPostLine(var ItemJournalLine: Record "Item Journal Line"; PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line"; TempItemChargeAssignmentPurch: Record "Item Charge Assignment (Purch)" temporary)
+    var
+        DistributeItemChargeCO2e: Boolean;
     begin
-        if (ItemJournalLine.Quantity <> 0) or (ItemJournalLine."Invoiced Quantity" <> 0) then
-            CheckAndUpdateSustainabilityItemJournalLine(ItemJournalLine, PurchaseHeader, PurchaseLine, TempItemChargeAssignmentPurch, TempItemChargeAssignmentPurch."Qty. to Assign");
+        if (ItemJournalLine.Quantity = 0) and (ItemJournalLine."Invoiced Quantity" = 0) then
+            exit;
+
+        if PurchaseLine."Sust. Account No." <> '' then
+            if PurchaseLine.Type = PurchaseLine.Type::"Charge (Item)" then
+                DistributeItemChargeCO2e := GetDistributeItemCharge(TempItemChargeAssignmentPurch);
+
+        CheckAndUpdateSustainabilityItemJournalLine(ItemJournalLine, PurchaseHeader, PurchaseLine, TempItemChargeAssignmentPurch, DistributeItemChargeCO2e);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnPostItemChargePerOrderOnAfterCopyToItemJnlLine', '', false, false)]
@@ -97,7 +109,7 @@ codeunit 6225 "Sust. Purchase Subscriber"
     begin
         PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         if (ItemJournalLine.Quantity <> 0) or (ItemJournalLine."Invoiced Quantity" <> 0) then
-            CheckAndUpdateSustainabilityItemJournalLine(ItemJournalLine, PurchaseHeader, PurchaseLine, TempItemChargeAssignmentPurch, PurchLine."Qty. to Invoice");
+            CheckAndUpdateSustainabilityItemJournalLine(ItemJournalLine, PurchaseHeader, PurchaseLine, TempItemChargeAssignmentPurch, false);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnPostItemTrackingItemChargePerOrderOnAfterCalcFactor', '', false, false)]
@@ -126,7 +138,7 @@ codeunit 6225 "Sust. Purchase Subscriber"
     begin
         PurchHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
         if ((ItemJournalLine.Quantity <> 0) or (ItemJournalLine."Invoiced Quantity" <> 0)) then
-            CheckAndUpdateSustainabilityItemJournalLine(ItemJournalLine, PurchHeader, PurchaseLine, TempItemChargeAssignmentPurch, PurchaseLine."Qty. to Invoice");
+            CheckAndUpdateSustainabilityItemJournalLine(ItemJournalLine, PurchHeader, PurchaseLine, TempItemChargeAssignmentPurch, false);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Post Invoice Events", 'OnAfterPrepareInvoicePostingBuffer', '', false, false)]
@@ -308,7 +320,7 @@ codeunit 6225 "Sust. Purchase Subscriber"
         ItemChargeAssgntPurch."CO2e to Handle" := ItemChargeAssgntPurch."Qty. to Handle" * ItemChargeAssgntPurch."CO2e per Unit";
     end;
 
-    local procedure CheckAndUpdateSustainabilityItemJournalLine(var ItemJournalLine: Record "Item Journal Line"; PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var TempItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)" temporary; ItemChargeTotalQty: Decimal)
+    local procedure CheckAndUpdateSustainabilityItemJournalLine(var ItemJournalLine: Record "Item Journal Line"; PurchaseHeader: Record "Purchase Header"; var PurchaseLine: Record "Purchase Line"; var TempItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)" temporary; DistributeItemChargeCO2e: Boolean)
     var
         SustainabilityPostMgt: Codeunit "Sustainability Post Mgt";
         GHGCredit: Boolean;
@@ -318,6 +330,7 @@ codeunit 6225 "Sust. Purchase Subscriber"
         N2OToPost: Decimal;
         CarbonFee: Decimal;
         ChargeQtyToPostBase: Decimal;
+        ItemChargeTotalQty: Decimal;
     begin
         GHGCredit := IsGHGCreditLine(PurchaseLine);
 
@@ -356,13 +369,24 @@ codeunit 6225 "Sust. Purchase Subscriber"
         ItemJournalLine."Sust. Account Category" := PurchaseLine."Sust. Account Category";
         ItemJournalLine."Sust. Account Subcategory" := PurchaseLine."Sust. Account Subcategory";
         if PurchaseLine.Type = PurchaseLine.Type::"Charge (Item)" then begin
+
+            if not DistributeItemChargeCO2e then begin
+                ItemJournalLine."Total CO2e" := Sign * TempItemChargeAssgntPurch."CO2e to Assign";
+                exit;
+            end;
+
+            if PurchaseLine."Document Type" in [PurchaseLine."Document Type"::Order, PurchaseLine."Document Type"::Invoice] then
+                ItemChargeTotalQty := Abs(TempItemChargeAssgntPurch."Qty. to Assign")
+            else
+                ItemChargeTotalQty := Abs(PurchaseLine."Qty. to Invoice");
+
             if ItemJournalLine."Invoiced Qty. (Base)" <> 0 then
                 ChargeQtyToPostBase := Abs(ItemJournalLine."Invoiced Qty. (Base)")
             else
                 ChargeQtyToPostBase := Abs(ItemJournalLine."Quantity (Base)");
 
-            if (ItemJournalLine."Invoiced Qty. (Base)" <> 0) and (Abs(ItemChargeTotalQty) <> 0) then
-                ItemJournalLine."Total CO2e" := (Sign * TempItemChargeAssgntPurch."CO2e to Assign" * ChargeQtyToPostBase) / Abs(ItemChargeTotalQty)
+            if (ChargeQtyToPostBase <> 0) and (Abs(ItemChargeTotalQty) <> 0) then
+                ItemJournalLine."Total CO2e" := (Sign * TempItemChargeAssgntPurch."CO2e to Assign" * ChargeQtyToPostBase) / ItemChargeTotalQty
             else
                 ItemJournalLine."Total CO2e" := Sign * TempItemChargeAssgntPurch."CO2e to Assign";
         end else begin
@@ -372,6 +396,52 @@ codeunit 6225 "Sust. Purchase Subscriber"
             if (ItemJournalLine."Job No." <> '') and (ItemJournalLine."Entry Type" = ItemJournalLine."Entry Type"::"Negative Adjmt.") then
                 SustainabilityPostMgt.UpdateCarbonFeeEmissionValues("Emission Scope"::" ", PurchaseHeader."Posting Date", PurchaseHeader."Buy-from Country/Region Code", CO2ToPost, N2OToPost, CH4ToPost, ItemJournalLine."Total CO2e", CarbonFee);
         end;
+    end;
+
+    local procedure GetDistributeItemCharge(TempItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)" temporary): Boolean
+    var
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ReturnShptLine: Record "Return Shipment Line";
+        SalesShptLine: Record "Sales Shipment Line";
+        ReturnRcptLine: Record "Return Receipt Line";
+        TransRcptLine: Record "Transfer Receipt Line";
+        TempItemLedgEntry: Record "Item Ledger Entry" temporary;
+        CostCalcMgt: Codeunit "Cost Calculation Management";
+    begin
+        case TempItemChargeAssgntPurch."Applies-to Doc. Type" of
+            TempItemChargeAssgntPurch."Applies-to Doc. Type"::Receipt:
+                if PurchRcptLine.Get(TempItemChargeAssgntPurch."Applies-to Doc. No.", TempItemChargeAssgntPurch."Applies-to Doc. Line No.") then begin
+                    if PurchRcptLine."Item Rcpt. Entry No." <> 0 then
+                        exit(CostCalcMgt.SplitItemLedgerEntriesExist(TempItemLedgEntry, PurchRcptLine."Quantity (Base)", PurchRcptLine."Item Rcpt. Entry No."));
+                    exit(true);
+                end;
+            TempItemChargeAssgntPurch."Applies-to Doc. Type"::"Return Shipment":
+                if ReturnShptLine.Get(TempItemChargeAssgntPurch."Applies-to Doc. No.", TempItemChargeAssgntPurch."Applies-to Doc. Line No.") then begin
+                    if ReturnShptLine."Item Shpt. Entry No." <> 0 then
+                        exit(CostCalcMgt.SplitItemLedgerEntriesExist(TempItemLedgEntry, -ReturnShptLine."Quantity (Base)", ReturnShptLine."Item Shpt. Entry No."));
+                    exit(true);
+                end;
+            TempItemChargeAssgntPurch."Applies-to Doc. Type"::"Sales Shipment":
+                if SalesShptLine.Get(TempItemChargeAssgntPurch."Applies-to Doc. No.", TempItemChargeAssgntPurch."Applies-to Doc. Line No.") then begin
+                    if SalesShptLine."Item Shpt. Entry No." <> 0 then
+                        exit(CostCalcMgt.SplitItemLedgerEntriesExist(TempItemLedgEntry, -SalesShptLine."Quantity (Base)", SalesShptLine."Item Shpt. Entry No."));
+                    exit(true);
+                end;
+            TempItemChargeAssgntPurch."Applies-to Doc. Type"::"Return Receipt":
+                if ReturnRcptLine.Get(TempItemChargeAssgntPurch."Applies-to Doc. No.", TempItemChargeAssgntPurch."Applies-to Doc. Line No.") then begin
+                    if ReturnRcptLine."Item Rcpt. Entry No." <> 0 then
+                        exit(CostCalcMgt.SplitItemLedgerEntriesExist(TempItemLedgEntry, ReturnRcptLine."Quantity (Base)", ReturnRcptLine."Item Rcpt. Entry No."));
+                    exit(true);
+                end;
+            TempItemChargeAssgntPurch."Applies-to Doc. Type"::"Transfer Receipt":
+                if TransRcptLine.Get(TempItemChargeAssgntPurch."Applies-to Doc. No.", TempItemChargeAssgntPurch."Applies-to Doc. Line No.") then begin
+                    if TransRcptLine."Item Rcpt. Entry No." <> 0 then
+                        exit(CostCalcMgt.SplitItemLedgerEntriesExist(TempItemLedgEntry, TransRcptLine."Quantity (Base)", TransRcptLine."Item Rcpt. Entry No."));
+                    exit(true);
+                end;
+        end;
+
+        exit(false);
     end;
 
     local procedure CheckAndUpdateSustainabilityInvoicePostingBuffer(var InvoicePostingBuffer: Record "Invoice Posting Buffer" temporary; var PurchaseLine: Record "Purchase Line")
