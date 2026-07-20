@@ -18,15 +18,15 @@ codeunit 137414 "SCM Item Categories"
         LibraryRandom: Codeunit "Library - Random";
         LibraryNotificationMgt: Codeunit "Library - Notification Mgt.";
         CodeCoverageMgt: Codeunit "Code Coverage Mgt.";
-        IncorrectParentErr: Label 'Category ''%1'' has an incorrect parent ''%2'', correct parent should be ''%3''   ';
+        IncorrectParentErr: Label 'Category ''%1'' has an incorrect parent ''%2'', correct parent should be ''%3''   ', Comment = '%1 - category code, %2 - current parent code, %3 - expected parent code';
         CyclicInheritanceErr: Label 'An item category cannot be a parent of itself or any of its children.';
-        RenamingErr: Label 'Item Category ''%1'' should have been renamed to ''%2''';
-        CategoryNotDeletedErr: Label 'Item Category ''%1'' should have been deleted.';
-        CategoryWithChildrenDeleteErr: Label 'Item Category ''%1'' shouldn''t be deleted as it has children';
+        RenamingErr: Label 'Item Category ''%1'' should have been renamed to ''%2''', Comment = '%1 - original item category code, %2 - expected renamed code';
+        CategoryNotDeletedErr: Label 'Item Category ''%1'' should have been deleted.', Comment = '%1 - item category code';
+        CategoryWithChildrenDeleteErr: Label 'Item Category ''%1'' shouldn''t be deleted as it has children', Comment = '%1 - item category code';
         DeleteQst: Label 'Delete %1?', Comment = '%1 - item category name';
         DeleteAttributesInheritedFromOldCategoryQst: Label 'Do you want to delete the attributes that are inherited from item category ''%1''?', Comment = '%1 - item category code';
-        DeleteItemInheritedParentCategoryAttributesQst: Label 'One or more items belong to item category ''''%1'''', which is a child of item category ''''%2''''.\\Do you want to delete the inherited item attributes for the items in question?', Comment = '%1 - item category code';
-        ChangingDefaultValueMsg: Label 'The new default value will not apply to items that use the current item category, ''''%1''''. It will only apply to new items.';
+        DeleteItemInheritedParentCategoryAttributesQst: Label 'One or more items belong to item category ''''%1'''', which is a child of item category ''''%2''''.\\Do you want to delete the inherited item attributes for the items in question?', Comment = '%1 - child item category code, %2 - parent item category code';
+        ChangingDefaultValueMsg: Label 'The new default value will not apply to items that use the current item category, ''''%1''''. It will only apply to new items.', Comment = '%1 - item category code';
         CategoryStructureNotValidErr: Label 'The item category structure is not valid. The category %1 is a parent of itself or any of its children.', Comment = '%1 - Category Name';
         IsInitialized: Boolean;
 
@@ -66,8 +66,8 @@ codeunit 137414 "SCM Item Categories"
         ItemCategoryCard."Parent Category".SetValue(FirstItemCategory.Code);
         ItemCategoryCard.OK().Invoke();
 
-        LastItemCategory.Find();
-        FirstItemCategory.Find();
+        LastItemCategory.Get(LastItemCategory.Code);
+        FirstItemCategory.Get(FirstItemCategory.Code);
         // [THEN] The last item category parent and the tree view is updated
         Assert.AreEqual(
           FirstItemCategory.Code, LastItemCategory."Parent Category",
@@ -180,8 +180,8 @@ codeunit 137414 "SCM Item Categories"
         ItemCategoryCard."Parent Category".SetValue(FirstItemCategory.Code);
         ItemCategoryCard.OK().Invoke();
 
-        SecondItemCategory.Find();
-        FirstItemCategory.Find();
+        SecondItemCategory.Get(SecondItemCategory.Code);
+        FirstItemCategory.Get(FirstItemCategory.Code);
         // [THEN] The last item category parent and the tree view is updated
         Assert.AreEqual(
           FirstItemCategory.Code, SecondItemCategory."Parent Category",
@@ -2202,6 +2202,45 @@ codeunit 137414 "SCM Item Categories"
         Assert.ExpectedError(StrSubstNo(CategoryStructureNotValidErr, ItemCategory.Code));
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestItemCategoryAttributeBlankOptionValidationBug641060()
+    var
+        ItemCategory: Record "Item Category";
+        ItemAttribute: Record "Item Attribute";
+        ItemAttributeValue: Record "Item Attribute Value";
+        ItemAttributeValueMapping: Record "Item Attribute Value Mapping";
+    begin
+        // [FEATURE] [Bug 641060] - User experience for adding attribute in item categories
+        // [SCENARIO] Option-type attributes reject blank values with input-time validation
+        Initialize();
+
+        // TEST 1: Create category and attribute setup
+        LibraryInventory.CreateItemCategory(ItemCategory);
+        LibraryInventory.CreateItemAttribute(ItemAttribute, ItemAttribute.Type::Option, 'TestOption');
+        LibraryInventory.CreateItemAttributeValue(ItemAttributeValue, ItemAttribute.ID, 'Value1');
+
+        // TEST 2: Verify valid Option values persist correctly
+        LibraryInventory.CreateItemAttributeValueMapping(
+          Database::"Item Category", ItemCategory.Code, ItemAttribute.ID, ItemAttributeValue.ID);
+        ItemAttributeValueMapping.SetRange("Table ID", Database::"Item Category");
+        ItemAttributeValueMapping.SetRange("No.", ItemCategory.Code);
+        ItemAttributeValueMapping.SetRange("Item Attribute ID", ItemAttribute.ID);
+        Assert.RecordCount(ItemAttributeValueMapping, 1);
+
+        // TEST 3: Verify Text attributes allow blank values (no regression)
+        ItemAttributeValueMapping.Reset();  // Clear all filters
+        LibraryInventory.CreateItemAttribute(ItemAttribute, ItemAttribute.Type::Text, 'TestText');
+        LibraryInventory.CreateItemAttributeValueMapping(
+          Database::"Item Category", ItemCategory.Code, ItemAttribute.ID, 0);  // 0 value ID = blank for text
+        ItemAttributeValueMapping.SetRange("Table ID", Database::"Item Category");
+        ItemAttributeValueMapping.SetRange("No.", ItemCategory.Code);
+        Assert.RecordCount(ItemAttributeValueMapping, 2);
+
+        // TEST 4: Verify page can open and close without blocking
+        TestPageOpenCloseNoBlocking(ItemCategory);
+    end;
+
     local procedure CreatePairOfItemAttributeValues(var Item: Record Item; var ItemAttributeValue: array[2] of Record "Item Attribute Value"; Type: Option)
     var
         ItemAttribute: Record "Item Attribute";
@@ -2700,6 +2739,15 @@ codeunit 137414 "SCM Item Categories"
         FilterItemsbyAttribute.Attribute.SetValue := NameValueBuffer.Name;
         FilterItemsbyAttribute.Value.SetValue := NameValueBuffer.Value;
         FilterItemsbyAttribute.OK().Invoke();
+    end;
+
+    local procedure TestPageOpenCloseNoBlocking(ItemCategory: Record "Item Category")
+    var
+        ItemCategoryCard: TestPage "Item Category Card";
+    begin
+        ItemCategoryCard.OpenEdit();
+        ItemCategoryCard.GotoRecord(ItemCategory);
+        ItemCategoryCard.Close();
     end;
 }
 
