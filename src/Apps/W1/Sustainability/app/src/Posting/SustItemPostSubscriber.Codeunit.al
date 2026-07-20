@@ -53,6 +53,7 @@ codeunit 6256 "Sust. Item Post Subscriber"
         SustainabilityPostMgt: Codeunit "Sustainability Post Mgt";
         CO2eAmount: Decimal;
         CO2eQuantity: Decimal;
+        Sign: Integer;
     begin
         if ItemJournalLine."Sust. Account No." = '' then
             exit;
@@ -67,7 +68,12 @@ codeunit 6256 "Sust. Item Post Subscriber"
         if TempSplitItemJournalLine."Applies-from Entry" <> 0 then begin
             SustainabilityPostMgt.GetCO2eAmountAndQuantity(TempSplitItemJournalLine."Applies-from Entry", CO2eAmount, CO2eQuantity);
             if CO2eQuantity <> 0 then begin
-                TempSplitItemJournalLine."Total CO2e" := Abs(CO2eAmount / CO2eQuantity) * TempSplitItemJournalLine.Quantity;
+                if ItemJournalLine."Total CO2e" < 0 then
+                    Sign := -1
+                else
+                    Sign := 1;
+
+                TempSplitItemJournalLine."Total CO2e" := Sign * Abs(CO2eAmount / CO2eQuantity) * Abs(TempSplitItemJournalLine.Quantity);
                 TempSplitItemJournalLine."CO2e per Unit" := Abs(CO2eAmount / CO2eQuantity);
             end;
         end else

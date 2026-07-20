@@ -4283,6 +4283,79 @@ codeunit 148190 "Sust. Value Entry Test"
         VerifySplitSustValueEntries(Item."No.", ArrayLen(LotNo), TotalCO2e / Qty, TotalCO2e);
     end;
 
+    [Test]
+    procedure VerifySalesCreditMemoCreatesPositiveCO2eForSpecificLotTrackedItem()
+    var
+        CountryRegion: Record "Country/Region";
+        Item: Record Item;
+        EmissionFee: array[3] of Record "Emission Fee";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SalesHeader: Record "Sales Header";
+        SustainabilityAccount: Record "Sustainability Account";
+        EmissionCO2: Decimal;
+        EmissionCH4: Decimal;
+        EmissionN2O: Decimal;
+        ExpectedCO2ePerUnit: Decimal;
+        PostedInvoiceNo: Code[20];
+        PostedCreditMemoNo: Code[20];
+        LotNo: Code[50];
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+    begin
+        // [SCENARIO 641486] A Sales Credit Memo for a Specific carbon-tracked, lot-tracked item creates a positive (inbound)
+        // Sustainability Value Entry that mirrors the negative Sales Invoice (shipment) entry, so cost and emissions do not diverge.
+        LibrarySustainability.CleanUpBeforeTesting();
+
+        // [GIVEN] Value Chain Tracking is enabled.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+
+        // [GIVEN] A Sustainability Account and Emission Fees.
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SustainabilityAccount.Get(AccountCode);
+        CreateEmissionFeeWithEmissionScope(EmissionFee, SustainabilityAccount."Emission Scope", '');
+
+        // [GIVEN] A Country/Region and a Lot No.
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        LotNo := LibraryUtility.GenerateGUID();
+
+        EmissionCO2 := 100;
+        EmissionCH4 := 200;
+        EmissionN2O := 300;
+
+        // [GIVEN] A Specific carbon, lot-tracked item purchased into the lot carrying known emissions.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, "Purchase Document Type"::Order, LibraryPurchase.CreateVendorNo());
+        PurchaseHeader."Buy-from Country/Region Code" := CountryRegion.Code;
+        PurchaseHeader.Modify();
+
+        LibraryItemTracking.CreateLotItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+
+        CreatePurchaseLineWithEmissionValue(
+            PurchaseLine, PurchaseHeader, Item."No.", Item."Item Tracking Code", LotNo,
+            LibraryRandom.RandIntInRange(10, 10), EmissionCO2, EmissionCH4, EmissionN2O, AccountCode);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [GIVEN] The known specific-lot CO2e per unit.
+        ExpectedCO2ePerUnit :=
+            (EmissionCH4 * EmissionFee[1]."Carbon Equivalent Factor" +
+             EmissionCO2 * EmissionFee[2]."Carbon Equivalent Factor" +
+             EmissionN2O * EmissionFee[3]."Carbon Equivalent Factor") / PurchaseLine.Quantity;
+
+        // [WHEN] A Sales Invoice ships 1 pc from the lot.
+        PostedInvoiceNo := CreateAndPostSalesWithCO2eAndItemTracking(SalesHeader, CountryRegion.Code, AccountCode, Item."No.", 1, LibraryRandom.RandInt(100), '', LotNo);
+
+        // [THEN] The shipment Sustainability Value Entry is negative (outbound emissions leave).
+        VerifySustainabilityValueEntryDocumentCO2e(PostedInvoiceNo, -ExpectedCO2ePerUnit);
+
+        // [WHEN] A Sales Credit Memo returns 1 pc of the same lot.
+        PostedCreditMemoNo := CreateAndPostSalesCreditMemoWithItemTracking(CountryRegion.Code, AccountCode, Item."No.", 1, LotNo);
+
+        // [THEN] The credit memo Sustainability Value Entry is positive (inbound), mirroring the shipment.
+        VerifySustainabilityValueEntryDocumentCO2e(PostedCreditMemoNo, ExpectedCO2ePerUnit);
+    end;
+
     local procedure CreateSustainabilityAccount(var AccountCode: Code[20]; var CategoryCode: Code[20]; var SubcategoryCode: Code[20]; i: Integer): Record "Sustainability Account"
     begin
         CreateSustainabilitySubcategory(CategoryCode, SubcategoryCode, i);
@@ -4725,6 +4798,28 @@ codeunit 148190 "Sust. Value Entry Test"
         SalesLine.Modify();
 
         LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, SerialNo, LotNo, Quantity);
+
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure CreateAndPostSalesCreditMemoWithItemTracking(CountryRegion: Code[10]; SustAccountNo: Code[20]; ItemNo: Code[20]; Quantity: Decimal; LotNo: Code[50]): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::"Credit Memo", LibrarySales.CreateCustomerNo());
+        SalesHeader."Bill-to Country/Region Code" := CountryRegion;
+        SalesHeader.Modify();
+
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, "Sales Line Type"::Item, ItemNo, Quantity);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandIntInRange(10, 200));
+        SalesLine.Validate("Sust. Account No.", SustAccountNo);
+        SalesLine.Modify();
+
+        // Item tracking (the returned lot) is required for a lot-specific item; the credit memo is left unapplied so the
+        // returned quantity resolves the item's specific CO2e per unit.
+        LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, '', LotNo, Quantity);
 
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
