@@ -43,6 +43,9 @@ codeunit 30199 "Shpfy Authentication Mgt."
         TokenRefreshedTxt: Label 'Refreshed the Shopify expiring offline access token.', Locked = true;
         TokenRefreshTransientTxt: Label 'A transient error occurred while refreshing the Shopify access token. The existing token is still valid and will be retried later.', Locked = true;
         TokenRefreshExpiredTxt: Label 'The Shopify refresh token has expired. The store must be reconnected.', Locked = true;
+        ReconnectRequiredTitleLbl: Label 'Shopify reconnection required';
+        ReconnectDetailedLbl: Label 'The stored access token could not be refreshed automatically. This usually means the 90-day refresh window lapsed or access was revoked in Shopify. Choose Reconnect to sign in to Shopify again and restore synchronization.';
+        TokenExchangeFailedErr: Label 'Could not obtain an access token from Shopify for store "%1". Please try connecting the store again.', Comment = '%1 = Store';
 
     [NonDebuggable]
     local procedure GetClientId(): Text
@@ -136,9 +139,9 @@ codeunit 30199 "Shpfy Authentication Mgt."
 
         StatusCode := ExecuteTokenRequest(Store, RequestBody, Credentials, ResponseBody);
         if not IsSuccessStatusCode(StatusCode) then
-            exit;
+            Error(TokenExchangeFailedErr, Store);
         if not ResponseHasAccessToken(ResponseBody) then
-            exit;
+            Error(TokenExchangeFailedErr, Store);
 
         SaveInstalledToken(Store, ResponseBody);
     end;
@@ -320,6 +323,11 @@ codeunit 30199 "Shpfy Authentication Mgt."
 
         RegisteredStoreNew."Last Force Refresh At" := CurrentDateTime();
         RegisteredStoreNew.Modify();
+        // Persist the cooldown BEFORE attempting the refresh: RefreshAccessToken raises the reconnect
+        // error on a terminal failure, which would otherwise roll back this Modify and let every
+        // subsequent 401 in a bulk sync re-enter and re-hit the refresh endpoint. Committing here
+        // keeps the throttle effective on the failing path.
+        Commit();
 
         if RegisteredStoreNew.HasRefreshToken() then
             RefreshAccessToken(Store, RegisteredStoreNew)
@@ -541,7 +549,9 @@ codeunit 30199 "Shpfy Authentication Mgt."
         ReconnectError.DataClassification := ReconnectError.DataClassification::CustomerContent;
         ReconnectError.ErrorType := ReconnectError.ErrorType::Client;
         ReconnectError.Verbosity := ReconnectError.Verbosity::Error;
+        ReconnectError.Title := ReconnectRequiredTitleLbl;
         ReconnectError.Message := StrSubstNo(RefreshTokenExpiredErr, Store);
+        ReconnectError.DetailedMessage := ReconnectDetailedLbl;
         ReconnectError.CustomDimensions.Add(StoreDimensionTok, Store);
         ReconnectError.AddAction(ReconnectActionLbl, Codeunit::"Shpfy Authentication Mgt.", 'ReconnectFromError');
     end;
