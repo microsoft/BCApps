@@ -217,11 +217,11 @@ page 4300 "Agent Task List"
                     CurrPage.Update(false);
                 end;
             }
-            action(ShowAllAgents)
+            action(ShowTasksFromAllAgents)
             {
                 ApplicationArea = All;
-                Caption = 'Show all agents';
-                ToolTip = 'Show tasks from all agents, including agents that have been archived.';
+                Caption = 'Show tasks from all agents';
+                ToolTip = 'Show tasks from all agents, including archived ones.';
                 Image = RemoveFilterLines;
                 Visible = not ShouldShowAllAgents;
 
@@ -231,11 +231,11 @@ page 4300 "Agent Task List"
                     SetAgentSubstateFilter();
                 end;
             }
-            action(ShowActiveAgents)
+            action(HideTasksFromArchivedAgents)
             {
                 ApplicationArea = All;
-                Caption = 'Show active agents';
-                ToolTip = 'Show only tasks from active agents that have not been archived.';
+                Caption = 'Hide tasks from archived agents';
+                ToolTip = 'Hide tasks from agents that have been archived.';
                 Image = FilterLines;
                 Visible = ShouldShowAllAgents;
 

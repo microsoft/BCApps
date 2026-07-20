@@ -87,7 +87,7 @@ page 4316 "Agent List"
             {
                 ApplicationArea = All;
                 Caption = 'Archive';
-                ToolTip = 'Archive the agent so it can no longer process new tasks. The agent and its existing tasks and logs remain available as read-only. Archiving cannot be undone.';
+                ToolTip = 'Archive the selected agent. The agent and its existing tasks and logs remain available as read-only. Archiving cannot be undone.';
                 Image = Archive;
                 Enabled = ArchiveActionEnabled;
 

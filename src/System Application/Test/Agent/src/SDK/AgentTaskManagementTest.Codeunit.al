@@ -679,13 +679,13 @@ codeunit 133962 "Agent Task Management Test"
         Assert.IsFalse(AgentTaskListPage.GoToKey(ArchivedTask.Id), 'Task of archived agent should be hidden before toggling');
 
         // [WHEN] Showing tasks from all agents, including archived ones
-        AgentTaskListPage.ShowAllAgents.Invoke();
+        AgentTaskListPage.ShowTasksFromAllAgents.Invoke();
 
         // [THEN] The archived agent's task becomes reachable
         Assert.IsTrue(AgentTaskListPage.GoToKey(ArchivedTask.Id), 'Task of archived agent should be visible after showing all agents');
 
-        // [WHEN] Switching back to active agents only
-        AgentTaskListPage.ShowActiveAgents.Invoke();
+        // [WHEN] Hiding tasks from archived agents again
+        AgentTaskListPage.HideTasksFromArchivedAgents.Invoke();
 
         // [THEN] The archived agent's task is hidden again
         Assert.IsFalse(AgentTaskListPage.GoToKey(ArchivedTask.Id), 'Task of archived agent should be hidden again after showing active agents');
@@ -722,7 +722,7 @@ codeunit 133962 "Agent Task Management Test"
         Assert.IsFalse(AgentTaskListPage.GoToKey(Task.Id), 'Task of archived agent should be hidden by default');
 
         // [WHEN] Showing tasks from all agents, including archived ones
-        AgentTaskListPage.ShowAllAgents.Invoke();
+        AgentTaskListPage.ShowTasksFromAllAgents.Invoke();
 
         // [THEN] The task becomes reachable
         Assert.IsTrue(AgentTaskListPage.GoToKey(Task.Id), 'Task of archived agent should be visible after showing all agents');

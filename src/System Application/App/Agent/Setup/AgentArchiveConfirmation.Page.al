@@ -21,15 +21,15 @@ page 4337 "Agent Archive Confirmation"
             {
                 ApplicationArea = All;
                 Caption = 'Confirmation';
-                ToolTip = 'Specifies what archiving the agent does and warns that the action cannot be undone.';
+                ToolTip = 'Specifies the details of the archive operation.';
                 Editable = false;
                 MultiLine = true;
             }
             field(DisplayNameConfirmation; EnteredDisplayName)
             {
                 ApplicationArea = All;
-                Caption = 'Type the display name';
-                ToolTip = 'Specifies the agent''s display name. Type it exactly to confirm that you want to archive the agent.';
+                Caption = 'Agent display name';
+                ToolTip = 'Specifies the display name of the agent to archive.';
             }
         }
     }

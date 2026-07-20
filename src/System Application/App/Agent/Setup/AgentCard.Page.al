@@ -142,7 +142,7 @@ page 4315 "Agent Card"
             {
                 ApplicationArea = All;
                 Caption = 'Archive';
-                ToolTip = 'Archive the agent so it can no longer process new tasks. The agent and its existing tasks and logs remain available as read-only. Archiving cannot be undone.';
+                ToolTip = 'Archive the selected agent. The agent and its existing tasks and logs remain available as read-only. Archiving cannot be undone.';
                 Image = Archive;
                 Enabled = ArchiveActionEnabled;
 
@@ -321,5 +321,5 @@ page 4315 "Agent Card"
         YouCannotEnableAgentWithoutUsingConfigurationPageErr: Label 'You can''t activate the agent from this page. Use the action to configure and activate the agent.';
         YouDoNotHavePermissionToModifyThisAgentErr: Label 'You do not have permission to modify this agent. Contact your system administrator to update your permissions or to mark you as one of the administrators for the agent.';
         AgentArchivedMsg: Label 'The agent has been archived.';
-        AgentArchivedNotificationMsg: Label 'This agent is archived and can no longer be modified. Its tasks and logs remain available for reference.';
+        AgentArchivedNotificationMsg: Label 'This agent is archived and can no longer be modified. Its tasks and logs remain available as read-only.';
 }
