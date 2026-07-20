@@ -14,7 +14,7 @@ The connector authenticates to Shopify with **expiring offline access tokens** (
 
 Refresh and migration are serialized with a table lock plus a double-checked re-read, because Shopify allows only one refreshable token per app and store -- this keeps concurrent sessions (or multiple BC companies sharing a shop) from thrashing the token. As a safety net, an unexpected 401 from a normal API call triggers a single forced refresh and retry.
 
-The `Shpfy Token Refresh` job (a recurring Job Queue entry registered on install and upgrade) is the proactive backstop. It iterates enabled shops and runs a per-shop worker so one shop's failure does not abort the run, keeping access tokens and 90-day refresh tokens alive for shops that are otherwise idle. When a refresh token has fully lapsed, the Shop Card shows a reconnect notification.
+The `Shpfy Token Refresh` job (a recurring Job Queue entry scheduled the first time an enabled Shopify Shop Card is opened) is the proactive backstop. It iterates enabled shops and runs a per-shop worker so one shop's failure does not abort the run, keeping access tokens and 90-day refresh tokens alive for shops that are otherwise idle. When a refresh token has fully lapsed, the Shop Card shows a reconnect notification.
 
 *Updated: 2026-07-11 -- Expiring offline access token support (slice 637954)*
 
