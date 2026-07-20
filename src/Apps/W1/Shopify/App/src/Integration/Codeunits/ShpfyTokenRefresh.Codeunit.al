@@ -37,6 +37,7 @@ codeunit 30431 "Shpfy Token Refresh"
         Shop: Record "Shpfy Shop";
     begin
         Shop.SetRange(Enabled, true);
+        Shop.SetLoadFields("Shopify URL");
         if Shop.FindSet() then
             repeat
                 // Each shop runs in its own transaction (Codeunit.Run) so one failure does not abort the run.

@@ -365,7 +365,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
             SaveTokenResponse(RegisteredStoreNew, ResponseBody);
             Session.LogMessage('0000UIW', TokenMigratedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
         end else
-            Session.LogMessage('0000UIX', TokenMigrationFailedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+            Session.LogMessage('0000UIX', TokenMigrationFailedTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
     end;
 
     [NonDebuggable]
@@ -379,7 +379,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
         MaxAttempts: Integer;
     begin
         if RefreshTokenExpired(RegisteredStoreNew) then begin
-            Session.LogMessage('0000UIY', TokenRefreshExpiredTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+            Session.LogMessage('0000UIY', TokenRefreshExpiredTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
             Error(CreateReconnectErrorInfo(Store));
         end;
 
@@ -405,7 +405,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
 
             // A 401 with an inactive refresh token is terminal: the merchant must reconnect.
             if StatusCode = 401 then begin
-                Session.LogMessage('0000UJ0', TokenRefreshExpiredTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+                Session.LogMessage('0000UJ0', TokenRefreshExpiredTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
                 Error(CreateReconnectErrorInfo(Store));
             end;
 
@@ -416,7 +416,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
         // cannot make calls, so surface the reconnect error; otherwise keep the still-valid token.
         if TokenExpired(RegisteredStoreNew) then
             Error(CreateReconnectErrorInfo(Store));
-        Session.LogMessage('0000UJ1', TokenRefreshTransientTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+        Session.LogMessage('0000UJ1', TokenRefreshTransientTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
     end;
 
     local procedure TokenNeedsRefresh(RegisteredStoreNew: Record "Shpfy Registered Store New"): Boolean
