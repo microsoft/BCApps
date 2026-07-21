@@ -68,7 +68,7 @@ table 3303 "Payables Agent Setup"
         {
             DataClassification = SystemMetadata;
         }
-#if not CLEANSCHEMA29
+#if not CLEANSCHEMA32
 #pragma warning disable AS0072
         field(11; "Use MLLM Processing"; Boolean)
         {
