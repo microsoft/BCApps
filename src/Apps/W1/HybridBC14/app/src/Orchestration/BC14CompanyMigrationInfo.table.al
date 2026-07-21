@@ -436,6 +436,23 @@ table 46855 BC14CompanyMigrationInfo
         Rec.Modify();
     end;
 
+    internal procedure RestartHistoricalDispatch(TargetCompanyName: Text[30]) NewRunId: Guid
+    begin
+        NewRunId := CreateGuid();
+        Rec.ReadIsolation := IsolationLevel::UpdLock;
+        if not Rec.Get(TargetCompanyName) then
+            exit;
+
+        Rec."Historical Run Id" := NewRunId;
+        Rec."Historical Completed" := false;
+        Rec."Historical Failed" := false;
+        Rec."Historical Failure Reason" := '';
+        Rec."Historical Dispatched" := true;
+        Rec."Phase Migrators Total" := 0;
+        Rec."Phase Migrators Completed" := 0;
+        Rec.Modify();
+    end;
+
     internal procedure PrepareMainForRerun(TargetCompanyName: Text[30])
     begin
         Rec.ReadIsolation := IsolationLevel::UpdLock;

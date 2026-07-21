@@ -997,13 +997,15 @@ codeunit 148907 "BC14 Error & Failure Tests"
     end;
 
     [Test]
-    procedure TestMarkUpgradeFailed_WithReplicationSummary_AppendsDetailsBlob()
+    procedure TestMarkUpgradeFailed_WithReplicationSummary_DoesNotWriteDetailsBlob()
     var
         HybridReplicationSummary: Record "Hybrid Replication Summary";
         BC14MigrationFailureHandler: Codeunit "BC14 Migration Failure Handler";
         DetailsText: Text;
     begin
-        // [SCENARIO] When a replication summary record exists, MarkUpgradeFailed appends failure details to its Details blob.
+        // [SCENARIO] MarkUpgradeFailed does NOT write the Summary Details blob. The overall
+        // Status headline is written only at finalize, so a single company's failure never
+        // overwrites the overall Status while other companies are still migrating.
         ResetFailureState();
 
         // [GIVEN] A Hybrid Replication Summary record
@@ -1015,15 +1017,103 @@ codeunit 148907 "BC14 Error & Failure Tests"
         // [WHEN] MarkUpgradeFailed runs against that summary
         BC14MigrationFailureHandler.MarkUpgradeFailed(HybridReplicationSummary);
 
-        // [THEN] The Details blob now contains the failure entry for the current company
+        // [THEN] The Details blob remains empty
         DetailsText := ReadSummaryDetails(HybridReplicationSummary);
-        Assert.IsTrue(DetailsText <> '', 'Replication Summary Details blob should be populated.');
-        Assert.IsTrue(
-            DetailsText.Contains(CompanyName()),
-            'Replication Summary Details should mention the failed company name. Actual: ' + DetailsText);
-        Assert.IsTrue(
-            DetailsText.Contains('Upgrade failed'),
-            'Replication Summary Details should use the upgrade-failed phrasing. Actual: ' + DetailsText);
+        Assert.AreEqual('', DetailsText, 'MarkUpgradeFailed should not write the Replication Summary Details blob.');
+    end;
+
+    // ============================================================
+    // Historical Rerun
+    // ============================================================
+
+    [Test]
+    procedure TestRestartHistoricalDispatch_ResetsStateAndBumpsRunId()
+    var
+        BC14CompanySettings: Record BC14CompanyMigrationInfo;
+        OldRunId: Guid;
+        NewRunId: Guid;
+    begin
+        // [SCENARIO] RestartHistoricalDispatch clears a prior (failed/completed) Historical state,
+        // claims a fresh dispatch, and returns a new non-null run id so the Historical Worker
+        // it dispatches supersedes any leftover worker.
+        ResetFailureState();
+
+        // [GIVEN] A company whose Historical phase previously failed and completed
+        OldRunId := CreateGuid();
+        BC14CompanySettings.Init();
+        BC14CompanySettings.Name := CopyStr(CompanyName(), 1, MaxStrLen(BC14CompanySettings.Name));
+        BC14CompanySettings."Historical Run Id" := OldRunId;
+        BC14CompanySettings."Historical Completed" := true;
+        BC14CompanySettings."Historical Failed" := true;
+        BC14CompanySettings."Historical Failure Reason" := 'Prior failure';
+        BC14CompanySettings."Historical Dispatched" := false;
+        BC14CompanySettings.Insert();
+
+        // [WHEN] RestartHistoricalDispatch runs for the company
+        NewRunId := BC14CompanySettings.RestartHistoricalDispatch(CopyStr(CompanyName(), 1, 30));
+
+        // [THEN] Historical bookkeeping is reset and a fresh dispatch is claimed
+        BC14CompanySettings.GetSingleInstance();
+        Assert.IsFalse(BC14CompanySettings."Historical Completed", 'Historical Completed should be cleared.');
+        Assert.IsFalse(BC14CompanySettings."Historical Failed", 'Historical Failed should be cleared.');
+        Assert.AreEqual('', BC14CompanySettings."Historical Failure Reason", 'Historical Failure Reason should be cleared.');
+        Assert.IsTrue(BC14CompanySettings."Historical Dispatched", 'Historical Dispatched should be set.');
+        Assert.IsFalse(IsNullGuid(NewRunId), 'A non-null run id should be returned.');
+        Assert.AreNotEqual(OldRunId, NewRunId, 'A fresh run id should be issued.');
+        Assert.AreEqual(NewRunId, BC14CompanySettings."Historical Run Id", 'The returned run id should be persisted.');
+    end;
+
+    [Test]
+    procedure TestRerunHistoricalForCompany_HistoricalDisabled_ThrowsError()
+    var
+        BC14CompanySettings: Record BC14CompanyMigrationInfo;
+        BC14MigrationRunner: Codeunit "BC14 Migration Runner";
+    begin
+        // [SCENARIO] Rerunning Historical for a company that opted out of historical record
+        // migration is rejected before any dispatch or state change.
+        ResetFailureState();
+
+        // [GIVEN] A company with Migrate Historical Records disabled
+        BC14CompanySettings.Init();
+        BC14CompanySettings.Name := CopyStr(CompanyName(), 1, MaxStrLen(BC14CompanySettings.Name));
+        BC14CompanySettings."Migrate Historical Records" := false;
+        BC14CompanySettings.Insert();
+
+        // [WHEN] RerunHistoricalForCompany is invoked [THEN] it errors out
+        asserterror BC14MigrationRunner.RerunHistoricalForCompany(CopyStr(CompanyName(), 1, 30));
+    end;
+
+    [Test]
+    procedure TestRerunHistoricalForCompany_NoCompanySettings_ThrowsError()
+    var
+        BC14MigrationRunner: Codeunit "BC14 Migration Runner";
+    begin
+        // [SCENARIO] Rerunning Historical for a company with no settings row is rejected.
+        ResetFailureState();
+
+        // [WHEN] RerunHistoricalForCompany is invoked for an unknown company [THEN] it errors out
+        asserterror BC14MigrationRunner.RerunHistoricalForCompany('GHOST');
+    end;
+
+    [Test]
+    procedure TestRerunHistoricalForCompany_MainNotCompleted_ThrowsError()
+    var
+        BC14CompanySettings: Record BC14CompanyMigrationInfo;
+        BC14MigrationRunner: Codeunit "BC14 Migration Runner";
+    begin
+        // [SCENARIO] Rerunning Historical before the main migration has completed (Posting not done)
+        // is rejected, so the company can never be stranded In Progress with no way to finalize.
+        ResetFailureState();
+
+        // [GIVEN] A company whose historical migration is enabled but whose posting never completed
+        BC14CompanySettings.Init();
+        BC14CompanySettings.Name := CopyStr(CompanyName(), 1, MaxStrLen(BC14CompanySettings.Name));
+        BC14CompanySettings."Migrate Historical Records" := true;
+        BC14CompanySettings."Posting Completed" := false;
+        BC14CompanySettings.Insert();
+
+        // [WHEN] RerunHistoricalForCompany is invoked [THEN] it errors out
+        asserterror BC14MigrationRunner.RerunHistoricalForCompany(CopyStr(CompanyName(), 1, 30));
     end;
 
     // ============================================================

@@ -329,6 +329,18 @@ codeunit 148906 "BC14 Migration Flow Tests"
         HybridReplicationSummary.Insert();
     end;
 
+    local procedure ReadSummaryDetails(var HybridReplicationSummary: Record "Hybrid Replication Summary") DetailsText: Text
+    var
+        DetailsInStream: InStream;
+    begin
+        HybridReplicationSummary.Get(HybridReplicationSummary."Run ID");
+        HybridReplicationSummary.CalcFields(Details);
+        if not HybridReplicationSummary.Details.HasValue() then
+            exit('');
+        HybridReplicationSummary.Details.CreateInStream(DetailsInStream);
+        DetailsInStream.Read(DetailsText);
+    end;
+
     // ============================================================
     // Orchestrator
     // ============================================================
@@ -1671,6 +1683,9 @@ codeunit 148906 "BC14 Migration Flow Tests"
         HybridReplicationSummary.Get(HybridReplicationSummary."Run ID");
         Assert.AreEqual(HybridReplicationSummary.Status::UpgradeFailed, HybridReplicationSummary.Status, 'Should be UpgradeFailed');
         Assert.AreNotEqual(0DT, HybridReplicationSummary."End Time", 'End Time should be set');
+        // The overall Status headline is written to Details at finalize (moved out of MarkUpgradeFailed).
+        Assert.IsTrue(ReadSummaryDetails(HybridReplicationSummary).ToLower().Contains('upgrade failed'),
+            'SetSummaryFailed should write the upgrade-failed headline to Details');
     end;
 
     [Test]
@@ -1733,6 +1748,9 @@ codeunit 148906 "BC14 Migration Flow Tests"
 
         HybridReplicationSummary.Get(HybridReplicationSummary."Run ID");
         Assert.AreEqual(HybridReplicationSummary.Status::UpgradeFailed, HybridReplicationSummary.Status, 'Should be UpgradeFailed');
+        // The overall Status headline is written to Details at finalize (moved out of MarkUpgradeFailed).
+        Assert.IsTrue(ReadSummaryDetails(HybridReplicationSummary).ToLower().Contains('upgrade failed'),
+            'EvaluateAndSetFinalSummaryStatus should write the upgrade-failed headline to Details');
     end;
 
     [Test]

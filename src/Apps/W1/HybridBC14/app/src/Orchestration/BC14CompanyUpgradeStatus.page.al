@@ -126,6 +126,30 @@ page 46859 "BC14 Company Upgrade Status"
                     CurrPage.Update(false);
                 end;
             }
+            action(RerunHistorical)
+            {
+                ApplicationArea = All;
+                Caption = 'Rerun Historical Migration';
+                ToolTip = 'Starts the move of the historical data again for the selected company, without re-running the other migration phases. Available for companies whose migration has completed and that have historical record migration enabled.';
+                Image = Restore;
+                Visible = CanRerunHistorical;
+
+                trigger OnAction()
+                var
+                    BC14MigrationRunner: Codeunit "BC14 Migration Runner";
+                begin
+                    if Rec.Name = '' then
+                        exit;
+                    if not CanRerunHistorical then
+                        exit;
+                    if not Confirm(StrSubstNo(RerunHistoricalQst, Rec.Name), false) then
+                        exit;
+
+                    BC14MigrationRunner.RerunHistoricalForCompany(CopyStr(Rec.Name, 1, 30));
+                    Message(RerunHistoricalScheduledMsg, Rec.Name);
+                    CurrPage.Update(false);
+                end;
+            }
         }
         area(Promoted)
         {
@@ -135,6 +159,7 @@ page 46859 "BC14 Company Upgrade Status"
 
                 actionref(ShowErrors_Promoted; ShowErrors) { }
                 actionref(ContinueMigration_Promoted; ContinueMigration) { }
+                actionref(RerunHistorical_Promoted; RerunHistorical) { }
             }
         }
     }
@@ -164,6 +189,10 @@ page 46859 "BC14 Company Upgrade Status"
 
         UpgradeStatusText := Format(Rec."Upgrade Status");
         CanContinueMigration := Rec."Upgrade Status" = Rec."Upgrade Status"::Failed;
+        CanRerunHistorical :=
+            HasCompanySettings and
+            BC14CompanySettings."Migrate Historical Records" and
+            (Rec."Upgrade Status" = Rec."Upgrade Status"::Completed);
         case Rec."Upgrade Status" of
             Rec."Upgrade Status"::Failed:
                 StatusStyle := 'Unfavorable';
@@ -198,8 +227,11 @@ page 46859 "BC14 Company Upgrade Status"
         PhaseProgressText: Text;
         LastCompletedMigratorText: Text;
         CanContinueMigration: Boolean;
+        CanRerunHistorical: Boolean;
         ProgressFmtTxt: Label '%1 / %2', Comment = '%1 = completed count, %2 = total count';
         InProgressLbl: Label 'In Progress';
         ContinueMigrationQst: Label 'Continue migration for company %1?', Comment = '%1 = Company Name';
         ContinueMigrationScheduledMsg: Label 'Migration continuation has been scheduled for company %1.', Comment = '%1 = Company Name';
+        RerunHistoricalQst: Label 'Start the move of the historical data again for company %1?', Comment = '%1 = Company Name';
+        RerunHistoricalScheduledMsg: Label 'Historical data migration has been scheduled again for company %1.', Comment = '%1 = Company Name';
 }
