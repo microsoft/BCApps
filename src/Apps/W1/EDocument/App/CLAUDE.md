@@ -55,7 +55,7 @@ src/
 - The import pipeline implementation fields live directly on the E-Document table: `"Structure Data Impl."`, `"Read into Draft Impl."`, and `"Process Draft Impl."`. These enums determine which interface implementations run at each stage.
 - `"E-Document Service Status"` enum implements `IEDocumentStatus` interface -- each status value knows whether it means "in progress", "processed", or "error", via `EDocInProgressStatus`, `EDocProcessedStatus`, and `EDocErrorStatus` codeunits.
 - Batch processing and single-document processing are distinct code paths. Batch mode uses recurrent background jobs configured on the service (fields 21-26 on `"E-Document Service"`).
-- The V1.0 import process (`"Import Process" = "Version 1.0"`) collapses all pipeline stages into a single "Finish draft" step. V2.0 is the current architecture.
+- The V1.0 import process (`"Import Process" = "Version 1.0"`) is deprecated as of 29.0 and will be removed in a future release. New services default to Version 2.0 (the multi-stage draft pipeline). V1.0 collapses all pipeline stages into a single "Finish draft" step. Opening a service card for a V1.0 service shows a deprecation notification.
 - `#if not CLEAN26` and `#if not CLEAN27` blocks mark deprecated code scheduled for removal. The old `"E-Document Integration"` enum and its `"Service Integration"` field on the service table are fully replaced by `"Service Integration V2"`.
 - The framework uses the "if codeunit.run" pattern extensively -- interface calls are wrapped in codeunits that run with error trapping, so a connector failure produces a logged error rather than a crash.
 - `"E-Document Background Jobs"` manages Job Queue Entries for recurrent import polling and batch send processing.

@@ -4,7 +4,7 @@ An alternative to the interface-based Format module -- this implements the `"E-D
 
 ## How it works
 
-`EDocDataExchangeImpl` implements the same `"E-Document"` interface as the Format module's PEPPOL codeunit, but its `Create` method works differently. It looks up the `E-Doc. Service Data Exch. Def.` table to find the export Data Exchange Definition for the document type, creates a `Data Exch.` record with line filters, and calls `DataExch.ExportFromDataExch` to run the configured mapping. The resulting XML blob is extracted from the Data Exch record's field 3. For import, `GetCompleteInfoFromReceivedDocument` uses the import Data Exchange Definition to parse incoming XML into `Intermediate Data Import` records, which are then processed by `EDocDEDPEPPOLPreMapping`.
+`EDocDataExchangeImpl` implements the same `"E-Document"` interface as the Format module's PEPPOL codeunit, but its `Create` method works differently. It looks up the `E-Doc. Service Data Exch. Def.` table to find the export Data Exchange Definition for the document type, creates a `Data Exch.` record with line filters, and calls `DataExch.ExportFromDataExch` to run the configured mapping. The resulting XML blob is extracted from the Data Exch record's field 3. For import, `GetCompleteInfoFromReceivedDocument` (obsolete-Pending as of 29.0; V1.0 import path only) uses the import Data Exchange Definition to parse incoming XML into `Intermediate Data Import` records, which are then processed by `EDocDEDPEPPOLPreMapping`.
 
 The `E-Doc. Service Data Exch. Def.` table links an E-Document Service code and document type to both an import and export Data Exchange Definition code, displayed via the `E-Doc. Service Data Exch. Sub` subpage on the service card.
 

@@ -143,13 +143,13 @@ These patterns exist in the codebase but are deprecated. Understanding them help
 
 ### V1.0 import process
 
-**What**: The original single-stage import where the format interface's `GetBasicInfoFromReceivedDocument()` and `GetCompleteInfoFromReceivedDocument()` methods directly create BC purchase documents in one shot.
+**What**: The original single-stage import where the format interface's `GetBasicInfoFromReceivedDocument()` and `GetCompleteInfoFromReceivedDocument()` methods directly create BC purchase documents in one shot. These two inbound `"E-Document"` interface methods are obsolete-Pending as of 29.0.
 
 **Where**: `EDocImport.V1_ProcessEDocument()`, `EDocImport.V1_BeforeInsertImportedEdocument()`, and the `"E-Document"` interface methods `GetBasicInfoFromReceivedDocument` / `GetCompleteInfoFromReceivedDocument`.
 
-**Why deprecated**: No staging tables, no user review, no reversibility. Format implementations had to know how to create Purchase Invoices, violating separation of concerns.
+**Why deprecated**: No staging tables, no user review, no reversibility. Format implementations had to know how to create Purchase Invoices, violating separation of concerns. Deprecated as of 29.0; `"Import Process" = "Version 1.0"` is obsolete-Pending and will be removed in a future release.
 
-**What to do instead**: Use V2.0 pipeline with `"Import Process" = "Version 2.0"`. Implement `IStructuredFormatReader` to populate staging tables and let the framework handle BC document creation.
+**What to do instead**: Use V2.0 pipeline with `"Import Process" = "Version 2.0"` (the default for new services). Implement `IStructuredFormatReader` to populate staging tables and `IProcessStructuredData` to handle entity resolution; let the framework handle BC document creation.
 
 ### Old "E-Document Integration" enum and interface
 

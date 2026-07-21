@@ -1461,6 +1461,21 @@ codeunit 139883 "E-Doc Process Test"
 
 #if not CLEAN29
     [Test]
+    procedure NewServiceDefaultsToImportProcessV2()
+    var
+        EDocumentService: Record "E-Document Service";
+    begin
+        // [WHEN] A new E-Document Service record is initialized
+        EDocumentService.Init();
+        // [THEN] Import Process defaults to Version 2.0
+#pragma warning disable AL0432
+        Assert.AreEqual(
+            EDocumentService."Import Process"::"Version 2.0", EDocumentService."Import Process",
+            'New services must default to the v2 draft pipeline.');
+#pragma warning restore AL0432
+    end;
+
+    [Test]
     [HandlerFunctions('V1DeprecationNotificationHandler')]
     procedure OpeningV1ServiceShowsDeprecationNotification()
     var

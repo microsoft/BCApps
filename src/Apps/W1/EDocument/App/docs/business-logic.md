@@ -107,11 +107,11 @@ Beyond send and receive, the framework supports arbitrary actions on documents v
 - **Re-reading after interface calls**: After every interface call, the framework re-reads the E-Document and service records from the database (`EDocument.Get(EDocument."Entry No")`). This is because interface implementations may modify these records, and the framework needs the latest values. Note: this defensive re-read is most important when the interface parameter is **not** passed by `var`. The original intent of non-`var` parameters was to prevent implementations from modifying records through the parameter, but since AL code can always call `.Modify()` directly on any record, the protection is incomplete. When adding new interface methods, only apply this re-read pattern to procedures where the record is not passed by `var` -- if the signature already uses `var`, the caller expects modifications and re-reading is redundant.
 - **E-Document Status is derived**: The overall `E-Document Status` is derived from the service statuses. `EDocumentProcessing.ModifyEDocumentStatus()` computes it after every service status change using the `IEDocumentStatus` interface on the enum values.
 - **Import Processing Status is a FlowField**: On the E-Document table, `"Import Processing Status"` is a FlowField that reads from `"E-Document Service Status"`. You must call `CalcFields` before reading it.
-- **V1.0 and V2.0 coexistence**: The `"Import Process"` field on the service determines which path runs. V1.0 collapses everything into a single "Finish draft" step that calls the old `V1_ProcessEDocument` logic. The pipeline state machine still runs, but only the last step does anything for V1.0 documents.
+- **V1.0 and V2.0 coexistence**: The `"Import Process"` field on the service determines which path runs. New services default to Version 2.0 (the multi-stage draft pipeline). Version 1.0 is deprecated as of 29.0 and will be removed in a future release; existing services using it display a deprecation notification on the service card. V1.0 collapses everything into a single "Finish draft" step that calls the old `V1_ProcessEDocument` logic. The pipeline state machine still runs, but only the last step does anything for V1.0 documents.
 
-## Inbound flow (V1.0 pipeline)
+## Inbound flow (V1.0 pipeline — deprecated as of 29.0)
 
-The V1.0 import path is the original single-pass process. It is still active when a service has `"Import Process" = "Version 1.0"`. The main logic lives in `EDocImport.Codeunit.al` (codeunit 6140).
+The V1.0 import path is the original single-pass process. It remains active when a service has `"Import Process" = "Version 1.0"`, but this field value is obsolete-Pending as of 29.0. New services default to Version 2.0. The main logic lives in `EDocImport.Codeunit.al` (codeunit 6140).
 
 ### Flow
 
@@ -135,10 +135,10 @@ flowchart TD
 
 ### Key methods
 
-- **`GetDocumentBasicInfo()`** -- calls the format interface's `GetBasicInfoFromReceivedDocument()` to extract vendor, invoice number, dates, and currency from the raw blob.
-- **`ParseDocumentLines()`** -- runs `EDocGetFullInfo` (a runner codeunit that calls the format interface's `GetCompleteInfoFromReceivedDocument()`) to parse the full document into Purchase Header/Line RecordRef staging tables, then applies field mappings.
+- **`GetDocumentBasicInfo()`** -- calls the format interface's `GetBasicInfoFromReceivedDocument()` to extract vendor, invoice number, dates, and currency from the raw blob. *(Obsolete-Pending as of 29.0; new format integrations implement `IStructuredFormatReader` instead.)*
+- **`ParseDocumentLines()`** -- runs `EDocGetFullInfo` (a runner codeunit that calls the format interface's `GetCompleteInfoFromReceivedDocument()`) to parse the full document into Purchase Header/Line RecordRef staging tables, then applies field mappings. *(Obsolete-Pending as of 29.0; new format integrations implement `IStructuredFormatReader` instead.)*
 - **`ReceiveEDocumentToPurchaseDoc()`** -- calls `CreatePurchaseDocumentFromImportedDocument()`, which resolves items, units of measure, and G/L accounts, then creates a Purchase Invoice or Credit Memo via `EDocumentCreatePurchase`.
-- **`CreateJournalLineFromImportedDocument()`** -- alternative path that creates a Gen. Journal Line instead of a purchase document, controlled by the `CreateJournalLineV1` import parameter.
+- **`CreateJournalLineFromImportedDocument()`** -- alternative path that creates a Gen. Journal Line instead of a purchase document, controlled by the `CreateJournalLineV1` import parameter. *(Retired with V1.0; not available in the V2.0 pipeline.)*
 
 ### Why V1.0 is deprecated
 

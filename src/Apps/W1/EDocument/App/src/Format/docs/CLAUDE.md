@@ -4,7 +4,7 @@ PEPPOL BIS 3.0 export and import implementation -- the built-in document format 
 
 ## How it works
 
-The main entry point is `EDocPEPPOLBIS30.Codeunit.al`, which implements the `"E-Document"` interface with five methods: `Check`, `Create`, `CreateBatch`, `GetBasicInfoFromReceivedDocument`, and `GetCompleteInfoFromReceivedDocument`.
+The main entry point is `EDocPEPPOLBIS30.Codeunit.al`, which implements the `"E-Document"` interface with five methods: `Check`, `Create`, `CreateBatch`, `GetBasicInfoFromReceivedDocument`, and `GetCompleteInfoFromReceivedDocument`. The two inbound methods (`GetBasicInfoFromReceivedDocument`, `GetCompleteInfoFromReceivedDocument`) are obsolete-Pending as of 29.0 and belong to the V1.0 import path only; new format integrations should implement `IStructuredFormatReader` and `IProcessStructuredData` instead.
 
 **Export path:** `Create` dispatches by document type to dedicated XML generators. Invoices and credit memos use base app XMLports (`Sales Invoice - PEPPOL BIS 3.0`, `Sales Cr.Memo - PEPPOL BIS 3.0`) which produce UBL 2.1 XML with proper `cac`/`cbc` namespaces. Shipments and transfer shipments use custom codeunits (`EDocShipmentExportToXml`, `EDocTransferShptToXML`) that build XML via `XML DOM Management`. Reminders and finance charge memos share the `FinResultsPEPPOLBIS30` XMLport, which wraps them as UBL Invoice documents with special type codes. After generation, `OnAfterCreatePEPPOLXMLDocument` fires as an integration event, letting subscribers modify the XML blob before it leaves the format layer.
 

@@ -24,7 +24,7 @@ erDiagram
 
 An **E-Document Service** (`table 6103`) defines a processing endpoint. It combines a Document Format (the `"E-Document Format"` enum, which implements the `"E-Document"` interface for serialization) with a Service Integration (the `"Service Integration"` enum, which implements `IDocumentSender` and `IDocumentReceiver`). Both are extensible enums that connector apps extend.
 
-The service also holds import pipeline configuration: `"Import Process"` (Version 1.0 or 2.0), `"Read into Draft Impl."` (how to parse structured data), and a set of boolean flags that control import behavior (Validate Receiving Company, Resolve Unit Of Measure, Lookup Item Reference, Lookup Item GTIN, Lookup Account Mapping, etc.).
+The service also holds import pipeline configuration: `"Import Process"` (Version 1.0 or 2.0; new services default to Version 2.0, and Version 1.0 is deprecated as of 29.0), `"Read into Draft Impl."` (how to parse structured data), and a set of boolean flags that control import behavior (Validate Receiving Company, Resolve Unit Of Measure, Lookup Item Reference, Lookup Item GTIN, Lookup Account Mapping, etc.).
 
 **E-Doc. Service Supported Type** links services to the document types they handle. This is a simple junction table keyed by `(Service Code, E-Document Type)`. A service that handles Sales Invoices and Sales Credit Memos has two records here.
 

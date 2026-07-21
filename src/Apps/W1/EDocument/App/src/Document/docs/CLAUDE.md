@@ -8,7 +8,7 @@ When a BC document is posted or an external document arrives from a service endp
 
 The E-Document carries three independent status dimensions that evolve separately. The top-level `Status` field (enum 6108: In Progress, Processed, Error) is derived automatically from the per-service `E-Document Service Status` via the strategy pattern -- each service status value implements `IEDocumentStatus` (defined in `Interfaces/IEDocumentStatus.Interface.al`), and the three codeunits in `Status/` (`EDocErrorStatus`, `EDocInProgressStatus`, `EDocProcessedStatus`) return the corresponding top-level status. Most service statuses default to "In Progress" unless explicitly mapped to Error or Processed in the enum implementation declarations. The third dimension, `Import Processing Status`, is a FlowField that reads from the `E-Document Service Status` table, tracking inbound documents through a five-step pipeline: Unprocessed, Readable, Ready for draft, Draft Ready, Processed.
 
-The `E-Document` interface (`Interfaces/EDocument.Interface.al`) defines the format contract that document format implementations must satisfy -- `Check`, `Create`, `CreateBatch` for outbound, and `GetBasicInfoFromReceivedDocument` / `GetCompleteInfoFromReceivedDocument` for inbound.
+The `E-Document` interface (`Interfaces/EDocument.Interface.al`) defines the format contract that document format implementations must satisfy -- `Check`, `Create`, `CreateBatch` for outbound, and `GetBasicInfoFromReceivedDocument` / `GetCompleteInfoFromReceivedDocument` for inbound (V1.0 only; both are obsolete-Pending as of 29.0 -- new format integrations implement `IStructuredFormatReader` and `IProcessStructuredData` instead).
 
 ## Things to know
 

@@ -19,8 +19,10 @@ Example: to add a custom document format, extend `enum 6101 "E-Document Format"`
 - `Check(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase)` -- validate on release/post
 - `Create(EDocumentService, EDocument, SourceDocumentHeader, SourceDocumentLines, TempBlob)` -- serialize to blob
 - `CreateBatch(EDocumentService, EDocuments, SourceDocumentHeaders, SourceDocumentsLines, TempBlob)` -- batch serialize
-- `GetBasicInfoFromReceivedDocument(EDocument, TempBlob)` -- extract header info from received blob (V1.0 import)
-- `GetCompleteInfoFromReceivedDocument(EDocument, CreatedDocumentHeader, CreatedDocumentLines, TempBlob)` -- parse into BC records (V1.0 import)
+- `GetBasicInfoFromReceivedDocument(EDocument, TempBlob)` -- extract header info from received blob (V1.0 import, **obsolete-Pending as of 29.0**)
+- `GetCompleteInfoFromReceivedDocument(EDocument, CreatedDocumentHeader, CreatedDocumentLines, TempBlob)` -- parse into BC records (V1.0 import, **obsolete-Pending as of 29.0**)
+
+New format integrations should implement `IStructuredFormatReader` (to populate draft staging tables) and `IProcessStructuredData` (for entity resolution) instead of the two obsoleted inbound methods.
 
 **Binding enum**: `"E-Document Format"` (`enum 6101`). Built-in values: `"Data Exchange"` and `"PEPPOL BIS 3.0"`.
 
