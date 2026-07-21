@@ -359,6 +359,30 @@ page 6133 "E-Document Service"
 #endif
     end;
 
+#if not CLEAN29
+    trigger OnAfterGetCurrRecord()
+    begin
+        ShowV1DeprecationNotificationIfNeeded();
+    end;
+
+    local procedure ShowV1DeprecationNotificationIfNeeded()
+    var
+        V1Notification: Notification;
+    begin
+#pragma warning disable AL0432
+        if Rec."Import Process" <> Rec."Import Process"::"Version 1.0" then
+            exit;
+#pragma warning restore AL0432
+        V1Notification.Id := '6100e1d0-0000-4000-8000-000000000029';
+        V1Notification.Message(V1DeprecationMsg);
+        V1Notification.Scope := NotificationScope::LocalScope;
+        V1Notification.Send();
+    end;
+
+    var
+        V1DeprecationMsg: Label 'Import Process Version 1.0 is deprecated as of version 29.0 and will be removed in a future release. Migrate this service to the Version 2.0 draft pipeline before then.';
+#endif
+
 #if not CLEAN26
     local procedure RunSetupServiceIntegration()
     var
