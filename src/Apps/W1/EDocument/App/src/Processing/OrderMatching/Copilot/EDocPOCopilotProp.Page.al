@@ -20,7 +20,7 @@ page 6166 "E-Doc. PO Copilot Prop"
     InherentEntitlements = X;
     ContextSensitiveHelpPage = 'map-edocuments-with-copilot';
     ObsoleteState = Pending;
-    ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated.';
+    ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
     ObsoleteTag = '29.0';
 
     layout

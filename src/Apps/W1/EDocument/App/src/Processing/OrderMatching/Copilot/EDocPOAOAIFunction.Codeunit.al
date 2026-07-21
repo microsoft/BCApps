@@ -6,7 +6,7 @@ codeunit 6167 "E-Doc. PO AOAI Function" implements "AOAI Function"
     InherentPermissions = X;
     InherentEntitlements = X;
     ObsoleteState = Pending;
-    ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated.';
+    ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
     ObsoleteTag = '29.0';
 
     [NonDebuggable]
