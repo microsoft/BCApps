@@ -575,4 +575,34 @@ Describe "TestTolerance" {
             $result.ContainsKey('::300::t1') | Should -BeTrue
         }
     }
+
+    Context "Save-UnstableTestsArtifact" {
+        BeforeEach {
+            $script:outFile = Join-Path ([System.IO.Path]::GetTempPath()) ("ut-save-" + [System.Guid]::NewGuid().ToString('N') + ".json")
+        }
+        AfterEach {
+            if ($script:outFile -and (Test-Path $script:outFile)) { Remove-Item $script:outFile -Force -ErrorAction SilentlyContinue }
+        }
+
+        It "writes an empty tests array when the list is empty" {
+            # An empty run (no Path A recompute, no cross-PR detections) still writes the artifact. The
+            # empty case previously threw when the tests value was normalized with [object[]] (which yields
+            # $null for an empty collection) and then '.Count' was read under StrictMode.
+            Save-UnstableTestsArtifact -Branch 'main' -RunIds @('1') -Tests ([System.Collections.IList]@()) -OutputPath $script:outFile
+            $json = Get-Content -Raw -Path $script:outFile | ConvertFrom-Json
+            $json.branch | Should -Be 'main'
+            @($json.tests).Count | Should -Be 0
+        }
+
+        It "writes all entries when Tests is a List[object]" {
+            # The combined driver passes the merged list; enumerating a List[object] via @() would throw
+            # "Argument types do not match" on some PowerShell/.NET builds.
+            $tests = New-Object System.Collections.Generic.List[object]
+            $tests.Add([pscustomobject]@{ extensionId = 'e'; codeunitId = 1; testMethod = 'T1' }) | Out-Null
+            $tests.Add([pscustomobject]@{ extensionId = 'e'; codeunitId = 2; testMethod = 'T2' }) | Out-Null
+            Save-UnstableTestsArtifact -Branch 'main' -RunIds @('1', '2') -Tests $tests -OutputPath $script:outFile
+            $json = Get-Content -Raw -Path $script:outFile | ConvertFrom-Json
+            @($json.tests).Count | Should -Be 2
+        }
+    }
 }

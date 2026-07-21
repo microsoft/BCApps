@@ -865,10 +865,10 @@ function Save-UnstableTestsArtifact {
         New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
     }
 
-    # Cast instead of @($Tests): wrapping a List[object] in the array-subexpression operator throws
-    # "Argument types do not match" on some PowerShell/.NET builds. The [object[]] cast handles arrays
-    # and lists alike; the guard keeps a null argument from becoming $null.
-    $tests = if ($null -eq $Tests) { @() } else { [object[]]$Tests }
+    # Normalize to a plain array. Avoid @($Tests): wrapping a List[object] directly throws
+    # "Argument types do not match" on some PowerShell/.NET builds, while [object[]] on an empty
+    # collection yields $null. Piping unrolls any list/array shape safely and always into an array.
+    $tests = @($Tests | ForEach-Object { $_ })
     $payload = [ordered]@{
         branch    = $Branch
         updatedAt = (Get-Date).ToUniversalTime().ToString('o')
