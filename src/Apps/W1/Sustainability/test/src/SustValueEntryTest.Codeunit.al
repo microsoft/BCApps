@@ -3789,6 +3789,7 @@ codeunit 148190 "Sust. Value Entry Test"
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler')]
     procedure VerifySpecificCarbonTrackingCalculatesCO2eFromPurchaseLine()
     var
         CountryRegion: Record "Country/Region";
@@ -4461,7 +4462,7 @@ codeunit 148190 "Sust. Value Entry Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
     procedure VerifyUndoSalesShipmentCreatesReversingCO2eForSpecificNonTrackedItem()
     var
         CountryRegion: Record "Country/Region";

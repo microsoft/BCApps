@@ -2364,6 +2364,7 @@ codeunit 148218 "Sustainability Service Tests"
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler')]
     procedure VerifySustValueEntryForServiceOrderWithLotTrackedItemAndSpecificCarbon()
     var
         SustainabilityLedgerEntry: Record "Sustainability Ledger Entry";
@@ -2527,7 +2528,7 @@ codeunit 148218 "Sustainability Service Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
     procedure VerifyUndoServiceShipmentCreatesReversingCO2eForSpecificNonTrackedItem()
     var
         ServiceHeader: Record "Service Header";
@@ -2673,7 +2674,7 @@ codeunit 148218 "Sustainability Service Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
     procedure VerifyUndoServiceConsumptionCreatesReversingCO2eForSpecificNonTrackedItem()
     var
         ServiceHeader: Record "Service Header";
@@ -3132,5 +3133,10 @@ codeunit 148218 "Sustainability Service Tests"
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [MessageHandler]
+    procedure MessageHandler(Message: Text[1024])
+    begin
     end;
 }
