@@ -5,14 +5,14 @@
 namespace Microsoft.ExpenseAgent;
 
 /// <summary>
-/// Compact read-only summary of "Exp. Report Line VAT Spec." rows for a given Expense Report Line.
-/// Used as a FactBox on the Expense Report Lines page.
+/// Compact read-only summary of "Posted Exp. Rep. Line VAT Spec" rows for a given Posted Expense Report.
+/// Used as a part on the Posted Expense Report Statistics page.
 /// </summary>
-page 7086 "Expense Report Line VATFactBox"
+page 7093 "Posted ExpRep VATSpecification"
 {
     Caption = 'VAT Specification';
     PageType = ListPart;
-    SourceTable = "Expense Report Line VAT Spec.";
+    SourceTable = "Posted Exp. Rep. Line VAT Spec";
     Editable = false;
     InsertAllowed = false;
     DeleteAllowed = false;
@@ -25,6 +25,16 @@ page 7086 "Expense Report Line VATFactBox"
         {
             repeater(Group)
             {
+                field("Expense Category"; Rec."Expense Category")
+                {
+                    Caption = 'Expense Category Code';
+                    ToolTip = 'Specifies the expense category code for this VAT row.';
+                }
+                field("Expense Subcategory"; Rec."Expense Subcategory")
+                {
+                    Caption = 'Expense Subcategory Code';
+                    ToolTip = 'Specifies the expense subcategory code for this VAT row.';
+                }
                 field("VAT %"; Rec."VAT %")
                 {
                     Caption = 'VAT %';
@@ -50,22 +60,19 @@ page 7086 "Expense Report Line VATFactBox"
                     Caption = 'Reclaim %';
                     ToolTip = 'Specifies the reclaim percentage.';
                 }
+                field("Reclaim VAT Amount"; Rec."Reclaim VAT Amount")
+                {
+                    Caption = 'Reclaim VAT Amount';
+                }
+                field("Reclaim VAT Amount (LCY)"; Rec."Reclaim VAT Amount (LCY)")
+                {
+                    Caption = 'Reclaim VAT Amount (LCY)';
+                }
                 field("Reclaim Status"; Rec."Reclaim Status")
                 {
                     Caption = 'Reclaim Status';
-                    ToolTip = 'Specifies the reclaim status for this row.';
+                    ToolTip = 'Specifies whether the VAT reclaim for this row is pending, approved, or rejected.';
                 }
-#if not CLEAN29
-                field("Reclaim Approved"; Rec."Reclaim Approved")
-                {
-                    Caption = 'Reclaim Approved';
-                    ToolTip = 'Specifies whether reclaim is approved for this row.';
-                    ObsoleteReason = 'Replaced by "Reclaim Status" field.';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
-                    Visible = false;
-                }
-#endif
             }
         }
     }

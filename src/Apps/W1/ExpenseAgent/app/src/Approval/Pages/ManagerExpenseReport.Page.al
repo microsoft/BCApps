@@ -168,20 +168,6 @@ page 6980 "Manager Expense Report"
                 Provider = "Expense Report Subform";
                 SubPageLink = "Document Type" = const(Expense), "Table ID" = const(Database::"Expense Report Line"), "No." = field("Document No."), "Line No." = field("Line No.");
             }
-#if not CLEAN29
-#pragma warning disable AL0432
-            part("Expense Report Statistics"; "Expense Report Statistics")
-            {
-                ApplicationArea = Basic, Suite;
-                UpdatePropagation = Both;
-                SubPageLink = "No." = field("No.");
-                ObsoleteReason = 'Replaced by Expense Report FactBox';
-                ObsoleteState = Pending;
-                ObsoleteTag = '29.0';
-                Visible = false;
-            }
-#pragma warning restore AL0432
-#endif
             part("Expense Report FactBox"; "Expense Report FactBox")
             {
                 ApplicationArea = Basic, Suite;
@@ -407,7 +393,7 @@ page 6980 "Manager Expense Report"
                     Caption = 'Statistics';
                     Image = Statistics;
                     ShortCutKey = 'F7';
-                    RunObject = Page "Expense Report Stats";
+                    RunObject = Page "Expense Report Statistics";
                     RunPageLink = "No." = field("No.");
                     ToolTip = 'View statistical information, such as VAT amounts, for the expense report.';
                 }

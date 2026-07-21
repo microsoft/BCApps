@@ -178,7 +178,7 @@ table 6922 "Expense Report Line VAT Spec."
             begin
                 if not Reclaimable then begin
                     Validate("Reclaim %", 0);
-                    "Reclaim Status" := "Reclaim Status"::Rejected;
+                    "Reclaim Status" := "Reclaim Status"::" ";
                 end;
             end;
         }
@@ -199,7 +199,7 @@ table 6922 "Expense Report Line VAT Spec."
                 LCYAmountRoundingPrecision: Decimal;
             begin
                 if "Reclaim %" <> xRec."Reclaim %" then
-                    "Reclaim Status" := "Reclaim Status"::"Pending";
+                    "Reclaim Status" := "Reclaim Status"::" ";
 
                 GLSetup.Get();
                 LCYAmountRoundingPrecision := GLSetup."Amount Rounding Precision";
@@ -289,17 +289,13 @@ table 6922 "Expense Report Line VAT Spec."
             ToolTip = 'Specifies whether the VAT reclaim for this row is pending, approved, or rejected.';
 
             trigger OnValidate()
-            var
-                NewReclaimStatus: Enum "Expense Reclaim Status";
             begin
-                NewReclaimStatus := "Reclaim Status";
                 case "Reclaim Status" of
-                    NewReclaimStatus::Approved:
+                    "Reclaim Status"::Approved:
                         Rec.Validate("Reclaim %");
-                    NewReclaimStatus::Rejected:
+                    "Reclaim Status"::Rejected:
                         Rec.Validate("Reclaim %", 0);
                 end;
-                "Reclaim Status" := NewReclaimStatus;
                 Rec."Reclaim Approved By" := CopyStr(UserId(), 1, MaxStrLen(Rec."Reclaim Approved By"));
                 Rec."Reclaim Approved At" := CurrentDateTime();
             end;

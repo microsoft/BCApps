@@ -138,21 +138,7 @@ page 6998 "Posted Expense Report"
                 Provider = "Posted Expense Report Subform";
                 SubPageLink = "Document Type" = const(Expense), "Table ID" = const(Database::"Posted Expense Report Line"), "No." = field("Document No."), "Line No." = field("Line No.");
             }
-#if not CLEAN29
-#pragma warning disable AL0432
-            part("Posted Exp. Report Statistics"; "Posted Exp. Report Statistics")
-            {
-                ApplicationArea = Basic, Suite;
-                UpdatePropagation = Both;
-                SubPageLink = "No." = field("No.");
-                ObsoleteReason = 'Replaced by Posted Expense Report FactBox';
-                ObsoleteState = Pending;
-                ObsoleteTag = '29.0';
-                Visible = false;
-            }
-#pragma warning restore AL0432
-#endif
-            part("Posted Expense Report FactBox"; "Posted Expense Report FactBox")
+            part("Posted Exp. Report FactBox"; "Posted Exp. Report FactBox")
             {
                 ApplicationArea = Basic, Suite;
                 UpdatePropagation = Both;
@@ -220,7 +206,7 @@ page 6998 "Posted Expense Report"
                     Caption = 'Statistics';
                     Image = Statistics;
                     ShortCutKey = 'F7';
-                    RunObject = Page "Posted Expense Report Stats";
+                    RunObject = Page "Posted Exp. Report Statistics";
                     RunPageLink = "No." = field("No.");
                     ToolTip = 'View statistical information, such as VAT amounts, for the posted expense report.';
                 }

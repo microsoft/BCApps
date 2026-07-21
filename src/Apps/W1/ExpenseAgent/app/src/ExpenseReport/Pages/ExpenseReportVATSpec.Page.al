@@ -8,7 +8,7 @@ namespace Microsoft.ExpenseAgent;
 /// Compact read-only summary of "Exp. Report Line VAT Spec." rows for a given Expense Report Line.
 /// Used as a FactBox on the Expense Report Lines page.
 /// </summary>
-page 7096 "Expense Report VAT Spec."
+page 7086 "Expense Report VAT Spec."
 {
     Caption = 'VAT Specification';
     PageType = ListPart;
@@ -50,6 +50,22 @@ page 7096 "Expense Report VAT Spec."
                     Caption = 'Reclaim %';
                     ToolTip = 'Specifies the reclaim percentage.';
                 }
+<<<<<<<< HEAD:src/Apps/W1/ExpenseAgent/app/src/ExpenseReport/Pages/ExpenseReportLineVATFactBox.Page.al
+                field("Reclaim Status"; Rec."Reclaim Status")
+                {
+                    Caption = 'Reclaim Status';
+                    ToolTip = 'Specifies the reclaim status for this row.';
+                }
+#if not CLEAN29
+                field("Reclaim Approved"; Rec."Reclaim Approved")
+                {
+                    Caption = 'Reclaim Approved';
+                    ToolTip = 'Specifies whether reclaim is approved for this row.';
+                    ObsoleteReason = 'Replaced by "Reclaim Status" field.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    Visible = false;
+========
                 field("Reclaim VAT Amount"; Rec."Reclaim VAT Amount")
                 {
                     Caption = 'Reclaim VAT Amount';
@@ -64,7 +80,9 @@ page 7096 "Expense Report VAT Spec."
                 {
                     Caption = 'Reclaim Status';
                     ToolTip = 'Specifies whether the VAT reclaim for this row is pending, approved, or rejected.';
+>>>>>>>> 2ec42e77683 (Add-Expense-VAT-Reclaim-Approvals):src/Apps/W1/ExpenseAgent/app/src/ExpenseReport/Pages/ExpenseReportVATSpec.Page.al
                 }
+#endif
             }
         }
     }

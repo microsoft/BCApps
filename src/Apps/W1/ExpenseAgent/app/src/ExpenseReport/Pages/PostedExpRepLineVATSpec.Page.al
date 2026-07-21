@@ -84,16 +84,6 @@ page 7083 "Posted Exp.Rep.Line VAT Spec"
                     Caption = 'Reclaim Status';
                     Editable = false;
                 }
-#if not CLEAN29
-                field("Reclaim Approved"; Rec."Reclaim Approved")
-                {
-                    Caption = 'Reclaim Approved';
-                    Editable = false;
-                    ObsoleteReason = 'Replaced by field REclaim Status';
-                    ObsoleteState = pending;
-                    ObsoleteTag = '29.0';
-                }
-#endif
                 field("Reclaim Approved By"; Rec."Reclaim Approved By")
                 {
                     Caption = 'Reclaim Approved By';

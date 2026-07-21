@@ -70,21 +70,6 @@ page 6979 "Expense Report List"
         }
         area(factboxes)
         {
-
-#if not CLEAN29
-#pragma warning disable AL0432
-            part("Expense Report Statistics"; "Expense Report Statistics")
-            {
-                ApplicationArea = Basic, Suite;
-                UpdatePropagation = Both;
-                SubPageLink = "No." = field("No.");
-                ObsoleteReason = 'Replaced by Expense Report FactBox';
-                ObsoleteState = Pending;
-                ObsoleteTag = '29.0';
-                Visible = false;
-            }
-#pragma warning restore AL0432
-#endif
             part("Expense Report FactBox"; "Expense Report FactBox")
             {
                 ApplicationArea = Basic, Suite;

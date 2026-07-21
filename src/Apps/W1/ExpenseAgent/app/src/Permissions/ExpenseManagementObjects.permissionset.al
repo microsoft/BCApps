@@ -60,7 +60,6 @@ permissionset 6904 "Expense Management - Objects"
         table "Posted Exp. Rep. Line VAT Spec" = X,
         table "Expense Vendor" = X,
         table "Expense Capabilities Buffer" = X,
-        table "Expense Project Buf" = X,
         page "EA Billing Overview" = X,
         page "EA Scheduler Tasks" = X,
         page "EA Outbox Emails" = X,
@@ -68,7 +67,7 @@ permissionset 6904 "Expense Management - Objects"
         page "Expense VAT Specification" = X,
         page "Expense VAT Spec. FactBox" = X,
         page "Expense Report Line VAT Spec." = X,
-        page "Expense Report Line VATFactBox" = X,
+        page "Expense Report VAT Spec." = X,
         page Expense = X,
         page "Expense Categories" = X,
         page "Expense Category Card" = X,
@@ -118,15 +117,6 @@ permissionset 6904 "Expense Management - Objects"
         page "Posted Expense Reports" = X,
         page "Posted Exp. Rep. Line Items" = X,
         page "Posted Exp. Rep. Line Per Diem" = X,
-#if not CLEAN29
-#pragma warning disable AL0432
-        page "Posted Exp. Report Statistics" = X,
-#pragma warning restore AL0432
-#endif
-        page "Posted Expense Report FactBox" = X,
-        page "Posted Expense Report Stats" = X,
-        page "Posted Expense Report VAT Spec" = X,
-        page "Expense Report VAT Spec." = X,
         page "Expense Ledger Entries" = X,
         page "Expense Approval Setup" = X,
         page "Expense Teams" = X,
@@ -140,18 +130,14 @@ permissionset 6904 "Expense Management - Objects"
         page "Posted Expense Billing Info." = X,
         page "Expense Payment Methods" = X,
         page "Expense Report List" = X,
-        page "Expense Report Stats" = X,
-#if not CLEAN29
-#pragma warning disable AL0432
         page "Expense Report Statistics" = X,
-#pragma warning restore AL0432
-#endif
         page "Expense Report FactBox" = X,
         page "Expense Approval Setups Part" = X,
+        page "Posted Exp. Report Statistics" = X,
+        page "Posted Exp. Report FactBox" = X,
+        page "Posted ExpRep VATSpecification" = X,
         page "Expense Picture" = X,
         page "Expense Capabilities API" = X,
-        page "Expense Projects API" = X,
-        query "Expense Project Tasks Qry" = X,
         codeunit "Expense Attachment Mgt." = X,
         codeunit "Expense Auto Population" = X,
         codeunit "Expense Event Subscriber" = X,
@@ -163,7 +149,6 @@ permissionset 6904 "Expense Management - Objects"
         codeunit "Expense Rule Validation" = X,
         codeunit "Expense Report-Post" = X,
         codeunit "Expense Report" = X,
-        codeunit "Expense Report Batch Post Mgt." = X,
         codeunit "Expense Report Manual Release" = X,
         codeunit "Expense Report Manual Reopen" = X,
         codeunit "Expense Total Caption Class" = X,
@@ -199,7 +184,6 @@ permissionset 6904 "Expense Management - Objects"
         codeunit "Expense OAuth Client" = X,
         codeunit "Expense API Currency Helper" = X,
         codeunit "Expense Capabilities Provider" = X,
-        codeunit "Expense Projects Builder" = X,
         codeunit "Import Expense User" = X,
         report "Expense Report Cover Page" = X,
         report "Expense Report Summary Page" = X,

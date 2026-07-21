@@ -197,21 +197,7 @@ page 6910 "Expense Report"
                 Provider = "Expense Report Subform";
                 SubPageLink = "Document Type" = const(Expense), "Table ID" = const(Database::"Expense Report Line"), "No." = field("Document No."), "Line No." = field("Line No.");
             }
-#if not CLEAN29
-#pragma warning disable AL0432
-            part("Expense Report Statistics"; "Expense Report Statistics")
-            {
-                ApplicationArea = Basic, Suite;
-                UpdatePropagation = Both;
-                SubPageLink = "No." = field("No.");
-                ObsoleteReason = 'Replaced by Expense Report FactBox';
-                ObsoleteState = Pending;
-                ObsoleteTag = '29.0';
-                Visible = false;
-            }
-#pragma warning restore AL0432
-#endif
-            part("Expense Report FactBox"; "Expense Report FactBox")
+            part("Exp. Report FactBox"; "Expense Report FactBox")
             {
                 ApplicationArea = Basic, Suite;
                 UpdatePropagation = Both;
@@ -257,40 +243,6 @@ page 6910 "Expense Report"
     {
         area(Processing)
         {
-            group(Action21)
-            {
-                Caption = 'Release';
-                Image = ReleaseDoc;
-                action(Release)
-                {
-                    ApplicationArea = Suite;
-                    Caption = 'Release';
-                    Enabled = Rec.Status = Rec.Status::Open;
-                    Image = ReleaseDoc;
-                    ShortCutKey = 'Ctrl+F9';
-                    ToolTip = 'Release the document to the next stage of processing. You must reopen the document before you can make changes to it.';
-
-                    trigger OnAction()
-                    begin
-                        Rec.PerformManualRelease();
-                    end;
-                }
-                action(Reopen)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Reopen';
-                    Enabled = Rec.Status <> Rec.Status::Open;
-                    Image = ReOpen;
-                    ToolTip = 'Reopen the document to change it after it has been approved. Approved documents have the Released status and must be opened before they can be changed.';
-
-                    trigger OnAction()
-                    var
-                        ReleaseExpenseReportDoc: Codeunit "Release Exp. Report Document";
-                    begin
-                        ReleaseExpenseReportDoc.PerformManualReopen(Rec);
-                    end;
-                }
-            }
             group("Posting")
             {
                 Caption = 'Posting';
@@ -358,34 +310,37 @@ page 6910 "Expense Report"
                     end;
                 }
             }
-            group(Approval)
+            group(Action21)
             {
-                Caption = 'Approval';
-                Image = Approvals;
-                action(Approve)
+                Caption = 'Release';
+                Image = ReleaseDoc;
+                action(Release)
                 {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Approve';
-                    Image = Approve;
-                    Visible = ApprovalActionsEnabled;
-                    ToolTip = 'Approve the expense report that is pending your approval. Only the assigned approver can approve it.';
+                    ApplicationArea = Suite;
+                    Caption = 'Release';
+                    Enabled = Rec.Status = Rec.Status::Open;
+                    Image = ReleaseDoc;
+                    ShortCutKey = 'Ctrl+F9';
+                    ToolTip = 'Release the document to the next stage of processing. You must reopen the document before you can make changes to it.';
 
                     trigger OnAction()
                     begin
-                        ProcessApprovalAction(RefActionType::Approve);
+                        Rec.PerformManualRelease();
                     end;
                 }
-                action(Reject)
+                action(Reopen)
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Reject';
-                    Image = Reject;
-                    Visible = ApprovalActionsEnabled;
-                    ToolTip = 'Reject the expense report that is pending your approval. Only the assigned approver can reject it.';
+                    Caption = 'Reopen';
+                    Enabled = Rec.Status <> Rec.Status::Open;
+                    Image = ReOpen;
+                    ToolTip = 'Reopen the document to change it after it has been approved. Approved documents have the Released status and must be opened before they can be changed.';
 
                     trigger OnAction()
+                    var
+                        ReleaseExpenseReportDoc: Codeunit "Release Exp. Report Document";
                     begin
-                        ProcessApprovalAction(RefActionType::Reject);
+                        ReleaseExpenseReportDoc.PerformManualReopen(Rec);
                     end;
                 }
             }
@@ -470,7 +425,7 @@ page 6910 "Expense Report"
                     Caption = 'Statistics';
                     Image = Statistics;
                     ShortCutKey = 'F7';
-                    RunObject = Page "Expense Report Stats";
+                    RunObject = Page "Expense Report Statistics";
                     RunPageLink = "No." = field("No.");
                     ToolTip = 'View statistical information, such as VAT amounts, for the expense report.';
                     Visible = Rec."No." <> '';
@@ -540,18 +495,6 @@ page 6910 "Expense Report"
             {
                 Caption = 'Home';
 
-                group(Category_Release)
-                {
-                    Caption = 'Release';
-                    ShowAs = SplitButton;
-
-                    actionref(Release_Promoted; Release)
-                    {
-                    }
-                    actionref(Reopen_Promoted; Reopen)
-                    {
-                    }
-                }
                 group(Category_Posting)
                 {
                     Caption = 'Posting';
@@ -567,18 +510,19 @@ page 6910 "Expense Report"
                     {
                     }
                 }
-                actionref(GetExpenseLine_Promoted; GetExpenseLine)
+                group(Category_Release)
                 {
-                }
-            }
-            group(Category_Approval)
-            {
-                Caption = 'Approval';
+                    Caption = 'Release';
+                    ShowAs = SplitButton;
 
-                actionref(Approve_Promoted; Approve)
-                {
+                    actionref(Release_Promoted; Release)
+                    {
+                    }
+                    actionref(Reopen_Promoted; Reopen)
+                    {
+                    }
                 }
-                actionref(Reject_Promoted; Reject)
+                actionref(GetExpenseLine_Promoted; GetExpenseLine)
                 {
                 }
             }
@@ -665,7 +609,6 @@ page 6910 "Expense Report"
         ExpenseUserNo: Code[20];
         ApproverComment: Text;
         AllowVATReclaim: Boolean;
-        ApprovalActionsEnabled: Boolean;
 
     protected var
         SubmitEnabled: Boolean;
@@ -684,7 +627,6 @@ page 6910 "Expense Report"
 
         ExpenseAgentSetup.GetRecordOnce();
         AllowVATReclaim := ExpenseAgentSetup."Allow VAT Reclaim";
-        ApprovalActionsEnabled := ExpenseAgentSetup."Enable Agent" and ApproveEnabled and (Rec."Approver Expense User ID" = UserId());
     end;
 
     local procedure CheckSetDefaultOwnerFilter()
@@ -727,27 +669,6 @@ page 6910 "Expense Report"
     begin
         if ExpenseReportApprovalMgt.ConfirmAction(RefActionType::"Reopen Submitted") then
             Process(RefActionType::"Reopen Submitted");
-    end;
-
-    local procedure ProcessApprovalAction(ActionType: Enum "Expense Approval Action")
-    var
-        ExpenseReportLine: Record "Expense Report Line";
-        ExpenseReportApprovalMgt: Codeunit "Expense Report Approval Mgmt";
-    begin
-        if not ExpenseReportApprovalMgt.ConfirmAction(ActionType) then
-            exit;
-
-        ExpenseReportLine.SetRange("Document No.", Rec."No.");
-        if ExpenseReportLine.IsEmpty() then
-            ExpenseReportApprovalMgt.NoExpenseLinesToProcess(ActionType);
-
-        case ActionType of
-            ActionType::Approve:
-                Rec.PerformManualApproved(Rec."Approver Expense User No.");
-            ActionType::Reject:
-                Rec.PerformManualRejected(Rec."Approver Expense User No.", '');
-        end;
-        CurrPage.Update(false);
     end;
 
     local procedure SetDocNoVisible()

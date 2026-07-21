@@ -96,17 +96,6 @@ page 7081 "Expense Report Line VAT Spec."
                     StyleExpr = ReclaimStatusStyle;
                     ToolTip = 'Specifies whether the VAT reclaim for this row is pending, approved, or rejected.';
                 }
-#if not CLEAN29
-                field("Reclaim Approved"; Rec."Reclaim Approved")
-                {
-                    Caption = 'Reclaim Approved';
-                    Editable = false;
-                    Visible = false;
-                    ObsoleteReason = 'Replaced by field Reclaim Status';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
-                }
-#endif
                 field("Reclaim Approved By"; Rec."Reclaim Approved By")
                 {
                     Caption = 'Reclaim Approved By';
@@ -175,12 +164,8 @@ page 7081 "Expense Report Line VAT Spec."
             group(Category_Process)
             {
                 Caption = 'Process';
-                actionref(ApproveReclaim_Promoted; ApproveReclaim)
-                {
-                }
-                actionref(RejectReclaim_Promoted; RejectReclaim)
-                {
-                }
+                actionref(ApproveReclaim_Promoted; ApproveReclaim) { }
+                actionref(RejectReclaim_Promoted; RejectReclaim) { }
             }
         }
     }
