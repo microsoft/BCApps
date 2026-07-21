@@ -29,10 +29,11 @@ report 139595 TestReportLayoutsReport
         }
         // Second extension-installed layout so tests can exercise multi-layout scenarios
         // (e.g. mixed global/company scope in a batch status change - CP0529-338).
+        // Uses its own layout file: a layout file must not be shared between layouts (AL0835).
         layout(MYLAYOUT2)
         {
             Type = RDLC;
-            LayoutFile = 'Layouts/TestReportLayoutsReport.rdl';
+            LayoutFile = 'Layouts/TestReportLayoutsReport2.rdl';
         }
     }
 }
