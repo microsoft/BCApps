@@ -4148,7 +4148,7 @@ codeunit 148190 "Sust. Value Entry Test"
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         // [GIVEN] Store External Document No. for search criteria.
-        ExternalDocNo := LibraryRandom.RandText(5);
+        ExternalDocNo := CopyStr(LibraryRandom.RandText(5), 1, MaxStrLen(ExternalDocNo));
 
         // [GIVEN] Create another Purchase Document with External Document No. and without sustainability details.
         LibraryPurchase.CreatePurchHeader(PurchaseHeader, "Purchase Document Type"::Invoice, LibraryPurchase.CreateVendorNo());
@@ -4354,6 +4354,288 @@ codeunit 148190 "Sust. Value Entry Test"
 
         // [THEN] The credit memo Sustainability Value Entry is positive (inbound), mirroring the shipment.
         VerifySustainabilityValueEntryDocumentCO2e(PostedCreditMemoNo, ExpectedCO2ePerUnit);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure VerifyUndoSalesShipmentCreatesReversingCO2eForSpecificLotTrackedItem()
+    var
+        CountryRegion: Record "Country/Region";
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        ExpectedShipmentCO2e: Decimal;
+        ShipmentNo: Code[20];
+        LotNo: Code[50];
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+    begin
+        // [SCENARIO 641487] Undo of a Sales Shipment for a Specific carbon, lot-tracked item creates a reversing (positive)
+        // Sustainability Value Entry so the item's emissions return to the pre-shipment value.
+        LibrarySustainability.CleanUpBeforeTesting();
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        LotNo := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] A Specific carbon, lot-tracked item with 10 pcs in a lot carrying a known CO2e per unit.
+        LibraryItemTracking.CreateLotItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        ExpectedShipmentCO2e := LibraryRandom.RandDecInRange(100, 500, 2);
+        LibrarySustainability.PostPositiveAdjustmentWithItemTracking(Item, '', AccountCode, '', 10, WorkDate(), '', LotNo, ExpectedShipmentCO2e * 10);
+
+        // [GIVEN] A Sales Order shipping 1 pc from the lot is posted (ship only, not invoiced).
+        CreateAndShipSalesOrderWithItemTracking(SalesHeader, CountryRegion.Code, AccountCode, Item."No.", 1, '', LotNo);
+        SalesShipmentHeader.SetRange("Order No.", SalesHeader."No.");
+        SalesShipmentHeader.FindFirst();
+        ShipmentNo := SalesShipmentHeader."No.";
+
+        // [THEN] The shipment created one negative Sustainability Value Entry.
+        VerifySustainabilityValueEntrySumForDocument(ShipmentNo, -ExpectedShipmentCO2e);
+
+        // [WHEN] The shipment is reversed with Undo Shipment.
+        SalesShipmentLine.SetRange("Document No.", ShipmentNo);
+#pragma warning disable AA0210
+        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+#pragma warning restore AA0210
+        SalesShipmentLine.FindFirst();
+        LibrarySales.UndoSalesShipmentLine(SalesShipmentLine);
+
+        // [THEN] Reversing Sustainability Value Entries are created and the shipment nets to zero.
+        VerifySustainabilityValueEntryCountForDocument(ShipmentNo, 4);
+        VerifySustainabilityValueEntrySumForDocument(ShipmentNo, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure VerifyUndoSalesShipmentCreatesReversingCO2eForSpecificSerialTrackedItem()
+    var
+        CountryRegion: Record "Country/Region";
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        ExpectedShipmentCO2e: Decimal;
+        ShipmentNo: Code[20];
+        SerialNo: Code[50];
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+    begin
+        // [SCENARIO 641487] Undo of a Sales Shipment for a Specific carbon, serial-tracked item creates a reversing (positive)
+        // Sustainability Value Entry so the item's emissions return to the pre-shipment value.
+        LibrarySustainability.CleanUpBeforeTesting();
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        LibraryERM.CreateCountryRegion(CountryRegion);
+        SerialNo := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] A Specific carbon, serial-tracked item with 1 pc carrying a known CO2e per unit.
+        LibraryItemTracking.CreateSerialItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        ExpectedShipmentCO2e := LibraryRandom.RandDecInRange(100, 500, 2);
+        LibrarySustainability.PostPositiveAdjustmentWithItemTracking(Item, '', AccountCode, '', 1, WorkDate(), SerialNo, '', ExpectedShipmentCO2e);
+
+        // [GIVEN] A Sales Order shipping the serial number is posted (ship only, not invoiced).
+        CreateAndShipSalesOrderWithItemTracking(SalesHeader, CountryRegion.Code, AccountCode, Item."No.", 1, SerialNo, '');
+        SalesShipmentHeader.SetRange("Order No.", SalesHeader."No.");
+        SalesShipmentHeader.FindFirst();
+        ShipmentNo := SalesShipmentHeader."No.";
+
+        // [THEN] The shipment created one negative Sustainability Value Entry.
+        VerifySustainabilityValueEntrySumForDocument(ShipmentNo, -ExpectedShipmentCO2e);
+
+        // [WHEN] The shipment is reversed with Undo Shipment.
+        SalesShipmentLine.SetRange("Document No.", ShipmentNo);
+#pragma warning disable AA0210
+        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+#pragma warning restore AA0210
+        SalesShipmentLine.FindFirst();
+        LibrarySales.UndoSalesShipmentLine(SalesShipmentLine);
+
+        // [THEN] Reversing Sustainability Value Entries are created and the shipment nets to zero.
+        VerifySustainabilityValueEntryCountForDocument(ShipmentNo, 4);
+        VerifySustainabilityValueEntrySumForDocument(ShipmentNo, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure VerifyUndoSalesShipmentCreatesReversingCO2eForSpecificNonTrackedItem()
+    var
+        CountryRegion: Record "Country/Region";
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        ExpectedShipmentCO2e: Decimal;
+        ShipmentNo: Code[20];
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+    begin
+        // [SCENARIO 641487] Undo of a Sales Shipment for a Specific carbon item without item tracking creates a reversing
+        // (positive) Sustainability Value Entry so the item's emissions return to the pre-shipment value.
+        LibrarySustainability.CleanUpBeforeTesting();
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        LibraryERM.CreateCountryRegion(CountryRegion);
+
+        // [GIVEN] A Specific carbon item (no item tracking) with 10 pcs carrying a known CO2e per unit.
+        LibraryInventory.CreateItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        ExpectedShipmentCO2e := LibraryRandom.RandDecInRange(100, 500, 2);
+        PostPositiveAdjustmentWithCO2e(Item, AccountCode, 10, ExpectedShipmentCO2e * 10);
+
+        // [GIVEN] A Sales Order shipping 1 pc is posted (ship only, not invoiced).
+        CreateAndShipSalesOrderWithItemTracking(SalesHeader, CountryRegion.Code, AccountCode, Item."No.", 1, '', '');
+        SalesShipmentHeader.SetRange("Order No.", SalesHeader."No.");
+        SalesShipmentHeader.FindFirst();
+        ShipmentNo := SalesShipmentHeader."No.";
+
+        // [THEN] The shipment created one negative Sustainability Value Entry.
+        VerifySustainabilityValueEntrySumForDocument(ShipmentNo, -ExpectedShipmentCO2e);
+
+        // [WHEN] The shipment is reversed with Undo Shipment.
+        SalesShipmentLine.SetRange("Document No.", ShipmentNo);
+#pragma warning disable AA0210
+        SalesShipmentLine.SetRange(Type, SalesShipmentLine.Type::Item);
+#pragma warning restore AA0210
+        SalesShipmentLine.FindFirst();
+        LibrarySales.UndoSalesShipmentLine(SalesShipmentLine);
+
+        // [THEN] Reversing Sustainability Value Entries are created and the shipment nets to zero.
+        VerifySustainabilityValueEntryCountForDocument(ShipmentNo, 4);
+        VerifySustainabilityValueEntrySumForDocument(ShipmentNo, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure VerifyUndoPurchaseReceiptCreatesReversingCO2eForNonTrackedItem()
+    var
+        SustainabilityAccount: Record "Sustainability Account";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ExpectedReceiptCO2e: Decimal;
+        ReceiptNo: Code[20];
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+    begin
+        // [SCENARIO 641487] Undo of a Purchase Receipt for an item without item tracking reverses the received
+        // emissions by creating a reversing Sustainability Value Entry.
+        LibrarySustainability.CleanUpBeforeTesting();
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SustainabilityAccount.Get(AccountCode);
+
+        // [GIVEN] A non-tracked item received with per-unit emissions.
+        CreateAndReceivePurchaseOrderWithEmissions(
+            ReceiptNo, ExpectedReceiptCO2e, AccountCode, SustainabilityAccount."Emission Scope",
+            LibraryInventory.CreateItemNo(), LibraryRandom.RandIntInRange(2, 10), '', '');
+
+        // [THEN] The receipt created one positive Sustainability Value Entry.
+        VerifySustainabilityValueEntryCountForDocument(ReceiptNo, 1);
+        VerifySustainabilityValueEntrySumForDocument(ReceiptNo, ExpectedReceiptCO2e);
+
+        // [WHEN] The receipt is reversed with Undo Receipt.
+        PurchRcptLine.SetRange("Document No.", ReceiptNo);
+#pragma warning disable AA0210
+        PurchRcptLine.SetRange(Type, PurchRcptLine.Type::Item);
+#pragma warning restore AA0210
+        PurchRcptLine.FindFirst();
+        LibraryPurchase.UndoPurchaseReceiptLine(PurchRcptLine);
+
+        // [THEN] A reversing Sustainability Value Entry is created and the receipt nets to zero.
+        VerifySustainabilityValueEntrySumForDocument(ReceiptNo, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure VerifyUndoPurchaseReceiptCreatesReversingCO2eForLotTrackedItem()
+    var
+        SustainabilityAccount: Record "Sustainability Account";
+        Item: Record Item;
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ExpectedReceiptCO2e: Decimal;
+        ReceiptNo: Code[20];
+        LotNo: Code[50];
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+    begin
+        // [SCENARIO 641487] Undo of a Purchase Receipt for a lot-tracked item reverses the received emissions by
+        // creating a reversing Sustainability Value Entry.
+        LibrarySustainability.CleanUpBeforeTesting();
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SustainabilityAccount.Get(AccountCode);
+        LotNo := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] A lot-tracked item received (single lot) with per-unit emissions.
+        LibraryItemTracking.CreateLotItem(Item);
+        CreateAndReceivePurchaseOrderWithEmissions(
+            ReceiptNo, ExpectedReceiptCO2e, AccountCode, SustainabilityAccount."Emission Scope",
+            Item."No.", LibraryRandom.RandIntInRange(2, 10), '', LotNo);
+
+        // [THEN] The receipt created one positive Sustainability Value Entry.
+        VerifySustainabilityValueEntryCountForDocument(ReceiptNo, 1);
+        VerifySustainabilityValueEntrySumForDocument(ReceiptNo, ExpectedReceiptCO2e);
+
+        // [WHEN] The receipt is reversed with Undo Receipt.
+        PurchRcptLine.SetRange("Document No.", ReceiptNo);
+#pragma warning disable AA0210
+        PurchRcptLine.SetRange(Type, PurchRcptLine.Type::Item);
+#pragma warning restore AA0210
+        PurchRcptLine.FindFirst();
+        LibraryPurchase.UndoPurchaseReceiptLine(PurchRcptLine);
+
+        // [THEN] A reversing Sustainability Value Entry is created and the receipt nets to zero.
+        VerifySustainabilityValueEntrySumForDocument(ReceiptNo, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure VerifyUndoPurchaseReceiptCreatesReversingCO2eForSerialTrackedItem()
+    var
+        SustainabilityAccount: Record "Sustainability Account";
+        Item: Record Item;
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        ExpectedReceiptCO2e: Decimal;
+        ReceiptNo: Code[20];
+        SerialNo: Code[50];
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+    begin
+        // [SCENARIO 641487] Undo of a Purchase Receipt for a serial-tracked item reverses the received emissions by
+        // creating a reversing Sustainability Value Entry.
+        LibrarySustainability.CleanUpBeforeTesting();
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SustainabilityAccount.Get(AccountCode);
+        SerialNo := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] A serial-tracked item received (1 pc) with per-unit emissions.
+        LibraryItemTracking.CreateSerialItem(Item);
+        CreateAndReceivePurchaseOrderWithEmissions(
+            ReceiptNo, ExpectedReceiptCO2e, AccountCode, SustainabilityAccount."Emission Scope",
+            Item."No.", 1, SerialNo, '');
+
+        // [THEN] The receipt created one positive Sustainability Value Entry.
+        VerifySustainabilityValueEntryCountForDocument(ReceiptNo, 1);
+        VerifySustainabilityValueEntrySumForDocument(ReceiptNo, ExpectedReceiptCO2e);
+
+        // [WHEN] The receipt is reversed with Undo Receipt.
+        PurchRcptLine.SetRange("Document No.", ReceiptNo);
+#pragma warning disable AA0210
+        PurchRcptLine.SetRange(Type, PurchRcptLine.Type::Item);
+#pragma warning restore AA0210
+        PurchRcptLine.FindFirst();
+        LibraryPurchase.UndoPurchaseReceiptLine(PurchRcptLine);
+
+        // [THEN] A reversing Sustainability Value Entry is created and the receipt nets to zero.
+        VerifySustainabilityValueEntrySumForDocument(ReceiptNo, 0);
     end;
 
     local procedure CreateSustainabilityAccount(var AccountCode: Code[20]; var CategoryCode: Code[20]; var SubcategoryCode: Code[20]; i: Integer): Record "Sustainability Account"
@@ -4824,6 +5106,66 @@ codeunit 148190 "Sust. Value Entry Test"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
+    local procedure CreateAndShipSalesOrderWithItemTracking(var SalesHeader: Record "Sales Header"; CountryRegion: Code[10]; SustAccountNo: Code[20]; ItemNo: Code[20]; Quantity: Decimal; SerialNo: Code[50]; LotNo: Code[50])
+    var
+        SalesLine: Record "Sales Line";
+        ReservationEntry: Record "Reservation Entry";
+    begin
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Order, LibrarySales.CreateCustomerNo());
+        SalesHeader."Bill-to Country/Region Code" := CountryRegion;
+        SalesHeader.Modify();
+
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, "Sales Line Type"::Item, ItemNo, Quantity);
+        SalesLine.Validate("Unit Price", LibraryRandom.RandIntInRange(10, 200));
+        SalesLine.Validate("Sust. Account No.", SustAccountNo);
+        SalesLine.Modify();
+
+        if (SerialNo <> '') or (LotNo <> '') then
+            LibraryItemTracking.CreateSalesOrderItemTracking(ReservationEntry, SalesLine, SerialNo, LotNo, Quantity);
+
+        // Ship only (not invoiced) so the shipment can be reversed with Undo Shipment.
+        LibrarySales.PostSalesDocument(SalesHeader, true, false);
+    end;
+
+    local procedure PostPositiveAdjustmentWithCO2e(Item: Record Item; AccountCode: Code[20]; Qty: Decimal; TotalCO2e: Decimal)
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryInventory.CreateItemJournalBatchByType(ItemJournalBatch, ItemJournalTemplate.Type::Item);
+        LibraryInventory.CreateItemJournalLine(
+            ItemJournalLine, ItemJournalBatch, Item, '', '', WorkDate(),
+            ItemJournalLine."Entry Type"::"Positive Adjmt.", Qty, 0);
+        ItemJournalLine.Validate("Sust. Account No.", AccountCode);
+        ItemJournalLine.Validate("Total CO2e", TotalCO2e);
+        ItemJournalLine.Modify();
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+    end;
+
+    local procedure VerifySustainabilityValueEntrySumForDocument(DocumentNo: Code[20]; ExpectedSum: Decimal)
+    var
+        SustainabilityValueEntry: Record "Sustainability Value Entry";
+    begin
+        SustainabilityValueEntry.SetRange("Document No.", DocumentNo);
+        SustainabilityValueEntry.CalcSums("CO2e Amount (Actual)", "CO2e Amount (Expected)");
+        Assert.AreEqual(
+            ExpectedSum,
+            SustainabilityValueEntry."CO2e Amount (Actual)" + SustainabilityValueEntry."CO2e Amount (Expected)",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e Amount (Expected)"), ExpectedSum, SustainabilityValueEntry.TableCaption()));
+    end;
+
+    local procedure VerifySustainabilityValueEntryCountForDocument(DocumentNo: Code[20]; ExpectedCount: Integer)
+    var
+        SustainabilityValueEntry: Record "Sustainability Value Entry";
+    begin
+        SustainabilityValueEntry.SetRange("Document No.", DocumentNo);
+        Assert.AreEqual(
+            ExpectedCount,
+            SustainabilityValueEntry.Count(),
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("Entry No."), ExpectedCount, SustainabilityValueEntry.TableCaption()));
+    end;
+
     local procedure CreateItemJournalLineWithCO2e(var ItemJournalLine: Record "Item Journal Line"; ItemNo: Code[20]; Qty: Decimal; AccountCode: Code[20]; TotalCO2e: Decimal)
     var
         ItemJournalTemplate: Record "Item Journal Template";
@@ -4955,6 +5297,45 @@ codeunit 148190 "Sust. Value Entry Test"
             LibraryItemTracking.CreatePurchOrderItemTracking(
          ReservationEntry, PurchaseLine, '', LotNo, PurchaseLine.Quantity);
         PurchaseLine.Modify();
+    end;
+
+    local procedure CreateAndReceivePurchaseOrderWithEmissions(var ReceiptNo: Code[20]; var ExpectedReceiptCO2e: Decimal; AccountCode: Code[20]; EmissionScope: Enum "Emission Scope"; ItemNo: Code[20]; Quantity: Decimal; SerialNo: Code[50]; LotNo: Code[50])
+    var
+        EmissionFee: array[3] of Record "Emission Fee";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ReservationEntry: Record "Reservation Entry";
+        EmissionCO2: Decimal;
+        EmissionCH4: Decimal;
+        EmissionN2O: Decimal;
+    begin
+        EmissionCO2 := LibraryRandom.RandIntInRange(100, 500);
+        EmissionCH4 := LibraryRandom.RandIntInRange(100, 500);
+        EmissionN2O := LibraryRandom.RandIntInRange(100, 500);
+        CreateEmissionFeeWithEmissionScope(EmissionFee, EmissionScope, '');
+
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, "Purchase Document Type"::Order, LibraryPurchase.CreateVendorNo());
+
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, "Purchase Line Type"::Item, ItemNo, Quantity);
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandIntInRange(10, 100));
+        PurchaseLine.Validate("Sust. Account No.", AccountCode);
+        PurchaseLine.Validate("Emission CO2", EmissionCO2);
+        PurchaseLine.Validate("Emission CH4", EmissionCH4);
+        PurchaseLine.Validate("Emission N2O", EmissionN2O);
+        if (SerialNo <> '') or (LotNo <> '') then
+            LibraryItemTracking.CreatePurchOrderItemTracking(ReservationEntry, PurchaseLine, SerialNo, LotNo, PurchaseLine.Quantity);
+        PurchaseLine.Modify();
+
+        // Expected received CO2e = total per-gas emissions * the emission fee carbon-equivalent factors (matches the app posting).
+        EmissionCO2 := PurchaseLine."Emission CO2 Per Unit" * PurchaseLine."Qty. per Unit of Measure" * PurchaseLine.Quantity;
+        EmissionCH4 := PurchaseLine."Emission CH4 Per Unit" * PurchaseLine."Qty. per Unit of Measure" * PurchaseLine.Quantity;
+        EmissionN2O := PurchaseLine."Emission N2O Per Unit" * PurchaseLine."Qty. per Unit of Measure" * PurchaseLine.Quantity;
+        ExpectedReceiptCO2e :=
+            EmissionCH4 * EmissionFee[1]."Carbon Equivalent Factor" +
+            EmissionCO2 * EmissionFee[2]."Carbon Equivalent Factor" +
+            EmissionN2O * EmissionFee[3]."Carbon Equivalent Factor";
+
+        ReceiptNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
     end;
 
     [PageHandler]

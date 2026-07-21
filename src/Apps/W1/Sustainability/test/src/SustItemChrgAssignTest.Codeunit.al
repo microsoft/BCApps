@@ -1738,9 +1738,7 @@ codeunit 148210 "Sust. Item Chrg Assign. Test"
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         // [GIVEN] Find the posted Purchase Receipt Line.
-        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
-        PurchRcptLine.SetRange("No.", Item."No.");
-        PurchRcptLine.FindFirst();
+        FindReceiptLine(PurchRcptLine, PurchaseHeader."No.", Item."No.");
 
         // [GIVEN] Create a Purchase Order with a Charge Item that carries emissions and assign it to the receipt.
         LibraryPurchase.CreatePurchHeader(PurchaseHeader2, "Purchase Document Type"::Order, PurchaseHeader."Buy-from Vendor No.");
@@ -1840,9 +1838,7 @@ codeunit 148210 "Sust. Item Chrg Assign. Test"
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         // [GIVEN] Find the posted Purchase Receipt Line.
-        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
-        PurchRcptLine.SetRange("No.", Item."No.");
-        PurchRcptLine.FindFirst();
+        FindReceiptLine(PurchRcptLine, PurchaseHeader."No.", Item."No.");
 
         // [GIVEN] Create a Purchase Order with a Charge Item that carries emissions and assign it to the receipt.
         LibraryPurchase.CreatePurchHeader(PurchaseHeader2, "Purchase Document Type"::Order, PurchaseHeader."Buy-from Vendor No.");

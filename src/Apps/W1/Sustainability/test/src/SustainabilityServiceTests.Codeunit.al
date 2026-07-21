@@ -6,6 +6,7 @@ namespace Microsoft.Sustainability.Tests;
 
 using Microsoft.Foundation.Address;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Projects.Project.Job;
 using Microsoft.Projects.Resources.Resource;
@@ -2427,6 +2428,297 @@ codeunit 148218 "Sustainability Service Tests"
         Assert.RecordCount(SustainabilityLedgerEntry, 0);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure VerifyUndoServiceShipmentCreatesReversingCO2eForSpecificLotTrackedItem()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        Item: Record Item;
+        ExpectedShipmentCO2e: Decimal;
+        ShipmentNo: Code[20];
+        LotNo: Code[50];
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+    begin
+        // [SCENARIO 641487] Undo of a Service Shipment for a Specific carbon, lot-tracked item creates a reversing
+        // (positive) Sustainability Value Entry so the item's emissions return to the pre-shipment value.
+        Initialize();
+
+        // [GIVEN] Enable Value Chain Tracking and create a Sustainability Account.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        LotNo := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] A Specific carbon, lot-tracked item with 10 pcs in a lot carrying a known CO2e per unit.
+        LibraryItemTracking.CreateLotItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        ExpectedShipmentCO2e := LibraryRandom.RandDecInRange(100, 500, 2);
+        LibrarySustainability.PostPositiveAdjustmentWithItemTracking(Item, '', AccountCode, '', 10, WorkDate(), '', LotNo, ExpectedShipmentCO2e * 10);
+
+        // [GIVEN] A Service Order shipping 1 pc from the lot is posted (ship only, not invoiced).
+        CreateServiceOrderWithItem(ServiceHeader, ServiceLine, LibrarySales.CreateCustomerNo(), '', Item."No.", 1);
+        ServiceLine.Validate("Sust. Account No.", AccountCode);
+        ServiceLine.Validate("CO2e per Unit", ExpectedShipmentCO2e);
+        ServiceLine.Modify();
+        CreateServiceOrderItemTracking(ServiceLine, '', LotNo, ServiceLine.Quantity);
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, false);
+        ShipmentNo := FindServiceShipmentHeader(ServiceHeader."No.");
+
+        // [THEN] The shipment created one negative Sustainability Value Entry.
+        VerifySustValueEntrySumForDocument(ShipmentNo, -ExpectedShipmentCO2e);
+
+        // [WHEN] The shipment is reversed with Undo Shipment.
+        LibraryService.UndoShipmentLinesByServiceOrderNo(ServiceHeader."No.");
+
+        // [THEN] Reversing Sustainability Value Entries are created and the shipment nets to zero.
+        VerifySustValueEntryCountForDocument(ShipmentNo, 4);
+        VerifySustValueEntrySumForDocument(ShipmentNo, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure VerifyUndoServiceShipmentCreatesReversingCO2eForSpecificSerialTrackedItem()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        Item: Record Item;
+        ExpectedShipmentCO2e: Decimal;
+        ShipmentNo: Code[20];
+        SerialNo: Code[50];
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+    begin
+        // [SCENARIO 641487] Undo of a Service Shipment for a Specific carbon, serial-tracked item creates a reversing
+        // (positive) Sustainability Value Entry so the item's emissions return to the pre-shipment value.
+        Initialize();
+
+        // [GIVEN] Enable Value Chain Tracking and create a Sustainability Account.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SerialNo := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] A Specific carbon, serial-tracked item with 1 pc carrying a known CO2e per unit.
+        LibraryItemTracking.CreateSerialItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        ExpectedShipmentCO2e := LibraryRandom.RandDecInRange(100, 500, 2);
+        LibrarySustainability.PostPositiveAdjustmentWithItemTracking(Item, '', AccountCode, '', 1, WorkDate(), SerialNo, '', ExpectedShipmentCO2e);
+
+        // [GIVEN] A Service Order shipping the serial number is posted (ship only, not invoiced).
+        CreateServiceOrderWithItem(ServiceHeader, ServiceLine, LibrarySales.CreateCustomerNo(), '', Item."No.", 1);
+        ServiceLine.Validate("Sust. Account No.", AccountCode);
+        ServiceLine.Validate("CO2e per Unit", ExpectedShipmentCO2e);
+        ServiceLine.Modify();
+        CreateServiceOrderItemTracking(ServiceLine, SerialNo, '', ServiceLine.Quantity);
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, false);
+        ShipmentNo := FindServiceShipmentHeader(ServiceHeader."No.");
+
+        // [THEN] The shipment created one negative Sustainability Value Entry.
+        VerifySustValueEntrySumForDocument(ShipmentNo, -ExpectedShipmentCO2e);
+
+        // [WHEN] The shipment is reversed with Undo Shipment.
+        LibraryService.UndoShipmentLinesByServiceOrderNo(ServiceHeader."No.");
+
+        // [THEN] Reversing Sustainability Value Entries are created and the shipment nets to zero.
+        VerifySustValueEntryCountForDocument(ShipmentNo, 4);
+        VerifySustValueEntrySumForDocument(ShipmentNo, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure VerifyUndoServiceShipmentCreatesReversingCO2eForSpecificNonTrackedItem()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        Item: Record Item;
+        ExpectedShipmentCO2e: Decimal;
+        ShipmentNo: Code[20];
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+    begin
+        // [SCENARIO 641487] Undo of a Service Shipment for a Specific carbon item without item tracking creates a
+        // reversing (positive) Sustainability Value Entry so the item's emissions return to the pre-shipment value.
+        Initialize();
+
+        // [GIVEN] Enable Value Chain Tracking and create a Sustainability Account.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+
+        // [GIVEN] A Specific carbon item (no item tracking) with 10 pcs carrying a known CO2e per unit.
+        LibraryInventory.CreateItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        ExpectedShipmentCO2e := LibraryRandom.RandDecInRange(100, 500, 2);
+        PostPositiveAdjustmentWithCO2e(Item, AccountCode, 10, ExpectedShipmentCO2e * 10);
+
+        // [GIVEN] A Service Order shipping 1 pc is posted (ship only, not invoiced).
+        CreateServiceOrderWithItem(ServiceHeader, ServiceLine, LibrarySales.CreateCustomerNo(), '', Item."No.", 1);
+        ServiceLine.Validate("Sust. Account No.", AccountCode);
+        ServiceLine.Validate("CO2e per Unit", ExpectedShipmentCO2e);
+        ServiceLine.Modify();
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, false);
+        ShipmentNo := FindServiceShipmentHeader(ServiceHeader."No.");
+
+        // [THEN] The shipment created one negative Sustainability Value Entry.
+        VerifySustValueEntrySumForDocument(ShipmentNo, -ExpectedShipmentCO2e);
+
+        // [WHEN] The shipment is reversed with Undo Shipment.
+        LibraryService.UndoShipmentLinesByServiceOrderNo(ServiceHeader."No.");
+
+        // [THEN] Reversing Sustainability Value Entries are created and the shipment nets to zero.
+        VerifySustValueEntryCountForDocument(ShipmentNo, 4);
+        VerifySustValueEntrySumForDocument(ShipmentNo, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure VerifyUndoServiceConsumptionCreatesReversingCO2eForSpecificLotTrackedItem()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        Item: Record Item;
+        ExpectedConsumptionCO2e: Decimal;
+        ShipmentNo: Code[20];
+        LotNo: Code[50];
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+    begin
+        // [SCENARIO 641487] Undo of a Service Consumption for a Specific carbon, lot-tracked item creates a reversing
+        // (positive) Sustainability Value Entry so the item's emissions return to the pre-consumption value.
+        Initialize();
+
+        // [GIVEN] Enable Value Chain Tracking and create a Sustainability Account.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        LotNo := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] A Specific carbon, lot-tracked item with 10 pcs in a lot carrying a known CO2e per unit.
+        LibraryItemTracking.CreateLotItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        ExpectedConsumptionCO2e := LibraryRandom.RandDecInRange(100, 500, 2);
+        LibrarySustainability.PostPositiveAdjustmentWithItemTracking(Item, '', AccountCode, '', 10, WorkDate(), '', LotNo, ExpectedConsumptionCO2e * 10);
+
+        // [GIVEN] A Service Order for 2 pcs consuming 1 pc from the lot is posted; the unhandled pc keeps the order open for Undo.
+        CreateServiceOrderWithItem(ServiceHeader, ServiceLine, LibrarySales.CreateCustomerNo(), '', Item."No.", 2);
+        ServiceLine.Validate("Sust. Account No.", AccountCode);
+        ServiceLine.Validate("CO2e per Unit", ExpectedConsumptionCO2e);
+        ServiceLine.Validate("Qty. to Consume", 1);
+        ServiceLine.Modify();
+        CreateServiceOrderItemTracking(ServiceLine, '', LotNo, 1);
+        LibraryService.PostServiceOrder(ServiceHeader, true, true, false);
+        ShipmentNo := FindServiceShipmentHeader(ServiceHeader."No.");
+
+        // [THEN] The consumption created one negative Sustainability Value Entry.
+        VerifySustValueEntrySumForDocument(ShipmentNo, -ExpectedConsumptionCO2e);
+
+        // [WHEN] The consumption is reversed with Undo Consumption.
+        LibraryService.UndoConsumptionLinesByServiceOrderNo(ServiceHeader."No.");
+
+        // [THEN] A reversing (positive) Sustainability Value Entry is created and the consumption nets to zero.
+        VerifySustValueEntryCountForDocument(ShipmentNo, 2);
+        VerifySustValueEntrySumForDocument(ShipmentNo, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure VerifyUndoServiceConsumptionCreatesReversingCO2eForSpecificSerialTrackedItem()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        Item: Record Item;
+        ExpectedConsumptionCO2e: Decimal;
+        ShipmentNo: Code[20];
+        SerialNo: Code[50];
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+    begin
+        // [SCENARIO 641487] Undo of a Service Consumption for a Specific carbon, serial-tracked item creates a reversing
+        // (positive) Sustainability Value Entry so the item's emissions return to the pre-consumption value.
+        Initialize();
+
+        // [GIVEN] Enable Value Chain Tracking and create a Sustainability Account.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+        SerialNo := LibraryUtility.GenerateGUID();
+
+        // [GIVEN] A Specific carbon, serial-tracked item with 1 pc carrying a known CO2e per unit.
+        LibraryItemTracking.CreateSerialItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        ExpectedConsumptionCO2e := LibraryRandom.RandDecInRange(100, 500, 2);
+        LibrarySustainability.PostPositiveAdjustmentWithItemTracking(Item, '', AccountCode, '', 1, WorkDate(), SerialNo, '', ExpectedConsumptionCO2e);
+
+        // [GIVEN] A Service Order for 2 pcs consuming the serial number is posted; the unhandled pc keeps the order open for Undo.
+        CreateServiceOrderWithItem(ServiceHeader, ServiceLine, LibrarySales.CreateCustomerNo(), '', Item."No.", 2);
+        ServiceLine.Validate("Sust. Account No.", AccountCode);
+        ServiceLine.Validate("CO2e per Unit", ExpectedConsumptionCO2e);
+        ServiceLine.Validate("Qty. to Consume", 1);
+        ServiceLine.Modify();
+        CreateServiceOrderItemTracking(ServiceLine, SerialNo, '', 1);
+        LibraryService.PostServiceOrder(ServiceHeader, true, true, false);
+        ShipmentNo := FindServiceShipmentHeader(ServiceHeader."No.");
+
+        // [THEN] The consumption created one negative Sustainability Value Entry.
+        VerifySustValueEntrySumForDocument(ShipmentNo, -ExpectedConsumptionCO2e);
+
+        // [WHEN] The consumption is reversed with Undo Consumption.
+        LibraryService.UndoConsumptionLinesByServiceOrderNo(ServiceHeader."No.");
+
+        // [THEN] A reversing (positive) Sustainability Value Entry is created and the consumption nets to zero.
+        VerifySustValueEntryCountForDocument(ShipmentNo, 2);
+        VerifySustValueEntrySumForDocument(ShipmentNo, 0);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure VerifyUndoServiceConsumptionCreatesReversingCO2eForSpecificNonTrackedItem()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceLine: Record "Service Line";
+        Item: Record Item;
+        ExpectedConsumptionCO2e: Decimal;
+        ShipmentNo: Code[20];
+        CategoryCode: Code[20];
+        SubcategoryCode: Code[20];
+        AccountCode: Code[20];
+    begin
+        // [SCENARIO 641487] Undo of a Service Consumption for a Specific carbon item without item tracking creates a
+        // reversing (positive) Sustainability Value Entry so the item's emissions return to the pre-consumption value.
+        Initialize();
+
+        // [GIVEN] Enable Value Chain Tracking and create a Sustainability Account.
+        LibrarySustainability.UpdateValueChainTrackingInSustainabilitySetup(true);
+        CreateSustainabilityAccount(AccountCode, CategoryCode, SubcategoryCode, LibraryRandom.RandInt(10));
+
+        // [GIVEN] A Specific carbon item (no item tracking) with 10 pcs carrying a known CO2e per unit.
+        LibraryInventory.CreateItem(Item);
+        LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        ExpectedConsumptionCO2e := LibraryRandom.RandDecInRange(100, 500, 2);
+        PostPositiveAdjustmentWithCO2e(Item, AccountCode, 10, ExpectedConsumptionCO2e * 10);
+
+        // [GIVEN] A Service Order for 2 pcs consuming 1 pc is posted; the unhandled pc keeps the order open for Undo.
+        CreateServiceOrderWithItem(ServiceHeader, ServiceLine, LibrarySales.CreateCustomerNo(), '', Item."No.", 2);
+        ServiceLine.Validate("Sust. Account No.", AccountCode);
+        ServiceLine.Validate("CO2e per Unit", ExpectedConsumptionCO2e);
+        ServiceLine.Validate("Qty. to Consume", 1);
+        ServiceLine.Modify();
+        LibraryService.PostServiceOrder(ServiceHeader, true, true, false);
+        ShipmentNo := FindServiceShipmentHeader(ServiceHeader."No.");
+
+        // [THEN] The consumption created one negative Sustainability Value Entry.
+        VerifySustValueEntrySumForDocument(ShipmentNo, -ExpectedConsumptionCO2e);
+
+        // [WHEN] The consumption is reversed with Undo Consumption.
+        LibraryService.UndoConsumptionLinesByServiceOrderNo(ServiceHeader."No.");
+
+        // [THEN] A reversing (positive) Sustainability Value Entry is created and the consumption nets to zero.
+        VerifySustValueEntryCountForDocument(ShipmentNo, 2);
+        VerifySustValueEntrySumForDocument(ShipmentNo, 0);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2773,6 +3065,20 @@ codeunit 148218 "Sustainability Service Tests"
         CreateAssemblyHeaderItemTracking(ReservEntry, ServiceLine, TempItemTrackingSetup, QtyBase);
     end;
 
+    local procedure CreateServiceOrderItemTracking(ServiceLine: Record "Service Line"; SerialNo: Code[50]; LotNo: Code[50]; QtyBase: Decimal)
+    var
+        ReservEntry: Record "Reservation Entry";
+        ItemTrackingSetup: Record "Item Tracking Setup";
+    begin
+        ItemTrackingSetup."Serial No." := SerialNo;
+        ItemTrackingSetup."Lot No." := LotNo;
+        LibraryItemTracking.InsertItemTracking(
+            ReservEntry, false, ServiceLine."No.", ServiceLine."Location Code", ServiceLine."Variant Code",
+            -QtyBase, ServiceLine."Qty. per Unit of Measure", ItemTrackingSetup,
+            Database::"Service Line", ServiceLine."Document Type".AsInteger(), ServiceLine."Document No.",
+            '', 0, ServiceLine."Line No.", WorkDate());
+    end;
+
     local procedure CreateAssemblyHeaderItemTracking(var ReservEntry: Record "Reservation Entry"; ServiceLine: Record "Service Line"; ItemTrackingSetup: Record "Item Tracking Setup"; QtyBase: Decimal)
     var
         RecRef: RecordRef;
@@ -2781,6 +3087,46 @@ codeunit 148218 "Sustainability Service Tests"
         LibraryItemTracking.ItemTracking(ReservEntry, RecRef, ItemTrackingSetup, QtyBase);
     end;
 
+    local procedure PostPositiveAdjustmentWithCO2e(Item: Record Item; AccountCode: Code[20]; Qty: Decimal; TotalCO2e: Decimal)
+    var
+        ItemJournalTemplate: Record "Item Journal Template";
+        ItemJournalBatch: Record "Item Journal Batch";
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryInventory.CreateItemJournalBatchByType(ItemJournalBatch, ItemJournalTemplate.Type::Item);
+        LibraryInventory.CreateItemJournalLine(
+            ItemJournalLine, ItemJournalBatch, Item, '', '', WorkDate(),
+            ItemJournalLine."Entry Type"::"Positive Adjmt.", Qty, 0);
+        ItemJournalLine.Validate("Sust. Account No.", AccountCode);
+        ItemJournalLine.Validate("Total CO2e", TotalCO2e);
+        ItemJournalLine.Modify();
+        LibraryInventory.PostItemJournalBatch(ItemJournalBatch);
+    end;
+
+    local procedure VerifySustValueEntrySumForDocument(DocumentNo: Code[20]; ExpectedSum: Decimal)
+    var
+        SustainabilityValueEntry: Record "Sustainability Value Entry";
+    begin
+        // A ship-only posting records the CO2e in the Expected bucket; consumption/invoicing records it in Actual.
+        // Sum both so the net CO2e impact is verified regardless of the costing stage.
+        SustainabilityValueEntry.SetRange("Document No.", DocumentNo);
+        SustainabilityValueEntry.CalcSums("CO2e Amount (Actual)", "CO2e Amount (Expected)");
+        Assert.AreEqual(
+            ExpectedSum,
+            SustainabilityValueEntry."CO2e Amount (Actual)" + SustainabilityValueEntry."CO2e Amount (Expected)",
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("CO2e Amount (Expected)"), ExpectedSum, SustainabilityValueEntry.TableCaption()));
+    end;
+
+    local procedure VerifySustValueEntryCountForDocument(DocumentNo: Code[20]; ExpectedCount: Integer)
+    var
+        SustainabilityValueEntry: Record "Sustainability Value Entry";
+    begin
+        SustainabilityValueEntry.SetRange("Document No.", DocumentNo);
+        Assert.AreEqual(
+            ExpectedCount,
+            SustainabilityValueEntry.Count(),
+            StrSubstNo(ValueMustBeEqualErr, SustainabilityValueEntry.FieldCaption("Entry No."), ExpectedCount, SustainabilityValueEntry.TableCaption()));
+    end;
 
     [ConfirmHandler]
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)

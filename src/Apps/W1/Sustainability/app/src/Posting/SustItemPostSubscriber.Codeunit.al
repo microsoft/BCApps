@@ -27,7 +27,7 @@ codeunit 6256 "Sust. Item Post Subscriber"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnAfterInsertCorrValueEntry', '', false, false)]
-    local procedure OnAfterInsertCorrValueEntry(ItemJournalLine: Record "Item Journal Line"; var NewValueEntry: Record "Value Entry"; var ItemLedgerEntry: Record "Item Ledger Entry")
+    local procedure OnAfterInsertCorrValueEntry(var ItemJournalLine: Record "Item Journal Line"; var NewValueEntry: Record "Value Entry"; var ItemLedgerEntry: Record "Item Ledger Entry")
     begin
         if CanCreateSustValueEntry(ItemJournalLine, NewValueEntry) then
             PostSustainabilityValueEntry(ItemJournalLine, NewValueEntry, ItemLedgerEntry);
@@ -91,7 +91,7 @@ codeunit 6256 "Sust. Item Post Subscriber"
         exit((ItemJournalLine."Sust. Account No." <> '') and (ValueEntry."Entry Type" = ValueEntry."Entry Type"::"Direct Cost"));
     end;
 
-    local procedure PostSustainabilityValueEntry(ItemJournalLine: Record "Item Journal Line"; ValueEntry: Record "Value Entry"; ItemLedgerEntry: Record "Item Ledger Entry")
+    local procedure PostSustainabilityValueEntry(var ItemJournalLine: Record "Item Journal Line"; ValueEntry: Record "Value Entry"; ItemLedgerEntry: Record "Item Ledger Entry")
     var
         SustainabilityJnlLine: Record "Sustainability Jnl. Line";
         SustainabilityPostMgt: Codeunit "Sustainability Post Mgt";
@@ -127,7 +127,8 @@ codeunit 6256 "Sust. Item Post Subscriber"
         SustainabilityJnlLine.Validate("Emission CO2", ItemJournalLine."Emission CO2");
         SustainabilityJnlLine.Validate("Emission CH4", ItemJournalLine."Emission CH4");
         SustainabilityJnlLine.Validate("Emission N2O", ItemJournalLine."Emission N2O");
-        SustainabilityJnlLine.Validate(Correction, ItemJournalLine.Correction);
+        if (ItemJournalLine."Document Type" <> ItemJournalLine."Document Type"::"Service Shipment") or (ItemJournalLine."Entry Type" <> ItemJournalLine."Entry Type"::"Positive Adjmt.") then
+            SustainabilityJnlLine.Validate(Correction, ItemJournalLine.Correction);
         SustainabilityJnlLine.Validate("Country/Region Code", ItemJournalLine."Country/Region Code");
         SustainabilityPostMgt.InsertValueEntry(SustainabilityJnlLine, ValueEntry, ItemLedgerEntry);
     end;
