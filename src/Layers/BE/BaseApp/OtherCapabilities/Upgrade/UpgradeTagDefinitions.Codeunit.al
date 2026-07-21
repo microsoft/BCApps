@@ -198,6 +198,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetServiceShptLineFieldsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetZeroClosedBankAccountLedgerEntriesUpgradeTag());
         PerCompanyUpgradeTags.Add(GetDepreciationBooksGLIntegrationUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerDatabaseUpgradeTags', '', false, false)]
@@ -1371,5 +1372,11 @@ codeunit 9998 "Upgrade Tag Definitions"
     internal procedure GetDepreciationBooksGLIntegrationUpgradeTag(): Code[250]
     begin
         exit('MS-626097-DepreciationBooksGLIntegrationUpgradeTag-20260319');
+    end;
+
+    internal procedure GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag(): Code[250]
+    begin
+        // Upgrade legacy Job-related warehouse records from (Database::Job, 0) to (Database::"Job Planning Line", Order)
+        exit('MS-625654-WarehouseActivitySourceTypeForJobPlanningLineUpgradeTag-20260518');
     end;
 }

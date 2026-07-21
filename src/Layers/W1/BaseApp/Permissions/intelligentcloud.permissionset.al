@@ -976,6 +976,7 @@ permissionset 6121 "INTELLIGENT CLOUD"
                   tabledata "Item Variant" = R,
                   tabledata "Item Vendor" = R,
                   tabledata Job = R,
+                  tabledata "Job Assigned Resource" = R,
                   tabledata "Job Buffer" = R,
                   tabledata "Job Cue" = RIMD,
                   tabledata "Job Difference Buffer" = R,
