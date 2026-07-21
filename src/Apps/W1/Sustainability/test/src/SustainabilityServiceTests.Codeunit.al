@@ -2739,6 +2739,7 @@ codeunit 148218 "Sustainability Service Tests"
         LibraryERMCountryData.UpdateVATPostingSetup();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.UpdateLocalData();
+        LibraryERMCountryData.RemoveBlankGenJournalTemplate();
         LibrarySales.SetExtDocNo(false);
 
         LibraryERMCountryData.CompanyInfoSetVATRegistrationNo();
