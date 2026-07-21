@@ -44,7 +44,13 @@ codeunit 6122 "E-Doc. Imp. Session Telemetry"
     begin
         Session := LowerCase(CreateGuid()).Replace('}', '').Replace('{', '');
         SystemID := CreateSystemIdText(EDocument.SystemId);
+#if not CLEAN29
+#pragma warning disable AL0432
         EDocumentImportProcessVersion := EDocument.GetEDocumentService().GetImportProcessVersion();
+#pragma warning restore AL0432
+#else
+        EDocumentImportProcessVersion := "E-Document Import Process"::"Version 2.0";
+#endif
         Data.Set('Session', Session);
         Data.Set(GetEDocSystemIdTok(), SystemID);
         Data.Set('ProcessVersion', EDocumentImportProcessVersion.Names().Get(EDocumentImportProcessVersion.Ordinals.IndexOf(EDocumentImportProcessVersion.AsInteger())));

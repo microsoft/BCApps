@@ -79,8 +79,10 @@ permissionset 6100 "E-Doc. Core - Objects"
         codeunit "E-Document Setup" = X,
         codeunit "E-Document Install" = X,
         codeunit "E-Doc. Recurrent Batch Send" = X,
+#if not CLEAN29
         codeunit "E-Doc. Get Basic Info" = X,
         codeunit "E-Doc. Get Complete Info" = X,
+#endif
         codeunit "E-Doc. Data Exchange Impl." = X,
         codeunit "E-Doc. DED PEPPOL External" = X,
         codeunit "E-Doc. DED PEPPOL Pre-Mapping" = X,

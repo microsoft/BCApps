@@ -146,7 +146,13 @@ page 6108 "Inbound E-Doc. Factbox"
         EDocument: Record "E-Document";
     begin
         if EDocument.Get(Rec."E-Document Entry No") then;
+#if not CLEAN29
+#pragma warning disable AL0432
         ImportProcessingStatusVisible := EDocument.GetEDocumentService().GetImportProcessVersion() = Enum::"E-Document Import Process"::"Version 2.0";
+#pragma warning restore AL0432
+#else
+        ImportProcessingStatusVisible := true;
+#endif
     end;
 
     trigger OnAfterGetCurrRecord()

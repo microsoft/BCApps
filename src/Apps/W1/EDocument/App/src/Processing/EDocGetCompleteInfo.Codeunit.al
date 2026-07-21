@@ -1,10 +1,13 @@
 #pragma warning disable AA0247
+#if not CLEAN29
 codeunit 6151 "E-Doc. Get Complete Info"
 {
     Access = Internal;
     trigger OnRun()
     begin
+#pragma warning disable AL0432
         EDocumentInterface.GetCompleteInfoFromReceivedDocument(EDocument, CreatedDocumentHeader, CreatedDocumentLines, TempBlob);
+#pragma warning restore AL0432
     end;
 
     procedure SetValues(var EDocumentInterface2: Interface "E-Document"; var EDocument2: Record "E-Document"; var CreatedDocumentHeader2: RecordRef; var CreatedDocumentLines2: RecordRef; var TempBlob2: Codeunit "Temp Blob")
@@ -32,3 +35,4 @@ codeunit 6151 "E-Doc. Get Complete Info"
         CreatedDocumentLines: RecordRef;
         EDocumentInterface: Interface "E-Document";
 }
+#endif

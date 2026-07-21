@@ -69,21 +69,33 @@ page 6133 "E-Document Service"
                 {
                 }
 
+#if not CLEAN29
+#pragma warning disable AL0432
                 field("Import Process"; Rec."Import Process")
                 {
                     ToolTip = 'Specifies the version of the import process to use for incoming e-documents.';
                     Visible = false;
                 }
+#pragma warning restore AL0432
+#endif
                 group(PurchaseDraft)
                 {
                     Caption = 'Purchase Draft';
+#if not CLEAN29
+#pragma warning disable AL0432
                     Visible = Rec."Import Process" = Enum::"E-Document Import Process"::"Version 2.0";
+#pragma warning restore AL0432
+#else
+                    Visible = true;
+#endif
                     field("Verify Totals When Posting"; Rec."Verify Purch. Total Amounts")
                     {
                         Caption = 'Verify totals when posting invoice.';
                         ToolTip = 'Specifies if document totals are checked when posting document.';
                     }
                 }
+#if not CLEAN29
+#pragma warning disable AL0432
                 group(ImportParamenters)
                 {
                     Caption = 'Parameters';
@@ -135,6 +147,8 @@ page 6133 "E-Document Service"
                     }
 
                 }
+#pragma warning restore AL0432
+#endif
             }
             group(ExportProcessing)
             {

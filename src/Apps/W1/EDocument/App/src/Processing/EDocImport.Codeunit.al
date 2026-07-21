@@ -226,6 +226,7 @@ codeunit 6140 "E-Doc. Import"
         EDocument.Modify();
     end;
 
+#if not CLEAN29
     internal procedure V1_GetBasicInfo(var EDocument: Record "E-Document")
     var
         EDocService: Record "E-Document Service";
@@ -323,6 +324,7 @@ codeunit 6140 "E-Doc. Import"
 
         V1_ProcessEDocument(EDocument, false, true);
     end;
+#endif
 
     procedure ViewExtractedData(EDocument: Record "E-Document")
     var
@@ -334,6 +336,7 @@ codeunit 6140 "E-Doc. Import"
         IStructuredFormatReader.View(EDocument, EDocumentDataStorage.GetTempBlob());
     end;
 
+#if not CLEAN29
     local procedure ProcessExistingOrder(var EDocument: Record "E-Document"; EDocService: Record "E-Document Service"; var SourceDocumentLine: RecordRef; var DocumentHeader: RecordRef; var EDocServiceStatus: Enum "E-Document Service Status")
     var
         PurchaseOrderHeader: Record "Purchase Header";
@@ -877,6 +880,7 @@ codeunit 6140 "E-Doc. Import"
                 if EDocImportedLine.Insert() then;
             until TempEDocImportedLine.Next() = 0;
     end;
+#endif
 
     internal procedure SetHideDialogs(Hide: Boolean)
     begin

@@ -144,7 +144,13 @@ page 6125 "E-Document Logs"
         EDocumentLog.Copy(Rec);
         if EDocumentLog.FindFirst() then;
         if EDocument.Get(EDocumentLog."E-Doc. Entry No") then;
+#if not CLEAN29
+#pragma warning disable AL0432
         ShowImportProcessingStatus := (EDocument.GetEDocumentService().GetImportProcessVersion() <> "E-Document Import Process"::"Version 1.0") and (EDocument.Direction = "E-Document Direction"::Incoming);
+#pragma warning restore AL0432
+#else
+        ShowImportProcessingStatus := (EDocument.Direction = "E-Document Direction"::Incoming);
+#endif
     end;
 
     trigger OnAfterGetRecord()

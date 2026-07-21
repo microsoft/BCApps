@@ -152,8 +152,10 @@ codeunit 6134 "E-Doc. Integration Management"
                 EDocImport.V1_AfterInsertImportedEdocument(EDocument, EDocService, TempBlob, EDocCount, HttpRequest, HttpResponse);
             end;
 
+#if not CLEAN29
             if (not IsProcessed) then
                 EDocImport.V1_ProcessImportedDocument(EDocument, EDocService, TempBlob, EDocService."Create Journal Lines", EDocService.IsAutomaticProcessingEnabled());
+#endif
 
             if EDocErrorHelper.HasErrors(EDocument) then begin
                 LocalEDocumentLog.SetFields(EDocument, EDocService);

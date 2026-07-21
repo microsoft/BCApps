@@ -321,6 +321,7 @@ page 6121 "E-Document"
             group(Incoming)
             {
                 Caption = 'Incoming';
+#if not CLEAN29
                 action(GetBasicInfo)
                 {
                     Caption = 'Get Basic Info';
@@ -333,6 +334,7 @@ page 6121 "E-Document"
                         EDocImport.V1_GetBasicInfo(Rec);
                     end;
                 }
+#endif
                 action(CreateDocument)
                 {
                     Caption = 'Reprocess Document';
@@ -410,6 +412,7 @@ page 6121 "E-Document"
                     ToolTip = 'Create a mapping of text on electronic documents to identical text on specific debit, credit, and balancing accounts in the general ledger or on bank accounts so that the resulting document or journal lines are prefilled with the specified information.';
                     Visible = IsIncomingDoc and HasErrors and (not ShowRelink);
                 }
+#if not CLEAN29
                 action(LinkOrder)
                 {
                     Caption = 'Update Purchase Order Link';
@@ -422,6 +425,7 @@ page 6121 "E-Document"
                         EDocImport.UpdatePurchaseOrderLink(Rec);
                     end;
                 }
+#endif
             }
         }
         area(Navigation)
@@ -530,7 +534,9 @@ page 6121 "E-Document"
         SetIncomingDocActions();
         FillLineBuffer();
 
+#if not CLEAN29
         EDocImport.V1_ProcessEDocPendingOrderMatch(Rec);
+#endif
     end;
 
     local procedure GetClearanceVisibility(): Boolean

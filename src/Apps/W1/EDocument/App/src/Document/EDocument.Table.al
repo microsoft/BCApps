@@ -403,8 +403,12 @@ table 6121 "E-Document"
             exit(Rec."Amount Incl. VAT");
         if Rec.Direction = Rec.Direction::Outgoing then
             exit(-Rec."Amount Incl. VAT");
+#if not CLEAN29
+#pragma warning disable AL0432
         if GetEDocumentService()."Import Process" = "E-Document Import Process"::"Version 1.0" then
             exit(Rec."Amount Incl. VAT");
+#pragma warning restore AL0432
+#endif
         EDocumentPurchaseHeader.GetFromEDocument(Rec);
         exit(EDocumentPurchaseHeader.Total);
     end;

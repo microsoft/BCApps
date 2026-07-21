@@ -179,10 +179,14 @@ codeunit 6148 "E-Document Helper"
     var
         IProcessStructuredData: Interface IProcessStructuredData;
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
         if EDocument.GetEDocumentService().GetImportProcessVersion() = "E-Document Import Process"::"Version 1.0" then begin
             Page.Run(Page::"E-Document", EDocument);
             exit;
         end;
+#pragma warning restore AL0432
+#endif
         IProcessStructuredData := EDocument."Process Draft Impl.";
         IProcessStructuredData.OpenDraftPage(EDocument);
     end;

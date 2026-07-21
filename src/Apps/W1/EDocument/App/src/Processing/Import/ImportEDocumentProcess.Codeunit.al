@@ -27,16 +27,22 @@ codeunit 6104 "Import E-Document Process"
     var
         EDocumentLog: Codeunit "E-Document Log";
         NewStatus: Enum "Import E-Doc. Proc. Status";
+#if not CLEAN29
         ImportProcessVersion: Enum "E-Document Import Process";
+#endif
     begin
         GlobalEDocument.Get(GlobalEDocument."Entry No");
         Clear(EDocumentLog);
 
+#if not CLEAN29
+#pragma warning disable AL0432
         ImportProcessVersion := GlobalEDocument.GetEDocumentService().GetImportProcessVersion();
         if ImportProcessVersion = "E-Document Import Process"::"Version 1.0" then begin
             ProcessEDocumentV1(GlobalEDocument, TempGlobalEDocImportParameters, GlobalStep, GlobalUndoStep);
             exit;
         end;
+#pragma warning restore AL0432
+#endif
 
         NewStatus := GetStatusForStep(GlobalStep, GlobalUndoStep);
         EDocumentLog.SetFields(GlobalEDocument, GlobalEDocument.GetEDocumentService());
@@ -201,11 +207,13 @@ codeunit 6104 "Import E-Document Process"
         end;
     end;
 
+#if not CLEAN29
     local procedure ProcessEDocumentV1(EDocument: Record "E-Document"; EDocImportParameters: Record "E-Doc. Import Parameters"; Step: Enum "Import E-Document Steps"; UndoStep: Boolean)
     var
         EDocImport: Codeunit "E-Doc. Import";
         CreateJournalLineV1: Boolean;
     begin
+#pragma warning disable AL0432
         // V1 documents do not have a distinction between the different steps (e.g. structure, read, prepare, finish),
         // we only consider the step "Finish draft", which calls the previous logic to import.
         if Step <> Step::"Finish draft" then
@@ -229,7 +237,9 @@ codeunit 6104 "Import E-Document Process"
         end;
         EDocumentProcessing.ModifyEDocumentProcessingStatus(EDocument, "Import E-Doc. Proc. Status"::Processed);
         EDocImport.V1_ProcessEDocument(EDocument, CreateJournalLineV1, EDocImportParameters."Create Document V1 Behavior");
+#pragma warning restore AL0432
     end;
+#endif
 
     internal procedure ConfigureImportRun(EDocument: Record "E-Document"; NewStep: Enum "Import E-Document Steps"; EDocImportParameters: Record "E-Doc. Import Parameters"; NewUndoStep: Boolean)
     begin
