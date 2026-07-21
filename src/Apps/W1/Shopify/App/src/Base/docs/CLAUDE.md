@@ -27,8 +27,9 @@ near-expiry token or migrate a legacy non-expiring one, on demand), and
 `ExecuteWebRequest` forces a single token refresh and retry on an
 unexpected 401. The `Shpfy Token Refresh` dispatcher plus
 `Shpfy Token Refresh Shop` worker are a recurring backstop that keeps
-tokens and their 90-day refresh tokens alive; `Shpfy Installer` and
-`Shpfy Upgrade Mgt.` register that Job Queue entry. See the app-level
+tokens and their 90-day refresh tokens alive; that Job Queue entry is
+scheduled from `Shpfy Shop Card` on open (`ScheduleRefreshJob`), not from
+install/upgrade, since enqueuing implicitly commits. See the app-level
 business-logic.md for the full token lifecycle.
 
 *Updated: 2026-07-11 -- Expiring offline access token support (slice 637954)*
@@ -73,6 +74,6 @@ syncs companies and catalog prices regardless of plan.
 - The `Shpfy Cue` table uses FlowFields for role center counts: unmapped
   customers/products/companies, unprocessed orders/shipments, sync errors.
 - Empty sync time sentinel is `2004-01-01` (`GetEmptySyncTime()`), not `0DT`.
-- Authentication uses expiring offline access tokens: `EnsureValidAccessToken` (from `GetAccessToken`) refreshes before expiry and migrates legacy non-expiring tokens; the `Shpfy Token Refresh` dispatcher + `Shpfy Token Refresh Shop` worker are the proactive backstop, registered as a Job Queue entry on install/upgrade. A lapsed 90-day refresh token requires reconnecting the shop from the Shop Card.
+- Authentication uses expiring offline access tokens: `EnsureValidAccessToken` (from `GetAccessToken`) refreshes before expiry and migrates legacy non-expiring tokens; the `Shpfy Token Refresh` dispatcher + `Shpfy Token Refresh Shop` worker are the proactive backstop, scheduled as a Job Queue entry from the Shop Card on open. A lapsed 90-day refresh token requires reconnecting the shop from the Shop Card.
 - Three page extensions embed Shopify Activities into standard role centers.
 - `ShpfyConnectorGuide` and `ShpfyInitialImport` provide first-time setup.
