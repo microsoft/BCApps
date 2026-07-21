@@ -738,10 +738,12 @@ codeunit 148021 "Payment Export Sunshine"
     end;
 
     local procedure PostVendorInvoice(Vendor: Record Vendor; var GenJournalLine: Record "Gen. Journal Line"; GenJournalBatch: Record "Gen. Journal Batch");
+    var
+        PurchInvHeader: Record "Purch. Inv. Header";
     begin
         LibraryERM.CreateGeneralJnlLine(GenJournalLine, GenJournalBatch."Journal Template Name", GenJournalBatch.Name,
           GenJournalLine."Document Type"::Invoice, GenJournalLine."Account Type"::Vendor, Vendor."No.", -LibraryRandom.RandDec(100, 2));
-        GenJournalLine.Validate("Document No.", LibraryUtility.GenerateRandomCode(GenJournalLine.FieldNo("Document No."), DATABASE::"Gen. Journal Line"));
+        GenJournalLine.Validate("Document No.", LibraryUtility.GenerateRandomCode(PurchInvHeader.FieldNo("No."), DATABASE::"Purch. Inv. Header"));
         GenJournalLine.Modify(true);
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
     end;
@@ -781,6 +783,5 @@ codeunit 148021 "Payment Export Sunshine"
         END;
     end;
 }
-
 
 
