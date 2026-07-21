@@ -13,7 +13,7 @@ codeunit 7000100 "SII DataClass EvalData Country"
         DataClassificationMgt: Codeunit "Data Classification Mgt.";
         DataClassificationEvalData: Codeunit "Data Classification Eval. Data";
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Class. Eval. Data Country", 'OnAfterClassifyCountrySpecificTables', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Class. Eval. Data Country", 'OnAfterClassifyCountrySpecificTables', '', true, false)]
     local procedure OnAfterClassifyCountrySpecificTables()
     begin
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"SII History");

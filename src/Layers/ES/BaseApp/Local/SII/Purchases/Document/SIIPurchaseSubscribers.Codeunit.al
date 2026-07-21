@@ -26,7 +26,7 @@ codeunit 7000126 "SII Purchase Subscribers"
         SIIManagement.UpdateSIIInfoInPurchDoc(Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnAfterInitRecord', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnAfterInitRecord', '', true, false)]
     local procedure PurchHeaderOnAfterInitRecord(var PurchHeader: Record "Purchase Header")
     var
         SIIManagement: Codeunit "SII Management";
@@ -130,7 +130,7 @@ codeunit 7000126 "SII Purchase Subscribers"
             SIIDuplicateNotification, PurchaseHeader.RecordId(), PurchaseHeader.GetShowExternalDocAlreadyExistNotificationId());
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", 'OnAfterCopyVendLedgerEntryFromGenJnlLine', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", 'OnAfterCopyVendLedgerEntryFromGenJnlLine', '', true, false)]
     local procedure OnAfterCopyVendLedgerEntryFromGenJnlLine(var VendorLedgerEntry: Record "Vendor Ledger Entry"; GenJournalLine: Record "Gen. Journal Line")
     begin
         VendorLedgerEntry."Invoice Type" := GenJournalLine."Purch. Invoice Type";
@@ -144,7 +144,7 @@ codeunit 7000126 "SII Purchase Subscribers"
         VendorLedgerEntry."Do Not Send To SII" := GenJournalLine."Do Not Send To SII";
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Posted Purch. Cr.Memo - Update", OnAfterRecordChanged, '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Posted Purch. Cr.Memo - Update", OnAfterRecordChanged, '', true, false)]
     local procedure PurchCrMemoHeaderOnAfterRecordChanged(var PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; xPurchCrMemoHeader: Record "Purch. Cr. Memo Hdr."; var IsChanged: Boolean)
     begin
         IsChanged := IsChanged or
@@ -160,7 +160,7 @@ codeunit 7000126 "SII Purchase Subscribers"
     end;
 
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Inv. Header - Edit", OnBeforePurchInvHeaderModify, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Inv. Header - Edit", OnBeforePurchInvHeaderModify, '', true, false)]
     local procedure OnBeforePurchInvHeaderModify(var PurchInvHeader: Record "Purch. Inv. Header"; PurchInvHeaderRec: Record "Purch. Inv. Header")
     begin
         PurchInvHeader."Operation Description" := PurchInvHeaderRec."Operation Description";
@@ -172,7 +172,7 @@ codeunit 7000126 "SII Purchase Subscribers"
         PurchInvHeader."Succeeded VAT Registration No." := PurchInvHeaderRec."Succeeded VAT Registration No.";
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Inv. Header - Edit", OnRunOnAfterPurchInvHeaderEdit, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch. Inv. Header - Edit", OnRunOnAfterPurchInvHeaderEdit, '', true, false)]
     local procedure OnRunOnAfterPurchInvHeaderEdit(var PurchInvHeader: Record "Purch. Inv. Header")
     begin
         UpdateSIIDocUploadState(PurchInvHeader);

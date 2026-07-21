@@ -14,7 +14,7 @@ using Microsoft.Sales.Document;
 codeunit 7000129 "SII VAT Subscribers"
 {
 
-    [EventSubscriber(ObjectType::Table, Database::"VAT Entry", 'OnAfterCopyFromGenJnlLine', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"VAT Entry", 'OnAfterCopyFromGenJnlLine', '', true, false)]
     local procedure OnAfterCopyFromGenJnlLine(var VATEntry: Record "VAT Entry"; GenJournalLine: Record "Gen. Journal Line")
     begin
         VATEntry."Do Not Send To SII" := GenJournalLine."Do Not Send To SII";
@@ -26,7 +26,7 @@ codeunit 7000129 "SII VAT Subscribers"
         Rec."One Stop Shop Reporting" := false;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"No Taxable Entry", 'OnUpdateOnAfterSetFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"No Taxable Entry", 'OnUpdateOnAfterSetFilters', '', true, false)]
     local procedure OnUpdateOnAfterSetFilters(var Rec: Record "No Taxable Entry"; NoTaxableEntry: Record "No Taxable Entry")
     begin
         Rec.SetRange("Ignore In SII", NoTaxableEntry."Ignore In SII");
@@ -50,13 +50,13 @@ codeunit 7000129 "SII VAT Subscribers"
         Rec.ClearInvCrMemoTypeFields();
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterCopyGenJnlLineFromPurchHeader', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterCopyGenJnlLineFromPurchHeader', '', true, false)]
     local procedure OnAfterCopyGenJnlLineFromPurchHeader(PurchaseHeader: Record "Purchase Header"; var GenJournalLine: Record "Gen. Journal Line")
     begin
         GenJournalLine."Do Not Send To SII" := PurchaseHeader."Do Not Send To SII";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterCopyGenJnlLineFromSalesHeader', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterCopyGenJnlLineFromSalesHeader', '', true, false)]
     local procedure OnAfterCopyGenJnlLineFromSalesHeader(SalesHeader: Record "Sales Header"; var GenJournalLine: Record "Gen. Journal Line")
     begin
         GenJournalLine."Do Not Send To SII" := SalesHeader."Do Not Send To SII";
@@ -65,7 +65,7 @@ codeunit 7000129 "SII VAT Subscribers"
         GenJournalLine.SetSIILastSummaryDocNo(SalesHeader.GetSIILastSummaryDocNo());
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnInsertVATOnAfterCopyVATPostingSetupFields', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", 'OnInsertVATOnAfterCopyVATPostingSetupFields', '', true, false)]
     local procedure OnInsertVATOnAfterCopyVATPostingSetupFields(var VATPostingSetup: Record "VAT Posting Setup"; var VATEntry: Record "VAT Entry")
     begin
         VATEntry."Ignore In SII" := VATPostingSetup."Ignore In SII";
