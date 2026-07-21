@@ -9,6 +9,8 @@ codeunit 148003 "PINTANZ Structured Validations"
         UnitOfMeasureCodeTok: Label 'PCS', Locked = true;
         SalesInvoiceNoTok: Label '103033', Locked = true;
         PurchaseorderNoTok: Label '2', Locked = true;
+        Item1NoTok: Label 'GL00000001', Locked = true;
+        Item2NoTok: Label 'GL00000003', Locked = true;
         MockDate: Date;
         MockCurrencyCode: Code[10];
         MockDataMismatchErr: Label 'The %1 in %2 does not align with the mock data. Expected: %3, Actual: %4', Locked = true, Comment = '%1 = Field caption, %2 = Table caption, %3 = Expected value, %4 = Actual value';
@@ -58,8 +60,6 @@ codeunit 148003 "PINTANZ Structured Validations"
     internal procedure AssertPurchaseDocument(VendorNo: Code[20]; PurchaseHeader: Record "Purchase Header"; Item: Record Item)
     var
         PurchaseLine: Record "Purchase Line";
-        Item1NoTok: Label 'GL00000001', Locked = true;
-        Item2NoTok: Label 'GL00000003', Locked = true;
     begin
         Assert.AreEqual(SalesInvoiceNoTok, PurchaseHeader."Vendor Invoice No.", StrSubstNo(MockDataMismatchErr, PurchaseHeader.FieldCaption("Vendor Invoice No."), PurchaseHeader.TableCaption(), SalesInvoiceNoTok, PurchaseHeader."Vendor Invoice No."));
         Assert.AreEqual(MockDate, PurchaseHeader."Document Date", StrSubstNo(MockDataMismatchErr, PurchaseHeader.FieldCaption("Document Date"), PurchaseHeader.TableCaption(), MockDate, PurchaseHeader."Document Date"));
