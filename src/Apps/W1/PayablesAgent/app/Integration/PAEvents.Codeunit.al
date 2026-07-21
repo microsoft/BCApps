@@ -18,6 +18,8 @@ codeunit 3316 "PA Events"
     InherentEntitlements = X;
     InherentPermissions = X;
 
+#if not CLEAN29
+#pragma warning disable AL0432
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. PDF File Format", OnAfterSetIStructureReceivedEDocumentForPdf, '', false, false)]
     local procedure UseMLLMWhenEnabledInSetup(var Result: Enum "Structure Received E-Doc.")
     var
@@ -27,6 +29,8 @@ codeunit 3316 "PA Events"
         if PayablesAgentSetup."Use MLLM Processing" then
             Result := "Structure Received E-Doc."::MLLM;
     end;
+#pragma warning restore AL0432
+#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Import", OnAfterProcessIncomingEDocument, '', false, false)]
     local procedure TrackFinalizedEDocuments(EDocument: Record "E-Document")

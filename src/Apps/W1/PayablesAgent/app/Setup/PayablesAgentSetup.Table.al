@@ -68,11 +68,23 @@ table 3303 "Payables Agent Setup"
         {
             DataClassification = SystemMetadata;
         }
+#if not CLEANSCHEMA29
+#pragma warning disable AS0072
         field(11; "Use MLLM Processing"; Boolean)
         {
             Caption = 'Use MLLM Processing';
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'The MLLM Payables Agent feature is fully rolled out; the toggle used to roll it out is no longer needed.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
+#pragma warning restore AS0072
+#endif
         field(12; "Email Review Policy"; Enum "PA Email Review Policy")
         {
             Caption = 'Email review';
