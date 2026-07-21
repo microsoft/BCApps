@@ -310,7 +310,7 @@ codeunit 46862 "BC14 Migration Orchestrator"
         // case (no companies are selected/created yet), mirroring the other migration tools.
         HybridReplicationDetail.SetRange("Run ID", RunId);
         if HybridReplicationDetail.IsEmpty() then begin
-            Session.LogMessage('0000TXE', StrSubstNo(OneStepUpgradeNoDataReplicatedLbl, RunId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14Telemetry.GetCategory());
+            Session.LogMessage('0000TXR', StrSubstNo(OneStepUpgradeNoDataReplicatedLbl, RunId), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14Telemetry.GetCategory());
             exit;
         end;
 

@@ -448,6 +448,7 @@ table 46855 BC14CompanyMigrationInfo
         Rec."Historical Failed" := false;
         Rec."Historical Failure Reason" := '';
         Rec."Historical Dispatched" := true;
+        Rec."Current Migration Step" := Rec."Current Migration Step"::Historical;
         Rec."Phase Migrators Total" := 0;
         Rec."Phase Migrators Completed" := 0;
         Rec.Modify();
