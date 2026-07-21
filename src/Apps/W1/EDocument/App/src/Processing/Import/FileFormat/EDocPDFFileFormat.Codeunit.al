@@ -6,7 +6,6 @@ namespace Microsoft.EServices.EDocument.Format;
 
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Interfaces;
-using System.Config;
 using System.Utilities;
 
 codeunit 6191 "E-Doc. PDF File Format" implements IEDocFileFormat
@@ -22,12 +21,9 @@ codeunit 6191 "E-Doc. PDF File Format" implements IEDocFileFormat
 
     procedure PreferredStructureDataImplementation(): Enum "Structure Received E-Doc."
     var
-        FeatureConfiguration: Codeunit "Feature Configuration";
         Result: Enum "Structure Received E-Doc.";
-        IsExperiment: Boolean;
     begin
-        IsExperiment := FeatureConfiguration.GetConfiguration(MLLMExperimentTok) = 'mllm';
-        Result := IsExperiment ? "Structure Received E-Doc."::MLLM : "Structure Received E-Doc."::ADI;
+        Result := "Structure Received E-Doc."::MLLM;
 #if not CLEAN29
 #pragma warning disable AL0432
         OnAfterSetIStructureReceivedEDocumentForPdf(Result);
@@ -52,7 +48,4 @@ codeunit 6191 "E-Doc. PDF File Format" implements IEDocFileFormat
     begin
         exit('pdf');
     end;
-
-    var
-        MLLMExperimentTok: Label 'EDocMLLMExtraction', Locked = true;
 }
