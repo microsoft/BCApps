@@ -559,5 +559,20 @@ Describe "TestTolerance" {
             $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -MinDistinctPrs 2
             $result.Count | Should -Be 0
         }
+
+        It "handles observations whose FailedTests is a List[object] (as produced by Find-CrossPrUnstableTests)" {
+            # Find-CrossPrUnstableTests stores each run's failures in a System.Collections.Generic.List[object].
+            # Wrapping such a list in the array-subexpression operator @() throws "Argument types do not match"
+            # on some PowerShell/.NET builds, so the selection must enumerate it without @().
+            $obs = New-Object System.Collections.Generic.List[object]
+            foreach ($pr in 101, 102) {
+                $failed = New-Object System.Collections.Generic.List[object]
+                $failed.Add((New-FailedTest -Key '::300::t1')) | Out-Null
+                $obs.Add([pscustomobject]@{ PrNumber = $pr; RunId = "90$pr"; FailedTests = $failed }) | Out-Null
+            }
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs.ToArray() -MinDistinctPrs 2
+            $result.Count | Should -Be 1
+            $result.ContainsKey('::300::t1') | Should -BeTrue
+        }
     }
 }

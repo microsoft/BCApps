@@ -865,7 +865,10 @@ function Save-UnstableTestsArtifact {
         New-Item -ItemType Directory -Path $outputDir -Force | Out-Null
     }
 
-    $tests = @($Tests)
+    # Cast instead of @($Tests): wrapping a List[object] in the array-subexpression operator throws
+    # "Argument types do not match" on some PowerShell/.NET builds. The [object[]] cast handles arrays
+    # and lists alike; the guard keeps a null argument from becoming $null.
+    $tests = if ($null -eq $Tests) { @() } else { [object[]]$Tests }
     $payload = [ordered]@{
         branch    = $Branch
         updatedAt = (Get-Date).ToUniversalTime().ToString('o')
@@ -911,7 +914,10 @@ function Add-FailedTestsToUnstableTests {
     # Preserve every existing entry verbatim. Track the key of each entry that has one so that newly
     # observed failures already present in the list are not appended again; entries with an
     # unexpected/legacy shape (e.g. missing testMethod) are still kept, just not used for dedup.
-    foreach ($entry in @($ExistingTests)) {
+    # Enumerate directly rather than via @($ExistingTests): a List[object] passed here would otherwise
+    # throw "Argument types do not match" when wrapped in the array-subexpression operator. foreach
+    # handles the default empty array, arrays and lists alike.
+    foreach ($entry in $ExistingTests) {
         if ($null -eq $entry) { continue }
         $merged.Add($entry) | Out-Null
         $method = if ($entry.PSObject.Properties['testMethod']) { [string]$entry.testMethod } else { '' }
@@ -991,7 +997,10 @@ function Select-CrossPrUnstableTests {
         if ([string]::IsNullOrWhiteSpace($pr)) { continue }
         $runId = if ($obs.PSObject.Properties['RunId']) { [string]$obs.RunId } else { '' }
 
-        foreach ($ft in @($obs.FailedTests)) {
+        # Enumerate directly rather than via @(...): wrapping a List[object] in the array-subexpression
+        # operator throws "Argument types do not match" on some PowerShell/.NET builds. foreach already
+        # handles $null (zero iterations), scalars, arrays and lists safely.
+        foreach ($ft in $obs.FailedTests) {
             if ($null -eq $ft) { continue }
             $key = $ft.Key
             if ([string]::IsNullOrWhiteSpace($key)) { continue }
