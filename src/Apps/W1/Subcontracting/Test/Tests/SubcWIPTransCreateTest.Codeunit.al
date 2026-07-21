@@ -372,6 +372,7 @@ codeunit 149911 "Subc. WIP Trans. Create Test"
         RequisitionWkshName: Record "Requisition Wksh. Name";
         TransferHeader: Record "Transfer Header";
         WorkCenter: array[2] of Record "Work Center";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         SubcCalculateSubContracts: Report "Subc. Calculate Subcontracts";
         CarryOutActionMsgReq: Report "Carry Out Action Msg. - Req.";
         PurchaseHeaderPage: TestPage "Purchase Order";
