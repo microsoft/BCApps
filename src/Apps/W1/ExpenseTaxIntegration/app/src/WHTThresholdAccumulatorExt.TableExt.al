@@ -16,6 +16,7 @@ tableextension 7057 "WHT Threshold Accumulator Ext" extends "WHT Threshold Accum
             Caption = 'Expense Category Code';
             TableRelation = "Expense Category";
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the expense category code used to accumulate withholding tax threshold amounts.';
         }
     }
 }

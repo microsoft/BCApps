@@ -17,15 +17,18 @@ table 6792 "Withholding Tax Group"
         {
             Caption = 'Code';
             NotBlank = true;
+            ToolTip = 'Specifies the code for the withholding tax group.';
         }
         field(2; Description; Text[100])
         {
             Caption = 'Description';
+            ToolTip = 'Specifies a description for the withholding tax group.';
         }
         field(3; "Party Applicability"; Enum "Withholding Party Type")
         {
             Caption = 'Party Applicability';
             InitValue = Employee;
+            ToolTip = 'Specifies which party type this withholding tax group applies to.';
         }
     }
 

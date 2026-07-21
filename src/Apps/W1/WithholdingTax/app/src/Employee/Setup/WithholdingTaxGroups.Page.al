@@ -24,17 +24,14 @@ page 6789 "Withholding Tax Groups"
                 field("Code"; Rec.Code)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the code for the withholding tax group.';
                 }
                 field(Description; Rec.Description)
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a description for the withholding tax group.';
                 }
                 field("Party Applicability"; Rec."Party Applicability")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies which party type this withholding tax group applies to.';
                 }
             }
         }

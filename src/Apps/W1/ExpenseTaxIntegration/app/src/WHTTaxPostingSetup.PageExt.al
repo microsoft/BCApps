@@ -15,7 +15,6 @@ pageextension 7056 "WHT Tax Posting Setup" extends "Withholding Tax Posting Setu
             field("Threshold Category Code"; Rec."Threshold Category Code")
             {
                 ApplicationArea = Basic, Suite;
-                ToolTip = 'Specifies the threshold category code used to accumulate withholding tax threshold amounts for the expense category.';
             }
         }
     }

@@ -15,21 +15,25 @@ tableextension 6809 "WHT Employee Ext" extends Employee
             Caption = 'Withholding Tax Bus. Post. Group';
             TableRelation = "Wthldg. Tax Bus. Post. Group";
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the withholding tax business posting group for the employee.';
         }
         field(6785; "Withholding Certificate No."; Code[20])
         {
             Caption = 'Withholding Tax Certificate No.';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the withholding tax certificate number for the employee.';
         }
         field(6786; "Withholding Certificate Type"; Code[20])
         {
             Caption = 'Withholding Tax Certificate Type';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the withholding tax certificate type for the employee.';
         }
         field(6787; "Withholding Tax Exempt"; Boolean)
         {
             Caption = 'Withholding Tax Exempt';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies if the employee is exempt from withholding tax.';
         }
     }
 }

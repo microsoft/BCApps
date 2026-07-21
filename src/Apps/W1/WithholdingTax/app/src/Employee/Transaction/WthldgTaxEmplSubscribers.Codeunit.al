@@ -42,8 +42,8 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
 
         WHTEmployeeCalc.CalcEmployeeWHT(GenJnlLine, TaxAmount, TaxBaseAmount);
 
-        EmployeeLedgerEntry."WHT Amount" := -TaxAmount;
-        EmployeeLedgerEntry."WHT Base Amount" := TaxBaseAmount;
+        EmployeeLedgerEntry."Withholding Tax Amount" := -TaxAmount;
+        EmployeeLedgerEntry."Withholding Tax Base Amount" := TaxBaseAmount;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnAfterPostEmployee, '', false, false)]
@@ -63,7 +63,7 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
             WHTEmployeeCalc.AccumulateBaseForPeriodThreshold(GenJnlLine, TaxBaseAmount);
     end;
 
-    local procedure PostEmployeeWithholdingTax(GenJnlLine: Record "Gen. Journal Line"; TaxAmount: Decimal; TaxBaseAmount: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer; sender: Codeunit "Gen. Jnl.-Post Line")
+    local procedure PostEmployeeWithholdingTax(GenJnlLine: Record "Gen. Journal Line"; TaxAmount: Decimal; TaxBaseAmount: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer; GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     var
         WHTPostingSetup: Record "Withholding Tax Posting Setup";
         GLEntry: Record "G/L Entry";
@@ -71,7 +71,7 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
         WHTGroupCode: Code[20];
     begin
         if WHTEmployeeCalc.ResolveWHTGroupComponents(GenJnlLine, WHTGroupCode) then begin
-            PostEmployeeWHTGroupEntries(GenJnlLine, WHTGroupCode, TaxBaseAmount, NextTransactionNo, NextTaxEntryNo, sender);
+            PostEmployeeWHTGroupEntries(GenJnlLine, WHTGroupCode, TaxBaseAmount, NextTransactionNo, NextTaxEntryNo, GenJnlPostLine);
             exit;
         end;
 
@@ -80,18 +80,18 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
 
         if TaxAmount <> 0 then begin
             WHTPostingSetup.TestField("Payable Wthldg. Tax Acc. Code");
-            sender.InitGLEntry(
+            GenJnlPostLine.InitGLEntry(
                 GenJnlLine, GLEntry,
                 WHTPostingSetup."Payable Wthldg. Tax Acc. Code",
                 TaxAmount, 0, false, true, 0);
-            sender.InsertGLEntry(GenJnlLine, GLEntry, true);
+            GenJnlPostLine.InsertGLEntry(GenJnlLine, GLEntry, true);
         end;
 
         WHTEmployeeCalc.InsertEmployeeWithholdingTaxEntry(
             GenJnlLine, TaxAmount, TaxBaseAmount, NextTransactionNo, NextTaxEntryNo);
     end;
 
-    local procedure PostEmployeeWHTGroupEntries(GenJnlLine: Record "Gen. Journal Line"; WHTGroupCode: Code[20]; WHTBaseAmount: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer; sender: Codeunit "Gen. Jnl.-Post Line")
+    local procedure PostEmployeeWHTGroupEntries(GenJnlLine: Record "Gen. Journal Line"; WHTGroupCode: Code[20]; WHTBaseAmount: Decimal; NextTransactionNo: Integer; var NextTaxEntryNo: Integer; GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     var
         WHTGroupLine: Record "Withholding Tax Group Line";
         ComponentSetup: Record "Withholding Tax Posting Setup";
@@ -113,11 +113,11 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
                     if (WHTGroupLine."Wthldg. Tax Prod. Post. Group" <> '') and
                        ComponentSetup.Get(GenJnlLine."Wthldg. Tax Bus. Post. Group", WHTGroupLine."Wthldg. Tax Prod. Post. Group")
                     then begin
-                        sender.InitGLEntry(
+                        GenJnlPostLine.InitGLEntry(
                             GenJnlLine, GLEntry,
                             ComponentSetup."Payable Wthldg. Tax Acc. Code",
                             ComponentWHT, 0, false, true, 0);
-                        sender.InsertGLEntry(GenJnlLine, GLEntry, true);
+                        GenJnlPostLine.InsertGLEntry(GenJnlLine, GLEntry, true);
                     end;
 
                     WHTEmployeeCalc.InsertEmployeeWHTComponentEntry(
@@ -160,17 +160,17 @@ codeunit 6791 "Wthldg Tax Empl. Subscribers"
     end;
 
 
-    local procedure CalcSourceCurrVATBaseAmount(var GenJnlLine: Record "Gen. Journal Line"; WithholdingAmountLCY: Decimal; var sender: Codeunit "Gen. Jnl.-Post Line"): Decimal
+    local procedure CalcSourceCurrVATBaseAmount(var GenJnlLine: Record "Gen. Journal Line"; WithholdingAmountLCY: Decimal; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"): Decimal
     var
         SourceCurrVATBaseAmount: Decimal;
     begin
         if (GenJnlLine."Source Currency Code" <> '') and ((not GenJnlLine."System-Created Entry") or GenJnlLine."Financial Void") then begin
             if GenJnlLine."Source Curr. VAT Base Amount" <> 0 then
-                SourceCurrVATBaseAmount := GenJnlLine."Source Curr. VAT Base Amount" + sender.CalcAmountSourceCurrency(GenJnlLine, WithholdingAmountLCY)
+                SourceCurrVATBaseAmount := GenJnlLine."Source Curr. VAT Base Amount" + GenJnlPostLine.CalcAmountSourceCurrency(GenJnlLine, WithholdingAmountLCY)
             else
-                SourceCurrVATBaseAmount := GenJnlLine."Source Currency Amount" + sender.CalcAmountSourceCurrency(GenJnlLine, WithholdingAmountLCY);
+                SourceCurrVATBaseAmount := GenJnlLine."Source Currency Amount" + GenJnlPostLine.CalcAmountSourceCurrency(GenJnlLine, WithholdingAmountLCY);
         end else
-            SourceCurrVATBaseAmount := sender.CalcAmountSourceCurrency(GenJnlLine, GenJnlLine."VAT Base Amount (LCY)" + WithholdingAmountLCY);
+            SourceCurrVATBaseAmount := GenJnlPostLine.CalcAmountSourceCurrency(GenJnlLine, GenJnlLine."VAT Base Amount (LCY)" + WithholdingAmountLCY);
 
         exit(SourceCurrVATBaseAmount);
     end;

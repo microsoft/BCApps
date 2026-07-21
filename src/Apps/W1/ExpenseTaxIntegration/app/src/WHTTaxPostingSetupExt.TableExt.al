@@ -16,6 +16,7 @@ tableextension 7056 "WHT Tax Posting Setup Ext" extends "Withholding Tax Posting
             Caption = 'Threshold Category Code';
             TableRelation = "Expense Category";
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the threshold category code used to accumulate withholding tax threshold amounts for the expense category.';
         }
     }
 }

@@ -15,18 +15,21 @@ tableextension 7055 "WHT Expense Category Ext" extends "Expense Category"
         {
             Caption = 'Withholding Selection Mode';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies whether the expense category uses a single tax or a tax group for withholding tax calculation.';
         }
         field(7056; "Wthldg. Tax Prod. Post. Group"; Code[20])
         {
             Caption = 'Withholding Tax Prod. Post. Group';
             TableRelation = "Wthldg. Tax Prod. Post. Group";
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the withholding tax product posting group for the expense category.';
         }
         field(7057; "Withholding Group Code"; Code[20])
         {
             Caption = 'Withholding Group Code';
             TableRelation = "Withholding Tax Group";
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the withholding tax group code for the expense category.';
         }
     }
 }
