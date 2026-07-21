@@ -1330,8 +1330,10 @@ function Find-CrossPrUnstableTests {
         $attemptText = if ($runAttempt -gt 1) { "$runAttempt attempts" } else { '1 attempt' }
         Write-Host "Downloading test results from PR #$prNumber build (run $runId, status '$($run.status)', $attemptText) ..."
         # Gather failures across every attempt of this run (see Get-RunFailedTestsAllAttempts). Attempts of
-        # the same run belong to the same PR, so they never inflate the distinct-PR count below.
-        $runFailed = Get-RunFailedTestsAllAttempts -Repository $Repository -RunId $runId -WorkDirectory $runDir
+        # the same run belong to the same PR, so they never inflate the distinct-PR count below. Wrap in @()
+        # so an empty result (e.g. a running build with no uploaded artifacts yet) yields an empty array
+        # rather than $null, whose '.Count' would throw under StrictMode.
+        $runFailed = @(Get-RunFailedTestsAllAttempts -Repository $Repository -RunId $runId -WorkDirectory $runDir)
         if ($runFailed.Count -eq 0) { continue }
 
         $observations.Add([pscustomobject]@{
