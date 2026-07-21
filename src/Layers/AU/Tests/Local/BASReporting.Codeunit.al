@@ -888,6 +888,7 @@ codeunit 145302 "BAS Reporting"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
     [Scope('OnPrem')]
     procedure ExportBASGroupCompanyWithConsolidation()
     var
@@ -1082,6 +1083,13 @@ codeunit 145302 "BAS Reporting"
             BASSetupName.Delete(true);
         end;
         BASCalculationSheet.Delete(true);
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure ConfirmHandlerYes(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := true;
     end;
 
     [ModalPageHandler]
