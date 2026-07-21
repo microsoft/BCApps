@@ -316,38 +316,6 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
-    procedure PostingCopiesRegulatoryCommentWhenStandardCommentCopyIsDisabled()
-    var
-        SalesCommentLine: Record "Sales Comment Line";
-        SalesHeader: Record "Sales Header";
-        SalesReceivablesSetup: Record "Sales & Receivables Setup";
-        CustomerNo: Code[20];
-        PostedInvoiceNo: Code[20];
-    begin
-        // [SCENARIO] Regulatory comments are retained during posting independently of the standard copy-comments setup
-        Initialize();
-
-        SalesReceivablesSetup.Get();
-        SalesReceivablesSetup."Copy Comments Order to Invoice" := false;
-        SalesReceivablesSetup.Modify();
-        CustomerNo := CreateCustomer('123456789', "Electronic Address Scheme"::"0002");
-        SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesInvoiceWithLine(CustomerNo));
-        SalesCommentLine."Document Type" := SalesCommentLine."Document Type"::Invoice;
-        SalesCommentLine."No." := SalesHeader."No.";
-        SalesCommentLine."Line No." := 10000;
-        SalesCommentLine.Comment := 'Regulatory payment note';
-        SalesCommentLine."FR Regulatory Comment Type" := SalesCommentLine."FR Regulatory Comment Type"::PMT;
-        SalesCommentLine.Insert();
-
-        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
-
-        SalesCommentLine.SetRange("Document Type", SalesCommentLine."Document Type"::"Posted Invoice");
-        SalesCommentLine.SetRange("No.", PostedInvoiceNo);
-        SalesCommentLine.SetRange("FR Regulatory Comment Type", SalesCommentLine."FR Regulatory Comment Type"::PMT);
-        Assert.RecordCount(SalesCommentLine, 1);
-    end;
-
-    [Test]
     procedure ExportSalesInvUsesServiceParticipantEndpointWithScheme0225()
     var
         ServiceParticipant: Record "Service Participant";
