@@ -70,7 +70,7 @@ codeunit 148005 "Factura-E Struct. Validations"
         Assert.AreEqual(0, PurchaseLine."Line Discount Amount", StrSubstNo(MockDataMismatchErr, PurchaseLine.FieldCaption("Line Discount Amount"), PurchaseLine.TableCaption(), 0, PurchaseLine."Line Discount Amount"));
         // In the import file we have a name 'Bicycle' but because of Item Cross Reference validation Item description is being used
         if Item."No." <> '' then begin
-            Assert.AreEqual('Bicycle', PurchaseLine.Description, StrSubstNo(MockDataMismatchErr, PurchaseLine.FieldCaption(Description), PurchaseLine.TableCaption(), Item."No.", PurchaseLine.Description));
+            Assert.AreEqual('Bicycle', PurchaseLine.Description, StrSubstNo(MockDataMismatchErr, PurchaseLine.FieldCaption(Description), PurchaseLine.TableCaption(), 'Bicycle', PurchaseLine.Description));
             Assert.AreEqual(Item."No.", PurchaseLine."No.", StrSubstNo(MockDataMismatchErr, PurchaseLine.FieldCaption("No."), PurchaseLine.TableCaption(), Item."No.", PurchaseLine."No."));
             Assert.AreEqual(Item."Purch. Unit of Measure", PurchaseLine."Unit of Measure Code", StrSubstNo(MockDataMismatchErr, PurchaseLine.FieldCaption("Unit of Measure Code"), PurchaseLine.TableCaption(), UnitOfMeasureCodeTok, PurchaseLine."Unit of Measure Code"));
         end else begin
