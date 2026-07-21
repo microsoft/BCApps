@@ -168,6 +168,7 @@ codeunit 148015 "Elec. VAT Decl. Tests"
     end;
 
     [Test]
+    [Scope('OnPrem')]
     procedure ReportingFrequencyIsEnabledWhenKeyVaultFlagIsTrue()
     var
         ElecVATDeclAzKeyVault: Codeunit "Elec. VAT Decl. Az. Key Vault";
@@ -178,6 +179,7 @@ codeunit 148015 "Elec. VAT Decl. Tests"
     end;
 
     [Test]
+    [Scope('OnPrem')]
     procedure ReportingFrequencyIsDisabledWhenKeyVaultFlagIsFalse()
     var
         ElecVATDeclAzKeyVault: Codeunit "Elec. VAT Decl. Az. Key Vault";
@@ -188,6 +190,7 @@ codeunit 148015 "Elec. VAT Decl. Tests"
     end;
 
     [Test]
+    [Scope('OnPrem')]
     procedure ReportingFrequencyIsEnabledWhenKeyVaultFlagIsInvalid()
     var
         ElecVATDeclAzKeyVault: Codeunit "Elec. VAT Decl. Az. Key Vault";
@@ -198,6 +201,7 @@ codeunit 148015 "Elec. VAT Decl. Tests"
     end;
 
     [Test]
+    [Scope('OnPrem')]
     procedure ReportingFrequencyIsEnabledWhenKeyVaultFlagIsMissing()
     var
         ElecVATDeclAzKeyVault: Codeunit "Elec. VAT Decl. Az. Key Vault";
@@ -237,6 +241,7 @@ codeunit 148015 "Elec. VAT Decl. Tests"
             '<ns4:AngivelseFristKalenderBetalingDato>' + DueDate + '</ns4:AngivelseFristKalenderBetalingDato></ns1:AngivelseBetalingFristStruktur>');
     end;
 
+    [Scope('OnPrem')]
     local procedure SetReportingFrequencyKeyVaultFlag(FlagValue: Text)
     var
         LibraryAzureKVMockMgmt: Codeunit "Library - Azure KV Mock Mgmt.";
