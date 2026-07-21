@@ -457,7 +457,7 @@ tableextension 6211 "Sustainability Purch. Line" extends "Purchase Line"
 
             trigger OnValidate()
             begin
-                if Rec."Installation Multiplier" <> 0 then
+                if (Rec."Installation Multiplier" <> 0) and (Rec."Installation Multiplier" <> xRec."Installation Multiplier") then
                     ValidateEmissionPrerequisite(Rec, xRec, Rec.FieldNo("Installation Multiplier"));
 
                 if (Rec."Installation Multiplier" <> xRec."Installation Multiplier") and IsSustainabilityFormulaPurchaseLine() then
