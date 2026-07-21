@@ -564,6 +564,36 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
+    procedure ExportSalesInvUsesCompanyServiceParticipantEndpoint()
+    var
+        ServiceParticipant: Record "Service Participant";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        XmlDoc: XmlDocument;
+        EndpointId: Text[200];
+    begin
+        // [SCENARIO] A service-specific company participant overrides the company endpoint fallbacks
+        Initialize();
+
+        EndpointId := CompanyInformation."Registration No.";
+        ServiceParticipant.Service := EDocumentService.Code;
+        ServiceParticipant."Participant Type" := ServiceParticipant."Participant Type"::Company;
+        ServiceParticipant."Participant Identifier" := EndpointId;
+        ServiceParticipant."FR Identifier Scheme" := ServiceParticipant."FR Identifier Scheme"::"0002";
+        ServiceParticipant.Insert();
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
+
+        CheckInvoice(SalesInvoiceHeader);
+        ExportInvoice(SalesInvoiceHeader, XmlDoc);
+
+        Assert.AreEqual(EndpointId,
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID'),
+            StrSubstNo(IncorrectValueErr, 'Seller EndpointID'));
+        Assert.AreEqual('0002',
+            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID/@schemeID'),
+            StrSubstNo(IncorrectValueErr, 'Seller EndpointID schemeID'));
+    end;
+
+    [Test]
     procedure CheckRaisesErrorWhenSellerCountryCodeIsEmpty()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
