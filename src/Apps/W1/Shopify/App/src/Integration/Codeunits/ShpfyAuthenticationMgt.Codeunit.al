@@ -277,7 +277,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
 
         if RegisteredStoreNew.HasRefreshToken() then begin
             if TokenNeedsRefresh(RegisteredStoreNew) then
-                RefreshAccessToken(Store, RegisteredStoreNew);
+                RefreshAccessToken(Store, RegisteredStoreNew, 1);
         end else
             TryMigrate(Store, RegisteredStoreNew);
 
@@ -312,7 +312,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
         Commit();
 
         if RegisteredStoreNew.HasRefreshToken() then
-            RefreshAccessToken(Store, RegisteredStoreNew)
+            RefreshAccessToken(Store, RegisteredStoreNew, 3)
         else
             TryMigrate(Store, RegisteredStoreNew);
 
@@ -386,21 +386,19 @@ codeunit 30199 "Shpfy Authentication Mgt."
     end;
 
     [NonDebuggable]
-    local procedure RefreshAccessToken(Store: Text; var RegisteredStoreNew: Record "Shpfy Registered Store New")
+    local procedure RefreshAccessToken(Store: Text; var RegisteredStoreNew: Record "Shpfy Registered Store New"; MaxAttempts: Integer)
     var
         RequestBody: JsonObject;
         Credentials: Dictionary of [Text, SecretText];
         ResponseBody: Text;
         StatusCode: Integer;
         Attempt: Integer;
-        MaxAttempts: Integer;
     begin
         if RefreshTokenExpired(RegisteredStoreNew) then begin
             Session.LogMessage('0000UIY', TokenRefreshExpiredTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
             Error(CreateReconnectErrorInfo(Store));
         end;
 
-        MaxAttempts := 3;
         for Attempt := 1 to MaxAttempts do begin
             Clear(RequestBody);
             Clear(Credentials);
@@ -409,7 +407,7 @@ codeunit 30199 "Shpfy Authentication Mgt."
             RequestBody.Add('grant_type', RefreshTokenGrantTypeTok);
             RequestBody.Add('refresh_token', '');
             Credentials.Add('$.client_secret', GetClientSecret());
-            // Retry uses the SAME refresh token: Shopify returns the same response for up to 1 hour.
+            // Retry reuses the SAME refresh token: Shopify returns the same response for up to 1 hour.
             Credentials.Add('$.refresh_token', RegisteredStoreNew.GetRefreshToken());
 
             StatusCode := ExecuteTokenRequest(Store, RequestBody, Credentials, ResponseBody);
@@ -426,7 +424,8 @@ codeunit 30199 "Shpfy Authentication Mgt."
                 Error(CreateReconnectErrorInfo(Store));
             end;
 
-            Sleep(1000 * Attempt);
+            if Attempt < MaxAttempts then
+                Sleep(1000 * Attempt);
         end;
 
         // Transient failures only (refresh token still valid, no 401): temporary Shopify/network
