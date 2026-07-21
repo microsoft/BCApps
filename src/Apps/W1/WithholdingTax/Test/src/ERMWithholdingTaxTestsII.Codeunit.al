@@ -42,6 +42,7 @@ codeunit 148322 "ERM Withholding Tax Tests II"
         ValueMustBeSameMsg: Label 'Value must be same.';
         WHTAccountCodeEmptyErr: Label '%1 must have a value in Withholding Tax Posting Setup: Withholding Tax Bus. Post. Group=%2, Withholding Tax Prod. Post. Group=%3. It cannot be zero or empty.',
                                 Comment = '%1 = Field Caption, %2 = WHT Business Posting Group Code, %3 = WHT Product Posting Group Code';
+        WHTProdPostGroupNotCopiedErr: Label 'Withholding Tax Prod. Post. Group must be copied from the applied Invoice to the Payment line.';
         IsInitialized: Boolean;
 
     [Test]
@@ -593,6 +594,47 @@ codeunit 148322 "ERM Withholding Tax Tests II"
 
         // [THEN] Payment posting produced 6 G/L entries including 2 WHT with Document No. = "B0"
         VerifyPostingNoSeriesOnePostedDoc('B0', 6, 2);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure WithholdingTaxProductPostingGroupIsCopiedToWithholdingTaxEntry()
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        WHTBusPostingGroup: Record "Wthldg. Tax Bus. Post. Group";
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+        WHTProdPostingGroup: Record "Wthldg. Tax Prod. Post. Group";
+        WHTEntry: Record "Withholding Tax Entry";
+    begin
+        // [SCENARIO 639524] Withholding Tax Product Posting Group is transferred from the General Journal Line to the Withholding Tax Entry created when the Invoice is posted.
+        Initialize();
+
+        // [GIVEN] Local functionalities enabled, VAT Posting Setup, Withholding Tax Business Posting Group and Withholding Tax Product Posting Group.
+        UpdateLocalFunctionalitiesOnGeneralLedgerSetup(true);
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        LibraryWithholdingTax.CreateWHTBusinessPostingGroup(WHTBusPostingGroup);
+        LibraryWithholdingTax.CreateWHTProductPostingGroup(WHTProdPostingGroup);
+
+        // [GIVEN] A General Journal Line for a Withholding Tax liable Vendor.
+        CreateGeneralJournalLineWithBalAccountType(
+          GenJournalLine, GenJournalLine."Document Type"::Invoice, CreateVendor(VATPostingSetup."VAT Bus. Posting Group", WHTBusPostingGroup.Code), '',
+          '', GenJournalLine."Bal. Account Type"::"G/L Account", CreateGLAccountWithVATBusPostingGroup(VATPostingSetup, WHTProdPostingGroup.Code),
+          -LibraryRandom.RandDecInRange(100, 200, 2));
+
+        // [GIVEN] The Withholding Tax Absorb Base is updated and the Withholding Tax Posting Setup is found for the General Journal Line.
+        UpdateGenJournalLineWHTAbsorbBase(GenJournalLine);
+        FindWHTPostingSetup(WHTPostingSetup, GenJournalLine."Wthldg. Tax Bus. Post. Group", GenJournalLine."Wthldg. Tax Prod. Post. Group", '');
+
+        // [WHEN] The Invoice is posted.
+        LibraryERM.PostGeneralJnlLine(GenJournalLine);
+
+        // [THEN] The Withholding Tax Entry has the same Withholding Tax Product Posting Group as the source General Journal Line.
+        WHTEntry.SetRange("Document Type", WHTEntry."Document Type"::Invoice);
+        WHTEntry.SetRange("Bill-to/Pay-to No.", GenJournalLine."Account No.");
+        WHTEntry.FindFirst();
+        Assert.AreEqual(WHTProdPostingGroup.Code, WHTEntry."Wthldg. Tax Prod. Post. Group", WHTProdPostGroupNotCopiedErr);
     end;
 
     local procedure Initialize()
