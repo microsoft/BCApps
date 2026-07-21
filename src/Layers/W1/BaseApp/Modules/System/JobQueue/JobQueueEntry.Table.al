@@ -1717,12 +1717,12 @@ table 472 "Job Queue Entry"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeSetStatus(var JobQueueEntry: Record "Job Queue Entry"; var NewStatus: Option)
+    local procedure OnBeforeSetStatus(JobQueueEntry: Record "Job Queue Entry"; var NewStatus: Option)
     begin
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnAfterShowStatusMsg(var JobQueueEntry: Record "Job Queue Entry"; var JQID: Guid)
+    local procedure OnAfterShowStatusMsg(JobQueueEntry: Record "Job Queue Entry"; JQID: Guid)
     begin
     end;
 }

@@ -43,6 +43,22 @@ codeunit 4614 "SMTP Message Impl"
     /// </summary>
     /// <param name="FromName">The name of the email sender</param>
     /// <param name="FromAddress">The address of the default sender or, when using the Send As or Send on Behalf functionality, the address of the substitute sender</param>
+    /// <remarks>
+    /// See https://aka.ms/EmailSetupHelp to learn about the Send As functionality.
+    /// </remarks>
+    [TryFunction]
+    procedure AddFrom(FromName: Text; FromAddress: Text)
+    var
+        EmailMessageId: Guid;
+    begin
+        AddFrom(FromName, FromAddress, EmailMessageId);
+    end;
+
+    /// <summary>
+    /// Adds the mailbox that this email is being sent from.
+    /// </summary>
+    /// <param name="FromName">The name of the email sender</param>
+    /// <param name="FromAddress">The address of the default sender or, when using the Send As or Send on Behalf functionality, the address of the substitute sender</param>
     /// <param name="EmailMessageId">The ID of the email message being sent, forwarded to the OnBeforeAddFrom event.</param>
     /// <remarks>
     /// See https://aka.ms/EmailSetupHelp to learn about the Send As functionality.

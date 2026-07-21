@@ -19,6 +19,16 @@ codeunit 4613 "SMTP Message"
     /// </summary>
     /// <param name="Name">The name of the sender</param>
     /// <param name="Address">The email address the message is sent from.</param>
+    procedure AddFrom(Name: Text; Address: Text)
+    begin
+        SMTPMessageImpl.AddFrom(Name, Address);
+    end;
+
+    /// <summary>
+    /// Add the name and email address the message is being sent from.
+    /// </summary>
+    /// <param name="Name">The name of the sender</param>
+    /// <param name="Address">The email address the message is sent from.</param>
     /// <param name="EmailMessageId">The ID of the email message being sent, so subscribers to OnBeforeAddFrom can identify it.</param>
     procedure AddFrom(Name: Text; Address: Text; EmailMessageId: Guid)
     begin
