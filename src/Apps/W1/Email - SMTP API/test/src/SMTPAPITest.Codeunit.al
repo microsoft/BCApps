@@ -126,7 +126,7 @@ codeunit 139771 "SMTP API Test"
         // [WHEN] An SMTPMessage is built with sender, recipient, subject,
         // HTML body (which triggers ConvertBase64ImagesToContentId) and a
         // regular file attachment (which produces nested multipart structure)
-        SMTPMessageImpl.AddFrom('Sender', 'sender@test.com');
+        SMTPMessageImpl.AddFrom('Sender', 'sender@test.com', CreateGuid());
         Recipients.Add('recipient@test.com');
         SMTPMessageImpl.SetToRecipients(Recipients);
         SMTPMessageImpl.SetSubject('Inline image dispose repro');
@@ -336,7 +336,7 @@ codeunit 139771 "SMTP API Test"
     begin
         // [SCENARIO] Building a full message and preparing the MIME message succeeds end-to-end.
 
-        SMTPMessageImpl.AddFrom('Sender', 'sender@contoso.com');
+        SMTPMessageImpl.AddFrom('Sender', 'sender@contoso.com', CreateGuid());
         Recipients.Add('to@contoso.com');
         SMTPMessageImpl.SetToRecipients(Recipients);
         SMTPMessageImpl.SetSubject('Subject');
@@ -359,7 +359,7 @@ codeunit 139771 "SMTP API Test"
         // [SCENARIO] A message with several inline base64 images can be prepared without
         // ObjectDisposedException.
 
-        SMTPMessageImpl.AddFrom('Sender', 'sender@contoso.com');
+        SMTPMessageImpl.AddFrom('Sender', 'sender@contoso.com', CreateGuid());
         SMTPMessageImpl.SetSubject('Multi-image regression');
         SMTPMessageImpl.SetBody(BuildHtmlWithInlineImages(5), true);
 
@@ -378,7 +378,7 @@ codeunit 139771 "SMTP API Test"
         // [SCENARIO] Setting an HTML body with inline images and then adding an attachment
         // does not invalidate the previously stored linked resources.
 
-        SMTPMessageImpl.AddFrom('Sender', 'sender@contoso.com');
+        SMTPMessageImpl.AddFrom('Sender', 'sender@contoso.com', CreateGuid());
         SMTPMessageImpl.SetSubject('Order regression');
         SMTPMessageImpl.SetBody(BuildHtmlWithInlineImages(2), true);
 
@@ -401,7 +401,7 @@ codeunit 139771 "SMTP API Test"
     [TryFunction]
     local procedure TryAddFrom(var SMTPMessage: Codeunit "SMTP Message"; Name: Text; Address: Text)
     begin
-        SMTPMessage.AddFrom(Name, Address);
+        SMTPMessage.AddFrom(Name, Address, CreateGuid());
     end;
 
     [TryFunction]

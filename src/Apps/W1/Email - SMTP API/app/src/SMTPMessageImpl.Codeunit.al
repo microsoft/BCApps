@@ -43,11 +43,12 @@ codeunit 4614 "SMTP Message Impl"
     /// </summary>
     /// <param name="FromName">The name of the email sender</param>
     /// <param name="FromAddress">The address of the default sender or, when using the Send As or Send on Behalf functionality, the address of the substitute sender</param>
+    /// <param name="EmailMessageId">The ID of the email message being sent, forwarded to the OnBeforeAddFrom event.</param>
     /// <remarks>
     /// See https://aka.ms/EmailSetupHelp to learn about the Send As functionality.
     /// </remarks>
     [TryFunction]
-    procedure AddFrom(FromName: Text; FromAddress: Text)
+    procedure AddFrom(FromName: Text; FromAddress: Text; EmailMessageId: Guid)
     var
         SMTPMessage: Codeunit "SMTP Message";
         EmailAccount: Codeunit "Email Account";
@@ -58,7 +59,7 @@ codeunit 4614 "SMTP Message Impl"
 
         OldName := FromName;
         OldAddress := FromAddress;
-        SMTPMessage.OnBeforeAddFrom(FromName, FromAddress);
+        SMTPMessage.OnBeforeAddFrom(FromName, FromAddress, EmailMessageId);
 
         if (OldName <> FromName) or (OldAddress <> FromAddress) then
             Session.LogMessage('0000GC6', FromNameOrEmailHasChangedTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, 'Category', SmtpCategoryLbl);

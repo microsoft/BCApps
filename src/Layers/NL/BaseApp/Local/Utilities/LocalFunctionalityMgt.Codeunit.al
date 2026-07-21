@@ -38,6 +38,7 @@ codeunit 11400 "Local Functionality Mgt."
             exit(true);
         Acc := CharacterFilter(UpperCase(Acc), Text1000031);
         Acc := DelChr(Acc, '>', Text1000034);
+        OnCheckBankAccNoAfterNormalizeAcc(Acc);
         BaseLen := StrLen(Acc);
         if (StrPos(Acc, Text1000032) = 1) or
            (StrPos(Acc, Text1000033) = 1)
@@ -131,6 +132,11 @@ codeunit 11400 "Local Functionality Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckBankAccNo(Acc: Text[30]; CountryCode: Code[10]; var AccountNo: Text[30]; var Result: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCheckBankAccNoAfterNormalizeAcc(var Acc: Text[30])
     begin
     end;
 }
