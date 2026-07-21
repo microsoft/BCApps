@@ -282,46 +282,17 @@ codeunit 6103 "E-Document Subscribers"
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", OnAfterPostPurchaseDoc, '', false, false)]
     local procedure OnAfterPostPurchaseDoc(var PurchaseHeader: Record "Purchase Header"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; PurchRcpHdrNo: Code[20]; RetShptHdrNo: Code[20]; PurchInvHdrNo: Code[20]; PurchCrMemoHdrNo: Code[20]; CommitIsSupressed: Boolean)
     var
-        EDocument: Record "E-Document";
-        DocumentSendingProfile: Record "Document Sending Profile";
         PurchInvHeader: Record "Purch. Inv. Header";
         PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
-        PostedDocumentHeader: RecordRef;
     begin
         if (PurchInvHdrNo = '') and (PurchCrMemoHdrNo = '') then
             exit;
-
-        if IsEDocumentLinkedToPurchaseDocument(EDocument, PurchaseHeader) then begin
-            if PurchInvHdrNo <> '' then begin
-                if PurchInvHeader.Get(PurchInvHdrNo) then
-                    PointEDocumentToPostedDocument(PurchaseHeader, PurchInvHeader, PurchInvHdrNo, Enum::"E-Document Type"::"Purchase Invoice")
-            end else
-                if PurchCrMemoHdr.Get(PurchCrMemoHdrNo) then
-                    PointEDocumentToPostedDocument(PurchaseHeader, PurchCrMemoHdr, PurchCrMemoHdrNo, Enum::"E-Document Type"::"Purchase Credit Memo");
-            exit;
-        end;
-
-        if CommitIsSupressed then
-            exit;
-
         if PurchInvHdrNo <> '' then begin
-            if not PurchInvHeader.Get(PurchInvHdrNo) then
-                exit;
-            PostedDocumentHeader.GetTable(PurchInvHeader);
+            if PurchInvHeader.Get(PurchInvHdrNo) then
+                PointEDocumentToPostedDocument(PurchaseHeader, PurchInvHeader, PurchInvHdrNo, Enum::"E-Document Type"::"Purchase Invoice")
         end else
             if PurchCrMemoHdr.Get(PurchCrMemoHdrNo) then
-                PostedDocumentHeader.GetTable(PurchCrMemoHdr)
-            else
-                exit;
-
-        DocumentSendingProfile := EDocumentProcessing.GetDocSendingProfileForDocRef(PostedDocumentHeader);
-        if DocumentSendingProfile.Code = '' then
-            exit;
-
-        if PurchInvHdrNo <> '' then
-            CreateEDocumentFromPostedDocument(PurchInvHeader, DocumentSendingProfile, Enum::"E-Document Type"::"Purchase Invoice")
-        else
-            CreateEDocumentFromPostedDocument(PurchCrMemoHdr, DocumentSendingProfile, Enum::"E-Document Type"::"Purchase Credit Memo");
+                PointEDocumentToPostedDocument(PurchaseHeader, PurchCrMemoHdr, PurchCrMemoHdrNo, Enum::"E-Document Type"::"Purchase Credit Memo");
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"TransferOrder-Post Shipment", OnAfterTransferOrderPostShipment, '', false, false)]
