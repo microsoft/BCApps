@@ -2601,12 +2601,15 @@
 
         // [THEN] The deferral header has a non-zero Amount to Defer (LCY) before posting
         FindDeferralHeader(PurchaseLine, DeferralHeader);
+        Assert.AreNotEqual(0, DeferralHeader."Amount to Defer (LCY)", AmountLCYNotFilledErr);
 
         // [THEN] Every deferral line has a non-zero Amount (LCY) that sums to the header Amount to Defer (LCY)
         RangeDeferralLines(DeferralHeader, DeferralLine);
         repeat
             Assert.AreNotEqual(0, DeferralLine."Amount (LCY)", AmountLCYNotFilledErr);
         until DeferralLine.Next() = 0;
+        DeferralLine.CalcSums("Amount (LCY)");
+        Assert.AreEqual(DeferralHeader."Amount to Defer (LCY)", DeferralLine."Amount (LCY)", AmountLCYNotFilledErr);
     end;
 
     local procedure Initialize()

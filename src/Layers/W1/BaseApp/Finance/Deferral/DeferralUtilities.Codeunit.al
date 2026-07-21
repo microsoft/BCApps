@@ -155,8 +155,8 @@ codeunit 1720 "Deferral Utilities"
         case DeferralHeader."Deferral Doc. Type" of
             DeferralHeader."Deferral Doc. Type"::Purchase:
                 begin
-                    PurchaseHeader.SetLoadFields("Currency Factor", "Posting Date", "Currency Code");
-                    if not PurchaseHeader.Get(DeferralHeader."Document Type", DeferralHeader."Document No.") then
+                    PurchaseHeader.SetLoadFields("Currency Factor", "Posting Date");
+                    if not PurchaseHeader.Get(Enum::"Purchase Document Type".FromInteger(DeferralHeader."Document Type"), DeferralHeader."Document No.") then
                         exit;
 
                     RoundDeferralAmount(
