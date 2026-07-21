@@ -4,28 +4,20 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
-enum 10976 "Electronic Address Scheme"
+enum 10971 "FR Regulatory Comment Type"
 {
-    Extensible = true;
+    Extensible = false;
 
-    value(0; "EM")
+    value(0; AAB)
     {
-        Caption = 'Email (EM)';
+        Caption = 'AAB';
     }
-    value(1; "0009")
+    value(1; PMD)
     {
-        Caption = 'SIRET (0009)';
+        Caption = 'PMD';
     }
-    value(2; "0002")
+    value(2; PMT)
     {
-        Caption = 'SIREN (0002)';
-    }
-    value(3; "0223")
-    {
-        Caption = 'French VAT number (0223)';
-    }
-    value(4; "0225")
-    {
-        Caption = 'French routing identifier (0225)';
+        Caption = 'PMT';
     }
 }
