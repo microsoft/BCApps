@@ -39,7 +39,6 @@ codeunit 5230 "Create General Ledger Setup"
         GeneralLedgerSetup.Validate("Currency Symbol Position", GeneralLedgerSetup."Currency Symbol Position"::"Before Amount");
         GeneralLedgerSetup.Validate("Enable Data Check", DataCheck);
         GeneralLedgerSetup.Validate("Acc. Receivables Category", AccReceivablesCategory);
-        GeneralledgerSetup."Use Concurrent Posting" := true; // to test concurrent posting for all countries
         GeneralLedgerSetup.Modify(true);
     end;
 }
