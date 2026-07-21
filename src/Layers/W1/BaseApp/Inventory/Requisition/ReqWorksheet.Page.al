@@ -1247,17 +1247,16 @@ page 291 "Req. Worksheet"
 
     local procedure GetCurrentJnlBatchName(): boolean
     begin
-        if (Rec."Journal Batch Name" <> '') and (Rec."Worksheet Template Name" <> '') then begin
-            CurrentJnlBatchName := Rec."Journal Batch Name";
-            Rec.FilterGroup := 2;
-            Rec.SetRange("Worksheet Template Name", Rec."Worksheet Template Name");
-            Rec.FilterGroup := 0;
-            ReqJnlManagement.OpenJnl(CurrentJnlBatchName, Rec);
-            SetControlAppearanceFromWkshBatch();
-            exit(true);
-        end
-        else
+        if (Rec."Journal Batch Name" = '') or (Rec."Worksheet Template Name" = '') then
             exit(false);
+
+        CurrentJnlBatchName := Rec."Journal Batch Name";
+        Rec.FilterGroup := 2;
+        Rec.SetRange("Worksheet Template Name", Rec."Worksheet Template Name");
+        Rec.FilterGroup := 0;
+        ReqJnlManagement.OpenJnl(CurrentJnlBatchName, Rec);
+        SetControlAppearanceFromWkshBatch();
+        exit(true);
     end;
 
     [IntegrationEvent(false, false)]
