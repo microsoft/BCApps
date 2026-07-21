@@ -143,7 +143,7 @@ page 46863 "BC14 Migration Error Overview"
             {
                 ApplicationArea = All;
                 Caption = 'Continue migration';
-                ToolTip = 'Continue migration for the company of the selected error record. Records that already succeeded will be skipped automatically.';
+                ToolTip = 'Reruns the migration for the company of the selected error record. Records that already succeeded are skipped, and any errored record that migrates successfully this time is automatically marked as resolved. Rerunning is the only way to resolve migration errors: fix the underlying data first, then run this action.';
                 Image = Refresh;
                 trigger OnAction()
                 var
