@@ -17,22 +17,38 @@ function Get-PlatformVersions {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $false)]
-        [switch] $Force
+        [switch] $Force,
+        [Parameter(Mandatory = $false)]
+        [int] $RetryCount = 3,
+        [Parameter(Mandatory = $false)]
+        [int] $RetryDelaySeconds = 30
     )
 
     if ($null -eq $script:PlatformVersionsCache -or $Force) {
-        try {
-            Write-Host "Fetching platform version index from $script:PlatformIndexUrl"
-            $response = Invoke-WebRequest -Uri $script:PlatformIndexUrl -ErrorAction Stop
-            $index = @($response.Content | ConvertFrom-Json)
-            if ($index.Count -gt 0 -and $index[0].PSObject.Properties['Version']) {
-                $script:PlatformVersionsCache = @($index | ForEach-Object { $_.Version })
-            } else {
-                $script:PlatformVersionsCache = $index
+        $lastException = $null
+        for ($attempt = 1; $attempt -le $RetryCount; $attempt++) {
+            try {
+                Write-Host "Fetching platform version index from $script:PlatformIndexUrl (attempt $attempt of $RetryCount)"
+                $response = Invoke-WebRequest -Uri $script:PlatformIndexUrl -ErrorAction Stop
+                $index = @($response.Content | ConvertFrom-Json)
+                if ($index.Count -gt 0 -and $index[0].PSObject.Properties['Version']) {
+                    $script:PlatformVersionsCache = @($index | ForEach-Object { $_.Version })
+                } else {
+                    $script:PlatformVersionsCache = $index
+                }
+                $lastException = $null
+                break
+            }
+            catch {
+                $lastException = $_
+                if ($attempt -lt $RetryCount) {
+                    Write-Warning "Attempt $attempt failed: $($_.Exception.Message). Retrying in $RetryDelaySeconds seconds..."
+                    Start-Sleep -Seconds $RetryDelaySeconds
+                }
             }
         }
-        catch {
-            throw "Failed to fetch platform version index from '$script:PlatformIndexUrl': $($_.Exception.Message)"
+        if ($null -ne $lastException) {
+            throw "Failed to fetch platform version index from '$script:PlatformIndexUrl': $($lastException.Exception.Message)"
         }
     }
 

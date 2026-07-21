@@ -62,8 +62,38 @@ Describe "PlatformHelper" {
             Mock -ModuleName PlatformHelper -CommandName Invoke-WebRequest -MockWith {
                 throw "Network error"
             }
+            Mock -ModuleName PlatformHelper -CommandName Start-Sleep -MockWith {}
 
-            { Get-PlatformVersions } | Should -Throw "*Failed to fetch platform version index*"
+            { Get-PlatformVersions -RetryCount 3 -RetryDelaySeconds 0 } | Should -Throw "*Failed to fetch platform version index*"
+        }
+
+        It "Should retry on transient network error and succeed" {
+            $script:callCount = 0
+            Mock -ModuleName PlatformHelper -CommandName Invoke-WebRequest -MockWith {
+                $script:callCount++
+                if ($script:callCount -lt 3) {
+                    throw "Transient network error"
+                }
+                return @{
+                    Content = $script:testVersions | ConvertTo-Json
+                }
+            }
+            Mock -ModuleName PlatformHelper -CommandName Start-Sleep -MockWith {}
+
+            $versions = Get-PlatformVersions -RetryCount 3 -RetryDelaySeconds 0
+            $versions | Should -Not -BeNullOrEmpty
+            $versions.Count | Should -Be 7
+            Should -Invoke -ModuleName PlatformHelper -CommandName Invoke-WebRequest -Times 3 -Exactly
+        }
+
+        It "Should retry the specified number of times before throwing" {
+            Mock -ModuleName PlatformHelper -CommandName Invoke-WebRequest -MockWith {
+                throw "Network error"
+            }
+            Mock -ModuleName PlatformHelper -CommandName Start-Sleep -MockWith {}
+
+            { Get-PlatformVersions -RetryCount 3 -RetryDelaySeconds 0 } | Should -Throw "*Failed to fetch platform version index*"
+            Should -Invoke -ModuleName PlatformHelper -CommandName Invoke-WebRequest -Times 3 -Exactly
         }
     }
 
