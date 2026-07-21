@@ -425,7 +425,7 @@ codeunit 6784 "Wthldg Tax Purch. Subscribers"
         if PurchHeader."Document Type" in [PurchHeader."Document Type"::Order, PurchHeader."Document Type"::Invoice] then begin
             PurchInvHeader.Get(GenJnlLineDocNo);
 
-            if TotalInvAmount >= WithholdingPostingSetup."Wthldg. Tax Min. Inv. Amount" then
+            if WithholdingTaxMgmt.ShouldCreateWithholdingTax(TotalInvAmount, WithholdingPostingSetup) then
                 WithholdingTaxMgmt.InsertVendInvoiceWithholdingTax(PurchInvHeader);
 
             WithholdingTaxEntry.Reset();
