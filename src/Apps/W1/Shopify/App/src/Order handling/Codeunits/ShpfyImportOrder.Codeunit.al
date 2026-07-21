@@ -125,6 +125,7 @@ codeunit 30161 "Shpfy Import Order"
         OrderHeader.Modify();
         OrderFulfillments.GetFulfillments(Shop, OrderHeader."Shopify Order Id");
 
+        MarkExchangeItemOrderLines(OrderHeader);
         ConsiderRefundsInQuantityAndAmounts(OrderHeader);
         DeleteZeroQuantityLines(OrderHeader);
 
@@ -212,6 +213,7 @@ codeunit 30161 "Shpfy Import Order"
         if not IReturnRefundProcess.IsImportNeededFor("Shpfy Source Document Type"::Refund) then
             exit;
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        OrderLine.SetRange("Is Exchange Item", false);
         if not OrderLine.FindSet() then
             exit;
         repeat
@@ -241,6 +243,68 @@ codeunit 30161 "Shpfy Import Order"
             OrderEvents.OnAfterConsiderRefundsInQuantityAndAmounts(OrderHeader, OrderLine, RefundLine);
         until OrderLine.Next() = 0;
         OrderHeader.Modify();
+    end;
+
+    internal procedure MarkExchangeItemOrderLines(var OrderHeader: Record "Shpfy Order Header")
+    var
+        OrderLine: Record "Shpfy Order Line";
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        ExchangeLineIds: List of [BigInteger];
+        ExchangeLineId: BigInteger;
+        GraphQLType: Enum "Shpfy GraphQL Type";
+        Parameters: Dictionary of [Text, Text];
+        JResponse: JsonToken;
+        JReturns: JsonArray;
+        JReturn: JsonToken;
+        JExchangeLineItems: JsonArray;
+        JExchangeLineItem: JsonToken;
+        JLineItems: JsonArray;
+        JLineItem: JsonToken;
+    begin
+        IReturnRefundProcess := Shop."Return and Refund Process";
+        if not IReturnRefundProcess.IsImportNeededFor("Shpfy Source Document Type"::Refund) then
+            exit;
+
+        // Exchange line items only exist on orders that have a return. Skip the API call for the common case of no return.
+        if OrderHeader."Return Status" in [OrderHeader."Return Status"::" ", OrderHeader."Return Status"::"No Return"] then
+            exit;
+
+        Parameters.Add('OrderId', Format(OrderHeader."Shopify Order Id"));
+        GraphQLType := "Shpfy GraphQL Type"::Orders_GetOrderExchangeLineItems;
+        repeat
+            JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
+            GraphQLType := "Shpfy GraphQL Type"::Orders_GetNextOrderExchangeLineItems;
+            JReturns := JsonHelper.GetJsonArray(JResponse, 'data.order.returns.nodes');
+            if Parameters.ContainsKey('After') then
+                Parameters.Set('After', JsonHelper.GetValueAsText(JResponse, 'data.order.returns.pageInfo.endCursor'))
+            else
+                Parameters.Add('After', JsonHelper.GetValueAsText(JResponse, 'data.order.returns.pageInfo.endCursor'));
+
+            foreach JReturn in JReturns do begin
+                JExchangeLineItems := JsonHelper.GetJsonArray(JReturn, 'exchangeLineItems.nodes');
+                foreach JExchangeLineItem in JExchangeLineItems do begin
+                    JLineItems := JsonHelper.GetJsonArray(JExchangeLineItem, 'lineItems');
+                    foreach JLineItem in JLineItems do begin
+                        ExchangeLineId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLineItem, 'id'));
+                        if (ExchangeLineId <> 0) and not ExchangeLineIds.Contains(ExchangeLineId) then
+                            ExchangeLineIds.Add(ExchangeLineId);
+                    end;
+                end;
+            end;
+        until not JsonHelper.GetValueAsBoolean(JResponse, 'data.order.returns.pageInfo.hasNextPage');
+
+        if ExchangeLineIds.Count() = 0 then
+            exit;
+
+        OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        OrderLine.SetLoadFields("Line Id", "Is Exchange Item");
+        if OrderLine.FindSet() then
+            repeat
+                if ExchangeLineIds.Contains(OrderLine."Line Id") and (not OrderLine."Is Exchange Item") then begin
+                    OrderLine."Is Exchange Item" := true;
+                    OrderLine.Modify();
+                end;
+            until OrderLine.Next() = 0;
     end;
 
     local procedure IsImportedOrderConflictingExistingOrder(JOrder: JsonObject; OrderHeader: Record "Shpfy Order Header"; var TempOrderLine: Record "Shpfy Order Line" temporary): Boolean
