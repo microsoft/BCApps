@@ -8,15 +8,19 @@ enum 10971 "FR Regulatory Comment Type"
 {
     Extensible = false;
 
-    value(0; AAB)
+    value(0; None)
+    {
+        Caption = '';
+    }
+    value(1; AAB)
     {
         Caption = 'AAB';
     }
-    value(1; PMD)
+    value(2; PMD)
     {
         Caption = 'PMD';
     }
-    value(2; PMT)
+    value(3; PMT)
     {
         Caption = 'PMT';
     }

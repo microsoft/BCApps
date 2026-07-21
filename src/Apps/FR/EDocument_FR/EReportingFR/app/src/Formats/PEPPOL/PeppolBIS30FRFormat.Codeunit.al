@@ -9,6 +9,7 @@ using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument.Service.Participant;
 using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
+using Microsoft.Sales.Comment;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.History;
 using System.Utilities;
@@ -189,11 +190,11 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 
     local procedure InjectRegulatoryComments(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager; SourceDocumentHeader: RecordRef)
     var
-        RegulatoryComment: Record "FR Regulatory Comment";
+        SalesCommentLine: Record "Sales Comment Line";
         AnchorNode: XmlNode;
         NoteElement: XmlElement;
         DocumentNo: Code[20];
-        DocumentType: Enum "FR Reg. Comment Doc. Type";
+        DocumentType: Enum "Sales Comment Document Type";
     begin
         case SourceDocumentHeader.Number of
             Database::"Sales Invoice Header":
@@ -214,14 +215,16 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
                 exit;
         end;
 
-        RegulatoryComment.SetRange("Document Type", DocumentType);
-        RegulatoryComment.SetRange("Document No.", DocumentNo);
-        if RegulatoryComment.FindSet() then
+        SalesCommentLine.SetRange("Document Type", DocumentType);
+        SalesCommentLine.SetRange("No.", DocumentNo);
+        SalesCommentLine.SetRange("Document Line No.", 0);
+        SalesCommentLine.SetFilter("FR Regulatory Comment Type", '<>%1', SalesCommentLine."FR Regulatory Comment Type"::None);
+        if SalesCommentLine.FindSet() then
             repeat
-                NoteElement := XmlElement.Create('Note', CbcNamespaceTok, RegulatoryComment."Comment Text");
+                NoteElement := XmlElement.Create('Note', CbcNamespaceTok, SalesCommentLine.Comment);
                 AnchorNode.AddAfterSelf(NoteElement);
                 AnchorNode := NoteElement.AsXmlNode();
-            until RegulatoryComment.Next() = 0;
+            until SalesCommentLine.Next() = 0;
     end;
 
     local procedure InitNamespaceManager(var NamespaceMgr: XmlNamespaceManager; XmlDoc: XmlDocument)

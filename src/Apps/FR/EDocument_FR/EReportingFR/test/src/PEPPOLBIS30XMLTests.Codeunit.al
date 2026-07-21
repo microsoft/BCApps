@@ -12,6 +12,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Comment;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Setup;
@@ -22,7 +23,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     Subtype = Test;
     Permissions = tabledata "E-Document Service" = rimd,
                   tabledata "Company Information" = rimd,
-                  tabledata "FR Regulatory Comment" = rimd,
+                  tabledata "Sales Comment Line" = rimd,
                   tabledata "Service Participant" = rimd,
                   tabledata "Sales Invoice Line" = rimd,
                   tabledata "Sales & Receivables Setup" = rimd,
@@ -286,26 +287,64 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     [Test]
     procedure ExportSalesInvIncludesRegulatoryCommentAsNote()
     var
-        RegulatoryComment: Record "FR Regulatory Comment";
+        SalesCommentLine: Record "Sales Comment Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
         XmlDoc: XmlDocument;
-        CommentText: Text[250];
+        CommentText: Text[80];
     begin
         // [SCENARIO] A maintained French regulatory comment is exported as a UBL header note
         Initialize();
 
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('', "Electronic Address Scheme"::"EM")));
         CommentText := 'No discount is granted for early payment.';
-        RegulatoryComment."Document Type" := RegulatoryComment."Document Type"::"Posted Invoice";
-        RegulatoryComment."Document No." := SalesInvoiceHeader."No.";
-        RegulatoryComment."Line No." := 10000;
-        RegulatoryComment."Comment Type" := RegulatoryComment."Comment Type"::AAB;
-        RegulatoryComment."Comment Text" := CommentText;
-        RegulatoryComment.Insert();
+        SalesCommentLine."Document Type" := SalesCommentLine."Document Type"::"Posted Invoice";
+        SalesCommentLine."No." := SalesInvoiceHeader."No.";
+        SalesCommentLine."Line No." := 5000;
+        SalesCommentLine.Comment := 'Ordinary comment that must not be exported';
+        SalesCommentLine.Insert();
+        SalesCommentLine.Init();
+        SalesCommentLine."Document Type" := SalesCommentLine."Document Type"::"Posted Invoice";
+        SalesCommentLine."No." := SalesInvoiceHeader."No.";
+        SalesCommentLine."Line No." := 10000;
+        SalesCommentLine."FR Regulatory Comment Type" := SalesCommentLine."FR Regulatory Comment Type"::AAB;
+        SalesCommentLine.Comment := CommentText;
+        SalesCommentLine.Insert();
 
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
         Assert.AreEqual(CommentText, GetNodeByPath(XmlDoc, '/Invoice/cbc:Note'), StrSubstNo(IncorrectValueErr, 'Note'));
+    end;
+
+    [Test]
+    procedure PostingCopiesRegulatoryCommentWhenStandardCommentCopyIsDisabled()
+    var
+        SalesCommentLine: Record "Sales Comment Line";
+        SalesHeader: Record "Sales Header";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        CustomerNo: Code[20];
+        PostedInvoiceNo: Code[20];
+    begin
+        // [SCENARIO] Regulatory comments are retained during posting independently of the standard copy-comments setup
+        Initialize();
+
+        SalesReceivablesSetup.Get();
+        SalesReceivablesSetup."Copy Comments Order to Invoice" := false;
+        SalesReceivablesSetup.Modify();
+        CustomerNo := CreateCustomer('123456789', "Electronic Address Scheme"::"0002");
+        SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesInvoiceWithLine(CustomerNo));
+        SalesCommentLine."Document Type" := SalesCommentLine."Document Type"::Invoice;
+        SalesCommentLine."No." := SalesHeader."No.";
+        SalesCommentLine."Line No." := 10000;
+        SalesCommentLine.Comment := 'Regulatory payment note';
+        SalesCommentLine."FR Regulatory Comment Type" := SalesCommentLine."FR Regulatory Comment Type"::PMT;
+        SalesCommentLine.Insert();
+
+        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        SalesCommentLine.SetRange("Document Type", SalesCommentLine."Document Type"::"Posted Invoice");
+        SalesCommentLine.SetRange("No.", PostedInvoiceNo);
+        SalesCommentLine.SetRange("FR Regulatory Comment Type", SalesCommentLine."FR Regulatory Comment Type"::PMT);
+        Assert.RecordCount(SalesCommentLine, 1);
     end;
 
     [Test]
@@ -659,11 +698,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             if AppendShipmentIndex then
                 SalesInvoiceLine."Shipment No." := CopyStr(ShipmentNo + Format(LineIndex), 1, MaxStrLen(SalesInvoiceLine."Shipment No."));
             else
-                SalesInvoiceLine."Shipment No." := CopyStr(ShipmentNo, 1, MaxStrLen(SalesInvoiceLine."Shipment No."));
+            SalesInvoiceLine."Shipment No." := CopyStr(ShipmentNo, 1, MaxStrLen(SalesInvoiceLine."Shipment No."));
             if AppendOrderIndex then
                 SalesInvoiceLine."Order No." := CopyStr(OrderNo + Format(LineIndex), 1, MaxStrLen(SalesInvoiceLine."Order No."));
             else
-                SalesInvoiceLine."Order No." := CopyStr(OrderNo, 1, MaxStrLen(SalesInvoiceLine."Order No."));
+            SalesInvoiceLine."Order No." := CopyStr(OrderNo, 1, MaxStrLen(SalesInvoiceLine."Order No."));
             SalesInvoiceLine.Modify();
         until SalesInvoiceLine.Next() = 0;
     end;
