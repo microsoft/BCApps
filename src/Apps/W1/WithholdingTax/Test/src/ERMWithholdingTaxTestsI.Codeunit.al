@@ -1850,6 +1850,7 @@ codeunit 148321 "ERM Withholding Tax Tests I"
     [HandlerFunctions('ConfirmHandler')]
     procedure GreaterThanRuleBelowThresholdCreatesWHTEntryOnPurchaseInvoice()
     var
+        GeneralPostingSetup: Record "General Posting Setup";
         VATPostingSetup: Record "VAT Posting Setup";
         WHTPostingSetup: Record "Withholding Tax Posting Setup";
         DocumentNo: Code[20];
@@ -1863,13 +1864,14 @@ codeunit 148321 "ERM Withholding Tax Tests I"
         UpdateWHTCertificateNosOnPurchSetup();
         LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
         CreateWHTPostingSetupWithCalcRule(WHTPostingSetup, WHTPostingSetup."Wthldg. Tax Calculation Rule"::"Greater than", 200);
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
 
         // [WHEN] A purchase invoice for 120 (below the minimum) is posted.
         DocumentNo :=
           CreateAndPostPurchaseDocumentWithWHTAndAmount(
             WHTPostingSetup, "Purchase Document Type"::Invoice,
-            CreateVendorWithPostingGroup(VATPostingSetup."VAT Bus. Posting Group", WHTPostingSetup."Wthldg. Tax Bus. Post. Group"),
-            CreateGLAccount(VATPostingSetup."VAT Prod. Posting Group", WHTPostingSetup."Wthldg. Tax Prod. Post. Group"), 120);
+            CreateVendorNoWithoutABN(VATPostingSetup."VAT Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group", WHTPostingSetup."Wthldg. Tax Bus. Post. Group"),
+            CreateGLAccountWithPostingSetup(VATPostingSetup."VAT Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group", WHTPostingSetup."Wthldg. Tax Prod. Post. Group"), 120);
 
         // [THEN] A WHT Entry is created for the posted invoice.
         VerifyWHTEntryExists(DocumentNo);
@@ -1880,6 +1882,7 @@ codeunit 148321 "ERM Withholding Tax Tests I"
     [HandlerFunctions('ConfirmHandler')]
     procedure GreaterThanRuleAboveThresholdDoesNotCreateWHTEntryOnPurchaseInvoice()
     var
+        GeneralPostingSetup: Record "General Posting Setup";
         VATPostingSetup: Record "VAT Posting Setup";
         WHTPostingSetup: Record "Withholding Tax Posting Setup";
         DocumentNo: Code[20];
@@ -1893,13 +1896,14 @@ codeunit 148321 "ERM Withholding Tax Tests I"
         UpdateWHTCertificateNosOnPurchSetup();
         LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
         CreateWHTPostingSetupWithCalcRule(WHTPostingSetup, WHTPostingSetup."Wthldg. Tax Calculation Rule"::"Greater than", 200);
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
 
         // [WHEN] A purchase invoice for 300 (above the minimum) is posted.
         DocumentNo :=
           CreateAndPostPurchaseDocumentWithWHTAndAmount(
             WHTPostingSetup, "Purchase Document Type"::Invoice,
-            CreateVendorWithPostingGroup(VATPostingSetup."VAT Bus. Posting Group", WHTPostingSetup."Wthldg. Tax Bus. Post. Group"),
-            CreateGLAccount(VATPostingSetup."VAT Prod. Posting Group", WHTPostingSetup."Wthldg. Tax Prod. Post. Group"), 300);
+            CreateVendorNoWithoutABN(VATPostingSetup."VAT Bus. Posting Group", GeneralPostingSetup."Gen. Bus. Posting Group", WHTPostingSetup."Wthldg. Tax Bus. Post. Group"),
+            CreateGLAccountWithPostingSetup(VATPostingSetup."VAT Prod. Posting Group", GeneralPostingSetup."Gen. Prod. Posting Group", WHTPostingSetup."Wthldg. Tax Prod. Post. Group"), 300);
 
         // [THEN] No WHT Entry is created for the posted invoice.
         VerifyWHTEntryDoesNotExist(DocumentNo);
