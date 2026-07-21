@@ -15,7 +15,6 @@ pageextension 10980 "FR Service Participants" extends "Service Participants"
             field("FR Identifier Scheme"; Rec."FR Identifier Scheme")
             {
                 ApplicationArea = All;
-                ToolTip = 'Specifies the electronic address scheme used for French electronic invoicing.';
             }
         }
     }

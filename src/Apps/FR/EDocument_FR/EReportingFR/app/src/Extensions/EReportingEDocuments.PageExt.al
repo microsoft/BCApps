@@ -16,7 +16,6 @@ pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'E-Reporting Acceptance Date';
-                ToolTip = 'Specifies the date and time when the e-reporting transaction was accepted by the tax authority.';
             }
         }
     }
