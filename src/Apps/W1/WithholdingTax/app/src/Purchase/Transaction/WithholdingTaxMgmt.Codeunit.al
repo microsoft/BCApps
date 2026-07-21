@@ -611,7 +611,6 @@ codeunit 6785 "Withholding Tax Mgmt."
 
     procedure InsertWithholdingTax(TransType: Option Purchase,Sale) EntryNo: Integer
     var
-        Currency: Record Currency;
         WithholdingTaxEntry: Record "Withholding Tax Entry";
         WithholdingTaxEntry1: Record "Withholding Tax Entry";
         VendLedgerEntry: Record "Vendor Ledger Entry";
@@ -739,11 +738,7 @@ codeunit 6785 "Withholding Tax Mgmt."
                     WithholdingTaxEntry."Unrealized Base" := 0;
                     WithholdingTaxEntry."Remaining Unrealized Amount" := 0;
                     WithholdingTaxEntry."Remaining Unrealized Base" := 0;
-                    if WithholdingTaxEntry."Currency Code" <> '' then begin
-                        Currency.Get(WithholdingTaxEntry."Currency Code");
-                        WithholdingTaxEntry.Amount := Round(WithholdingTaxEntry.Base * WithholdingTaxEntry."Withholding Tax %" / 100, Currency."Amount Rounding Precision");
-                    end else
-                        WithholdingTaxEntry.Amount := Round(WithholdingTaxEntry.Base * WithholdingTaxEntry."Withholding Tax %" / 100);
+                    WithholdingTaxEntry.Amount := Round(WithholdingTaxEntry.Base * WithholdingTaxEntry."Withholding Tax %" / 100);
                     WithholdingTaxEntry."Rem Realized Amount" := WithholdingTaxEntry.Amount;
                     WithholdingTaxEntry."Rem Realized Base" := WithholdingTaxEntry.Base;
                     WithholdingTaxEntry."Original Document No." := DocNo;
