@@ -5,6 +5,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Setup;
 
+using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Upgrade;
 using System.Environment;
 using System.Environment.Configuration;
@@ -33,23 +34,29 @@ codeunit 99008502 "Legacy Subc. Upgrade"
         UpgradeTag: Codeunit "Upgrade Tag";
         UpgradeTagDefinitions: Codeunit "Upgrade Tag Definitions";
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
-        HasLegacySubcontractingData: Boolean;
     begin
         if UpgradeTag.HasUpgradeTag(UpgradeTagDefinitions.GetLegacySubcontractingUpgradeTag()) then
             exit;
 
         ManufacturingSetup.SetLoadFields("Legacy Subcontracting");
-        if ManufacturingSetup.Get() then begin
-            HasLegacySubcontractingData := LegacySubcFeatureHandler.DatabaseHasLegacySubcontractingData();
-            if not ManufacturingSetup."Legacy Subcontracting" and HasLegacySubcontractingData then begin
-                ManufacturingSetup."Legacy Subcontracting" := true;
-                ManufacturingSetup.Modify();
-            end;
-        end;
+        if ManufacturingSetup.Get() then
+            if not ManufacturingSetup."Legacy Subcontracting" then
+                if LegacySubcFeatureHandler.DatabaseHasLegacySubcontractingData() or SubcontractorWorkCentersExist() then begin
+                    ManufacturingSetup."Legacy Subcontracting" := true;
+                    ManufacturingSetup.Modify();
+                end;
 
         RefreshApplicationAreaSetup();
 
         UpgradeTag.SetUpgradeTag(UpgradeTagDefinitions.GetLegacySubcontractingUpgradeTag());
+    end;
+
+    local procedure SubcontractorWorkCentersExist(): Boolean
+    var
+        WorkCenter: Record "Work Center";
+    begin
+        WorkCenter.SetFilter("Subcontractor No.", '<>%1', '');
+        exit(not WorkCenter.IsEmpty());
     end;
 
     local procedure RefreshApplicationAreaSetup()
