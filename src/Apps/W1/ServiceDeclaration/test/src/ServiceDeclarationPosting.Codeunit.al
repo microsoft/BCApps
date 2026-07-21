@@ -34,6 +34,7 @@ codeunit 139904 "Service Declaration Posting"
         Initialize();
         LibraryLowerPermissions.SetO365Setup();
         LibraryLowerPermissions.AddSalesDocsCreate();
+        LibraryLowerPermissions.AddeRead();
         LibraryServiceDeclaration.CreateSalesDocWithServTransTypeCode(SalesHeader, SalesLine);
         Codeunit.Run(Codeunit::"Release Sales Document", SalesHeader);
         SalesHeader.TestField(Status, SalesHeader.Status::Released);
@@ -101,6 +102,7 @@ codeunit 139904 "Service Declaration Posting"
         Initialize();
         LibraryLowerPermissions.SetO365Setup();
         LibraryLowerPermissions.AddSalesDocsPost();
+        LibraryLowerPermissions.AddeRead();
         LibraryServiceDeclaration.CreateSalesDocWithServTransTypeCode(SalesHeader, SalesLine);
         ValueEntry.SetRange("Item No.", SalesLine."No.");
         ValueEntry.SetRange("Document No.", LibrarySales.PostSalesDocument(SalesHeader, true, true));
