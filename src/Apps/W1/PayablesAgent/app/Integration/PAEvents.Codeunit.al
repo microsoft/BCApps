@@ -5,7 +5,9 @@
 namespace Microsoft.Agent.PayablesAgent;
 
 using Microsoft.eServices.EDocument;
+#if not CLEAN29
 using Microsoft.eServices.EDocument.Format;
+#endif
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.EServices.EDocumentConnector.Microsoft365;
