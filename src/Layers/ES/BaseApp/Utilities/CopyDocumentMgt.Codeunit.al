@@ -269,6 +269,11 @@ codeunit 6620 "Copy Document Mgt."
         OnAfterCopySalesDocForCrMemoCancelling(FromDocNo, ToSalesHeader, IncludeHeader, RecalculateLines, MoveNegLines, CreateToHeader, HideDialog, ExactCostRevMandatory, ApplyFully, SkipTestCreditLimit, SkipCopyFromDescription);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Posted Assembly Header", 'R', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Posted Assembly Line", 'R', InherentPermissionsScope::Both)]
     procedure CopySalesDoc(FromDocType: Enum "Sales Document Type From"; FromDocNo: Code[20]; var ToSalesHeader: Record "Sales Header")
     var
         ToSalesLine: Record "Sales Line";
@@ -442,6 +447,9 @@ codeunit 6620 "Copy Document Mgt."
           FromDocType.AsInteger(), FromDocNo, ToSalesHeader, FromDocOccurrenceNo, FromDocVersionNo, IncludeHeader, RecalculateLines, MoveNegLines);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'RIMD', InherentPermissionsScope::Both)]
     procedure CopySalesDocSalesLine(FromSalesHeader: Record "Sales Header"; var ToSalesHeader: Record "Sales Header"; var LinesNotCopied: Integer; NextLineNo: Integer)
     var
         AssemblyHeader: Record "Assembly Header";
@@ -595,6 +603,9 @@ codeunit 6620 "Copy Document Mgt."
         CopySalesReturnRcptLinesToDoc(ToSalesHeader, FromReturnRcptLine, LinesNotCopied, MissingExCostRevLink);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'RIMD', InherentPermissionsScope::Both)]
     procedure CopySalesDocSalesLineArchive(FromSalesHeaderArchive: Record "Sales Header Archive"; var ToSalesHeader: Record "Sales Header"; var LinesNotCopied: Integer; NextLineNo: Integer)
     var
         ToSalesLine: Record "Sales Line";
@@ -836,6 +847,11 @@ codeunit 6620 "Copy Document Mgt."
             Cust.CheckBlockedCustOnDocs(Cust, ToSalesHeader."Document Type", false, false);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'R', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'R', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'R', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Posted Assembly Header", 'R', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Posted Assembly Line", 'R', InherentPermissionsScope::Both)]
     local procedure CheckAsmHdrExistsForFromDocLine(ToSalesHeader: Record "Sales Header"; FromSalesLine2: Record "Sales Line"; var BufferCount: Integer; LineCountsEqual: Boolean)
     begin
         BufferCount += 1;
@@ -1972,6 +1988,9 @@ codeunit 6620 "Copy Document Mgt."
         OnAfterRecalculateSalesLine(ToSalesHeader, ToSalesLine, FromSalesHeader, FromSalesLine, CopyThisLine);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'RIMD', InherentPermissionsScope::Both)]
     procedure HandleAsmAttachedToSalesLine(var ToSalesLine: Record "Sales Line")
     var
         AssemblyItem: Record Item;
@@ -2961,6 +2980,11 @@ codeunit 6620 "Copy Document Mgt."
 
 
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Posted Assembly Header", 'R', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Posted Assembly Line", 'R', InherentPermissionsScope::Both)]
     procedure CopySalesShptLinesToDoc(ToSalesHeader: Record "Sales Header"; var FromSalesShptLine: Record "Sales Shipment Line"; var LinesNotCopied: Integer; var MissingExCostRevLink: Boolean)
     var
         ItemLedgEntry: Record "Item Ledger Entry";
@@ -5713,6 +5737,9 @@ codeunit 6620 "Copy Document Mgt."
         exit(QtyNotShipped);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'RIMD', InherentPermissionsScope::Both)]
     local procedure CopyAsmOrderToAsmOrder(var TempFromAsmHeader: Record "Assembly Header" temporary; var TempFromAsmLine: Record "Assembly Line" temporary; ToSalesLine: Record "Sales Line"; ToAsmHeaderDocType: Option; ToAsmHeaderDocNo: Code[20]; InclAsmHeader: Boolean)
     var
         FromAsmHeader: Record "Assembly Header";
@@ -5769,6 +5796,9 @@ codeunit 6620 "Copy Document Mgt."
         ToAsmHeader.ShowDueDateBeforeWorkDateMsg();
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'RIMD', InherentPermissionsScope::Both)]
     procedure CopyAsmHeaderToAsmHeader(FromAsmHeader: Record "Assembly Header"; ToAsmHeader: Record "Assembly Header"; IncludeHeader: Boolean)
     var
         EmptyToSalesLine: Record "Sales Line";
@@ -5781,6 +5811,11 @@ codeunit 6620 "Copy Document Mgt."
             TempAsmHeader, TempAsmLine, EmptyToSalesLine, ToAsmHeader."Document Type".AsInteger(), ToAsmHeader."No.", IncludeHeader);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'RIMD', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Posted Assembly Header", 'R', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Posted Assembly Line", 'R', InherentPermissionsScope::Both)]
     procedure CopyPostedAsmHeaderToAsmHeader(PostedAsmHeader: Record "Posted Assembly Header"; ToAsmHeader: Record "Assembly Header"; IncludeHeader: Boolean)
     var
         EmptyToSalesLine: Record "Sales Line";
@@ -5793,6 +5828,8 @@ codeunit 6620 "Copy Document Mgt."
             TempAsmHeader, TempAsmLine, EmptyToSalesLine, ToAsmHeader."Document Type".AsInteger(), ToAsmHeader."No.", IncludeHeader);
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'R', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'R', InherentPermissionsScope::Both)]
     local procedure GenerateAsmDataFromNonPosted(AsmHeader: Record "Assembly Header")
     var
         AsmLine: Record "Assembly Line";
@@ -5809,6 +5846,8 @@ codeunit 6620 "Copy Document Mgt."
             until AsmLine.Next() = 0;
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Posted Assembly Header", 'R', InherentPermissionsScope::Both)]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Posted Assembly Line", 'R', InherentPermissionsScope::Both)]
     local procedure GenerateAsmDataFromPosted(PostedAssemblyHeader: Record "Posted Assembly Header"; DocType: Enum "Assembly Document Type")
     var
         PostedAsmLine: Record "Posted Assembly Line";
