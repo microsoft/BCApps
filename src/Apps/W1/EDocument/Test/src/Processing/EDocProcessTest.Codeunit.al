@@ -312,7 +312,11 @@ codeunit 139883 "E-Doc Process Test"
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
         EDocument."Document Type" := "E-Document Type"::"Purchase Invoice";
         EDocument.Modify();
+#if not CLEAN29
+#pragma warning disable AL0432
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
+#pragma warning restore AL0432
+#endif
         EDocumentService.Modify();
 
         EDocumentLog.SetBlob('Test', Enum::"E-Doc. File Format"::XML, 'Data');
@@ -355,7 +359,11 @@ codeunit 139883 "E-Doc Process Test"
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
         EDocument."Document Type" := "E-Document Type"::"Purchase Invoice";
         EDocument.Modify();
+#if not CLEAN29
+#pragma warning disable AL0432
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
+#pragma warning restore AL0432
+#endif
         EDocumentService.Modify();
 
         EDocumentPurchaseHeader."E-Document Entry No." := EDocument."Entry No";
@@ -1047,7 +1055,11 @@ codeunit 139883 "E-Doc Process Test"
         LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
         EDocument."Document Type" := "E-Document Type"::"Purchase Credit Memo";
         EDocument.Modify();
+#if not CLEAN29
+#pragma warning disable AL0432
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
+#pragma warning restore AL0432
+#endif
         EDocumentService.Modify();
 
         EDocumentLog.SetBlob('Test', Enum::"E-Doc. File Format"::XML, 'Data');
@@ -1420,7 +1432,11 @@ codeunit 139883 "E-Doc Process Test"
         LibraryEDoc.SetupStandardVAT();
         LibraryEDoc.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::Mock, Integration);
         LibraryEDoc.SetupStandardPurchaseScenario(Vendor, EDocumentService, Enum::"E-Document Format"::Mock, Integration);
+#if not CLEAN29
+#pragma warning disable AL0432
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
+#pragma warning restore AL0432
+#endif
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
         EDocumentService.Modify();
 

@@ -55,6 +55,7 @@ codeunit 10979 "Factur-X Format" implements "E-Document"
             until SourceDocumentHeaders.Next() = 0;
     end;
 
+#pragma warning disable AL0432
     procedure GetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     begin
         ImportFacturXFR.ParseBasicInfo(EDocument, TempBlob);
@@ -70,6 +71,7 @@ codeunit 10979 "Factur-X Format" implements "E-Document"
         CreatedDocumentHeader.GetTable(TempPurchaseHeader);
         CreatedDocumentLines.GetTable(TempPurchaseLine);
     end;
+#pragma warning restore AL0432
 
     local procedure CreateSourceDocumentBlob(var SourceDocumentHeader: RecordRef; var TempBlob: Codeunit "Temp Blob")
     var

@@ -42,6 +42,7 @@ codeunit 28005 "PINT A-NZ" implements "E-Document"
         EDocPeppolBIS30.CreateBatch(EDocumentService, EDocuments, SourceDocumentHeaders, SourceDocumentsLines, TempBlob);
     end;
 
+#pragma warning disable AL0432
     procedure GetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     var
         PINTANZImport: Codeunit "PINT A-NZ Import";
@@ -53,6 +54,7 @@ codeunit 28005 "PINT A-NZ" implements "E-Document"
     begin
         EDocPeppolBIS30.GetCompleteInfoFromReceivedDocument(EDocument, CreatedDocumentHeader, CreatedDocumentLines, TempBlob);
     end;
+#pragma warning restore AL0432
 
     [EventSubscriber(ObjectType::Table, Database::"E-Document Service", 'OnAfterValidateEvent', 'Document Format', false, false)]
     local procedure OnAfterValidateDocumentFormat(var Rec: Record "E-Document Service"; var xRec: Record "E-Document Service"; CurrFieldNo: Integer)

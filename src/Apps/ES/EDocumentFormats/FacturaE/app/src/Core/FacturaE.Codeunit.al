@@ -42,6 +42,7 @@ codeunit 10772 "Factura-E" implements "E-Document"
         FacturaEExport.Export(SourceDocumentHeaders, SourceDocumentsLines, TempBlob, true);
     end;
 
+#pragma warning disable AL0432
     procedure GetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     begin
         FacturaEImport.ParseBasicInfo(EDocument, TempBlob);
@@ -57,6 +58,7 @@ codeunit 10772 "Factura-E" implements "E-Document"
         CreatedDocumentHeader.GetTable(TempPurchaseHeader);
         CreatedDocumentLines.GetTable(TempPurchaseLine);
     end;
+#pragma warning restore AL0432
 
     [EventSubscriber(ObjectType::Table, Database::"E-Document Service", 'OnAfterValidateEvent', 'Document Format', false, false)]
     local procedure OnAfterValidateDocumentFormat(var Rec: Record "E-Document Service"; var xRec: Record "E-Document Service"; CurrFieldNo: Integer)

@@ -93,6 +93,7 @@ codeunit 139630 "E-Doc. Impl. State"
         end;
     end;
 
+#if not CLEAN29
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Format Mock", 'OnGetBasicInfoFromReceivedDocument', '', false, false)]
     local procedure OnGetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: codeunit "Temp Blob")
     var
@@ -171,6 +172,7 @@ codeunit 139630 "E-Doc. Impl. State"
         CreatedDocumentHeader.GetTable(TempPurchHeader2);
         CreatedDocumentLines.GetTable(TempPurchLine2);
     end;
+#endif
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Integration Mock V2", OnSend, '', false, false)]
     local procedure OnSendV2(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob"; var IsAsync: Boolean; HttpRequest: HttpRequestMessage; HttpResponse: HttpResponseMessage)

@@ -130,6 +130,7 @@ codeunit 6152 "E-Doc. Data Exchange Impl." implements "E-Document"
         Error(BatchNotSupportedErr);
     end;
 
+#pragma warning disable AL0432
     procedure GetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     var
     begin
@@ -142,6 +143,7 @@ codeunit 6152 "E-Doc. Data Exchange Impl." implements "E-Document"
         ProcessWithDataExch(EDocument, CreatedDocumentHeader, CreatedDocumentLines, TempBlob);
         EDocument.Get(EDocument."Entry No");
     end;
+#pragma warning restore AL0432
 
     local procedure FindDataExchAndDocumentType(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     var

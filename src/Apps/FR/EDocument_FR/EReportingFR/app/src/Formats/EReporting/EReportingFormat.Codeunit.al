@@ -47,6 +47,7 @@ codeunit 10970 "E-Reporting Format" implements "E-Document"
         ExportEReporting.CreateBatchXML(EDocuments, TempBlob);
     end;
 
+#pragma warning disable AL0432
     procedure GetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     begin
     end;
@@ -55,6 +56,7 @@ codeunit 10970 "E-Reporting Format" implements "E-Document"
     begin
         Error(GetCompleteInfoNotSupportedErr);
     end;
+#pragma warning restore AL0432
 
     [EventSubscriber(ObjectType::Table, Database::"E-Document Service", 'OnAfterValidateEvent', 'Document Format', false, false)]
     local procedure OnAfterValidateDocumentFormat(var Rec: Record "E-Document Service"; var xRec: Record "E-Document Service"; CurrFieldNo: Integer)

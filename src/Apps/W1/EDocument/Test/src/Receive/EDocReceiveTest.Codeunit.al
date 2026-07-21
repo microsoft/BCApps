@@ -1408,6 +1408,7 @@ codeunit 139628 "E-Doc. Receive Test"
             until GenJnlLine.Next() = 0;
     end;
 
+#if not CLEAN29
     [Test]
     procedure GetBasicInfoFromReceivedDocumentError()
     var
@@ -1501,6 +1502,7 @@ codeunit 139628 "E-Doc. Receive Test"
         PurchaseHeader."E-Document Link" := NullGuid;
         PurchaseHeader.Delete(true);
     end;
+#endif
 
     [Test]
     [HandlerFunctions('MessageHandler')]

@@ -52,6 +52,7 @@ codeunit 10776 "Verifactu" implements "E-Document"
         VerifactuExport.Export(SourceDocumentHeaders, SourceDocumentsLines, EDocuments, TempBlob, true);
     end;
 
+#pragma warning disable AL0432
     procedure GetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     begin
     end;
@@ -59,6 +60,7 @@ codeunit 10776 "Verifactu" implements "E-Document"
     procedure GetCompleteInfoFromReceivedDocument(var EDocument: Record "E-Document"; var CreatedDocumentHeader: RecordRef; var CreatedDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
     begin
     end;
+#pragma warning restore AL0432
 
     [EventSubscriber(ObjectType::Table, Database::"E-Document Service", 'OnAfterValidateEvent', 'Document Format', false, false)]
     local procedure OnAfterValidateDocumentFormat(var Rec: Record "E-Document Service"; var xRec: Record "E-Document Service"; CurrFieldNo: Integer)

@@ -451,7 +451,11 @@ codeunit 139897 "E-Doc Data Exch Tests"
         LibraryEDoc.SetupStandardVAT();
         LibraryEDoc.SetupStandardSalesScenario(Customer, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::"Mock");
         LibraryEDoc.SetupStandardPurchaseScenario(Vendor, EDocumentService, Enum::"E-Document Format"::Mock, Enum::"Service Integration"::"Mock");
+#if not CLEAN29
+#pragma warning disable AL0432
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
+#pragma warning restore AL0432
+#endif
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::"Data Exchange Purchase";
         EDocumentService.Modify();
 

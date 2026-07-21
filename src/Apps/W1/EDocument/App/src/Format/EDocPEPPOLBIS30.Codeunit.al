@@ -114,6 +114,7 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
 
     end;
 
+#pragma warning disable AL0432
     procedure GetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     begin
         ImportPeppol.ParseBasicInfo(EDocument, TempBlob);
@@ -129,6 +130,7 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
         CreatedDocumentHeader.GetTable(TempPurchaseHeader);
         CreatedDocumentLines.GetTable(TempPurchaseLine);
     end;
+#pragma warning restore AL0432
 
     local procedure GenerateInvoiceXMLFile(VariantRec: Variant; var OutStr: OutStream; GeneratePDF: Boolean; PEPPOLFormat: Enum "PEPPOL 3.0 Format")
     var

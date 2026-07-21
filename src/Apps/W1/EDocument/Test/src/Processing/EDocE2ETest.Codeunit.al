@@ -1731,7 +1731,11 @@ codeunit 139624 "E-Doc E2E Test"
         // [SCENARIO]
         Initialize(Enum::"Service Integration"::"Mock");
         EDocumentService."Read into Draft Impl." := "E-Doc. Read into Draft"::PEPPOL;
+#if not CLEAN29
+#pragma warning disable AL0432
         EDocumentService."Import Process" := Enum::"E-Document Import Process"::"Version 2.0";
+#pragma warning restore AL0432
+#endif
         EDocumentService.Modify();
 
         // [GIVEN] An inbound e-document is received and fully processed
@@ -2260,7 +2264,11 @@ codeunit 139624 "E-Doc E2E Test"
         PreviousEDocService.CopyFilters(EDocumentService);
         EDocumentService.SetRecFilter();
         EDocumentService.FindFirst();
+#if not CLEAN29
+#pragma warning disable AL0432
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 2.0";
+#pragma warning restore AL0432
+#endif
         EDocumentService.Modify();
         EDocumentService.CopyFilters(PreviousEDocService);
     end;
@@ -2272,7 +2280,11 @@ codeunit 139624 "E-Doc E2E Test"
         PreviousEDocService.CopyFilters(EDocumentService);
         EDocumentService.SetRecFilter();
         EDocumentService.FindFirst();
+#if not CLEAN29
+#pragma warning disable AL0432
         EDocumentService."Import Process" := "E-Document Import Process"::"Version 1.0";
+#pragma warning restore AL0432
+#endif
         EDocumentService.Modify();
         EDocumentService.CopyFilters(PreviousEDocService);
     end;

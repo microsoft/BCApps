@@ -51,7 +51,13 @@ codeunit 139629 "Library - E-Document"
 
     procedure SetupStandardSalesScenario(var Customer: Record Customer; var EDocService: Record "E-Document Service"; EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration")
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
         SetupStandardSalesScenario(Customer, EDocService, EDocDocumentFormat, EDocIntegration, Enum::"E-Document Import Process"::"Version 1.0");
+#pragma warning restore AL0432
+#else
+        SetupStandardSalesScenario(Customer, EDocService, EDocDocumentFormat, EDocIntegration, Enum::"E-Document Import Process"::"Version 2.0");
+#endif
     end;
 
     procedure SetupStandardSalesScenario(var Customer: Record Customer; var EDocService: Record "E-Document Service"; EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration"; EDocImportProcess: Enum "E-Document Import Process")
@@ -149,7 +155,13 @@ codeunit 139629 "Library - E-Document"
 
     procedure SetupStandardPurchaseScenario(var Vendor: Record Vendor; var EDocService: Record "E-Document Service"; EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration")
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
         SetupStandardPurchaseScenario(Vendor, EDocService, EDocDocumentFormat, EDocIntegration, Enum::"E-Document Import Process"::"Version 1.0");
+#pragma warning restore AL0432
+#else
+        SetupStandardPurchaseScenario(Vendor, EDocService, EDocDocumentFormat, EDocIntegration, Enum::"E-Document Import Process"::"Version 2.0");
+#endif
     end;
 
     procedure SetupStandardPurchaseScenario(var Vendor: Record Vendor; var EDocService: Record "E-Document Service"; EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration"; EDocImportProcess: Enum "E-Document Import Process")
@@ -845,7 +857,13 @@ codeunit 139629 "Library - E-Document"
 
     procedure CreateService(EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration"): Code[20]
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
         exit(CreateService(EDocDocumentFormat, EDocIntegration, Enum::"E-Document Import Process"::"Version 1.0"));
+#pragma warning restore AL0432
+#else
+        exit(CreateService(EDocDocumentFormat, EDocIntegration, Enum::"E-Document Import Process"::"Version 2.0"));
+#endif
     end;
 
     procedure CreateService(EDocDocumentFormat: Enum "E-Document Format"; EDocIntegration: Enum "Service Integration"; EDocImportProcess: Enum "E-Document Import Process"): Code[20]
@@ -856,7 +874,11 @@ codeunit 139629 "Library - E-Document"
         EDocService.Code := LibraryUtility.GenerateRandomCode20(EDocService.FieldNo(Code), Database::"E-Document Service");
         EDocService."Document Format" := EDocDocumentFormat;
         EDocService."Service Integration V2" := EDocIntegration;
+#if not CLEAN29
+#pragma warning disable AL0432
         EDocService."Import Process" := EDocImportProcess;
+#pragma warning restore AL0432
+#endif
         EDocService.Insert();
 
         CreateSupportedDocTypes(EDocService);

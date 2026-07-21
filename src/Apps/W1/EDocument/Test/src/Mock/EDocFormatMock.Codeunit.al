@@ -26,6 +26,7 @@ codeunit 139618 "E-Doc. Format Mock" implements "E-Document"
         OnCreateBatch(EDocService, EDocuments, SourceDocumentHeaders, SourceDocumentsLines, TempBlob);
     end;
 
+#pragma warning disable AL0432
     procedure GetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: codeunit "Temp Blob");
     begin
         OnGetBasicInfoFromReceivedDocument(EDocument, TempBlob);
@@ -35,6 +36,7 @@ codeunit 139618 "E-Doc. Format Mock" implements "E-Document"
     begin
         OnGetCompleteInfoFromReceivedDocument(EDocument, CreatedDocumentHeader, CreatedDocumentLines, TempBlob);
     end;
+#pragma warning restore AL0432
 
     [IntegrationEvent(false, false)]
     local procedure OnCheck(var SourceDocumentHeader: RecordRef; EDocService: Record "E-Document Service"; EDocumentProcessingPhase: enum "E-Document Processing Phase")

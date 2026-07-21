@@ -114,6 +114,7 @@ codeunit 11035 "EDoc PEPPOL BIS 3.0 DE" implements "E-Document"
     begin
     end;
 
+#pragma warning disable AL0432
     procedure GetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     begin
         EDocPEPPOLBIS30.GetBasicInfoFromReceivedDocument(EDocument, TempBlob);
@@ -135,6 +136,7 @@ codeunit 11035 "EDoc PEPPOL BIS 3.0 DE" implements "E-Document"
             CreatedDocumentHeader.Modify(true);
         end;
     end;
+#pragma warning restore AL0432
 
     [EventSubscriber(ObjectType::Table, Database::"E-Document Service", 'OnAfterValidateEvent', 'Document Format', false, false)]
     local procedure OnAfterValidateDocumentFormat(var Rec: Record "E-Document Service"; var xRec: Record "E-Document Service"; CurrFieldNo: Integer)

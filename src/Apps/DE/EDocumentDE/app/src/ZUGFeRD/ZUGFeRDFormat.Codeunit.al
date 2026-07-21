@@ -52,6 +52,7 @@ codeunit 13920 "ZUGFeRD Format" implements "E-Document"
     begin
     end;
 
+#pragma warning disable AL0432
     procedure GetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     begin
         EDocImportZUGFeRD.ParseBasicInfo(EDocument, TempBlob);
@@ -67,6 +68,7 @@ codeunit 13920 "ZUGFeRD Format" implements "E-Document"
         CreatedDocumentHeader.GetTable(TempPurchaseHeader);
         CreatedDocumentLines.GetTable(TempPurchaseLine);
     end;
+#pragma warning restore AL0432
 
     local procedure CreateSourceDocumentBlob(DocumentRecordRef: RecordRef; var TempBlob: Codeunit "Temp Blob"; EDocumentService: Record "E-Document Service")
     var
