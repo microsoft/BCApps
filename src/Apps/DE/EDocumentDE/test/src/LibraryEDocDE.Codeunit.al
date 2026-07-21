@@ -4,14 +4,62 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
+using Microsoft.eServices.EDocument;
 using System.Reflection;
 
 codeunit 13925 "Library - E-Doc DE"
 {
     Access = Internal;
+    EventSubscriberInstance = Manual;
 
     var
         DefaultCoarseRoutingTxt: Label '99', Locked = true;
+        CapturedEDocumentServiceCode: Code[20];
+        EDocumentServiceEventCount: Integer;
+
+    /// <summary>
+    /// Resets the OnAfterFindEDocumentService capture state. Bind this codeunit with
+    /// BindSubscription before the export and unbind afterwards.
+    /// </summary>
+    procedure ClearCapturedEDocumentService()
+    begin
+        Clear(CapturedEDocumentServiceCode);
+        Clear(EDocumentServiceEventCount);
+    end;
+
+    /// <summary>
+    /// Returns the Code of the E-Document Service carried by the last OnAfterFindEDocumentService event.
+    /// </summary>
+    procedure GetCapturedEDocumentServiceCode(): Code[20]
+    begin
+        exit(CapturedEDocumentServiceCode);
+    end;
+
+    /// <summary>
+    /// Returns how many times OnAfterFindEDocumentService was raised while bound.
+    /// </summary>
+    procedure GetEDocumentServiceEventCount(): Integer
+    begin
+        exit(EDocumentServiceEventCount);
+    end;
+
+#if not CLEAN29
+#pragma warning disable AL0432
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export XRechnung Document", 'OnAfterFindEDocumentService', '', false, false)]
+    local procedure CaptureXRechnungOnAfterFindEDocumentService(var EDocumentService: Record "E-Document Service"; EDocumentFormat: Code[20])
+    begin
+        CapturedEDocumentServiceCode := EDocumentService.Code;
+        EDocumentServiceEventCount += 1;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Export ZUGFeRD Document", 'OnAfterFindEDocumentService', '', false, false)]
+    local procedure CaptureZUGFeRDOnAfterFindEDocumentService(var EDocumentService: Record "E-Document Service")
+    begin
+        CapturedEDocumentServiceCode := EDocumentService.Code;
+        EDocumentServiceEventCount += 1;
+    end;
+#pragma warning restore AL0432
+#endif
 
     procedure CreateValidRoutingNo(): Text[50]
     var
