@@ -5,6 +5,7 @@
 
 namespace Microsoft.Shared.Report;
 
+using Microsoft.Foundation.Reporting;
 using System.Environment.Configuration;
 using System.Reflection;
 
@@ -81,8 +82,17 @@ page 9662 "Report Layout New Dialog"
 
                 trigger OnValidate()
                 begin
+                    UpdateSubtypeVisibility();
                     CurrPage.Update(false);
                 end;
+            }
+            field(LayoutSubtype; LayoutSubtype)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Subtype';
+                Visible = SubtypeVisible;
+                Editable = not ImpliedSubtypeSet;
+                ToolTip = 'Specifies the role of the layout in the Composite Layout Merge: Default (full body), Header/Footer (header and footer sections), or Theme (styles and fonts).';
             }
             field(AvailableInAllCompanies; AvailableInAllCompanies)
             {
@@ -113,12 +123,25 @@ page 9662 "Report Layout New Dialog"
     }
 
     trigger OnOpenPage()
+    var
+        FeatureKeyManagement: Codeunit "Feature Key Management";
     begin
-        FormatOptions := FormatOptions::Excel;
         CreateEmptyLayout := false;
         ExcelMultipleDataSheets := "Excel Sheet Configuration"::Default;
         LayoutName := '';
         AvailableInAllCompanies := true;
+        DocumentReportExperienceEnabled := FeatureKeyManagement.IsDocumentReportExperienceEnabled();
+        if ImpliedSubtypeSet then
+            FormatOptions := FormatOptions::Word
+        else begin
+            FormatOptions := FormatOptions::Excel;
+            LayoutSubtype := Enum::"Report Layout Subtype"::Default;
+        end;
+        // Default header/footer and theme parts to the Tenant Report Defaults report when no specific report was
+        // set. Resolved here (not in a setter) so it is order-independent of SetReportID/SetImpliedSubtype.
+        if (ReportID = 0) and (LayoutSubtype in [Enum::"Report Layout Subtype"::HeaderFooter, Enum::"Report Layout Subtype"::Theme]) then
+            ReportID := LookupHelper.GetTenantReportDefaultsReportID();
+        UpdateSubtypeVisibility();
         if ReportID <> 0 then
             if ReportMetadata.Get(ReportID) then;
     end;
@@ -126,6 +149,7 @@ page 9662 "Report Layout New Dialog"
     var
         ReportMetadata: Record "Report Metadata";
         TenantReportLayout: Record "Tenant Report Layout";
+        LookupHelper: Codeunit "Composite Layout Lookup Helper";
         ReportID: Integer;
         LayoutName: Text[250];
         Description: Text[250];
@@ -133,14 +157,24 @@ page 9662 "Report Layout New Dialog"
         LayoutNameEmptyErr: Label 'The layout name cannot be an empty value.';
         ReportNotFoundErr: Label 'A report with ID "%1" does not exist.', Comment = '%1 = ReportID';
         FormatOptions: Option "RDLC","Word","Excel","Custom"; // For Custom type, 'External' will be shown in UI
+        LayoutSubtype: Enum "Report Layout Subtype";
         AvailableInAllCompanies: Boolean;
         CreateEmptyLayout: Boolean;
+        SubtypeVisible: Boolean;
+        ImpliedSubtypeSet: Boolean;
+        DocumentReportExperienceEnabled: Boolean;
         ExcelMultipleDataSheets: enum "Excel Sheet Configuration";
         emptyGuid: Guid;
 
     internal procedure SetReportID(NewReportID: Integer)
     begin
         ReportID := NewReportID;
+    end;
+
+    internal procedure SetImpliedSubtype(NewSubtype: Enum "Report Layout Subtype")
+    begin
+        LayoutSubtype := NewSubtype;
+        ImpliedSubtypeSet := true;
     end;
 
     internal procedure SelectedReportID(): Integer
@@ -191,6 +225,18 @@ page 9662 "Report Layout New Dialog"
     internal procedure SelectedExcelMultipleDataSheets(): enum "Excel Sheet Configuration"
     begin
         exit(ExcelMultipleDataSheets);
+    end;
+
+    internal procedure SelectedLayoutSubtype(): Enum "Report Layout Subtype"
+    begin
+        exit(LayoutSubtype);
+    end;
+
+    local procedure UpdateSubtypeVisibility()
+    begin
+        SubtypeVisible := DocumentReportExperienceEnabled and (FormatOptions = FormatOptions::Word);
+        if not SubtypeVisible then
+            LayoutSubtype := Enum::"Report Layout Subtype"::Default;
     end;
 
 }

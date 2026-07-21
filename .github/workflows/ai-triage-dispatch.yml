@@ -5,8 +5,11 @@ name: AI Issue Triage (dispatch)
 #   1. mints a short-lived GitHub App token scoped to the private agent repo,
 #   2. starts the agent (workflow_dispatch) and waits for it,
 #   3. downloads the agent's `triage-result` artifact,
-#   4. applies the comment / team label / issue type using THIS repo's built-in
-#      GITHUB_TOKEN.
+#   4. applies the comment / issue type using THIS repo's built-in GITHUB_TOKEN.
+#
+# Team ownership is intentionally handled by ownership-classification.yml. Keeping
+# that write in both workflows would allow stale AI triage runs to overwrite the
+# producer-authoritative ownership decision.
 #
 # No PAT is used, and no GitHub App is installed on this repo. The only stored
 # secret is the App private key; the App id is non-sensitive and kept as a plain
@@ -19,7 +22,7 @@ on:
     types: [opened, labeled]
 
 permissions:
-  issues: write      # native GITHUB_TOKEN posts the comment + labels + type here
+  issues: write      # native GITHUB_TOKEN posts the comment and issue type here
   contents: read
 
 concurrency:
@@ -34,6 +37,12 @@ env:
   # Bare repository name — the create-github-app-token `repositories` input takes
   # names without the owner prefix when `owner` is set.
   AGENT_REPO_NAME: BCAppsTriage
+  # Branch of the agent repo to dispatch against. Passing an explicit --ref avoids
+  # a `repository.defaultBranchRef` GraphQL lookup that `gh workflow run` would
+  # otherwise do — the App token (Actions + Metadata only, no Contents) is not
+  # permitted to read that field, which fails with
+  # "unable to determine default branch ... Resource not accessible by integration".
+  AGENT_REF: main
 
 jobs:
   triage:
@@ -58,7 +67,7 @@ jobs:
 
       - name: Mint token for the agent repo
         id: app-token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ vars.TRIAGE_APP_ID }}
           private-key: ${{ secrets.TRIAGE_APP_PRIVATE_KEY }}
@@ -72,7 +81,7 @@ jobs:
           RUN_TOKEN: ${{ steps.token.outputs.run_token }}
         run: |
           set -euo pipefail
-          gh workflow run "$AGENT_WORKFLOW" -R "$AGENT_REPO" \
+          gh workflow run "$AGENT_WORKFLOW" -R "$AGENT_REPO" --ref "$AGENT_REF" \
             -f issue_number="$ISSUE_NUMBER" \
             -f run_token="$RUN_TOKEN"
 
@@ -121,7 +130,7 @@ jobs:
 
       - name: Apply triage result
         if: steps.download.outputs.have_result == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -138,24 +147,6 @@ jobs:
             if (r.comment) {
               await github.rest.issues.createComment({ owner, repo, issue_number, body: r.comment });
               core.info('Comment posted.');
-            }
-
-            if (r.teamLabel && r.teamLabel.name) {
-              for (const name of (r.teamLabelGroup || [])) {
-                if (name !== r.teamLabel.name) {
-                  try {
-                    await github.rest.issues.removeLabel({ owner, repo, issue_number, name });
-                  } catch (e) { if (e.status !== 404) throw e; }
-                }
-              }
-              try {
-                await github.rest.issues.createLabel({
-                  owner, repo, name: r.teamLabel.name,
-                  color: r.teamLabel.color, description: r.teamLabel.description,
-                });
-              } catch (e) { if (e.status !== 422) throw e; }
-              await github.rest.issues.addLabels({ owner, repo, issue_number, labels: [r.teamLabel.name] });
-              core.info(`Team label applied: ${r.teamLabel.name}`);
             }
 
             if (r.issueType) {
@@ -181,7 +172,7 @@ jobs:
 
       - name: Report triage failure
         if: always() && (steps.await.outputs.run_id == '' || steps.download.outputs.have_result == 'false')
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             await github.rest.issues.createComment({
