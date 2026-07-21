@@ -299,7 +299,6 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         NoOfCreatedPurchOrder: Integer;
     begin
         CreatedPurchaseHeader.Reset();
-        CreatedPurchaseHeader.MarkedOnly(false);
         CreatedPurchaseHeader.ClearMarks();
         ProdOrderRoutingLine.SetRange(Type, "Capacity Type"::"Work Center");
         ShowExistingPurchaseOrdersForRoutingLines(ProdOrderRoutingLine);
