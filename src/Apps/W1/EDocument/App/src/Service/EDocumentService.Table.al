@@ -71,63 +71,161 @@ table 6103 "E-Document Service"
         {
             Caption = 'Update Order';
         }
+#if not CLEANSCHEMA32
         field(7; "Create Journal Lines"; Boolean)
         {
             Caption = 'Create Journal Lines';
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'v1 journal-line creation retires with the v1 import path.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
+#if not CLEANSCHEMA32
         field(8; "Validate Receiving Company"; Boolean)
         {
             Caption = 'Validate Receiving Company';
             InitValue = true;
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'v1 import parameter; the v2 draft pipeline does not use it.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
+#if not CLEANSCHEMA32
         field(9; "Resolve Unit Of Measure"; Boolean)
         {
             Caption = 'Resolve Unit Of Measure';
             InitValue = true;
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'v1 import parameter; the v2 draft pipeline does not use it.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
+#if not CLEANSCHEMA32
         field(10; "Lookup Item Reference"; Boolean)
         {
             Caption = 'Lookup Item Reference';
             InitValue = true;
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'v1 import parameter; the v2 draft pipeline does not use it.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
+#if not CLEANSCHEMA32
         field(11; "Lookup Item GTIN"; Boolean)
         {
             Caption = 'Lookup Item GTIN';
             InitValue = true;
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'v1 import parameter; the v2 draft pipeline does not use it.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
+#if not CLEANSCHEMA32
         field(12; "Lookup Account Mapping"; Boolean)
         {
             Caption = 'Lookup Account Mapping';
             InitValue = true;
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'v1 import parameter; the v2 draft pipeline does not use it.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
+#if not CLEANSCHEMA32
         field(13; "Validate Line Discount"; Boolean)
         {
             Caption = 'Validate Line Discount';
             InitValue = true;
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'v1 import parameter; the v2 draft pipeline does not use it.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
+#if not CLEANSCHEMA32
         field(14; "Apply Invoice Discount"; Boolean)
         {
             Caption = 'Apply Invoice Discount';
             InitValue = true;
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'v1 import parameter; the v2 draft pipeline does not use it.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
+#if not CLEANSCHEMA32
         field(15; "Verify Totals"; Boolean)
         {
             Caption = 'Verify Totals';
             InitValue = true;
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'v1 import parameter; the v2 draft pipeline does not use it.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
+#if not CLEANSCHEMA32
         field(16; "General Journal Template Name"; Code[10])
         {
             Caption = 'General Journal Template Name';
+            ObsoleteReason = 'v1 journal-line creation retires with the v1 import path.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
             TableRelation = "Gen. Journal Template";
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
 
             trigger OnValidate()
             var
@@ -152,12 +250,22 @@ table 6103 "E-Document Service"
                 if GenJournalTemplate.Type <> xGenJournalTemplate.Type then
                     "General Journal Batch Name" := '';
             end;
+#endif
         }
+#endif
+#if not CLEANSCHEMA32
         field(17; "General Journal Batch Name"; Code[10])
         {
             Caption = 'General Journal Batch Name';
-            TableRelation = "Gen. Journal Batch".Name where("Journal Template Name" = field("General Journal Template Name"));
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'v1 journal-line creation retires with the v1 import path.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
+            TableRelation = "Gen. Journal Batch".Name where("Journal Template Name" = field("General Journal Template Name"));
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
 
             trigger OnValidate()
             var
@@ -168,7 +276,9 @@ table 6103 "E-Document Service"
                 GenJournalBatch.Get("General Journal Template Name", "General Journal Batch Name");
                 GenJournalBatch.TestField(Recurring, false);
             end;
+#endif
         }
+#endif
         field(18; "Auto Import"; Boolean)
         {
             Caption = 'Auto Import';
@@ -265,12 +375,23 @@ table 6103 "E-Document Service"
             ObsoleteTag = '26.0';
         }
 #endif
+#if not CLEANSCHEMA32
         field(31; "Import Process"; Enum "E-Document Import Process")
         {
             Caption = 'Import Process';
             DataClassification = SystemMetadata;
+            ObsoleteReason = 'Import Process v1 is deprecated; all services use the v2 draft pipeline.';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#else
             ToolTip = 'Specifies the import process for the document.';
+            InitValue = "Version 2.0";
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
         field(32; "Automatic Import Processing"; Enum "E-Doc. Automatic Processing")
         {
             Caption = 'Automatic processing';
@@ -343,7 +464,11 @@ table 6103 "E-Document Service"
 
         Rec.Init();
         Rec.Code := AzureDocumentIntelligenceTok;
+#if not CLEAN29
+#pragma warning disable AL0432
         Rec."Import Process" := "Import Process"::"Version 2.0";
+#pragma warning restore AL0432
+#endif
         Rec.Description := AzureDocumentIntelligenceServiceTxt;
         Rec."Automatic Import Processing" := "E-Doc. Automatic Processing"::No;
         Rec."Verify Purch. Total Amounts" := true;
@@ -355,10 +480,14 @@ table 6103 "E-Document Service"
         exit(Rec."Automatic Import Processing" = Enum::"E-Doc. Automatic Processing"::Yes);
     end;
 
+#if not CLEAN29
     internal procedure GetImportProcessVersion(): Enum "E-Document Import Process"
     begin
+#pragma warning disable AL0432
         exit(Rec."Import Process");
+#pragma warning restore AL0432
     end;
+#endif
 
     internal procedure LastEDocumentLog(EDocumentServiceStatus: Enum "E-Document Service Status") EDocumentLog: Record "E-Document Log";
     begin
@@ -370,17 +499,22 @@ table 6103 "E-Document Service"
 
     internal procedure GetDefaultImportParameters() EDocImportParameters: Record "E-Doc. Import Parameters"
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
         if Rec."Import Process" = "Import Process"::"Version 1.0" then begin
             EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
             EDocImportParameters."Create Document V1 Behavior" := IsAutomaticProcessingEnabled();
-        end else
-            if IsAutomaticProcessingEnabled() then
-                EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft"
-            else begin
-                EDocImportParameters."Step to Run / Desired Status" := EDocImportParameters."Step to Run / Desired Status"::"Desired E-Document Status";
-                EDocImportParameters."Desired E-Document Status" := EDocImportParameters."Desired E-Document Status"::Unprocessed;
-            end;
-
+            EDocImportParameters."Processing Customizations" := Rec."Processing Customizations";
+            exit;
+        end;
+#pragma warning restore AL0432
+#endif
+        if IsAutomaticProcessingEnabled() then
+            EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft"
+        else begin
+            EDocImportParameters."Step to Run / Desired Status" := EDocImportParameters."Step to Run / Desired Status"::"Desired E-Document Status";
+            EDocImportParameters."Desired E-Document Status" := EDocImportParameters."Desired E-Document Status"::Unprocessed;
+        end;
         EDocImportParameters."Processing Customizations" := Rec."Processing Customizations";
     end;
 

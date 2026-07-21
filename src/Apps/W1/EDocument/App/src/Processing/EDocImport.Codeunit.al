@@ -227,6 +227,7 @@ codeunit 6140 "E-Doc. Import"
     end;
 
 #if not CLEAN29
+#pragma warning disable AL0432
     internal procedure V1_GetBasicInfo(var EDocument: Record "E-Document")
     var
         EDocService: Record "E-Document Service";
@@ -324,6 +325,7 @@ codeunit 6140 "E-Doc. Import"
 
         V1_ProcessEDocument(EDocument, false, true);
     end;
+#pragma warning restore AL0432
 #endif
 
     procedure ViewExtractedData(EDocument: Record "E-Document")
@@ -337,6 +339,7 @@ codeunit 6140 "E-Doc. Import"
     end;
 
 #if not CLEAN29
+#pragma warning disable AL0432
     local procedure ProcessExistingOrder(var EDocument: Record "E-Document"; EDocService: Record "E-Document Service"; var SourceDocumentLine: RecordRef; var DocumentHeader: RecordRef; var EDocServiceStatus: Enum "E-Document Service Status")
     var
         PurchaseOrderHeader: Record "Purchase Header";
@@ -880,6 +883,7 @@ codeunit 6140 "E-Doc. Import"
                 if EDocImportedLine.Insert() then;
             until TempEDocImportedLine.Next() = 0;
     end;
+#pragma warning restore AL0432
 #endif
 
     internal procedure SetHideDialogs(Hide: Boolean)

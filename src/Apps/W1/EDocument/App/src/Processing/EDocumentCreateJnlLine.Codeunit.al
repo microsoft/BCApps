@@ -11,6 +11,8 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Setup;
 
+#if not CLEAN29
+#pragma warning disable AL0432
 codeunit 6137 "E-Document Create Jnl. Line"
 {
 
@@ -219,3 +221,5 @@ codeunit 6137 "E-Document Create Jnl. Line"
     begin
     end;
 }
+#pragma warning restore AL0432
+#endif

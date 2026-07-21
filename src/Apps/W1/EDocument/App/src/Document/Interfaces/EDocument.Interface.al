@@ -45,11 +45,13 @@ interface "E-Document"
     /// The following methods are to receive a document from an endpoint and prepare it to be a BC
     ///
 
+#if not CLEAN29
     /// <summary>
     /// Use it to get the basic information of an E-Document from received blob.
     /// </summary>
     /// <param name="EDocument">Electronic document.</param>
     /// <param name="TempBlob">Contians received blob from external service</param>
+    [Obsolete('Inbound import is handled by the v2 draft pipeline (IStructuredFormatReader / IProcessStructuredData). Implement those instead.', '29.0')]
     procedure GetBasicInfoFromReceivedDocument(var EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
 
     /// <summary>
@@ -59,5 +61,7 @@ interface "E-Document"
     /// <param name="CreatedDocumentHeader">The document header that should be populated from the blob as a recored ref.</param>
     /// <param name="CreatedDocumentLines">The document lines that should be populated from the blob as a recored ref.</param>
     /// <param name="TempBlob">Tempblob that should contatin the exported document in the correspondant format.</param>
+    [Obsolete('Inbound import is handled by the v2 draft pipeline (IStructuredFormatReader / IProcessStructuredData). Implement those instead.', '29.0')]
     procedure GetCompleteInfoFromReceivedDocument(var EDocument: Record "E-Document"; var CreatedDocumentHeader: RecordRef; var CreatedDocumentLines: RecordRef; var TempBlob: Codeunit "Temp Blob")
+#endif
 }

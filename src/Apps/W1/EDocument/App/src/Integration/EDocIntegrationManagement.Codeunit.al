@@ -153,8 +153,10 @@ codeunit 6134 "E-Doc. Integration Management"
             end;
 
 #if not CLEAN29
+#pragma warning disable AL0432
             if (not IsProcessed) then
                 EDocImport.V1_ProcessImportedDocument(EDocument, EDocService, TempBlob, EDocService."Create Journal Lines", EDocService.IsAutomaticProcessingEnabled());
+#pragma warning restore AL0432
 #endif
 
             if EDocErrorHelper.HasErrors(EDocument) then begin
