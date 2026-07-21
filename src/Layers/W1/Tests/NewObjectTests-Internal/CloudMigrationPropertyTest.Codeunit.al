@@ -98,6 +98,8 @@ codeunit 135160 "Cloud Migration Property Test"
         ListOfTablesToMigrate.Add(Database::"Job WIP Warning");
         ListOfTablesToMigrate.Add(Database::"Job");
         ListOfTablesToMigrate.Add(Database::"Job Archive");
+        ListOfTablesToMigrate.Add(Database::"Job Assigned Resource");
+        ListOfTablesToMigrate.Add(Database::"Job Assigned Resource Archive");
         ListOfTablesToMigrate.Add(Database::"Jobs Setup");
         ListOfTablesToMigrate.Add(Database::"Language");
         ListOfTablesToMigrate.Add(Database::"Last Used Chart");

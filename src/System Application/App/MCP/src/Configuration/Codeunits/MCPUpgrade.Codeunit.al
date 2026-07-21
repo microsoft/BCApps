@@ -19,6 +19,7 @@ codeunit 8356 "MCP Upgrade"
         UpgradeMCPAPIToolVersion();
         UpgradeMCPSystemDefaultAsDefault();
         EnableApiToolsOnExistingConfigurations();
+        UpgradeRegisterMCPCapability();
     end;
 
     internal procedure UpgradeMCPAPIToolVersion()
@@ -76,12 +77,26 @@ codeunit 8356 "MCP Upgrade"
         UpgradeTag.SetUpgradeTag(GetMCPEnableApiToolsUpgradeTag());
     end;
 
+    internal procedure UpgradeRegisterMCPCapability()
+    var
+        MCPCopilotCapReg: Codeunit "MCP Copilot Cap. Reg.";
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasDatabaseUpgradeTag(GetRegisterMCPCapabilityUpgradeTag()) then
+            exit;
+
+        MCPCopilotCapReg.RegisterMCPCapability();
+
+        UpgradeTag.SetUpgradeTag(GetRegisterMCPCapabilityUpgradeTag());
+    end;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", OnGetPerDatabaseUpgradeTags, '', false, false)]
     local procedure RegisterUpgradeTags(var PerDatabaseUpgradeTags: List of [Code[250]])
     begin
         PerDatabaseUpgradeTags.Add(GetMCPAPIToolVersionUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetMCPSystemDefaultAsDefaultUpgradeTag());
         PerDatabaseUpgradeTags.Add(GetMCPEnableApiToolsUpgradeTag());
+        PerDatabaseUpgradeTags.Add(GetRegisterMCPCapabilityUpgradeTag());
     end;
 
     local procedure GetMCPAPIToolVersionUpgradeTag(): Text[250]
@@ -97,5 +112,10 @@ codeunit 8356 "MCP Upgrade"
     local procedure GetMCPEnableApiToolsUpgradeTag(): Text[250]
     begin
         exit('MS-631012-MCPEnableApiTools-20260603');
+    end;
+
+    local procedure GetRegisterMCPCapabilityUpgradeTag(): Text[250]
+    begin
+        exit('MS-641612-RegisterMCPCapability-20260612');
     end;
 }
