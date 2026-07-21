@@ -119,11 +119,21 @@ report 2000019 "Suggest Vendor Payments EB"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Take Payment Discounts';
                         ToolTip = 'Specifies if you want the batch job to include vendor ledger entries for which you can receive a payment discount.';
+
+                        trigger OnValidate()
+                        begin
+                            if IncPmtDiscount then begin
+                                if PmtDiscDueDate = 0D then
+                                    PmtDiscDueDate := WorkDate();
+                            end else
+                                PmtDiscDueDate := 0D;
+                        end;
                     }
                     field(PmtDiscDueDate; PmtDiscDueDate)
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Payment Discount Date';
+                        Editable = IncPmtDiscount;
                         ToolTip = 'Specifies the date that will be used to calculate the payment discount.';
                     }
                     field(MaximumAmount; MaximumAmount)
@@ -151,8 +161,11 @@ report 2000019 "Suggest Vendor Payments EB"
         begin
             if DueDate = 0D then
                 DueDate := WorkDate();
-            if PmtDiscDueDate = 0D then
-                PmtDiscDueDate := WorkDate();
+            if IncPmtDiscount then begin
+                if PmtDiscDueDate = 0D then
+                    PmtDiscDueDate := WorkDate();
+            end else
+                PmtDiscDueDate := 0D;
             if PostingDate = 0D then
                 PostingDate := WorkDate();
             IncCreditMemos := true;

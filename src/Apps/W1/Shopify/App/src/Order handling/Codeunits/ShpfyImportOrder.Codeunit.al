@@ -84,6 +84,9 @@ codeunit 30161 "Shpfy Import Order"
         OrderEvents: Codeunit "Shpfy Order Events";
         OrderFulfillments: Codeunit "Shpfy Order Fulfillments";
         ProcessedConflictErr: Label 'The order has already been processed in Business Central, but an edition was received from Shopify. Changes were not propagated to the processed order in Business Central. Update the processed documents to match the received data from Shopify.';
+        DuplicateISOCodeTelemetryLbl: Label 'Multiple currencies found with ISO Code %1. Count: %2.', Comment = '%1 - ISO currency code from Shopify, %2 - number of currencies matching that ISO Code', Locked = true;
+        CurrencyNotFoundTelemetryLbl: Label 'No currency found with ISO Code %1.', Comment = '%1 - ISO currency code from Shopify', Locked = true;
+        CategoryTok: Label 'Shopify Integration', Locked = true;
 
     local procedure ImportOrderAndCreateOrUpdate(ShopCode: Code[20]; OrderId: BigInteger)
     var
@@ -122,6 +125,7 @@ codeunit 30161 "Shpfy Import Order"
         OrderHeader.Modify();
         OrderFulfillments.GetFulfillments(Shop, OrderHeader."Shopify Order Id");
 
+        MarkExchangeItemOrderLines(OrderHeader);
         ConsiderRefundsInQuantityAndAmounts(OrderHeader);
         DeleteZeroQuantityLines(OrderHeader);
 
@@ -209,6 +213,7 @@ codeunit 30161 "Shpfy Import Order"
         if not IReturnRefundProcess.IsImportNeededFor("Shpfy Source Document Type"::Refund) then
             exit;
         OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        OrderLine.SetRange("Is Exchange Item", false);
         if not OrderLine.FindSet() then
             exit;
         repeat
@@ -238,6 +243,68 @@ codeunit 30161 "Shpfy Import Order"
             OrderEvents.OnAfterConsiderRefundsInQuantityAndAmounts(OrderHeader, OrderLine, RefundLine);
         until OrderLine.Next() = 0;
         OrderHeader.Modify();
+    end;
+
+    internal procedure MarkExchangeItemOrderLines(var OrderHeader: Record "Shpfy Order Header")
+    var
+        OrderLine: Record "Shpfy Order Line";
+        IReturnRefundProcess: Interface "Shpfy IReturnRefund Process";
+        ExchangeLineIds: List of [BigInteger];
+        ExchangeLineId: BigInteger;
+        GraphQLType: Enum "Shpfy GraphQL Type";
+        Parameters: Dictionary of [Text, Text];
+        JResponse: JsonToken;
+        JReturns: JsonArray;
+        JReturn: JsonToken;
+        JExchangeLineItems: JsonArray;
+        JExchangeLineItem: JsonToken;
+        JLineItems: JsonArray;
+        JLineItem: JsonToken;
+    begin
+        IReturnRefundProcess := Shop."Return and Refund Process";
+        if not IReturnRefundProcess.IsImportNeededFor("Shpfy Source Document Type"::Refund) then
+            exit;
+
+        // Exchange line items only exist on orders that have a return. Skip the API call for the common case of no return.
+        if OrderHeader."Return Status" in [OrderHeader."Return Status"::" ", OrderHeader."Return Status"::"No Return"] then
+            exit;
+
+        Parameters.Add('OrderId', Format(OrderHeader."Shopify Order Id"));
+        GraphQLType := "Shpfy GraphQL Type"::Orders_GetOrderExchangeLineItems;
+        repeat
+            JResponse := CommunicationMgt.ExecuteGraphQL(GraphQLType, Parameters);
+            GraphQLType := "Shpfy GraphQL Type"::Orders_GetNextOrderExchangeLineItems;
+            JReturns := JsonHelper.GetJsonArray(JResponse, 'data.order.returns.nodes');
+            if Parameters.ContainsKey('After') then
+                Parameters.Set('After', JsonHelper.GetValueAsText(JResponse, 'data.order.returns.pageInfo.endCursor'))
+            else
+                Parameters.Add('After', JsonHelper.GetValueAsText(JResponse, 'data.order.returns.pageInfo.endCursor'));
+
+            foreach JReturn in JReturns do begin
+                JExchangeLineItems := JsonHelper.GetJsonArray(JReturn, 'exchangeLineItems.nodes');
+                foreach JExchangeLineItem in JExchangeLineItems do begin
+                    JLineItems := JsonHelper.GetJsonArray(JExchangeLineItem, 'lineItems');
+                    foreach JLineItem in JLineItems do begin
+                        ExchangeLineId := CommunicationMgt.GetIdOfGId(JsonHelper.GetValueAsText(JLineItem, 'id'));
+                        if (ExchangeLineId <> 0) and not ExchangeLineIds.Contains(ExchangeLineId) then
+                            ExchangeLineIds.Add(ExchangeLineId);
+                    end;
+                end;
+            end;
+        until not JsonHelper.GetValueAsBoolean(JResponse, 'data.order.returns.pageInfo.hasNextPage');
+
+        if ExchangeLineIds.Count() = 0 then
+            exit;
+
+        OrderLine.SetRange("Shopify Order Id", OrderHeader."Shopify Order Id");
+        OrderLine.SetLoadFields("Line Id", "Is Exchange Item");
+        if OrderLine.FindSet() then
+            repeat
+                if ExchangeLineIds.Contains(OrderLine."Line Id") and (not OrderLine."Is Exchange Item") then begin
+                    OrderLine."Is Exchange Item" := true;
+                    OrderLine.Modify();
+                end;
+            until OrderLine.Next() = 0;
     end;
 
     local procedure IsImportedOrderConflictingExistingOrder(JOrder: JsonObject; OrderHeader: Record "Shpfy Order Header"; var TempOrderLine: Record "Shpfy Order Line" temporary): Boolean
@@ -658,16 +725,38 @@ codeunit 30161 "Shpfy Import Order"
         Currency: Record Currency;
         GeneralLedgerSetup: Record "General Ledger Setup";
         CurrencyCode: Code[10];
+        CurrencyCount: Integer;
     begin
+        if ShopifyCurrencyCode = '' then
+            exit('');
+
+        GeneralLedgerSetup.Get();
+        if CopyStr(ShopifyCurrencyCode, 1, MaxStrLen(GeneralLedgerSetup."LCY Code")) = GeneralLedgerSetup."LCY Code" then
+            exit('');
+
         Currency.SetLoadFields(Code);
         Currency.SetRange("ISO Code", CopyStr(ShopifyCurrencyCode, 1, 3));
-        if Currency.FindFirst() then
+        CurrencyCount := Currency.Count();
+        if CurrencyCount = 1 then begin
+            Currency.FindFirst();
             CurrencyCode := Currency.Code;
-        GeneralLedgerSetup.Get();
+        end else
+            if CurrencyCount > 1 then begin
+                Session.LogMessage('0000S1A', StrSubstNo(DuplicateISOCodeTelemetryLbl, ShopifyCurrencyCode, CurrencyCount), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+                Currency.FindFirst();
+                CurrencyCode := Currency.Code;
+            end else
+                if Currency.Get(CopyStr(ShopifyCurrencyCode, 1, MaxStrLen(Currency.Code))) then
+                    CurrencyCode := Currency.Code
+                else
+                    Session.LogMessage('0000S1B', StrSubstNo(CurrencyNotFoundTelemetryLbl, ShopifyCurrencyCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+
+        // Edge case: "LCY Code" is configured as a non-ISO currency code, so the fast path
+        // above did not catch it. Treat the resolved BC currency code as LCY as well.
         if CurrencyCode = GeneralLedgerSetup."LCY Code" then
-            exit('')
-        else
-            exit(CurrencyCode);
+            exit('');
+
+        exit(CurrencyCode);
     end;
 
     local procedure ImportCustomAttributtes(ShopifyOrderId: BigInteger; JCustomAttributtes: JsonArray)

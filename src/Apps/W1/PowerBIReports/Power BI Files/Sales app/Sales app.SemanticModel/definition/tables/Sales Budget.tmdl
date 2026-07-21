@@ -53,12 +53,30 @@ table 'Sales Budget'
 			VAR BudgetNames = CONCATENATEX(VALUES('Sales Budget'[Budget Name]), 'Sales Budget'[Budget Name], "|")
 			VAR Items = CONCATENATEX(VALUES('Sales Budget'[Item No.]), 'Sales Budget'[Item No.], "|")
 			
-			RETURN 
+			VAR PageLink = 
 			    [Base Link] 
-			    & "&page=7133&filter='Item Budget Entry'.'Budget Name' IS '" & BudgetNames & "'"
-			    & " AND 'Item Budget Entry'.'Entry No.' IS '" & EntryNos & "'"
-			    & " AND 'Item Budget Entry'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
-			    & " AND 'Item Budget Entry'.'Item No.' IS '" & Items & "'"
+			    & "&page=7133"
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( PageLink )
+			    + LEN ( "&filter='Item Budget Entry'.'Budget Name' IS ''" )
+			    + SUMX ( VALUES ( 'Sales Budget'[Budget Name] ), LEN ( 'Sales Budget'[Budget Name] ) + 1 )
+			    + LEN ( " AND 'Item Budget Entry'.'Entry No.' IS ''" )
+			    + SUMX ( VALUES ( 'Sales Budget'[Entry No.] ), LEN ( 'Sales Budget'[Entry No.] ) + 1 )
+			    + LEN ( " AND 'Item Budget Entry'.'Dimension Set ID' IS ''" )
+			    + SUMX ( VALUES ( 'Sales Budget'[Dimension Set ID] ), LEN ( 'Sales Budget'[Dimension Set ID] ) + 1 )
+			    + LEN ( " AND 'Item Budget Entry'.'Item No.' IS ''" )
+			    + SUMX ( VALUES ( 'Sales Budget'[Item No.] ), LEN ( 'Sales Budget'[Item No.] ) + 1 )
+			RETURN
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        PageLink & "&filter='Item Budget Entry'.'Budget Name' IS '" & CONCATENATEX(VALUES('Sales Budget'[Budget Name]), 'Sales Budget'[Budget Name], "|") & "'"
+			    & " AND 'Item Budget Entry'.'Entry No.' IS '" & CONCATENATEX(VALUES('Sales Budget'[Entry No.]), 'Sales Budget'[Entry No.], "|") & "'"
+			    & " AND 'Item Budget Entry'.'Dimension Set ID' IS '" & CONCATENATEX(VALUES('Sales Budget'[Dimension Set ID]), 'Sales Budget'[Dimension Set ID], "|") & "'"
+			    & " AND 'Item Budget Entry'.'Item No.' IS '" & CONCATENATEX(VALUES('Sales Budget'[Item No.]), 'Sales Budget'[Item No.], "|") & "'",
+			        PageLink
+			    )
 			```
 		displayFolder: _Budget Measures
 		lineageTag: fcc56428-0d62-4094-b438-55789e98a695

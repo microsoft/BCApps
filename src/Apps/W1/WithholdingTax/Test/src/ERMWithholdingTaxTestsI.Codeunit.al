@@ -16,6 +16,7 @@ using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Payables;
+using Microsoft.Purchases.Setup;
 using Microsoft.Purchases.Vendor;
 using Microsoft.WithholdingTax;
 
@@ -1844,6 +1845,66 @@ codeunit 148321 "ERM Withholding Tax Tests I"
         UnapplyVendorLedgerEntryAmount('');  // Currency as blank.
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure GreaterThanRuleBelowThresholdCreatesWHTEntryOnPurchaseInvoice()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+        DocumentNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 641041] "Greater than" Calculation Rule generates a WHT Entry when the invoice amount is below the minimum invoice amount.
+        Initialize();
+
+        // [GIVEN] WHT enabled and a WHT Posting Setup with Calculation Rule "Greater than" and Minimum Invoice Amount 200.
+        UpdateGeneralLedgerSetup(true, false);
+        UpdateWHTCertificateNosOnPurchSetup();
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        CreateWHTPostingSetupWithCalcRule(WHTPostingSetup, WHTPostingSetup."Wthldg. Tax Calculation Rule"::"Greater than", 200);
+
+        // [WHEN] A purchase invoice for 120 (below the minimum) is posted.
+        DocumentNo :=
+          CreateAndPostPurchaseDocumentWithWHTAndAmount(
+            WHTPostingSetup, "Purchase Document Type"::Invoice,
+            CreateVendorWithPostingGroup(VATPostingSetup."VAT Bus. Posting Group", WHTPostingSetup."Wthldg. Tax Bus. Post. Group"),
+            CreateGLAccount(VATPostingSetup."VAT Prod. Posting Group", WHTPostingSetup."Wthldg. Tax Prod. Post. Group"), 120);
+
+        // [THEN] A WHT Entry is created for the posted invoice.
+        VerifyWHTEntryExists(DocumentNo);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    [HandlerFunctions('ConfirmHandler')]
+    procedure GreaterThanRuleAboveThresholdDoesNotCreateWHTEntryOnPurchaseInvoice()
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        WHTPostingSetup: Record "Withholding Tax Posting Setup";
+        DocumentNo: Code[20];
+    begin
+        // [FEATURE] [AI test]
+        // [SCENARIO 641041] "Greater than" Calculation Rule does not generate a WHT Entry when the invoice amount is above the minimum invoice amount.
+        Initialize();
+
+        // [GIVEN] WHT enabled and a WHT Posting Setup with Calculation Rule "Greater than" and Minimum Invoice Amount 200.
+        UpdateGeneralLedgerSetup(true, false);
+        UpdateWHTCertificateNosOnPurchSetup();
+        LibraryERM.FindVATPostingSetup(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT");
+        CreateWHTPostingSetupWithCalcRule(WHTPostingSetup, WHTPostingSetup."Wthldg. Tax Calculation Rule"::"Greater than", 200);
+
+        // [WHEN] A purchase invoice for 300 (above the minimum) is posted.
+        DocumentNo :=
+          CreateAndPostPurchaseDocumentWithWHTAndAmount(
+            WHTPostingSetup, "Purchase Document Type"::Invoice,
+            CreateVendorWithPostingGroup(VATPostingSetup."VAT Bus. Posting Group", WHTPostingSetup."Wthldg. Tax Bus. Post. Group"),
+            CreateGLAccount(VATPostingSetup."VAT Prod. Posting Group", WHTPostingSetup."Wthldg. Tax Prod. Post. Group"), 300);
+
+        // [THEN] No WHT Entry is created for the posted invoice.
+        VerifyWHTEntryDoesNotExist(DocumentNo);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -2720,6 +2781,49 @@ codeunit 148321 "ERM Withholding Tax Tests I"
         Vendor.Validate("Wthldg. Tax Bus. Post. Group", WHTBusPostingGroup);
         Vendor.Modify(true);
         exit(Vendor."No.");
+    end;
+
+    local procedure CreateWHTPostingSetupWithCalcRule(var WHTPostingSetup: Record "Withholding Tax Posting Setup"; CalculationRule: Option; MinInvoiceAmount: Decimal)
+    var
+        WHTBusinessPostingGroup: Record "Wthldg. Tax Bus. Post. Group";
+        WHTProductPostingGroup: Record "Wthldg. Tax Prod. Post. Group";
+        WHTRevenueTypes: Record "Withholding Tax Revenue Types";
+    begin
+        LibraryWithholdingTax.CreateWHTBusinessPostingGroup(WHTBusinessPostingGroup);
+        LibraryWithholdingTax.CreateWHTProductPostingGroup(WHTProductPostingGroup);
+        CreateWHTPostingSetupWithRealizedWHTType(
+          WHTPostingSetup, WHTBusinessPostingGroup.Code, WHTProductPostingGroup.Code,
+          WHTPostingSetup."Realized Withholding Tax Type"::Invoice, LibraryRandom.RandIntInRange(10, 20));
+        LibraryWithholdingTax.CreateWHTRevenueTypes(WHTRevenueTypes);
+        WHTPostingSetup.Validate("Revenue Type", WHTRevenueTypes.Code);
+        WHTPostingSetup.Validate("Wthldg. Tax Calculation Rule", CalculationRule);
+        WHTPostingSetup.Validate("Wthldg. Tax Min. Inv. Amount", MinInvoiceAmount);
+        WHTPostingSetup.Modify(true);
+    end;
+
+    local procedure VerifyWHTEntryExists(DocumentNo: Code[20])
+    var
+        WHTEntry: Record "Withholding Tax Entry";
+    begin
+        WHTEntry.SetRange("Document No.", DocumentNo);
+        Assert.RecordIsNotEmpty(WHTEntry);
+    end;
+
+    local procedure VerifyWHTEntryDoesNotExist(DocumentNo: Code[20])
+    var
+        WHTEntry: Record "Withholding Tax Entry";
+    begin
+        WHTEntry.SetRange("Document No.", DocumentNo);
+        Assert.RecordIsEmpty(WHTEntry);
+    end;
+
+    local procedure UpdateWHTCertificateNosOnPurchSetup()
+    var
+        PurchasesPayablesSetup: Record "Purchases & Payables Setup";
+    begin
+        PurchasesPayablesSetup.Get();
+        PurchasesPayablesSetup.Validate("Wthldg. Tax Certificate Nos.", LibraryERM.CreateNoSeriesCode());
+        PurchasesPayablesSetup.Modify(true);
     end;
 
     [ModalPageHandler]

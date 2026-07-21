@@ -57,6 +57,7 @@ permissionset 7787 "Jobs Journals - Edit"
                   tabledata "Item Unit of Measure" = R,
                   tabledata "Item Variant" = R,
                   tabledata Job = R,
+                  tabledata "Job Assigned Resource" = R,
                   tabledata "Job G/L Account Price" = R,
                   tabledata "Job Item Price" = R,
                   tabledata "Job Journal Batch" = RI,
