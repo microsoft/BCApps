@@ -1168,6 +1168,10 @@ function Find-CrossPrUnstableTests {
         $runDir = Join-Path $WorkDirectory "run-$runId"
         Write-Host "Downloading test results from PR #$prNumber build (run $runId, status '$($run.status)') ..."
         gh run download $runId --repo $Repository --dir $runDir --pattern '*TestResult*' 2>&1 | ForEach-Object { Write-Verbose $_ }
+        # 'gh run download' exits non-zero when a (typically still-running) build has not uploaded any
+        # matching artifact yet. That is expected and tolerated here, but the lingering $LASTEXITCODE would
+        # otherwise leak out and fail the calling step (GitHub's pwsh wrapper exits with $LASTEXITCODE).
+        $global:LASTEXITCODE = 0
         if (-not (Test-Path $runDir)) { continue }
 
         $runFailed = New-Object System.Collections.Generic.List[object]

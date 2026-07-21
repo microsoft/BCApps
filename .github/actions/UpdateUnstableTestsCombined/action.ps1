@@ -34,18 +34,30 @@ Import-Module (Join-Path $scriptsRoot 'TestTolerance.psm1') -Force
 
 $outputPath = Join-Path '.unstable-tests' 'unstable-tests.json'
 
-& (Join-Path $scriptsRoot 'UpdateUnstableTestsCombined.ps1') `
-    -Branch $Branch `
-    -RunLimit $RunLimit `
-    -FilterPush:$FilterPush `
-    -FilterWorkflowDispatch:$FilterWorkflowDispatch `
-    -WindowHours $WindowHours `
-    -MinDistinctPrs $MinDistinctPrs `
-    -OutputPath $outputPath
+try {
+    & (Join-Path $scriptsRoot 'UpdateUnstableTestsCombined.ps1') `
+        -Branch $Branch `
+        -RunLimit $RunLimit `
+        -FilterPush:$FilterPush `
+        -FilterWorkflowDispatch:$FilterWorkflowDispatch `
+        -WindowHours $WindowHours `
+        -MinDistinctPrs $MinDistinctPrs `
+        -OutputPath $outputPath
 
-# Expose the artifact name so the action's upload step can publish it. Only emit it when the artifact was
-# actually produced, so the upload step can be skipped otherwise.
-if ($env:GITHUB_OUTPUT -and (Test-Path $outputPath)) {
-    $artifactName = Get-UnstableTestsArtifactName -Branch $Branch
-    Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "artifactName=$artifactName"
+    # Expose the artifact name so the action's upload step can publish it. Only emit it when the artifact
+    # was actually produced, so the upload step can be skipped otherwise.
+    if ($env:GITHUB_OUTPUT -and (Test-Path $outputPath)) {
+        $artifactName = Get-UnstableTestsArtifactName -Branch $Branch
+        Add-Content -Encoding UTF8 -Path $env:GITHUB_OUTPUT -Value "artifactName=$artifactName"
+    }
 }
+catch {
+    Write-Host "::error::Failed to update unstable tests for '$Branch': $($_.Exception.Message)"
+    exit 1
+}
+
+# The driver runs best-effort 'gh' commands (e.g. downloading results from still-running PR builds that may
+# not have uploaded any artifacts yet), which can leave $LASTEXITCODE non-zero even though the update itself
+# succeeded. GitHub's pwsh wrapper ends with 'exit $LASTEXITCODE', so normalize the exit code on success to
+# avoid failing the step on a benign, already-tolerated 'gh' error.
+exit 0
