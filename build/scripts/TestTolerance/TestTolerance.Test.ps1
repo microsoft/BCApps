@@ -576,6 +576,59 @@ Describe "TestTolerance" {
         }
     }
 
+    Context "Get-PrFailingTestsMap" {
+        BeforeAll {
+            function New-FT {
+                param([string] $Key)
+                return [pscustomobject]@{ Key = $Key }
+            }
+        }
+
+        It "returns an empty map for no observations" {
+            $map = Get-PrFailingTestsMap -Observations @()
+            $map.Count | Should -Be 0
+        }
+
+        It "unions a PR's failing tests across its attempts (same PR, multiple runs)" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FT -Key '::300::t1')) },
+                [pscustomobject]@{ PrNumber = 101; RunId = '901'; FailedTests = @((New-FT -Key '::300::t2')) }
+            )
+            $map = Get-PrFailingTestsMap -Observations $obs
+            $map.Count | Should -Be 1
+            $map['101'] | Should -Be @('::300::t1', '::300::t2')
+        }
+
+        It "de-duplicates the same test failing on several attempts of one PR" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FT -Key '::300::t1')) },
+                [pscustomobject]@{ PrNumber = 101; RunId = '901'; FailedTests = @((New-FT -Key '::300::t1')) }
+            )
+            $map = Get-PrFailingTestsMap -Observations $obs
+            $map['101'].Count | Should -Be 1
+            $map['101'][0] | Should -Be '::300::t1'
+        }
+
+        It "keeps each PR's failing tests separate and orders PRs numerically" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 102; RunId = '901'; FailedTests = @((New-FT -Key '::300::t2')) },
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FT -Key '::300::t1')) }
+            )
+            $map = Get-PrFailingTestsMap -Observations $obs
+            @($map.Keys) | Should -Be @('101', '102')
+            $map['101'] | Should -Be @('::300::t1')
+            $map['102'] | Should -Be @('::300::t2')
+        }
+
+        It "handles a FailedTests value that is a List[object]" {
+            $failed = New-Object System.Collections.Generic.List[object]
+            $failed.Add((New-FT -Key '::300::t1')) | Out-Null
+            $obs = @([pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = $failed })
+            $map = Get-PrFailingTestsMap -Observations $obs
+            $map['101'] | Should -Be @('::300::t1')
+        }
+    }
+
     Context "Save-UnstableTestsArtifact" {
         BeforeEach {
             $script:outFile = Join-Path ([System.IO.Path]::GetTempPath()) ("ut-save-" + [System.Guid]::NewGuid().ToString('N') + ".json")
