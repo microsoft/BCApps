@@ -292,7 +292,7 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
              GenJnlLine."Wthldg. Tax Prod. Post. Group")
         then
             if WithholdingPostingSetup."Realized Withholding Tax Type" = WithholdingPostingSetup."Realized Withholding Tax Type"::Earliest then
-                if Abs(GenJnlLine.Amount) < WithholdingPostingSetup."Wthldg. Tax Min. Inv. Amount" then
+                if not WithholdingTaxMgmt.ShouldCreateWithholdingTax(GenJnlLine.Amount, WithholdingPostingSetup) then
                     WithholdingAmountLCY := 0;
     end;
 
@@ -433,7 +433,7 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
 
         if WithholdingPostingSetup.Get(GenJnlLine."Wthldg. Tax Bus. Post. Group", GenJnlLine."Wthldg. Tax Prod. Post. Group") then
             if WithholdingPostingSetup."Realized Withholding Tax Type" = WithholdingPostingSetup."Realized Withholding Tax Type"::Earliest then
-                if GenJnlLine.Amount < WithholdingPostingSetup."Wthldg. Tax Min. Inv. Amount" then
+                if not WithholdingTaxMgmt.ShouldCreateWithholdingTax(GenJnlLine.Amount, WithholdingPostingSetup) then
                     WHTAmountLCY := 0;
     end;
 
@@ -670,12 +670,13 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
     local procedure IsAboveWithholdingMinInvAmount(GenJnlLine: Record "Gen. Journal Line"): Boolean
     var
         WithholdingPostingSetup: Record "Withholding Tax Posting Setup";
+        WithholdingTaxMgmt: Codeunit "Withholding Tax Mgmt.";
     begin
         if not (GenJnlLine."Document Type" in [GenJnlLine."Document Type"::Invoice, GenJnlLine."Document Type"::"Credit Memo"]) then
             exit(true);
 
         if WithholdingPostingSetup.Get(GenJnlLine."Wthldg. Tax Bus. Post. Group", GenJnlLine."Wthldg. Tax Prod. Post. Group") then
-            exit(Abs(GenJnlLine.Amount) >= WithholdingPostingSetup."Wthldg. Tax Min. Inv. Amount");
+            exit(WithholdingTaxMgmt.ShouldCreateWithholdingTax(GenJnlLine.Amount, WithholdingPostingSetup));
 
         exit(false);
     end;
@@ -852,7 +853,7 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
 
         if WithholdingPostingSetup.Get(GenJnlLine."Wthldg. Tax Bus. Post. Group", GenJnlLine."Wthldg. Tax Prod. Post. Group") then
             if WithholdingPostingSetup."Realized Withholding Tax Type" = WithholdingPostingSetup."Realized Withholding Tax Type"::Earliest then
-                if Abs(GenJnlLine.Amount) < WithholdingPostingSetup."Wthldg. Tax Min. Inv. Amount" then
+                if not WithholdingTaxMgmt.ShouldCreateWithholdingTax(GenJnlLine.Amount, WithholdingPostingSetup) then
                     WithholdingAmountLCY := 0;
     end;
 
@@ -1681,6 +1682,36 @@ codeunit 6786 "Withholding Tax Jnl Subscriber"
             exit;
 
         PostUnrealizedWHT(GenJournalLine, GenJnlPostLine);
+    end;
+
+
+    [EventSubscriber(ObjectType::Page, Page::"Create Payment", OnBeforeUpdateGnlJnlLineDimensionsFromVendorPayment, '', false, false)]
+    local procedure AssignWHTPostingGroupOnCreatePayment(var GenJournalLine: Record "Gen. Journal Line"; TempVendorPaymentBuffer: Record "Vendor Payment Buffer" temporary)
+    var
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        WithholdingTaxEntry: Record "Withholding Tax Entry";
+    begin
+        if CheckWithholdingTaxDisabled() then
+            exit;
+
+        if GenJournalLine."Applies-to ID" = '' then
+            exit;
+
+        if TempVendorPaymentBuffer."Vendor Ledg. Entry No." = 0 then
+            exit;
+
+        VendorLedgerEntry.SetLoadFields("Document No.", "Vendor No.");
+        VendorLedgerEntry.Get(TempVendorPaymentBuffer."Vendor Ledg. Entry No.");
+
+        WithholdingTaxEntry.SetLoadFields("Wthldg. Tax Prod. Post. Group");
+        WithholdingTaxEntry.SetRange("Document No.", VendorLedgerEntry."Document No.");
+        WithholdingTaxEntry.SetRange("Transaction Type", WithholdingTaxEntry."Transaction Type"::Purchase);
+        WithholdingTaxEntry.SetRange("Document Type", WithholdingTaxEntry."Document Type"::Invoice);
+        WithholdingTaxEntry.SetRange("Bill-to/Pay-to No.", VendorLedgerEntry."Vendor No.");
+        if not WithholdingTaxEntry.FindFirst() then
+            exit;
+
+        GenJournalLine."Wthldg. Tax Prod. Post. Group" := WithholdingTaxEntry."Wthldg. Tax Prod. Post. Group";
     end;
 
     local procedure PostUnrealizedWHT(var GenJnlLine: Record "Gen. Journal Line"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
