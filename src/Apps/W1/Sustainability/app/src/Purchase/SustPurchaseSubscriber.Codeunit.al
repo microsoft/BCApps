@@ -733,6 +733,9 @@ codeunit 6225 "Sust. Purchase Subscriber"
             if (CO2ToPost = 0) and (CH4ToPost = 0) and (N2OToPost = 0) and (EnergyConsumptionToPost = 0) then
                 Error(EmissionMustNotBeZeroErr);
 
+        if (PurchaseLine.Type = PurchaseLine.Type::"Fixed Asset") and (PurchaseLine."FA Posting Type" <> PurchaseLine."FA Posting Type"::"Acquisition Cost") then
+            Error(AllowedToPostSustainabilityEntryForAcquisitionErr);
+
         if (CO2ToPost <> 0) or (CH4ToPost <> 0) or (N2OToPost <> 0) or (EnergyConsumptionToPost <> 0) then
             exit(true);
     end;
@@ -803,6 +806,7 @@ codeunit 6225 "Sust. Purchase Subscriber"
         SustainabilitySetup: Record "Sustainability Setup";
         EmissionMustNotBeZeroErr: Label 'The Emission fields must have a value that is not 0.';
         NotAllowedToPostSustLedEntryForWaterOrWasteErr: Label 'It is not allowed to post Sustainability Ledger Entry for water or waste in purchase document for Account No. %1', Comment = '%1 = Sustainability Account No.';
+        AllowedToPostSustainabilityEntryForAcquisitionErr: Label 'It is only allowed to post Sustainability Entry for Acquisition Cost.';
 
     [IntegrationEvent(false, false)]
     local procedure OnPostSustainabilityLineOnBeforeInsertLedgerEntry(var SustainabilityJnlLine: Record "Sustainability Jnl. Line"; PurchaseHeader: Record "Purchase Header"; PurchaseLine: Record "Purchase Line")
