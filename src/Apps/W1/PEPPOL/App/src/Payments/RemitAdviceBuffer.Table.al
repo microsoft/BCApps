@@ -59,7 +59,7 @@ table 37203 "Remit. Advice Buffer"
         field(9; "Recipient Bank Account"; Code[20])
         {
             Caption = 'Recipient Bank Account';
-            DataClassification = SystemMetadata;
+            DataClassification = AccountData;
         }
         field(10; "Applied Doc. Type"; Enum "Gen. Journal Document Type")
         {

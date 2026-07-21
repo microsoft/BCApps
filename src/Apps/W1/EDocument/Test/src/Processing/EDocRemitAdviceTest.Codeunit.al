@@ -42,6 +42,10 @@ codeunit 139541 "E-Doc. Remit. Advice Test"
         EDocImplState: Codeunit "E-Doc. Impl. State";
         IsInitialized: Boolean;
         IncorrectValueErr: Label 'Wrong value';
+        ExpectedConfirmQst: Text;
+        ReExportConfirmQst: Label 'An e-document was already created for this payment. Create again?';
+        VoidConfirmQst: Label 'Void the remittance advice e-document for the selected payment(s)?';
+        DeleteRemitAdviceEDocCreatedQst: Label 'A remittance advice e-document has been created for this payment line. If you delete the line, the e-document will no longer be linked to it.\\ Do you want to continue?';
 
     [Test]
     [HandlerFunctions('RemitAdviceJournalRequestPageHandler')]
@@ -184,6 +188,7 @@ codeunit 139541 "E-Doc. Remit. Advice Test"
         RunRemitAdviceJournalReport(true);
 
         // [WHEN] The report runs again and the re-export confirm is declined
+        ExpectedConfirmQst := ReExportConfirmQst;
         RunRemitAdviceJournalReport(true);
 
         // [THEN] Still exactly one e-document for the anchor line
@@ -211,6 +216,7 @@ codeunit 139541 "E-Doc. Remit. Advice Test"
         FirstEntryNo := EDocument."Entry No";
 
         // [WHEN] The report runs again and the re-export confirm is accepted
+        ExpectedConfirmQst := ReExportConfirmQst;
         RunRemitAdviceJournalReport(true);
 
         // [THEN] The same e-document record was re-exported - no duplicate created
@@ -311,6 +317,7 @@ codeunit 139541 "E-Doc. Remit. Advice Test"
         PaymentJournal.OpenEdit();
         PaymentJournal.CurrentJnlBatchName.SetValue(GenJournalBatch.Name);
         PaymentJournal.GotoRecord(GenJournalLine);
+        ExpectedConfirmQst := VoidConfirmQst;
         PaymentJournal."Void Remittance Advice E-Doc.".Invoke();
         PaymentJournal.Close();
 
@@ -350,6 +357,7 @@ codeunit 139541 "E-Doc. Remit. Advice Test"
         PaymentJournal.OpenEdit();
         PaymentJournal.CurrentJnlBatchName.SetValue(GenJournalBatch.Name);
         PaymentJournal.GotoRecord(GenJournalLine);
+        ExpectedConfirmQst := VoidConfirmQst;
         asserterror PaymentJournal."Void Remittance Advice E-Doc.".Invoke();
 
         // [THEN] The action errors and the flag stays set
@@ -382,6 +390,7 @@ codeunit 139541 "E-Doc. Remit. Advice Test"
         PaymentJournal.OpenEdit();
         PaymentJournal.CurrentJnlBatchName.SetValue(GenJournalBatch.Name);
         PaymentJournal.GotoRecord(GenJournalLine);
+        ExpectedConfirmQst := VoidConfirmQst;
         PaymentJournal."Void Remittance Advice E-Doc.".Invoke();
         PaymentJournal.Close();
 
@@ -420,6 +429,7 @@ codeunit 139541 "E-Doc. Remit. Advice Test"
 
         // [WHEN] The journal line is deleted without posting
         GenJournalLine.Find();
+        ExpectedConfirmQst := DeleteRemitAdviceEDocCreatedQst;
         GenJournalLine.Delete(true);
 
         // [THEN] The e-document is kept but its service status is Canceled
@@ -818,12 +828,14 @@ codeunit 139541 "E-Doc. Remit. Advice Test"
     [ConfirmHandler]
     procedure ConfirmHandlerYes(Question: Text[1024]; var Reply: Boolean)
     begin
+        Assert.AreEqual(ExpectedConfirmQst, Question, 'Unexpected confirm question');
         Reply := true;
     end;
 
     [ConfirmHandler]
     procedure ConfirmHandlerNo(Question: Text[1024]; var Reply: Boolean)
     begin
+        Assert.AreEqual(ExpectedConfirmQst, Question, 'Unexpected confirm question');
         Reply := false;
     end;
 }

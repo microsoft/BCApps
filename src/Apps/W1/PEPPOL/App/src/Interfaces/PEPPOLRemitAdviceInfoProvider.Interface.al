@@ -24,4 +24,13 @@ interface "PEPPOL Remit. Advice Info Provider"
     /// <param name="PaymentMeansCode">Returns the UNCL4461 payment means code; empty to omit the PaymentMeans element.</param>
     /// <param name="PayeeFinancialAccountID">Returns the payee financial account ID (IBAN or bank account no.); empty to omit.</param>
     procedure GetPaymentMeansInfo(RemitAdviceBuffer: Record "Remit. Advice Buffer" temporary; var PaymentMeansCode: Text; var PayeeFinancialAccountID: Text)
+
+    /// <summary>
+    /// Gets the document identification (CustomizationID/ProfileID) for the PEPPOL remittance advice header.
+    /// No PEPPOL BIS profile exists for remittance advice yet, so the default implementation returns both empty
+    /// (the elements are omitted); a localization can supply its own values by overriding this method.
+    /// </summary>
+    /// <param name="CustomizationID">Returns the CustomizationID; empty to omit the element.</param>
+    /// <param name="ProfileID">Returns the ProfileID; empty to omit the element.</param>
+    procedure GetDocumentIdentification(var CustomizationID: Text; var ProfileID: Text)
 }

@@ -62,6 +62,16 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
     end;
 
     /// <summary>
+    /// Gets the document identification (CustomizationID/ProfileID) for the PEPPOL remittance advice header.
+    /// </summary>
+    /// <param name="CustomizationID">Returns the CustomizationID; empty to omit the element.</param>
+    /// <param name="ProfileID">Returns the ProfileID; empty to omit the element.</param>
+    procedure GetDocumentIdentification(var CustomizationID: Text; var ProfileID: Text)
+    begin
+        PEPPOLManagementImpl.GetDocumentIdentification(CustomizationID, ProfileID);
+    end;
+
+    /// <summary>
     /// Gets general invoice information including ID, issue date, invoice type, currency codes, and accounting cost.
     /// </summary>
     /// <param name="SalesHeader">The sales header record containing the document information.</param>

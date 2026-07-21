@@ -78,7 +78,7 @@ pageextension 6110 "E-Doc. Payment Journal" extends "Payment Journal"
     local procedure VoidSelectedRemittanceAdviceEDocs()
     var
         SelectedGenJournalLine: Record "Gen. Journal Line";
-        ProcessedGroup: Record "Gen. Journal Line" temporary;
+        TempProcessedGroup: Record "Gen. Journal Line" temporary;
     begin
         CurrPage.SetSelectionFilter(SelectedGenJournalLine);
         if not SelectedGenJournalLine.FindSet() then
@@ -88,8 +88,8 @@ pageextension 6110 "E-Doc. Payment Journal" extends "Payment Journal"
             exit;
 
         repeat
-            if not GroupAlreadyProcessed(ProcessedGroup, SelectedGenJournalLine) then begin
-                MarkGroupProcessed(ProcessedGroup, SelectedGenJournalLine);
+            if not GroupAlreadyProcessed(TempProcessedGroup, SelectedGenJournalLine) then begin
+                MarkGroupProcessed(TempProcessedGroup, SelectedGenJournalLine);
                 VoidGroup(SelectedGenJournalLine);
             end;
         until SelectedGenJournalLine.Next() = 0;
@@ -97,20 +97,20 @@ pageextension 6110 "E-Doc. Payment Journal" extends "Payment Journal"
         CurrPage.Update(false);
     end;
 
-    local procedure GroupAlreadyProcessed(var ProcessedGroup: Record "Gen. Journal Line" temporary; SelectedGenJournalLine: Record "Gen. Journal Line"): Boolean
+    local procedure GroupAlreadyProcessed(var TempProcessedGroup: Record "Gen. Journal Line" temporary; SelectedGenJournalLine: Record "Gen. Journal Line"): Boolean
     begin
-        ProcessedGroup.SetRange("Journal Template Name", SelectedGenJournalLine."Journal Template Name");
-        ProcessedGroup.SetRange("Journal Batch Name", SelectedGenJournalLine."Journal Batch Name");
-        ProcessedGroup.SetRange("Account No.", SelectedGenJournalLine."Account No.");
-        ProcessedGroup.SetRange("Document No.", SelectedGenJournalLine."Document No.");
-        exit(not ProcessedGroup.IsEmpty());
+        TempProcessedGroup.SetRange("Journal Template Name", SelectedGenJournalLine."Journal Template Name");
+        TempProcessedGroup.SetRange("Journal Batch Name", SelectedGenJournalLine."Journal Batch Name");
+        TempProcessedGroup.SetRange("Account No.", SelectedGenJournalLine."Account No.");
+        TempProcessedGroup.SetRange("Document No.", SelectedGenJournalLine."Document No.");
+        exit(not TempProcessedGroup.IsEmpty());
     end;
 
-    local procedure MarkGroupProcessed(var ProcessedGroup: Record "Gen. Journal Line" temporary; SelectedGenJournalLine: Record "Gen. Journal Line")
+    local procedure MarkGroupProcessed(var TempProcessedGroup: Record "Gen. Journal Line" temporary; SelectedGenJournalLine: Record "Gen. Journal Line")
     begin
-        ProcessedGroup.Reset();
-        ProcessedGroup := SelectedGenJournalLine;
-        if ProcessedGroup.Insert() then;
+        TempProcessedGroup.Reset();
+        TempProcessedGroup := SelectedGenJournalLine;
+        if TempProcessedGroup.Insert() then;
     end;
 
     local procedure FindGroupAnchor(SourceGenJournalLine: Record "Gen. Journal Line"; var AnchorGenJournalLine: Record "Gen. Journal Line"): Boolean

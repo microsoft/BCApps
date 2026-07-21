@@ -15,6 +15,8 @@ using System.Xml;
 /// </summary>
 codeunit 37208 "Export Remit. Advice PEPPOL30"
 {
+    Access = Internal;
+
     var
         XMLDOMManagement: Codeunit "XML DOM Management";
         PEPPOL30PurchaseFormat: Enum "PEPPOL 3.0 Purchase";
@@ -39,7 +41,7 @@ codeunit 37208 "Export Remit. Advice PEPPOL30"
 
         this.InitializeXmlDocument();
         this.AddHeaderElements(TempBuffer);
-        this.OnBeforeAddHeaderElements(TempBuffer, this.RootNode);
+        this.AddDocumentIdentification();
         this.AddAccountingCustomerParty();
         this.AddAccountingSupplierParty(TempBuffer);
         this.AddPaymentMeans(TempBuffer);
@@ -99,6 +101,19 @@ codeunit 37208 "Export Remit. Advice PEPPOL30"
         this.AddMoneyElement(this.RootNode, 'TotalPaymentAmount', HeaderBuffer."Total Paid Amount", DocumentCurrencyCode, ChildNode);
         this.AddCbcElement(this.RootNode, 'PaymentOrderReference', HeaderBuffer."Payment Document No.", ChildNode);
         this.AddCbcElement(this.RootNode, 'LineCountNumeric', Format(this.CountLines(HeaderBuffer)), ChildNode);
+    end;
+
+    local procedure AddDocumentIdentification()
+    var
+        PEPPOLRemitAdviceInfo: Interface "PEPPOL Remit. Advice Info Provider";
+        ChildNode: XmlNode;
+        CustomizationID: Text;
+        ProfileID: Text;
+    begin
+        PEPPOLRemitAdviceInfo := this.GetFormat();
+        PEPPOLRemitAdviceInfo.GetDocumentIdentification(CustomizationID, ProfileID);
+        this.AddNonEmptyCbcElement(this.RootNode, 'CustomizationID', CustomizationID, ChildNode);
+        this.AddNonEmptyCbcElement(this.RootNode, 'ProfileID', ProfileID, ChildNode);
     end;
 
     local procedure CountLines(HeaderBuffer: Record "Remit. Advice Buffer" temporary) LineCount: Integer
@@ -340,15 +355,5 @@ codeunit 37208 "Export Remit. Advice PEPPOL30"
     begin
         this.AddCbcElement(ParentNode, NodeName, this.FormatAmount(Amount), ChildNode);
         this.XMLDOMManagement.AddAttribute(ChildNode, 'currencyID', CurrencyCode);
-    end;
-
-    /// <summary>
-    /// Raised right after the RemittanceAdvice header-level elements (UBLVersionID .. LineCountNumeric) have been
-    /// added, before AccountingCustomerParty/AccountingSupplierParty/PaymentMeans/lines. Lets downstream apps
-    /// inject elements such as CustomizationID/ProfileID (no PEPPOL BIS profile exists for remittance advice yet).
-    /// </summary>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeAddHeaderElements(var TempBuffer: Record "Remit. Advice Buffer" temporary; RootNode: XmlNode)
-    begin
     end;
 }

@@ -13,6 +13,8 @@ using Microsoft.Purchases.Vendor;
 /// </summary>
 codeunit 37207 "Remit. Advice Buffer Mgt."
 {
+    Access = Internal;
+
     /// <summary>
     /// Builds the remittance advice buffer (header + applied-document lines) from an unposted
     /// vendor payment journal line and the other lines in the same payment group.
@@ -132,10 +134,9 @@ codeunit 37207 "Remit. Advice Buffer Mgt."
         // JnlLineRemainingAmount by InsertTempAppliedEntry above) and AppliedDebitAmounts
         // (PrintLoop OnPreDataItem).
         JnlLineRemainingAmount += GenJournalLine.Amount + AppliedDebitAmounts;
+        TempAppliedVendLedgEntry.SetAutoCalcFields("Remaining Amount", "Original Amount");
         if TempAppliedVendLedgEntry.FindSet() then
             repeat
-                TempAppliedVendLedgEntry.CalcFields("Remaining Amount", "Original Amount");
-
                 if TempAppliedVendLedgEntry."Currency Code" <> GenJournalLine."Currency Code" then begin
                     TempAppliedVendLedgEntry."Remaining Amount" :=
                         Round(CurrExchRate.ExchangeAmtFCYToFCY(GenJournalLine."Posting Date", TempAppliedVendLedgEntry."Currency Code",
@@ -262,10 +263,9 @@ codeunit 37207 "Remit. Advice Buffer Mgt."
         PaymentVendLedgEntry.CalcFields(Amount, "Remaining Amount");
 
         FindAppliedEntries(PaymentVendLedgEntry, AppliedVendLedgEntry);
+        AppliedVendLedgEntry.SetAutoCalcFields(Amount, "Remaining Amount");
         if AppliedVendLedgEntry.FindSet() then
             repeat
-                AppliedVendLedgEntry.CalcFields(Amount, "Remaining Amount");
-
                 DetailedVendLedgEntry.Reset();
                 DetailedVendLedgEntry.SetRange("Vendor Ledger Entry No.", AppliedVendLedgEntry."Entry No.");
                 DetailedVendLedgEntry.SetRange("Entry Type", DetailedVendLedgEntry."Entry Type"::Application);
@@ -363,6 +363,7 @@ codeunit 37207 "Remit. Advice Buffer Mgt."
     begin
         AppliedVendLedgEntry.Reset();
         AppliedVendLedgEntry.SetCurrentKey("Entry No.");
+        AppliedVendLedgEntry.SetLoadFields("Entry No.");
 
         if PaymentVendLedgEntry."Closed by Entry No." <> 0 then begin
             AppliedVendLedgEntry.SetRange("Entry No.", PaymentVendLedgEntry."Closed by Entry No.");
@@ -379,6 +380,7 @@ codeunit 37207 "Remit. Advice Buffer Mgt."
 
         DetailedVendLedgEntry1.Reset();
         DetailedVendLedgEntry1.SetCurrentKey("Vendor Ledger Entry No.");
+        DetailedVendLedgEntry1.SetLoadFields("Vendor Ledger Entry No.", "Applied Vend. Ledger Entry No.", Unapplied);
         DetailedVendLedgEntry1.SetRange("Vendor Ledger Entry No.", PaymentVendLedgEntry."Entry No.");
         DetailedVendLedgEntry1.SetRange(Unapplied, false);
         if DetailedVendLedgEntry1.FindSet() then
@@ -386,6 +388,7 @@ codeunit 37207 "Remit. Advice Buffer Mgt."
                 if DetailedVendLedgEntry1."Vendor Ledger Entry No." = DetailedVendLedgEntry1."Applied Vend. Ledger Entry No." then begin
                     DetailedVendLedgEntry2.Reset();
                     DetailedVendLedgEntry2.SetCurrentKey("Applied Vend. Ledger Entry No.", "Entry Type");
+                    DetailedVendLedgEntry2.SetLoadFields("Vendor Ledger Entry No.", "Applied Vend. Ledger Entry No.", "Entry Type", Unapplied);
                     DetailedVendLedgEntry2.SetRange("Applied Vend. Ledger Entry No.", DetailedVendLedgEntry1."Applied Vend. Ledger Entry No.");
                     DetailedVendLedgEntry2.SetRange("Entry Type", DetailedVendLedgEntry2."Entry Type"::Application);
                     DetailedVendLedgEntry2.SetRange(Unapplied, false);
@@ -410,6 +413,7 @@ codeunit 37207 "Remit. Advice Buffer Mgt."
         AppliedVendLedgEntry.SetRange("Entry No.");
         AppliedVendLedgEntry.SetRange("Closed by Entry No.");
         AppliedVendLedgEntry.MarkedOnly(true);
+        AppliedVendLedgEntry.SetLoadFields();
     end;
 
     local procedure IsDiscountAppliedToPayment(VendLedgEntryNo: Integer; DocNo: Code[20]): Boolean

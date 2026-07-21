@@ -99,6 +99,12 @@ codeunit 37201 "PEPPOL30 Impl."
             PayeeFinancialAccountID := VendorBankAccount."Bank Account No.";
     end;
 
+    procedure GetDocumentIdentification(var CustomizationID: Text; var ProfileID: Text)
+    begin
+        CustomizationID := '';
+        ProfileID := '';
+    end;
+
     procedure GetGeneralInfo(SalesHeader: Record "Sales Header"; var ID: Text; var IssueDate: Text; var InvoiceTypeCode: Text; var InvoiceTypeCodeListID: Text; var Note: Text; var TaxPointDate: Text; var DocumentCurrencyCode: Text; var DocumentCurrencyCodeListID: Text; var TaxCurrencyCode: Text; var TaxCurrencyCodeListID: Text; var AccountingCost: Text)
     var
         GLSetup: Record "General Ledger Setup";
