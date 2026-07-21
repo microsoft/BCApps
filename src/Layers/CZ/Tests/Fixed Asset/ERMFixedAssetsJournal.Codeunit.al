@@ -42,6 +42,7 @@
         FAJnlTemplateNameAssets: Label 'ASSETS', Comment = 'ASSETS is the name of FA Journal Template.';
         FAJnlTemplateDescFAJnl: Label 'Fixed Asset Journal';
         CompletionStatsGenJnlQst: Label 'The depreciation has been calculated.\\1 fixed asset G/L journal lines were created.\\Do you want to open the Fixed Asset G/L Journal window?', Comment = 'The depreciation has been calculated.\\2 fixed asset G/L  journal lines were created.\\Do you want to open the Fixed Asset G/L Journal window?';
+        CompletionStatsFAJnlQst: Label 'The depreciation has been calculated.\\1 fixed asset journal lines were created.\\Do you want to open the Fixed Asset Journal window?', Comment = 'The depreciation has been calculated.\\5 fixed asset journal lines were created.\\Do you want to open the Fixed Asset Journal window?';
         ExtDocNoTok: Label 'ExtDocNo';
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         AcquisitionOptions: Option "G/L Account",Vendor,"Bank Account";
@@ -4604,6 +4605,7 @@
     [Scope('OnPrem')]
     procedure DepreciationCalcFAJnlConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
+        Assert.ExpectedMessage(CompletionStatsFAJnlQst, Question);
         Reply := false;
     end;
 
