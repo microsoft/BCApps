@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
+using Microsoft.CRM.Team;
 using Microsoft.eServices.EDocument;
+using Microsoft.Foundation.Company;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
@@ -288,6 +290,64 @@ codeunit 11038 "E-Document DE Helper"
         end;
     end;
 
+    /// <summary>
+    /// Checks that the seller contact (BG-6) can be fully supplied from the source that the export uses,
+    /// so that BR-DE-2 (group present), BR-DE-5 (BT-41 name), BR-DE-6 (BT-42 telephone) and
+    /// BR-DE-7 (BT-43 e-mail) are satisfied.
+    /// When a salesperson is assigned to the document, the salesperson supplies all three terms and must
+    /// therefore have Name, Phone No. and E-Mail. Otherwise they come from Company Information.
+    /// The Company Information E-Mail is not checked here: it is the same field that supplies the seller
+    /// electronic address (BT-34), which CheckCompanyInfoMandatory already requires in the format codeunits.
+    /// </summary>
+    /// <param name="SourceDocumentHeader">A RecordRef pointing to a supported document header.</param>
+    internal procedure CheckSellerContactMandatory(SourceDocumentHeader: RecordRef)
+    var
+        CompanyInformation: Record "Company Information";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        SalespersonCode: Code[20];
+    begin
+        if not IsSupportedDocumentType(SourceDocumentHeader) then
+            exit;
+
+        SalespersonCode := GetSalespersonCode(SourceDocumentHeader);
+        if SalespersonCode <> '' then begin
+            SalespersonPurchaser.SetLoadFields(Name, "Phone No.", "E-Mail");
+            if SalespersonPurchaser.Get(SalespersonCode) then begin
+                if SalespersonPurchaser.Name = '' then
+                    Error(SellerContactSalespersonErr, SalespersonPurchaser.FieldCaption(Name), SalespersonPurchaser.TableCaption(), SalespersonCode);
+                if SalespersonPurchaser."Phone No." = '' then
+                    Error(SellerContactSalespersonErr, SalespersonPurchaser.FieldCaption("Phone No."), SalespersonPurchaser.TableCaption(), SalespersonCode);
+                if SalespersonPurchaser."E-Mail" = '' then
+                    Error(SellerContactSalespersonErr, SalespersonPurchaser.FieldCaption("E-Mail"), SalespersonPurchaser.TableCaption(), SalespersonCode);
+                exit;
+            end;
+        end;
+
+        CompanyInformation.SetLoadFields("Contact Person", "Phone No.");
+        CompanyInformation.Get();
+        if CompanyInformation."Contact Person" = '' then
+            Error(SellerContactCompanyInfoErr, CompanyInformation.FieldCaption("Contact Person"), CompanyInformation.TableCaption());
+        if CompanyInformation."Phone No." = '' then
+            Error(SellerContactCompanyInfoErr, CompanyInformation.FieldCaption("Phone No."), CompanyInformation.TableCaption());
+    end;
+
+    local procedure GetSalespersonCode(SourceDocumentHeader: RecordRef): Code[20]
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        SalespersonCodeFieldRef: FieldRef;
+        SalespersonFieldNo: Integer;
+    begin
+        SalespersonFieldNo := SalesInvoiceHeader.FieldNo("Salesperson Code");
+        if SourceDocumentHeader.Number() in
+            [Database::"Service Header", Database::"Service Invoice Header", Database::"Service Cr.Memo Header"]
+        then
+            SalespersonFieldNo := ServiceInvoiceHeader.FieldNo("Salesperson Code");
+
+        SalespersonCodeFieldRef := SourceDocumentHeader.Field(SalespersonFieldNo);
+        exit(SalespersonCodeFieldRef.Value());
+    end;
+
     [TryFunction]
     local procedure TryValidateRoutingNo(RoutingNo: Text[50])
     begin
@@ -304,4 +364,6 @@ codeunit 11038 "E-Document DE Helper"
         FineRoutingCharsErr: Label 'The fine routing segment must contain only letters (A-Z) and digits (0-9). Found: "%1".', Comment = '%1 = fine routing value';
         CheckDigitFormatErr: Label 'The check digit must be exactly 2 digits. Found: "%1".', Comment = '%1 = check digit value';
         CheckDigitVerifyErr: Label 'The check digit verification failed (Mod 97-10). The E-Invoice Routing No. may contain a typo.';
+        SellerContactSalespersonErr: Label 'The %1 field for %2 %3 must be filled in. It is required for the seller contact (BG-6) of the electronic document.', Comment = '%1 = caption of the missing field, %2 = Salesperson/Purchaser table caption, %3 = Salesperson Code';
+        SellerContactCompanyInfoErr: Label 'The %1 field in %2 must be filled in. It is required for the seller contact (BG-6) of the electronic document.', Comment = '%1 = caption of the missing field, %2 = Company Information table caption';
 }
