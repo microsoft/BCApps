@@ -55,6 +55,9 @@ function Get-ToleranceBranch {
 .Description
     Only 'main' and 'releases/*' branches are supported. All other branches must
     not produce or consume the unstable tests artifact.
+
+.Parameter Branch
+    Branch name to check. Only 'main' and 'releases/*' are supported.
 #>
 function Test-IsToleranceSupportedBranch {
     [CmdletBinding()]
@@ -83,6 +86,9 @@ function Test-IsToleranceSupportedBranch {
     The artifact is branch-scoped so different branches can carry different sets of unstable
     tests. The branch is normalized so the resulting name is safe to use as a GitHub
     artifact name (which disallows '/').
+
+.Parameter Branch
+    Supported branch (main or releases/*) whose artifact name should be derived.
 #>
 function Get-UnstableTestsArtifactName {
     [CmdletBinding()]
@@ -107,6 +113,9 @@ function Get-UnstableTestsArtifactName {
     BC test results use the format '<id> <name>' in the classname attribute.
     Returns a hashtable with 'Id' ([int]) and 'Name' ([string]).
     When the string does not start with a numeric prefix, Id is 0 and Name is the full string.
+
+.Parameter Codeunit
+    The codeunit string to split, e.g. '137404 SCM Manufacturing'.
 #>
 function Split-CodeunitString {
     [CmdletBinding()]
@@ -127,6 +136,13 @@ function Split-CodeunitString {
 <#
 .Synopsis
     Builds a normalized identifier for a single test (extensionId + codeunitId + method).
+
+.Parameter CodeunitId
+    Numeric id of the codeunit that owns the test.
+.Parameter TestMethod
+    Name of the test method.
+.Parameter ExtensionId
+    Owning extension's app id. Optional; defaults to empty for tests without one.
 #>
 function Get-UnstableTestKey {
     [CmdletBinding()]
@@ -162,6 +178,9 @@ function Get-UnstableTestKey {
     The 'reason' and 'linkedIssue' fields are optional. The function returns an empty
     hashtable when the file does not exist, so callers can treat "no artifact" as
     "no unstable tests yet".
+
+.Parameter Path
+    Path to the unstable-tests.json file. A missing file is treated as an empty list.
 #>
 function Read-UnstableTestsList {
     [CmdletBinding()]
@@ -230,6 +249,9 @@ function Read-UnstableTestsList {
     Returns a list of pscustomobjects with CodeunitId, CodeunitName, TestMethod, FailureMessage.
     The codeunit string is taken from the testcase 'classname' attribute when present,
     otherwise from the parent testsuite 'name' attribute, and then split into ID and name.
+
+.Parameter Path
+    Path to the JUnit/XUnit test results XML file to parse.
 #>
 function Get-FailedTestsFromResults {
     [CmdletBinding()]
@@ -318,6 +340,11 @@ function Get-FailedTestsFromResults {
 .Description
     Returns a pscustomobject with two collections: Tolerated (failures listed in the
     unstable tests artifact) and Unresolved (failures that should still fail the build).
+
+.Parameter FailedTests
+    The failed tests to classify (as produced by Get-FailedTestsFromResults).
+.Parameter UnstableTests
+    The unstable tests list keyed by test key (as produced by Read-UnstableTestsList).
 #>
 function Resolve-TestTolerance {
     [CmdletBinding()]
@@ -367,6 +394,11 @@ function Resolve-TestTolerance {
     and its 'skipped' count incremented, and a <system-out> note is inserted so the
     reclassification is discoverable when reading the XML directly. The original failure
     message is preserved on the <skipped> node. The file is rewritten in place.
+
+.Parameter Path
+    Path to the test results XML to rewrite in place.
+.Parameter ToleratedTests
+    The tolerated failures whose test cases should be reclassified as skipped.
 #>
 function Update-TestResultsForTolerance {
     [CmdletBinding()]
@@ -492,6 +524,11 @@ function Update-TestResultsForTolerance {
     Given a test results XML and an unstable tests artifact, checks if all failed tests are
     listed as unstable. If so, rewrites the test results to reclassify them and returns $true.
     Returns $false if any failures are not tolerated, or if inputs are missing/unsupported.
+
+.Parameter TestResultsPath
+    Path to the test results XML for the current build.
+.Parameter UnstableTestsPath
+    Path to the downloaded unstable-tests.json. When missing or empty, no tolerance is applied.
 #>
 function Test-ShouldTolerateFailures {
     [CmdletBinding()]
@@ -560,6 +597,11 @@ function Test-ShouldTolerateFailures {
 
     Requires the GH_TOKEN, GITHUB_TOKEN, or _token environment variable and GITHUB_REPOSITORY to be set.
     If no token variable is available the function skips the download and returns $null.
+
+.Parameter Branch
+    Supported branch whose unstable-tests artifact should be downloaded.
+.Parameter OutputDirectory
+    Local directory the artifact is extracted into.
 #>
 function Receive-UnstableTestsArtifact {
     [CmdletBinding()]
@@ -658,6 +700,11 @@ function Receive-UnstableTestsArtifact {
     only transforms the supplied failed-test set into the artifact format.
 
     Returns the updated hashtable keyed by 'extensionId::codeunit::testMethod'.
+
+.Parameter FailedTests
+    Hashtable of failed tests keyed by test key to convert into unstable-test entries.
+.Parameter RunCount
+    Number of CI/CD runs the window covered; used only to build the auto-detected reason text.
 #>
 function Update-UnstableTestsList {
     [CmdletBinding()]
@@ -699,6 +746,19 @@ function Update-UnstableTestsList {
 
     Returns an empty array when no qualifying runs are found.
     Requires the GH_TOKEN (or GITHUB_TOKEN) environment variable for 'gh' authentication.
+
+.Parameter Branch
+    Branch whose recent CI/CD runs should be examined.
+.Parameter Repository
+    Repository in '<owner>/<repo>' form to query.
+.Parameter RunLimit
+    Maximum number of qualifying runs (those with test result artifacts) to return.
+.Parameter WorkflowFile
+    Workflow file whose runs are listed. Defaults to 'CICD.yaml'.
+.Parameter FilterPush
+    Include runs triggered by 'push' when selecting the window.
+.Parameter FilterWorkflowDispatch
+    Include runs triggered by 'workflow_dispatch' when selecting the window.
 #>
 function Find-UnstableTestRunIds {
     [CmdletBinding()]
@@ -771,6 +831,13 @@ function Find-UnstableTestRunIds {
 
     Returns an empty hashtable when none of the runs produced failed tests.
     Requires the GH_TOKEN (or GITHUB_TOKEN) environment variable to be set for 'gh' authentication.
+
+.Parameter RunIds
+    Ids of the runs whose test result artifacts should be downloaded and parsed.
+.Parameter Repository
+    Repository in '<owner>/<repo>' form the runs belong to.
+.Parameter WorkDirectory
+    Local scratch directory used to download and expand the artifacts.
 #>
 function Get-FailedTestsFromRuns {
     [CmdletBinding()]
@@ -839,6 +906,13 @@ function Get-FailedTestsFromRuns {
     'Test' is a pscustomobject with PascalCase properties (as produced by Get-FailedTestsFromRuns or
     Update-UnstableTestsList). 'Reason' overrides the entry reason; when empty, the test's own Reason
     property (if any) is used. 'Repository' is used to build the sourceRunUrl from the test's SourceRunId.
+
+.Parameter Test
+    A single failed/unstable test object with PascalCase properties.
+.Parameter Reason
+    Overrides the entry reason. When empty, the test's own Reason property is used.
+.Parameter Repository
+    Repository in '<owner>/<repo>' form, used to build the sourceRunUrl from the test's SourceRunId.
 #>
 function ConvertTo-UnstableTestEntry {
     [CmdletBinding()]
@@ -880,6 +954,15 @@ function ConvertTo-UnstableTestEntry {
 
     'Tests' must already be the final list of artifact entries (camelCase), e.g. from
     ConvertTo-UnstableTestEntry or Add-FailedTestsToUnstableTests.
+
+.Parameter Branch
+    Branch the artifact belongs to; written into the payload.
+.Parameter RunIds
+    Source run ids recorded in the payload for traceability.
+.Parameter Tests
+    The final list of artifact entries (camelCase) to serialize. Defaults to an empty list.
+.Parameter OutputPath
+    Path the unstable-tests.json is written to; parent directories are created as needed.
 #>
 function Save-UnstableTestsArtifact {
     [CmdletBinding()]
@@ -931,6 +1014,13 @@ function Save-UnstableTestsArtifact {
 
     Returns the merged list ready to be serialized into the artifact: the existing entries unchanged
     (as parsed) followed by the newly added entries produced by ConvertTo-UnstableTestEntry.
+
+.Parameter ExistingTests
+    The current 'tests' array parsed from an existing artifact, or empty when none exists.
+.Parameter FailedTests
+    Hashtable of newly observed failures keyed by test key to merge in additively.
+.Parameter Repository
+    Repository in '<owner>/<repo>' form, used to build sourceRunUrl for newly added entries.
 #>
 function Add-FailedTestsToUnstableTests {
     [CmdletBinding()]
@@ -1007,6 +1097,15 @@ function Add-FailedTestsToUnstableTests {
 
     Returns a hashtable keyed by the three-part test key, in the same shape Add-FailedTestsToUnstableTests
     consumes, with each entry carrying a Reason describing the distinct-PR count and the target branch.
+
+.Parameter Branch
+    Target branch the observations relate to; recorded in each entry's reason.
+.Parameter Observations
+    Per-PR-build observations (PrNumber, RunId, FailedTests). May be empty.
+.Parameter MinDistinctPrs
+    Minimum number of distinct PRs a test must fail on to qualify as unstable.
+.Parameter WindowHours
+    Size of the recent-PR-build window in hours; used only in the reason text.
 #>
 function Select-CrossPrUnstableTests {
     [CmdletBinding()]
@@ -1088,6 +1187,13 @@ function Select-CrossPrUnstableTests {
     skippable artifact).
 
     Requires the GH_TOKEN (or GITHUB_TOKEN) environment variable for 'gh' authentication.
+
+.Parameter Repository
+    Repository in '<owner>/<repo>' form that owns the artifact.
+.Parameter ArtifactId
+    Id of the artifact to download.
+.Parameter OutFile
+    Local path the raw artifact zip is written to.
 #>
 function Save-GitHubArtifactZip {
     [CmdletBinding()]
@@ -1135,6 +1241,13 @@ function Save-GitHubArtifactZip {
     attempts of the same PR never inflate the instability signal.
 
     Requires the GH_TOKEN (or GITHUB_TOKEN) environment variable for 'gh' authentication.
+
+.Parameter Repository
+    Repository in '<owner>/<repo>' form the run belongs to.
+.Parameter RunId
+    Id of the run whose every attempt's test results should be collected.
+.Parameter WorkDirectory
+    Local scratch directory used to download and expand each artifact.
 #>
 function Get-RunFailedTestsAllAttempts {
     [CmdletBinding()]
@@ -1205,6 +1318,9 @@ function Get-RunFailedTestsAllAttempts {
     Aggregates each observation's failing tests (already unioned across the PR build's attempts) into a
     per-PR set, so the result answers "which tests failed on this PR, across some/all of its attempts".
     The map is ordered by PR number and each PR's test-key list is sorted for stable, readable output.
+
+.Parameter Observations
+    Per-PR-build observations (PrNumber, FailedTests) to aggregate. May be empty.
 #>
 function Get-PrFailingTestsMap {
     [CmdletBinding()]
@@ -1263,6 +1379,23 @@ function Get-PrFailingTestsMap {
     when the branch is unsupported or nothing meets the threshold.
 
     Requires the GH_TOKEN (or GITHUB_TOKEN) environment variable for 'gh' authentication.
+
+.Parameter Branch
+    Branch whose recent PR builds should be examined.
+.Parameter Repository
+    Repository in '<owner>/<repo>' form to query.
+.Parameter WindowHours
+    How far back (by build completion time) to include recent PR builds, in hours.
+.Parameter MaxBuildHours
+    Maximum expected PR-build duration; widens the server-side created_at lookback. Defaults to 12.
+.Parameter MinDistinctPrs
+    Minimum number of distinct PRs a test must fail on to be flagged.
+.Parameter WorkflowFile
+    PR-build workflow file whose runs are listed. Defaults to 'PullRequestHandler.yaml'.
+.Parameter MaxRuns
+    Safety cap on how many listed runs are processed. Defaults to 300.
+.Parameter WorkDirectory
+    Local scratch directory used to download and expand each run's artifacts.
 #>
 function Find-CrossPrUnstableTests {
     [CmdletBinding()]
