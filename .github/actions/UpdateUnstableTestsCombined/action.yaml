@@ -23,11 +23,11 @@ inputs:
   window-hours:
     description: 'Path B: how many hours of recent PR builds to examine.'
     required: false
-   default: '6'
+    default: '6'
   min-distinct-prs:
     description: 'Path B: minimum number of distinct PRs a test must fail on to be marked unstable.'
     required: false
-   default: '3'
+    default: '3'
 runs:
   using: composite
   steps:
