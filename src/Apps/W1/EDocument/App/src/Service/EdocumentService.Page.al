@@ -72,7 +72,6 @@ page 6133 "E-Document Service"
                 field("Import Process"; Rec."Import Process")
                 {
                     ToolTip = 'Specifies the version of the import process to use for incoming e-documents.';
-                    Visible = false;
                 }
                 group(PurchaseDraft)
                 {

@@ -1443,4 +1443,17 @@ codeunit 139883 "E-Doc Process Test"
         ItemReference.Insert();
     end;
 
+    [Test]
+    procedure NewServiceDefaultsToImportProcessV2()
+    var
+        EDocumentService: Record "E-Document Service";
+    begin
+        // [WHEN] A new E-Document Service record is initialized
+        EDocumentService.Init();
+        // [THEN] Import Process defaults to Version 2.0
+        Assert.AreEqual(
+            EDocumentService."Import Process"::"Version 2.0", EDocumentService."Import Process",
+            'New services must default to the v2 draft pipeline.');
+    end;
+
 }
