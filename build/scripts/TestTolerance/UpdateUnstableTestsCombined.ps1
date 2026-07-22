@@ -28,7 +28,7 @@
     Branch whose unstable tests list should be updated (e.g. 'main', 'releases/26.0').
 
 .Parameter RunLimit
-    Number of recent completed CI/CD runs to examine for Path A. Defaults to 3.
+    Number of recent completed CI/CD runs to examine for Path A.
 
 .Parameter FilterPush
     Include CI/CD runs triggered by push when discovering the Path A window.
@@ -37,10 +37,10 @@
     Include CI/CD runs triggered by workflow_dispatch when discovering the Path A window. Defaults to on.
 
 .Parameter WindowHours
-    How far back to look at PR builds for Path B, measured by build completion time. Defaults to 3.
+    How far back to look at PR builds for Path B, measured by build completion time.
 
 .Parameter MinDistinctPrs
-    Minimum number of distinct PRs a test must fail on to be flagged by Path B. Defaults to 2.
+    Minimum number of distinct PRs a test must fail on to be flagged by Path B.
 
 .Parameter OutputPath
     Path where the unstable-tests.json should be written. Defaults to '.unstable-tests/unstable-tests.json'.
@@ -50,15 +50,18 @@ param(
     [Parameter(Mandatory = $true)]
     [string] $Branch,
 
-    [int] $RunLimit = 3,
+    [Parameter(Mandatory = $true)]
+    [int] $RunLimit,
 
     [switch] $FilterPush,
 
     [switch] $FilterWorkflowDispatch,
 
-    [int] $WindowHours = 3,
+    [Parameter(Mandatory = $true)]
+    [int] $WindowHours,
 
-    [int] $MinDistinctPrs = 2,
+    [Parameter(Mandatory = $true)]
+    [int] $MinDistinctPrs,
 
     [string] $OutputPath = (Join-Path -Path '.unstable-tests' -ChildPath 'unstable-tests.json')
 )

@@ -7,22 +7,27 @@
     cross-PR PR-build detector (Path B). It then exposes the artifact name so the action's upload step can
     publish it, only when the artifact was actually produced.
 
-    Parameters are passed explicitly by the action.yaml run block.
+    Parameters are passed explicitly by the action.yaml run block, which sources the numeric tuning
+    values (RunLimit / WindowHours / MinDistinctPrs) from its own input defaults so they live in a
+    single place rather than being duplicated as PowerShell parameter defaults.
 #>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
     [string] $Branch,
 
-    [int] $RunLimit = 3,
+    [Parameter(Mandatory = $true)]
+    [int] $RunLimit,
 
     [switch] $FilterPush,
 
     [switch] $FilterWorkflowDispatch,
 
-    [int] $WindowHours = 3,
+    [Parameter(Mandatory = $true)]
+    [int] $WindowHours,
 
-    [int] $MinDistinctPrs = 2
+    [Parameter(Mandatory = $true)]
+    [int] $MinDistinctPrs
 )
 
 $ErrorActionPreference = 'Stop'

@@ -1019,9 +1019,11 @@ function Select-CrossPrUnstableTests {
         [AllowEmptyCollection()]
         [psobject[]] $Observations,
 
-        [int] $MinDistinctPrs = 2,
+        [Parameter(Mandatory = $true)]
+        [int] $MinDistinctPrs,
 
-        [int] $WindowHours = 3
+        [Parameter(Mandatory = $true)]
+        [int] $WindowHours
     )
 
     # For each test key, gather the set of distinct PR numbers it failed on plus a representative
@@ -1272,14 +1274,16 @@ function Find-CrossPrUnstableTests {
         [Parameter(Mandatory = $true)]
         [string] $Repository,
 
-        [int] $WindowHours = 3,
+        [Parameter(Mandatory = $true)]
+        [int] $WindowHours,
 
         # How long a PR build can run, at most. Added to WindowHours to widen the server-side created_at
         # lookback so a long build that only just completed is still listed; the WindowHours completion
         # window is then enforced client-side on updated_at. BC PR builds routinely run 5-10 hours.
         [int] $MaxBuildHours = 12,
 
-        [int] $MinDistinctPrs = 2,
+        [Parameter(Mandatory = $true)]
+        [int] $MinDistinctPrs,
 
         [string] $WorkflowFile = 'PullRequestHandler.yaml',
 

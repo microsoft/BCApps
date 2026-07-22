@@ -504,7 +504,7 @@ Describe "TestTolerance" {
                 [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FailedTest -Key '::300::t1')) },
                 [pscustomobject]@{ PrNumber = 102; RunId = '901'; FailedTests = @((New-FailedTest -Key '::300::t1')) }
             )
-            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -MinDistinctPrs 2
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -WindowHours 6 -MinDistinctPrs 2
             $result.Count | Should -Be 1
             $result.ContainsKey('::300::t1') | Should -BeTrue
             $result['::300::t1'].SourceRunId | Should -Be '900'
@@ -514,7 +514,7 @@ Describe "TestTolerance" {
             $obs = @(
                 [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FailedTest -Key '::300::t1')) }
             )
-            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -MinDistinctPrs 2
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -WindowHours 6 -MinDistinctPrs 2
             $result.Count | Should -Be 0
         }
 
@@ -523,7 +523,7 @@ Describe "TestTolerance" {
                 [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FailedTest -Key '::300::t1')) },
                 [pscustomobject]@{ PrNumber = 101; RunId = '901'; FailedTests = @((New-FailedTest -Key '::300::t1')) }
             )
-            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -MinDistinctPrs 2
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -WindowHours 6 -MinDistinctPrs 2
             $result.Count | Should -Be 0
         }
 
@@ -532,7 +532,7 @@ Describe "TestTolerance" {
                 [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FailedTest -Ext 'ext-a' -Key 'ext-a::300::t1')) },
                 [pscustomobject]@{ PrNumber = 102; RunId = '901'; FailedTests = @((New-FailedTest -Ext 'ext-b' -Key 'ext-b::300::t1')) }
             )
-            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -MinDistinctPrs 2
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -WindowHours 6 -MinDistinctPrs 2
             $result.Count | Should -Be 0
         }
 
@@ -553,12 +553,12 @@ Describe "TestTolerance" {
                 [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FailedTest -Key '::300::t1')) },
                 [pscustomobject]@{ PrNumber = 102; RunId = '901'; FailedTests = @((New-FailedTest -Key '::300::t1')) }
             )
-            (Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -MinDistinctPrs 3).Count | Should -Be 0
-            (Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -MinDistinctPrs 2).Count | Should -Be 1
+            (Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -WindowHours 6 -MinDistinctPrs 3).Count | Should -Be 0
+            (Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -WindowHours 6 -MinDistinctPrs 2).Count | Should -Be 1
         }
 
         It "returns an empty hashtable for no observations" {
-            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations @() -MinDistinctPrs 2
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations @() -WindowHours 6 -MinDistinctPrs 2
             $result.Count | Should -Be 0
         }
 
@@ -567,7 +567,7 @@ Describe "TestTolerance" {
                 [pscustomobject]@{ PrNumber = ''; RunId = '900'; FailedTests = @((New-FailedTest -Key '::300::t1')) },
                 [pscustomobject]@{ PrNumber = 102; RunId = '901'; FailedTests = @((New-FailedTest -Key '::300::t1')) }
             )
-            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -MinDistinctPrs 2
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -WindowHours 6 -MinDistinctPrs 2
             $result.Count | Should -Be 0
         }
 
@@ -581,7 +581,7 @@ Describe "TestTolerance" {
                 $failed.Add((New-FailedTest -Key '::300::t1')) | Out-Null
                 $obs.Add([pscustomobject]@{ PrNumber = $pr; RunId = "90$pr"; FailedTests = $failed }) | Out-Null
             }
-            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs.ToArray() -MinDistinctPrs 2
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs.ToArray() -WindowHours 6 -MinDistinctPrs 2
             $result.Count | Should -Be 1
             $result.ContainsKey('::300::t1') | Should -BeTrue
         }

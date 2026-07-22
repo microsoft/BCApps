@@ -27,7 +27,6 @@ on:
         description: 'Path A: number of recent CI/CD runs to examine'
         required: false
         type: number
-        default: 3
       filterPush:
         description: 'Path A: include CI/CD runs triggered by push'
         required: false
@@ -42,12 +41,10 @@ on:
         description: 'Path B: how many hours of recent PR builds to examine'
         required: false
         type: number
-        default: 3
       minDistinctPrs:
         description: 'Path B: minimum number of distinct PRs a test must fail on to be marked unstable'
         required: false
         type: number
-        default: 2
   schedule:
     - cron: '15 * * * *'  # Hourly, at minute 15 - keeps the few-hour cross-PR window fresh.
 
@@ -110,5 +107,5 @@ jobs:
           run-limit: ${{ inputs.runLimit || 3 }}
           filter-push: ${{ inputs.filterPush || false }}
           filter-workflow-dispatch: ${{ inputs.filterWorkflowDispatch || true }}
-          window-hours: ${{ inputs.windowHours || 3 }}
-          min-distinct-prs: ${{ inputs.minDistinctPrs || 2 }}
+          window-hours: ${{ inputs.windowHours || 6 }}
+          min-distinct-prs: ${{ inputs.minDistinctPrs || 3 }}
