@@ -90,6 +90,8 @@ table 1001 "Job Task"
                         Error(CannotChangeAssociatedEntriesErr, FieldCaption("Job Task Type"), TableCaption);
                     if JobPlanningLinesExist() then
                         Error(CannotChangeAssociatedEntriesErr, FieldCaption("Job Task Type"), TableCaption);
+                    if JobAssignedResourcesExist() then
+                        Error(CannotChangeTypeAssignedResourcesErr, FieldCaption("Job Task Type"), TableCaption);
                     ClearCustomerData();
                 end;
 
@@ -1024,6 +1026,7 @@ table 1001 "Job Task"
         JobPlanningLine: Record "Job Planning Line";
         JobWIPTotal: Record "Job WIP Total";
         JobTaskDim: Record "Job Task Dimension";
+        JobAssignedResource: Record "Job Assigned Resource";
     begin
         if JobLedgEntriesExist() then
             Error(CannotDeleteAssociatedEntriesErr, TableCaption);
@@ -1041,6 +1044,10 @@ table 1001 "Job Task"
         JobTaskDim.SetRange("Job Task No.", "Job Task No.");
         if not JobTaskDim.IsEmpty() then
             JobTaskDim.DeleteAll();
+
+        JobAssignedResource.SetRange("Job No.", "Job No.");
+        JobAssignedResource.SetRange("Job Task No.", "Job Task No.");
+        JobAssignedResource.DeleteAll();
 
         CalcFields("Schedule (Total Cost)", "Usage (Total Cost)");
         Job.UpdateOverBudgetValue("Job No.", true, "Usage (Total Cost)");
@@ -1104,6 +1111,7 @@ table 1001 "Job Task"
 
         CannotDeleteAssociatedEntriesErr: Label 'You cannot delete %1 because one or more entries are associated.', Comment = '%1=The project task table name.';
         CannotChangeAssociatedEntriesErr: Label 'You cannot change %1 because one or more entries are associated with this %2.', Comment = '%1 = The field name you are trying to change; %2 = The project task table name.';
+        CannotChangeTypeAssignedResourcesErr: Label 'You cannot change %1 because one or more assigned resources exist for this %2.', Comment = '%1 = The field name you are trying to change (Project Task Type); %2 = The project task table name.';
         PlanningLinesNotUpdatedMsg: Label 'You have changed %1 on the project task, but it has not been changed on the existing project planning lines.', Comment = '%1 = a Field Caption like Location Code';
         AssociatedEntriesExistErr: Label 'You cannot change %1 because one or more entries are associated with this %2.', Comment = '%1 = Name of field used in the error; %2 = The name of the Project Task table';
         ContactBusRelErr: Label 'Contact %1 %2 is not related to customer %3.', Comment = '%1 = The contact number; %2 = The contact''s name; %3 = The Bill-To Customer Number associated with this job task';
@@ -1158,6 +1166,15 @@ table 1001 "Job Task"
         JobPlanningLine.SetRange("Job No.", "Job No.");
         JobPlanningLine.SetRange("Job Task No.", "Job Task No.");
         Result := not JobPlanningLine.IsEmpty();
+    end;
+
+    local procedure JobAssignedResourcesExist() Result: Boolean
+    var
+        JobAssignedResource: Record "Job Assigned Resource";
+    begin
+        JobAssignedResource.SetRange("Job No.", "Job No.");
+        JobAssignedResource.SetRange("Job Task No.", "Job Task No.");
+        Result := not JobAssignedResource.IsEmpty();
     end;
 
     procedure Caption(): Text

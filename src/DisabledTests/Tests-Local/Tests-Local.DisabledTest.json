@@ -1420,11 +1420,6 @@
     "method": "PrintOrderConfirmationW1Report"
   },
   {
-    "codeunitId": 142051,
-    "codeunitName": "ERM Sales/Purchase Tax II",
-    "method": "VerifyValueAfterPostPurchaseOrderWithChargeItemAssgnmt"
-  },
-  {
     "codeunitId": 142052,
     "codeunitName": "ERM Payables/Receivables",
     "method": "ApplyEntriesForCustPartialPaymentAgainstInvoiceAndCrMemo"

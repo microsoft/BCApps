@@ -324,7 +324,7 @@ codeunit 4400 "SOA Setup"
         SOASetup."Quote Review" := false;
         SOASetup."Order Review" := false;
         SOASetup."Create Order from Quote" := true;
-        SOASetup."Search Only Available Items" := true;
+        SOASetup."Search Only Available Items" := false;
         SOASetup."Incl. Capable to Promise" := false;
         SOASetup."Send Sales Quote" := true;
     end;

@@ -45,7 +45,7 @@ page 30126 "Shpfy Products"
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the status of the product in Shopify. Valid values are: active, archived, draft. If you change this, this will immediately send to Shopify.';
+                    ToolTip = 'Specifies the status of the product in Shopify. Valid values are: active, archived, draft, unlisted. If you change this, this will immediately send to Shopify.';
 
                     trigger OnValidate()
                     var
@@ -139,12 +139,12 @@ page 30126 "Shpfy Products"
                 field(CreatedAt; Rec."Created At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies when the product was created.';
+                    ToolTip = 'Specifies when the product was created in Shopify.';
                 }
                 field(UpdatedAt; Rec."Updated At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies when the product was updated.';
+                    ToolTip = 'Specifies when the product was updated in Shopify.';
                 }
                 field(ProductType; Rec."Product Type")
                 {

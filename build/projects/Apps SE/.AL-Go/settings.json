@@ -1,11 +1,12 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v9.1/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/16948d91ca57e875e3d823536bac740c0ca1fdbd/Actions/.Modules/settings.schema.json",
   "projectName": "Apps SE",
   "country": "SE",
   "appFolders": [
     "../../../src/Apps/SE/ContosoCoffeeDemoDatasetSE/app",
     "../../../src/Apps/SE/EDocument_SE/demo data",
     "../../../src/Apps/SE/IntrastatSE/app",
+    "../../../src/Apps/SE/PeppolSE/App",
     "../../../src/Apps/SE/SECore/app",
     "../../../src/Apps/SE/SIE/app",
     "../../../src/Apps/W1/AMCBanking365Fundamentals/app",
@@ -117,6 +118,7 @@
     "../../../src/Tools/Test Framework/Test Stability Tools/Prevent Metadata Updates"
   ],
   "testFolders": [
+    "../../../src/Apps/SE/PeppolSE/Test",
     "../../../src/Apps/SE/SECore/test",
     "../../../src/Apps/SE/SIE/test",
     "../../../src/Apps/W1/AMCBanking365Fundamentals/test",
