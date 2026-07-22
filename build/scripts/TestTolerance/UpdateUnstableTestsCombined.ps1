@@ -12,7 +12,7 @@
         fail across the window drop off the list (self-healing).
 
       Path B - cross-PR detection (additive):
-        Looks at PR builds (completed or still running) created in the last WindowHours and additively adds
+        Looks at PR builds that completed in the last WindowHours (or are still running) and additively adds
         any test that failed across at least MinDistinctPrs distinct PRs targeting the branch. A test failing
         on a single PR is ambiguous (could be that PR's own change); the same test failing across several
         unrelated PRs in a short window is almost always an instability.
@@ -37,7 +37,7 @@
     Include CI/CD runs triggered by workflow_dispatch when discovering the Path A window. Defaults to on.
 
 .Parameter WindowHours
-    How far back to look at PR builds for Path B. Defaults to 3.
+    How far back to look at PR builds for Path B, measured by build completion time. Defaults to 3.
 
 .Parameter MinDistinctPrs
     Minimum number of distinct PRs a test must fail on to be flagged by Path B. Defaults to 2.

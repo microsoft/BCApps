@@ -1202,11 +1202,16 @@ function Get-PrFailingTestsMap {
     Detects cross-PR unstable tests from recent PR Build runs targeting a branch.
 .Description
     The network-facing entry point for the cross-PR detector. It:
-    1. Lists 'Pull Request Build' runs created within the last WindowHours that are either completed or
-       still in progress. Including in-progress runs lets an instability be caught from a build whose
-       test job has already finished (and uploaded results) even before the whole build completes.
+    1. Lists 'Pull Request Build' runs that either COMPLETED within the last WindowHours or are still in
+       progress. Because a PR build can run for many hours, recency is measured by the run's completion
+       time (updated_at), not its start time (created_at) - otherwise a build that failed would always be
+       filtered out, since by the time it finishes and has uploaded test results it was created hours ago.
+       To find those runs, the server-side listing looks back WindowHours + MaxBuildHours by created_at
+       (wide enough to include a long build that just completed) and the completion window is then applied
+       client-side. Including in-progress runs lets an instability be caught from a build whose test job
+       has already finished (and uploaded results) even before the whole build completes.
     2. Resolves each run's PR number and base branch, keeping only runs that target Branch and either
-       failed (completed) or are still running.
+       failed (completed within the window) or are still running.
     3. For each qualifying run, downloads and parses the test results from ALL of the run's attempts (a
        re-run can surface an instability that only failed in an earlier attempt). Failures are unioned per
        run; a running build that has not uploaded any results yet is simply skipped.
@@ -1233,6 +1238,11 @@ function Find-CrossPrUnstableTests {
 
         [int] $WindowHours = 3,
 
+        # How long a PR build can run, at most. Added to WindowHours to widen the server-side created_at
+        # lookback so a long build that only just completed is still listed; the WindowHours completion
+        # window is then enforced client-side on updated_at. BC PR builds routinely run 5-10 hours.
+        [int] $MaxBuildHours = 12,
+
         [int] $MinDistinctPrs = 2,
 
         [string] $WorkflowFile = 'PullRequestHandler.yaml',
@@ -1248,13 +1258,20 @@ function Find-CrossPrUnstableTests {
         return @{}
     }
 
-    $sinceIso = (Get-Date).ToUniversalTime().AddHours(-$WindowHours).ToString('yyyy-MM-ddTHH:mm:ssZ')
+    $now = (Get-Date).ToUniversalTime()
+    # Completion window: a completed build is only relevant if it finished within the last WindowHours.
+    $completedSince = $now.AddHours(-$WindowHours)
+    # Server-side created_at lookback is widened by MaxBuildHours so a long build that just completed
+    # (created many hours ago) is still returned by the listing; the completion window above is enforced
+    # client-side on updated_at.
+    $createdSince = $now.AddHours(-($WindowHours + $MaxBuildHours))
+    $sinceIso = $createdSince.ToString('yyyy-MM-ddTHH:mm:ssZ')
     $createdFilter = [uri]::EscapeDataString(">=$sinceIso")
-    Write-Host "Listing '$WorkflowFile' runs (completed or in progress) created since $sinceIso targeting '$Branch' ..."
+    Write-Host "Listing '$WorkflowFile' runs targeting '$Branch' (completed within the last $WindowHours h or in progress; scanning builds created since $sinceIso) ..."
 
-    # No status filter: we want completed runs (kept only when they failed) and in-progress runs (kept
-    # best-effort in case their test job already uploaded results).
-    $jq = '.workflow_runs[] | {id, headSha: .head_sha, status, conclusion, runAttempt: .run_attempt, createdAt: .created_at, prNumbers: [.pull_requests[]?.number], baseRefs: [.pull_requests[]?.base.ref]}'
+    # No status filter: we want completed runs (kept only when they failed and finished within the window)
+    # and in-progress runs (kept best-effort in case their test job already uploaded results).
+    $jq = '.workflow_runs[] | {id, headSha: .head_sha, status, conclusion, runAttempt: .run_attempt, createdAt: .created_at, updatedAt: .updated_at, prNumbers: [.pull_requests[]?.number], baseRefs: [.pull_requests[]?.base.ref]}'
 
     # Page manually instead of 'gh api --paginate', which would eagerly fetch every matching page even
     # though we only ever process the first MaxRuns runs. We request only as many pages as are needed to
@@ -1294,12 +1311,17 @@ function Find-CrossPrUnstableTests {
         try { $run = $line | ConvertFrom-Json } catch { continue }
         if ($null -eq $run) { continue }
 
-        # A completed run only matters if it failed. An in-progress run may already have uploaded test
-        # results from a finished test job, so include it best-effort. Everything else (completed and
-        # not failed, queued/waiting, etc.) is skipped.
+        # A completed run only matters if it FAILED and finished within the completion window (updated_at
+        # >= now - WindowHours) - a build that completed long ago is stale and its instabilities, if any,
+        # would have been picked up by an earlier run. An in-progress run may already have uploaded test
+        # results from a finished test job, so include it best-effort. Everything else (completed and not
+        # failed, completed but stale, queued/waiting, etc.) is skipped.
         $isCompleted = ($run.status -eq 'completed')
         if ($isCompleted) {
             if ($run.conclusion -ne 'failure') { continue }
+            $completedAt = $null
+            if ($run.updatedAt) { try { $completedAt = [datetime]::Parse($run.updatedAt, [cultureinfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::AdjustToUniversal -bor [System.Globalization.DateTimeStyles]::AssumeUniversal) } catch { $completedAt = $null } }
+            if ($null -eq $completedAt -or $completedAt -lt $completedSince) { continue }
         }
         elseif ($run.status -ne 'in_progress') {
             continue
