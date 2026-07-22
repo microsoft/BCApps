@@ -44,7 +44,9 @@ function Get-PlatformVersions {
     Gets the full CDN URL for a specific platform version.
 .DESCRIPTION
     Constructs and returns the full CDN URL for downloading a specific platform version.
-    Validates that the version exists in the platform index.
+    When a major.minor version pattern is given, validates that the version exists in the
+    platform index. When a full 4-part version is given, the URL is constructed directly
+    without fetching the index (avoiding an unnecessary network call).
 .PARAMETER Version
     The full platform version string (e.g., '29.0.49913.0').
 .OUTPUTS
@@ -60,9 +62,14 @@ function Get-PlatformVersionUrl {
         [string] $Version
     )
 
-    $availableVersions = Get-PlatformVersions
-    if ($availableVersions -notcontains $Version) {
-        throw "Platform version '$Version' is not available. Use Get-PlatformVersions to see available versions."
+    # Only validate against the index when not given a full 4-part version.
+    # A full 4-part version (major.minor.build.revision) is already resolved and trusted,
+    # so fetching the index for validation is unnecessary and adds a network dependency.
+    if ($Version.Split('.').Count -ne 4) {
+        $availableVersions = Get-PlatformVersions
+        if ($availableVersions -notcontains $Version) {
+            throw "Platform version '$Version' is not available. Use Get-PlatformVersions to see available versions."
+        }
     }
 
     return "$script:PlatformCdnUrl/platform/$Version"

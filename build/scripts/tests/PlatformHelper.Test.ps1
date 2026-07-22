@@ -81,8 +81,9 @@ Describe "PlatformHelper" {
             $url | Should -Be 'https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/29.0.49913.0'
         }
 
-        It "Should throw for invalid version" {
-            { Get-PlatformVersionUrl -Version '99.0.00000.0' } | Should -Throw "*is not available*"
+        It "Should not fetch the index for a full 4-part version" {
+            Get-PlatformVersionUrl -Version '99.0.00000.0' | Out-Null
+            Should -Invoke -ModuleName PlatformHelper -CommandName Invoke-WebRequest -Times 0 -Exactly
         }
     }
 
