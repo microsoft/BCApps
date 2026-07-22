@@ -768,6 +768,8 @@ codeunit 7321 "Create Inventory Put-away"
                     OnCreateWarehouseActivityLineOnSetSourceDocument(NewWarehouseActivityLine, SourceType);
             end;
 
+            OnAfterInitWarehouseActivityLine(NewWarehouseActivityLine);
+
             if not ReservationFound and WhseItemTrackingSetup."Serial No. Required" then
                 repeat
                     InsertSNWhseActivLine(NewWarehouseActivityLine);
@@ -1618,6 +1620,11 @@ codeunit 7321 "Create Inventory Put-away"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeMakeWarehouseActivityHeader(var WarehouseActivityHeader: Record "Warehouse Activity Header"; var WarehouseActivityLine: Record "Warehouse Activity Line"; var AutoCreation: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitWarehouseActivityLine(var WarehouseActivityLine: Record "Warehouse Activity Line")
     begin
     end;
 }

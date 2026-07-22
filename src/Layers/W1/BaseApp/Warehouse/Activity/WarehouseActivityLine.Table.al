@@ -1048,8 +1048,12 @@ table 5767 "Warehouse Activity Line"
         OutstandingQtyCannotbeLessThanZeroErr: Label 'Outstanding Qty. base cannot be less than 0.';
 
     procedure CalcQty(QtyBase: Decimal): Decimal
+    var
+        IsHandled: Boolean;
     begin
-        OnBeforeCalcQty(Rec, QtyBase);
+        OnBeforeCalcQty(Rec, QtyBase, NewQtyBase, IsHandled);
+        if IsHandled then
+            exit(Round(NewQtyBase, UOMMgt.QtyRndPrecision()));
         TestField("Qty. per Unit of Measure");
         exit(Round(QtyBase / "Qty. per Unit of Measure", UOMMgt.QtyRndPrecision()));
     end;
@@ -2661,6 +2665,7 @@ table 5767 "Warehouse Activity Line"
         "Source No." := SourceNo;
         "Source Line No." := SourceLineNo;
         "Source Subline No." := SourceSublineNo;
+        OnAfterSetSource(Rec);
     end;
 
     procedure SetSourceFilter(SourceType: Integer; SourceSubType: Option; SourceNo: Code[20]; SourceLineNo: Integer; SourceSubLineNo: Integer; SetKey: Boolean)
@@ -3464,7 +3469,7 @@ table 5767 "Warehouse Activity Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalcQty(var WarehouseActivityLine: Record "Warehouse Activity Line"; QtyBase: Decimal)
+    local procedure OnBeforeCalcQty(var WarehouseActivityLine: Record "Warehouse Activity Line"; QtyBase: Decimal;var NewQtyBase Decimal; var IsHandled: Boolean)
     begin
     end;
 
@@ -3853,6 +3858,11 @@ table 5767 "Warehouse Activity Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeDeleteQtyToHandleOnLine(var WarehouseActivityLine: Record "Warehouse Activity Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetSource(var WarehouseActivityLine: Record "Warehouse Activity Line")
     begin
     end;
 }

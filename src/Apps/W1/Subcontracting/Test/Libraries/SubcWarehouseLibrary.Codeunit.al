@@ -445,6 +445,46 @@ codeunit 149908 "Subc. Warehouse Library"
     end;
 
     /// <summary>
+    /// Creates a location for single-step logistics (Inventory Put-away).
+    /// Require Receive = false, Require Put-away = true, Bin Mandatory = false.
+    /// This is the minimal location setup that triggers the Inventory Put-away code path
+    /// instead of the two-step Warehouse Receipt + Put-away path.
+    /// </summary>
+    /// <param name="Location">The location record which will be created and updated</param>
+    procedure CreateLocationWithInvtPutAwaySetup(var Location: Record Location)
+    begin
+        LibraryWarehouse.CreateLocationWMS(Location, false, false, false, true, false);
+        Location."Require Receive" := false;
+        Location."Require Put-away" := true;
+        Location.Modify(true);
+        LibraryInventory.UpdateInventoryPostingSetup(Location);
+    end;
+
+    /// <summary>
+    /// Creates a location for single-step logistics (Inventory Put-away) with Bin Mandatory = true.
+    /// Require Receive = false, Require Put-away = true, Bin Mandatory = true.
+    /// A default bin is created and assigned so that Inventory Put-away lines can be posted.
+    /// A Warehouse Employee must additionally be created for the location before posting
+    /// (see Library - Warehouse.CreateWarehouseEmployee), since Bin Mandatory locations
+    /// enforce warehouse employee authorization.
+    /// </summary>
+    /// <param name="Location">The location record which will be created and updated</param>
+    /// <param name="DefaultBin">The bin record which will be created and set as the default bin</param>
+    procedure CreateLocationWithInvtPutAwaySetupAndBin(var Location: Record Location; var DefaultBin: Record Bin)
+    begin
+        LibraryWarehouse.CreateLocationWMS(Location, true, false, false, true, false);
+        Location."Require Receive" := false;
+        Location."Require Put-away" := true;
+        Location.Modify(true);
+        LibraryInventory.UpdateInventoryPostingSetup(Location);
+
+        LibraryWarehouse.CreateBin(DefaultBin, Location.Code, 'PUTAWAY', '', '');
+        Location.Validate("Default Bin Code", DefaultBin.Code);
+        Location."From-Production Bin Code" := DefaultBin.Code;
+        Location.Modify(true);
+    end;
+
+    /// <summary>
     /// Creates a location with warehouse handling enabled and bins for both receiving and put-away.
     /// </summary>
     /// <param name="Location">The location record which will be created and updated</param>
@@ -658,6 +698,60 @@ codeunit 149908 "Subc. Warehouse Library"
 
         if WarehouseActivityLine.FindLast() then
             WarehouseActivityHeader.Get(WarehouseActivityLine."Activity Type", WarehouseActivityLine."No.");
+    end;
+
+    /// <summary>
+    /// Creates an Inventory Put-away document (single-step logistics) from a released
+    /// subcontracting Purchase Order, without showing the source documents request page.
+    /// </summary>
+    /// <param name="PurchaseHeader">The released purchase header used as source</param>
+    /// <param name="WarehouseActivityHeader">The created Inventory Put-away header</param>
+    procedure CreateInvtPutAwayFromPurchaseOrder(PurchaseHeader: Record "Purchase Header"; var WarehouseActivityHeader: Record "Warehouse Activity Header")
+    var
+        WhseRequest: Record "Warehouse Request";
+    begin
+        WhseRequest.Reset();
+        WhseRequest.SetCurrentKey("Source Document", "Source No.");
+        WhseRequest.SetRange(Type, WhseRequest.Type::Inbound);
+        WhseRequest.SetRange("Source Document", WhseRequest."Source Document"::"Purchase Order");
+        WhseRequest.SetRange("Source No.", PurchaseHeader."No.");
+        WhseRequest.SetRange("Document Status", WhseRequest."Document Status"::Released);
+        WhseRequest.FindFirst();
+
+        LibraryWarehouse.CreateInvtPutAwayPick(WhseRequest, true, false, false);
+        WarehouseActivityHeader.SetRange(Type, "Warehouse Activity Type"::"Invt. Put-away");
+        WarehouseActivityHeader.SetRange("Source Document", "Warehouse Activity Source Document"::"Purchase Order");
+        WarehouseActivityHeader.SetRange("Source No.", PurchaseHeader."No.");
+        WarehouseActivityHeader.SetRange("Source Type", Database::"Purchase Line");
+        WarehouseActivityHeader.SetRange("Source Subtype", PurchaseHeader."Document Type");
+        WarehouseActivityHeader.FindFirst();
+    end;
+
+    /// <summary>
+    /// Creates an Inventory Put-away document (single-step logistics) from a released,
+    /// shipped subcontracting Transfer Order (e.g. a WIP Item transfer between subcontracting
+    /// locations), without showing the source documents request page.
+    /// </summary>
+    /// <param name="TransferHeader">The released, shipped transfer header used as source</param>
+    /// <param name="WarehouseActivityHeader">The created Inventory Put-away header</param>
+    procedure CreateInvtPutAwayFromTransferOrder(TransferHeader: Record "Transfer Header"; var WarehouseActivityHeader: Record "Warehouse Activity Header")
+    var
+        WhseRequest: Record "Warehouse Request";
+    begin
+        WhseRequest.Reset();
+        WhseRequest.SetCurrentKey("Source Document", "Source No.");
+        WhseRequest.SetRange(Type, WhseRequest.Type::Inbound);
+        WhseRequest.SetRange("Source Document", WhseRequest."Source Document"::"Inbound Transfer");
+        WhseRequest.SetRange("Source No.", TransferHeader."No.");
+        WhseRequest.SetRange("Document Status", WhseRequest."Document Status"::Released);
+        WhseRequest.FindFirst();
+
+        LibraryWarehouse.CreateInvtPutAwayPick(WhseRequest, true, false, false);
+        WarehouseActivityHeader.SetRange(Type, "Warehouse Activity Type"::"Invt. Put-away");
+        WarehouseActivityHeader.SetRange("Source Document", "Warehouse Activity Source Document"::"Inbound Transfer");
+        WarehouseActivityHeader.SetRange("Source No.", TransferHeader."No.");
+        WarehouseActivityHeader.SetRange("Source Type", Database::"Transfer Line");
+        WarehouseActivityHeader.FindFirst();
     end;
 
     /// <summary>
@@ -920,5 +1014,106 @@ codeunit 149908 "Subc. Warehouse Library"
         LibraryWarehouse.CreateTransferLine(TransferHeader, TransferLine, Item."No.", Quantity);
         TransferLine.Validate("Transfer WIP Item", true);
         TransferLine.Modify();
+    end;
+
+    /// <summary>
+    /// Sets Transfer WIP Item = true on the routing line for the specified work center.
+    /// The routing is temporarily uncertified, modified, and re-certified.
+    /// Must be called BEFORE the production order is refreshed so the Prod. Order Routing Line
+    /// inherits the flag.
+    /// </summary>
+    procedure SetTransferWIPItemOnRoutingLine(Item: Record Item; WorkCenterNo: Code[20])
+    var
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+    begin
+        RoutingHeader.Get(Item."Routing No.");
+        RoutingHeader.Validate(Status, RoutingHeader.Status::New);
+        RoutingHeader.Modify(true);
+
+        RoutingLine.SetRange("Routing No.", RoutingHeader."No.");
+        RoutingLine.SetRange(Type, RoutingLine.Type::"Work Center");
+        RoutingLine.SetRange("No.", WorkCenterNo);
+        if RoutingLine.FindFirst() then begin
+            RoutingLine."Transfer WIP Item" := true;
+            RoutingLine.Modify(true);
+        end;
+
+        RoutingHeader.Validate(Status, RoutingHeader.Status::Certified);
+        RoutingHeader.Modify(true);
+    end;
+
+    /// <summary>
+    /// Creates bidirectional Transfer Routes between production and subcontractor locations,
+    /// both using the supplied in-transit location. Required for WIP item forward and return
+    /// transfers that use an in-transit step.
+    /// </summary>
+    procedure CreateTransferRoutesForWIPTransfer(ProdLocationCode: Code[10]; SubcLocationCode: Code[10]; InTransitLocationCode: Code[10])
+    var
+        TransferRoute: Record "Transfer Route";
+    begin
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, ProdLocationCode, SubcLocationCode, InTransitLocationCode, '', '');
+        LibraryWarehouse.CreateAndUpdateTransferRoute(TransferRoute, SubcLocationCode, ProdLocationCode, InTransitLocationCode, '', '');
+    end;
+
+    /// <summary>
+    /// Creates a subcontracting forward Transfer Order from the purchase order by running
+    /// "Subc. Create Transf. Order" without the request page.
+    /// The caller must register a page handler for the Transfer Order page that is opened
+    /// by the report's ShowDocument() procedure.
+    /// </summary>
+    procedure CreateSubcontractingForwardTransferFromPurchaseOrder(PurchaseHeader: Record "Purchase Header")
+    begin
+        PurchaseHeader.SetRecFilter();
+        Report.Run(Report::"Subc. Create Transf. Order", false, false, PurchaseHeader);
+    end;
+
+    /// <summary>
+    /// Finds the first subcontracting Transfer Header linked to the purchase order.
+    /// IsReturn = false for forward transfers, true for return transfers (Rückumlagerungen).
+    /// </summary>
+    procedure FindSubcontractingTransferHeader(PurchaseHeader: Record "Purchase Header"; IsReturn: Boolean; var TransferHeader: Record "Transfer Header")
+    begin
+        TransferHeader.SetRange("Subcontr. Purch. Order No.", PurchaseHeader."No.");
+        TransferHeader.SetRange("Subc. Return Order", IsReturn);
+        TransferHeader.FindFirst();
+    end;
+
+    /// <summary>
+    /// Creates a WIP item Return Transfer Order (Rückumlagerung) directly, with the full
+    /// subcontracting routing context copied from the given purchase line.
+    /// This is used instead of running SubcCreateSubCReturnOrder (which requires
+    /// non-zero Subcontractor WIP Ledger Entries that cannot be created automatically).
+    /// </summary>
+    procedure CreateReturnTransferWithSubcContext(
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        SubcLocationCode: Code[10];
+        ProdLocationCode: Code[10];
+        InTransitLocationCode: Code[10];
+        Quantity: Decimal;
+        var ReturnTransferHeader: Record "Transfer Header")
+    var
+        ReturnTransferLine: Record "Transfer Line";
+    begin
+        LibraryWarehouse.CreateTransferHeader(ReturnTransferHeader, SubcLocationCode, ProdLocationCode, InTransitLocationCode);
+        ReturnTransferHeader."Subc. Source Type" := ReturnTransferHeader."Subc. Source Type"::Subcontracting;
+        ReturnTransferHeader."Source ID" := PurchaseHeader."Buy-from Vendor No.";
+        ReturnTransferHeader."Subcontr. Purch. Order No." := PurchaseHeader."No.";
+        ReturnTransferHeader."Subc. Return Order" := true;
+        ReturnTransferHeader.Modify();
+
+        LibraryWarehouse.CreateTransferLine(ReturnTransferHeader, ReturnTransferLine, PurchaseLine."No.", Quantity);
+        ReturnTransferLine.Validate("Transfer WIP Item", true);
+        ReturnTransferLine."Subc. Purch. Order No." := PurchaseLine."Document No.";
+        ReturnTransferLine."Subc. Purch. Order Line No." := PurchaseLine."Line No.";
+        ReturnTransferLine."Subc. Prod. Order No." := PurchaseLine."Prod. Order No.";
+        ReturnTransferLine."Subc. Prod. Order Line No." := PurchaseLine."Prod. Order Line No.";
+        ReturnTransferLine."Subc. Routing No." := PurchaseLine."Routing No.";
+        ReturnTransferLine."Subc. Routing Reference No." := PurchaseLine."Routing Reference No.";
+        ReturnTransferLine."Subc. Work Center No." := PurchaseLine."Work Center No.";
+        ReturnTransferLine."Subc. Operation No." := PurchaseLine."Operation No.";
+        ReturnTransferLine."Subc. Return Order" := true;
+        ReturnTransferLine.Modify();
     end;
 }
