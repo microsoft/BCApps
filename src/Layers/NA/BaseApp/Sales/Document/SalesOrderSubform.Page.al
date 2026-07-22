@@ -250,7 +250,7 @@ page 46 "Sales Order Subform"
                     begin
                         UpdateEditableOnRow();
 
-                        LookupSelectionRestored := Rec.RestoreLookupSelection();
+                        LookupSelectionRestored := Rec.RestoreLookupSelectionWithResult();
                         AutoReserveItemFromLookup := LookupSelectionRestored;
                         if (Rec."No." <> xRec."No.") or LookupSelectionRestored then
                             NoOnAfterValidate();
