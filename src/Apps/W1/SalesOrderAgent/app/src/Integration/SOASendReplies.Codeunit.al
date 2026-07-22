@@ -67,36 +67,44 @@ codeunit 4581 "SOA Send Replies"
     var
         InputAgentTaskMessage: Record "Agent Task Message";
         SOAReplyRetryMgt: Codeunit "SOA Reply Retry Mgt.";
+        SOASendReply: Codeunit "SOA Send Reply";
+        ErrorCallStack: Text;
+        ErrorText: Text;
     begin
         if not InputAgentTaskMessage.Get(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage."Input Message ID") then begin
             AllSentSuccessfully := false;
+            RegisterFailedAttempt(OutputAgentTaskMessage);
             FeatureTelemetry.LogError('0000NDQ', SOASetupCU.GetFeatureName(), 'Get Input Agent Task Message', TelemetryFailedToGetInputAgentTaskMessageLbl, GetLastErrorCallStack(), TelemetryDimensions);
             exit;
         end;
 
         if InputAgentTaskMessage."External ID" = '' then begin
             AllSentSuccessfully := false;
+            RegisterFailedAttempt(OutputAgentTaskMessage);
             FeatureTelemetry.LogError('0000NDR', SOASetupCU.GetFeatureName(), 'Send Email Reply', TelemetryEmailReplyExternalIdEmptyLbl, '', TelemetryDimensions);
             exit;
         end;
 
-        Clear(SOAReplyRetryMgt);
-        if not SOAReplyRetryMgt.Run(OutputAgentTaskMessage) then begin
-            AllSentSuccessfully := false;
-            FeatureTelemetry.LogError('0000OAB', SOASetupCU.GetFeatureName(), 'Send Email Reply', TelemetryEmailReplyFailedToSendLbl, GetLastErrorCallStack(), TelemetryDimensions);
+        if SOASendReply.Run(OutputAgentTaskMessage) then begin
+            SOAReplyRetryMgt.ClearAttempts(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage.ID);
+            Commit();
+            FeatureTelemetry.LogUsage('0000NDS', SOASetupCU.GetFeatureName(), TelemetryEmailReplySentLbl, TelemetryDimensions);
             exit;
         end;
 
-        if not SOAReplyRetryMgt.WasAttemptReserved() then begin
-            AllSentSuccessfully := false;
-            exit;
-        end;
+        ErrorText := GetLastErrorText();
+        ErrorCallStack := GetLastErrorCallStack();
+        AllSentSuccessfully := false;
+        RegisterFailedAttempt(OutputAgentTaskMessage);
+        TelemetryDimensions.Set('Error', ErrorText);
+        FeatureTelemetry.LogError('0000OAB', SOASetupCU.GetFeatureName(), 'Send Email Reply', TelemetryEmailReplyFailedToSendLbl, ErrorCallStack, TelemetryDimensions);
+    end;
 
-        if SOAReplyRetryMgt.WasReplySent() then
-            FeatureTelemetry.LogUsage('0000NDS', SOASetupCU.GetFeatureName(), TelemetryEmailReplySentLbl, TelemetryDimensions)
-        else begin
-            AllSentSuccessfully := false;
-            FeatureTelemetry.LogError('0000OAB', SOASetupCU.GetFeatureName(), 'Send Email Reply', TelemetryEmailReplyFailedToSendLbl, SOAReplyRetryMgt.GetReplyErrorCallStack(), TelemetryDimensions);
-        end;
+    local procedure RegisterFailedAttempt(OutputAgentTaskMessage: Record "Agent Task Message")
+    var
+        SOAReplyRetryMgt: Codeunit "SOA Reply Retry Mgt.";
+    begin
+        SOAReplyRetryMgt.RegisterFailedAttempt(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage.ID);
+        Commit();
     end;
 }
