@@ -438,11 +438,11 @@ table 46855 BC14CompanyMigrationInfo
 
     internal procedure RestartHistoricalDispatch(TargetCompanyName: Text[30]) NewRunId: Guid
     begin
-        NewRunId := CreateGuid();
         Rec.ReadIsolation := IsolationLevel::UpdLock;
         if not Rec.Get(TargetCompanyName) then
             exit;
 
+        NewRunId := CreateGuid();
         Rec."Historical Run Id" := NewRunId;
         Rec."Historical Completed" := false;
         Rec."Historical Failed" := false;

@@ -1081,6 +1081,7 @@ codeunit 148907 "BC14 Error & Failure Tests"
 
         // [WHEN] RerunHistoricalForCompany is invoked [THEN] it errors out
         asserterror BC14MigrationRunner.RerunHistoricalForCompany(CopyStr(CompanyName(), 1, 30));
+        Assert.ExpectedError('historical record migration is disabled for this company.');
     end;
 
     [Test]
@@ -1093,6 +1094,7 @@ codeunit 148907 "BC14 Error & Failure Tests"
 
         // [WHEN] RerunHistoricalForCompany is invoked for an unknown company [THEN] it errors out
         asserterror BC14MigrationRunner.RerunHistoricalForCompany('GHOST');
+        Assert.ExpectedError('no replication summary was found. Run replication first.');
     end;
 
     [Test]
@@ -1114,6 +1116,7 @@ codeunit 148907 "BC14 Error & Failure Tests"
 
         // [WHEN] RerunHistoricalForCompany is invoked [THEN] it errors out
         asserterror BC14MigrationRunner.RerunHistoricalForCompany(CopyStr(CompanyName(), 1, 30));
+        Assert.ExpectedError('its main migration has not completed yet. Use Continue migration');
     end;
 
     // ============================================================
