@@ -45,6 +45,7 @@
         FAJnlTemplateNameAssets: Label 'ASSETS', Comment = 'ASSETS is the name of FA Journal Template.';
         FAJnlTemplateDescFAJnl: Label 'Fixed Asset Journal';
         DepreciationAmountShouldBeRoundedErr: Label 'Depreciation amount should be rounded to whole number';
+        CompletionStatsFAJnlMsg: Label 'The depreciation has been calculated.\\1 fixed asset journal lines were created.', Comment = 'The depreciation has been calculated.\\5 fixed asset journal lines were created.';
 
     local procedure Initialize()
     var
@@ -3750,6 +3751,7 @@
     [Scope('OnPrem')]
     procedure DepreciationCalcFAJnlMessageHandler(Message: Text[1024])
     begin
+        Assert.ExpectedMessage(CompletionStatsFAJnlMsg, Message);
     end;
 
     [ConfirmHandler]
