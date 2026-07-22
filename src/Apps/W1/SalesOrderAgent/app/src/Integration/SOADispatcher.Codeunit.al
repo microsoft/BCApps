@@ -11,13 +11,12 @@ using System.AI;
 using System.Azure.Identity;
 using System.Environment;
 using System.Telemetry;
-using System.Threading;
 using System.Utilities;
 
 codeunit 4586 "SOA Dispatcher"
 {
     Access = Internal;
-    TableNo = "Job Queue Entry";
+    TableNo = "SOA Setup";
     InherentEntitlements = X;
     InherentPermissions = X;
 
@@ -34,11 +33,8 @@ codeunit 4586 "SOA Dispatcher"
         TelemetrySendEmailRepliesFailedLbl: Label 'Email replies failed to be sent', Locked = true;
 
     trigger OnRun()
-    var
-        SOASetup: Record "SOA Setup";
     begin
-        SOASetup.FindFirst();
-        RunSOAgent(SOASetup);
+        RunSOAgent(Rec);
     end;
 
     procedure RunSOAgent(Setup: Record "SOA Setup")
