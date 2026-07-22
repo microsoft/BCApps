@@ -5,6 +5,8 @@
 
 namespace Microsoft.WithholdingTax;
 
+using Microsoft.WithholdingTax.Employee;
+
 permissionset 6787 "WHT - Edit"
 {
     Caption = 'Withholding Tax - Edit';

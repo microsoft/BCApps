@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.WithholdingTax;
 
+using Microsoft.WithholdingTax.Employee;
+
 table 6784 "Wthldg. Tax Bus. Post. Group"
 {
     Caption = 'Withholding Tax Bus. Post. Group';

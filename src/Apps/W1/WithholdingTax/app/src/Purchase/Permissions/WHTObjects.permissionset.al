@@ -5,6 +5,7 @@
 namespace Microsoft.WithholdingTax;
 
 using Microsoft.Finance.WithholdingTax;
+using Microsoft.WithholdingTax.Employee;
 
 permissionset 6786 "WHT - Objects"
 {

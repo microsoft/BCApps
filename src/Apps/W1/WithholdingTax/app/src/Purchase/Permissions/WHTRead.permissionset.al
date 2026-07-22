@@ -5,6 +5,8 @@
 
 namespace Microsoft.WithholdingTax;
 
+using Microsoft.WithholdingTax.Employee;
+
 permissionset 6785 "WHT - Read"
 {
     Caption = 'Withholding Tax - Read';

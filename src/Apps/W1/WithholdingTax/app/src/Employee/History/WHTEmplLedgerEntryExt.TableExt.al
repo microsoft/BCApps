@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.WithholdingTax;
+namespace Microsoft.WithholdingTax.Employee;
 
 using Microsoft.HumanResources.Payables;
 
@@ -12,7 +12,7 @@ tableextension 6810 "WHT Empl. Ledger Entry Ext" extends "Employee Ledger Entry"
     {
         field(6784; "Withholding Tax Amount"; Decimal)
         {
-            Caption = 'WHT Amount';
+            Caption = 'Withholding Tax Amount';
             AutoFormatType = 1;
             Editable = false;
             DataClassification = CustomerContent;
@@ -20,7 +20,7 @@ tableextension 6810 "WHT Empl. Ledger Entry Ext" extends "Employee Ledger Entry"
         }
         field(6785; "Withholding Tax Base Amount"; Decimal)
         {
-            Caption = 'WHT Base Amount';
+            Caption = 'Withholding Tax Base Amount';
             AutoFormatType = 1;
             Editable = false;
             DataClassification = CustomerContent;

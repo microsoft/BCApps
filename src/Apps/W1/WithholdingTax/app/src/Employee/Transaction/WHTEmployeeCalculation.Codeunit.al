@@ -2,13 +2,14 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.WithholdingTax;
+namespace Microsoft.WithholdingTax.Employee;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Employee;
+using Microsoft.WithholdingTax;
 
 codeunit 6790 "WHT Employee Calculation"
 {

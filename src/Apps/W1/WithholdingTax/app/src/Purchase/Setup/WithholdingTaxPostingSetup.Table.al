@@ -7,6 +7,7 @@ namespace Microsoft.WithholdingTax;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.WithholdingTax.Employee;
 
 table 6786 "Withholding Tax Posting Setup"
 {

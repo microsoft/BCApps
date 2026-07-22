@@ -13,6 +13,7 @@ using Microsoft.HumanResources.Employee;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
+using Microsoft.WithholdingTax.Employee;
 using System.Telemetry;
 
 table 6788 "Withholding Tax Entry"
