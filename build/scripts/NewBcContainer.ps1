@@ -28,16 +28,35 @@ Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -key
 Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "UsePermissionSetsFromExtensions" -keyValue "true"
 Restart-BcContainer -containerName $parameters.ContainerName
 
-$installedApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast
+$maxCleanupAttempts = 2
+$cleanupAttempt = 0
+$cleanupDone = $false
 
-# Clean the container for all apps. Apps will be installed by AL-Go
-foreach($app in $installedApps) {
-    Write-Host "Removing $($app.Name)"
-    UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -doNotSaveData -doNotSaveSchema -force
+while (-not $cleanupDone) {
+    $cleanupAttempt++
+    $cleanupDone = $true
+    $installedApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast
 
-    if (($AppsToUnpublish -contains "All") -or ($AppsToUnpublish -contains $app.Name)) {
-        Write-Host "Unpublishing $($app.Name)"
-        Unpublish-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -unInstall -doNotSaveData -doNotSaveSchema -force
+    # Clean the container for all apps. Apps will be installed by AL-Go
+    foreach($app in $installedApps) {
+        Write-Host "Removing $($app.Name)"
+        try {
+            UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -doNotSaveData -doNotSaveSchema -force
+        } catch {
+            $errText = ($_ | Out-String) + $_.Exception.Message
+            if (($errText -match 'Internal CLR error|Fatal error|0x80131506') -and ($cleanupAttempt -lt $maxCleanupAttempts)) {
+                Write-Warning "Container CLR crash detected while removing $($app.Name). Restarting container (attempt $cleanupAttempt of $maxCleanupAttempts)..."
+                Restart-BcContainer -containerName $parameters.ContainerName
+                $cleanupDone = $false
+                break
+            }
+            throw
+        }
+
+        if (($AppsToUnpublish -contains "All") -or ($AppsToUnpublish -contains $app.Name)) {
+            Write-Host "Unpublishing $($app.Name)"
+            Unpublish-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -unInstall -doNotSaveData -doNotSaveSchema -force
+        }
     }
 }
 
