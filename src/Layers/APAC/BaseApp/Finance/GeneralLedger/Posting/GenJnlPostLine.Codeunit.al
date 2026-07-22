@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -864,7 +864,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
         VATEntry."Sett. Unrealised Base (FCY)" := GenJnlLine."Source Curr. VAT Base Amount";
         VATEntry.Adjustment := GenJnlLine.Adjustment;
         SetBASFields(VATEntry, GenJnlLine."BAS Doc. No.", GenJnlLine."BAS Version", GenJnlLine."BAS Adjustment");
-        OnInsertVATOnAfterAssignVATEntryFields(GenJnlLine, VATEntry, CurrExchRate);
+        OnInsertVATOnAfterAssignVATEntryFields(GenJnlLine, VATEntry, CurrExchRate, VATPostingSetup);
         GenJnlLine."BAS Adjustment" := false;
 
         if GenJnlLine."VAT Difference" = 0 then
@@ -12210,7 +12210,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnInsertVATOnAfterAssignVATEntryFields(GenJnlLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; CurrExchRate: Record "Currency Exchange Rate")
+    local procedure OnInsertVATOnAfterAssignVATEntryFields(var GenJnlLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; CurrExchRate: Record "Currency Exchange Rate"; var VATPostingSetup: Record "VAT Posting Setup")
     begin
     end;
 

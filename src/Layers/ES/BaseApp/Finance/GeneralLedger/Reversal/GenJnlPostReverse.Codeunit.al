@@ -331,8 +331,6 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         NewCustLedgerEntry."Max. Payment Tolerance" := -NewCustLedgerEntry."Max. Payment Tolerance";
         NewCustLedgerEntry."Accepted Payment Tolerance" := -NewCustLedgerEntry."Accepted Payment Tolerance";
         NewCustLedgerEntry."Pmt. Tolerance (LCY)" := -NewCustLedgerEntry."Pmt. Tolerance (LCY)";
-        NewCustLedgerEntry."Amount (LCY) stats." := -NewCustLedgerEntry."Amount (LCY) stats.";
-        NewCustLedgerEntry."Remaining Amount (LCY) stats." := -NewCustLedgerEntry."Remaining Amount (LCY) stats.";
         NewCustLedgerEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(NewCustLedgerEntry."User ID"));
         NewCustLedgerEntry."Entry No." := NewEntryNo;
         NewCustLedgerEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();
@@ -415,8 +413,6 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
         NewVendorLedgerEntry."Max. Payment Tolerance" := -NewVendorLedgerEntry."Max. Payment Tolerance";
         NewVendorLedgerEntry."Accepted Payment Tolerance" := -NewVendorLedgerEntry."Accepted Payment Tolerance";
         NewVendorLedgerEntry."Pmt. Tolerance (LCY)" := -NewVendorLedgerEntry."Pmt. Tolerance (LCY)";
-        NewVendorLedgerEntry."Amount (LCY) stats." := -NewVendorLedgerEntry."Amount (LCY) stats.";
-        NewVendorLedgerEntry."Remaining Amount (LCY) stats." := -NewVendorLedgerEntry."Remaining Amount (LCY) stats.";
         NewVendorLedgerEntry."User ID" := CopyStr(UserId(), 1, MaxStrLen(NewVendorLedgerEntry."User ID"));
         NewVendorLedgerEntry."Entry No." := NewEntryNo;
         NewVendorLedgerEntry."Transaction No." := GenJnlPostLine.GetNextTransactionNo();

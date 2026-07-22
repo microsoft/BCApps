@@ -8,7 +8,6 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Deposit;
 using Microsoft.Bank.DirectDebit;
 using Microsoft.Bank.Payment;
-using Microsoft.Bank.Reports;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
@@ -20,7 +19,6 @@ using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
-using Microsoft.Sales.Receivables;
 using Microsoft.Sales.Reminder;
 using Microsoft.Sales.Reports;
 using Microsoft.Sales.Setup;
@@ -145,58 +143,6 @@ page 9003 "Acc. Receivables Adm. RC"
                 RunObject = Report "Customer - Due Payments";
                 ToolTip = 'View a list of payments due from a particular customer sorted by due date.';
             }
-            group("Cartera Bill Groups")
-            {
-                Caption = 'Cartera Bill Groups';
-                action("Closed Bill Group Listing")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Closed Bill Group Listing';
-                    Image = "Report";
-                    RunObject = Report "Closed Bill Group Listing";
-                    ToolTip = 'View the list of completed bill groups.';
-                }
-                action("Posted Bill Group Listing")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Bill Group Listing';
-                    Image = "Report";
-                    RunObject = Report "Posted Bill Group Listing";
-                    ToolTip = 'View the list of posted bill groups. When a bill group has been posted, the related documents are available for settlement, rejection, or recirculation.';
-                }
-                action("Bill Group Listing")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Bill Group Listing';
-                    Image = "Report";
-                    RunObject = Report "Bill Group Listing";
-                    ToolTip = 'View or edit a bill group. Bill groups are receivables documents that are grouped together to submit to a bank for collection. For example, you may want to group documents for the same customer or group documents with the same due date.';
-                }
-                action("Bank - Summ. Bill Group")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Bank - Summ. Bill Group';
-                    Image = "Report";
-                    RunObject = Report "Bank - Summ. Bill Group";
-                    ToolTip = 'View a detailed summary for existing bill groups.';
-                }
-                action("Bank - Risk")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Bank - Risk';
-                    Image = "Report";
-                    RunObject = Report "Bank - Risk";
-                    ToolTip = 'View the risk status for discounting bills with the selected bank.';
-                }
-                action("Notice Assignment Credits")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Notice Assignment Credits';
-                    Image = "Report";
-                    RunObject = Report "Notice Assignment Credits";
-                    ToolTip = 'Define how your company decides to administer its billing using a factoring (factor) entity. You send your customers a notification letter, telling them that it is going to assign its billing to another entity. As of that moment, the client will no longer have to pay the company, they will pay the factoring entity instead.';
-                }
-            }
         }
         area(embedding)
         {
@@ -232,20 +178,6 @@ page 9003 "Acc. Receivables Adm. RC"
                 Image = Invoice;
                 RunObject = Page "Sales Invoice List";
                 ToolTip = 'Register your sales to customers and invite them to pay according to the delivery and payment terms by sending them a sales invoice document. Posting a sales invoice registers shipment and records an open receivable entry on the customer''s account, which will be closed when payment is received. To manage the shipment process, use sales orders, in which sales invoicing is integrated.';
-            }
-            action("Bill Groups List")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Bill Groups List';
-                RunObject = Page "Bill Groups List";
-                ToolTip = 'View or edit a bill group. Bill groups are receivables documents that are grouped together to submit to a bank for collection. For example, you may want to group documents for the same customer or group documents with the same due date.';
-            }
-            action("Posted Bill Groups List")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Posted Bill Groups List';
-                RunObject = Page "Posted Bill Groups List";
-                ToolTip = 'View the list of posted bill groups. When a bill group has been posted, the related documents are available for settlement, rejection, or recirculation.';
             }
             action("Sales Return Orders")
             {
@@ -369,20 +301,6 @@ page 9003 "Acc. Receivables Adm. RC"
                     RunObject = Page "Posted Sales Credit Memos";
                     ToolTip = 'Open the list of posted sales credit memos.';
                 }
-                action("Receivable Closed Cartera Docs")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Receivable Closed Cartera Docs';
-                    RunObject = Page "Receivable Closed Cartera Docs";
-                    ToolTip = 'View the customer bills and invoices that are in the closed bill groups.';
-                }
-                action("Closed Bill Groups List")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Closed Bill Groups List';
-                    RunObject = Page "Closed Bill Groups List";
-                    ToolTip = 'View the list of completed bill groups.';
-                }
                 action("Posted Purchase Invoices")
                 {
                     ApplicationArea = Basic, Suite;
@@ -505,14 +423,6 @@ page 9003 "Acc. Receivables Adm. RC"
                     ToolTip = 'Create a new reminder for a customer who has overdue payments.';
                 }
             }
-            action("Bill Group")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Bill Group';
-                Image = VoucherGroup;
-                RunObject = Page "Bill Groups";
-                ToolTip = 'View or edit a bill group. Bill groups are receivables documents that are grouped together to submit to a bank for collection. For example, you may want to group documents for the same customer or group documents with the same due date.';
-            }
             separator(Tasks)
             {
                 Caption = 'Tasks';
@@ -552,28 +462,6 @@ page 9003 "Acc. Receivables Adm. RC"
                 Ellipsis = true;
                 Image = "Action";
                 RunObject = Report "Combine Return Receipts";
-            }
-            separator(Action1100020)
-            {
-            }
-            action("Posted Bill Group Select.")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Posted Bill Group Select.';
-                RunObject = Page "Posted Bill Group Select.";
-                ToolTip = 'View or edit where ledger entries are posted when you post a bill group.';
-            }
-            group("Bill Group - Export Formats")
-            {
-                Caption = 'Bill Group - Export Formats';
-                action("Bill Group - Export Factoring")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Bill Group - Export Factoring';
-                    Image = "Report";
-                    RunObject = Report "Bill group - Export factoring";
-                    ToolTip = 'Send the factoring bill groups to a magnetic media.';
-                }
             }
             action("Create Recurring Invoices")
             {

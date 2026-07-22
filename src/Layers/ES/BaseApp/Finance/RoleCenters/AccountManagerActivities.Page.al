@@ -104,42 +104,6 @@ page 9030 "Account Manager Activities"
                     }
                 }
             }
-            cuegroup(Cartera)
-            {
-                Caption = 'Cartera';
-                field("Receivable Documents"; Rec."Receivable Documents")
-                {
-                    ApplicationArea = Basic, Suite;
-                    DrillDownPageID = "Receivables Cartera Docs";
-                    ToolTip = 'Specifies the receivables document that is associated with the bill group.';
-                }
-                field("Payable Documents"; Rec."Payable Documents")
-                {
-                    ApplicationArea = Basic, Suite;
-                    DrillDownPageID = "Payables Cartera Docs";
-                    ToolTip = 'Specifies the payables document that is associated with the bill group.';
-                }
-
-                actions
-                {
-                    action("New Bill Group")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'New Bill Group';
-                        RunObject = Page "Bill Groups";
-                        RunPageMode = Create;
-                        ToolTip = 'Create a new group of receivables documents for submission to the bank for electronic collection.';
-                    }
-                    action("New Payment Order")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'New Payment Order';
-                        RunObject = Page "Payment Orders";
-                        RunPageMode = Create;
-                        ToolTip = 'Create a new order for payables documents for submission to the bank for electronic payment.';
-                    }
-                }
-            }
             cuegroup("Cash Management")
             {
                 Caption = 'Cash Management';

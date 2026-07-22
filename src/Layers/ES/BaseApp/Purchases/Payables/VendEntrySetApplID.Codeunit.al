@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Payables;
 
-using Microsoft.Finance.ReceivablesPayables;
-
 codeunit 111 "Vend. Entry-SetAppl.ID"
 {
     Permissions = TableData "Vendor Ledger Entry" = rimd;
@@ -16,8 +14,6 @@ codeunit 111 "Vend. Entry-SetAppl.ID"
 
     var
         VendEntryApplID: Code[50];
-        CannotBeAppliedErr: Label '%1 cannot be applied, since it is included in a bill group.', Comment = '%1 = Description';
-        CannotBeAppliedTryAgainErr: Label '%1 cannot be applied, since it is included in a bill group. Remove it from its bill group and try again.', Comment = '%1 = Description';
 
     procedure SetApplId(var VendLedgEntry: Record "Vendor Ledger Entry"; ApplyingVendLedgEntry: Record "Vendor Ledger Entry"; AppliesToID: Code[50])
     var
@@ -52,8 +48,6 @@ codeunit 111 "Vend. Entry-SetAppl.ID"
     local procedure UpdateVendLedgerEntry(var TempVendLedgEntry: Record "Vendor Ledger Entry" temporary; ApplyingVendLedgEntry: Record "Vendor Ledger Entry"; AppliesToID: Code[50])
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
-        CarteraSetup: Record "Cartera Setup";
-        CarteraDoc: Record "Cartera Doc.";
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -63,19 +57,6 @@ codeunit 111 "Vend. Entry-SetAppl.ID"
 
         VendorLedgerEntry.Copy(TempVendLedgEntry);
         VendorLedgerEntry.TestField(Open, true);
-        if VendorLedgerEntry."Document Situation" = VendorLedgerEntry."Document Situation"::"Posted BG/PO" then
-            Error(CannotBeAppliedErr, VendorLedgerEntry.Description);
-        if ApplyingVendLedgEntry."Document Situation" = ApplyingVendLedgEntry."Document Situation"::"Posted BG/PO" then
-            Error(CannotBeAppliedErr, ApplyingVendLedgEntry.Description);
-
-        if CarteraSetup.ReadPermission then
-            if ((VendorLedgerEntry."Document Type" = VendorLedgerEntry."Document Type"::Bill) or
-                 (VendorLedgerEntry."Document Type" = VendorLedgerEntry."Document Type"::Invoice))
-            then
-                if CarteraDoc.Get(CarteraDoc.Type::Payable, VendorLedgerEntry."Entry No.") then
-                    if CarteraDoc."Bill Gr./Pmt. Order No." <> '' then
-                        Error(CannotBeAppliedTryAgainErr, VendorLedgerEntry.Description);
-
         VendorLedgerEntry."Applies-to ID" := VendEntryApplID;
         if VendorLedgerEntry."Applies-to ID" = '' then begin
             VendorLedgerEntry."Accepted Pmt. Disc. Tolerance" := false;

@@ -564,12 +564,6 @@ page 26 "Vendor Card"
                               "Global Dimension 1 Filter" = field("Global Dimension 1 Filter"),
                               "Global Dimension 2 Filter" = field("Global Dimension 2 Filter");
             }
-            part(Control1903433907; "Cartera Payables Statistics FB")
-            {
-                ApplicationArea = Basic, Suite;
-                SubPageLink = "No." = field("No.");
-                Visible = true;
-            }
             part(AgedAccPayableChart; "Aged Acc. Payable Chart")
             {
                 ApplicationArea = Basic, Suite;

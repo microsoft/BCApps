@@ -136,12 +136,6 @@ page 256 "Payment Journal"
                     StyleExpr = HasPmtFileErr;
                     ShowMandatory = true;
                 }
-                field("Bill No."; Rec."Bill No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies a number for this bill generated from the journal.';
-                    Visible = false;
-                }
                 field("Incoming Document Entry No."; Rec."Incoming Document Entry No.")
                 {
                     ApplicationArea = Basic, Suite;
@@ -419,11 +413,6 @@ page 256 "Payment Journal"
                 {
                     ApplicationArea = Basic, Suite;
                     StyleExpr = StyleTxt;
-                }
-                field("Applies-to Bill No."; Rec."Applies-to Bill No.")
-                {
-                    ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the number of the bill to be settled.';
                 }
                 field("Applies-to ID"; Rec."Applies-to ID")
                 {
@@ -1939,7 +1928,7 @@ page 256 "Payment Journal"
         BackgroundErrorHandlingMgt: Codeunit "Background Error Handling Mgt.";
         ApprovalMgmt: Codeunit "Approvals Mgmt.";
         FeatureTelemetry: Codeunit "Feature Telemetry";
-	    ClientTypeManagement: Codeunit "Client Type Management";
+        ClientTypeManagement: Codeunit "Client Type Management";
         ChangeExchangeRate: Page "Change Exchange Rate";
         GenJnlBatchApprovalStatus: Text[20];
         GenJnlLineApprovalStatus: Text[20];

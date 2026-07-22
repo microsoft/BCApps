@@ -8,7 +8,6 @@ using Microsoft.Assembly.History;
 using Microsoft.Bank.Ledger;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.FixedAssets.Insurance;
 using Microsoft.FixedAssets.Ledger;
@@ -111,10 +110,7 @@ codeunit 483 "Change Global Dimensions"
                   TableData "Return Shipment Line" = rm,
                   TableData "Return Receipt Header" = rm,
                   TableData "Return Receipt Line" = rm,
-                  TableData "Warehouse Entry" = rm,
-                  TableData "Cartera Doc." = rm,
-                  TableData "Posted Cartera Doc." = rm,
-                  TableData "Closed Cartera Doc." = rm;
+                  TableData "Warehouse Entry" = rm;
     TableNo = "Change Global Dim. Log Entry";
 
     trigger OnRun()

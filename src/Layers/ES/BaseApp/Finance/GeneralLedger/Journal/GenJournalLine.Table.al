@@ -1234,19 +1234,11 @@ table 81 "Gen. Journal Line"
                                 OnValidatePaymentTermsCodeOnBeforeCalculateDueDate(Rec, PaymentTerms, IsHandled);
                                 if not IsHandled then
                                     "Due Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
-                                AdjustDueDate(PaymentTerms.CalculateMaxDueDate("Document Date"));
                                 IsHandled := false;
                                 OnValidatePaymentTermsCodeOnBeforeCalculatePmtDiscountDate(Rec, PaymentTerms, IsHandled);
                                 if not IsHandled then
                                     "Pmt. Discount Date" := CalcDate(PaymentTerms."Discount Date Calculation", "Document Date");
                                 "Payment Discount %" := PaymentTerms."Discount %";
-                            end else
-                                "Due Date" := "Document Date";
-                        "Document Type"::Bill:
-                            if ("Payment Terms Code" <> '') and ("Document Date" <> 0D) then begin
-                                PaymentTerms.Get("Payment Terms Code");
-                                "Due Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
-                                AdjustDueDate(99991231D);
                             end else
                                 "Due Date" := "Document Date";
                         "Document Type"::"Credit Memo":
@@ -1257,7 +1249,6 @@ table 81 "Gen. Journal Line"
                                     OnValidatePaymentTermsCodeOnBeforeCalculateDueDate(Rec, PaymentTerms, IsHandled);
                                     if not IsHandled then
                                         "Due Date" := CalcDate(PaymentTerms."Due Date Calculation", "Document Date");
-                                    AdjustDueDate(99991231D);
                                     IsHandled := false;
                                     OnValidatePaymentTermsCodeOnBeforeCalculatePmtDiscountDate(Rec, PaymentTerms, IsHandled);
                                     if not IsHandled then
@@ -1267,8 +1258,12 @@ table 81 "Gen. Journal Line"
                                     "Due Date" := "Document Date";
                             end else
                                 "Due Date" := "Document Date";
-                        else
-                            "Due Date" := "Document Date";
+                        else begin
+                            IsHandled := false;
+                            OnValidatePaymentTermsCodeOnElseCase(Rec, PaymentTerms, IsHandled);
+                            if not IsHandled then
+                                "Due Date" := "Document Date";
+                        end;
                     end;
             end;
         }
@@ -1787,8 +1782,8 @@ table 81 "Gen. Journal Line"
                 "VAT Base Amount" := Round("VAT Base Amount", Currency."Amount Rounding Precision");
                 case "VAT Calculation Type" of
                     "VAT Calculation Type"::"Normal VAT",
-                  "VAT Calculation Type"::"Reverse Charge VAT",
-                  "VAT Calculation Type"::"No Taxable VAT":
+                    "VAT Calculation Type"::"Reverse Charge VAT",
+                    "VAT Calculation Type"::"No Taxable VAT":
                         Amount :=
                           Round(
                             "VAT Base Amount" * (1 + "VAT %" / 100),
@@ -2215,7 +2210,7 @@ table 81 "Gen. Journal Line"
                         "Bal. VAT Calculation Type" := VATPostingSetup."VAT Calculation Type";
                         case "Bal. VAT Calculation Type" of
                             "Bal. VAT Calculation Type"::"Normal VAT",
-                          "Bal. VAT Calculation Type"::"No Taxable VAT":
+                            "Bal. VAT Calculation Type"::"No Taxable VAT":
                                 "Bal. VAT %" := VATPostingSetup."VAT+EC %";
                             "Bal. VAT Calculation Type"::"Full VAT":
                                 case "Bal. Gen. Posting Type" of
@@ -3951,23 +3946,6 @@ table 81 "Gen. Journal Line"
             OptionCaption = 'National,International,Special';
             OptionMembers = National,International,Special;
         }
-        field(7000000; "Bill No."; Code[20])
-        {
-            Caption = 'Bill No.';
-        }
-        field(7000001; "Applies-to Bill No."; Code[20])
-        {
-            Caption = 'Applies-to Bill No.';
-        }
-#if not CLEANSCHEMA25
-        field(7000003; "Pmt. Address Code"; Code[10])
-        {
-            Caption = 'Pmt. Address Code';
-            ObsoleteReason = 'Address is taken from the fields Address, City, etc. of Customer/Vendor table.';
-            ObsoleteState = Removed;
-            ObsoleteTag = '25.0';
-        }
-#endif
     }
 
     keys
@@ -5488,19 +5466,13 @@ table 81 "Gen. Journal Line"
             CustLedgEntry.SetRange("Customer No.", AccNo);
 
         IsHandled := false;
-        OnLookUpAppliesToDocCustOnBeforeCustLedgerEntrySetRangeOpen(Rec, IsHandled);
+        OnLookUpAppliesToDocCustOnBeforeCustLedgerEntrySetRangeOpen(Rec, IsHandled, CustLedgEntry);
         if not IsHandled then
             CustLedgEntry.SetRange(Open, true);
-        CustLedgEntry.SetFilter("Document Situation", '<>%1', CustLedgEntry."Document Situation"::"Posted BG/PO");
         if "Applies-to Doc. No." <> '' then begin
-            CustLedgEntry.SetRange("Document Type", "Applies-to Doc. Type");
-            CustLedgEntry.SetRange("Document No.", "Applies-to Doc. No.");
-            CustLedgEntry.SetRange("Bill No.", "Applies-to Bill No.");
-            if CustLedgEntry.IsEmpty() then begin
-                CustLedgEntry.SetRange("Document Type");
-                CustLedgEntry.SetRange("Document No.");
-                CustLedgEntry.SetRange("Bill No.");
-            end;
+            CustLedgEntry.SetAppliesToDocFilters(Rec);
+            if CustLedgEntry.IsEmpty() then
+                CustLedgEntry.ClearDocumentFilters();
         end;
         if "Applies-to ID" <> '' then begin
             CustLedgEntry.SetRange("Applies-to ID", "Applies-to ID");
@@ -5530,7 +5502,6 @@ table 81 "Gen. Journal Line"
             end;
             SetAmountWithCustLedgEntry();
             UpdateDocumentTypeAndAppliesTo(CustLedgEntry."Document Type", CustLedgEntry."Document No.");
-            "Applies-to Bill No." := CustLedgEntry."Bill No.";
             OnLookUpAppliesToDocCustOnAfterUpdateDocumentTypeAndAppliesTo(Rec, CustLedgEntry);
         end;
     end;
@@ -5576,14 +5547,9 @@ table 81 "Gen. Journal Line"
         if not IsHandled then
             VendLedgEntry.SetRange(Open, true);
         if "Applies-to Doc. No." <> '' then begin
-            VendLedgEntry.SetRange("Document Type", "Applies-to Doc. Type");
-            VendLedgEntry.SetRange("Document No.", "Applies-to Doc. No.");
-            VendLedgEntry.SetRange("Bill No.", "Applies-to Bill No.");
-            if VendLedgEntry.IsEmpty() then begin
-                VendLedgEntry.SetRange("Document Type");
-                VendLedgEntry.SetRange("Document No.");
-                VendLedgEntry.SetRange("Bill No.");
-            end;
+            VendLedgEntry.SetAppliesToDocFilters(Rec);
+            if VendLedgEntry.IsEmpty() then
+                VendLedgEntry.ClearDocumentFilters();
         end;
         if "Applies-to ID" <> '' then begin
             VendLedgEntry.SetRange("Applies-to ID", "Applies-to ID");
@@ -5624,7 +5590,6 @@ table 81 "Gen. Journal Line"
                 Error(Text1100100, VendLedgEntry.Description);
             SetAmountWithVendLedgEntry();
             UpdateDocumentTypeAndAppliesTo(VendLedgEntry."Document Type", VendLedgEntry."Document No.");
-            "Applies-to Bill No." := VendLedgEntry."Bill No.";
             OnLookUpAppliesToDocVendOnAfterUpdateDocumentTypeAndAppliesTo(Rec, VendLedgEntry);
         end;
 
@@ -5829,9 +5794,8 @@ table 81 "Gen. Journal Line"
                         VendLedgEntry.SetRange(Open, true);
                         OnValidateApplyRequirementsOnAfterVendLedgEntrySetFiltersWithoutAppliesToID(TempGenJnlLine, VendLedgEntry);
                         if VendLedgEntry.FindFirst() then begin
-                            if VendLedgEntry.FindFirst() then
-                                CheckIfPostingDateIsEarlier(
-                                  TempGenJnlLine, VendLedgEntry."Posting Date", VendLedgEntry."Document Type", VendLedgEntry."Document No.", VendLedgEntry);
+                            CheckIfPostingDateIsEarlier(
+                              TempGenJnlLine, VendLedgEntry."Posting Date", VendLedgEntry."Document Type", VendLedgEntry."Document No.", VendLedgEntry);
                             if VendLedgEntry."Document Situation" = VendLedgEntry."Document Situation"::"Posted BG/PO" then
                                 Error(Text1100100, VendLedgEntry.Description);
                         end;
@@ -6059,22 +6023,6 @@ table 81 "Gen. Journal Line"
         if not GLSetupRead then begin
             GLSetup.Get();
             GLSetupRead := true;
-        end;
-    end;
-
-    [Scope('OnPrem')]
-    procedure AdjustDueDate(MaxDate: Date)
-    var
-        DueDateAdjust: Codeunit "Due Date-Adjust";
-    begin
-        case "Account Type" of
-            "Account Type"::Customer:
-                if "Bill-to/Pay-to No." <> '' then
-                    DueDateAdjust.SalesAdjustDueDate("Due Date", "Document Date", MaxDate, "Bill-to/Pay-to No.")
-                else
-                    DueDateAdjust.SalesAdjustDueDate("Due Date", "Document Date", MaxDate, "Account No.");
-            "Account Type"::Vendor:
-                DueDateAdjust.PurchAdjustDueDate("Due Date", "Document Date", MaxDate, "Account No.");
         end;
     end;
 
@@ -6614,9 +6562,7 @@ table 81 "Gen. Journal Line"
         CustLedgEntry.SetRange("Customer No.", AccNo);
         CustLedgEntry.SetRange(Open, true);
         if "Applies-to Doc. No." <> '' then begin
-            CustLedgEntry.SetRange("Document Type", "Applies-to Doc. Type");
-            CustLedgEntry.SetRange("Document No.", "Applies-to Doc. No.");
-            CustLedgEntry.SetRange("Bill No.", "Applies-to Bill No.");
+            CustLedgEntry.SetAppliesToDocFilters(Rec);
             if CustLedgEntry.FindFirst() then;
         end else
             if "Applies-to ID" <> '' then begin
@@ -6631,9 +6577,7 @@ table 81 "Gen. Journal Line"
         VendLedgEntry.SetRange("Vendor No.", AccNo);
         VendLedgEntry.SetRange(Open, true);
         if "Applies-to Doc. No." <> '' then begin
-            VendLedgEntry.SetRange("Document Type", "Applies-to Doc. Type");
-            VendLedgEntry.SetRange("Document No.", "Applies-to Doc. No.");
-            VendLedgEntry.SetRange("Bill No.", "Applies-to Bill No.");
+            VendLedgEntry.SetAppliesToDocFilters(Rec);
             if VendLedgEntry.FindFirst() then;
         end else
             if "Applies-to ID" <> '' then begin
@@ -6755,7 +6699,6 @@ table 81 "Gen. Journal Line"
         CustLedgEntry.SetCurrentKey("Document No.");
         CustLedgEntry.SetRange("Document No.", AppliestoDocNo);
         CustLedgEntry.SetRange("Document Type", "Applies-to Doc. Type");
-        CustLedgEntry.SetRange("Bill No.", "Applies-to Bill No.");
         CustLedgEntry.SetRange("Customer No.", AccNo);
         CustLedgEntry.SetRange(Open, true);
         OnFindFirstCustLedgEntryWithAppliesToDocNoOnAfterSetFilters(Rec, AccNo, CustLedgEntry);
@@ -6779,7 +6722,6 @@ table 81 "Gen. Journal Line"
         VendLedgEntry.SetCurrentKey("Document No.");
         VendLedgEntry.SetRange("Document No.", AppliestoDocNo);
         VendLedgEntry.SetRange("Document Type", "Applies-to Doc. Type");
-        VendLedgEntry.SetRange("Bill No.", "Applies-to Bill No.");
         VendLedgEntry.SetRange("Vendor No.", AccNo);
         VendLedgEntry.SetRange(Open, true);
         OnFindFirstVendLedgEntryWithAppliesToDocNoOnAfterSetFilters(Rec, AccNo, VendLedgEntry);
@@ -12772,7 +12714,7 @@ table 81 "Gen. Journal Line"
     /// <param name="GenJournalLine">The current General Journal Line record for which the lookup is being performed.</param>
     /// <param name="IsHandled">A boolean variable that, if set to true, skips the default "Open" field filter setting.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnLookUpAppliesToDocCustOnBeforeCustLedgerEntrySetRangeOpen(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean)
+    local procedure OnLookUpAppliesToDocCustOnBeforeCustLedgerEntrySetRangeOpen(var GenJournalLine: Record "Gen. Journal Line"; var IsHandled: Boolean; var CustLedgEntry: Record "Cust. Ledger Entry")
     begin
     end;
 
@@ -12973,6 +12915,17 @@ table 81 "Gen. Journal Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetAccCurrencyCode(var GenJnlLine: Record "Gen. Journal Line"; var CurrencyCode: Code[10]; var IsHandled: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Raised after validating the payment terms code on the Gen. Journal Line.
+    /// </summary>
+    /// <param name="Rec">The Gen. Journal Line record.</param>
+    /// <param name="PaymentTerms">The Payment Terms record.</param>
+    /// <param name="IsHandled">Indicates whether the event has been handled.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnValidatePaymentTermsCodeOnElseCase(var Rec: Record "Gen. Journal Line"; var PaymentTerms: Record "Payment Terms"; var IsHandled: Boolean)
     begin
     end;
 }

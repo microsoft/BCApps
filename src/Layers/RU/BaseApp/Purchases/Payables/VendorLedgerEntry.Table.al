@@ -17,6 +17,7 @@ using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Intercompany.Partner;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Remittance;
@@ -590,6 +591,13 @@ table 25 "Vendor Ledger Entry"
         {
             Caption = 'Prepayment';
         }
+        field(91; "Payment Terms Code"; Code[10])
+        {
+            Caption = 'Payment Terms Code';
+            Editable = false;
+            TableRelation = "Payment Terms";
+            ToolTip = 'Specifies the payment terms that determine the due date and payment discount date for the entry.';
+        }
         field(95; "G/L Register No."; Integer)
         {
             Caption = 'G/L Register No.';
@@ -1089,6 +1097,22 @@ table 25 "Vendor Ledger Entry"
         exit('');
     end;
 
+    procedure SetAppliesToDocFilters(var GenJnlLine: Record "Gen. Journal Line")
+    begin
+        SetRange("Document Type", GenJnlLine."Applies-to Doc. Type");
+        SetRange("Document No.", GenJnlLine."Applies-to Doc. No.");
+
+        OnAfterSetAppliesToDocFilters(Rec, GenJnlLine);
+    end;
+
+    procedure ClearDocumentFilters()
+    begin
+        SetRange("Document Type");
+        SetRange("Document No.");
+
+        OnAfterClearDocumentFilters(Rec);
+    end;
+
     procedure CopyFromGenJnlLine(GenJnlLine: Record "Gen. Journal Line")
     begin
         "Vendor No." := GenJnlLine."Account No.";
@@ -1130,6 +1154,7 @@ table 25 "Vendor Ledger Entry"
         "Creditor No." := GenJnlLine."Creditor No.";
         "Payment Reference" := GenJnlLine."Payment Reference";
         "Payment Method Code" := GenJnlLine."Payment Method Code";
+        "Payment Terms Code" := GenJnlLine."Payment Terms Code";
         "Exported to Payment File" := GenJnlLine."Exported to Payment File";
         "Vendor VAT Invoice No." := GenJnlLine."Vendor VAT Invoice No.";
         "Vendor VAT Invoice Date" := GenJnlLine."Vendor VAT Invoice Date";
@@ -1373,6 +1398,16 @@ table 25 "Vendor Ledger Entry"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateAmountsForApplication(var VendorLedgerEntry: Record "Vendor Ledger Entry"; ApplnDate: Date; ApplnCurrencyCode: Code[10]; RoundAmounts: Boolean; UpdateMaxPaymentTolerance: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterSetAppliesToDocFilters(var Rec: Record "Vendor Ledger Entry"; var GenJnlLine: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterClearDocumentFilters(var Rec: Record "Vendor Ledger Entry")
     begin
     end;
 }

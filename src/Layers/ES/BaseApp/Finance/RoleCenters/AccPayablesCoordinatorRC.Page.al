@@ -153,45 +153,6 @@ page 9002 "Acc. Payables Coordinator RC"
             separator(Action63)
             {
             }
-            separator(Action1100008)
-            {
-            }
-            action("Vendor - Due Payments")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Vendor - Due Payments';
-                Image = "Report";
-                RunObject = Report "Vendor - Due Payments";
-                ToolTip = 'View a list of payments to be made to a particular vendor sorted by due date.';
-            }
-            group("Cartera Payment Order")
-            {
-                Caption = 'Cartera Payment Order';
-                action("Closed Payment Order Listing")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Closed Payment Order Listing';
-                    Image = "Report";
-                    RunObject = Report "Closed Payment Order Listing";
-                    ToolTip = 'View the list of completed payment orders.';
-                }
-                action("Posted Payment Order Listing")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Payment Order Listing';
-                    Image = "Report";
-                    RunObject = Report "Posted Payment Order Listing";
-                    ToolTip = 'View posted payment orders that represent payables to submit to the bank as a file for electronic payment.';
-                }
-                action("Payment Order Listing")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Payment Order Listing';
-                    Image = "Report";
-                    RunObject = Report "Payment Order Listing";
-                    ToolTip = 'View or edit payment orders that represent payables to submit to the bank as a file for electronic payment.';
-                }
-            }
         }
         area(embedding)
         {
@@ -233,13 +194,6 @@ page 9002 "Acc. Payables Coordinator RC"
                 Caption = 'Payment Orders List';
                 RunObject = Page "Payment Orders List";
                 ToolTip = 'View or edit payment orders that represent payables to submit to the bank as a file for electronic payment.';
-            }
-            action("Posted Payment Orders List")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Posted Payment Orders List';
-                RunObject = Page "Posted Payment Orders List";
-                ToolTip = 'View posted payment orders that represent payables to submit to the bank as a file for electronic payment.';
             }
             action("Purchase Return Orders")
             {
@@ -300,15 +254,6 @@ page 9002 "Acc. Payables Coordinator RC"
                                     Recurring = const(false));
                 ToolTip = 'Post financial transactions directly to general ledger accounts and other accounts, such as bank, customer, vendor, and employee accounts. Posting with a general journal always creates entries on general ledger accounts. This is true even when, for example, you post a journal line to a customer account, because an entry is posted to a general ledger receivables account through a posting group.';
             }
-            action("Cartera Journal")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Cartera Journal';
-                RunObject = Page "General Journal Batches";
-                RunPageView = where("Template Type" = const(Cartera),
-                                    Recurring = const(false));
-                ToolTip = 'Prepare to post entries for Cartera documents, which are bills and invoices for customers and vendors. There are two types of bills: receivable bills and payable bills. Receivable bills are sent to a customer to be credited after their due date arrives. Payable bills are sent to a customer from a vendor in order to receive payment when the due date arrives.';
-            }
         }
         area(sections)
         {
@@ -337,20 +282,6 @@ page 9002 "Acc. Payables Coordinator RC"
                     Caption = 'Posted Purchase Credit Memos';
                     RunObject = Page "Posted Purchase Credit Memos";
                     ToolTip = 'Open the list of posted purchase credit memos.';
-                }
-                action("Payable Closed Cartera Docs")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Payable Closed Cartera Docs';
-                    RunObject = Page "Payable Closed Cartera Docs";
-                    ToolTip = 'View the vendor bills and invoices that are in closed bill groups.';
-                }
-                action("Closed Payment Orders List")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Closed Payment Orders List';
-                    RunObject = Page "Closed Payment Orders List";
-                    ToolTip = 'View the list of completed payment orders.';
                 }
                 action("Posted Return Shipments")
                 {
@@ -414,6 +345,9 @@ page 9002 "Acc. Payables Coordinator RC"
                 RunObject = Page "Payment Orders";
                 ToolTip = 'Create a new payment order to submit payables as a file to the bank for electronic payment.';
             }
+        }
+        area(processing)
+        {
             separator(Tasks)
             {
                 Caption = 'Tasks';

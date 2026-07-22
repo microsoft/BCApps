@@ -7,7 +7,6 @@ namespace Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Reports;
-using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.Foundation.AuditCodes;
@@ -149,11 +148,6 @@ table 80 "Gen. Journal Template"
                         begin
                             "Source Code" := SourceCodeSetup."Job G/L Journal";
                             "Page ID" := PAGE::"Job G/L Journal";
-                        end;
-                    Type::Cartera:
-                        begin
-                            "Source Code" := SourceCodeSetup."Cartera Journal";
-                            "Page ID" := PAGE::"Cartera Journal";
                         end;
                 end;
 
