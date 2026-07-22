@@ -53,7 +53,7 @@ page 6411 "ForNAV Peppol Oauth API"
                     ApplicationArea = All;
                     ObsoleteState = Pending;
                     ObsoleteReason = 'No longer used. This field will be removed in a future version.';
-                    ObsoleteTag = '8.2.0.15';
+                    ObsoleteTag = '1.0';
                 }
                 field(hash; Hash)
                 {

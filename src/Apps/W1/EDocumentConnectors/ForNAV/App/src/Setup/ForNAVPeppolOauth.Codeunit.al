@@ -163,7 +163,7 @@ codeunit 6422 "ForNAV Peppol Oauth"
         exit(DefaultEndpointLbl);
     end;
 
-    local procedure ValidateSecretValidFrom(SecretValidFrom: DateTime)
+    internal procedure ValidateSecretValidFrom(SecretValidFrom: DateTime)
     begin
         if SecretValidFrom.Date = 0D then
             DeleteIsolatedStorage(SecretValidFromKeyLbl)
@@ -381,6 +381,9 @@ codeunit 6422 "ForNAV Peppol Oauth"
         DialogLbl: Label 'Request new client secret from the FORNAV Peppol Network. Please wait...';
         Dlg: Dialog;
     begin
+        if GetSecretValidFrom().Date > CalcDate('<-1w>', Today) then
+            exit(true);
+
         Dlg.Open(DialogLbl);
         HttpRequestMessage.SetRequestUri(GetPeppolSetupURL(GetEndpoint()) + RotateSecretLbl);
 

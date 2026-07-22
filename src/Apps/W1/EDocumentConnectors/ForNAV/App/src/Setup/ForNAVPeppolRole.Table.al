@@ -10,7 +10,7 @@ table 6411 "Fornav Peppol Role"
     Access = Internal;
     ObsoleteState = Pending;
     ObsoleteReason = 'Roles are no longer stored; role-based access is not used.';
-    ObsoleteTag = '1.0.0.0';
+    ObsoleteTag = '1.0';
 
     fields
     {

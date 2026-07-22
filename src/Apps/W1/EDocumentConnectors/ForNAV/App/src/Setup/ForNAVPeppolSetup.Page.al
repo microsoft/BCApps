@@ -27,7 +27,7 @@ page 6413 "ForNAV Peppol Setup"
     {
         area(Content)
         {
-            group(IdentificationGroup)
+            group(Identification)
             {
                 Caption = 'Identification', Locked = true;
                 Editable = PeppolSetupEditable;
@@ -120,7 +120,7 @@ page 6413 "ForNAV Peppol Setup"
                         PeppolOauth.ValidateClientID(ClientId);
                     end;
                 }
-                field(Endpoint; Rec."Endpoint")
+                field(PeppolEndpoint; Rec."Endpoint")
                 {
                     ToolTip = 'Specifies the Peppol Endpoint. You can get this from your ForNAV partner.';
                     ApplicationArea = All;
@@ -179,6 +179,10 @@ page 6413 "ForNAV Peppol Setup"
                     ToolTip = 'Specifies the Oauth Secret Valid From. The secret will renew automatically, if a secret is expired please contact your ForNAV partner.';
                     Visible = true;
                     Editable = ShowConnectionSetup;
+                    trigger OnValidate()
+                    begin
+                        PeppolOauth.ValidateSecretValidFrom(SecretValidFrom);
+                    end;
                 }
                 field(SecretValidTo; SecretValidTo)
                 {
@@ -226,7 +230,7 @@ page 6413 "ForNAV Peppol Setup"
                 begin
                     Page.RunModal(Page::"ForNAV Peppol Setup Wizard", Rec);
                     Rec.FindFirst();
-                    if Rec.TestAuthorized() then begin
+                    if Rec.IsAuthorized() then begin
                         SMP.ParticipantExists(Rec);
                         ShowNotification();
                     end;
@@ -355,7 +359,7 @@ page 6413 "ForNAV Peppol Setup"
                 Image = Permission;
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Roles are no longer stored; role-based access is not used.';
-                ObsoleteTag = '1.0.0.10';
+                ObsoleteTag = '1.0';
                 Caption = 'Roles';
                 ToolTip = 'Setup the roles for the ForNAV Peppol setup.';
                 RunObject = page "ForNAV Peppol Roles";
@@ -532,7 +536,7 @@ page 6413 "ForNAV Peppol Setup"
         EnvironmentInformation: Codeunit "Environment Information";
     begin
         ShowConnectionSetup := not EnvironmentInformation.IsSaaSInfrastructure();
-        IsAuthorized := Rec.TestAuthorized();
+        IsAuthorized := Rec.IsAuthorized();
         EnableUnauthorize := IsAuthorized or (Rec."Oauth Setup Request Sent" <> 0D);
         PeppolSetupEditable := Rec.Status <> Rec.Status::Published;
         InstallationId := PeppolOauth.GetInstallationId();

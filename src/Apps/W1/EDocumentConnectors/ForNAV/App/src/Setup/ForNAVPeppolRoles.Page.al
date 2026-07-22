@@ -15,7 +15,7 @@ page 6412 "ForNAV Peppol Roles"
     Extensible = false;
     ObsoleteState = Pending;
     ObsoleteReason = 'Roles are no longer stored; role-based access is not used.';
-    ObsoleteTag = '1.0.0.0';
+    ObsoleteTag = '1.0';
 
     layout
     {

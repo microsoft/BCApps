@@ -102,7 +102,7 @@ codeunit 6424 "ForNAV Peppol Setup"
         end else begin
             InitLicens();
             Setup.InitSetup();
-            if Setup.TestAuthorized() then
+            if Setup.IsAuthorized() then
                 SMP.ParticipantExists(Setup);
             InitCalled := true;
         end;

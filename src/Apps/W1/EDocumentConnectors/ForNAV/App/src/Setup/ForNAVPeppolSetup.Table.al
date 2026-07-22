@@ -537,12 +537,13 @@ table 6414 "ForNAV Peppol Setup"
     local procedure ValidateTest()
     var
         EnvironmentInformation: Codeunit "Environment Information";
+        CannotClearErr: Label 'The test checkbox can only be cleared in a production environment.';
     begin
         if test then
             exit;
 
         if EnvironmentInformation.IsSandbox() then
-            Error('The test checkbox can only be cleared in a production environment.');
+            Error(CannotClearErr);
     end;
 
     internal procedure IsTest(): Boolean
@@ -563,7 +564,7 @@ table 6414 "ForNAV Peppol Setup"
         BusinessEntityObject.Add('GeographicalInformation', Address);
     end;
 
-    procedure TestAuthorized(): Boolean
+    procedure IsAuthorized(): Boolean
     var
         PeppolOauth: Codeunit "ForNAV Peppol Oauth";
         SecretValidTo: DateTime;
