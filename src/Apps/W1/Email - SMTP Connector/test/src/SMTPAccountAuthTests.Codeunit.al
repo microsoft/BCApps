@@ -1310,7 +1310,10 @@ codeunit 139762 "SMTP Account Auth Tests"
         AzureADAppSetup: Record "Azure AD App Setup";
         DummyKey: Text;
     begin
-        AzureADMgtSetup.Get();
+        if not AzureADMgtSetup.Get() then begin
+            AzureADMgtSetup.Init();
+            AzureADMgtSetup.Insert();
+        end;
         AzureADMgtSetup."Auth Flow Codeunit ID" := ProviderCodeunit;
         AzureADMgtSetup.Modify();
 
