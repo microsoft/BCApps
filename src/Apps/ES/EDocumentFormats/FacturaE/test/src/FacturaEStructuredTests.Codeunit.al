@@ -112,6 +112,7 @@ codeunit 148002 "Factura-E Structured Tests"
         EDocument: Record "E-Document";
         PurchaseHeader: Record "Purchase Header";
         Item: Record Item;
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
         EDocImportParameters: Record "E-Doc. Import Parameters";
         EDocImport: Codeunit "E-Doc. Import";
         EDocumentProcessing: Codeunit "E-Document Processing";
@@ -142,9 +143,15 @@ codeunit 148002 "Factura-E Structured Tests"
         EDocPurchaseDraft.Lines.First();
         EDocPurchaseDraft.Lines."Line Type".SetValue("Purchase Line Type"::Item);
         EDocPurchaseDraft.Lines."No.".SetValue(Item."No.");
-        // Clear the item reference that Prepare Draft matched from the product code, so the manual assignment is not overwritten on Finish Draft
-        EDocPurchaseDraft.Lines."Item Reference No.".SetValue('');
         EDocPurchaseDraft.Lines.Next();
+        EDocPurchaseDraft.Close();
+
+        // Prepare Draft matched the line to an item via the product code's item reference.
+        // Clear that reference so the manual item assignment is not overwritten on Finish Draft.
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocumentPurchaseLine.FindFirst();
+        EDocumentPurchaseLine."[BC] Item Reference No." := '';
+        EDocumentPurchaseLine.Modify();
 
         // [WHEN] The processing is completed to finish draft step
         EDocImportParameters."Step to Run" := "Import E-Document Steps"::"Finish draft";
