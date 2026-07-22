@@ -14,6 +14,8 @@ codeunit 134306 "Copy Workflow Tests"
         AmountCondXmlTemplateTxt: Label '<?xml version="1.0" standalone="yes"?><ReportParameters name="Purch. Inv. Event Conditions" id="1502"><DataItems><DataItem name="Purchase Header">SORTING(Document Type,No.) WHERE(Amount=FILTER(%1))</DataItem><DataItem name="Purchase Line">SORTING(Document Type,Document No.,Line No.)</DataItem></DataItems></ReportParameters>', Locked = true;
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        ResetTemplatesConfirmQst: Label 'delete and recreate all Microsoft workflow templates', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -351,7 +353,7 @@ codeunit 134306 "Copy Workflow Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandlerYes')]
+    [HandlerFunctions('ConfirmHandler')]
     [Scope('OnPrem')]
     procedure TestResetTemplatesKeepsStepsOfWorkflowCreatedFromTemplate()
     var
@@ -379,6 +381,8 @@ codeunit 134306 "Copy Workflow Tests"
         CreateTwoStepWorkflowWithCode(WorkflowFromTemplate, WorkflowFromTemplateCode);
 
         // [WHEN] The user runs Reset Microsoft Templates and confirms.
+        LibraryVariableStorage.Enqueue(ResetTemplatesConfirmQst);
+        LibraryVariableStorage.Enqueue(true);
         WorkflowTemplatesPage.OpenView();
         WorkflowTemplatesPage."Reset Templates".Invoke();
 
@@ -386,10 +390,11 @@ codeunit 134306 "Copy Workflow Tests"
         Assert.IsTrue(WorkflowFromTemplate.Get(WorkflowFromTemplateCode), 'The workflow created from the template must not be deleted.');
         WorkflowStep.SetRange("Workflow Code", WorkflowFromTemplateCode);
         Assert.IsFalse(WorkflowStep.IsEmpty(), 'The steps of the workflow created from the template must not be deleted.');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandlerNo')]
+    [HandlerFunctions('ConfirmHandler')]
     [Scope('OnPrem')]
     procedure TestResetTemplatesIsSkippedWhenConfirmationDeclined()
     var
@@ -409,15 +414,19 @@ codeunit 134306 "Copy Workflow Tests"
         TemplateWorkflow.Modify(true);
 
         // [WHEN] The user runs Reset Microsoft Templates but declines the confirmation.
+        LibraryVariableStorage.Enqueue(ResetTemplatesConfirmQst);
+        LibraryVariableStorage.Enqueue(false);
         WorkflowTemplatesPage.OpenView();
         WorkflowTemplatesPage."Reset Templates".Invoke();
 
         // [THEN] Nothing is reset: the template still exists.
         Assert.IsTrue(TemplateWorkflow.Get(TemplateCode), 'The templates must not be reset when the confirmation is declined.');
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
     begin
+        LibraryVariableStorage.Clear();
         LibraryWorkflow.DeleteAllExistingWorkflows();
     end;
 
@@ -531,15 +540,10 @@ codeunit 134306 "Copy Workflow Tests"
     end;
 
     [ConfirmHandler]
-    procedure ConfirmHandlerYes(Question: Text[1024]; var Reply: Boolean)
+    procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
-        Reply := true;
-    end;
-
-    [ConfirmHandler]
-    procedure ConfirmHandlerNo(Question: Text[1024]; var Reply: Boolean)
-    begin
-        Reply := false;
+        Assert.ExpectedConfirm(LibraryVariableStorage.DequeueText(), Question);
+        Reply := LibraryVariableStorage.DequeueBoolean();
     end;
 }
 
