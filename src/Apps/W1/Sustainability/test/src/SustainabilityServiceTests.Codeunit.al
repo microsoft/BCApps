@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Sustainability.Tests;
 
+using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
@@ -14,6 +16,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Service.Document;
 using Microsoft.Service.History;
 using Microsoft.Service.Item;
+using Microsoft.Service.Setup;
 using Microsoft.Service.Test;
 using Microsoft.Sustainability.Account;
 using Microsoft.Sustainability.Emission;
@@ -2740,12 +2743,39 @@ codeunit 148218 "Sustainability Service Tests"
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.UpdateLocalData();
         LibraryERMCountryData.RemoveBlankGenJournalTemplate();
+        SetupServiceMgtInvoiceTemplate();
         LibrarySales.SetExtDocNo(false);
 
         LibraryERMCountryData.CompanyInfoSetVATRegistrationNo();
         IsInitialized := true;
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"Sustainability Service Tests");
+    end;
+
+    local procedure SetupServiceMgtInvoiceTemplate()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        GenJournalTemplate: Record "Gen. Journal Template";
+        ServiceMgtSetup: Record "Service Mgt. Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        if not GeneralLedgerSetup."Journal Templ. Name Mandatory" then
+            exit;
+
+        ServiceMgtSetup.Get();
+        if (ServiceMgtSetup."Serv. Inv. Template Name" <> '') and (ServiceMgtSetup."Serv. Cr. Memo Templ. Name" <> '') then
+            exit;
+
+        LibraryERM.CreateGenJournalTemplate(GenJournalTemplate);
+        GenJournalTemplate.Validate(Type, GenJournalTemplate.Type::Sales);
+        GenJournalTemplate.Validate("Posting No. Series", LibraryUtility.GetGlobalNoSeriesCode());
+        GenJournalTemplate.Modify(true);
+
+        if ServiceMgtSetup."Serv. Inv. Template Name" = '' then
+            ServiceMgtSetup.Validate("Serv. Inv. Template Name", GenJournalTemplate.Name);
+        if ServiceMgtSetup."Serv. Cr. Memo Templ. Name" = '' then
+            ServiceMgtSetup.Validate("Serv. Cr. Memo Templ. Name", GenJournalTemplate.Name);
+        ServiceMgtSetup.Modify(true);
     end;
 
     local procedure CreateSustainabilityAccount(var AccountCode: Code[20]; var CategoryCode: Code[20]; var SubcategoryCode: Code[20]; i: Integer): Record "Sustainability Account"
