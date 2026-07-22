@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.VAT.Ledger;
 
-tableextension 13421 "VAT Entry FI" extends "VAT Entry"
+tableextension 13413 "VAT Entry FI" extends "VAT Entry"
 {
     keys
     {
