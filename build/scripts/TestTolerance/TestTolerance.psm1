@@ -1080,7 +1080,8 @@ function Add-FailedTestsToUnstableTests {
 .Synopsis
     Correlation core: selects tests that failed across multiple distinct PRs.
 .Description
-    Pure, side-effect-free heuristic behind the cross-PR PR-build detector. Given a set of per-PR-build
+    Deterministic, unit-tested heuristic behind the cross-PR PR-build detector (its only side effect is
+    progress logging via Write-Host; it performs no file or network I/O). Given a set of per-PR-build
     observations (each carrying the PR number and the failing tests parsed from that build), it counts
     how many *distinct* PRs each test failed on and returns the tests that meet the minimum distinct-PR
     threshold.
