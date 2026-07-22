@@ -20,7 +20,7 @@ codeunit 7000129 "SII VAT Subscribers"
         VATEntry."Do Not Send To SII" := GenJournalLine."Do Not Send To SII";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"VAT Posting Setup", 'OnAfterValidateEvent', 'VAT Calculation Type', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"VAT Posting Setup", 'OnAfterValidateEvent', 'VAT Calculation Type', true, false)]
     local procedure OnAfterValidate(var Rec: Record "VAT Posting Setup")
     begin
         Rec."One Stop Shop Reporting" := false;
@@ -32,19 +32,19 @@ codeunit 7000129 "SII VAT Subscribers"
         Rec.SetRange("Ignore In SII", NoTaxableEntry."Ignore In SII");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterValidateEvent', 'Account Type', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterValidateEvent', 'Account Type', true, false)]
     local procedure GenJournalLineOnAfterValidateAccountType(var Rec: Record "Gen. Journal Line")
     begin
         Rec.ClearInvCrMemoTypeFields();
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterValidateEvent', 'Account No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterValidateEvent', 'Account No.', true, false)]
     local procedure GenJournalLineOnAfterValidateAccountNo(var Rec: Record "Gen. Journal Line")
     begin
         Rec.ClearInvCrMemoTypeFields();
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterValidateEvent', 'Bal. Account Type', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", 'OnAfterValidateEvent', 'Bal. Account Type', true, false)]
     local procedure GenJournalLineOnAfterValidateBalAccountType(var Rec: Record "Gen. Journal Line")
     begin
         Rec.ClearInvCrMemoTypeFields();

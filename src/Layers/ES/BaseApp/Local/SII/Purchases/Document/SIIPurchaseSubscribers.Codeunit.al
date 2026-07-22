@@ -17,7 +17,8 @@ codeunit 7000126 "SII Purchase Subscribers"
     var
         SIIDuplicateExtDocNoTxt: Label 'A posted %1 with external document number %2 already exists for vendor %3. Because SII is enabled, the Spanish Tax Authority may reject this document as a duplicate (Factura Duplicada).', Comment = '%1 = Vendor Ledger Entry Document Type; %2 = External Document No.; %3 = Vendor No.';
         ShowSIIDuplicateVendLedgEntryTxt: Label 'Show the posted document';
-    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnAfterValidateEvent', 'Pay-to Vendor No.', false, false)]
+
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnAfterValidateEvent', 'Pay-to Vendor No.', true, false)]
     local procedure PurchHeaderOnAfterValidatePayToVendorNo(var Rec: Record "Purchase Header")
     var
         SIIManagement: Codeunit "SII Management";
@@ -34,7 +35,7 @@ codeunit 7000126 "SII Purchase Subscribers"
         SIIManagement.UpdateSIIInfoInPurchDoc(PurchHeader);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'VAT Prod. Posting Group', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Line", 'OnAfterValidateEvent', 'VAT Prod. Posting Group', true, false)]
     local procedure PurchLineOnAfterValidateVATProdPostingGroup(var Rec: Record "Purchase Line")
     var
         SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
@@ -42,13 +43,13 @@ codeunit 7000126 "SII Purchase Subscribers"
         SIISchemeCodeMgt.UpdatePurchSpecialSchemeCodeInPurchLine(Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnAfterValidateEvent', 'Vendor Invoice No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnAfterValidateEvent', 'Vendor Invoice No.', true, false)]
     local procedure PurchHeaderOnAfterValidateVendorInvoiceNo(var Rec: Record "Purchase Header")
     begin
         NotifyIfSIIDuplicateExternalDocNo(Rec, Rec."Vendor Invoice No.");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnAfterValidateEvent', 'Vendor Cr. Memo No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Purchase Header", 'OnAfterValidateEvent', 'Vendor Cr. Memo No.', true, false)]
     local procedure PurchHeaderOnAfterValidateVendorCrMemoNo(var Rec: Record "Purchase Header")
     begin
         NotifyIfSIIDuplicateExternalDocNo(Rec, Rec."Vendor Cr. Memo No.");

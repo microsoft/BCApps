@@ -38,7 +38,7 @@ codeunit 7000127 "SII Sales Subscribers"
         SIIManagement.UpdateSIIInfoInSalesDoc(SalesHeader);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnAfterValidateEvent', 'VAT Prod. Posting Group', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Sales Line", 'OnAfterValidateEvent', 'VAT Prod. Posting Group', true, false)]
     local procedure SalesLineOnAfterValidateVATProdPostingGroup(var Rec: Record "Sales Line")
     var
         SIISchemeCodeMgt: Codeunit "SII Scheme Code Mgt.";
