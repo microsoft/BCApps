@@ -26,6 +26,7 @@ codeunit 134344 "Document Totals Pages"
         WrongDecimalErr: Label 'Wrong count of decimals', Locked = true;
         InvoiceDiscountPerRoundingMsg: Label 'The system has recalculated the discount percentage to align with the rounded discount amount.';
         VATAmountErr: Label '%1 should be equal to %2', Comment = '%1 - VAT Amount Field, %2 - VAT Amount Field';
+        LineDescriptionRevertedErr: Label 'The line Description should be retained after editing.';
 
     [Test]
     [HandlerFunctions('ChangeExchangeRateMPH')]
@@ -2152,6 +2153,43 @@ codeunit 134344 "Document Totals Pages"
         Assert.AreEqual(
           ExpectedTotalInclVAT, SalesOrder.SalesLines."Total Amount Incl. VAT".AsDecimal(),
           VATAmountErr);
+    end;
+
+    [Test]
+    procedure SalesOrderLineDescriptionRetainedAfterQtyValidationWithCalcInvDiscount()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesSetup: Record "Sales & Receivables Setup";
+        NewDescription: Text[100];
+        SalesOrder: TestPage "Sales Order";
+    begin
+        // [FEATURE] [Sales] [Order]
+        // [SCENARIO 638838] The line Description edited after validating Quantity is retained when "Calc. Inv. Discount" is enabled.
+        Initialize();
+
+        // [GIVEN] "Calc. Inv. Discount" is enabled in Sales & Receivables Setup.
+        SalesSetup.Get();
+        SalesSetup.Validate("Calc. Inv. Discount", true);
+        SalesSetup.Modify(true);
+
+        // [GIVEN] Create a Sales Order for a customer with an invoice discount and one item line.
+        CreateSalesDocumentWithCustInvDisc(SalesHeader, SalesLine, SalesHeader."Document Type"::Order);
+        Commit();
+
+        // [GIVEN] The Sales Order page is open on the line.
+        SalesOrder.OpenEdit();
+        SalesOrder.Filter.SetFilter("No.", SalesHeader."No.");
+
+        // [GIVEN] The Quantity is validated, which triggers an invoice discount recalculation for the line.
+        SalesOrder.SalesLines.Quantity.SetValue(LibraryRandom.RandIntInRange(2, 5));
+
+        // [WHEN] The line Description is changed to a custom value.
+        NewDescription := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(NewDescription));
+        SalesOrder.SalesLines.Description.SetValue(NewDescription);
+
+        // [THEN] Verify the custom Description is retained and not reverted to the original item description.
+        Assert.AreEqual(NewDescription, SalesOrder.SalesLines.Description.Value(), LineDescriptionRevertedErr);
     end;
 
     local procedure Initialize()
