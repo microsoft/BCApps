@@ -11,6 +11,8 @@ namespace System.Privacy;
 codeunit 1563 "Privacy Notice"
 {
     Access = Public;
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     /// <summary>
     /// Creates a privacy notice.
