@@ -306,7 +306,9 @@ report 11000015 "SEPA ISO20022 Pain 008.001.08"
         AddElement(XMLNodeCurr, 'Nm', CompanyInfo.Name, '', XMLNewChild);
         AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
-        StreetName := CopyStr(DelChr(CompanyInfo.Address, '<>') + ' ' + DelChr(CompanyInfo."Address 2", '<>'), 1, MaxStrLen(StreetName));
+        StreetName := CopyStr(DelChr(CompanyInfo.Address, '<>'), 1, MaxStrLen(StreetName));
+        if CompanyInfo."Address 2" <> '' then
+            StreetName := CopyStr(StreetName + ' ' + DelChr(CompanyInfo."Address 2", '<>'), 1, MaxStrLen(StreetName));
         PostalCode := CopyStr(DelChr(CompanyInfo."Post Code", '<>'), 1, MaxStrLen(PostalCode));
         TownName := CopyStr(DelChr(CompanyInfo.City, '<>'), 1, MaxStrLen(TownName));
         if StreetName <> '' then
@@ -409,9 +411,9 @@ report 11000015 "SEPA ISO20022 Pain 008.001.08"
             AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
             XMLNodeCurr := XMLNewChild;
 
-            StreetName := CopyStr(PaymentHistoryLine."Account Holder Address", 1, MaxStrLen(StreetName));
-            PostalCode := CopyStr(PaymentHistoryLine."Account Holder Post Code", 1, MaxStrLen(PostalCode));
-            TownName := CopyStr(PaymentHistoryLine."Account Holder City", 1, MaxStrLen(TownName));
+            StreetName := CopyStr(DelChr(PaymentHistoryLine."Account Holder Address", '<>'), 1, MaxStrLen(StreetName));
+            PostalCode := CopyStr(DelChr(PaymentHistoryLine."Account Holder Post Code", '<>'), 1, MaxStrLen(PostalCode));
+            TownName := CopyStr(DelChr(PaymentHistoryLine."Account Holder City", '<>'), 1, MaxStrLen(TownName));
 
             if StreetName <> '' then
                 AddElement(XMLNodeCurr, 'StrtNm', StreetName, '', XMLNewChild);
@@ -442,7 +444,9 @@ report 11000015 "SEPA ISO20022 Pain 008.001.08"
         AddElement(XMLNodeCurr, 'Nm', Customer.Name, '', XMLNewChild);
         AddElement(XMLNodeCurr, 'PstlAdr', '', '', XMLNewChild);
         XMLNodeCurr := XMLNewChild;
-        StreetName := CopyStr(DelChr(Customer.Address, '<>') + ' ' + DelChr(Customer."Address 2", '<>'), 1, MaxStrLen(StreetName));
+        StreetName := CopyStr(DelChr(Customer.Address, '<>'), 1, MaxStrLen(StreetName));
+        if Customer."Address 2" <> '' then
+            StreetName := CopyStr(StreetName + ' ' + DelChr(Customer."Address 2", '<>'), 1, MaxStrLen(StreetName));
         PostalCode := CopyStr(DelChr(Customer."Post Code", '<>'), 1, MaxStrLen(PostalCode));
         TownName := CopyStr(DelChr(Customer.City, '<>'), 1, MaxStrLen(TownName));
         if StreetName <> '' then

@@ -60,6 +60,7 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         CancelTok: Label 'Cancelled';
         RejectTok: Label 'Rejected';
         WrongSymbolFoundErr: Label 'Wrong symbol found';
+        CustomerAddressLbl: Label 'Test Street 1', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -1151,6 +1152,7 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         Customer.Validate("Transaction Mode Code", TransactionModeCode);
         Customer.Validate("Partner Type", PartnerType);
         Customer.Validate("Preferred Bank Account Code", CustomerBankAccount.Code);
+        Customer.Validate(Address, CopyStr(CustomerAddressLbl, 1, MaxStrLen(Customer.Address)));
         Customer.Modify(true);
 
         CustomerBankAccount.Validate(Name, BankAccount.Name);
@@ -1744,7 +1746,7 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
           DelChr(CopyStr(PaymentHistoryLine.IBAN, 1, 34)));
 
         XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:UltmtDbtr/ns:Nm', Customer.Name);
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:UltmtDbtr/ns:PstlAdr/ns:StrtNm', CopyStr(DelChr(Customer.Address, '<>') + ' ' + DelChr(Customer."Address 2", '<>'), 1, 70));
+        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:UltmtDbtr/ns:PstlAdr/ns:StrtNm', CustomerAddressLbl);
         XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:UltmtDbtr/ns:PstlAdr/ns:PstCd', Customer."Post Code");
         XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:UltmtDbtr/ns:PstlAdr/ns:TwnNm', Customer.City);
 
