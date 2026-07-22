@@ -224,7 +224,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
                 GuiAllowed()
             then
                 if NoOfMarkedPurchaseOrders > 1 then
-                    Page.Run(Page::"Purchase Order List", CreatedPurchaseHeader)
+                    PageManagement.PageRunList(CreatedPurchaseHeader)
                 else
                     if CreatedPurchaseHeader.FindFirst() then
                         PageManagement.PageRun(CreatedPurchaseHeader);
