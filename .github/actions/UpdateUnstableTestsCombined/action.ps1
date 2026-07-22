@@ -29,13 +29,13 @@ $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 Set-StrictMode -Version 2.0
 
-$scriptsRoot = Join-Path $PSScriptRoot '..' '..' '..' 'build' 'scripts' 'TestTolerance'
-Import-Module (Join-Path $scriptsRoot 'TestTolerance.psm1') -Force
+$scriptsRoot = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath '..', '..', 'build', 'scripts', 'TestTolerance'
+Import-Module (Join-Path -Path $scriptsRoot -ChildPath 'TestTolerance.psm1') -Force
 
-$outputPath = Join-Path '.unstable-tests' 'unstable-tests.json'
+$outputPath = Join-Path -Path '.unstable-tests' -ChildPath 'unstable-tests.json'
 
 try {
-    & (Join-Path $scriptsRoot 'UpdateUnstableTestsCombined.ps1') `
+    & (Join-Path -Path $scriptsRoot -ChildPath 'UpdateUnstableTestsCombined.ps1') `
         -Branch $Branch `
         -RunLimit $RunLimit `
         -FilterPush:$FilterPush `

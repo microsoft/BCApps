@@ -2,12 +2,12 @@ Describe "TestTolerance" {
     BeforeAll {
         Import-Module "$PSScriptRoot\TestTolerance.psm1" -Force
 
-        $script:tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("TestTolerance-Tests-" + [System.Guid]::NewGuid().ToString('N'))
+        $script:tempRoot = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("TestTolerance-Tests-" + [System.Guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $script:tempRoot -Force | Out-Null
 
         function New-TempFile {
             param([string] $Name, [string] $Content)
-            $path = Join-Path $script:tempRoot $Name
+            $path = Join-Path -Path $script:tempRoot -ChildPath $Name
             Set-Content -Path $path -Value $Content -Encoding UTF8
             return $path
         }
@@ -55,7 +55,7 @@ Describe "TestTolerance" {
 
     Context "Read-UnstableTestsList" {
         It "returns empty hashtable when file does not exist" {
-            $result = Read-UnstableTestsList -Path (Join-Path $script:tempRoot 'does-not-exist.json')
+            $result = Read-UnstableTestsList -Path (Join-Path -Path $script:tempRoot -ChildPath 'does-not-exist.json')
             $result | Should -BeOfType [hashtable]
             $result.Count | Should -Be 0
         }
@@ -269,12 +269,12 @@ Describe "TestTolerance" {
         }
 
         It "returns false when unstable tests file does not exist" {
-            Test-ShouldTolerateFailures -TestResultsPath 'any' -UnstableTestsPath (Join-Path $script:tempRoot 'no-file.json') | Should -BeFalse
+            Test-ShouldTolerateFailures -TestResultsPath 'any' -UnstableTestsPath (Join-Path -Path $script:tempRoot -ChildPath 'no-file.json') | Should -BeFalse
         }
 
         It "returns false when test results file does not exist" {
             $unstablePath = New-TempFile -Name 'unstable-for-tolerate.json' -Content '{"tests":[{"extensionId":"ext1","codeunitId":300,"codeunitName":"A","testMethod":"T1"}]}'
-            Test-ShouldTolerateFailures -TestResultsPath (Join-Path $script:tempRoot 'no-results.xml') -UnstableTestsPath $unstablePath | Should -BeFalse
+            Test-ShouldTolerateFailures -TestResultsPath (Join-Path -Path $script:tempRoot -ChildPath 'no-results.xml') -UnstableTestsPath $unstablePath | Should -BeFalse
         }
 
         It "returns false when unstable list is empty" {
@@ -642,7 +642,7 @@ Describe "TestTolerance" {
 
     Context "Save-UnstableTestsArtifact" {
         BeforeEach {
-            $script:outFile = Join-Path ([System.IO.Path]::GetTempPath()) ("ut-save-" + [System.Guid]::NewGuid().ToString('N') + ".json")
+            $script:outFile = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("ut-save-" + [System.Guid]::NewGuid().ToString('N') + ".json")
         }
         AfterEach {
             if ($script:outFile -and (Test-Path $script:outFile)) { Remove-Item $script:outFile -Force -ErrorAction SilentlyContinue }

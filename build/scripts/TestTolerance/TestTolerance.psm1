@@ -613,7 +613,7 @@ function Receive-UnstableTestsArtifact {
             New-Item -ItemType Directory -Path $OutputDirectory -Force | Out-Null
         }
 
-        $zipPath = Join-Path $OutputDirectory 'unstable-tests.zip'
+        $zipPath = Join-Path -Path $OutputDirectory -ChildPath 'unstable-tests.zip'
         Invoke-WebRequest -Uri "https://api.github.com/repos/$repo/actions/artifacts/$($artifact.id)/zip" `
             -Headers $headers `
             -OutFile $zipPath
@@ -621,7 +621,7 @@ function Receive-UnstableTestsArtifact {
         Expand-Archive -Path $zipPath -DestinationPath $OutputDirectory -Force
         Remove-Item -Path $zipPath -Force -ErrorAction SilentlyContinue
 
-        $jsonPath = Join-Path $OutputDirectory 'unstable-tests.json'
+        $jsonPath = Join-Path -Path $OutputDirectory -ChildPath 'unstable-tests.json'
         if (Test-Path $jsonPath) {
             Write-Host "Unstable tests artifact downloaded to '$jsonPath'."
             return $jsonPath
@@ -788,7 +788,7 @@ function Get-FailedTestsFromRuns {
 
     $allFailed = @{}
     foreach ($runId in $RunIds) {
-        $runDir = Join-Path $WorkDirectory "run-$runId"
+        $runDir = Join-Path -Path $WorkDirectory -ChildPath "run-$runId"
 
         Write-Host "Downloading test result artifacts from run $runId in '$Repository' ..."
         gh run download $runId --repo $Repository --dir $runDir --pattern '*TestResult*' 2>&1 | ForEach-Object { Write-Host $_ }
@@ -1166,8 +1166,8 @@ function Get-RunFailedTestsAllAttempts {
         if ([string]::IsNullOrWhiteSpace($artId)) { continue }
         if ($artName -match 'BcptTestResults|PageScriptingTestResult') { continue }
 
-        $zipPath = Join-Path $WorkDirectory "artifact-$artId.zip"
-        $extractDir = Join-Path $WorkDirectory "artifact-$artId"
+        $zipPath = Join-Path -Path $WorkDirectory -ChildPath "artifact-$artId.zip"
+        $extractDir = Join-Path -Path $WorkDirectory -ChildPath "artifact-$artId"
         if (-not (Save-GitHubArtifactZip -Repository $Repository -ArtifactId $artId -OutFile $zipPath)) {
             Write-Host "::warning::Could not download artifact '$artName' (id $artId) from run $RunId; skipping."
             continue
@@ -1402,7 +1402,7 @@ function Find-CrossPrUnstableTests {
         $processed++
         $runId = [string]$run.id
         $runAttempt = if ($run.PSObject.Properties['runAttempt'] -and $run.runAttempt) { [int]$run.runAttempt } else { 1 }
-        $runDir = Join-Path $WorkDirectory "run-$runId"
+        $runDir = Join-Path -Path $WorkDirectory -ChildPath "run-$runId"
         $attemptText = if ($runAttempt -gt 1) { "$runAttempt attempts" } else { '1 attempt' }
         $statusText = if ($runType -eq 'failed') { 'completed/failed' } else { 'in progress' }
         Write-Host "Downloading test results from PR #$prNumber build (run $runId, $statusText, $attemptText) ..."

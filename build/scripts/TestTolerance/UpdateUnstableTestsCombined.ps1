@@ -60,14 +60,14 @@ param(
 
     [int] $MinDistinctPrs = 2,
 
-    [string] $OutputPath = (Join-Path '.unstable-tests' 'unstable-tests.json')
+    [string] $OutputPath = (Join-Path -Path '.unstable-tests' -ChildPath 'unstable-tests.json')
 )
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 Set-StrictMode -Version 2.0
 
-Import-Module (Join-Path $PSScriptRoot 'TestTolerance.psm1') -Force
+Import-Module (Join-Path -Path $PSScriptRoot -ChildPath 'TestTolerance.psm1') -Force
 
 if (-not (Test-IsToleranceSupportedBranch -Branch $Branch)) {
     throw "Branch '$Branch' is not supported by the test tolerance feature."
@@ -75,9 +75,9 @@ if (-not (Test-IsToleranceSupportedBranch -Branch $Branch)) {
 
 $repo = $env:GITHUB_REPOSITORY
 
-$existingDir = Join-Path ([System.IO.Path]::GetTempPath()) "unstable-existing-$([System.Guid]::NewGuid().ToString('N'))"
-$cicdWorkDir = Join-Path ([System.IO.Path]::GetTempPath()) "unstable-cicd-$([System.Guid]::NewGuid().ToString('N'))"
-$prWorkDir = Join-Path ([System.IO.Path]::GetTempPath()) "unstable-prbuild-$([System.Guid]::NewGuid().ToString('N'))"
+$existingDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath "unstable-existing-$([System.Guid]::NewGuid().ToString('N'))"
+$cicdWorkDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath "unstable-cicd-$([System.Guid]::NewGuid().ToString('N'))"
+$prWorkDir = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath "unstable-prbuild-$([System.Guid]::NewGuid().ToString('N'))"
 New-Item -ItemType Directory -Path $cicdWorkDir -Force | Out-Null
 New-Item -ItemType Directory -Path $prWorkDir -Force | Out-Null
 
