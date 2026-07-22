@@ -201,19 +201,26 @@ codeunit 3307 "Payables Agent Setup"
     procedure GetAgent(var Agent: Record Agent): Boolean
     var
         PayablesAgentSetup: Record "Payables Agent Setup";
+        SetupChanged: Boolean;
     begin
         PayablesAgentSetup.GetSetup();
         // We attempt to find the agent by the security id stored in the setup record.
         if Agent.Get(PayablesAgentSetup."User Security Id") then
             exit(true);
         // If the agent could not be found, and there was a user security id configured, we need to clear it, since it is not valid anymore.
-        if not IsNullGuid(PayablesAgentSetup."User Security Id") then
+        if not IsNullGuid(PayablesAgentSetup."User Security Id") then begin
             Clear(PayablesAgentSetup."User Security Id");
+            SetupChanged := true;
+        end;
         // If the agent could not be found from the configured security id, we attempt to find it by the user name.
         Agent.SetRange("User Name", AgentUserName());
-        if Agent.FindFirst() then
+        if Agent.FindFirst() then begin
             PayablesAgentSetup."User Security Id" := Agent."User Security ID";
-        PayablesAgentSetup.Modify();
+            SetupChanged := true;
+        end;
+        // Only persist when the setup record actually changed.
+        if SetupChanged then
+            PayablesAgentSetup.Modify();
         exit(not IsNullGuid(Agent."User Security ID"));
     end;
 
