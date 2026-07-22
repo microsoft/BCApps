@@ -10,6 +10,7 @@ table 10971 "FR E-Invoice Lifecycle VAT"
 {
     Caption = 'FR E-Invoice Lifecycle VAT';
     DataClassification = CustomerContent;
+    InherentPermissions = X;
     ReplicateData = false;
 
     fields
@@ -19,17 +20,20 @@ table 10971 "FR E-Invoice Lifecycle VAT"
             Caption = 'Lifecycle Entry No.';
             DataClassification = SystemMetadata;
             TableRelation = "FR E-Invoice Lifecycle"."Entry No.";
+            ToolTip = 'Specifies the parent lifecycle occurrence entry.';
         }
         field(2; "Line No."; Integer)
         {
             Caption = 'Line No.';
             DataClassification = SystemMetadata;
+            ToolTip = 'Specifies the line number of the VAT breakdown entry.';
         }
         field(3; "VAT %"; Decimal)
         {
             Caption = 'VAT %';
             DataClassification = CustomerContent;
             DecimalPlaces = 0 : 5;
+            ToolTip = 'Specifies the VAT rate for this breakdown line.';
         }
         field(4; "Reported Amount"; Decimal)
         {
@@ -37,12 +41,14 @@ table 10971 "FR E-Invoice Lifecycle VAT"
             AutoFormatType = 1;
             Caption = 'Reported Amount';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the amount reported for this VAT rate.';
         }
         field(5; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             DataClassification = CustomerContent;
             TableRelation = Currency.Code;
+            ToolTip = 'Specifies the currency of the reported VAT amount.';
         }
     }
 

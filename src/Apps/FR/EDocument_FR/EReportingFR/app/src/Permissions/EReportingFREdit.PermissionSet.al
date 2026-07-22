@@ -6,8 +6,9 @@ namespace Microsoft.eServices.EDocument.Formats;
 
 permissionset 10972 "E-Reporting FR - Edit"
 {
-    Access = Internal;
-    Assignable = false;
+    Access = Public;
+    Assignable = true;
+    Caption = 'E-Reporting FR - Edit';
 
     IncludedPermissionSets = "E-Reporting FR - Read";
 

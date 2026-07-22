@@ -4,9 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
-using System.Security.AccessControl;
+using Microsoft.eServices.EDocument;
 
-permissionsetextension 10976 "D365 BASIC - E-Reporting FR" extends "D365 BASIC"
+permissionsetextension 10976 "E-Reporting FR - Read Ext" extends "E-Doc. Core - Read"
 {
-    IncludedPermissionSets = "E-Reporting FR - Edit";
+    IncludedPermissionSets = "E-Reporting FR - Read";
 }

@@ -6,10 +6,9 @@ namespace Microsoft.eServices.EDocument.Formats;
 
 permissionset 10971 "E-Reporting FR - Read"
 {
-    Access = Internal;
-    Assignable = false;
-
-    IncludedPermissionSets = "E-Reporting FR - Objects";
+    Access = Public;
+    Assignable = true;
+    Caption = 'E-Reporting FR - Read';
 
     Permissions = tabledata "FR E-Invoice Lifecycle" = R,
                   tabledata "FR E-Invoice Lifecycle VAT" = R;

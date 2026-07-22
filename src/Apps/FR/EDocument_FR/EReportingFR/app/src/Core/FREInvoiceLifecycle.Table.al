@@ -13,6 +13,7 @@ table 10970 "FR E-Invoice Lifecycle"
     Caption = 'FR E-Invoice Lifecycle';
     DataClassification = CustomerContent;
     DrillDownPageId = "FR E-Invoice Lifecycles";
+    InherentPermissions = X;
     LookupPageId = "FR E-Invoice Lifecycles";
     ReplicateData = false;
 
@@ -23,28 +24,33 @@ table 10970 "FR E-Invoice Lifecycle"
             AutoIncrement = true;
             Caption = 'Entry No.';
             DataClassification = SystemMetadata;
+            ToolTip = 'Specifies the entry number of the lifecycle occurrence.';
         }
         field(2; "E-Document Entry No."; Integer)
         {
             Caption = 'E-Document Entry No.';
             DataClassification = SystemMetadata;
             TableRelation = "E-Document"."Entry No";
+            ToolTip = 'Specifies the related e-document entry.';
         }
         field(3; "Lifecycle Status"; Enum "FR E-Invoice Lifecycle Status")
         {
             Caption = 'Lifecycle Status';
             DataClassification = SystemMetadata;
+            ToolTip = 'Specifies the French electronic invoice lifecycle status.';
         }
         field(4; "Source Occurrence ID"; Guid)
         {
             Caption = 'Source Occurrence ID';
             DataClassification = SystemMetadata;
+            ToolTip = 'Specifies the unique identifier of the source event that triggered this occurrence.';
         }
         field(5; "Original Occurrence Entry No."; Integer)
         {
             Caption = 'Original Occurrence Entry No.';
             DataClassification = SystemMetadata;
             TableRelation = "FR E-Invoice Lifecycle"."Entry No.";
+            ToolTip = 'Specifies the entry number of the original Collected occurrence that this reversal references.';
         }
         field(6; "Reported Amount"; Decimal)
         {
@@ -52,95 +58,113 @@ table 10970 "FR E-Invoice Lifecycle"
             AutoFormatType = 1;
             Caption = 'Reported Amount';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the amount reported for this lifecycle occurrence.';
         }
         field(7; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             DataClassification = CustomerContent;
             TableRelation = Currency.Code;
+            ToolTip = 'Specifies the currency of the reported amount.';
         }
         field(8; "Event Date"; Date)
         {
             Caption = 'Event Date';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the date of the lifecycle event.';
         }
         field(9; "Invoice Cust. Ledger Entry No."; Integer)
         {
             Caption = 'Invoice Customer Ledger Entry No.';
             DataClassification = SystemMetadata;
             TableRelation = "Cust. Ledger Entry"."Entry No.";
+            ToolTip = 'Specifies the customer ledger entry of the invoice related to this lifecycle occurrence.';
         }
         field(10; "Payment Cust. Ledger Entry No."; Integer)
         {
             Caption = 'Payment Customer Ledger Entry No.';
             DataClassification = SystemMetadata;
             TableRelation = "Cust. Ledger Entry"."Entry No.";
+            ToolTip = 'Specifies the customer ledger entry of the payment related to this lifecycle occurrence.';
         }
         field(11; "Detailed Ledger Entry No."; Integer)
         {
             Caption = 'Detailed Customer Ledger Entry No.';
             DataClassification = SystemMetadata;
             TableRelation = "Detailed Cust. Ledg. Entry"."Entry No.";
+            ToolTip = 'Specifies the detailed customer ledger entry that triggered this lifecycle occurrence.';
         }
         field(12; "E-Document Message Entry No."; Integer)
         {
             Caption = 'E-Document Message Entry No.';
             DataClassification = SystemMetadata;
+            ToolTip = 'Specifies the related E-Document message entry.';
         }
         field(13; "Processing Status"; Enum "FR E-Invoice Lifecycle Proc.")
         {
             Caption = 'Processing Status';
             DataClassification = SystemMetadata;
+            ToolTip = 'Specifies the processing status of the lifecycle occurrence.';
         }
         field(14; "Created At"; DateTime)
         {
             Caption = 'Created At';
             DataClassification = SystemMetadata;
+            ToolTip = 'Specifies when the lifecycle occurrence was created.';
         }
         field(15; "Last Error"; Text[2048])
         {
             Caption = 'Last Error';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the last processing error for the lifecycle occurrence.';
         }
         field(16; "Invoice Issue Date"; Date)
         {
             Caption = 'Invoice Issue Date';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the issue date of the invoice frozen at the time of capture.';
         }
         field(17; "Invoice Receipt At"; DateTime)
         {
             Caption = 'Invoice Receipt At';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the date and time the invoice was received by the platform, frozen at capture.';
         }
         field(18; "Sender Platform ID"; Text[50])
         {
             Caption = 'Sender Platform ID';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the identifier of the approved platform that sent the invoice.';
         }
         field(19; "Sender Platform Scheme"; Code[4])
         {
             Caption = 'Sender Platform Scheme';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the identifier scheme of the sender platform.';
         }
         field(20; "Sender Platform Name"; Text[100])
         {
             Caption = 'Sender Platform Name';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the name of the approved platform that sent the invoice.';
         }
         field(21; "Invoice Issuer ID"; Text[50])
         {
             Caption = 'Invoice Issuer ID';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the identifier (SIREN) of the invoice issuer.';
         }
         field(22; "Invoice Issuer Scheme"; Code[4])
         {
             Caption = 'Invoice Issuer Scheme';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the identifier scheme of the invoice issuer.';
         }
         field(23; "Invoice Issuer Name"; Text[100])
         {
             Caption = 'Invoice Issuer Name';
             DataClassification = CustomerContent;
+            ToolTip = 'Specifies the name of the invoice issuer.';
         }
     }
 
