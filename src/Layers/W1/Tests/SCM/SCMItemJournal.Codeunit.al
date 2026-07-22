@@ -21,6 +21,7 @@
         LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibrarySales: Codeunit "Library - Sales";
         isInitialized: Boolean;
         ItemJournalAmountErr: Label 'Item Journal Amount must match.';
         ItemJournalUnitCostErr: Label 'Item Journal Unit Cost must match.';
@@ -35,10 +36,16 @@
         MultipleEntriesExpectedErr: Label 'Two Item Ledger Entries expected.';
         RoundingTo0Err: Label 'Rounding of the field';
         BlockedBinContentErr: Label 'Block Movement must not be All in Bin Content Location Code=''%1'',Bin Code=''%2'',Item No.=''%3'',Variant Code=''%4'',Unit of Measure Code=''%5''.',
-                              Comment = '%1= Location Code, %2= Bin Code, %3= Item No., %4= Varient Code, %5= Unit of Measure Code';
+                              Comment = '%1= Location Code, %2= Bin Code, %3= Item No., %4= Variant Code, %5= Unit of Measure Code';
+        BlockedBinContentMovementErr: Label 'Block Movement must not be %1 in Bin Content Location Code=''%2'',Bin Code=''%3'',Item No.=''%4'',Variant Code=''%5'',Unit of Measure Code=''%6''.',
+                              Comment = '%1= Block Movement, %2= Location Code, %3= Bin Code, %4= Item No., %5= Variant Code, %6= Unit of Measure Code';
         ValueMustBeEqualErr: Label '%1 value must be equal to %2 in %3', Comment = '%1 = Field Name, %2= Expected Value, %3 = Table Name';
         ValueMustBeNegativeErr: Label '%1 Value must be negative', Comment = '%1=FieldName';
         ValueMustBePositiveErr: Label '%1 Value must be positive', Comment = '%1=FieldName';
+        TestRollbackAfterCommitErr: Label 'Test error to trigger rollback after Commit() call.';
+        SetIgnoreCommitToFalse: Boolean;
+        RaiseErrorAfterCommit: Boolean;
+        CommitTestMarkerID: Guid;
 
     [Test]
     [Scope('OnPrem')]
@@ -1657,7 +1664,6 @@
         BaseUOM: Record "Unit of Measure";
         NonBaseQtyPerUOM: Decimal;
         QtyRoundingPrecision: Decimal;
-        QtyToSet: Decimal;
     begin
         // [FEATURE] [Item Journal - Rounding Precision]
         // [SCENARIO] Quantity (Base) is rounded with the specified rounding precision.
@@ -1666,7 +1672,6 @@
         // [GIVEN] An item with 2 unit of measures and qty. rounding precision on the base item unit of measure set.
         QtyRoundingPrecision := Round(1 / LibraryRandom.RandIntInRange(2, 10), 0.00001);
         NonBaseQtyPerUOM := Round(LibraryRandom.RandIntInRange(5, 10), QtyRoundingPrecision);
-        QtyToSet := LibraryRandom.RandDecInRange(2, 10, 7);
 
         LibraryInventory.CreateItem(Item);
         LibraryInventory.CreateUnitOfMeasureCode(BaseUOM);
@@ -2411,12 +2416,191 @@
         Assert.RecordIsEmpty(ItemLedgerEntry, '');
     end;
 
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostItemJnlLineCommitBySubscriberIsSuppressed()
+    var
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ActivityLog: Record "Activity Log";
+        ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
+    begin
+        // [FEATURE] [Item Journal] [Posting] [CommitBehavior]
+        // [SCENARIO 641089] A Commit() called by a posting subscriber is suppressed during Item Jnl.-Post Line.
+        Initialize();
+
+        // [GIVEN] A positive adjustment item journal line.
+        LibraryInventory.CreateItem(Item);
+        CreateItemJournalLine(ItemJournalLine, Item."No.");
+        Commit();
+
+        // [GIVEN] Subscriber inserts a marker record, calls Commit(), and raises an error inside the posting scope.
+        CommitTestMarkerID := CreateGuid();
+        RaiseErrorAfterCommit := true;
+        BindSubscription(this);
+
+        // [WHEN] Post the item journal line (posting fails because the subscriber raises an error).
+        asserterror ItemJnlPostLine.Run(ItemJournalLine);
+        UnbindSubscription(this);
+
+        // [THEN] The marker record does not exist because Commit() was suppressed and the error rolled back all changes.
+        ActivityLog.SetRange("Activity Message", Format(CommitTestMarkerID));
+        Assert.RecordIsEmpty(ActivityLog);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure PostItemJnlLineCommitBehaviorOptOutRestoresCommit()
+    var
+        Item: Record Item;
+        ItemJournalLine: Record "Item Journal Line";
+        ActivityLog: Record "Activity Log";
+        ItemJnlPostLine: Codeunit "Item Jnl.-Post Line";
+    begin
+        // [FEATURE] [Item Journal] [Posting] [CommitBehavior]
+        // [SCENARIO 641089] Setting IgnoreCommit := false via OnSetCommitBehavior restores old commit behavior.
+        Initialize();
+
+        // [GIVEN] A positive adjustment item journal line.
+        LibraryInventory.CreateItem(Item);
+        CreateItemJournalLine(ItemJournalLine, Item."No.");
+        Commit();
+
+        // [GIVEN] Subscriber sets IgnoreCommit := false to opt out of commit suppression.
+        SetIgnoreCommitToFalse := true;
+
+        // [GIVEN] Subscriber inserts a marker record, calls Commit(), and raises an error inside the posting scope.
+        CommitTestMarkerID := CreateGuid();
+        RaiseErrorAfterCommit := true;
+        BindSubscription(this);
+
+        // [WHEN] Post the item journal line (posting fails because the subscriber raises an error).
+        asserterror ItemJnlPostLine.Run(ItemJournalLine);
+        UnbindSubscription(this);
+
+        // [THEN] The marker record exists because Commit() was not suppressed and persisted before the error.
+        ActivityLog.SetRange("Activity Message", Format(CommitTestMarkerID));
+        Assert.RecordIsNotEmpty(ActivityLog);
+
+        // Cleanup: Remove test marker.
+        ActivityLog.DeleteAll();
+    end;
+
+    [Test]
+    procedure OutboundPostingsBlockedByBinContentBlockMovementOutbound()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        Bin: Record Bin;
+        BinContent: Record "Bin Content";
+        ItemJournalLine: Record "Item Journal Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [Item Journal] [Sales] [Bin Content] [AI test 0.4]
+        // [SCENARIO 639575] Outbound postings from a bin are blocked when the Bin Content "Block Movement" is "Outbound"
+        Initialize();
+
+        // [GIVEN] Bin-mandatory Location "L" with Bin "B" holding item "I" and Bin Content "Block Movement" = "Outbound"
+        CreateLocationBinAndStockItem(Location, Bin, Item, BinContent."Block Movement"::Outbound);
+
+        // [WHEN] Post a Negative Adjmt. Item Journal Line for item "I" from bin "B"
+        CreateNegativeAdjmtItemJournalLine(ItemJournalLine, Item."No.", Location.Code, Bin.Code);
+        asserterror LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [THEN] Error is thrown: "Block Movement must not be Outbound in Bin Content"
+        Assert.ExpectedError(
+            StrSubstNo(BlockedBinContentMovementErr, Format(BinContent."Block Movement"::Outbound),
+                Location.Code, Bin.Code, Item."No.", '', Item."Base Unit of Measure"));
+
+        // [WHEN] Ship a Sales Order for item "I" from bin "B"
+        CreateReleasedSalesOrder(SalesHeader, SalesLine, Item."No.", Location.Code, Bin.Code);
+        BinContent.Get(SalesHeader."Location Code", Bin.Code, Item."No.", '', Item."Base Unit of Measure");
+        BinContent.Validate("Block Movement", BinContent."Block Movement"::Outbound);
+        BinContent.Modify(true);
+        asserterror LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        // [THEN] Error is thrown: "Block Movement must not be Outbound in Bin Content"
+        Assert.ExpectedError(
+            StrSubstNo(BlockedBinContentMovementErr, Format(BinContent."Block Movement"::Outbound),
+                Location.Code, Bin.Code, Item."No.", '', Item."Base Unit of Measure"));
+    end;
+
+    [Test]
+    procedure OutboundPostingsBlockedByBinContentBlockMovementAll()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        Bin: Record Bin;
+        BinContent: Record "Bin Content";
+        ItemJournalLine: Record "Item Journal Line";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [Item Journal] [Sales] [Bin Content] [AI test 0.4]
+        // [SCENARIO 639575] Outbound postings from a bin are blocked when the Bin Content "Block Movement" is "All"
+        Initialize();
+
+        // [GIVEN] Bin-mandatory Location "L" with Bin "B" holding item "I" and Bin Content "Block Movement" = "All"
+        CreateLocationBinAndStockItem(Location, Bin, Item, BinContent."Block Movement"::All);
+
+        // [WHEN] Post a Negative Adjmt. Item Journal Line for item "I" from bin "B"
+        CreateNegativeAdjmtItemJournalLine(ItemJournalLine, Item."No.", Location.Code, Bin.Code);
+        asserterror LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        // [THEN] Error is thrown: "Block Movement must not be All in Bin Content"
+        Assert.ExpectedError(
+            StrSubstNo(BlockedBinContentMovementErr, Format(BinContent."Block Movement"::All),
+                Location.Code, Bin.Code, Item."No.", '', Item."Base Unit of Measure"));
+
+        // [WHEN] Ship a Sales Order for item "I" from bin "B"
+        CreateReleasedSalesOrder(SalesHeader, SalesLine, Item."No.", Location.Code, Bin.Code);
+        BinContent.Get(SalesHeader."Location Code", Bin.Code, Item."No.", '', Item."Base Unit of Measure");
+        BinContent.Validate("Block Movement", BinContent."Block Movement"::All);
+        BinContent.Modify(true);
+        asserterror LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        // [THEN] Error is thrown: "Block Movement must not be All in Bin Content"
+        Assert.ExpectedError(
+            StrSubstNo(BlockedBinContentMovementErr, Format(BinContent."Block Movement"::All),
+                Location.Code, Bin.Code, Item."No.", '', Item."Base Unit of Measure"));
+    end;
+
+    [Test]
+    procedure SalesOrderWithoutLocationPostsSuccessfully()
+    var
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [FEATURE] [Item Journal] [Sales] [Bin Content] [AI test 0.4]
+        // [SCENARIO 639575] Sales posting without a location is not blocked by the bin content movement check
+        Initialize();
+
+        // [GIVEN] Item "I" in inventory without a location
+        CreateStockItemWithoutLocation(Item);
+
+        // [WHEN] Ship and invoice a Sales Order for item "I" without a location or bin
+        CreateReleasedSalesOrder(SalesHeader, SalesLine, Item."No.", '', '');
+        LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] The sale is posted without the "Location Code must have a value" error
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Sale);
+        Assert.RecordCount(ItemLedgerEntry, 1);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Item Journal");
         LibraryRandom.Init();
+
+        SetIgnoreCommitToFalse := false;
+        RaiseErrorAfterCommit := false;
+        Clear(CommitTestMarkerID);
 
         // Lazy Setup.
         if isInitialized then
@@ -2925,7 +3109,7 @@
         UpdateBlockMovementOnBin(Bin2, Location.Code, 2, BlockMovement2);
     end;
 
-    local procedure CreateItemReclassJournaLine(TemplateName: Code[10]; BatchName: Code[10]; ItemNo: Code[20]; OldLocationCode: Code[10]; NewLocationCode: Code[10]; OldBinCode: Code[20]; NewBinCode: Code[20]; Qty: Integer): Code[10]
+    local procedure CreateItemReclassJournaLine(TemplateName: Code[10]; BatchName: Code[10]; ItemNo: Code[20]; OldLocationCode: Code[10]; NewLocationCode: Code[10]; OldBinCode: Code[20]; NewBinCode: Code[20]; Qty: Integer): Code[20]
     var
         ItemJournalLine: Record "Item Journal Line";
     begin
@@ -3045,6 +3229,64 @@
         ItemJournalLine.Modify(true);
     end;
 
+    local procedure CreateLocationBinAndStockItem(var Location: Record Location; var Bin: Record Bin; var Item: Record Item; BlockMovement: Option " ",Inbound,Outbound,All)
+    var
+        BinContent: Record "Bin Content";
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryInventory.CreateItem(Item);
+        LibraryWarehouse.CreateLocationWMS(Location, true, false, false, false, false);
+        LibraryWarehouse.CreateBin(Bin, Location.Code, LibraryUtility.GenerateGUID(), '', '');
+        Location.Validate("Default Bin Code", Bin.Code);
+        Location.Modify(true);
+
+        CreateItemJournalLineWithBin(
+            ItemJournalLine, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", Location.Code, Bin.Code, LibraryRandom.RandIntInRange(50, 100));
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+
+        BinContent.Get(Location.Code, Bin.Code, Item."No.", '', Item."Base Unit of Measure");
+        BinContent.Validate("Block Movement", BlockMovement);
+        BinContent.Modify(true);
+    end;
+
+    local procedure CreateNegativeAdjmtItemJournalLine(var ItemJournalLine: Record "Item Journal Line"; ItemNo: Code[20]; LocationCode: Code[10]; BinCode: Code[20])
+    begin
+        CreateItemJournalLineWithBin(
+            ItemJournalLine, ItemJournalLine."Entry Type"::"Negative Adjmt.", ItemNo, LocationCode, BinCode, LibraryRandom.RandInt(5));
+    end;
+
+    local procedure CreateItemJournalLineWithBin(var ItemJournalLine: Record "Item Journal Line"; EntryType: Enum "Item Ledger Entry Type"; ItemNo: Code[20]; LocationCode: Code[10]; BinCode: Code[20]; Quantity: Decimal)
+    var
+        ItemJournalBatch: Record "Item Journal Batch";
+    begin
+        SelectAndClearItemJournalBatch(ItemJournalBatch, ItemJournalBatch."Template Type"::Item);
+        LibraryInventory.CreateItemJournalLine(
+            ItemJournalLine, ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name, EntryType, ItemNo, Quantity);
+        ItemJournalLine.Validate("Location Code", LocationCode);
+        ItemJournalLine.Validate("Bin Code", BinCode);
+        ItemJournalLine.Modify(true);
+    end;
+
+    local procedure CreateReleasedSalesOrder(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; ItemNo: Code[20]; LocationCode: Code[10]; BinCode: Code[20])
+    begin
+        LibrarySales.CreateSalesDocumentWithItem(
+            SalesHeader, SalesLine, SalesHeader."Document Type"::Order, '', ItemNo, 1, LocationCode, WorkDate());
+        if BinCode <> '' then
+            SalesLine.Validate("Bin Code", BinCode);
+        SalesLine.Modify(true);
+        LibrarySales.ReleaseSalesDocument(SalesHeader);
+    end;
+
+    local procedure CreateStockItemWithoutLocation(var Item: Record Item)
+    var
+        ItemJournalLine: Record "Item Journal Line";
+    begin
+        LibraryInventory.CreateItem(Item);
+        CreateItemJournalLineWithBin(
+            ItemJournalLine, ItemJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", '', '', LibraryRandom.RandIntInRange(50, 100));
+        LibraryInventory.PostItemJournalLine(ItemJournalLine."Journal Template Name", ItemJournalLine."Journal Batch Name");
+    end;
+
     procedure EnqueItrLotQty(Iteration: Integer; LotNo: Code[10]; Qty: Integer)
     begin
         LibraryVariableStorage.Enqueue(Iteration);
@@ -3146,6 +3388,38 @@
         ItemJournalLine.TestField("Reserved Quantity");
         ItemJournalLine.Find();
         ItemJournalLine.TestField("Reserved Quantity", 0);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnSetCommitBehavior', '', false, false)]
+    local procedure OnSetCommitBehaviorHandler(var IgnoreCommit: Boolean)
+    begin
+        if SetIgnoreCommitToFalse then
+            IgnoreCommit := false;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Jnl.-Post Line", 'OnPostSplitJnlLineOnAfterCode', '', false, false)]
+    local procedure OnPostSplitJnlLineOnAfterCodeHandler(var ItemJournalLine: Record "Item Journal Line"; var ItemJournalLineToPost: Record "Item Journal Line"; var PostItemJournalLine: Boolean; var TempTrackingSpecification: Record "Tracking Specification" temporary; DisableItemTracking: Boolean)
+    var
+        ActivityLog: Record "Activity Log";
+    begin
+        if not RaiseErrorAfterCommit then
+            exit;
+        if IsNullGuid(CommitTestMarkerID) then
+            exit;
+
+        // Insert a marker record.
+        ActivityLog.Init();
+        ActivityLog."Activity Date" := CurrentDateTime();
+        ActivityLog."User ID" := CopyStr(UserId(), 1, MaxStrLen(ActivityLog."User ID"));
+        ActivityLog."Activity Message" := Format(CommitTestMarkerID);
+        ActivityLog.Status := ActivityLog.Status::Success;
+        ActivityLog.Insert(true);
+
+        // Call Commit() - this should be suppressed by CommitBehavior::Ignore unless a subscriber opted out.
+        Commit();
+
+        // Raise an error to abort the transaction.
+        Error(TestRollbackAfterCommitErr);
     end;
 
     [ModalPageHandler]
