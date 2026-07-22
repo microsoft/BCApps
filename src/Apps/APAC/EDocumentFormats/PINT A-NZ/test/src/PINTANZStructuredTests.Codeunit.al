@@ -132,12 +132,17 @@ codeunit 148005 "PINT A-NZ Structured Tests"
 
         // [GIVEN] A generic item is created for manual assignment
         LibraryEDoc.CreateGenericItem(Item, '');
+        Item.Validate("Purch. Unit of Measure", Item."Base Unit of Measure");
+        Item.Modify(true);
 
         // [WHEN] The draft document is opened and modified through UI
         EDocPurchaseDraft.OpenEdit();
         EDocPurchaseDraft.GoToRecord(EDocument);
         EDocPurchaseDraft.Lines.First();
+        EDocPurchaseDraft.Lines."Line Type".SetValue("Purchase Line Type"::Item);
         EDocPurchaseDraft.Lines."No.".SetValue(Item."No.");
+        // Clear the item reference that Prepare Draft matched from the product code, so the manual assignment is not overwritten on Finish Draft
+        EDocPurchaseDraft.Lines."Item Reference No.".SetValue('');
         EDocPurchaseDraft.Lines.Next();
 
         // [WHEN] The processing is completed to finish draft step

@@ -3,6 +3,7 @@ codeunit 148005 "Factura-E Struct. Validations"
     var
         Assert: Codeunit Assert;
         UnitOfMeasureCodeTok: Label '01', Locked = true;
+        MappedUnitOfMeasureCodeTok: Label 'PCS', Locked = true;
         SalesInvoiceNoTok: Label '103033', Locked = true;
         Item1NoTok: Label 'GL00000000', Locked = true;
         Item2NoTok: Label 'GL00000001', Locked = true;
@@ -76,12 +77,12 @@ codeunit 148005 "Factura-E Struct. Validations"
         end else begin
             Assert.AreEqual(Item1NoTok, PurchaseLine.Description, StrSubstNo(MockDataMismatchErr, PurchaseLine.FieldCaption(Description), PurchaseLine.TableCaption(), Item1NoTok, PurchaseLine.Description));
             Assert.AreEqual(Item1NoTok, PurchaseLine."No.", StrSubstNo(MockDataMismatchErr, PurchaseLine.FieldCaption("No."), PurchaseLine.TableCaption(), Item1NoTok, PurchaseLine."No."));
-            Assert.AreEqual(UnitOfMeasureCodeTok, PurchaseLine."Unit of Measure Code", StrSubstNo(MockDataMismatchErr, PurchaseLine.FieldCaption("Unit of Measure Code"), PurchaseLine.TableCaption(), UnitOfMeasureCodeTok, PurchaseLine."Unit of Measure Code"));
+            Assert.AreEqual(MappedUnitOfMeasureCodeTok, PurchaseLine."Unit of Measure Code", StrSubstNo(MockDataMismatchErr, PurchaseLine.FieldCaption("Unit of Measure Code"), PurchaseLine.TableCaption(), MappedUnitOfMeasureCodeTok, PurchaseLine."Unit of Measure Code"));
         end;
 
         PurchaseLine.Next();
         Assert.AreEqual(2, PurchaseLine.Quantity, StrSubstNo(MockDataMismatchErr, PurchaseLine.FieldCaption(Quantity), PurchaseLine.TableCaption(), 2, PurchaseLine.Quantity));
-        Assert.AreEqual(UnitOfMeasureCodeTok, PurchaseLine."Unit of Measure Code", StrSubstNo(MockDataMismatchErr, PurchaseLine.FieldCaption("Unit of Measure Code"), PurchaseLine.TableCaption(), UnitOfMeasureCodeTok, PurchaseLine."Unit of Measure Code"));
+        Assert.AreEqual(MappedUnitOfMeasureCodeTok, PurchaseLine."Unit of Measure Code", StrSubstNo(MockDataMismatchErr, PurchaseLine.FieldCaption("Unit of Measure Code"), PurchaseLine.TableCaption(), MappedUnitOfMeasureCodeTok, PurchaseLine."Unit of Measure Code"));
         Assert.AreEqual(5000, PurchaseLine."Direct Unit Cost", StrSubstNo(MockDataMismatchErr, PurchaseLine.FieldCaption("Direct Unit Cost"), PurchaseLine.TableCaption(), 5000, PurchaseLine."Direct Unit Cost"));
         Assert.AreEqual(MockCurrencyCode, PurchaseLine."Currency Code", StrSubstNo(MockDataMismatchErr, PurchaseLine.FieldCaption("Currency Code"), PurchaseLine.TableCaption(), MockCurrencyCode, PurchaseLine."Currency Code"));
         Assert.AreEqual(0, PurchaseLine."Line Discount Amount", StrSubstNo(MockDataMismatchErr, PurchaseLine.FieldCaption("Line Discount Amount"), PurchaseLine.TableCaption(), 0, PurchaseLine."Line Discount Amount"));
