@@ -2,6 +2,46 @@ $errorActionPreference = "Stop"; $ProgressPreference = "SilentlyContinue"; Set-S
 
 Import-Module (Join-Path $PSScriptRoot '../ParallelTestExecution.psm1') -Force
 
+Describe "Test-TransientTestFailure" {
+    It "returns false for null input" {
+        Test-TransientTestFailure -Output $null | Should -Be $false
+    }
+
+    It "returns false for empty input" {
+        Test-TransientTestFailure -Output '' | Should -Be $false
+    }
+
+    It "returns false for unrelated output" {
+        Test-TransientTestFailure -Output 'All tests passed. No failures detected.' | Should -Be $false
+    }
+
+    It "returns true for 'Cannot open page 130455'" {
+        Test-TransientTestFailure -Output 'Cannot open page 130455 because it is not found in the system.' | Should -Be $true
+    }
+
+    It "returns true for 'InvokeInteractions failed with status code 500'" {
+        Test-TransientTestFailure -Output 'InvokeInteractions failed with status code 500' | Should -Be $true
+    }
+
+    It "returns true for InteractionManager stack frame" {
+        Test-TransientTestFailure -Output 'at InteractionManager.cs:line 203' | Should -Be $true
+    }
+
+    It "returns true for 'ClientSession State is InError'" {
+        Test-TransientTestFailure -Output 'Exception occurred while running tests: ClientSession State is InError (Wait time 20 seconds) / ' | Should -Be $true
+    }
+
+    It "returns true when 'ClientSession State is InError' appears among other output lines" {
+        $multiline = @(
+            'BcContainerHelper version 6.1.15-preview'
+            'Running on Windows, PowerShell 7.6.3'
+            'Exception occurred while running tests: ClientSession State is InError (Wait time 20 seconds) / '
+            'Tests failed after 1 attempts.'
+        ) -join "`n"
+        Test-TransientTestFailure -Output $multiline | Should -Be $true
+    }
+}
+
 Describe "ParallelTestExecution app-name resolution" {
     BeforeAll {
         # Get-BcContainerAppInfo comes from BcContainerHelper, which is present when the module

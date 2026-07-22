@@ -244,14 +244,21 @@ function Merge-TestResultFiles {
 
 <#
 .SYNOPSIS
-    Returns $true if the output matches the known BC platform race signature.
+    Returns $true if the output matches a known BC platform transient failure signature.
 .DESCRIPTION
-    Race lives in InteractionManager.InvokeInteractions
-    (Prod.ClientFwk\Interactions\InteractionManager.cs, around line 203 at time of writing).
-    Any of these fingerprints is sufficient evidence: "Cannot open page 130455",
-    "InvokeInteractions failed with status code 500", or a stack frame referencing
-    "InteractionManager.cs:line N" (line number not pinned, so platform refactors do not
-    silently invalidate the match).
+    Two known transient failure patterns are detected:
+
+    1. InteractionManager race: Race lives in InteractionManager.InvokeInteractions
+       (Prod.ClientFwk\Interactions\InteractionManager.cs, around line 203 at time of writing).
+       Any of these fingerprints is sufficient evidence: "Cannot open page 130455",
+       "InvokeInteractions failed with status code 500", or a stack frame referencing
+       "InteractionManager.cs:line N" (line number not pinned, so platform refactors do not
+       silently invalidate the match).
+
+    2. NCLMetaCodeunit crash: The BC server crashes in NCLMetaCodeunit.get_IsSingleInstance()
+       while iterating codeunit metadata (e.g. during ExtensionId validation in the test runner).
+       This puts the client session into InError state before any test results are written.
+       Fingerprint: "ClientSession State is InError".
 .PARAMETER Output
     The combined output (stdout + stderr + verbose) captured from a finished background
     job. Null or empty returns $false.
@@ -262,7 +269,7 @@ function Test-TransientTestFailure {
     )
 
     if ([string]::IsNullOrEmpty($Output)) { return $false }
-    return [bool]($Output -match 'Cannot open page 130455|InvokeInteractions failed with status code 500|InteractionManager\.cs:line \d+')
+    return [bool]($Output -match 'Cannot open page 130455|InvokeInteractions failed with status code 500|InteractionManager\.cs:line \d+|ClientSession State is InError')
 }
 
 <#
@@ -728,4 +735,4 @@ function Invoke-PerProjectTestRun {
     return (. $script -parameters $parameters -TestType $testType -AppNamesToTest $appNamesToTest)
 }
 
-Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata
+Export-ModuleMember -Function Invoke-ParallelTestExecution, Get-AvailableBcTenants, Get-CachedTestRunResult, Get-InstalledTestAppNames, Get-AppNamesForBucket, Invoke-PerProjectTestRun, Get-AppNameFromMetadata, Test-TransientTestFailure
