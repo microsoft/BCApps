@@ -27,21 +27,25 @@ codeunit 31294 "Create Custom Report Layout CZ"
     local procedure UpdateReportSelections()
     begin
         UpdateReportLayout(Enum::"Report Selection Usage"::Reminder, '1', Report::"Reminder CZL");
+        UpdateReportLayout(Enum::"Report Selection Usage"::"P.Quote", '1', Report::"Purchase Quote CZL");
         UpdateReportLayout(Enum::"Report Selection Usage"::"P.Order", '1', Report::"Purchase Order CZL");
         UpdateReportLayout(Enum::"Report Selection Usage"::"S.Quote", '1', Report::"Sales Quote CZL");
         UpdateReportLayout(Enum::"Report Selection Usage"::"S.Order", '1', Report::"Sales Order Confirmation CZL");
         UpdateReportLayout(Enum::"Report Selection Usage"::"S.Invoice", '1', Report::"Sales Invoice CZL");
         UpdateReportLayout(Enum::"Report Selection Usage"::"S.Cr.Memo", '1', Report::"Sales Credit Memo CZL");
+        UpdateReportLayout(Enum::"Report Selection Usage"::"S.Shipment", '1', Report::"Sales Shipment CZL");
     end;
 
     local procedure UpdateEmailBodySelections()
     begin
         AddEmailBodyLayout(Report::"Reminder CZL", CZ31182EmailTok);
+        AddEmailBodyLayout(Report::"Purchase Quote CZL", CZ31184EmailTok);
         AddEmailBodyLayout(Report::"Purchase Order CZL", CZ31185EmailTok);
         AddEmailBodyLayout(Report::"Sales Quote CZL", CZ31186EmailTok);
         AddEmailBodyLayout(Report::"Sales Order Confirmation CZL", CZ31187EmailTok);
         AddEmailBodyLayout(Report::"Sales Invoice CZL", CZ31189EmailTok);
         AddEmailBodyLayout(Report::"Sales Credit Memo CZL", CZ31190EmailTok);
+        AddEmailBodyLayout(Report::"Sales Shipment CZL", CZ31191EmailTok);
     end;
 
     local procedure UpdateReportLayout(Usage: Enum "Report Selection Usage"; Sequence: Code[10]; ReportID: Integer)
@@ -75,9 +79,11 @@ codeunit 31294 "Create Custom Report Layout CZ"
 
     var
         CZ31182EmailTok: Label 'ReminderEmail.docx', Locked = true;
+        CZ31184EmailTok: Label 'PurchaseQuoteEmail.docx', Locked = true;
         CZ31185EmailTok: Label 'PurchaseOrderEmail.docx', Locked = true;
         CZ31186EmailTok: Label 'SalesQuoteEmail.docx', Locked = true;
         CZ31187EmailTok: Label 'SalesOrderConfirmationEmail.docx', Locked = true;
         CZ31189EmailTok: Label 'SalesInvoiceEmail.docx', Locked = true;
         CZ31190EmailTok: Label 'SalesCreditMemoEmail.docx', Locked = true;
+        CZ31191EmailTok: Label 'SalesShipmentEmail.docx', Locked = true;
 }
