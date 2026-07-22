@@ -811,6 +811,9 @@ codeunit 139629 "Library - E-Document"
         EDocService.Code := LibraryUtility.GenerateRandomCode20(EDocService.FieldNo(Code), Database::"E-Document Service");
         EDocService."Document Format" := "E-Document Format"::Mock;
         EDocService."Service Integration" := Integration;
+#if not CLEAN29
+        EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
+#endif
         EDocService.Insert();
 
         CreateSupportedDocTypes(EDocService);
@@ -828,6 +831,11 @@ codeunit 139629 "Library - E-Document"
         EDocService.Code := LibraryUtility.GenerateRandomCode20(EDocService.FieldNo(Code), Database::"E-Document Service");
         EDocService."Document Format" := "E-Document Format"::Mock;
         EDocService."Service Integration V2" := Integration;
+#if not CLEAN29
+#pragma warning disable AL0432
+        EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
+#pragma warning restore AL0432
+#endif
         EDocService.Insert();
 
         CreateSupportedDocTypes(EDocService);
@@ -846,6 +854,9 @@ codeunit 139629 "Library - E-Document"
         EDocService.Code := LibraryUtility.GenerateRandomCode20(EDocService.FieldNo(Code), Database::"E-Document Service");
         EDocService."Document Format" := EDocDocumentFormat;
         EDocService."Service Integration" := EDocIntegration;
+#if not CLEAN29
+        EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
+#endif
         EDocService.Insert();
 
         CreateSupportedDocTypes(EDocService);
@@ -991,6 +1002,11 @@ codeunit 139629 "Library - E-Document"
             EDocService.Code := 'TESTRECEIVE';
             EDocService."Document Format" := "E-Document Format"::Mock;
             EDocService."Service Integration V2" := Integration;
+#if not CLEAN29
+#pragma warning disable AL0432
+            EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
+#pragma warning restore AL0432
+#endif
             EDocService.Insert();
         end;
     end;
@@ -1005,6 +1021,9 @@ codeunit 139629 "Library - E-Document"
             EDocService.Code := 'TESTRECEIVE';
             EDocService."Document Format" := "E-Document Format"::Mock;
             EDocService."Service Integration" := Integration;
+#if not CLEAN29
+            EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
+#endif
             EDocService.Insert();
         end;
     end;
@@ -1018,6 +1037,11 @@ codeunit 139629 "Library - E-Document"
             EDocService.Code := 'BIERRRECEIVE';
             EDocService."Document Format" := "E-Document Format"::Mock;
             EDocService."Service Integration V2" := Integration;
+#if not CLEAN29
+#pragma warning disable AL0432
+            EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
+#pragma warning restore AL0432
+#endif
             EDocService.Insert();
         end;
     end;
@@ -1032,6 +1056,9 @@ codeunit 139629 "Library - E-Document"
             EDocService.Code := 'BIERRRECEIVE';
             EDocService."Document Format" := "E-Document Format"::Mock;
             EDocService."Service Integration" := Integration;
+#if not CLEAN29
+            EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
+#endif
             EDocService.Insert();
         end;
     end;
@@ -1045,6 +1072,11 @@ codeunit 139629 "Library - E-Document"
             EDocService.Code := 'CIERRRECEIVE';
             EDocService."Document Format" := "E-Document Format"::Mock;
             EDocService."Service Integration V2" := Integration;
+#if not CLEAN29
+#pragma warning disable AL0432
+            EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
+#pragma warning restore AL0432
+#endif
             EDocService.Insert();
         end;
     end;
@@ -1059,6 +1091,9 @@ codeunit 139629 "Library - E-Document"
             EDocService.Code := 'CIERRRECEIVE';
             EDocService."Document Format" := "E-Document Format"::Mock;
             EDocService."Service Integration" := Integration;
+#if not CLEAN29
+            EDocService."Import Process" := Enum::"E-Document Import Process"::"Version 1.0";
+#endif
             EDocService.Insert();
         end;
     end;

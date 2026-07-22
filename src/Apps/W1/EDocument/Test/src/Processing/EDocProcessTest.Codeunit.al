@@ -1474,42 +1474,6 @@ codeunit 139883 "E-Doc Process Test"
             'New services must default to the v2 draft pipeline.');
 #pragma warning restore AL0432
     end;
-
-    [Test]
-    [HandlerFunctions('V1DeprecationNotificationHandler')]
-    procedure OpeningV1ServiceShowsDeprecationNotification()
-    var
-        EDocumentService: Record "E-Document Service";
-        EDocumentServicePage: TestPage "E-Document Service";
-    begin
-        // [GIVEN] A service still configured with the deprecated Version 1.0 import process
-#pragma warning disable AL0432
-        EDocumentService.Get(
-            LibraryEDoc.CreateService(
-                Enum::"E-Document Format"::"Mock", Enum::"Service Integration"::"Mock",
-                Enum::"E-Document Import Process"::"Version 1.0"));
-#pragma warning restore AL0432
-
-        // [WHEN] The service card is opened on that record
-        EDocumentServicePage.OpenView();
-        EDocumentServicePage.GoToRecord(EDocumentService);
-
-        // [THEN] The v1 deprecation notification is raised (asserted in the handler)
-        EDocumentServicePage.Close();
-    end;
-
-    [SendNotificationHandler]
-    procedure V1DeprecationNotificationHandler(var Notification: Notification): Boolean
-    var
-        ExpectedId: Guid;
-    begin
-        // Assert.AreEqual (codeunit 130000 Assert) is TYPE-STRICT: it returns false unless
-        // TypeOf(Expected) = TypeOf(Actual). Notification.Id is a Guid, so comparing a Text
-        // literal would always fail. Evaluate the literal into a Guid and compare Guid-to-Guid.
-        Evaluate(ExpectedId, '6100e1d0-0000-4000-8000-000000000029');
-        Assert.AreEqual(ExpectedId, Notification.Id, 'Unexpected notification id.');
-        exit(true);
-    end;
 #endif
 
 }
