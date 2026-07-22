@@ -15,5 +15,6 @@ permissionset 46882 "BC14 Historical Data"
         tabledata "BC14 Arch. Sales Inv. Line" = RIMD,
         tabledata "BC14 Old G/L Entry" = RIMD,
         tabledata "BC14 Old Cust. Ledg. Entry" = RIMD,
-        tabledata "BC14 Old Vendor Ledg. Entry" = RIMD;
+        tabledata "BC14 Old Vendor Ledg. Entry" = RIMD,
+        tabledata "BC14 Old Item Ledg. Entry" = RIMD;
 }

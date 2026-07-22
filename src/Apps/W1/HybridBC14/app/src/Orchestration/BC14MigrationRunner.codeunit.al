@@ -574,6 +574,7 @@ codeunit 46875 "BC14 Migration Runner"
         MigratorEnums.Add("BC14 Historical Migrator"::"Old G/L Entry");
         MigratorEnums.Add("BC14 Historical Migrator"::"Old Customer Ledger Entry");
         MigratorEnums.Add("BC14 Historical Migrator"::"Old Vendor Ledger Entry");
+        MigratorEnums.Add("BC14 Historical Migrator"::"Old Item Ledger Entry");
 
         CountBefore := MigratorEnums.Count();
         OnAfterPopulateHistoricalMigrators(MigratorEnums, NewMigrators, Changed);
