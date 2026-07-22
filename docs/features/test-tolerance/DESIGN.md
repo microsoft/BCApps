@@ -129,13 +129,13 @@ Tests run normally; the build does not skip anything based on the artifact.
 
 When a test **fails**, it is cross-referenced against the unstable tests artifact for the current branch:
 
-- **If listed as unstable**: the `<failure>` (or `<error>`) node is **removed** from `TestResults.xml` in place, the parent `<testsuite failures="...">` count is decremented, and a `<system-out>TOLERATED: ...</system-out>` marker is inserted. The test appears as a pass to all downstream tooling (AL-Go analysis, GitHub test reports, dashboards). The `TOLERATED:` marker in `<system-out>` is the only signal in the XML that reclassification occurred.
+- **If listed as unstable**: the `<failure>` (or `<error>`) node is **reclassified as `<skipped>`** in `TestResults.xml` in place. The `<skipped message="Failed (tolerated by Test Tolerance) (&lt;reason&gt;)">` node preserves the original failure message as its inner text, the test method `name` is suffixed with ` (tolerated)`, the parent `<testsuite>` `failures`/`errors` count is decremented and its `skipped` count incremented, and a `<system-out>FAILED (TOLERATED): ...</system-out>` marker is inserted. The test therefore does **not** fail the build, but stays clearly visible in the test summary as a tolerated failure (a skipped test named `<testMethod> (tolerated)`) rather than being silently reported as a pass.
 - **If not listed**: the failure is unchanged and fails the build as it does today.
 
 ### 6.5 Reporting & telemetry
 
 - **Build log**: each tolerated failure is logged as `TOLERATED: <extensionId> :: <codeunit> :: <testMethod> — <reason>` inside a collapsible `::group::` block. Non-tolerated failures are also listed explicitly so engineers can see what will fail the build.
-- **Test report visibility**: tolerated failures appear as passes in the GitHub UI test report because the `<failure>` node is removed. There is no warning-level marker in the report. This is a deliberate trade-off for now; the `TOLERATED:` marker in `<system-out>` is available for tooling that inspects the raw XML.
+- **Test report visibility**: tolerated failures appear as **skipped** tests named `<testMethod> (tolerated)` in the GitHub UI test report (not as passes), so they are easy to spot in the summary without failing the build. The skip message and `<system-out>FAILED (TOLERATED): ...</system-out>` marker carry the original failure reason for tooling that inspects the raw XML.
 - **Telemetry**: not yet implemented (tracked separately).
 - **Build summary**: not yet implemented (tracked separately).
 - **Dashboard / trend report**: not yet implemented (tracked separately).
@@ -144,6 +144,6 @@ When a test **fails**, it is cross-referenced against the unstable tests artifac
 
 | Question | Status |
 |---|---|
-| Should tolerated failures appear as warnings in the GitHub UI test report rather than silently as passes? | Open — current behavior is silent pass via XML rewrite |
+| Should tolerated failures appear as warnings in the GitHub UI test report rather than silently as passes? | Implemented — tolerated failures are reclassified as skipped tests named `<testMethod> (tolerated)` so they surface in the summary without failing the build |
 | Should there be a manual override path for adding a test that is consistently unstable but always fails alone? | Implemented — see the AddUnstableTestsFromRun workflow in §6.1 |
 | What is the eviction policy when a test is removed from the codebase entirely? | Accepted for now — stays on list until artifact expires (90 days) |

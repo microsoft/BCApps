@@ -203,11 +203,15 @@ Describe "TestTolerance" {
             [xml]$result = Get-Content -Raw -Path $path
             $suite = $result.DocumentElement.testsuite
             $suite.GetAttribute('failures') | Should -Be '1'
-            $suite.SelectSingleNode("testcase[@name='T1']").SelectSingleNode('failure') | Should -BeNullOrEmpty
+            $suite.GetAttribute('skipped') | Should -Be '1'
+            $t1 = $suite.SelectSingleNode("testcase[@name='T1 (tolerated)']")
+            $t1 | Should -Not -BeNullOrEmpty
+            $t1.SelectSingleNode('failure') | Should -BeNullOrEmpty
+            $t1.SelectSingleNode('skipped') | Should -Not -BeNullOrEmpty
             $suite.SelectSingleNode("testcase[@name='T2']").SelectSingleNode('failure') | Should -Not -BeNullOrEmpty
         }
 
-        It "removes failure nodes for tolerated tests and decrements failure count" {
+        It "reclassifies tolerated failures as skipped and decrements failure count" {
             $xml = @'
 <?xml version="1.0" encoding="utf-8"?>
 <testsuites>
@@ -226,13 +230,20 @@ Describe "TestTolerance" {
             [xml]$result = Get-Content -Raw -Path $path
             $suite = $result.DocumentElement.testsuite
             $suite.GetAttribute('failures') | Should -Be '1'
+            $suite.GetAttribute('skipped') | Should -Be '1'
 
-            $t1 = $suite.SelectSingleNode("testcase[@name='T1']")
+            $t1 = $suite.SelectSingleNode("testcase[@name='T1 (tolerated)']")
+            $t1 | Should -Not -BeNullOrEmpty
             $t1.SelectSingleNode('failure') | Should -BeNullOrEmpty
+            $skipped = $t1.SelectSingleNode('skipped')
+            $skipped | Should -Not -BeNullOrEmpty
+            $skipped.GetAttribute('message') | Should -Match 'tolerated'
+            $skipped.InnerText | Should -Match 'm1'
             $t1.SelectSingleNode('system-out').InnerText | Should -Match 'TOLERATED'
 
             $t2 = $suite.SelectSingleNode("testcase[@name='T2']")
             $t2.SelectSingleNode('failure') | Should -Not -BeNullOrEmpty
+            $t2.SelectSingleNode('skipped') | Should -BeNullOrEmpty
         }
 
         It "is a no-op when nothing is tolerated" {

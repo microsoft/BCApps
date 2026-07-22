@@ -358,12 +358,15 @@ function Resolve-TestTolerance {
 
 <#
 .Synopsis
-    Rewrites the test results XML so tolerated failures are no longer marked as failures.
+    Rewrites the test results XML so tolerated failures are reclassified as skipped.
 .Description
-    For each tolerated test case, removes <failure> / <error> children and adjusts the
-    parent <testsuite> 'failures' / 'errors' counts accordingly. A
-    <system-out>TOLERATED: ...</system-out> note is inserted so the reclassification is
-    discoverable when reading the XML directly. The file is rewritten in place.
+    For each tolerated test case, converts its <failure> / <error> child into a
+    <skipped> node so the failure no longer fails the build but stays visible in the
+    test summary as "failed (tolerated)". The test method 'name' is suffixed with
+    " (tolerated)", the parent <testsuite> 'failures' / 'errors' counts are decremented
+    and its 'skipped' count incremented, and a <system-out> note is inserted so the
+    reclassification is discoverable when reading the XML directly. The original failure
+    message is preserved on the <skipped> node. The file is rewritten in place.
 #>
 function Update-TestResultsForTolerance {
     [CmdletBinding()]
@@ -403,6 +406,7 @@ function Update-TestResultsForTolerance {
         $suiteName = if ($suite.HasAttribute('name')) { $suite.GetAttribute('name') } else { '' }
         $removedFailures = 0
         $removedErrors = 0
+        $addedSkipped = 0
 
         $extensionId = ''
         $extProp = $suite.SelectSingleNode("properties/property[@name='extensionid']")
@@ -419,20 +423,48 @@ function Update-TestResultsForTolerance {
 
             $entry = $toleratedKeys[$key]
 
+            # Capture the original failure detail before removing it, so it can be
+            # preserved on the <skipped> node for context.
+            $originalMessage = ''
             $failureNode = $tc.SelectSingleNode('failure')
             if ($null -ne $failureNode) {
+                if ($failureNode.HasAttribute('message')) { $originalMessage = $failureNode.GetAttribute('message') }
+                if ([string]::IsNullOrWhiteSpace($originalMessage)) { $originalMessage = $failureNode.InnerText }
                 [void]$tc.RemoveChild($failureNode)
                 $removedFailures++
             }
             $errorNode = $tc.SelectSingleNode('error')
             if ($null -ne $errorNode) {
+                if ([string]::IsNullOrWhiteSpace($originalMessage)) {
+                    if ($errorNode.HasAttribute('message')) { $originalMessage = $errorNode.GetAttribute('message') }
+                    if ([string]::IsNullOrWhiteSpace($originalMessage)) { $originalMessage = $errorNode.InnerText }
+                }
                 [void]$tc.RemoveChild($errorNode)
                 $removedErrors++
             }
 
-            $note = $xml.CreateElement('system-out')
+            # Nothing to reclassify if the case had neither a failure nor an error.
+            if ($null -eq $failureNode -and $null -eq $errorNode) { continue }
+
             $reason = if ($entry.Reason) { " ($($entry.Reason))" } else { '' }
-            $note.InnerText = "TOLERATED: failure tolerated by Test Tolerance feature$reason"
+
+            # Reclassify the failure as skipped so it no longer fails the build but remains
+            # clearly visible in the test summary as a tolerated failure.
+            $skipped = $xml.CreateElement('skipped')
+            $skipped.SetAttribute('message', "Failed (tolerated by Test Tolerance)$reason")
+            if (-not [string]::IsNullOrWhiteSpace($originalMessage)) {
+                $skipped.InnerText = "Original failure: $originalMessage"
+            }
+            [void]$tc.AppendChild($skipped)
+            $addedSkipped++
+
+            # Suffix the test method name so tolerated tests stand out in name-based summaries.
+            if ($tc.HasAttribute('name') -and $testMethod -notmatch '\(tolerated\)$') {
+                $tc.SetAttribute('name', "$testMethod (tolerated)")
+            }
+
+            $note = $xml.CreateElement('system-out')
+            $note.InnerText = "FAILED (TOLERATED): failure tolerated by Test Tolerance feature$reason"
             [void]$tc.AppendChild($note)
         }
 
@@ -443,6 +475,10 @@ function Update-TestResultsForTolerance {
         if ($removedErrors -gt 0 -and $suite.HasAttribute('errors')) {
             $current = [int]$suite.GetAttribute('errors')
             $suite.SetAttribute('errors', [string]([Math]::Max(0, $current - $removedErrors)))
+        }
+        if ($addedSkipped -gt 0) {
+            $currentSkipped = if ($suite.HasAttribute('skipped')) { [int]$suite.GetAttribute('skipped') } else { 0 }
+            $suite.SetAttribute('skipped', [string]($currentSkipped + $addedSkipped))
         }
     }
 
