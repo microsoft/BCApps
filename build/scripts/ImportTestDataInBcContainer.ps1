@@ -302,7 +302,13 @@ function Wait-ForTenantReady {
 
 <#
 .SYNOPSIS
-    Runs the Contoso demo data generation codeunit (5691) via OData.
+    Runs the Contoso demo data generation codeunit (5193 and 5691) via the NAV management module.
+.DESCRIPTION
+    Uses Invoke-ScriptInBcContainer + Invoke-NAVCodeunit (management module) instead of
+    Invoke-NavContainerCodeunit (OData) for the Contoso demo data codeunit 5193. The OData
+    path imposes a 600-second HttpClient.Timeout; for country builds with many localization
+    apps (e.g. MX) demo data generation can exceed this limit. Invoke-NAVCodeunit communicates
+    directly with the service tier without any client-side HTTP timeout.
 #>
 function Invoke-ContosoDemoTool() {
     param(
@@ -315,10 +321,14 @@ function Invoke-ContosoDemoTool() {
 
     if ($SetupData) {
         Write-Host "Generating Setup Demo Data in container $ContainerName"
-        Invoke-NavContainerCodeunit -Codeunitid 5193 -containerName $ContainerName -CompanyName $CompanyName -MethodName "CreateSetupDemoData"
+        Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { Param($cCompanyName)
+            Invoke-NAVCodeunit -ServerInstance $ServerInstance -CodeunitId 5193 -MethodName "CreateSetupDemoData" -CompanyName $cCompanyName -Tenant "default"
+        } -argumentList $CompanyName
     } else {
         Write-Host "Generating All Demo Data in container $ContainerName"
-        Invoke-NavContainerCodeunit -CodeunitId 5193 -containerName $containerName -CompanyName $CompanyName -MethodName "CreateAllDemoData"
+        Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { Param($cCompanyName)
+            Invoke-NAVCodeunit -ServerInstance $ServerInstance -CodeunitId 5193 -MethodName "CreateAllDemoData" -CompanyName $cCompanyName -Tenant "default"
+        } -argumentList $CompanyName
         Invoke-NavContainerCodeunit -CodeunitId 5140 -containerName $containerName -CompanyName $CompanyName -MethodName "DeleteWarehouseEmployee"
     }
 
