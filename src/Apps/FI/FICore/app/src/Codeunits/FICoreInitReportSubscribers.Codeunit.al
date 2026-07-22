@@ -20,140 +20,160 @@ codeunit 13411 "FICore InitReport Subscribers"
 
     [EventSubscriber(ObjectType::Report, Report::"Standard Purchase - Order", 'OnInitReportForGlobalVariable', '', false, false)]
     local procedure OnInitReportForGlobalVariableInStandardPurchaseOrder(var IsHandled: Boolean; var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
+    var
+        BusinessIdentityCodeTxt: Text;
+        BusinessIdentityCodeLbl: Text;
+        ServiceSuppliesCode4CaptionTxt: Text;
     begin
         if IsHandled then
             exit;
 
-        if not IsFeatureEnabled() then
+        if not AssignCompanyInformationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, LegalOfficeTxt, LegalOfficeLbl, ServiceSuppliesCode4CaptionTxt) then
             exit;
-
-        AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
 
         IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Report, Report::"Standard Sales - Credit Memo", 'OnInitReportForGlobalVariable', '', false, false)]
     local procedure OnInitReportForGlobalVariableInStandardSalesCreditMemo(var IsHandled: Boolean; var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
+    var
+        BusinessIdentityCodeTxt: Text;
+        BusinessIdentityCodeLbl: Text;
+        ServiceSuppliesCode4CaptionTxt: Text;
     begin
         if IsHandled then
             exit;
 
-        if not IsFeatureEnabled() then
+        if not AssignCompanyInformationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, LegalOfficeTxt, LegalOfficeLbl, ServiceSuppliesCode4CaptionTxt) then
             exit;
-
-        AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
 
         IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Report, Report::"Standard Sales - Draft Invoice", 'OnInitReportForGlobalVariable', '', false, false)]
     local procedure OnInitReportForGlobalVariableInStandardSalesDraftInvoice(var IsHandled: Boolean; var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
+    var
+        BusinessIdentityCodeTxt: Text;
+        BusinessIdentityCodeLbl: Text;
+        ServiceSuppliesCode4CaptionTxt: Text;
     begin
         if IsHandled then
             exit;
 
-        if not IsFeatureEnabled() then
+        if not AssignCompanyInformationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, LegalOfficeTxt, LegalOfficeLbl, ServiceSuppliesCode4CaptionTxt) then
             exit;
-
-        AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
 
         IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Report, Report::"Standard Sales - Invoice", 'OnInitReportForGlobalVariable', '', false, false)]
     local procedure OnInitReportForGlobalVariableInStandardSalesInvoice(var IsHandled: Boolean; var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
+    var
+        BusinessIdentityCodeTxt: Text;
+        BusinessIdentityCodeLbl: Text;
+        ServiceSuppliesCode4CaptionTxt: Text;
     begin
         if IsHandled then
             exit;
 
-        if not IsFeatureEnabled() then
+        if not AssignCompanyInformationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, LegalOfficeTxt, LegalOfficeLbl, ServiceSuppliesCode4CaptionTxt) then
             exit;
-
-        AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
 
         IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Report, Report::"Standard Sales - Order Conf.", 'OnInitReportForGlobalVariable', '', false, false)]
     local procedure OnInitReportForGlobalVariableInStandardSalesOrderConf(var IsHandled: Boolean; var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
+    var
+        BusinessIdentityCodeTxt: Text;
+        BusinessIdentityCodeLbl: Text;
+        ServiceSuppliesCode4CaptionTxt: Text;
     begin
         if IsHandled then
             exit;
 
-        if not IsFeatureEnabled() then
+        if not AssignCompanyInformationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, LegalOfficeTxt, LegalOfficeLbl, ServiceSuppliesCode4CaptionTxt) then
             exit;
-
-        AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
 
         IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Report, Report::"Standard Sales - Pro Forma Inv", 'OnInitReportForGlobalVariable', '', false, false)]
     local procedure OnInitReportForGlobalVariableInStandardSalesProFormaInv(var IsHandled: Boolean; var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
+    var
+        BusinessIdentityCodeTxt: Text;
+        BusinessIdentityCodeLbl: Text;
+        ServiceSuppliesCode4CaptionTxt: Text;
     begin
         if IsHandled then
             exit;
 
-        if not IsFeatureEnabled() then
+        if not AssignCompanyInformationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, LegalOfficeTxt, LegalOfficeLbl, ServiceSuppliesCode4CaptionTxt) then
             exit;
-
-        AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
 
         IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Report, Report::"Standard Sales - Quote", 'OnInitReportForGlobalVariable', '', false, false)]
     local procedure OnInitReportForGlobalVariableInStandardSalesQuote(var IsHandled: Boolean; var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
+    var
+        BusinessIdentityCodeTxt: Text;
+        BusinessIdentityCodeLbl: Text;
+        ServiceSuppliesCode4CaptionTxt: Text;
     begin
         if IsHandled then
             exit;
 
-        if not IsFeatureEnabled() then
+        if not AssignCompanyInformationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, LegalOfficeTxt, LegalOfficeLbl, ServiceSuppliesCode4CaptionTxt) then
             exit;
-
-        AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
 
         IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Report, Report::"Standard Sales - Return Rcpt.", 'OnInitReportForGlobalVariable', '', false, false)]
     local procedure OnInitReportForGlobalVariableInStandardSalesReturnRcpt(var IsHandled: Boolean; var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
+    var
+        BusinessIdentityCodeTxt: Text;
+        BusinessIdentityCodeLbl: Text;
+        ServiceSuppliesCode4CaptionTxt: Text;
     begin
         if IsHandled then
             exit;
 
-        if not IsFeatureEnabled() then
+        if not AssignCompanyInformationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, LegalOfficeTxt, LegalOfficeLbl, ServiceSuppliesCode4CaptionTxt) then
             exit;
-
-        AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
 
         IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Report, Report::"Standard Sales - Shipment", 'OnInitReportForGlobalVariable', '', false, false)]
     local procedure OnInitReportForGlobalVariableInStandardSalesShipment(var IsHandled: Boolean; var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
+    var
+        BusinessIdentityCodeTxt: Text;
+        BusinessIdentityCodeLbl: Text;
+        ServiceSuppliesCode4CaptionTxt: Text;
     begin
         if IsHandled then
             exit;
 
-        if not IsFeatureEnabled() then
+        if not AssignCompanyInformationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, LegalOfficeTxt, LegalOfficeLbl, ServiceSuppliesCode4CaptionTxt) then
             exit;
-
-        AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
 
         IsHandled := true;
     end;
 
     [EventSubscriber(ObjectType::Report, Report::"Standard Statement", 'OnInitReportForGlobalVariable', '', false, false)]
     local procedure OnInitReportForGlobalVariableInStandardStatement(var IsHandled: Boolean; var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
+    var
+        BusinessIdentityCodeTxt: Text;
+        BusinessIdentityCodeLbl: Text;
+        ServiceSuppliesCode4CaptionTxt: Text;
     begin
         if IsHandled then
             exit;
 
-        if not IsFeatureEnabled() then
+        if not AssignCompanyInformationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, LegalOfficeTxt, LegalOfficeLbl, ServiceSuppliesCode4CaptionTxt) then
             exit;
-
-        AssignLegalOfficeTexts(LegalOfficeTxt, LegalOfficeLbl);
 
         IsHandled := true;
     end;
@@ -164,10 +184,8 @@ codeunit 13411 "FICore InitReport Subscribers"
         if IsHandled then
             exit;
 
-        if not IsFeatureEnabled() then
+        if not AssignCompanyInformationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, RegisteredHomeCityTxt, RegisteredHomeCityLbl, ServiceSuppliesCode4CaptionTxt) then
             exit;
-
-        AssignVIESDeclarationTexts(BusinessIdentityCodeTxt, BusinessIdentityCodeLbl, RegisteredHomeCityTxt, RegisteredHomeCityLbl, ServiceSuppliesCode4CaptionTxt);
 
         IsHandled := true;
     end;
@@ -179,21 +197,14 @@ codeunit 13411 "FICore InitReport Subscribers"
         exit(VIESDeclarationFeature.IsEnabled());
     end;
 
-    local procedure AssignLegalOfficeTexts(var LegalOfficeTxt: Text; var LegalOfficeLbl: Text)
-    var
-        CompanyInformation: Record "Company Information";
-    begin
-        CompanyInformation.Get();
-
-        LegalOfficeTxt := CompanyInformation."Registered Home City";
-        LegalOfficeLbl := CompanyInformation.FieldCaption(CompanyInformation."Registered Home City");
-    end;
-
-    local procedure AssignVIESDeclarationTexts(var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text; var ServiceSuppliesCode4CaptionTxt: Text)
+    local procedure AssignCompanyInformationTexts(var BusinessIdentityCodeTxt: Text; var BusinessIdentityCodeLbl: Text; var RegisteredHomeCityTxt: Text; var RegisteredHomeCityLbl: Text; var ServiceSuppliesCode4CaptionTxt: Text): Boolean
     var
         CompanyInformation: Record "Company Information";
         ServiceSuppliesCode4CaptionLbl: Label 'Total Value of Service Supplies(Code 4)';
     begin
+        if not IsFeatureEnabled() then
+            exit(false);
+
         CompanyInformation.Get();
 
         BusinessIdentityCodeTxt := CompanyInformation."Business Identity Code";
@@ -201,5 +212,7 @@ codeunit 13411 "FICore InitReport Subscribers"
         RegisteredHomeCityTxt := CompanyInformation."Registered Home City";
         RegisteredHomeCityLbl := CompanyInformation.FieldCaption(CompanyInformation."Registered Home City");
         ServiceSuppliesCode4CaptionTxt := ServiceSuppliesCode4CaptionLbl;
+
+        exit(true);
     end;
 }

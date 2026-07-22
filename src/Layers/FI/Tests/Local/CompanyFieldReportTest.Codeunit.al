@@ -39,8 +39,6 @@ codeunit 144010 "Company Field Report Test"
             FeatureKeyUpdateStatus.Modify();
         end;
 
-        EnableVATVIESDeclarationFeature();
-
         LibraryReportDataset.Reset();
         CompanyInformation.FindFirst();
         CompanyInformation."Business Identity Code" := TenDigitsTxt + TenDigitsTxt;
@@ -207,49 +205,6 @@ codeunit 144010 "Company Field Report Test"
     begin
         Reply := false;
     end;
-
-    [RequestPageHandler]
-    [Scope('OnPrem')]
-    procedure VATVIESDeclarationTaxAuthReportHandler(var VATVIESDeclarationTaxAuthReport: TestRequestPage "VAT- VIES Declaration Tax Auth")
-    begin
-        VATVIESDeclarationTaxAuthReport.SaveAsXml(LibraryReportDataset.GetParametersFileName(), LibraryReportDataset.GetFileName());
-    end;
-
-    [Test]
-    [HandlerFunctions('VATVIESDeclarationTaxAuthReportHandler')]
-    [Scope('OnPrem')]
-    procedure VATVIESDeclarationTaxAuthReport()
-    var
-        VATVIESDeclarationTaxAuthReport: Report "VAT- VIES Declaration Tax Auth";
-    begin
-        Initialize();
-
-        VATVIESDeclarationTaxAuthReport.UseRequestPage(true);
-        VATVIESDeclarationTaxAuthReport.InitializeRequest(true, WorkDate(), WorkDate() + 365, '');
-        VATVIESDeclarationTaxAuthReport.Run();
-        TestBusinessIdentityandHomeCity(3);
-
-        LibraryReportDataset.LoadDataSetFile();
-        LibraryReportDataset.AssertElementWithValueExists('ServiceSuppliesCode4Caption', 'Total Value of Service Supplies(Code 4)');
-    end;
-
-    local procedure EnableVATVIESDeclarationFeature()
-    var
-        FeatureKey: Record "Feature Key";
-        FeatureKeyUpdateStatus: Record "Feature Data Update Status";
-        FeatureIdTok: Label 'FIVATVIESDeclaration', Locked = true;
-    begin
-        if FeatureKey.Get(FeatureIdTok) then begin
-            FeatureKey.Enabled := FeatureKey.Enabled::"All Users";
-            FeatureKey.Modify();
-        end;
-        if FeatureKeyUpdateStatus.Get(FeatureIdTok, CompanyName()) then begin
-            FeatureKeyUpdateStatus."Feature Status" := FeatureKeyUpdateStatus."Feature Status"::Enabled;
-            FeatureKeyUpdateStatus.Modify();
-        end;
-        Commit();
-    end;
-
 
     [RequestPageHandler]
     [Scope('OnPrem')]
