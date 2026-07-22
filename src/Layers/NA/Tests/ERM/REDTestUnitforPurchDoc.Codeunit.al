@@ -28,6 +28,7 @@ codeunit 134804 "RED Test Unit for Purch Doc"
         ZeroDeferralAmtErr: Label 'Deferral amounts cannot be 0. Line: %1, Deferral Template: %2.', Comment = '%1=The item number of the sales transaction line, %2=The Deferral Template Code';
         ConfirmCallOnceErr: Label 'Confirm should be called once.';
         DeferralLineQst: Label 'do you want to update the deferral schedules for the lines with this date?';
+        AmountLCYNotFilledErr: Label 'Amount (LCY) should be filled before posting.';
 
     [Test]
     [Scope('OnPrem')]
@@ -2543,6 +2544,46 @@ codeunit 134804 "RED Test Unit for Purch Doc"
         // [THEN] There was no error for "Start Date" change
 
         PurchaseInvoice.Close();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure TestDeferralScheduleLCYFilledBeforePostingWithCurrency()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        DeferralHeader: Record "Deferral Header";
+        DeferralLine: Record "Deferral Line";
+        DeferralTemplateCode: Code[10];
+        ItemNo: Code[20];
+    begin
+        // [SCENARIO 641062] Amount (LCY) is filled in the deferral schedule of an unposted foreign currency document
+        Initialize();
+        // [GIVEN] User has assigned a default deferral code to an Item
+        CreateItemWithDefaultDeferralCode(
+            DeferralTemplateCode,
+            ItemNo,
+            CalcMethod::"Straight-Line",
+            StartDate::"Posting Date",
+            LibraryRandom.RandIntInRange(2, 5));
+
+        // [WHEN] A purchase invoice with foreign currency and the deferral Item is created
+        CreatePurchDocWithCurrencyAndLine(
+            PurchaseHeader,
+            PurchaseLine,
+            PurchaseHeader."Document Type"::Invoice,
+            PurchaseLine.Type::Item,
+            ItemNo,
+            SetDateDay(1, WorkDate()));
+
+        // [THEN] The deferral header has a non-zero Amount to Defer (LCY) before posting
+        FindDeferralHeader(PurchaseLine, DeferralHeader);
+
+        // [THEN] Every deferral line has a non-zero Amount (LCY) that sums to the header Amount to Defer (LCY)
+        RangeDeferralLines(DeferralHeader, DeferralLine);
+        repeat
+            Assert.AreNotEqual(0, DeferralLine."Amount (LCY)", AmountLCYNotFilledErr);
+        until DeferralLine.Next() = 0;
     end;
 
     local procedure Initialize()
