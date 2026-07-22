@@ -139,6 +139,13 @@ codeunit 6108 "E-Document Processing"
             EDocExport.CheckEDocument(SourceDocumentHeader, EDocumentProcPhase);
     end;
 
+    /// <summary>
+    /// Creates a new E-Document for specified posted document if possible.
+    /// </summary>
+    /// <returns>
+    /// true if the E-Document has been created;
+    /// otherwise false.
+    /// </returns>
     procedure CreateEDocumentFromPostedDocumentPage(PostedRecord: Variant; DocumentType: Enum "E-Document Type"): Boolean
     var
         DocumentSendingProfile: Record "Document Sending Profile";
@@ -155,8 +162,8 @@ codeunit 6108 "E-Document Processing"
             Error(ElectronicDocumentErr, DocumentSendingProfile.Code);
 
         RunEDocumentCheck(PostedRecord, Enum::"E-Document Processing Phase"::Post);
-        EDocumentSubscribers.CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, DocumentType);
-        exit(true);
+
+        exit(EDocumentSubscribers.CreateEDocumentFromPostedDocument(PostedRecord, DocumentSendingProfile, DocumentType));
     end;
 
     procedure ProcessEDocumentAsEmail(DocumentSendingProfile: Record "Document Sending Profile"; ReportUsage: Enum "Report Selection Usage"; RecordVariant: Variant;

@@ -11,7 +11,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
 using Microsoft.Inventory.Transfer;
-using Microsoft.Projects.Project.Job;
+using Microsoft.Projects.Project.Planning;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
@@ -349,7 +349,10 @@ table 5766 "Warehouse Activity Header"
                             "Source Subtype" := AssemblyLine."Document Type"::Order.AsInteger();
                         end;
                     "Source Document"::"Job Usage":
-                        "Source Type" := Database::Job;
+                        begin
+                            "Source Type" := Database::"Job Planning Line";
+                            "Source Subtype" := 2; // Job Planning Line Status::Order
+                        end;
                     else
                         OnValidateSourceDocumentOnAssignSourceType(Rec);
                 end;
