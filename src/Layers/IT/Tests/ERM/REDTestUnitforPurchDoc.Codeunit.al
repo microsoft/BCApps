@@ -2597,7 +2597,7 @@
             PurchaseHeader."Document Type"::Invoice,
             PurchaseLine.Type::Item,
             ItemNo,
-            SetDateDay(1, WorkDate()));
+            SetPostingDate(1, WorkDate()));
 
         // [THEN] The deferral header has a non-zero Amount to Defer (LCY) before posting
         FindDeferralHeader(PurchaseLine, DeferralHeader);
