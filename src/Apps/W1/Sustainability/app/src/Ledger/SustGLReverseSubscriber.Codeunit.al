@@ -21,7 +21,7 @@ codeunit 6244 "Sust. GL Reverse Subscriber"
         // GLEntry2 is the original G/L entry being reversed. Sustainability Ledger Entries are linked to it
         // through the shared Document No. and Posting Date (see Sust. Gen. Journal Subscriber posting logic).
         // The event fires once per reversed G/L entry, so a document may be processed more than once;
-        // ReverseEntryFromGL skips already-reversed entries, making this idempotent.
+        // the Reversed filter and the guard below keep this idempotent.
         SustLedgEntry.SetLoadFields("Entry No.");
         SustLedgEntry.SetRange("Document No.", GLEntry2."Document No.");
         SustLedgEntry.SetRange("Posting Date", GLEntry2."Posting Date");
@@ -34,6 +34,7 @@ codeunit 6244 "Sust. GL Reverse Subscriber"
 
         foreach EntryNo in EntryNos do
             if SustLedgEntryToReverse.Get(EntryNo) then
-                SustEntryReverseMgt.ReverseEntryFromGL(SustLedgEntryToReverse);
+                if not SustLedgEntryToReverse.Reversed then
+                    SustEntryReverseMgt.ReverseEntry(SustLedgEntryToReverse);
     end;
 }

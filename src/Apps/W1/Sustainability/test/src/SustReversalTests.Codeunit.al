@@ -291,28 +291,6 @@ codeunit 148222 "Sust. Reversal Tests"
         Assert.ExpectedError('has already been reversed');
     end;
 
-    [Test]
-    procedure ReverseFromGLSkipsAlreadyReversed()
-    var
-        SustLedgEntry: Record "Sustainability Ledger Entry";
-        SustEntryReverseMgt: Codeunit "Sust. Entry Reverse Mgt.";
-    begin
-        // [SCENARIO] ReverseEntryFromGL should silently skip already-reversed entries
-        // [GIVEN] An already-reversed sustainability entry
-        Initialize();
-        CreateSustLedgerEntry(SustLedgEntry, 'GENERAL', 'DEFAULT');
-        SustLedgEntry."Reversed" := true;
-        SustLedgEntry.Modify();
-
-        // [WHEN] ReverseEntryFromGL is called (from G/L reversal hook)
-        SustEntryReverseMgt.ReverseEntryFromGL(SustLedgEntry);
-
-        // [THEN] No error - it silently exits without creating a reversal
-        SustLedgEntry.Get(SustLedgEntry."Entry No.");
-        Assert.AreEqual(0, SustLedgEntry."Reversed by Entry No.",
-            'Already-reversed entry should not get a new reversal link.');
-    end;
-
     // --- Helper Procedures ---
 
     local procedure Initialize()

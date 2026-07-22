@@ -1,5 +1,7 @@
 namespace Microsoft.Sustainability.Ledger;
 
+using System.Utilities;
+
 codeunit 6243 "Sust. Entry Reverse Mgt."
 {
     Permissions = tabledata "Sustainability Ledger Entry" = rimd;
@@ -20,41 +22,33 @@ codeunit 6243 "Sust. Entry Reverse Mgt."
         UpdateOriginalEntry(SustLedgEntry, NewSustLedgEntry."Entry No.");
     end;
 
-    procedure ReverseEntryFromGL(var SustLedgEntry: Record "Sustainability Ledger Entry")
-    var
-        NewSustLedgEntry: Record "Sustainability Ledger Entry";
-    begin
-        if SustLedgEntry.Reversed then
-            exit;
-
-        CreateReversalEntry(SustLedgEntry, NewSustLedgEntry);
-        UpdateOriginalEntry(SustLedgEntry, NewSustLedgEntry."Entry No.");
-    end;
-
     procedure ReverseEntries(var SustLedgEntry: Record "Sustainability Ledger Entry"): Integer
     var
-        TempSustLedgEntry: Record "Sustainability Ledger Entry";
+        SustLedgEntryToReverse: Record "Sustainability Ledger Entry";
+        ConfirmManagement: Codeunit "Confirm Management";
         EntryCount: Integer;
+        ConfirmQuestion: Text;
     begin
         EntryCount := SustLedgEntry.Count();
 
         if EntryCount = 0 then
             exit(0);
 
-        if EntryCount = 1 then begin
-            if not Confirm(ConfirmReverseQst) then
-                exit(0);
-        end else
-            if not Confirm(ConfirmReverseMultipleQst, false, EntryCount) then
-                exit(0);
+        if EntryCount = 1 then
+            ConfirmQuestion := ConfirmReverseQst
+        else
+            ConfirmQuestion := StrSubstNo(ConfirmReverseMultipleQst, EntryCount);
+
+        if not ConfirmManagement.GetResponseOrDefault(ConfirmQuestion, false) then
+            exit(0);
 
         // Validate all entries first (all-or-nothing)
-        TempSustLedgEntry.Copy(SustLedgEntry);
-        TempSustLedgEntry.SetLoadFields("Entry No.", Reversed, "Journal Template Name");
-        if TempSustLedgEntry.FindSet() then
+        SustLedgEntryToReverse.Copy(SustLedgEntry);
+        SustLedgEntryToReverse.SetLoadFields("Entry No.", Reversed, "Journal Template Name");
+        if SustLedgEntryToReverse.FindSet() then
             repeat
-                ValidateEntryForReversal(TempSustLedgEntry);
-            until TempSustLedgEntry.Next() = 0;
+                ValidateEntryForReversal(SustLedgEntryToReverse);
+            until SustLedgEntryToReverse.Next() = 0;
 
         // Reverse all entries
         if SustLedgEntry.FindSet(true) then
