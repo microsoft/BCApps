@@ -4279,8 +4279,7 @@ table 37 "Sales Line"
     trigger OnInsert()
     begin
         TestStatusOpen();
-        if not HasSalesHeader then
-            Error(CannotInsertSalesLineWithoutHeaderErr);
+        VerifySalesHeaderExists();
 
         if Quantity <> 0 then begin
             OnBeforeVerifyReservedQty(Rec, xRec, 0);
@@ -5102,7 +5101,10 @@ table 37 "Sales Line"
             exit;
 
         TestField("Document No.");
-        if ("Document Type" <> SalesHeader."Document Type") or ("Document No." <> SalesHeader."No.") then
+        if (not HasSalesHeader) or
+           ("Document Type" <> SalesHeader."Document Type") or
+           ("Document No." <> SalesHeader."No.")
+        then
             if SalesHeader.Get("Document Type", "Document No.") then begin
                 HasSalesHeader := true;
                 if SalesHeader."Currency Code" = '' then
@@ -5572,8 +5574,10 @@ table 37 "Sales Line"
     var
         PriceCalculation: Interface "Price Calculation";
     begin
-        if Rec."Document No." <> '' then
+        if Rec."Document No." <> '' then begin
             SalesHeader.Get(Rec."Document Type", Rec."Document No.");
+            HasSalesHeader := true;
+        end;
         GetPriceCalculationHandler(PriceType::Sale, SalesHeader, PriceCalculation);
         PriceCalculation.PickPrice();
         GetLineWithCalculatedPrice(PriceCalculation);
@@ -6776,6 +6780,8 @@ table 37 "Sales Line"
             exit;
 
         Clear(SalesHeader);
+        HasSalesHeader := false;
+
         TestStatusOpen();
         if ItemSubstitutionMgt.ItemSubstGet(Rec) then begin
             Rec.Validate("Location Code");
@@ -9372,8 +9378,12 @@ table 37 "Sales Line"
             exit;
 
         if "Document No." <> '' then begin
-            if not SalesHeader.Get("Document Type", "Document No.") then
+            if not SalesHeader.Get("Document Type", "Document No.") then begin
+                HasSalesHeader := false;
                 exit;
+            end;
+
+            HasSalesHeader := true;
             if (SalesHeader.Status = SalesHeader.Status::Released) and
                (xRec.Type in [xRec.Type::Item, xRec.Type::"Fixed Asset"])
             then
@@ -10092,6 +10102,7 @@ table 37 "Sales Line"
     procedure ClearSalesHeader()
     begin
         Clear(SalesHeader);
+        HasSalesHeader := false;
     end;
 
     local procedure GetBlockedItemNotificationID(): Guid
@@ -10377,6 +10388,15 @@ table 37 "Sales Line"
             TestField("Return Qty. Rcd. Not Invd.", 0);
     end;
 
+    local procedure VerifySalesHeaderExists()
+    begin
+        if Rec.IsTemporary() then
+            exit;
+
+        if not HasSalesHeader then
+            Error(CannotInsertSalesLineWithoutHeaderErr);
+    end;
+
     local procedure CheckInventoryPickConflict()
     var
         IsHandled: Boolean;
@@ -10542,7 +10562,7 @@ table 37 "Sales Line"
     /// <returns>The quantity in the base unit of measure.</returns>
     procedure CalcBaseQty(Qty: Decimal; FromFieldName: Text; ToFieldName: Text) Result: Decimal
     var
-        IsHandled: Boolean;        
+        IsHandled: Boolean;
     begin
         OnBeforeCalcBaseQty(Rec, Qty, FromFieldName, ToFieldName);
 
