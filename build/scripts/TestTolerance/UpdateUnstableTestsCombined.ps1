@@ -83,6 +83,7 @@ New-Item -ItemType Directory -Path $prWorkDir -Force | Out-Null
 
 try {
     # --- Path A: recompute the base list from the recent CI/CD window ---
+    Write-Host "::group::Path A · Recompute from recent CI/CD runs (branch '$Branch')"
     $cicdRunIds = @(Find-UnstableTestRunIds `
         -Branch $Branch `
         -Repository $repo `
@@ -95,12 +96,12 @@ try {
         $cicdFailed = Get-FailedTestsFromRuns -RunIds $cicdRunIds -Repository $repo -WorkDirectory $cicdWorkDir
         $recomputed = Update-UnstableTestsList -FailedTests $cicdFailed -RunCount $cicdRunIds.Count
         $baseEntries = @($recomputed.Values | ForEach-Object { ConvertTo-UnstableTestEntry -Test $_ -Repository $repo })
+        Write-Host "::endgroup::"
         Write-Host "::notice::Path A (CI/CD): recomputed $($baseEntries.Count) unstable test(s) from $($cicdRunIds.Count) run(s) on '$Branch'."
     }
     else {
         # No CI/CD runs to recompute from. Do NOT wipe the list: fall back to the existing artifact as the
         # base so Path B stays purely additive on top of it.
-        Write-Host "::warning::Path A (CI/CD): no completed runs with test results for '$Branch'. Preserving the existing list as the base."
         $existingPath = Receive-UnstableTestsArtifact -Branch $Branch -OutputDirectory $existingDir
         if ($existingPath -and (Test-Path $existingPath)) {
             $existing = Get-Content -Raw -Path $existingPath | ConvertFrom-Json
@@ -109,6 +110,8 @@ try {
             }
             Write-Host "Existing unstable tests list for '$Branch' has $($baseEntries.Count) test(s)."
         }
+        Write-Host "::endgroup::"
+        Write-Host "::warning::Path A (CI/CD): no completed runs with test results for '$Branch'. Preserving the existing list ($($baseEntries.Count) test(s)) as the base."
     }
 
     # --- Path B: cross-PR detection from recent PR builds (completed or running) ---

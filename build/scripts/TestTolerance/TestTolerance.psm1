@@ -1267,6 +1267,7 @@ function Find-CrossPrUnstableTests {
     $createdSince = $now.AddHours(-($WindowHours + $MaxBuildHours))
     $sinceIso = $createdSince.ToString('yyyy-MM-ddTHH:mm:ssZ')
     $createdFilter = [uri]::EscapeDataString(">=$sinceIso")
+    Write-Host "::group::Path B · Scanning recent PR builds (branch '$Branch')"
     Write-Host "Listing '$WorkflowFile' runs targeting '$Branch' (completed within the last $WindowHours h or in progress; scanning builds created since $sinceIso) ..."
 
     # No status filter: we want completed runs (kept only when they failed and finished within the window)
@@ -1285,6 +1286,7 @@ function Find-CrossPrUnstableTests {
         $pageLines = @(gh api "/repos/$Repository/actions/workflows/$WorkflowFile/runs?event=pull_request&per_page=$perPage&page=$page&created=$createdFilter" --jq $jq 2>$null)
         if ($LASTEXITCODE -ne 0) {
             if ($page -eq 1) {
+                Write-Host "::endgroup::"
                 Write-Host "No PR Build runs found in the window (or the listing failed)."
                 return @{}
             }
@@ -1297,12 +1299,21 @@ function Find-CrossPrUnstableTests {
         if ($pageLines.Count -lt $perPage) { break }  # last page
     }
     if ($lines.Count -eq 0) {
+        Write-Host "::endgroup::"
         Write-Host "No PR Build runs found in the window (or the listing failed)."
         return @{}
     }
+    Write-Host "Found $($lines.Count) PR build run(s) created since $sinceIso; classifying ..."
 
     $observations = New-Object System.Collections.Generic.List[object]
     $processed = 0
+    # Counters for a visible summary of what was examined vs skipped and why.
+    $examinedFailed = 0      # completed + failed + finished within the window, targeting this branch
+    $examinedInProgress = 0  # still running, targeting this branch (best-effort)
+    $skippedNotFailure = 0   # completed but did not fail
+    $skippedStaleFailed = 0  # completed + failed but finished before the window
+    $skippedStatus = 0       # queued/waiting/other non-terminal status
+    $skippedNotBranch = 0    # did not resolve to a PR targeting this branch
     foreach ($line in $lines) {
         if ([string]::IsNullOrWhiteSpace($line)) { continue }
         if ($processed -ge $MaxRuns) { Write-Host "Reached MaxRuns ($MaxRuns); stopping."; break }
@@ -1316,14 +1327,20 @@ function Find-CrossPrUnstableTests {
         # would have been picked up by an earlier run. An in-progress run may already have uploaded test
         # results from a finished test job, so include it best-effort. Everything else (completed and not
         # failed, completed but stale, queued/waiting, etc.) is skipped.
+        $runType = $null
         $isCompleted = ($run.status -eq 'completed')
         if ($isCompleted) {
-            if ($run.conclusion -ne 'failure') { continue }
+            if ($run.conclusion -ne 'failure') { $skippedNotFailure++; continue }
             $completedAt = $null
             if ($run.updatedAt) { try { $completedAt = [datetime]::Parse($run.updatedAt, [cultureinfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::AdjustToUniversal -bor [System.Globalization.DateTimeStyles]::AssumeUniversal) } catch { $completedAt = $null } }
-            if ($null -eq $completedAt -or $completedAt -lt $completedSince) { continue }
+            if ($null -eq $completedAt -or $completedAt -lt $completedSince) { $skippedStaleFailed++; continue }
+            $runType = 'failed'
         }
-        elseif ($run.status -ne 'in_progress') {
+        elseif ($run.status -eq 'in_progress') {
+            $runType = 'in_progress'
+        }
+        else {
+            $skippedStatus++
             continue
         }
 
@@ -1343,14 +1360,16 @@ function Find-CrossPrUnstableTests {
                 if ($pr -and $pr.base -eq $Branch) { $prNumber = [string]$pr.number; break }
             }
         }
-        if ([string]::IsNullOrWhiteSpace($prNumber)) { continue }  # not targeting this branch
+        if ([string]::IsNullOrWhiteSpace($prNumber)) { $skippedNotBranch++; continue }  # not targeting this branch
 
+        if ($runType -eq 'failed') { $examinedFailed++ } else { $examinedInProgress++ }
         $processed++
         $runId = [string]$run.id
         $runAttempt = if ($run.PSObject.Properties['runAttempt'] -and $run.runAttempt) { [int]$run.runAttempt } else { 1 }
         $runDir = Join-Path $WorkDirectory "run-$runId"
         $attemptText = if ($runAttempt -gt 1) { "$runAttempt attempts" } else { '1 attempt' }
-        Write-Host "Downloading test results from PR #$prNumber build (run $runId, status '$($run.status)', $attemptText) ..."
+        $statusText = if ($runType -eq 'failed') { 'completed/failed' } else { 'in progress' }
+        Write-Host "Downloading test results from PR #$prNumber build (run $runId, $statusText, $attemptText) ..."
         # Gather failures across every attempt of this run (see Get-RunFailedTestsAllAttempts). Attempts of
         # the same run belong to the same PR, so they never inflate the distinct-PR count below. Wrap in @()
         # so an empty result (e.g. a running build with no uploaded artifacts yet) yields an empty array
@@ -1366,6 +1385,10 @@ function Find-CrossPrUnstableTests {
         }) | Out-Null
     }
 
+    $examinedTotal = $examinedFailed + $examinedInProgress
+    Write-Host "::endgroup::"
+    Write-Host "Examined $examinedTotal PR build(s) targeting '$Branch': $examinedFailed completed/failed, $examinedInProgress in progress."
+    Write-Host "Skipped $($skippedNotFailure + $skippedStaleFailed + $skippedStatus + $skippedNotBranch) run(s): $skippedNotBranch not targeting '$Branch', $skippedNotFailure completed but not failed, $skippedStaleFailed failed but completed before the window, $skippedStatus queued/other status."
     Write-Host "Collected failing tests from $($observations.Count) PR build(s) targeting '$Branch'."
 
     # Emit the PR -> failing tests map (aggregated across each PR build's attempts) for visibility.
