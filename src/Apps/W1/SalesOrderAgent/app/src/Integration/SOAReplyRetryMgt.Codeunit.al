@@ -95,6 +95,9 @@ codeunit 4418 "SOA Reply Retry Mgt."
         if Rec.IsTemporary() then
             exit;
 
+        if Rec.Type <> Rec.Type::Output then
+            exit;
+
         ClearAttempts(Rec."Task ID", Rec.ID);
     end;
 }

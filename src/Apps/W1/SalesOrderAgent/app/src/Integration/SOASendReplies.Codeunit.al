@@ -33,6 +33,8 @@ codeunit 4581 "SOA Send Replies"
     local procedure SendEmailReplies(SOASetup: Record "SOA Setup")
     var
         OutputAgentTaskMessage: Record "Agent Task Message";
+        TempFailedReplyAttempt: Record "SOA Reply Attempt" temporary;
+        TempSuccessfulReplyAttempt: Record "SOA Reply Attempt" temporary;
         SOAReplyRetryMgt: Codeunit "SOA Reply Retry Mgt.";
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
@@ -54,8 +56,10 @@ codeunit 4581 "SOA Send Replies"
             if SOAReplyRetryMgt.IsExhausted(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage.ID) then
                 AllSentSuccessfully := false
             else
-                SendEmailReply(OutputAgentTaskMessage, TelemetryDimensions);
+                SendEmailReply(OutputAgentTaskMessage, TelemetryDimensions, TempFailedReplyAttempt, TempSuccessfulReplyAttempt);
         until OutputAgentTaskMessage.Next() = 0;
+
+        ApplyRetryUpdates(TempFailedReplyAttempt, TempSuccessfulReplyAttempt);
     end;
 
     procedure GetAllSentSuccessfully(): Boolean
@@ -63,48 +67,61 @@ codeunit 4581 "SOA Send Replies"
         exit(AllSentSuccessfully);
     end;
 
-    local procedure SendEmailReply(OutputAgentTaskMessage: Record "Agent Task Message"; var TelemetryDimensions: Dictionary of [Text, Text])
+    local procedure SendEmailReply(OutputAgentTaskMessage: Record "Agent Task Message"; var TelemetryDimensions: Dictionary of [Text, Text]; var TempFailedReplyAttempt: Record "SOA Reply Attempt" temporary; var TempSuccessfulReplyAttempt: Record "SOA Reply Attempt" temporary)
     var
         InputAgentTaskMessage: Record "Agent Task Message";
-        SOAReplyRetryMgt: Codeunit "SOA Reply Retry Mgt.";
         SOASendReply: Codeunit "SOA Send Reply";
         ErrorCallStack: Text;
         ErrorText: Text;
     begin
         if not InputAgentTaskMessage.Get(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage."Input Message ID") then begin
             AllSentSuccessfully := false;
-            RegisterFailedAttempt(OutputAgentTaskMessage);
+            AddRetryUpdate(TempFailedReplyAttempt, OutputAgentTaskMessage);
             FeatureTelemetry.LogError('0000NDQ', SOASetupCU.GetFeatureName(), 'Get Input Agent Task Message', TelemetryFailedToGetInputAgentTaskMessageLbl, GetLastErrorCallStack(), TelemetryDimensions);
             exit;
         end;
 
         if InputAgentTaskMessage."External ID" = '' then begin
             AllSentSuccessfully := false;
-            RegisterFailedAttempt(OutputAgentTaskMessage);
+            AddRetryUpdate(TempFailedReplyAttempt, OutputAgentTaskMessage);
             FeatureTelemetry.LogError('0000NDR', SOASetupCU.GetFeatureName(), 'Send Email Reply', TelemetryEmailReplyExternalIdEmptyLbl, '', TelemetryDimensions);
             exit;
         end;
 
         if SOASendReply.Run(OutputAgentTaskMessage) then begin
-            SOAReplyRetryMgt.ClearAttempts(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage.ID);
-            Commit();
+            AddRetryUpdate(TempSuccessfulReplyAttempt, OutputAgentTaskMessage);
             FeatureTelemetry.LogUsage('0000NDS', SOASetupCU.GetFeatureName(), TelemetryEmailReplySentLbl, TelemetryDimensions);
             exit;
         end;
 
-        ErrorText := GetLastErrorText();
+        ErrorText := GetLastErrorText(true);
         ErrorCallStack := GetLastErrorCallStack();
         AllSentSuccessfully := false;
-        RegisterFailedAttempt(OutputAgentTaskMessage);
+        AddRetryUpdate(TempFailedReplyAttempt, OutputAgentTaskMessage);
         TelemetryDimensions.Set('Error', ErrorText);
         FeatureTelemetry.LogError('0000OAB', SOASetupCU.GetFeatureName(), 'Send Email Reply', TelemetryEmailReplyFailedToSendLbl, ErrorCallStack, TelemetryDimensions);
     end;
 
-    local procedure RegisterFailedAttempt(OutputAgentTaskMessage: Record "Agent Task Message")
+    local procedure AddRetryUpdate(var TempSOAReplyAttempt: Record "SOA Reply Attempt" temporary; OutputAgentTaskMessage: Record "Agent Task Message")
+    begin
+        TempSOAReplyAttempt.Init();
+        TempSOAReplyAttempt."Task ID" := OutputAgentTaskMessage."Task ID";
+        TempSOAReplyAttempt."Message ID" := OutputAgentTaskMessage.ID;
+        TempSOAReplyAttempt.Insert();
+    end;
+
+    local procedure ApplyRetryUpdates(var TempFailedReplyAttempt: Record "SOA Reply Attempt" temporary; var TempSuccessfulReplyAttempt: Record "SOA Reply Attempt" temporary)
     var
         SOAReplyRetryMgt: Codeunit "SOA Reply Retry Mgt.";
     begin
-        SOAReplyRetryMgt.RegisterFailedAttempt(OutputAgentTaskMessage."Task ID", OutputAgentTaskMessage.ID);
-        Commit();
+        if TempFailedReplyAttempt.FindSet() then
+            repeat
+                SOAReplyRetryMgt.RegisterFailedAttempt(TempFailedReplyAttempt."Task ID", TempFailedReplyAttempt."Message ID");
+            until TempFailedReplyAttempt.Next() = 0;
+
+        if TempSuccessfulReplyAttempt.FindSet() then
+            repeat
+                SOAReplyRetryMgt.ClearAttempts(TempSuccessfulReplyAttempt."Task ID", TempSuccessfulReplyAttempt."Message ID");
+            until TempSuccessfulReplyAttempt.Next() = 0;
     end;
 }
