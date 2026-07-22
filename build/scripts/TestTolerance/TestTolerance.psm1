@@ -1285,27 +1285,37 @@ function Get-RunFailedTestsAllAttempts {
         $zipPath = Join-Path -Path $WorkDirectory -ChildPath "artifact-$artId.zip"
         $extractDir = Join-Path -Path $WorkDirectory -ChildPath "artifact-$artId"
         if (-not (Save-GitHubArtifactZip -Repository $Repository -ArtifactId $artId -OutFile $zipPath)) {
+            # 'gh api ... /zip' redirects stdout to the target file, so a failed download can still leave a
+            # partial/empty zip behind. Remove it so it does not accumulate in the per-run work directory.
+            Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
             Write-Host "::warning::Could not download artifact '$artName' (id $artId) from run $RunId; skipping."
             continue
         }
         try {
-            Expand-Archive -Path $zipPath -DestinationPath $extractDir -Force -ErrorAction Stop
-        }
-        catch {
-            Write-Host "::warning::Could not extract artifact '$artName' (id $artId) from run $RunId; skipping."
-            continue
+            try {
+                Expand-Archive -Path $zipPath -DestinationPath $extractDir -Force -ErrorAction Stop
+            }
+            catch {
+                Write-Host "::warning::Could not extract artifact '$artName' (id $artId) from run $RunId; skipping."
+                continue
+            }
+            finally {
+                Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
+            }
+
+            foreach ($xml in @(Get-ChildItem -Path $extractDir -Filter '*.xml' -Recurse -ErrorAction SilentlyContinue)) {
+                foreach ($ft in @(Get-FailedTestsFromResults -Path $xml.FullName)) {
+                    if ($null -eq $ft) { continue }
+                    $key = $ft.Key
+                    if ([string]::IsNullOrWhiteSpace($key)) { continue }
+                    if ($seen.Add($key)) { $failed.Add($ft) | Out-Null }
+                }
+            }
         }
         finally {
-            Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
-        }
-
-        foreach ($xml in @(Get-ChildItem -Path $extractDir -Filter '*.xml' -Recurse -ErrorAction SilentlyContinue)) {
-            foreach ($ft in @(Get-FailedTestsFromResults -Path $xml.FullName)) {
-                if ($null -eq $ft) { continue }
-                $key = $ft.Key
-                if ([string]::IsNullOrWhiteSpace($key)) { continue }
-                if ($seen.Add($key)) { $failed.Add($ft) | Out-Null }
-            }
+            # Each artifact can hold many XML files and Path B scans many runs/attempts, so drop the extracted
+            # directory once its results are parsed to keep runner disk usage bounded across the hourly run.
+            Remove-Item $extractDir -Recurse -Force -ErrorAction SilentlyContinue
         }
     }
 
