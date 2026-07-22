@@ -58,6 +58,11 @@ codeunit 132973 "SharePoint Test Library"
             exit;
         end;
 
+        if Uri.EndsWith('/_api/Web/Lists(guid''7A1F0E2B-8C4D-4E6F-9A0B-1C2D3E4F5A6B'')/items/') then begin
+            GetVerboseErrorResponse(SharePointOperationResponse);
+            exit;
+        end;
+
         if Uri.EndsWith('/_api/Web/Lists(guid''854D7F21-1C6A-43AB-A081-20404894B449'')/items/') or Uri.EndsWith('/_api/Web/lists/GetByTitle(''Test Documents'')/items/') then begin
             if Method = 'GET' then begin
                 GetListItemsTestResponse(SharePointOperationResponse, BaseUrl, ParentUrl);
@@ -987,6 +992,23 @@ codeunit 132973 "SharePoint Test Library"
         ResponseContent.Append('"error_description":"Invalid JWT token. The token is expired."');
         ResponseContent.Append('}');
         SharePointOperationResponse.SetHttpResponse(ResponseContent.ToText(), HttpHeaders, 401, false, 'Unauthorized');
+    end;
+
+    local procedure GetVerboseErrorResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response")
+    var
+        HttpHeaders: HttpHeaders;
+        ResponseContent: TextBuilder;
+    begin
+        ResponseContent.Append('{');
+        ResponseContent.Append('"error":{');
+        ResponseContent.Append('"code":"-2147024891, System.UnauthorizedAccessException",');
+        ResponseContent.Append('"message":{');
+        ResponseContent.Append('"lang":"en-US",');
+        ResponseContent.Append('"value":"Access denied. You do not have permission to perform this action."');
+        ResponseContent.Append('}');
+        ResponseContent.Append('}');
+        ResponseContent.Append('}');
+        SharePointOperationResponse.SetHttpResponse(ResponseContent.ToText(), HttpHeaders, 403, false, 'Forbidden');
     end;
 
     local procedure GetTooManyRequestsResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response")

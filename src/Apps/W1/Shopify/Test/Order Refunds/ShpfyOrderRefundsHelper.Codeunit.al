@@ -399,8 +399,98 @@ codeunit 139564 "Shpfy Order Refunds Helper"
         exit(RefundHeader."Refund Id");
     end;
 
+    internal procedure CreateRefundTransaction(OrderId: BigInteger; RefundId: BigInteger; Amount: Decimal; Status: Enum "Shpfy Transaction Status"): BigInteger
+    var
+        OrderTransaction: Record "Shpfy Order Transaction";
+    begin
+        OrderTransaction."Shopify Transaction Id" := Any.IntegerInRange(100000, 9999999);
+        OrderTransaction."Shopify Order Id" := OrderId;
+        OrderTransaction."Refund Id" := RefundId;
+        OrderTransaction.Type := "Shpfy Transaction Type"::Refund;
+        OrderTransaction.Status := Status;
+        OrderTransaction.Amount := Amount;
+        OrderTransaction.Insert();
+        exit(OrderTransaction."Shopify Transaction Id");
+    end;
+
     internal procedure SetDefaultSeed()
     begin
         Any.SetDefaultSeed();
+    end;
+
+    internal procedure CreateOrderLineWithUnitPrice(OrderId: BigInteger; LineNo: Integer; ProductId: BigInteger; VariantId: BigInteger; UnitPrice: Decimal): BigInteger
+    var
+        Item: Record Item;
+        OrderLine: Record "Shpfy Order Line";
+    begin
+        Item := GetItem();
+        LineNo := LineNo * 100000;
+        OrderLine."Shopify Order Id" := OrderId;
+        OrderLine."Line Id" := Any.IntegerInRange(LineNo, LineNo + 99999);
+        OrderLine.Description := Item.Description;
+        OrderLine.Quantity := 1;
+        OrderLine."Shopify Product Id" := ProductId;
+        OrderLine."Shopify Variant Id" := VariantId;
+        OrderLine."Item No." := Item."No.";
+        OrderLine."Gift Card" := false;
+        OrderLine.Taxable := false;
+        OrderLine."Discount Amount" := 0;
+        OrderLine."Unit Price" := UnitPrice;
+        OrderLine.Insert();
+        exit(OrderLine."Line Id");
+    end;
+
+    internal procedure MarkOrderLineAsExchangeItem(OrderId: BigInteger; LineId: BigInteger)
+    var
+        OrderLine: Record "Shpfy Order Line";
+    begin
+        OrderLine.Get(OrderId, LineId);
+        OrderLine."Is Exchange Item" := true;
+        OrderLine.Modify();
+    end;
+
+    internal procedure CreateRefundLineForReturnedItem(RefundId: BigInteger; OrderLineId: BigInteger; Quantity: Integer; UnitPrice: Decimal): BigInteger
+    var
+        RefundLine: Record "Shpfy Refund Line";
+        RefundHeader: Record "Shpfy Refund Header";
+        RefundsAPI: Codeunit "Shpfy Refunds API";
+    begin
+        RefundHeader.Get(RefundId);
+        RefundLine."Refund Line Id" := Any.IntegerInRange(100000, 999999);
+        RefundLine."Refund Id" := RefundId;
+        RefundLine."Order Line Id" := OrderLineId;
+        RefundLine."Restock Type" := RefundLine."Restock Type"::Return;
+        RefundLine.Quantity := Quantity;
+        RefundLine.Restocked := true;
+        RefundLine.Amount := UnitPrice;
+        RefundLine."Subtotal Amount" := UnitPrice * Quantity;
+        RefundLine."Can Create Credit Memo" := RefundsAPI.IsNonZeroOrReturnRefund(RefundHeader) or (RefundLine."Restock Type" = RefundLine."Restock Type"::Return);
+        RefundLine."Is Exchange Item" := false;
+        RefundLine.Insert();
+        exit(RefundLine."Refund Line Id");
+    end;
+
+    internal procedure CreateExchangeRefundLine(RefundId: BigInteger; OrderLineId: BigInteger; ExchangeQuantity: Integer; UnitPrice: Decimal): BigInteger
+    var
+        RefundLine: Record "Shpfy Refund Line";
+        RefundHeader: Record "Shpfy Refund Header";
+        RefundsAPI: Codeunit "Shpfy Refunds API";
+    begin
+        // Mirrors what ShpfyRefundsAPI.FillInExchangeRefundLine produces: synthetic negative id,
+        // negative quantity, positive unit price, negative subtotal.
+        RefundHeader.Get(RefundId);
+        RefundLine."Refund Line Id" := -Any.IntegerInRange(100000, 999999);
+        RefundLine."Refund Id" := RefundId;
+        RefundLine."Order Line Id" := OrderLineId;
+        RefundLine."Restock Type" := RefundLine."Restock Type"::Return;
+        RefundLine.Quantity := -ExchangeQuantity;
+        RefundLine.Restocked := false;
+        RefundLine.Amount := UnitPrice;
+        RefundLine."Subtotal Amount" := -(UnitPrice * ExchangeQuantity);
+        RefundLine."Can Create Credit Memo" := RefundsAPI.IsNonZeroOrReturnRefund(RefundHeader);
+        RefundLine."Location Id" := 0;
+        RefundLine."Is Exchange Item" := true;
+        RefundLine.Insert();
+        exit(RefundLine."Refund Line Id");
     end;
 }
