@@ -2019,6 +2019,28 @@
       "ruleSetPathMinorRelease": "$ENV:INETROOT\\App\\Rulesets\\MinorRelease\\app.ruleset.json",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
+    "Depreciation Differences FI": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\FI\\DepreciationDifferencesFI\\app",
+      "dvdFolder": "Applications\\DepreciationDifferencesFI\\Source",
+      "hasTranslations": true,
+      "installOnEnvironmentUpdate": true,
+      "supportedCountries": "FI",
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json"
+    },
+    "Depreciation Differences FI Tests": {
+      "projectPath": "$env:INETROOT\\App\\Apps\\FI\\DepreciationDifferencesFI\\test",
+      "dvdFolder": "Applications\\DepreciationDifferencesFI\\Test",
+      "supportedCountries": "FI",
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "logLevel": "warning",
+      "ruleSetPath": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\ruleset.json",
+      "ruleSetPathMinorRelease": "$env:INETROOT\\App\\BCApps\\src\\rulesets\\minorrelease.ruleset.json",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
     "DK Core": {
       "projectPath": "$env:INETROOT\\App\\Apps\\DK\\DKCore\\app",
       "dvdFolder": "Applications\\DKCore\\Source",
