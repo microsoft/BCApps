@@ -17,7 +17,11 @@ codeunit 160200 "Create FA Derog. Depr. Book"
         "Depreciation Book".Code := Code;
         "Depreciation Book".Description := Description;
         "Depreciation Book"."Disposal Calculation Method" := "Disposal Calculation Method";
+#if not CLEAN28
         "Depreciation Book"."Derogatory Calculation" := "Derogatory Calculation";
+#else
+        "Depreciation Book"."Derogatory Calc." := "Derogatory Calculation";
+#endif
         "Depreciation Book".Insert(true);
     end;
 }

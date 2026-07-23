@@ -171,11 +171,26 @@ report 5687 "Copy Depreciation Book"
                             Caption = 'Disposal';
                             ToolTip = 'Specifies if related disposal entries are included in the batch job .';
                         }
+#if not CLEAN29
                         field(Derogatory; CopyChoices[13])
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'Derogatory';
                             ToolTip = 'Specifies whether to include derogatory depreciation.';
+                            Visible = not AcceleratedDeprFeatureEnabled;
+                            ObsoleteState = Pending;
+                            ObsoleteTag = '29.0';
+                            ObsoleteReason = 'Moved to W1 Base Application';
+                        }
+#endif
+                        field("CopyChoices[13]"; CopyChoices[13])
+                        {
+                            ApplicationArea = FixedAssets;
+                            Caption = 'Derogatory';
+                            ToolTip = 'Specifies whether to include derogatory depreciation.';
+#if not CLEAN29
+                            Visible = AcceleratedDeprFeatureEnabled;
+#endif
                         }
                     }
                 }
@@ -188,6 +203,10 @@ report 5687 "Copy Depreciation Book"
 
         trigger OnOpenPage()
         begin
+#if not CLEAN29
+            AcceleratedDeprFeatureEnabled := AcceleratedDeprFeature.IsEnabled();
+#endif
+
             if DeprBookCode = '' then begin
                 FASetup.Get();
                 DeprBookCode := FASetup."Default Depr. Book";
@@ -227,6 +246,10 @@ report 5687 "Copy Depreciation Book"
         FALedgEntry: Record "FA Ledger Entry";
         FAJnlSetup: Record "FA Journal Setup";
         DepreciationCalc: Codeunit "Depreciation Calculation";
+#if not CLEAN29
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+        AcceleratedDeprFeatureEnabled: Boolean;
+#endif
         Window: Dialog;
         ExchangeRate: Decimal;
         CopyChoices: array[13] of Boolean;

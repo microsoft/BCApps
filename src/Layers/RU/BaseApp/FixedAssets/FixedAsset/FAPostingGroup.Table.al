@@ -489,6 +489,57 @@ table 5606 "FA Posting Group"
                 CheckGLAcc("Book Val. Acc. on Disp. (Loss)", false);
             end;
         }
+        field(5865; "Derogatory Acc."; Code[20])
+        {
+            Caption = 'Derogatory Account';
+            TableRelation = "G/L Account";
+
+            trigger OnValidate()
+            begin
+                CheckGLAcc("Derogatory Acc.", false);
+            end;
+        }
+        field(5866; "Derogatory Account (Decrease)"; Code[20])
+        {
+            Caption = 'Derogatory Acc. (Decrease)';
+            TableRelation = "G/L Account";
+
+            trigger OnValidate()
+            begin
+                CheckGLAcc("Derogatory Account (Decrease)", false);
+            end;
+        }
+        field(5867; "Derog. Bal. Account (Decrease)"; Code[20])
+        {
+            Caption = 'Derog. Bal. Acc. (Decrease)';
+            TableRelation = "G/L Account";
+
+            trigger OnValidate()
+            begin
+                CheckGLAcc("Derog. Bal. Account (Decrease)", true);
+            end;
+        }
+        field(5868; "Derogatory Expense Acc."; Code[20])
+        {
+            Caption = 'Derogatory Expense Account';
+            TableRelation = "G/L Account";
+
+            trigger OnValidate()
+            begin
+                CheckGLAcc("Derogatory Expense Acc.", true);
+            end;
+        }
+        field(5869; "Allocated Derogatory Pct."; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = '';
+            CalcFormula = sum("FA Allocation"."Allocation %" where(Code = field(Code),
+                                                                    "Allocation Type" = const(Derogatory)));
+            Caption = 'Allocated Derogatory %';
+            DecimalPlaces = 1 : 1;
+            Editable = false;
+            FieldClass = FlowField;
+        }
         field(12400; "Disposal Expense Account"; Code[20])
         {
             Caption = 'Disposal Expense Account';
@@ -864,6 +915,30 @@ table 5606 "FA Posting Group"
     begin
         TestField("Disposal Expense Account");
         exit("Disposal Expense Account");
+    end;
+
+    procedure GetDerogatoryAccount(): Code[20]
+    begin
+        TestField("Derogatory Acc.");
+        exit("Derogatory Acc.");
+    end;
+
+    procedure GetDerogatoryAccountDecrease(): Code[20]
+    begin
+        TestField("Derogatory Account (Decrease)");
+        exit("Derogatory Account (Decrease)");
+    end;
+
+    procedure GetDerogatoryBalAccountDecrease(): Code[20]
+    begin
+        TestField("Derog. Bal. Account (Decrease)");
+        exit("Derog. Bal. Account (Decrease)");
+    end;
+
+    procedure GetDerogatoryExpenseAccount(): Code[20]
+    begin
+        TestField("Derogatory Expense Acc.");
+        exit("Derogatory Expense Acc.");
     end;
 
     [IntegrationEvent(false, false)]

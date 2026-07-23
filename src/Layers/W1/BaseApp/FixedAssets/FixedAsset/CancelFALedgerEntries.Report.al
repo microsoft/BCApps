@@ -50,9 +50,7 @@ report 5688 "Cancel FA Ledger Entries"
             begin
                 DepreciationCalc.SetFAFilter(FALedgEntry, '', DeprBookCode, false);
                 FALedgEntry.SetRange("FA Posting Category", FALedgEntry."FA Posting Category"::" ");
-                FALedgEntry.SetRange(
-                  "FA Posting Type",
-                  FALedgEntry."FA Posting Type"::"Acquisition Cost", FALedgEntry."FA Posting Type"::"Salvage Value");
+                FALedgEntry.SetFilter("FA Posting Type", '<=%1|%2', FALedgEntry."FA Posting Type"::"Salvage Value", FALedgEntry."FA Posting Type"::Derogatory);
                 FALedgEntry.SetRange("FA Posting Date", StartingDate, EndingDate2);
             end;
         }
@@ -145,6 +143,12 @@ report 5688 "Cancel FA Ledger Entries"
                             Caption = 'Appreciation';
                             ToolTip = 'Specifies if related appreciation entries are included in the batch job .';
                         }
+                        field("Derogatory"; CancelChoices[13])
+                        {
+                            ApplicationArea = FixedAssets;
+                            Caption = 'Derogatory';
+                            ToolTip = 'Specifies whether to include derogatory depreciation.';
+                        }
                         field("CancelChoices[5]"; CancelChoices[5])
                         {
                             ApplicationArea = FixedAssets;
@@ -193,6 +197,11 @@ report 5688 "Cancel FA Ledger Entries"
 
     trigger OnPreReport()
     begin
+        DerogDeprBook.SetRange(Code, DeprBookCode);
+        if DerogDeprBook.Find('-') then
+            if DerogDeprBook."Derogatory Calc." <> '' then
+                Error(Text10800);
+
         if (EndingDate > 0D) and (StartingDate > EndingDate) then
             Error(Text000);
         if UseNewPostingDate then
@@ -225,10 +234,11 @@ report 5688 "Cancel FA Ledger Entries"
         FADeprBook: Record "FA Depreciation Book";
         DeprBook: Record "Depreciation Book";
         FAJnlSetup: Record "FA Journal Setup";
+        DerogDeprBook: Record "Depreciation Book";
         DepreciationCalc: Codeunit "Depreciation Calculation";
         Window: Dialog;
-        CancelChoices: array[9] of Boolean;
-        GLIntegration: array[9] of Boolean;
+        CancelChoices: array[13] of Boolean;
+        GLIntegration: array[13] of Boolean;
         DocumentNo: Code[20];
         DocumentNo2: Code[20];
         DocumentNo3: Code[20];
@@ -256,6 +266,7 @@ report 5688 "Cancel FA Ledger Entries"
         Text002: Label 'You must specify New Posting Date.';
         Text003: Label 'You must not specify New Posting Date.';
         Text004: Label 'You must not specify a closing date.';
+        Text10800: Label 'You cannot cancel FA entries that were posted to a derogatory depreciation book. Instead you must\cancel the FA entries posted to the depreciation book integrated with G/L.';
 #pragma warning restore AA0074
 
     protected var

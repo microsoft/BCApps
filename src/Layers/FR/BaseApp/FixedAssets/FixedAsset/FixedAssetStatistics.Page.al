@@ -100,12 +100,27 @@ page 5602 "Fixed Asset Statistics"
                             ApplicationArea = FixedAssets;
                             Caption = 'Custom 1';
                         }
+                        field("Last Derogatory"; Rec."Last Derogatory")
+                        {
+                            ApplicationArea = FixedAssets;
+                            Caption = 'Derogatory';
+                            ToolTip = 'Specifies the FA posting date of the last posted derogatory depreciation.';
+#if not CLEAN29
+                            Visible = AcceleratedDeprFeatureEnabled;
+#endif
+                        }
+#if not CLEAN29
                         field("Last Derogatory Date"; Rec."Last Derogatory Date")
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'Derogatory';
                             ToolTip = 'Specifies the FA posting date of the last posted derogatory depreciation.';
+                            Visible = not AcceleratedDeprFeatureEnabled;
+                            ObsoleteState = Pending;
+                            ObsoleteTag = '29.0';
+                            ObsoleteReason = 'Moved to W1 Base Application';
                         }
+#endif
                         field("Last Salvage Value Date"; Rec."Last Salvage Value Date")
                         {
                             ApplicationArea = FixedAssets;
@@ -140,11 +155,27 @@ page 5602 "Fixed Asset Statistics"
                         {
                             ApplicationArea = FixedAssets;
                         }
+                        field("Derogatory Amount"; Rec."Derogatory Amount")
+                        {
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
+                            ApplicationArea = FixedAssets;
+                            ToolTip = 'Specifies the total derogatory depreciation for the fixed asset.';
+#if not CLEAN29
+                            Visible = AcceleratedDeprFeatureEnabled;
+#endif
+                        }
+#if not CLEAN29
                         field(Derogatory; Rec.Derogatory)
                         {
                             ApplicationArea = FixedAssets;
                             ToolTip = 'Specifies the total derogatory depreciation for the fixed asset.';
+                            Visible = not AcceleratedDeprFeatureEnabled;
+                            ObsoleteState = Pending;
+                            ObsoleteTag = '29.0';
+                            ObsoleteReason = 'Moved to W1 Base Application';
                         }
+#endif
                         field("Salvage Value"; Rec."Salvage Value")
                         {
                             ApplicationArea = FixedAssets;
@@ -201,7 +232,18 @@ page 5602 "Fixed Asset Statistics"
         DisposalValueVisible := true;
     end;
 
+#if not CLEAN29
+    trigger OnOpenPage()
+    begin
+        AcceleratedDeprFeatureEnabled := AcceleratedDeprFeature.IsEnabled();
+    end;
+#endif
+
     var
+#if not CLEAN29
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+        AcceleratedDeprFeatureEnabled: Boolean;
+#endif
         Disposed: Boolean;
         DisposalValueVisible: Boolean;
         ProceedsOnDisposalVisible: Boolean;

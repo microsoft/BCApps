@@ -246,8 +246,8 @@ codeunit 31235 "FA Disposal Handler CZF"
         MaxDisposalNo, SalesEntryNo : Integer;
         DisposalType: Option FirstDisposal,SecondDisposal,ErrorDisposal,LastErrorDisposal;
         OldDisposalMethod: Option " ",Net,Gross;
-        EntryAmounts: array[14] of Decimal;
-        EntryNumbers: array[14] of Integer;
+        EntryAmounts: array[15] of Decimal;
+        EntryNumbers: array[15] of Integer;
         i, j : Integer;
         DisposalMethodErr: Label '%2 must not be %3 in %4 %5 = %6 for %1.', Comment = '%1 = FA Name, %2 = Disposal Calculation Method FieldCaption, %3 = Disposal Calculation Method, %4 = Depreciation Book TableCaption, %5 = Depreciation Book Code FieldCaption, %6 = %5 = Depreciation Book Code';
         FirstDisposalErr: Label '%2 = %3 must be canceled first for %1.', Comment = '%1 = FA Name, %2 = Disposal Entry No. FieldCaption, %3 = Disposal Entry No.';
@@ -289,7 +289,7 @@ codeunit 31235 "FA Disposal Handler CZF"
 
         if DisposalType = DisposalType::FirstDisposal then begin
             CalculateDisposal.CalcGainLoss(FANo, DeprBookCode, EntryAmounts);
-            for i := 1 to 14 do
+            for i := 1 to ArrayLen(EntryAmounts) do
                 if EntryAmounts[i] <> 0 then begin
                     FALedgEntry."FA Posting Category" := CalculateDisposal.SetFALedgerPostingCategory(i);
                     FALedgEntry."FA Posting Type" := "FA Ledger Entry FA Posting Type".FromInteger(CalculateDisposal.SetFAPostingType(i));
@@ -437,13 +437,13 @@ codeunit 31235 "FA Disposal Handler CZF"
 
     local procedure PostReverseType(FALedgerEntry: Record "FA Ledger Entry"; var FAInsertLedgerEntry: Codeunit "FA Insert Ledger Entry"; var CalculateDisposal: Codeunit "Calculate Disposal")
     var
-        EntryAmounts: array[4] of Decimal;
+        EntryAmounts: array[5] of Decimal;
         i: Integer;
     begin
         CalculateDisposal.CalcReverseAmounts(FALedgerEntry."FA No.", DeprBookCode, EntryAmounts);
         FALedgerEntry."FA Posting Category" := FALedgerEntry."FA Posting Category"::" ";
         FALedgerEntry."Automatic Entry" := true;
-        for i := 1 to 4 do
+        for i := 1 to ArrayLen(EntryAmounts) do
             if EntryAmounts[i] <> 0 then begin
                 FALedgerEntry.Amount := EntryAmounts[i];
                 FALedgerEntry."FA Posting Type" := "FA Ledger Entry FA Posting Type".FromInteger(CalculateDisposal.SetReverseType(i));

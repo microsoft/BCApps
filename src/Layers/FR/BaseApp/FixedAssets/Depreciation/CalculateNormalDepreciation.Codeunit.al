@@ -556,6 +556,9 @@ codeunit 5611 "Calculate Normal Depreciation"
 
     local procedure TransferValues()
     var
+#if not CLEAN29
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
         IsHandled: Boolean;
     begin
         FADeprBook.TestField("Depreciation Starting Date");
@@ -594,7 +597,14 @@ codeunit 5611 "Calculate Normal Depreciation"
         end else
             BookValue := EntryAmounts[1];
         if DateFromProjection = 0D then begin
-            DerogDeprBook.SetRange("Derogatory Calculation", DeprBookCode);
+#if not CLEAN29
+            if AcceleratedDeprFeature.IsEnabled() then
+                DerogDeprBook.SetRange("Derogatory Calc.", DeprBookCode)
+            else
+                DerogDeprBook.SetRange("Derogatory Calculation", DeprBookCode);
+#else
+            DerogDeprBook.SetRange("Derogatory Calc.", DeprBookCode);
+#endif
             if DerogDeprBook.FindFirst() then begin
                 DerogFALedgEntry.SetCurrentKey("FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Posting Date");
                 DerogFALedgEntry.SetRange("FA No.", FADeprBook."FA No.");

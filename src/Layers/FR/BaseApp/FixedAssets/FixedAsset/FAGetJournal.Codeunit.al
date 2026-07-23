@@ -135,8 +135,13 @@ codeunit 5639 "FA Get Journal"
                 exit(DeprBook."G/L Integration - Maintenance");
             FAPostingType::"Salvage Value":
                 exit(false);
+#if not CLEAN29
             FAPostingType::Derogatory:
                 exit(DeprBook."G/L Integration - Derogatory");
+#else
+            FAPostingType::Derogatory:
+                exit(DeprBook."Integration G/L - Derogatory");
+#endif
         end;
 
         OnAfterCalcGLIntegration(DeprBook, FAPostingType, Result);

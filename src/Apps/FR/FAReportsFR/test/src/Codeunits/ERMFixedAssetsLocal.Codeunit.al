@@ -27,6 +27,11 @@ codeunit 148001 "ERM Fixed Assets - Local"
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryRandom: Codeunit "Library - Random";
         Assert: Codeunit Assert;
+#if not CLEAN28
+#pragma warning disable AL0432
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#pragma warning restore AL0432
+#endif
         CompletionStatsTok: Label 'The depreciation has been calculated.';
 
     [Test]
@@ -310,7 +315,16 @@ codeunit 148001 "ERM Fixed Assets - Local"
     begin
         CreateAndSetupDeprBook(DeprBook);
         DeprBook.Validate("Use Same FA+G/L Posting Dates", false);
-        DeprBook.Validate("Derogatory Calculation", DerogDeprBookCode);
+#if not CLEAN28
+        if AcceleratedDeprFeature.IsEnabled() then
+            DeprBook.Validate("Derogatory Calc.", DerogDeprBookCode)
+        else
+#pragma warning disable AL0432
+            DeprBook.Validate("Derogatory Calculation", DerogDeprBookCode);
+#pragma warning restore AL0432
+#else
+        DeprBook.Validate("Derogatory Calc.", DerogDeprBookCode);
+#endif
         DeprBook.Modify(true);
         exit(DeprBook.Code);
     end;
@@ -375,7 +389,16 @@ codeunit 148001 "ERM Fixed Assets - Local"
         DeprBook.Get(DeprBookCode);
         DeprBook.Validate("G/L Integration - Acq. Cost", Value);
         DeprBook.Validate("G/L Integration - Depreciation", Value);
-        DeprBook.Validate("G/L Integration - Derogatory", Value);
+#if not CLEAN28
+        if AcceleratedDeprFeature.IsEnabled() then
+            DeprBook.Validate("Integration G/L - Derogatory", Value)
+        else
+#pragma warning disable AL0432        
+            DeprBook.Validate("G/L Integration - Derogatory", Value);
+#pragma warning restore AL0432
+#else
+        DeprBook.Validate("Integration G/L - Derogatory", Value);
+#endif
         DeprBook.Modify(true);
     end;
 

@@ -42,7 +42,7 @@ report 5690 "Index Fixed Assets"
                 MaintenanceLedgEntry.SetRange("FA No.", "No.");
 
                 i := 0;
-                while i < 9 do begin
+                while i < 13 do begin
                     i := i + 1;
                     if i = 7 then
                         i := 8;
@@ -62,6 +62,8 @@ report 5690 "Index Fixed Assets"
                             FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Custom 2");
                         if i = 9 then
                             FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Salvage Value");
+                        if (i = 13) then
+                            FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Derogatory);
                         if i = 8 then begin
                             MaintenanceLedgEntry.CalcSums(Amount);
                             IndexAmount := MaintenanceLedgEntry.Amount;
@@ -185,6 +187,12 @@ report 5690 "Index Fixed Assets"
                             Caption = 'Maintenance';
                             ToolTip = 'Specifies if you want to index for fixed assets of transaction type Salvage Value in the batch job.';
                         }
+                        field("IndexChoices[13]"; IndexChoices[13])
+                        {
+                            ApplicationArea = FixedAssets;
+                            Caption = 'Derogatory';
+                            ToolTip = 'Specifies whether to include derogatory depreciation.';
+                        }
                     }
                 }
             }
@@ -209,6 +217,11 @@ report 5690 "Index Fixed Assets"
 
     trigger OnPreReport()
     begin
+        DerogDeprBook.SetRange(Code, DeprBookCode);
+        if DerogDeprBook.Find('-') then
+            if DerogDeprBook."Derogatory Calc." <> '' then
+                Error(Text10800);
+
         if FAPostingDate = 0D then
             Error(Text000, FAJnlLine.FieldCaption("FA Posting Date"));
         if FAPostingDate <> NormalDate(FAPostingDate) then
@@ -256,11 +269,12 @@ report 5690 "Index Fixed Assets"
         FALedgEntry: Record "FA Ledger Entry";
         MaintenanceLedgEntry: Record "Maintenance Ledger Entry";
         FAJnlSetup: Record "FA Journal Setup";
+        DerogDeprBook: Record "Depreciation Book";
         DepreciationCalc: Codeunit "Depreciation Calculation";
         Window: Dialog;
-        IndexChoices: array[9] of Boolean;
+        IndexChoices: array[13] of Boolean;
         IndexAmount: Decimal;
-        GLIntegration: array[9] of Boolean;
+        GLIntegration: array[13] of Boolean;
         FirstGenJnl: Boolean;
         FirstFAJnl: Boolean;
         PostingDate: Date;
@@ -273,8 +287,9 @@ report 5690 "Index Fixed Assets"
         FAJnlNextLineNo: Integer;
         GenJnlNextLineNo: Integer;
         i: Integer;
+#pragma warning disable AA0074        
+        Text10800: Label 'You cannot index fixed assets in a derogatory depreciation book. Instead you must\index them in the depreciation book integrated with G/L.';
 
-#pragma warning disable AA0074
 #pragma warning disable AA0470
         Text000: Label 'You must specify %1.';
 #pragma warning restore AA0470

@@ -187,12 +187,23 @@ report 5690 "Index Fixed Assets"
                             Caption = 'Maintenance';
                             ToolTip = 'Specifies if you want to index for fixed assets of transaction type Salvage Value in the batch job.';
                         }
-                        field(Derogatory; IndexChoices[13])
+                        field("IndexChoices[13]"; IndexChoices[13])
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'Derogatory';
                             ToolTip = 'Specifies whether to include derogatory depreciation.';
                         }
+#if not CLEAN29
+                        field(Derogatory; IndexChoices[13])
+                        {
+                            ApplicationArea = FixedAssets;
+                            Caption = 'Derogatory';
+                            ToolTip = 'Specifies whether to include derogatory depreciation.';
+                            ObsoleteState = Pending;
+                            ObsoleteTag = '29.0';
+                            ObsoleteReason = 'Moved to W1 Base Application';
+                        }
+#endif
                     }
                 }
             }
@@ -217,10 +228,25 @@ report 5690 "Index Fixed Assets"
 
     trigger OnPreReport()
     begin
+#if not CLEAN29
+        if AcceleratedDeprFeature.IsEnabled() then begin
+            DerogDeprBook.SetRange(Code, DeprBookCode);
+            if DerogDeprBook.Find('-') then
+                if DerogDeprBook."Derogatory Calc." <> '' then
+                    Error(Text10800);
+        end
+        else begin
+            DerogDeprBook.SetRange(Code, DeprBookCode);
+            if DerogDeprBook.Find('-') then
+                if DerogDeprBook."Derogatory Calculation" <> '' then
+                    Error(Text10800);
+        end;
+#else
         DerogDeprBook.SetRange(Code, DeprBookCode);
-        if DerogDeprBook.Find('-') then
-            if DerogDeprBook."Derogatory Calculation" <> '' then
-                Error(Text10800);
+            if DerogDeprBook.Find('-') then
+                if DerogDeprBook."Derogatory Calc." <> '' then
+                    Error(Text10800);               
+#endif
         if FAPostingDate = 0D then
             Error(Text000, FAJnlLine.FieldCaption("FA Posting Date"));
         if FAPostingDate <> NormalDate(FAPostingDate) then
@@ -268,7 +294,11 @@ report 5690 "Index Fixed Assets"
         FALedgEntry: Record "FA Ledger Entry";
         MaintenanceLedgEntry: Record "Maintenance Ledger Entry";
         FAJnlSetup: Record "FA Journal Setup";
+        DerogDeprBook: Record "Depreciation Book";
         DepreciationCalc: Codeunit "Depreciation Calculation";
+#if not CLEAN29
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
         Window: Dialog;
         IndexChoices: array[13] of Boolean;
         IndexAmount: Decimal;
@@ -285,7 +315,6 @@ report 5690 "Index Fixed Assets"
         FAJnlNextLineNo: Integer;
         GenJnlNextLineNo: Integer;
         i: Integer;
-        DerogDeprBook: Record "Depreciation Book";
         Text10800: Label 'You cannot index fixed assets in a derogatory depreciation book. Instead you must\index them in the depreciation book integrated with G/L.';
 
 #pragma warning disable AA0074

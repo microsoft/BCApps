@@ -37,6 +37,10 @@ codeunit 101803 "Create FA Posting Group"
         "FA Posting Group".Validate("Maintenance Expense Account", CA.Convert("Maintenance Expense Account"));
         "FA Posting Group".Validate("Depreciation Expense Acc.", CA.Convert("Depreciation Expense Acc."));
         "FA Posting Group".Validate("Acquisition Cost Bal. Acc.", CA.Convert("Acquisition Cost Bal. Acc."));
+        "FA Posting Group".Validate("Derogatory Acc.", DerogatoryAccountOrDefault('145000', "FA Posting Group"."Accum. Depreciation Account"));
+        "FA Posting Group".Validate("Derogatory Account (Decrease)", DerogatoryAccountOrDefault('145000', "FA Posting Group"."Accum. Depreciation Account"));
+        "FA Posting Group".Validate("Derogatory Expense Acc.", DerogatoryAccountOrDefault('687250', "FA Posting Group"."Depreciation Expense Acc."));
+        "FA Posting Group".Validate("Derog. Bal. Account (Decrease)", DerogatoryAccountOrDefault('787250', "FA Posting Group"."Acquisition Cost Bal. Acc."));
         "FA Posting Group".Insert();
     end;
 
@@ -58,6 +62,20 @@ codeunit 101803 "Create FA Posting Group"
         InsertData(XFURNITUREFIXTURES, '991220', '991240', '991230', '991240', '998840', '998840', '998640', '998820', '991220');
         InsertData(XIP, '991220', '991240', '991230', '991240', '998840', '998840', '998640', '998820', '991220');
         InsertData(XLEASEHOLD, '991220', '991240', '991230', '991240', '998840', '998840', '998640', '998820', '991220');
+    end;
+
+    local procedure DerogatoryAccountOrDefault(DerogatoryAccNo: Code[20]; DefaultAccNo: Code[20]): Code[20]
+    var
+        GLAccount: Record "G/L Account";
+        MappedAccNo: Code[20];
+    begin
+        // Derogatory depreciation accounts are localized (native to FR/W1). Map the
+        // canonical account for this country; if it is not in the country's chart,
+        // fall back to an existing account so the country DB build stays consistent.
+        MappedAccNo := CA.Convert(DerogatoryAccNo);
+        if GLAccount.Get(MappedAccNo) then
+            exit(MappedAccNo);
+        exit(DefaultAccNo);
     end;
 }
 

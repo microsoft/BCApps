@@ -55,4 +55,8 @@ enum 5601 "FA Ledger Entry FA Posting Type"
     {
         Caption = 'Bonus Depreciation';
     }
+    value(14; Derogatory)
+    {
+        Caption = 'Derogatory';
+    }
 }

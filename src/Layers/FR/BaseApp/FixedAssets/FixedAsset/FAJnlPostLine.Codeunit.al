@@ -137,7 +137,7 @@ codeunit 5632 "FA Jnl.-Post Line"
             MaintenanceLedgEntry."VAT Amount" := VATAmount;
             MaintenanceLedgEntry."Transaction No." := NextTransactionNo;
             MaintenanceLedgEntry."G/L Entry No." := NextGLEntryNo;
-                OnBeforePostMaintenanceFromGenJnlLine(GenJnlLine, FALedgEntry, FAAmount, VATAmount);
+            OnBeforePostMaintenanceFromGenJnlLine(GenJnlLine, FALedgEntry, FAAmount, VATAmount);
             PostMaintenance();
         end else begin
             MakeFALedgEntry.CopyFromGenJnlLine(FALedgEntry, GenJnlLine);
@@ -489,7 +489,7 @@ codeunit 5632 "FA Jnl.-Post Line"
         CalculateDisposal.CalcReverseAmounts(FANo, DeprBookCode, EntryAmounts);
         FALedgEntry."FA Posting Category" := FALedgEntry."FA Posting Category"::" ";
         FALedgEntry."Automatic Entry" := true;
-        for i := 1 to 5 do
+        for i := 1 to ArrayLen(EntryAmounts) do
             if EntryAmounts[i] <> 0 then begin
                 FALedgEntry.Amount := EntryAmounts[i];
                 FALedgEntry."FA Posting Type" := "FA Ledger Entry FA Posting Type".FromInteger(CalculateDisposal.SetReverseType(i));

@@ -54,6 +54,11 @@ page 5612 "FA Posting Group Card"
                 {
                     ApplicationArea = FixedAssets;
                 }
+                field("Derogatory Acc."; Rec."Derogatory Acc.")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies the G/L account number to post derogatory transactions to, for fixed assets in this posting group.';
+                }
                 field("Acq. Cost Acc. on Disposal"; Rec."Acq. Cost Acc. on Disposal")
                 {
                     ApplicationArea = FixedAssets;
@@ -85,6 +90,11 @@ page 5612 "FA Posting Group Card"
                 field("Losses Acc. on Disposal"; Rec."Losses Acc. on Disposal")
                 {
                     ApplicationArea = FixedAssets;
+                }
+                field("Derogatory Account (Decrease)"; Rec."Derogatory Account (Decrease)")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies the G/L account number to post derogatory transactions to, when you dispose of fixed assets in this posting group.';
                 }
             }
             group("Balancing Account")
@@ -124,6 +134,11 @@ page 5612 "FA Posting Group Card"
                 {
                     ApplicationArea = FixedAssets;
                 }
+                field("Derogatory Expense Acc."; Rec."Derogatory Expense Acc.")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies the G/L balancing account number to post derogatory transactions to, for fixed assets in this posting group.';
+                }
                 field("Write-Down Bal. Acc. on Disp."; Rec."Write-Down Bal. Acc. on Disp.")
                 {
                     ApplicationArea = FixedAssets;
@@ -139,6 +154,11 @@ page 5612 "FA Posting Group Card"
                 field("Custom 2 Bal. Acc. on Disposal"; Rec."Custom 2 Bal. Acc. on Disposal")
                 {
                     ApplicationArea = FixedAssets;
+                }
+                field("Derog. Bal. Account (Decrease)"; Rec."Derog. Bal. Account (Decrease)")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies the number of the G/L balancing account to post derogatory transactions of fixed assets to, when you dispose of fixed assets.';
                 }
             }
             group("Gross Disposal")
@@ -251,6 +271,14 @@ page 5612 "FA Posting Group Card"
                     Caption = 'Book Value (Loss)';
                     ToolTip = 'Specifies the sum that applies to book value gains.';
                 }
+                field("Allocated Derogatory Pct."; Rec."Allocated Derogatory Pct.")
+                {
+                    AutoFormatType = 1;
+                    AutoFormatExpression = '';
+                    ApplicationArea = FixedAssets;
+                    Caption = 'Derogatory';
+                    ToolTip = 'Specifies the total percentage of derogatory depreciation allocated, when derogatory depreciation is posted for fixed assets.';
+                }
             }
         }
         area(factboxes)
@@ -360,15 +388,26 @@ page 5612 "FA Posting Group Card"
                                       "Allocation Type" = const(Loss);
                         ToolTip = 'View or edit the FA allocations that apply to losses.';
                     }
+                    action(FA_Derogatory_Allocations)
+                    {
+                        ApplicationArea = FixedAssets;
+                        Caption = 'De&rogatory';
+                        Image = Delegate;
+                        RunObject = Page "FA Allocations";
+                        RunPageLink = Code = field(Code),
+                                      "Allocation Type" = const(Derogatory);
+                        ToolTip = 'View or change the posting account and allocation percentage for derogatory transactions for fixed assets in this posting group.';
+                    }
                 }
             }
         }
     }
 
+
     var
 #pragma warning disable AA0074
         Text19064976: Label 'Allocated %';
         Text19080001: Label 'Allocated %';
-#pragma warning restore AA0074
+#pragma warning restore AA0074      
 }
 
