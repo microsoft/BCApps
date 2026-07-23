@@ -183,7 +183,7 @@ page 40016 "Add Custom Migration Mapping"
     trigger OnQueryClosePage(CloseAction: Action): Boolean
     var
         HybridCompany: Record "Hybrid Company";
-        TempCustomMigrationTableBuffer: Record "Custom Migration Table Buffer";
+        TempCustomMigrationTableBuffer: Record "Custom Migration Table Buffer" temporary;
         NewCompanyName: Text[30];
         NewSourceTableName: Text[128];
         NewDestinationTableName: Text[128];
