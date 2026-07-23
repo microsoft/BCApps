@@ -298,8 +298,13 @@ codeunit 5606 "FA Check Consistency"
                 FADeprBook."Last Appreciation Date" := MaxDate;
             FALedgEntry2."FA Posting Type"::"Custom 1":
                 FADeprBook."Last Custom 1 Date" := MaxDate;
+#if not CLEAN29
             FALedgEntry2."FA Posting Type"::Derogatory:
                 FADeprBook."Last Derogatory Date" := MaxDate;
+#else
+            FALedgEntry2."FA Posting Type"::Derogatory:
+                FADeprBook."Last Derogatory" := MaxDate;
+#endif
             FALedgEntry2."FA Posting Type"::"Custom 2":
                 FADeprBook."Last Custom 2 Date" := MaxDate;
             FALedgEntry2."FA Posting Type"::"Proceeds on Disposal":

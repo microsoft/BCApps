@@ -50,6 +50,48 @@ report 5606 "Fixed Asset - Book Value 02"
             column(Description_FixedAsset; Description)
             {
             }
+            column(DeprBookInfo1; DeprBookInfo[1])
+            {
+            }
+            column(DeprBookInfo2; DeprBookInfo[2])
+            {
+            }
+            column(DeprBookInfo3; DeprBookInfo[3])
+            {
+            }
+            column(DeprBookInfo4; DeprBookInfo[4])
+            {
+            }
+            column(DeprBookInfo5; DeprBookInfo[5])
+            {
+            }
+            column(PrintFASetup; PrintFASetup)
+            {
+            }
+            column(DeprBookInfo51; DeprBookInfo5)
+            {
+            }
+            column(DerogDeprBookInfo1; DerogDeprBookInfo[1])
+            {
+            }
+            column(DerogDeprBookInfo2; DerogDeprBookInfo[2])
+            {
+            }
+            column(DerogDeprBookInfo3; DerogDeprBookInfo[3])
+            {
+            }
+            column(DerogDeprBookInfo4; DerogDeprBookInfo[4])
+            {
+            }
+            column(DerogDeprBookInfo5; DerogDeprBookInfo[5])
+            {
+            }
+            column(HasDerogatorySetup; HasDerogatorySetup)
+            {
+            }
+            column(DerogDeprBookInfo51; DerogDeprBookInfo5)
+            {
+            }
             column(HeadLineText1; HeadLineText[1])
             {
             }
@@ -386,6 +428,64 @@ report 5606 "Fixed Asset - Book Value 02"
             }
             column(ShowSection06; ShowSection(0, 6))
             {
+            }
+            column(HeadLineText10; HeadLineText[10])
+            {
+            }
+            column(HeadLineText11; HeadLineText[11])
+            {
+            }
+            column(HeadLineText12; HeadLineText[12])
+            {
+            }
+            column(NetChangeAmtType; NetChangeAmounts[Type])
+            {
+                AutoFormatType = 1;
+            }
+            column(TotalEndingAmtType; TotalEndingAmounts[Type])
+            {
+                AutoFormatType = 1;
+            }
+            column(ReclassNetChangeAmtType; ReclassNetChangeAmounts[Type])
+            {
+                AutoFormatType = 1;
+            }
+            column(ReclassTotalEndingAmtType; ReclassTotalEndingAmounts[Type])
+            {
+                AutoFormatType = 1;
+            }
+            column(ShowSection07; ShowSection(0, 7))
+            {
+            }
+            column(ReclassTotalEndingAmt7; ReclassTotalEndingAmounts[7])
+            {
+            }
+            column(TotalEndingAmt7; TotalEndingAmounts[7])
+            {
+            }
+            column(ReclassDisposalAmt7; ReclassDisposalAmounts[7])
+            {
+                AutoFormatType = 1;
+            }
+            column(ReclassNetChangeAmt7; ReclassNetChangeAmounts[7])
+            {
+                AutoFormatType = 1;
+            }
+            column(NetChangeAmt7; NetChangeAmounts[7])
+            {
+                AutoFormatType = 1;
+            }
+            column(DisposalAmt7; DisposalAmounts[7])
+            {
+                AutoFormatType = 1;
+            }
+            column(StartAmt7; StartAmounts[7])
+            {
+                AutoFormatType = 1;
+            }
+            column(ReclassStartAmt7; ReclassStartAmounts[7])
+            {
+                AutoFormatType = 1;
             }
             column(HeadLineText_5__Control79; HeadLineText[5])
             {
@@ -736,6 +836,45 @@ report 5606 "Fixed Asset - Book Value 02"
                 AutoFormatType = 1;
             }
             column(ReclassGroupDisposalAmt6; ReclassGroupDisposalAmounts[6])
+            {
+                AutoFormatType = 1;
+            }
+            column(ReclassGroupDisposalAmtType; ReclassGroupDisposalAmounts[Type])
+            {
+                AutoFormatType = 1;
+            }
+            column(ReclassGrpNetChangeAmtType; ReclassGroupNetChangeAmounts[Type])
+            {
+                AutoFormatType = 1;
+            }
+            column(ReclassGroupStartAmtType; ReclassGroupStartAmounts[Type])
+            {
+                AutoFormatType = 1;
+            }
+            column(ShowSection17; ShowSection(1, 7))
+            {
+            }
+            column(GroupNetChangeAmt7; GroupNetChangeAmounts[7])
+            {
+                AutoFormatType = 1;
+            }
+            column(GroupStartAmt7; GroupStartAmounts[7])
+            {
+                AutoFormatType = 1;
+            }
+            column(GroupDisposalAmt7; GroupDisposalAmounts[7])
+            {
+                AutoFormatType = 1;
+            }
+            column(ReclassGroupDisposalAmt7; ReclassGroupDisposalAmounts[7])
+            {
+                AutoFormatType = 1;
+            }
+            column(ReclassGroupNetChangeAmt7; ReclassGroupNetChangeAmounts[7])
+            {
+                AutoFormatType = 1;
+            }
+            column(ReclassGroupStartAmt7; ReclassGroupStartAmounts[7])
             {
                 AutoFormatType = 1;
             }
@@ -1090,6 +1229,45 @@ report 5606 "Fixed Asset - Book Value 02"
             column(ShowSection26; ShowSection(2, 6))
             {
             }
+            column(TotalDisposalAmtType; TotalDisposalAmounts[Type])
+            {
+                AutoFormatType = 1;
+            }
+            column(ReclassTotalNetChangeAmtType; ReclassTotalNetChangeAmounts[Type])
+            {
+                AutoFormatType = 1;
+            }
+            column(ReclassTotalStartAmtType; ReclassTotalStartAmounts[Type])
+            {
+                AutoFormatType = 1;
+            }
+            column(ShowSection27; ShowSection(2, 7))
+            {
+            }
+            column(TotalNetChangeAmt7; TotalNetChangeAmounts[7])
+            {
+                AutoFormatType = 1;
+            }
+            column(TotalStartAmt7; TotalStartAmounts[7])
+            {
+                AutoFormatType = 1;
+            }
+            column(TotalDisposalAmt7; TotalDisposalAmounts[7])
+            {
+                AutoFormatType = 1;
+            }
+            column(ReclassTotalDisposalAmt7; ReclassTotalDisposalAmounts[7])
+            {
+                AutoFormatType = 1;
+            }
+            column(ReclassTotalNetChangeAmt7; ReclassTotalNetChangeAmounts[7])
+            {
+                AutoFormatType = 1;
+            }
+            column(ReclassTotalStartAmt7; ReclassTotalStartAmounts[7])
+            {
+                AutoFormatType = 1;
+            }
             column(HeadLineText_5__Control167; HeadLineText[5])
             {
             }
@@ -1129,11 +1307,21 @@ report 5606 "Fixed Asset - Book Value 02"
             }
 
             trigger OnAfterGetRecord()
+            var
+                NumberOfTypesForThiSFA: Integer;
             begin
                 if not FADeprBook.Get("No.", DeprBookCode) then
                     CurrReport.Skip();
                 if SkipRecord() then
                     CurrReport.Skip();
+                NumberOfTypesForThiSFA := NumberOfTypes;
+                HasDerogatorySetup := false;
+                FADeprBook2.SetRange("FA No.", "No.");
+                FADeprBook2.SetRange("Depreciation Book Code", DerogDeprBook.Code);
+                if FADeprBook2.Find('-') then begin
+                    NumberOfTypesForThiSFA := NumberOfTypes - 1;
+                    HasDerogatorySetup := true;
+                end;
 
                 if GroupTotals = GroupTotals::"FA Posting Group" then
                     if "FA Posting Group" <> FADeprBook."FA Posting Group" then
@@ -1146,7 +1334,7 @@ report 5606 "Fixed Asset - Book Value 02"
                       "No.", GetStartingDate(StartingDate), EndingDate, DeprBookCode, BeforeAmount, EndingAmount);
 
                 i := 0;
-                while i < NumberOfTypes do begin
+                while i < NumberOfTypesForThiSFA do begin
                     i := i + 1;
                     case i of
                         1:
@@ -1161,6 +1349,8 @@ report 5606 "Fixed Asset - Book Value 02"
                             PostingType := FADeprBook.FieldNo("Custom 1");
                         6:
                             PostingType := FADeprBook.FieldNo("Custom 2");
+                        7:
+                            PostingType := FADeprBook.FieldNo("Derogatory Amount");
                     end;
                     if StartingDate <= 00000101D then begin
                         StartAmounts[i] := 0;
@@ -1178,6 +1368,14 @@ report 5606 "Fixed Asset - Book Value 02"
                     end;
                     NetChangeAmounts[i] := FAGenReport.CalcFAPostedAmount("No.", PostingType, Period2, StartingDate, EndingDate,
                         DeprBookCode, BeforeAmount, EndingAmount, false, true);
+                    if i = 7 then begin
+                        FAGenReport.SetSign(true);
+                        NetChangeAmounts[i] := -(FAGenReport.CalcFAPostedAmount("No.", PostingType, Period2, StartingDate, EndingDate,
+                                                 DeprBookCode, BeforeAmount, EndingAmount, false, true));
+                        FAGenReport.SetSign(false);
+                        DisposalAmounts[i] := FAGenReport.CalcFAPostedAmount("No.", PostingType, Period2, StartingDate, EndingDate,
+                                                DeprBookCode, BeforeAmount, EndingAmount, false, true);
+                    end;
                     if Reclassify then
                         ReclassNetChangeAmounts[i] :=
                           FAGenReport.CalcFAPostedAmount(
@@ -1188,7 +1386,8 @@ report 5606 "Fixed Asset - Book Value 02"
                         DisposalAmounts[i] := -(StartAmounts[i] + NetChangeAmounts[i]);
                         ReclassDisposalAmounts[i] := -(ReclassStartAmounts[i] + ReclassNetChangeAmounts[i]);
                     end else begin
-                        DisposalAmounts[i] := 0;
+                        if i <> 7 then
+                            DisposalAmounts[i] := 0;
                         ReclassDisposalAmounts[i] := 0;
                     end;
                 end;
@@ -1210,6 +1409,9 @@ report 5606 "Fixed Asset - Book Value 02"
                 MakeGroupHeadLine();
                 UpdateTotals();
                 CreateGroupTotals();
+
+                GetDeprBookInfo();
+                GetDerogDeprBookInfo();
             end;
 
             trigger OnPostDataItem()
@@ -1235,6 +1437,8 @@ report 5606 "Fixed Asset - Book Value 02"
                     GroupTotals::"FA Posting Group":
                         SetCurrentKey("FA Posting Group");
                 end;
+
+                Type := 1;
             end;
         }
     }
@@ -1287,6 +1491,13 @@ report 5606 "Fixed Asset - Book Value 02"
                         AboutTitle = 'Enable Print per Fixed Asset';
                         AboutText = 'Specify the applicable options to view the report details as required.';
                         ToolTip = 'Specifies if you want the report to print information separately for each fixed asset.';
+
+                        trigger OnValidate()
+                        begin
+                            if not PrintDetails then
+                                if PrintFASetup then
+                                    PrintFASetup := false;
+                        end;
                     }
                     field(BudgetReport; BudgetReport)
                     {
@@ -1299,6 +1510,19 @@ report 5606 "Fixed Asset - Book Value 02"
                         ApplicationArea = FixedAssets;
                         Caption = 'Include Reclassification';
                         ToolTip = 'Specifies if you want the report to include acquisition cost and depreciation entries that are marked as reclassification entries. These entries are then printed in a separate column.';
+                    }
+                    field(Print_FASetup; PrintFASetup)
+                    {
+                        ApplicationArea = FixedAssets;
+                        Caption = 'Print FA Setup';
+                        ToolTip = 'Specifies whether the report must include the depreciation book setup information for each fixed asset.';
+
+                        trigger OnValidate()
+                        begin
+                            if PrintFASetup then
+                                if not PrintDetails then
+                                    PrintDetails := true;
+                        end;
                     }
                 }
             }
@@ -1330,8 +1554,12 @@ report 5606 "Fixed Asset - Book Value 02"
 
     trigger OnPreReport()
     begin
+        Clear(DerogDeprBook);
         FAGenReport.ValidateDates(StartingDate, EndingDate);
         DeprBook.Get(DeprBookCode);
+        DerogDeprBook.SetRange("Derogatory Calc.", DeprBookCode);
+        if DerogDeprBook.Find('-') then;
+
         if GroupTotals = GroupTotals::"FA Posting Group" then
             FAGenReport.SetFAPostingGroup("Fixed Asset", DeprBook.Code);
         FAGenReport.AppendFAPostingFilter("Fixed Asset", StartingDate, EndingDate);
@@ -1341,7 +1569,7 @@ report 5606 "Fixed Asset - Book Value 02"
             MainHeadLineText := StrSubstNo('%1 %2', MainHeadLineText, Text001);
         DeprBookText :=
           StrSubstNo('%1%2 %3', DeprBook.TableCaption(), ':', DeprBookCode);
-        NumberOfTypes := 6;
+        NumberOfTypes := 7;
         MakeHeadLineText();
         MakeGroupTotalText();
         Period1 := Period1::"Before Starting Date";
@@ -1353,6 +1581,8 @@ report 5606 "Fixed Asset - Book Value 02"
         DeprBook: Record "Depreciation Book";
         FADeprBook: Record "FA Depreciation Book";
         FA: Record "Fixed Asset";
+        DerogDeprBook: Record "Depreciation Book";
+        FADeprBook2: Record "FA Depreciation Book";
         FAGenReport: Codeunit "FA General Report";
         BudgetDepreciation: Codeunit "Budget Depreciation";
         DeprBookCode: Code[10];
@@ -1364,33 +1594,34 @@ report 5606 "Fixed Asset - Book Value 02"
         GroupCodeName: Text;
         GroupHeadLine: Text;
         GroupTotals: Option " ","FA Class","FA Subclass","FA Location","Main Asset","Global Dimension 1","Global Dimension 2","FA Posting Group";
-        HeadLineText: array[10] of Text;
+        HeadLineText: array[12] of Text;
         StartText: Text;
         EndText: Text;
-        StartAmounts: array[6] of Decimal;
-        NetChangeAmounts: array[6] of Decimal;
-        DisposalAmounts: array[6] of Decimal;
-        GroupStartAmounts: array[6] of Decimal;
-        GroupNetChangeAmounts: array[6] of Decimal;
-        GroupDisposalAmounts: array[6] of Decimal;
-        TotalStartAmounts: array[6] of Decimal;
-        TotalNetChangeAmounts: array[6] of Decimal;
-        TotalDisposalAmounts: array[6] of Decimal;
-        ReclassStartAmounts: array[6] of Decimal;
-        ReclassNetChangeAmounts: array[6] of Decimal;
-        ReclassDisposalAmounts: array[6] of Decimal;
-        ReclassGroupStartAmounts: array[6] of Decimal;
-        ReclassGroupNetChangeAmounts: array[6] of Decimal;
-        ReclassGroupDisposalAmounts: array[6] of Decimal;
-        ReclassTotalStartAmounts: array[6] of Decimal;
-        ReclassTotalNetChangeAmounts: array[6] of Decimal;
-        ReclassTotalDisposalAmounts: array[6] of Decimal;
+        StartAmounts: array[7] of Decimal;
+        NetChangeAmounts: array[7] of Decimal;
+        DisposalAmounts: array[7] of Decimal;
+        GroupStartAmounts: array[7] of Decimal;
+        GroupNetChangeAmounts: array[7] of Decimal;
+        GroupDisposalAmounts: array[7] of Decimal;
+        TotalStartAmounts: array[7] of Decimal;
+        TotalNetChangeAmounts: array[7] of Decimal;
+        TotalDisposalAmounts: array[7] of Decimal;
+        ReclassStartAmounts: array[7] of Decimal;
+        ReclassNetChangeAmounts: array[7] of Decimal;
+        ReclassDisposalAmounts: array[7] of Decimal;
+        ReclassGroupStartAmounts: array[7] of Decimal;
+        ReclassGroupNetChangeAmounts: array[7] of Decimal;
+        ReclassGroupDisposalAmounts: array[7] of Decimal;
+        ReclassTotalStartAmounts: array[7] of Decimal;
+        ReclassTotalNetChangeAmounts: array[7] of Decimal;
+        ReclassTotalDisposalAmounts: array[7] of Decimal;
         TotalEndingAmounts: array[7] of Decimal;
-        ReclassTotalEndingAmounts: array[6] of Decimal;
+        ReclassTotalEndingAmounts: array[7] of Decimal;
         BookValueAtStartingDate: Decimal;
         BookValueAtEndingDate: Decimal;
         i: Integer;
         J: Integer;
+        Type: Integer;
         PostingType: Integer;
         Period1: Option "Before Starting Date","Net Change","at Ending Date";
         Period2: Option "Before Starting Date","Net Change","at Ending Date";
@@ -1404,6 +1635,12 @@ report 5606 "Fixed Asset - Book Value 02"
         EndingAmount: Decimal;
         AcquisitionDate: Date;
         DisposalDate: Date;
+        DeprBookInfo: array[5] of Text[30];
+        DerogDeprBookInfo: array[5] of Text[30];
+        PrintFASetup: Boolean;
+        HasDerogatorySetup: Boolean;
+        DerogDeprBookInfo5: Decimal;
+        DeprBookInfo5: Decimal;
 
 #pragma warning disable AA0074
         Text000: Label 'Fixed Asset - Book Value 02';
@@ -1415,6 +1652,8 @@ report 5606 "Fixed Asset - Book Value 02"
         Text006: Label 'Group Total';
 #pragma warning disable AA0470
         Text007: Label '%1 has been modified in fixed asset %2.';
+        Text10800: Label 'Increased in Period';
+        Text10801: Label 'Decreased in Period';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         CurrReport_PAGENOCaptionLbl: Label 'Page';
@@ -1477,6 +1716,9 @@ report 5606 "Fixed Asset - Book Value 02"
         HeadLineText[7] := StrSubstNo('%1  %2', '', Text005);
         HeadLineText[8] := FADeprBook.FieldCaption("Custom 1");
         HeadLineText[9] := FADeprBook.FieldCaption("Custom 2");
+        HeadLineText[10] := FADeprBook.FieldCaption("Derogatory Amount");
+        HeadLineText[11] := StrSubstNo('%1  %2', '', Text10800);
+        HeadLineText[12] := StrSubstNo('%1  %2', '', Text10801);
     end;
 
     local procedure MakeGroupHeadLine()
@@ -1577,7 +1819,9 @@ report 5606 "Fixed Asset - Book Value 02"
         exit(StartingDate - 1);
     end;
 
+#pragma warning disable AA0244
     local procedure ShowSection(Section: Option Body,GroupFooter,Footer; Type: Integer): Boolean
+#pragma warning restore AA0244 
     begin
         case Section of
             Section::Body:
@@ -1636,6 +1880,26 @@ report 5606 "Fixed Asset - Book Value 02"
             FASetup.Get();
             DeprBookCode := FASetup."Default Depr. Book";
         end;
+    end;
+
+    procedure GetDeprBookInfo()
+    begin
+        DeprBookInfo[1] := DeprBookCode;
+        DeprBookInfo[2] := Format(FADeprBook."Depreciation Method");
+        DeprBookInfo[3] := Format(FADeprBook."Depreciation Starting Date");
+        DeprBookInfo[4] := Format(FADeprBook."Depreciation Ending Date");
+        DeprBookInfo[5] := Format(FADeprBook."Declining-Balance %");
+        DeprBookInfo5 := FADeprBook."Declining-Balance %";
+    end;
+
+    procedure GetDerogDeprBookInfo()
+    begin
+        DerogDeprBookInfo[1] := FADeprBook2."Depreciation Book Code";
+        DerogDeprBookInfo[2] := Format(FADeprBook2."Depreciation Method");
+        DerogDeprBookInfo[3] := Format(FADeprBook2."Depreciation Starting Date");
+        DerogDeprBookInfo[4] := Format(FADeprBook2."Depreciation Ending Date");
+        DerogDeprBookInfo[5] := Format(FADeprBook2."Declining-Balance %");
+        DerogDeprBookInfo5 := FADeprBook2."Declining-Balance %";
     end;
 
     [IntegrationEvent(false, false)]

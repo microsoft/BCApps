@@ -1649,6 +1649,11 @@ table 181 "Posted Gen. Journal Line"
         {
             Caption = 'Check Transmitted';
         }
+        field(5865; "Is Derogatory"; Boolean)
+        {
+            Caption = 'Derogatory Line';
+            Editable = false;
+        }
         /// <summary>
         /// Non-deductible VAT percentage for tax calculations where only part of the VAT can be deducted per tax regulations.
         /// </summary>

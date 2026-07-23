@@ -330,6 +330,7 @@
   "Tests\\General Journal\\ERMApplyInvoiceEMUCurrency.Codeunit.al",
   "Tests\\ERM\\ERMDateCompressionGLBudget.Codeunit.al",
   "Tests\\Fixed Asset\\ERMFixedAssetCard.Codeunit.al",
+  "Tests\\Fixed Asset\\ERMDerogatoryDeprPosting.Codeunit.al",
   "Tests\\ERM\\ERMPmtToleranceVATAppln.Codeunit.al",
   "Tests\\VAT\\ERMReverseAndVATSettlement.Codeunit.al",
   "Tests\\ERM\\ERMSEPADirectDebitTest.Codeunit.al",

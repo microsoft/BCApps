@@ -137,68 +137,73 @@ codeunit 5632 "FA Jnl.-Post Line"
         IsHandled := false;
         OnBeforeGenJnlPostLine(GenJnlLine, FAInsertLedgEntry, FAAmount, VATAmount, NextTransactionNo, NextGLEntryNo, GLRegisterNo, IsHandled);
         if not IsHandled then begin
-            FAInsertLedgEntry.SetGLRegisterNo(GLRegisterNo);
             FAInsertLedgEntry.DeleteAllGLAcc();
-            if GenJnlLine."Account No." = '' then
-                exit;
-            if GenJnlLine."FA Posting Date" = 0D then
-                GenJnlLine."FA Posting Date" := GenJnlLine."Posting Date";
-            GLSetup.Get();
-            if not GLSetup."Enable Russian Accounting" then
-                if GenJnlLine."Journal Template Name" = '' then
-                    GenJnlLine.Quantity := 0;
-
-            FA.Get(GenJnlLine."Account No.");
-            FASetup.Get();
-            if FASetup."FA Location Mandatory" then begin
-                if GenJnlLine."FA Location Code" = '' then
-                    GenJnlLine."FA Location Code" := FA."FA Location Code";
-                GenJnlLine.TestField("FA Location Code");
-            end;
-            if FASetup."Employee No. Mandatory" then begin
-                if GenJnlLine."Employee No." = '' then
-                    GenJnlLine."Employee No." := FA."Responsible Employee";
-                GenJnlLine.TestField("Employee No.");
-            end;
-
-            DuplicateDeprBook.DuplicateGenJnlLine(GenJnlLine, FAAmount);
-            FANo := GenJnlLine."Account No.";
-            BudgetNo := GenJnlLine."Budgeted FA No.";
-            DeprBookCode := GenJnlLine."Depreciation Book Code";
-            FAPostingType := "FA Journal Line FA Posting Type".FromInteger(GenJnlLine."FA Posting Type".AsInteger() - 1);
-            FAPostingDate := GenJnlLine."FA Posting Date";
-            Amount2 := FAAmount;
-            SalvageValue := GetLCYSalvageValue(GenJnlLine."Salvage Value", GenJnlLine."Posting Date", GenJnlLine."Source Currency Code");
-            DeprUntilDate := GenJnlLine."Depr. until FA Posting Date";
-            DeprAcqCost := GenJnlLine."Depr. Acquisition Cost";
-            ErrorEntryNo := GenJnlLine."FA Error Entry No.";
-            if GenJnlLine."FA Posting Type" = GenJnlLine."FA Posting Type"::Maintenance then begin
-                MakeMaintenanceLedgEntry.CopyFromGenJnlLine(MaintenanceLedgEntry, GenJnlLine);
-                MaintenanceLedgEntry.Amount := FAAmount;
-                MaintenanceLedgEntry."VAT Amount" := VATAmount;
-                MaintenanceLedgEntry."Transaction No." := NextTransactionNo;
-                MaintenanceLedgEntry."G/L Entry No." := NextGLEntryNo;
-                OnBeforePostMaintenanceFromGenJnlLine(GenJnlLine, FALedgEntry, FAAmount, VATAmount);
-                PostMaintenance();
-            end else begin
-                MakeFALedgEntry.CopyFromGenJnlLine(FALedgEntry, GenJnlLine);
-                FALedgEntry.Amount := FAAmount;
-
-                if FALedgEntry.Amount > 0 then begin
-                    FA.Validate("FA Location Code", GenJnlLine."FA Location Code");
-                    FA."Responsible Employee" := GenJnlLine."Employee No.";
-                end;
-
-                FALedgEntry."VAT Amount" := VATAmount;
-                FALedgEntry."Transaction No." := NextTransactionNo;
-                FALedgEntry."G/L Entry No." := NextGLEntryNo;
-                OnBeforePostFixedAssetFromGenJnlLine(GenJnlLine, FALedgEntry, FAAmount, VATAmount, GLRegisterNo);
-                PostFixedAsset();
-            end;
-            UnmarkDeprBonusBaseEntries(GenJnlLine."Depr. Bonus", GenJnlLine."FA Posting Date");
-
-            FAInsertLedgEntry.CopyRecordLinksToFALedgEntry(GenJnlLine);
+            GenJnlPostLineContinue(GenJnlLine, FAAmount, VATAmount, NextTransactionNo, NextGLEntryNo, GLRegisterNo);
         end;
+    end;
+
+    procedure GenJnlPostLineContinue(GenJnlLine: Record "Gen. Journal Line"; FAAmount: Decimal; VATAmount: Decimal; NextTransactionNo: Integer; NextGLEntryNo: Integer; GLRegisterNo: Integer)
+    begin
+        FAInsertLedgEntry.SetGLRegisterNo(GLRegisterNo);
+        if GenJnlLine."Account No." = '' then
+            exit;
+        if GenJnlLine."FA Posting Date" = 0D then
+            GenJnlLine."FA Posting Date" := GenJnlLine."Posting Date";
+        GLSetup.Get();
+        if not GLSetup."Enable Russian Accounting" then
+            if GenJnlLine."Journal Template Name" = '' then
+                GenJnlLine.Quantity := 0;
+
+        FA.Get(GenJnlLine."Account No.");
+        FASetup.Get();
+        if FASetup."FA Location Mandatory" then begin
+            if GenJnlLine."FA Location Code" = '' then
+                GenJnlLine."FA Location Code" := FA."FA Location Code";
+            GenJnlLine.TestField("FA Location Code");
+        end;
+        if FASetup."Employee No. Mandatory" then begin
+            if GenJnlLine."Employee No." = '' then
+                GenJnlLine."Employee No." := FA."Responsible Employee";
+            GenJnlLine.TestField("Employee No.");
+        end;
+
+        DuplicateDeprBook.DuplicateGenJnlLine(GenJnlLine, FAAmount);
+        FANo := GenJnlLine."Account No.";
+        BudgetNo := GenJnlLine."Budgeted FA No.";
+        DeprBookCode := GenJnlLine."Depreciation Book Code";
+        FAPostingType := "FA Journal Line FA Posting Type".FromInteger(GenJnlLine."FA Posting Type".AsInteger() - 1);
+        FAPostingDate := GenJnlLine."FA Posting Date";
+        Amount2 := FAAmount;
+        SalvageValue := GetLCYSalvageValue(GenJnlLine."Salvage Value", GenJnlLine."Posting Date", GenJnlLine."Source Currency Code");
+        DeprUntilDate := GenJnlLine."Depr. until FA Posting Date";
+        DeprAcqCost := GenJnlLine."Depr. Acquisition Cost";
+        ErrorEntryNo := GenJnlLine."FA Error Entry No.";
+        if GenJnlLine."FA Posting Type" = GenJnlLine."FA Posting Type"::Maintenance then begin
+            MakeMaintenanceLedgEntry.CopyFromGenJnlLine(MaintenanceLedgEntry, GenJnlLine);
+            MaintenanceLedgEntry.Amount := FAAmount;
+            MaintenanceLedgEntry."VAT Amount" := VATAmount;
+            MaintenanceLedgEntry."Transaction No." := NextTransactionNo;
+            MaintenanceLedgEntry."G/L Entry No." := NextGLEntryNo;
+            OnBeforePostMaintenanceFromGenJnlLine(GenJnlLine, FALedgEntry, FAAmount, VATAmount);
+            PostMaintenance();
+        end else begin
+            MakeFALedgEntry.CopyFromGenJnlLine(FALedgEntry, GenJnlLine);
+            FALedgEntry.Amount := FAAmount;
+
+            if FALedgEntry.Amount > 0 then begin
+                FA.Validate("FA Location Code", GenJnlLine."FA Location Code");
+                FA."Responsible Employee" := GenJnlLine."Employee No.";
+            end;
+
+            FALedgEntry."VAT Amount" := VATAmount;
+            FALedgEntry."Transaction No." := NextTransactionNo;
+            FALedgEntry."G/L Entry No." := NextGLEntryNo;
+            OnBeforePostFixedAssetFromGenJnlLine(GenJnlLine, FALedgEntry, FAAmount, VATAmount, GLRegisterNo);
+            PostFixedAsset();
+        end;
+        UnmarkDeprBonusBaseEntries(GenJnlLine."Depr. Bonus", GenJnlLine."FA Posting Date");
+
+        FAInsertLedgEntry.CopyRecordLinksToFALedgEntry(GenJnlLine);
 
         OnAfterGenJnlPostLine(GenJnlLine);
     end;
@@ -270,6 +275,13 @@ codeunit 5632 "FA Jnl.-Post Line"
         OnAfterPostFixedAsset(FA, FALedgEntry);
     end;
 
+    procedure InsertBalAcc(var FALedgEntry: Record "FA Ledger Entry")
+    begin
+        FAInsertLedgEntry.SetOrgGenJnlLine(true);
+        FAInsertLedgEntry.InsertBalAcc(FALedgEntry);
+        FAInsertLedgEntry.SetOrgGenJnlLine(false);
+    end;
+
     local procedure PostMaintenance()
     begin
         FA.LockTable();
@@ -299,8 +311,8 @@ codeunit 5632 "FA Jnl.-Post Line"
         SalesEntryNo: Integer;
         DisposalType: Option FirstDisposal,SecondDisposal,ErrorDisposal,LastErrorDisposal;
         OldDisposalMethod: Option " ",Net,Gross;
-        EntryAmounts: array[14] of Decimal;
-        EntryNumbers: array[14] of Integer;
+        EntryAmounts: array[15] of Decimal;
+        EntryNumbers: array[15] of Integer;
         i: Integer;
         j: Integer;
         IsHandled: Boolean;
@@ -343,7 +355,7 @@ codeunit 5632 "FA Jnl.-Post Line"
 
         if DisposalType = DisposalType::FirstDisposal then begin
             CalculateDisposal.CalcGainLoss(FANo, DeprBookCode, EntryAmounts);
-            for i := 1 to 14 do
+            for i := 1 to 15 do
                 if EntryAmounts[i] <> 0 then begin
                     FALedgEntry."FA Posting Category" := CalculateDisposal.SetFALedgerPostingCategory(i);
                     FALedgEntry."FA Posting Type" := "FA Ledger Entry FA Posting Type".FromInteger(CalculateDisposal.SetFAPostingType(i));
@@ -539,14 +551,14 @@ codeunit 5632 "FA Jnl.-Post Line"
 
     procedure PostReverseType(FALedgEntry: Record "FA Ledger Entry")
     var
-        EntryAmounts: array[4] of Decimal;
+        EntryAmounts: array[5] of Decimal;
         i: Integer;
     begin
         OnBeforePostReverseType(FALedgEntry);
         CalculateDisposal.CalcReverseAmounts(FANo, DeprBookCode, EntryAmounts);
         FALedgEntry."FA Posting Category" := FALedgEntry."FA Posting Category"::" ";
         FALedgEntry."Automatic Entry" := true;
-        for i := 1 to 4 do
+        for i := 1 to 5 do
             if EntryAmounts[i] <> 0 then begin
                 FALedgEntry.Amount := EntryAmounts[i];
                 FALedgEntry."FA Posting Type" := "FA Ledger Entry FA Posting Type".FromInteger(CalculateDisposal.SetReverseType(i));
@@ -701,6 +713,23 @@ codeunit 5632 "FA Jnl.-Post Line"
         end;
     end;
 
+    procedure GetNextMatchingFALedgEntry(SourceFAJournalLine: Record "FA Journal Line"; FromEntryNo: Integer; DeprBookCode: Code[10]): Integer
+    var
+        FALedgerEntry: Record "FA Ledger Entry";
+    begin
+        FALedgerEntry.SetCurrentKey("Entry No.");
+        FALedgerEntry.SetFilter("Entry No.", '>%1', FromEntryNo);
+        FALedgerEntry.SetRange("Depreciation Book Code", DeprBookCode);
+#pragma warning disable AA0210
+        FALedgerEntry.SetRange(Amount, -SourceFAJournalLine.Amount);
+#pragma warning restore AA0210
+        FALedgerEntry.SetRange("FA Posting Type", SourceFAJournalLine.ConvertToLedgEntry(SourceFAJournalLine));
+        FALedgerEntry.SetRange("FA No.", SourceFAJournalLine."FA No.");
+        FALedgerEntry.SetRange("FA Posting Date", SourceFAJournalLine."FA Posting Date");
+        FALedgerEntry.FindFirst();
+        exit(FALedgerEntry."Entry No.");
+    end;
+
     local procedure GetLCYSalvageValue(SalvageValue: Decimal; PostingDate: Date; CurrencyCode: Code[10]): Decimal
     var
         Currency: Record Currency;
@@ -726,8 +755,8 @@ codeunit 5632 "FA Jnl.-Post Line"
         SalesEntryNo: Integer;
         DisposalType: Option FirstDisposal,SecondDisposal,ErrorDisposal,LastErrorDisposal;
         OldDisposalMethod: Option " ",Net,Gross;
-        EntryAmounts: array[14] of Decimal;
-        EntryNumbers: array[14] of Integer;
+        EntryAmounts: array[15] of Decimal;
+        EntryNumbers: array[15] of Integer;
         i: Integer;
         InitialCorrection: Boolean;
     begin
@@ -781,7 +810,7 @@ codeunit 5632 "FA Jnl.-Post Line"
             FALedgEntry.Correction := not InitialCorrection;
             CalculateDisposal.GetErrorDisposalLowValueFA(FALedgEntry, ErrorEntryNo, EntryAmounts, EntryNumbers);
             ResultOnDisposal := 2;
-            for i := 2 to 14 do
+            for i := 2 to 15 do
                 if EntryNumbers[i] <> 0 then begin
                     FALedgEntry.Amount := EntryAmounts[i];
                     FALedgEntry."Entry No." := EntryNumbers[i];

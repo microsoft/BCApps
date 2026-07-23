@@ -347,8 +347,13 @@ codeunit 5631 "FA Jnl.-Check Line"
                 GLIntegration := DeprBook."G/L Integration - Disposal";
             FAPostingType::Maintenance:
                 GLIntegration := DeprBook."G/L Integration - Maintenance";
+#if not CLEAN29
             FAPostingType::Derogatory:
                 GLIntegration := DeprBook."G/L Integration - Derogatory";
+#else
+            FAPostingType::Derogatory:
+                GLIntegration := DeprBook."Integration G/L - Derogatory";
+#endif
             FAPostingType::"Salvage Value":
                 GLIntegration := false;
             FAPostingType::"Bonus Depreciation":
