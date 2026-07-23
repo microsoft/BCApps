@@ -5,11 +5,7 @@
     "../../../src/System Application/App/*",
     "../../../src/System Application/App",
     "../../../src/Business Foundation/App/*",
-    "../../../src/Business Foundation/App",
-    "../../../src/Tools/Performance Toolkit/App",
-    "../../../src/Tools/AI Test Toolkit",
-    "../../../src/Tools/Test Framework/Test Libraries/*",
-    "../../../src/Tools/Test Framework/*"
+    "../../../src/Business Foundation/App"
   ],
   "testFolders": [
     "../../../src/System Application/Test/*",
@@ -22,7 +18,11 @@
     "../../../src/Business Foundation/Test Library/*",
     "../../../src/Business Foundation/Test",
     "../../../src/Business Foundation/Test Library",
-    "../../../src/Tools/Performance Toolkit/Test"
+    "../../../src/Tools/Performance Toolkit/App",
+    "../../../src/Tools/Performance Toolkit/Test",
+    "../../../src/Tools/AI Test Toolkit",
+    "../../../src/Tools/Test Framework/Test Libraries/*",
+    "../../../src/Tools/Test Framework/*"
   ],
   "doNotPublishApps": true,
   "rulesetFile": "../../../src/rulesets/internal.module.ruleset.json",
