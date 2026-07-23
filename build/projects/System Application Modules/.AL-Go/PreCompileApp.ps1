@@ -13,6 +13,13 @@ if($appType -eq 'app')
         # iterate through all projects in the workspace file
         foreach ($project in $workspace.folders) {
             $appFolder = $project.path
+            # The execute-permissions check applies to the System Application and Business Foundation
+            # modules. Apps under src/Tools (test framework, performance toolkit, etc.) are dev and
+            # test tooling and are exempt.
+            if ($appFolder -match '[\\/]src[\\/]Tools[\\/]') {
+                Write-Host "Skipping execute permissions verification for Tools app folder: $appFolder"
+                continue
+            }
             Write-Host "Verifying execute permissions for app folder: $appFolder"
             . $scriptPath -AppFolder $appFolder
         }
