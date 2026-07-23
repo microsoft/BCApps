@@ -381,6 +381,11 @@ table 379 "Detailed Cust. Ledg. Entry"
             TableRelation = "G/L Register";
             ToolTip = 'Specifies the G/L register number that groups related G/L entries from the same posting.';
         }
+        field(7000004; "Excluded from calculation"; Boolean)
+        {
+            Caption = 'Excluded from calculation';
+            Editable = false;
+        }
         field(12100; "Bank Receipt Issued"; Boolean)
         {
             Caption = 'Bank Receipt Issued';
@@ -405,7 +410,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         {
             Clustered = true;
         }
-        key(Key2; "Customer No.", "Currency Code")
+        key(Key2; "Customer No.", "Currency Code", "Excluded from calculation")
         {
             SumIndexFields = Amount, "Amount (LCY)";
         }
@@ -417,7 +422,7 @@ table 379 "Detailed Cust. Ledg. Entry"
         {
             IncludedFields = Amount, "Amount (LCY)";
         }
-        key(Key6; "Customer No.", "Currency Code", "Initial Entry Global Dim. 1", "Initial Entry Global Dim. 2", "Initial Entry Due Date", "Posting Date")
+        key(Key6; "Customer No.", "Currency Code", "Initial Entry Global Dim. 1", "Initial Entry Global Dim. 2", "Initial Entry Due Date", "Posting Date", "Excluded from calculation")
         {
             IncludedFields = Amount, "Amount (LCY)";
         }
