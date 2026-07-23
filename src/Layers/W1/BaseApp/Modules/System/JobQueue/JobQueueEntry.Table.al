@@ -715,7 +715,6 @@ table 472 "Job Queue Entry"
 
     procedure SetStatus(NewStatus: Option)
     begin
-        OnBeforeSetStatus(Rec, NewStatus);
         if NewStatus = Status then
             exit;
         RefreshLocked();
@@ -1713,11 +1712,6 @@ table 472 "Job Queue Entry"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetStatusValue(var JobQueueEntry: Record "Job Queue Entry"; var xJobQueueEntry: Record "Job Queue Entry")
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeSetStatus(JobQueueEntry: Record "Job Queue Entry"; var NewStatus: Option)
     begin
     end;
 

@@ -3020,24 +3020,20 @@ codeunit 6620 "Copy Document Mgt."
 
                 OnBeforeCopySalesShptLinesToBuffer(FromSalesLine, FromSalesShptLine, ToSalesHeader);
 
-                IsHandled := false;
-                OnBeforeCopySalesShptLinesToBuffer2(IsHandled, FromSalesLine, FromSalesShptLine, ToSalesHeader, SplitLine);
-                if not IsHandled then begin
-                    SplitLine := true;
-                    FromSalesShptLine.FilterPstdDocLnItemLedgEntries(ItemLedgEntry);
-                    OnCopySalesShptLinesToDocOnBeforeSplitPstdSalesLinesPerILE(ItemLedgEntry, FromSalesShptLine);
-                    if not SplitPstdSalesLinesPerILE(
-                         ToSalesHeader, FromSalesHeader, ItemLedgEntry, TempFromSalesLineBuf,
-                         FromSalesLine, TempDocSalesLine, NextLineNo, CopyItemTrkg, MissingExCostRevLink, FillExactCostRevLink, true)
-                    then
-                        if CopyItemTrkg then
-                            SplitLine :=
-                              SplitSalesDocLinesPerItemTrkg(
-                                ItemLedgEntry, TempItemTrkgEntry, TempFromSalesLineBuf,
-                                FromSalesLine, TempDocSalesLine, NextLineNo, NextItemTrkgEntryNo, MissingExCostRevLink, true)
-                        else
-                            SplitLine := false;
-                end;
+                SplitLine := true;
+                FromSalesShptLine.FilterPstdDocLnItemLedgEntries(ItemLedgEntry);
+                OnCopySalesShptLinesToDocOnBeforeSplitPstdSalesLinesPerILE(ItemLedgEntry, FromSalesShptLine);
+                if not SplitPstdSalesLinesPerILE(
+                     ToSalesHeader, FromSalesHeader, ItemLedgEntry, TempFromSalesLineBuf,
+                     FromSalesLine, TempDocSalesLine, NextLineNo, CopyItemTrkg, MissingExCostRevLink, FillExactCostRevLink, true)
+                then
+                    if CopyItemTrkg then
+                        SplitLine :=
+                          SplitSalesDocLinesPerItemTrkg(
+                            ItemLedgEntry, TempItemTrkgEntry, TempFromSalesLineBuf,
+                            FromSalesLine, TempDocSalesLine, NextLineNo, NextItemTrkgEntryNo, MissingExCostRevLink, true)
+                    else
+                        SplitLine := false;
 
                 if not SplitLine then begin
                     TempFromSalesLineBuf := FromSalesLine;
@@ -3073,21 +3069,18 @@ codeunit 6620 "Copy Document Mgt."
                              ToSalesHeader, ToSalesLine, FromSalesHeader, TempFromSalesLineBuf, NextLineNo, LinesNotCopied, false,
                              "Sales Document Type From"::"Posted Shipment", CopyPostedDeferral, TempFromSalesLineBuf."Line No.")
                         then begin
-                            IsHandled := false;
-                            OnCopySalesShptLinesToDocOnBeforeCopyItemTrkg(IsHandled, ToSalesHeader);
-                            if not IsHandled then
-                                if CopyItemTrkg then begin
-                                    if SplitLine then
-                                        ItemTrackingDocMgt.CollectItemTrkgPerPostedDocLine(
-                                          TempItemTrkgEntry, TempTrkgItemLedgEntry, false, TempFromSalesLineBuf."Document No.", TempFromSalesLineBuf."Line No.")
-                                    else
-                                        ItemTrackingDocMgt.CopyItemLedgerEntriesToTemp(TempTrkgItemLedgEntry, ItemLedgEntry);
+                            if CopyItemTrkg then begin
+                                if SplitLine then
+                                    ItemTrackingDocMgt.CollectItemTrkgPerPostedDocLine(
+                                      TempItemTrkgEntry, TempTrkgItemLedgEntry, false, TempFromSalesLineBuf."Document No.", TempFromSalesLineBuf."Line No.")
+                                else
+                                    ItemTrackingDocMgt.CopyItemLedgerEntriesToTemp(TempTrkgItemLedgEntry, ItemLedgEntry);
 
-                                    ItemTrackingMgt.CopyItemLedgEntryTrkgToSalesLn(
-                                      TempTrkgItemLedgEntry, ToSalesLine,
-                                      FillExactCostRevLink and ExactCostRevMandatory, MissingExCostRevLink,
-                                      FromSalesHeader."Prices Including VAT", ToSalesHeader."Prices Including VAT", true);
-                                end;
+                                ItemTrackingMgt.CopyItemLedgEntryTrkgToSalesLn(
+                                  TempTrkgItemLedgEntry, ToSalesLine,
+                                  FillExactCostRevLink and ExactCostRevMandatory, MissingExCostRevLink,
+                                  FromSalesHeader."Prices Including VAT", ToSalesHeader."Prices Including VAT", true);
+                            end;
                             OnAfterCopySalesLineFromSalesShptLineBuffer(
                               ToSalesLine, FromSalesShptLine, IncludeHeader, RecalculateLines, TempDocSalesLine, ToSalesHeader, TempFromSalesLineBuf, ExactCostRevMandatory, FromSalesHeader, LinesNotCopied);
                         end;
@@ -8577,15 +8570,6 @@ codeunit 6620 "Copy Document Mgt."
     begin
     end;
 
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeCopySalesShptLinesToBuffer2(var IsHandled: Boolean; var FromSalesLine: Record "Sales Line"; var FromSalesShptLine: Record "Sales Shipment Line"; var ToSalesHeader: Record "Sales Header"; var SplitLine: Boolean)
-    begin
-    end;
-
-    [IntegrationEvent(false, false)]
-    local procedure OnCopySalesShptLinesToDocOnBeforeCopyItemTrkg(var IsHandled: Boolean; var ToSalesHeader: Record "Sales Header")
-    begin
-    end;
 
     /// <summary>
     /// Event triggered before handling zero-amount posted invoices during the sales document copy process.
