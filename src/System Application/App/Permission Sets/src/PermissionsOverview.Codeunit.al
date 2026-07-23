@@ -12,6 +12,7 @@ namespace System.Security.AccessControl;
 codeunit 9865 "Permissions Overview"
 {
     Access = Public;
+    InherentPermissions = X;
 
     /// <summary>
     /// Opens the Permissions Overview page without any filters.
