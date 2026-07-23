@@ -2570,6 +2570,7 @@
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmMessageHandler')]
     [Scope('OnPrem')]
     procedure TestDeferralScheduleLCYFilledBeforePostingWithCurrency()
     var
