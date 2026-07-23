@@ -103,6 +103,17 @@ erDiagram
 
 The restock type on refund lines is important for inventory: `Return` means the item is going back to stock at the return location, `Cancel` means the item was never shipped, and `NoRestock` means the refund is purely financial. The connector uses this to decide whether to create inventory adjustments.
 
+### Return-with-exchange (negative-quantity refund lines)
+
+When a customer returns an item *and* receives a different item in exchange, Shopify models the new item as an `ExchangeLineItem` on the originating `Return` -- *not* on the `Refund.refundLineItems` array. The `Refund.totalRefundedSet` already reflects the offset (cash refunded = returned value minus exchange value).
+
+To make the BC sales credit memo total match `Refund.totalRefundedSet` *without* a spurious `Refund Account` G/L balancing line, the connector:
+
+1. At order import time, fetches `Order.returns.nodes.exchangeLineItems.lineItems` and flags the matching `Shpfy Order Line` rows with `"Is Exchange Item" = true`. `ShpfyProcessOrder.CreateLinesFromShopifyOrder` excludes these flagged lines when projecting to BC `Sales Line` rows, so the BC sales invoice does not include the exchange item.
+2. At refund import time, fetches `Refund.return.exchangeLineItems` and inserts one synthetic `Shpfy Refund Line` per `(ExchangeLineItem × lineItem)` pair with a **negative** `"Refund Line Id"` (to avoid colliding with real Shopify refund-line ids), `Quantity = -ExchangeLineItem.quantity`, `"Restock Type" = Return`, `"Is Exchange Item" = true`, and amounts that mirror the new item's price. The existing `CreateSalesLinesFromRefundLines` logic in `ShpfyCreateSalesDocRefund` emits a Type::Item credit-memo line with negative quantity that offsets the exchange value.
+
+Net effect on the credit memo: positive-quantity item line for the returned item plus a negative-quantity item line for the exchange item, summing to `Refund.totalRefundedSet`. Net effect on BC inventory: the returned item flows back in via the positive credit-memo line; the exchange item leaves inventory via the negative credit-memo line (matching what Shopify physically shipped to the customer).
+
 ## Customer management
 
 The Shopify Customer table mirrors Shopify's customer resource. It stores the Shopify customer ID, email, phone, name, and a `"Customer SystemId"` linking to the BC Customer table (again via GUID, with a FlowField for the human-readable number).
