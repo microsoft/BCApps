@@ -215,15 +215,13 @@ codeunit 148015 "Elec. VAT Decl. Tests"
 
     local procedure Initialize()
     var
-        NoSeries: Record "No. Series";
         VATReportSetup: Record "VAT Report Setup";
         VATReturnPeriod: Record "VAT Return Period";
     begin
         VATReturnPeriod.DeleteAll(true);
         if not VATReportSetup.Get() then
             VATReportSetup.Insert();
-        LibraryUtility.CreateNoSeries(NoSeries, true, false, false);
-        VATReportSetup.Validate("VAT Return Period No. Series", NoSeries.Code);
+        VATReportSetup.Validate("VAT Return Period No. Series", LibraryUtility.GetGlobalNoSeriesCode());
         VATReportSetup.Modify();
     end;
 
