@@ -54,18 +54,21 @@ codeunit 6416 "ForNAV Connection"
     local procedure CheckIfSuccessfulRequest(EDocument: Record "E-Document"; HttpResponse: HttpResponseMessage): Boolean
     var
         EDocumentErrorHelper: Codeunit "E-Document Error Helper";
+        ErrorMessage: Text;
     begin
         if HttpResponse.IsSuccessStatusCode then
             exit(true);
 
         if HttpResponse.IsBlockedByEnvironment then
             EDocumentErrorHelper.LogSimpleErrorMessage(EDocument, EnvironmentBlocksErr)
-        else
-            EDocumentErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(UnsuccessfulResponseErr, HttpResponse.HttpStatusCode, HttpResponse.ReasonPhrase));
+        else begin
+            HttpResponse.Content.ReadAs(ErrorMessage);
+            EDocumentErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(UnsuccessfulResponseErr, HttpResponse.HttpStatusCode, HttpResponse.ReasonPhrase, ErrorMessage));
+        end;
     end;
 
     var
         ForNAVAPIRequests: Codeunit "ForNAV API Requests";
-        UnsuccessfulResponseErr: Label 'There was an error sending the request. Response code: %1 and error message: %2', Comment = '%1 - http response status code, e.g. 400, %2- error message';
+        UnsuccessfulResponseErr: Label 'There was an error sending the request. Response code: %1 and error message: %2 %3', Comment = '%1 - http response status code, e.g. 400, %2- reason prhase, %3 - error message';
         EnvironmentBlocksErr: Label 'The request to send documents has been blocked. To resolve the problem, enable outgoing HTTP requests for the E-Document apps on the Extension Management page.';
 }
