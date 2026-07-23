@@ -971,6 +971,7 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         BankAccount: Record "Bank Account";
         Customer: Record Customer;
         DirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        PaymentHistory: Record "Payment History";
         PaymentHistoryLine: Record "Payment History Line";
         dbtrPstlAdrPrefix: Text;
     begin
@@ -992,8 +993,9 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         PaymentHistoryLine.SetRange("Our Bank", BankAccount."No.");
         PaymentHistoryLine.FindFirst();
 
+        FindPaymentHistory(BankAccount."No.", PaymentHistory);
         dbtrPstlAdrPrefix := '//ns:Document/ns:CstmrDrctDbtInitn/ns:PmtInf/ns:DrctDbtTxInf/ns:Dbtr/ns:PstlAdr';
-        XMLReadHelper.Initialize(ExportFileName, NameSpace);
+        XMLReadHelper.Initialize(PaymentHistory."File on Disk", NameSpace);
         XMLReadHelper.VerifyNodeCountByXPath(dbtrPstlAdrPrefix + '/ns:AdrLine', 0);
         XMLReadHelper.VerifyNodeValueByXPath(dbtrPstlAdrPrefix + '/ns:StrtNm', PaymentHistoryLine."Account Holder Address");
         XMLReadHelper.VerifyNodeValueByXPath(dbtrPstlAdrPrefix + '/ns:PstCd', PaymentHistoryLine."Account Holder Post Code");
@@ -1144,6 +1146,9 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         PostCode: Record "Post Code";
     begin
         LibrarySales.CreateCustomer(Customer);
+        Customer.Validate(Address, CopyStr(CustomerAddressLbl, 1, MaxStrLen(Customer.Address)));
+        Customer.Modify(true);
+
         CustomerBankAccount.Init();
         CustomerBankAccount.Validate(Code, BankAccount.Name);
         CustomerBankAccount.Validate("Customer No.", Customer."No.");
@@ -1152,7 +1157,6 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         Customer.Validate("Transaction Mode Code", TransactionModeCode);
         Customer.Validate("Partner Type", PartnerType);
         Customer.Validate("Preferred Bank Account Code", CustomerBankAccount.Code);
-        Customer.Validate(Address, CopyStr(CustomerAddressLbl, 1, MaxStrLen(Customer.Address)));
         Customer.Modify(true);
 
         CustomerBankAccount.Validate(Name, BankAccount.Name);
