@@ -2094,9 +2094,9 @@ codeunit 442 "Sales-Post Prepayments"
             if SalesLine.FindSet() then
                 repeat
                     if SalesHeader."Prepmt. Include Tax" then
-                PrepmtAmt := Round(SalesLine."Amount Including VAT" * SalesLine."Prepayment %" / 100, Currency."Amount Rounding Precision")
+                PrepmtAmt += Round(SalesLine."Amount Including VAT" * SalesLine."Prepayment %" / 100, Currency."Amount Rounding Precision")
             else
-                PrepmtAmt := Round(SalesLine.Amount * SalesLine."Prepayment %" / 100, Currency."Amount Rounding Precision");
+                PrepmtAmt += Round(SalesLine.Amount * SalesLine."Prepayment %" / 100, Currency."Amount Rounding Precision");
                 until SalesLine.Next() = 0;
             PrepmtAmt := Round(PrepmtAmt, Currency."Amount Rounding Precision");
             if TotalPrepmtInvLineBuffer.Amount > PrepmtAmt then begin
