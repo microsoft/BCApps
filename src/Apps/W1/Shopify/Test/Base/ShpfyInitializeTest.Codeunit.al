@@ -15,7 +15,9 @@ using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
 using Microsoft.Integration.Shopify;
 using Microsoft.Inventory.Item;
+using Microsoft.Inventory.Setup;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Setup;
 using System.TestLibraries.Utilities;
 
 /// <summary>
@@ -34,6 +36,7 @@ codeunit 139561 "Shpfy Initialize Test"
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         LibraryERM: Codeunit "Library - ERM";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryUtility: Codeunit "Library - Utility";
         ShopifyAccessToken: Text;
 #pragma warning disable AA0240
         DummyCustomerEmailLbl: Label 'dummy@customer.com';
@@ -47,7 +50,10 @@ codeunit 139561 "Shpfy Initialize Test"
 
     internal procedure CreateShop(): Record "Shpfy Shop"
     var
+        GeneralPostingSetup: Record "General Posting Setup";
+        InventorySetup: Record "Inventory Setup";
         RefundGLAccount: Record "G/L Account";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
         Shop: Record "Shpfy Shop";
         VATPostingSetup: Record "VAT Posting Setup";
         ShpfyInitializeTest: Codeunit "Shpfy Initialize Test";
@@ -64,6 +70,8 @@ codeunit 139561 "Shpfy Initialize Test"
                 exit(Shop);
 
         Code := CopyStr(Any.AlphabeticText(MaxStrLen(Code)), 1, MaxStrLen(Code));
+
+        LibraryERM.CreateGeneralPostingSetupInvt(GeneralPostingSetup);
 
         LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup,
            VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandDecInDecimalRange(10, 25, 0));
@@ -95,6 +103,10 @@ codeunit 139561 "Shpfy Initialize Test"
         Commit();
         CommunicationMgt.SetShop(Shop);
         CommunicationMgt.SetTestInProgress(true);
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Customer Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            DATABASE::"Inventory Setup", InventorySetup.FieldNo("Item Nos."));
         CreateDummyCustomer(CustomerTemplateCode);
         CreateDummyItem(ItemTemplateCode);
         if not TempShop.Get(Code) then begin
