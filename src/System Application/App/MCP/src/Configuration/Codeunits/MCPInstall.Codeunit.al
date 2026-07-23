@@ -14,8 +14,10 @@ codeunit 8352 "MCP Install"
     trigger OnInstallAppPerDatabase()
     var
         MCPConfigImplementation: Codeunit "MCP Config Implementation";
+        MCPCopilotCapReg: Codeunit "MCP Copilot Cap. Reg.";
     begin
         MCPConfigImplementation.CreateDefaultConfiguration();
         MCPConfigImplementation.CreateVSCodeEntraApplication();
+        MCPCopilotCapReg.RegisterMCPCapability();
     end;
 }
