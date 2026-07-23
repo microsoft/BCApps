@@ -165,8 +165,11 @@ page 8350 "MCP Config List"
     }
 
     trigger OnOpenPage()
+    var
+        MCPNotifications: Codeunit "MCP Notifications";
     begin
         HadActiveConfigsOnOpen := not MCPConfigImplementation.HasNoActiveConfigurations();
+        MCPNotifications.ShowFeatureDisabledIfApplicable();
     end;
 
     trigger OnQueryClosePage(CloseAction: Action): Boolean

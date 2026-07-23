@@ -44,11 +44,9 @@ codeunit 46860 "BC14 Migration Failure Handler"
         BC14MigrationOrchestrator: Codeunit "BC14 Migration Orchestrator";
         BC14StatusMgr: Codeunit "BC14 Migration Status Mgr.";
         ErrorText: Text;
-        ErrorCallStack: Text;
         DetailedError: Text;
     begin
         ErrorText := GetLastErrorText();
-        ErrorCallStack := GetLastErrorCallStack();
         LogUnhandledErrorToErrorPage(ErrorText);
 
         DetailedError := GetDetailedUpgradeErrorSummary();
@@ -79,9 +77,6 @@ codeunit 46860 "BC14 Migration Failure Handler"
                 exit;
             end;
         end;
-
-        // Write error details to the Summary's Details blob for diagnostics.
-        AppendDetailsToSummary(HybridReplicationSummary, ErrorText, ErrorCallStack);
 
         Session.LogMessage('0000TV6', UpgradeFailedMsg, Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', BC14Telemetry.GetCategory());
     end;
@@ -128,39 +123,6 @@ codeunit 46860 "BC14 Migration Failure Handler"
         exit(StrSubstNo(ErrorCountSummaryTxt, DataMigrationError.Count()));
     end;
 
-    local procedure AppendDetailsToSummary(var HybridReplicationSummary: Record "Hybrid Replication Summary"; ErrorText: Text; ErrorCallStack: Text)
-    var
-        DetailsInStream: InStream;
-        DetailsOutStream: OutStream;
-        ExistingDetails: Text;
-        NewEntry: Text;
-    begin
-        HybridReplicationSummary.ReadIsolation := IsolationLevel::UpdLock;
-        if not HybridReplicationSummary.Find() then
-            exit;
-
-        // Read existing details
-        if HybridReplicationSummary.Details.HasValue() then begin
-            HybridReplicationSummary.Details.CreateInStream(DetailsInStream);
-            DetailsInStream.Read(ExistingDetails);
-        end;
-
-        // Build new entry with company name. Use real newline characters so the
-        // text renders as multiple lines in MultiLine page fields.
-        if ErrorCallStack <> '' then
-            NewEntry := StrSubstNo(UpgradeFailedCompanyDetailsTxt, CompanyName(), ErrorText + NewLine() + 'Call Stack:' + NewLine() + ErrorCallStack)
-        else
-            NewEntry := StrSubstNo(UpgradeFailedCompanyDetailsTxt, CompanyName(), ErrorText);
-
-        // Append to existing (blank line between entries)
-        if ExistingDetails <> '' then
-            NewEntry := ExistingDetails + NewLine() + NewLine() + NewEntry;
-
-        HybridReplicationSummary.Details.CreateOutStream(DetailsOutStream);
-        DetailsOutStream.Write(NewEntry);
-        HybridReplicationSummary.Modify();
-    end;
-
     local procedure NewLine(): Text
     var
         TypeHelper: Codeunit "Type Helper";
@@ -170,7 +132,6 @@ codeunit 46860 "BC14 Migration Failure Handler"
 
     var
         UpgradeFailedMsg: Label 'Business Central 14 upgrade failed.', Locked = true;
-        UpgradeFailedCompanyDetailsTxt: Label 'Upgrade failed for company %1: %2', Comment = '%1 = Company Name, %2 = Error message';
         UnknownUpgradeErr: Label 'Upgrade failed with unknown error. Check Business Central 14 Migration Errors page for details.';
         ErrorCountSummaryTxt: Label 'Upgrade failed. Number of errors: %1. See Business Central 14 Migration Errors page for details.', Comment = '%1 = Number of errors';
         UnhandledUpgradeErrorLbl: Label 'Unhandled Upgrade Error';

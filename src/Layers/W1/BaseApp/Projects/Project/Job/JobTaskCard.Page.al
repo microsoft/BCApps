@@ -595,6 +595,21 @@ page 1003 "Job Task Card"
                     ShortCutKey = 'Alt+D';
                     ToolTip = 'View or edit dimensions, such as area, project, or department, that you can assign to sales and purchase documents to distribute costs and analyze transaction history.';
                 }
+                action("Assigned Resources")
+                {
+                    ApplicationArea = Jobs;
+                    Caption = 'Assigned Resources';
+                    Image = Users;
+                    ToolTip = 'View or edit the additional resources that are explicitly assigned to this project task. Project-level assignments are managed from the project and are not shown on the project tasks.';
+
+                    trigger OnAction()
+                    var
+                        JobAssignedResourcesPage: Page "Job Assigned Resources";
+                    begin
+                        if JobAssignedResourcesPage.SetJobTaskContext(Rec) then
+                            JobAssignedResourcesPage.Run();
+                    end;
+                }
                 action(AssemblyOrders)
                 {
                     AccessByPermission = TableData "BOM Component" = R;
