@@ -438,6 +438,7 @@ codeunit 6620 "Copy Document Mgt."
           FromDocType.AsInteger(), FromDocNo, ToSalesHeader, FromDocOccurrenceNo, FromDocVersionNo, IncludeHeader, RecalculateLines, MoveNegLines);
     end;
 
+
     [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'RIMD', InherentPermissionsScope::Both)]
     [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'RIMD', InherentPermissionsScope::Both)]
     [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'RIMD', InherentPermissionsScope::Both)]

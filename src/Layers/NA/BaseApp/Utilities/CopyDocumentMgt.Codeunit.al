@@ -267,11 +267,6 @@ codeunit 6620 "Copy Document Mgt."
         OnAfterCopySalesDocForCrMemoCancelling(FromDocNo, ToSalesHeader, IncludeHeader, RecalculateLines, MoveNegLines, CreateToHeader, HideDialog, ExactCostRevMandatory, ApplyFully, SkipTestCreditLimit, SkipCopyFromDescription);
     end;
 
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Header", 'RIMD', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Assembly Line", 'RIMD', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Assemble-to-Order Link", 'RIMD', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Posted Assembly Header", 'R', InherentPermissionsScope::Both)]
-    [InherentPermissions(PermissionObjectType::TableData, Database::"Posted Assembly Line", 'R', InherentPermissionsScope::Both)]
     procedure CopySalesDoc(FromDocType: Enum "Sales Document Type From"; FromDocNo: Code[20]; var ToSalesHeader: Record "Sales Header")
     var
         ToSalesLine: Record "Sales Line";
