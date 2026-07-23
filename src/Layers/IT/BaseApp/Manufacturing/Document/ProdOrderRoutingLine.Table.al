@@ -2176,7 +2176,7 @@ table 5409 "Prod. Order Routing Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnValidateNoOnBeforeModifyCapNeedEntries(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var xProdOrderRoutingLine: Record "Prod. Order Routing Line")
+    local procedure OnValidateNoOnBeforeModifyCapNeedEntries(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; xProdOrderRoutingLine: Record "Prod. Order Routing Line")
     begin
     end;
 
