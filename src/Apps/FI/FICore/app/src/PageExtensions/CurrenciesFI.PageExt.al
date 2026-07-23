@@ -11,7 +11,7 @@ pageextension 13414 "Currencies FI" extends Currencies
     {
         addlast(processing)
         {
-            action("Import Exchange Rates")
+            action("Import Exchange Rates FI")
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Import Exchange Rates';

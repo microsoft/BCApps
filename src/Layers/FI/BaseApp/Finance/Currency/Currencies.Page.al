@@ -265,6 +265,20 @@ page 5 Currencies
                     end;
                 }
             }
+#if not CLEAN29
+            action("Import Exchange Rates")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Import Exchange Rates';
+                Image = Import;
+                ObsoleteReason = 'Moved to the FI Core app.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
+                RunObject = Codeunit "Currency Exchange Rate";
+                ToolTip = 'Update currency exchange rates.';
+                Visible = false;
+            }
+#endif
             action("Exch. &Rates")
             {
                 ApplicationArea = Suite;

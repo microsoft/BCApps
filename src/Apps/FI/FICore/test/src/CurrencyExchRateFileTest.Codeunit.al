@@ -134,6 +134,27 @@ codeunit 148151 "Currency Exch. Rate File Test"
         // Verification is done in the NoUpdatedCurrenciesMessageHandler
     end;
 
+#if not CLEAN29
+    [Test]
+    [HandlerFunctions('NewRatesUpdatedMessageHandler')]
+    [Scope('OnPrem')]
+    procedure ReadCurrencyFileUsingLegacyCodeunit()
+    var
+        CurrencyExchRateFileTest: Codeunit "Currency Exch. Rate File Test";
+    begin
+        Initialize();
+
+        CurrencyExchRateFileTest.SetImportFileName(
+          SetupCurrencyExchangeRateFile(CreateCurrencyLine(USDCodeTok, false, EuroCodeTok)));
+        BindSubscription(CurrencyExchRateFileTest);
+#pragma warning disable AL0432
+        CODEUNIT.Run(CODEUNIT::"Currency Exchange Rate");
+#pragma warning restore AL0432
+
+        Verify(USDCodeTok);
+    end;
+#endif
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Currency Exch. Rate File Test");
@@ -235,4 +256,14 @@ codeunit 148151 "Currency Exch. Rate File Test"
     begin
         FileName := ImportFileName;
     end;
+
+#if not CLEAN29
+#pragma warning disable AL0432
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Currency Exchange Rate", 'OnBeforeFileImport', '', false, false)]
+    local procedure OnBeforeLegacyFileImport(var FileName: Text)
+    begin
+        FileName := ImportFileName;
+    end;
+#pragma warning restore AL0432
+#endif
 }
