@@ -81,8 +81,6 @@ codeunit 1901 "Report Selection Mgt."
         InitReportSelection("Report Selection Usage"::"P.Arch.Order");
         InitReportSelection("Report Selection Usage"::"P.Arch.Return");
         InitReportSelection("Report Selection Usage"::"P.Arch.Blanket");
-        InitReportSelection("Report Selection Usage"::"V.Remittance");
-        InitReportSelection("Report Selection Usage"::"P.V.Remit.");
 
         OnAfterInitReportSelectionPurch();
     end;
@@ -274,10 +272,6 @@ codeunit 1901 "Report Selection Mgt."
                 InsertRepSelection("Report Selection Usage"::"S.Arch.Blanket", '1', REPORT::"Archived Blanket Sales Order");
             "Report Selection Usage"::"P.Arch.Blanket":
                 InsertRepSelection("Report Selection Usage"::"P.Arch.Blanket", '1', REPORT::"Archived Blanket Purch. Order");
-            "Report Selection Usage"::"V.Remittance":
-                InsertRepSelectionForEmailAttachment("Report Selection Usage"::"V.Remittance", '1', REPORT::"Remittance Advice - Journal");
-            "Report Selection Usage"::"P.V.Remit.":
-                InsertRepSelectionForEmailAttachment("Report Selection Usage"::"P.V.Remit.", '1', REPORT::"Remittance Advice - Entries");
             "Report Selection Usage"::"S.Order Pick Instruction":
                 InsertRepSelection("Report Selection Usage"::"S.Order Pick Instruction", '1', REPORT::"Pick Instruction");
             "Report Selection Usage"::"C.Statement":
@@ -342,22 +336,6 @@ codeunit 1901 "Report Selection Mgt."
             ReportSelections.Sequence := Sequence;
             ReportSelections."Report ID" := ReportID;
             ReportSelections.Insert();
-        end;
-    end;
-
-    local procedure InsertRepSelectionForEmailAttachment(ReportUsage: Enum "Report Selection Usage"; Sequence: Code[10]; ReportID: Integer)
-    var
-        ReportSelections: Record "Report Selections";
-    begin
-        if ReportSelections.Get(ReportUsage, Sequence) then
-            exit;
-
-        InsertRepSelection(ReportUsage, Sequence, ReportID);
-
-        if ReportSelections.Get(ReportUsage, Sequence) then begin
-            ReportSelections."Use for Email Attachment" := true;
-            ReportSelections."Use for Email Body" := false;
-            ReportSelections.Modify();
         end;
     end;
 
