@@ -24,4 +24,9 @@ enum 30129 "Shpfy Cr. Prod. Status Value" implements "Shpfy ICreateProductStatus
         Caption = 'Draft';
         Implementation = "Shpfy ICreateProductStatusValue" = "Shpfy CreateProdStatusDraft";
     }
+    value(2; Unlisted)
+    {
+        Caption = 'Unlisted';
+        Implementation = "Shpfy ICreateProductStatusValue" = "Shpfy CreateProdStatusUnlisted";
+    }
 }
