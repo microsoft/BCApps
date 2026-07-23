@@ -1062,6 +1062,20 @@ report 1305 "Standard Sales - Order Conf."
             Caption = 'Standard Sales Order Confirmation Email (Word)';
             Summary = 'Layout intended for an email body.';
         }
+        layout("StandardSalesOrderConfBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/Document/StandardSalesOrderConfBody.docx';
+            Caption = 'Standard Sales Order Confirmation Body (Word)';
+            Summary = 'Body-only layout for composite document report structure.';
+        }
+        layout("StandardOrderConfirmationEmailBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/Document/StandardOrderConfirmationEmailBody.docx';
+            Caption = 'Standard Sales Order Confirmation Email Body (Word)';
+            Summary = 'Email body-only layout for composite document report structure.';
+        }
     }
 
     labels
