@@ -378,6 +378,8 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         CreateBalancedGLJournalLine(GenJournalBatch, GenJournalLine);
         GenJournalLine.SetRange("Journal Template Name", GenJournalBatch."Journal Template Name");
         GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
+        GenJournalLine.FindFirst(); // Required for ES
+        GenJournalLine.ModifyAll("Document No.", GenJournalLine."Document No.");
         Commit();
 
         // [WHEN] The batch is posted
