@@ -1131,7 +1131,7 @@ codeunit 7010 "Purch. Price Calc. Mgt."
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCalcBestDirectUnitCostOnAfterIsInMinQty(var PurchasePrice: Record "Purchase Price"; QtyPerUOM: Decimal; Qty: Decimal; var InMinQty: Boolean)
+    local procedure OnCalcBestDirectUnitCostOnAfterIsInMinQty(var PurchasePrice: Record "Purchase Price"; QuantityPerUnitOfMeasure: Decimal; Quantity: Decimal; var InMinQty: Boolean)
     begin
     end;
 
