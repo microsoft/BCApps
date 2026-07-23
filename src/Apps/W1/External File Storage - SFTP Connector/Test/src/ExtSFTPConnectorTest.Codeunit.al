@@ -9,6 +9,7 @@ using System.Environment;
 using System.ExternalFileStorage;
 using System.TestLibraries.Utilities;
 
+#pragma warning disable AL0432, AS0105
 codeunit 144591 "Ext. SFTP Connector Test"
 {
     Subtype = Test;
@@ -160,3 +161,4 @@ codeunit 144591 "Ext. SFTP Connector Test"
         Assert: Codeunit "Library Assert";
         FileAccountMock: Codeunit "Ext. SFTP Account Mock";
 }
+#pragma warning restore AL0432, AS0105

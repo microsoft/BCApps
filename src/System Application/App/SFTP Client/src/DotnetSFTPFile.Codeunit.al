@@ -7,11 +7,15 @@ namespace System.SFTPClient;
 
 using System;
 
+#pragma warning disable AL0432, AS0105
 codeunit 9761 "Dotnet SFTP File" implements "ISFTP File"
 {
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
+    ObsoleteReason = 'The SFTP module is deprecated because platform hardening will prevent support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     var
         RenciSFTPFile: DotNet RenciISftpFile;
@@ -59,3 +63,4 @@ codeunit 9761 "Dotnet SFTP File" implements "ISFTP File"
         RenciSFTPFile := NewFile;
     end;
 }
+#pragma warning restore AL0432, AS0105

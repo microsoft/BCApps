@@ -9,6 +9,9 @@ enum 9760 "SFTP Exception Type"
 {
     Extensible = false;
     Access = Public;
+    ObsoleteReason = 'The SFTP module is deprecated because platform hardening will prevent support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     value(0; None)
     {

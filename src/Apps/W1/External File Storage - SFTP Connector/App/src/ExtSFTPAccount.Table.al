@@ -11,10 +11,14 @@ using System.Utilities;
 /// <summary>
 /// Holds the information for all file accounts that are registered via the SFTP connector
 /// </summary>
+#pragma warning disable AL0432, AS0105
 table 4621 "Ext. SFTP Account"
 {
     Caption = 'SFTP Account';
     DataClassification = CustomerContent;
+    ObsoleteReason = 'The SFTP connector is deprecated because platform hardening will prevent support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     fields
     {
@@ -237,3 +241,4 @@ table 4621 "Ext. SFTP Account"
         exit(CertificateBase64);
     end;
 }
+#pragma warning restore AL0432, AS0105

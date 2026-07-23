@@ -14,6 +14,9 @@ table 9760 "SFTP Folder Content"
     Extensible = false;
     Caption = 'SFTP Folder Content';
     TableType = Temporary;
+    ObsoleteReason = 'The SFTP module is deprecated because platform hardening will prevent support for SFTP connections.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
 
     fields
     {

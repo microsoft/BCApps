@@ -9,6 +9,7 @@ using System.SFTPClient;
 using System.TestLibraries.Utilities;
 using System.Utilities;
 
+#pragma warning disable AL0432, AS0105
 codeunit 139077 "SFTP Client Test"
 {
     Subtype = Test;
@@ -410,3 +411,4 @@ codeunit 139077 "SFTP Client Test"
         Assert.AreEqual(Enum::"SFTP Exception Type"::"Untrusted Server Exception", Response.GetErrorType(), 'Incorrect error type');
     end;
 }
+#pragma warning restore AL0432, AS0105
