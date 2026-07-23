@@ -345,6 +345,7 @@ page 4404 "SOA Email Message"
     var
         SOATaskContactOverride: Record "SOA Task Contact Override";
         SOAFiltersImpl: Codeunit "SOA Filters Impl.";
+        Email2ContactCount: Integer;
         TaskMessageID: Guid;
     begin
         if Rec.Type = Rec.Type::Output then
@@ -361,10 +362,15 @@ page 4404 "SOA Email Message"
 
         Contact.SetFilter("E-Mail", SOAFiltersImpl.GetSafeFromEmailFilter(EmailAddress));
         ContactCount := Contact.Count();
-        if not Contact.FindFirst() then
-            exit(false);
+        if Contact.FindFirst() then
+            exit(true);
 
-        exit(true);
+        if SOAFiltersImpl.FindContactByEmail2(Contact, EmailAddress, Email2ContactCount) then begin
+            ContactCount += Email2ContactCount;
+            exit(true);
+        end;
+
+        exit(false);
     end;
 
     local procedure GetSOAEmail(var AgentTaskMessage: Record "Agent Task Message"): Boolean

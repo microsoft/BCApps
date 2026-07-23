@@ -92,7 +92,17 @@ codeunit 4305 "SOA Filters Impl."
             From := GetSafeFromEmailFilter(AgentTaskMessage.From);
             if not ProcessedFromEmails.Contains(From) then begin
                 ProcessedFromEmails.Add(From);
+                Contact.Reset();
                 Contact.SetFilter("E-Mail", From);
+                Contact.ReadIsolation := IsolationLevel::ReadUncommitted;
+                if Contact.FindSet() then
+                    repeat
+                        if not ContactList.Contains(Contact."No.") then
+                            ContactList.Add(Contact."No.");
+                    until Contact.Next() = 0;
+
+                Contact.Reset();
+                Contact.SetFilter("E-Mail 2", From);
                 Contact.ReadIsolation := IsolationLevel::ReadUncommitted;
                 if Contact.FindSet() then
                     repeat
@@ -250,14 +260,14 @@ codeunit 4305 "SOA Filters Impl."
         if ContactList.RunModal() <> Action::LookupOK then
             exit;
         ContactList.GetRecord(SelectedContact);
-        if SelectedContact."E-Mail" <> '' then
-            if not Confirm(ContactAlreadyHasEmailQst, false, SelectedContact."No.", SelectedContact."E-Mail", ContactEmail) then
+        if SelectedContact."E-Mail 2" <> '' then
+            if not Confirm(ContactAlreadyHasEmail2Qst, false, SelectedContact."No.", SelectedContact."E-Mail 2", ContactEmail) then
                 exit;
         // Direct assignment is intentional: ContactEmail originates from an incoming email's From address,
         // which has already been accepted by the mail system. Validate() is skipped to avoid rejecting
         // valid but non-standard addresses such as system aliases or distribution lists.
 #pragma warning disable AA0139
-        SelectedContact."E-Mail" := CopyStr(ContactEmail, 1, MaxStrLen(SelectedContact."E-Mail"));
+        SelectedContact."E-Mail 2" := CopyStr(ContactEmail, 1, MaxStrLen(SelectedContact."E-Mail 2"));
 #pragma warning restore AA0139
         SelectedContact.Modify(true);
         Commit();
@@ -293,12 +303,21 @@ codeunit 4305 "SOA Filters Impl."
         exit('''@' + LowerCase(FromEmail.TrimStart('"').TrimEnd('"').Trim()) + '''');
     end;
 
+    internal procedure FindContactByEmail2(var Contact: Record Contact; EmailAddress: Text; var ContactCount: Integer): Boolean
+    begin
+        Contact.Reset();
+        Contact.ReadIsolation := IsolationLevel::ReadUncommitted;
+        Contact.SetFilter("E-Mail 2", GetSafeFromEmailFilter(EmailAddress));
+        ContactCount := Contact.Count();
+        exit(Contact.FindFirst());
+    end;
+
     var
         NoContactsFoundTxt: Label 'No contacts found for given email.', Locked = true;
         NoTaskMessagesFoundTxt: Label 'No agent task messages found for given task ID.', Locked = true;
         LearnMoreLbl: Label 'Learn more';
         SelectContactOrCreateLbl: Label 'Select an existing contact, or create a new one';
-        ContactAlreadyHasEmailQst: Label 'Contact %1 already has email address %2. Replace it with %3?', Comment = '%1 = Contact No., %2 = Existing email, %3 = New email';
+        ContactAlreadyHasEmail2Qst: Label 'Contact %1 already has %2 in E-Mail 2. Replace it with %3?', Comment = '%1 = Contact No., %2 = Existing E-Mail 2, %3 = New email';
         ContactActionsMenuQst: Label 'Create a new contact,Use another contact once,Use another contact always', Comment = 'Comma-separated StrMenu options - do not add spaces around commas';
         ContactActionsInstructionQst: Label 'Select one option for how this email should be handled.';
         SecurityFilteringDocumentationURLTxt: Label 'https://go.microsoft.com/fwlink/?linkid=2298901', Locked = true;

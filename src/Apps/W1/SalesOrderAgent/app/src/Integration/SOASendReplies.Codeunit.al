@@ -6,6 +6,7 @@
 #pragma warning disable AS0007
 namespace Microsoft.Agent.SalesOrderAgent;
 
+using Microsoft.CRM.Contact;
 using System.Agents;
 using System.Email;
 using System.Telemetry;
@@ -87,15 +88,76 @@ codeunit 4581 "SOA Send Replies"
         AgentMessage: Codeunit "Agent Message";
         Email: Codeunit Email;
         EmailMessage: Codeunit "Email Message";
+        BCCRecipients: List of [Text];
+        CCRecipients: List of [Text];
+        ToRecipients: List of [Text];
         Body: Text;
+        MappedContactEmail: Text;
         Subject: Text;
     begin
         Subject := StrSubstNo(EmailSubjectTxt, InputAgentTaskMessage."Task ID");
         Body := AgentMessage.GetText(OutputAgentTaskMessage);
+
+        // Check if there's a mapped contact
+        MappedContactEmail := GetMappedContactEmail(InputAgentTaskMessage."Task ID", InputAgentTaskMessage.ID);
+
+        if MappedContactEmail <> '' then begin
+            // Reply in same thread but send to mapped contact
+            ToRecipients.Add(MappedContactEmail);
+            GetOriginEmailRecipients(InputAgentTaskMessage, CCRecipients, BCCRecipients);
+            EmailMessage.CreateReply(ToRecipients, Subject, Body, true, InputAgentTaskMessage."External ID", CCRecipients, BCCRecipients);
+            AddMessageAttachments(EmailMessage, OutputAgentTaskMessage);
+            exit(Email.Reply(EmailMessage, SOASetup."Email Account ID", SOASetup."Email Connector"));
+        end;
+
+        // No mapped contact, reply to original sender
         EmailMessage.CreateReplyAll(Subject, Body, true, InputAgentTaskMessage."External ID");
         AddMessageAttachments(EmailMessage, OutputAgentTaskMessage);
-
         exit(Email.ReplyAll(EmailMessage, SOASetup."Email Account ID", SOASetup."Email Connector"));
+    end;
+
+    local procedure GetOriginEmailRecipients(InputAgentTaskMessage: Record "Agent Task Message"; var CCRecipients: List of [Text]; var BCCRecipients: List of [Text])
+    var
+        SOAEmail: Record "SOA Email";
+        EmailInbox: Record "Email Inbox";
+        OriginEmailMessage: Codeunit "Email Message";
+    begin
+        SOAEmail.SetRange("Task ID", InputAgentTaskMessage."Task ID");
+        SOAEmail.SetRange("Task Message ID", InputAgentTaskMessage.ID);
+        if not SOAEmail.FindFirst() then
+            exit;
+
+        if not EmailInbox.Get(SOAEmail."Email Inbox ID") then
+            exit;
+
+        if not OriginEmailMessage.Get(EmailInbox."Message Id") then
+            exit;
+
+        OriginEmailMessage.GetRecipients(Enum::"Email Recipient Type"::Cc, CCRecipients);
+        OriginEmailMessage.GetRecipients(Enum::"Email Recipient Type"::Bcc, BCCRecipients);
+    end;
+
+    local procedure GetMappedContactEmail(TaskID: BigInteger; TaskMessageID: Guid): Text
+    var
+        InputAgentTaskMessage: Record "Agent Task Message";
+        SOATaskContactOverride: Record "SOA Task Contact Override";
+        Contact: Record Contact;
+        SOAFiltersImpl: Codeunit "SOA Filters Impl.";
+        ContactCount: Integer;
+    begin
+        if SOATaskContactOverride.Get(TaskID, TaskMessageID) then begin
+            Contact.SetLoadFields("E-Mail");
+            if Contact.Get(SOATaskContactOverride."Contact No.") then
+                exit(Contact."E-Mail");
+        end;
+
+        if not InputAgentTaskMessage.Get(TaskID, TaskMessageID) then
+            exit('');
+
+        if SOAFiltersImpl.FindContactByEmail2(Contact, InputAgentTaskMessage.From, ContactCount) then
+            exit(Contact."E-Mail");
+
+        exit('');
     end;
 
     local procedure AddMessageAttachments(var EmailMessage: Codeunit "Email Message"; var AgentTaskMessage: Record "Agent Task Message")
