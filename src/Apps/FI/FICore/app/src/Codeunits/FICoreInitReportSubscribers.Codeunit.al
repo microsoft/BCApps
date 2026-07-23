@@ -192,7 +192,7 @@ codeunit 13411 "FICore InitReport Subscribers"
 
     local procedure IsFeatureEnabled(): Boolean
     var
-        VIESDeclarationFeature: Codeunit "FICore VIES Declaration Feature";
+        VIESDeclarationFeature: Codeunit "FICore VIES Decl. Feature";
     begin
         exit(VIESDeclarationFeature.IsEnabled());
     end;
