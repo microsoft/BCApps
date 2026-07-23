@@ -2452,7 +2452,9 @@ table 77 "Report Selections"
 
     internal procedure DoesAnyCustomLayotExist(): Boolean
     var
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
     begin
         CustomReportLayout.SetRange("Built-In", false);
         exit(not CustomReportLayout.IsEmpty());
