@@ -3593,6 +3593,11 @@ table 81 "Gen. Journal Line"
                     FieldError("Recurring Method");
             end;
         }
+        field(5865; "Is Derogatory"; Boolean)
+        {
+            Caption = 'Derogatory Line';
+            Editable = false;
+        }
         /// <summary>
         /// Non-deductible VAT percentage for VAT compliance and partial VAT deduction calculations.
         /// </summary>
@@ -3867,11 +3872,22 @@ table 81 "Gen. Journal Line"
             Caption = 'Entry No.';
             Editable = false;
         }
+#if not CLEANSCHEMA31
         field(10861; "Derogatory Line"; Boolean)
         {
             Caption = 'Derogatory Line';
             Editable = false;
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#endif
         }
+#endif
         field(10862; "Delayed Unrealized VAT"; Boolean)
         {
             Caption = 'Delayed Unrealized VAT';
@@ -4041,6 +4057,9 @@ table 81 "Gen. Journal Line"
     end;
 
     var
+#if not CLEAN29
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
 #pragma warning disable AA0074
         Text000: Label '%1 or %2 must be a G/L Account or Bank Account.', Comment = '%1=Account Type,%2=Balance Account Type';
 #pragma warning disable AA0470
@@ -5956,15 +5975,36 @@ table 81 "Gen. Journal Line"
     [Scope('OnPrem')]
     procedure GetDerogatorySetup()
     begin
-        "Derogatory Line" := false;
+#if not CLEAN29
+        if AcceleratedDeprFeature.IsEnabled() then
+            "Is Derogatory" := false
+        else
+            "Derogatory Line" := false;
+#else
+        "Is Derogatory" := false;
+#endif
         if ("Account Type" = "Account Type"::"Fixed Asset") and
            ("Account No." <> '') and
            ("Depreciation Book Code" <> '')
         then begin
-            DerogDeprBook.SetRange("Derogatory Calculation", "Depreciation Book Code");
+#if not CLEAN29
+            if AcceleratedDeprFeature.IsEnabled() then
+                DerogDeprBook.SetRange("Derogatory Calc.", "Depreciation Book Code")
+            else
+                DerogDeprBook.SetRange("Derogatory Calculation", "Depreciation Book Code");
+#else
+            DerogDeprBook.SetRange("Derogatory Calc.", "Depreciation Book Code");
+#endif
             if DerogDeprBook.FindFirst() then
                 if DerogFADeprBook.Get("Account No.", DerogDeprBook.Code) then
-                    "Derogatory Line" := true;
+#if not CLEAN29
+            if AcceleratedDeprFeature.IsEnabled() then
+                        "Is Derogatory" := true
+                    else
+                        "Derogatory Line" := true;
+#else
+                    "Is Derogatory" := true;
+#endif
         end;
     end;
 

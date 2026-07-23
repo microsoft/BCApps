@@ -26,6 +26,9 @@ codeunit 5605 "Calculate Disposal"
 
     procedure CalcGainLoss(FANo: Code[20]; DeprBookCode: Code[10]; var EntryAmounts: array[15] of Decimal)
     var
+#if not CLEAN29
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
         EntryAmounts2: array[4] of Decimal;
         GainLoss: Decimal;
         I: Integer;
@@ -40,12 +43,29 @@ codeunit 5605 "Calculate Disposal"
         for I := 1 to 4 do
             EntryAmounts[I + 4] := -EntryAmounts2[I];
         FADeprBook.Get(FANo, DeprBookCode);
-        FADeprBook.CalcFields(
+#if not CLEAN29
+        if AcceleratedDeprFeature.IsEnabled() then
+            FADeprBook.CalcFields(
+            "Book Value", "Proceeds on Disposal", "Acquisition Cost", "Salvage Value", Depreciation, "Derogatory Amount")
+        else
+            FADeprBook.CalcFields(
           "Book Value", "Proceeds on Disposal", "Acquisition Cost", "Salvage Value", Depreciation, Derogatory);
+#else
+        FADeprBook.CalcFields(
+            "Book Value", "Proceeds on Disposal", "Acquisition Cost", "Salvage Value", Depreciation, "Derogatory Amount");
+
+#endif
         EntryAmounts[3] := -FADeprBook."Acquisition Cost";
         EntryAmounts[4] := -FADeprBook.Depreciation;
         EntryAmounts[9] := -FADeprBook."Salvage Value";
-        EntryAmounts[15] := -FADeprBook.Derogatory;
+#if not CLEAN29
+        if AcceleratedDeprFeature.IsEnabled() then
+            EntryAmounts[15] := -FADeprBook."Derogatory Amount"
+        else
+            EntryAmounts[15] := -FADeprBook.Derogatory;
+#else
+        EntryAmounts[15] := -FADeprBook."Derogatory Amount";
+#endif
         OnCalcGainLossOnAfterSetEntryAmounts(FANo, DeprBookCode, EntryAmounts);
         if DeprBook."Disposal Calculation Method" = DeprBook."Disposal Calculation Method"::Gross then
             EntryAmounts[10] := FADeprBook."Book Value";

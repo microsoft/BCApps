@@ -160,10 +160,25 @@ table 5624 "FA Reclass. Journal Line"
             Caption = 'Calc. DB1 Depr. Amount';
             ToolTip = 'Specifies that the Reclassify function fills in the Temp. Ending Date and Temp. Fixed Depr. Amount fields on the FA depreciation book.';
         }
-        field(10800; "Reclassify Derogatory"; Boolean)
+        field(5865; "Reclass. Derogatory"; Boolean)
         {
             Caption = 'Reclassify Derogatory';
         }
+#if not CLEANSCHEMA31
+        field(10800; "Reclassify Derogatory"; Boolean)
+        {
+            Caption = 'Reclassify Derogatory';
+#if CLEAN29
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+            ObsoleteReason = 'Moved to W1 Base Application';
+#endif
+        }
+#endif
     }
 
     keys

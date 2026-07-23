@@ -1,9 +1,13 @@
+#if not CLEAN28
 codeunit 144027 "UT COD FA Derogatory Depr."
 {
     // Test for feature FADD - Fixed Asset Derogatory Depreciation.
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
+    ObsoleteReason = 'Moved to W1 Base Application';
 
     trigger OnRun()
     begin
@@ -235,4 +239,4 @@ codeunit 144027 "UT COD FA Derogatory Depr."
         CreateFAPostingTypeSetup(FADepreciationBook."Depreciation Book Code", FAPostingTypeSetup."FA Posting Type"::"Custom 2");
     end;
 }
-
+#endif

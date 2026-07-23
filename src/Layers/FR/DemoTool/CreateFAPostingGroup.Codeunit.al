@@ -41,10 +41,17 @@ codeunit 101803 "Create FA Posting Group"
         "FA Posting Group".Validate("Book Val. Acc. on Disp. (Loss)", CA.Convert("Losses Acc. on Disposal"));
         "FA Posting Group".Validate("Sales Acc. on Disp. (Gain)", CA.Convert("Gains Acc. on Disposal"));
         "FA Posting Group".Validate("Sales Acc. on Disp. (Loss)", CA.Convert("Gains Acc. on Disposal"));
+#if not CLEAN28
         "FA Posting Group".Validate("Derogatory Account", '145000');
         "FA Posting Group".Validate("Derogatory Acc. (Decrease)", '145000');
         "FA Posting Group".Validate("Derogatory Expense Account", '687250');
         "FA Posting Group".Validate("Derog. Bal. Acc. (Decrease)", '787250');
+#else
+        "FA Posting Group".Validate("Derogatory Acc.", '145000');
+        "FA Posting Group".Validate("Derogatory Account (Decrease)", '145000');
+        "FA Posting Group".Validate("Derogatory Expense Acc.", '687250');
+        "FA Posting Group".Validate("Derog. Bal. Account (Decrease)", '787250');
+#endif
 
         "FA Posting Group".Insert();
     end;

@@ -21,4 +21,5 @@ enum 5615 "FA Allocation Type"
     value(9; "Loss") { Caption = 'Loss'; }
     value(10; "Book Value (Gain)") { Caption = 'Book Value (Gain)'; }
     value(11; "Book Value (Loss)") { Caption = 'Book Value (Loss)'; }
+    value(12; "Derogatory") { Caption = 'Derogatory'; }
 }

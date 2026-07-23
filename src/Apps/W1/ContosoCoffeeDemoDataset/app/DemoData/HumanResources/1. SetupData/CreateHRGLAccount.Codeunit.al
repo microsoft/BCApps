@@ -15,7 +15,7 @@ codeunit 5161 "Create HR GL Account"
 
     trigger OnRun()
     var
-        GLAccountIndent: Codeunit "G/L Account-Indent";
+        GLAccountIndent: Codeunit "W1 G/L Account Indent";
     begin
         AddGLAccountsForLocalization();
         ContosoGLAccount.InsertGLAccount(EmployeesPayable(), EmployeesPayableName(), Enum::"G/L Account Income/Balance"::"Balance Sheet", Enum::"G/L Account Category"::Liabilities, Enum::"G/L Account Type"::Posting);

@@ -17,7 +17,7 @@ codeunit 4762 "Create Mfg GL Account"
 
     trigger OnRun()
     var
-        GLAccountIndent: Codeunit "G/L Account-Indent";
+        GLAccountIndent: Codeunit "W1 G/L Account Indent";
     begin
         AddGLAccountsForLocalization();
 
