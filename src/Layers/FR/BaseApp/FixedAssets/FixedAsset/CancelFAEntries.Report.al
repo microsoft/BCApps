@@ -51,8 +51,24 @@ report 5686 "Cancel FA Entries"
     }
 
     trigger OnPreReport()
+#if not CLEAN29
+    var
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
     begin
-        DerogDeprBook.SetRange(Code, FALedgEntry."Depreciation Book Code");
+#if not CLEAN29
+        if AcceleratedDeprFeature.IsEnabled() then begin
+            DerogDeprBook.SetRange(Code, FALedgEntry."Depreciation Book Code");
+            if DerogDeprBook.Find('-') then
+                if DerogDeprBook."Derogatory Calc." <> '' then begin
+                    DerogFALedgEntry.Copy(FALedgEntry);
+                    DerogFALedgEntry.SetFilter("FA Posting Type", '<>%1', DerogFALedgEntry."FA Posting Type"::"Salvage Value");
+                    if DerogFALedgEntry.Find('-') then
+                        Error(Text10800);
+                end
+        end
+        else
+            DerogDeprBook.SetRange(Code, FALedgEntry."Depreciation Book Code");
         if DerogDeprBook.Find('-') then
             if DerogDeprBook."Derogatory Calculation" <> '' then begin
                 DerogFALedgEntry.Copy(FALedgEntry);
@@ -60,6 +76,16 @@ report 5686 "Cancel FA Entries"
                 if DerogFALedgEntry.Find('-') then
                     Error(Text10800);
             end;
+#else
+        DerogDeprBook.SetRange(Code, FALedgEntry."Depreciation Book Code");
+        if DerogDeprBook.Find('-') then
+            if DerogDeprBook."Derogatory Calc." <> '' then begin
+                DerogFALedgEntry.Copy(FALedgEntry);
+                DerogFALedgEntry.SetFilter("FA Posting Type", '<>%1', DerogFALedgEntry."FA Posting Type"::"Salvage Value");
+                if DerogFALedgEntry.Find('-') then
+                    Error(Text10800);
+            end;
+#endif
         if UseNewPosting then
             if NewPostingDate = 0D then
                 Error(Text000);
@@ -75,12 +101,12 @@ report 5686 "Cancel FA Entries"
 
     var
         FALedgEntry: Record "FA Ledger Entry";
+        DerogDeprBook: Record "Depreciation Book";
+        DerogFALedgEntry: Record "FA Ledger Entry";
         CancelFALedgEntries: Codeunit "Cancel FA Ledger Entries";
         UseNewPosting: Boolean;
         NewPostingDate: Date;
-        DerogDeprBook: Record "Depreciation Book";
         Text10800: Label 'You cannot cancel FA entries that were posted to a derogatory depreciation book. Instead you must\cancel the FA entries posted to the depreciation book integrated with G/L.';
-        DerogFALedgEntry: Record "FA Ledger Entry";
 
 #pragma warning disable AA0074
         Text000: Label 'You must specify New Posting Date.';

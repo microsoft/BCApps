@@ -143,12 +143,23 @@ report 5688 "Cancel FA Ledger Entries"
                             Caption = 'Appreciation';
                             ToolTip = 'Specifies if related appreciation entries are included in the batch job .';
                         }
-                        field("CancelChoices[13]"; CancelChoices[13])
+                        field("Derogatory"; CancelChoices[13])
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'Derogatory';
                             ToolTip = 'Specifies whether to include derogatory depreciation.';
                         }
+#if not CLEAN29
+                        field("CancelChoices[13]"; CancelChoices[13])
+                        {
+                            ApplicationArea = FixedAssets;
+                            Caption = 'Derogatory';
+                            ToolTip = 'Specifies whether to include derogatory depreciation.';
+                            ObsoleteState = Pending;
+                            ObsoleteTag = '29.0';
+                            ObsoleteReason = 'Moved to W1 Base Application';
+                        }
+#endif
                         field("CancelChoices[5]"; CancelChoices[5])
                         {
                             ApplicationArea = FixedAssets;
@@ -197,10 +208,25 @@ report 5688 "Cancel FA Ledger Entries"
 
     trigger OnPreReport()
     begin
+#if not CLEAN29
+        if AcceleratedDeprFeature.IsEnabled() then begin
+            DerogDeprBook.SetRange(Code, DeprBookCode);
+            if DerogDeprBook.Find('-') then
+                if DerogDeprBook."Derogatory Calc." <> '' then
+                    Error(Text10800);
+        end
+        else begin
+            DerogDeprBook.SetRange(Code, DeprBookCode);
+            if DerogDeprBook.Find('-') then
+                if DerogDeprBook."Derogatory Calculation" <> '' then
+                    Error(Text10800);
+        end;
+#else
         DerogDeprBook.SetRange(Code, DeprBookCode);
         if DerogDeprBook.Find('-') then
-            if DerogDeprBook."Derogatory Calculation" <> '' then
+            if DerogDeprBook."Derogatory Calc." <> '' then
                 Error(Text10800);
+#endif
         if (EndingDate > 0D) and (StartingDate > EndingDate) then
             Error(Text000);
         if UseNewPostingDate then
@@ -235,6 +261,9 @@ report 5688 "Cancel FA Ledger Entries"
         FAJnlSetup: Record "FA Journal Setup";
         DerogDeprBook: Record "Depreciation Book";
         DepreciationCalc: Codeunit "Depreciation Calculation";
+#if not CLEAN29
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
         Window: Dialog;
         CancelChoices: array[13] of Boolean;
         GLIntegration: array[13] of Boolean;

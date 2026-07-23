@@ -597,6 +597,8 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
                     GenJnlLine."FA Posting Type" := GenJnlLine."FA Posting Type"::Appreciation;
             end;
             InvoicePostingBuffer.CopyToGenJnlLineFA(GenJnlLine);
+            // Detect if this FA has a derogatory book, so a purchase acquisition also posts to it
+            GenJnlLine.GetDerogatorySetup();
             SplitByFA := CalcSplitFA(GenJnlLine, InvoicePostingBuffer."No. of Fixed Asset Cards");
         end;
 

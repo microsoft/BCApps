@@ -59,6 +59,21 @@ page 5610 "Depreciation Book Card"
                 {
                     ApplicationArea = FixedAssets;
                 }
+                field("VAT on Net Disposal Entries"; Rec."VAT on Net Disposal Entries")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies whether you sell a fixed asset with the net disposal method.';
+                }
+                field("Derogatory Calc."; Rec."Derogatory Calc.")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies if this book is used as a tax depreciation book to calculate derogatory depreciation.';
+                }
+                field("Derogatory Book Code"; Rec."Derogatory Book Code")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies the code of the tax depreciation book that this accounting book has been associated with in a derogatory setup.';
+                }
                 field("Allow Identical Document No."; Rec."Allow Identical Document No.")
                 {
                     ApplicationArea = FixedAssets;
@@ -152,6 +167,12 @@ page 5610 "Depreciation Book Card"
                     {
                         ApplicationArea = FixedAssets;
                         Caption = 'G/L Integration - Bonus Depreciation';
+                    }
+                    field("Integration G/L - Derogatory"; Rec."Integration G/L - Derogatory")
+                    {
+                        ApplicationArea = FixedAssets;
+                        Caption = 'Derogatory';
+                        ToolTip = 'Specifies if you want derogatory entries that are posted to this depreciation book to be posted both to the general ledger and the FA ledger.';
                     }
                 }
             }

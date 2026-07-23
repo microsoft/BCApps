@@ -55,6 +55,26 @@ page 5613 "FA Posting Groups"
                     ApplicationArea = FixedAssets;
                     Visible = false;
                 }
+                field("Derogatory Acc."; Rec."Derogatory Acc.")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies the G/L account number to post derogatory transactions to, for fixed assets in this posting group.';
+                }
+                field("Derogatory Account (Decrease)"; Rec."Derogatory Account (Decrease)")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies the G/L account number to post derogatory transactions to, when you dispose of fixed assets in this posting group.';
+                }
+                field("Derogatory Expense Acc."; Rec."Derogatory Expense Acc.")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies the G/L balancing account number to post derogatory transactions to, for fixed assets in this posting group.';
+                }
+                field("Derog. Bal. Account (Decrease)"; Rec."Derog. Bal. Account (Decrease)")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies the number of the G/L balancing account to post derogatory transactions of fixed assets to, when you dispose of fixed assets.';
+                }
                 field("Acq. Cost Acc. on Disposal"; Rec."Acq. Cost Acc. on Disposal")
                 {
                     ApplicationArea = FixedAssets;
@@ -326,9 +346,20 @@ page 5613 "FA Posting Groups"
                                       "Allocation Type" = const(Loss);
                         ToolTip = 'View or edit the FA allocations that apply to losses.';
                     }
+                    action(FA_Derogatory_Allocations)
+                    {
+                        ApplicationArea = FixedAssets;
+                        Caption = 'De&rogatory';
+                        Image = Delegate;
+                        RunObject = Page "FA Allocations";
+                        RunPageLink = Code = field(Code),
+                                      "Allocation Type" = const(Derogatory);
+                        ToolTip = 'View or change the posting account and allocation percentage for derogatory transactions for fixed assets in this posting group.';
+                    }
                 }
             }
         }
     }
+
 }
 

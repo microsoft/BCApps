@@ -16,7 +16,7 @@ codeunit 5135 "Create Common GL Account"
 
     trigger OnRun()
     var
-        GLAccountIndent: Codeunit "G/L Account-Indent";
+        GLAccountIndent: Codeunit "W1 G/L Account Indent";
     begin
         AddGLAccountsForLocalization();
 
@@ -41,6 +41,7 @@ codeunit 5135 "Create Common GL Account"
 
         GLAccountIndent.Indent();
     end;
+
 
     local procedure AddGLAccountsForLocalization()
     var

@@ -47,6 +47,9 @@ codeunit 5600 "FA Insert Ledger Entry"
         FAJnlLine: Record "FA Journal Line";
         FAInsertGLAcc: Codeunit "FA Insert G/L Account";
         FAAutomaticEntry: Codeunit "FA Automatic Entry";
+#if not CLEAN29
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#endif
         DeprBookCode: Code[10];
         ErrorEntryNo: Integer;
         NextEntryNo: Integer;
@@ -115,7 +118,14 @@ codeunit 5600 "FA Insert Ledger Entry"
            (LastEntryNo > 0)
         then
             CheckFADocNo(FALedgEntry);
-        FALedgEntry."Exclude Derogatory" := CalcExcludeDerogatory(FALedgEntry);
+#if not CLEAN29
+        if AcceleratedDeprFeature.IsEnabled() then
+            FALedgEntry."Derogatory Excluded" := CalcExcludeDerogatory(FALedgEntry)
+        else
+            FALedgEntry."Exclude Derogatory" := CalcExcludeDerogatory(FALedgEntry);
+#else
+        FALedgEntry."Derogatory Excluded" := CalcExcludeDerogatory(FALedgEntry);      
+#endif
         FALedgEntry.Insert(true);
         FeatureTelemetry.LogUsage('0000H4F', 'Fixed Asset', 'Insert FA Ledger Entry');
         OnInsertFAOnAfterInsertFALedgEntry(FALedgEntry, FALedgEntry3);
@@ -496,13 +506,29 @@ codeunit 5600 "FA Insert Ledger Entry"
                 NewFAEntryNo := NextEntryNo;
                 IsHandled := false;
                 OnInsertReverseEntryOnBeforeInsertTempFALedgEntry(FALedgEntry3, IsHandled);
+#if not CLEAN29
+                if AcceleratedDeprFeature.IsEnabled() then
+                    if not IsHandled then begin
+                        DeprBook.Get(FALedgEntry3."Depreciation Book Code");
+                        if DeprBook."Derogatory Calc." = '' then begin
+                            TempFALedgEntry := FALedgEntry3;
+                            TempFALedgEntry.Insert();
+                        end
+                    end
+                    else
+                        if not IsHandled then begin
+                            TempFALedgEntry := FALedgEntry3;
+                            TempFALedgEntry.Insert();
+                        end;
+#else
                 if not IsHandled then begin
                     DeprBook.Get(FALedgEntry3."Depreciation Book Code");
-                    if DeprBook."Derogatory Calculation" = '' then begin
+                    if DeprBook."Derogatory Calc." = '' then begin
                         TempFALedgEntry := FALedgEntry3;
                         TempFALedgEntry.Insert();
                     end;
                 end;
+#endif
                 SetFAReversalMark(FALedgEntry3, NextEntryNo);
                 FALedgEntry3."Entry No." := NextEntryNo;
                 FALedgEntry3."G/L Entry No." := NewGLEntryNo;
@@ -550,7 +576,14 @@ codeunit 5600 "FA Insert Ledger Entry"
 
             OnInsertReverseEntryOnBeforeInsertMaintenanceLedgerEntryBuffer(MaintenanceLedgEntry3, SkipInsertOfMaintenanceLedgerEntry);
             DeprBook.Get(MaintenanceLedgEntry3."Depreciation Book Code");
-            SkipInsertOfMaintenanceLedgerEntry := SkipInsertOfMaintenanceLedgerEntry or (DeprBook."Derogatory Calculation" <> '');
+#if not CLEAN29
+            if AcceleratedDeprFeature.IsEnabled() then
+                SkipInsertOfMaintenanceLedgerEntry := SkipInsertOfMaintenanceLedgerEntry or (DeprBook."Derogatory Calc." <> '')
+            else
+                SkipInsertOfMaintenanceLedgerEntry := SkipInsertOfMaintenanceLedgerEntry or (DeprBook."Derogatory Calculation" <> '');
+#else
+            SkipInsertOfMaintenanceLedgerEntry := SkipInsertOfMaintenanceLedgerEntry or (DeprBook."Derogatory Calc." <> '');
+#endif
             if not SkipInsertOfMaintenanceLedgerEntry then begin
                 TempMaintenanceLedgEntry := MaintenanceLedgEntry3;
                 TempMaintenanceLedgEntry.Insert();
@@ -685,7 +718,14 @@ codeunit 5600 "FA Insert Ledger Entry"
     var
         FALedgEntryForDerog: Record "FA Ledger Entry";
     begin
-        DeprBook.SetRange("Derogatory Calculation", FALedgEntry."Depreciation Book Code");
+#if not CLEAN29
+        if AcceleratedDeprFeature.IsEnabled() then
+            DeprBook.SetRange("Derogatory Calc.", FALedgEntry."Depreciation Book Code")
+        else
+            DeprBook.SetRange("Derogatory Calculation", FALedgEntry."Depreciation Book Code");
+#else
+        DeprBook.SetRange("Derogatory Calc.", FALedgEntry."Depreciation Book Code");
+#endif
         if not DeprBook.FindFirst() then
             exit;
         FALedgEntryForDerog.Reset();
@@ -704,7 +744,14 @@ codeunit 5600 "FA Insert Ledger Entry"
     var
         MaintLedgEntryForDerog: Record "Maintenance Ledger Entry";
     begin
-        DeprBook.SetRange("Derogatory Calculation", MaintenanceLedgEntry."Depreciation Book Code");
+#if not CLEAN29
+        if AcceleratedDeprFeature.IsEnabled() then
+            DeprBook.SetRange("Derogatory Calc.", MaintenanceLedgEntry."Depreciation Book Code")
+        else
+            DeprBook.SetRange("Derogatory Calculation", MaintenanceLedgEntry."Depreciation Book Code");
+#else
+        DeprBook.SetRange("Derogatory Calc.", MaintenanceLedgEntry."Depreciation Book Code");
+#endif
         if not DeprBook.FindFirst() then
             exit;
         MaintLedgEntryForDerog.Reset();

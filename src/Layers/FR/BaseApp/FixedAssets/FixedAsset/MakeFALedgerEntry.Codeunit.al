@@ -101,7 +101,7 @@ codeunit 5604 "Make FA Ledger Entry"
         FALedgEntry."FA Posting Type" := "FA Ledger Entry FA Posting Type".FromInteger(FAJnlLine.ConvertToLedgEntry(FAJnlLine));
         NonDeductibleVAT.CopyNonDedVATFromGenJnlLineToFALedgEntry(FALedgEntry, GenJnlLine);
         if FALedgEntry."FA Posting Type" = FALedgEntry."FA Posting Type"::Derogatory then
-            FALedgEntry."Automatic Entry" := GenJnlLine."System-Created Entry";
+            FALedgEntry."Automatic Entry" := GenJnlLine."System-Created Entry"; 
 
         OnAfterCopyFromGenJnlLine(FALedgEntry, GenJnlLine);
     end;

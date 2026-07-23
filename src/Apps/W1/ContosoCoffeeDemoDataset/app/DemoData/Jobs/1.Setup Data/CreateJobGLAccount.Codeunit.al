@@ -15,7 +15,7 @@ codeunit 5199 "Create Job GL Account"
 
     trigger OnRun()
     var
-        GLAccountIndent: Codeunit "G/L Account-Indent";
+        GLAccountIndent: Codeunit "W1 G/L Account Indent";
     begin
         AddGLAccountsForLocalization();
 

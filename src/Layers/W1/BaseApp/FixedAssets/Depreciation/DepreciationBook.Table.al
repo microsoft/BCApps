@@ -37,41 +37,81 @@ table 5611 "Depreciation Book"
         {
             Caption = 'G/L Integration - Acq. Cost';
             ToolTip = 'Specifies whether acquisition cost entries posted to this depreciation book are posted both to the general ledger and the FA ledger.';
+
+            trigger OnValidate()
+            begin
+                CheckIntegrationFields();
+            end;
         }
         field(4; "G/L Integration - Depreciation"; Boolean)
         {
             Caption = 'G/L Integration - Depreciation';
             ToolTip = 'Specifies whether depreciation entries posted to this depreciation book are posted both to the general ledger and the FA ledger.';
+
+            trigger OnValidate()
+            begin
+                CheckIntegrationFields();
+            end;
         }
         field(5; "G/L Integration - Write-Down"; Boolean)
         {
             Caption = 'G/L Integration - Write-Down';
             ToolTip = 'Specifies whether write-down entries posted to this depreciation book should be posted to the general ledger and the FA ledger.';
+
+            trigger OnValidate()
+            begin
+                CheckIntegrationFields();
+            end;
         }
         field(6; "G/L Integration - Appreciation"; Boolean)
         {
             Caption = 'G/L Integration - Appreciation';
             ToolTip = 'Specifies whether appreciation entries posted to this depreciation book are posted to the general ledger and the FA ledger.';
+
+            trigger OnValidate()
+            begin
+                CheckIntegrationFields();
+            end;
         }
         field(7; "G/L Integration - Custom 1"; Boolean)
         {
             Caption = 'G/L Integration - Custom 1';
             ToolTip = 'Specifies whether custom 1 entries posted to this depreciation book are posted to the general ledger and the FA ledger.';
+
+            trigger OnValidate()
+            begin
+                CheckIntegrationFields();
+            end;
         }
         field(8; "G/L Integration - Custom 2"; Boolean)
         {
             Caption = 'G/L Integration - Custom 2';
             ToolTip = 'Specifies whether custom 2 entries posted to this depreciation book are posted to the general ledger and the FA ledger.';
+
+            trigger OnValidate()
+            begin
+                CheckIntegrationFields();
+            end;
         }
         field(9; "G/L Integration - Disposal"; Boolean)
         {
             Caption = 'G/L Integration - Disposal';
             ToolTip = 'Specifies whether disposal entries posted to this depreciation book are posted to the general ledger and the FA ledger.';
+
+            trigger OnValidate()
+            begin
+                CheckIntegrationFields();
+            end;
         }
         field(10; "G/L Integration - Maintenance"; Boolean)
         {
             Caption = 'G/L Integration - Maintenance';
             ToolTip = 'Specifies whether maintenance entries that are posted to this depreciation book are posted both to the general ledger and the FA ledger.';
+
+            trigger OnValidate()
+            begin
+                CheckIntegrationFields();
+            end;
         }
         field(11; "Disposal Calculation Method"; Option)
         {
@@ -327,6 +367,66 @@ table 5611 "Depreciation Book"
                     Message(BonusDepreciationOnboardingMsg)
             end;
         }
+        field(5865; "Derogatory Calc."; Code[10])
+        {
+            Caption = 'Derogatory Calculation';
+            TableRelation = "Depreciation Book";
+
+            trigger OnValidate()
+            var
+                DeprBook: Record "Depreciation Book";
+                FADeprBook: Record "FA Depreciation Book";
+            begin
+                if ("Derogatory Calc." <> xRec."Derogatory Calc.") then begin
+                    if xRec."Derogatory Calc." <> '' then begin
+                        FADeprBook.SetRange("Depreciation Book Code", xRec."Derogatory Calc.");
+                        if FADeprBook.Find('-') then
+                            repeat
+                                FADeprBook.CalcFields("Derogatory Amount");
+                                FADeprBook.TestField("Derogatory Amount", 0);
+                            until FADeprBook.Next() = 0;
+                    end else begin
+                        DeprBook.SetRange("Derogatory Calc.", "Derogatory Calc.");
+                        if DeprBook.Find('-') then
+                            if DeprBook.Code <> Code then
+                                Error(Text10802, "Derogatory Calc.", DeprBook.Code);
+                        DeprBook.SetRange("Derogatory Calc.");
+                        DeprBook.SetRange(Code, "Derogatory Calc.");
+#pragma warning disable AA0181
+                        if DeprBook.Find('-') then
+#pragma warning restore AA0181
+                            if (DeprBook."Derogatory Calc." <> '') then
+                                Error(Text10804, "Derogatory Calc.");
+                    end;
+                    if ("Derogatory Calc." <> xRec."Derogatory Calc.") then
+                        if "Derogatory Book Code" <> '' then
+                            Error(Text10800, Code);
+
+                end;
+
+
+                if "Derogatory Calc." = Code then
+                    Error(Text10801, "Derogatory Calc.", Code);
+
+                CheckIntegrationFields();
+            end;
+        }
+        field(5866; "Derogatory Book Code"; Code[10])
+        {
+            CalcFormula = lookup("Depreciation Book".Code where("Derogatory Calc." = field(Code)));
+            Caption = 'Used with Derogatory Book';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(5867; "Integration G/L - Derogatory"; Boolean)
+        {
+            Caption = 'G/L Integration - Derogatory';
+
+            trigger OnValidate()
+            begin
+                CheckIntegrationFields();
+            end;
+        }
         field(10500; "Use Accounting Period"; Boolean)
         {
             Caption = 'Use Accounting Period';
@@ -419,7 +519,17 @@ table 5611 "Depreciation Book"
     var
         FASetup: Record "FA Setup";
         FAJnlSetup: Record "FA Journal Setup";
+        GLIntegration: array[13] of Boolean;
         MustBeStraightLineTxt: Label 'You cannot set %1 to %2 because some Fixed Assets associated with this book\exists where Depreciation Method is other than Straight-Line.', Comment = '%1="Use Accounting Period" Field Caption %2="Use Accounting Period" Field Value';
+#pragma warning disable AA0074
+#pragma warning disable AA0470        
+        Text10800: Label 'The depreciation book %1 is an accounting book and cannot be set up as a derogatory depreciation book.';
+        Text10801: Label 'The depreciation book %1 cannot be set up as derogatory for depreciation book %2.';
+        Text10802: Label 'The depreciation book %1 is already set up in combination with derogatory depreciation book %2.';
+        Text10803: Label 'Derogatory depreciation books cannot be integrated with the general ledger. Please make sure that none of the fields on the Integration tab are checked.';
+        Text10804: Label 'The depreciation book %1 is a derogatory depreciation book.';
+#pragma warning restore AA0470
+#pragma warning restore AA0074        
 
 #pragma warning disable AA0074
         Text000: Label 'The book cannot be deleted because it is in use.';
@@ -432,7 +542,9 @@ table 5611 "Depreciation Book"
     protected var
         FAPostingTypeSetup: Record "FA Posting Type Setup";
 
-    procedure IndexGLIntegration(var GLIntegration: array[9] of Boolean)
+#pragma warning disable AA0244
+    procedure IndexGLIntegration(var GLIntegration: array[13] of Boolean)
+#pragma warning restore AA0244 
     begin
         GLIntegration[1] := "G/L Integration - Acq. Cost";
         GLIntegration[2] := "G/L Integration - Depreciation";
@@ -443,6 +555,24 @@ table 5611 "Depreciation Book"
         GLIntegration[7] := "G/L Integration - Disposal";
         GLIntegration[8] := "G/L Integration - Maintenance";
         GLIntegration[9] := false; // Salvage Value
+        GLIntegration[13] := "Integration G/L - Derogatory";
+    end;
+
+    procedure CheckIntegrationFields()
+    var
+        i: Integer;
+    begin
+        if "Derogatory Calc." <> '' then begin
+            IndexGLIntegration(GLIntegration);
+            for i := 1 to 13 do
+                if GLIntegration[i] then
+                    Error(Text10803);
+        end;
+    end;
+
+    procedure IsDerogatoryBook(): Boolean
+    begin
+        exit("Derogatory Calc." <> '');
     end;
 
     local procedure GetCurrencyCode(): Code[10]

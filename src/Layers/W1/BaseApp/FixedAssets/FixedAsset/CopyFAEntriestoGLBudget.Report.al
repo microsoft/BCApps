@@ -46,9 +46,7 @@ report 5684 "Copy FA Entries to G/L Budget"
                 FALedgEntry.SetCurrentKey("FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type", "Posting Date");
                 FALedgEntry.SetRange("Depreciation Book Code", DeprBookCode);
                 FALedgEntry.SetRange("FA Posting Category", FALedgEntry."FA Posting Category"::" ");
-                FALedgEntry.SetRange(
-                  "FA Posting Type",
-                  FALedgEntry."FA Posting Type"::"Acquisition Cost", FALedgEntry."FA Posting Type"::"Custom 2");
+                FALedgEntry.SetFilter("FA Posting Type", '<=%1|%2', FALedgEntry."FA Posting Type"::"Custom 2", FALedgEntry."FA Posting Type"::Derogatory);
                 FALedgEntry.SetRange("Posting Date", StartingDate, EndingDate2);
             end;
         }
@@ -142,6 +140,12 @@ report 5684 "Copy FA Entries to G/L Budget"
                             Caption = 'Custom 2';
                             ToolTip = 'Specifies whether custom 2 entries posted to this depreciation book are posted to the general ledger and the FA ledger.';
                         }
+                        field("TransferType[7]"; TransferType[7])
+                        {
+                            ApplicationArea = FixedAssets;
+                            Caption = 'Derogatory';
+                            ToolTip = 'Specifies whether derogatory depreciation entries posted to this depreciation book are posted both to the general ledger and the FA ledger.';
+                        }
                     }
                 }
             }
@@ -187,7 +191,7 @@ report 5684 "Copy FA Entries to G/L Budget"
         FALedgEntry: Record "FA Ledger Entry";
         BudgetDepreciation: Codeunit "Budget Depreciation";
         Window: Dialog;
-        TransferType: array[6] of Boolean;
+        TransferType: array[7] of Boolean;
         BalAccount: Boolean;
         PostingDescription: Text[100];
         DeprBookCode: Code[10];
@@ -219,6 +223,8 @@ report 5684 "Copy FA Entries to G/L Budget"
                 exit(TransferType[5]);
             FALedgEntry."FA Posting Type"::"Custom 2":
                 exit(TransferType[6]);
+            FALedgEntry."FA Posting Type"::Derogatory:
+                exit(TransferType[7]);
         end;
         exit(false);
     end;

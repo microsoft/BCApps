@@ -252,6 +252,7 @@
     "Tests\\ERM\\PaymentsusingCreditorNumber.Codeunit.al",
     "Tests\\ERM\\TestPlatformEvent.Codeunit.al",
     "Tests\\ERM\\TestSalesHeaderWorkDescr.Codeunit.al",
+    "Tests\\Fixed Asset\\ERMDerogatoryDeprPosting.Codeunit.al",
     "Tests\\Fixed Asset\\FixedAssetsPlanbasedE2E.Codeunit.al",
     "Tests\\Integration\\O365ReportDistribution.Codeunit.al",
     "Tests\\Integration\\TestAccountantPortalWS.Codeunit.al",
