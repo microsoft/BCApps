@@ -15,6 +15,7 @@ using Microsoft.Inventory.Item.Catalog;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Setup;
+using System.Config;
 
 page 6183 "E-Doc. Purchase Draft Subform"
 {
@@ -348,6 +349,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                         ToolTip = 'Opens the Text-to-Account Mapping filtered for the current vendor.';
                         Image = MapAccounts;
                         Scope = Repeater;
+                        Visible = AgentDrivenLineMatchingEnabled;
 
                         trigger OnAction()
                         var
@@ -366,6 +368,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                         ToolTip = 'Opens historical purchase invoice lines to help match this draft line based on past invoices.';
                         Image = History;
                         Scope = Repeater;
+                        Visible = AgentDrivenLineMatchingEnabled;
 
                         trigger OnAction()
                         var
@@ -386,6 +389,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                         ToolTip = 'Opens the Chart of Accounts to look up G/L accounts for this line.';
                         Image = ChartOfAccounts;
                         Scope = Repeater;
+                        Visible = AgentDrivenLineMatchingEnabled;
 
                         trigger OnAction()
                         begin
@@ -399,6 +403,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                         ToolTip = 'Opens the item list to look up items for this line.';
                         Image = Item;
                         Scope = Repeater;
+                        Visible = AgentDrivenLineMatchingEnabled;
 
                         trigger OnAction()
                         var
@@ -415,6 +420,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                         ToolTip = 'Opens the list of deferral templates for assigning deferrals to this line.';
                         Image = CalculateCalendar;
                         Scope = Repeater;
+                        Visible = AgentDrivenLineMatchingEnabled;
 
                         trigger OnAction()
                         begin
@@ -435,12 +441,16 @@ page 6183 "E-Doc. Purchase Draft Subform"
         AdditionalColumns, OrderMatchedCaption, MatchWarningsCaption, MatchWarningsStyleExpr, MatchedEntityName : Text;
         LineAmount: Decimal;
         DimVisible1, DimVisible2, HasAdditionalColumns, IsEDocumentMatchedToAnyPOLine, IsLineMatchedToOrderLine, IsLineMatchedToReceiptLine, HasEDocumentOrderMatchWarnings, VATProdPostGroupIsVisible : Boolean;
+        AgentDrivenLineMatchingEnabled: Boolean;
         HistoryCantBeRetrievedErr: Label 'The purchase invoice that matched historically with this line can''t be opened.';
+        AgentDrivenLineMatchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
+        AgentDrivenTreatmentTok: Label 'agent_driven', Locked = true;
 
     trigger OnOpenPage()
     begin
         SetDimensionsVisibility();
         UpdatePOMatching();
+        SetAgentDrivenLineMatchingVisibility();
     end;
 
     trigger OnNewRecord(BelowxRec: Boolean)
@@ -477,6 +487,13 @@ page 6183 "E-Doc. Purchase Draft Subform"
     begin
         if not EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then
             Clear(EDocumentPurchaseHeader);
+    end;
+
+    local procedure SetAgentDrivenLineMatchingVisibility()
+    var
+        FeatureConfiguration: Codeunit "Feature Configuration";
+    begin
+        AgentDrivenLineMatchingEnabled := FeatureConfiguration.GetConfiguration(AgentDrivenLineMatchingTok) = AgentDrivenTreatmentTok;
     end;
 
     local procedure SetDimensionsVisibility()
