@@ -8,7 +8,6 @@
   <cbc:UUID>01d4dd7d-ac2b-460d-ae44-5f20d540952a</cbc:UUID>
   <cbc:IssueDate>2026-01-22</cbc:IssueDate>
   <cbc:IssueTime>12:00:00</cbc:IssueTime>
-  <cbc:DueDate>2026-02-22</cbc:DueDate>
   <cbc:InvoiceTypeCode listAgencyID="320" listID="urn:oioubl:codelist:invoicetypecode-1.1">380</cbc:InvoiceTypeCode>
   <cbc:DocumentCurrencyCode>XYZ</cbc:DocumentCurrencyCode>
   <cac:OrderReference>
@@ -88,6 +87,10 @@
       </cac:Contact>
     </cac:Party>
   </cac:AccountingCustomerParty>
+  <cac:PaymentMeans>
+    <cbc:PaymentMeansCode>42</cbc:PaymentMeansCode>
+    <cbc:PaymentDueDate>2026-02-22</cbc:PaymentDueDate>
+  </cac:PaymentMeans>
   <cac:TaxTotal>
     <cbc:TaxAmount currencyID="DKK">1000.00</cbc:TaxAmount>
     <cac:TaxSubtotal>

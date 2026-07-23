@@ -19,8 +19,14 @@ codeunit 13913 "E-Document OIOUBL Handler" implements IStructuredFormatReader
 
     var
         GLNTok: Label 'GLN', Locked = true;
+        DKCVRTok: Label 'DK:CVR', Locked = true;
         InvoiceLineTok: Label 'cac:InvoiceLine', Locked = true;
         CreditNoteLineTok: Label 'cac:CreditNoteLine', Locked = true;
+        CommonAggregateComponentsTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', Locked = true;
+        CommonBasicComponentsTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', Locked = true;
+        DefaultInvoiceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2', Locked = true;
+        DefaultCreditNoteTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2', Locked = true;
+        UnsupportedXmlRootElementErr: Label 'Unsupported XML root element: %1.', Comment = '%1 = local name of the XML root element';
 
     /// <summary>
     /// Reads an OIOUBL format XML document and converts it into a draft purchase document.
@@ -35,11 +41,9 @@ codeunit 13913 "E-Document OIOUBL Handler" implements IStructuredFormatReader
         OIOUBLXml: XmlDocument;
         XmlNamespaces: XmlNamespaceManager;
         XmlElement: XmlElement;
-        CommonAggregateComponentsTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', Locked = true;
-        CommonBasicComponentsTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', Locked = true;
-        DefaultInvoiceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:Invoice-2', Locked = true;
-        DefaultCreditNoteTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CreditNote-2', Locked = true;
+        ProcessDraft: Enum "E-Doc. Process Draft";
     begin
+        ResetDraft(EDocument);
         EDocumentPurchaseHeader.InsertForEDocument(EDocument);
 
         XmlDocument.ReadFrom(TempBlob.CreateInStream(TextEncoding::UTF8), OIOUBLXml);
@@ -50,16 +54,26 @@ codeunit 13913 "E-Document OIOUBL Handler" implements IStructuredFormatReader
         XmlNamespaces.AddNamespace('cn', DefaultCreditNoteTok);
 
         OIOUBLXml.GetRoot(XmlElement);
-        case UpperCase(XmlElement.LocalName()) of
-            'INVOICE':
+        case XmlElement.LocalName() of
+            'Invoice': begin
+                if XmlElement.NamespaceUri() <> DefaultInvoiceTok then
+                    Error(UnsupportedXmlRootElementErr, XmlElement.LocalName());
                 PopulateEDocumentForInvoice(OIOUBLXml, XmlNamespaces, EDocumentPurchaseHeader, EDocument);
-            'CREDITNOTE':
+                ProcessDraft := Enum::"E-Doc. Process Draft"::"Purchase Invoice";
+            end;
+            'CreditNote': begin
+                if XmlElement.NamespaceUri() <> DefaultCreditNoteTok then
+                    Error(UnsupportedXmlRootElementErr, XmlElement.LocalName());
                 PopulateEDocumentForCreditNote(OIOUBLXml, XmlNamespaces, EDocumentPurchaseHeader, EDocument);
+                ProcessDraft := Enum::"E-Doc. Process Draft"::"Purchase Credit Memo";
+            end;
+            else
+                Error(UnsupportedXmlRootElementErr, XmlElement.LocalName());
         end;
 
         EDocumentPurchaseHeader.Modify(false);
         EDocument.Direction := EDocument.Direction::Incoming;
-        exit(Enum::"E-Doc. Process Draft"::"Purchase Document");
+        exit(ProcessDraft);
     end;
 
     /// <summary>
@@ -101,6 +115,8 @@ codeunit 13913 "E-Document OIOUBL Handler" implements IStructuredFormatReader
         EDocumentXMLHelper.SetStringValueInField(OIOUBLXml, XmlNamespaces, '/inv:Invoice/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."), EDocumentPurchaseHeader."Sales Invoice No.");
         EDocumentXMLHelper.SetDateValueInField(OIOUBLXml, XmlNamespaces, '/inv:Invoice/cbc:IssueDate', EDocumentPurchaseHeader."Document Date");
         EDocumentXMLHelper.SetDateValueInField(OIOUBLXml, XmlNamespaces, '/inv:Invoice/cbc:DueDate', EDocumentPurchaseHeader."Due Date");
+        if EDocumentPurchaseHeader."Due Date" = 0D then
+            EDocumentXMLHelper.SetDateValueInField(OIOUBLXml, XmlNamespaces, '/inv:Invoice/cac:PaymentMeans/cbc:PaymentDueDate', EDocumentPurchaseHeader."Due Date");
         EDocumentXMLHelper.SetCurrencyValueInField(OIOUBLXml, XmlNamespaces, '/inv:Invoice/cbc:DocumentCurrencyCode', MaxStrLen(EDocumentPurchaseHeader."Currency Code"), EDocumentPurchaseHeader."Currency Code");
         EDocumentXMLHelper.SetStringValueInField(OIOUBLXml, XmlNamespaces, '/inv:Invoice/cac:OrderReference/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Purchase Order No."), EDocumentPurchaseHeader."Purchase Order No.");
 #pragma warning restore AA0139
@@ -124,10 +140,10 @@ codeunit 13913 "E-Document OIOUBL Handler" implements IStructuredFormatReader
 #pragma warning disable AA0139
         EDocumentXMLHelper.SetStringValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."), EDocumentPurchaseHeader."Sales Invoice No.");
         EDocumentXMLHelper.SetDateValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cbc:IssueDate', EDocumentPurchaseHeader."Document Date");
-        EDocumentXMLHelper.SetDateValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cbc:DueDate', EDocumentPurchaseHeader."Due Date");
+        EDocumentXMLHelper.SetDateValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cac:PaymentMeans/cbc:PaymentDueDate', EDocumentPurchaseHeader."Due Date");
         EDocumentXMLHelper.SetCurrencyValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cbc:DocumentCurrencyCode', MaxStrLen(EDocumentPurchaseHeader."Currency Code"), EDocumentPurchaseHeader."Currency Code");
         EDocumentXMLHelper.SetStringValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cac:OrderReference/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Purchase Order No."), EDocumentPurchaseHeader."Purchase Order No.");
-        EDocumentXMLHelper.SetStringValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Applies-to Doc. No."), EDocumentPurchaseHeader."Applies-to Doc. No.");
+        EDocumentXMLHelper.SetStringValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Applies-to Ext. Invoice No."), EDocumentPurchaseHeader."Applies-to Ext. Invoice No.");
 #pragma warning restore AA0139
         EDocumentXMLHelper.SetNumberValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount', EDocumentPurchaseHeader."Sub Total");
         EDocumentXMLHelper.SetNumberValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount', EDocumentPurchaseHeader.Total);
@@ -144,7 +160,6 @@ codeunit 13913 "E-Document OIOUBL Handler" implements IStructuredFormatReader
     var
         EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
         EDocumentImportHelper: Codeunit "E-Document Import Helper";
-        DKCVRTok: Label 'DK:CVR', Locked = true;
         VendorName, VendorAddress, VendorParticipantId : Text;
         VATRegistrationNo: Text[20];
         EndpointID, SchemeID : Text;
@@ -174,7 +189,10 @@ codeunit 13913 "E-Document OIOUBL Handler" implements IStructuredFormatReader
             end;
             VendorParticipantId := SchemeID + ':' + EndpointID;
         end;
-        VATRegistrationNo := CopyStr(EDocumentPurchaseHeader."Vendor VAT Id", 1, MaxStrLen(VATRegistrationNo));
+        if EDocumentPurchaseHeader."Vendor VAT Id" <> '' then
+            VATRegistrationNo := CopyStr(EDocumentPurchaseHeader."Vendor VAT Id", 1, MaxStrLen(VATRegistrationNo));
+        if VATRegistrationNo = '' then
+            EDocumentXMLHelper.SetStringValueInField(OIOUBLXml, XmlNamespaces, BasePathTxt + '/cac:PartyIdentification/cbc:ID', MaxStrLen(VATRegistrationNo), VATRegistrationNo);
         VendorName := EDocumentPurchaseHeader."Vendor Company Name";
         VendorAddress := EDocumentPurchaseHeader."Vendor Address";
         if not FindVendorByVATRegNoOrGLN(VendorNo, VATRegistrationNo, GLN) then
@@ -327,8 +345,11 @@ codeunit 13913 "E-Document OIOUBL Handler" implements IStructuredFormatReader
     procedure ResetDraft(EDocument: Record "E-Document")
     var
         EDocPurchaseHeader: Record "E-Document Purchase Header";
+        EDocPurchaseLine: Record "E-Document Purchase Line";
     begin
-        EDocPurchaseHeader.GetFromEDocument(EDocument);
-        EDocPurchaseHeader.Delete(true);
+        EDocPurchaseHeader.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPurchaseHeader.DeleteAll();
+        EDocPurchaseLine.SetRange("E-Document Entry No.", EDocument."Entry No");
+        EDocPurchaseLine.DeleteAll();
     end;
 }

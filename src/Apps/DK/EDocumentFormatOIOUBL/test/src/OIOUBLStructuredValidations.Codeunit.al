@@ -2,17 +2,18 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 13852 "OIOUBL Structured Validations"
+codeunit 148062 "OIOUBL Structured Validations"
 {
     var
         Assert: Codeunit Assert;
         UnitOfMeasureCodeTok: Label 'PCS', Locked = true;
         SalesInvoiceNoTok: Label '103033', Locked = true;
         PurchaseorderNoTok: Label '2', Locked = true;
+        Item1NoTok: Label 'GL00000001', Locked = true;
+        Item2NoTok: Label 'GL00000003', Locked = true;
         MockDate: Date;
         MockCurrencyCode: Code[10];
         MockDataMismatchErr: Label 'The %1 in %2 does not align with the mock data. Expected: %3, Actual: %4', Locked = true, Comment = '%1 = Field caption, %2 = Table caption, %3 = Expected value, %4 = Actual value';
-
 
     internal procedure AssertFullEDocumentContentExtracted(EDocumentEntryNo: Integer)
     var
@@ -60,8 +61,6 @@ codeunit 13852 "OIOUBL Structured Validations"
     internal procedure AssertPurchaseDocument(VendorNo: Code[20]; PurchaseHeader: Record "Purchase Header"; Item: Record Item)
     var
         PurchaseLine: Record "Purchase Line";
-        Item1NoTok: Label 'GL00000001', Locked = true;
-        Item2NoTok: Label 'GL00000003', Locked = true;
     begin
         Assert.AreEqual(SalesInvoiceNoTok, PurchaseHeader."Vendor Invoice No.", StrSubstNo(MockDataMismatchErr, PurchaseHeader.FieldCaption("Vendor Invoice No."), PurchaseHeader.TableCaption(), SalesInvoiceNoTok, PurchaseHeader."Vendor Invoice No."));
         Assert.AreEqual(MockDate, PurchaseHeader."Document Date", StrSubstNo(MockDataMismatchErr, PurchaseHeader.FieldCaption("Document Date"), PurchaseHeader.TableCaption(), MockDate, PurchaseHeader."Document Date"));
@@ -97,6 +96,31 @@ codeunit 13852 "OIOUBL Structured Validations"
         // In the import file we have a name 'Bicycle v2' but because of Item Cross Reference validation Item description is being used
         Assert.AreEqual(Item2NoTok, PurchaseLine.Description, StrSubstNo(MockDataMismatchErr, PurchaseLine.FieldCaption(Description), PurchaseLine.TableCaption(), Item2NoTok, PurchaseLine.Description));
         Assert.AreEqual(Item2NoTok, PurchaseLine."No.", StrSubstNo(MockDataMismatchErr, PurchaseLine.FieldCaption("No."), PurchaseLine.TableCaption(), Item2NoTok, PurchaseLine."No."));
+    end;
+
+    internal procedure AssertCreditNoteDueDate(EDocumentEntryNo: Integer)
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+    begin
+        EDocumentPurchaseHeader.Get(EDocumentEntryNo);
+        Assert.AreEqual(DMY2Date(15, 3, 2026), EDocumentPurchaseHeader."Due Date", StrSubstNo(MockDataMismatchErr, EDocumentPurchaseHeader.FieldCaption("Due Date"), EDocumentPurchaseHeader.TableCaption(), DMY2Date(15, 3, 2026), EDocumentPurchaseHeader."Due Date"));
+    end;
+
+    internal procedure AssertCreditNoteExternalInvoiceReference(EDocumentEntryNo: Integer)
+    var
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+    begin
+        EDocumentPurchaseHeader.Get(EDocumentEntryNo);
+        Assert.AreEqual(SalesInvoiceNoTok, EDocumentPurchaseHeader."Applies-to Ext. Invoice No.", StrSubstNo(MockDataMismatchErr, EDocumentPurchaseHeader.FieldCaption("Applies-to Ext. Invoice No."), EDocumentPurchaseHeader.TableCaption(), SalesInvoiceNoTok, EDocumentPurchaseHeader."Applies-to Ext. Invoice No."));
+        Assert.AreEqual('', EDocumentPurchaseHeader."Applies-to Doc. No.", StrSubstNo(MockDataMismatchErr, EDocumentPurchaseHeader.FieldCaption("Applies-to Doc. No."), EDocumentPurchaseHeader.TableCaption(), '', EDocumentPurchaseHeader."Applies-to Doc. No."));
+    end;
+
+    internal procedure AssertPurchaseLineCount(EDocumentEntryNo: Integer; ExpectedCount: Integer)
+    var
+        EDocumentPurchaseLine: Record "E-Document Purchase Line";
+    begin
+        EDocumentPurchaseLine.SetRange("E-Document Entry No.", EDocumentEntryNo);
+        Assert.RecordCount(EDocumentPurchaseLine, ExpectedCount);
     end;
 
     procedure SetMockDate(MockDate: Date)

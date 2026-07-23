@@ -2,7 +2,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 13851 "E-Document Structured Tests"
+using Microsoft.eServices.EDocument.Processing.Interfaces;
+
+codeunit 148061 "E-Document Structured Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;
@@ -19,6 +21,8 @@ codeunit 13851 "E-Document Structured Tests"
         IsInitialized: Boolean;
         EDocumentStatusNotUpdatedErr: Label 'The status of the EDocument was not updated to the expected status after the step was executed.';
         TestFileTok: Label 'oioubl/oioubl-invoice-0.xml', Locked = true;
+        CreditNoteTestFileTok: Label 'oioubl/oioubl-creditnote-0.xml', Locked = true;
+        UnsupportedXmlRootElementErr: Label 'Unsupported XML root element: %1.', Comment = '%1 = local name of the XML root element';
         MockCurrencyCode: Code[10];
         MockDate: Date;
 
@@ -45,6 +49,131 @@ codeunit 13851 "E-Document Structured Tests"
             OIOUBLStructuredValidations.AssertFullEDocumentContentExtracted(EDocument."Entry No");
         end else
             Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestOIOUBLInvoice_ReturnsInvoiceProcessDraftImpl()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] An OIOUBL Invoice selects the purchase invoice draft implementation
+        Initialize(Enum::"Service Integration"::"No Integration");
+        SetupOIOUBLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, TestFileTok);
+
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then begin
+            EDocument.Get(EDocument."Entry No");
+            Assert.AreEqual(Enum::"E-Doc. Process Draft"::"Purchase Invoice", EDocument."Process Draft Impl.", 'The process draft implementation should be set to Purchase Invoice for invoices.');
+        end else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestOIOUBLInvoice_ReReadingReplacesExistingDraftLines()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] Re-reading an OIOUBL Invoice replaces the previous staging data
+        Initialize(Enum::"Service Integration"::"No Integration");
+        SetupOIOUBLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, TestFileTok);
+        ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft");
+
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+            OIOUBLStructuredValidations.AssertPurchaseLineCount(EDocument."Entry No", 2)
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestOIOUBLCreditNote_ReturnsCreditMemoProcessDraftImpl()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] An OIOUBL CreditNote selects the purchase credit memo draft implementation
+        Initialize(Enum::"Service Integration"::"No Integration");
+        SetupOIOUBLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, CreditNoteTestFileTok);
+
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then begin
+            EDocument.Get(EDocument."Entry No");
+            Assert.AreEqual(Enum::"E-Doc. Process Draft"::"Purchase Credit Memo", EDocument."Process Draft Impl.", 'The process draft implementation should be set to Purchase Credit Memo for credit notes.');
+        end else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestOIOUBLCreditNote_ExtractsPaymentDueDate()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] An OIOUBL CreditNote reads its due date from PaymentMeans
+        Initialize(Enum::"Service Integration"::"No Integration");
+        SetupOIOUBLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, CreditNoteTestFileTok);
+
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+            OIOUBLStructuredValidations.AssertCreditNoteDueDate(EDocument."Entry No")
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestOIOUBLCreditNote_ExtractsExternalInvoiceReference()
+    var
+        EDocument: Record "E-Document";
+    begin
+        // [SCENARIO] An OIOUBL CreditNote stores BillingReference as the vendor's external invoice number
+        Initialize(Enum::"Service Integration"::"No Integration");
+        SetupOIOUBLEDocumentService();
+        CreateInboundEDocumentFromXML(EDocument, CreditNoteTestFileTok);
+
+        if ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Read into Draft") then
+            OIOUBLStructuredValidations.AssertCreditNoteExternalInvoiceReference(EDocument."Entry No")
+        else
+            Assert.Fail(EDocumentStatusNotUpdatedErr);
+    end;
+
+    [Test]
+    procedure TestOIOUBLUnsupportedRootElement_IsRejected()
+    var
+        EDocument: Record "E-Document";
+        TempBlob: Codeunit "Temp Blob";
+        StructuredFormatReader: Interface IStructuredFormatReader;
+        XmlOutStream: OutStream;
+    begin
+        // [SCENARIO] An unsupported OIOUBL document type is rejected instead of creating an empty draft
+        Initialize(Enum::"Service Integration"::"No Integration");
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        TempBlob.CreateOutStream(XmlOutStream, TextEncoding::UTF8);
+        XmlOutStream.WriteText('<Reminder xmlns="urn:oasis:names:specification:ubl:schema:xsd:Reminder-2" />');
+        StructuredFormatReader := Enum::"E-Doc. Read into Draft"::OIOUBL;
+
+        asserterror StructuredFormatReader.ReadIntoDraft(EDocument, TempBlob);
+
+        Assert.ExpectedError(StrSubstNo(UnsupportedXmlRootElementErr, 'Reminder'));
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    procedure TestOIOUBLUnexpectedRootNamespace_IsRejected()
+    var
+        EDocument: Record "E-Document";
+        TempBlob: Codeunit "Temp Blob";
+        StructuredFormatReader: Interface IStructuredFormatReader;
+        XmlOutStream: OutStream;
+    begin
+        // [SCENARIO] An Invoice from an unsupported namespace is rejected instead of creating an empty draft
+        Initialize(Enum::"Service Integration"::"No Integration");
+        LibraryEDoc.CreateInboundEDocument(EDocument, EDocumentService);
+        TempBlob.CreateOutStream(XmlOutStream, TextEncoding::UTF8);
+        XmlOutStream.WriteText('<Invoice xmlns="urn:unsupported:invoice" />');
+        StructuredFormatReader := Enum::"E-Doc. Read into Draft"::OIOUBL;
+
+        asserterror StructuredFormatReader.ReadIntoDraft(EDocument, TempBlob);
+
+        Assert.ExpectedError(StrSubstNo(UnsupportedXmlRootElementErr, 'Invoice'));
+        Assert.ExpectedErrorCode('Dialog');
     end;
 
     [Test]
