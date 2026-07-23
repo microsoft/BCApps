@@ -147,6 +147,7 @@ permissionset 11732 "CZ Core Pack - Objects CZL"
                   codeunit "Workflow Response Handling CZL" = X,
                   codeunit "Purch. Inv. Header - Edit CZL" = X,
                   codeunit "VAT LCY Correction Mgt. CZL" = X,
+                  codeunit "VAT Statement Calc. Events CZL" = X,
                   page "Accountant CZ Role Center CZL" = X,
                   page "Acc. Sched.page.Drill-Down CZL" = X,
                   page "Acc. Sched. Res. Hdr. List CZL" = X,
