@@ -1,4 +1,4 @@
-// ------------------------------------------------------------------------------------------------
+﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1400,13 +1400,15 @@ table 5741 "Transfer Line"
 
         TestField("Quantity Shipped", "Quantity Received");
         TestField("Qty. Shipped (Base)", "Qty. Received (Base)");
-        CalcFields("Reserved Qty. Inbnd. (Base)", "Reserved Qty. Outbnd. (Base)");
-        TestField("Reserved Qty. Inbnd. (Base)", 0);
-        TestField("Reserved Qty. Outbnd. (Base)", 0);
 
         OnDeleteOnBeforeDeleteRelatedData(Rec);
 
         TransferLineReserve.DeleteLine(Rec);
+
+        CalcFields("Reserved Qty. Inbnd. (Base)", "Reserved Qty. Outbnd. (Base)");
+        TestField("Reserved Qty. Inbnd. (Base)", 0);
+        TestField("Reserved Qty. Outbnd. (Base)", 0);
+
         WhseValidateSourceLine.TransLineDelete(Rec);
 
         ItemChargeAssgntPurch.SetCurrentKey(
