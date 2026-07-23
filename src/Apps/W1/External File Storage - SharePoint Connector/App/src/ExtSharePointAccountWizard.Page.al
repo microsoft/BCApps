@@ -6,6 +6,7 @@
 namespace System.ExternalFileStorage;
 
 using System.Environment;
+using Microsoft.Foundation.Company;
 
 /// <summary>
 /// Displays an account that is being registered via the SharePoint connector.
@@ -38,111 +39,175 @@ page 4581 "Ext. SharePoint Account Wizard"
                 }
             }
 
-            field(NameField; Rec.Name)
+            group(Step1)
             {
-                Caption = 'Account Name';
-                NotBlank = true;
-                ShowMandatory = true;
-                ToolTip = 'Specifies a descriptive name for this SharePoint storage account connection.';
+                Caption = 'Account Details';
+                Visible = Step = Step::AccountDetails;
 
-                trigger OnValidate()
-                begin
-                    IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
-                end;
-            }
 
-            field("Tenant Id"; Rec."Tenant Id")
-            {
-                ShowMandatory = true;
-                ToolTip = 'Specifies the Microsoft Entra ID Tenant ID (Directory ID) where your SharePoint site and app registration are located.';
-
-                trigger OnValidate()
-                begin
-                    IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
-                end;
-            }
-
-            field("Client Id"; Rec."Client Id")
-            {
-                ShowMandatory = true;
-                ToolTip = 'Specifies the Client ID (Application ID) of the App Registration in Microsoft Entra ID.';
-
-                trigger OnValidate()
-                begin
-                    IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
-                end;
-            }
-
-            field("Authentication Type"; Rec."Authentication Type")
-            {
-                ToolTip = 'Specifies the authentication flow used for this SharePoint account. Client Secret uses User grant flow, which means that the user must sign in when using this account. Certificate uses Client credentials flow, which means that the user does not need to sign in when using this account.';
-                trigger OnValidate()
-                begin
-                    UpdateAuthTypeVisibility();
-                    IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
-                end;
-            }
-            group(SharePointClientSecretCredentials)
-            {
-                ShowCaption = false;
-                Visible = ClientSecretVisible;
-
-                field(ClientSecretField; ClientSecret)
+                field(NameField; Rec.Name)
                 {
-                    Caption = 'Client Secret';
-                    ExtendedDatatype = Masked;
+                    Caption = 'Account Name';
+                    NotBlank = true;
                     ShowMandatory = true;
-                    ToolTip = 'Specifies the Client Secret value from the App Registration in Microsoft Entra ID. This value is used to authenticate the connection to SharePoint.';
-                }
-            }
+                    ToolTip = 'Specifies a descriptive name for this SharePoint storage account connection.';
 
-            group(SharePointCertificateCredentials)
-            {
-                ShowCaption = false;
-                Visible = CertificateVisible;
-
-                field(CertificateUploadStatus; CertificateStatusText)
-                {
-                    Caption = 'Certificate';
-                    Editable = false;
-                    ShowMandatory = true;
-                    ToolTip = 'Specifies the certificate file used for authentication. Click here to upload a certificate file (.pfx, .cer, or .crt).';
-
-                    trigger OnDrillDown()
+                    trigger OnValidate()
                     begin
-                        Certificate := Rec.UploadCertificateFile();
-                        UpdateCertificateStatus();
                         IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
                     end;
                 }
 
-                field(CertificatePasswordField; CertificatePassword)
+                field("Tenant Id"; Rec."Tenant Id")
                 {
-                    Caption = 'Certificate Password';
-                    ExtendedDatatype = Masked;
-                    ShowMandatory = false;
-                    ToolTip = 'Specifies the password used to protect the private key in the certificate. Leave empty if the certificate is not password-protected.';
+                    ShowMandatory = true;
+                    ToolTip = 'Specifies the Microsoft Entra ID Tenant ID (Directory ID) where your SharePoint site and app registration are located.';
+
+                    trigger OnValidate()
+                    begin
+                        IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
+                    end;
+                }
+
+                field("Client Id"; Rec."Client Id")
+                {
+                    ShowMandatory = true;
+                    ToolTip = 'Specifies the Client ID (Application ID) of the App Registration in Microsoft Entra ID.';
+
+                    trigger OnValidate()
+                    begin
+                        IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
+                    end;
+                }
+
+                field("Authentication Type"; Rec."Authentication Type")
+                {
+                    ToolTip = 'Specifies the authentication flow used for this SharePoint account. Client Secret uses User grant flow, which means that the user must sign in when using this account. Certificate uses Client credentials flow, which means that the user does not need to sign in when using this account.';
+                    trigger OnValidate()
+                    begin
+                        UpdateAuthTypeVisibility();
+                        IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
+                    end;
+                }
+                group(SharePointClientSecretCredentials)
+                {
+                    ShowCaption = false;
+                    Visible = ClientSecretVisible;
+
+                    field(ClientSecretField; ClientSecret)
+                    {
+                        Caption = 'Client Secret';
+                        ExtendedDatatype = Masked;
+                        ShowMandatory = true;
+                        ToolTip = 'Specifies the Client Secret value from the App Registration in Microsoft Entra ID. This value is used to authenticate the connection to SharePoint.';
+                    }
+                }
+
+                group(SharePointCertificateCredentials)
+                {
+                    ShowCaption = false;
+                    Visible = CertificateVisible;
+
+                    field(CertificateUploadStatus; CertificateStatusText)
+                    {
+                        Caption = 'Certificate';
+                        Editable = false;
+                        ShowMandatory = true;
+                        ToolTip = 'Specifies the certificate file used for authentication. Click here to upload a certificate file (.pfx, .cer, or .crt).';
+
+                        trigger OnDrillDown()
+                        begin
+                            Certificate := Rec.UploadCertificateFile();
+                            UpdateCertificateStatus();
+                            IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
+                        end;
+                    }
+
+                    field(CertificatePasswordField; CertificatePassword)
+                    {
+                        Caption = 'Certificate Password';
+                        ExtendedDatatype = Masked;
+                        ShowMandatory = false;
+                        ToolTip = 'Specifies the password used to protect the private key in the certificate. Leave empty if the certificate is not password-protected.';
+                    }
+                }
+                field("SharePoint Url"; Rec."SharePoint Url")
+                {
+                    Caption = 'SharePoint Name';
+                    ShowMandatory = true;
+
+                    trigger OnValidate()
+                    begin
+                        IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
+                    end;
+                }
+
+                field("Base Relative Folder Path"; Rec."Base Relative Folder Path")
+                {
+                    ShowMandatory = true;
+
+                    trigger OnValidate()
+                    begin
+                        IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
+                    end;
                 }
             }
-            field("SharePoint Url"; Rec."SharePoint Url")
+            group(Step2)
             {
-                Caption = 'SharePoint Name';
-                ShowMandatory = true;
+                Caption = 'Company Selection';
+                Visible = Step = Step::CompanySelection;
 
-                trigger OnValidate()
-                begin
-                    IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
-                end;
-            }
+                group(CompanyFilterGroup)
+                {
+                    ShowCaption = false;
+                    field(MultipleCompaniesField; MultipleCompanies)
+                    {
+                        Caption = 'Multiple Companies';
+                        ToolTip = 'Specifies whether the file account should be created in multiple companies.';
 
-            field("Base Relative Folder Path"; Rec."Base Relative Folder Path")
-            {
-                ShowMandatory = true;
+                        trigger OnValidate()
+                        begin
+                            UpdateFinishEnabled();
+                        end;
+                    }
+                    field(CompanyFilterField; CompanyFilter)
+                    {
+                        Caption = 'Company Filter';
+                        Editable = MultipleCompanies;
+                        ToolTip = 'Specifies a filter to select companies. Use standard BC filter syntax (e.g. "CRONUS*" or "Company A|Company B").';
 
-                trigger OnValidate()
-                begin
-                    IsNextEnabled := SharePointConnectorImpl.IsAccountValid(Rec);
-                end;
+                        trigger OnValidate()
+                        begin
+                            UpdateFinishEnabled();
+                        end;
+
+                        trigger OnLookup(var Text: Text): Boolean
+                        var
+                            Company: Record Company;
+                        begin
+                            if Page.RunModal(Page::Companies, Company) = Action::LookupOK then begin
+                                if Text <> '' then
+                                    Text := Text + '|' + Company.Name
+                                else
+                                    Text := Company.Name;
+                                exit(true);
+                            end;
+                        end;
+                    }
+                    field(DefaultField; SetAsDefault)
+                    {
+                        Caption = 'Set as default';
+                        Editable = MultipleCompanies;
+                        ToolTip = 'Specifies the the account for all scenarios.';
+                    }
+
+                    field(MatchingCompaniesField; MatchingCompaniesCount)
+                    {
+                        Caption = 'Matching Companies';
+                        Editable = false;
+                        ToolTip = 'Shows the number of companies that match the current filter.';
+                    }
+                }
             }
         }
     }
@@ -170,6 +235,25 @@ page 4581 "Ext. SharePoint Account Wizard"
                 Image = NextRecord;
                 InFooterBar = true;
                 ToolTip = 'Move to next step.';
+                Visible = Step < Step::CompanySelection;
+
+                trigger OnAction()
+                var
+                    SecretToPass: SecretText;
+                begin
+                    Step += 1;
+                    if Step = Step::CompanySelection then
+                        UpdateFinishEnabled();
+                end;
+            }
+            action(FinishAction)
+            {
+                Caption = 'Finish';
+                Enabled = IsFinishEnabled;
+                Image = Approve;
+                InFooterBar = true;
+                ToolTip = 'Create the file account in all selected companies.';
+                Visible = Step = Step::CompanySelection;
 
                 trigger OnAction()
                 var
@@ -182,7 +266,10 @@ page 4581 "Ext. SharePoint Account Wizard"
                             SecretToPass := Certificate;
                     end;
 
-                    SharePointConnectorImpl.CreateAccount(Rec, SecretToPass, CertificatePassword, SharePointAccount);
+                    if not MultipleCompanies then
+                        SharePointConnectorImpl.CreateAccount(Rec, SecretToPass, CertificatePassword, SharePointAccount)
+                    else
+                        CreateAccountInCompanies(Rec, SecretToPass, CertificatePassword);
                     CurrPage.Close();
                 end;
             }
@@ -203,6 +290,12 @@ page 4581 "Ext. SharePoint Account Wizard"
         TopBannerVisible: Boolean;
         ClientSecretVisible: Boolean;
         CertificateVisible: Boolean;
+        MultipleCompanies: Boolean;
+        CompanyFilter: Text;
+        MatchingCompaniesCount: Integer;
+        SetAsDefault: Boolean;
+        Step: Option AccountDetails,CompanySelection;
+        IsFinishEnabled: Boolean;
 
     trigger OnOpenPage()
     var
@@ -246,5 +339,90 @@ page 4581 "Ext. SharePoint Account Wizard"
             CertificateStatusText := NoCertificateUploadedLbl
         else
             CertificateStatusText := CertificateUploadedLbl;
+    end;
+
+    local procedure UpdateFinishEnabled()
+    var
+        Company: Record Company;
+    begin
+        if not MultipleCompanies then begin
+            MatchingCompaniesCount := 0;
+            IsFinishEnabled := true;
+            exit;
+        end;
+        Company.Reset();
+        if CompanyFilter <> '' then
+            Company.SetFilter(Name, CompanyFilter);
+        MatchingCompaniesCount := Company.Count();
+        IsFinishEnabled := MatchingCompaniesCount > 0;
+    end;
+
+    local procedure CreateAccountInCompanies(var AccountToCopy: Record "Ext. SharePoint Account"; ClientSecretOrCertificate: SecretText; CertificatePassword: SecretText)
+    var
+        Company: Record Company;
+        ExtSharePointAccount: Record "Ext. SharePoint Account";
+        ExtSharePointCreateAccount: Codeunit "Ext. SharePoint Create Account";
+        SessionId: Integer;
+        AccountCurrentCompanyCreated: Boolean;
+        I: Integer;
+    begin
+        AccountToCopy.Id := CreateGuid();
+
+        if CompanyFilter <> '' then
+            Company.SetFilter(Name, CompanyFilter);
+
+        if Company.FindSet() then begin
+            StoreSecretsForSession(AccountToCopy);
+            Commit();
+            repeat
+                if StartSession(SessionId, Codeunit::"Ext. SharePoint Create Account", Company.Name, AccountToCopy) then begin
+                    while IsSessionActive(SessionId) do
+                        Sleep(200);
+                    if Company.Name = CompanyName() then
+                        AccountCurrentCompanyCreated := true;
+                end;
+            until Company.Next() = 0;
+            RemoveSecretsFromSession(AccountToCopy);
+        end;
+
+        if AccountCurrentCompanyCreated then begin
+            ExtSharePointAccount.SetRange(Name, AccountToCopy.Name);
+            if ExtSharePointAccount.FindFirst() then begin
+                SharePointAccount."Account Id" := ExtSharePointAccount.Id;
+                SharePointAccount.Name := ExtSharePointAccount.Name;
+                SharePointAccount.Connector := Enum::"Ext. File Storage Connector"::"SharePoint";
+            end;
+        end;
+    end;
+
+    local procedure StoreSecretsForSession(AccountToCopy: Record "Ext. SharePoint Account")
+    var
+        ExtSharePointCreateAccount: Codeunit "Ext. SharePoint Create Account";
+        SecretToStore: SecretText;
+    begin
+        case AccountToCopy."Authentication Type" of
+            Enum::"Ext. SharePoint Auth Type"::"Client Secret":
+                begin
+                    SecretToStore := ClientSecret;
+                    IsolatedStorage.Set(ExtSharePointCreateAccount.GetSecretKeyToken(AccountToCopy.Id), SecretToStore, DataScope::Module);
+                end;
+            Enum::"Ext. SharePoint Auth Type"::Certificate:
+                begin
+                    IsolatedStorage.Set(ExtSharePointCreateAccount.GetSecretKeyToken(AccountToCopy.Id), Certificate, DataScope::Module);
+                    SecretToStore := CertificatePassword;
+                    IsolatedStorage.Set(ExtSharePointCreateAccount.GetCertPwdKeyToken(AccountToCopy.Id), SecretToStore, DataScope::Module);
+                end;
+        end;
+        IsolatedStorage.Set(ExtSharePointCreateAccount.GetSetAsDefaultKeyToken(AccountToCopy.Id), SetAsDefault ? '1' : '0', DataScope::Module);
+    end;
+
+    local procedure RemoveSecretsFromSession(AccountToCopy: Record "Ext. SharePoint Account")
+    var
+        ExtSharePointCreateAccount: Codeunit "Ext. SharePoint Create Account";
+    begin
+        if IsolatedStorage.Delete(ExtSharePointCreateAccount.GetSecretKeyToken(AccountToCopy.Id), DataScope::Module) then;
+        if AccountToCopy."Authentication Type" = Enum::"Ext. SharePoint Auth Type"::Certificate then
+            if IsolatedStorage.Delete(ExtSharePointCreateAccount.GetCertPwdKeyToken(AccountToCopy.Id), DataScope::Module) then;
+        if IsolatedStorage.Delete(ExtSharePointCreateAccount.GetSetAsDefaultKeyToken(AccountToCopy.Id), DataScope::Module) then;
     end;
 }
