@@ -1,0 +1,280 @@
+namespace Microsoft.Integration.Shopify;
+
+using Microsoft.Sales.Document;
+using System.Environment.Configuration;
+using System.Telemetry;
+
+/// <summary>
+/// Codeunit Shpfy TMA Notify (ID 30476).
+/// Owns the tax review notifications (on the BC Sales Order and the Shopify Order)
+/// and the review-page drills. The notifications are stateless: whether to prompt is
+/// derived live from the Sales Header marker, the originating Shopify order's
+/// Tax Match Reviewed flag, and the per-user My Notifications toggle — there is no
+/// dedicated notification table.
+/// </summary>
+codeunit 30476 "Shpfy TMA Notify"
+{
+    Access = Internal;
+    InherentPermissions = X;
+    InherentEntitlements = X;
+
+    var
+        FeatureNotificationIdLbl: Label '{e9d8c7b6-a5f4-4e32-9d10-cb87a65f43e2}', Locked = true;
+        OrderNotificationIdLbl: Label '{a7c3f1e2-9b4d-4c8a-8e6f-2d1b0a9c8e7d}', Locked = true;
+        NotifMsgLbl: Label 'Tax Matching Agent set Tax Area %1 on this Shopify order. Review before posting.', Comment = '%1 = Tax Area Code';
+        OrderNotifMsgLbl: Label 'Tax Matching Agent set Tax Area %1 on this Shopify order. Review the matched tax jurisdictions.', Comment = '%1 = Tax Area Code';
+        OrderNotifConflictMsgLbl: Label 'Tax Matching Agent set Tax Area %1 on this Shopify order, but one or more tax rates differ from Business Central. Review the highlighted rates before creating the sales document.', Comment = '%1 = Tax Area Code';
+        ShowDecisionsActionLbl: Label 'Show Tax Match Decisions';
+        OrderReviewActionLbl: Label 'Review';
+        MarkReviewedActionLbl: Label 'Mark as reviewed';
+        DisableActionLbl: Label 'Don''t show again';
+        MyNotificationCaptionLbl: Label 'Shopify Tax Matching Agent review prompt';
+        MyNotificationDescriptionLbl: Label 'Shows a one-time prompt on each Sales Order where the Tax Matching Agent populated tax fields from a Shopify order, so you can review the AI-generated decisions before posting.';
+        OrderMyNotifCaptionLbl: Label 'Shopify Tax Matching Agent order review prompt';
+        OrderMyNotifDescriptionLbl: Label 'Shows a prompt on a Shopify order whose tax was matched by the Tax Matching Agent, so you can review and approve the AI-generated tax match.';
+
+    /// <summary>
+    /// Fires the review prompt on the Sales Order when the Tax Matching Agent populated its tax fields and
+    /// the originating Shopify order has not yet been reviewed. Stateless — whether to prompt
+    /// comes from the order's Tax Match Reviewed flag plus the per-user My
+    /// Notifications toggle, so no per-user row is stored.
+    /// </summary>
+    procedure SendForCurrentSalesHeader(SalesHeader: Record "Sales Header")
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        MyNotifications: Record "My Notifications";
+        TMARegister: Codeunit "Shpfy TMA Register";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        Notif: Notification;
+    begin
+        if not GuiAllowed() then
+            exit;
+        if not FindOrderForReview(SalesHeader, OrderHeader) then
+            exit;
+        if OrderHeader."Tax Match Reviewed" then
+            exit;
+
+        if MyNotifications.WritePermission() then
+            MyNotifications.InsertDefault(GetFeatureNotificationId(), MyNotificationCaptionLbl, MyNotificationDescriptionLbl, true);
+        if not MyNotifications.IsEnabled(GetFeatureNotificationId()) then
+            exit;
+
+        Notif.Id := GetFeatureNotificationId();
+        Notif.Message(StrSubstNo(NotifMsgLbl, SalesHeader."Tax Area Code"));
+        Notif.Scope := NotificationScope::LocalScope;
+        Notif.SetData('SalesHeaderSystemId', Format(SalesHeader.SystemId));
+        Notif.AddAction(ShowDecisionsActionLbl, Codeunit::"Shpfy TMA Notify", 'OpenShopifyOrder');
+        Notif.AddAction(MarkReviewedActionLbl, Codeunit::"Shpfy TMA Notify", 'MarkReviewed');
+        Notif.AddAction(DisableActionLbl, Codeunit::"Shpfy TMA Notify", 'DisableForUser');
+        Notif.Send();
+
+        FeatureTelemetry.LogUsage('0000UMT', TMARegister.FeatureName(), 'tax review notification sent');
+    end;
+
+    procedure OpenShopifyOrder(Notif: Notification)
+    var
+        SalesHeader: Record "Sales Header";
+        OrderMgt: Codeunit "Shpfy Order Mgt.";
+        TMARegister: Codeunit "Shpfy TMA Register";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        VariantRec: Variant;
+    begin
+        if not TryGetSalesHeader(Notif, SalesHeader) then
+            exit;
+
+        // Prefer the Tax Match Review page; fall back to the raw Shopify order.
+        if not RunReviewForSalesHeader(SalesHeader) then begin
+            VariantRec := SalesHeader;
+            OrderMgt.ShowShopifyOrder(VariantRec);
+        end;
+
+        FeatureTelemetry.LogUsage('0000UMU', TMARegister.FeatureName(), 'tax review opened');
+    end;
+
+    /// <summary>
+    /// Sends the actionable review prompt on the Shopify order itself. The order page calls
+    /// this once per order per page session. Clicking Review opens the Tax Match
+    /// Review page.
+    /// </summary>
+    procedure SendOrderReviewNotification(OrderHeader: Record "Shpfy Order Header")
+    var
+        MyNotifications: Record "My Notifications";
+        TMARegister: Codeunit "Shpfy TMA Register";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        Notif: Notification;
+    begin
+        if not GuiAllowed() then
+            exit;
+
+        if MyNotifications.WritePermission() then
+            MyNotifications.InsertDefault(GetOrderNotificationId(), OrderMyNotifCaptionLbl, OrderMyNotifDescriptionLbl, true);
+        if not MyNotifications.IsEnabled(GetOrderNotificationId()) then
+            exit;
+
+        Notif.Id := GetOrderNotificationId();
+        if OrderHeader."Tax Rate Conflict" then
+            Notif.Message(StrSubstNo(OrderNotifConflictMsgLbl, OrderHeader."Tax Area Code"))
+        else
+            Notif.Message(StrSubstNo(OrderNotifMsgLbl, OrderHeader."Tax Area Code"));
+        Notif.Scope := NotificationScope::LocalScope;
+        Notif.SetData('ShpfyOrderSystemId', Format(OrderHeader.SystemId));
+        Notif.AddAction(OrderReviewActionLbl, Codeunit::"Shpfy TMA Notify", 'OpenReviewForOrder');
+        Notif.AddAction(DisableActionLbl, Codeunit::"Shpfy TMA Notify", 'DisableOrderNotifForUser');
+        Notif.Send();
+
+        FeatureTelemetry.LogUsage('0000UMV', TMARegister.FeatureName(), 'tax order review notification sent');
+    end;
+
+    procedure OpenReviewForOrder(Notif: Notification)
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        TMARegister: Codeunit "Shpfy TMA Register";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+        SystemIdText: Text;
+        OrderSystemId: Guid;
+    begin
+        SystemIdText := Notif.GetData('ShpfyOrderSystemId');
+        if SystemIdText = '' then
+            exit;
+        if not Evaluate(OrderSystemId, SystemIdText) then
+            exit;
+        if not OrderHeader.GetBySystemId(OrderSystemId) then
+            exit;
+
+        RunReviewPage(OrderHeader);
+
+        FeatureTelemetry.LogUsage('0000UMW', TMARegister.FeatureName(), 'tax order review opened');
+    end;
+
+    procedure DisableOrderNotifForUser(Notif: Notification)
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        if MyNotifications.WritePermission() then
+            if not MyNotifications.Disable(GetOrderNotificationId()) then
+                MyNotifications.InsertDefault(GetOrderNotificationId(), OrderMyNotifCaptionLbl, OrderMyNotifDescriptionLbl, false);
+    end;
+
+    /// <summary>
+    /// Opens the Tax Match Review page for the Shopify order that produced the given
+    /// Sales Header (resolved via Shpfy Order Header."Sales Order No."). Returns false when no
+    /// such order exists, so callers can fall back to another surface.
+    /// </summary>
+    internal procedure RunReviewForSalesHeader(SalesHeader: Record "Sales Header"): Boolean
+    var
+        OrderHeader: Record "Shpfy Order Header";
+    begin
+        if not FindOrderForReview(SalesHeader, OrderHeader) then
+            exit(false);
+
+        RunReviewPage(OrderHeader);
+        exit(true);
+    end;
+
+    /// <summary>
+    /// The single entry point that opens the Tax Match Review page for a Shopify
+    /// order. All review surfaces (order-page action, order-page notification, Sales Order
+    /// action, Sales Order notification) resolve their Shpfy Order Header and route through
+    /// here, so the page is opened one consistent way.
+    /// </summary>
+    internal procedure RunReviewPage(var OrderHeader: Record "Shpfy Order Header")
+    begin
+        OrderHeader.SetRecFilter();
+        Page.Run(Page::"Shpfy TMA Review", OrderHeader);
+    end;
+
+    procedure MarkReviewed(Notif: Notification)
+    var
+        SalesHeader: Record "Sales Header";
+        OrderHeader: Record "Shpfy Order Header";
+        TMARegister: Codeunit "Shpfy TMA Register";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        if not TryGetSalesHeader(Notif, SalesHeader) then
+            exit;
+        if not FindOrderForReview(SalesHeader, OrderHeader) then
+            exit;
+        if OrderHeader."Tax Match Reviewed" then
+            exit;
+
+        OrderHeader."Tax Match Reviewed" := true;
+        OrderHeader.Modify();
+
+        FeatureTelemetry.LogUsage('0000UMX', TMARegister.FeatureName(), 'tax review notification marked reviewed');
+    end;
+
+    /// <summary>
+    /// Reverses an approval: clears the order's Tax Match Reviewed flag so the order is
+    /// held for review again (it is created only once re-approved). Exposed as internal so the
+    /// review page's Undo Approval action and tests both drive the same state change.
+    /// </summary>
+    internal procedure UndoApproval(var OrderHeader: Record "Shpfy Order Header")
+    var
+        TMARegister: Codeunit "Shpfy TMA Register";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        if not OrderHeader."Tax Match Reviewed" then
+            exit;
+
+        OrderHeader."Tax Match Reviewed" := false;
+        OrderHeader.Modify();
+
+        FeatureTelemetry.LogUsage('0000UN7', TMARegister.FeatureName(), 'tax match approval undone');
+    end;
+
+    procedure DisableForUser(Notif: Notification)
+    var
+        MyNotifications: Record "My Notifications";
+        TMARegister: Codeunit "Shpfy TMA Register";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
+    begin
+        if MyNotifications.WritePermission() then
+            if not MyNotifications.Disable(GetFeatureNotificationId()) then
+                MyNotifications.InsertDefault(GetFeatureNotificationId(), MyNotificationCaptionLbl, MyNotificationDescriptionLbl, false);
+        MarkReviewed(Notif);
+
+        FeatureTelemetry.LogUsage('0000UMY', TMARegister.FeatureName(), 'tax review notification disabled per user');
+    end;
+
+    /// <summary>
+    /// Resolves the originating Shopify order for a Sales Header via
+    /// Shpfy Order Header."Sales Order No.". Returns false when the Sales Header has no
+    /// number or no linked Shopify order.
+    /// </summary>
+    local procedure FindOrderForReview(SalesHeader: Record "Sales Header"; var OrderHeader: Record "Shpfy Order Header"): Boolean
+    begin
+        if SalesHeader."No." = '' then
+            exit(false);
+        OrderHeader.SetRange("Sales Order No.", SalesHeader."No.");
+        exit(OrderHeader.FindFirst());
+    end;
+
+    local procedure TryGetSalesHeader(Notif: Notification; var SalesHeader: Record "Sales Header"): Boolean
+    var
+        SystemIdText: Text;
+        SystemId: Guid;
+    begin
+        SystemIdText := Notif.GetData('SalesHeaderSystemId');
+        if SystemIdText = '' then
+            exit(false);
+        if not Evaluate(SystemId, SystemIdText) then
+            exit(false);
+        exit(SalesHeader.GetBySystemId(SystemId));
+    end;
+
+    local procedure GetFeatureNotificationId(): Guid
+    var
+        FeatureNotificationId: Guid;
+    begin
+        Evaluate(FeatureNotificationId, FeatureNotificationIdLbl);
+        exit(FeatureNotificationId);
+    end;
+
+    local procedure GetOrderNotificationId(): Guid
+    var
+        OrderNotificationId: Guid;
+    begin
+        Evaluate(OrderNotificationId, OrderNotificationIdLbl);
+        exit(OrderNotificationId);
+    end;
+}

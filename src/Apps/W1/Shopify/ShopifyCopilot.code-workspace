@@ -4,10 +4,10 @@
             "path": "App"
         },
         {
-            "path": "CopilotTaxMatching/app"
+            "path": "../../NA/ShopifyNA/app"
         },
         {
-            "path": "CopilotTaxMatching/test"
+            "path": "../../NA/ShopifyNA/test"
         }
     ],
     "settings": {}

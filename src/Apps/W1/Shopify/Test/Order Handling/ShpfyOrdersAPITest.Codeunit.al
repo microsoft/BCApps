@@ -553,6 +553,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestCreateSalesDocumentTaxLiable()
     var
         Shop: Record "Shpfy Shop";
@@ -599,6 +600,7 @@ codeunit 139608 "Shpfy Orders API Test"
     end;
 
     [Test]
+    [HandlerFunctions('OrdersAPIHttpHandler')]
     procedure UnitTestCreateSalesDocumentTaxExempt()
     var
         Shop: Record "Shpfy Shop";
