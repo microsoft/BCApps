@@ -44,6 +44,8 @@ codeunit 5602 "FA Get G/L Account No."
                     GLAccNo := FAPostingGr.GetCustom1Account();
                 FALedgEntry."FA Posting Type"::"Custom 2":
                     GLAccNo := FAPostingGr.GetCustom2Account();
+                FALedgEntry."FA Posting Type"::Derogatory:
+                    GLAccNo := FAPostingGr.GetDerogatoryAccount();
                 FALedgEntry."FA Posting Type"::"Proceeds on Disposal":
                     GLAccNo := FAPostingGr.GetSalesAccountOnDisposalGain();
                 FALedgEntry."FA Posting Type"::"Gain/Loss":
@@ -75,6 +77,8 @@ codeunit 5602 "FA Get G/L Account No."
                     GLAccNo := FAPostingGr.GetCustom1AccountOnDisposal();
                 FALedgEntry."FA Posting Type"::"Custom 2":
                     GLAccNo := FAPostingGr.GetCustom2AccountOnDisposal();
+                FALedgEntry."FA Posting Type"::Derogatory:
+                    GLAccNo := FAPostingGr.GetDerogatoryAccountDecrease();
                 FALedgEntry."FA Posting Type"::"Book Value on Disposal":
                     begin
                         if FALedgEntry."Result on Disposal" = FALedgEntry."Result on Disposal"::Gain then
@@ -95,6 +99,8 @@ codeunit 5602 "FA Get G/L Account No."
                     GLAccNo := FAPostingGr.GetCustom1BalAccountOnDisposal();
                 FALedgEntry."FA Posting Type"::"Custom 2":
                     GLAccNo := FAPostingGr.GetCustom2BalAccountOnDisposal();
+                FALedgEntry."FA Posting Type"::Derogatory:
+                    GLAccNo := FAPostingGr.GetDerogatoryBalAccountDecrease();
             end;
 
         OnAfterGetAccNo(FALedgEntry, GLAccNo);

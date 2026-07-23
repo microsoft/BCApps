@@ -50,4 +50,8 @@ enum 5603 "Gen. Journal Line FA Posting Type"
     {
         Caption = 'Bonus Depreciation';
     }
+    value(13; Derogatory)
+    {
+        Caption = 'Derogatory';
+    }
 }

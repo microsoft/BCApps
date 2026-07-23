@@ -17,7 +17,7 @@ codeunit 10803 "FA Reports FR"
     ObsoleteTag = '28.0';
 
     var
-        FeatureKeyIdTok: Label 'FAReportsGB', Locked = true;
+        FeatureKeyIdTok: Label 'FAReportsFR', Locked = true;
 
     procedure IsEnabled() Enabled: Boolean
     var

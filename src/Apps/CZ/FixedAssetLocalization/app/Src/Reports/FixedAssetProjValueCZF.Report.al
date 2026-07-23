@@ -977,7 +977,7 @@ report 31248 "Fixed Asset - Proj. Value CZF"
     local procedure CalculateGainLoss()
     var
         CalculateDisposal: Codeunit "Calculate Disposal";
-        GainLossEntryAmounts: array[14] of Decimal;
+        GainLossEntryAmounts: array[15] of Decimal;
         PrevAmount: array[2] of Decimal;
     begin
         PrevAmount[1] := AssetAmounts[3];

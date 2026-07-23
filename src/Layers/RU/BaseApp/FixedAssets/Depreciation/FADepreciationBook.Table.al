@@ -381,7 +381,8 @@ table 5612 "FA Depreciation Book"
                                                               "FA Location Code" = field("FA Location Code Filter"),
                                                               "Global Dimension 1 Code" = field("Global Dimension 1 Filter"),
                                                               "Global Dimension 2 Code" = field("Global Dimension 2 Filter"),
-                                                              "Employee No." = field("FA Employee Filter")));
+                                                              "Employee No." = field("FA Employee Filter"),
+                                                              "Derogatory Excluded" = const(false)));
             Caption = 'Book Value';
             ToolTip = 'Specifies the book value for the fixed asset.';
             Editable = false;
@@ -953,6 +954,24 @@ table 5612 "FA Depreciation Book"
                 if not DefaultFADeprBook.IsEmpty() then
                     FieldError("Default FA Depreciation Book", OnlyOneDefaultDeprBookErr);
             end;
+        }
+        field(5865; "Derogatory Amount"; Decimal)
+        {
+            AutoFormatType = 1;
+            AutoFormatExpression = GetCurrencyCode();
+            CalcFormula = sum("FA Ledger Entry".Amount where("FA No." = field("FA No."),
+                                                              "Depreciation Book Code" = field("Depreciation Book Code"),
+                                                              "FA Posting Category" = const(" "),
+                                                              "FA Posting Type" = const(Derogatory),
+                                                              "FA Posting Date" = field("FA Posting Date Filter"),
+                                                              "Derogatory Excluded" = const(false)));
+            Caption = 'Derogatory';
+            Editable = false;
+            FieldClass = FlowField;
+        }
+        field(5866; "Last Derogatory"; Date)
+        {
+            Caption = 'Last Derogatory Date';
         }
         field(12400; "Depreciated Cost"; Decimal)
         {
@@ -1581,6 +1600,7 @@ table 5612 "FA Depreciation Book"
         FALedgerEntry.SetRange("FA No.", "FA No.");
         FALedgerEntry.SetRange("Depreciation Book Code", "Depreciation Book Code");
         FALedgerEntry.SetRange("Part of Book Value", true);
+        FALedgerEntry.SetRange("Derogatory Excluded", false);
         OnAfterSetBookValueFiltersOnFALedgerEntry(FALedgerEntry);
     end;
 

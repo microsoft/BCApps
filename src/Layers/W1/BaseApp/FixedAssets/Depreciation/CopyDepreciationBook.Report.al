@@ -59,9 +59,7 @@ report 5687 "Copy Depreciation Book"
             begin
                 DepreciationCalc.SetFAFilter(FALedgEntry, '', DeprBookCode, false);
                 FALedgEntry.SetRange("FA Posting Category", FALedgEntry."FA Posting Category"::" ");
-                FALedgEntry.SetRange(
-                  "FA Posting Type",
-                  FALedgEntry."FA Posting Type"::"Acquisition Cost", FALedgEntry."FA Posting Type"::"Salvage Value");
+                FALedgEntry.SetFilter("FA Posting Type", '<=%1|%2', FALedgEntry."FA Posting Type"::"Salvage Value", FALedgEntry."FA Posting Type"::Derogatory);
                 FALedgEntry.SetRange("FA Posting Date", StartingDate, EndingDate2);
             end;
         }
@@ -173,6 +171,12 @@ report 5687 "Copy Depreciation Book"
                             Caption = 'Disposal';
                             ToolTip = 'Specifies if related disposal entries are included in the batch job .';
                         }
+                        field("CopyChoices[13]"; CopyChoices[13])
+                        {
+                            ApplicationArea = FixedAssets;
+                            Caption = 'Derogatory';
+                            ToolTip = 'Specifies whether to include derogatory depreciation.';
+                        }
                     }
                 }
             }
@@ -184,6 +188,7 @@ report 5687 "Copy Depreciation Book"
 
         trigger OnOpenPage()
         begin
+
             if DeprBookCode = '' then begin
                 FASetup.Get();
                 DeprBookCode := FASetup."Default Depr. Book";
@@ -225,8 +230,8 @@ report 5687 "Copy Depreciation Book"
         DepreciationCalc: Codeunit "Depreciation Calculation";
         Window: Dialog;
         ExchangeRate: Decimal;
-        CopyChoices: array[9] of Boolean;
-        GLIntegration: array[9] of Boolean;
+        CopyChoices: array[13] of Boolean;
+        GLIntegration: array[13] of Boolean;
         DocumentNo: Code[20];
         DocumentNo2: Code[20];
         DocumentNo3: Code[20];

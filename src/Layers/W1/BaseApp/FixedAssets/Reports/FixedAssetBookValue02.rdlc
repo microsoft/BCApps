@@ -17855,6 +17855,54 @@ End Function
         <Field Name="Description_FixedAsset">
           <DataField>Description_FixedAsset</DataField>
         </Field>
+        <Field Name="DeprBookInfo1">
+          <DataField>DeprBookInfo1</DataField>
+        </Field>
+        <Field Name="DeprBookInfo2">
+          <DataField>DeprBookInfo2</DataField>
+        </Field>
+        <Field Name="DeprBookInfo3">
+          <DataField>DeprBookInfo3</DataField>
+        </Field>
+        <Field Name="DeprBookInfo4">
+          <DataField>DeprBookInfo4</DataField>
+        </Field>
+        <Field Name="DeprBookInfo5">
+          <DataField>DeprBookInfo5</DataField>
+        </Field>
+        <Field Name="PrintFASetup">
+          <DataField>PrintFASetup</DataField>
+        </Field>
+        <Field Name="DeprBookInfo51">
+          <DataField>DeprBookInfo51</DataField>
+        </Field>
+        <Field Name="DeprBookInfo51Format">
+          <DataField>DeprBookInfo51Format</DataField>
+        </Field>
+        <Field Name="DerogDeprBookInfo1">
+          <DataField>DerogDeprBookInfo1</DataField>
+        </Field>
+        <Field Name="DerogDeprBookInfo2">
+          <DataField>DerogDeprBookInfo2</DataField>
+        </Field>
+        <Field Name="DerogDeprBookInfo3">
+          <DataField>DerogDeprBookInfo3</DataField>
+        </Field>
+        <Field Name="DerogDeprBookInfo4">
+          <DataField>DerogDeprBookInfo4</DataField>
+        </Field>
+        <Field Name="DerogDeprBookInfo5">
+          <DataField>DerogDeprBookInfo5</DataField>
+        </Field>
+        <Field Name="HasDerogatorySetup">
+          <DataField>HasDerogatorySetup</DataField>
+        </Field>
+        <Field Name="DerogDeprBookInfo51">
+          <DataField>DerogDeprBookInfo51</DataField>
+        </Field>
+        <Field Name="DerogDeprBookInfo51Format">
+          <DataField>DerogDeprBookInfo51Format</DataField>
+        </Field>
         <Field Name="HeadLineText1">
           <DataField>HeadLineText1</DataField>
         </Field>
@@ -18289,6 +18337,90 @@ End Function
         </Field>
         <Field Name="ShowSection06">
           <DataField>ShowSection06</DataField>
+        </Field>
+        <Field Name="HeadLineText10">
+          <DataField>HeadLineText10</DataField>
+        </Field>
+        <Field Name="HeadLineText11">
+          <DataField>HeadLineText11</DataField>
+        </Field>
+        <Field Name="HeadLineText12">
+          <DataField>HeadLineText12</DataField>
+        </Field>
+        <Field Name="NetChangeAmtType">
+          <DataField>NetChangeAmtType</DataField>
+        </Field>
+        <Field Name="NetChangeAmtTypeFormat">
+          <DataField>NetChangeAmtTypeFormat</DataField>
+        </Field>
+        <Field Name="TotalEndingAmtType">
+          <DataField>TotalEndingAmtType</DataField>
+        </Field>
+        <Field Name="TotalEndingAmtTypeFormat">
+          <DataField>TotalEndingAmtTypeFormat</DataField>
+        </Field>
+        <Field Name="ReclassNetChangeAmtType">
+          <DataField>ReclassNetChangeAmtType</DataField>
+        </Field>
+        <Field Name="ReclassNetChangeAmtTypeFormat">
+          <DataField>ReclassNetChangeAmtTypeFormat</DataField>
+        </Field>
+        <Field Name="ReclassTotalEndingAmtType">
+          <DataField>ReclassTotalEndingAmtType</DataField>
+        </Field>
+        <Field Name="ReclassTotalEndingAmtTypeFormat">
+          <DataField>ReclassTotalEndingAmtTypeFormat</DataField>
+        </Field>
+        <Field Name="ShowSection07">
+          <DataField>ShowSection07</DataField>
+        </Field>
+        <Field Name="ReclassTotalEndingAmt7">
+          <DataField>ReclassTotalEndingAmt7</DataField>
+        </Field>
+        <Field Name="ReclassTotalEndingAmt7Format">
+          <DataField>ReclassTotalEndingAmt7Format</DataField>
+        </Field>
+        <Field Name="TotalEndingAmt7">
+          <DataField>TotalEndingAmt7</DataField>
+        </Field>
+        <Field Name="TotalEndingAmt7Format">
+          <DataField>TotalEndingAmt7Format</DataField>
+        </Field>
+        <Field Name="ReclassDisposalAmt7">
+          <DataField>ReclassDisposalAmt7</DataField>
+        </Field>
+        <Field Name="ReclassDisposalAmt7Format">
+          <DataField>ReclassDisposalAmt7Format</DataField>
+        </Field>
+        <Field Name="ReclassNetChangeAmt7">
+          <DataField>ReclassNetChangeAmt7</DataField>
+        </Field>
+        <Field Name="ReclassNetChangeAmt7Format">
+          <DataField>ReclassNetChangeAmt7Format</DataField>
+        </Field>
+        <Field Name="NetChangeAmt7">
+          <DataField>NetChangeAmt7</DataField>
+        </Field>
+        <Field Name="NetChangeAmt7Format">
+          <DataField>NetChangeAmt7Format</DataField>
+        </Field>
+        <Field Name="DisposalAmt7">
+          <DataField>DisposalAmt7</DataField>
+        </Field>
+        <Field Name="DisposalAmt7Format">
+          <DataField>DisposalAmt7Format</DataField>
+        </Field>
+        <Field Name="StartAmt7">
+          <DataField>StartAmt7</DataField>
+        </Field>
+        <Field Name="StartAmt7Format">
+          <DataField>StartAmt7Format</DataField>
+        </Field>
+        <Field Name="ReclassStartAmt7">
+          <DataField>ReclassStartAmt7</DataField>
+        </Field>
+        <Field Name="ReclassStartAmt7Format">
+          <DataField>ReclassStartAmt7Format</DataField>
         </Field>
         <Field Name="HeadLineText_5__Control79">
           <DataField>HeadLineText_5__Control79</DataField>
@@ -18739,6 +18871,63 @@ End Function
         </Field>
         <Field Name="ReclassGroupDisposalAmt6Format">
           <DataField>ReclassGroupDisposalAmt6Format</DataField>
+        </Field>
+        <Field Name="ReclassGroupDisposalAmtType">
+          <DataField>ReclassGroupDisposalAmtType</DataField>
+        </Field>
+        <Field Name="ReclassGroupDisposalAmtTypeFormat">
+          <DataField>ReclassGroupDisposalAmtTypeFormat</DataField>
+        </Field>
+        <Field Name="ReclassGrpNetChangeAmtType">
+          <DataField>ReclassGrpNetChangeAmtType</DataField>
+        </Field>
+        <Field Name="ReclassGrpNetChangeAmtTypeFormat">
+          <DataField>ReclassGrpNetChangeAmtTypeFormat</DataField>
+        </Field>
+        <Field Name="ReclassGroupStartAmtType">
+          <DataField>ReclassGroupStartAmtType</DataField>
+        </Field>
+        <Field Name="ReclassGroupStartAmtTypeFormat">
+          <DataField>ReclassGroupStartAmtTypeFormat</DataField>
+        </Field>
+        <Field Name="ShowSection17">
+          <DataField>ShowSection17</DataField>
+        </Field>
+        <Field Name="GroupNetChangeAmt7">
+          <DataField>GroupNetChangeAmt7</DataField>
+        </Field>
+        <Field Name="GroupNetChangeAmt7Format">
+          <DataField>GroupNetChangeAmt7Format</DataField>
+        </Field>
+        <Field Name="GroupStartAmt7">
+          <DataField>GroupStartAmt7</DataField>
+        </Field>
+        <Field Name="GroupStartAmt7Format">
+          <DataField>GroupStartAmt7Format</DataField>
+        </Field>
+        <Field Name="GroupDisposalAmt7">
+          <DataField>GroupDisposalAmt7</DataField>
+        </Field>
+        <Field Name="GroupDisposalAmt7Format">
+          <DataField>GroupDisposalAmt7Format</DataField>
+        </Field>
+        <Field Name="ReclassGroupDisposalAmt7">
+          <DataField>ReclassGroupDisposalAmt7</DataField>
+        </Field>
+        <Field Name="ReclassGroupDisposalAmt7Format">
+          <DataField>ReclassGroupDisposalAmt7Format</DataField>
+        </Field>
+        <Field Name="ReclassGroupNetChangeAmt7">
+          <DataField>ReclassGroupNetChangeAmt7</DataField>
+        </Field>
+        <Field Name="ReclassGroupNetChangeAmt7Format">
+          <DataField>ReclassGroupNetChangeAmt7Format</DataField>
+        </Field>
+        <Field Name="ReclassGroupStartAmt7">
+          <DataField>ReclassGroupStartAmt7</DataField>
+        </Field>
+        <Field Name="ReclassGroupStartAmt7Format">
+          <DataField>ReclassGroupStartAmt7Format</DataField>
         </Field>
         <Field Name="ReclassTotalEndingAmounts_6__Control259">
           <DataField>ReclassTotalEndingAmounts_6__Control259</DataField>
@@ -19192,6 +19381,63 @@ End Function
         </Field>
         <Field Name="ShowSection26">
           <DataField>ShowSection26</DataField>
+        </Field>
+        <Field Name="TotalDisposalAmtType">
+          <DataField>TotalDisposalAmtType</DataField>
+        </Field>
+        <Field Name="TotalDisposalAmtTypeFormat">
+          <DataField>TotalDisposalAmtTypeFormat</DataField>
+        </Field>
+        <Field Name="ReclassTotalNetChangeAmtType">
+          <DataField>ReclassTotalNetChangeAmtType</DataField>
+        </Field>
+        <Field Name="ReclassTotalNetChangeAmtTypeFormat">
+          <DataField>ReclassTotalNetChangeAmtTypeFormat</DataField>
+        </Field>
+        <Field Name="ReclassTotalStartAmtType">
+          <DataField>ReclassTotalStartAmtType</DataField>
+        </Field>
+        <Field Name="ReclassTotalStartAmtTypeFormat">
+          <DataField>ReclassTotalStartAmtTypeFormat</DataField>
+        </Field>
+        <Field Name="ShowSection27">
+          <DataField>ShowSection27</DataField>
+        </Field>
+        <Field Name="TotalNetChangeAmt7">
+          <DataField>TotalNetChangeAmt7</DataField>
+        </Field>
+        <Field Name="TotalNetChangeAmt7Format">
+          <DataField>TotalNetChangeAmt7Format</DataField>
+        </Field>
+        <Field Name="TotalStartAmt7">
+          <DataField>TotalStartAmt7</DataField>
+        </Field>
+        <Field Name="TotalStartAmt7Format">
+          <DataField>TotalStartAmt7Format</DataField>
+        </Field>
+        <Field Name="TotalDisposalAmt7">
+          <DataField>TotalDisposalAmt7</DataField>
+        </Field>
+        <Field Name="TotalDisposalAmt7Format">
+          <DataField>TotalDisposalAmt7Format</DataField>
+        </Field>
+        <Field Name="ReclassTotalDisposalAmt7">
+          <DataField>ReclassTotalDisposalAmt7</DataField>
+        </Field>
+        <Field Name="ReclassTotalDisposalAmt7Format">
+          <DataField>ReclassTotalDisposalAmt7Format</DataField>
+        </Field>
+        <Field Name="ReclassTotalNetChangeAmt7">
+          <DataField>ReclassTotalNetChangeAmt7</DataField>
+        </Field>
+        <Field Name="ReclassTotalNetChangeAmt7Format">
+          <DataField>ReclassTotalNetChangeAmt7Format</DataField>
+        </Field>
+        <Field Name="ReclassTotalStartAmt7">
+          <DataField>ReclassTotalStartAmt7</DataField>
+        </Field>
+        <Field Name="ReclassTotalStartAmt7Format">
+          <DataField>ReclassTotalStartAmt7Format</DataField>
         </Field>
         <Field Name="HeadLineText_5__Control167">
           <DataField>HeadLineText_5__Control167</DataField>

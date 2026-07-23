@@ -100,6 +100,12 @@ page 5602 "Fixed Asset Statistics"
                             ApplicationArea = FixedAssets;
                             Caption = 'Custom 1';
                         }
+                        field("Last Derogatory"; Rec."Last Derogatory")
+                        {
+                            ApplicationArea = FixedAssets;
+                            Caption = 'Derogatory';
+                            ToolTip = 'Specifies the FA posting date of the last posted derogatory depreciation.';
+                        }
                         field("Last Salvage Value Date"; Rec."Last Salvage Value Date")
                         {
                             ApplicationArea = FixedAssets;
@@ -133,6 +139,13 @@ page 5602 "Fixed Asset Statistics"
                         field("Custom 1"; Rec."Custom 1")
                         {
                             ApplicationArea = FixedAssets;
+                        }
+                        field("Derogatory Amount"; Rec."Derogatory Amount")
+                        {
+                            AutoFormatType = 1;
+                            AutoFormatExpression = '';
+                            ApplicationArea = FixedAssets;
+                            ToolTip = 'Specifies the total derogatory depreciation for the fixed asset.';
                         }
                         field("Salvage Value"; Rec."Salvage Value")
                         {

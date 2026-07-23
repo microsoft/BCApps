@@ -18,7 +18,7 @@ codeunit 5208 "Create G/L Account"
     var
         GLAccountCategory: Record "G/L Account Category";
         FinanceModuleSetup: Record "Finance Module Setup";
-        GLAccountIndent: Codeunit "G/L Account-Indent";
+        GLAccountIndent: Codeunit "W1 G/L Account Indent";
         CreatePostingGroup: Codeunit "Create Posting Groups";
         CreateVATPostingGroups: Codeunit "Create VAT Posting Groups";
         GLAccountCategoryMgt: Codeunit "G/L Account Category Mgt.";
@@ -137,6 +137,7 @@ codeunit 5208 "Create G/L Account"
         ContosoGLAccount.InsertGLAccount(NetIncomefortheYear(), NetIncomefortheYearName(), Enum::"G/L Account Income/Balance"::"Balance Sheet", Enum::"G/L Account Category"::Equity, SubCategory, Enum::"G/L Account Type"::Total, '', '', 0, IncomeStatement() + '..' + NetIncome(), Enum::"General Posting Type"::" ", '', '', false, false, false);
         ContosoGLAccount.InsertGLAccount(TotalStockholder(), TotalStockholderName(), Enum::"G/L Account Income/Balance"::"Balance Sheet", Enum::"G/L Account Category"::Equity, SubCategory, Enum::"G/L Account Type"::Total, '', '', 0, Stockholder() + '..' + TotalStockholder() + '|' + IncomeStatement() + '..' + NetIncome(), Enum::"General Posting Type"::" ", '', '', false, false, false);
         ContosoGLAccount.InsertGLAccount(Allowances(), AllowancesName(), Enum::"G/L Account Income/Balance"::"Balance Sheet", Enum::"G/L Account Category"::Equity, SubCategory, Enum::"G/L Account Type"::"Begin-Total", '', '', 1, '', Enum::"General Posting Type"::" ", '', '', false, false, false);
+        ContosoGLAccount.InsertGLAccount(DerogatoryAccount(), DerogatoryAccountName(), Enum::"G/L Account Income/Balance"::"Balance Sheet", Enum::"G/L Account Category"::Equity, SubCategory, Enum::"G/L Account Type"::Posting, '', '', 0, '', Enum::"General Posting Type"::" ", '', '', true, false, false);
 
         SubCategory := Format(GLAccountCategoryMgt.GetCurrentLiabilities(), 80);
         ContosoGLAccount.InsertGLAccount(DeferredTaxes(), DeferredTaxesName(), Enum::"G/L Account Income/Balance"::"Balance Sheet", Enum::"G/L Account Category"::Liabilities, SubCategory, Enum::"G/L Account Type"::Posting, '', '', 0, '', Enum::"General Posting Type"::" ", '', '', false, false, false);
@@ -212,6 +213,7 @@ codeunit 5208 "Create G/L Account"
 
         SubCategory := Format(GLAccountCategory."Account Category"::Income, 80);
         ContosoGLAccount.InsertGLAccount(Revenue(), RevenueName(), Enum::"G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::Income, SubCategory, Enum::"G/L Account Type"::"Begin-Total", '', '', 1, '', Enum::"General Posting Type"::" ", '', '', false, false, false);
+        ContosoGLAccount.InsertGLAccount(DerogExpenseAccForCredit(), DerogExpenseAccForCreditName(), Enum::"G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::Income, SubCategory, Enum::"G/L Account Type"::Posting, '', '', 0, '', Enum::"General Posting Type"::" ", '', '', true, false, false);
 
         SubCategory := Format(GLAccountCategoryMgt.GetIncomeProdSales(), 80);
         ContosoGLAccount.InsertGLAccount(SalesofRetail(), SalesofRetailName(), Enum::"G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::Income, SubCategory, Enum::"G/L Account Type"::"Begin-Total", '', '', 0, '', Enum::"General Posting Type"::" ", '', '', false, false, false);
@@ -338,6 +340,7 @@ codeunit 5208 "Create G/L Account"
         ContosoGLAccount.InsertGLAccount(LegalandAccountingServices(), LegalandAccountingServicesName(), Enum::"G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::Expense, SubCategory, Enum::"G/L Account Type"::Posting, CreateVATPostingGroups.Domestic(), CreatePostingGroup.MiscPostingGroup(), 0, '', Enum::"General Posting Type"::Purchase, CreateVATPostingGroups.Domestic(), FinanceModuleSetup."VAT Prod. Post Grp. Standard", true, false, false);
         ContosoGLAccount.InsertGLAccount(Miscellaneous(), MiscellaneousName(), Enum::"G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::Expense, SubCategory, Enum::"G/L Account Type"::Posting, CreateVATPostingGroups.Domestic(), CreatePostingGroup.MiscPostingGroup(), 0, '', Enum::"General Posting Type"::Purchase, CreateVATPostingGroups.Domestic(), FinanceModuleSetup."VAT Prod. Post Grp. Standard", true, false, false);
         ContosoGLAccount.InsertGLAccount(OtherOperatingExpTotal(), OtherOperatingExpTotalName(), Enum::"G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::Expense, SubCategory, Enum::"G/L Account Type"::"End-Total", '', '', 0, OtherOperatingExpenses() + '..' + OtherOperatingExpTotal(), Enum::"General Posting Type"::" ", '', '', false, false, false);
+        ContosoGLAccount.InsertGLAccount(DerogExpenseAccForDebit(), DerogExpenseAccForDebitName(), Enum::"G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::Expense, SubCategory, Enum::"G/L Account Type"::Posting, '', '', 0, '', Enum::"General Posting Type"::" ", '', '', true, false, false);
 
         SubCategory := Format(GLAccountCategory."Account Category"::Expense, 80);
         ContosoGLAccount.InsertGLAccount(TotalOperatingExpenses(), TotalOperatingExpensesName(), Enum::"G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::Expense, SubCategory, Enum::"G/L Account Type"::"End-Total", '', '', 0, OperatingExpenses() + '..' + TotalOperatingExpenses(), Enum::"General Posting Type"::" ", '', '', false, false, false);
@@ -412,7 +415,6 @@ codeunit 5208 "Create G/L Account"
         ContosoGLAccount.InsertGLAccount(CorporateTax(), CorporateTaxName(), Enum::"G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::Expense, SubCategory, Enum::"G/L Account Type"::Posting, '', '', 1, '', Enum::"General Posting Type"::" ", '', '', true, false, false);
 
         ContosoGLAccount.InsertGLAccount(NetIncome(), NetIncomeName(), Enum::"G/L Account Income/Balance"::"Income Statement", Enum::"G/L Account Category"::" ", Enum::"G/L Account Type"::Total, '', '', 1, IncomeStatement() + '..' + NetIncome(), Enum::"General Posting Type"::" ", '', '', false, false, false);
-
         GLAccountIndent.Indent();
     end;
 
@@ -685,8 +687,26 @@ codeunit 5208 "Create G/L Account"
         ContosoGLAccount.AddAccountForLocalization(NetIncomeBeforeTaxesName(), '9495');
         ContosoGLAccount.AddAccountForLocalization(CorporateTaxName(), '9510');
         ContosoGLAccount.AddAccountForLocalization(NetIncomeName(), '9999');
+        ContosoGLAccount.AddAccountForLocalization(DerogatoryAccountName(), '145000');
+        ContosoGLAccount.AddAccountForLocalization(DerogExpenseAccForCreditName(), '787250');
+        ContosoGLAccount.AddAccountForLocalization(DerogExpenseAccForDebitName(), '687250');
 
         OnAfterAddGLAccountsForLocalization();
+    end;
+
+    procedure DerogatoryAccountName(): Text[100]
+    begin
+        exit(DerogatoryAccountLbl);
+    end;
+
+    procedure DerogExpenseAccForCreditName(): Text[100]
+    begin
+        exit(DerogExpenseAccForCreditLbl);
+    end;
+
+    procedure DerogExpenseAccForDebitName(): Text[100]
+    begin
+        exit(DerogExpenseAccForDebitLbl);
     end;
 
     procedure BalanceSheet(): Code[20]
@@ -3360,6 +3380,22 @@ codeunit 5208 "Create G/L Account"
         exit(NetIncomeLbl);
     end;
 
+    procedure DerogatoryAccount(): Code[20]
+    begin
+        exit(ContosoGLAccount.GetAccountNo(DerogatoryAccountName()));
+    end;
+
+    procedure DerogExpenseAccForCredit(): Code[20]
+    begin
+        exit(ContosoGLAccount.GetAccountNo(DerogExpenseAccForCreditName()));
+    end;
+
+    procedure DerogExpenseAccForDebit(): Code[20]
+    begin
+        exit(ContosoGLAccount.GetAccountNo(DerogExpenseAccForDebitName()));
+    end;
+
+
 
 
     [IntegrationEvent(false, false)]
@@ -3636,4 +3672,7 @@ codeunit 5208 "Create G/L Account"
         NetIncomeBeforeTaxesLbl: Label 'NET INCOME BEFORE TAXES', MaxLength = 100;
         CorporateTaxLbl: Label 'Corporate Tax', MaxLength = 100;
         NetIncomeLbl: Label 'NET INCOME', MaxLength = 100;
+        DerogExpenseAccForDebitLbl: Label 'Derog. Expense Acc. for Debit', MaxLength = 100;
+        DerogatoryAccountLbl: Label 'Derogatory Account', MaxLength = 100;
+        DerogExpenseAccForCreditLbl: Label 'Derog. Expense Acc. for Credit', MaxLength = 100;
 }

@@ -113,6 +113,8 @@ codeunit 5604 "Make FA Ledger Entry"
         FALedgEntry."FA Charge No." := GenJnlLine."FA Charge No.";
         FALedgEntry."Depr. Group Elimination" := GenJnlLine."Depr. Group Elimination";
         FALedgEntry."Tax Difference Code" := GenJnlLine."Tax Difference Code";
+        if FALedgEntry."FA Posting Type" = FALedgEntry."FA Posting Type"::Derogatory then
+            FALedgEntry."Automatic Entry" := GenJnlLine."System-Created Entry";
 
         OnAfterCopyFromGenJnlLine(FALedgEntry, GenJnlLine);
     end;

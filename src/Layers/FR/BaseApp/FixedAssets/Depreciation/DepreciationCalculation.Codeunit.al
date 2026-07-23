@@ -519,7 +519,7 @@ codeunit 5616 "Depreciation Calculation"
                 FiscalYearBegin := FADepreciationBook."Depreciation Starting Date";
         SetFAFilter(FALedgEntry, FANo, DeprBookCode, true);
         FALedgEntry.SetFilter("FA Posting Date", '%1..', FiscalYearBegin);
-        FALedgEntry.SetFilter("FA Posting Type", '%1|%2', FALedgEntry."FA Posting Type"::Depreciation, FALedgEntry."FA Posting Type"::Derogatory);
+        FALedgEntry.SetFilter("FA Posting Type", '%1|%2', FALedgEntry."FA Posting Type"::Depreciation, FALedgEntry."FA Posting Type"::Derogatory); 
         FALedgEntry.SetRange("Part of Book Value", true);
         FALedgEntry.SetRange("Reclassification Entry", false);
         FALedgEntry.CalcSums(Amount);

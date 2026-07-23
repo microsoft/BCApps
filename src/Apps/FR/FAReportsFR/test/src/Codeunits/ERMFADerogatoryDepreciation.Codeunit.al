@@ -109,11 +109,25 @@ codeunit 148000 "ERM FA Derogatory Depreciation"
     local procedure CreateDepreciationBook(): Code[10]
     var
         DepreciationBook: Record "Depreciation Book";
+#if not CLEAN28
+#pragma warning disable AL0432
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#pragma warning restore AL0432
+#endif
     begin
         LibraryFixedAsset.CreateDepreciationBook(DepreciationBook);
         DepreciationBook.Validate("G/L Integration - Acq. Cost", true);
         DepreciationBook.Validate("G/L Integration - Depreciation", true);
-        DepreciationBook.Validate("G/L Integration - Derogatory", true);
+#if not CLEAN28
+        if AcceleratedDeprFeature.IsEnabled() then
+            DepreciationBook.Validate("Integration G/L - Derogatory", true)
+        else
+#pragma warning disable AL0432
+            DepreciationBook.Validate("G/L Integration - Derogatory", true);
+#pragma warning restore AL0432
+#else
+        DepreciationBook.Validate("Integration G/L - Derogatory", true);
+#endif
         DepreciationBook.Modify(true);
         exit(DepreciationBook.Code);
     end;

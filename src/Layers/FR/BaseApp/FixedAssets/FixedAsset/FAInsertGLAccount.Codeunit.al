@@ -459,6 +459,7 @@ codeunit 5601 "FA Insert G/L Account"
                     if FAPostingGr."Allocated Book Value % (Loss)" > 100 then
                         FAPostingGr.FieldError("Allocated Book Value % (Loss)", FieldErrorText);
                 end;
+#if not CLEAN29
             FAPostingType::Derogatory:
                 begin
                     if AllocAmount > 0 then begin
@@ -472,6 +473,21 @@ codeunit 5601 "FA Insert G/L Account"
                     if FAPostingGr."Allocated Derogatory %" > 100 then
                         FAPostingGr.FieldError("Allocated Derogatory %", FieldErrorText);
                 end;
+#else
+            FAPostingType::Derogatory:
+                begin
+                        if AllocAmount > 0 then begin
+                            FAPostingGr.TestField("Derogatory Expense Acc.");
+                            GLAccNo := FAPostingGr."Derogatory Expense Acc."
+                        end else begin
+                            FAPostingGr.TestField("Derog. Bal. Account (Decrease)");
+                            GLAccNo := FAPostingGr."Derog. Bal. Account (Decrease)";
+                        end;
+                    FAPostingGr.CalcFields("Allocated Derogatory Pct.");
+                    if FAPostingGr."Allocated Derogatory Pct." > 100 then
+                        FAPostingGr.FieldError("Allocated Derogatory Pct.", FieldErrorText);
+                end;
+#endif
         end;
 
         OnAfterGetGLAccNoFromFAPostingGroup(FAPostingGr, FAPostingType, GLAccNo);

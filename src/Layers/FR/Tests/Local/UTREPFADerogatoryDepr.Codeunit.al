@@ -1,9 +1,13 @@
+#if not CLEAN28
 codeunit 144026 "UT REP FA Derogatory Depr."
 {
     // Test for feature FADD - Fixed Asset Derogatory Depreciation.
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
+    ObsoleteReason = 'Moved to W1 Base Application';
 
     trigger OnRun()
     begin
@@ -211,4 +215,4 @@ codeunit 144026 "UT REP FA Derogatory Depr."
         CopyFAEntriesToGLBudget.OK().Invoke();
     end;
 }
-
+#endif

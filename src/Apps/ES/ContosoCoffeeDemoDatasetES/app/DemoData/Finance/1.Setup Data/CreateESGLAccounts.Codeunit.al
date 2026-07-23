@@ -131,6 +131,9 @@ codeunit 10780 "Create ES GL Accounts"
     var
         CreateGLAccount: Codeunit "Create G/L Account";
     begin
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogatoryAccountName(), '1145000');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForDebitName(), '6815000');
+        ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.DerogExpenseAccForCreditName(), '7955000');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.BALANCESHEETName(), '');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.ASSETSName(), '');
         ContosoGLAccount.AddAccountForLocalization(CreateGLAccount.TangibleFixedAssetsName(), '');
@@ -2656,6 +2659,8 @@ codeunit 10780 "Create ES GL Accounts"
         UpdateIncomeStmtBalAcc(CreateGLAccount.ExtraordinaryExpenses(), ProfitOrLoss());
         UpdateIncomeStmtBalAcc(CreateGLAccount.Miscellaneous(), ProfitOrLoss());
         UpdateIncomeStmtBalAcc(CreateGLAccount.ExtraordinaryIncome(), ProfitOrLoss());
+        UpdateIncomeStmtBalAcc(CreateGLAccount.DerogExpenseAccForDebit(), ProfitOrLoss());
+        UpdateIncomeStmtBalAcc(CreateGLAccount.DerogExpenseAccForCredit(), ProfitOrLoss());
         UpdateIncomeStmtBalAcc(NationalPurchases(), ProfitOrLoss());
         UpdateIncomeStmtBalAcc(EuPurchases(), ProfitOrLoss());
         UpdateIncomeStmtBalAcc(IntNonEuPurch(), ProfitOrLoss());
@@ -15106,6 +15111,14 @@ codeunit 10780 "Create ES GL Accounts"
             GLAccount.Validate("Income Stmt. Bal. Acc.", IncomeStmtBalAcc);
             GLAccount.Modify();
         end;
+    end;
+
+    procedure UpdateDerogatoryIncomeStmtBalAcc()
+    var
+        CreateGLAccount: Codeunit "Create G/L Account";
+    begin
+        UpdateIncomeStmtBalAcc(CreateGLAccount.DerogExpenseAccForDebit(), ProfitOrLoss());
+        UpdateIncomeStmtBalAcc(CreateGLAccount.DerogExpenseAccForCredit(), ProfitOrLoss());
     end;
 
     var

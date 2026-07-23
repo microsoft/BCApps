@@ -1,3 +1,4 @@
+#if not CLEAN28
 codeunit 144002 "ERM Fixed Assets - Local"
 {
     // // [FEATURE] [Fixed Asset] [Derogatory]
@@ -19,6 +20,9 @@ codeunit 144002 "ERM Fixed Assets - Local"
 
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteTag = '28.0';
+    ObsoleteReason = 'Moved to W1 Base Application';
 
     trigger OnRun()
     begin
@@ -1552,4 +1556,4 @@ codeunit 144002 "ERM Fixed Assets - Local"
             Reply := true;
     end;
 }
-
+#endif

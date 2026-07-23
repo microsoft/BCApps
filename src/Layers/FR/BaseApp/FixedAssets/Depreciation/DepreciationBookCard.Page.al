@@ -63,16 +63,42 @@ page 5610 "Depreciation Book Card"
                 {
                     ApplicationArea = FixedAssets;
                 }
+                field("Derogatory Calc."; Rec."Derogatory Calc.")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies if this book is used as a tax depreciation book to calculate derogatory depreciation.';
+#if not CLEAN29
+                    Visible = AcceleratedDeprFeatureEnabled;
+#endif 
+                }
+                field("Derogatory Book Code"; Rec."Derogatory Book Code")
+                {
+                    ApplicationArea = FixedAssets;
+                    ToolTip = 'Specifies the code of the tax depreciation book that this accounting book has been associated with in a derogatory setup.';
+#if not CLEAN29
+                    Visible = AcceleratedDeprFeatureEnabled;
+#endif 
+                }
+#if not CLEAN29
                 field("Derogatory Calculation"; Rec."Derogatory Calculation")
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies if this book is used as a tax depreciation book to calculate derogatory depreciation.';
+                    Visible = not AcceleratedDeprFeatureEnabled;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to W1 Base Application';
                 }
                 field("Used with Derogatory Book"; Rec."Used with Derogatory Book")
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the code of the tax depreciation book that this accounting book has been associated with in a derogatory setup.';
+                    Visible = not AcceleratedDeprFeatureEnabled;
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to W1 Base Application';
                 }
+#endif
                 field("Allow Identical Document No."; Rec."Allow Identical Document No.")
                 {
                     ApplicationArea = FixedAssets;
@@ -162,12 +188,28 @@ page 5610 "Depreciation Book Card"
                         ApplicationArea = FixedAssets;
                         Caption = 'G/L Integration - Maintenance';
                     }
+                    field("Integration G/L - Derogatory"; Rec."Integration G/L - Derogatory")
+                    {
+                        ApplicationArea = FixedAssets;
+                        Caption = 'Derogatory';
+                        ToolTip = 'Specifies if you want derogatory entries that are posted to this depreciation book to be posted both to the general ledger and the FA ledger.';
+#if not CLEAN29                        
+                        Visible = AcceleratedDeprFeatureEnabled;
+#endif                        
+                    }
+#if not CLEAN29
                     field("G/L Integration - Derogatory"; Rec."G/L Integration - Derogatory")
                     {
                         ApplicationArea = FixedAssets;
                         Caption = 'Derogatory';
                         ToolTip = 'Specifies if you want derogatory entries that are posted to this depreciation book to be posted both to the general ledger and the FA ledger.';
+                        Visible = not AcceleratedDeprFeatureEnabled;
+                        ObsoleteState = Pending;
+                        ObsoleteTag = '29.0';
+                        ObsoleteReason = 'Moved to W1 Base Application';
                     }
+#endif
+
                     field("G/L Integration - Bonus Depr."; Rec."G/L Integration - Bonus Depr.")
                     {
                         ApplicationArea = FixedAssets;
@@ -330,5 +372,16 @@ page 5610 "Depreciation Book Card"
             }
         }
     }
+
+#if not CLEAN29
+    trigger OnOpenPage()
+    begin
+        AcceleratedDeprFeatureEnabled := AcceleratedDeprFeature.IsEnabled();
+    end;
+
+    var
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+        AcceleratedDeprFeatureEnabled: Boolean;
+#endif
 }
 

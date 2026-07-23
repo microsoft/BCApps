@@ -16,7 +16,7 @@ codeunit 5102 "Create Svc GL Account"
 
     trigger OnRun()
     var
-        GLAccountIndent: Codeunit "G/L Account-Indent";
+        GLAccountIndent: Codeunit "W1 G/L Account Indent";
         CommonPostingGroup: Codeunit "Create Common Posting Group";
     begin
         AddGLAccountsForLocalization();

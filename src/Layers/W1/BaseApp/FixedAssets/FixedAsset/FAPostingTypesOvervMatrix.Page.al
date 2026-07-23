@@ -835,6 +835,11 @@ page 9277 "FA Posting Types Overv. Matrix"
                     FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::"Salvage Value");
                     PAGE.Run(0, FALedgerEntry);
                 end;
+            12:// 'Derogatory'
+                begin
+                    FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::Derogatory);
+                    PAGE.Run(0, FALedgerEntry);
+                end;
             else
                 OnMATRIX_OnDrillDownOnCaseElse(MATRIX_ColumnOrdinal, FALedgerEntry);
         end;
@@ -936,6 +941,12 @@ page 9277 "FA Posting Types Overv. Matrix"
                         else
                             FADeprBook.CalcFields("Salvage Value");
                     MATRIX_CellData[MATRIX_ColumnOrdinal] := MatrixMgt.RoundAmount(FADeprBook."Salvage Value", RoundingFactor);
+                end;
+            12:// 'Derogatory'
+                begin
+                    if FADeprBook.FindFirst() then
+                        FADeprBook.CalcFields("Derogatory Amount");
+                    MATRIX_CellData[MATRIX_ColumnOrdinal] := MatrixMgt.RoundAmount(FADeprBook."Derogatory Amount", RoundingFactor);
                 end;
         end;
 
