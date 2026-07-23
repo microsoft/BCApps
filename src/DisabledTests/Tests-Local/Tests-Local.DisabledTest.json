@@ -6431,6 +6431,11 @@
   },
   {
     "codeunitId": 144010,
+    "codeunitName": "Company Field Report Test",
+    "method": "FinanceChargeMemoReport"
+  },
+  {
+    "codeunitId": 144010,
     "codeunitName": "IT - VAT Reporting - Get Lines",
     "method": "IndCustNonResGrouping"
   },
@@ -6901,6 +6906,11 @@
   },
   {
     "codeunitId": 144010,
+    "codeunitName": "Company Field Report Test",
+    "method": "SalesInvoiceReport"
+  },
+  {
+    "codeunitId": 144010,
     "codeunitName": "IT - VAT Reporting - Get Lines",
     "method": "SalesInvPayAppInvGetLn"
   },
@@ -6938,6 +6948,11 @@
     "codeunitId": 144010,
     "codeunitName": "IT - VAT Reporting - Get Lines",
     "method": "SalesInvPayCMURVGetLn"
+  },
+  {
+    "codeunitId": 144010,
+    "codeunitName": "Company Field Report Test",
+    "method": "TestStatementReport"
   },
   {
     "codeunitId": 144010,
