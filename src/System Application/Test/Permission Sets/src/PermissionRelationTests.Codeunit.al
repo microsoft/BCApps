@@ -13,10 +13,12 @@ codeunit 132438 "Permission Relation Tests"
 {
     // [FEATURE] [Permission Sets] [UT]
 
+    EventSubscriberInstance = Manual;
     Subtype = Test;
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        PermissionRelationTests: Codeunit "Permission Relation Tests";
         RoleIdLbl: Label 'TEST SET A', Locked = true;
         RoleIdBLbl: Label 'TEST SET B', Locked = true;
         RoleIdCLbl: Label 'TEST SET C', Locked = true;
@@ -30,6 +32,11 @@ codeunit 132438 "Permission Relation Tests"
         PermissionSetNotfoundLbl: Label '%1 permission set could not be found.', Comment = '%1 - Permission set name', Locked = true;
         EnabledActionErr: Label '%1 control is enabled on %2 page.', Comment = '%1 = Object Type; %2 = Permissions page.';
         DisabledActionErr: Label '%1 control is disabled on %2 page.', Comment = '%1 = Object Type; %2 = Permissions page.';
+        PermissionsOverviewOpened: Boolean;
+        PermissionsOverviewOpenedForPermissionSet: Boolean;
+        PermissionsOverviewOpenedForTable: Boolean;
+        PermissionsOverviewRoleId: Text[30];
+        PermissionsOverviewTableNo: Integer;
         Scope: Option System,Tenant;
 
     [Test]
@@ -643,6 +650,110 @@ codeunit 132438 "Permission Relation Tests"
     [Test]
     [HandlerFunctions('ConfirmHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestOpenPermissionsOverview()
+    var
+        PermissionsOverview: Codeunit "Permissions Overview";
+    begin
+        // [SCENARIO] Opening the permissions overview without filters raises the open event
+
+        // [GIVEN] A clean permissions overview event subscriber
+        InitializePermissionsOverviewSubscriber();
+
+        // [WHEN] The permissions overview is opened
+        PermissionsOverview.Open();
+
+        // [THEN] The unfiltered open event is raised
+        LibraryAssert.IsTrue(PermissionRelationTests.GetPermissionsOverviewOpened(), 'The permissions overview open event was not raised.');
+        LibraryAssert.IsFalse(PermissionRelationTests.GetPermissionsOverviewOpenedForPermissionSet(), 'The permissions overview permission set event should not be raised.');
+        LibraryAssert.IsFalse(PermissionRelationTests.GetPermissionsOverviewOpenedForTable(), 'The permissions overview table event should not be raised.');
+        UnbindSubscription(PermissionRelationTests);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestOpenPermissionsOverviewForPermissionSet()
+    var
+        PermissionsOverview: Codeunit "Permissions Overview";
+    begin
+        // [SCENARIO] Opening the permissions overview for a permission set raises the filtered event
+
+        // [GIVEN] A clean permissions overview event subscriber
+        InitializePermissionsOverviewSubscriber();
+
+        // [WHEN] The permissions overview is opened for a permission set
+        PermissionsOverview.OpenForPermissionSet(NewRoleIdLbl);
+
+        // [THEN] The permission set event is raised with the selected role ID
+        LibraryAssert.IsFalse(PermissionRelationTests.GetPermissionsOverviewOpened(), 'The unfiltered permissions overview event should not be raised.');
+        LibraryAssert.IsTrue(PermissionRelationTests.GetPermissionsOverviewOpenedForPermissionSet(), 'The permissions overview permission set event was not raised.');
+        LibraryAssert.AreEqual(NewRoleIdLbl, PermissionRelationTests.GetPermissionsOverviewRoleId(), 'The permissions overview role ID was not passed through.');
+        LibraryAssert.IsFalse(PermissionRelationTests.GetPermissionsOverviewOpenedForTable(), 'The permissions overview table event should not be raised.');
+        UnbindSubscription(PermissionRelationTests);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestOpenPermissionsOverviewForTable()
+    var
+        PermissionsOverview: Codeunit "Permissions Overview";
+    begin
+        // [SCENARIO] Opening the permissions overview for a table raises the filtered event
+
+        // [GIVEN] A clean permissions overview event subscriber
+        InitializePermissionsOverviewSubscriber();
+
+        // [WHEN] The permissions overview is opened for a table
+        PermissionsOverview.OpenForTable(Database::"Permission Set Relation Buffer");
+
+        // [THEN] The table event is raised with the selected table ID
+        LibraryAssert.IsFalse(PermissionRelationTests.GetPermissionsOverviewOpened(), 'The unfiltered permissions overview event should not be raised.');
+        LibraryAssert.IsFalse(PermissionRelationTests.GetPermissionsOverviewOpenedForPermissionSet(), 'The permissions overview permission set event should not be raised.');
+        LibraryAssert.IsTrue(PermissionRelationTests.GetPermissionsOverviewOpenedForTable(), 'The permissions overview table event was not raised.');
+        LibraryAssert.AreEqual(Database::"Permission Set Relation Buffer", PermissionRelationTests.GetPermissionsOverviewTableNo(), 'The permissions overview table number was not passed through.');
+        UnbindSubscription(PermissionRelationTests);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    procedure TestPermissionSetPageWhereUsedAction()
+    var
+        TenantPermissionSet: Record "Tenant Permission Set";
+        PermissionSetRelation: Codeunit "Permission Set Relation";
+        PermissionSetPage: TestPage "Permission Set";
+        NullGuid: Guid;
+    begin
+        // [SCENARIO] Invoking Where-Used on the permission set page opens the permissions overview for that permission set
+
+        // [GIVEN] An empty tenant permission set and a clean permissions overview event subscriber
+        TenantPermissionSet.SetRange("Role ID", NewRoleIdLbl);
+        TenantPermissionSet.DeleteAll();
+
+        TenantPermissionSet."Role ID" := NewRoleIdLbl;
+        TenantPermissionSet."App ID" := NullGuid;
+        TenantPermissionSet.Name := NewNameLbl;
+        TenantPermissionSet.Insert();
+        InitializePermissionsOverviewSubscriber();
+
+        // [WHEN] Where-Used is invoked from the permission set page
+        PermissionSetPage.Trap();
+        PermissionSetRelation.OpenPermissionSetPage(NewNameLbl, NewRoleIdLbl, NullGuid, Scope::Tenant);
+        PermissionSetPage."Where-Used".Invoke();
+        PermissionSetPage.Close();
+
+        // [THEN] The permissions overview is opened for the current permission set
+        LibraryAssert.IsTrue(PermissionRelationTests.GetPermissionsOverviewOpenedForPermissionSet(), 'The permissions overview permission set event was not raised from the page action.');
+        LibraryAssert.AreEqual(NewRoleIdLbl, PermissionRelationTests.GetPermissionsOverviewRoleId(), 'The permission set page passed the wrong role ID to the permissions overview.');
+        LibraryAssert.IsFalse(PermissionRelationTests.GetPermissionsOverviewOpened(), 'The unfiltered permissions overview event should not be raised from the page action.');
+        LibraryAssert.IsFalse(PermissionRelationTests.GetPermissionsOverviewOpenedForTable(), 'The permissions overview table event should not be raised from the page action.');
+        UnbindSubscription(PermissionRelationTests);
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler')]
+    [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPermissionsPageAddRelatedTablesAction()
     var
         TenantPermissionSet: Record "Tenant Permission Set";
@@ -840,6 +951,67 @@ codeunit 132438 "Permission Relation Tests"
     local procedure GetTestPermissionSetCount(): Integer
     begin
         exit(9);
+    end;
+
+    procedure GetPermissionsOverviewOpened(): Boolean
+    begin
+        exit(PermissionsOverviewOpened);
+    end;
+
+    procedure GetPermissionsOverviewOpenedForPermissionSet(): Boolean
+    begin
+        exit(PermissionsOverviewOpenedForPermissionSet);
+    end;
+
+    procedure GetPermissionsOverviewOpenedForTable(): Boolean
+    begin
+        exit(PermissionsOverviewOpenedForTable);
+    end;
+
+    procedure GetPermissionsOverviewRoleId(): Text[30]
+    begin
+        exit(PermissionsOverviewRoleId);
+    end;
+
+    procedure GetPermissionsOverviewTableNo(): Integer
+    begin
+        exit(PermissionsOverviewTableNo);
+    end;
+
+    procedure ResetPermissionsOverviewState()
+    begin
+        PermissionsOverviewOpened := false;
+        PermissionsOverviewOpenedForPermissionSet := false;
+        PermissionsOverviewOpenedForTable := false;
+        PermissionsOverviewRoleId := '';
+        PermissionsOverviewTableNo := 0;
+    end;
+
+    local procedure InitializePermissionsOverviewSubscriber()
+    begin
+        UnbindSubscription(PermissionRelationTests);
+        PermissionRelationTests.ResetPermissionsOverviewState();
+        BindSubscription(PermissionRelationTests);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Permissions Overview", 'OnOpenPermissionsOverview', '', false, false)]
+    local procedure OnOpenPermissionsOverview()
+    begin
+        PermissionsOverviewOpened := true;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Permissions Overview", 'OnOpenPermissionsOverviewForPermissionSet', '', false, false)]
+    local procedure OnOpenPermissionsOverviewForPermissionSet(RoleID: Text[30])
+    begin
+        PermissionsOverviewOpenedForPermissionSet := true;
+        PermissionsOverviewRoleId := RoleID;
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Permissions Overview", 'OnOpenPermissionsOverviewForTable', '', false, false)]
+    local procedure OnOpenPermissionsOverviewForTable(TableNo: Integer)
+    begin
+        PermissionsOverviewOpenedForTable := true;
+        PermissionsOverviewTableNo := TableNo;
     end;
 
     [ModalPageHandler]
