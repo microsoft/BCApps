@@ -751,7 +751,7 @@ codeunit 37201 "PEPPOL30 Impl."
     var
         GLSetup: Record "General Ledger Setup";
     begin
-        TaxableAmount := Format(VATAmtLine."VAT Base" - GetPeppolPmtDiscountAmount(VATAmtLine."Pmt. Discount Amount"), 0, 9);
+        TaxableAmount := Format(VATAmtLine."VAT Base" - VATAmtLine."Pmt. Discount Amount", 0, 9);
         TaxAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
         SubtotalTaxAmount := Format(VATAmtLine."VAT Amount", 0, 9);
         TaxSubtotalCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
@@ -812,13 +812,13 @@ codeunit 37201 "PEPPOL30 Impl."
               Format(VATAmtLine."Amount Including VAT" - Round(VATAmtLine."Amount Including VAT", 0.01), 0, 9);
             PayableRndingAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
 
-            PayableAmount := Format(Round(VATAmtLine."Amount Including VAT" - GetPeppolPmtDiscountAmount(VATAmtLine."Pmt. Discount Amount"), 0.01), 0, 9);
+            PayableAmount := Format(Round(VATAmtLine."Amount Including VAT" - VATAmtLine."Pmt. Discount Amount", 0.01), 0, 9);
             PayableAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
         end else begin
             PayableRoundingAmount := Format(TempSalesLine."Amount Including VAT", 0, 9);
             PayableRndingAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
 
-            PayableAmount := Format(Round(VATAmtLine."Amount Including VAT" + TempSalesLine."Amount Including VAT" - GetPeppolPmtDiscountAmount(VATAmtLine."Pmt. Discount Amount"), 0.01), 0, 9);
+            PayableAmount := Format(Round(VATAmtLine."Amount Including VAT" + TempSalesLine."Amount Including VAT" - VATAmtLine."Pmt. Discount Amount", 0.01), 0, 9);
             PayableAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
         end;
     end;
@@ -857,13 +857,13 @@ codeunit 37201 "PEPPOL30 Impl."
         LineExtensionAmount := Format(Round(VATAmtLine."VAT Base", 0.01) + Round(VATAmtLine."Invoice Discount Amount", 0.01), 0, 9);
         LegalMonetaryTotalCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
 
-        TaxExclusiveAmount := Format(Round(VATAmtLine."VAT Base" - GetPeppolPmtDiscountAmount(VATAmtLine."Pmt. Discount Amount"), 0.01), 0, 9);
+        TaxExclusiveAmount := Format(Round(VATAmtLine."VAT Base" - VATAmtLine."Pmt. Discount Amount", 0.01), 0, 9);
         TaxExclusiveAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
 
-        TaxInclusiveAmount := Format(Round(VATAmtLine."Amount Including VAT" - GetPeppolPmtDiscountAmount(VATAmtLine."Pmt. Discount Amount"), 0.01, '>'), 0, 9); // Should be two decimal places
+        TaxInclusiveAmount := Format(Round(VATAmtLine."Amount Including VAT" - VATAmtLine."Pmt. Discount Amount", 0.01, '>'), 0, 9); // Should be two decimal places
         TaxInclusiveAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
 
-        AllowanceTotalAmount := Format(Round(VATAmtLine."Invoice Discount Amount" + GetPeppolPmtDiscountAmount(VATAmtLine."Pmt. Discount Amount"), 0.01), 0, 9);
+        AllowanceTotalAmount := Format(Round(VATAmtLine."Invoice Discount Amount" + VATAmtLine."Pmt. Discount Amount", 0.01), 0, 9);
         AllowanceTotalAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
         TaxInclusiveAmountCurrencyID := GetSalesDocCurrencyCode(SalesHeader);
 
@@ -1303,7 +1303,6 @@ codeunit 37201 "PEPPOL30 Impl."
             VATAmtLine.Modify();
         end;
     end;
-
     procedure GetTaxCategories(SalesLine: Record "Sales Line"; var VATProductPostingGroupCategory: Record "VAT Product Posting Group")
     var
         VATPostingSetup: Record "VAT Posting Setup";
@@ -1357,7 +1356,6 @@ codeunit 37201 "PEPPOL30 Impl."
             TempPurchaseLine.Insert();
         end;
     end;
-
     procedure GetTaxExemptionReason(var VATProductPostingGroupCategory: Record "VAT Product Posting Group"; var TaxExemptionReasonTxt: Text; TaxCategoryID: Text)
     begin
         TaxExemptionReasonTxt := '';
@@ -1565,28 +1563,6 @@ codeunit 37201 "PEPPOL30 Impl."
         exit(CountryRegion."ISO Code" = 'DK');
     end;
 
-    local procedure IsBelgianCompany(): Boolean
-    var
-        CompanyInformation: Record "Company Information";
-        CountryRegion: Record "Country/Region";
-    begin
-        if not CompanyInformation.Get() then
-            exit(false);
-        if not CountryRegion.Get(CompanyInformation."Country/Region Code") then
-            exit(false);
-        // Use ISO 3166 Country Codes
-        exit(CountryRegion."ISO Code" = 'BE');
-    end;
-
-    local procedure GetPeppolPmtDiscountAmount(PmtDiscountAmount: Decimal): Decimal
-    begin
-        // In Belgium the payment discount must not reduce the PEPPOL document totals so the XML
-        // matches the invoice printout and VAT is reported on the full amount (Bug 638730).
-        if IsBelgianCompany() then
-            exit(0);
-        exit(PmtDiscountAmount);
-    end;
-
     procedure IsRoundingLine(SalesLine: Record "Sales Line"; CustomerNo: Code[20]): Boolean;
     var
         Customer: Record Customer;
@@ -1616,7 +1592,6 @@ codeunit 37201 "PEPPOL30 Impl."
         end;
         exit(false);
     end;
-
     procedure TransferHeaderToSalesHeader(FromRecord: Variant; var ToSalesHeader: Record "Sales Header")
     var
         ToRecord: Variant;
@@ -1687,7 +1662,7 @@ codeunit 37201 "PEPPOL30 Impl."
 
     procedure GetAllowanceChargeInfoPaymentDiscount(VATAmtLine: Record "VAT Amount Line"; SalesHeader: Record "Sales Header"; var ChargeIndicator: Text; var AllowanceChargeReasonCode: Text; var AllowanceChargeListID: Text; var AllowanceChargeReason: Text; var Amount: Text; var AllowanceChargeCurrencyID: Text; var TaxCategoryID: Text; var TaxCategorySchemeID: Text; var Percent: Text; var AllowanceChargeTaxSchemeID: Text)
     begin
-        if IsBelgianCompany() or (VATAmtLine."Pmt. Discount Amount" = 0) then begin
+        if VATAmtLine."Pmt. Discount Amount" = 0 then begin
             ChargeIndicator := '';
             exit;
         end;

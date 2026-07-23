@@ -197,6 +197,8 @@ codeunit 37218 "PEPPOL30 Common"
             else
                 Error(UnsupportedDocumentErr);
         end;
+
+        OnAfterGetSalesTotals(PostedDocHeaderRecRef, TempVATAmtLine, PEPPOLFormat);
     end;
 
     /// <summary>
@@ -465,5 +467,18 @@ codeunit 37218 "PEPPOL30 Common"
             else
                 Error(UnsupportedDocumentErr);
         end;
+    end;
+
+    /// <summary>
+    /// Raised after the VAT amount line totals for a posted sales/service document have been calculated,
+    /// allowing subscribers to adjust the totals buffer (for example, localization-specific handling of
+    /// the payment discount amount) before the PEPPOL document is generated.
+    /// </summary>
+    /// <param name="PostedDocHeaderRecRef">The RecordRef for the posted document header.</param>
+    /// <param name="TempVATAmtLine">The calculated VAT amount line buffer that can be adjusted.</param>
+    /// <param name="PEPPOLFormat">The PEPPOL 3.0 format used for the document.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetSalesTotals(PostedDocHeaderRecRef: RecordRef; var TempVATAmtLine: Record "VAT Amount Line" temporary; PEPPOLFormat: Enum "PEPPOL 3.0 Format")
+    begin
     end;
 }
