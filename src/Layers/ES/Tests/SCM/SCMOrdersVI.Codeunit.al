@@ -3146,40 +3146,71 @@
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
     begin
-        // [SCENARIO 593432] It is possible to insert Sales Line before Sales Header if SalesHeader variable is initialized in the Sales Line table.
+        // [SCENARIO 593432] It is possible to insert Sales Line before Sales Header if SuppressSalesHeaderExistsVerification variable is set in the Sales Line table.
         Initialize();
 
-        // Sales Header is initialized but not inserted.
+        // [GIVEN] Sales Header is initialized but not inserted.
         SalesHeader.Init();
         SalesHeader."Document Type" := SalesHeader."Document Type"::Order;
         SalesHeader."No." := LibraryUtility.GenerateGUID();
 
-        // Initialize Sales Line with the Sales Header passed as parameter.
+        // [WHEN] Initialize Sales Line with the Sales Header passed as parameter.
         SalesLine.Init();
         SalesLine.SetSalesHeader(SalesHeader);
         SalesLine."Document Type" := SalesHeader."Document Type";
         SalesLine."Document No." := SalesHeader."No.";
         SalesLine."Line No." := LibraryUtility.GetNewRecNo(SalesLine, SalesLine.FieldNo("Line No."));
 
-        // The Sales Line can be inserted.
+        // [THEN] The Sales Line can be inserted.
         SalesLine.Insert(true);
 
-        // Initialize another Sales Line, do not invoke SetSalesHeader.
+        // [WHEN] Prepare another Sales Line, do not invoke SetSalesHeader.
+        SalesLine."Line No." := LibraryUtility.GetNewRecNo(SalesLine, SalesLine.FieldNo("Line No."));
+
+        // [THEN] The Sales Line can be inserted.
+        SalesLine.Insert(true);
+
+        // [WHEN] Initialize another Sales Line, do not invoke SetSalesHeader.
         Clear(SalesLine);
         SalesLine.Init();
         SalesLine."Document Type" := SalesHeader."Document Type";
         SalesLine."Document No." := SalesHeader."No.";
         SalesLine."Line No." := LibraryUtility.GetNewRecNo(SalesLine, SalesLine.FieldNo("Line No."));
 
-        // The Sales Line cannot be inserted, because Sales Header is not inserted yet.
+        // [THEN] The Sales Line cannot be inserted, because Sales Header is not inserted yet.
         Commit();
         asserterror SalesLine.Insert(true);
 
         Assert.ExpectedErrorCode('Dialog');
         Assert.ExpectedError(CannotInsertSalesLineWithoutHeaderErr);
 
-        // After inserting the Sales Header, the Sales Line can be inserted.
+        // [WHEN] [THEN] After inserting the Sales Header, the Sales Line can be inserted.
         SalesHeader.Insert();
+        SalesLine.Insert(true);
+    end;
+
+    [Test]
+    procedure InsertingSalesLineWithInitTypeAfterSalesHeader()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+    begin
+        // [SCENARIO 643231] Sales Line can be inserted after Sales Header when Validate is called after InitType.
+        Initialize();
+
+        // [GIVEN] Sales Order Header is inserted.
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, '');
+
+        // [GIVEN] Initialize Sales Line with matching keys, then call InitType and validate Item
+        SalesLine.Init();
+        SalesLine."Document Type" := SalesHeader."Document Type";
+        SalesLine."Document No." := SalesHeader."No.";
+        SalesLine."Line No." := LibraryUtility.GetNewRecNo(SalesLine, SalesLine.FieldNo("Line No."));
+        SalesLine.InitType();
+        SalesLine.Validate(Type, SalesLine.Type::Item);
+        SalesLine.Validate("No.", LibraryInventory.CreateItemNo());
+
+        // [WHEN] [THEN] The Sales Line can be inserted.
         SalesLine.Insert(true);
     end;
 
@@ -3189,40 +3220,71 @@
         PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
     begin
-        // [SCENARIO 593432] It is possible to insert Purchase Line before Purchase Header if PurchaseHeader variable is initialized in the Purchase Line table.
+        // [SCENARIO 593432] It is possible to insert Purchase Line before Purchase Header if SuppressPurchaseHeaderExistsVerification variable is set in the Purchase Line table.
         Initialize();
 
-        // Purchase Header is initialized but not inserted.
+        // [GIVEN] Purchase Header is initialized but not inserted.
         PurchaseHeader.Init();
         PurchaseHeader."Document Type" := PurchaseHeader."Document Type"::Order;
         PurchaseHeader."No." := LibraryUtility.GenerateGUID();
 
-        // Initialize Purchase Line with the Purchase Header passed as parameter.
+        // [WHEN] Initialize Purchase Line with the Purchase Header passed as parameter.
         PurchaseLine.Init();
         PurchaseLine.SetPurchHeader(PurchaseHeader);
         PurchaseLine."Document Type" := PurchaseHeader."Document Type";
         PurchaseLine."Document No." := PurchaseHeader."No.";
         PurchaseLine."Line No." := LibraryUtility.GetNewRecNo(PurchaseLine, PurchaseLine.FieldNo("Line No."));
 
-        // The Purchase Line can be inserted.
+        // [THEN] The Purchase Line can be inserted.
         PurchaseLine.Insert(true);
 
-        // Initialize another Purchase Line, do not invoke SetPurchHeader.
+        // [WHEN] Prepare another Sales Line, do not invoke SetPurchHeader.
+        PurchaseLine."Line No." := LibraryUtility.GetNewRecNo(PurchaseLine, PurchaseLine.FieldNo("Line No."));
+
+        // [THEN] The Purchase Line can be inserted.
+        PurchaseLine.Insert(true);
+
+        // [WHEN] Initialize another Purchase Line, do not invoke SetPurchHeader.
         Clear(PurchaseLine);
         PurchaseLine.Init();
         PurchaseLine."Document Type" := PurchaseHeader."Document Type";
         PurchaseLine."Document No." := PurchaseHeader."No.";
         PurchaseLine."Line No." := LibraryUtility.GetNewRecNo(PurchaseLine, PurchaseLine.FieldNo("Line No."));
 
-        // The Purchase Line cannot be inserted, because Purchase Header is not inserted yet.
+        // [THEN] The Purchase Line cannot be inserted, because Purchase Header is not inserted yet.
         Commit();
         asserterror PurchaseLine.Insert(true);
 
         Assert.ExpectedErrorCode('Dialog');
         Assert.ExpectedError(CannotInsertPurchLineWithoutHeaderErr);
 
-        // After inserting the Purchase Header, the Purchase Line can be inserted.
+        // [WHEN] [THEN] After inserting the Purchase Header, the Purchase Line can be inserted.
         PurchaseHeader.Insert();
+        PurchaseLine.Insert(true);
+    end;
+
+    [Test]
+    procedure InsertingPurchaseLineWithInitTypeAfterPurchaseHeader()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        // [SCENARIO 643231] Purchase Line can be inserted after Purchase Header when Validate is called after InitType.
+        Initialize();
+
+        // [GIVEN] Purchase Order Header is inserted.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+
+        // [GIVEN] Initialize Purchase Line with matching keys, then call InitType and validate Item
+        PurchaseLine.Init();
+        PurchaseLine."Document Type" := PurchaseHeader."Document Type";
+        PurchaseLine."Document No." := PurchaseHeader."No.";
+        PurchaseLine."Line No." := LibraryUtility.GetNewRecNo(PurchaseLine, PurchaseLine.FieldNo("Line No."));
+        PurchaseLine.InitType();
+        PurchaseLine.Validate(Type, PurchaseLine.Type::Item);
+        PurchaseLine.Validate("No.", LibraryInventory.CreateItemNo());
+
+        // [WHEN] [THEN] The Purchase Line can be inserted.
         PurchaseLine.Insert(true);
     end;
 
