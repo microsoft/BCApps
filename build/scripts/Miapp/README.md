@@ -266,7 +266,7 @@ $MiappConfig = @{
 
 ### Environment Variables
 
-- `$env:RepoBranchName` - Base branch name used for comparisons (defaults to `origin/HEAD`, typically `main`, when not set)
+- `$env:RepoBranchName` - Base branch name used for comparisons. A valid explicit value is preserved. An unset value, or a stale value that does not exist on the current repository's `origin`, falls back to `origin/HEAD` (typically `main`).
 - `$env:MIAPP_DIR` - Directory for miapp temporary files (default: $env:USERPROFILE)
 
 ### Output
