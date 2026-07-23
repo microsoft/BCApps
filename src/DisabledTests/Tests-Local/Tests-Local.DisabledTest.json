@@ -7050,6 +7050,11 @@
     "method": "VATStatementTotal"
   },
   {
+    "codeunitId": 144010,
+    "codeunitName": "Company Field Report Test",
+    "method": "VATVIESDeclarationTaxAuthReport"
+  },
+  {
     "codeunitId": 144011,
     "codeunitName": "SEPADD08 IntegrationTest - BE",
     "method": "CreateGenJnlErrBalAccNo"

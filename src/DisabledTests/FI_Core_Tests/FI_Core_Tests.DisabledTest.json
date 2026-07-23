@@ -2,7 +2,17 @@
 	{
 		"codeunitId": 148150,
 		"codeunitName": "FI Company Field Report Test",
+		"method": "CompanyFieldsInVATVIESDeclaration"
+	},
+	{
+		"codeunitId": 148150,
+		"codeunitName": "FI Company Field Report Test",
 		"method": "FinanceChargeMemoReport"
+	},
+	{
+		"codeunitId": 148150,
+		"codeunitName": "FI Company Field Report Test",
+		"method": "RegisteredHomeCityInStandardSalesQuote"
 	},
 	{
 		"codeunitId": 148150,
