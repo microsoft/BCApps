@@ -2458,6 +2458,7 @@ codeunit 148218 "Sustainability Service Tests"
         // [GIVEN] A Specific carbon, lot-tracked item with 10 pcs in a lot carrying a known CO2e per unit.
         LibraryItemTracking.CreateLotItem(Item);
         LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        EnsureGeneralPostingSetupForItem(Item);
         ExpectedShipmentCO2e := LibraryRandom.RandDecInRange(100, 500, 2);
         LibrarySustainability.PostPositiveAdjustmentWithItemTracking(Item, '', AccountCode, '', 10, WorkDate(), '', LotNo, ExpectedShipmentCO2e * 10);
 
@@ -2507,6 +2508,7 @@ codeunit 148218 "Sustainability Service Tests"
         // [GIVEN] A Specific carbon, serial-tracked item with 1 pc carrying a known CO2e per unit.
         LibraryItemTracking.CreateSerialItem(Item);
         LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        EnsureGeneralPostingSetupForItem(Item);
         ExpectedShipmentCO2e := LibraryRandom.RandDecInRange(100, 500, 2);
         LibrarySustainability.PostPositiveAdjustmentWithItemTracking(Item, '', AccountCode, '', 1, WorkDate(), SerialNo, '', ExpectedShipmentCO2e);
 
@@ -2554,6 +2556,7 @@ codeunit 148218 "Sustainability Service Tests"
         // [GIVEN] A Specific carbon item (no item tracking) with 10 pcs carrying a known CO2e per unit.
         LibraryInventory.CreateItem(Item);
         LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        EnsureGeneralPostingSetupForItem(Item);
         ExpectedShipmentCO2e := LibraryRandom.RandDecInRange(100, 500, 2);
         PostPositiveAdjustmentWithCO2e(Item, AccountCode, 10, ExpectedShipmentCO2e * 10);
 
@@ -2602,6 +2605,7 @@ codeunit 148218 "Sustainability Service Tests"
         // [GIVEN] A Specific carbon, lot-tracked item with 10 pcs in a lot carrying a known CO2e per unit.
         LibraryItemTracking.CreateLotItem(Item);
         LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        EnsureGeneralPostingSetupForItem(Item);
         ExpectedConsumptionCO2e := LibraryRandom.RandDecInRange(100, 500, 2);
         LibrarySustainability.PostPositiveAdjustmentWithItemTracking(Item, '', AccountCode, '', 10, WorkDate(), '', LotNo, ExpectedConsumptionCO2e * 10);
 
@@ -2652,6 +2656,7 @@ codeunit 148218 "Sustainability Service Tests"
         // [GIVEN] A Specific carbon, serial-tracked item with 1 pc carrying a known CO2e per unit.
         LibraryItemTracking.CreateSerialItem(Item);
         LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        EnsureGeneralPostingSetupForItem(Item);
         ExpectedConsumptionCO2e := LibraryRandom.RandDecInRange(100, 500, 2);
         LibrarySustainability.PostPositiveAdjustmentWithItemTracking(Item, '', AccountCode, '', 1, WorkDate(), SerialNo, '', ExpectedConsumptionCO2e);
 
@@ -2700,6 +2705,7 @@ codeunit 148218 "Sustainability Service Tests"
         // [GIVEN] A Specific carbon item (no item tracking) with 10 pcs carrying a known CO2e per unit.
         LibraryInventory.CreateItem(Item);
         LibrarySustainability.UpdateCarbonTrackingMethod(Item, Item."Carbon Tracking Method"::Specific);
+        EnsureGeneralPostingSetupForItem(Item);
         ExpectedConsumptionCO2e := LibraryRandom.RandDecInRange(100, 500, 2);
         PostPositiveAdjustmentWithCO2e(Item, AccountCode, 10, ExpectedConsumptionCO2e * 10);
 
@@ -2868,6 +2874,18 @@ codeunit 148218 "Sustainability Service Tests"
 
         LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, ItemNo);
         UpdateServiceLine(ServiceLine, ServiceItemLine."Line No.", Quantity, LibraryRandom.RandDecInRange(1000, 2000, 2));
+    end;
+
+    local procedure EnsureGeneralPostingSetupForItem(Item: Record Item)
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        if Item."Gen. Prod. Posting Group" = '' then
+            exit;
+        if GeneralPostingSetup.Get('', Item."Gen. Prod. Posting Group") then
+            exit;
+
+        LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, '', Item."Gen. Prod. Posting Group");
     end;
 
     local procedure CreateServiceOrderWithResource(var ServiceHeader: Record "Service Header"; var ServiceLine: Record "Service Line"; CustomerNo: Code[20]; LocationCode: Code[10]; ResourceNo: Code[20]; Quantity: Decimal)
