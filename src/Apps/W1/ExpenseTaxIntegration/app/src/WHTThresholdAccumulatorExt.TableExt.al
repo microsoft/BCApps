@@ -5,7 +5,7 @@
 namespace Microsoft.ExpenseTaxIntegration;
 
 using Microsoft.ExpenseAgent;
-using Microsoft.WithholdingTax;
+using Microsoft.WithholdingTax.Employee;
 
 tableextension 7057 "WHT Threshold Accumulator Ext" extends "WHT Threshold Accumulator"
 {

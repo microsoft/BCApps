@@ -8,6 +8,7 @@ using Microsoft.ExpenseAgent;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.WithholdingTax;
+using Microsoft.WithholdingTax.Employee;
 
 codeunit 7056 "WHT Expense Category Mgt."
 {
