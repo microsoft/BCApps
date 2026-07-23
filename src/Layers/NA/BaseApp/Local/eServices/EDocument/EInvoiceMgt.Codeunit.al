@@ -119,6 +119,9 @@ codeunit 10145 "E-Invoice Mgt."
         ProcessPaymentErr: Label 'Cannot process payment %2', Locked = true;
         SendPaymentMsg: Label 'Sending payment', Locked = true;
         SendPaymentSuccessMsg: Label 'Payment successfully sent', Locked = true;
+        RoundingFallbackStartedMsg: Label 'Rounding fallback started. Default model failed with error code: %1. Attempting alternative rounding models.', Locked = true;
+        RoundingFallbackSucceededMsg: Label 'Rounding fallback succeeded with rounding model %1 after %2 stamp request(s).', Locked = true;
+        RoundingFallbackExhaustedMsg: Label 'Rounding fallback exhausted all models after %1 stamp request(s). Last error code: %2.', Locked = true;
         SpecialCharsTxt: Label 'áéíñóúüÁÉÍÑÓÚÜ', Locked = true;
         SchemaLocation1xsdTxt: Label '%1  %2', Comment = '%1 - namespase; %2 - xsd location.';
         SchemaLocation2xsdTxt: Label '%1  %2  %3  %4', Comment = '%1 - namespase1; %2 - xsd location1; %3 - namespase2; %4 - xsd location2.';
@@ -7847,6 +7850,7 @@ codeunit 10145 "E-Invoice Mgt."
         ErrorCode: Code[10];
         InitialModel: Integer;
         ModelIndex: Integer;
+        StampAttempts: Integer;
         AdvanceAmount: Decimal;
         AdvanceSettle: Boolean;
     begin
@@ -7859,6 +7863,7 @@ codeunit 10145 "E-Invoice Mgt."
         // Try default model first (avoids extra CreateTempDocument when model 0 works)
         RoundingModel := 0;
         RequestStamp(DocumentHeaderRecordRef, Prepayment, Reverse);
+        StampAttempts := 1;
 
         ErrorCode := DocumentHeaderRecordRef.Field(10035).Value();
         // Rounding-related CFDI errors:
@@ -7870,14 +7875,19 @@ codeunit 10145 "E-Invoice Mgt."
         if not (ErrorCode in ['CFDI40108', 'CFDI40110', 'CFDI40111', 'CFDI40119', 'CFDI40167']) then
             exit;
 
+        Session.LogMessage('0000MF4', StrSubstNo(RoundingFallbackStartedMsg, ErrorCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
+
         // Pre-validate locally to find the best rounding model only after default model failed
         InitialModel := FindValidRoundingModel(DocumentHeaderRecordRef, AdvanceSettle);
         if InitialModel > 0 then begin
             RoundingModel := InitialModel;
             RequestStamp(DocumentHeaderRecordRef, Prepayment, Reverse);
+            StampAttempts += 1;
             ErrorCode := DocumentHeaderRecordRef.Field(10035).Value();
-            if not (ErrorCode in ['CFDI40108', 'CFDI40110', 'CFDI40111', 'CFDI40119', 'CFDI40167']) then
+            if not (ErrorCode in ['CFDI40108', 'CFDI40110', 'CFDI40111', 'CFDI40119', 'CFDI40167']) then begin
+                Session.LogMessage('0000MF5', StrSubstNo(RoundingFallbackSucceededMsg, InitialModel, StampAttempts), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
                 exit;
+            end;
         end;
 
         // If still failing, try remaining models
@@ -7885,10 +7895,15 @@ codeunit 10145 "E-Invoice Mgt."
             if ModelIndex <> InitialModel then begin
                 RoundingModel := ModelIndex;
                 RequestStamp(DocumentHeaderRecordRef, Prepayment, Reverse);
+                StampAttempts += 1;
                 ErrorCode := DocumentHeaderRecordRef.Field(10035).Value();
-                if not (ErrorCode in ['CFDI40108', 'CFDI40110', 'CFDI40111', 'CFDI40119', 'CFDI40167']) then
+                if not (ErrorCode in ['CFDI40108', 'CFDI40110', 'CFDI40111', 'CFDI40119', 'CFDI40167']) then begin
+                    Session.LogMessage('0000MF5', StrSubstNo(RoundingFallbackSucceededMsg, ModelIndex, StampAttempts), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
                     exit;
+                end;
             end;
+
+        Session.LogMessage('0000MF6', StrSubstNo(RoundingFallbackExhaustedMsg, StampAttempts, ErrorCode), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
     end;
 
     local procedure UpdatePartialPaymentAmounts(var TempDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry" temporary; var CustLedgerEntry: Record "Cust. Ledger Entry"; var TempVATAmountLine: Record "VAT Amount Line" temporary)
