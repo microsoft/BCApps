@@ -64,11 +64,14 @@
     },
     {
       "from": 13922,
-      "to": 13926
+      "to": 13928
     }
   ],
   "features": [
     "TranslationFile"
+  ],
+  "resourceFolders": [
+    ".resources"
   ],
   "target": "Cloud",
   "resourceExposurePolicy": {
