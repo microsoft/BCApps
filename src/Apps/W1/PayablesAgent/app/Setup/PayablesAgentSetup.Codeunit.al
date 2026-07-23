@@ -17,7 +17,6 @@ using System.Agents;
 using System.AI;
 using System.Azure.Identity;
 using System.Azure.KeyVault;
-using System.Config;
 using System.Email;
 using System.Environment;
 using System.Environment.Configuration;
@@ -222,23 +221,17 @@ codeunit 3307 "Payables Agent Setup"
     var
         AzureKeyVault: Codeunit "Azure Key Vault";
         Agent: Codeunit Agent;
-        FeatureConfiguration: Codeunit "Feature Configuration";
         SecurityPromptSecretText, CompletePromptSecretText : SecretText;
         PayablesAgentPromptText: Text;
         PayablesAgentPromptTok: Label 'Prompts/PayablesAgent-AgentInstructions.md', Locked = true;
-        PayablesAgentAgentDrivenPromptTok: Label 'Prompts/PayablesAgent-AgentInstructions-AgentDriven.md', Locked = true;
-        AgentDrivenLineMatchingTok: Label 'PAAgentDrivenLineMatching', Locked = true;
-        AgentDrivenTreatmentTok: Label 'agent_driven', Locked = true;
         SecurityPromptTok: Label 'PayablesAgent-SecurityPromptV280', Locked = true;
         UnableToConfigureAgentInstructionsErr: Label 'Unable to configure agent instructions.';
     begin
         if IsNullGuid(AgentUserSecurityId) then
             exit;
 
-        if FeatureConfiguration.GetConfiguration(AgentDrivenLineMatchingTok) = AgentDrivenTreatmentTok then
-            PayablesAgentPromptText := NavApp.GetResourceAsText(PayablesAgentAgentDrivenPromptTok, TextEncoding::UTF8)
-        else
-            PayablesAgentPromptText := NavApp.GetResourceAsText(PayablesAgentPromptTok, TextEncoding::UTF8);
+        // Control branch: always load the control prompt regardless of ECS config.
+        PayablesAgentPromptText := NavApp.GetResourceAsText(PayablesAgentPromptTok, TextEncoding::UTF8);
         if AzureKeyVault.GetAzureKeyVaultSecret(SecurityPromptTok, SecurityPromptSecretText) then
             CompletePromptSecretText := SecretText.SecretStrSubstNo(PayablesAgentPromptText, SecurityPromptSecretText)
         else begin
