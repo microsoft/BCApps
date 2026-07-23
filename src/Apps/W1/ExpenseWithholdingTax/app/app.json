@@ -1,10 +1,10 @@
 {
   "id": "4cb44e6c-9a37-4d4e-b45f-1b3054ddc59a",
-  "name": "Withholding Tax for Expense Agent",
+  "name": "Expense Withholding Tax",
   "publisher": "Microsoft",
   "version": "29.0.0.0",
-  "brief": "Expense Tax Integration",
-  "description": "Expense Tax Integration",
+  "brief": "Expense Withholding Tax",
+  "description": "Expense Withholding Tax",
   "privacyStatement": "https://go.microsoft.com/fwlink/?linkid=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=724013",
   "help": "https://go.microsoft.com/fwlink/?linkid=2139719",
