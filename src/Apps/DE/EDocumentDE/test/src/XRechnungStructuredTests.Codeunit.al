@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-codeunit 13927 "XRechnung Structured Tests"
+codeunit 148500 "XRechnung Structured Tests"
 {
     Subtype = Test;
     TestType = IntegrationTest;

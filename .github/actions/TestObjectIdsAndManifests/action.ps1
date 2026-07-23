@@ -39,7 +39,7 @@ $duplicateApplicationIds = @(
 
 # Exception - Out of range test object IDs
 $outOfRangeTestObjects = @(
-    13918,13922,13923,13924,13925,13926,13927, # E-Document for Germany Tests
+    13918,13922,13923,13924,13925,13926, # E-Document for Germany Tests
     10505, # Intrastat GB Tests
     18649, # Fixed Asset Depreciation Tests
     18078,18427,18428,18429,18460,18488, # GST Base Tests
