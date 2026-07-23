@@ -1,5 +1,6 @@
 namespace Microsoft.Finance.VAT.Reporting;
 
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Foundation.Company;
 using System.Environment;
 using System.Privacy;
@@ -12,6 +13,10 @@ codeunit 13611 "Elec. VAT Decl. Install"
 
     var
         VersionLbl: Label 'DK Ele.VAT', Locked = true;
+        VATReturnPeriodNoSeriesCodeLbl: Label 'DKVATPERIOD', Locked = true;
+        VATReturnPeriodNoSeriesDescLbl: Label 'VAT Return Periods';
+        VATReturnPeriodStartNoLbl: Label 'DKVATPER-0001', Locked = true;
+        VATReturnPeriodEndNoLbl: Label 'DKVATPER-9999', Locked = true;
 
     trigger OnInstallAppPerCompany()
     var
@@ -76,7 +81,71 @@ codeunit 13611 "Elec. VAT Decl. Install"
 
         VATReportSetup."Report Version" := GetVATReportVersion();
         VATReportSetup.Validate("Manual Receive Period CU ID", Codeunit::"Elec. VAT Decl. Get Periods");
+        if not NoSeriesHasLines(VATReportSetup."VAT Return Period No. Series") then
+            VATReportSetup.Validate("VAT Return Period No. Series", InitVATReturnPeriodNoSeries());
         if VATReportSetup.Modify() then;
+    end;
+
+    local procedure NoSeriesHasLines(NoSeriesCode: Code[20]): Boolean
+    var
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        if NoSeriesCode = '' then
+            exit(false);
+
+        NoSeriesLine.SetRange("Series Code", NoSeriesCode);
+        exit(not NoSeriesLine.IsEmpty());
+    end;
+
+    local procedure InitVATReturnPeriodNoSeries(): Code[20]
+    var
+        NoSeries: Record "No. Series";
+        SeriesCode: Code[20];
+        StartNo: Code[20];
+        EndNo: Code[20];
+    begin
+        SeriesCode := CopyStr(VATReturnPeriodNoSeriesCodeLbl, 1, MaxStrLen(SeriesCode));
+        StartNo := CopyStr(VATReturnPeriodStartNoLbl, 1, MaxStrLen(StartNo));
+        EndNo := CopyStr(VATReturnPeriodEndNoLbl, 1, MaxStrLen(EndNo));
+        if not NoSeries.Get(SeriesCode) then
+            InsertNoSeries(
+                SeriesCode,
+                CopyStr(VATReturnPeriodNoSeriesDescLbl, 1, MaxStrLen(NoSeries.Description)),
+                StartNo,
+                EndNo);
+        if not NoSeriesHasLines(SeriesCode) then
+            InsertNoSeriesLine(
+                SeriesCode,
+                StartNo,
+                EndNo);
+
+        exit(SeriesCode);
+    end;
+
+    local procedure InsertNoSeries(NoSeriesCode: Code[20]; NoSeriesDescription: Text[100]; StartingNo: Code[20]; EndingNo: Code[20])
+    var
+        NoSeries: Record "No. Series";
+    begin
+        NoSeries.Init();
+        NoSeries.Code := NoSeriesCode;
+        NoSeries.Description := CopyStr(NoSeriesDescription, 1, MaxStrLen(NoSeries.Description));
+        NoSeries."Default Nos." := true;
+        NoSeries."Manual Nos." := false;
+        NoSeries.Insert();
+        InsertNoSeriesLine(NoSeriesCode, StartingNo, EndingNo);
+    end;
+
+    local procedure InsertNoSeriesLine(NoSeriesCode: Code[20]; StartingNo: Code[20]; EndingNo: Code[20])
+    var
+        NoSeriesLine: Record "No. Series Line";
+    begin
+        NoSeriesLine.Init();
+        NoSeriesLine."Series Code" := NoSeriesCode;
+        NoSeriesLine."Line No." := 10000;
+        NoSeriesLine.Validate("Starting No.", StartingNo);
+        NoSeriesLine.Validate("Ending No.", EndingNo);
+        NoSeriesLine.Validate("Increment-by No.", 1);
+        NoSeriesLine.Insert(true);
     end;
 
     local procedure GetVATReportVersion(): Code[10]
