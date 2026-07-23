@@ -493,11 +493,16 @@ page 43 "Sales Invoice"
                 {
                     ApplicationArea = BasicEU;
                 }
+#if not CLEAN28
                 field("VAT Paid on Debits"; Rec."VAT Paid on Debits")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if the VAT was paid on debits for this document.';
+                    ObsoleteReason = 'Moved to Sales FR app.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
+#endif
                 group(Control174)
                 {
                     ShowCaption = false;

@@ -519,11 +519,16 @@ page 44 "Sales Credit Memo"
                 {
                     ApplicationArea = BasicEU;
                 }
+#if not CLEAN28
                 field("VAT Paid on Debits"; Rec."VAT Paid on Debits")
                 {
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies if the VAT was paid on debits for this document.';
+                    ObsoleteReason = 'Moved to Sales FR app.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
                 }
+#endif
                 field(Correction; Rec.Correction)
                 {
                     ApplicationArea = Basic, Suite;

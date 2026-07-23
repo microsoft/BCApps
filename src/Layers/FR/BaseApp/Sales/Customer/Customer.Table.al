@@ -2327,10 +2327,20 @@ table 18 Customer
             Caption = 'Contact Graph Id';
             OptimizeForTextSearch = true;
         }
+#if not CLEANSCHEMA28
         field(10805; "SIREN No."; Code[9])
         {
             Caption = 'SIREN No.';
+            ObsoleteReason = 'Moved to Sales FR app.';
+#if CLEAN28
+            ObsoleteState = Removed;
+            ObsoleteTag = '31.0';
+#else
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#endif
         }
+#endif
 #if not CLEAN28        
         field(10860; "Payment in progress (LCY)"; Decimal)
         {
@@ -2458,7 +2468,6 @@ table 18 Customer
         VATRegistrationLogMgt.DeleteCustomerLog(Rec);
 
         DimMgt.DeleteDefaultDim(DATABASE::Customer, "No.");
-        DeleteDimValuePerAccount();
 
         CalendarManagement.DeleteCustomizedBaseCalendarData(CustomizedCalendarChange."Source Type"::Customer, "No.");
     end;
@@ -2586,7 +2595,9 @@ table 18 Customer
         RemovePaymentRoleranceQst: Label 'Do you want to remove payment tolerance from entries that are currently open?';
         CreateNewCustTxt: Label 'Create a new customer card for %1', Comment = '%1 is the name to be used to create the customer. ';
         SelectCustErr: Label 'You must select an existing customer.';
+#if not CLEAN28
         SirenNoTemplateTxt: Label '%1: %2', Locked = true;
+#endif
         CustNotRegisteredTxt: Label 'This customer is not registered. To continue, choose one of the following options:';
         SelectCustTxt: Label 'Select an existing customer';
         OverrideImageQst: Label 'Override Image?';
@@ -2708,7 +2719,6 @@ table 18 Customer
         ConfirmManagement: Codeunit "Confirm Management";
         ContactPageID: Integer;
     begin
-        OnBeforeShowContact(Rec, ContBusRel);
         if OfficeMgt.GetContact(OfficeContact, "No.") and (OfficeContact.Count = 1) then begin
             ContactPageID := PAGE::"Contact Card";
             OnShowContactOnBeforeOpenContactCard(OfficeContact, ContactPageID);
@@ -2977,10 +2987,13 @@ table 18 Customer
                 exit(CustomerPriceGroup."Price Calculation Method");
     end;
 
+#if not CLEAN28
+    [Obsolete('GetSIRENNoWithCaption() moved to Sales FR app', '29.0')]
     procedure GetSIRENNoWithCaption(): Text
     begin
         exit(StrSubstNo(SirenNoTemplateTxt, Rec.FieldCaption("Siren No."), Rec."Siren No."));
     end;
+#endif
 
     /// <summary>
     /// Calculates the total amount in local currency including balance, outstanding orders, shipped not invoiced, and outstanding invoices.
@@ -3448,11 +3461,8 @@ table 18 Customer
         OnGetCustNoOpenCardOnBeforeFilterCustomer(Customer);
         Customer.SetRange(Blocked, Customer.Blocked::" ");
         Customer.SetRange(Name, CustomerText);
-        IsHandled := false;
-        OnGetCustNoOpenCardOnBeforeCustomerFindFirst(Customer, IsHandled);
-        if not IsHandled then
-            if Customer.FindFirst() then
-                exit(Customer."No.");
+        if Customer.FindFirst() then
+            exit(Customer."No.");
 
         Customer.SetCurrentKey(Name);
 
@@ -4063,10 +4073,10 @@ table 18 Customer
         Currency: Record Currency;
     begin
         Currency.SetLoadFields(Code);
-        if not IsNullGuid("Currency Id") then begin
+        if not IsNullGuid("Currency Id") then
             Currency.GetBySystemId("Currency Id");
-            Validate("Currency Code", Currency.Code);
-        end;
+
+        Validate("Currency Code", Currency.Code);
     end;
 
     local procedure UpdatePaymentTermsCode()
@@ -4441,16 +4451,6 @@ table 18 Customer
                 VATRegistrationNo := CountryRegion."ISO Code" + VATRegistrationNo;
 
         exit(VATRegistrationNo);
-    end;
-
-    local procedure DeleteDimValuePerAccount()
-    var
-        DimValuePerAccount: Record "Dim. Value per Account";
-    begin
-        DimValuePerAccount.SetRange("Table ID", Database::Customer);
-        DimValuePerAccount.SetRange("No.", "No.");
-        if not DimValuePerAccount.IsEmpty() then
-            DimValuePerAccount.DeleteAll(true);
     end;
 
     /// <summary>
@@ -4970,16 +4970,6 @@ table 18 Customer
     end;
 
     /// <summary>
-    /// Raised before executing the ShowContact procedure.
-    /// </summary>
-    /// <param name="Customer">The customer record.</param>
-    /// <param name="ContBusRel">The contact business relation record.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnBeforeShowContact(var Customer: Record Customer; var ContactBusinessRelation: Record "Contact Business Relation")
-    begin
-    end;
-
-    /// <summary>
     /// Raised before opening the contact card from ShowContact.
     /// </summary>
     /// <param name="Contact">The contact record to display.</param>
@@ -5005,16 +4995,6 @@ table 18 Customer
     /// <param name="Customer">The customer record with the initial filter applied.</param>
     [IntegrationEvent(false, false)]
     local procedure OnGetCustNoOpenCardOnAfterOnAfterCustomerFilterFromStart(var Customer: Record Customer)
-    begin
-    end;
-
-    /// <summary>
-    /// Raised before the Customer.FindFirst() operation after setting the name filter in GetCustNoOpenCard.
-    /// </summary>
-    /// <param name="Customer">The customer record with applied filters.</param>
-    /// <param name="IsHandled">Set to true to skip the FindFirst check and continue with alternative search logic.</param>
-    [IntegrationEvent(false, false)]
-    local procedure OnGetCustNoOpenCardOnBeforeCustomerFindFirst(var Customer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 

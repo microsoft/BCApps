@@ -21,7 +21,9 @@ using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Foundation.Shipping;
 using Microsoft.Foundation.UOM;
+#if not CLEAN28
 using Microsoft.Inventory.Item;
+#endif
 using Microsoft.Inventory.Ledger;
 using Microsoft.Inventory.Location;
 using Microsoft.Projects.Project.Job;
@@ -247,6 +249,7 @@ report 1306 "Standard Sales - Invoice"
             column(ShipToAddress8; ShipToAddr[8])
             {
             }
+#if not CLEAN28
             column(AlternativeAddress_Lbl; AlternativeAddressTxt)
             {
             }
@@ -283,6 +286,7 @@ report 1306 "Standard Sales - Invoice"
             column(VATPaidOnDebits_Lbl; GetVATPaidOnDebitsText())
             {
             }
+#endif
             column(ShipToPhoneNo; Header."Ship-to Phone No.")
             {
             }
@@ -1491,9 +1495,11 @@ report 1306 "Standard Sales - Invoice"
         PriceLbl: Label 'Price';
         PricePerLbl: Label 'Price per';
         LCYTxt: label ' (LCY)';
+#if not CLEAN28
         IncludesGoodsLbl: Label 'Sales invoice includes only goods.';
         IncludesServicesLbl: Label 'Sales invoice includes only services.';
         IncludesGoodsAndServicesLbl: Label 'Sales invoice includes goods and services.';
+#endif
         VATClauseText: Text;
         LegalOfficeTxt, LegalOfficeLbl, CustomGiroTxt, CustomGiroLbl, LegalStatementLbl : Text;
 
@@ -1509,14 +1515,20 @@ report 1306 "Standard Sales - Invoice"
         CompanyAddr: array[8] of Text[100];
         CustAddr: array[8] of Text[100];
         ShipToAddr: array[8] of Text[100];
+#if not CLEAN28
+        [Obsolete('Moved to Sales FR app', '28.0')]
         AlternativeAddress: array[8] of Text[100];
+#endif
         FormattedLineAmount: Text;
         FormattedQuantity: Text;
         FormattedUnitPrice: Text;
         FormattedVATPct: Text;
         LineDiscountPctText: Text;
         PmtDiscText: Text;
+#if not CLEAN28
+        [Obsolete('Moved to Sales FR app', '28.0')]
         AlternativeAddressTxt: Text;
+#endif
         TotalExclVATText: Text[50];
         TotalInclVATText: Text[50];
         TotalSubTotal: Decimal;
@@ -1607,6 +1619,7 @@ report 1306 "Standard Sales - Invoice"
         exit(CurrReport.Preview() or MailManagement.IsHandlingGetEmailBody());
     end;
 
+#if not CLEAN28
     local procedure GetGoodsAndServicesText(): Text
     var
         SalesInvoiceLine: Record "Sales Invoice Line";
@@ -1649,6 +1662,7 @@ report 1306 "Standard Sales - Invoice"
         if Header."VAT Paid on Debits" then
             exit(Header.FieldCaption("VAT Paid on Debits"));
     end;
+#endif
 
     local procedure GetUOMText(UOMCode: Code[10]): Text[50]
     var
@@ -1779,17 +1793,21 @@ report 1306 "Standard Sales - Invoice"
     end;
 
     local procedure FormatAddressFields(var SalesInvoiceHeader: Record "Sales Invoice Header")
+#if not CLEAN28
     var
         i: Integer;
+#endif
     begin
         FormatAddr.GetCompanyAddr(SalesInvoiceHeader."Responsibility Center", RespCenter, CompanyInfo, CompanyAddr);
         FormatAddr.SalesInvBillTo(CustAddr, SalesInvoiceHeader);
         ShowShippingAddr := FormatAddr.SalesInvShipTo(ShipToAddr, CustAddr, SalesInvoiceHeader);
+#if not CLEAN28
         if ShowShippingAddr then begin
             for i := 1 to 8 do
                 AlternativeAddress[i] := ShipToAddr[i];
             AlternativeAddressTxt := ShiptoAddrLbl;
         end;
+#endif
     end;
 
     local procedure FormatDocumentFields(SalesInvoiceHeader: Record "Sales Invoice Header")
@@ -1937,4 +1955,3 @@ report 1306 "Standard Sales - Invoice"
     begin
     end;
 }
-

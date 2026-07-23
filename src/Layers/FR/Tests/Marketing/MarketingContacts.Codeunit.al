@@ -56,10 +56,6 @@ codeunit 136201 "Marketing Contacts"
         ItemDimensionAllowedFilter: Label 'Allowed Dimension filter must match in both Item template and Item.';
         ValueMustMatch: Label 'Value must match.';
         SelectVendorTemplateQst: Label 'Do you want to select the vendor template?';
-        ContactShouldHaveCustomerRelationErr: Label 'Contact should have customer business relation';
-        ContactShouldNotHaveVendorRelationErr: Label 'Contact should not have vendor business relation';
-        VendorTemplateShouldBeAppliedMsg: Label 'Vendor template should be applied to first purchase quote';
-        VendorTemplateAfterCustomerCreationMsg: Label 'Vendor template should be applied even after customer creation';
 
     [Test]
     procedure ContactBusinessRelationCompatibility()
@@ -5749,6 +5745,7 @@ codeunit 136201 "Marketing Contacts"
         ContactList.Close();
     end;
 
+#if not CLEAN28
     [Test]
     procedure CustomerHasSirenNoFromContact()
     var
@@ -5772,6 +5769,7 @@ codeunit 136201 "Marketing Contacts"
         Customer.FindFirst();
         Customer.TestField("SIREN No.", Contact."SIREN No.");
     end;
+#endif
 
     [Test]
     [HandlerFunctions('ConfirmHandlerTrue,CustomerTemplateHandler,MessageHandler')]
@@ -6311,69 +6309,6 @@ codeunit 136201 "Marketing Contacts"
         InteractionLogEntry.SetRange("Contact No.", Contact."No.");
         InteractionLogEntry.SetRange("Interaction Template Code", InteractionTemplateSetup."E-Mails");
         Assert.RecordIsNotEmpty(InteractionLogEntry);
-    end;
-
-    [Test]
-    [HandlerFunctions('ConfirmHandlerTrue,VendorTempModalPageHandlerWithEnqueue,CustomerTempModalFormHandler,MessageHandler,VendorTempModalPageHandlerWithEnqueue')]
-    procedure TestVendorTemplateSelectionAfterCustomerCreation()
-    var
-        Contact: Record Contact;
-        VendorTemplate: Record "Vendor Templ.";
-        CustomerTemplate: Record "Customer Templ.";
-        ContactCard: TestPage "Contact Card";
-        PurchaseQuote: TestPage "Purchase Quote";
-        PurchaseQuote2: TestPage "Purchase Quote";
-    begin
-        // [FEATURE] [AI TEST]
-        // [SCENARIO 615201] Creating customer from contact should not block vendor template selection in subsequent purchase quotes.
-        Initialize();
-
-        // [GIVEN] Two vendor templates with Contact Type = Company and random Country Code.
-        LibraryTemplates.CreateVendorTemplate(VendorTemplate);
-        VendorTemplate."Contact Type" := VendorTemplate."Contact Type"::Company;
-        VendorTemplate."Country/Region Code" := LibraryUtility.GenerateRandomCode(VendorTemplate.FieldNo("Country/Region Code"), Database::"Vendor Templ.");
-        VendorTemplate.Modify();
-
-        LibraryTemplates.CreateVendorTemplate(VendorTemplate);
-        VendorTemplate."Contact Type" := VendorTemplate."Contact Type"::Company;
-        VendorTemplate."Country/Region Code" := LibraryUtility.GenerateRandomCode(VendorTemplate.FieldNo("Country/Region Code"), Database::"Vendor Templ.");
-        VendorTemplate.Modify();
-
-        // [GIVEN] A company contact with random Country Code.
-        LibraryMarketing.CreateCompanyContact(Contact);
-        Contact."Country/Region Code" := LibraryUtility.GenerateRandomCode(Contact.FieldNo("Country/Region Code"), Database::Contact);
-        Contact.Modify();
-
-        // [GIVEN] Create customer template for customer creation.
-        CreateCustomerTemplate(CustomerTemplate, '');
-
-        // [WHEN] Contact card is opened and Create Purchase Quote is invoked.
-        ContactCard.OpenEdit();
-        ContactCard.GotoRecord(Contact);
-        PurchaseQuote.Trap();
-        ContactCard.NewPurchaseQuote.Invoke();
-
-        // [THEN] Purchase quote is created with the selected template.
-        Assert.AreNotEqual('', PurchaseQuote."Buy-from Vendor Templ. Code".Value(), VendorTemplateShouldBeAppliedMsg);
-        PurchaseQuote.Close();
-
-        // [WHEN] Create customer from the same contact.
-        ContactCard.CreateCustomer.Invoke();
-
-        // [THEN] Contact should have customer business relation.
-        Assert.IsTrue(ContactHasCustomerBusinessRelation(Contact), ContactShouldHaveCustomerRelationErr);
-
-        // [THEN] Contact should not have vendor business relation.
-        Assert.IsFalse(ContactHasVendorBusinessRelation(Contact), ContactShouldNotHaveVendorRelationErr);
-
-        // [WHEN] Create Purchase Quote again from the same contact.
-        PurchaseQuote2.Trap();
-        ContactCard.NewPurchaseQuote.Invoke();
-
-        // [THEN] Verify system Should still prompt for vendor template selection.
-        Assert.AreNotEqual('', PurchaseQuote2."Buy-from Vendor Templ. Code".Value(), VendorTemplateAfterCustomerCreationMsg);
-        PurchaseQuote2.Close();
-        ContactCard.Close();
     end;
 
     local procedure Initialize()
@@ -7218,30 +7153,6 @@ codeunit 136201 "Marketing Contacts"
         exit(VendorTemplate.Code);
     end;
 
-    local procedure ContactHasVendorBusinessRelation(Contact: Record Contact): Boolean
-    var
-        ContactBusinessRelation: Record "Contact Business Relation";
-        MarketingSetup: Record "Marketing Setup";
-    begin
-        MarketingSetup.Get();
-        ContactBusinessRelation.SetRange("Contact No.", Contact."No.");
-        ContactBusinessRelation.SetRange("Business Relation Code", MarketingSetup."Bus. Rel. Code for Vendors");
-        ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Vendor);
-        exit(not ContactBusinessRelation.IsEmpty());
-    end;
-
-    local procedure ContactHasCustomerBusinessRelation(Contact: Record Contact): Boolean
-    var
-        ContactBusinessRelation: Record "Contact Business Relation";
-        MarketingSetup: Record "Marketing Setup";
-    begin
-        MarketingSetup.Get();
-        ContactBusinessRelation.SetRange("Contact No.", Contact."No.");
-        ContactBusinessRelation.SetRange("Business Relation Code", MarketingSetup."Bus. Rel. Code for Customers");
-        ContactBusinessRelation.SetRange("Link to Table", ContactBusinessRelation."Link to Table"::Customer);
-        exit(not ContactBusinessRelation.IsEmpty());
-    end;
-
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure NameDetailsModalFormHandler(var NameDetails: Page "Name Details"; var Reply: Action)
@@ -7701,4 +7612,3 @@ codeunit 136201 "Marketing Contacts"
         Result := true;
     end;
 }
-
