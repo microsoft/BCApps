@@ -2858,8 +2858,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
             UpdateReqLineQuantity(SupplyInventoryProfile);
             UpdateReqLineOriginalQuantity(SupplyInventoryProfile);
             ReqLine."Net Quantity (Base)" :=
-              (ReqLine."Remaining Quantity" - ReqLine."Original Quantity") *
-              ReqLine."Qty. per Unit of Measure";
+              ReqLine."Remaining Qty. (Base)" - ReqLine."Original Quantity" * ReqLine."Qty. per Unit of Measure";
             OnAdjustPlanLineAfterValidateQuantity(ReqLine, SupplyInventoryProfile);
         end;
         UpdateOriginalDueDate(SupplyInventoryProfile);

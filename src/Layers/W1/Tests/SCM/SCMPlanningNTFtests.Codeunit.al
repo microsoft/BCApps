@@ -347,6 +347,17 @@ codeunit 137021 "SCM Planning - NTF tests"
           'Reservation Entry Quantity (Base) must match demand.');
     end;
 
+    local procedure VerifyReqLineNetQtyBase(ItemNo: Code[20]; ExpectedNetQtyBase: Decimal)
+    var
+        RequisitionLine: Record "Requisition Line";
+    begin
+        RequisitionLine.SetRange(Type, RequisitionLine.Type::Item);
+        RequisitionLine.SetRange("No.", ItemNo);
+        RequisitionLine.FindFirst();
+        Assert.AreEqual(ExpectedNetQtyBase, RequisitionLine."Net Quantity (Base)",
+          'Requisition Line Net Quantity (Base) must match demand.');
+    end;
+
     local procedure VerifyNoReservEntryExists(ItemNo: Code[20])
     var
         ReservationEntry: Record "Reservation Entry";
@@ -3730,6 +3741,9 @@ codeunit 137021 "SCM Planning - NTF tests"
 
         // [WHEN] Calculate Regenerative Plan is run and Action Message is carried out to create a Purchase Order "P".
         LibraryPlanning.CalcRegenPlanForPlanWksh(Item, WorkDate(), CalcDate(PlanningEndDate, WorkDate()));
+
+        // [THEN] The planned Requisition Line's Net Quantity (Base), used for dynamic tracking, matches the base demand "J" and is not distorted by UoM conversion rounding.
+        VerifyReqLineNetQtyBase(Item."No.", JobQuantity);
         AcceptAndCarryOutActionMessage(Item."No.");
 
         // [THEN] Reservation entries linked to "P" have correct Quantity (Base) matching "J" quantity, and deleting "P" and then "J" succeeds without leaving orphan reservation entries.
