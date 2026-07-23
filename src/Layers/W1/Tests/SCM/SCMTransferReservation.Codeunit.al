@@ -9,33 +9,35 @@ codeunit 137269 "SCM Transfer Reservation"
     end;
 
     var
+        Assert: Codeunit Assert;
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryInventory: Codeunit "Library - Inventory";
-        LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryJob: Codeunit "Library - Job";
+        LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryPlanning: Codeunit "Library - Planning";
         LibraryPurchase: Codeunit "Library - Purchase";
+        LibraryRandom: Codeunit "Library - Random";
         LibrarySales: Codeunit "Library - Sales";
         LibraryService: Codeunit "Library - Service";
-        LibraryJob: Codeunit "Library - Job";
-        LibraryItemTracking: Codeunit "Library - Item Tracking";
-        LibraryPlanning: Codeunit "Library - Planning";
-        LibraryManufacturing: Codeunit "Library - Manufacturing";
-        LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
-        LibraryRandom: Codeunit "Library - Random";
-        LibraryUtility: Codeunit "Library - Utility";
-        Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
+        LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         isInitialized: Boolean;
-        ReservationEntryShipmentDateIncorrectErr: Label 'Reservation Entry Shipment Date is incorrect.';
         Direction: Option Outbound,Inbound;
         ItemTrackingOption: Option AssignLotNo,SelectEntries,ChangeLotQty,AssignSerialNos;
         CounterOfConfirms: Integer;
-        DummyQst: Label 'Dummy Dialog Question?';
         ConfirmDialogOccursErr: Label 'Confirm Dialog occurs.';
+        DummyQst: Label 'Dummy Dialog Question?';
         ExpectedDateConfclictErr: Label 'The change leads to a date conflict with existing reservations';
-        UnexpectedErr: Label 'Unexpected Error occured.';
-        ReservEntryQtyIncorrectErr: Label 'Reservation Entry Quantity is different than expected.';
+        ReservationEntryShipmentDateIncorrectErr: Label 'Reservation Entry Shipment Date is incorrect.';
         ReservationFromStockErr: Label 'Reservation from Stock must be %1 in %2.', Comment = '%1= Field Value, %2 =Table Caption.';
+        ReservedQtyExpectedErr: Label 'Reserved Qty. Outbnd. (Base) is expected to be non-zero before deletion.';
+        ReservEntryQtyIncorrectErr: Label 'Reservation Entry Quantity is different than expected.';
+        TransferHeaderNotDeletedErr: Label 'Transfer Header should have been deleted.';
+        UnexpectedErr: Label 'Unexpected Error occured.';
 
     [Test]
     [Scope('OnPrem')]
@@ -2076,6 +2078,104 @@ codeunit 137269 "SCM Transfer Reservation"
         ReservationEntry.SetRange("Item No.", Item."No.");
         ReservationEntry.SetRange("Reservation Status", ReservationEntry."Reservation Status"::Reservation);
         Assert.RecordIsNotEmpty(ReservationEntry);
+    end;
+
+    [Test]
+    procedure DeleteTransferHeaderWithReservedOutboundLine()
+    var
+        ReservationEntry: Record "Reservation Entry";
+        TransferHeader: Record "Transfer Header";
+        TransferLine: Record "Transfer Line";
+        ItemNo: Code[20];
+    begin
+        // [SCENARIO 641400] Deleting a Transfer Order header that has a reserved line succeeds and clears the reservation.
+        Initialize();
+
+        // [GIVEN] A released Transfer Order with one line reserved outbound from inventory.
+        CreateTransferOrderQtyOneReservedOutbound(TransferHeader, TransferLine);
+        ItemNo := TransferLine."Item No.";
+
+        // [GIVEN] The reserved outbound quantity on the line is non-zero.
+        TransferLine.CalcFields("Reserved Qty. Outbnd. (Base)");
+        Assert.AreNotEqual(0, TransferLine."Reserved Qty. Outbnd. (Base)", ReservedQtyExpectedErr);
+
+        // [WHEN] Deleting the Transfer Order header.
+        TransferHeader.Delete(true);
+
+        // [THEN] The header and its line are deleted without error.
+        Assert.IsFalse(TransferHeader.Get(TransferHeader."No."), TransferHeaderNotDeletedErr);
+        TransferLine.SetRange("Document No.", TransferHeader."No.");
+        Assert.RecordIsEmpty(TransferLine);
+
+        // [THEN] No reservation entries remain for the item.
+        ReservationEntry.SetRange("Item No.", ItemNo);
+        Assert.RecordIsEmpty(ReservationEntry);
+    end;
+
+    [Test]
+    procedure DeleteReservedOutboundTransferLine()
+    var
+        ReservationEntry: Record "Reservation Entry";
+        TransferLine: Record "Transfer Line";
+        DocumentNo: Code[20];
+        ItemNo: Code[20];
+    begin
+        // [SCENARIO 641400] Deleting an individual reserved Transfer Line succeeds and clears the reservation, consistent with header deletion.
+        Initialize();
+
+        // [GIVEN] A Transfer Order with one line reserved outbound from inventory.
+        CreateTransferLineQtyOneReservedOutbound(TransferLine);
+        ItemNo := TransferLine."Item No.";
+        DocumentNo := TransferLine."Document No.";
+
+        // [GIVEN] The reserved outbound quantity on the line is non-zero.
+        TransferLine.CalcFields("Reserved Qty. Outbnd. (Base)");
+        Assert.AreNotEqual(0, TransferLine."Reserved Qty. Outbnd. (Base)", ReservedQtyExpectedErr);
+
+        // [WHEN] Deleting the Transfer Line.
+        TransferLine.Delete(true);
+
+        // [THEN] The line is deleted without error.
+        TransferLine.SetRange("Document No.", DocumentNo);
+        Assert.RecordIsEmpty(TransferLine);
+
+        // [THEN] No reservation entries remain for the item.
+        ReservationEntry.SetRange("Item No.", ItemNo);
+        Assert.RecordIsEmpty(ReservationEntry);
+    end;
+
+    [Test]
+    procedure DeleteTransferHeaderAndLineWithReservationAreConsistent()
+    var
+        TransferHeaderForHeaderDelete: Record "Transfer Header";
+        TransferHeaderForLineDelete: Record "Transfer Header";
+        TransferLineForHeaderDelete: Record "Transfer Line";
+        TransferLineForLineDelete: Record "Transfer Line";
+    begin
+        // [SCENARIO 641400] Deleting a reserved Transfer Line and deleting the Transfer Order header both succeed, so the two paths behave consistently.
+        Initialize();
+
+        // [GIVEN] A reserved Transfer Order whose line will be deleted directly.
+        CreateTransferOrderQtyOneReservedOutbound(TransferHeaderForLineDelete, TransferLineForLineDelete);
+
+        // [GIVEN] Another reserved Transfer Order whose header will be deleted.
+        CreateTransferOrderQtyOneReservedOutbound(TransferHeaderForHeaderDelete, TransferLineForHeaderDelete);
+
+        // [WHEN] Deleting the line directly.
+        TransferLineForLineDelete.Delete(true);
+
+        // [THEN] The line is gone.
+        TransferLineForLineDelete.SetRange("Document No.", TransferHeaderForLineDelete."No.");
+        Assert.RecordIsEmpty(TransferLineForLineDelete);
+
+        // [WHEN] Deleting the header of the other order.
+        TransferHeaderForHeaderDelete.Delete(true);
+
+        // [THEN] The header and its line are gone as well.
+        Assert.IsFalse(
+          TransferHeaderForHeaderDelete.Get(TransferHeaderForHeaderDelete."No."), TransferHeaderNotDeletedErr);
+        TransferLineForHeaderDelete.SetRange("Document No.", TransferHeaderForHeaderDelete."No.");
+        Assert.RecordIsEmpty(TransferLineForHeaderDelete);
     end;
 
     local procedure Initialize()
