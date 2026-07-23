@@ -19,6 +19,7 @@
         LibraryRandom: Codeunit "Library - Random";
         LibraryERM: Codeunit "Library - ERM";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
+        LibraryCFDI: Codeunit "Library - CFDI";
         IsInitialized: Boolean;
         PACCodeDeleteError: Label 'You cannot delete the code %1 because it is used in the %2 window.';
         PACWebServiceDetailError: Label 'PAC Web Service Details count is incorrect.';
@@ -2767,6 +2768,206 @@
         PostedTransferShipmentCard.Close();
     end;
 
+    [Test]
+    [HandlerFunctions('RequestStampMenuHandler')]
+    procedure RequestStampSalesInv11LinesDoesNotRaiseCFDI40108()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PostedDocumentNo: Code[20];
+        i: Integer;
+    begin
+        // [FEATURE] [CFDI]
+        // [SCENARIO 494919] Request Stamp on Sales Invoice with 11 lines in MXN and 16% VAT reaches XML processing stage without CFDI rounding error
+        Initialize();
+
+        // [GIVEN] CFDI setup with PAC Web Service configured
+        SetupCFDIForRequestStamp();
+
+        // [GIVEN] Posted Sales Invoice "SI" with 11 lines, Quantity = 1, Unit Prices from 90 to 100
+        CreateSalesHeaderForStamp(SalesHeader, SalesHeader."Document Type"::Invoice);
+        for i := 1 to 11 do
+            CreateSalesLineWithVAT16(SalesLine, SalesHeader, 1, 89 + i);
+
+        // [WHEN] Sales Invoice is posted and RequestStampEDocument is called
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        SalesInvoiceHeader.Get(PostedDocumentNo);
+        asserterror SalesInvoiceHeader.RequestStampEDocument();
+
+        // [THEN] CFDI40108 SubTotal validation error is not raised
+        Assert.AreEqual(0, StrPos(GetLastErrorText(), 'CFDI40108'), 'CFDI40108 SubTotal validation error must not be raised');
+
+        // [THEN] Error 'Root element is missing' confirms process passed CFDI validation
+        Assert.ExpectedError('Root element is missing');
+        Assert.ExpectedErrorCode('DotNetInvoke:Xml');
+    end;
+
+    [Test]
+    [HandlerFunctions('RequestStampMenuHandler')]
+    procedure RequestStampFallbackToAlternativeRoundingModel()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PostedDocumentNo: Code[20];
+        i: Integer;
+    begin
+        // [FEATURE] [CFDI]
+        // [SCENARIO 494919] Request Stamp with alternative rounding model reaches XML processing when default model produces tax mismatch (CFDI40167)
+        Initialize();
+
+        // [GIVEN] CFDI setup with PAC Web Service configured
+        SetupCFDIForRequestStamp();
+
+        // [GIVEN] Posted Sales Invoice "SI" with 11 lines, Quantity = 3, Unit Prices from 34 to 44
+        CreateSalesHeaderForStamp(SalesHeader, SalesHeader."Document Type"::Invoice);
+        for i := 1 to 11 do
+            CreateSalesLineWithVAT16(SalesLine, SalesHeader, 3, 33 + i);
+
+        // [WHEN] Sales Invoice is posted and RequestStampEDocument is called
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        SalesInvoiceHeader.Get(PostedDocumentNo);
+        asserterror SalesInvoiceHeader.RequestStampEDocument();
+
+        // [THEN] CFDI40167 tax mismatch error is not raised
+        Assert.AreEqual(0, StrPos(GetLastErrorText(), 'CFDI40167'), 'CFDI40167 tax mismatch error must not be raised');
+
+        // [THEN] Error 'Root element is missing' confirms process passed CFDI validation
+        Assert.ExpectedError('Root element is missing');
+        Assert.ExpectedErrorCode('DotNetInvoke:Xml');
+    end;
+
+    [Test]
+    [HandlerFunctions('RequestStampMenuHandler,ErrorMessagesHandler')]
+    procedure RequestStampRaisesNoRelationDocsErrorWhenCFDIRelation04()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PostedDocumentNo: Code[20];
+    begin
+        // [FEATURE] [CFDI]
+        // [SCENARIO 494919] Request Stamp raises 'No relation documents' error when "CFDI Relation" = '04' and no substitution documents exist
+        Initialize();
+
+        // [GIVEN] CFDI setup with PAC Web Service configured
+        SetupCFDIForRequestStamp();
+
+        // [GIVEN] Posted Sales Invoice "SI" with 1 line, Quantity = 1, Unit Price = 100
+        CreateSalesHeaderForStamp(SalesHeader, SalesHeader."Document Type"::Invoice);
+        CreateSalesLineWithVAT16(SalesLine, SalesHeader, 1, 100);
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        SalesInvoiceHeader.Get(PostedDocumentNo);
+
+        // [GIVEN] "CFDI Relation" = '04' on Posted Sales Invoice "SI" without relation documents
+        SalesInvoiceHeader."CFDI Relation" := '04';
+        SalesInvoiceHeader.Modify();
+
+        // [WHEN] RequestStampEDocument is called on Posted Sales Invoice "SI"
+        asserterror SalesInvoiceHeader.RequestStampEDocument();
+
+        // [THEN] Error 'No relation documents specified for the replacement of previous CFDIs.' with code 'Dialog' is raised
+        Assert.ExpectedError('No relation documents specified for the replacement of previous CFDIs.');
+        Assert.ExpectedErrorCode('Dialog');
+    end;
+
+    [Test]
+    [HandlerFunctions('RequestStampMenuHandler')]
+    procedure RequestStampRetentionLinesExcludedFromSubTotal()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesLineRetention: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        PostedDocumentNo: Code[20];
+        RetentionItemNo: Code[20];
+    begin
+        // [FEATURE] [CFDI]
+        // [SCENARIO 494919] Request Stamp with retention lines (Retention Attached to Line No. <> 0) reaches XML processing without SubTotal mismatch
+        Initialize();
+
+        // [GIVEN] CFDI setup with PAC Web Service configured
+        SetupCFDIForRequestStamp();
+
+        // [GIVEN] Sales Invoice "SI" with 2 lines: Qty = 2, Unit Price = 150 and Qty = 1, Unit Price = 200
+        CreateSalesHeaderForStamp(SalesHeader, SalesHeader."Document Type"::Invoice);
+        CreateSalesLineWithVAT16(SalesLine, SalesHeader, 2, 150);
+        CreateSalesLineWithVAT16(SalesLine, SalesHeader, 1, 200);
+
+        // [GIVEN] Retention line with Qty = -1, Unit Price = 20, attached to last Sales Line
+        RetentionItemNo := CreateItemWithSATSetup();
+        LibrarySales.CreateSalesLine(SalesLineRetention, SalesHeader, SalesLineRetention.Type::Item, RetentionItemNo, -1);
+        SalesLineRetention.Validate("Retention Attached to Line No.", SalesLine."Line No.");
+        SalesLineRetention.Validate("Unit Price", 20);
+        SalesLineRetention.Validate(Description, RetentionItemNo);
+        SalesLineRetention.Modify(true);
+
+        // [WHEN] Sales Invoice is posted and RequestStampEDocument is called
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        SalesInvoiceHeader.Get(PostedDocumentNo);
+        asserterror SalesInvoiceHeader.RequestStampEDocument();
+
+        // [THEN] CFDI40108 SubTotal validation error is not raised
+        Assert.AreEqual(0, StrPos(GetLastErrorText(), 'CFDI40108'), 'CFDI40108 SubTotal validation error must not be raised');
+
+        // [THEN] Error 'Root element is missing' confirms process passed CFDI validation
+        Assert.ExpectedError('Root element is missing');
+        Assert.ExpectedErrorCode('DotNetInvoke:Xml');
+    end;
+
+    [Test]
+    procedure SubTotalEqualsRoundedSumOfLineImportes()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempDocumentHeader: Record "Document Header" temporary;
+        TempDocumentLine: Record "Document Line" temporary;
+        TempDocumentLineRetention: Record "Document Line" temporary;
+        TempVATAmountLine: Record "VAT Amount Line" temporary;
+        EInvoiceMgt: Codeunit "E-Invoice Mgt.";
+        PostedDocumentNo: Code[20];
+        OriginalSubTotal: Decimal;
+        RecalculatedSubTotal: Decimal;
+        TotalTax: Decimal;
+        TotalRetention: Decimal;
+        TotalDiscount: Decimal;
+        i: Integer;
+    begin
+        // [FEATURE] [CFDI]
+        // [SCENARIO 494919] SubTotal from CreateTempDocument equals sum of Round(Amount + Line Discount Amount, 0.000001) for non-retention lines
+        Initialize();
+
+        // [GIVEN] CFDI setup with PAC Web Service configured
+        SetupCFDIForRequestStamp();
+
+        // [GIVEN] Posted Sales Invoice "SI" with 11 lines, Quantity = 1, Unit Prices from 90 to 100
+        CreateSalesHeaderForStamp(SalesHeader, SalesHeader."Document Type"::Invoice);
+        for i := 1 to 11 do
+            CreateSalesLineWithVAT16(SalesLine, SalesHeader, 1, 89 + i);
+
+        // [GIVEN] Sales Invoice "SI" is posted
+        PostedDocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+        SalesInvoiceHeader.Get(PostedDocumentNo);
+
+        // [WHEN] CreateTempDocument is called for Posted Sales Invoice "SI"
+        EInvoiceMgt.CreateTempDocument(
+            SalesInvoiceHeader, TempDocumentHeader, TempDocumentLine, TempDocumentLineRetention, TempVATAmountLine,
+            OriginalSubTotal, TotalTax, TotalRetention, TotalDiscount, false);
+
+        // [THEN] Sum of Round(Amount + "Line Discount Amount", 0.000001) for lines where "Retention Attached to Line No." = 0 equals OriginalSubTotal
+        RecalculatedSubTotal := 0;
+        TempDocumentLine.Reset();
+        if TempDocumentLine.FindSet() then
+            repeat
+                if TempDocumentLine."Retention Attached to Line No." = 0 then
+                    RecalculatedSubTotal += Round(TempDocumentLine.Amount + TempDocumentLine."Line Discount Amount", 0.000001);
+            until TempDocumentLine.Next() = 0;
+        Assert.AreNotEqual(0, RecalculatedSubTotal, 'RecalculatedSubTotal must not be 0 when 11 lines exist');
+        Assert.AreEqual(OriginalSubTotal, RecalculatedSubTotal, 'OriginalSubTotal must equal sum of individually rounded line importes');
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
@@ -2781,6 +2982,101 @@
 
         IsInitialized := true;
         Commit();
+    end;
+
+    local procedure SetupCFDIForRequestStamp()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        PACWebServiceCode: Code[10];
+    begin
+        PACWebServiceCode := LibraryCFDI.CreatePACService();
+        LibraryCFDI.InitGLSetup(PACWebServiceCode);
+        LibraryCFDI.SetupCompanyInformation();
+        LibraryCFDI.PopulateSATInformation();
+        LibraryCFDI.SetupReportSelection();
+        GeneralLedgerSetup.Get();
+        GeneralLedgerSetup."Sim. Request Stamp" := true;
+        GeneralLedgerSetup.Modify();
+    end;
+
+    local procedure CreateSalesHeaderForStamp(var SalesHeader: Record "Sales Header"; DocumentType: Enum "Sales Document Type")
+    var
+        Customer: Record Customer;
+        CountryRegion: Record "Country/Region";
+        PostCode: Record "Post Code";
+    begin
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("E-Mail", LibraryUtility.GenerateRandomEmail());
+        Customer."RFC No." := CopyStr(LibraryUtility.GenerateRandomAlphabeticText(12, 0), 1, 12);
+        // Create dedicated Country/Region for the test to avoid mutating shared seed data.
+        CountryRegion.Init();
+        CountryRegion.Code := LibraryUtility.GenerateRandomCode(CountryRegion.FieldNo(Code), DATABASE::"Country/Region");
+        CountryRegion.Name := CountryRegion.Code;
+        CountryRegion."SAT Country Code" := CountryRegion.Code;
+        CountryRegion.Insert(true);
+        Customer.Validate("Country/Region Code", CountryRegion.Code);
+        Customer.Address := LibraryUtility.GenerateGUID();
+        if not PostCode.FindFirst() then begin
+            PostCode.Code := '12345';
+            PostCode.City := 'TestCity';
+            PostCode."Country/Region Code" := CountryRegion.Code;
+            PostCode.Insert();
+        end;
+        Customer."Post Code" := PostCode.Code;
+        Customer.City := PostCode.City;
+        Customer."SAT Tax Regime Classification" :=
+            LibraryUtility.GenerateRandomCode(Customer.FieldNo("SAT Tax Regime Classification"), DATABASE::Customer);
+        Customer."CFDI Export Code" := LibraryCFDI.CreateCFDIExportCode();
+        Customer.Modify(true);
+        LibrarySales.CreateSalesHeader(SalesHeader, DocumentType, Customer."No.");
+        SalesHeader.Validate("Payment Terms Code", LibraryCFDI.CreatePaymentTermsForSAT());
+        SalesHeader.Validate("Payment Method Code", LibraryCFDI.CreatePaymentMethodForSAT());
+        SalesHeader.Validate("CFDI Purpose", LibraryCFDI.CreateCFDIPurpose());
+        SalesHeader.Validate("CFDI Relation", LibraryCFDI.CreateCFDIRelation());
+        SalesHeader.Modify(true);
+    end;
+
+    local procedure CreateSalesLineWithVAT16(var SalesLine: Record "Sales Line"; SalesHeader: Record "Sales Header"; Quantity: Decimal; UnitPrice: Decimal)
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
+        ItemNo: Code[20];
+    begin
+        LibraryERM.CreateVATProductPostingGroup(VATProductPostingGroup);
+        LibraryERM.CreateVATPostingSetup(VATPostingSetup, SalesHeader."VAT Bus. Posting Group", VATProductPostingGroup.Code);
+        VATPostingSetup.Validate("VAT %", 16);
+        VATPostingSetup.Validate("Sales VAT Account", LibraryERM.CreateGLAccountNo());
+        VATPostingSetup."VAT Identifier" := LibraryUtility.GenerateGUID();
+        VATPostingSetup.Modify(true);
+        ItemNo := CreateItemWithSATSetup();
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, Quantity);
+        SalesLine.Validate("VAT Prod. Posting Group", VATProductPostingGroup.Code);
+        SalesLine.Validate("Unit Price", UnitPrice);
+        SalesLine.Validate(Description, ItemNo);
+        SalesLine."SAT Customs Document Type" := '02';
+        SalesLine.Modify(true);
+    end;
+
+    local procedure CreateItemWithSATSetup(): Code[20]
+    var
+        Item: Record Item;
+        UnitOfMeasure: Record "Unit of Measure";
+        SATClassification: Record "SAT Classification";
+        SATUnitOfMeasure: Record "SAT Unit of Measure";
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item."SAT Item Classification" := LibraryUtility.GenerateRandomCode(Item.FieldNo("SAT Item Classification"), DATABASE::Item);
+        Item.Modify(true);
+        if not SATClassification.Get(Item."SAT Item Classification") then begin
+            SATClassification."SAT Classification" := Item."SAT Item Classification";
+            SATClassification.Insert();
+        end;
+        UnitOfMeasure.Get(Item."Base Unit of Measure");
+        if SATUnitOfMeasure.FindFirst() then begin
+            UnitOfMeasure."SAT UofM Classification" := SATUnitOfMeasure."SAT UofM Code";
+            UnitOfMeasure.Modify();
+        end;
+        exit(Item."No.");
     end;
 
     local procedure CreateCustomerWithCFDIFields(var Customer: Record Customer)
@@ -3322,5 +3618,11 @@
     begin
         Choice := 1;
     end;
-}
 
+    [PageHandler]
+    [Scope('OnPrem')]
+    procedure ErrorMessagesHandler(var ErrorMessages: TestPage "Error Messages")
+    begin
+        Error(ErrorMessages.Description.Value());
+    end;
+}
