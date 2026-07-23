@@ -18,7 +18,15 @@ codeunit 147521 "SII Documents - UI"
         LibraryService: Codeunit "Library - Service";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibrarySII: Codeunit "Library - SII";
+        LibraryERM: Codeunit "Library - ERM";
+        LibraryRandom: Codeunit "Library - Random";
+        LibraryUtility: Codeunit "Library - Utility";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         IsInitialized: Boolean;
+        FacturaDuplicadaFragmentTxt: Label 'Factura Duplicada', Locked = true;
+        ExactlyOneNotificationErr: Label 'Exactly one notification is expected.';
+        SIIDuplicateNotificationErr: Label 'The SII duplicate notification message is expected.';
 
     [Test]
     [Scope('OnPrem')]
@@ -473,6 +481,69 @@ codeunit 147521 "SII Documents - UI"
         PurchaseHeaderVerify.TestField("Invoice Type", PurchaseHeaderVerify."Invoice Type"::"F5 Imports (DUA)");
     end;
 
+    [Test]
+    [HandlerFunctions('SIIDuplicateExtDocNoNotificationHandler')]
+    [Scope('OnPrem')]
+    procedure SIIDuplicateExtDocNoNotifiedOnPurchCrMemoWhenPostedInvoiceExists()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        VendorNo: Code[20];
+        ExtDocNo: Code[35];
+    begin
+        // [FEATURE] [Credit Memo] [Purchase] [Notification] [AI Test]
+        // [SCENARIO 639518] With SII enabled, validating an external document number on a purchase credit memo that already
+        // exists on a posted purchase invoice of the same vendor raises the SII duplicate notification.
+        Initialize();
+
+        // [GIVEN] A posted purchase invoice for vendor "V" with external document number "X"
+        VendorNo := LibraryPurchase.CreateVendorNo();
+        ExtDocNo := LibraryUtility.GenerateRandomText(MaxStrLen(ExtDocNo));
+        PostPurchDocWithExtDocNo(PurchaseHeader."Document Type"::Invoice, VendorNo, ExtDocNo);
+
+        // [WHEN] A purchase credit memo for vendor "V" gets "Vendor Cr. Memo No." = "X"
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::"Credit Memo", VendorNo);
+        PurchaseHeader.Validate("Vendor Cr. Memo No.", ExtDocNo);
+
+        // [THEN] The SII duplicate ("Factura Duplicada") notification is raised
+        Assert.AreEqual(1, LibraryVariableStorage.Length(), ExactlyOneNotificationErr);
+        Assert.IsTrue(
+            StrPos(LibraryVariableStorage.DequeueText(), FacturaDuplicadaFragmentTxt) > 0,
+            SIIDuplicateNotificationErr);
+
+        LibraryVariableStorage.AssertEmpty();
+        NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SIINoDuplicateNotificationWhenSIIDisabled()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        VendorNo: Code[20];
+        ExtDocNo: Code[35];
+    begin
+        // [FEATURE] [Credit Memo] [Purchase] [Notification] [AI Test]
+        // [SCENARIO 639518] With SII enabled, validating an external document number on a purchase credit memo that already
+        // exists on a posted purchase invoice of the same vendor raises the SII duplicate notification.
+        Initialize();
+
+        // [GIVEN] A posted purchase invoice for vendor "V" with external document number "X"
+        VendorNo := LibraryPurchase.CreateVendorNo();
+        ExtDocNo := LibraryUtility.GenerateRandomText(MaxStrLen(ExtDocNo));
+        PostPurchDocWithExtDocNo(PurchaseHeader."Document Type"::Invoice, VendorNo, ExtDocNo);
+
+        // [GIVEN] SII is disabled
+        LibrarySII.InitSetup(false, false);
+
+        // [WHEN] A purchase credit memo for vendor "V" gets "Vendor Cr. Memo No." = "X"
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::"Credit Memo", VendorNo);
+        PurchaseHeader.Validate("Vendor Cr. Memo No.", ExtDocNo);
+
+        // [THEN] No SII duplicate notification is raised
+        LibraryVariableStorage.AssertEmpty();
+        NotificationLifecycleMgt.RecallAllNotifications();
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
@@ -499,6 +570,31 @@ codeunit 147521 "SII Documents - UI"
     local procedure CreateServiceHeader(var ServiceHeader: Record "Service Header"; DocumentType: Enum "Service Document Type")
     begin
         LibraryService.CreateServiceHeader(ServiceHeader, DocumentType, '');
+    end;
+
+    local procedure PostPurchDocWithExtDocNo(DocumentType: Enum "Purchase Document Type"; VendorNo: Code[20]; ExtDocNo: Code[35])
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, DocumentType, VendorNo);
+        if DocumentType = PurchaseHeader."Document Type"::"Credit Memo" then
+            PurchaseHeader.Validate("Vendor Cr. Memo No.", ExtDocNo)
+        else
+            PurchaseHeader.Validate("Vendor Invoice No.", ExtDocNo);
+        PurchaseHeader.Modify(true);
+        LibraryPurchase.CreatePurchaseLine(
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::"G/L Account",
+            LibraryERM.CreateGLAccountWithPurchSetup(), LibraryRandom.RandInt(100));
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(100, 2));
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+    end;
+
+    [SendNotificationHandler]
+    procedure SIIDuplicateExtDocNoNotificationHandler(var Notification: Notification): Boolean
+    begin
+        LibraryVariableStorage.Enqueue(Notification.Message);
     end;
 }
 
