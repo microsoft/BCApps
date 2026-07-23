@@ -110,7 +110,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
                     trigger OnValidate()
                     begin
-                        UpdateCalculatedAmounts();
+                        UpdateCalculatedAmounts(true);
                     end;
                 }
                 field("Direct Unit Cost"; Rec."Unit Price")
@@ -119,7 +119,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     Editable = true;
                     trigger OnValidate()
                     begin
-                        UpdateCalculatedAmounts();
+                        UpdateCalculatedAmounts(true);
                     end;
                 }
                 field("Total Discount"; Rec."Total Discount")
@@ -129,7 +129,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
                     Editable = true;
                     trigger OnValidate()
                     begin
-                        UpdateCalculatedAmounts();
+                        UpdateCalculatedAmounts(true);
                     end;
                 }
                 field("Line Amount"; LineAmount)
@@ -378,7 +378,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         AdditionalColumns := Rec.AdditionalColumnsDisplayText();
         MatchedEntityName := Rec.GetMatchedEntityName();
         SetHasAdditionalColumns();
-        UpdateCalculatedAmounts();
+        UpdateCalculatedAmounts(false);
         IsLineMatchedToOrderLine := EDocPOMatching.IsEDocumentLineMatchedToAnyPOLine(EDocumentPurchaseLine);
         IsLineMatchedToReceiptLine := EDocPOMatching.IsEDocumentLineMatchedToAnyReceiptLine(EDocumentPurchaseLine);
         OrderMatchedCaption := IsLineMatchedToOrderLine ? GetSummaryOfMatchedOrders() : '';
@@ -411,7 +411,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
         VATProdPostGroupIsVisible := PurchSetup."Resolve VAT Group Purch EDoc";
     end;
 
-    local procedure UpdateCalculatedAmounts()
+    local procedure UpdateCalculatedAmounts(UserModifiedAmount: Boolean)
     var
         LineSubtotal: Decimal;
         DiscountExceedsSubtotalErr: Label 'Discount should not exceed the subtotal of the line';
@@ -427,6 +427,10 @@ page 6183 "E-Doc. Purchase Draft Subform"
                 Error(DiscountExceedsSubtotalErr);
         if not EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then
             exit;
+        if UserModifiedAmount and EDocumentPurchaseHeader."Sub Total Mismatch Dismissed" then begin
+            EDocumentPurchaseHeader."Sub Total Mismatch Dismissed" := false;
+            EDocumentPurchaseHeader.Modify();
+        end;
         CheckSubTotalMatchesLines(EDocumentPurchaseHeader);
     end;
 
@@ -444,6 +448,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
     begin
         RoundingPrecision := EDocumentImportHelper.GetCurrencyRoundingPrecision(EDocPurchaseHeader."Currency Code");
 
+        TotalEDocPurchaseLine.SetLoadFields("E-Document Entry No.", "Quantity", "Unit Price", "Total Discount");
         TotalEDocPurchaseLine.SetRange("E-Document Entry No.", EDocPurchaseHeader."E-Document Entry No.");
         if TotalEDocPurchaseLine.FindSet() then
             repeat
@@ -465,8 +470,10 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
         if Difference > Tolerance then begin
             Telemetry.LogMessage('', SubTotalMismatchNotificationShownTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
-            EDocumentNotification.AddSubTotalMismatchNotification(EDocPurchaseHeader."E-Document Entry No.");
-            EDocumentNotification.SendPurchaseDocumentDraftNotifications(EDocPurchaseHeader."E-Document Entry No.");
+            if not EDocPurchaseHeader."Sub Total Mismatch Dismissed" then begin
+                EDocumentNotification.AddSubTotalMismatchNotification(EDocPurchaseHeader."E-Document Entry No.");
+                EDocumentNotification.SendPurchaseDocumentDraftNotifications(EDocPurchaseHeader."E-Document Entry No.");
+            end;
         end else
             EDocumentNotification.RemoveSubTotalMismatchNotification(EDocPurchaseHeader."E-Document Entry No.");
     end;
