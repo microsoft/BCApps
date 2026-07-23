@@ -23,6 +23,7 @@
   ],
   "LegacyTests-Bucket2": [
     "Tests-SCM",
+    "Tests-SCM-Warehouse",
     "Tests-SCM-Assembly",
     "Tests-SCM-Manufacturing",
     "Tests-CRM integration",

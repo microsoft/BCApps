@@ -574,6 +574,20 @@
     ]
   },
   {
+    "name": "Tests-SCM-Warehouse",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
     "name": "Tests-SINGLESERVER",
     "groups": [
       {
