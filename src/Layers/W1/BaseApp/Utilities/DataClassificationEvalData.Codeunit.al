@@ -2893,10 +2893,14 @@ codeunit 1751 "Data Classification Eval. Data"
 
     local procedure ClassifyCustomReportLayout()
     var
+#pragma warning disable AL0432
         DummyCustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
         TableNo: Integer;
     begin
+#pragma warning disable AL0432
         TableNo := DATABASE::"Custom Report Layout";
+#pragma warning restore AL0432
         SetTableFieldsToNormal(TableNo);
         SetFieldToPersonal(TableNo, DummyCustomReportLayout.FieldNo("Last Modified by User"));
     end;

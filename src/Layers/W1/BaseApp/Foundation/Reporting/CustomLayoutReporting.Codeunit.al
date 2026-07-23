@@ -1031,7 +1031,9 @@ codeunit 8800 "Custom Layout Reporting"
 
     local procedure IsWordLayout(ReportID: Integer; CustomReportLayoutCode: Code[20]): Boolean
     var
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
         ReportManagementHelper: Codeunit "Report Management Helper";
     begin
         if CustomReportLayoutCode <> '' then begin

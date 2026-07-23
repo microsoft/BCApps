@@ -72,7 +72,9 @@ page 5154 "Interact. Tmpl. Languages"
 #if not CLEAN28
                     trigger OnLookup(var Text: Text): Boolean
                     var
+#pragma warning disable AL0432
                         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
                     begin
 #pragma warning disable AL0432
                         if CustomReportLayout.LookupLayoutOK(REPORT::"Email Merge") then begin
@@ -88,7 +90,9 @@ page 5154 "Interact. Tmpl. Languages"
 
                     trigger OnValidate()
                     var
+#pragma warning disable AL0432
                         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
                     begin
                         if CustomReportLayoutDescription = '' then begin
                             Rec.Validate("Custom Layout Code", '');
@@ -231,19 +235,29 @@ page 5154 "Interact. Tmpl. Languages"
 
     trigger OnAfterGetCurrRecord()
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
         Rec.CalcFields("Custom Layout Description");
         CustomReportLayoutDescription := Rec."Custom Layout Description";
+#pragma warning restore AL0432
+#endif
     end;
 
     trigger OnAfterGetRecord()
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
         Rec.CalcFields("Custom Layout Description");
         CustomReportLayoutDescription := Rec."Custom Layout Description";
+#pragma warning restore AL0432
+#endif
     end;
 
     trigger OnOpenPage()
     var
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
     begin
         CustLayoutVisible := CustomReportLayout.ReadPermission;
         if CustLayoutVisible then begin

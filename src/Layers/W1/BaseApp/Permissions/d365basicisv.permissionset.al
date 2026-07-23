@@ -401,7 +401,9 @@ permissionset 732 "D365 BASIC ISV"
                   tabledata "Cust. Ledger Entry" = RiMd,
                   tabledata "Custom Address Format" = RIMD,
                   tabledata "Custom Address Format Line" = RIMD,
+#pragma warning disable AL0432
                   tabledata "Custom Report Layout" = RIMD,
+#pragma warning restore AL0432
                   tabledata "Custom Report Selection" = RIMD,
                   tabledata Customer = RIMD,
                   tabledata "Customer Amount" = RIMD,
