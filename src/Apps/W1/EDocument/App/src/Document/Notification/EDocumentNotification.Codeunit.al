@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.EServices.EDocument.Processing.Import.Purchase;
 using System.Environment.Configuration;
 
 codeunit 6123 "E-Document Notification"
@@ -139,11 +140,16 @@ codeunit 6123 "E-Document Notification"
     procedure DismissSubTotalMismatchNotification(Notification: Notification)
     var
         EDocumentNotification: Record "E-Document Notification";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentEntryNo: Integer;
         Id: Guid;
     begin
         Evaluate(EDocumentEntryNo, Notification.GetData(EDocumentNotification.FieldName("E-Document Entry No.")));
         Evaluate(Id, Notification.GetData(EDocumentNotification.FieldName(ID)));
+        if EDocumentPurchaseHeader.Get(EDocumentEntryNo) then begin
+            EDocumentPurchaseHeader."Sub Total Mismatch Dismissed" := true;
+            EDocumentPurchaseHeader.Modify();
+        end;
         if not EDocumentNotification.Get(EDocumentEntryNo, Id, UserId()) then
             exit;
         EDocumentNotification.Delete(true);
