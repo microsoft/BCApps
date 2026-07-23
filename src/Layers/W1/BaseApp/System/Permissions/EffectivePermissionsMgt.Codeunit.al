@@ -297,6 +297,7 @@ codeunit 9852 "Effective Permissions Mgt."
         ExpandedPermission: Record "Expanded Permission";
         PermissionSetBuffer: Record "Permission Set Buffer";
         AssignedRead, AssignedInsert, AssignedModify, AssignedDelete, AssignedExecute : Integer;
+        ExpandedPermissionFound: Boolean;
     begin
         PermissionBuffer.Reset();
         PermissionBuffer.DeleteAll();
@@ -327,7 +328,15 @@ codeunit 9852 "Effective Permissions Mgt."
                     ExpandedPermission.SetRange("App ID", AccessControl."App ID");
                     ExpandedPermission.SetRange("Role ID", AccessControl."Role ID");
 
-                    if FindExpandedPermissionForObject(ExpandedPermission, PassedObjectId) then begin
+                    // Specific object permissions override the wildcard entry.
+                    ExpandedPermission.SetRange("Object ID", PassedObjectId);
+                    ExpandedPermissionFound := ExpandedPermission.FindFirst();
+                    if not ExpandedPermissionFound then begin
+                        ExpandedPermission.SetRange("Object ID", 0);
+                        ExpandedPermissionFound := ExpandedPermission.FindFirst();
+                    end;
+
+                    if ExpandedPermissionFound then begin
                         FillPermissionBufferFromExpandedPermission(PermissionBuffer, ExpandedPermission);
                         SetHighestAssignedPermission(PermissionBuffer, AssignedRead, AssignedInsert, AssignedModify, AssignedDelete, AssignedExecute);
                         PermissionBuffer.Order := PermissionBuffer.Source;
@@ -527,16 +536,6 @@ codeunit 9852 "Effective Permissions Mgt."
         PermissionBuffer."Delete Permission" := ExpandedPermission."Delete Permission";
         PermissionBuffer."Execute Permission" := ExpandedPermission."Execute Permission";
         PermissionBuffer."Security Filter" := ExpandedPermission."Security Filter";
-    end;
-
-    local procedure FindExpandedPermissionForObject(var ExpandedPermission: Record "Expanded Permission"; ObjectId: Integer): Boolean
-    begin
-        ExpandedPermission.SetRange("Object ID", ObjectId);
-        if ExpandedPermission.FindFirst() then
-            exit(true);
-
-        ExpandedPermission.SetRange("Object ID", 0);
-        exit(ExpandedPermission.FindFirst());
     end;
 
     local procedure MarkAllObjFromPermissionSet(var AllObj: Record AllObj; PermissionSetID: Code[20]; AppID: Guid; ObjScope: Option)
