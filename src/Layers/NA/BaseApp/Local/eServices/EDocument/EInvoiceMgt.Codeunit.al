@@ -543,7 +543,7 @@ codeunit 10145 "E-Invoice Mgt."
             '0000C72', StrSubstNo(StampReqMsg, GetDocTypeTextFromDatabaseId(DocumentHeaderRecordRef.Number)), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
         CurrencyDecimalPlaces := GetCurrencyDecimalPlaces(TempDocumentHeader."Currency Code");
 
-        // Recalculate SubTotal to match ╬ú(Importe) as written in XML (CFDI40108 compliance)
+        // Recalculate SubTotal to match Σ(Importe) as written in XML (CFDI40108 compliance)
         // Each line's Importe is rounded to 6 decimals; SubTotal must equal their sum.
         // NOTE: Exclude AdvanceSettle because the advance-settle XML/original-string paths currently derive Total using
         // a different TotalRetention sign convention.
