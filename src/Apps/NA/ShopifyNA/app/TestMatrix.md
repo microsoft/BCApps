@@ -231,8 +231,8 @@ public, those tests and their adversarial datasets are **not** kept here: they l
 NAV enlistment app **Shopify Connector NA AI Tests** (`App/Internal/Apps/ShopifyNAAITest`, ID range
 134721-134732), which reuses this test app's library/verify and the matcher via `internalsVisibleTo`.
 The mitigation under test is the security/guardrail prompt merged from Azure Key Vault at runtime
-(secret `ShopifyTaxMatchingAgentSecurityPrompt`); the RAI tests mock the real guardrail, while the
-public accuracy suites mock a benign placeholder.
+(secret `ShopifyTaxMatchingAgentSecurityPrompt`); the tests read it from the vault (no mock), so the
+eval environment must have the secret provisioned via the enlistment commands.
 
 ---
 ## Automated Test Coverage

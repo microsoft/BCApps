@@ -556,11 +556,6 @@ codeunit 30471 "Shpfy TMA Matcher"
         exit(SecurityPrompt);
     end;
 
-    internal procedure GetSecurityPromptSecretName(): Text
-    begin
-        exit(SecurityPromptSecretNameTok);
-    end;
-
     internal procedure Capitalize(Confidence: Text): Text
     begin
         // Activity Log Builder.SetConfidence requires exactly 'Low' | 'Medium' | 'High' and errors otherwise.

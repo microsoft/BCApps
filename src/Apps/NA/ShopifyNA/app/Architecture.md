@@ -415,7 +415,7 @@ A separate test app — **Shopify Connector NA Test** (`ShopifyNA/test/`, source
 **Responsible AI (RAI) — prompt injection + harms (internal enlistment, not this repo):**
 - Because `microsoft/BCApps` is public, the RAI tests — which would otherwise expose the adversarial datasets and the jailbreak-testing approach — live in a **separate internal app in the NAV enlistment**: **Shopify Connector NA AI Tests** (`App/Internal/Apps/ShopifyNAAITest`, ID range 134721-134732), covering deterministic cross-prompt-injection scenarios and dynamic Red Team Scan harms/jailbreak passes.
 - It reuses this public test app's `Shpfy TMA Test Library` + `Shpfy TMA Verify` and calls the matcher via `internalsVisibleTo` (granted by both **Shopify Connector NA** and **Shopify Connector NA Test**).
-- The RAI tests mock the **real** security prompt (kept in that internal app) so the Key Vault guardrail is actually exercised; the public accuracy suites mock a benign placeholder.
+- The tests read the security prompt from Key Vault (the norm — like Sales Line Suggestions), so the eval environment must have the secret provisioned (see *Capability Registration* below); there is no mock.
 
 See `TestMatrix.md` for the full test scenario inventory and the Automated Test Coverage map.
 
