@@ -73,27 +73,6 @@ codeunit 46861 "BC14 Wizard"
         ShowSettingsStep := false;
     end;
 
-    /// <summary>
-    /// Preview gating: the BC14 Re-Implementation provider is only available for partner
-    /// testing in sandbox environments. Production environments must not surface it in
-    /// the Cloud Migration wizard's product picker. The Hybrid Product Types page
-    /// enumerates every Custom Migration Provider enum value with no skip hook, so we
-    /// remove the BC14 row right after the page inserts it into its temporary buffer.
-    /// </summary>
-    [EventSubscriber(ObjectType::Table, Database::"Hybrid Product Type", 'OnAfterInsertEvent', '', false, false)]
-    local procedure HideBC14ProductOutsideSandbox(var Rec: Record "Hybrid Product Type"; RunTrigger: Boolean)
-    var
-        EnvironmentInformation: Codeunit "Environment Information";
-    begin
-        if not Rec.IsTemporary() then
-            exit;
-        if Rec."Custom Migration Provider" <> Enum::"Custom Migration Provider"::"BC14 Re-Implementation" then
-            exit;
-        if EnvironmentInformation.IsSandbox() then
-            exit;
-        Rec.Delete();
-    end;
-
     [EventSubscriber(ObjectType::Page, Page::"Intelligent Cloud Management", 'CanShowUpdateReplicationCompanies', '', false, false)]
     local procedure OnCanShowUpdateReplicationCompanies(var Enabled: Boolean)
     begin
