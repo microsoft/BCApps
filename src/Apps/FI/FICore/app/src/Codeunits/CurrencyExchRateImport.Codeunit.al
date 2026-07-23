@@ -3,17 +3,15 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-#if not CLEAN29
 namespace Microsoft.Finance.Currency;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using System.IO;
 
-codeunit 32000001 "Currency Exchange Rate"
+codeunit 13415 "Currency Exch. Rate Import"
 {
-    ObsoleteReason = 'Moved to the FI Core app.';
-    ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
+    InherentEntitlements = X;
+    InherentPermissions = X;
 
     trigger OnRun()
     var
@@ -61,12 +59,8 @@ codeunit 32000001 "Currency Exchange Rate"
                 Vaihtokurssisumma := Round(Vaihtokurssisumma, 0.0000001);
                 StartingDate := DMY2Date(Aloituspvm, Aloituskk, Aloitusv);
 
-                Currency.SetFilter(Code, Valuuttakoodi);
-                CurrencyExchRate.SetFilter("Currency Code", Valuuttakoodi);
-                CurrencyExchRate.SetRange("Starting Date", StartingDate);
-
-                if CurrencyExchRate.FindFirst() = false then
-                    if Currency.FindFirst() then begin
+                if not CurrencyExchRate.Get(Valuuttakoodi, StartingDate) then
+                    if Currency.Get(Valuuttakoodi) then begin
                         UusienlukuOK := true;
                         CurrencyExchRate.Validate("Currency Code", Valuuttakoodi);
                         CurrencyExchRate.Validate("Starting Date", StartingDate);
@@ -140,9 +134,7 @@ codeunit 32000001 "Currency Exchange Rate"
 
     [IntegrationEvent(false, false)]
     [Scope('OnPrem')]
-    [Obsolete('Moved to the FI Core app.', '29.0')]
     procedure OnBeforeFileImport(var FileName: Text)
     begin
     end;
 }
-#endif
