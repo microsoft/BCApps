@@ -1771,12 +1771,17 @@ page 8901 "Finance Manager Role Center"
                     RunObject = report "Index Insurance";
                     Tooltip = 'Run the Index Insurance report.';
                 }
+#if not CLEAN29
                 action("Calc. and Post Depr. Differenc")
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Calc. and Post Depr. Difference';
                     RunObject = report "Calc. and Post Depr. Diff.";
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to Depreciation Differences FI app.';
+                    ObsoleteTag = '29.0';
                 }
+#endif
                 group("Group43")
                 {
                     Caption = 'Journals';

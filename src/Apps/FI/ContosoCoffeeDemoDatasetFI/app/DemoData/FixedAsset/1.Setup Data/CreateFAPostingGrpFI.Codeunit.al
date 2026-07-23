@@ -33,7 +33,11 @@ codeunit 13445 "Create FA Posting Grp. FI"
 
     local procedure ValidateRecordFields(var FAPostingGroup: Record "FA Posting Group"; DeprDifferenceAcc: Code[20]; DeprDifferenceBalAcc: Code[20])
     begin
+#if not CLEAN29
+#pragma warning disable AL0432
         FAPostingGroup.Validate("Depr. Difference Acc.", DeprDifferenceAcc);
         FAPostingGroup.Validate("Depr. Difference Bal. Acc.", DeprDifferenceBalAcc);
+#pragma warning restore AL0432
+#endif
     end;
 }

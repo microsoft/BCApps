@@ -54,11 +54,16 @@ page 5612 "FA Posting Group Card"
                 {
                     ApplicationArea = FixedAssets;
                 }
+#if not CLEAN29
                 field("Depr. Difference Acc."; Rec."Depr. Difference Acc.")
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the depreciation difference account that is associated with the fixed asset.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to Depreciation Differences FI app.';
+                    ObsoleteTag = '29.0';
                 }
+#endif
                 field("Acq. Cost Acc. on Disposal"; Rec."Acq. Cost Acc. on Disposal")
                 {
                     ApplicationArea = FixedAssets;
@@ -129,11 +134,16 @@ page 5612 "FA Posting Group Card"
                 {
                     ApplicationArea = FixedAssets;
                 }
+#if not CLEAN29
                 field("Depr. Difference Bal. Acc."; Rec."Depr. Difference Bal. Acc.")
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the depreciation difference balance account that is associated with the fixed asset.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Moved to Depreciation Differences FI app.';
+                    ObsoleteTag = '29.0';
                 }
+#endif
                 field("Write-Down Bal. Acc. on Disp."; Rec."Write-Down Bal. Acc. on Disp.")
                 {
                     ApplicationArea = FixedAssets;
@@ -381,4 +391,3 @@ page 5612 "FA Posting Group Card"
         Text19080001: Label 'Allocated %';
 #pragma warning restore AA0074
 }
-

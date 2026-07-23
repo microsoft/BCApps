@@ -1,0 +1,49 @@
+{
+  "id": "ead24270-fcf6-4002-9279-0341b622389d",
+  "name": "Depreciation Differences FI Tests",
+  "publisher": "Microsoft",
+  "version": "$(app_currentVersion)",
+  "brief": "Tests for Depreciation Differences FI.",
+  "description": "Tests for Depreciation Differences FI.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2234521",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "logo": "ExtensionLogo.png",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2234521",
+  "dependencies": [
+    {
+      "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
+      "name": "Tests-TestLibraries",
+      "publisher": "Microsoft",
+      "version": "$(app_currentVersion)"
+    },
+    {
+      "id": "d852d5d2-a39d-4179-baeb-f99a19e32510",
+      "name": "Application Test Library",
+      "publisher": "Microsoft",
+      "version": "$(app_currentVersion)"
+    },
+    {
+      "id": "4d4721db-078c-4c1e-a15d-927a896b3f93",
+      "name": "Depreciation Differences FI",
+      "publisher": "Microsoft",
+      "version": "$(app_currentVersion)"
+    }
+  ],
+  "screenshots": [],
+  "platform": "$(app_platformVersion)",
+  "application": "$(app_minimumVersion)",
+  "idRanges": [
+    {
+      "from": 144020,
+      "to": 144020
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "target": "OnPrem"
+}

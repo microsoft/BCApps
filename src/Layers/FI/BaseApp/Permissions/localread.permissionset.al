@@ -10,8 +10,10 @@ permissionset 1002 "LOCAL READ"
     Assignable = true;
     Caption = 'Country/region-specific read only access.';
 
-    Permissions = tabledata "Depr. Diff. Posting Buffer" = R,
-                  tabledata "Foreign Payment Types" = R,
+    Permissions = tabledata "Foreign Payment Types" = R,
+#if not CLEANSCHEMA32
+                  tabledata "Depr. Diff. Posting Buffer" = R,
+#endif
                   tabledata "Ref. Payment - Exported" = R,
                   tabledata "Ref. Payment - Exported Buffer" = R,
                   tabledata "Ref. Payment - Imported" = R,

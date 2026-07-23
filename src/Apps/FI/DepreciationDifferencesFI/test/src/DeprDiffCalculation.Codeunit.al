@@ -1,11 +1,8 @@
-#if not CLEAN29
 codeunit 144020 "Depr. Diff. Calculation"
 {
     Subtype = Test;
     TestPermissions = Disabled;
-    ObsoleteState = Pending;
-    ObsoleteReason = 'Moved to Depreciation Differences FI app.';
-    ObsoleteTag = '29.0';
+    EventSubscriberInstance = Manual;
 
     trigger OnRun()
     begin
@@ -71,6 +68,7 @@ codeunit 144020 "Depr. Diff. Calculation"
         FixedAssetNo1: Code[20];
         FixedAssetNo2: Code[20];
     begin
+        EnableFeature();
         // Setup
         Initialize();
         StartingDate := CalcDate('<-' + Format(LibraryRandom.RandInt(5)) + 'D>', WorkDate());
@@ -93,6 +91,9 @@ codeunit 144020 "Depr. Diff. Calculation"
 
         // Verify
         VerifyCalcAndPostDeprDifferenceReportWithZeroDifference();
+#if not CLEAN29
+        UnbindSubscription(this);
+#endif
     end;
 
     [Test]
@@ -107,6 +108,7 @@ codeunit 144020 "Depr. Diff. Calculation"
         PostingDate: Date;
         FixedAssetNo1: Code[20];
     begin
+        EnableFeature();
         // Setup
         Initialize();
         StartingDate := CalcDate('<-' + Format(LibraryRandom.RandInt(5)) + 'D>', WorkDate());
@@ -125,6 +127,9 @@ codeunit 144020 "Depr. Diff. Calculation"
 
         // Verify
         VerifyCalcAndPostDeprDifferenceReportWithEmptyLines();
+#if not CLEAN29
+        UnbindSubscription(this);
+#endif
     end;
 
     [Test]
@@ -141,6 +146,7 @@ codeunit 144020 "Depr. Diff. Calculation"
         FixedAssetNo2: Code[20];
         ExpectedMessage: Text;
     begin
+        EnableFeature();
         // Setup
         Initialize();
         StartingDate := CalcDate('<-' + Format(LibraryRandom.RandInt(5)) + 'D>', WorkDate());
@@ -165,6 +171,9 @@ codeunit 144020 "Depr. Diff. Calculation"
         ExpectedMessage := DeprDiffPostedTxt;
         Assert.AreEqual(ExpectedMessage, HandledMessage, 'DeprDiffPostedTxt must be equal to Report13402.Text13408');
         VerifyCalcAndPostDeprDifferenceReportWithDifference();
+#if not CLEAN29
+        UnbindSubscription(this);
+#endif
     end;
 
     [Test]
@@ -179,6 +188,7 @@ codeunit 144020 "Depr. Diff. Calculation"
         PostingDate: Date;
         FixedAssetNo1: Code[20];
     begin
+        EnableFeature();
         // Setup
         Initialize();
         StartingDate := CalcDate('<-' + Format(LibraryRandom.RandInt(5)) + 'D>', WorkDate());
@@ -196,6 +206,9 @@ codeunit 144020 "Depr. Diff. Calculation"
 
         // Verify
         Assert.ExpectedError(SpecifyDeprDiffAccTxt);
+#if not CLEAN29
+        UnbindSubscription(this);
+#endif
     end;
 
     [Test]
@@ -210,6 +223,7 @@ codeunit 144020 "Depr. Diff. Calculation"
         PostingDate: Date;
         FixedAssetNo1: Code[20];
     begin
+        EnableFeature();
         // Setup
         Initialize();
         StartingDate := CalcDate('<-' + Format(LibraryRandom.RandInt(5)) + 'D>', WorkDate());
@@ -227,6 +241,9 @@ codeunit 144020 "Depr. Diff. Calculation"
 
         // Verify
         Assert.ExpectedError(SpecifyDeprDiffBalAccTxt);
+#if not CLEAN29
+        UnbindSubscription(this);
+#endif
     end;
 
     [Test]
@@ -239,6 +256,7 @@ codeunit 144020 "Depr. Diff. Calculation"
         PostingDate: Date;
         PostDepreciationDifference: Boolean;
     begin
+        EnableFeature();
         // Setup
         Initialize();
         PostingDate := 0D;
@@ -253,6 +271,9 @@ codeunit 144020 "Depr. Diff. Calculation"
 
         // Verify
         Assert.ExpectedError(PleaseEnterPostingDateTxt);
+#if not CLEAN29
+        UnbindSubscription(this);
+#endif
     end;
 
     [Test]
@@ -265,6 +286,7 @@ codeunit 144020 "Depr. Diff. Calculation"
         DocumentNo: Code[20];
         PostDepreciationDifference: Boolean;
     begin
+        EnableFeature();
         // Setup
         Initialize();
         DocumentNo := '';
@@ -279,6 +301,9 @@ codeunit 144020 "Depr. Diff. Calculation"
 
         // Verify
         Assert.ExpectedError(PleaseEnterDocumentNoTxt);
+#if not CLEAN29
+        UnbindSubscription(this);
+#endif
     end;
 
     [Test]
@@ -290,6 +315,7 @@ codeunit 144020 "Depr. Diff. Calculation"
         DepreciationBookCodeTax: Code[10];
         StartingDate: Date;
     begin
+        EnableFeature();
         // Setup
         Initialize();
         StartingDate := 0D;
@@ -303,6 +329,9 @@ codeunit 144020 "Depr. Diff. Calculation"
 
         // Verify
         Assert.ExpectedError(PleaseEnterStartingDateTxt);
+#if not CLEAN29
+        UnbindSubscription(this);
+#endif
     end;
 
     [Test]
@@ -314,6 +343,7 @@ codeunit 144020 "Depr. Diff. Calculation"
         DepreciationBookCodeTax: Code[10];
         EndingDate: Date;
     begin
+        EnableFeature();
         // Setup
         Initialize();
         EndingDate := 0D;
@@ -327,6 +357,9 @@ codeunit 144020 "Depr. Diff. Calculation"
 
         // Verify
         Assert.ExpectedError(PleaseEnterEndingDateTxt);
+#if not CLEAN29
+        UnbindSubscription(this);
+#endif
     end;
 
     [Test]
@@ -339,6 +372,7 @@ codeunit 144020 "Depr. Diff. Calculation"
         EndingDate: Date;
         StartingDate: Date;
     begin
+        EnableFeature();
         // Setup
         Initialize();
         StartingDate := CalcDate('<-' + Format(LibraryRandom.RandInt(5)) + 'D>', WorkDate());
@@ -353,6 +387,9 @@ codeunit 144020 "Depr. Diff. Calculation"
 
         // Verify
         Assert.ExpectedError(EndingDateAfterStartingDateTxt);
+#if not CLEAN29
+        UnbindSubscription(this);
+#endif
     end;
 
     [Test]
@@ -362,6 +399,7 @@ codeunit 144020 "Depr. Diff. Calculation"
     var
         EmptyBookCode: Code[10];
     begin
+        EnableFeature();
         // Setup
         Initialize();
         EmptyBookCode := '';
@@ -372,6 +410,9 @@ codeunit 144020 "Depr. Diff. Calculation"
 
         // Verify
         Assert.ExpectedError(PleaseEnterBook1AndBook2Txt);
+#if not CLEAN29
+        UnbindSubscription(this);
+#endif
     end;
 
     [Test]
@@ -381,6 +422,7 @@ codeunit 144020 "Depr. Diff. Calculation"
     var
         BookInGL: Code[10];
     begin
+        EnableFeature();
         // Setup
         Initialize();
         BookInGL := CreateDepreciationBook(0, false);
@@ -392,6 +434,9 @@ codeunit 144020 "Depr. Diff. Calculation"
 
         // Verify
         Assert.ExpectedError(Book1InGLTxt);
+#if not CLEAN29
+        UnbindSubscription(this);
+#endif
     end;
 
     [Test]
@@ -401,6 +446,7 @@ codeunit 144020 "Depr. Diff. Calculation"
     var
         BookNotInGL: Code[10];
     begin
+        EnableFeature();
         // Setup
         Initialize();
         BookNotInGL := CreateDepreciationBook(0, true);
@@ -411,6 +457,9 @@ codeunit 144020 "Depr. Diff. Calculation"
 
         // Verify
         Assert.ExpectedError(Book2NotInGLTxt);
+#if not CLEAN29
+        UnbindSubscription(this);
+#endif
     end;
 
     [Test]
@@ -423,6 +472,7 @@ codeunit 144020 "Depr. Diff. Calculation"
         PostingDate: Date;
         ExpectedMessage: Text;
     begin
+        EnableFeature();
         // Setup
         Initialize();
         PostingDate := DMY2Date(1, 1, 1900);
@@ -438,6 +488,9 @@ codeunit 144020 "Depr. Diff. Calculation"
         // Verify
         ExpectedMessage := NoDeprDiffPostedTxt;
         Assert.AreEqual(ExpectedMessage, HandledMessage, 'NoDeprDiffPostedTxt must be equal to Report13402.Text13412');
+#if not CLEAN29
+        UnbindSubscription(this);
+#endif
     end;
 
     [Test]
@@ -450,6 +503,7 @@ codeunit 144020 "Depr. Diff. Calculation"
         FADepreciationBook: Record "FA Depreciation Book";
         DeprBookCode: array[2] of Code[10];
     begin
+        EnableFeature();
         // [SCENARIO 311958] Calc And Post Deprectiation Difference repost posts difference when one of the values is zero, but the other is not
         Initialize();
 
@@ -482,6 +536,9 @@ codeunit 144020 "Depr. Diff. Calculation"
 
         // [THEN] Depreciation Difference is posted
         Assert.AreEqual(DeprDiffPostedTxt, LibraryVariableStorage.DequeueText(), 'DeprDiffPostedTxt must be equal to Report13402.Text13408');
+#if not CLEAN29
+        UnbindSubscription(this);
+#endif
     end;
 
     [ConfirmHandler]
@@ -718,7 +775,7 @@ codeunit 144020 "Depr. Diff. Calculation"
         FALedgerEntry."FA Posting Category" := FALedgerEntry."FA Posting Category"::"Bal. Disposal";
         FALedgerEntry."FA Posting Type" := FALedgerEntry."FA Posting Type"::Depreciation;
         FALedgerEntry."Posting Date" := WorkDate();
-        FALedgerEntry."Depr. Difference Posted" := false;
+        FALedgerEntry."Depreciation Difference Posted" := false;
         FALedgerEntry.Amount := LibraryRandom.RandDec(100, 2);
         FALedgerEntry.Insert();
     end;
@@ -805,9 +862,9 @@ codeunit 144020 "Depr. Diff. Calculation"
         RecRef.SetTable(FAPostingGroup2);
         FAPostingGroup.TransferFields(FAPostingGroup2, false);
         if ClearDeprDifferenceAcc then
-            FAPostingGroup."Depr. Difference Acc." := '';
+            FAPostingGroup."Depreciation Difference Account" := '';
         if ClearDeprDifferenceBalAcc then
-            FAPostingGroup."Depr. Difference Bal. Acc." := '';
+            FAPostingGroup."Depreciation Difference Balancing Account" := '';
         FAPostingGroup.Modify(true);
     end;
 
@@ -899,6 +956,21 @@ codeunit 144020 "Depr. Diff. Calculation"
     begin
         LibraryVariableStorage.Enqueue(Message);
     end;
+
+    local procedure EnableFeature()
+    begin
+#if not CLEAN29
+        BindSubscription(this);
+#endif
+    end;
+
+#if not CLEAN29
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Depr. Difference Feature FI", OnAfterCheckFeatureEnabled, '', false, false)]
+    local procedure OnAfterCheckFeatureEnabled(var IsEnabled: Boolean)
+    begin
+        IsEnabled := true;
+    end;
+#endif
 }
 
-#endif
+

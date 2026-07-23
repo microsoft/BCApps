@@ -1,4 +1,3 @@
-#if not CLEANSCHEMA32
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -6,26 +5,18 @@
 
 namespace Microsoft.FixedAssets.Depreciation;
 
-table 13401 "Depr. Diff. Posting Buffer"
+table 13462 "Depr. Diff. Posting Buffer"
 {
     Caption = 'Depr. Diff. Posting Buffer';
-    ObsoleteReason = 'Moved to Depreciation Differences FI app.';
-#if not CLEAN29
-    ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
-#else
-    ObsoleteState = Removed;
-    ObsoleteTag = '32.0';
-#endif
     DataClassification = CustomerContent;
 
     fields
     {
-        field(1; "Depr. Difference Acc."; Code[20])
+        field(1; "Depreciation Difference Account"; Code[20])
         {
             Caption = 'Depr. Difference Acc.';
         }
-        field(2; "Depr. Difference Bal. Acc."; Code[20])
+        field(2; "Depreciation Difference Balancing Account"; Code[20])
         {
             Caption = 'Depr. Difference Bal. Acc.';
         }
@@ -47,7 +38,7 @@ table 13401 "Depr. Diff. Posting Buffer"
 
     keys
     {
-        key(Key1; "Depr. Difference Acc.", "Depr. Difference Bal. Acc.", "FA No.")
+        key(Key1; "Depreciation Difference Account", "Depreciation Difference Balancing Account", "FA No.")
         {
             Clustered = true;
         }
@@ -58,4 +49,3 @@ table 13401 "Depr. Diff. Posting Buffer"
     }
 }
 
-#endif

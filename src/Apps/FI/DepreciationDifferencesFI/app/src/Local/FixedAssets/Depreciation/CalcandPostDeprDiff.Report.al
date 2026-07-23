@@ -1,4 +1,3 @@
-#if not CLEAN29
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -14,15 +13,12 @@ using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.Foundation.AuditCodes;
 
-report 13402 "Calc. and Post Depr. Diff."
+report 13463 "Calc. and Post Depr. Diff."
 {
     DefaultLayout = RDLC;
-    RDLCLayout = './Local/FixedAssets/Depreciation/CalcandPostDeprDiff.rdlc';
+    RDLCLayout = './src/Local/FixedAssets/Depreciation/CalcandPostDeprDiff.rdlc';
     ApplicationArea = Basic, Suite;
     Caption = 'Calculate and Post Deprication Difference';
-    ObsoleteState = Pending;
-    ObsoleteReason = 'Moved to Depreciation Differences FI app.';
-    ObsoleteTag = '29.0';
     Permissions = TableData "FA Ledger Entry" = rimd;
     UsageCategory = ReportsAndAnalysis;
 
@@ -103,40 +99,40 @@ report 13402 "Calc. and Post Depr. Diff."
                     FADeprBook2.TestField("FA Posting Group", FADeprBook1."FA Posting Group");
 
                 if FAPostingGroup.Get(FADeprBook1."FA Posting Group") then begin
-                    if FAPostingGroup."Depr. Difference Acc." = '' then
+                    if FAPostingGroup."Depreciation Difference Account" = '' then
                         Error(Text13406, FAPostingGroup.Code);
-                    if FAPostingGroup."Depr. Difference Bal. Acc." = '' then
+                    if FAPostingGroup."Depreciation Difference Balancing Account" = '' then
                         Error(Text13407, FAPostingGroup.Code);
 
                     FALedgerEntry.Reset();
                     FALedgerEntry.SetCurrentKey("FA No.", "FA Posting Group", "Depreciation Book Code",
-                      "FA Posting Category", "FA Posting Type", "Posting Date", "Depr. Difference Posted");
+                      "FA Posting Category", "FA Posting Type", "Posting Date", "Depreciation Difference Posted");
                     FALedgerEntry.SetRange("FA No.", "No.");
                     FALedgerEntry.SetRange("Depreciation Book Code", DeprBookCode1);
                     FALedgerEntry.SetFilter("FA Posting Category", '<>%1', FALedgerEntry."FA Posting Category"::Disposal);
                     FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::Depreciation);
                     FALedgerEntry.SetRange("Posting Date", StartDate, EndDate);
-                    FALedgerEntry.SetRange("Depr. Difference Posted", false);
+                    FALedgerEntry.SetRange("Depreciation Difference Posted", false);
                     FALedgerEntry.CalcSums(Amount);
                     DeprBookAmt1 := FALedgerEntry.Amount;
 
                     if PostDeprDiff then
-                        FALedgerEntry.ModifyAll("Depr. Difference Posted", true);
+                        FALedgerEntry.ModifyAll("Depreciation Difference Posted", true);
 
                     FALedgerEntry.Reset();
                     FALedgerEntry.SetCurrentKey("FA No.", "FA Posting Group", "Depreciation Book Code",
-                      "FA Posting Category", "FA Posting Type", "Posting Date", "Depr. Difference Posted");
+                      "FA Posting Category", "FA Posting Type", "Posting Date", "Depreciation Difference Posted");
                     FALedgerEntry.SetRange("FA No.", "No.");
                     FALedgerEntry.SetRange("Depreciation Book Code", DeprBookCode2);
                     FALedgerEntry.SetFilter("FA Posting Category", '<>%1', FALedgerEntry."FA Posting Category"::Disposal);
                     FALedgerEntry.SetRange("FA Posting Type", FALedgerEntry."FA Posting Type"::Depreciation);
                     FALedgerEntry.SetRange("Posting Date", StartDate, EndDate);
-                    FALedgerEntry.SetRange("Depr. Difference Posted", false);
+                    FALedgerEntry.SetRange("Depreciation Difference Posted", false);
                     FALedgerEntry.CalcSums(Amount);
                     DeprBookAmt2 := FALedgerEntry.Amount;
 
                     if PostDeprDiff then
-                        FALedgerEntry.ModifyAll("Depr. Difference Posted", true);
+                        FALedgerEntry.ModifyAll("Depreciation Difference Posted", true);
 
                     DifferenceAmt := CalcDeprDifference(DeprBookAmt1, DeprBookAmt2);
 
@@ -173,6 +169,7 @@ report 13402 "Calc. and Post Depr. Diff."
             end;
         }
     }
+
     requestpage
     {
 
@@ -343,16 +340,16 @@ report 13402 "Calc. and Post Depr. Diff."
         FAJnlSetup.GenJnlName(DeprBook, GenJnlLine, GenJnlNextLineNo);
         GenJnlLine."System-Created Entry" := true;
         GenJnlLine."Account Type" := GenJnlLine."Account Type"::"G/L Account";
-        GenJnlLine."Account No." := DeprDiffBuffer."Depr. Difference Acc.";
+        GenJnlLine."Account No." := DeprDiffBuffer."Depreciation Difference Account";
         GenJnlLine."Posting Date" := PostingDate;
         GenJnlLine."Document No." := DocNo;
         GenJnlLine.Description := PostingDesc;
         GenJnlLine.Amount :=
           CalcDeprDifference(DeprDiffBuffer."Depreciation Amount 1",
           DeprDiffBuffer."Depreciation Amount 2");
-        GenJnlLine."Source Code" := SourceCodeSetup."Depr. Difference";
+        GenJnlLine."Source Code" := SourceCodeSetup."Depreciation Difference";
         GenJnlLine."Bal. Account Type" := GenJnlLine."Bal. Account Type"::"G/L Account";
-        GenJnlLine."Bal. Account No." := DeprDiffBuffer."Depr. Difference Bal. Acc.";
+        GenJnlLine."Bal. Account No." := DeprDiffBuffer."Depreciation Difference Balancing Account";
         GenJnlLine."Line No." := GenJnlNextLineNo + 10000;
         DimMgt.AddDimSource(DefaultDimSource, Database::"Fixed Asset", DeprDiffBuffer."FA No.");
 
@@ -373,8 +370,8 @@ report 13402 "Calc. and Post Depr. Diff."
     local procedure InsertDifferenceBuffer()
     begin
         Clear(DeprDiffPostingBuffer);
-        DeprDiffPostingBuffer."Depr. Difference Acc." := FAPostingGroup."Depr. Difference Acc.";
-        DeprDiffPostingBuffer."Depr. Difference Bal. Acc." := FAPostingGroup."Depr. Difference Bal. Acc.";
+        DeprDiffPostingBuffer."Depreciation Difference Account" := FAPostingGroup."Depreciation Difference Account";
+        DeprDiffPostingBuffer."Depreciation Difference Balancing Account" := FAPostingGroup."Depreciation Difference Balancing Account";
         DeprDiffPostingBuffer."Depreciation Amount 1" := DeprBookAmt1;
         DeprDiffPostingBuffer."Depreciation Amount 2" := DeprBookAmt2;
         DeprDiffPostingBuffer."FA No." := FixedAsset."No.";
@@ -382,4 +379,3 @@ report 13402 "Calc. and Post Depr. Diff."
     end;
 }
 
-#endif

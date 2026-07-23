@@ -1,0 +1,41 @@
+{
+  "id": "4d4721db-078c-4c1e-a15d-927a896b3f93",
+  "name": "Depreciation Differences FI",
+  "publisher": "Microsoft",
+  "version": "$(app_currentVersion)",
+  "brief": "Posting depreciation differences for Finland.",
+  "description": "Provides Finnish posting depreciation differences functionality in Business Central.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2234521",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "logo": "ExtensionLogo.png",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2234521",
+  "dependencies": [],
+  "internalsVisibleTo": [
+    {
+      "id": "ead24270-fcf6-4002-9279-0341b622389d",
+      "name": "Depreciation Differences FI Tests",
+      "publisher": "Microsoft"
+    }
+  ],
+  "screenshots": [],
+  "platform": "$(app_platformVersion)",
+  "application": "$(app_minimumVersion)",
+  "idRanges": [
+    {
+      "from": 13462,
+      "to": 13499
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "target": "OnPrem",
+  "features": [
+    "NoImplicitWith",
+    "TranslationFile"
+  ]
+}

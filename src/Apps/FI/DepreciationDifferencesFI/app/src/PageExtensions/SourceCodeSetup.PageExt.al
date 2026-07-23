@@ -5,22 +5,17 @@
 
 namespace Microsoft.Foundation.AuditCodes;
 
-pageextension 13400 SourceCodeSetupFI extends "Source Code Setup"
+pageextension 13475 "Source Code Setup DeprDiff FI" extends "Source Code Setup"
 {
     layout
     {
         addafter("Insurance Journal")
         {
-#if not CLEAN29
-            field("Depr. Difference"; Rec."Depr. Difference")
+            field("Depreciation Difference"; Rec."Depreciation Difference")
             {
                 ApplicationArea = Basic, Suite;
                 ToolTip = 'Specifies the source code for posting differences in accumulated depreciation.';
-                ObsoleteState = Pending;
-                ObsoleteReason = 'Moved to Depreciation Differences FI app.';
-                ObsoleteTag = '29.0';
             }
-#endif
         }
     }
 }

@@ -12,8 +12,10 @@ permissionset 1001 "LOCAL"
 
     IncludedPermissionSets = "LOCAL READ";
 
-    Permissions = tabledata "Depr. Diff. Posting Buffer" = IMD,
-                  tabledata "Foreign Payment Types" = IMD,
+    Permissions = tabledata "Foreign Payment Types" = IMD,
+#if not CLEANSCHEMA32
+                  tabledata "Depr. Diff. Posting Buffer" = IMD,
+#endif
                   tabledata "Ref. Payment - Exported" = IMD,
                   tabledata "Ref. Payment - Exported Buffer" = IMD,
                   tabledata "Ref. Payment - Imported" = IMD,
