@@ -440,13 +440,7 @@ function Initialize-MiappRepoBranchName {
     param()
 
     if ($env:RepoBranchName) {
-        git show-ref --verify --quiet "refs/remotes/origin/$env:RepoBranchName"
-        if ($LASTEXITCODE -eq 0) {
-            return $env:RepoBranchName
-        }
-
-        Write-Warning "RepoBranchName '$env:RepoBranchName' does not exist on origin. Falling back to origin/HEAD."
-        $env:RepoBranchName = $null
+        return $env:RepoBranchName
     }
 
     [string] $originHeadRef = (git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>$null)
