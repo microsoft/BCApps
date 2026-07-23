@@ -1,0 +1,53 @@
+{
+  "id": "a6ac48f2-7b89-47fe-bb24-a9f722e6fec0",
+  "name": "Depreciation Differences FI Tests",
+  "publisher": "Microsoft",
+  "version": "$(app_currentVersion)",
+  "brief": "Tests for Depreciation Differences FI.",
+  "description": "Tests for Depreciation Differences FI.",
+  "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
+  "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2212316",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "logo": "ExtensionLogo.png",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2212316",
+  "dependencies": [
+    {
+      "id": "5d86850b-0d76-4eca-bd7b-951ad998e997",
+      "name": "Tests-TestLibraries",
+      "publisher": "Microsoft",
+      "version": "$(app_currentVersion)"
+    },
+    {
+      "id": "5095f467-0a01-4b99-99d1-9ff1237d286f",
+      "name": "Library Variable Storage",
+      "publisher": "Microsoft",
+      "version": "$(app_currentVersion)"
+    },
+    {
+      "id": "ecb1100e-3081-4c6a-9554-de33c687bf5f",
+      "name": "Depreciation Differences FI",
+      "publisher": "Microsoft",
+      "version": "$(app_currentVersion)"
+    }
+  ],
+  "screenshots": [],
+  "platform": "$(app_platformVersion)",
+  "application": "$(app_minimumVersion)",
+  "idRanges": [
+    {
+      "from": 13462,
+      "to": 13485
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "target": "OnPrem",
+  "features": [
+    "NoImplicitWith",
+    "TranslationFile"
+  ]
+}

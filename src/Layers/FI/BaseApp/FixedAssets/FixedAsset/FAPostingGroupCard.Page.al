@@ -54,11 +54,18 @@ page 5612 "FA Posting Group Card"
                 {
                     ApplicationArea = FixedAssets;
                 }
+#if not CLEAN29
+#pragma warning disable AL0432
                 field("Depr. Difference Acc."; Rec."Depr. Difference Acc.")
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the depreciation difference account that is associated with the fixed asset.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to Depreciation Differences FI app.';
                 }
+#pragma warning restore AL0432
+#endif
                 field("Acq. Cost Acc. on Disposal"; Rec."Acq. Cost Acc. on Disposal")
                 {
                     ApplicationArea = FixedAssets;
@@ -129,11 +136,18 @@ page 5612 "FA Posting Group Card"
                 {
                     ApplicationArea = FixedAssets;
                 }
+#if not CLEAN29
+#pragma warning disable AL0432
                 field("Depr. Difference Bal. Acc."; Rec."Depr. Difference Bal. Acc.")
                 {
                     ApplicationArea = FixedAssets;
                     ToolTip = 'Specifies the depreciation difference balance account that is associated with the fixed asset.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to Depreciation Differences FI app.';
                 }
+#pragma warning restore AL0432
+#endif
                 field("Write-Down Bal. Acc. on Disp."; Rec."Write-Down Bal. Acc. on Disp.")
                 {
                     ApplicationArea = FixedAssets;

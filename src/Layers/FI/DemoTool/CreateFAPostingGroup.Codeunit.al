@@ -27,7 +27,7 @@ codeunit 101803 "Create FA Posting Group"
         XIP: Label 'IP';
         XLEASEHOLD: Label 'LEASEHOLD';
 
-    procedure InsertData("Code": Code[10]; "Acquisition Cost Account": Code[20]; "Accum. Depreciation Account": Code[20]; "Acq. Cost Acc. on Disposal": Code[20]; "Accum. Depr. Acc. on Disposal": Code[20]; "Gains Acc. on Disposal": Code[20]; "Losses Acc. on Disposal": Code[20]; "Maintenance Expense Account": Code[20]; "Depreciation Expense Acc.": Code[20]; "Depr. Difference Acc.": Code[20]; "Depr. Difference Bal. Acc.": Code[20]; "Acquisition Cost Bal. Acc.": Code[20])
+    procedure InsertData("Code": Code[10]; "Acquisition Cost Account": Code[20]; "Accum. Depreciation Account": Code[20]; "Acq. Cost Acc. on Disposal": Code[20]; "Accum. Depr. Acc. on Disposal": Code[20]; "Gains Acc. on Disposal": Code[20]; "Losses Acc. on Disposal": Code[20]; "Maintenance Expense Account": Code[20]; "Depreciation Expense Acc.": Code[20]; DeprDifferenceAcc: Code[20]; DeprDifferenceBalAcc: Code[20]; "Acquisition Cost Bal. Acc.": Code[20])
     begin
         "FA Posting Group".Init();
         "FA Posting Group".Validate(Code, Code);
@@ -40,8 +40,12 @@ codeunit 101803 "Create FA Posting Group"
         "FA Posting Group".Validate("Maintenance Expense Account", CA.Convert("Maintenance Expense Account"));
         "FA Posting Group".Validate("Depreciation Expense Acc.", CA.Convert("Depreciation Expense Acc."));
         "FA Posting Group".Validate("Acquisition Cost Bal. Acc.", CA.Convert("Acquisition Cost Bal. Acc."));
-        "FA Posting Group".Validate("Depr. Difference Acc.", CA.Convert("Depr. Difference Acc."));
-        "FA Posting Group".Validate("Depr. Difference Bal. Acc.", CA.Convert("Depr. Difference Bal. Acc."));
+#if not CLEAN29
+#pragma warning disable AL0432
+        "FA Posting Group".Validate("Depr. Difference Acc.", CA.Convert(DeprDifferenceAcc));
+        "FA Posting Group".Validate("Depr. Difference Bal. Acc.", CA.Convert(DeprDifferenceBalAcc));
+#pragma warning restore AL0432
+#endif
 
         "FA Posting Group".Insert();
     end;

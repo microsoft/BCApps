@@ -1751,6 +1751,22 @@
     ]
   },
   {
+    "name": "Depreciation Differences FI",
+    "groups": [
+      {
+        "name": "LocalBaseExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Depreciation Differences FI Tests",
+    "groups": [
+      {
+        "name": "LocalBaseExtensions"
+      }
+    ]
+  },
+  {
     "name": "DK Core",
     "groups": [
       {
