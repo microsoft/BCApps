@@ -18,7 +18,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using System.TestLibraries.Utilities;
 
-codeunit 149915 "Subc. TransOrd. Reserv. Test"
+codeunit 149921 "Subc. TransOrd. Reserv. Test"
 {
     // [FEATURE] Subcontracting Transfer Order Reservation Integration Tests
     Subtype = Test;
