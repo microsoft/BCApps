@@ -204,6 +204,30 @@ codeunit 148153 "Usage Based Billing Test"
 
     [Test]
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure ClosingUsageDataImportPreventsProcessing()
+    begin
+        // [SCENARIO] A closed Usage Data Import is not processed any more
+
+        // [GIVEN] Usage Data Billing created for an import
+        Initialize();
+        CreateUsageDataBilling("Usage Based Pricing"::"Usage Quantity", LibraryRandom.RandDec(10, 2));
+
+        // [WHEN] The import is closed
+        UsageDataImport.SetRecFilter();
+        UsageDataImport.CloseUsageDataImports(UsageDataImport);
+
+        // [THEN] The import is marked as Closed
+        UsageDataImport.Get(UsageDataImport."Entry No.");
+        UsageDataImport.TestField("Processing Status", Enum::"Processing Status"::Closed);
+
+        // [THEN] Processing the import is rejected
+        UsageDataImport.SetRecFilter();
+        asserterror UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+        Assert.ExpectedError(UsageDataImport.FieldCaption("Processing Status"));
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure CustomerCurrencyMismatchErrorWhenNotAllowed()
     var
         UsageDataBilling: Record "Usage Data Billing";
@@ -419,6 +443,73 @@ codeunit 148153 "Usage Based Billing Test"
             UsageDataBilling.TestField("Product ID", UsageDataGenericImport."Product ID");
             UsageDataBilling.TestField("Product Name", UsageDataGenericImport."Product Name");
         until UsageDataBilling.Next() = 0;
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure ErrorUsageDataBillingIsNotRecalculatedOnProcessing()
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+    begin
+        // [SCENARIO] Usage Data Billing marked with Error (currency mismatch) is skipped when processing the Usage Data Billing
+
+        // [GIVEN] Usage Data Billing created for contracts that do not allow a different currency in the usage data
+        Initialize();
+        CreateUsageDataBillingWithCurrencyMismatch("Usage Based Pricing"::"Usage Quantity", LibraryRandom.RandDec(10, 2));
+
+        // [GIVEN] All created Usage Data Billing lines have Error status and no prices calculated
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.");
+        Assert.RecordIsNotEmpty(UsageDataBilling);
+        UsageDataBilling.SetFilter("Processing Status", '<>%1', Enum::"Processing Status"::Error);
+        Assert.RecordIsEmpty(UsageDataBilling);
+
+        // [WHEN] Process Usage Data Billing
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+
+        // [THEN] The lines keep the Error status and the prices are not calculated
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.");
+        UsageDataBilling.FindSet();
+        repeat
+            UsageDataBilling.TestField("Processing Status", Enum::"Processing Status"::Error);
+            UsageDataBilling.TestField("Unit Price", 0);
+            UsageDataBilling.TestField(Amount, 0);
+        until UsageDataBilling.Next() = 0;
+
+        // [THEN] The Usage Data Import is in Error as well
+        UsageDataImport.Get(UsageDataImport."Entry No.");
+        UsageDataImport.TestField("Processing Status", Enum::"Processing Status"::Error);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure ErrorUsageDataBillingDoesNotUpdateSubscription()
+    var
+        CustomerSubscriptionLine: Record "Subscription Line";
+        ExpectedQuantity: Decimal;
+        ExpectedPrice: Decimal;
+        ExpectedUnitCost: Decimal;
+    begin
+        // [SCENARIO] Usage Data Billing marked with Error (currency mismatch) does not update the Subscription and its Subscription Lines
+
+        // [GIVEN] Usage Data Billing created for contracts that do not allow a different currency in the usage data
+        Initialize();
+        CreateUsageDataBillingWithCurrencyMismatch("Usage Based Pricing"::"Usage Quantity", LibraryRandom.RandDec(10, 2));
+
+        SubscriptionHeader.Get(SubscriptionHeader."No.");
+        ExpectedQuantity := SubscriptionHeader.Quantity;
+        FindCustomerSubscriptionLine(CustomerSubscriptionLine, SubscriptionHeader."No.");
+        ExpectedPrice := CustomerSubscriptionLine.Price;
+        ExpectedUnitCost := CustomerSubscriptionLine."Unit Cost";
+
+        // [WHEN] Process Usage Data Billing
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+
+        // [THEN] Neither the Subscription quantity nor the prices in the Subscription Line are updated
+        SubscriptionHeader.Get(SubscriptionHeader."No.");
+        SubscriptionHeader.TestField(Quantity, ExpectedQuantity);
+        CustomerSubscriptionLine.Get(CustomerSubscriptionLine."Entry No.");
+        CustomerSubscriptionLine.TestField(Price, ExpectedPrice);
+        CustomerSubscriptionLine.TestField("Unit Cost", ExpectedUnitCost);
     end;
 
     [Test]
@@ -748,6 +839,64 @@ codeunit 148153 "Usage Based Billing Test"
 
     [Test]
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure ProcessingStatusIsResetToOkWhenNoErrorsRemain()
+    var
+        StaleErrorLbl: Label 'Error from an earlier processing step.', Locked = true;
+    begin
+        // [SCENARIO] A stale Error on the Usage Data Import is cleared when Process Usage Data Billing finds no errors
+
+        // [GIVEN] Usage Data Billing without errors
+        Initialize();
+        CreateUsageDataBilling("Usage Based Pricing"::"Usage Quantity", LibraryRandom.RandDec(10, 2));
+
+        // [GIVEN] The import carries an Error and a reason from an earlier processing step
+        UsageDataImport.Get(UsageDataImport."Entry No.");
+        UsageDataImport.SetErrorReason(StaleErrorLbl);
+        UsageDataImport.Modify(false);
+
+        // [WHEN] Process Usage Data Billing
+        UsageDataImport.SetRecFilter();
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+
+        // [THEN] The import is Ok again and the stale reason is gone
+        UsageDataImport.Get(UsageDataImport."Entry No.");
+        UsageDataImport.TestField("Processing Status", Enum::"Processing Status"::Ok);
+        UsageDataImport.TestField("Reason (Preview)", '');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure ProcessingStatusIsSetToOkAfterSuccessfulProcessing()
+    var
+        UsageDataBilling: Record "Usage Data Billing";
+    begin
+        // [SCENARIO] Usage Data Billing lines that are processed without an error get Processing Status = Ok
+
+        // [GIVEN] Usage Data Billing created for contracts that allow the usage data currency
+        Initialize();
+        CreateUsageDataBilling("Usage Based Pricing"::"Usage Quantity", LibraryRandom.RandDec(10, 2));
+
+        // [GIVEN] The lines are not processed yet
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.");
+        UsageDataBilling.SetFilter("Processing Status", '<>%1', Enum::"Processing Status"::None);
+        Assert.RecordIsEmpty(UsageDataBilling);
+
+        // [WHEN] Process Usage Data Billing
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+
+        // [THEN] Every line is marked as Ok and the import stays Ok
+        FilterUsageDataBillingOnUsageDataImport(UsageDataBilling, UsageDataImport."Entry No.");
+        UsageDataBilling.FindSet();
+        repeat
+            UsageDataBilling.TestField("Processing Status", Enum::"Processing Status"::Ok);
+        until UsageDataBilling.Next() = 0;
+
+        UsageDataImport.Get(UsageDataImport."Entry No.");
+        UsageDataImport.TestField("Processing Status", Enum::"Processing Status"::Ok);
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
     procedure ProcessUsageDataBillingWithZeroQuantitySucceeds()
     begin
         // [SCENARIO] Processing usage data billing with quantity 0 succeeds without error
@@ -763,6 +912,36 @@ codeunit 148153 "Usage Based Billing Test"
         // [THEN] Processing should not result in error
         UsageDataImport.Get(UsageDataImport."Entry No.");
         Assert.AreNotEqual(Enum::"Processing Status"::Error, UsageDataImport."Processing Status", 'Processing of usage data billing with quantity 0 should not result in error.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ExchangeRateSelectionModalPageHandler,MessageHandler')]
+    procedure ReopeningUsageDataImportRestoresProcessingStatus()
+    begin
+        // [SCENARIO] Reopening a closed Usage Data Import restores the status from the imported lines and the usage data billing
+
+        // [GIVEN] A processed and closed Usage Data Import
+        Initialize();
+        CreateUsageDataBilling("Usage Based Pricing"::"Usage Quantity", LibraryRandom.RandDec(10, 2));
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+        UsageDataImport.SetRecFilter();
+        UsageDataImport.CloseUsageDataImports(UsageDataImport);
+        UsageDataImport.Get(UsageDataImport."Entry No.");
+        UsageDataImport.TestField("Processing Status", Enum::"Processing Status"::Closed);
+
+        // [WHEN] The import is reopened
+        UsageDataImport.SetRecFilter();
+        UsageDataImport.ReopenUsageDataImports(UsageDataImport);
+
+        // [THEN] The status is Ok again, because no usage data billing line is in error
+        UsageDataImport.Get(UsageDataImport."Entry No.");
+        UsageDataImport.TestField("Processing Status", Enum::"Processing Status"::Ok);
+
+        // [THEN] The import can be processed again
+        UsageDataImport.SetRecFilter();
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Process Usage Data Billing");
+        UsageDataImport.Get(UsageDataImport."Entry No.");
+        UsageDataImport.TestField("Processing Status", Enum::"Processing Status"::Ok);
     end;
 
     [HandlerFunctions('ExchangeRateSelectionModalPageHandler,CreateCustomerBillingDocumentPageHandler,MessageHandler')]
@@ -2612,6 +2791,40 @@ codeunit 148153 "Usage Based Billing Test"
         Codeunit.Run(Codeunit::"Import And Process Usage Data", UsageDataImport);
         UsageDataImport.SetRecFilter();
         UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Create Usage Data Billing");
+    end;
+
+    local procedure CreateUsageDataBillingWithCurrencyMismatch(UsageBasedPricing: Enum "Usage Based Pricing"; Quantity: Decimal)
+    var
+        UsageDataGenericImport: Record "Usage Data Generic Import";
+    begin
+        // Usage data is imported without a currency code, while the contracts use the currency of the Customer/Vendor
+        SetupUsageDataForProcessingToGenericImport(WorkDate(), CalcDate('<CM>', WorkDate()), WorkDate(), CalcDate('<CM>', WorkDate()), Quantity, false);
+        SetupDataExchangeDefinition();
+        SetupServiceObjectAndContracts(WorkDate());
+        DisallowDifferentCurrencyInUsageDataForContracts();
+        UsageBasedBTestLibrary.ConnectDataExchDefinitionToUsageDataGenericSettings(DataExchDef.Code, GenericImportSettings);
+        ProcessUsageDataImport(Enum::"Processing Step"::"Create Imported Lines");
+        ProcessUsageDataImport(Enum::"Processing Step"::"Process Imported Lines");
+
+        UsageDataGenericImport.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
+        UsageDataGenericImport.FindFirst();
+        PrepareServiceCommitmentAndUsageDataGenericImportForUsageBilling(UsageDataGenericImport, UsageBasedPricing);
+        Codeunit.Run(Codeunit::"Import And Process Usage Data", UsageDataImport);
+        UsageDataImport.SetRecFilter();
+        UsageDataImport.ProcessUsageDataImport(UsageDataImport, Enum::"Processing Step"::"Create Usage Data Billing");
+    end;
+
+    local procedure DisallowDifferentCurrencyInUsageDataForContracts()
+    var
+        ContractType: Record "Subscription Contract Type";
+    begin
+        ContractType.Get(CustomerContract."Contract Type");
+        ContractType."Allow Diff. Curr. in Cust. UD" := false;
+        ContractType.Modify(false);
+
+        ContractType.Get(VendorContract."Contract Type");
+        ContractType."Allow Diff. Curr. in Vend. UD" := false;
+        ContractType.Modify(false);
     end;
 
     local procedure CreateUsageDataBillingDummyDataFromSubscriptionLine(var NewUsageDataBilling: Record "Usage Data Billing"; UsageDataImportEntryNo: Integer; SourceSubscriptionLine: Record "Subscription Line")
