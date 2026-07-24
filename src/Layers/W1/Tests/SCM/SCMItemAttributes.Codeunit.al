@@ -13,6 +13,7 @@ codeunit 137413 "SCM Item Attributes"
         LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibraryInventory: Codeunit "Library - Inventory";
+        LibraryPurchase: Codeunit "Library - Purchase";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryApplicationArea: Codeunit "Library - Application Area";
         Assert: Codeunit Assert;
@@ -33,6 +34,8 @@ codeunit 137413 "SCM Item Attributes"
         ItemAttributeValueNotFoundErr: Label 'Item Attribute Value of type %1 and value %2 was not found.';
         MissingAttributeNameErr: Label 'Name must have a value in Item Attribute: ID=0. It cannot be zero or empty.';
         NumericValueShouldNotBeZeroErr: Label 'Numeric Value should not be zero.';
+        ItemListMustBeEmptyErr: Label 'Item list must be empty when attribute-matched item is excluded by vendor filter';
+        WrongItemShownErr: Label 'Wrong item shown after attribute filter with inclusion vendor filter';
 
 
     local procedure CreateItemAndSetOfItemsAttributes(var Item: Record Item)
@@ -2582,6 +2585,60 @@ codeunit 137413 "SCM Item Attributes"
 
         // [THEN] Verify there is nothing inside the filter
         Assert.AssertNothingInsideFilter();
+    end;
+
+    [Test]
+    [HandlerFunctions('FilterItemAttributesHandler')]
+    procedure FilterByAttributeRespectsExistingVendorFilter()
+    var
+        ItemAttribute: Record "Item Attribute";
+        ItemAttributeValue: Record "Item Attribute Value";
+        Item: Record Item;
+        Vendor: Record Vendor;
+        ItemList: TestPage "Item List";
+    begin
+        // [FEATURE] [AI test 0.4]
+        // [SCENARIO 637764] Filter by Attributes intersects with pre-existing Vendor No. filters on the Item List.
+        Initialize();
+
+        // [GIVEN] Item "I" with attribute "A" = "V" assigned to vendor "X"
+        LibraryInventory.CreateItemAttribute(ItemAttribute, ItemAttribute.Type::Text, '');
+        LibraryInventory.CreateItemAttributeValue(ItemAttributeValue, ItemAttribute.ID, LibraryUtility.GenerateGUID());
+        LibraryInventory.CreateItem(Item);
+        SetItemAttributeValue(Item, ItemAttributeValue);
+        LibraryPurchase.CreateVendor(Vendor);
+        Item.Validate("Vendor No.", Vendor."No.");
+        Item.Modify(true);
+
+        // [GIVEN] Item List is opened with inclusion filter Vendor No. = "X"
+        ItemList.OpenView();
+        ItemList.FILTER.SetFilter("Vendor No.", Vendor."No.");
+
+        // [WHEN] Filter by Attributes is invoked for attribute "A" = "V"
+        LibraryVariableStorage.Enqueue(1);
+        LibraryVariableStorage.Enqueue(ItemAttribute.Name);
+        LibraryVariableStorage.Enqueue(ItemAttributeValue.Value);
+        ItemList.FilterByAttributes.Invoke();
+
+        // [THEN] Item "I" is shown because it matches both the vendor filter and the attribute filter
+        ItemList.First();
+        Assert.AreEqual(Item."No.", ItemList."No.".Value, WrongItemShownErr);
+
+        // [GIVEN] Clear the attribute filter and change to exclusion filter Vendor No. <> "X"
+        ItemList.ClearAttributes.Invoke();
+        ItemList.FILTER.SetFilter("Vendor No.", StrSubstNo('<>%1', Vendor."No."));
+
+        // [WHEN] Filter by Attributes is invoked again for attribute "A" = "V"
+        LibraryVariableStorage.Enqueue(1);
+        LibraryVariableStorage.Enqueue(ItemAttribute.Name);
+        LibraryVariableStorage.Enqueue(ItemAttributeValue.Value);
+        ItemList.FilterByAttributes.Invoke();
+
+        // [THEN] No items are shown because "I" is excluded by the Vendor No. filter
+        Assert.IsFalse(ItemList.First(), ItemListMustBeEmptyErr);
+
+        ItemList.Close();
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     local procedure Initialize()
