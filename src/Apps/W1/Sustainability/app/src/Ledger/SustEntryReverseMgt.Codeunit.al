@@ -4,7 +4,7 @@ using System.Utilities;
 
 codeunit 6243 "Sust. Entry Reverse Mgt."
 {
-    Permissions = tabledata "Sustainability Ledger Entry" = rimd;
+    Permissions = tabledata "Sustainability Ledger Entry" = rim;
 
     var
         AlreadyReversedErr: Label 'Entry No. %1 has already been reversed.', Comment = '%1 = Entry No.';

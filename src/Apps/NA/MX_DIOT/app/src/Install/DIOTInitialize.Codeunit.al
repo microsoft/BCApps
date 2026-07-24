@@ -17,6 +17,9 @@ codeunit 27020 "DIOT - Initialize"
 
     trigger OnInstallAppPerCompany()
     begin
+        if InitializeDone() then
+            exit;
+
         InitializeCompany();
     end;
 
@@ -26,6 +29,14 @@ codeunit 27020 "DIOT - Initialize"
         ApplyEvaluationClassificationsForPrivacy();
         DIOTDataManagement.InsertDefaultDIOTConcepts();
         InsertDefaultDIOTCountryData();
+    end;
+
+    local procedure InitializeDone(): boolean
+    var
+        AppInfo: ModuleInfo;
+    begin
+        NavApp.GetCurrentModuleInfo(AppInfo);
+        exit(AppInfo.DataVersion() <> Version.Create('0.0.0.0'));
     end;
 
     local procedure ApplyEvaluationClassificationsForPrivacy()
