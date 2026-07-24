@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,6 +17,9 @@ report 10810 "Bank Acc. Detail Trial Balance"
     ApplicationArea = Basic, Suite;
     Caption = 'Bank Acc. Detail Trial Balance';
     UsageCategory = ReportsAndAnalysis;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to Reports FR app';
+    ObsoleteTag = '29.0';
 
     dataset
     {
@@ -455,4 +459,4 @@ report 10810 "Bank Acc. Detail Trial Balance"
         Previous_pageCaptionLbl: Label 'Previous page';
         Current_pageCaptionLbl: Label 'Current page';
 }
-
+#endif

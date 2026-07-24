@@ -1,4 +1,5 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿#if not CLEAN28
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -16,6 +17,9 @@ report 10804 "G/L Detail Trial Balance"
     ApplicationArea = Basic, Suite;
     Caption = 'G/L Detail Trial Balance';
     UsageCategory = ReportsAndAnalysis;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to Reports FR app';
+    ObsoleteTag = '29.0';
 
     dataset
     {
@@ -359,4 +363,4 @@ report 10804 "G/L Detail Trial Balance"
         Grand_TotalCaptionLbl: Label 'Grand Total';
         Total_Date_RangeCaptionLbl: Label 'Total Date Range';
 }
-
+#endif

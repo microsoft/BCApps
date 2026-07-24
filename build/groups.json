@@ -10080,6 +10080,46 @@
     ]
   },
   {
+    "name": "Reports FR",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
+    "name": "Reports FR Tests",
+    "groups": [
+      {
+        "name": "AllExtensions"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "FinancialsExtensions"
+      },
+      {
+        "name": "OnPrem"
+      },
+      {
+        "name": "OnPremExtensions"
+      }
+    ]
+  },
+  {
     "name": "Withholding Tax",
     "groups": [
       {

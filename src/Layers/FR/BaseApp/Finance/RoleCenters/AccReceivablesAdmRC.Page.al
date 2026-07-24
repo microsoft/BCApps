@@ -117,12 +117,16 @@ page 9003 "Acc. Receivables Adm. RC"
                 Image = "Report";
                 RunObject = Report "Customer - Summary Aging Simp.";
             }
+#if not CLEAN28            
             action("Customer Trial Balan&ce")
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Customer Trial Balan&ce';
                 RunObject = Report "Customer Trial Balance FR";
                 ToolTip = 'View the beginning and ending balance for customers with entries within a specified period. The report can be used to verify that the balance for a customer posting group is equal to the balance on the corresponding general ledger account on a certain date.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to Reports FR app';
+                ObsoleteTag = '29.0';
             }
             action("Customer Detail Trial Balance")
             {
@@ -131,7 +135,11 @@ page 9003 "Acc. Receivables Adm. RC"
                 Image = "Report";
                 RunObject = Report "Customer Detail Trial Balance";
                 ToolTip = 'View transactions for all customer accounts with subtotals per account. Each account shows the opening balance on the first line, and the list of transactions for the account and a closing balance on the last line. You can sort the results by document, and exclude customers that have a balance but do not have a net change during the selected time period.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to Reports FR app';
+                ObsoleteTag = '29.0';
             }
+#endif            
             action("Cus&tomer/Item Sales")
             {
                 ApplicationArea = Basic, Suite;
@@ -140,6 +148,7 @@ page 9003 "Acc. Receivables Adm. RC"
                 RunObject = Report "Customer/Item Sales";
                 ToolTip = 'View a list of item sales for each customer during a selected time period. The report contains information on quantity, sales amount, profit, and possible discounts. It can be used, for example, to analyze a company''s customer groups.';
             }
+#if not CLEAN28
             action("Customer Journal")
             {
                 ApplicationArea = Basic, Suite;
@@ -147,7 +156,11 @@ page 9003 "Acc. Receivables Adm. RC"
                 Image = "Report";
                 RunObject = Report "Customer Journal";
                 ToolTip = 'View transactions for all customer accounts with subtotals per period. Each period shows subtotals per source code.';
+                ObsoleteState = Pending;
+                ObsoleteReason = 'Moved to Reports FR app';
+                ObsoleteTag = '29.0';
             }
+#endif
             separator(Action20)
             {
             }
