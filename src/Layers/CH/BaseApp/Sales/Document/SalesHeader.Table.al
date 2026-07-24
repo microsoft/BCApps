@@ -8031,7 +8031,10 @@ table 36 "Sales Header"
         end else
             "Payment Method Code" := BillToCustomer."Payment Method Code";
 
-        AltCustVATRegFacade.UpdateSetupOnBillToCustomerChangeInSalesHeader(Rec, xRec, BillToCustomer);
+        IsHandled := false;
+        OnBeforeUpdateSetupOnBillToCustomerChangeInSalesHeader(Rec, BillToCustomer, IsHandled);
+        if not IsHandled then
+            AltCustVATRegFacade.UpdateSetupOnBillToCustomerChangeInSalesHeader(Rec, xRec, BillToCustomer);
 
         "Customer Posting Group" := BillToCustomer."Customer Posting Group";
         "Currency Code" := BillToCustomer."Currency Code";
@@ -10444,6 +10447,17 @@ table 36 "Sales Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterValidateBillToCustomerPaymentFields(var SalesHeader: Record "Sales Header")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before updating the VAT registration setup on a bill-to customer change in the sales header.
+    /// </summary>
+    /// <param name="SalesHeader">The sales header record being modified.</param>
+    /// <param name="BillToCustomer">The bill-to customer record.</param>
+    /// <param name="IsHandled">Set to true to skip the standard update of the VAT registration setup.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeUpdateSetupOnBillToCustomerChangeInSalesHeader(var SalesHeader: Record "Sales Header"; BillToCustomer: Record Customer; var IsHandled: Boolean)
     begin
     end;
 
