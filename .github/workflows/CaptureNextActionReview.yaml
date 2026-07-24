@@ -1,0 +1,44 @@
+name: Capture PR review for next action owner
+
+on:
+  pull_request_review:
+    types: [submitted, dismissed]
+  pull_request_review_comment:
+    types: [created]
+
+permissions: {}
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  capture:
+    if: github.repository_owner == 'microsoft'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Capture next-action review identifiers
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const review = context.eventName === 'pull_request_review';
+            const event = {
+              kind: review
+                ? `review_${context.payload.action}`
+                : 'review_comment_created',
+              repository: `${context.repo.owner}/${context.repo.repo}`,
+              pull_number: context.payload.pull_request.number,
+              id: review ? context.payload.review.id : context.payload.comment.id,
+            };
+            const directory = path.join(process.env.GITHUB_WORKSPACE, 'next-action-review-event');
+            fs.mkdirSync(directory);
+            fs.writeFileSync(path.join(directory, 'next-action-review-event'), JSON.stringify(event));
+
+      - name: Upload next-action review identifiers
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          path: ${{ github.workspace }}/next-action-review-event/next-action-review-event
+          archive: false
+          if-no-files-found: error
+          retention-days: 1
