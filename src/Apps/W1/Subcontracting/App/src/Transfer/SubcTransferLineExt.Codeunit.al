@@ -28,6 +28,22 @@ codeunit 99001544 "Subc. Transfer Line Ext."
         TransferLine."Subc. Return Order" := TransferHeader."Subc. Return Order";
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnBeforeCheckItemAvailable, '', false, false)]
+    local procedure OnBeforeCheckItemAvailable(var TransferLine: Record "Transfer Line"; CalledByFieldNo: Integer; CurrentFieldNo: Integer; var IsHandled: Boolean)
+    begin
+#if not CLEAN29
+#pragma warning disable AL0432
+        if not SubcFeatureFlagHandler.IsSubcontractingEnabled() then
+#pragma warning restore AL0432
+            exit;
+#endif
+        if TransferLine.IsTemporary() then
+            exit;
+
+        if TransferLine."Transfer WIP Item" then
+            IsHandled := true;
+    end;
+
     [EventSubscriber(ObjectType::Table, Database::"Transfer Line", OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteEvent(var Rec: Record "Transfer Line"; RunTrigger: Boolean)
     var
