@@ -192,7 +192,6 @@ page 9019 "CEO and President Role Center"
                 Caption = 'Vendor - &Purchase List';
                 Image = "Report";
                 RunObject = Report "Vendor - Purchase List";
-                ToolTip = 'View a list of your purchases in a period, for example, to report purchase activity to customs and tax authorities.';
             }
         }
         area(embedding)

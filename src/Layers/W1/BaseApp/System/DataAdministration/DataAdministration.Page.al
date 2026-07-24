@@ -163,7 +163,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = Suite;
                         Caption = 'Delete Blanket Purchase Orders';
-                        ToolTip = 'Delete Blanket Purchase Orders';
                         RunObject = Report "Delete Invd Blnkt Purch Orders";
                         Ellipsis = true;
                     }
@@ -171,7 +170,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Delete Purchase Orders';
-                        ToolTip = 'Delete Purchase Orders';
                         RunObject = Report "Delete Invoiced Purch. Orders";
                         Ellipsis = true;
                     }
@@ -179,7 +177,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = PurchReturnOrder;
                         Caption = 'Delete Purchase Return Orders';
-                        ToolTip = 'Delete Purchase Return Orders';
                         RunObject = Report "Delete Invd Purch. Ret. Orders";
                         Ellipsis = true;
                     }
@@ -360,7 +357,6 @@ page 9035 "Data Administration"
                         Image = Vendor;
                         RunObject = Report "Date Compress Vendor Ledger";
                         Ellipsis = true;
-                        ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                     }
                     action("Date Compress Resource Ledger Entries")
                     {
