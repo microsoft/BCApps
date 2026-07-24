@@ -270,7 +270,7 @@ report 99001501 "Subc. Create Transf. Order"
         SubcPurchFactboxMgmt: Codeunit "Subc. Purch. Factbox Mgmt.";
     begin
         Commit(); // Used for following call of Transfer Pages
-        SubcPurchFactboxMgmt.ShowTransferOrdersAndReturnOrder("Purchase Line", true, false);
+        SubcPurchFactboxMgmt.ShowTransferOrdersFromPurchaseOrder("Purchase Header", false);
     end;
 
     local procedure GetTransferFromLocationForComponent(ProdOrderComponent: Record "Prod. Order Component"): Code[10]
