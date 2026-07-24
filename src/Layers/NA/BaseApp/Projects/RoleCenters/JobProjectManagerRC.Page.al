@@ -665,7 +665,6 @@ page 9015 "Job Project Manager RC"
                         Caption = 'Employee - Staff Absences';
                         Image = "Report";
                         RunObject = Report "Employee - Staff Absences";
-                        ToolTip = 'View a list of employee absences by date. The list includes the cause of each employee absence.';
                     }
                     action("Employee - Absences by Causes")
                     {
@@ -673,7 +672,6 @@ page 9015 "Job Project Manager RC"
                         Caption = 'Employee - Absences by Causes';
                         Image = "Report";
                         RunObject = Report "Employee - Absences by Causes";
-                        ToolTip = 'View a list of all your employee absences categorized by absence code.';
                     }
                 }
             }
