@@ -15,7 +15,10 @@ codeunit 17118 "Contoso NZ County"
         tabledata County = rim;
 
     procedure SetOverwriteData(Overwrite: Boolean)
+    var
+        UnusedValue: Integer;
     begin
+        UnusedValue := 42;
         OverwriteData := Overwrite;
     end;
 
