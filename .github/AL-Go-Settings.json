@@ -8,10 +8,11 @@
   "UsePsSession": false,
   "gitHubRunner": "windows-latest",
   "githubRunnerShell": "pwsh",
-  "artifact": "bcinsider/Sandbox/29.0.51936.0//latest",
+  "artifact": "bcinsider/Sandbox/29.0.52815.0//latest",
   "country": "base",
   "useProjectDependencies": true,
   "repoVersion": "29.0",
+  "memoryLimit": "16G",
   "numberOfTenantsForTesting": 3,
   "workspaceCompilation": {
     "enabled": true,
@@ -136,6 +137,7 @@
     "build/*",
     "src/rulesets/*",
     "src/Layers/*",
+    "src/DisabledTests/*",
     ".github/workflows/PullRequestHandler.yaml",
     ".github/workflows/_BuildALGoProject.yaml"
   ],
@@ -161,6 +163,7 @@
     ]
   },
   "runNumberOffset": 60000,
+  "shortLivedArtifactsRetentionDays": 3,
   "incrementalBuilds": {
     "onPush": false,
     "onPull_Request": true,

@@ -281,7 +281,7 @@ page 99000768 "Manufacturing Setup"
                     Visible = not Rec."Legacy Subcontracting";
                     ObsoleteReason = 'Legacy Subcontracting will be discontinued, environments should move to the Subcontracting App.';
                     ObsoleteState = Pending;
-                    ObsoleteTag = '29.0';
+                    ObsoleteTag = '28.0';
 
                     trigger OnAction()
                     var

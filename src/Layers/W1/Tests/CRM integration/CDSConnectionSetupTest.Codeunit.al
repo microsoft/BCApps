@@ -621,6 +621,7 @@ codeunit 139196 "CDS Connection Setup Test"
     procedure ServerAddressRequiredToEnableO365()
     var
         CDSConnectionSetup: Record "CDS Connection Setup";
+        Any: Codeunit "Any";
         DummyPassword: Text;
     begin
         // [FEATURE] [UT]
@@ -629,7 +630,7 @@ codeunit 139196 "CDS Connection Setup Test"
         CDSConnectionSetup.DeleteAll();
         CDSConnectionSetup.Init();
         CDSConnectionSetup."User Name" := 'tester@domain.net';
-        DummyPassword := 'T3sting!';
+        DummyPassword := Any.AlphanumericText(20);
         CDSConnectionSetup.SetPassword(DummyPassword);
         CDSConnectionSetup."Authentication Type" := CDSConnectionSetup."Authentication Type"::Office365;
         CDSConnectionSetup.Insert();
@@ -644,6 +645,7 @@ codeunit 139196 "CDS Connection Setup Test"
     procedure ServerAddressRequiredToEnable()
     var
         CDSConnectionSetup: Record "CDS Connection Setup";
+        Any: Codeunit "Any";
         DummyPassword: Text;
     begin
         // [FEATURE] [UT]
@@ -652,7 +654,7 @@ codeunit 139196 "CDS Connection Setup Test"
         CDSConnectionSetup.DeleteAll();
         CDSConnectionSetup.Init();
         CDSConnectionSetup."User Name" := 'tester@domain.net';
-        DummyPassword := 'T3sting!';
+        DummyPassword := Any.AlphanumericText(20);
         CDSConnectionSetup.SetPassword(DummyPassword);
         CDSConnectionSetup."Authentication Type" := CDSConnectionSetup."Authentication Type"::AD;
         CDSConnectionSetup.Insert();
@@ -1033,6 +1035,7 @@ codeunit 139196 "CDS Connection Setup Test"
     procedure ActionTestConnectionWhenIntegrationDisabled()
     var
         CDSConnectionSetup: Record "CDS Connection Setup";
+        Any: Codeunit "Any";
         CDSConnectionSetupPage: TestPage "CDS Connection Setup";
         DummyPassword: Text;
     begin
@@ -1042,7 +1045,7 @@ codeunit 139196 "CDS Connection Setup Test"
         // [GIVEN] Disabled CDS Connection
         InitializeSetup(false);
         CDSConnectionSetup.Get();
-        DummyPassword := 'test';
+        DummyPassword := Any.AlphanumericText(20);
         CDSConnectionSetup.SetPassword(DummyPassword);
         CDSConnectionSetup.Modify();
         // [GIVEN] Open CDS Connection Setup page
@@ -1373,12 +1376,13 @@ codeunit 139196 "CDS Connection Setup Test"
     local procedure InitializeSetup(HostName: Text; IsEnabled: Boolean)
     var
         CDSConnectionSetup: Record "CDS Connection Setup";
+        Any: Codeunit "Any";
         DummyPassword: Text;
     begin
         CDSConnectionSetup.DeleteAll();
         CDSConnectionSetup.Init();
         CDSConnectionSetup."Server Address" := CopyStr(HostName, 1, MaxStrLen(CDSConnectionSetup."Server Address"));
-        DummyPassword := 'T3sting!';
+        DummyPassword := Any.AlphanumericText(20);
         if IsEnabled then
             CDSConnectionSetup.SetPassword(DummyPassword);
         CDSConnectionSetup."Is Enabled" := IsEnabled;
