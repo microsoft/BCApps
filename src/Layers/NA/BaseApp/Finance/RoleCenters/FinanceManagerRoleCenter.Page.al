@@ -101,7 +101,6 @@ using System.Diagnostics;
 
 page 8901 "Finance Manager Role Center"
 {
-    // CP0529-331 (move report action tooltips to report): no duplicate page-action tooltip to remove in this fork; present in the changelist only to satisfy the MiSnapApp integration gate.
     Caption = 'Finance Manager Role Center';
     PageType = RoleCenter;
 
@@ -228,6 +227,7 @@ page 8901 "Finance Manager Role Center"
                         {
                             Caption = 'Day Book Vendor Ledger Entry';
                             RunObject = report "Day Book Vendor Ledger Entry";
+                            Tooltip = 'Run the Day Book Vendor Ledger Entry report.';
                         }
                         action("Sales Taxes Collected")
                         {
@@ -410,7 +410,7 @@ page 8901 "Finance Manager Role Center"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'G/L Register';
-                            RunObject = Report "G/L Register";
+                            RunObject = report "G/L Register";
                             Tooltip = 'Run the G/L Register report.';
                         }
                         action("Detail Trial Balance")
@@ -473,6 +473,7 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Financial Report';
                             RunObject = report "Account Schedule";
+                            Tooltip = 'Run the Account Schedule report.';
                         }
                         action("Account Schedule Layout")
                         {
@@ -484,7 +485,7 @@ page 8901 "Finance Manager Role Center"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Trial Balance (Obsolete)';
-                            RunObject = Report "Trial Balance";
+                            RunObject = report "Trial Balance";
                             Tooltip = 'Run the Trial Balance report.';
                             ObsoleteState = Pending;
                             ObsoleteReason = 'This report has been replaced by the report Trial Balance (Excel). This report will be removed in a future release.';
@@ -494,7 +495,7 @@ page 8901 "Finance Manager Role Center"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Trial Balance/Budget (Obsolete)';
-                            RunObject = Report "Trial Balance/Budget";
+                            RunObject = report "Trial Balance/Budget";
                             Tooltip = 'Run the Trial Balance/Budget report.';
                             ObsoleteState = Pending;
                             ObsoleteReason = 'This report has been replaced by the report Trial Balance/Budget (Excel). This report will be removed in a future release.';
@@ -512,25 +513,29 @@ page 8901 "Finance Manager Role Center"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Closing Trial Balance';
-                            RunObject = Report "Closing Trial Balance";
+                            RunObject = report "Closing Trial Balance";
+                            Tooltip = 'Run the Closing Trial Balance report.';
                         }
                         action("Consolidated Trial Balance")
                         {
                             ApplicationArea = Suite;
                             Caption = 'Consolidated Trial Balance';
-                            RunObject = Report "Consolidated Trial Balance";
+                            RunObject = report "Consolidated Trial Balance";
+                            Tooltip = 'Run the Consolidated Trial Balance report.';
                         }
                         action("Consolidated Trial Balance (4)")
                         {
                             ApplicationArea = Suite;
                             Caption = 'Consolidated Trial Balance (4)';
-                            RunObject = Report "Consolidated Trial Balance (4)";
+                            RunObject = report "Consolidated Trial Balance (4)";
+                            Tooltip = 'Run the Consolidated Trial Balance (4) report.';
                         }
                         action("Budget")
                         {
                             ApplicationArea = Suite;
                             Caption = 'Budget';
-                            RunObject = Report Budget;
+                            RunObject = report "Budget";
+                            Tooltip = 'Run the Budget report.';
                         }
                         action("Trial Balance by Period")
                         {
@@ -668,7 +673,8 @@ page 8901 "Finance Manager Role Center"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Chart of Accounts';
-                            RunObject = Report "Chart of Accounts";
+                            RunObject = report "Chart of Accounts";
+                            Tooltip = 'Run the Chart of Accounts report.';
                         }
                         action("Change Log Setup List")
                         {
@@ -825,6 +831,7 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Cash Receipt Journals';
                         RunObject = page "Cash Receipt Journal";
+                        Tooltip = 'Open the Cash Receipt Journals page.';
                     }
                     action("Sales Tax Journal")
                     {
@@ -1163,6 +1170,7 @@ page 8901 "Finance Manager Role Center"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Customers';
                     RunObject = page "Customer List";
+                    Tooltip = 'Open the Customers page.';
                 }
                 action("Credit Management")
                 {
@@ -1351,7 +1359,7 @@ page 8901 "Finance Manager Role Center"
                     action("Customer Comment List")
                     {
                         Caption = 'Customer Comment List';
-                        RunObject = Report "Customer Comment List";
+                        RunObject = report "Customer Comment List";
                     }
                     action("Customer Statement")
                     {
@@ -1364,7 +1372,7 @@ page 8901 "Finance Manager Role Center"
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer Register';
-                        RunObject = Report "Customer Register";
+                        RunObject = report "Customer Register";
                     }
                     action("Customer - Balance to Date")
                     {
@@ -1382,7 +1390,7 @@ page 8901 "Finance Manager Role Center"
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer Listing';
-                        RunObject = Report "Customer Listing";
+                        RunObject = report "Customer Listing";
                     }
                     action("Customer - Summary Aging Simp.")
                     {
@@ -1408,7 +1416,7 @@ page 8901 "Finance Manager Role Center"
                     {
                         ApplicationArea = Suite;
                         Caption = 'Customer Labels';
-                        RunObject = Report "Customer Labels NA";
+                        RunObject = report "Customer Labels NA";
                     }
 #if not CLEAN28
                     action("Customer - Top 10 List")
@@ -1435,7 +1443,7 @@ page 8901 "Finance Manager Role Center"
                     action("Salesperson - Commission")
                     {
                         Caption = 'Salesperson Commission';
-                        RunObject = Report "Salesperson Commissions";
+                        RunObject = report "Salesperson Commissions";
                     }
 #if not CLEAN28
                     action("Customer - Sales List")
@@ -1644,6 +1652,7 @@ page 8901 "Finance Manager Role Center"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Incoming Documents';
                     RunObject = page "Incoming Documents";
+                    Tooltip = 'Open the Incoming Documents page.';
                 }
                 action("Generate EFT Files")
                 {
@@ -1929,6 +1938,7 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Purchases & Payables Setup';
                         RunObject = page "Purchases & Payables Setup";
+                        Tooltip = 'Open the Purchases & Payables Setup page.';
                     }
                 }
             }
@@ -2502,9 +2512,10 @@ page 8901 "Finance Manager Role Center"
                     }
                     action("Inventory - G/L Reconciliation")
                     {
-                        ApplicationArea = Suite;
+                        ApplicationArea = Basic, Suite;
                         Caption = 'Inventory - G/L Reconciliation';
                         RunObject = page "Inventory - G/L Reconciliation";
+                        Tooltip = 'Open the Inventory - G/L Reconciliation page.';
                     }
                     action("Item List")
                     {
@@ -2659,6 +2670,7 @@ page 8901 "Finance Manager Role Center"
                     ApplicationArea = Basic, Suite;
                     Caption = 'No. Series';
                     RunObject = page "No. Series";
+                    Tooltip = 'Open the No. Series page.';
                 }
                 action("GIFI Codes")
                 {
@@ -2842,7 +2854,7 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Gen. Business Posting Groups';
                         RunObject = page "Gen. Business Posting Groups";
-                        Tooltip = 'Open the Gen. Business Posting Groups page.';
+                        Tooltip = 'Open the General Business Posting Groups page.';
                     }
                     action("Gen. Product Posting Groups")
                     {

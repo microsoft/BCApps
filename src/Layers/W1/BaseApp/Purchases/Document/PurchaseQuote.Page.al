@@ -1613,6 +1613,13 @@ page 49 "Purchase Quote"
         OnAfterActivateFields();
     end;
 
+    local procedure SetPurchaseLinesAvailability()
+    begin
+        IsPurchaseLinesEditable := Rec.PurchaseLinesEditable();
+
+        OnAfterSetPurchaseLinesAvailability(Rec, IsPurchaseLinesEditable);
+    end;
+
     local procedure ApproveCalcInvDisc()
     begin
         CurrPage.PurchLines.PAGE.ApproveCalcInvDisc();
@@ -1667,7 +1674,7 @@ page 49 "Purchase Quote"
         WorkflowWebhookManagement.GetCanRequestAndCanCancel(Rec.RecordId, CanRequestApprovalForFlow, CanCancelApprovalForFlow);
 
         HasIncomingDocument := Rec."Incoming Document Entry No." <> 0;
-        IsPurchaseLinesEditable := Rec.PurchaseLinesEditable();
+        SetPurchaseLinesAvailability();
     end;
 
     local procedure ValidateShippingOption()
@@ -1719,6 +1726,11 @@ page 49 "Purchase Quote"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalculateCurrentShippingAndPayToOption(var ShipToOptions: Option "Default (Company Address)",Location,"Custom Address"; var PayToOptions: Option "Default (Vendor)","Another Vendor","Custom Address"; PurchaseHeader: Record "Purchase Header")
+    begin
+    end;
+
+    [IntegrationEvent(true, false)]
+    local procedure OnAfterSetPurchaseLinesAvailability(var PurchaseHeader: Record "Purchase Header"; var PurchaseLinesAvailable: Boolean)
     begin
     end;
 

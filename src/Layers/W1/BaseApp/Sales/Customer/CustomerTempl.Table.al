@@ -134,6 +134,7 @@ table 1381 "Customer Templ."
         field(14; "Our Account No."; Text[20])
         {
             Caption = 'Our Account No.';
+            MaskType = Concealed;
         }
         /// <summary>
         /// Specifies the default territory code for customers created from this template.
@@ -893,4 +894,5 @@ table 1381 "Customer Templ."
     local procedure OnCopyTemplateOnBeforeModify(SourceCustomerTempl: Record "Customer Templ."; SavedCustomerTempl: Record "Customer Templ."; var CustomerTempl: Record "Customer Templ.")
     begin
     end;
+
 }

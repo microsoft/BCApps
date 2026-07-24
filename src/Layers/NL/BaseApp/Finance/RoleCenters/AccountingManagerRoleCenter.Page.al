@@ -6,8 +6,6 @@ namespace Microsoft.Finance.RoleCenters;
 
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Deposit;
-using Microsoft.Bank.Journal;
-using Microsoft.Bank.Payment;
 using Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Reports;
 using Microsoft.CashFlow.Account;
@@ -73,53 +71,53 @@ page 9001 "Accounting Manager Role Center"
     {
         area(rolecenter)
         {
-                part(Control1902304208; "Account Manager Activities")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                part("User Tasks Activities"; "User Tasks Activities")
-                {
-                    ApplicationArea = Suite;
-                }
-                part("Job Queue Tasks Activities"; "Job Queue Tasks Activities")
-                {
-                    ApplicationArea = Suite;
-                }
-                part(Control99; "Finance Performance")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Visible = false;
-                }
-                part(Control103; "Trailing Sales Orders Chart")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Visible = false;
-                }
-                part(Control106; "My Job Queue")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Visible = false;
-                }
-                part(Control100; "Cash Flow Forecast Chart")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                part(Control1907692008; "My Customers")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                part(Control1902476008; "My Vendors")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                part(Control108; "Report Inbox Part")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                systempart(Control1901377608; MyNotes)
-                {
-                    ApplicationArea = Basic, Suite;
-                }
+            part(Control1902304208; "Account Manager Activities")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            part("User Tasks Activities"; "User Tasks Activities")
+            {
+                ApplicationArea = Suite;
+            }
+            part("Job Queue Tasks Activities"; "Job Queue Tasks Activities")
+            {
+                ApplicationArea = Suite;
+            }
+            part(Control99; "Finance Performance")
+            {
+                ApplicationArea = Basic, Suite;
+                Visible = false;
+            }
+            part(Control103; "Trailing Sales Orders Chart")
+            {
+                ApplicationArea = Basic, Suite;
+                Visible = false;
+            }
+            part(Control106; "My Job Queue")
+            {
+                ApplicationArea = Basic, Suite;
+                Visible = false;
+            }
+            part(Control100; "Cash Flow Forecast Chart")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            part(Control1907692008; "My Customers")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            part(Control1902476008; "My Vendors")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            part(Control108; "Report Inbox Part")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            systempart(Control1901377608; MyNotes)
+            {
+                ApplicationArea = Basic, Suite;
+            }
         }
     }
 
@@ -462,20 +460,6 @@ page 9001 "Accounting Manager Role Center"
                 RunObject = Page "Finance Charge Memo List";
                 ToolTip = 'Send finance charge memos to customers with delayed payments, typically following a reminder process. Finance charges are calculated automatically and added to the overdue amounts on the customer''s account according to the specified finance charge terms and penalty/interest amounts.';
             }
-            action(Telebanking)
-            {
-                ApplicationArea = Advanced;
-                Caption = 'Telebanking';
-                RunObject = Page "Telebank - Bank Overview";
-                ToolTip = 'Prepare to exchange your payments to vendors and collections from customers with your bank electronically. This includes the export of payment and collection data that need to be forwarded to the bank as well as the import of bank statements sent to you by the bank.';
-            }
-            action("Telebank - Bank Overview")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Telebank - Bank Overview';
-                RunObject = Page "Telebank - Bank Overview";
-                ToolTip = 'View a list of bank accounts that are set up for electronic bank file transfers.';
-            }
             action("Incoming Documents")
             {
                 ApplicationArea = Basic, Suite;
@@ -554,22 +538,6 @@ page 9001 "Accounting Manager Role Center"
                     RunPageView = where("Template Type" = const(General),
                                         Recurring = const(false));
                     ToolTip = 'Post financial transactions directly to general ledger accounts and other accounts, such as bank, customer, vendor, and employee accounts. Posting with a general journal always creates entries on general ledger accounts. This is true even when, for example, you post a journal line to a customer account, because an entry is posted to a general ledger receivables account through a posting group.';
-                }
-                action("Bank/Giro Journals")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Bank/Giro Journals';
-                    RunObject = Page "Bank/Giro Journal List";
-                    RunPageView = where(Type = const("Bank/Giro"));
-                    ToolTip = 'Reconcile a bank account by comparing incoming and outgoing bank transactions to a physical bank statement or by importing an electronic bank statement file, and apply the related payments to open customer or vendor documents.';
-                }
-                action("Cash Journals")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Cash Journals';
-                    RunObject = Page "Cash Journal List";
-                    RunPageView = where(Type = const(Cash));
-                    ToolTip = 'Post transactions to the cash account in the general ledger.';
                 }
             }
             group("Fixed Assets")
@@ -846,41 +814,6 @@ page 9001 "Accounting Manager Role Center"
                     RunObject = Page "Bank Account Posting Groups";
                     ToolTip = 'Set up posting groups, so that payments in and out of each bank account are posted to the specified general ledger account.';
                 }
-                action("Elec. Tax Decl. VAT Categories")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Elec. Tax Decl. VAT Categories';
-                    RunObject = Page "Elec. Tax Decl. VAT Categ.";
-                    ToolTip = 'Set up all the possible combinations of categories and sub categories that represent a XML element in the electronic VAT declaration. A combination is defined by a code. By entering this code in the Elec. Tax Decl. Category Code field on a VAT statement line, you map the data of the VAT statement directly to a XML element.';
-                }
-                action("Transaction Modes")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Transaction Modes';
-                    RunObject = Page "Transaction Mode List";
-                    ToolTip = 'View or edit the transaction modes that are used for telebanking to manage how an order, invoice, or credit memo for a vendor or customer will be paid for or collected.';
-                }
-                action("Export Telebanking Protocols")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Export Telebanking Protocols';
-                    RunObject = Page "Export Protocols";
-                    ToolTip = 'Set up codes for each set of export protocols to be used when exporting a payment history for processing by the bank.';
-                }
-                action("Import Telebanking Protocols")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Import Telebanking Protocols';
-                    RunObject = Page "Import Protocols";
-                    ToolTip = 'Set up codes for each set of import protocols to be used when importing bank statements.';
-                }
-                action("Freely Transferable Maximums")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Freely Transferable Maximums';
-                    RunObject = Page "Freely Transferable Maximums";
-                    ToolTip = 'Set up freely transferable maximums that denote the maximum amount, for a specific currency, that can be transferred in one payment from one country to another without reason given.';
-                }
             }
         }
         area(creation)
@@ -956,13 +889,6 @@ page 9001 "Accounting Manager Role Center"
                 RunObject = Report "Import Consolidation from DB";
                 ToolTip = 'Import entries from the business units that will be included in a consolidation. You can use the batch job if the business unit comes from the same database in Business Central as the consolidated company.';
             }
-            action("Import Bank Statement")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Import Bank Statement';
-                RunObject = Codeunit "Import Protocol Management";
-                ToolTip = 'Prepare to reconcile the bank account by importing an electronic bank statement with the actual bank transactions.';
-            }
             action("Bank Account R&econciliation")
             {
                 ApplicationArea = Basic, Suite;
@@ -996,14 +922,6 @@ page 9001 "Accounting Manager Role Center"
                 Image = PostInventoryToGL;
                 RunObject = Report "Post Inventory Cost to G/L";
             }
-            action("Tax Authority - Audit File")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Tax Authority - Audit File';
-                Image = "Report";
-                RunObject = Report "Tax Authority - Audit File";
-                ToolTip = 'Create an audit file that contains all journal transactions from the general ledger. During a tax audit, this file is imported from the tax authority for additional analysis.';
-            }
             separator(Action97)
             {
             }
@@ -1034,20 +952,6 @@ page 9001 "Accounting Manager Role Center"
                 RunObject = Report "Calc. and Post VAT Settlement";
                 ToolTip = 'Close open VAT entries and transfers purchase and sales VAT amounts to the VAT settlement account. For every VAT posting group, the batch job finds all the VAT entries in the VAT Entry table that are included in the filters in the definition window.';
             }
-            action("Elec. Tax Declarations")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Elec. Tax Declarations';
-                RunObject = Page "Elec. Tax Declaration List";
-                ToolTip = 'View the list of VAT and ICP declarations that you send to the tax authorities.';
-            }
-            action("Elec. Tax Decl. Response Msgs.")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Elec. Tax Decl. Response Msgs.';
-                RunObject = Page "Elec. Tax Decl. Response Msgs.";
-                ToolTip = 'View all the response messages received from the tax authorities. The status of the response message indicates if the message is processed or not.';
-            }
             separator(Action80)
             {
                 Caption = 'Administration';
@@ -1060,13 +964,6 @@ page 9001 "Accounting Manager Role Center"
                 Image = Setup;
                 RunObject = Page "General Ledger Setup";
                 ToolTip = 'Post financial transactions directly to general ledger accounts and other accounts, such as bank, customer, vendor, and employee accounts. Posting with a general journal always creates entries on general ledger accounts. This is true even when, for example, you post a journal line to a customer account, because an entry is posted to a general ledger receivables account through a posting group.';
-            }
-            action("Elec. Tax Declaration Setup")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Elec. Tax Declaration Setup';
-                RunObject = Page "Elec. Tax Declaration Setup";
-                ToolTip = 'Set up the information that will be used to generate an electronic VAT and ICP declaration, such as the Digipoort configuration. ';
             }
             action("&Sales && Receivables Setup")
             {

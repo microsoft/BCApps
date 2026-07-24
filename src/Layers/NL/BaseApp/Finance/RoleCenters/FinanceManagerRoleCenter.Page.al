@@ -8,7 +8,6 @@ using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Check;
 using Microsoft.Bank.Deposit;
 using Microsoft.Bank.DirectDebit;
-using Microsoft.Bank.Journal;
 using Microsoft.Bank.Ledger;
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Reconciliation;
@@ -97,7 +96,6 @@ using System.Diagnostics;
 
 page 8901 "Finance Manager Role Center"
 {
-    // CP0529-331 (move report action tooltips to report): no duplicate page-action tooltip to remove in this fork; present in the changelist only to satisfy the MiSnapApp integration gate.
     Caption = 'Finance Manager Role Center';
     PageType = RoleCenter;
 
@@ -135,24 +133,6 @@ page 8901 "Finance Manager Role Center"
                     Caption = 'Financial Reporting';
                     RunObject = page "Financial Reports";
                     Tooltip = 'Open the Account Schedules page.';
-                }
-                action("Bank/Giro Journal")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Bank/Giro Journal';
-                    RunObject = page "Bank/Giro Journal List";
-                }
-                action("Cash Journal")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Cash Journal';
-                    RunObject = page "Cash Journal List";
-                }
-                action("Telebank - Bank Overview")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Telebank - Bank Overview';
-                    RunObject = page "Telebank - Bank Overview";
                 }
                 action("Analyses by Dimensions")
                 {
@@ -250,22 +230,6 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Day Book Vendor Ledger Entry";
                             Tooltip = 'Run the Day Book Vendor Ledger Entry report.';
                         }
-                    }
-                }
-                group("Group64")
-                {
-                    Caption = 'Elec. Tax Declaration';
-                    action("Elec. Tax Declarations")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Elec. Tax Declarations';
-                        RunObject = page "Elec. Tax Declaration List";
-                    }
-                    action("Elec. Tax Decl. Response Msgs.")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Elec. Tax Decl. Response Msgs.';
-                        RunObject = page "Elec. Tax Decl. Response Msgs.";
                     }
                 }
                 group("Group3")
@@ -596,18 +560,6 @@ page 8901 "Finance Manager Role Center"
                             RunObject = report "Foreign Currency Balance";
                             Tooltip = 'Run the Foreign Currency Balance report.';
                         }
-                        action("Tax Authority - Audit File")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Tax Authority - Audit File';
-                            RunObject = report "Tax Authority - Audit File";
-                        }
-                        action("NL Export Financial Data to XM")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'NL Export Financial Data to XML';
-                            RunObject = report "Export Financial Data to XML";
-                        }
                         action("Reconcile Cust. and Vend. Accs")
                         {
                             ApplicationArea = Basic, Suite;
@@ -680,50 +632,6 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'VAT Report Setup';
                         RunObject = page "VAT Report Setup";
                         Tooltip = 'Open the VAT Report Setup page.';
-                    }
-                    group("Group62")
-                    {
-                        Caption = 'Elec. Tax Declaration';
-                        action("Elec. Tax Declaration Setup")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Elec. Tax Declaration Setup';
-                            RunObject = page "Elec. Tax Declaration Setup";
-                        }
-                        action("Elec. Tax Decl. VAT Categories")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Elec. Tax Decl. VAT Categories';
-                            RunObject = page "Elec. Tax Decl. VAT Categ.";
-                        }
-                    }
-                    group("Group63")
-                    {
-                        Caption = 'Telebanking';
-                        action("Transaction Modes")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Transaction Modes';
-                            RunObject = page "Transaction Mode List";
-                        }
-                        action("Export Protocols")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Export Protocols';
-                            RunObject = page "Export Protocols";
-                        }
-                        action("Import Protocols")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Import Protocols';
-                            RunObject = page "Import Protocols";
-                        }
-                        action("Freely Transferable Maximums")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Freely Transferable Maximums';
-                            RunObject = page "Freely Transferable Maximums";
-                        }
                     }
                 }
             }
@@ -2647,9 +2555,9 @@ page 8901 "Finance Manager Role Center"
                     action("General Business")
                     {
                         ApplicationArea = Basic, Suite;
-                        Caption = 'Gen. Business Posting Groups';
+                        Caption = 'General Business Posting Groups';
                         RunObject = page "Gen. Business Posting Groups";
-                        Tooltip = 'Open the Gen. Business Posting Groups page.';
+                        Tooltip = 'Open the General Business Posting Groups page.';
                     }
                     action("Gen. Product Posting Groups")
                     {

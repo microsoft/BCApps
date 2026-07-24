@@ -1187,7 +1187,7 @@ page 9001 "Accounting Manager Role Center"
             }
             action("Cost Accounting Setup")
             {
-                ApplicationArea = Dimensions;
+                ApplicationArea = CostAccounting;
                 Caption = 'Cost Accounting Setup';
                 Image = CostAccountingSetup;
                 RunObject = Page "Cost Accounting Setup";

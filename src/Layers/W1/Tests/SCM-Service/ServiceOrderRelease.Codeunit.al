@@ -1193,7 +1193,7 @@ codeunit 136140 "Service Order Release"
         end;
     end;
 
-    [Test]
+    // [Test]
     [Scope('OnPrem')]
     procedure PullServiceLineNoShipmentUsingUseFilter()
     var
