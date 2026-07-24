@@ -72,8 +72,11 @@ try {
     Write-Host "::notice::Observed $($failedTests.Count) distinct failed test(s) across $($RunIds.Count) run(s)."
 
     # --- 2. Build the unstable tests list (additive merge or full recompute) ---
+    # Single timestamp for this run so every newly stamped test shares the same 'unstableSince'.
+    $now = (Get-Date).ToUniversalTime().ToString('o')
+
     # Load the existing artifact so each still-unstable test's 'unstableSince' timestamp can be preserved
-    # (via Set-UnstableSince below) rather than reset when the list is recomputed or appended to.
+    # (carried forward when the list is recomputed or appended to) rather than reset to this run's time.
     $existingPath = Receive-UnstableTestsArtifact -Branch $Branch -OutputDirectory $downloadDir
     $existingTests = @()
     if ($existingPath -and (Test-Path $existingPath)) {
@@ -92,16 +95,12 @@ try {
             Write-Host "::warning::No failed tests found in the supplied run(s). The unstable tests list will be rewritten unchanged."
         }
 
-        $tests = @(Add-FailedTestsToUnstableTests -ExistingTests ([System.Collections.IList]$existingTests) -FailedTests $failedTests -Repository $repo)
+        $tests = @(Add-FailedTestsToUnstableTests -ExistingTests ([System.Collections.IList]$existingTests) -FailedTests $failedTests -Repository $repo -UnstableSince $now)
     }
     else {
-        $updatedTests = Update-UnstableTestsList -FailedTests $failedTests -RunCount $RunIds.Count
-        $tests = @($updatedTests.Values | ForEach-Object { ConvertTo-UnstableTestEntry -Test $_ -Repository $repo })
+        $updatedTests = Update-UnstableTestsList -FailedTests $failedTests -RunCount $RunIds.Count -ExistingTests ([System.Collections.IList]$existingTests)
+        $tests = @($updatedTests.Values | ForEach-Object { ConvertTo-UnstableTestEntry -Test $_ -Repository $repo -UnstableSince $now })
     }
-
-    # Stamp 'unstableSince' once per test: keep any timestamp a test already has (including one carried in
-    # the previous artifact), stamp the rest with the current UTC time.
-    $tests = @(Set-UnstableSince -Tests ([System.Collections.IList]$tests) -ExistingTests ([System.Collections.IList]$existingTests))
 
     # --- 3. Write artifact ---
     Save-UnstableTestsArtifact -Branch $Branch -RunIds $RunIds -Tests ([System.Collections.IList]$tests) -OutputPath $OutputPath

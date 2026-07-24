@@ -85,6 +85,9 @@ New-Item -ItemType Directory -Path $cicdWorkDir -Force | Out-Null
 New-Item -ItemType Directory -Path $prWorkDir -Force | Out-Null
 
 try {
+    # Single timestamp for this run so every newly stamped test shares the same 'unstableSince'.
+    $now = (Get-Date).ToUniversalTime().ToString('o')
+
     # Load the existing artifact once. It serves two purposes: preserving each test's 'unstableSince'
     # timestamp across the Path A full recompute (which rebuilds every entry from scratch, and would
     # otherwise reset the timestamp to "now"), and acting as the fallback base list when there is no
@@ -111,8 +114,8 @@ try {
     $baseEntries = @()
     if ($cicdRunIds.Count -gt 0) {
         $cicdFailed = Get-FailedTestsFromRuns -RunIds $cicdRunIds -Repository $repo -WorkDirectory $cicdWorkDir
-        $recomputed = Update-UnstableTestsList -FailedTests $cicdFailed -RunCount $cicdRunIds.Count
-        $baseEntries = @($recomputed.Values | ForEach-Object { ConvertTo-UnstableTestEntry -Test $_ -Repository $repo })
+        $recomputed = Update-UnstableTestsList -FailedTests $cicdFailed -RunCount $cicdRunIds.Count -ExistingTests ([System.Collections.IList]$existingTests)
+        $baseEntries = @($recomputed.Values | ForEach-Object { ConvertTo-UnstableTestEntry -Test $_ -Repository $repo -UnstableSince $now })
         Write-Host "::endgroup::"
         Write-Host "::notice::Path A (CI/CD): recomputed $($baseEntries.Count) unstable test(s) from $($cicdRunIds.Count) run(s) on '$Branch'."
     }
@@ -141,11 +144,9 @@ try {
     }
 
     # --- Merge Path B additively on top of the Path A base and write once ---
-    $tests = @(Add-FailedTestsToUnstableTests -ExistingTests ([System.Collections.IList]$baseEntries) -FailedTests $crossPrFailed -Repository $repo)
-
-    # Stamp 'unstableSince' once per test: keep any timestamp a test already has (including one carried in
-    # the previous artifact, so it survives the Path A full recompute); stamp the rest with the current UTC time.
-    $tests = @(Set-UnstableSince -Tests ([System.Collections.IList]$tests) -ExistingTests ([System.Collections.IList]$existingTests))
+    # New cross-PR entries are stamped with this run's timestamp; existing entries keep their own
+    # 'unstableSince', and Path A recomputed entries kept theirs via Update-UnstableTestsList above.
+    $tests = @(Add-FailedTestsToUnstableTests -ExistingTests ([System.Collections.IList]$baseEntries) -FailedTests $crossPrFailed -Repository $repo -UnstableSince $now)
 
     $allRunIds = @()
     $allRunIds += @($cicdRunIds)

@@ -696,8 +696,12 @@ function Receive-UnstableTestsArtifact {
     identity fields plus an auto-detected reason of the form:
       "Auto-detected: failed in at least 1 of the last <RunCount> CI/CD run(s)"
 
-    This function does not inspect passed tests or merge with an existing unstable list; it
-    only transforms the supplied failed-test set into the artifact format.
+    This function does not inspect passed tests; it transforms the supplied failed-test set into the
+    artifact format. It does, however, carry forward each test's 'unstableSince' from the previous
+    artifact (passed as 'ExistingTests'): because the sliding window rebuilds the list from scratch each
+    run, seeding UnstableSince here lets a test that was already unstable keep its original timestamp
+    instead of being restamped. Tests with no prior entry are left without a timestamp so the entry
+    builder stamps the current run time.
 
     Returns the updated hashtable keyed by 'extensionId::codeunit::testMethod'.
 
@@ -705,6 +709,9 @@ function Receive-UnstableTestsArtifact {
     Hashtable of failed tests keyed by test key to convert into unstable-test entries.
 .Parameter RunCount
     Number of CI/CD runs the window covered; used only to build the auto-detected reason text.
+.Parameter ExistingTests
+    The 'tests' array from the previous artifact (camelCase entries), used to preserve each still-unstable
+    test's original 'unstableSince' across the full recompute.
 #>
 function Update-UnstableTestsList {
     [CmdletBinding()]
@@ -713,8 +720,20 @@ function Update-UnstableTestsList {
         [Parameter(Mandatory = $true)]
         [hashtable] $FailedTests,
 
-        [int] $RunCount = 0
+        [int] $RunCount = 0,
+
+        [System.Collections.IList] $ExistingTests = @()
     )
+
+    # Prior 'unstableSince' values keyed by test key, so an already-unstable test keeps its original
+    # timestamp when the list is recomputed from scratch.
+    $existingSince = @{}
+    foreach ($entry in $ExistingTests) {
+        if ($null -eq $entry) { continue }
+        if (-not ($entry.PSObject.Properties['unstableSince'])) { continue }
+        if ([string]::IsNullOrWhiteSpace([string]$entry.unstableSince)) { continue }
+        $existingSince[(Get-EntryUnstableTestKey -Entry $entry)] = [string]$entry.unstableSince
+    }
 
     $result = @{}
     foreach ($key in @($FailedTests.Keys)) {
@@ -730,6 +749,7 @@ function Update-UnstableTestsList {
             SourceRunId    = if ($ft.PSObject.Properties['SourceRunId']) { $ft.SourceRunId } else { '' }
             Reason         = "Auto-detected: failed in at least 1 of the last $RunCount CI/CD run(s)"
             LinkedIssue    = ''
+            UnstableSince  = if ($existingSince.ContainsKey($key)) { $existingSince[$key] } else { '' }
         }
     }
 
@@ -907,8 +927,10 @@ function Get-FailedTestsFromRuns {
     Update-UnstableTestsList). 'Reason' overrides the entry reason; when empty, the test's own Reason
     property (if any) is used. 'Repository' is used to build the sourceRunUrl from the test's SourceRunId.
 
-    The 'unstableSince' timestamp is left empty here; Set-UnstableSince stamps it just before the artifact
-    is written so the "set once, then leave it" rule lives in a single place.
+    The 'unstableSince' timestamp is stamped here, when the entry is created: if the test already carries
+    an UnstableSince value (e.g. preserved from the previous artifact), keep it; otherwise use the run
+    timestamp passed via 'UnstableSince'. Passing that value in (rather than reading the clock here) keeps
+    it identical for every entry created during the same run.
 
 .Parameter Test
     A single failed/unstable test object with PascalCase properties.
@@ -916,6 +938,9 @@ function Get-FailedTestsFromRuns {
     Overrides the entry reason. When empty, the test's own Reason property is used.
 .Parameter Repository
     Repository in '<owner>/<repo>' form, used to build the sourceRunUrl from the test's SourceRunId.
+.Parameter UnstableSince
+    Timestamp to stamp on a test that has no UnstableSince of its own. Defaults to the current UTC time;
+    callers pass a single value computed once per run so all newly created entries share it.
 #>
 function ConvertTo-UnstableTestEntry {
     [CmdletBinding()]
@@ -926,13 +951,16 @@ function ConvertTo-UnstableTestEntry {
 
         [string] $Reason = '',
 
-        [string] $Repository = ''
+        [string] $Repository = '',
+
+        [string] $UnstableSince = ((Get-Date).ToUniversalTime().ToString('o'))
     )
 
     $sourceRunId = if ($Test.PSObject.Properties['SourceRunId']) { [string]$Test.SourceRunId } else { '' }
     $reasonValue = if ($Reason) { $Reason } elseif ($Test.PSObject.Properties['Reason']) { [string]$Test.Reason } else { '' }
     $linkedIssue = if ($Test.PSObject.Properties['LinkedIssue']) { [string]$Test.LinkedIssue } else { '' }
-    $unstableSince = if ($Test.PSObject.Properties['UnstableSince']) { [string]$Test.UnstableSince } else { '' }
+    $ownSince = if ($Test.PSObject.Properties['UnstableSince']) { [string]$Test.UnstableSince } else { '' }
+    $unstableSince = if (-not [string]::IsNullOrWhiteSpace($ownSince)) { $ownSince } else { $UnstableSince }
 
     return [pscustomobject][ordered]@{
         extensionId    = if ($Test.PSObject.Properties['ExtensionId']) { [string]$Test.ExtensionId } else { '' }
@@ -946,60 +974,6 @@ function ConvertTo-UnstableTestEntry {
         unstableSince  = $unstableSince
         sourceRunUrl   = if ($Repository -and $sourceRunId) { "https://github.com/$Repository/actions/runs/$sourceRunId" } else { '' }
     }
-}
-
-<#
-.Synopsis
-    Ensures every unstable test entry has an 'unstableSince' timestamp: set it once, then leave it.
-.Description
-    Applies one rule to each entry about to be written to the artifact: if 'unstableSince' is already set,
-    leave it; otherwise set it. This is the only place that assigns the timestamp, so a test's clock starts
-    when it first appears in the list and is preserved on every later update while it stays unstable.
-
-    Because the sliding window fully recomputes the list each run (rebuilding entries from scratch, so their
-    'unstableSince' starts empty), the previous artifact's entries are passed as 'ExistingTests': an entry
-    that already had a timestamp there is treated as "already set" and reuses it, otherwise the current UTC
-    time is stamped.
-.Parameter Tests
-    The list of artifact entries (camelCase) about to be written. Entries are updated in place.
-.Parameter ExistingTests
-    The 'tests' array from the previous artifact, used so timestamps survive a full recompute.
-#>
-function Set-UnstableSince {
-    [CmdletBinding()]
-    [OutputType([System.Collections.IList])]
-    param(
-        [System.Collections.IList] $Tests = @(),
-
-        [System.Collections.IList] $ExistingTests = @()
-    )
-
-    $now = (Get-Date).ToUniversalTime().ToString('o')
-
-    # Timestamps already recorded in the previous artifact, so they survive a full recompute.
-    $existingSince = @{}
-    foreach ($entry in $ExistingTests) {
-        if ($null -eq $entry) { continue }
-        if (-not ($entry.PSObject.Properties['unstableSince'])) { continue }
-        if ([string]::IsNullOrWhiteSpace([string]$entry.unstableSince)) { continue }
-        $existingSince[(Get-EntryUnstableTestKey -Entry $entry)] = $entry.unstableSince
-    }
-
-    foreach ($entry in $Tests) {
-        if ($null -eq $entry) { continue }
-
-        # Already set: leave it. Otherwise reuse the previous artifact's value, else stamp now.
-        $current = if ($entry.PSObject.Properties['unstableSince']) { [string]$entry.unstableSince } else { '' }
-        if (-not [string]::IsNullOrWhiteSpace($current)) { continue }
-
-        $key = Get-EntryUnstableTestKey -Entry $entry
-        $value = if ($existingSince.ContainsKey($key)) { $existingSince[$key] } else { $now }
-
-        if ($entry.PSObject.Properties['unstableSince']) { $entry.unstableSince = $value }
-        else { $entry | Add-Member -NotePropertyName 'unstableSince' -NotePropertyValue $value }
-    }
-
-    return $Tests
 }
 
 <#
@@ -1092,6 +1066,9 @@ function Save-UnstableTestsArtifact {
     Hashtable of newly observed failures keyed by test key to merge in additively.
 .Parameter Repository
     Repository in '<owner>/<repo>' form, used to build sourceRunUrl for newly added entries.
+.Parameter UnstableSince
+    Timestamp stamped on newly added entries (existing entries keep their own). Defaults to the current
+    UTC time; callers pass a single value computed once per run so all new entries share it.
 #>
 function Add-FailedTestsToUnstableTests {
     [CmdletBinding()]
@@ -1102,7 +1079,9 @@ function Add-FailedTestsToUnstableTests {
         [Parameter(Mandatory = $true)]
         [hashtable] $FailedTests,
 
-        [string] $Repository = ''
+        [string] $Repository = '',
+
+        [string] $UnstableSince = ((Get-Date).ToUniversalTime().ToString('o'))
     )
 
     $merged = New-Object System.Collections.Generic.List[object]
@@ -1137,7 +1116,7 @@ function Add-FailedTestsToUnstableTests {
         # empty reason lets ConvertTo-UnstableTestEntry fall back to the test's own Reason property.
         # Tests without a Reason (the additive-from-run path) get the default run-based reason.
         $reason = if (($ft.PSObject.Properties['Reason']) -and $ft.Reason) { '' } else { "Manually added from CI/CD run $sourceRunId" }
-        $merged.Add((ConvertTo-UnstableTestEntry -Test $ft -Reason $reason -Repository $Repository)) | Out-Null
+        $merged.Add((ConvertTo-UnstableTestEntry -Test $ft -Reason $reason -Repository $Repository -UnstableSince $UnstableSince)) | Out-Null
         $seenKeys[$k] = $true
         Write-Host "ADDED UNSTABLE: $k"
         $added++
@@ -1678,7 +1657,6 @@ Export-ModuleMember -Function `
     Find-UnstableTestRunIds, `
     Get-FailedTestsFromRuns, `
     ConvertTo-UnstableTestEntry, `
-    Set-UnstableSince, `
     Save-UnstableTestsArtifact, `
     Add-FailedTestsToUnstableTests, `
     Select-CrossPrUnstableTests, `
