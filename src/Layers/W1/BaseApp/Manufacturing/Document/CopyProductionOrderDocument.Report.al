@@ -129,6 +129,8 @@ report 99003802 "Copy Production Order Document"
     local procedure LookupDocNo()
     begin
         FromProdOrder.SetRange(Status, StatusType);
+        if ToProdOrder.Status = StatusType then
+            FromProdOrder.SetFilter("No.", '<>%1', ToProdOrder."No.");
         FromProdOrder."No." := DocNo;
         if PAGE.RunModal(0, FromProdOrder) = ACTION::LookupOK then
             DocNo := FromProdOrder."No.";
