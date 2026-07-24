@@ -100,6 +100,7 @@ page 4300 "Agent Task List"
                 field(AgentSubstate; Rec."Agent Substate")
                 {
                     Caption = 'Agent Substate';
+                    ToolTip = 'Specifies the substate of the agent that is associated with the task, such as whether the agent is archived.';
                     Editable = false;
                     Visible = ShouldShowAllAgents;
                 }
