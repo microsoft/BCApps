@@ -408,7 +408,7 @@ codeunit 8618 "Config. Excel Exchange"
         DurationAsInt := CurrentDateTime() - StartTime;
 
         Session.LogMessage('00009QD', StrSubstNo(ExcelImportFinishMsg, DurationAsInt, FileSize), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', RapidStartTxt);
-        if ConfigXMLExchange.ImportPackageXMLFromStream(InStream) then
+        if ConfigXMLExchange.ImportPackageXML(InStream) then
             Imported := true;
 
         exit(Imported);

@@ -128,6 +128,58 @@ codeunit 136611 "ERM RS Dimensions as Columns"
         ApplyConfigLineAndVerifyApplication(ConfigLine, Customer."No.", DimensionCode);
     end;
 
+#if not CLEAN29
+    [Test]
+    [HandlerFunctions('ConfirmAddDimTablesHandlerYes')]
+    [Scope('OnPrem')]
+    procedure ApplyPackageWithDimensionsAsColumnsNewCustomerWithDotNet()
+    var
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        ConfigLine: Record "Config. Line";
+        Customer: Record Customer;
+        DimVal: Record "Dimension Value";
+        NewCustomerNo: Code[20];
+    begin
+        Initialize();
+
+        NewCustomerNo := LibraryUtility.GenerateRandomCode(Customer.FieldNo("No."), DATABASE::Customer);
+        FindDimensionWithValue(DimVal);
+
+        CreateConfigPackageWithNewCustomer(ConfigPackage, ConfigPackageTable, ConfigLine, NewCustomerNo);
+        ExportImportPackageSetNewCustAndDimWithDotNet(ConfigPackage, ConfigPackageTable, NewCustomerNo, DimVal."Dimension Code", DimVal.Code);
+
+        ApplyConfigLineAndVerifyApplication(ConfigLine, NewCustomerNo, DimVal."Dimension Code");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure ApplyPackageWithDimAsColumnsWithoutSettingDimSetIDFieldWithDotNet()
+    var
+        DimVal: Record "Dimension Value";
+        ConfigPackage: Record "Config. Package";
+        ConfigPackageTable: Record "Config. Package Table";
+        SalesHeader: Record "Sales Header";
+        OldManualNos: Boolean;
+    begin
+        // Verify that dimensions can be applied from package when field "Dimension Set ID" is not included.
+
+        Initialize();
+        CreatePackageExcludingDimSetIDField(ConfigPackage, ConfigPackageTable, SalesHeader);
+
+        FindDimValueFromDefDim(DimVal, DATABASE::Customer, SalesHeader."Sell-to Customer No.");
+        ExportImportPackageSetNewDimensionWithDotNet(ConfigPackage, ConfigPackageTable, DimVal."Dimension Code", DimVal.Code);
+
+        OldManualNos := SetupManualNos(SalesHeader."No. Series", true);
+
+        LibraryRapidStart.ApplyPackage(ConfigPackage, true);
+        SalesHeader.Find(); // get latest version after applying package
+        VerifyDimValueExistsInSalesHeaderDimSetID(SalesHeader, DimVal);
+
+        SetupManualNos(SalesHeader."No. Series", OldManualNos);
+    end;
+#endif
+
     [Test]
     [HandlerFunctions('ConfirmAddDimTablesHandlerYes')]
     [Scope('OnPrem')]
@@ -440,17 +492,18 @@ codeunit 136611 "ERM RS Dimensions as Columns"
         ConfigPackageTable.SetFilter("Table ID", ConfigMgt.MakeTableFilter(ConfigLine, true));
     end;
 
-    local procedure ExportImportPackageSetNewCustAndDim(var ConfigPackage: Record "Config. Package"; var ConfigPackageTable: Record "Config. Package Table"; CustomerNo: Code[20]; DimCode: Code[20]; DimValCode: Code[20])
+#if not CLEAN29
+    local procedure ExportImportPackageSetNewCustAndDimWithDotNet(var ConfigPackage: Record "Config. Package"; var ConfigPackageTable: Record "Config. Package Table"; CustomerNo: Code[20]; DimCode: Code[20]; DimValCode: Code[20])
     begin
-        ExportImportPackageSetNewValues(ConfigPackage, ConfigPackageTable, CustomerNo, DimCode, DimValCode);
+        ExportImportPackageSetNewValuesWithDotNet(ConfigPackage, ConfigPackageTable, CustomerNo, DimCode, DimValCode);
     end;
 
-    local procedure ExportImportPackageSetNewDimension(var ConfigPackage: Record "Config. Package"; var ConfigPackageTable: Record "Config. Package Table"; DimCode: Code[20]; DimValCode: Code[20])
+    local procedure ExportImportPackageSetNewDimensionWithDotNet(var ConfigPackage: Record "Config. Package"; var ConfigPackageTable: Record "Config. Package Table"; DimCode: Code[20]; DimValCode: Code[20])
     begin
-        ExportImportPackageSetNewValues(ConfigPackage, ConfigPackageTable, '', DimCode, DimValCode);
+        ExportImportPackageSetNewValuesWithDotNet(ConfigPackage, ConfigPackageTable, '', DimCode, DimValCode);
     end;
 
-    local procedure ExportImportPackageSetNewValues(var ConfigPackage: Record "Config. Package"; var ConfigPackageTable: Record "Config. Package Table"; CustomerNo: Code[20]; DimCode: Code[20]; DimValCode: Code[20])
+    local procedure ExportImportPackageSetNewValuesWithDotNet(var ConfigPackage: Record "Config. Package"; var ConfigPackageTable: Record "Config. Package Table"; CustomerNo: Code[20]; DimCode: Code[20]; DimValCode: Code[20])
     var
         Customer: Record Customer;
         ConfigXMLExchange: Codeunit "Config. XML Exchange";
@@ -475,6 +528,43 @@ codeunit 136611 "ERM RS Dimensions as Columns"
         XMLNode := PackageXML.SelectSingleNode('//' + NodeName);
         XMLNode.InnerText := NodeValue;
     end;
+#endif
+
+    local procedure ExportImportPackageSetNewCustAndDim(var ConfigPackage: Record "Config. Package"; var ConfigPackageTable: Record "Config. Package Table"; CustomerNo: Code[20]; DimCode: Code[20]; DimValCode: Code[20])
+    begin
+        ExportImportPackageSetNewValuesNative(ConfigPackage, ConfigPackageTable, CustomerNo, DimCode, DimValCode);
+    end;
+
+    local procedure ExportImportPackageSetNewDimension(var ConfigPackage: Record "Config. Package"; var ConfigPackageTable: Record "Config. Package Table"; DimCode: Code[20]; DimValCode: Code[20])
+    begin
+        ExportImportPackageSetNewValuesNative(ConfigPackage, ConfigPackageTable, '', DimCode, DimValCode);
+    end;
+
+    local procedure ExportImportPackageSetNewValuesNative(var ConfigPackage: Record "Config. Package"; var ConfigPackageTable: Record "Config. Package Table"; CustomerNo: Code[20]; DimCode: Code[20]; DimValCode: Code[20])
+    var
+        Customer: Record Customer;
+        ConfigXMLExchange: Codeunit "Config. XML Exchange";
+        PackageXML: XmlDocument;
+    begin
+        ConfigXMLExchange.SetExcelMode(true);
+        ConfigXMLExchange.ExportPackageToXMLDocument(PackageXML, ConfigPackageTable, ConfigPackage, false);
+
+        if CustomerNo <> '' then
+            SetXMLNodeValue(PackageXML, ConfigXMLExchange.GetElementName(Customer.FieldName("No.")), CustomerNo);
+        if DimCode <> '' then
+            SetXMLNodeValue(PackageXML, ConfigXMLExchange.GetElementName(DimCode), DimValCode);
+
+        ConfigXMLExchange.ImportPackageXMLDocument(PackageXML, '');
+    end;
+
+    local procedure SetXMLNodeValue(var PackageXML: XmlDocument; NodeName: Text[250]; NodeValue: Code[20])
+    var
+        XMLNode: XmlNode;
+    begin
+        PackageXML.SelectSingleNode('//' + NodeName, XMLNode);
+        XMLNode.AsXmlElement().ReplaceNodes(NodeValue);
+    end;
+
 
     local procedure FindDimensionWithValue(var DimVal: Record "Dimension Value")
     var
