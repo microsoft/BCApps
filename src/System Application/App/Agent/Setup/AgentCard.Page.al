@@ -292,14 +292,14 @@ page 4315 "Agent Card"
         ArchivedNotification: Notification;
     begin
         if not AgentIsArchived then begin
-            ArchivedNotificationShown := false;
+            Clear(LastNotifiedArchivedAgentId);
             exit;
         end;
 
-        if ArchivedNotificationShown then
+        if LastNotifiedArchivedAgentId = Rec."User Security ID" then
             exit;
 
-        ArchivedNotificationShown := true;
+        LastNotifiedArchivedAgentId := Rec."User Security ID";
         ArchivedNotification.Message(AgentArchivedNotificationMsg);
         ArchivedNotification.Scope(NotificationScope::LocalScope);
         ArchivedNotification.Send();
@@ -318,7 +318,7 @@ page 4315 "Agent Card"
         Language: Codeunit Language;
         ProfileDisplayName, CopilotAvailabilityTxt : Text;
         ArchiveActionEnabled, AgentIsArchived, StateEditable : Boolean;
-        ArchivedNotificationShown: Boolean;
+        LastNotifiedArchivedAgentId: Guid;
         ProfileChangedQst: Label 'Changing the agent''s profile may affect its accuracy and performance. It could also grant access to unexpected fields and actions.\\Do you want to continue?';
         OpenConfigurationPageQst: Label 'To activate the agent, use the configuration page. Would you like to open this page now?';
         YouCannotEnableAgentWithoutUsingConfigurationPageErr: Label 'You can''t activate the agent from this page. Use the action to configure and activate the agent.';
