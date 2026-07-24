@@ -26,12 +26,14 @@ codeunit 5859 "Invt. Ledger Purchase Source"
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Invt. Ledger Source Mgt.", OnGetSourceOrderNo, '', false, false)]
-    local procedure OnGetSourceOrderNo(DocType: Enum "Item Ledger Document Type"; DocNo: Code[20]; var SourceOrderNo: Code[20])
+    local procedure OnGetSourceOrderNo(DocType: Enum "Item Ledger Document Type"; DocNo: Code[20]; DocLineNo: Integer; var SourceOrderNo: Code[20])
     var
         ReturnShptHdr: Record "Return Shipment Header";
         PurchRcptHdr: Record "Purch. Rcpt. Header";
         PurchInvHdr: Record "Purch. Inv. Header";
         PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr.";
+        PurchInvLine: Record "Purch. Inv. Line";
+        PurchCrMemoLine: Record "Purch. Cr. Memo Line";
     begin
         if DocNo = '' then
             exit;
@@ -45,9 +47,15 @@ codeunit 5859 "Invt. Ledger Purchase Source"
                 end;
             DocType::"Purchase Invoice":
                 begin
-                    PurchInvHdr.SetLoadFields("Order No.");
-                    if PurchInvHdr.Get(DocNo) then
-                        SourceOrderNo := PurchInvHdr."Order No.";
+                    if DocLineNo = 0 then begin
+                        PurchInvHdr.SetLoadFields("Order No.");
+                        if PurchInvHdr.Get(DocNo) then
+                            SourceOrderNo := PurchInvHdr."Order No.";
+                        exit;
+                    end;
+                    PurchInvLine.SetLoadFields("Order No.");
+                    if PurchInvLine.Get(DocNo, DocLineNo) then
+                        SourceOrderNo := PurchInvLine."Order No.";
                 end;
             DocType::"Purchase Return Shipment":
                 begin
@@ -57,9 +65,15 @@ codeunit 5859 "Invt. Ledger Purchase Source"
                 end;
             DocType::"Purchase Credit Memo":
                 begin
-                    PurchCrMemoHdr.SetLoadFields("Return Order No.");
-                    if PurchCrMemoHdr.Get(DocNo) then
-                        SourceOrderNo := PurchCrMemoHdr."Return Order No.";
+                    if DocLineNo = 0 then begin
+                        PurchCrMemoHdr.SetLoadFields("Return Order No.");
+                        if PurchCrMemoHdr.Get(DocNo) then
+                            SourceOrderNo := PurchCrMemoHdr."Return Order No.";
+                        exit;
+                    end;
+                    PurchCrMemoLine.SetLoadFields("Order No.");
+                    if PurchCrMemoLine.Get(DocNo, DocLineNo) then
+                        SourceOrderNo := PurchCrMemoLine."Order No.";
                 end;
         end;
     end;

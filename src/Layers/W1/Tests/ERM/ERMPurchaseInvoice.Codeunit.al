@@ -3447,6 +3447,90 @@
         PurchInvoice.BuyFromContactEmail.AssertEquals(ContactEmail);
     end;
 
+    [Test]
+    procedure CombinedPurchInvoiceValueEntrySourceOrderNo()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: array[2] of Record "Purchase Line";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        PurchGetReceipt: Codeunit "Purch.-Get Receipt";
+        ValueEntries: TestPage "Value Entries";
+        VendorNo: Code[20];
+        InvoiceNo: Code[20];
+        i: Integer;
+    begin
+        // [FEATURE] [Value Entry] [Get Receipt Lines]
+        // [SCENARIO] Value entries for a purchase invoice combining multiple receipts will correctly display the source order no.
+        Initialize();
+
+        // [GIVEN] Two purchase orders for the same vendor, each with a different item, both received without invoicing
+        VendorNo := LibraryPurchase.CreateVendorNo();
+        for i := 1 to ArrayLen(PurchaseLine) do begin
+            CreatePurchaseOrder(PurchaseHeader, PurchaseLine[i], VendorNo, PurchaseHeader."Document Type"::Order);
+            LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        end;
+
+        // [GIVEN] A purchase invoice for the vendor with both receipts retrieved via Get Receipt Lines
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Invoice, VendorNo);
+        PurchRcptLine.SetRange("Buy-from Vendor No.", VendorNo);
+        PurchGetReceipt.SetPurchHeader(PurchaseHeader);
+        PurchGetReceipt.CreateInvLines(PurchRcptLine);
+
+        // [WHEN] The combined purchase invoice is posted
+        InvoiceNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+
+        // [THEN] The Source Order No. of each invoice value entry points to the original purchase order
+        ValueEntries.OpenView();
+        for i := 1 to ArrayLen(PurchaseLine) do begin
+            ValueEntries.Filter.SetFilter("Document No.", InvoiceNo);
+            ValueEntries.Filter.SetFilter("Item No.", PurchaseLine[i]."No.");
+            ValueEntries.First();
+            ValueEntries."Source Order No.".AssertEquals(PurchaseLine[i]."Document No.");
+        end;
+    end;
+
+    [Test]
+    procedure CombinedPurchCreditValueEntrySourceOrderNo()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: array[2] of Record "Purchase Line";
+        ReturnShipmentLine: Record "Return Shipment Line";
+        PurchGetReturnShipments: Codeunit "Purch.-Get Return Shipments";
+        ValueEntries: TestPage "Value Entries";
+        VendorNo: Code[20];
+        CreditMemoNo: Code[20];
+        i: Integer;
+    begin
+        // [FEATURE] [Value Entry] [Get Return Shipment Lines]
+        // [SCENARIO] Value entries for a purchase credit memo combining multiple return shipments will correctly display the source order no.
+        Initialize();
+
+        // [GIVEN] Two purchase return orders for the same vendor, each with a different item, both shipped without invoicing
+        VendorNo := LibraryPurchase.CreateVendorNo();
+        for i := 1 to ArrayLen(PurchaseLine) do begin
+            CreatePurchaseOrder(PurchaseHeader, PurchaseLine[i], VendorNo, PurchaseHeader."Document Type"::"Return Order");
+            LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, false);
+        end;
+
+        // [GIVEN] A purchase credit memo for the vendor with both return shipments retrieved via Get Return Shipment Lines
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::"Credit Memo", VendorNo);
+        ReturnShipmentLine.SetRange("Buy-from Vendor No.", VendorNo);
+        PurchGetReturnShipments.SetPurchHeader(PurchaseHeader);
+        PurchGetReturnShipments.CreateInvLines(ReturnShipmentLine);
+
+        // [WHEN] The combined purchase credit memo is posted
+        CreditMemoNo := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+
+        // [THEN] The Source Order No. of each credit memo value entry points to the original purchase return order
+        ValueEntries.OpenView();
+        for i := 1 to ArrayLen(PurchaseLine) do begin
+            ValueEntries.Filter.SetFilter("Document No.", CreditMemoNo);
+            ValueEntries.Filter.SetFilter("Item No.", PurchaseLine[i]."No.");
+            ValueEntries.First();
+            ValueEntries."Source Order No.".AssertEquals(PurchaseLine[i]."Document No.");
+        end;
+    end;
+    
     local procedure Initialize()
     var
         ICSetup: Record "IC Setup";

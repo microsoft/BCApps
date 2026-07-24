@@ -3265,6 +3265,56 @@ codeunit 136108 "Service Posting - Invoice"
         until GLEntry.Next() = 0;
     end;
 
+    [Test]
+    procedure CombinedServiceInvoiceValueEntrySourceOrderNo()
+    var
+        ServiceHeader: Record "Service Header";
+        ServiceItemLine: Record "Service Item Line";
+        ServiceLine: array[2] of Record "Service Line";
+        ServiceShipmentLine: Record "Service Shipment Line";
+        ServiceInvoiceHeader: Record "Service Invoice Header";
+        ServiceGetShipment: Codeunit "Service-Get Shipment";
+        ValueEntries: TestPage "Value Entries";
+        CustomerNo: Code[20];
+        InvoiceNo: Code[20];
+        i: Integer;
+    begin
+        // [FEATURE] [Value Entry] [Get Shipment Lines]
+        // [SCENARIO] Value entries for a service invoice combining multiple shipments will correctly display the source order no.
+        Initialize();
+
+        // [GIVEN] Two service orders for the same customer, each with a different item, both shipped without invoicing
+        CustomerNo := LibrarySales.CreateCustomerNo();
+        for i := 1 to ArrayLen(ServiceLine) do begin
+            Clear(ServiceHeader);
+            CreateServiceDocument(ServiceHeader, ServiceItemLine, CustomerNo);
+            CreateServiceLineWithItem(ServiceLine[i], ServiceHeader, ServiceItemLine."Service Item No.");
+            ServiceLine[i].Validate("Unit Price", LibraryRandom.RandDecInRange(100, 200, 2));
+            ServiceLine[i].Modify(true);
+            LibraryService.PostServiceOrder(ServiceHeader, true, false, false);
+        end;
+
+        // [GIVEN] A service invoice for the customer with both shipments retrieved via Get Shipment Lines
+        LibraryService.CreateServiceHeader(ServiceHeader, ServiceHeader."Document Type"::Invoice, CustomerNo);
+        ServiceShipmentLine.SetRange("Customer No.", CustomerNo);
+        ServiceGetShipment.SetServiceHeader(ServiceHeader);
+        ServiceGetShipment.CreateInvLines(ServiceShipmentLine);
+
+        // [WHEN] The combined service invoice is posted
+        LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
+        FindServiceInvoiceHeader(ServiceInvoiceHeader, ServiceHeader."No.");
+        InvoiceNo := ServiceInvoiceHeader."No.";
+
+        // [THEN] The Source Order No. of each invoice value entry points to the original service order
+        ValueEntries.OpenView();
+        for i := 1 to ArrayLen(ServiceLine) do begin
+            ValueEntries.Filter.SetFilter("Document No.", InvoiceNo);
+            ValueEntries.Filter.SetFilter("Item No.", ServiceLine[i]."No.");
+            ValueEntries.First();
+            ValueEntries."Source Order No.".AssertEquals(ServiceLine[i]."Document No.");
+        end;
+    end;
+    
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Service-Post", OnSetCommitBehavior, '', false, false)]
     local procedure OnSetCommitBehaviorHandler(var IgnoreCommit: Boolean)
     begin

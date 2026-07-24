@@ -4568,6 +4568,92 @@ codeunit 134386 "ERM Sales Documents II"
         Assert.AreEqual(ShipToAdd."E-Mail", Customer."E-Mail", '');
     end;
 
+    [Test]
+    procedure CombinedSalesInvoiceValueEntrySourceOrderNo()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: array[2] of Record "Sales Line";
+        SalesShipmentLine: Record "Sales Shipment Line";
+        SalesGetShipment: Codeunit "Sales-Get Shipment";
+        ValueEntries: TestPage "Value Entries";
+        CustomerNo: Code[20];
+        InvoiceNo: Code[20];
+        i: Integer;
+    begin
+        // [FEATURE] [Value Entry] [Get Shipment Lines]
+        // [SCENARIO] Value entries for a sales invoice combining multiple shipments will correctly display the source order no.
+        Initialize();
+
+        // [GIVEN] Two sales orders for the same customer, each with a different item, both shipped without invoicing
+        CustomerNo := LibrarySales.CreateCustomerNo();
+        for i := 1 to ArrayLen(SalesLine) do begin
+            CreateSalesDocument(
+              SalesHeader, SalesLine[i], SalesHeader."Document Type"::Order, CustomerNo, SalesLine[i].Type::Item, CreateItem());
+            LibrarySales.PostSalesDocument(SalesHeader, true, false);
+        end;
+
+        // [GIVEN] A sales invoice for the customer with both shipments retrieved via Get Shipment Lines
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Invoice, CustomerNo);
+        SalesShipmentLine.SetRange("Sell-to Customer No.", CustomerNo);
+        SalesGetShipment.SetSalesHeader(SalesHeader);
+        SalesGetShipment.CreateInvLines(SalesShipmentLine);
+
+        // [WHEN] The combined sales invoice is posted
+        InvoiceNo := LibrarySales.PostSalesDocument(SalesHeader, false, true);
+
+        // [THEN] The Source Order No. of each invoice value entry points to the original sales order
+        ValueEntries.OpenView();
+        for i := 1 to ArrayLen(SalesLine) do begin
+            ValueEntries.Filter.SetFilter("Document No.", InvoiceNo);
+            ValueEntries.Filter.SetFilter("Item No.", SalesLine[i]."No.");
+            ValueEntries.First();
+            ValueEntries."Source Order No.".AssertEquals(SalesLine[i]."Document No.");
+        end;
+    end;
+
+    [Test]
+    procedure CombinedSalesCreditValueEntrySourceOrderNo()
+    var
+        SalesHeader: Record "Sales Header";
+        SalesLine: array[2] of Record "Sales Line";
+        ReturnReceiptLine: Record "Return Receipt Line";
+        SalesGetReturnReceipts: Codeunit "Sales-Get Return Receipts";
+        ValueEntries: TestPage "Value Entries";
+        CustomerNo: Code[20];
+        CreditMemoNo: Code[20];
+        i: Integer;
+    begin
+        // [FEATURE] [Value Entry] [Get Return Receipt Lines]
+        // [SCENARIO] Value entries for a sales credit memo combining multiple return receipts will correctly display the source order no.
+        Initialize();
+
+        // [GIVEN] Two sales return orders for the same customer, each with a different item, both received without invoicing
+        CustomerNo := LibrarySales.CreateCustomerNo();
+        for i := 1 to ArrayLen(SalesLine) do begin
+            CreateSalesDocument(
+              SalesHeader, SalesLine[i], SalesHeader."Document Type"::"Return Order", CustomerNo, SalesLine[i].Type::Item, CreateItem());
+            LibrarySales.PostSalesDocument(SalesHeader, true, false);
+        end;
+
+        // [GIVEN] A sales credit memo for the customer with both return receipts retrieved via Get Return Receipt Lines
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::"Credit Memo", CustomerNo);
+        ReturnReceiptLine.SetRange("Sell-to Customer No.", CustomerNo);
+        SalesGetReturnReceipts.SetSalesHeader(SalesHeader);
+        SalesGetReturnReceipts.CreateInvLines(ReturnReceiptLine);
+
+        // [WHEN] The combined sales credit memo is posted
+        CreditMemoNo := LibrarySales.PostSalesDocument(SalesHeader, false, true);
+
+        // [THEN] The Source Order No. of each credit memo value entry points to the original sales return order
+        ValueEntries.OpenView();
+        for i := 1 to ArrayLen(SalesLine) do begin
+            ValueEntries.Filter.SetFilter("Document No.", CreditMemoNo);
+            ValueEntries.Filter.SetFilter("Item No.", SalesLine[i]."No.");
+            ValueEntries.First();
+            ValueEntries."Source Order No.".AssertEquals(SalesLine[i]."Document No.");
+        end;
+    end;
+
     local procedure Initialize()
     var
         ICSetup: Record "IC Setup";
