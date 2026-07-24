@@ -26,7 +26,7 @@ jobs:
         with:
           egress-policy: audit
 
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Run PSScriptAnalyzer
         uses: microsoft/psscriptanalyzer-action@6b2948b1944407914a58661c49941824d149734f # v1.1
@@ -38,7 +38,7 @@ jobs:
 
       # Upload the SARIF file generated in the previous step
       - name: Upload SARIF results file
-        uses: github/codeql-action/upload-sarif@7c4a2585440bbc7499024911ad98cd011a05164f # v3.30.8
+        uses: github/codeql-action/upload-sarif@1b0d2714d61e488d0bba3dafaca71ddc15883098 # v3.30.8
         with:
           sarif_file: results.sarif
 
@@ -46,7 +46,7 @@ jobs:
     name: Run PS Tests
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Run PS Tests
         run: |
