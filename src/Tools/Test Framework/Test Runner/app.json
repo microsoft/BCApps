@@ -11,7 +11,14 @@
   "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
   "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-testing-application/",
   "logo": "ExtensionLogo.png",
-  "dependencies": [],
+  "dependencies": [
+    {
+      "id": "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
+      "publisher": "Microsoft",
+      "name": "Any",
+      "version": "29.0.0.0"
+    }
+  ],
   "screenshots": [],
   "platform": "29.0.0.0",
   "idRanges": [
