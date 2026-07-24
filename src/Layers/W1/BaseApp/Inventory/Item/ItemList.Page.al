@@ -886,11 +886,8 @@ page 31 "Item List"
                         Rec.FilterGroup(0);
                         Rec.MarkedOnly(false);
                         Rec.SetFilter("No.", FilterText);
-                    end else begin
-                        RunOnTempRec := true;
-                        Rec.ClearMarks();
-                        Rec.Reset();
                     end;
+                    RunOnTempRec := true;
                 end;
             }
             action(ClearAttributes)
