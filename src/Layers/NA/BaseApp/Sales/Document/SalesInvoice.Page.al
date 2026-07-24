@@ -874,8 +874,8 @@ page 43 "Sales Invoice"
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Name 2';
-                            Editable = (BillToOptions = BillToOptions::"Another Customer");
-                            Enabled = (BillToOptions = BillToOptions::"Another Customer");
+                            Editable = (BillToOptions = BillToOptions::"Custom Address") or (Rec."Bill-to Customer No." <> Rec."Sell-to Customer No.");
+                            Enabled = (BillToOptions = BillToOptions::"Custom Address") or (Rec."Bill-to Customer No." <> Rec."Sell-to Customer No.");
                             Importance = Additional;
                             QuickEntry = false;
                             Visible = false;
