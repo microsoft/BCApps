@@ -21,6 +21,7 @@ report 1498 "Date Compress Bank Acc. Ledger"
 {
     ApplicationArea = Suite;
     Caption = 'Date Compress Bank Account Ledger';
+    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
     Permissions = TableData "G/L Entry" = rimd,
                   TableData "G/L Register" = rimd,
                   TableData "Date Compr. Register" = rimd,
