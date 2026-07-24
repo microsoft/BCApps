@@ -2560,6 +2560,29 @@ codeunit 147524 "SII Documents No Taxable"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure ReplacementSalesCrMemoWithOneStopShopHasNegativeAmount()
+    var
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        XMLDoc: DotNet XmlDocument;
+    begin
+        // [FEATURE] [Sales]
+        // [SCENARIO 639647] A replacement sales credit memo with One Stop Shop option has negative ImporteTAIReglasLocalizacion in SII XML
+
+        Initialize();
+        // [GIVEN] Posted sales invoice and posted replacement sales credit memo with "Corrected Invoice No." and One Stop Shop option enabled
+        PostReplacementSalesCrMemoWithOneStopShop(CustLedgerEntry);
+
+        // [WHEN] Create xml for replacement sales credit memo
+        Assert.IsTrue(SIIXMLCreator.GenerateXml(CustLedgerEntry, XMLDoc, UploadType::Regular, false), IncorrectXMLDocErr);
+
+        // [THEN] XML file has a sii:ImporteTAIReglasLocalizacion node with negative value
+        LibrarySII.VerifyOneNodeWithValueByXPath(
+          XMLDoc, XPathSalesNoTaxLocalTok, '',
+          SIIXMLCreator.FormatNumber(-GetVATBaseAmountFromCustLedgEntry(CustLedgerEntry)));
+    end;
+
+    [Test]
     procedure SalesInvoiceWithMixedOneStopShopOptions()
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
@@ -3221,6 +3244,67 @@ codeunit 147524 "SII Documents No Taxable"
         SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
         SalesLine.Modify(true);
         LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, DocType, LibrarySales.PostSalesDocument(SalesHeader, true, true));
+    end;
+
+    local procedure PostReplacementSalesCrMemoWithOneStopShop(var CustLedgerEntry: Record "Cust. Ledger Entry")
+    var
+        SalesOrderHeader: Record "Sales Header";
+        PostedSalesInvoiceHeader: Record "Sales Invoice Header";
+        CreditMemoSalesHeader: Record "Sales Header";
+        Customer: Record Customer;
+        VATPostingSetup: Record "VAT Posting Setup";
+        SalesLine: Record "Sales Line";
+        CustomerNo: Code[20];
+        PostedInvoiceNo: Code[20];
+        CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
+    begin
+        Customer.Reset();
+        Customer.SetCurrentKey("No.");
+        if not Customer.FindFirst() then
+            Error('Could not find any customer. Create and configure at least one customer before running this test.');
+        CustomerNo := Customer."No.";
+
+        LibrarySales.CreateSalesHeader(SalesOrderHeader, SalesOrderHeader."Document Type"::Order, CustomerNo);
+        SalesOrderHeader.Validate("Special Scheme Code", SalesOrderHeader."Special Scheme Code"::"17 Operations Under The One-Stop-Shop Regime");
+        SalesOrderHeader.Modify(true);
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", SalesOrderHeader."VAT Bus. Posting Group");
+        VATPostingSetup.SetRange("One Stop Shop Reporting", true);
+        VATPostingSetup.SetRange("Sales Special Scheme Code", VATPostingSetup."Sales Special Scheme Code"::"17 Operations Under The One-Stop-Shop Regime");
+        if not VATPostingSetup.FindFirst() then
+            Error(
+              'Could not find VAT Posting Setup with VAT Bus. Posting Group %1, One Stop Shop Reporting = true and Sales Special Scheme Code = 17.',
+              SalesOrderHeader."VAT Bus. Posting Group");
+
+        LibrarySales.CreateSalesLine(
+          SalesLine, SalesOrderHeader, SalesLine.Type::Item,
+          LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), LibraryRandom.RandInt(100));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
+        SalesLine.Modify(true);
+        PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesOrderHeader, true, true);
+
+        PostedSalesInvoiceHeader.Get(PostedInvoiceNo);
+        if not CorrectPostedSalesInvoice.CreateCreditMemoCopyDocument(PostedSalesInvoiceHeader, CreditMemoSalesHeader) then
+            Error('Could not create corrective sales credit memo from posted invoice %1.', PostedInvoiceNo);
+
+        CreditMemoSalesHeader.Validate("Cr. Memo Type", CreditMemoSalesHeader."Cr. Memo Type"::"R5 Corrected Invoice in Simplified Invoices");
+        CreditMemoSalesHeader.Modify(true);
+
+        CreditMemoSalesHeader.TestField("Corrected Invoice No.", PostedInvoiceNo);
+        CreditMemoSalesHeader.TestField("Correction Type", CreditMemoSalesHeader."Correction Type"::Replacement);
+        CreditMemoSalesHeader.TestField("Special Scheme Code", CreditMemoSalesHeader."Special Scheme Code"::"17 Operations Under The One-Stop-Shop Regime");
+        CreditMemoSalesHeader.TestField("Cr. Memo Type", CreditMemoSalesHeader."Cr. Memo Type"::"R5 Corrected Invoice in Simplified Invoices");
+        CreditMemoSalesHeader.TestField("ID Type", CreditMemoSalesHeader."ID Type"::"02-VAT Registration No.");
+
+        LibrarySales.CreateSalesLine(
+          SalesLine, CreditMemoSalesHeader, SalesLine.Type::Item,
+          LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), LibraryRandom.RandInt(100));
+        SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
+        SalesLine.Modify(true);
+
+        LibraryERM.FindCustomerLedgerEntry(
+          CustLedgerEntry,
+          "Sales Document Type"::"Credit Memo",
+          LibrarySales.PostSalesDocument(CreditMemoSalesHeader, true, true));
     end;
 
     procedure PostSalesDocWithMixedOneStopShopOptions(var CustLedgerEntry: Record "Cust. Ledger Entry"; DocType: Enum "Sales Document Type"; CorrType: Option)

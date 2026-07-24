@@ -2479,7 +2479,7 @@ codeunit 10750 "SII XML Creator"
         if not HasOneStopShopEntries then
             exit;
         HasEntries[2] := true;
-        Amount[2] += Abs(TempVATEntry.Base);
+        Amount[2] += -TempVATEntry.Base;
     end;
 
     local procedure ExportNonTaxableVATEntries(var TipoDesgloseXMLNode: DotNet XmlNode; var DesgloseFacturaXMLNode: DotNet XmlNode; var DomesticXMLNode: DotNet XmlNode; var DesgloseTipoOperacionXMLNode: DotNet XmlNode; var EUXMLNode: DotNet XmlNode; IsService: Boolean; DomesticCustomer: Boolean; HasEntries: array[2] of Boolean; RegimeCodes: array[3] of Code[2]; Amount: array[2] of Decimal)
