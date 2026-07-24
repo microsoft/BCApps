@@ -122,7 +122,7 @@ page 4400 "SOA Setup"
 
                         trigger OnDrillDown()
                         var
-                            SOACreateTask: Page "SOA Create Task";
+                            SOACreateTaskImpl: Codeunit "SOA Create Task Impl";
                         begin
                             CurrPage.AgentSetupPart.Page.GetAgentSetupBuffer(TempAgentSetupBuffer);
                             if (TempAgentSetupBuffer.State <> TempAgentSetupBuffer.State::Enabled) and (Rec."Email Monitoring" or (Rec."Email Address" <> '')) then begin
@@ -148,9 +148,7 @@ page 4400 "SOA Setup"
 
                             Commit();
 
-                            SOACreateTask.SetAgentUserSecurityID(Rec."User Security ID");
-                            SOACreateTask.LookupMode(true);
-                            SOACreateTask.RunModal();
+                            SOACreateTaskImpl.OpenCreateTaskPage(Rec."User Security ID");
                             CurrPage.Update(false);
                         end;
                     }

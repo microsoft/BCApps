@@ -11,7 +11,7 @@ using System.AI;
 using System.Reflection;
 using System.Security.AccessControl;
 
-codeunit 4401 "SOA Metadata Provider" implements IAgentMetadata, IAgentFactory
+codeunit 4401 "SOA Metadata Provider" implements IAgentMetadata, IAgentFactory, IAgentManualTaskCreation
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -74,7 +74,23 @@ codeunit 4401 "SOA Metadata Provider" implements IAgentMetadata, IAgentFactory
         SOASetupCU.GetDefaultAccessControls(TempAccessControlBuffer);
     end;
 
+    procedure IsManualAgentTaskCreationEnabled(AgentUserId: Guid; ManualTaskType: Enum "Manual Agent Task Creation Type"): Boolean
+    begin
+        exit(ManualTaskType = ManualTaskType::Default);
+    end;
+
+    procedure IsMultipleFileUploadAllowed(AgentUserId: Guid): Boolean
+    begin
+        exit(false);
+    end;
+
+    procedure CreateManualAgentTask(AgentUserId: Guid; Files: List of [FileUpload])
+    begin
+        SOACreateTaskImpl.OpenCreateTaskPage(AgentUserId);
+    end;
+
     var
         SOAAnnotation: Codeunit "SOA Annotation";
+        SOACreateTaskImpl: Codeunit "SOA Create Task Impl";
         SOASetupCU: Codeunit "SOA Setup";
 }
