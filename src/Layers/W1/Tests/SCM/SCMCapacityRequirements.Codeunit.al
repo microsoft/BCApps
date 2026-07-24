@@ -71,6 +71,68 @@ codeunit 137074 "SCM Capacity Requirements"
 
     [Test]
     [Scope('OnPrem')]
+    procedure WorkCenterCalendarEntriesAvailableUntilShowsMaxCalendarDate()
+    var
+        WorkCenter: Record "Work Center";
+        CalendarEntry: Record "Calendar Entry";
+        ExpectedDate: Date;
+    begin
+        // [FEATURE] [Work Center] [Calendar]
+        // [SCENARIO 641488] The Work Center "Calendar Entries Available Until" FlowField equals the latest Calendar Entry date.
+        Initialize();
+
+        // [GIVEN] A work center with a calculated calendar
+        LibraryManufacturing.CreateWorkCenterWithCalendar(WorkCenter);
+
+        // [GIVEN] The latest calendar entry date for the work center
+        CalendarEntry.SetRange("Capacity Type", CalendarEntry."Capacity Type"::"Work Center");
+        CalendarEntry.SetRange("No.", WorkCenter."No.");
+        CalendarEntry.FindLast();
+        ExpectedDate := CalendarEntry.Date;
+
+        // [WHEN] Calculating the FlowField
+        WorkCenter.CalcFields("Calendar Entries Avail. Until");
+
+        // [THEN] It equals the latest calendar entry date
+        Assert.AreEqual(
+          ExpectedDate, WorkCenter."Calendar Entries Avail. Until",
+          'Calendar Entries Available Until must equal the latest Calendar Entry date for the work center.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure MachineCenterCalendarEntriesAvailableUntilShowsMaxCalendarDate()
+    var
+        WorkCenter: Record "Work Center";
+        MachineCenter: Record "Machine Center";
+        CalendarEntry: Record "Calendar Entry";
+        ExpectedDate: Date;
+    begin
+        // [FEATURE] [Machine Center] [Calendar]
+        // [SCENARIO 641488] The Machine Center "Calendar Entries Available Until" FlowField equals the latest Calendar Entry date.
+        Initialize();
+
+        // [GIVEN] A machine center with a calculated calendar
+        LibraryManufacturing.CreateWorkCenterWithCalendar(WorkCenter);
+        LibraryManufacturing.CreateMachineCenterWithCalendar(MachineCenter, WorkCenter."No.", LibraryRandom.RandInt(5));
+
+        // [GIVEN] The latest calendar entry date for the machine center
+        CalendarEntry.SetRange("Capacity Type", CalendarEntry."Capacity Type"::"Machine Center");
+        CalendarEntry.SetRange("No.", MachineCenter."No.");
+        CalendarEntry.FindLast();
+        ExpectedDate := CalendarEntry.Date;
+
+        // [WHEN] Calculating the FlowField
+        MachineCenter.CalcFields("Calendar Entries Avail. Until");
+
+        // [THEN] It equals the latest calendar entry date
+        Assert.AreEqual(
+          ExpectedDate, MachineCenter."Calendar Entries Avail. Until",
+          'Calendar Entries Available Until must equal the latest Calendar Entry date for the machine center.');
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure MachineCenterWithNegativeEfficiencyError()
     begin
         // Setup.
