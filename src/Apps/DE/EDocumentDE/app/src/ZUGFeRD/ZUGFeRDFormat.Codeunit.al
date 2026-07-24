@@ -26,6 +26,7 @@ codeunit 13920 "ZUGFeRD Format" implements "E-Document"
         EDocPEPPOLBIS30: Codeunit "EDoc PEPPOL BIS 3.0";
         EDocImportZUGFeRD: Codeunit "Import ZUGFeRD Document";
         EDocumentDEHelper: Codeunit "E-Document DE Helper";
+        DEPaymentMeansHelper: Codeunit "DE Payment Means Helper";
 
     procedure Check(var SourceDocumentHeader: RecordRef; EDocumentService: Record "E-Document Service"; EDocumentProcessingPhase: Enum "E-Document Processing Phase")
     var
@@ -36,6 +37,7 @@ codeunit 13920 "ZUGFeRD Format" implements "E-Document"
         CheckCompanyInfoMandatory(CompanyInformation);
         CheckBankAccountIBANMandatory(SourceDocumentHeader, CompanyInformation);
         EDocumentDEHelper.CheckBuyerReferenceMandatory(EDocumentService, SourceDocumentHeader);
+        DEPaymentMeansHelper.CheckPaymentDataAvailable(SourceDocumentHeader);
         DEContext.Start();
         DEContext.SetSkipCustomerVATRegNoCheck(EDocumentDEHelper.HasRoutingNo(SourceDocumentHeader));
         EDocPEPPOLBIS30.Check(SourceDocumentHeader, EDocumentService, EDocumentProcessingPhase);
