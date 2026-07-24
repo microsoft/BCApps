@@ -28,6 +28,11 @@ codeunit 30211 "Shpfy Shop Mgt."
         BelgianLocalizationNotificationMsg: Label 'Belgian customers use the Enterprise No. as their tax registration identifier. Install the Shopify Connector BE extension to synchronize Belgian companies and customers.';
         BelgianLocalizationNotificationNameTok: Label 'Notify user to install the Shopify Connector BE extension.';
         BelgianLocalizationNotificationDescTok: Label 'Show a notification informing the user that the Shopify Connector BE extension is required for Belgian localizations.';
+        NorthAmericaLocalizationNotificationMsg: Label 'Install the Shopify Connector NA extension to enable North America-specific features, including AI-assisted matching of Shopify tax lines to Business Central tax jurisdictions.';
+        NorthAmericaLocalizationNotificationNameTok: Label 'Notify user to install the Shopify Connector NA extension.';
+        NorthAmericaLocalizationNotificationDescTok: Label 'Show a notification informing the user that the Shopify Connector NA extension provides North America-specific features.';
+        UnitedStatesCountryCodeTok: Label 'US', Locked = true;
+        NorthAmericaLocalizationAppIdTok: Label 'a1b2c3d4-e5f6-47a8-9b0c-1d2e3f4a5b6c', Locked = true;
 
     internal procedure IsEnabled(): Boolean
     var
@@ -165,5 +170,62 @@ codeunit 30211 "Shpfy Shop Mgt."
     local procedure GetBelgianLocalizationAppId(): Guid
     begin
         exit(BelgianLocalizationAppIdTok);
+    end;
+
+    internal procedure SendNorthAmericaLocalizationNotification()
+    var
+        MyNotifications: Record "My Notifications";
+        ExtensionManagement: Codeunit "Extension Management";
+        NorthAmericaLocalizationNotification: Notification;
+    begin
+        if not IsNorthAmericaApplicationFamily() then
+            exit;
+
+        if ExtensionManagement.IsInstalledByAppId(GetNorthAmericaLocalizationAppId()) then
+            exit;
+
+        if not MyNotifications.IsEnabled(GetNorthAmericaLocalizationNotificationId()) then
+            exit;
+
+        NorthAmericaLocalizationNotification.Id := GetNorthAmericaLocalizationNotificationId();
+        NorthAmericaLocalizationNotification.Message := NorthAmericaLocalizationNotificationMsg;
+        NorthAmericaLocalizationNotification.Scope := NotificationScope::LocalScope;
+        NorthAmericaLocalizationNotification.AddAction(InstallActionLbl, Codeunit::"Shpfy Shop Mgt.", 'InstallNorthAmericaLocalization');
+        NorthAmericaLocalizationNotification.AddAction(DontShowThisAgainLbl, Codeunit::"Shpfy Shop Mgt.", 'DisableNorthAmericaLocalizationNotification');
+        NorthAmericaLocalizationNotification.Send();
+    end;
+
+    procedure InstallNorthAmericaLocalization(Notification: Notification)
+    var
+        ExtensionManagement: Codeunit "Extension Management";
+    begin
+        ExtensionManagement.InstallMarketplaceExtension(GetNorthAmericaLocalizationAppId());
+    end;
+
+    procedure DisableNorthAmericaLocalizationNotification(Notification: Notification)
+    var
+        MyNotifications: Record "My Notifications";
+    begin
+        if MyNotifications.WritePermission() then
+            if not MyNotifications.Disable(GetNorthAmericaLocalizationNotificationId()) then
+                MyNotifications.InsertDefault(GetNorthAmericaLocalizationNotificationId(), NorthAmericaLocalizationNotificationNameTok, NorthAmericaLocalizationNotificationDescTok, false);
+    end;
+
+    local procedure IsNorthAmericaApplicationFamily(): Boolean
+    var
+        EnvironmentInformation: Codeunit "Environment Information";
+    begin
+        // Shopify Connector NA is published for US only for now; add CA/MX when it is supported there.
+        exit(EnvironmentInformation.GetApplicationFamily() = UnitedStatesCountryCodeTok);
+    end;
+
+    local procedure GetNorthAmericaLocalizationNotificationId(): Guid
+    begin
+        exit('97659f9d-bc4a-45ca-90b7-a61b4e9aa455');
+    end;
+
+    local procedure GetNorthAmericaLocalizationAppId(): Guid
+    begin
+        exit(NorthAmericaLocalizationAppIdTok);
     end;
 }

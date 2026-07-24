@@ -9,6 +9,7 @@
     "../../../src/Apps/NA/MX_DIOT/app",
     "../../../src/Apps/NA/Onprem Permissions NA/app",
     "../../../src/Apps/NA/PEPPOLNA/app",
+    "../../../src/Apps/NA/ShopifyNA/app",
     "../../../src/Apps/US/ContosoCoffeeDemoDatasetUS/app",
     "../../../src/Apps/US/EDocument_US/demo data",
     "../../../src/Apps/US/HybridBCLast_US/app",
@@ -139,6 +140,7 @@
   "testFolders": [
     "../../../src/Apps/NA/EnvestnetYodleeBankFeeds/test",
     "../../../src/Apps/NA/MX_DIOT/test",
+    "../../../src/Apps/NA/ShopifyNA/test",
     "../../../src/Apps/US/HybridGP_US/test",
     "../../../src/Apps/US/HybridSL_US/test",
     "../../../src/Apps/US/IRS1096/test",
