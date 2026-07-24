@@ -104,4 +104,8 @@ enum 6121 "E-Document Type" implements IEDocumentFinishDraft
     {
         Caption = 'Transfer Shipment';
     }
+    value(22; "Order Response")
+    {
+        Caption = 'Order Response';
+    }
 }

@@ -238,4 +238,5 @@ codeunit 6174 "E-Document ADI Handler" implements IStructureReceivedEDocument, I
         exit(-1); // Signal parse failure
     end;
 #pragma warning restore AA0139
+
 }

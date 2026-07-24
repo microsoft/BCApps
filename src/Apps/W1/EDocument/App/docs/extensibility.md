@@ -176,6 +176,35 @@ procedure ShouldExport(EDocumentService, SourceDocumentHeader, DocumentType): Bo
 
 **Binding enum**: `"Export Eligibility Evaluator"`. Configured on the service's `"Export Eligibility Evaluator"` field.
 
+## Message formats (order responses and other lifecycle messages)
+
+**Goal**: Provide your own message format (e.g. a CDAR/ApplicationResponse acknowledgement) that the framework emits as a lifecycle event on an E-Document, without creating an extra BC document.
+
+**Interfaces**:
+
+- `IEDocMessageBuilder` (in `Processing/Interfaces/IEDocMessageBuilder.Interface.al`) -- builds the message payload:
+
+```
+procedure BuildMessage(EDocument, ResponseType, var TempBlob)
+```
+
+- `IEDocResponseProvider` (in `Processing/Interfaces/IEDocResponseProvider.Interface.al`) -- lets a document format declare which message type (if any) to emit as a response:
+
+```
+procedure GetResponseMessageType(EDocument): Enum "E-Document Message Type"
+```
+
+**Binding enums**: `"E-Document Message Type"` (`enum 6436`) implements `IEDocMessageBuilder` -- each message type value dispatches to the codeunit that builds it. `"E-Document Format"` (`enum 6101`) implements `IEDocResponseProvider` -- the format selects the message type, or returns `Unknown` for none.
+
+To ship a new message format, your app (depending only on E-Document Core):
+
+1. Extend `"E-Document Message Type"` with a value bound to your `IEDocMessageBuilder` implementation.
+2. Optionally extend `"E-Doc. Response Type"` (`enum 6427`) if your format has response semantics beyond Acknowledged/Accepted/Rejected.
+3. Implement `IEDocResponseProvider` on your `"E-Document Format"` value, returning your message type for the documents that should get a response.
+4. The framework builds the payload via your builder and persists it with `"E-Doc. Message Mgt.".CreateMessage()`, linked to the E-Document and visible in the message FactBox.
+
+The built-in `"PEPPOL Order Response"` value follows the same pattern: it binds to `"E-Doc. PEPPOL Msg. Builder"` (Core-hosted), which delegates XML construction to the PEPPOL app's pure builder.
+
 ## AI tools
 
 **Goal**: Register AI-powered processing capabilities (PDF classification, GL account matching, etc.).

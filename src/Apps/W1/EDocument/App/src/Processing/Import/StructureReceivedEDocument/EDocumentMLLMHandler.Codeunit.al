@@ -328,4 +328,5 @@ codeunit 6231 "E-Document MLLM Handler" implements IStructureReceivedEDocument, 
         if not CopilotCapability.IsCapabilityRegistered(Enum::"Copilot Capability"::"E-Document MLLM Analysis") then
             CopilotCapability.RegisterCapability(Enum::"Copilot Capability"::"E-Document MLLM Analysis", '');
     end;
+
 }
