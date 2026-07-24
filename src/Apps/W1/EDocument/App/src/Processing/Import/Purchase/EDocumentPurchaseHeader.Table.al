@@ -251,6 +251,14 @@ table 6100 "E-Document Purchase Header"
             TableRelation = "Purchase Header"."No." where("Document Type" = const(Order));
         }
         #endregion Business Central Data
+
+        #region Internal processing state [201-300]
+        field(201; "Sub Total Mismatch Dismissed"; Boolean)
+        {
+            Caption = 'Sub Total Mismatch Dismissed';
+            DataClassification = SystemMetadata;
+        }
+        #endregion Internal processing state
     }
     keys
     {

@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
+using Microsoft.EServices.EDocument.Processing.Import.Purchase;
 using System.Environment.Configuration;
 
 codeunit 6123 "E-Document Notification"
@@ -37,6 +38,42 @@ codeunit 6123 "E-Document Notification"
     end;
 
     /// <summary>
+    /// Adds a notification that informs a user of Purchase Document Draft that the header Sub Total no longer matches the sum of the lines.
+    /// </summary>
+    /// <param name="EDocumentEntryNo">Id of e-document</param>
+    procedure AddSubTotalMismatchNotification(EDocumentEntryNo: Integer)
+    var
+        EDocumentNotification: Record "E-Document Notification";
+        MyNotifications: Record "My Notifications";
+        SubTotalMismatchMsg: Label 'The document total does not match the sum of the lines. Review the amounts before finalizing the draft.';
+    begin
+        if not GuiAllowed() then
+            exit;
+        if not MyNotifications.IsEnabled(GetSubTotalMismatchNotificationId()) then
+            exit;
+        if EDocumentNotification.Get(EDocumentEntryNo, GetSubTotalMismatchNotificationId(), UserId()) then
+            exit;
+        EDocumentNotification.Validate("E-Document Entry No.", EDocumentEntryNo);
+        EDocumentNotification.Validate(ID, GetSubTotalMismatchNotificationId());
+        EDocumentNotification.Validate("User Id", UserId());
+        EDocumentNotification.Validate(Type, "E-Document Notification Type"::"Sub Total Mismatch");
+        EDocumentNotification.Validate(Message, SubTotalMismatchMsg);
+        EDocumentNotification.Insert(true);
+    end;
+
+    /// <summary>
+    /// Removes the persisted Sub Total Mismatch notification for the current user and e-document, e.g. when the totals re-converge.
+    /// </summary>
+    /// <param name="EDocumentEntryNo">Id of e-document</param>
+    procedure RemoveSubTotalMismatchNotification(EDocumentEntryNo: Integer)
+    var
+        EDocumentNotification: Record "E-Document Notification";
+    begin
+        if EDocumentNotification.Get(EDocumentEntryNo, GetSubTotalMismatchNotificationId(), UserId()) then
+            EDocumentNotification.Delete(true);
+    end;
+
+    /// <summary>
     /// Send notifications for Purchase Document Draft page
     /// <param name="EDocumentEntryNo">Id of e-document</param>
     /// </summary>
@@ -48,7 +85,9 @@ codeunit 6123 "E-Document Notification"
             exit;
 
         EDocumentNotification.SetRange("E-Document Entry No.", EDocumentEntryNo);
-        EDocumentNotification.SetRange(Type, "E-Document Notification Type"::"Vendor Matched By Name Not Address");
+        EDocumentNotification.SetFilter(Type, '%1|%2',
+            "E-Document Notification Type"::"Vendor Matched By Name Not Address",
+            "E-Document Notification Type"::"Sub Total Mismatch");
         EDocumentNotification.SetRange("User Id", UserId());
         if not EDocumentNotification.FindSet() then
             exit;
@@ -94,6 +133,47 @@ codeunit 6123 "E-Document Notification"
         EDocumentNotification.DeleteAll(true);
     end;
 
+    /// <summary>
+    /// Dismisses the Sub Total Mismatch notification for the current Purchase Document Draft.
+    /// </summary>
+    /// <param name="Notification">Current notification</param>
+    procedure DismissSubTotalMismatchNotification(Notification: Notification)
+    var
+        EDocumentNotification: Record "E-Document Notification";
+        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentEntryNo: Integer;
+        Id: Guid;
+    begin
+        Evaluate(EDocumentEntryNo, Notification.GetData(EDocumentNotification.FieldName("E-Document Entry No.")));
+        Evaluate(Id, Notification.GetData(EDocumentNotification.FieldName(ID)));
+        if EDocumentPurchaseHeader.Get(EDocumentEntryNo) then begin
+            EDocumentPurchaseHeader."Sub Total Mismatch Dismissed" := true;
+            EDocumentPurchaseHeader.Modify();
+        end;
+        if not EDocumentNotification.Get(EDocumentEntryNo, Id, UserId()) then
+            exit;
+        EDocumentNotification.Delete(true);
+    end;
+
+    /// <summary>
+    /// Disables the Sub Total Mismatch notification for the current user.
+    /// </summary>
+    /// <param name="Notification">Current notification</param>
+    procedure DisableSubTotalMismatchNotification(Notification: Notification)
+    var
+        MyNotifications: Record "My Notifications";
+        EDocumentNotification: Record "E-Document Notification";
+        SubTotalMismatchNotificationNameTok: Label 'Notify user of Purchase Document Draft that the document total does not match the sum of the lines.';
+        SubTotalMismatchNotificationDescTok: Label 'Show a notification informing a user of Purchase Document Draft that the header total no longer matches the sum of the lines.';
+    begin
+        if MyNotifications.WritePermission() then
+            if not MyNotifications.Disable(GetSubTotalMismatchNotificationId()) then
+                MyNotifications.InsertDefault(GetSubTotalMismatchNotificationId(), SubTotalMismatchNotificationNameTok, SubTotalMismatchNotificationDescTok, false);
+        EDocumentNotification.SetRange(Type, "E-Document Notification Type"::"Sub Total Mismatch");
+        EDocumentNotification.SetRange("User Id", UserId());
+        EDocumentNotification.DeleteAll(true);
+    end;
+
     local procedure SendNotification(EDocumentNotification: Record "E-Document Notification")
     var
         MyNotifications: Record "My Notifications";
@@ -114,16 +194,29 @@ codeunit 6123 "E-Document Notification"
         DismissMsg: Label 'Dismiss';
         DontShowThisAgainMsg: Label 'Don''t show this again.';
     begin
-        if EDocumentNotification.Type <> "E-Document Notification Type"::"Vendor Matched By Name Not Address" then
-            exit;
         Notification.SetData(EDocumentNotification.FieldName("E-Document Entry No."), Format(EDocumentNotification."E-Document Entry No."));
         Notification.SetData(EDocumentNotification.FieldName(ID), EDocumentNotification.ID);
-        Notification.AddAction(DismissMsg, Codeunit::"E-Document Notification", 'DismissVendorMatchedByNameNotAddressNotification');
-        Notification.AddAction(DontShowThisAgainMsg, Codeunit::"E-Document Notification", 'DisableVendorMatchedByNameNotAddressNotification');
+        case EDocumentNotification.Type of
+            "E-Document Notification Type"::"Vendor Matched By Name Not Address":
+                begin
+                    Notification.AddAction(DismissMsg, Codeunit::"E-Document Notification", 'DismissVendorMatchedByNameNotAddressNotification');
+                    Notification.AddAction(DontShowThisAgainMsg, Codeunit::"E-Document Notification", 'DisableVendorMatchedByNameNotAddressNotification');
+                end;
+            "E-Document Notification Type"::"Sub Total Mismatch":
+                begin
+                    Notification.AddAction(DismissMsg, Codeunit::"E-Document Notification", 'DismissSubTotalMismatchNotification');
+                    Notification.AddAction(DontShowThisAgainMsg, Codeunit::"E-Document Notification", 'DisableSubTotalMismatchNotification');
+                end;
+        end;
     end;
 
     local procedure GetVendorMatchedByNameNotAddressNotificationId(): Guid
     begin
         exit('bc0d8537-8e8d-4d94-a07a-a5a54c729d2a');
+    end;
+
+    local procedure GetSubTotalMismatchNotificationId(): Guid
+    begin
+        exit('a1e6c0d2-3b4f-4c8a-9d1e-2f7b6a5c4d3e');
     end;
 }
