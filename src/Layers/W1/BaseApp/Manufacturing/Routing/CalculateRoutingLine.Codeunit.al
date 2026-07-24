@@ -2079,6 +2079,11 @@ codeunit 99000774 "Calculate Routing Line"
     var
         CapacityLedgerEntry: Record "Capacity Ledger Entry";
     begin
+        if not (ProdOrderRoutingLine.Status in
+                [ProdOrderRoutingLine.Status::Released, ProdOrderRoutingLine.Status::Finished])
+        then
+            exit(0);
+
         if TimeType in [TimeType::"Setup Time", TimeType::"Run Time"] then begin
             CapacityLedgerEntry.SetRange("Order Type", CapacityLedgerEntry."Order Type"::Production);
             CapacityLedgerEntry.SetRange("Order No.", ProdOrderRoutingLine."Prod. Order No.");
