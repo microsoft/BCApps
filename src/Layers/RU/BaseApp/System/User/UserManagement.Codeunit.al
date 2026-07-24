@@ -70,6 +70,7 @@ codeunit 418 "User Management"
                   TableData "Cust. Ledger Entry" = rm,
                   TableData "Vendor Ledger Entry" = rm,
                   TableData "G/L Register" = rm,
+                  TableData "G/L Transaction" = rm,
                   TableData "Item Register" = rm,
                   TableData "G/L Budget Entry" = rm,
                   TableData "Sales Shipment Header" = rm,

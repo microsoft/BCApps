@@ -105,6 +105,7 @@ permissionset 7576 "D365 FINANCIAL REP."
                   tabledata "G/L Entry - VAT Entry Link" = R,
                   tabledata "G/L Entry" = Rimd,
                   tabledata "G/L Register" = Rimd,
+                  tabledata "G/L Transaction" = Rimd,
                   tabledata "Gen. Journal Line" = RIMD,
                   tabledata "Gen. Journal Line Archive" = RiMd,
                   tabledata "General Ledger Setup" = RM,
