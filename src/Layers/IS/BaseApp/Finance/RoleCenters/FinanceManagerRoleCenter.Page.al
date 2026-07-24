@@ -994,7 +994,6 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = CostAccounting;
                             Caption = 'Cost Allocations';
                             RunObject = report "Cost Allocations";
-                            Tooltip = 'Run the Cost Allocations report.';
                         }
                     }
                     group("Group24")
@@ -1005,14 +1004,12 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = CostAccounting;
                             Caption = 'Cost Acctg. Journal';
                             RunObject = report "Cost Acctg. Journal";
-                            Tooltip = 'Run the Cost Acctg. Journal report.';
                         }
                         action("Account Details")
                         {
                             ApplicationArea = CostAccounting;
                             Caption = 'Cost Types Details';
                             RunObject = report "Cost Types Details";
-                            Tooltip = 'Run the Cost Types Details report.';
                         }
                     }
                     group("Group25")
@@ -1023,21 +1020,18 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = CostAccounting;
                             Caption = 'Cost Acctg. Statement';
                             RunObject = report "Cost Acctg. Statement";
-                            Tooltip = 'Run the Cost Acctg. Statement report.';
                         }
                         action("P/L Statement per Period")
                         {
                             ApplicationArea = CostAccounting;
                             Caption = 'Cost Acctg. Stmt. per Period';
                             RunObject = report "Cost Acctg. Stmt. per Period";
-                            Tooltip = 'Run the Cost Acctg. Stmt. per Period report.';
                         }
                         action("Analysis")
                         {
                             ApplicationArea = CostAccounting;
                             Caption = 'Cost Acctg. Analysis';
                             RunObject = report "Cost Acctg. Analysis";
-                            Tooltip = 'Run the Cost Acctg. Analysis report.';
                         }
                     }
                     group("Group26")
@@ -1048,14 +1042,12 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = CostAccounting;
                             Caption = 'Cost Acctg. Statement/Budget';
                             RunObject = report "Cost Acctg. Statement/Budget";
-                            Tooltip = 'Run the Cost Acctg. Statement/Budget report.';
                         }
                         action("Cost Center")
                         {
                             ApplicationArea = CostAccounting;
                             Caption = 'Cost Acctg. Balance/Budget';
                             RunObject = report "Cost Acctg. Balance/Budget";
-                            Tooltip = 'Run the Cost Acctg. Balance/Budget report.';
                         }
                     }
                 }
