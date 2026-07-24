@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Peppol;
 
+using Microsoft.Bank.BankAccount;
 using Microsoft.CRM.Contact;
 using Microsoft.CRM.Team;
 using Microsoft.Finance.GeneralLedger.Setup;
@@ -54,7 +55,55 @@ codeunit 37201 "PEPPOL30 Impl."
         PaymentDisAmtTxt: Label 'Payment Discount Amount';
         AllowanceChargePaymentDiscountReasonCodeTxt: Label '95', Locked = true;
         FileNameTok: Label '%1_%2.pdf', Comment = '1: Document Type, 2: Document No', Locked = true;
+        GLNSchemeIDTxt: Label '0088', Locked = true;
+        CreditTransferPaymentMeansCodeTxt: Label '31', Locked = true;
+        CheckPaymentMeansCodeTxt: Label '20', Locked = true;
 
+    procedure GetPayeePartyInfo(Vendor: Record Vendor; var PayeeEndpointID: Text; var PayeeSchemeID: Text; var PayeePartyName: Text)
+    begin
+        if Vendor.GLN <> '' then begin
+            PayeeEndpointID := Vendor.GLN;
+            PayeeSchemeID := GLNSchemeIDTxt;
+        end else begin
+            PayeeEndpointID := Vendor."VAT Registration No.";
+            PayeeSchemeID := '';
+        end;
+        PayeePartyName := Vendor.Name;
+    end;
+
+    procedure GetPaymentMeansInfo(RemitAdviceBuffer: Record "Remit. Advice Buffer" temporary; var PaymentMeansCode: Text; var PayeeFinancialAccountID: Text)
+    var
+        VendorBankAccount: Record "Vendor Bank Account";
+    begin
+        case RemitAdviceBuffer."Bank Payment Type" of
+            RemitAdviceBuffer."Bank Payment Type"::"Electronic Payment", RemitAdviceBuffer."Bank Payment Type"::"Electronic Payment-IAT":
+                PaymentMeansCode := CreditTransferPaymentMeansCodeTxt;
+            RemitAdviceBuffer."Bank Payment Type"::"Computer Check", RemitAdviceBuffer."Bank Payment Type"::"Manual Check":
+                PaymentMeansCode := CheckPaymentMeansCodeTxt;
+            else
+                PaymentMeansCode := '';
+        end;
+
+        PayeeFinancialAccountID := '';
+        if PaymentMeansCode = '' then
+            exit;
+
+        if RemitAdviceBuffer."Recipient Bank Account" = '' then
+            exit;
+        if not VendorBankAccount.Get(RemitAdviceBuffer."Vendor No.", RemitAdviceBuffer."Recipient Bank Account") then
+            exit;
+
+        if VendorBankAccount.IBAN <> '' then
+            PayeeFinancialAccountID := VendorBankAccount.IBAN
+        else
+            PayeeFinancialAccountID := VendorBankAccount."Bank Account No.";
+    end;
+
+    procedure GetDocumentIdentification(var CustomizationID: Text; var ProfileID: Text)
+    begin
+        CustomizationID := '';
+        ProfileID := '';
+    end;
 
     procedure GetGeneralInfo(SalesHeader: Record "Sales Header"; var ID: Text; var IssueDate: Text; var InvoiceTypeCode: Text; var InvoiceTypeCodeListID: Text; var Note: Text; var TaxPointDate: Text; var DocumentCurrencyCode: Text; var DocumentCurrencyCodeListID: Text; var TaxCurrencyCode: Text; var TaxCurrencyCodeListID: Text; var AccountingCost: Text)
     var

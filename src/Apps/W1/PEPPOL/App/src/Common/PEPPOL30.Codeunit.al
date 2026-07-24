@@ -8,6 +8,7 @@ using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.History;
 using Microsoft.Service.Document;
@@ -28,6 +29,7 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
                                             , "PEPPOL Purchase Party Info Provider"
                                             , "PEPPOL Purchase Payment Info Provider"
                                             , "PEPPOL Purchase Tax Info Provider"
+                                            , "PEPPOL Remit. Advice Info Provider"
 {
 
     InherentEntitlements = X;
@@ -35,6 +37,39 @@ codeunit 37200 "PEPPOL30" implements "PEPPOL Attachment Provider"
 
     var
         PEPPOLManagementImpl: Codeunit "PEPPOL30 Impl.";
+
+    /// <summary>
+    /// Gets payee (vendor) party information for the PEPPOL remittance advice.
+    /// </summary>
+    /// <param name="Vendor">The vendor being paid.</param>
+    /// <param name="PayeeEndpointID">Returns the payee endpoint ID.</param>
+    /// <param name="PayeeSchemeID">Returns the payee endpoint scheme ID.</param>
+    /// <param name="PayeePartyName">Returns the payee party name.</param>
+    procedure GetPayeePartyInfo(Vendor: Record Vendor; var PayeeEndpointID: Text; var PayeeSchemeID: Text; var PayeePartyName: Text)
+    begin
+        PEPPOLManagementImpl.GetPayeePartyInfo(Vendor, PayeeEndpointID, PayeeSchemeID, PayeePartyName);
+    end;
+
+    /// <summary>
+    /// Gets payment means information for the PEPPOL remittance advice from the buffer's header row.
+    /// </summary>
+    /// <param name="RemitAdviceBuffer">The remittance advice buffer header row ("Line No." = 0).</param>
+    /// <param name="PaymentMeansCode">Returns the UNCL4461 payment means code; empty to omit the PaymentMeans element.</param>
+    /// <param name="PayeeFinancialAccountID">Returns the payee financial account ID (IBAN or bank account no.); empty to omit.</param>
+    procedure GetPaymentMeansInfo(RemitAdviceBuffer: Record "Remit. Advice Buffer" temporary; var PaymentMeansCode: Text; var PayeeFinancialAccountID: Text)
+    begin
+        PEPPOLManagementImpl.GetPaymentMeansInfo(RemitAdviceBuffer, PaymentMeansCode, PayeeFinancialAccountID);
+    end;
+
+    /// <summary>
+    /// Gets the document identification (CustomizationID/ProfileID) for the PEPPOL remittance advice header.
+    /// </summary>
+    /// <param name="CustomizationID">Returns the CustomizationID; empty to omit the element.</param>
+    /// <param name="ProfileID">Returns the ProfileID; empty to omit the element.</param>
+    procedure GetDocumentIdentification(var CustomizationID: Text; var ProfileID: Text)
+    begin
+        PEPPOLManagementImpl.GetDocumentIdentification(CustomizationID, ProfileID);
+    end;
 
     /// <summary>
     /// Gets general invoice information including ID, issue date, invoice type, currency codes, and accounting cost.

@@ -4609,6 +4609,13 @@
 
     [SendNotificationHandler]
     [Scope('OnPrem')]
+    procedure DepreciationCalcFAJnlConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
+    end;
+
+    [SendNotificationHandler]
+    [Scope('OnPrem')]
     procedure AcquireFANotificationHandler(var AcquireFANotification: Notification): Boolean
     begin
         exit(true);

@@ -10,6 +10,10 @@ using Microsoft.Purchases.Payables;
 
 pageextension 4023 SendVendLedgerEntryRemitAdvice extends "Vendor Ledger Entries"
 {
+    ObsoleteReason = 'The Send Remittance Advice action is now available natively on page "Vendor Ledger Entries" (action SendVendorRemittanceAdvice) in Microsoft.Purchases.Payables.';
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+
     layout
     {
         // Add changes to page layout here

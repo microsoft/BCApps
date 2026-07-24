@@ -1,10 +1,13 @@
 namespace Microsoft.eServices.EDocument.IO.Peppol;
 
 using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.RemittanceAdvice;
 using Microsoft.EServices.EDocument.Format;
+using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Peppol;
 using Microsoft.Purchases.Document;
+using Microsoft.Purchases.Payables;
 using Microsoft.Sales.Document;
 using Microsoft.Sales.FinanceCharge;
 using Microsoft.Sales.History;
@@ -25,7 +28,10 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
         ServiceCrMemoHeader: Record "Service Cr.Memo Header";
         ReminderHeader: Record "Reminder Header";
         FinChargeMemoHeader: Record "Finance Charge Memo Header";
+        GenJournalLine: Record "Gen. Journal Line";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
         EDocPEPPOLValidation: Codeunit "E-Doc. PEPPOL Validation";
+        EDocRemittanceAdviceMgt: Codeunit "E-Doc. Remittance Advice Mgt.";
         SalesValidation: Interface "PEPPOL30 Validation";
         ServiceValidation: Interface "PEPPOL30 Validation";
     begin
@@ -75,6 +81,18 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
                     ServiceValidation.ValidateDocument(ServiceHeader);
                     ServiceValidation.ValidateDocumentLines(ServiceHeader);
                 end;
+            Database::"Gen. Journal Line":
+                begin
+                    SourceDocumentHeader.SetTable(GenJournalLine);
+                    EDocRemittanceAdviceMgt.CheckJournalPayment(GenJournalLine);
+                    EDocPEPPOLValidation.CheckRemittanceAdvice(GenJournalLine);
+                end;
+            Database::"Vendor Ledger Entry":
+                begin
+                    SourceDocumentHeader.SetTable(VendorLedgerEntry);
+                    EDocRemittanceAdviceMgt.CheckPostedPayment(VendorLedgerEntry);
+                    EDocPEPPOLValidation.CheckRemittanceAdvice(VendorLedgerEntry);
+                end;
         end;
     end;
 
@@ -101,6 +119,8 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
                 GenerateTransferShipmentXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export");
             EDocument."Document Type"::"Purchase Order":
                 GeneratePurchaseOrderXMLFile(SourceDocumentHeader, DocOutStream, EDocumentService."Embed PDF in export");
+            EDocument."Document Type"::"Remittance Advice":
+                GenerateRemittanceAdviceXMLFile(SourceDocumentHeader, DocOutStream);
             else
                 EDocErrorHelper.LogSimpleErrorMessage(EDocument, StrSubstNo(DocumentTypeNotSupportedErr, EDocument.FieldCaption("Document Type"), EDocument."Document Type"));
         end;
@@ -214,6 +234,37 @@ codeunit 6165 "EDoc PEPPOL BIS 3.0" implements "E-Document"
         PurchaseOrderExport.SetGeneratePDF(GeneratePDF);
         PurchaseOrderExport.Run(PurchaseHeader);
         PurchaseOrderExport.GetPurchaseOrderXML(TempBlob);
+        CopyStream(DocOutStream, TempBlob.CreateInStream());
+    end;
+
+    local procedure GenerateRemittanceAdviceXMLFile(SourceDocumentHeader: RecordRef; DocOutStream: OutStream)
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        VendorLedgerEntry: Record "Vendor Ledger Entry";
+        TempRemitAdviceBuffer: Record "Remit. Advice Buffer" temporary;
+        RemitAdviceBufferMgt: Codeunit "Remit. Advice Buffer Mgt.";
+        ExportRemitAdvicePEPPOL30: Codeunit "Export Remit. Advice PEPPOL30";
+        EDocPEPPOLValidation: Codeunit "E-Doc. PEPPOL Validation";
+        TempBlob: Codeunit "Temp Blob";
+    begin
+        case SourceDocumentHeader.Number of
+            Database::"Gen. Journal Line":
+                begin
+                    SourceDocumentHeader.SetTable(GenJournalLine);
+                    EDocPEPPOLValidation.CheckRemittanceAdvice(GenJournalLine);
+                    RemitAdviceBufferMgt.BuildFromJournalPayment(GenJournalLine, TempRemitAdviceBuffer);
+                end;
+            Database::"Vendor Ledger Entry":
+                begin
+                    SourceDocumentHeader.SetTable(VendorLedgerEntry);
+                    EDocPEPPOLValidation.CheckRemittanceAdvice(VendorLedgerEntry);
+                    RemitAdviceBufferMgt.BuildFromPostedPayment(VendorLedgerEntry, TempRemitAdviceBuffer);
+                end;
+            else
+                exit;
+        end;
+
+        ExportRemitAdvicePEPPOL30.GenerateXml(TempRemitAdviceBuffer, TempBlob);
         CopyStream(DocOutStream, TempBlob.CreateInStream());
     end;
 
