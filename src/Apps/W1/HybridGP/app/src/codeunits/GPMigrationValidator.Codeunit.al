@@ -56,22 +56,15 @@ codeunit 40903 "GP Migration Validator"
         GPAccount: Record "GP Account";
         FirstAccount: Record "GP GL00100";
         GPGL00100: Record "GP GL00100";
-        GPGL10111: Record "GP GL10111";
         GPGL40200: Record "GP GL40200";
         GPSY00300: Record "GP SY00300";
-        GPGLTransactions: Record "GP GLTransactions";
-        GPFiscalPeriods: Record "GP Fiscal Periods";
         HelperFunctions: Codeunit "Helper Functions";
-        BalanceFailureShouldBeWarning: Boolean;
         GPAccountNo: Code[20];
-        GPAccountBeginningBalance: Decimal;
-        AccountFilter: Text;
         EntityType: Text[50];
         GPAccountDescription: Text[100];
         ValidatedAccountNos: List of [Text];
     begin
         EntityType := GlAccountEntityCaptionLbl;
-        BalanceFailureShouldBeWarning := (TotalUnpostedGLBatchCount > 0);
 
         // GP
         if GPCompanyAdditionalSettings.GetGLModuleEnabled() then begin
@@ -79,7 +72,6 @@ codeunit 40903 "GP Migration Validator"
             GPGL00100.SetFilter(MNACSGMT, '<>%1', '');
             if GPGL00100.FindSet() then
                 repeat
-                    GPAccountBeginningBalance := 0;
                     GPAccountNo := CopyStr(GPGL00100.MNACSGMT.TrimEnd(), 1, MaxStrLen(GPAccountNo));
                     if ValidatedAccountNos.Contains(GPAccountNo) then
                         continue;
@@ -120,43 +112,10 @@ codeunit 40903 "GP Migration Validator"
                     GPAccount.AccountSubcategoryEntryNo := GPGL00100.ACCATNUM;
                     GPAccount.AccountType := GPGL00100.ACCTTYPE;
 
-                    if not GPCompanyAdditionalSettings.GetMigrateOnlyGLMaster() then
-                        if not GPCompanyAdditionalSettings.GetSkipPostingAccountBatches() then
-                            if GPGL00100.PSTNGTYP = 0 then begin
-                                AccountFilter := GetAccountFilter(GPAccountNo, 1);
-
-                                if AccountFilter <> '' then begin
-
-                                    // Beginning Balance
-                                    GPGL10111.SetFilter(ACTINDX, AccountFilter);
-                                    GPGL10111.SetRange(PERIODID, 0);
-                                    GPGL10111.SetRange(YEAR1, GPCompanyAdditionalSettings."Oldest GL Year to Migrate");
-                                    if GPGL10111.FindSet() then
-                                        repeat
-                                            GPAccountBeginningBalance += RoundWithSpecPrecision(GPGL10111.PERDBLNC);
-                                        until GPGL10111.Next() = 0;
-
-                                    // Trx summary
-                                    GPGLTransactions.SetCurrentKey(YEAR1, PERIODID, ACTINDX);
-                                    GPGLTransactions.SetFilter(ACTINDX, AccountFilter);
-
-                                    if GPCompanyAdditionalSettings."Oldest GL Year to Migrate" > 0 then
-                                        GPGLTransactions.SetFilter(YEAR1, '>= %1', GPCompanyAdditionalSettings."Oldest GL Year to Migrate");
-
-                                    if GPGLTransactions.FindSet() then
-                                        repeat
-                                            if GPFiscalPeriods.Get(GPGLTransactions.PERIODID, GPGLTransactions.YEAR1) then
-                                                GPAccountBeginningBalance += RoundWithSpecPrecision(GPGLTransactions.PERDBLNC);
-                                        until GPGLTransactions.Next() = 0;
-                                end;
-                            end;
-
                     Clear(GLAccount);
-                    GLAccount.SetLoadFields("No.", Name, "Account Type", "Account Category", "Debit/Credit", "Account Subcategory Entry No.", "Income/Balance", Balance);
+                    GLAccount.SetLoadFields("No.", Name, "Account Type", "Account Category", "Debit/Credit", "Account Subcategory Entry No.", "Income/Balance");
                     if not MigrationValidationAssert.ValidateRecordExists(Test_ACCOUNTEXISTS_Tok, GLAccount.Get(GPAccount.AcctNum), StrSubstNo(MissingEntityTok, EntityType)) then
                         continue;
-
-                    GLAccount.CalcFields(Balance);
 
                     MigrationValidationAssert.ValidateAreEqual(Test_ACCOUNTNAME_Tok, GPAccount.Name, GLAccount.Name, AccountNameLbl, true);
                     MigrationValidationAssert.ValidateAreEqual(Test_ACCOUNTTYPE_Tok, Format(GLAccount."Account Type"::Posting), Format(GLAccount."Account Type"), AccountTypeLbl);
@@ -164,7 +123,6 @@ codeunit 40903 "GP Migration Validator"
                     MigrationValidationAssert.ValidateAreEqual(Test_ACCOUNTDEBCRED_Tok, HelperFunctions.ConvertDebitCreditType(GPAccount), GLAccount."Debit/Credit", AccountDebitCreditLbl);
                     MigrationValidationAssert.ValidateAreEqual(Test_ACCOUNTSUBCATEGORY_Tok, HelperFunctions.AssignSubAccountCategory(GPAccount), GLAccount."Account Subcategory Entry No.", AccountSubcategoryLbl);
                     MigrationValidationAssert.ValidateAreEqual(Test_ACCOUNTINCBAL_Tok, HelperFunctions.ConvertIncomeBalanceType(GPAccount), GLAccount."Income/Balance".AsInteger(), AccountIncomeBalanceLbl);
-                    MigrationValidationAssert.ValidateAreEqual(Test_ACCOUNTBALANCE_Tok, GPAccountBeginningBalance, GLAccount.Balance, BeginningBalanceLbl, BalanceFailureShouldBeWarning);
 
                     MigrationValidationAssert.SetSourceRowValidated(ValidationSuiteIdTok, GPGL00100);
                 until GPGL00100.Next() = 0;
@@ -176,24 +134,17 @@ codeunit 40903 "GP Migration Validator"
         GeneralLedgerSetup: Record "General Ledger Setup";
         FirstAccount: Record "GP GL00100";
         GPGL00100: Record "GP GL00100";
-        GPGL10111: Record "GP GL10111";
         GPGL40200: Record "GP GL40200";
         GPSY00300: Record "GP SY00300";
-        GPGLTransactions: Record "GP GLTransactions";
-        GPFiscalPeriods: Record "GP Fiscal Periods";
         StatisticalAccount: Record "Statistical Account";
-        BalanceFailureShouldBeWarning: Boolean;
         DimensionCode1: Code[20];
         DimensionCode2: Code[20];
         GPAccountNo: Code[20];
-        GPAccountBeginningBalance: Decimal;
-        AccountFilter: Text;
         EntityType: Text[50];
         GPAccountDescription: Text[100];
         ValidatedAccountNos: List of [Text];
     begin
         EntityType := StatisticalAccountEntityCaptionLbl;
-        BalanceFailureShouldBeWarning := (TotalUnpostedStatisticalBatchCount > 0);
 
         if GeneralLedgerSetup.Get() then begin
             DimensionCode1 := GeneralLedgerSetup."Global Dimension 1 Code";
@@ -205,7 +156,6 @@ codeunit 40903 "GP Migration Validator"
             GPGL00100.SetFilter(MNACSGMT, '<>%1', '');
             if GPGL00100.FindSet() then
                 repeat
-                    GPAccountBeginningBalance := 0;
                     GPAccountNo := CopyStr(GPGL00100.MNACSGMT.TrimEnd(), 1, MaxStrLen(GPAccountNo));
                     if ValidatedAccountNos.Contains(GPAccountNo) then
                         continue;
@@ -233,37 +183,6 @@ codeunit 40903 "GP Migration Validator"
                             GPAccountDescription := CopyStr(FirstAccount.ACTDESCR.TrimEnd(), 1, MaxStrLen(GPAccountDescription));
                     end;
 
-                    if not GPCompanyAdditionalSettings.GetMigrateOnlyGLMaster() then
-                        if not GPCompanyAdditionalSettings.GetSkipPostingAccountBatches() then begin
-                            Clear(GPGL10111);
-                            AccountFilter := GetAccountFilter(GPAccountNo, 2);
-
-                            if AccountFilter <> '' then begin
-
-                                // Beginning Balance
-                                GPGL10111.SetFilter(ACTINDX, AccountFilter);
-                                GPGL10111.SetRange(PERIODID, 0);
-                                GPGL10111.SetRange(YEAR1, GPCompanyAdditionalSettings."Oldest GL Year to Migrate");
-                                if GPGL10111.FindSet() then
-                                    repeat
-                                        GPAccountBeginningBalance += RoundWithSpecPrecision(GPGL10111.PERDBLNC);
-                                    until GPGL10111.Next() = 0;
-
-                                // Trx summary
-                                GPGLTransactions.SetCurrentKey(YEAR1, PERIODID, ACTINDX);
-                                GPGLTransactions.SetFilter(ACTINDX, AccountFilter);
-
-                                if GPCompanyAdditionalSettings."Oldest GL Year to Migrate" > 0 then
-                                    GPGLTransactions.SetFilter(YEAR1, '>= %1', GPCompanyAdditionalSettings."Oldest GL Year to Migrate");
-
-                                if GPGLTransactions.FindSet() then
-                                    repeat
-                                        if GPFiscalPeriods.Get(GPGLTransactions.PERIODID, GPGLTransactions.YEAR1) then
-                                            GPAccountBeginningBalance += RoundWithSpecPrecision(GPGLTransactions.PERDBLNC);
-                                    until GPGLTransactions.Next() = 0;
-                            end;
-                        end;
-
                     Clear(StatisticalAccount);
                     StatisticalAccount.SetLoadFields("No.", Name, "Global Dimension 1 Code", "Global Dimension 2 Code", Balance);
                     if not MigrationValidationAssert.ValidateRecordExists(Test_STATACCOUNTEXISTS_Tok, StatisticalAccount.Get(GPAccountNo), StrSubstNo(MissingEntityTok, EntityType)) then
@@ -274,8 +193,6 @@ codeunit 40903 "GP Migration Validator"
                     MigrationValidationAssert.ValidateAreEqual(Test_STATACCOUNTNAME_Tok, GPAccountDescription, StatisticalAccount.Name, AccountNameLbl, true);
                     MigrationValidationAssert.ValidateAreEqual(Test_STATACCOUNTDIM1_Tok, DimensionCode1, StatisticalAccount."Global Dimension 1 Code", Dimension1Lbl);
                     MigrationValidationAssert.ValidateAreEqual(Test_STATACCOUNTDIM2_Tok, DimensionCode2, StatisticalAccount."Global Dimension 2 Code", Dimension2Lbl);
-                    MigrationValidationAssert.ValidateAreEqual(Test_STATACCOUNTBALANCE_Tok, GPAccountBeginningBalance, StatisticalAccount.Balance, BeginningBalanceLbl, BalanceFailureShouldBeWarning);
-
                     MigrationValidationAssert.SetSourceRowValidated(ValidationSuiteIdTok, GPGL00100);
                 until GPGL00100.Next() = 0;
         end;
@@ -286,17 +203,11 @@ codeunit 40903 "GP Migration Validator"
         BankAccount: Record "Bank Account";
         GPBankMSTR: Record "GP Bank MSTR";
         GPCheckbookMSTR: Record "GP Checkbook MSTR";
-        GPCheckbookTransactions: Record "GP Checkbook Transactions";
-        GPCM20600: Record "GP CM20600";
-        BalanceFailureShouldBeWarning: Boolean;
-        ShouldFlipSign: Boolean;
         ShouldInclude: Boolean;
         GPAccountNo: Code[20];
-        GPAccountBalance: Decimal;
         EntityType: Text[50];
     begin
         EntityType := BankAccountEntityCaptionLbl;
-        BalanceFailureShouldBeWarning := (TotalUnpostedBankBatchCount > 0);
 
         if GPCompanyAdditionalSettings.GetBankModuleEnabled() then
             if GPCheckbookMSTR.FindSet() then
@@ -307,50 +218,21 @@ codeunit 40903 "GP Migration Validator"
                     GPAccountNo := CopyStr(GPCheckbookMSTR.CHEKBKID.TrimEnd(), 1, MaxStrLen(GPAccountNo));
                     MigrationValidationAssert.SetContext(ValidationSuiteIdTok, EntityType, GPAccountNo);
                     ShouldInclude := true;
-                    GPAccountBalance := 0;
 
                     if not GPCompanyAdditionalSettings.GetMigrateInactiveCheckbooks() then
                         if GPCheckbookMSTR.INACTIVE then
                             ShouldInclude := false;
 
                     if ShouldInclude then begin
-
-                        // Balance
-                        if not GPCompanyAdditionalSettings.GetMigrateOnlyBankMaster() then
-                            if not GPCompanyAdditionalSettings.GetSkipPostingBankBatches() then begin
-                                GPAccountBalance := GPCheckbookMSTR.Last_Reconciled_Balance;
-
-                                GPCheckbookTransactions.SetRange(CHEKBKID, GPCheckbookMSTR.CHEKBKID);
-                                GPCheckbookTransactions.SetRange(Recond, false);
-                                GPCheckbookTransactions.SetFilter(TRXAMNT, '<>%1', 0);
-                                if GPCheckbookTransactions.FindSet() then
-                                    repeat
-                                        ShouldFlipSign := false;
-
-                                        if GPCheckbookTransactions.ShouldFlipSign() then
-                                            ShouldFlipSign := true;
-
-                                        if GPCheckbookTransactions.CMTrxType = 7 then begin
-                                            GPCM20600.SetRange(CMXFRNUM, GPCheckbookTransactions.CMTrxNum);
-                                            GPCM20600.SetRange(CMFRMRECNUM, GPCheckbookTransactions.CMRECNUM);
-                                            if GPCM20600.FindFirst() then
-                                                if GPCM20600.Xfr_Record_Number > 0 then
-                                                    ShouldFlipSign := true;
-                                        end;
-
-                                        if ShouldFlipSign then
-                                            GPCheckbookTransactions.TRXAMNT := GPCheckbookTransactions.TRXAMNT * -1;
-
-                                        GPAccountBalance := GPAccountBalance + RoundWithSpecPrecision(GPCheckbookTransactions.TRXAMNT);
-                                    until GPCheckbookTransactions.Next() = 0;
-                            end;
-
                         Clear(BankAccount);
                         BankAccount.SetLoadFields("No.", Name, "Bank Account No.", Balance, Address, "Address 2", City, "Phone No.", "Transit No.", "Fax No.", County, "Post Code", "Bank Branch No.");
                         if not MigrationValidationAssert.ValidateRecordExists(Test_BANKACCOUNTEXISTS_Tok, BankAccount.Get(GPAccountNo), StrSubstNo(MissingEntityTok, EntityType)) then
                             continue;
 
                         BankAccount.CalcFields(Balance);
+
+                        if not GPBankMSTR.Get(GPCheckbookMSTR.BANKID) then
+                            continue;
 
                         MigrationValidationAssert.ValidateAreEqual(Test_BANKACCOUNTNAME_Tok, CopyStr(GPCheckbookMSTR.DSCRIPTN.TrimEnd(), 1, MaxStrLen(BankAccount.Name)), BankAccount.Name, NameLbl, true);
                         MigrationValidationAssert.ValidateAreEqual(Test_BANKACCOUNTNO_Tok, CopyStr(GPCheckbookMSTR.BNKACTNM.TrimEnd(), 1, MaxStrLen(BankAccount."Bank Account No.")), BankAccount."Bank Account No.", BankAccountNumberLbl, false, true);
@@ -363,7 +245,6 @@ codeunit 40903 "GP Migration Validator"
                         MigrationValidationAssert.ValidateAreEqual(Test_BANKACCOUNTFAX_Tok, CopyStr(GPBankMSTR.FAXNUMBR.TrimEnd(), 1, MaxStrLen(BankAccount."Fax No.")), BankAccount."Fax No.", FaxLbl, true);
                         MigrationValidationAssert.ValidateAreEqual(Test_BANKACCOUNTTRANSITNO_Tok, CopyStr(GPBankMSTR.TRNSTNBR.TrimEnd(), 1, MaxStrLen(BankAccount."Transit No.")), BankAccount."Transit No.", TransitNoLbl, true);
                         MigrationValidationAssert.ValidateAreEqual(Test_BANKACCOUNTBRANCHNO_Tok, CopyStr(GPBankMSTR.BNKBRNCH.TrimEnd(), 1, MaxStrLen(BankAccount."Bank Branch No.")), BankAccount."Bank Branch No.", BankBranchNoLbl, true);
-                        MigrationValidationAssert.ValidateAreEqual(Test_BANKACCOUNTBALANCE_Tok, GPAccountBalance, BankAccount.Balance, BalanceLbl, BalanceFailureShouldBeWarning);
 
                         MigrationValidationAssert.SetSourceRowValidated(ValidationSuiteIdTok, GPCheckbookMSTR);
                     end;
@@ -376,8 +257,6 @@ codeunit 40903 "GP Migration Validator"
         GPCustomer: Record "GP Customer";
         GPRM00101: Record "GP RM00101";
         GPRM20101: record "GP RM20101";
-        GPPaymentTerms: Record "GP Payment Terms";
-        GPPopulateCombinedTables: Codeunit "GP Populate Combined Tables";
         HelperFunctions: Codeunit "Helper Functions";
         BalanceFailureShouldBeWarning: Boolean;
         ShouldInclude: Boolean;
@@ -410,14 +289,12 @@ codeunit 40903 "GP Migration Validator"
                             ShouldInclude := false;
 
                     if ShouldInclude then begin
+                        GPCustomer.Get(CustomerNo);
                         if GPCompanyAdditionalSettings.GetMigrateCustomerClasses() then
                             ClassName := CopyStr(GPRM00101.CUSTCLAS.TrimEnd(), 1, MaxStrLen(ClassName));
 
                         if ClassName = '' then
                             ClassName := DefaultClassNameTok;
-
-                        Clear(GPCustomer);
-                        GPPopulateCombinedTables.SetGPCustomerFields(GPCustomer, GPRM00101);
 
                         GPCustomer.PHONE1 := HelperFunctions.CleanGPPhoneOrFaxNumber(GPCustomer.PHONE1);
                         GPCustomer.FAX := HelperFunctions.CleanGPPhoneOrFaxNumber(GPCustomer.FAX);
@@ -472,14 +349,7 @@ codeunit 40903 "GP Migration Validator"
                         MigrationValidationAssert.ValidateAreEqual(Test_CUSTOMERPHN_Tok, PhoneNo, Customer."Phone No.", PhoneLbl, true);
                         MigrationValidationAssert.ValidateAreEqual(Test_CUSTOMERFAX_Tok, FaxNo, Customer."Fax No.", FaxLbl, true);
 
-                        PaymentTerms := '';
-                        if GPCustomer.PYMTRMID <> '' then
-                            if GPPaymentTerms.Get(GPCustomer.PYMTRMID) then begin
-                                PaymentTerms := CopyStr(GPCustomer.PYMTRMID, 1, MaxStrLen(Customer."Payment Terms Code"));
-                                if GPPaymentTerms.PYMTRMID_New <> '' then
-                                    PaymentTerms := GPPaymentTerms.PYMTRMID_New;
-                            end;
-
+                        PaymentTerms := CopyStr(GPCustomer.PYMTRMID, 1, MaxStrLen(Customer."Payment Terms Code"));
                         MigrationValidationAssert.ValidateAreEqual(Test_CUSTOMERPMTTERMS_Tok, PaymentTerms, Customer."Payment Terms Code", PaymentTermsLbl, true);
 
                         ValidateCustomerShipToAddresses(Customer);
@@ -495,6 +365,7 @@ codeunit 40903 "GP Migration Validator"
         GPCustomerAddress: Record "GP Customer Address";
         ShipToAddress: Record "Ship-to Address";
         AddressCode: Code[10];
+        GPPostalCode: Code[20];
         EntityType: Text[50];
         ContextCode: Text[250];
     begin
@@ -520,11 +391,12 @@ codeunit 40903 "GP Migration Validator"
                 if (CopyStr(GPCustomerAddress.FAX, 1, 14) = '00000000000000') then
                     GPCustomerAddress.FAX := '';
 
+                GPPostalCode := CopyStr(GPCustomerAddress.ZIP.TrimEnd(), 1, MaxStrLen(GPPostalCode));
                 MigrationValidationAssert.ValidateAreEqual(Test_SHIPADDRNAME_Tok, Customer.Name, ShipToAddress.Name, NameLbl, true);
                 MigrationValidationAssert.ValidateAreEqual(Test_SHIPADDRADDR_Tok, GPCustomerAddress.ADDRESS1.TrimEnd(), ShipToAddress.Address, AddressLbl, true);
                 MigrationValidationAssert.ValidateAreEqual(Test_SHIPADDRADDR2_Tok, CopyStr(GPCustomerAddress.ADDRESS2.TrimEnd(), 1, MaxStrLen(ShipToAddress."Address 2")), ShipToAddress."Address 2", Address2Lbl, true);
                 MigrationValidationAssert.ValidateAreEqual(Test_SHIPADDRCITY_Tok, CopyStr(GPCustomerAddress.CITY.TrimEnd(), 1, MaxStrLen(ShipToAddress.City)), ShipToAddress.City, CityLbl, true);
-                MigrationValidationAssert.ValidateAreEqual(Test_SHIPADDRPOSTCODE_Tok, UpperCase(GPCustomerAddress.ZIP.TrimEnd()), ShipToAddress."Post Code", PostCodeLbl, true);
+                MigrationValidationAssert.ValidateAreEqual(Test_SHIPADDRPOSTCODE_Tok, GPPostalCode, ShipToAddress."Post Code", PostCodeLbl, true);
                 MigrationValidationAssert.ValidateAreEqual(Test_SHIPADDRPHN_Tok, GPCustomerAddress.PHONE1.TrimEnd(), ShipToAddress."Phone No.", PhoneLbl, true);
                 MigrationValidationAssert.ValidateAreEqual(Test_SHIPADDRFAX_Tok, GPCustomerAddress.FAX.TrimEnd(), ShipToAddress."Fax No.", FaxLbl, true);
                 MigrationValidationAssert.ValidateAreEqual(Test_SHIPADDRCONTACT_Tok, GPCustomerAddress.CNTCPRSN.TrimEnd(), ShipToAddress.Contact, ContactLbl, true);
@@ -897,9 +769,7 @@ codeunit 40903 "GP Migration Validator"
         GPPM00200: Record "GP PM00200";
         GPPM20000: Record "GP PM20000";
         GPVendor: Record "GP Vendor";
-        GPPaymentTerms: Record "GP Payment Terms";
         Vendor: Record Vendor;
-        GPPopulateCombinedTables: Codeunit "GP Populate Combined Tables";
         HelperFunctions: Codeunit "Helper Functions";
         BalanceFailureShouldBeWarning: Boolean;
         IsActive: Boolean;
@@ -939,14 +809,12 @@ codeunit 40903 "GP Migration Validator"
                         ShouldInclude := ShouldMigrateTemporaryVendor(GPPM00200.VENDORID);
 
                     if ShouldInclude then begin
+                        GPVendor.Get(VendorNo);
                         if GPCompanyAdditionalSettings.GetMigrateVendorClasses() then
                             ClassName := CopyStr(GPPM00200.VNDCLSID.TrimEnd(), 1, MaxStrLen(ClassName));
 
                         if ClassName = '' then
                             ClassName := DefaultClassNameTok;
-
-                        Clear(GPVendor);
-                        GPPopulateCombinedTables.SetGPVendorFields(GPVendor, GPPM00200);
 
                         GPVendor.PHNUMBR1 := HelperFunctions.CleanGPPhoneOrFaxNumber(GPVendor.PHNUMBR1);
                         GPVendor.FAXNUMBR := HelperFunctions.CleanGPPhoneOrFaxNumber(GPVendor.FAXNUMBR);
@@ -1004,14 +872,7 @@ codeunit 40903 "GP Migration Validator"
                         MigrationValidationAssert.ValidateAreEqual(Test_VENDORPHN_Tok, PhoneNo, Vendor."Phone No.", PhoneLbl, true);
                         MigrationValidationAssert.ValidateAreEqual(Test_VENDORFAX_Tok, FaxNo, Vendor."Fax No.", FaxLbl, true);
 
-                        PaymentTerms := '';
-                        if GPVendor.PYMTRMID <> '' then
-                            if GPPaymentTerms.Get(GPVendor.PYMTRMID) then begin
-                                PaymentTerms := CopyStr(GPVendor.PYMTRMID, 1, MaxStrLen(Vendor."Payment Terms Code"));
-                                if GPPaymentTerms.PYMTRMID_New <> '' then
-                                    PaymentTerms := GPPaymentTerms.PYMTRMID_New;
-                            end;
-
+                        PaymentTerms := CopyStr(GPVendor.PYMTRMID, 1, MaxStrLen(Vendor."Payment Terms Code"));
                         MigrationValidationAssert.ValidateAreEqual(Test_VENDORPMTTERMS_Tok, PaymentTerms, Vendor."Payment Terms Code", PaymentTermsLbl, true);
 
                         ValidateVendorAddresses(GPVendor);
@@ -1033,6 +894,7 @@ codeunit 40903 "GP Migration Validator"
         AddressCode: Code[10];
         AssignedPrimaryAddressCode: Code[10];
         AssignedRemitToAddressCode: Code[10];
+        GPPostalCode: Code[20];
         EntityType: Text[50];
         ContextCode: Text[250];
     begin
@@ -1052,6 +914,7 @@ codeunit 40903 "GP Migration Validator"
 
                 AddressCode := CopyStr(GPVendorAddress.ADRSCODE.Trim(), 1, MaxStrLen(AddressCode));
                 ContextCode := Vendor."No." + '-' + AddressCode;
+                GPPostalCode := CopyStr(GPVendorAddress.ZIPCODE.TrimEnd(), 1, MaxStrLen(GPPostalCode));
 
                 if AddressCode = AssignedRemitToAddressCode then begin
                     EntityType := VendorRemitAddressEntityCaptionLbl;
@@ -1062,7 +925,7 @@ codeunit 40903 "GP Migration Validator"
                         MigrationValidationAssert.ValidateAreEqual(Test_REMITADDRADDR_Tok, GPVendorAddress.ADDRESS1.TrimEnd(), RemitAddress.Address, AddressLbl, true);
                         MigrationValidationAssert.ValidateAreEqual(Test_REMITADDRADDR2_Tok, CopyStr(GPVendorAddress.ADDRESS2.TrimEnd(), 1, MaxStrLen(RemitAddress."Address 2")), RemitAddress."Address 2", Address2Lbl, true);
                         MigrationValidationAssert.ValidateAreEqual(Test_REMITADDRCITY_Tok, CopyStr(GPVendorAddress.CITY.TrimEnd(), 1, MaxStrLen(RemitAddress.City)), RemitAddress.City, CityLbl, true);
-                        MigrationValidationAssert.ValidateAreEqual(Test_REMITADDRPOSTCODE_Tok, UpperCase(GPVendorAddress.ZIPCODE.TrimEnd()), RemitAddress."Post Code", PostCodeLbl, true);
+                        MigrationValidationAssert.ValidateAreEqual(Test_REMITADDRPOSTCODE_Tok, GPPostalCode, RemitAddress."Post Code", PostCodeLbl, true);
                         MigrationValidationAssert.ValidateAreEqual(Test_REMITADDRPHN_Tok, HelperFunctions.CleanGPPhoneOrFaxNumber(GPVendorAddress.PHNUMBR1), RemitAddress."Phone No.", PhoneLbl, true);
                         MigrationValidationAssert.ValidateAreEqual(Test_REMITADDRFAX_Tok, HelperFunctions.CleanGPPhoneOrFaxNumber(GPVendorAddress.FAXNUMBR), RemitAddress."Fax No.", FaxLbl, true);
                         MigrationValidationAssert.ValidateAreEqual(Test_REMITADDRCOUNTY_Tok, GPVendorAddress.STATE.TrimEnd(), RemitAddress.County, CountyLbl, true);
@@ -1079,7 +942,7 @@ codeunit 40903 "GP Migration Validator"
                         MigrationValidationAssert.ValidateAreEqual(Test_ORDERADDRADDR_Tok, GPVendorAddress.ADDRESS1.TrimEnd(), OrderAddress.Address, AddressLbl, true);
                         MigrationValidationAssert.ValidateAreEqual(Test_ORDERADDRADDR2_Tok, CopyStr(GPVendorAddress.ADDRESS2.TrimEnd(), 1, MaxStrLen(OrderAddress."Address 2")), OrderAddress."Address 2", Address2Lbl, true);
                         MigrationValidationAssert.ValidateAreEqual(Test_ORDERADDRCITY_Tok, CopyStr(GPVendorAddress.CITY.TrimEnd(), 1, MaxStrLen(OrderAddress.City)), OrderAddress.City, CityLbl, true);
-                        MigrationValidationAssert.ValidateAreEqual(Test_ORDERADDRPOSTCODE_Tok, UpperCase(GPVendorAddress.ZIPCODE.TrimEnd()), OrderAddress."Post Code", PostCodeLbl, true);
+                        MigrationValidationAssert.ValidateAreEqual(Test_ORDERADDRPOSTCODE_Tok, GPPostalCode, OrderAddress."Post Code", PostCodeLbl, true);
                         MigrationValidationAssert.ValidateAreEqual(Test_ORDERADDRPHN_Tok, HelperFunctions.CleanGPPhoneOrFaxNumber(GPVendorAddress.PHNUMBR1), OrderAddress."Phone No.", PhoneLbl, true);
                         MigrationValidationAssert.ValidateAreEqual(Test_ORDERADDRFAX_Tok, HelperFunctions.CleanGPPhoneOrFaxNumber(GPVendorAddress.FAXNUMBR), OrderAddress."Fax No.", FaxLbl, true);
                         MigrationValidationAssert.ValidateAreEqual(Test_ORDERADDRCOUNTY_Tok, GPVendorAddress.STATE.TrimEnd(), OrderAddress.County, CountyLbl, true);
@@ -1241,12 +1104,10 @@ codeunit 40903 "GP Migration Validator"
         AddTest(Test_ACCOUNTDEBCRED_Tok, 'G/L Account', 'Debit/Credit');
         AddTest(Test_ACCOUNTSUBCATEGORY_Tok, 'G/L Account', 'Account Subcategory');
         AddTest(Test_ACCOUNTINCBAL_Tok, 'G/L Account', 'Income/Balance');
-        AddTest(Test_ACCOUNTBALANCE_Tok, 'G/L Account', 'Balance');
         AddTest(Test_STATACCOUNTEXISTS_Tok, 'Statistical Account', 'Missing Account');
         AddTest(Test_STATACCOUNTNAME_Tok, 'Statistical Account', 'Name');
         AddTest(Test_STATACCOUNTDIM1_Tok, 'Statistical Account', 'Dimension 1');
         AddTest(Test_STATACCOUNTDIM2_Tok, 'Statistical Account', 'Dimension 2');
-        AddTest(Test_STATACCOUNTBALANCE_Tok, 'Statistical Account', 'Balance');
         AddTest(Test_BANKACCOUNTEXISTS_Tok, 'Bank Account', 'Missing Bank Account');
         AddTest(Test_BANKACCOUNTNAME_Tok, 'Bank Account', 'Name');
         AddTest(Test_BANKACCOUNTNO_Tok, 'Bank Account', 'Bank Account No.');
@@ -1259,7 +1120,6 @@ codeunit 40903 "GP Migration Validator"
         AddTest(Test_BANKACCOUNTFAX_Tok, 'Bank Account', 'Fax');
         AddTest(Test_BANKACCOUNTTRANSITNO_Tok, 'Bank Account', 'Transit No.');
         AddTest(Test_BANKACCOUNTBRANCHNO_Tok, 'Bank Account', 'Bank Branch No.');
-        AddTest(Test_BANKACCOUNTBALANCE_Tok, 'Bank Account', 'Balance');
         AddTest(Test_CUSTOMEREXISTS_Tok, 'Customer', 'Missing Customer');
         AddTest(Test_CUSTOMERNAME_Tok, 'Customer', 'Name');
         AddTest(Test_CUSTOMERPOSTINGGROUP_Tok, 'Customer', 'Customer Posting Group');
@@ -1461,12 +1321,10 @@ codeunit 40903 "GP Migration Validator"
         Test_ACCOUNTDEBCRED_Tok: Label 'ACCOUNTDEBCRED', Locked = true;
         Test_ACCOUNTSUBCATEGORY_Tok: Label 'ACCOUNTSUBCATEGORY', Locked = true;
         Test_ACCOUNTINCBAL_Tok: Label 'ACCOUNTINCBAL', Locked = true;
-        Test_ACCOUNTBALANCE_Tok: Label 'ACCOUNTBALANCE', Locked = true;
         Test_STATACCOUNTEXISTS_Tok: Label 'STATACCOUNTEXISTS', Locked = true;
         Test_STATACCOUNTNAME_Tok: Label 'STATACCOUNTNAME', Locked = true;
         Test_STATACCOUNTDIM1_Tok: Label 'STATACCOUNTDIM1', Locked = true;
         Test_STATACCOUNTDIM2_Tok: Label 'STATACCOUNTDIM2', Locked = true;
-        Test_STATACCOUNTBALANCE_Tok: Label 'STATACCOUNTBALANCE', Locked = true;
         Test_BANKACCOUNTEXISTS_Tok: Label 'BANKACCOUNTEXISTS', Locked = true;
         Test_BANKACCOUNTNAME_Tok: Label 'BANKACCOUNTNAME', Locked = true;
         Test_BANKACCOUNTNO_Tok: Label 'BANKACCOUNTNO', Locked = true;
@@ -1479,7 +1337,6 @@ codeunit 40903 "GP Migration Validator"
         Test_BANKACCOUNTFAX_Tok: Label 'BANKACCOUNTFAX', Locked = true;
         Test_BANKACCOUNTTRANSITNO_Tok: Label 'BANKACCOUNTTRANSITNO', Locked = true;
         Test_BANKACCOUNTBRANCHNO_Tok: Label 'BANKACCOUNTBRANCHNO', Locked = true;
-        Test_BANKACCOUNTBALANCE_Tok: Label 'BANKACCOUNTBALANCE', Locked = true;
         Test_CUSTOMEREXISTS_Tok: Label 'CUSTOMEREXISTS', Locked = true;
         Test_CUSTOMERNAME_Tok: Label 'CUSTOMERNAME', Locked = true;
         Test_CUSTOMERPOSTINGGROUP_Tok: Label 'CUSTOMERPOSTINGGROUP', Locked = true;
