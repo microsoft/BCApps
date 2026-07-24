@@ -779,6 +779,7 @@ permissionset 1044 "D365 READ"
                   tabledata "G/L Entry - VAT Entry Link" = R,
                   tabledata "G/L Entry" = R,
                   tabledata "G/L Register" = R,
+                  tabledata "G/L Transaction" = R,
                   tabledata "Gen. Business Posting Group" = R,
                   tabledata "Gen. Jnl. Allocation" = R,
                   tabledata "Gen. Jnl. Dim. Filter" = R,

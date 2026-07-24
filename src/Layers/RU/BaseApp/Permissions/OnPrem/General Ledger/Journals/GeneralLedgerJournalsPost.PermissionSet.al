@@ -65,6 +65,7 @@ permissionset 2118 "General Ledger Journals - Post"
                   tabledata "G/L Entry - VAT Entry Link" = Ri,
                   tabledata "G/L Entry" = Ri,
                   tabledata "G/L Register" = Rim,
+                  tabledata "G/L Transaction" = Rim,
                   tabledata "Gen. Jnl. Allocation" = RIMD,
                   tabledata "Gen. Journal Batch" = RId,
                   tabledata "Gen. Journal Line" = RIMD,
