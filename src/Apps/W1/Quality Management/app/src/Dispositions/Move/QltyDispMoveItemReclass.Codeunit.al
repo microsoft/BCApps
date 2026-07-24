@@ -20,7 +20,9 @@ codeunit 20452 "Qlty. Disp. Move Item Reclass." implements "Qlty. Disposition"
         OpenSetupActionLbl: Label 'Open Quality Management Setup';
         DocumentTypeLbl: Label 'Item Reclassification';
 
+#pragma warning disable AL0920
     internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+#pragma warning restore AL0920
     var
         QltyManagementSetup: Record "Qlty. Management Setup";
         TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;

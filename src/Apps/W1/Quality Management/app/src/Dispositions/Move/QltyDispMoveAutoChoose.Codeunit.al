@@ -35,7 +35,9 @@ codeunit 20442 "Qlty. Disp. Move Auto Choose" implements "Qlty. Disposition"
     /// <param name="QltyInspectionHeader"></param>
     /// <param name="TempInstructionQltyDispositionBuffer"></param>
     /// <returns></returns>
+#pragma warning disable AL0920
     internal procedure PerformDisposition(var QltyInspectionHeader: Record "Qlty. Inspection Header"; var TempInstructionQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary) DidSomething: Boolean
+#pragma warning restore AL0920
     var
         Location: Record Location;
         TempQuantityToActQltyDispositionBuffer: Record "Qlty. Disposition Buffer" temporary;
