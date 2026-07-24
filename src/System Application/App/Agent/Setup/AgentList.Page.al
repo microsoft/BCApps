@@ -87,7 +87,7 @@ page 4316 "Agent List"
             {
                 ApplicationArea = All;
                 Caption = 'Archive';
-                ToolTip = 'Archive the selected agent. The agent and its existing tasks and logs remain available as read-only. Archiving cannot be undone.';
+                ToolTip = 'Archive the selected agent. You can only archive an inactive agent. The agent and its existing tasks and logs remain available as read-only. Archiving cannot be undone.';
                 Image = Archive;
                 Enabled = ArchiveActionEnabled;
 
@@ -98,6 +98,9 @@ page 4316 "Agent List"
                 begin
                     if Rec.IsEmpty() then
                         Error(NoAgentSetupErr);
+
+                    if Rec.State <> Rec.State::Disabled then
+                        Error(DeactivateBeforeArchivingErr);
 
                     Rec.TestField("Display Name");
                     ArchiveConfirmation.SetAgentDisplayName(Rec."Display Name");
@@ -152,6 +155,34 @@ page 4316 "Agent List"
                 begin
                     ShouldShowAllCompanies := true;
                     SetCompanyFilter();
+                end;
+            }
+            action(ShowAllAgents)
+            {
+                ApplicationArea = All;
+                Caption = 'Show all agents';
+                ToolTip = 'Show all agents, including archived ones.';
+                Image = RemoveFilterLines;
+                Visible = not ShouldShowAllAgents;
+
+                trigger OnAction()
+                begin
+                    ShouldShowAllAgents := true;
+                    SetAgentSubstateFilter();
+                end;
+            }
+            action(HideArchivedAgents)
+            {
+                ApplicationArea = All;
+                Caption = 'Hide archived agents';
+                ToolTip = 'Hide agents that have been archived.';
+                Image = FilterLines;
+                Visible = ShouldShowAllAgents;
+
+                trigger OnAction()
+                begin
+                    ShouldShowAllAgents := false;
+                    SetAgentSubstateFilter();
                 end;
             }
         }
@@ -217,8 +248,8 @@ page 4316 "Agent List"
             AgentImpl.ShowNoAgentsAvailableNotification();
 
         ShouldShowAllCompanies := false;
-        // Hide archived agents from the default list; users can filter the Substate column to view them.
-        Rec.SetRange(Substate, Rec.Substate::None);
+        ShouldShowAllAgents := false;
+        SetAgentSubstateFilter();
         SetCompanyFilter();
     end;
 
@@ -238,7 +269,7 @@ page 4316 "Agent List"
     begin
         CopilotAvailabilityTxt := AgentImpl.GetCopilotAvailabilityDisplayText(Rec);
         AgentIsArchived := Rec.Substate = Rec.Substate::Archived;
-        ArchiveActionEnabled := (Rec.State = Rec.State::Disabled) and (not AgentIsArchived) and Rec."Can Curr. User Configure Agent";
+        ArchiveActionEnabled := (not AgentIsArchived) and Rec."Can Curr. User Configure Agent";
     end;
 
     local procedure SetCompanyFilter()
@@ -250,10 +281,22 @@ page 4316 "Agent List"
         CurrPage.Update(false);
     end;
 
+    local procedure SetAgentSubstateFilter()
+    begin
+        // Hide archived agents from the default list; the Show all agents action reveals them.
+        if ShouldShowAllAgents then
+            Rec.SetRange(Substate)
+        else
+            Rec.SetRange(Substate, Rec.Substate::None);
+        CurrPage.Update(false);
+    end;
+
     var
         CopilotAvailabilityTxt: Text;
         ShouldShowAllCompanies: Boolean;
+        ShouldShowAllAgents: Boolean;
         ArchiveActionEnabled: Boolean;
         AgentIsArchived: Boolean;
         NoAgentSetupErr: Label 'No agents have been setup. You must set up an agent first.';
+        DeactivateBeforeArchivingErr: Label 'Deactivate the agent before archiving it.';
 }

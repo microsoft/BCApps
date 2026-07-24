@@ -1144,6 +1144,44 @@ codeunit 133961 "Agent Test"
     end;
 
     [Test]
+    procedure ArchivedAgentRevealedByShowAllAgentsToggle()
+    var
+        AgentRecord: Record Agent;
+        AgentListTestPage: TestPage "Agent List";
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] The Show all agents / Hide archived agents toggle controls archived-agent visibility on the Agent List
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := CreateActiveAgent(AgentRecord, 'Archived List Toggle Agent');
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [GIVEN] The Agent List showing agents for all companies
+        AgentListTestPage.OpenView();
+        AgentListTestPage.ShowAllCompanies.Invoke();
+
+        // [THEN] The archived agent is hidden by default
+        Assert.IsFalse(AgentListTestPage.GoToKey(AgentId), 'Archived agent should be hidden by default');
+
+        // [WHEN] Invoking Show all agents
+        AgentListTestPage.ShowAllAgents.Invoke();
+
+        // [THEN] The archived agent becomes visible
+        Assert.IsTrue(AgentListTestPage.GoToKey(AgentId), 'Archived agent should be visible after Show all agents');
+
+        // [WHEN] Invoking Hide archived agents
+        AgentListTestPage.HideArchivedAgents.Invoke();
+
+        // [THEN] The archived agent is hidden again
+        Assert.IsFalse(AgentListTestPage.GoToKey(AgentId), 'Archived agent should be hidden again after Hide archived agents');
+
+        AgentListTestPage.Close();
+    end;
+
+    [Test]
     procedure ArchivedAgentRemainsRetrievable()
     var
         AgentRecord: Record Agent;
@@ -1556,6 +1594,26 @@ codeunit 133961 "Agent Test"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    procedure ArchiveActionOnActiveAgentRequiresDeactivationFirst()
+    var
+        AgentRecord: Record Agent;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Invoking Archive on an active agent explains it must be deactivated first, instead of silently disabling the action, and does not archive it
+
+        // [GIVEN] An active (enabled) agent
+        AgentId := CreateActiveAgent(AgentRecord, 'Active Archive Agent');
+
+        // [WHEN] Invoking the Archive action from the Agent List
+        // [THEN] The deactivate-first error is raised before any confirmation dialog, and the agent is not archived
+        asserterror InvokeArchiveActionFromList(AgentId);
+        Assert.ExpectedError('Deactivate the agent before archiving it.');
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'An active agent should not be archived; it must be deactivated first');
+    end;
+
     [ModalPageHandler]
     procedure AgentArchiveConfirmationModalHandler(var AgentArchiveConfirmation: TestPage "Agent Archive Confirmation")
     var
@@ -1591,6 +1649,21 @@ codeunit 133961 "Agent Test"
 
         // GetOrCreateDefaultAgent does not reload the record on the create path; fetch it so callers
         // read the actual stored display name back from the database.
+        AgentRecord.Get(AgentId);
+    end;
+
+    local procedure CreateActiveAgent(var AgentRecord: Record Agent; DisplayName: Text[80]) AgentId: Guid
+    var
+        Any: Codeunit Any;
+    begin
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            DisplayName,
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // GetOrCreateDefaultAgent activates the agent but does not reload the record on the create path; fetch it
+        // so callers read the actual stored state and display name back from the database.
         AgentRecord.Get(AgentId);
     end;
 

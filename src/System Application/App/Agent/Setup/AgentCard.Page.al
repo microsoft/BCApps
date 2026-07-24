@@ -151,6 +151,9 @@ page 4315 "Agent Card"
                     Agent: Codeunit Agent;
                     ArchiveConfirmation: Page "Agent Archive Confirmation";
                 begin
+                    if Rec.State <> Rec.State::Disabled then
+                        Error(DeactivateBeforeArchivingErr);
+
                     Rec.TestField("Display Name");
                     ArchiveConfirmation.SetAgentDisplayName(Rec."Display Name");
                     ArchiveConfirmation.RunModal();
@@ -252,7 +255,7 @@ page 4315 "Agent Card"
 
         CopilotAvailabilityTxt := AgentImpl.GetCopilotAvailabilityDisplayText(Rec);
         AgentIsArchived := Rec.Substate = Rec.Substate::Archived;
-        ArchiveActionEnabled := (Rec.State = Rec.State::Disabled) and (not AgentIsArchived) and Rec."Can Curr. User Configure Agent";
+        ArchiveActionEnabled := (not AgentIsArchived) and Rec."Can Curr. User Configure Agent";
         StateEditable := not AgentIsArchived;
     end;
 
@@ -320,6 +323,7 @@ page 4315 "Agent Card"
         OpenConfigurationPageQst: Label 'To activate the agent, use the configuration page. Would you like to open this page now?';
         YouCannotEnableAgentWithoutUsingConfigurationPageErr: Label 'You can''t activate the agent from this page. Use the action to configure and activate the agent.';
         YouDoNotHavePermissionToModifyThisAgentErr: Label 'You do not have permission to modify this agent. Contact your system administrator to update your permissions or to mark you as one of the administrators for the agent.';
+        DeactivateBeforeArchivingErr: Label 'Deactivate the agent before archiving it.';
         AgentArchivedMsg: Label 'The agent has been archived.';
         AgentArchivedNotificationMsg: Label 'This agent is archived and can no longer be modified. Its tasks and logs remain available as read-only.';
 }
