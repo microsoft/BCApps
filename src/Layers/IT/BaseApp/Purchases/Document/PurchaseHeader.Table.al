@@ -22,7 +22,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.BatchProcessing;
@@ -213,12 +212,10 @@ table 38 "Purchase Header"
                 else
                     "Bank Account" := '';
 
-                PurchWithhSoc.CreateRecord(Rec, Vend);
-
                 if not SkipBuyFromContact then
                     UpdateBuyFromCont("Buy-from Vendor No.");
 
-                OnValidateBuyFromVendorNoOnAfterUpdateBuyFromCont(Rec, xRec, CurrFieldNo, SkipBuyFromContact);
+                OnValidateBuyFromVendorNoOnAfterUpdateBuyFromCont(Rec, xRec, CurrFieldNo, SkipBuyFromContact, Vend);
 
                 if (xRec."Buy-from Vendor No." <> '') and (xRec."Buy-from Vendor No." <> "Buy-from Vendor No.") then begin
                     Rec.RecallModifyAddressNotification(GetModifyVendorAddressNotificationId());
@@ -288,14 +285,6 @@ table 38 "Purchase Header"
                 "Pay-to Name" := Vend.Name;
                 "Pay-to Name 2" := Vend."Name 2";
                 CopyPayToVendorAddressFieldsFromVendor(Vend, false);
-                "Individual Person" := Vend."Individual Person";
-                Resident := Vend.Resident;
-                "First Name" := Vend."First Name";
-                "Last Name" := Vend."Last Name";
-                "Date of Birth" := Vend."Date of Birth";
-                "Birth City" := Vend."Birth City";
-                "Tax Representative Type" := Vend."Tax Representative Type";
-                "Tax Representative No." := Vend."Tax Representative No.";
                 "VAT Country/Region Code" := Vend."Country/Region Code";
                 if not SkipPayToContact then
                     "Pay-to Contact" := Vend.Contact;
@@ -1739,7 +1728,6 @@ table 38 "Purchase Header"
                 Validate("Payment Terms Code");
                 Validate("Prepmt. Payment Terms Code");
 
-                PurchWithhSoc.UpdateDateRelatedWithPurchHeaderDocDate(Rec);
                 UpdateDocumentDate := false;
             end;
         }
@@ -3330,7 +3318,6 @@ table 38 "Purchase Header"
         PurchCommentLine.DeleteAll();
 
         PaymentLines.DeletePaymentLines(Rec);
-        PurchWithhSoc.DeleteRecByPurchHeader(Rec);
 
         ShowPostedDocsToPrint :=
             (PurchRcptHeader."No." <> '') or (PurchInvHeader."No." <> '') or (PurchCrMemoHeader."No." <> '') or
@@ -3462,7 +3449,6 @@ table 38 "Purchase Header"
         VendBankAccount: Record "Vendor Bank Account";
         PaymentPurchase: Record "Payment Lines";
         PaymentTermsLine: Record "Payment Lines";
-        PurchWithhSoc: Record "Purch. Withh. Contribution";
         ShipmentMethod: Record "Shipment Method";
         NoSeries: Codeunit "No. Series";
         DimMgt: Codeunit DimensionManagement;
@@ -3582,7 +3568,8 @@ table 38 "Purchase Header"
 
         OnInitInsertOnBeforeInitRecord(Rec, xRec);
         InitRecord();
-        PurchWithhSoc.CreateRecord(Rec, Vend);
+
+        OnAfterInitInsert(Rec, xRec, Vend);
     end;
 
     /// <summary>
@@ -9364,7 +9351,7 @@ table 38 "Purchase Header"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnValidateBuyFromVendorNoOnAfterUpdateBuyFromCont(var PurchaseHeader: Record "Purchase Header"; xPurchaseHeader: Record "Purchase Header"; CallingFieldNo: Integer; var SkipBuyFromContact: Boolean)
+    local procedure OnValidateBuyFromVendorNoOnAfterUpdateBuyFromCont(var PurchaseHeader: Record "Purchase Header"; xPurchaseHeader: Record "Purchase Header"; CallingFieldNo: Integer; var SkipBuyFromContact: Boolean; var Vendor: Record Vendor)
     begin
     end;
 
@@ -10061,6 +10048,11 @@ table 38 "Purchase Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnLookupBuyFromContactOnAfterValidateBuyFromContactNo(var PurchaseHeader: Record "Purchase Header"; Contact: Record Contact)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInitInsert(var Rec: Record "Purchase Header"; var xRec: Record "Purchase Header"; var Vendor: Record Vendor)
     begin
     end;
 }

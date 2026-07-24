@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Posting;
 
-using Microsoft.Bank.Payment;
 using Microsoft.CRM.Contact;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.Analysis;
@@ -21,7 +20,6 @@ using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Setup;
@@ -474,13 +472,9 @@ codeunit 90 "Purch.-Post"
         PaymentJournalLine: Record "Payment Lines";
         PaymentTermsLine: Record "Payment Lines";
         PostedPayments: Record "Posted Payment Lines";
-        WithhSocSec: Record "Purch. Withh. Contribution";
-        CompWithhTax: Record "Computed Withholding Tax";
         Text1130003: Label 'Please enter at least one Payment Line for %1 %2.';
         Text1130004: Label 'Total Reg. %1 is different from total Document %2.', Comment = '%1=Total Reg.;%2=Total of Document';
         Text1130005: Label 'Total Reg. %1 %3 is different from total Document %2 %3.', Comment = '%1=Total Reg.;%2=Total of Document;%3=Currency';
-        Text1130006: Label '%1 the value in withholding tax must be higher than 0 when %2 is not blank.';
-        CompSocSec: Record "Computed Contribution";
         TempFA: Record "Fixed Asset" temporary;
         Text1130007: Label 'To specify the installment to apply to please select the %1 or use the function Apply Entries';
         WhseReceive: Boolean;
@@ -963,8 +957,6 @@ codeunit 90 "Purch.-Post"
 
         if PurchHeader.Invoice then
             CheckFAPostingPossibility(PurchHeader);
-
-        CheckWithholdingTaxTotalAmount(PurchHeader);
 
         CheckPostRestrictions(PurchHeader);
 
@@ -3331,12 +3323,6 @@ codeunit 90 "Purch.-Post"
 
         DeleteItemChargeAssgnt(PurchHeader);
 
-        if WithhSocSec.Get(PurchHeader."Document Type", PurchHeader."No.") then
-            PostWithhSocSec(PurchHeader);
-
-        WithhSocSec.SetRange("Document Type", PurchHeader."Document Type");
-        WithhSocSec.SetRange("No.", PurchHeader."No.");
-        WithhSocSec.DeleteAll();
         PaymentTermsLine.Reset();
         PaymentTermsLine.SetRange("Sales/Purchase", PaymentTermsLine."Sales/Purchase"::Purchase);
         PaymentTermsLine.SetRange(Type, PurchHeader."Document Type");
@@ -4191,20 +4177,6 @@ codeunit 90 "Purch.-Post"
         VendorLedgerEntry.SetRange("Document Type", DocType);
         VendorLedgerEntry.SetRange("Document No.", DocNo);
         VendorLedgerEntry.FindLast();
-    end;
-
-    local procedure CheckWithholdingTaxTotalAmount(var PurchHeader: Record "Purchase Header")
-    begin
-        if PurchHeader.Invoice then
-            if WithhSocSec.Get(PurchHeader."Document Type", PurchHeader."No.") and
-               (WithhSocSec."Withholding Tax Code" <> '') and
-               (WithhSocSec."Total Amount" = 0) and
-               (PurchHeader."Document Type" = PurchHeader."Document Type"::Invoice)
-            then
-                Error(Text1130006,
-                  WithhSocSec.FieldCaption("Total Amount"), WithhSocSec.FieldCaption("Withholding Tax Code"));
-
-        OnAfterCheckWithholdingTaxTotalAmount(WithhSocSec, PurchHeader);
     end;
 
     local procedure CheckPostRestrictions(PurchaseHeader: Record "Purchase Header")
@@ -6414,57 +6386,15 @@ codeunit 90 "Purch.-Post"
         exit(true);
     end;
 
+#if not CLEAN29
     [Scope('OnPrem')]
     procedure PostWithhSocSec(PurchHeader: Record "Purchase Header")
+    var
+        WHTPurchPostIT: Codeunit "WHT Purch.-Post IT";
     begin
-        if WithhSocSec."Withholding Tax Code" <> '' then begin
-            CompWithhTax.Init();
-            CompWithhTax."Document Date" := PurchHeader."Document Date";
-            CompWithhTax."Document No." := GenJnlLineDocNo;
-            CompWithhTax."Posting Date" := PurchHeader."Posting Date";
-            CompWithhTax."External Document No." := PurchHeader."Vendor Invoice No.";
-            CompWithhTax."Vendor No." := PurchHeader."Buy-from Vendor No.";
-            CompWithhTax."Total Amount" := GetCompWithhTaxTotalAmount();
-            CompWithhTax."Remaining Amount" := GetCompWithhTaxTotalAmount();
-            CompWithhTax."Base - Excluded Amount" := WithhSocSec."Base - Excluded Amount";
-            CompWithhTax."Remaining - Excluded Amount" := WithhSocSec."Base - Excluded Amount";
-            CompWithhTax."Non Taxable Amount By Treaty" := WithhSocSec."Non Taxable Amount By Treaty";
-            CompWithhTax."Non Taxable Remaining Amount" := WithhSocSec."Non Taxable Amount By Treaty";
-            CompWithhTax."Withholding Tax Code" := WithhSocSec."Withholding Tax Code";
-            CompWithhTax."Related Date" := WithhSocSec."Date Related";
-            CompWithhTax."Payment Date" := WithhSocSec."Payment Date";
-            CompWithhTax."Currency Code" := WithhSocSec."Currency Code";
-            CompWithhTax."WHT Amount Manual" := WithhSocSec."WHT Amount Manual";
-            OnPostWithhSocSecOnBeforeCompWithhTaxInsert(CompWithhTax, WithhSocSec);
-            CompWithhTax.Insert();
-            if (WithhSocSec."Social Security Code" <> '') or
-               (WithhSocSec."INAIL Code" <> '')
-            then begin
-                CompSocSec.Init();
-                CompSocSec."Document Date" := PurchHeader."Document Date";
-                CompSocSec."Document No." := GenJnlLineDocNo;
-                CompSocSec."Posting Date" := PurchHeader."Posting Date";
-                CompSocSec."External Document No." := PurchHeader."Vendor Invoice No.";
-                CompSocSec."Vendor No." := PurchHeader."Buy-from Vendor No.";
-                CompSocSec."Social Security Code" := WithhSocSec."Social Security Code";
-                CompSocSec."Gross Amount" := WithhSocSec."Gross Amount";
-                CompSocSec."Soc.Sec.Non Taxable Amount" := WithhSocSec."Soc.Sec.Non Taxable Amount";
-                CompSocSec."Free-Lance Amount" := WithhSocSec."Free-Lance Amount";
-                CompSocSec."Remaining Gross Amount" := WithhSocSec."Gross Amount";
-                CompSocSec."Remaining Soc.Sec. Non Taxable" := WithhSocSec."Soc.Sec.Non Taxable Amount";
-                CompSocSec."Remaining Free-Lance Amount" := WithhSocSec."Free-Lance Amount";
-                CompSocSec."Currency Code" := WithhSocSec."Currency Code";
-                CompSocSec."INAIL Code" := WithhSocSec."INAIL Code";
-                CompSocSec."INAIL Gross Amount" := WithhSocSec."INAIL Gross Amount";
-                CompSocSec."INAIL Non Taxable Amount" := WithhSocSec."INAIL Non Taxable Amount";
-                CompSocSec."INAIL Free-Lance Amount" := WithhSocSec."INAIL Free-Lance Amount";
-                CompSocSec."INAIL Remaining Gross Amount" := WithhSocSec."INAIL Gross Amount";
-                CompSocSec."INAIL Rem. Non Tax. Amount" := WithhSocSec."INAIL Non Taxable Amount";
-                CompSocSec."INAIL Rem. Free-Lance Amount" := WithhSocSec."INAIL Free-Lance Amount";
-                CompSocSec.Insert();
-            end;
-        end;
+        WHTPurchPostIT.PostWithhSocSec(PurchHeader, GenJnlLineDocNo);
     end;
+#endif
 
     [Scope('OnPrem')]
     procedure CalcSplitFA(GenJnlLine: Record "Gen. Journal Line"; SplitNo: Integer): Boolean
@@ -9117,14 +9047,6 @@ codeunit 90 "Purch.-Post"
             NoSeries.TestField("Default Nos.", true);
     end;
 
-    local procedure GetCompWithhTaxTotalAmount(): Decimal
-    begin
-        if WithhSocSec."Document Type" <> WithhSocSec."Document Type"::"Credit Memo" then
-            exit(WithhSocSec."Total Amount");
-
-        exit(-WithhSocSec."Total Amount");
-    end;
-
     local procedure DeleteItemChargeLines(var ItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)")
     begin
         ItemChargeAssgntPurch.SetFilter("Applies-to Doc. Line No.", '<>%1', ItemChargeAssgntPurch."Applies-to Doc. Line No.");
@@ -9375,10 +9297,18 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN29
+    internal procedure RunOnAfterCheckWithholdingTaxTotalAmount(var WithhSocSec: Record Microsoft.Finance.WithholdingTax."Purch. Withh. Contribution"; var PurchHeader: Record "Purchase Header")
+    begin
+        OnAfterCheckWithholdingTaxTotalAmount(WithhSocSec, PurchHeader);
+    end;
+
+    [Obsolete('Moved to codeunit WHTPurchPostIT', '29.0')]
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCheckWithholdingTaxTotalAmount(var WithhSocSec: Record "Purch. Withh. Contribution"; var PurchHeader: Record "Purchase Header")
+    local procedure OnAfterCheckWithholdingTaxTotalAmount(var WithhSocSec: Record Microsoft.Finance.WithholdingTax."Purch. Withh. Contribution"; var PurchHeader: Record "Purchase Header")
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCreateJobPurchLine(var JobPurchaseLine: Record "Purchase Line"; PurchaseLine: Record "Purchase Line")
@@ -10997,10 +10927,18 @@ codeunit 90 "Purch.-Post"
     begin
     end;
 
+#if not CLEAN29
+    internal procedure RunOnPostWithhSocSecOnBeforeCompWithhTaxInsert(var ComputedWithholdingTax: Record Microsoft.Finance.WithholdingTax."Computed Withholding Tax"; PurchWithhContribution: Record Microsoft.Finance.WithholdingTax."Purch. Withh. Contribution")
+    begin
+        OnPostWithhSocSecOnBeforeCompWithhTaxInsert(ComputedWithholdingTax, PurchWithhContribution);
+    end;
+
+    [Obsolete('Moved to codeunit WHTPurchPostIT', '29.0')]
     [IntegrationEvent(false, false)]
-    local procedure OnPostWithhSocSecOnBeforeCompWithhTaxInsert(var ComputedWithholdingTax: Record "Computed Withholding Tax"; PurchWithhContribution: Record "Purch. Withh. Contribution")
+    local procedure OnPostWithhSocSecOnBeforeCompWithhTaxInsert(var ComputedWithholdingTax: Record Microsoft.Finance.WithholdingTax."Computed Withholding Tax"; PurchWithhContribution: Record Microsoft.Finance.WithholdingTax."Purch. Withh. Contribution")
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnReleasePurchDocumentOnBeforeSetStatus(var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)

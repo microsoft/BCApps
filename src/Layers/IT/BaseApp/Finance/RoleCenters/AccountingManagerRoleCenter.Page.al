@@ -33,7 +33,6 @@ using Microsoft.Finance.GeneralLedger.Reports;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Reporting;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Insurance;
@@ -73,53 +72,53 @@ page 9001 "Accounting Manager Role Center"
     {
         area(rolecenter)
         {
-                part(Control1902304208; "Account Manager Activities")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                part("User Tasks Activities"; "User Tasks Activities")
-                {
-                    ApplicationArea = Suite;
-                }
-                part("Job Queue Tasks Activities"; "Job Queue Tasks Activities")
-                {
-                    ApplicationArea = Suite;
-                }
-                part(Control99; "Finance Performance")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Visible = false;
-                }
-                part(Control103; "Trailing Sales Orders Chart")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Visible = false;
-                }
-                part(Control106; "My Job Queue")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Visible = false;
-                }
-                part(Control100; "Cash Flow Forecast Chart")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                part(Control1907692008; "My Customers")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                part(Control1902476008; "My Vendors")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                part(Control108; "Report Inbox Part")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                systempart(Control1901377608; MyNotes)
-                {
-                    ApplicationArea = Basic, Suite;
-                }
+            part(Control1902304208; "Account Manager Activities")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            part("User Tasks Activities"; "User Tasks Activities")
+            {
+                ApplicationArea = Suite;
+            }
+            part("Job Queue Tasks Activities"; "Job Queue Tasks Activities")
+            {
+                ApplicationArea = Suite;
+            }
+            part(Control99; "Finance Performance")
+            {
+                ApplicationArea = Basic, Suite;
+                Visible = false;
+            }
+            part(Control103; "Trailing Sales Orders Chart")
+            {
+                ApplicationArea = Basic, Suite;
+                Visible = false;
+            }
+            part(Control106; "My Job Queue")
+            {
+                ApplicationArea = Basic, Suite;
+                Visible = false;
+            }
+            part(Control100; "Cash Flow Forecast Chart")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            part(Control1907692008; "My Customers")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            part(Control1902476008; "My Vendors")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            part(Control108; "Report Inbox Part")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            systempart(Control1901377608; MyNotes)
+            {
+                ApplicationArea = Basic, Suite;
+            }
         }
     }
 
@@ -365,45 +364,6 @@ page 9001 "Accounting Manager Role Center"
                 RunObject = Report "Cost Acctg. Analysis";
                 ToolTip = 'View balances per cost type with columns for seven fields for cost centers and cost objects. It is used as the cost distribution sheet in Cost accounting. The structure of the lines is based on the chart of cost types. You define up to seven cost centers and cost objects that appear as columns in the report.';
             }
-            separator(Action1130008)
-            {
-            }
-            group(Withholding)
-            {
-                Caption = 'Withholding';
-                action("Withholding Taxes")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Withholding Taxes';
-                    Image = "Report";
-                    RunObject = Report "Withholding Taxes";
-                    ToolTip = 'View the withholding taxes.';
-                }
-                action(Contribution)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Contribution';
-                    Image = "Report";
-                    RunObject = Report Contribution;
-                    ToolTip = 'Get a report of social security and workers’ compensation contribution taxes on non-inventory services that you have purchased from an independent contractor or consultant.';
-                }
-                action("Compensation Details")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Compensation Details';
-                    Image = "Report";
-                    RunObject = Report "Compensation Details";
-                    ToolTip = 'View the data that will be included in the Certifications report.';
-                }
-                action(Certifications)
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Certifications';
-                    Image = "Report";
-                    RunObject = Report Certifications;
-                    ToolTip = 'View the withholding tax and social security tax that the company has paid.';
-                }
-            }
         }
         area(embedding)
         {
@@ -467,41 +427,6 @@ page 9001 "Accounting Manager Role Center"
                 Caption = 'VAT Statements';
                 RunObject = Page "VAT Statement Names";
                 ToolTip = 'View a statement of posted VAT amounts, calculate your VAT settlement amount for a certain period, such as a quarter, and prepare to send the settlement to the tax authorities.';
-            }
-            action(Action1130000)
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Withholding Taxes';
-                RunObject = Page "Withholding Tax List";
-                ToolTip = 'View the withholding taxes.';
-            }
-            action("Withholding Tax Payments")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Withholding Tax Payments';
-                RunObject = Page "Withholding Tax Payment List";
-                ToolTip = 'View the withholding tax payments.';
-            }
-            action("INPS Contributions")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'INPS Contributions';
-                RunObject = Page "INPS Contribution List";
-                ToolTip = 'View the social security taxes on non-inventory services that you have purchased from an independent contractor or consultant. ';
-            }
-            action("INAIL Contributions")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'INAIL Contributions';
-                RunObject = Page "INAIL Contribution List";
-                ToolTip = 'View the workers’ compensation taxes on non-inventory services that you have purchased from an independent contractor or consultant.';
-            }
-            action("INAIL & Social Security Payments")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'INAIL & Social Security Payments';
-                RunObject = Page "Contribution Payment List";
-                ToolTip = 'View the INAIL and social security tax payments.';
             }
             action(Items)
             {
@@ -1081,14 +1006,6 @@ page 9001 "Accounting Manager Role Center"
                 ToolTip = 'View the list of periodic VAT settlements.';
             }
 #endif
-            action("Withholding Tax Card")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Withholding Tax Card';
-                Image = ListPage;
-                RunObject = Page "Withholding Tax Card";
-                ToolTip = 'View the  withholding tax card.';
-            }
             action("Social Security")
             {
                 ApplicationArea = Basic, Suite;

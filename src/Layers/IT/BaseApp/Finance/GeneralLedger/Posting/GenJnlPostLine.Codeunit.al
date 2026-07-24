@@ -7,7 +7,6 @@ namespace Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Check;
 using Microsoft.Bank.Ledger;
-using Microsoft.Bank.Payment;
 using Microsoft.CostAccounting.Journal;
 using Microsoft.CostAccounting.Setup;
 using Microsoft.Finance.Currency;
@@ -23,7 +22,6 @@ using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Maintenance;
@@ -228,7 +226,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         Text1130021: Label 'Unrealized VAT cannot be used with %1 %2 and %3 %4';
         Text1130018: Label 'Nondeductible not supported with Sales Tax!!!';
         Text1130022: Label 'Illegal Dates for VAT Posting.';
-        Text1130023: Label 'Because this invoice includes Withholding Tax, it should not be applied directly. Please use the function Payment Journals -> Payments -> Withh.Tax-Soc.Sec.';
         Text1130024: Label 'is not within your range of allowed posting dates';
 
     /// <summary>
@@ -5215,7 +5212,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             exit(Result);
 
         if GenJnlLine."Applies-to Doc. No." <> '' then begin
-            CheckWithholdTax(GenJnlLine."Applies-to Doc. Type".AsInteger(), GenJnlLine."Applies-to Doc. No.", GenJnlLine, true);
             // Find the entry to be applied to
             OldVendLedgEntry.Reset();
             OldVendLedgEntry.SetLoadFields(Positive, "Posting Date", "Currency Code");
@@ -5252,7 +5248,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             if not TempOldVendLedgEntry.FindSet() then
                 exit;
         end else begin
-            CheckWithholdTax(GenJnlLine."Document Type".AsInteger(), GenJnlLine."Document No.", GenJnlLine, false);
             // Find the first old entry (Invoice) which the new entry (Payment) should apply to
             OldVendLedgEntry.Reset();
             OldVendLedgEntry.SetLoadFields("Posting Date", "Currency Code", "Applies-to ID", "Document Type", "Document No.");
@@ -5275,9 +5270,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
             OnPrepareTempVendLedgEntryOnAfterSetFiltersBlankAppliesToDocNo(OldVendLedgEntry, GenJnlLine, NewCVLedgEntryBuf, Vend);
             if OldVendLedgEntry.FindSet(false) then
                 repeat
-                    CheckWithholdTax(OldVendLedgEntry."Document Type".AsInteger(), OldVendLedgEntry."Document No.", GenJnlLine, true);
-                    CheckWithholdTax(OldVendLedgEntry."Document Type".AsInteger(), OldVendLedgEntry."Document No.", GenJnlLine, false);
-                    UpdateWithholdTaxExtDocNo(OldVendLedgEntry, GenJnlLine);
                     OnPrepareTempVendLedgEntryOnBeforeCheckAgainstApplnCurrency(GenJnlLine, NewCVLedgEntryBuf, OldVendLedgEntry);
                     if GenJnlApply.CheckAgainstApplnCurrency(
                          NewCVLedgEntryBuf."Currency Code", OldVendLedgEntry."Currency Code", GenJnlLine."Account Type"::Vendor, false)
@@ -8340,68 +8332,16 @@ codeunit 12 "Gen. Jnl.-Post Line"
 #endif
     end;
 
+#if not CLEAN29
     [Scope('OnPrem')]
+    [Obsolete('Moved to codeunit WHT Gen. Jnl.-Post Line IT', '29.0')]
     procedure CheckWithholdTax(DocType: Option " ",,Invoice,"Credit Memo"; DocNo: Code[20]; GenJnlLine: Record "Gen. Journal Line"; ApplyInGenJnlLine: Boolean)
     var
-        ComputedWithholdTax: Record "Computed Withholding Tax";
-        TmpWithholdingContribution: Record "Tmp Withholding Contribution";
-        IsHandled: Boolean;
+        WHTGenJnlPostLineIT: Codeunit "WHT Gen. Jnl.-Post Line IT";
     begin
-        IsHandled := false;
-        OnBeforeCheckWithholdTax(DocType, DocNo, GenJnlLine, ApplyInGenJnlLine, IsHandled);
-        if IsHandled then
-            exit;
-
-        if (DocType in [DocType::Invoice, DocType::"Credit Memo"]) and
-           (GenJnlLine."Document Type" in [GenJnlLine."Document Type"::Payment, GenJnlLine."Document Type"::Refund])
-        then begin
-            ComputedWithholdTax.Reset();
-            ComputedWithholdTax.SetRange("Document No.", DocNo);
-            if ComputedWithholdTax.FindFirst() then begin
-                if not ApplyInGenJnlLine then
-                    UpdateWithholdingTax(ComputedWithholdTax, GenJnlLine."Document No.");
-
-                TmpWithholdingContribution.Reset();
-                TmpWithholdingContribution.SetRange("Invoice No.", DocNo);
-                if TmpWithholdingContribution.IsEmpty() then
-                    if ApplyInGenJnlLine then
-                        if (GenJnlLine."Bal. Account Type" <> GenJnlLine."Bal. Account Type"::"G/L Account") and
-                           (GenJnlLine."Payment Method Code" = '')
-                        then
-                            Error(Text1130023);
-            end;
-        end;
+        WHTGenJnlPostLineIT.CheckWithholdTax(DocType, DocNo, GenJnlLine, ApplyInGenJnlLine);
     end;
-
-    local procedure UpdateWithholdTaxExtDocNo(VendorLedgerEntry: Record "Vendor Ledger Entry"; GenJnlLine: Record "Gen. Journal Line");
-    var
-        WithholdingTax: Record "Withholding Tax";
-        Contributions: Record Contributions;
-    begin
-        if (VendorLedgerEntry."Document Type" in
-            [VendorLedgerEntry."Document Type"::Payment, VendorLedgerEntry."Document Type"::Refund]) and
-           (GenJnlLine."Document Type" in [GenJnlLine."Document Type"::Invoice, GenJnlLine."Document Type"::"Credit Memo"]) and
-           (GenJnlLine."External Document No." <> '') and (VendorLedgerEntry."External Document No." = '')
-        then begin
-            WithholdingTax.SetRange("Vendor No.", VendorLedgerEntry."Vendor No.");
-            WithholdingTax.SetRange("Document No.", VendorLedgerEntry."Document No.");
-            WithholdingTax.SetRange("Posting Date", VendorLedgerEntry."Posting Date");
-            WithholdingTax.SetRange("External Document No.", '');
-            if WithholdingTax.FindFirst() then begin
-                WithholdingTax."External Document No." := GenJnlLine."External Document No.";
-                WithholdingTax.Modify();
-            end;
-
-            Contributions.SetRange("Vendor No.", VendorLedgerEntry."Vendor No.");
-            Contributions.SetRange("Document No.", VendorLedgerEntry."Document No.");
-            Contributions.SetRange("Posting Date", VendorLedgerEntry."Posting Date");
-            Contributions.SetRange("External Document No.", '');
-            if Contributions.FindFirst() then begin
-                Contributions."External Document No." := GenJnlLine."External Document No.";
-                Contributions.Modify();
-            end;
-        end;
-    end;
+#endif
 
     [Scope('OnPrem')]
     procedure CheckVATPlafond(var VATEntry: Record "VAT Entry"; ValidateVATIdentifier: Boolean)
@@ -8530,20 +8470,6 @@ codeunit 12 "Gen. Jnl.-Post Line"
         if DtldCustLedgEntry.FindFirst() then begin
             DtldCustLedgEntry."Bank Receipt Issued" := BankReceiptIssued;
             DtldCustLedgEntry.Modify();
-        end;
-    end;
-
-    local procedure UpdateWithholdingTax(ComputedWithholdTax: Record "Computed Withholding Tax"; DocNo: Code[20])
-    var
-        WithholdingTax: Record "Withholding Tax";
-    begin
-        WithholdingTax.SetCurrentKey("Vendor No.", "Document Date", "Document No.");
-        WithholdingTax.SetRange("Vendor No.", ComputedWithholdTax."Vendor No.");
-        WithholdingTax.SetRange("Document No.", DocNo);
-        if WithholdingTax.FindFirst() then begin
-            WithholdingTax."External Document No." := ComputedWithholdTax."External Document No.";
-            WithholdingTax."Related Date" := ComputedWithholdTax."Related Date";
-            WithholdingTax.Modify(true);
         end;
     end;
 
@@ -11801,10 +11727,18 @@ codeunit 12 "Gen. Jnl.-Post Line"
     begin
     end;
 
+#if not CLEAN29
+    internal procedure RunOnBeforeCheckWithholdTax(DocType: Option " ",,Invoice,"Credit Memo"; DocNo: Code[20]; GenJournalLine: Record "Gen. Journal Line"; ApplyInGenJnlLine: Boolean; var IsHandled: Boolean)
+    begin
+        OnBeforeCheckWithholdTax(DocType, DocNo, GenJournalLine, ApplyInGenJnlLine, IsHandled);
+    end;
+
+    [Obsolete('Moved to codeunit WHT Gen. Jnl.-Post Line', '29.0')]
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCheckWithholdTax(DocType: Option " ",,Invoice,"Credit Memo"; DocNo: Code[20]; GenJournalLine: Record "Gen. Journal Line"; ApplyInGenJnlLine: Boolean; var IsHandled: Boolean)
     begin
     end;
+#endif
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeInsertVATBookEntry(var NewVATEntry: record "VAT Entry"; var IsHandled: Boolean; var SkipCheckIfVATPeriodClosed: Boolean)

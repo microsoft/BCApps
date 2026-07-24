@@ -11,7 +11,6 @@ using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Finance.VAT.TransactionNature;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
@@ -42,7 +41,6 @@ permissionset 1002 "LOCAL READ"
                   tabledata "Company Types" = R,
                   tabledata "Compress Depreciation" = R,
                   tabledata "Computed Contribution" = R,
-                  tabledata "Computed Withholding Tax" = R,
                   tabledata "Contribution Bracket" = R,
                   tabledata "Contribution Bracket Line" = R,
                   tabledata "Contribution Code" = R,
@@ -80,14 +78,12 @@ permissionset 1002 "LOCAL READ"
                   tabledata "Posted Payment Lines" = R,
                   tabledata "Posted Vendor Bill Header" = R,
                   tabledata "Posted Vendor Bill Line" = R,
-                  tabledata "Purch. Withh. Contribution" = R,
                   tabledata "Reprint Info Fiscal Reports" = R,
                   tabledata "Service Tariff Number" = R,
                   tabledata "Spesometro Appointment" = R,
 #if not CLEAN27
                   tabledata "Subcontractor Prices" = R,
 #endif
-                  tabledata "Tmp Withholding Contribution" = R,
                   tabledata "Transport Reason Code" = R,
                   tabledata "VAT Book Entry" = R,
                   tabledata "VAT Exemption" = R,
@@ -99,11 +95,5 @@ permissionset 1002 "LOCAL READ"
                   tabledata "VAT Transaction Report Amount" = R,
                   tabledata "Vendor Bill Header" = R,
                   tabledata "Vendor Bill Line" = R,
-                  tabledata "Vendor Bill Withholding Tax" = R,
-                  tabledata "Withhold Code" = R,
-                  tabledata "Withhold Code Line" = R,
-                  tabledata "Withholding Tax" = R,
-                  tabledata "Withholding Tax Line" = R,
-                  tabledata "Withholding Tax Payment" = R,
-                  tabledata "Withholding Exceptional Event" = R;
+                  tabledata "Vendor Bill Withholding Tax" = R;
 }

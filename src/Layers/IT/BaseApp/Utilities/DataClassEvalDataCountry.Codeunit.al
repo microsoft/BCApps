@@ -15,7 +15,6 @@ using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Finance.VAT.TransactionNature;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
@@ -56,18 +55,12 @@ codeunit 1752 "Data Class. Eval. Data Country"
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Cause of Absence");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Compress Depreciation");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Interest on Arrears");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Withhold Code");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Withhold Code Line");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Contribution Code");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Contribution Code Line");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Contribution Bracket");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Contribution Bracket Line");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Computed Withholding Tax");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Computed Contribution");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Tmp Withholding Contribution");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Withholding Tax Payment");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Contribution Payment");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Withholding Tax");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::Contributions);
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Customs Office");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Customs Authority Vendor");
@@ -84,7 +77,6 @@ codeunit 1752 "Data Class. Eval. Data Country"
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Periodic Settlement VAT Entry");
 #endif
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Periodic VAT Settlement Entry");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Purch. Withh. Contribution");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"VAT Identifier");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"VAT Book Entry");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"GL Book Entry");
@@ -127,9 +119,7 @@ codeunit 1752 "Data Class. Eval. Data Country"
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Fattura Line");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Fattura Setup");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Sales Header Archive");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Withholding Tax Line");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Fattura Document Type");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Withholding Exceptional Event");
         OnAfterClassifyCountrySpecificTables();
     end;
 
