@@ -10,6 +10,7 @@ using System.Environment;
 using System.Environment.Configuration;
 using System.Reflection;
 using System.Security.AccessControl;
+using System.Telemetry;
 
 codeunit 4301 "Agent Impl."
 {
@@ -555,10 +556,17 @@ codeunit 4301 "Agent Impl."
         SetupPageRecordRef: RecordRef;
         UserSecurityIdFieldRef: FieldRef;
         AgentMetadata: Interface IAgentMetadata;
+        Telemetry: Codeunit Telemetry;
         SourceRecordVariant: Variant;
+        CustomDimensions: Dictionary of [Text, Text];
         SetupPageId: Integer;
         UserSecurityIdTok: Label 'User Security ID', Locked = true;
     begin
+        if IsArchived(AgentUserSecurityID) then begin
+            CustomDimensions.Add('AgentMetadataProvider', Format(AgentMetadataProvider));
+            Telemetry.LogMessage('0000UTO', ConfigureOpenedOnArchivedAgentTelemetryMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, CustomDimensions);
+        end;
+
         AgentMetadata := AgentMetadataProvider;
         SetupPageId := AgentMetadata.GetSetupPageId(AgentUserSecurityID);
 
@@ -630,4 +638,5 @@ codeunit 4301 "Agent Impl."
         SetupPageSourceTableMissingFieldErr: Label 'The source table for setup page %1 must include a field named ''%2''.', Comment = '%1 = Setup page ID, %2 = Required field name.';
         SetupPageSourceTableFieldWrongTypeErr: Label 'Field ''%1'' on the source table for setup page %2 must be of type %3.', Comment = '%1 = Field name, %2 = Setup page ID, %3 = Required field type.';
         UnknownCopilotAvailabilityLbl: Label 'Unknown';
+        ConfigureOpenedOnArchivedAgentTelemetryMsg: Label 'Configure page opened for an archived agent.', Locked = true;
 }

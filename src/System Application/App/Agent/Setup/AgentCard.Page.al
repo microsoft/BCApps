@@ -325,5 +325,5 @@ page 4315 "Agent Card"
         YouDoNotHavePermissionToModifyThisAgentErr: Label 'You do not have permission to modify this agent. Contact your system administrator to update your permissions or to mark you as one of the administrators for the agent.';
         DeactivateBeforeArchivingErr: Label 'Deactivate the agent before archiving it.';
         AgentArchivedMsg: Label 'The agent has been archived.';
-        AgentArchivedNotificationMsg: Label 'This agent is archived and can no longer be modified. Its tasks and logs remain available as read-only.';
+        AgentArchivedNotificationMsg: Label 'This agent is archived and can no longer be modified. Its tasks and logs remain available for auditing.';
 }
