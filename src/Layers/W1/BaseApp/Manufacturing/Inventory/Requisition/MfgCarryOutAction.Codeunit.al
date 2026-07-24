@@ -776,9 +776,9 @@ codeunit 99000818 "Mfg. Carry Out Action"
         ProdOrderCapacityNeed: Record "Prod. Order Capacity Need";
         ProdOrderCapacityNeed2: Record "Prod. Order Capacity Need";
     begin
-        PlanningRoutingLine.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
-        PlanningRoutingLine.SetRange("Worksheet Batch Name", RequisitionLine."Journal Batch Name");
-        PlanningRoutingLine.SetRange("Worksheet Line No.", RequisitionLine."Line No.");
+        PlanningRoutingLine.SetRange("Worksheet Template Name", RequisitionLine2."Worksheet Template Name");
+        PlanningRoutingLine.SetRange("Worksheet Batch Name", RequisitionLine2."Journal Batch Name");
+        PlanningRoutingLine.SetRange("Worksheet Line No.", RequisitionLine2."Line No.");
         if PlanningRoutingLine.Find('-') then
             repeat
                 PlanningRoutingLine2 := PlanningRoutingLine;
@@ -792,9 +792,9 @@ codeunit 99000818 "Mfg. Carry Out Action"
                 PlanningRoutingLine2.Insert();
             until PlanningRoutingLine.Next() = 0;
 
-        ProdOrderCapacityNeed.SetRange("Worksheet Template Name", RequisitionLine."Worksheet Template Name");
-        ProdOrderCapacityNeed.SetRange("Worksheet Batch Name", RequisitionLine."Journal Batch Name");
-        ProdOrderCapacityNeed.SetRange("Worksheet Line No.", RequisitionLine."Line No.");
+        ProdOrderCapacityNeed.SetRange("Worksheet Template Name", RequisitionLine2."Worksheet Template Name");
+        ProdOrderCapacityNeed.SetRange("Worksheet Batch Name", RequisitionLine2."Journal Batch Name");
+        ProdOrderCapacityNeed.SetRange("Worksheet Line No.", RequisitionLine2."Line No.");
         if ProdOrderCapacityNeed.Find('-') then
             repeat
                 ProdOrderCapacityNeed2 := ProdOrderCapacityNeed;
