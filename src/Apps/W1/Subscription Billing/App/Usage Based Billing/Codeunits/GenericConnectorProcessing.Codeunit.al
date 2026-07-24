@@ -8,6 +8,10 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
     var
         ImportAndProcessUsageData: Codeunit "Import And Process Usage Data";
         CreateUsageDataBilling: Codeunit "Create Usage Data Billing";
+        ProgressTracker: Codeunit "Progress Tracker";
+        ProcessImportedLinesLbl: Label 'Processing imported usage data lines...';
+        CreateBillingDataLbl: Label 'Creating usage data billing...';
+        ImportEntryDetailLbl: Label 'Import Entry No. %1', Comment = '%1 = Usage Data Import Entry No.';
         ProcessingSetupErr: Label 'You must specify either a reading/writing XMLport or a reading/writing codeunit.';
         UsageDataLinesProcessingErr: Label 'Errors were found while processing the Usage Data Lines.';
         NoDataFoundErr: Label 'No data found for processing step %1.', Comment = '%1 = Name of the processing step';
@@ -84,12 +88,18 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         GenericImportSettings: Record "Generic Import Settings";
         UsageDataSupplierReference: Record "Usage Data Supplier Reference";
         ErrorCount: Integer;
+        LineCounter: Integer;
+        DetailText: Text;
     begin
         UsageDataGenericImport.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
+        this.ProgressTracker.StartActivity(ProcessImportedLinesLbl, UsageDataGenericImport.Count());
+        DetailText := StrSubstNo(ImportEntryDetailLbl, UsageDataImport."Entry No.");
+        GenericImportSettings.Get(UsageDataImport."Supplier No."); // Loop-invariant (constant Supplier No.) - read once instead of per row.
         if UsageDataGenericImport.FindSet() then
             repeat
+                LineCounter += 1;
+                this.ProgressTracker.UpdateProgress(LineCounter, DetailText);
                 UsageDataGenericImport.Validate("Processing Status", Enum::"Processing Status"::None);
-                GenericImportSettings.Get(UsageDataImport."Supplier No.");
                 CreateUsageDataCustomers(GenericImportSettings, UsageDataGenericImport, UsageDataSupplierReference, UsageDataImport."Supplier No.");
                 CreateUsageDataSubscriptions(GenericImportSettings, UsageDataGenericImport, UsageDataSupplierReference, UsageDataImport);
 
@@ -109,6 +119,7 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
             UsageDataImport.SetErrorReason(StrSubstNo(NoDataFoundErr, UsageDataImport."Processing Step"));
             UsageDataImport.Modify(false);
         end;
+        this.ProgressTracker.Finish();
 
         if ErrorCount <> 0 then
             ImportAndProcessUsageData.SetError(UsageDataImport, UsageDataLinesProcessingErr);
@@ -203,6 +214,8 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
         UsageDataBilling: Record "Usage Data Billing";
         UsageDataGenericImport: Record "Usage Data Generic Import";
         ConfirmManagement: Codeunit "Confirm Management";
+        LineCounter: Integer;
+        DetailText: Text;
     begin
         UsageDataGenericImport.SetRange("Usage Data Import Entry No.", UsageDataImport."Entry No.");
         UsageDataGenericImport.SetRange("Processing Status", "Processing Status"::Error);
@@ -216,18 +229,25 @@ codeunit 8033 "Generic Connector Processing" implements "Usage Data Processing"
             UsageDataGenericImport.SetRange("Processing Status");
         end;
 
+        this.ProgressTracker.StartActivity(CreateBillingDataLbl, UsageDataGenericImport.Count());
+        DetailText := StrSubstNo(ImportEntryDetailLbl, UsageDataImport."Entry No.");
         if UsageDataGenericImport.FindSet() then
             repeat
+                LineCounter += 1;
+                this.ProgressTracker.UpdateProgress(LineCounter, DetailText);
                 CreateUsageDataBilling.CollectServiceCommitments(TempServiceCommitment, UsageDataGenericImport."Subscription Header No.", UsageDataGenericImport."Supp. Subscription End Date");
                 SetUsageDataGenericImportError(UsageDataGenericImport, '');
-                if not CheckServiceCommitments(UsageDataGenericImport, TempServiceCommitment) then
+                if not CheckServiceCommitments(UsageDataGenericImport, TempServiceCommitment) then begin
+                    this.ProgressTracker.Finish();
                     exit;
+                end;
                 CreateUsageDataBilling.CreateUsageDataBillingFromTempServiceCommitments(TempServiceCommitment, UsageDataImport."Supplier No.", UsageDataGenericImport);
             until UsageDataGenericImport.Next() = 0
         else begin
             UsageDataImport.SetErrorReason(StrSubstNo(NoDataFoundErr, UsageDataImport."Processing Step"));
             UsageDataImport.Modify(false);
         end;
+        this.ProgressTracker.Finish();
     end;
 
     procedure UpdateImportStatus(var UsageDataImport: Record "Usage Data Import")
