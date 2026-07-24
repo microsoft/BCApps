@@ -866,6 +866,20 @@ report 1308 "Standard Sales - Shipment"
             Caption = 'Standard Sales Shipment - themable Word layout';
             Summary = 'The Standard Sales Shipment - Themable (Word) provides a Themable layout.';
         }
+        layout("StandardSalesShipmentBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/History/StandardSalesShipmentBody.docx';
+            Caption = 'Body-only: Standard Sales Shipment (Word)';
+            Summary = 'Body-only: The Standard Sales Shipment (Word) provides a basic layout.';
+        }
+        layout("StandardSalesShipmentBlueThemableBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/History/StandardSalesShipmentBlueThemableBody.docx';
+            Caption = 'Body-only: Standard Sales Shipment - themable Word layout';
+            Summary = 'Body-only: The Standard Sales Shipment - Themable (Word) provides a Themable layout.';
+        }
     }
 
     labels
