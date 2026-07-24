@@ -20,4 +20,12 @@ enum 10976 "Electronic Address Scheme"
     {
         Caption = 'SIREN (0002)';
     }
+    value(3; "0223")
+    {
+        Caption = 'French VAT number (0223)';
+    }
+    value(4; "0225")
+    {
+        Caption = 'French routing identifier (0225)';
+    }
 }

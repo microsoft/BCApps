@@ -4,19 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
-using Microsoft.eServices.EDocument;
+using Microsoft.Sales.Comment;
 
-pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
+tableextension 10975 "FR Sales Comment Line" extends "Sales Comment Line"
 {
-    layout
+    fields
     {
-        addlast(DocumentList)
+        field(10970; "FR Regulatory Comment Type"; Enum "FR Regulatory Comment Type")
         {
-            field("Clearance Date"; Rec."Clearance Date")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'E-Reporting Acceptance Date';
-            }
+            Caption = 'French Regulatory Type';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the French regulatory purpose when this comment must be included in the electronic invoice.';
         }
     }
 }

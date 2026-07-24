@@ -4,19 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
-using Microsoft.eServices.EDocument;
+using Microsoft.eServices.EDocument.Service.Participant;
 
-pageextension 10974 "E-Reporting E-Documents" extends "E-Documents"
+tableextension 10974 "FR Service Participant" extends "Service Participant"
 {
-    layout
+    fields
     {
-        addlast(DocumentList)
+        field(10970; "FR Identifier Scheme"; Enum "Electronic Address Scheme")
         {
-            field("Clearance Date"; Rec."Clearance Date")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'E-Reporting Acceptance Date';
-            }
+            Caption = 'French Identifier Scheme';
+            DataClassification = CustomerContent;
+            ToolTip = 'Specifies the electronic address scheme used for French electronic invoicing.';
         }
     }
 }
