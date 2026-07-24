@@ -20,6 +20,8 @@ codeunit 133961 "Agent Test"
         Agent: Codeunit Agent;
         LibraryTestAgent: Codeunit "Library Mock Agent";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        DeactivateBeforeArchivingErr: Label 'Deactivate the agent before archiving it.', Locked = true;
+        AgentArchivedCannotBeModifiedErr: Label 'The agent is archived and cannot be modified.', Locked = true;
 
     local procedure Initialize()
     begin
@@ -1025,7 +1027,7 @@ codeunit 133961 "Agent Test"
         // [WHEN] Archiving the active agent
         // [THEN] An error is raised asking to deactivate first
         asserterror Agent.Archive(AgentId);
-        Assert.ExpectedError('Deactivate the agent before archiving it.');
+        Assert.ExpectedError(DeactivateBeforeArchivingErr);
     end;
 
     [Test]
@@ -1265,7 +1267,7 @@ codeunit 133961 "Agent Test"
         // [WHEN] Setting the profile on the archived agent
         // [THEN] An error is raised that the archived agent cannot be modified
         asserterror Agent.SetProfile(AgentId, ProfileID, ProfileAppID);
-        Assert.ExpectedError('The agent is archived and cannot be modified.');
+        Assert.ExpectedError(AgentArchivedCannotBeModifiedErr);
     end;
 
     [Test]
@@ -1361,7 +1363,7 @@ codeunit 133961 "Agent Test"
         // [WHEN] Updating localization settings on the archived agent
         // [THEN] An error is raised that the archived agent cannot be modified
         asserterror Agent.UpdateLocalizationSettings(AgentId, TempNewUserSettings);
-        Assert.ExpectedError('The agent is archived and cannot be modified.');
+        Assert.ExpectedError(AgentArchivedCannotBeModifiedErr);
     end;
 
     [Test]
@@ -1388,7 +1390,7 @@ codeunit 133961 "Agent Test"
         // [WHEN] Assigning permission sets on the archived agent
         // [THEN] An error is raised that the archived agent cannot be modified
         asserterror Agent.UpdateAccessControl(AgentId, TempAccessControlBuffer);
-        Assert.ExpectedError('The agent is archived and cannot be modified.');
+        Assert.ExpectedError(AgentArchivedCannotBeModifiedErr);
     end;
 
     [Test]
@@ -1610,7 +1612,7 @@ codeunit 133961 "Agent Test"
         // [WHEN] Invoking the Archive action from the Agent List
         // [THEN] The deactivate-first error is raised before any confirmation dialog, and the agent is not archived
         asserterror InvokeArchiveActionFromList(AgentId);
-        Assert.ExpectedError('Deactivate the agent before archiving it.');
+        Assert.ExpectedError(DeactivateBeforeArchivingErr);
         Assert.IsFalse(Agent.IsArchived(AgentId), 'An active agent should not be archived; it must be deactivated first');
     end;
 
