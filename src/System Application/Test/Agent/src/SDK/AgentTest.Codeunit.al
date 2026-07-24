@@ -1481,7 +1481,7 @@ codeunit 133961 "Agent Test"
         // [WHEN] Invoking the Archive action and confirming with OK
         // [THEN] The name-mismatch error is raised and the agent is not archived
         asserterror InvokeArchiveActionFromList(AgentId);
-        Assert.ExpectedError('The name you entered does not match the agent''s display name.');
+        Assert.ExpectedError('The name you entered does not exactly match the agent''s display name.');
         Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when the typed name differs only in case');
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -1511,7 +1511,7 @@ codeunit 133961 "Agent Test"
         // [WHEN] Invoking the Archive action and confirming with OK
         // [THEN] The name-mismatch error is raised and the agent is not archived
         asserterror InvokeArchiveActionFromList(AgentId);
-        Assert.ExpectedError('The name you entered does not match the agent''s display name.');
+        Assert.ExpectedError('The name you entered does not exactly match the agent''s display name.');
         Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when extra whitespace is typed');
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -1537,7 +1537,7 @@ codeunit 133961 "Agent Test"
         // [WHEN] Invoking the Archive action and confirming with OK
         // [THEN] The name-mismatch error is raised and the agent is not archived
         asserterror InvokeArchiveActionFromList(AgentId);
-        Assert.ExpectedError('The name you entered does not match the agent''s display name.');
+        Assert.ExpectedError('The name you entered does not exactly match the agent''s display name.');
         Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when the typed name has the wrong length');
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -1563,7 +1563,7 @@ codeunit 133961 "Agent Test"
         // [WHEN] Invoking the Archive action and confirming with OK
         // [THEN] The name-mismatch error is raised and the agent is not archived
         asserterror InvokeArchiveActionFromList(AgentId);
-        Assert.ExpectedError('The name you entered does not match the agent''s display name.');
+        Assert.ExpectedError('The name you entered does not exactly match the agent''s display name.');
         Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when no name is typed');
         LibraryVariableStorage.AssertEmpty();
     end;
@@ -1632,6 +1632,7 @@ codeunit 133961 "Agent Test"
     [SendNotificationHandler]
     procedure SendArchivedAgentNotificationHandler(var ArchivedNotification: Notification): Boolean
     begin
+        Assert.AreEqual('This agent is archived and can no longer be modified. Its tasks and logs remain available for auditing.', ArchivedNotification.Message(), 'Unexpected notification was raised on the archived agent card.');
         exit(true);
     end;
 
