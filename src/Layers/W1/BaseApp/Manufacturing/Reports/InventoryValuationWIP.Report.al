@@ -490,6 +490,13 @@ report 5802 "Inventory Valuation - WIP"
             Summary = 'Built in layout for the Production Order - WIP RDLC (Obsolete) report.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            LayoutFile = '.\Manufacturing\Reports\InventoryValuationWIPBody.docx';
+            Caption = 'Body-only: Production Order - WIP Word';
+            Summary = 'Body-only: Built in layout for the Production Order - WIP Word report.';
+        }
     }
 
     labels
