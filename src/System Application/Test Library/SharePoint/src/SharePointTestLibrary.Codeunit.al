@@ -12,6 +12,9 @@ codeunit 132973 "SharePoint Test Library"
 {
     EventSubscriberInstance = Manual;
 
+    var
+        LastContextInfoRequestUri: Text;
+
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"SharePoint Request Helper", 'OnBeforeSendRequest', '', false, false)]
     local procedure RunOnBeforeSendRequest(HttpRequestMessage: HttpRequestMessage; var SharePointOperationResponse: Codeunit "SharePoint Operation Response"; var IsHandled: Boolean; Method: Text)
     var
@@ -33,6 +36,7 @@ codeunit 132973 "SharePoint Test Library"
         Uri := LocalUri.UnescapeDataString(Uri);
 
         if Uri.EndsWith('/_api/contextinfo/') then begin
+            LastContextInfoRequestUri := Uri;
             GetContextDigestTestResponse(SharePointOperationResponse, BaseUrl, ParentUrl);
             exit;
         end;
@@ -112,6 +116,15 @@ codeunit 132973 "SharePoint Test Library"
             end;
 
         Error('No matching test response for %1', Uri);
+    end;
+
+    /// <summary>
+    /// Returns the full request URI of the last "_api/contextinfo" request digest call that was intercepted by this test library.
+    /// </summary>
+    /// <returns>The full, unescaped request URI, or an empty string if no request digest call has been made yet.</returns>
+    procedure GetLastContextInfoRequestUri(): Text
+    begin
+        exit(LastContextInfoRequestUri);
     end;
 
     local procedure GetContextDigestTestResponse(var SharePointOperationResponse: Codeunit "SharePoint Operation Response"; BaseUrl: Text; ParentUrl: Text)

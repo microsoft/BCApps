@@ -399,6 +399,45 @@ codeunit 132970 "SharePoint Client Test"
         Assert.IsTrue(TempSharePointFolder.OdataId.EndsWith('_api/Web/GetFolderByServerRelativePath(decodedurl=''' + ParentUrl + '/Lists/Test Documents/Attachments/TestSubfolder'')'), StrSubstNo('Different %1 value expected', TempSharePointFolder.FieldCaption("OdataId")));
         Assert.AreEqual('SP.Folder', TempSharePointFolder.OdataType, StrSubstNo('Different %1 value expected', TempSharePointFolder.FieldCaption("OdataType")));
         Assert.IsTrue(TempSharePointFolder."Server Relative Url".EndsWith('/Lists/Test Documents/Attachments/TestSubfolder'), StrSubstNo('Different %1 value expected', TempSharePointFolder.FieldCaption("Server Relative Url")));
+
+        // [THEN] The request digest ("_api/contextinfo") call was made against the site-scoped URL, not the tenant root
+        Assert.AreEqual('https://' + BaseUrl + '/_api/contextinfo/', SharePointTestLibrary.GetLastContextInfoRequestUri(), 'Request digest should be requested from the site-scoped URL, not the tenant root.');
+    end;
+
+    [Test]
+    procedure TestCreateListRequestDigestUsesSiteScopedUrl()
+    var
+        TempSharePointList: Record "SharePoint List" temporary;
+        IsSuccess: Boolean;
+    begin
+        // [Scenario] CreateList requests the digest from the site-scoped URL, not the tenant root, so it works under Sites.Selected
+        Initialize();
+
+        // [WHEN] CreateList is called for a site-scoped account (BaseUrl contains a "/sites/<site>" segment)
+        IsSuccess := SharePointClient.CreateList('Test Sample List Title', 'Test Sample List Description', TempSharePointList);
+        Assert.AreEqual(true, IsSuccess, 'Successfull operation expected');
+
+        // [THEN] The request digest ("_api/contextinfo") call was made against the site-scoped URL, not the tenant root
+        Assert.AreEqual('https://' + BaseUrl + '/_api/contextinfo/', SharePointTestLibrary.GetLastContextInfoRequestUri(), 'Request digest should be requested from the site-scoped URL, not the tenant root.');
+    end;
+
+    [Test]
+    procedure TestCreateListItemRequestDigestUsesSiteScopedUrl()
+    var
+        TempSharePointListItem: Record "SharePoint List Item" temporary;
+        Guid: Guid;
+        IsSuccess: Boolean;
+    begin
+        // [Scenario] CreateListItem requests the digest from the site-scoped URL, not the tenant root, so it works under Sites.Selected
+        Initialize();
+        Evaluate(Guid, '{854D7F21-1C6A-43AB-A081-20404894B449}');
+
+        // [WHEN] CreateListItem is called for a site-scoped account (BaseUrl contains a "/sites/<site>" segment)
+        IsSuccess := SharePointClient.CreateListItem(Guid, 'SP.Data.My_x0020_Test_x0020_DocumentsListItem', 'Test List Item', TempSharePointListItem);
+        Assert.AreEqual(true, IsSuccess, 'Successfull operation expected');
+
+        // [THEN] The request digest ("_api/contextinfo") call was made against the site-scoped URL, not the tenant root
+        Assert.AreEqual('https://' + BaseUrl + '/_api/contextinfo/', SharePointTestLibrary.GetLastContextInfoRequestUri(), 'Request digest should be requested from the site-scoped URL, not the tenant root.');
     end;
 
     [Test]
