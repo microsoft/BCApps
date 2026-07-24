@@ -490,6 +490,56 @@ codeunit 134971 "Rest Client Tests"
         Assert.AreEqual(MockRestClientService.GetGetUrl(), GetJsonToken(JsonObject, 'url').AsValue().AsText(), 'The response should contain the expected url');
     end;
 
+    [Test]
+    procedure TestSetAuthorizationHeaderTwice()
+    var
+        RestClient: Codeunit "Rest Client";
+    begin
+        // [SCENARIO] Calling SetAuthorizationHeader twice on the same instance must not throw an error
+
+        // [GIVEN] An initialized Rest Client
+        RestClient.Initialize();
+
+        // [WHEN] SetAuthorizationHeader is called a first time
+        RestClient.SetAuthorizationHeader(SecretStrSubstNo('Bearer %1', 'first-token'));
+
+        // [THEN] Calling SetAuthorizationHeader a second time replaces the header without error
+        RestClient.SetAuthorizationHeader(SecretStrSubstNo('Bearer %1', 'second-token'));
+    end;
+
+    [Test]
+    procedure TestSetDefaultRequestHeaderSecretTwice()
+    var
+        RestClient: Codeunit "Rest Client";
+    begin
+        // [SCENARIO] Calling SetDefaultRequestHeader with a SecretText value twice must not throw an error
+
+        // [GIVEN] An initialized Rest Client
+        RestClient.Initialize();
+
+        // [WHEN] A secret default request header is set a first time
+        RestClient.SetDefaultRequestHeader('X-Api-Key', SecretStrSubstNo('%1', 'key1'));
+
+        // [THEN] Setting the same header a second time replaces the value without error
+        RestClient.SetDefaultRequestHeader('X-Api-Key', SecretStrSubstNo('%1', 'key2'));
+    end;
+
+    [Test]
+    procedure TestSetDefaultRequestHeaderReplaceSecretWithText()
+    var
+        RestClient: Codeunit "Rest Client";
+    begin
+        // [SCENARIO] Replacing a secret default request header with a plain-text value must not throw an error
+
+        // [GIVEN] An initialized Rest Client with a secret header
+        RestClient.Initialize();
+        RestClient.SetDefaultRequestHeader('X-Custom', SecretStrSubstNo('%1', 'secret-value'));
+
+        // [WHEN] The same header is overwritten with a plain-text value
+        // [THEN] No error is thrown
+        RestClient.SetDefaultRequestHeader('X-Custom', 'plain-value');
+    end;
+
     local procedure GetResponseData(Url: Text; BodyJsonObject: JsonObject): Text
     var
         ResponseBodyText: Text;
