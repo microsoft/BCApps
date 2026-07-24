@@ -233,6 +233,7 @@ codeunit 9500 "Sequence No. Mgt."
         KeyRef: KeyRef;
         LastEntryNo: BigInteger;
     begin
+        OnBeforeGetLastEntryNoFromTable(TableNo);
         RecRef.Open(TableNo);
         if WithLock then
             RecRef.ReadIsolation(IsolationLevel::UpdLock)
@@ -245,6 +246,7 @@ codeunit 9500 "Sequence No. Mgt."
             LastEntryNo := FldRef.Value
         end else
             LastEntryNo := 0;
+        OnAfterGetLastEntryNoFromTable(TableNo);
         exit(LastEntryNo);
     end;
 
@@ -322,6 +324,26 @@ codeunit 9500 "Sequence No. Mgt."
 
     [IntegrationEvent(false, false)]
     local procedure OnPreviewableLedgerEntry(TableNo: Integer; var IsPreviewable: Boolean)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised at the beginning of GetLastEntryNoFromTable, before the table is opened.
+    /// Allows extensions to remove filters (for example global dimension filters) that could affect the last entry number lookup.
+    /// </summary>
+    /// <param name="TableNo">The ID of the table being read.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetLastEntryNoFromTable(TableNo: Integer)
+    begin
+    end;
+
+    /// <summary>
+    /// Integration event raised at the end of GetLastEntryNoFromTable, after the last entry number has been read.
+    /// Allows extensions to reapply filters that were removed in OnBeforeGetLastEntryNoFromTable.
+    /// </summary>
+    /// <param name="TableNo">The ID of the table being read.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterGetLastEntryNoFromTable(TableNo: Integer)
     begin
     end;
 }
