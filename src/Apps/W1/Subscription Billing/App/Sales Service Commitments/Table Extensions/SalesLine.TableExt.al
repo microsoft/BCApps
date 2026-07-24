@@ -377,7 +377,7 @@ tableextension 8054 "Sales Line" extends "Sales Line"
         exit(Rec.IsContractRenewal());
     end;
 
-    internal procedure IsContractRenewal(): Boolean
+    procedure IsContractRenewal(): Boolean
     var
         SalesServiceCommitment: Record "Sales Subscription Line";
     begin

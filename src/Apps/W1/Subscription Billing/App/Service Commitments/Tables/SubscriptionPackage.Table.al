@@ -135,7 +135,7 @@ table 8055 "Subscription Package"
         exit(Input in ['0' .. '9']);
     end;
 
-    internal procedure FilterCodeOnPackageFilter(PackageFilter: Text)
+    procedure FilterCodeOnPackageFilter(PackageFilter: Text)
     begin
         if PackageFilter = '' then
             Rec.SetRange(Code, '')
@@ -153,7 +153,7 @@ table 8055 "Subscription Package"
         exit(not SubscriptionPackageLine.IsEmpty());
     end;
 
-    internal procedure ServCommPackageLineExists(): Boolean
+    procedure ServCommPackageLineExists(): Boolean
     var
         SubscriptionPackageLine: Record "Subscription Package Line";
     begin
