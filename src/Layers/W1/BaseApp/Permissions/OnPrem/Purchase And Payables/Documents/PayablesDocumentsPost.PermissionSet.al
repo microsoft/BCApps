@@ -78,6 +78,7 @@ permissionset 862 "Payables Documents - Post"
                   tabledata "G/L Entry - VAT Entry Link" = Ri,
                   tabledata "G/L Entry" = Ri,
                   tabledata "G/L Register" = Rim,
+                  tabledata "G/L Transaction" = Ri,
                   tabledata "Gen. Journal Template" = R,
                   tabledata "General Ledger Setup" = rm,
                   tabledata "General Posting Setup" = R,

@@ -815,6 +815,7 @@ permissionset 7931 "D365 TEAM MEMBER"
                   tabledata "G/L Entry - VAT Entry Link" = Rimd,
                   tabledata "G/L Entry" = Rimd,
                   tabledata "G/L Register" = Rimd,
+                  tabledata "G/L Transaction" = Rimd,
                   tabledata "Gen. Business Posting Group" = RM,
                   tabledata "Gen. Jnl. Allocation" = RM,
                   tabledata "Gen. Jnl. Dim. Filter" = RM,

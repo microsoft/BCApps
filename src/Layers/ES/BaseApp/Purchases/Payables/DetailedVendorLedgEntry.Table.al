@@ -14,6 +14,7 @@ using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Receivables;
 using Microsoft.Utilities;
@@ -351,6 +352,22 @@ table 380 "Detailed Vendor Ledg. Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Detailed Vendor Ledg. Entry", 'r')]
+    /// <summary>
+    /// Retrieves the next entry number from the Detailed Vendor Ledg. Entry table.
+    /// </summary>
+    /// <returns>Next Detailed Vendor Ledg. Entry number to be used in the system</returns>
+    procedure GetNextEntryNo(): Integer
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+    begin
+        exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Detailed Vendor Ledg. Entry"));
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Detailed Vendor Ledg. Entry", 'r')]
+    /// <summary>
+    /// Retrieves the last entry number from the Detailed Vendor Ledg. Entry table.
+    /// </summary>
+    /// <returns>Last Detailed Vendor Ledg. Entry number used in the system</returns>
     procedure GetLastEntryNo(): Integer;
     var
         FindRecordManagement: Codeunit "Find Record Management";

@@ -88,6 +88,7 @@ permissionset 2529 "Recievables Documents - Post"
                   tabledata "G/L Entry - VAT Entry Link" = Ri,
                   tabledata "G/L Entry" = Ri,
                   tabledata "G/L Register" = Rim,
+                  tabledata "G/L Transaction" = Ri,
                   tabledata "General Ledger Setup" = rm,
                   tabledata "General Posting Setup" = r,
                   tabledata "IC Bank Account" = R,
