@@ -834,6 +834,225 @@ codeunit 139509 "Azure AD Plan Module Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     [CommitBehavior(CommitBehavior::Ignore)]
     [Scope('OnPrem')]
+    procedure TestInternalAdminKeepsSuperWhenCustomizedPlanOmitsSuper()
+    var
+        User: Record User;
+        AzureADPlan: Codeunit "Azure AD Plan";
+        PlanConfigurationLibrary: Codeunit "Plan Configuration Library";
+        PlanIds: Codeunit "Plan Ids";
+    begin
+        // [SCENARIO] An internal tenant admin (Global Admin) keeps SUPER on first login even when the assigned
+        // license plan configuration is customized and the customization omits SUPER.
+        Initialize();
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddSecurity();
+
+        // [GIVEN] A first-login super user that is provisioned with a Premium plan and the internal Global Admin plan
+        CreateUserWithPlan(User, PlanIds.GetPremiumPlanId());
+        AddSubscriptionPlanToUser(User, PlanIds.GetGlobalAdminPlanId());
+
+        // [GIVEN] The Premium plan configuration is customized and does not contain SUPER
+        PlanConfigurationLibrary.AddConfiguration(PlanIds.GetPremiumPlanId(), true);
+
+        // [WHEN] RefreshUserPlanAssignments is invoked (first login flow)
+        LibraryLowerPermissions.SetO365BusFull();
+        LibraryLowerPermissions.AddSecurity();
+        AzureADPlan.RefreshUserPlanAssignments(User."User Security ID");
+
+        // [THEN] The internal admin still has SUPER
+        Assert.IsTrue(IsUserInPermissionSet(User."User Security ID", 'SUPER'), 'Internal tenant admin should retain SUPER when the customized plan omits SUPER.');
+
+        // Rollback SaaS test
+        TearDown();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [CommitBehavior(CommitBehavior::Ignore)]
+    [Scope('OnPrem')]
+    procedure TestD365AdminKeepsSuperWhenCustomizedPlanOmitsSuper()
+    var
+        User: Record User;
+        AzureADPlan: Codeunit "Azure AD Plan";
+        PlanConfigurationLibrary: Codeunit "Plan Configuration Library";
+        PlanIds: Codeunit "Plan Ids";
+    begin
+        // [SCENARIO] A Dynamics 365 Administrator keeps SUPER on first login even when the assigned license plan
+        // configuration is customized and the customization omits SUPER.
+        Initialize();
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddSecurity();
+
+        // [GIVEN] A first-login super user provisioned with a Premium plan and the internal D365 Admin plan
+        CreateUserWithPlan(User, PlanIds.GetPremiumPlanId());
+        AddSubscriptionPlanToUser(User, PlanIds.GetD365AdminPlanId());
+
+        // [GIVEN] The Premium plan configuration is customized and does not contain SUPER
+        PlanConfigurationLibrary.AddConfiguration(PlanIds.GetPremiumPlanId(), true);
+
+        // [WHEN] RefreshUserPlanAssignments is invoked (first login flow)
+        LibraryLowerPermissions.SetO365BusFull();
+        LibraryLowerPermissions.AddSecurity();
+        AzureADPlan.RefreshUserPlanAssignments(User."User Security ID");
+
+        // [THEN] The internal admin still has SUPER
+        Assert.IsTrue(IsUserInPermissionSet(User."User Security ID", 'SUPER'), 'Dynamics 365 Administrator should retain SUPER when the customized plan omits SUPER.');
+
+        // Rollback SaaS test
+        TearDown();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [CommitBehavior(CommitBehavior::Ignore)]
+    [Scope('OnPrem')]
+    procedure TestUserLosesSuperWhenCustomizedPlanOmitsSuper()
+    var
+        User: Record User;
+        AzureADPlan: Codeunit "Azure AD Plan";
+        PlanConfigurationLibrary: Codeunit "Plan Configuration Library";
+        PlanIds: Codeunit "Plan Ids";
+    begin
+        // [SCENARIO] An ordinary (non-admin) user loses SUPER on first login when the assigned license plan
+        // configuration is customized and the customization omits SUPER.
+        Initialize();
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddSecurity();
+
+        // [GIVEN] A first-login super user provisioned with a Premium plan only (no admin plan)
+        CreateUserWithPlan(User, PlanIds.GetPremiumPlanId());
+
+        // [GIVEN] The Premium plan configuration is customized and does not contain SUPER
+        PlanConfigurationLibrary.AddConfiguration(PlanIds.GetPremiumPlanId(), true);
+
+        // [WHEN] RefreshUserPlanAssignments is invoked (first login flow)
+        LibraryLowerPermissions.SetO365BusFull();
+        LibraryLowerPermissions.AddSecurity();
+        AzureADPlan.RefreshUserPlanAssignments(User."User Security ID");
+
+        // [THEN] The ordinary user no longer has SUPER
+        Assert.IsFalse(IsUserInPermissionSet(User."User Security ID", 'SUPER'), 'Ordinary user should lose SUPER when the customized plan omits SUPER.');
+
+        // Rollback SaaS test
+        TearDown();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [CommitBehavior(CommitBehavior::Ignore)]
+    [Scope('OnPrem')]
+    procedure TestUserKeepsSuperWhenCustomizedPlanContainsSuper()
+    var
+        User: Record User;
+        AzureADPlan: Codeunit "Azure AD Plan";
+        PlanConfiguration: Codeunit "Plan Configuration";
+        PlanConfigurationLibrary: Codeunit "Plan Configuration Library";
+        PlanIds: Codeunit "Plan Ids";
+        NullGuid: Guid;
+    begin
+        // [SCENARIO] Any user keeps SUPER on first login when the customized license plan configuration explicitly
+        // contains SUPER, regardless of admin status.
+        Initialize();
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddSecurity();
+
+        // [GIVEN] A first-login super user provisioned with a Premium plan only (no admin plan)
+        CreateUserWithPlan(User, PlanIds.GetPremiumPlanId());
+
+        // [GIVEN] The Premium plan configuration is customized and explicitly contains SUPER
+        PlanConfigurationLibrary.AddConfiguration(PlanIds.GetPremiumPlanId(), true);
+        PlanConfiguration.AddCustomPermissionSetToPlan(PlanIds.GetPremiumPlanId(), 'SUPER', NullGuid, 0, '');
+
+        // [WHEN] RefreshUserPlanAssignments is invoked (first login flow)
+        LibraryLowerPermissions.SetO365BusFull();
+        LibraryLowerPermissions.AddSecurity();
+        AzureADPlan.RefreshUserPlanAssignments(User."User Security ID");
+
+        // [THEN] The user still has SUPER
+        Assert.IsTrue(IsUserInPermissionSet(User."User Security ID", 'SUPER'), 'User should retain SUPER when the customized plan contains SUPER.');
+
+        // Rollback SaaS test
+        TearDown();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [CommitBehavior(CommitBehavior::Ignore)]
+    [Scope('OnPrem')]
+    procedure TestDelegatedAdminLosesSuperWhenCustomizedPlanOmitsSuper()
+    var
+        User: Record User;
+        AzureADPlan: Codeunit "Azure AD Plan";
+        PlanConfigurationLibrary: Codeunit "Plan Configuration Library";
+        PlanIds: Codeunit "Plan Ids";
+    begin
+        // [SCENARIO] A delegated (partner) admin is NOT treated as an internal tenant admin by the first-login flow:
+        // when the assigned license plan configuration is customized and omits SUPER, SUPER is removed.
+        // Delegated admins retain SUPER on default (non-customized) plans - see TestDelegatedAdminIsSuperIfSuperExists -
+        // and their delegated-role provisioning is covered separately in the Azure AD Plan system app tests.
+        Initialize();
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddSecurity();
+
+        // [GIVEN] A first-login super user provisioned with a Premium plan and the delegated admin plan
+        CreateUserWithPlan(User, PlanIds.GetPremiumPlanId());
+        AddSubscriptionPlanToUser(User, PlanIds.GetDelegatedAdminPlanId());
+
+        // [GIVEN] The Premium plan configuration is customized and does not contain SUPER
+        PlanConfigurationLibrary.AddConfiguration(PlanIds.GetPremiumPlanId(), true);
+
+        // [WHEN] RefreshUserPlanAssignments is invoked (first login flow)
+        LibraryLowerPermissions.SetO365BusFull();
+        LibraryLowerPermissions.AddSecurity();
+        AzureADPlan.RefreshUserPlanAssignments(User."User Security ID");
+
+        // [THEN] The delegated admin loses SUPER (not exempted like an internal tenant admin)
+        Assert.IsFalse(IsUserInPermissionSet(User."User Security ID", 'SUPER'), 'Delegated admin should lose SUPER when the customized plan omits SUPER.');
+
+        // Rollback SaaS test
+        TearDown();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [CommitBehavior(CommitBehavior::Ignore)]
+    [Scope('OnPrem')]
+    procedure TestExistingUserKeepsSuperWhenCustomizedPlanOmitsSuper()
+    var
+        User: Record User;
+        AzureADPlan: Codeunit "Azure AD Plan";
+        PlanConfigurationLibrary: Codeunit "Plan Configuration Library";
+        PlanIds: Codeunit "Plan Ids";
+    begin
+        // [SCENARIO] An already-provisioned (non first-login) user keeps SUPER even when the assigned license plan
+        // configuration is customized and omits SUPER - SUPER is only ever revoked during first-login provisioning.
+        Initialize();
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddSecurity();
+
+        // [GIVEN] A super user that has already been set up before (has a plan assigned in BC)
+        CreateUserWithPlan(User, PlanIds.GetPremiumPlanId());
+        LibraryPermissions.AddUserToPlan(User."User Security ID", PlanIds.GetPremiumPlanId());
+
+        // [GIVEN] The Premium plan configuration is customized and does not contain SUPER
+        PlanConfigurationLibrary.AddConfiguration(PlanIds.GetPremiumPlanId(), true);
+
+        // [WHEN] RefreshUserPlanAssignments is invoked (existing user flow)
+        LibraryLowerPermissions.SetO365BusFull();
+        LibraryLowerPermissions.AddSecurity();
+        AzureADPlan.RefreshUserPlanAssignments(User."User Security ID");
+
+        // [THEN] The already-provisioned user still has SUPER
+        Assert.IsTrue(IsUserInPermissionSet(User."User Security ID", 'SUPER'), 'Existing (non first-login) user should retain SUPER regardless of plan customization.');
+
+        // Rollback SaaS test
+        TearDown();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [CommitBehavior(CommitBehavior::Ignore)]
+    [Scope('OnPrem')]
     procedure TestRefreshUserPlanAssignments()
     var
         User: Record User;
@@ -1136,6 +1355,20 @@ codeunit 139509 "Azure AD Plan Module Test"
         Plan.Read();
 
         MockGraphQueryTestLibrary.AddGraphUser(GetUserAuthenticationId(User), User."User Name", '', '', Plan.Plan_ID, Plan.Plan_Name, 'Enabled');
+    end;
+
+    local procedure AddSubscriptionPlanToUser(User: Record User; PlanID: Guid)
+    var
+        Plan: Query Plan;
+    begin
+        // Adds an additional Azure AD subscription plan to an already-created mock graph user, so that a user can be
+        // provisioned with several plans at once (e.g. a Premium plan together with an internal/delegated admin plan).
+        Plan.SetRange(Plan_ID, PlanID);
+        Plan.Open();
+        Plan.Read();
+
+        MockGraphQueryTestLibrary.AddUserPlan(GetUserAuthenticationId(User), Plan.Plan_ID, Plan.Plan_Name, 'Enabled');
+        Plan.Close();
     end;
 
     local procedure IsUserInPermissionSet(UserID: Guid; PermissionSetCode: Text): Boolean
