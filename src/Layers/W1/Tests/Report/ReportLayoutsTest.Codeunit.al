@@ -659,6 +659,153 @@ codeunit 139595 "Report Layouts Test"
             'Layout status should be Draft after cycling back.');
     end;
 
+    [Test]
+    procedure TestReportLayoutsFacade_GetLayoutSelectionTypeMapping()
+    var
+        ReportLayouts: Codeunit "Report Layouts";
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] GetReportLayoutSelectionTypeFromReportLayoutListLayoutFormat maps each layout format to the correct selection type
+        // LayoutFormat option values: RDLC=0, Word=1, Excel=2, Custom=3
+        // Return type values:         "RDLC (built-in)"=0, "Word (built-in)"=1, "Excel Layout"=3, "External Layout"=4
+        Assert.AreEqual(0, ReportLayouts.GetReportLayoutSelectionTypeFromReportLayoutListLayoutFormat(0), 'RDLC format should map to RDLC (built-in).');
+        Assert.AreEqual(1, ReportLayouts.GetReportLayoutSelectionTypeFromReportLayoutListLayoutFormat(1), 'Word format should map to Word (built-in).');
+        Assert.AreEqual(3, ReportLayouts.GetReportLayoutSelectionTypeFromReportLayoutListLayoutFormat(2), 'Excel format should map to Excel Layout.');
+        Assert.AreEqual(4, ReportLayouts.GetReportLayoutSelectionTypeFromReportLayoutListLayoutFormat(3), 'Custom format should map to External Layout.');
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutModalHandler')]
+    procedure TestReportLayoutsFacade_SetDefaultLayoutSelectionUpdatesTables()
+    var
+        ReportLayouts: Codeunit "Report Layouts";
+        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        ReportLayoutSelection: Record "Report Layout Selection";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        ReportLayoutsPage: TestPage "Report Layouts";
+        EmptyGuid: Guid;
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] SetDefaultReportLayoutSelection silently updates TenantReportLayoutSelection and ReportLayoutSelection without displaying a message
+        EnsureNewLayoutsAreCleaned();
+        BindSubscription(ReportLayoutsTest);
+
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsTest.SetLayoutContents(SampleTextTxt);
+        ReportLayoutsPage.NewLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
+
+        // Act - call the facade directly (no MessageHandler registered - proves the API is silent)
+        ReportLayouts.SetDefaultReportLayoutSelection(ReportLayoutList);
+
+        // Assert - TenantReportLayoutSelection is updated
+        Assert.IsTrue(TenantReportLayoutSelection.Get(139595, CompanyName(), EmptyGuid), 'TenantReportLayoutSelection should have been created.');
+        Assert.AreEqual(NewLayoutNameTxt, TenantReportLayoutSelection."Layout Name", 'Layout name in TenantReportLayoutSelection should match the created layout.');
+
+        // Assert - ReportLayoutSelection is also updated
+        Assert.IsTrue(ReportLayoutSelection.Get(139595, CompanyName()), 'ReportLayoutSelection should have been created.');
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutModalHandler')]
+    procedure TestReportLayoutsFacade_AddLayoutSelectionCreatesSelection()
+    var
+        ReportLayouts: Codeunit "Report Layouts";
+        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        ReportLayoutsPage: TestPage "Report Layouts";
+        EmptyGuid: Guid;
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] AddLayoutSelection creates a TenantReportLayoutSelection entry for the current company without displaying a message
+        EnsureNewLayoutsAreCleaned();
+        BindSubscription(ReportLayoutsTest);
+
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsTest.SetLayoutContents(SampleTextTxt);
+        ReportLayoutsPage.NewLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
+
+        // Act - call the facade directly (no MessageHandler registered - proves the API is silent)
+        ReportLayouts.AddLayoutSelection(ReportLayoutList);
+
+        // Assert
+        Assert.IsTrue(TenantReportLayoutSelection.Get(139595, CompanyName(), EmptyGuid), 'TenantReportLayoutSelection should have been created for the current company.');
+        Assert.AreEqual(NewLayoutNameTxt, TenantReportLayoutSelection."Layout Name", 'Layout name in TenantReportLayoutSelection should match the created layout.');
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutModalHandler')]
+    procedure TestReportLayoutsFacade_AddLayoutSelectionForUserCreatesUserSelection()
+    var
+        ReportLayouts: Codeunit "Report Layouts";
+        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayoutSelection: Record "Tenant Report Layout Selection";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        ReportLayoutsPage: TestPage "Report Layouts";
+        EmptyGuid: Guid;
+        CurrentUserId: Guid;
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] AddLayoutSelection with a user ID creates a user-specific TenantReportLayoutSelection entry without displaying a message
+        EnsureNewLayoutsAreCleaned();
+        BindSubscription(ReportLayoutsTest);
+
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsTest.SetLayoutContents(SampleTextTxt);
+        ReportLayoutsPage.NewLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
+        CurrentUserId := UserSecurityId();
+
+        // Act - call the facade directly (no MessageHandler registered - proves the API is silent)
+        ReportLayouts.AddLayoutSelection(ReportLayoutList, CurrentUserId);
+
+        // Assert
+        Assert.IsTrue(TenantReportLayoutSelection.Get(139595, CompanyName(), CurrentUserId), 'TenantReportLayoutSelection should have been created for the specified user.');
+        Assert.AreEqual(NewLayoutNameTxt, TenantReportLayoutSelection."Layout Name", 'Layout name in TenantReportLayoutSelection should match the created layout.');
+    end;
+
+    [Test]
+    [HandlerFunctions('NewLayoutModalHandler')]
+    procedure TestReportLayoutsFacade_ValidateReportLayoutReturnsFalseForUnsupportedFormat()
+    var
+        ReportLayouts: Codeunit "Report Layouts";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsTest: Codeunit "Report Layouts Test";
+        ReportLayoutsPage: TestPage "Report Layouts";
+        EmptyGuid: Guid;
+        ErrorMessage: Text;
+        IsValid: Boolean;
+    begin
+        // [FEATURE] [Report Layouts Facade]
+        // [SCENARIO] ValidateReportLayout returns false for an unsupported layout format without displaying a message
+        // NewLayoutModalHandler creates a layout with format 'External' which is not natively supported for validation
+        EnsureNewLayoutsAreCleaned();
+        BindSubscription(ReportLayoutsTest);
+
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsTest.SetLayoutContents(SampleTextTxt);
+        ReportLayoutsPage.NewLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        ReportLayoutList.Get(139595, NewLayoutNameTxt, EmptyGuid);
+
+        // Act - call the facade directly (no MessageHandler registered - proves the API is silent)
+        IsValid := ReportLayouts.ValidateReportLayout(ReportLayoutList, ErrorMessage);
+
+        // Assert
+        Assert.IsFalse(IsValid, 'Validation should return false for an unsupported layout format.');
+        Assert.AreEqual('Layout validation is not supported for this layout format.', ErrorMessage, 'Error message should indicate that the layout format is not supported.');
+    end;
+
     [MessageHandler]
     procedure StatusChangedMessageHandler(Message: Text[1024])
     begin
