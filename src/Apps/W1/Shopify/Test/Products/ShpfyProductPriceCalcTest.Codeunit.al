@@ -175,7 +175,7 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
 
         // [INIT] Initialization startup data.
         LibraryPriceCalculation.EnableExtendedPriceCalculation();
-        LibraryPriceCalculation.AddSetup(PriceCalculationSetup, "Price Calculation Method"::"Lowest Price", "Price Type"::Sale, "Price Asset Type"::Item, "Price Calculation Handler"::"Business Central (Version 16.0)", true);
+        LibraryPriceCalculation.FindOrAddSetup(PriceCalculationSetup, "Price Calculation Method"::"Lowest Price", "Price Type"::Sale, "Price Asset Type"::Item, "Price Calculation Handler"::"Business Central (Version 16.0)", true);
         Shop := InitializeTest.CreateShop();
         Shop."Allow Line Disc." := true;
         Shop.Modify();
