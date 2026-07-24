@@ -269,6 +269,8 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy Tax Registration No." = X,
         codeunit "Shpfy ToArchivedProduct" = X,
         codeunit "Shpfy ToDraftProduct" = X,
+        codeunit "Shpfy Token Refresh" = X,
+        codeunit "Shpfy Token Refresh Shop" = X,
         codeunit "Shpfy Translation API" = X,
         codeunit "Shpfy Translation Mgt." = X,
         codeunit "Shpfy Transactions" = X,

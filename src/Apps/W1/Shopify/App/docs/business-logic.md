@@ -2,6 +2,22 @@
 
 This document covers the major processing flows in the Shopify Connector, focusing on decision points, non-obvious behavior, and what can go wrong.
 
+## Authentication and token lifecycle
+
+The connector authenticates to Shopify with **expiring offline access tokens** (public apps must migrate to these by 2027-01-01). An access token lives for 1 hour; a refresh token lives for 90 days and is rotated on each refresh. Tokens are held on `Shpfy Registered Store New` (keyed by store URL) -- the access and refresh tokens as `SecretText` in IsolatedStorage, with `Token Expires At` and `Refresh Token Expires At` as fields.
+
+`ShpfyCommunicationMgt.GetAccessToken` calls `ShpfyAuthenticationMgt.EnsureValidAccessToken` before every API request, so the following happens transparently in any session, interactive or background:
+
+- **Fast path** -- a valid expiring token is used as-is.
+- **Refresh** -- when the access token is within a 5-minute buffer of expiry, `RefreshAccessToken` exchanges the refresh token (`grant_type=refresh_token`) for a new access + refresh token. On this on-demand path it makes a single attempt (the token is still valid, so a transient failure is left for the next call or the backstop); a 401 or a lapsed refresh token is terminal and surfaces a "reconnect the store" error.
+- **Migration** -- a legacy non-expiring token (no refresh token stored) is migrated once via token exchange. This is best-effort: if it fails the existing token is kept (it still works until the deadline); on success Shopify revokes the old token, so the exchange is irreversible per shop. Because a legacy store has no refresh token, the fast-path check never short-circuits it, so migration is throttled by a `Last Migration Attempt` timestamp (retried at most once per hour) to avoid re-attempting a failing migration on every API call in a sync loop.
+
+Refresh and migration are serialized with a table lock plus a double-checked re-read, because Shopify allows only one refreshable token per app and store -- this keeps concurrent sessions (or multiple BC companies sharing a shop) from thrashing the token. As a safety net, an unexpected 401 from a normal API call triggers a single forced refresh and retry.
+
+The `Shpfy Token Refresh` job (a recurring Job Queue entry scheduled the first time an enabled Shopify Shop Card is opened) is the proactive backstop. It iterates enabled shops and runs a per-shop worker so one shop's failure does not abort the run, keeping access tokens and 90-day refresh tokens alive for shops that are otherwise idle. When a refresh token has fully lapsed, the Shop Card shows a reconnect notification.
+
+*Updated: 2026-07-11 -- Expiring offline access token support (slice 637954)*
+
 ## Product synchronization
 
 Product sync is bi-directional, controlled by the Shop's `"Sync Item"` setting (To Shopify, From Shopify, or disabled). The two directions have fundamentally different architectures.
