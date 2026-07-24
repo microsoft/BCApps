@@ -1594,14 +1594,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Order Summary';
                         RunObject = report "Customer - Order Summary";
-                        Tooltip = 'Run the Customer - Order Summary report.';
                     }
                     action("Customer - Order Detail")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer - Order Detail';
                         RunObject = report "Customer - Order Detail";
-                        Tooltip = 'Run the Customer - Order Detail report.';
                     }
                     action("Customer - Labels")
                     {
@@ -1644,14 +1642,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer/Item Sales';
                         RunObject = report "Customer/Item Sales";
-                        Tooltip = 'Run the Customer/Item Sales report.';
                     }
                     action("Salesperson - Sales Statistics")
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'Salesperson Sales Statistics';
                         RunObject = report "Salesperson - Sales Statistics";
-                        Tooltip = 'Run the Salesperson Sales Statistics report.';
                     }
                     action("Salesperson - Commission")
                     {

@@ -93,7 +93,6 @@ page 9005 "Sales Manager Role Center"
                 Caption = 'Customer - &Order Summary';
                 Image = "Report";
                 RunObject = Report "Customer - Order Summary";
-                ToolTip = 'View the quantity not yet shipped for each customer in three periods of 30 days each, starting from a selected date. There are also columns with orders to be shipped before and after the three periods and a column with the total order detail for each customer. The report can be used to analyze a company''s expected sales volume.';
             }
 #if not CLEAN28
             action("Customer - &Top 10 List")
@@ -130,7 +129,6 @@ page 9005 "Sales Manager Role Center"
                 Caption = 'Salesperson - Sales &Statistics';
                 Image = "Report";
                 RunObject = Report "Salesperson - Sales Statistics";
-                ToolTip = 'View amounts for sales, profit, invoice discount, and payment discount, as well as profit percentage, for each salesperson for a selected period. The report also shows the adjusted profit and adjusted profit percentage, which reflect any changes to the original costs of the items in the sales.';
             }
             action("Salesperson - &Commission")
             {
@@ -138,7 +136,6 @@ page 9005 "Sales Manager Role Center"
                 Caption = 'Salesperson - &Commission';
                 Image = "Report";
                 RunObject = Report "Salesperson - Commission";
-                ToolTip = 'View a list of invoices for each salesperson for a selected period. The following information is shown for each invoice: Customer number, sales amount, profit amount, and the commission on sales amount and profit amount. The report also shows the adjusted profit and the adjusted profit commission, which are the profit figures that reflect any changes to the original costs of the goods sold.';
             }
             separator(Action22)
             {
