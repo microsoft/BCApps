@@ -1009,6 +1009,34 @@ report 1304 "Standard Sales - Quote"
             Caption = 'Standard Sales Quote Email (Word)';
             Summary = 'The Standard Sales Quote Email (Word) provides an email body layout.';
         }
+        layout("StandardSalesQuoteBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/Document/StandardSalesQuoteBody.docx';
+            Caption = 'Body-only: Standard Sales Quote (Word)';
+            Summary = 'Body-only: The Standard Sales Quote (Word) provides a basic layout.';
+        }
+        layout("StandardSalesQuoteBlueBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/Document/StandardSalesQuoteBlueBody.docx';
+            Caption = 'Body-only: Standard Sales Quote - Blue (Word)';
+            Summary = 'Body-only: The Standard Sales Quote - Blue (Word) provides a basic layout with a blue theme.';
+        }
+        layout("StandardSalesQuoteBlueThemableBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/Document/StandardSalesQuoteBlueThemableBody.docx';
+            Caption = 'Body-only: Standard Sales Quote - blue themable Word layout';
+            Summary = 'Body-only: The Standard Sales Quote - Themable (Word) provides a basic Themable layout.';
+        }
+        layout("StandardSalesQuoteEmailBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/Document/StandardSalesQuoteEmailBody.docx';
+            Caption = 'Body-only: Standard Sales Quote Email (Word)';
+            Summary = 'Body-only: The Standard Sales Quote Email (Word) provides an email body layout.';
+        }
     }
 
     labels
