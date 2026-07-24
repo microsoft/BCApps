@@ -1040,6 +1040,20 @@ report 1322 "Standard Purchase - Order"
             Caption = 'Standard Purchase Order Email (Word)';
             Summary = 'The Standard Purchase Order Email (Word) provides an email body layout.';
         }
+        layout("StandardPurchaseOrderBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Purchases/Document/StandardPurchaseOrderBody.docx';
+            Caption = 'Body-only: Standard Purchase Order (Word)';
+            Summary = 'Body-only: The Standard Purchase Order (Word) provides a basic layout.';
+        }
+        layout("StandardPurchaseOrderEmailBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Purchases/Document/StandardPurchaseOrderEmailBody.docx';
+            Caption = 'Body-only: Standard Purchase Order Email (Word)';
+            Summary = 'Body-only: The Standard Purchase Order Email (Word) provides an email body layout.';
+        }
     }
 
     labels
