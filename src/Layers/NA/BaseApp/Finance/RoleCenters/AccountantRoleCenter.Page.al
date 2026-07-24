@@ -204,7 +204,6 @@ page 9027 "Accountant Role Center"
                     Caption = 'Dimensions - Total';
                     Image = "Report";
                     RunObject = Report "Dimensions - Total";
-                    ToolTip = 'View how dimensions or dimension sets are used on entries based on total amounts over a specified period and for a specified analysis view.';
                 }
             }
             group("Sales Tax")
@@ -1010,7 +1009,6 @@ page 9027 "Accountant Role Center"
                         Caption = 'Balance Sheet';
                         Image = "Report";
                         RunObject = Report "Balance Sheet";
-                        ToolTip = 'View a report that shows your company''s assets, liabilities, and equity.';
                     }
                     action("Income Statement")
                     {
@@ -1018,7 +1016,6 @@ page 9027 "Accountant Role Center"
                         Caption = 'Income Statement';
                         Image = "Report";
                         RunObject = Report "Income Statement";
-                        ToolTip = 'View a report that shows your company''s income and expenses.';
                     }
                     action("Statement of Cash Flows")
                     {
@@ -1026,7 +1023,6 @@ page 9027 "Accountant Role Center"
                         Caption = 'Statement of Cash Flows';
                         Image = "Report";
                         RunObject = Report "Statement of Cashflows";
-                        ToolTip = 'View a financial statement that shows how changes in balance sheet accounts and income affect the company''s cash holdings, displayed for operating, investing, and financing activities respectively.';
                     }
                     action("Statement of Retained Earnings")
                     {
@@ -1034,7 +1030,6 @@ page 9027 "Accountant Role Center"
                         Caption = 'Statement of Retained Earnings';
                         Image = "Report";
                         RunObject = Report "Retained Earnings Statement";
-                        ToolTip = 'View a report that shows your company''s changes in retained earnings for a specified period by reconciling the beginning and ending retained earnings for the period, using information such as net income from the other financial statements.';
                     }
                 }
                 group("Excel Reports")
@@ -1049,7 +1044,6 @@ page 9027 "Accountant Role Center"
                     Ellipsis = true;
                     Image = ImportDatabase;
                     RunObject = Report "Import Consolidation from DB";
-                    ToolTip = 'Run the Consolidation report.';
                 }
             }
             group(History)

@@ -18,6 +18,7 @@ report 12 "VAT Statement"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'VAT Statement';
+    ToolTip = 'View a statement of posted VAT and calculate the duty liable to the customs authorities for the selected period.';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = "VAT Statement Name";
     DefaultRenderingLayout = RDLCLayout;

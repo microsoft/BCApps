@@ -16,6 +16,7 @@ using Microsoft.Foundation.Address;
 report 12 "VAT Statement"
 {
     Caption = 'VAT Statement';
+    ToolTip = 'View a statement of posted VAT and calculate the duty liable to the customs authorities for the selected period.';
     UsageCategory = ReportsAndAnalysis;
     WordMergeDataItem = "VAT Statement Name";
     DefaultRenderingLayout = RDLCLayout;

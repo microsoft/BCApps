@@ -21,6 +21,7 @@ report 155 "Statement of Cashflows"
     AccessByPermission = TableData "G/L Account" = R;
     ApplicationArea = Basic, Suite;
     Caption = 'Statement of Cashflows';
+    ToolTip = 'View a financial statement that shows how changes in balance sheet accounts and income affect the company''s cash holdings, displayed for operating, investing, and financing activities respectively.';
     ProcessingOnly = true;
     UsageCategory = ReportsAndAnalysis;
     UseRequestPage = false;

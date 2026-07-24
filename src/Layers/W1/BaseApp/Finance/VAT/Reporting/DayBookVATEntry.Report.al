@@ -19,6 +19,7 @@ report 2500 "Day Book VAT Entry"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Day Book VAT Entry';
+    ToolTip = 'Run the Day Book VAT Entry report.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

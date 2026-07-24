@@ -31,6 +31,7 @@ report 94 "Close Income Statement"
     AdditionalSearchTerms = 'year closing statement,close accounting period statement,close fiscal year statement';
     ApplicationArea = Basic, Suite;
     Caption = 'Close Income Statement';
+    ToolTip = 'Start the transfer of the year''s result to an account in the balance sheet and close the income statement accounts.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

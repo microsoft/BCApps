@@ -27,6 +27,7 @@ using System.Utilities;
 report 90 "Import Consolidation from DB"
 {
     Caption = 'Consolidation Report (same environment)';
+    ToolTip = 'Import entries from the business units that will be included in a consolidation. You can use the batch job if the business unit comes from the same database in Business Central as the consolidated company.';
     ProcessingOnly = true;
 
     dataset

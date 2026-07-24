@@ -316,7 +316,6 @@ page 9035 "Data Administration"
                         Image = GeneralLedger;
                         RunObject = Report "Date Compress General Ledger";
                         Ellipsis = true;
-                        ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                     }
                     action("Date Compress VAT Entries")
                     {
@@ -325,7 +324,6 @@ page 9035 "Data Administration"
                         Image = VATStatement;
                         RunObject = Report "Date Compress VAT Entries";
                         Ellipsis = true;
-                        ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                     }
                     action("Date Compress Bank Account Ledger Entries")
                     {
@@ -343,7 +341,6 @@ page 9035 "Data Administration"
                         Image = LedgerBudget;
                         RunObject = Report "Date Compr. G/L Budget Entries";
                         Ellipsis = true;
-                        ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                     }
                     action("Date Compress Customer Ledger Entries")
                     {
@@ -423,7 +420,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = Basic, Suite;
                         Caption = 'G/L Registers';
-                        ToolTip = 'G/L Registers';
                         RunObject = Report "Delete Empty G/L Registers";
                         Ellipsis = true;
                     }

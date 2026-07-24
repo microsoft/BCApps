@@ -303,7 +303,6 @@ page 9022 "Business Manager Role Center"
                         Caption = 'Balance Sheet';
                         Image = "Report";
                         RunObject = Report "Balance Sheet";
-                        ToolTip = 'View your company''s assets, liabilities, and equity.';
                     }
                     action("Income Statement")
                     {
@@ -311,7 +310,6 @@ page 9022 "Business Manager Role Center"
                         Caption = 'Income Statement';
                         Image = "Report";
                         RunObject = Report "Income Statement";
-                        ToolTip = 'View your company''s income and expenses.';
                     }
                     action("Statement of Cash Flows")
                     {
@@ -319,7 +317,6 @@ page 9022 "Business Manager Role Center"
                         Caption = 'Statement of Cash Flows';
                         Image = "Report";
                         RunObject = Report "Statement of Cashflows";
-                        ToolTip = 'View a financial statement that shows how changes in balance sheet accounts and income affect the company''s cash holdings, displayed for operating, investing, and financing activities respectively.';
                     }
                     action("Statement of Retained Earnings")
                     {
@@ -327,7 +324,6 @@ page 9022 "Business Manager Role Center"
                         Caption = 'Statement of Retained Earnings';
                         Image = "Report";
                         RunObject = Report "Retained Earnings Statement";
-                        ToolTip = 'View a report that shows your company''s changes in retained earnings for a specified period by reconciling the beginning and ending retained earnings for the period, using information such as net income from the other financial statements.';
                     }
                     action("Sales Taxes Collected")
                     {
@@ -335,7 +331,6 @@ page 9022 "Business Manager Role Center"
                         Caption = 'Sales Taxes Collected';
                         Image = "Report";
                         RunObject = Report "Sales Taxes Collected";
-                        ToolTip = 'View a report that shows the sales taxes that have been collected on behalf of the authorities.';
                     }
                     action("Customer Statements")
                     {

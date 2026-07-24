@@ -21,6 +21,7 @@ report 156 "Retained Earnings Statement"
     AccessByPermission = TableData "G/L Account" = R;
     ApplicationArea = Basic, Suite;
     Caption = 'Retained Earnings Statement';
+    ToolTip = 'View a report that shows your company''s changes in retained earnings for a specified period by reconciling the beginning and ending retained earnings for the period, using information such as net income from the other financial statements.';
     ProcessingOnly = true;
     UsageCategory = ReportsAndAnalysis;
     UseRequestPage = false;

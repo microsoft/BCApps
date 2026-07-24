@@ -492,7 +492,6 @@ page 16 "Chart of Accounts"
                     Caption = 'G/L Currency Revaluation';
                     Image = CurrencyExchangeRates;
                     RunObject = Report "G/L Currency Revaluation";
-                    ToolTip = 'Create general journal lines with currency revaluation for G/L accounts with posting in source currency.';
                 }
                 action("Close Income Statement")
                 {
@@ -500,7 +499,6 @@ page 16 "Chart of Accounts"
                     Caption = 'Close Income Statement';
                     Image = CloseYear;
                     RunObject = Report "Close Income Statement";
-                    ToolTip = 'Start the transfer of the year''s result to an account in the balance sheet and close the income statement accounts.';
                 }
                 action(DocsWithoutIC)
                 {
@@ -533,7 +531,6 @@ page 16 "Chart of Accounts"
                 Caption = 'Detail Trial Balance';
                 Image = "Report";
                 RunObject = Report "Detail Trial Balance";
-                ToolTip = 'View a detail trial balance for the general ledger accounts that you specify.';
             }
 #if not CLEAN28
             action("Trial Balance")
@@ -558,7 +555,6 @@ page 16 "Chart of Accounts"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Trial Balance by Period";
-                ToolTip = 'View the opening balance by general ledger account, the movements in the selected period of month, quarter, or year, and the resulting closing balance.';
             }
             action(Action1900210206)
             {
@@ -566,7 +562,6 @@ page 16 "Chart of Accounts"
                 Caption = 'G/L Register';
                 Image = "Report";
                 RunObject = Report "G/L Register";
-                ToolTip = 'View posted G/L entries.';
             }
         }
         area(Promoted)

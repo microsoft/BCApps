@@ -26,6 +26,7 @@ using System.Utilities;
 report 98 "Date Compress General Ledger"
 {
     Caption = 'Date Compress General Ledger';
+    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
     Permissions = TableData "G/L Entry" = rimd,
                   TableData "G/L Register" = rimd,
                   TableData "Date Compr. Register" = rimd,

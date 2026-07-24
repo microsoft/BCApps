@@ -501,7 +501,6 @@ page 16 "Chart of Accounts"
                     Caption = 'G/L Currency Revaluation';
                     Image = CurrencyExchangeRates;
                     RunObject = Report "G/L Currency Revaluation";
-                    ToolTip = 'Create general journal lines with currency revaluation for G/L accounts with posting in source currency.';
                 }
                 action("Close Income Statement")
                 {
@@ -509,7 +508,6 @@ page 16 "Chart of Accounts"
                     Caption = 'Close Income Statement';
                     Image = CloseYear;
                     RunObject = Report "Close Income Statement";
-                    ToolTip = 'Start the transfer of the year''s result to an account in the balance sheet and close the income statement accounts.';
                 }
                 action("Export Electr. Accounting")
                 {
@@ -552,7 +550,6 @@ page 16 "Chart of Accounts"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Chart of Accounts";
-                ToolTip = 'View the chart of accounts.';
             }
             action(Action1900210206)
             {
@@ -560,7 +557,6 @@ page 16 "Chart of Accounts"
                 Caption = 'G/L Register';
                 Image = "Report";
                 RunObject = Report "G/L Register";
-                ToolTip = 'View posted G/L entries.';
             }
             action("Reconcile AP to GL")
             {
@@ -610,7 +606,6 @@ page 16 "Chart of Accounts"
                 Caption = 'Consol. Trial Balance';
                 Image = "Report";
                 RunObject = Report "Consolidated Trial Balance";
-                ToolTip = 'View the trial balance for a consolidated company.';
             }
             action("Trial Balance, per Global Dim.")
             {

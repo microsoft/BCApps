@@ -493,7 +493,6 @@ page 17 "G/L Account Card"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Detail Trial Balance";
-                ToolTip = 'View detail general ledger account balances and activities for all the selected accounts, one transaction per line.';
             }
 #if not CLEAN28
             action("Trial Balance")
@@ -518,7 +517,6 @@ page 17 "G/L Account Card"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Trial Balance by Period";
-                ToolTip = 'View general ledger account balances and activities for all the selected accounts, one transaction per line for a selected period.';
             }
             action(Action1900210206)
             {
@@ -528,7 +526,6 @@ page 17 "G/L Account Card"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "G/L Register";
-                ToolTip = 'View posted G/L entries.';
             }
         }
         area(processing)

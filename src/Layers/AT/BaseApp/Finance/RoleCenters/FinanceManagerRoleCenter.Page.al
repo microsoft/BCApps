@@ -187,28 +187,24 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'VAT Exceptions';
                             RunObject = report "VAT Exceptions";
-                            Tooltip = 'Run the VAT Exceptions report.';
                         }
                         action("VAT Register")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'VAT Register';
                             RunObject = report "VAT Register";
-                            Tooltip = 'Run the VAT Register report.';
                         }
                         action("VAT Registration No. Check")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Batch VAT Registration No. Check';
                             RunObject = report "VAT Registration No. Check";
-                            Tooltip = 'Run the Batch VAT Registration No. Check report.';
                         }
                         action("Day Book VAT Entry")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Day Book VAT Entry';
                             RunObject = report "Day Book VAT Entry";
-                            Tooltip = 'Run the Day Book VAT Entry report.';
                         }
                         action("Day Book Cust. Ledger Entry")
                         {
@@ -286,7 +282,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Intercompany;
                         Caption = 'IC Transaction';
                         RunObject = report "IC Transactions";
-                        Tooltip = 'Run the IC Transaction report.';
                     }
                 }
                 group("Group4")
@@ -304,14 +299,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Suite;
                         Caption = 'Export Consolidation...';
                         RunObject = report "Export Consolidation";
-                        Tooltip = 'Run the Export Consolidation report.';
                     }
                     action("G/L Consolidation Eliminations")
                     {
                         ApplicationArea = Suite;
                         Caption = 'G/L Consolidation Eliminations';
                         RunObject = report "G/L Consolidation Eliminations";
-                        Tooltip = 'Run the G/L Consolidation Eliminations report.';
                     }
                 }
                 group("Group5")
@@ -411,35 +404,30 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'G/L Register';
                             RunObject = report "G/L Register";
-                            Tooltip = 'Run the G/L Register report.';
                         }
                         action("Detail Trial Balance")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Detail Trial Balance';
                             RunObject = report "Detail Trial Balance";
-                            Tooltip = 'Run the Detail Trial Balance report.';
                         }
                         action("Dimensions - Detail")
                         {
                             ApplicationArea = Dimensions;
                             Caption = 'Dimensions - Detail';
                             RunObject = report "Dimensions - Detail";
-                            Tooltip = 'Run the Dimensions - Detail report.';
                         }
                         action("Dimensions - Total")
                         {
                             ApplicationArea = Dimensions;
                             Caption = 'Dimensions - Total';
                             RunObject = report "Dimensions - Total";
-                            Tooltip = 'Run the Dimensions - Total report.';
                         }
                         action("Check Value Posting")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Dimension Check Value Posting';
                             RunObject = report "Check Value Posting";
-                            Tooltip = 'Run the Dimension Check Value Posting report.';
                         }
                     }
                     group("Group9")
@@ -450,7 +438,6 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Financial Report';
                             RunObject = report "Account Schedule";
-                            Tooltip = 'Run the Account Schedule report.';
                         }
 #if not CLEAN28
                         action("Trial Balance")
@@ -479,28 +466,24 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Trial Balance/Previous Year';
                             RunObject = report "Trial Balance/Previous Year";
-                            Tooltip = 'Run the Trial Balance/Previous Year report.';
                         }
                         action("Closing Trial Balance")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Closing Trial Balance';
                             RunObject = report "Closing Trial Balance";
-                            Tooltip = 'Run the Closing Trial Balance report.';
                         }
                         action("Consolidated Trial Balance")
                         {
                             ApplicationArea = Suite;
                             Caption = 'Consolidated Trial Balance';
                             RunObject = report "Consolidated Trial Balance";
-                            Tooltip = 'Run the Consolidated Trial Balance report.';
                         }
                         action("Consolidated Trial Balance (4)")
                         {
                             ApplicationArea = Suite;
                             Caption = 'Consolidated Trial Balance (4)';
                             RunObject = report "Consolidated Trial Balance (4)";
-                            Tooltip = 'Run the Consolidated Trial Balance (4) report.';
                         }
                         action("Budget")
                         {
@@ -514,21 +497,18 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Trial Balance by Period';
                             RunObject = report "Trial Balance by Period";
-                            Tooltip = 'Run the Trial Balance by Period report.';
                         }
                         action("Fiscal Year Balance")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Fiscal Year Balance';
                             RunObject = report "Fiscal Year Balance";
-                            Tooltip = 'Run the Fiscal Year Balance report.';
                         }
                         action("Balance Comp. - Prev. Year")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Balance Comp. - Prev. Year';
                             RunObject = report "Balance Comp. - Prev. Year";
-                            Tooltip = 'Run the Balance Comp. - Prev. Year report.';
                         }
                         action("Balance Sheet")
                         {
@@ -581,21 +561,18 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Foreign Currency Balance';
                             RunObject = report "Foreign Currency Balance";
-                            Tooltip = 'Run the Foreign Currency Balance report.';
                         }
                         action("Reconcile Cust. and Vend. Accs")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'Reconcile Cust. and Vend. Accs';
                             RunObject = report "Reconcile Cust. and Vend. Accs";
-                            Tooltip = 'Run the Reconcile Cust. and Vend. Accs report.';
                         }
                         action("G/L Deferral Summary")
                         {
                             ApplicationArea = Basic, Suite;
                             Caption = 'G/L Deferral Summary';
                             RunObject = report "Deferral Summary - G/L";
-                            Tooltip = 'Run the G/L Deferral Summary report.';
                         }
                     }
                     group("Group11")
@@ -606,7 +583,6 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Chart of Accounts';
                             RunObject = report "Chart of Accounts";
-                            Tooltip = 'Run the Chart of Accounts report.';
                         }
                         action("Change Log Setup List")
                         {
@@ -857,7 +833,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Receivables-Payables';
                         RunObject = report "Receivables-Payables";
-                        Tooltip = 'Run the Receivables-Payables report.';
                     }
                     action("Cash Flow Date List")
                     {
@@ -1424,7 +1399,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'EC Sales List';
                         RunObject = report "EC Sales List";
-                        Tooltip = 'Run the EC Sales List report.';
                     }
                 }
                 group("Group35")

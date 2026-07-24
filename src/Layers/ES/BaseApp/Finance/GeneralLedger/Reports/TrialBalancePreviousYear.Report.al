@@ -20,6 +20,7 @@ report 7 "Trial Balance/Previous Year"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Trial Balance/Previous Year';
+    ToolTip = 'Run the Trial Balance/Previous Year report.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

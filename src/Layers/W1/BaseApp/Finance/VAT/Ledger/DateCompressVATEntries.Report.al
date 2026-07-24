@@ -23,6 +23,7 @@ using System.Utilities;
 report 95 "Date Compress VAT Entries"
 {
     Caption = 'Date Compress VAT Entries';
+    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
     Permissions = TableData "G/L Entry" = rimd,
                   TableData "G/L Register" = rimd,
                   TableData "Date Compr. Register" = rimd,
