@@ -2044,14 +2044,25 @@ codeunit 442 "Sales-Post Prepayments"
 
     local procedure UpdateDifferenceAmount(SalesHeader: Record "Sales Header"; var TotalPrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer" temporary; var TempPrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer"; HasInvoiceDiscount: Boolean)
     var
+        SalesLine: Record "Sales Line";
         Currency: Record Currency;
         PrepmtAmt: Decimal;
         DifferenceAmt: Decimal;
     begin
         if HasInvoiceDiscount and (SalesHeader."Prepayment %" <> 0) then begin
             Currency.Initialize(SalesHeader."Currency Code");
-            SalesHeader.CalcFields(Amount);
-            PrepmtAmt := Round(SalesHeader.Amount * SalesHeader."Prepayment %" / 100, Currency."Amount Rounding Precision");
+
+            SalesLine.SetLoadFields(Amount, "Prepayment %");
+            SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+            SalesLine.SetRange("Document No.", SalesHeader."No.");
+            SalesLine.SetFilter(Type, '<>%1', SalesLine.Type::" ");
+            SalesLine.SetFilter("Prepmt. Line Amount", '<>0');
+            if SalesLine.FindSet() then
+                repeat
+                    PrepmtAmt += SalesLine.Amount * SalesLine."Prepayment %" / 100;
+                until SalesLine.Next() = 0;
+            PrepmtAmt := Round(PrepmtAmt, Currency."Amount Rounding Precision");
+
             if TotalPrepmtInvLineBuffer.Amount > PrepmtAmt then begin
                 DifferenceAmt := TotalPrepmtInvLineBuffer.Amount - PrepmtAmt;
 
