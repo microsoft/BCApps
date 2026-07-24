@@ -122,6 +122,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     var
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        MediaReferenceCounts: Dictionary of [Guid, Integer];
         Result: Boolean;
     begin
         // [SCENARIO] Delete from internal should succeed after file is uploaded externally
@@ -135,8 +136,11 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment.SetRecFilter();
         DocumentAttachment.FindFirst();
 
+        // [GIVEN] A reference count map reflecting the current single reference to the media
+        DAExternalStorageImpl.BuildMediaReferenceCounts(MediaReferenceCounts);
+
         // [WHEN] Delete from internal is attempted
-        Result := DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment);
+        Result := DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment, MediaReferenceCounts);
 
         // [THEN] Delete should succeed
         Assert.IsTrue(Result, 'Delete from internal should succeed');
@@ -324,6 +328,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     var
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        MediaReferenceCounts: Dictionary of [Guid, Integer];
         Result: Boolean;
     begin
         // [SCENARIO] Delete from internal storage should succeed for externally stored docs
@@ -334,8 +339,11 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         DocumentAttachment."Stored Externally" := true;
         DocumentAttachment.Modify();
 
+        // [GIVEN] A reference count map reflecting the current single reference to the media
+        DAExternalStorageImpl.BuildMediaReferenceCounts(MediaReferenceCounts);
+
         // [WHEN] Delete from internal is attempted
-        Result := DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment);
+        Result := DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment, MediaReferenceCounts);
 
         // [THEN] Delete should succeed
         Assert.IsTrue(Result, 'Delete from internal should succeed');
@@ -351,6 +359,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
     var
         DocumentAttachment: Record "Document Attachment";
         DAExternalStorageImpl: Codeunit "DA External Storage Impl.";
+        MediaReferenceCounts: Dictionary of [Guid, Integer];
         Result: Boolean;
     begin
         // [SCENARIO] Delete from internal should fail for non-external document
@@ -360,7 +369,7 @@ codeunit 136820 "DA Ext. Storage Impl. Tests"
         CreateDocumentAttachmentWithContent(DocumentAttachment);
 
         // [WHEN] Delete from internal is attempted
-        Result := DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment);
+        Result := DAExternalStorageImpl.DeleteFromInternalStorage(DocumentAttachment, MediaReferenceCounts);
 
         // [THEN] Delete should fail
         Assert.IsFalse(Result, 'Delete from internal should fail for non-external document');

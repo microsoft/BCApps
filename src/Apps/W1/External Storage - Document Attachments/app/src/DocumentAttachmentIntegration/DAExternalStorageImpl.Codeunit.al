@@ -420,9 +420,11 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
     /// </summary>
     /// <param name="DocumentAttachment">The document attachment record to delete from internal storage.</param>
     /// <returns>True if deletion was successful, false otherwise.</returns>
-    procedure DeleteFromInternalStorage(var DocumentAttachment: Record "Document Attachment"): Boolean
+    procedure DeleteFromInternalStorage(var DocumentAttachment: Record "Document Attachment"; var MediaReferenceCounts: Dictionary of [Guid, Integer]): Boolean
     var
         TenantMedia: Record "Tenant Media";
+        MediaId: Guid;
+        RemainingReferences: Integer;
     begin
         // Validate input parameters
         if not DocumentAttachment."Document Reference ID".HasValue() then
@@ -432,16 +434,63 @@ codeunit 8751 "DA External Storage Impl." implements "File Scenario"
         if not DocumentAttachment."Stored Externally" then
             exit(false);
 
+        MediaId := DocumentAttachment."Document Reference ID".MediaId();
+        if not TenantMedia.Get(MediaId) then
+            exit(false);
+
+        // Multiple Document Attachment records can point to the same Tenant Media record
+        // (e.g. a posted document's attachment frequently shares its "Document Reference ID"
+        // with the attachment on the original document). Only remove the shared Tenant Media
+        // record once this is the last Document Attachment still referencing it - otherwise the
+        // other attachment(s) would lose access to their file content.
+        //
+        // Media fields cannot be filtered or passed as parameters (SetRange isn't supported on
+        // them), so reference counts are tracked in a Guid-keyed map built once up front by
+        // BuildMediaReferenceCounts, rather than re-scanning the table on every call.
+        if MediaReferenceCounts.Get(MediaId, RemainingReferences) then begin
+            RemainingReferences -= 1;
+            MediaReferenceCounts.Set(MediaId, RemainingReferences);
+        end else
+            // Not in the map (e.g. caller didn't pre-build it) - fall back to treating this as
+            // the only reference so behavior degrades to "delete immediately", same as before.
+            RemainingReferences := 0;
+
         // Delete from Tenant Media
-        if TenantMedia.Get(DocumentAttachment."Document Reference ID".MediaId()) then begin
+        if RemainingReferences <= 0 then
             TenantMedia.Delete();
 
-            // Mark Document Attachment as Not Stored Internally
-            DocumentAttachment.MarkAsDeletedInternally();
-            exit(true);
-        end;
+        // This attachment's own reference to internal storage is cleared either way.
+        DocumentAttachment.MarkAsDeletedInternally();
+        exit(true);
+    end;
 
-        exit(false);
+    /// <summary>
+    /// Scans Document Attachment once and counts, per Tenant Media (by MediaId), how many
+    /// Document Attachment records currently reference it. Call this once before a batch of
+    /// DeleteFromInternalStorage calls (e.g. from a report's OnPreDataItem) and reuse the same
+    /// dictionary instance for every call in that batch, since Media fields can't be filtered
+    /// directly and re-scanning per record would not scale.
+    /// </summary>
+    /// <param name="MediaReferenceCounts">The dictionary to populate with MediaId -&gt; reference count.</param>
+    procedure BuildMediaReferenceCounts(var MediaReferenceCounts: Dictionary of [Guid, Integer])
+    var
+        DocumentAttachment: Record "Document Attachment";
+        MediaId: Guid;
+        CurrentCount: Integer;
+    begin
+        Clear(MediaReferenceCounts);
+
+        DocumentAttachment.SetLoadFields("Document Reference ID");
+        if DocumentAttachment.FindSet() then
+            repeat
+                if DocumentAttachment."Document Reference ID".HasValue() then begin
+                    MediaId := DocumentAttachment."Document Reference ID".MediaId();
+                    if MediaReferenceCounts.Get(MediaId, CurrentCount) then
+                        MediaReferenceCounts.Set(MediaId, CurrentCount + 1)
+                    else
+                        MediaReferenceCounts.Add(MediaId, 1);
+                end;
+            until DocumentAttachment.Next() = 0;
     end;
 
     /// <summary>
