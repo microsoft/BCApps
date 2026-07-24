@@ -19,6 +19,8 @@ codeunit 5626 "FA General Report"
         FADeprBook: Record "FA Depreciation Book";
         FALedgEntry: Record "FA Ledger Entry";
         DepreciationCalc: Codeunit "Depreciation Calculation";
+        UseCreditAmounts: Boolean;
+        UseDebitAmounts: Boolean;
         ExclReclEntries: Boolean;
 
 #pragma warning disable AA0074
@@ -64,6 +66,8 @@ codeunit 5626 "FA General Report"
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Appreciation);
             FADeprBook.FieldNo("Last Custom 1 Date"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Custom 1");
+            FADeprBook.FieldNo("Last Derogatory"):
+                FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Derogatory);
             FADeprBook.FieldNo("Last Custom 2 Date"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Custom 2");
             FADeprBook.FieldNo("Last Salvage Value Date"):
@@ -93,6 +97,20 @@ codeunit 5626 "FA General Report"
 
     procedure CalcFAPostedAmount(FANo: Code[20]; PostingType: Integer; Period: Option "Before Starting Date","Net Change","at Ending Date"; StartingDate: Date; EndingDate: Date; DeprBookCode: Code[10]; BeforeAmount: Decimal; UntilAmount: Decimal; OnlyReclassified: Boolean; OnlyBookValue: Boolean) Result: Decimal
     begin
+        case true of
+            UseCreditAmounts:
+                begin
+                    ClearAll();
+                    UseCreditAmounts := true;
+                end;
+            UseDebitAmounts:
+                begin
+                    ClearAll();
+                    UseDebitAmounts := true
+                end;
+            else
+                ClearAll();
+        end;
         if PostingType = 0 then
             exit(0);
         if EndingDate = 0D then
@@ -130,6 +148,8 @@ codeunit 5626 "FA General Report"
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Appreciation);
             FADeprBook.FieldNo("Custom 1"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Custom 1");
+            FADeprBook.FieldNo("Derogatory Amount"):
+                FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Derogatory);
             FADeprBook.FieldNo("Custom 2"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Custom 2");
             FADeprBook.FieldNo("Proceeds on Disposal"):
@@ -152,7 +172,10 @@ codeunit 5626 "FA General Report"
             Period::"at Ending Date":
                 FALedgEntry.SetRange("FA Posting Date", 0D, EndingDate);
         end;
-        FALedgEntry.CalcSums(Amount);
+        if (PostingType = FADeprBook.FieldNo("Derogatory Amount")) then
+            FALedgEntry.CalcSums(Amount, "Debit Amount", "Credit Amount")
+        else
+            FALedgEntry.CalcSums(Amount);
 
         if (PostingType = FADeprBook.FieldNo("Book Value")) or
            (PostingType = FADeprBook.FieldNo(Depreciation))
@@ -165,7 +188,17 @@ codeunit 5626 "FA General Report"
                 Period::"at Ending Date":
                     FALedgEntry.Amount := FALedgEntry.Amount + UntilAmount;
             end;
-        Result := FALedgEntry.Amount;
+        if (PostingType = FADeprBook.FieldNo("Derogatory Amount")) then begin
+            if UseCreditAmounts then begin
+                Clear(UseCreditAmounts);
+                Result := FALedgEntry."Credit Amount";
+            end;
+            if UseDebitAmounts then begin
+                Clear(UseDebitAmounts);
+                Result := FALedgEntry."Debit Amount";
+            end;
+        end else
+            Result := FALedgEntry.Amount;
 
         OnAfterCalcFAPostedAmount(FALedgEntry, PostingType, Period, BeforeAmount, UntilAmount, Result);
     end;
@@ -193,6 +226,8 @@ codeunit 5626 "FA General Report"
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Appreciation);
             FADeprBook.FieldNo("Custom 1"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Custom 1");
+            FADeprBook.FieldNo("Derogatory Amount"):
+                FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Derogatory);
             FADeprBook.FieldNo("Custom 2"):
                 FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Custom 2");
             FADeprBook.FieldNo("Proceeds on Disposal"):
@@ -289,6 +324,18 @@ codeunit 5626 "FA General Report"
     procedure SetExclReclEntries(ExclReclEntries1: Boolean)
     begin
         ExclReclEntries := ExclReclEntries1;
+    end;
+
+    [Scope('OnPrem')]
+    procedure SetSign(Sign: Boolean)
+    begin
+        if Sign = true then begin
+            UseCreditAmounts := true;
+            UseDebitAmounts := false
+        end else begin
+            UseCreditAmounts := false;
+            UseDebitAmounts := true;
+        end;
     end;
 
     [IntegrationEvent(false, false)]

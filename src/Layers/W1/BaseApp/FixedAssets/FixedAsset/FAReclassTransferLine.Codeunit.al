@@ -116,7 +116,10 @@ codeunit 5642 "FA Reclass. Transfer Line"
                 if j = 7 then
                     j := 9;
                 Convert(OldNewFA, j, FAPostingType, Sign, FANo);
-                i := FAPostingType.AsInteger() + 1;
+                if FAPostingType = FAPostingType::Derogatory then
+                    i := 7
+                else
+                    i := FAPostingType.AsInteger() + 1;
                 TemplateName := '';
                 BatchName := '';
                 if TransferType[i] and (Amounts[i] <> 0) then begin
@@ -154,6 +157,8 @@ codeunit 5642 "FA Reclass. Transfer Line"
             FADeprBook.CalcFields("Custom 1");
         if TransferType[6] then
             FADeprBook.CalcFields("Custom 2");
+        if TransferType[7] then
+            FADeprBook.CalcFields("Derogatory Amount");
         if TransferType[9] then
             FADeprBook.CalcFields("Salvage Value");
         Amounts[1] := FADeprBook."Acquisition Cost";
@@ -162,6 +167,7 @@ codeunit 5642 "FA Reclass. Transfer Line"
         Amounts[4] := FADeprBook.Appreciation;
         Amounts[5] := FADeprBook."Custom 1";
         Amounts[6] := FADeprBook."Custom 2";
+        Amounts[7] := FADeprBook."Derogatory Amount";
         Amounts[9] := FADeprBook."Salvage Value";
         OnCalcAmountsOnAfterSetAmounts(FADeprBook, Amounts, TransferType);
         if Amounts[1] = 0 then
@@ -192,6 +198,7 @@ codeunit 5642 "FA Reclass. Transfer Line"
         TransferType[4] := FAReclassJnlLine."Reclassify Appreciation";
         TransferType[5] := FAReclassJnlLine."Reclassify Custom 1";
         TransferType[6] := FAReclassJnlLine."Reclassify Custom 2";
+        TransferType[7] := FAReclassJnlLine."Reclass. Derogatory";
         TransferType[9] := FAReclassJnlLine."Reclassify Salvage Value";
     end;
 
@@ -232,6 +239,8 @@ codeunit 5642 "FA Reclass. Transfer Line"
                     FAPostingType := FAPostingType::"Custom 2";
                 6:
                     FAPostingType := FAPostingType::Appreciation;
+                7:
+                    FAPostingType := FAPostingType::Derogatory;
                 9:
                     FAPostingType := FAPostingType::"Acquisition Cost";
             end;
@@ -249,6 +258,8 @@ codeunit 5642 "FA Reclass. Transfer Line"
                     FAPostingType := FAPostingType::"Custom 1";
                 6:
                     FAPostingType := FAPostingType::"Custom 2";
+                7:
+                    FAPostingType := FAPostingType::Derogatory;
                 9:
                     FAPostingType := FAPostingType::Depreciation;
             end;

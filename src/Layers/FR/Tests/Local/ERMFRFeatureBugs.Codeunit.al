@@ -48,10 +48,8 @@ codeunit 144015 "ERM FR Feature Bugs"
     var
 #if not CLEAN28
         LibraryDimension: Codeunit "Library - Dimension";
-#endif
         LibraryERM: Codeunit "Library - ERM";
         LibraryFixedAsset: Codeunit "Library - Fixed Asset";
-#if not CLEAN28
         LibraryFRLocalization: Codeunit "Library - FR Localization";
 #endif
         LibraryInventory: Codeunit "Library - Inventory";
@@ -65,6 +63,7 @@ codeunit 144015 "ERM FR Feature Bugs"
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryRandom: Codeunit "Library - Random";
 
+#if not CLEAN28
     [Test]
     [Scope('OnPrem')]
     procedure BookValueAfterPostDepreciationAndDerogatoryFAJnl()
@@ -162,6 +161,7 @@ codeunit 144015 "ERM FR Feature Bugs"
         VerifyFALedgerEntries(
           FANo, FALedgerEntry."FA Posting Type"::Depreciation, CalcDate('<1Y>', WorkDate()), -AcquisitionCostAmount);
     end;
+#endif
 
     [Test]
     [HandlerFunctions('ItemTrackingPageHandler')]
@@ -191,6 +191,7 @@ codeunit 144015 "ERM FR Feature Bugs"
         VerifyItemLedgerEntry(ItemNo, -TrackingQuantity, Format(TrackingQuantity), SalesHeader."Sell-to Customer No.");
     end;
 
+#if not CLEAN28
     [Test]
     [HandlerFunctions('CalculateDepreciationRequestPageHandler,DepreciationCalcConfirmHandler')]
     [Scope('OnPrem')]
@@ -224,6 +225,7 @@ codeunit 144015 "ERM FR Feature Bugs"
         VerifyFALedgerEntries(
           FANo, FALedgerEntry."FA Posting Type"::Depreciation, CalcDate('<1Y>', WorkDate()), -AcquisitionCostAmount);
     end;
+#endif
 
     [Test]
     [HandlerFunctions('GetShipmentLinesPageHandler')]
@@ -444,6 +446,7 @@ codeunit 144015 "ERM FR Feature Bugs"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, false));  // Post as Ship Only.
     end;
 
+#if not CLEAN28
     local procedure CreateAndSetupDepreciationBook(var DepreciationBook: Record "Depreciation Book")
     var
         FAJournalSetup: Record "FA Journal Setup";
@@ -452,6 +455,7 @@ codeunit 144015 "ERM FR Feature Bugs"
         LibraryFixedAsset.CreateFAJournalSetup(FAJournalSetup, DepreciationBook.Code, '');
         UpdateFAJournalSetup(FAJournalSetup);
     end;
+#endif
 
 #if not CLEAN28
     [Obsolete('Moved to Payment app', '28.0')]
@@ -483,6 +487,7 @@ codeunit 144015 "ERM FR Feature Bugs"
         exit(Item."No.");
     end;
 
+#if not CLEAN28
     local procedure CreateDepreciationBookAndModifyDerogatoryCalculation(DerogatoryCalculation: Code[10]): Code[10]
     var
         DepreciationBook: Record "Depreciation Book";
@@ -564,6 +569,7 @@ codeunit 144015 "ERM FR Feature Bugs"
         LibraryERM.CreateGLAccount(GLAccount);
         exit(GLAccount."No.");
     end;
+#endif
 
     local procedure CreateItem(): Code[20]
     var
@@ -643,6 +649,7 @@ codeunit 144015 "ERM FR Feature Bugs"
     end;
 #endif
 
+#if not CLEAN28
     local procedure CreatePostDepreciationAndDerogatoryFAJournal(FANo: Code[20]; DepreciationBookCode: Code[10]; DepreciationAmount: Decimal; DerogatoryAmount: Decimal)
     var
         GenJournalLine: Record "Gen. Journal Line";
@@ -654,6 +661,7 @@ codeunit 144015 "ERM FR Feature Bugs"
           GenJournalLine, CalcDate('<1M>', WorkDate()), GenJournalLine."FA Posting Type"::Derogatory, FANo,
           DepreciationBookCode, -DerogatoryAmount);
     end;
+#endif
 
     local procedure CreateSalesDocument(var SalesHeader: Record "Sales Header"; var SalesLine: Record "Sales Line"; DocumentType: Enum "Sales Document Type"; CustomerNo: Code[20]; ItemNo: Code[20]; Quantity: Decimal)
     begin
@@ -719,6 +727,7 @@ codeunit 144015 "ERM FR Feature Bugs"
     end;
 #endif    
 
+#if not CLEAN28
     local procedure RunCalculateDepreciationReport(DepreciationBookCode: Code[10])
     begin
         LibraryVariableStorage.Enqueue(DepreciationBookCode);
@@ -775,6 +784,7 @@ codeunit 144015 "ERM FR Feature Bugs"
             FALedgerEntry.TestField(Amount, Amount);
         until FALedgerEntry.Next() = 0;
     end;
+#endif
 
     local procedure VerifyItemLedgerEntry(ItemNo: Code[20]; Quantity: Decimal; LotNo: Code[20]; SourceNo: Code[20])
     var

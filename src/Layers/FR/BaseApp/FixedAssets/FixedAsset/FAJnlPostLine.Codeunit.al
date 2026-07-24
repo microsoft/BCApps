@@ -137,7 +137,7 @@ codeunit 5632 "FA Jnl.-Post Line"
             MaintenanceLedgEntry."VAT Amount" := VATAmount;
             MaintenanceLedgEntry."Transaction No." := NextTransactionNo;
             MaintenanceLedgEntry."G/L Entry No." := NextGLEntryNo;
-                OnBeforePostMaintenanceFromGenJnlLine(GenJnlLine, FALedgEntry, FAAmount, VATAmount);
+            OnBeforePostMaintenanceFromGenJnlLine(GenJnlLine, FALedgEntry, FAAmount, VATAmount);
             PostMaintenance();
         end else begin
             MakeFALedgEntry.CopyFromGenJnlLine(FALedgEntry, GenJnlLine);

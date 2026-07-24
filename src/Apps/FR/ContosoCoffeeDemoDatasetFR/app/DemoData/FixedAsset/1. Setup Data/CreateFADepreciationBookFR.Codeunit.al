@@ -38,16 +38,39 @@ codeunit 10875 "Create FA Depreciation Book FR"
         DepreciationBook.Validate(Description, DepreciationDesc);
         DepreciationBook.Validate("Disposal Calculation Method", DisposalCalc);
         DepreciationBook.Validate("Use Rounding in Periodic Depr.", UseRoundingInPerodic);
-        DepreciationBook.Validate("G/L Integration - Derogatory", GLIntegrationDerogatory);
+#if not CLEAN28
+        if AcceleratedDeprFeature.IsEnabled() then
+            DepreciationBook.Validate("Integration G/L - Derogatory", GLIntegrationDerogatory)
+        else
+#pragma warning disable AL0432
+            DepreciationBook.Validate("G/L Integration - Derogatory", GLIntegrationDerogatory);
+#pragma warning restore AL0432
+#else
+        DepreciationBook.Validate("Integration G/L - Derogatory", GLIntegrationDerogatory);
+#endif
     end;
 
     local procedure ValidateFADepreciationBook(var DepreciationBook: Record "Depreciation Book"; DisposalCalc: Option; DerogatoryCalc: Code[10])
     begin
         DepreciationBook.Validate("Disposal Calculation Method", DisposalCalc);
-        DepreciationBook.Validate("Derogatory Calculation", DerogatoryCalc);
+#if not CLEAN28
+        if AcceleratedDeprFeature.IsEnabled() then
+            DepreciationBook.Validate("Derogatory Calc.", DerogatoryCalc)
+        else
+#pragma warning disable AL0432
+            DepreciationBook.Validate("Derogatory Calculation", DerogatoryCalc);
+#pragma warning restore AL0432
+#else
+        DepreciationBook.Validate("Derogatory Calc.", DerogatoryCalc);
+#endif
     end;
 
     var
+#if not CLEAN28
+#pragma warning disable AL0432
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#pragma warning restore AL0432
+#endif
         TaxTok: Label 'TAX', MaxLength = 10, Locked = true;
         CompanyDescLbl: Label 'Accounting Book', MaxLength = 100;
         DerogatoryBookLbl: Label 'Derogatory Book', MaxLength = 100;

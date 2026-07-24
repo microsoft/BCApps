@@ -347,6 +347,8 @@ codeunit 5631 "FA Jnl.-Check Line"
                 GLIntegration := DeprBook."G/L Integration - Disposal";
             FAPostingType::Maintenance:
                 GLIntegration := DeprBook."G/L Integration - Maintenance";
+            FAPostingType::Derogatory:
+                GLIntegration := DeprBook."Integration G/L - Derogatory";
             FAPostingType::"Salvage Value":
                 GLIntegration := false;
             FAPostingType::"Bonus Depreciation":
@@ -489,7 +491,7 @@ codeunit 5631 "FA Jnl.-Check Line"
                 if GenJnlLine."Depr. until FA Posting Date" then
                     GenJnlLine.FieldError("Depr. until FA Posting Date", FieldErrorText);
 
-            ShouldCheckNoOfDepreciationDays := (GenJnlLine."FA Posting Type" <> GenJnlLine."FA Posting Type"::Depreciation) and (GenJnlLine."FA Posting Type" <> GenJnlLine."FA Posting Type"::"Custom 1") and (GenJnlLine."No. of Depreciation Days" <> 0);
+            ShouldCheckNoOfDepreciationDays := (GenJnlLine."FA Posting Type" <> GenJnlLine."FA Posting Type"::Depreciation) and (GenJnlLine."FA Posting Type" <> GenJnlLine."FA Posting Type"::"Custom 1") and (GenJnlLine."No. of Depreciation Days" <> 0) and (GenJnlLine."FA Posting Type" <> GenJnlLine."FA Posting Type"::Derogatory);
             OnCheckConsistencyOnAfterCalcShouldCheckNoOfDepreciationDays(GenJnlLine, FieldErrorText, ShouldCheckNoOfDepreciationDays, FAJnlLine);
             if ShouldCheckNoOfDepreciationDays then
                 GenJnlLine.FieldError("No. of Depreciation Days", FieldErrorText);
@@ -551,7 +553,7 @@ codeunit 5631 "FA Jnl.-Check Line"
             then
                 FAJnlLine.FieldError("Maintenance Code", FieldErrorText);
 
-            ShouldCheckNoOfDepreciationDays := (FAJnlLine."FA Posting Type" <> FAJnlLine."FA Posting Type"::Depreciation) and (FAJnlLine."FA Posting Type" <> FAJnlLine."FA Posting Type"::"Custom 1") and (FAJnlLine."No. of Depreciation Days" <> 0);
+            ShouldCheckNoOfDepreciationDays := (FAJnlLine."FA Posting Type" <> FAJnlLine."FA Posting Type"::Depreciation) and (FAJnlLine."FA Posting Type" <> FAJnlLine."FA Posting Type"::"Custom 1") and (FAJnlLine."No. of Depreciation Days" <> 0) and (FAJnlLine."FA Posting Type" <> FAJnlLine."FA Posting Type"::Derogatory);
             OnCheckConsistencyOnAfterCalcShouldCheckNoOfDepreciationDays(GenJnlLine, FieldErrorText, ShouldCheckNoOfDepreciationDays, FAJnlLine);
             if ShouldCheckNoOfDepreciationDays then
                 FAJnlLine.FieldError("No. of Depreciation Days", FieldErrorText);

@@ -76,6 +76,11 @@ table 5644 "FA Posting Type"
             "FA Entry" := false;
             "G/L Entry" := true;
             InsertRec(12, FADepreciationBook.FieldNo("Book Value on Disposal"), FADepreciationBook.FieldCaption("Book Value on Disposal"));
+            "Entry No." := 13;
+            "FA Entry" := true;
+            "FA Posting Type No." := FADepreciationBook.FieldNo("Derogatory Amount");
+            "FA Posting Type Name" := FADepreciationBook.FieldCaption("Derogatory Amount");
+            Insert();
         end else begin
             SetCurrentKey("Entry No.");
             Find('-');
@@ -163,6 +168,15 @@ table 5644 "FA Posting Type"
                     then begin
                         Delete();
                         InsertRec(12, FADepreciationBook.FieldNo("Book Value on Disposal"), FADepreciationBook.FieldCaption("Book Value on Disposal"));
+                    end;
+                if "Entry No." = 13 then
+                    if ("FA Posting Type No." <> FADepreciationBook.FieldNo("Derogatory Amount")) or
+                       ("FA Posting Type Name" <> FADepreciationBook.FieldCaption("Derogatory Amount"))
+                    then begin
+                        Delete();
+                        "FA Posting Type No." := FADepreciationBook.FieldNo("Derogatory Amount");
+                        "FA Posting Type Name" := FADepreciationBook.FieldCaption("Derogatory Amount");
+                        Insert();
                     end;
             until Next() = 0;
         end;

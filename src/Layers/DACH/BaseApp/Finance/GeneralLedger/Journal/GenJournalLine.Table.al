@@ -210,6 +210,7 @@ table 81 "Gen. Journal Line"
 
                 if "Account No." = '' then begin
                     CleanLine();
+                    GetDerogatorySetup();
                     exit;
                 end;
 
@@ -582,6 +583,7 @@ table 81 "Gen. Journal Line"
             trigger OnValidate()
             begin
                 ValidateAmount();
+                GetDerogatorySetup();
             end;
         }
         /// <summary>
@@ -3350,6 +3352,7 @@ table 81 "Gen. Journal Line"
                     TestField("Maintenance Code", '');
                 GetFAVATSetup();
                 GetFAAddCurrExchRate();
+                GetDerogatorySetup();
             end;
         }
         /// <summary>
@@ -3365,6 +3368,7 @@ table 81 "Gen. Journal Line"
             var
                 FADeprBook: Record "FA Depreciation Book";
             begin
+                GetDerogatorySetup();
                 if "Depreciation Book Code" = '' then
                     exit;
 
@@ -3576,6 +3580,11 @@ table 81 "Gen. Journal Line"
                 if not ("Recurring Method" in ["Recurring Method"::"RF Reversing Fixed", "Recurring Method"::"RV Reversing Variable", "Recurring Method"::"RB Reversing Balance"]) then
                     FieldError("Recurring Method");
             end;
+        }
+        field(5865; "Is Derogatory"; Boolean)
+        {
+            Caption = 'Derogatory Line';
+            Editable = false;
         }
         /// <summary>
         /// Non-deductible VAT percentage for VAT compliance and partial VAT deduction calculations.
@@ -4079,6 +4088,8 @@ table 81 "Gen. Journal Line"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         GLSetupRead: Boolean;
+        DerogDeprBook: Record "Depreciation Book";
+        DerogFADeprBook: Record "FA Depreciation Book";
         Text11500: Label 'This change may affect payment discounts. Please verify the payment discount amount.';
         ExportAgainQst: Label 'One or more of the selected lines have already been exported. Do you want to export them again?';
         NothingToExportErr: Label 'There is nothing to export.';
@@ -5905,6 +5916,21 @@ table 81 "Gen. Journal Line"
         if not GLSetupRead then begin
             GLSetup.Get();
             GLSetupRead := true;
+        end;
+    end;
+
+    [Scope('OnPrem')]
+    procedure GetDerogatorySetup()
+    begin
+        "Is Derogatory" := false;
+        if ("Account Type" = "Account Type"::"Fixed Asset") and
+           ("Account No." <> '') and
+           ("Depreciation Book Code" <> '')
+        then begin
+            DerogDeprBook.SetRange("Derogatory Calc.", "Depreciation Book Code");
+            if DerogDeprBook.FindFirst() then
+                if DerogFADeprBook.Get("Account No.", DerogDeprBook.Code) then
+                    "Is Derogatory" := true;
         end;
     end;
 
@@ -8063,6 +8089,7 @@ table 81 "Gen. Journal Line"
         GetFADeprBook("Account No.");
         GetFAVATSetup();
         GetFAAddCurrExchRate();
+        GetDerogatorySetup();
 
         OnAfterAccountNoOnValidateGetFAAccount(Rec, FA, CurrFieldNo);
     end;

@@ -218,7 +218,16 @@ report 10817 "FA-Proj. Value (Derogatory) FR"
                 begin
                     SetRange("FA No.", "Fixed Asset"."No.");
                     SetRange("Depreciation Book Code", DeprBookCode);
-                    SetRange("Exclude Derogatory", false);
+#if not CLEAN28
+                    if AcceleratedDeprFeature.IsEnabled() then
+                        SetRange("Derogatory Excluded", false)
+                    else
+#pragma warning disable AL0432
+                        SetRange("Exclude Derogatory", false);
+#pragma warning restore AL0432
+#else
+                    SetRange("Derogatory Excluded", false);
+#endif
                     BookValue := 0;
                     FALedgerEntryDerogBookValue := 0;
                     if (IncludePostedFromFilter = 0D) or not PrintDetails then
@@ -769,6 +778,11 @@ report 10817 "FA-Proj. Value (Derogatory) FR"
         CalculateDepr: Codeunit "Calculate Depreciation";
         FADateCalculation: Codeunit "FA Date Calculation";
         DepreciationCalculation: Codeunit "Depreciation Calculation";
+#if not CLEAN28
+#pragma warning disable AL0432
+        AcceleratedDeprFeature: Codeunit "Accelerated Depr. Feature";
+#pragma warning restore AL0432        
+#endif
         DeprBookCode: Code[10];
         DerogDeprBookCode: Code[10];
         FAFilter: Text;
@@ -881,13 +895,34 @@ report 10817 "FA-Proj. Value (Derogatory) FR"
     local procedure TransferValues()
     begin
         // set base amount for the standard depreciation calculation (without Derogatory)
-        FADeprBook.CalcFields("Book Value", Depreciation, "Custom 1", Derogatory);
+#if not CLEAN28
+        if AcceleratedDeprFeature.IsEnabled() then
+            FADeprBook.CalcFields("Book Value", Depreciation, "Custom 1", "Derogatory Amount")
+        else
+#pragma warning disable AL0432
+            FADeprBook.CalcFields("Book Value", Depreciation, "Custom 1", Derogatory);
+#pragma warning restore AL0432
+#else
+        FADeprBook.CalcFields("Book Value", Depreciation, "Custom 1", "Derogatory Amount");
+#endif
         DateFromProjection := 0D;
         // if the asset has depreciations already, derogatory must be substracted from book value to avoid wrong derogatory calculation
         // no problem for standard assets because derogatory is then zero
         EntryAmounts[1] := FADeprBook."Book Value";
-        if HasDerogatorySetup then
-            EntryAmounts[1] -= FADeprBook.Derogatory;
+#if not CLEAN28
+        if AcceleratedDeprFeature.IsEnabled() then begin
+            if HasDerogatorySetup then
+                EntryAmounts[1] -= FADeprBook."Derogatory Amount";
+        end
+        else
+            if HasDerogatorySetup then
+#pragma warning disable AL0432
+                EntryAmounts[1] -= FADeprBook.Derogatory;
+#pragma warning restore AL0432
+#else
+                if HasDerogatorySetup then
+            EntryAmounts[1] -= FADeprBook."Derogatory Amount";
+#endif
         EntryAmounts[2] := FADeprBook."Custom 1";
         EntryAmounts[3] := DepreciationCalculation.DeprInFiscalYear("Fixed Asset"."No.", DeprBookCode, StartingDate);
         TotalBookValue[1] := TotalBookValue[1] + FADeprBook."Book Value";
@@ -1326,7 +1361,16 @@ report 10817 "FA-Proj. Value (Derogatory) FR"
     begin
         TotalDerogAssetsIncluded := false;
         DerogDepreciationBookCode := '';
-        DerogDepreciationBook.SetRange("Derogatory Calculation", DepreciationBookCode);
+#if not CLEAN28
+        if AcceleratedDeprFeature.IsEnabled() then
+            DerogDepreciationBook.SetRange("Derogatory Calc.", DepreciationBookCode)
+        else
+#pragma warning disable AL0432
+            DerogDepreciationBook.SetRange("Derogatory Calculation", DepreciationBookCode);
+#pragma warning restore AL0432
+#else
+        DerogDepreciationBook.SetRange("Derogatory Calc.", DepreciationBookCode);
+#endif
         if DerogDepreciationBook.FindFirst() then
             DerogDepreciationBookCode := DerogDepreciationBook.Code;
     end;

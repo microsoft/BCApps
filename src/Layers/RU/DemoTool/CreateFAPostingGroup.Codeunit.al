@@ -420,6 +420,10 @@ codeunit 101803 "Create FA Posting Group"
         "FA Posting Group".Validate("Maintenance Expense Account", CA.Convert("Acquisition Cost Account"));
         "FA Posting Group".Validate("Depreciation Expense Acc.", CA.Convert("Depreciation Expense Acc."));
         "FA Posting Group".Validate("Sales Bal. Acc.", CA.Convert("Sales Balance Account"));
+        "FA Posting Group".Validate("Derogatory Acc.", "FA Posting Group"."Accum. Depreciation Account");
+        "FA Posting Group".Validate("Derogatory Account (Decrease)", "FA Posting Group"."Accum. Depreciation Account");
+        "FA Posting Group".Validate("Derogatory Expense Acc.", "FA Posting Group"."Depreciation Expense Acc.");
+        "FA Posting Group".Validate("Derog. Bal. Account (Decrease)", "FA Posting Group"."Accum. Depreciation Account");
         "FA Posting Group".Description := CopyStr(Description, MaxStrLen("FA Posting Group".Description));
 
         "FA Posting Group".Insert();

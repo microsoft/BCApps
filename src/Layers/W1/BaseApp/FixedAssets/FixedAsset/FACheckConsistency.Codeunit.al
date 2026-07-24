@@ -87,6 +87,7 @@ codeunit 5606 "FA Check Consistency"
         DeprBasis: Decimal;
         SalvageValue: Decimal;
         NewAmount: Decimal;
+        DerogAmount: Decimal;
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470
@@ -146,6 +147,9 @@ codeunit 5606 "FA Check Consistency"
                     FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::"Salvage Value");
                     FALedgEntry.CalcSums(Amount);
                     SalvageValue := FALedgEntry.Amount;
+                    FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Derogatory);
+                    FALedgEntry.CalcSums(Amount);
+                    DerogAmount := FALedgEntry.Amount;
                     FALedgEntry.SetRange("FA Posting Type", FALedgEntry2."FA Posting Type");
                     FALedgEntry.CalcSums(Amount);
                     NewAmount := FALedgEntry.Amount;
@@ -164,6 +168,8 @@ codeunit 5606 "FA Check Consistency"
                                 if FALedgEntry."Part of Depreciable Basis" then
                                     DeprBasis := DeprBasis + FALedgEntry.Amount;
                             end;
+                            if FALedgEntry."FA Posting Type" = FALedgEntry."FA Posting Type"::Derogatory then
+                                DerogAmount := DerogAmount + FALedgEntry.Amount;
                             if FALedgEntry."FA Posting Type" = FALedgEntry."FA Posting Type"::"Salvage Value" then
                                 SalvageValue := SalvageValue + FALedgEntry.Amount;
                             if FALedgEntry."FA Posting Type" = FALedgEntry2."FA Posting Type" then
@@ -292,6 +298,8 @@ codeunit 5606 "FA Check Consistency"
                 FADeprBook."Last Appreciation Date" := MaxDate;
             FALedgEntry2."FA Posting Type"::"Custom 1":
                 FADeprBook."Last Custom 1 Date" := MaxDate;
+            FALedgEntry2."FA Posting Type"::Derogatory:
+                FADeprBook."Last Derogatory" := MaxDate;
             FALedgEntry2."FA Posting Type"::"Custom 2":
                 FADeprBook."Last Custom 2 Date" := MaxDate;
             FALedgEntry2."FA Posting Type"::"Proceeds on Disposal":
@@ -350,13 +358,14 @@ codeunit 5606 "FA Check Consistency"
                             CreatePostingTypeError();
                 end;
         end;
-        if BookValue + SalvageValue < 0 then
+        if BookValue + SalvageValue - DerogAmount < 0 then
             if not DeprBook."Allow Depr. below Zero" or
-               (FALedgEntry2."FA Posting Type" <> FALedgEntry2."FA Posting Type"::Depreciation)
+            ((FALedgEntry2."FA Posting Type" <> FALedgEntry2."FA Posting Type"::Depreciation) and
+                (FALedgEntry2."FA Posting Type" <> FALedgEntry2."FA Posting Type"::Derogatory))
             then
                 if not DeprBook."Allow Acq. Cost below Zero" or
-                   (FALedgEntry2."FA Posting Type" <> FALedgEntry2."FA Posting Type"::"Acquisition Cost") or
-                   not FALedgEntry2."Index Entry"
+                (FALedgEntry2."FA Posting Type" <> FALedgEntry2."FA Posting Type"::"Acquisition Cost") or
+                not FALedgEntry2."Index Entry"
                 then begin
                     if FALedgEntry2."Reclassification Entry" and (SalvageValue <> 0) then
                         Error(SalvageValueErr);
