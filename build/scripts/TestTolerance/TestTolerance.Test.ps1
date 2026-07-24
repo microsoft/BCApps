@@ -402,13 +402,26 @@ Describe "TestTolerance" {
             $result['ext-1::300::t1'].FailureDetail | Should -Be 's1'
         }
 
-        It "leaves UnstableSince empty for a newly unstable test with no prior entry" {
+        It "stamps UnstableSince with the provided run timestamp for a newly unstable test with no prior entry" {
             $failed = @{
                 'ext-1::300::t1' = [pscustomobject]@{ ExtensionId = 'ext-1'; CodeunitId = 300; CodeunitName = 'A'; TestMethod = 'T1'; FailureMessage = 'm' }
             }
 
+            $result = Update-UnstableTestsList -FailedTests $failed -UnstableSince '2026-05-05T00:00:00.0000000Z'
+            $result['ext-1::300::t1'].UnstableSince | Should -Be '2026-05-05T00:00:00.0000000Z'
+        }
+
+        It "defaults UnstableSince to the current UTC time for a newly unstable test when none is provided" {
+            $failed = @{
+                'ext-1::300::t1' = [pscustomobject]@{ ExtensionId = 'ext-1'; CodeunitId = 300; CodeunitName = 'A'; TestMethod = 'T1'; FailureMessage = 'm' }
+            }
+            $before = (Get-Date).ToUniversalTime()
+
             $result = Update-UnstableTestsList -FailedTests $failed
-            $result['ext-1::300::t1'].UnstableSince | Should -Be ''
+            $result['ext-1::300::t1'].UnstableSince | Should -Not -BeNullOrEmpty
+            $parsed = [datetimeoffset]::Parse($result['ext-1::300::t1'].UnstableSince).UtcDateTime
+            $parsed | Should -BeGreaterOrEqual $before.AddSeconds(-5)
+            $parsed | Should -BeLessOrEqual (Get-Date).ToUniversalTime().AddSeconds(5)
         }
 
         It "carries forward UnstableSince from the existing artifact for a still-unstable test (survives full recompute)" {

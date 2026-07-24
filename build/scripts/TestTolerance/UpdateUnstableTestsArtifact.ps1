@@ -98,7 +98,7 @@ try {
         $tests = @(Add-FailedTestsToUnstableTests -ExistingTests ([System.Collections.IList]$existingTests) -FailedTests $failedTests -Repository $repo -UnstableSince $now)
     }
     else {
-        $updatedTests = Update-UnstableTestsList -FailedTests $failedTests -RunCount $RunIds.Count -ExistingTests ([System.Collections.IList]$existingTests)
+        $updatedTests = Update-UnstableTestsList -FailedTests $failedTests -RunCount $RunIds.Count -ExistingTests ([System.Collections.IList]$existingTests) -UnstableSince $now
         $tests = @($updatedTests.Values | ForEach-Object { ConvertTo-UnstableTestEntry -Test $_ -Repository $repo -UnstableSince $now })
     }
 

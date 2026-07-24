@@ -712,6 +712,9 @@ function Receive-UnstableTestsArtifact {
 .Parameter ExistingTests
     The 'tests' array from the previous artifact (camelCase entries), used to preserve each still-unstable
     test's original 'unstableSince' across the full recompute.
+.Parameter UnstableSince
+    Timestamp assigned to a newly unstable test that has no prior entry. Defaults to the current UTC time;
+    callers pass a single value computed once per run so all newly stamped tests share it.
 #>
 function Update-UnstableTestsList {
     [CmdletBinding()]
@@ -722,7 +725,9 @@ function Update-UnstableTestsList {
 
         [int] $RunCount = 0,
 
-        [System.Collections.IList] $ExistingTests = @()
+        [System.Collections.IList] $ExistingTests = @(),
+
+        [string] $UnstableSince = ((Get-Date).ToUniversalTime().ToString('o'))
     )
 
     # Prior 'unstableSince' values keyed by test key, so an already-unstable test keeps its original
@@ -749,7 +754,7 @@ function Update-UnstableTestsList {
             SourceRunId    = if ($ft.PSObject.Properties['SourceRunId']) { $ft.SourceRunId } else { '' }
             Reason         = "Auto-detected: failed in at least 1 of the last $RunCount CI/CD run(s)"
             LinkedIssue    = ''
-            UnstableSince  = if ($existingSince.ContainsKey($key)) { $existingSince[$key] } else { '' }
+            UnstableSince  = if ($existingSince.ContainsKey($key)) { $existingSince[$key] } else { $UnstableSince }
         }
     }
 

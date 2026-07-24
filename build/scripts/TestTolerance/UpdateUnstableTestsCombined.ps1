@@ -114,7 +114,7 @@ try {
     $baseEntries = @()
     if ($cicdRunIds.Count -gt 0) {
         $cicdFailed = Get-FailedTestsFromRuns -RunIds $cicdRunIds -Repository $repo -WorkDirectory $cicdWorkDir
-        $recomputed = Update-UnstableTestsList -FailedTests $cicdFailed -RunCount $cicdRunIds.Count -ExistingTests ([System.Collections.IList]$existingTests)
+        $recomputed = Update-UnstableTestsList -FailedTests $cicdFailed -RunCount $cicdRunIds.Count -ExistingTests ([System.Collections.IList]$existingTests) -UnstableSince $now
         $baseEntries = @($recomputed.Values | ForEach-Object { ConvertTo-UnstableTestEntry -Test $_ -Repository $repo -UnstableSince $now })
         Write-Host "::endgroup::"
         Write-Host "::notice::Path A (CI/CD): recomputed $($baseEntries.Count) unstable test(s) from $($cicdRunIds.Count) run(s) on '$Branch'."
