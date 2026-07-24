@@ -42,7 +42,7 @@ table 8613 "Config. Package Table"
         }
         field(3; "Table Name"; Text[250])
         {
-            CalcFormula = lookup(AllObjWithCaption."Object Name" where("Object Type" = const(Table),
+            CalcFormula = lookup(AllObjWithCaption.Name where("Object Type" = const(Table),
                                                                         "Object ID" = field("Table ID")));
             Caption = 'Table Name';
             Editable = false;

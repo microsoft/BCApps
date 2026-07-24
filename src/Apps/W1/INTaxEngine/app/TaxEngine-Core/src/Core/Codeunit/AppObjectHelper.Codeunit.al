@@ -8,7 +8,7 @@ using System.Reflection;
 
 codeunit 20130 "App Object Helper"
 {
-    procedure GetObjectName(Type: ObjectType; ObjectID: Integer): Text[30];
+    procedure GetObjectName(Type: ObjectType; ObjectID: Integer): Text;
     var
         AllObj: Record AllObj;
     begin
@@ -19,7 +19,7 @@ codeunit 20130 "App Object Helper"
         AllObj.SetRange("Object Type", ObjectTypeToOption(Type));
         AllObj.SetRange("Object ID", ObjectID);
         if AllObj.FindFirst() then
-            exit(AllObj."Object Name");
+            exit(AllObj.Name);
     end;
 
     procedure GetFieldName(TableID: Integer; FieldID: Integer): Text[30];
@@ -156,7 +156,7 @@ codeunit 20130 "App Object Helper"
         end;
     end;
 
-    procedure SearchObject(Type: ObjectType; var ObjectID: Integer; var ObjectName: Text[30]);
+    procedure SearchObject(Type: ObjectType; var ObjectID: Integer; var ObjectName: Text);
     var
         AllObj: Record AllObj;
         TmpObjectID: Integer;
@@ -169,12 +169,12 @@ codeunit 20130 "App Object Helper"
         if IsInteger then
             AllObj.SetRange("Object ID", TmpObjectID)
         else begin
-            AllObj.SetCurrentKey("Object Type", "Object Name");
-            AllObj.SetFilter("Object Name", '%1', '@' + ObjectName + '*');
+            AllObj.SetCurrentKey("Object Type", Name);
+            AllObj.SetFilter(Name, '%1', '@' + ObjectName + '*');
         end;
         if AllObj.FindFirst() then begin
             ObjectID := AllObj."Object ID";
-            ObjectName := AllObj."Object Name";
+            ObjectName := AllObj.Name;
         end else
             if IsInteger and (TmpObjectID = 0) then begin
                 ObjectID := 0;
@@ -183,7 +183,7 @@ codeunit 20130 "App Object Helper"
                 Error(InvalidObjectNoErr, ObjectName);
     end;
 
-    procedure GetObjectID(Type: ObjectType; Name: Text[30]): Integer;
+    procedure GetObjectID(Type: ObjectType; Name: Text): Integer;
     var
         AllObj: Record AllObj;
     begin
@@ -192,12 +192,12 @@ codeunit 20130 "App Object Helper"
 
         AllObj.Reset();
         AllObj.SetRange("Object Type", ObjectTypeToOption(Type));
-        AllObj.SetRange("Object Name", Name);
+        AllObj.SetRange(Name, Name);
         if AllObj.FindFirst() then
             exit(AllObj."Object ID");
     end;
 
-    procedure OpenObjectLookup(Type: ObjectType; SearchText: Text; var ObjectID: Integer; var ObjectName: Text[30]);
+    procedure OpenObjectLookup(Type: ObjectType; SearchText: Text; var ObjectID: Integer; var ObjectName: Text);
     var
         AllObj: Record AllObj;
     begin
@@ -209,13 +209,13 @@ codeunit 20130 "App Object Helper"
             AllObj.Find('=');
         end else
             if SearchText <> '' then begin
-                AllObj."Object Name" := CopyStr(SearchText, 1, 30);
+                AllObj.Name := CopyStr(SearchText, 1, MaxStrLen(AllObj.Name));
                 AllObj.Find('<>=');
             end;
 
         if Page.RunModal(Page::"All Objects", AllObj) = Action::LookupOK then begin
             ObjectID := AllObj."Object ID";
-            ObjectName := AllObj."Object Name";
+            ObjectName := AllObj.Name;
         end;
     end;
 

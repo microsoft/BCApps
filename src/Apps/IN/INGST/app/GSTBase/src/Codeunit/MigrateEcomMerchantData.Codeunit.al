@@ -159,7 +159,7 @@ codeunit 18025 "Migrate Ecom Merchant Data"
 
         if TableID <> 0 then begin
             AllObj.Get(AllObj."Object Type"::Table, TableID);
-            TableName := AllObj."Object Name";
+            TableName := AllObj.Name;
         end;
 
         MigrationDialog.Update(1, TableName);

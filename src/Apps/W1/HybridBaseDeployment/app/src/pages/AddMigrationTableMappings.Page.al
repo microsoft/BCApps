@@ -174,7 +174,7 @@ page 40010 "Add Migration Table Mappings"
                     ToolTip = 'Specifies the ID of the destination table.';
                 }
 
-                field(ObjectName; Rec."Object Name")
+                field(ObjectName; Rec.Name)
                 {
                     ApplicationArea = All;
                     Caption = 'Name';
@@ -234,7 +234,7 @@ page 40010 "Add Migration Table Mappings"
         MigrationTableMapping."Data Per Company" := DataPerCompany;
 
         if MigrationTableMapping."Target Table Type" = TargetMigrationTableType::Table then
-            MigrationTableMapping."Table Name" := AllObj."Object Name"
+            MigrationTableMapping."Table Name" := AllObj.Name
         else
             MigrationTableMapping."Table Name" := CopyStr(SourceTableName, 1, MaxStrLen(MigrationTableMapping."Table Name"));
 

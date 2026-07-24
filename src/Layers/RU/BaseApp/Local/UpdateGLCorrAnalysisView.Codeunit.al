@@ -287,7 +287,7 @@ codeunit 14940 "Update G/L Corr. Analysis View"
         WinTotalCounter := 0;
         AllObj.Get(AllObj."Object Type"::Table, TableID);
         Window.Update(1, GLCorrAnalysisView.Code);
-        Window.Update(2, AllObj."Object Name");
+        Window.Update(2, AllObj.Name);
         Window.Update(3, 0);
         Window.Update(4, 0);
         Window.Update(5, 0);

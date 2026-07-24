@@ -26,7 +26,7 @@ table 5557 "Permission Conflicts"
         }
         field(5; "Object Name"; Text[249])
         {
-            CalcFormula = lookup(AllObjWithCaption."Object Name" where("Object Type" = field("Object Type"),
+            CalcFormula = lookup(AllObjWithCaption.Name where("Object Type" = field("Object Type"),
                                                                            "Object ID" = field("Object ID")));
             Caption = 'Object Name';
             FieldClass = FlowField;

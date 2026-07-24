@@ -426,7 +426,7 @@ table 469 "Workflow Webhook Subscription"
         AllObj.SetFilter("Object ID", Format(PageId));
         AllObj.SetFilter("Object Type", 'PAGE');
         AllObj.FindFirst();
-        exit(AllObj."Object Name");
+        exit(AllObj.Name);
     end;
 
     procedure GetUnableToParseEncodingErr(): Text
