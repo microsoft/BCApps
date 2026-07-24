@@ -47,7 +47,7 @@ $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
 Set-StrictMode -Version 2.0
 
-$scriptsRoot = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath '..', '..', 'build', 'scripts', 'TestTolerance'
+$scriptsRoot = Join-Path -Path $PSScriptRoot -ChildPath '..' -AdditionalChildPath '..', '..', 'eng', 'CI', 'TestTolerance'
 Import-Module (Join-Path -Path $scriptsRoot -ChildPath 'TestTolerance.psm1') -Force
 
 $outputPath = Join-Path -Path '.unstable-tests' -ChildPath 'unstable-tests.json'
