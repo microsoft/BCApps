@@ -63,7 +63,7 @@ tableextension 8065 "Purchase Line" extends "Purchase Line"
         exit(1);
     end;
 
-    internal procedure IsLineAttachedToBillingLine(): Boolean
+    procedure IsLineAttachedToBillingLine(): Boolean
     var
         BillingLine: Record "Billing Line";
     begin

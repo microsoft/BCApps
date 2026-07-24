@@ -331,7 +331,7 @@ tableextension 8054 "Sales Line" extends "Sales Line"
         exit(SalesServiceCommitment."Linked to No.");
     end;
 
-    internal procedure IsLineAttachedToBillingLine(): Boolean
+    procedure IsLineAttachedToBillingLine(): Boolean
     var
         BillingLine: Record "Billing Line";
     begin
