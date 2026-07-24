@@ -380,7 +380,10 @@ codeunit 2501 "Extension Marketplace"
     end;
 
     local procedure InstallApp(PackageId: Guid; AppId: Guid; ResponseURL: Text; lcid: Integer)
+    var
+        ExtensionInstallationImpl: Codeunit "Extension Installation Impl";
     begin
+        ExtensionInstallationImpl.CreatePreDeployedTargetReference(AppId, lcid);
         if not InstallApp(PackageId, ResponseURL, lcid) then
             exit;
 
