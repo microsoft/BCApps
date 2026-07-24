@@ -875,6 +875,161 @@
     "codeunitName": "Document Service Mock Tests"
   },
   {
+    "codeunitId": 144521,
+    "method": "DiffTaxAmountOnDeprBonusRecover",
+    "codeunitName": "ERM Tax Diff. Jnl. Posting"
+  },
+  {
+    "codeunitId": 144521,
+    "method": "AlreadyRecoveredDeprBonus",
+    "codeunitName": "ERM Tax Diff. Jnl. Posting"
+  },
+  {
+    "codeunitId": 144521,
+    "method": "DisposalDateLessThanPostingDate",
+    "codeunitName": "ERM Tax Diff. Jnl. Posting"
+  },
+  {
+    "codeunitId": 144521,
+    "method": "ChangedStartBalanceOfTaxDiff",
+    "codeunitName": "ERM Tax Diff. Jnl. Posting"
+  },
+  {
+    "codeunitId": 144523,
+    "method": "CheckTaxRegTerm",
+    "codeunitName": "ERM Tax Register Term Mgt."
+  },
+  {
+    "codeunitId": 144523,
+    "method": "CheckTaxRegLink",
+    "codeunitName": "ERM Tax Register Term Mgt."
+  },
+  {
+    "codeunitId": 144523,
+    "method": "CalculateTemplateEntry",
+    "codeunitName": "ERM Tax Register Term Mgt."
+  },
+  {
+    "codeunitId": 144523,
+    "method": "ShowExpressionValue_Norm",
+    "codeunitName": "ERM Tax Register Term Mgt."
+  },
+  {
+    "codeunitId": 144523,
+    "method": "ShowExpressionValue_TermWithNormFormula",
+    "codeunitName": "ERM Tax Register Term Mgt."
+  },
+  {
+    "codeunitId": 144523,
+    "method": "ShowExpressionValue_TermWithNetChangeFormula",
+    "codeunitName": "ERM Tax Register Term Mgt."
+  },
+  {
+    "codeunitId": 144523,
+    "method": "ShowExpressionValue_TermWithGLAccountFormula",
+    "codeunitName": "ERM Tax Register Term Mgt."
+  },
+  {
+    "codeunitId": 144523,
+    "method": "MakeTermExpressionText",
+    "codeunitName": "ERM Tax Register Term Mgt."
+  },
+  {
+    "codeunitId": 144524,
+    "method": "TaxCalcEntries",
+    "codeunitName": "ERM Tax Calc. Entries"
+  },
+  {
+    "codeunitId": 144524,
+    "method": "BuildTaxCalcCorresp",
+    "codeunitName": "ERM Tax Calc. Entries"
+  },
+  {
+    "codeunitId": 144525,
+    "method": "CalculateAssessedTaxQuarter",
+    "codeunitName": "Check Calculate Assessed Tax"
+  },
+  {
+    "codeunitId": 144525,
+    "method": "CalculateAssessedTaxYear",
+    "codeunitName": "Check Calculate Assessed Tax"
+  },
+  {
+    "codeunitId": 144525,
+    "method": "CalculateAssessedTaxWithRounding",
+    "codeunitName": "Check Calculate Assessed Tax"
+  },
+  {
+    "codeunitId": 144525,
+    "method": "CalculateAssessedTaxWithAllowance",
+    "codeunitName": "Check Calculate Assessed Tax"
+  },
+  {
+    "codeunitId": 144525,
+    "method": "CalculateAssessedTaxWithAllowanceDecimal",
+    "codeunitName": "Check Calculate Assessed Tax"
+  },
+  {
+    "codeunitId": 144526,
+    "method": "CalculateTaxItemEntries",
+    "codeunitName": "ERM Create Tax Calc. Item"
+  },
+  {
+    "codeunitId": 144527,
+    "method": "CalculateTaxFAEntries",
+    "codeunitName": "ERM Create Tax Calc. FA"
+  },
+  {
+    "codeunitId": 144528,
+    "method": "SaveChangesOnStatRepTableCellMappingPage",
+    "codeunitName": "ERM Stat. Repoting UT"
+  },
+  {
+    "codeunitId": 144528,
+    "method": "UT_XMLGetElementValueForBlankValue",
+    "codeunitName": "ERM Stat. Repoting UT"
+  },
+  {
+    "codeunitId": 144528,
+    "method": "UT_XMLGetElementValueForFillValue",
+    "codeunitName": "ERM Stat. Repoting UT"
+  },
+  {
+    "codeunitId": 144528,
+    "method": "OpenTaxAuthoritiesFromRecipientTaxAuthCodeInStatutoryReports",
+    "codeunitName": "ERM Stat. Repoting UT"
+  },
+  {
+    "codeunitId": 144528,
+    "method": "ReportDataCheckXmlValidationErrors",
+    "codeunitName": "ERM Stat. Repoting UT"
+  },
+  {
+    "codeunitId": 144528,
+    "method": "CreateReportHeaderWithOKEITypeOptionString",
+    "codeunitName": "ERM Stat. Repoting UT"
+  },
+  {
+    "codeunitId": 144529,
+    "method": "ExportStatutoryReportSettings_FSI_4",
+    "codeunitName": "ERM Stat. Reporting"
+  },
+  {
+    "codeunitId": 144529,
+    "method": "ExportStatutoryReportSettings_RSV_1",
+    "codeunitName": "ERM Stat. Reporting"
+  },
+  {
+    "codeunitId": 144529,
+    "method": "ExportStatutoryReportData_FSI_4",
+    "codeunitName": "ERM Stat. Reporting"
+  },
+  {
+    "codeunitId": 144529,
+    "method": "ExportStatutoryReportData_RSV_1",
+    "codeunitName": "ERM Stat. Reporting"
+  },
+  {
     "codeunitId": 134272,
     "method": "TestXE_XMLCurrencyImport",
     "codeunitName": "Currency Web Serv. E2E Tests"
