@@ -72,11 +72,11 @@ try {
     Write-Host "::notice::Observed $($failedTests.Count) distinct failed test(s) across $($RunIds.Count) run(s)."
 
     # --- 2. Build the unstable tests list (additive merge or full recompute) ---
-    # Single timestamp for this run so every newly stamped test shares the same 'unstableSince'.
+    # One timestamp per run, shared by every test that becomes unstable this run.
     $now = (Get-Date).ToUniversalTime().ToString('o')
 
-    # Load the existing artifact so each still-unstable test's 'unstableSince' timestamp can be preserved
-    # (carried forward when the list is recomputed or appended to) rather than reset to this run's time.
+    # Load the existing artifact so each still-unstable test keeps its original 'unstableSince'
+    # (carried forward through both the recompute and the additive merge).
     $existingPath = Receive-UnstableTestsArtifact -Branch $Branch -OutputDirectory $downloadDir
     $existingTests = @()
     if ($existingPath -and (Test-Path $existingPath)) {
@@ -99,7 +99,8 @@ try {
     }
     else {
         $updatedTests = Update-UnstableTestsList -FailedTests $failedTests -RunCount $RunIds.Count -ExistingTests ([System.Collections.IList]$existingTests) -UnstableSince $now
-        $tests = @($updatedTests.Values | ForEach-Object { ConvertTo-UnstableTestEntry -Test $_ -Repository $repo -UnstableSince $now })
+        # Entries already carry their 'unstableSince' (kept or stamped by Update-UnstableTestsList).
+        $tests = @($updatedTests.Values | ForEach-Object { ConvertTo-UnstableTestEntry -Test $_ -Repository $repo })
     }
 
     # --- 3. Write artifact ---

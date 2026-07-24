@@ -85,13 +85,11 @@ New-Item -ItemType Directory -Path $cicdWorkDir -Force | Out-Null
 New-Item -ItemType Directory -Path $prWorkDir -Force | Out-Null
 
 try {
-    # Single timestamp for this run so every newly stamped test shares the same 'unstableSince'.
+    # One timestamp per run, shared by every test that becomes unstable this run.
     $now = (Get-Date).ToUniversalTime().ToString('o')
 
-    # Load the existing artifact once. It serves two purposes: preserving each test's 'unstableSince'
-    # timestamp across the Path A full recompute (which rebuilds every entry from scratch, and would
-    # otherwise reset the timestamp to "now"), and acting as the fallback base list when there is no
-    # CI/CD window to recompute from.
+    # Load the existing artifact once: it carries each test's 'unstableSince' forward across the Path A
+    # recompute, and acts as the fallback base list when there is no CI/CD window to recompute from.
     $existingTests = @()
     $existingPath = Receive-UnstableTestsArtifact -Branch $Branch -OutputDirectory $existingDir
     if ($existingPath -and (Test-Path $existingPath)) {
@@ -115,7 +113,8 @@ try {
     if ($cicdRunIds.Count -gt 0) {
         $cicdFailed = Get-FailedTestsFromRuns -RunIds $cicdRunIds -Repository $repo -WorkDirectory $cicdWorkDir
         $recomputed = Update-UnstableTestsList -FailedTests $cicdFailed -RunCount $cicdRunIds.Count -ExistingTests ([System.Collections.IList]$existingTests) -UnstableSince $now
-        $baseEntries = @($recomputed.Values | ForEach-Object { ConvertTo-UnstableTestEntry -Test $_ -Repository $repo -UnstableSince $now })
+        # Entries already carry their 'unstableSince' (kept or stamped by Update-UnstableTestsList).
+        $baseEntries = @($recomputed.Values | ForEach-Object { ConvertTo-UnstableTestEntry -Test $_ -Repository $repo })
         Write-Host "::endgroup::"
         Write-Host "::notice::Path A (CI/CD): recomputed $($baseEntries.Count) unstable test(s) from $($cicdRunIds.Count) run(s) on '$Branch'."
     }

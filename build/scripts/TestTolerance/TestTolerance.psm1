@@ -693,15 +693,13 @@ function Receive-UnstableTestsArtifact {
     tests hashtable by marking every failed test key as unstable.
 
     Each returned entry is keyed by 'extensionId::codeunit::testMethod' and contains the test
-    identity fields plus an auto-detected reason of the form:
+    identity fields, an auto-detected reason of the form
       "Auto-detected: failed in at least 1 of the last <RunCount> CI/CD run(s)"
+    and the test's 'unstableSince' timestamp.
 
-    This function does not inspect passed tests; it transforms the supplied failed-test set into the
-    artifact format. It does, however, carry forward each test's 'unstableSince' from the previous
-    artifact (passed as 'ExistingTests'): because the sliding window rebuilds the list from scratch each
-    run, seeding UnstableSince here lets a test that was already unstable keep its original timestamp
-    instead of being restamped. Tests with no prior entry are left without a timestamp so the entry
-    builder stamps the current run time.
+    Because the sliding window rebuilds the list from scratch each run, a still-unstable test keeps the
+    'unstableSince' it had in the previous artifact ('ExistingTests'); a test that is unstable for the
+    first time is stamped with 'UnstableSince' (this run's time).
 
     Returns the updated hashtable keyed by 'extensionId::codeunit::testMethod'.
 
@@ -710,11 +708,11 @@ function Receive-UnstableTestsArtifact {
 .Parameter RunCount
     Number of CI/CD runs the window covered; used only to build the auto-detected reason text.
 .Parameter ExistingTests
-    The 'tests' array from the previous artifact (camelCase entries), used to preserve each still-unstable
-    test's original 'unstableSince' across the full recompute.
+    The 'tests' array from the previous artifact (camelCase entries), used to keep each still-unstable
+    test's original 'unstableSince' across the recompute.
 .Parameter UnstableSince
-    Timestamp assigned to a newly unstable test that has no prior entry. Defaults to the current UTC time;
-    callers pass a single value computed once per run so all newly stamped tests share it.
+    Timestamp stamped on a test that is unstable for the first time this run. Defaults to the current UTC
+    time; callers pass one value per run so every newly stamped test shares it.
 #>
 function Update-UnstableTestsList {
     [CmdletBinding()]
@@ -730,8 +728,8 @@ function Update-UnstableTestsList {
         [string] $UnstableSince = ((Get-Date).ToUniversalTime().ToString('o'))
     )
 
-    # Prior 'unstableSince' values keyed by test key, so an already-unstable test keeps its original
-    # timestamp when the list is recomputed from scratch.
+    # Prior 'unstableSince' values keyed by test key, so a still-unstable test keeps its original
+    # timestamp when the list is rebuilt from scratch.
     $existingSince = @{}
     foreach ($entry in $ExistingTests) {
         if ($null -eq $entry) { continue }
@@ -932,10 +930,10 @@ function Get-FailedTestsFromRuns {
     Update-UnstableTestsList). 'Reason' overrides the entry reason; when empty, the test's own Reason
     property (if any) is used. 'Repository' is used to build the sourceRunUrl from the test's SourceRunId.
 
-    The 'unstableSince' timestamp is stamped here, when the entry is created: if the test already carries
-    an UnstableSince value (e.g. preserved from the previous artifact), keep it; otherwise use the run
-    timestamp passed via 'UnstableSince'. Passing that value in (rather than reading the clock here) keeps
-    it identical for every entry created during the same run.
+    Every entry records 'unstableSince', the UTC time the test was first added to the list. A test that
+    already carries an UnstableSince (preserved from the previous artifact) keeps it; a test being added
+    for the first time is stamped with 'UnstableSince'. Passing that value in, rather than reading the
+    clock here, keeps it identical for every entry created during the same run.
 
 .Parameter Test
     A single failed/unstable test object with PascalCase properties.
