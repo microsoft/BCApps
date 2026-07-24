@@ -16,6 +16,12 @@
       "name": "User Permissions",
       "publisher": "Microsoft",
       "version": "29.0.0.0"
+    },
+    {
+      "id": "4992eeac-2fd3-4515-a50b-7336a332d47f",
+      "name": "Permission Sets",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
     }
   ],
   "screenshots": [],

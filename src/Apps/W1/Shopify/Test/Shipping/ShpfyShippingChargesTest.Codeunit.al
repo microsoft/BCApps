@@ -33,6 +33,7 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         IsInitialized: Boolean;
+        ShippingLineGIdTok: Label 'gid://shopify/ShippingLine/%1', Locked = true, Comment = '%1 = Shipping line id';
 
     trigger OnRun()
     begin
@@ -353,6 +354,209 @@ codeunit 139546 "Shpfy Shipping Charges Test"
             ShpfyShipmentMethodMapping."Shipping Charges No."
         );
     end;
+
+    [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
+    procedure UnitTestImportShippingTaxLineWithChannelLiableTrue()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        ShippingCharges: Codeunit "Shpfy Shipping Charges";
+        JShippingLines: JsonArray;
+        JTaxLines: JsonArray;
+        ShippingLineId: BigInteger;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [SCENARIO] The tax line of a shipping line is persisted against the shipping charge with all values preserved and Channel Liable = true.
+        Initialize();
+
+        // [GIVEN] Shopify Shop and an imported Shopify order
+        Shop := CommunicationMgt.GetShopRecord();
+        CreateImportedOrderHeader(OrderHeader);
+
+        // [GIVEN] A shipping line with a single tax line where channelLiable is true
+        ShippingLineId := LibraryRandom.RandInt(100000);
+        Clear(JTaxLines);
+        AddTaxLineToArray(JTaxLines, 'TAX1', ChannelLiableScenario::TrueValue);
+        AddShippingLine(JShippingLines, ShippingLineId, JTaxLines);
+
+        // [WHEN] Shipping cost infos are imported
+        ShippingCharges.UpdateShippingCostInfos(OrderHeader, JShippingLines);
+
+        // [THEN] A single tax line is stored against the shipping charge with all values preserved
+        OrderTaxLine.SetRange("Parent Id", ShippingLineId);
+        LibraryAssert.AreEqual(1, OrderTaxLine.Count(), 'Exactly one shipping tax line must be stored.');
+        OrderTaxLine.FindFirst();
+        LibraryAssert.AreEqual('TAX1', OrderTaxLine.Title, 'Shipping tax line title must be preserved.');
+        LibraryAssert.AreEqual(0.1, OrderTaxLine.Rate, 'Shipping tax line rate must be preserved.');
+        LibraryAssert.AreEqual(10, OrderTaxLine."Rate %", 'Shipping tax line rate percentage must be preserved.');
+        LibraryAssert.AreEqual(5, OrderTaxLine.Amount, 'Shipping tax line shop amount must be preserved.');
+        LibraryAssert.AreEqual(6, OrderTaxLine."Presentment Amount", 'Shipping tax line presentment amount must be preserved.');
+        LibraryAssert.IsTrue(OrderTaxLine."Channel Liable", 'Shipping tax line Channel Liable must be true.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
+    procedure UnitTestImportShippingTaxLineWithChannelLiableFalse()
+    var
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [SCENARIO] The Channel Liable flag of a shipping tax line is imported as false when explicitly set to false.
+        VerifyShippingTaxLineChannelLiable(ChannelLiableScenario::FalseValue, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
+    procedure UnitTestImportShippingTaxLineWithChannelLiableNull()
+    var
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [SCENARIO] A null channelLiable on a shipping tax line defaults to false.
+        VerifyShippingTaxLineChannelLiable(ChannelLiableScenario::NullValue, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
+    procedure UnitTestImportShippingTaxLineWithChannelLiableMissing()
+    var
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [SCENARIO] A missing channelLiable on a shipping tax line defaults to false.
+        VerifyShippingTaxLineChannelLiable(ChannelLiableScenario::Missing, false);
+    end;
+
+    [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
+    procedure UnitTestImportShippingTaxLinesForMultipleShippingLinesAreSeparated()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        ShippingCharges: Codeunit "Shpfy Shipping Charges";
+        JShippingLines: JsonArray;
+        JFirstTaxLines: JsonArray;
+        JSecondTaxLines: JsonArray;
+        FirstShippingLineId: BigInteger;
+        SecondShippingLineId: BigInteger;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [SCENARIO] Tax lines of multiple shipping lines are kept separated per shipping charge.
+        Initialize();
+
+        // [GIVEN] Shopify Shop and an imported Shopify order
+        Shop := CommunicationMgt.GetShopRecord();
+        CreateImportedOrderHeader(OrderHeader);
+
+        // [GIVEN] Two shipping lines: the first with two tax lines, the second with one
+        FirstShippingLineId := LibraryRandom.RandInt(100000);
+        SecondShippingLineId := LibraryRandom.RandInt(100000);
+
+        AddTaxLineToArray(JFirstTaxLines, 'TAX1', ChannelLiableScenario::TrueValue);
+        AddTaxLineToArray(JFirstTaxLines, 'TAX2', ChannelLiableScenario::FalseValue);
+        AddShippingLine(JShippingLines, FirstShippingLineId, JFirstTaxLines);
+
+        AddTaxLineToArray(JSecondTaxLines, 'TAX3', ChannelLiableScenario::TrueValue);
+        AddShippingLine(JShippingLines, SecondShippingLineId, JSecondTaxLines);
+
+        // [WHEN] Shipping cost infos are imported
+        ShippingCharges.UpdateShippingCostInfos(OrderHeader, JShippingLines);
+
+        // [THEN] Each shipping charge keeps its own tax lines
+        OrderTaxLine.SetRange("Parent Id", FirstShippingLineId);
+        LibraryAssert.AreEqual(2, OrderTaxLine.Count(), 'First shipping line must keep both tax lines.');
+        OrderTaxLine.SetRange("Parent Id", SecondShippingLineId);
+        LibraryAssert.AreEqual(1, OrderTaxLine.Count(), 'Second shipping line must keep its single tax line.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
+    procedure UnitTestReimportShippingTaxLinesReplacesWithoutDuplicates()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        ShippingCharges: Codeunit "Shpfy Shipping Charges";
+        JShippingLines: JsonArray;
+        JTaxLines: JsonArray;
+        ShippingLineId: BigInteger;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [SCENARIO] Reimporting the same shipping line replaces its tax lines without duplicates or stale rows.
+        Initialize();
+
+        // [GIVEN] Shopify Shop and an imported Shopify order
+        Shop := CommunicationMgt.GetShopRecord();
+        CreateImportedOrderHeader(OrderHeader);
+
+        // [GIVEN] A shipping line with two tax lines is imported
+        ShippingLineId := LibraryRandom.RandInt(100000);
+        Clear(JTaxLines);
+        AddTaxLineToArray(JTaxLines, 'TAX1', ChannelLiableScenario::TrueValue);
+        AddTaxLineToArray(JTaxLines, 'TAX2', ChannelLiableScenario::FalseValue);
+        AddShippingLine(JShippingLines, ShippingLineId, JTaxLines);
+        ShippingCharges.UpdateShippingCostInfos(OrderHeader, JShippingLines);
+
+        OrderTaxLine.SetRange("Parent Id", ShippingLineId);
+        LibraryAssert.AreEqual(2, OrderTaxLine.Count(), 'Two tax lines must be stored after the first import.');
+
+        // [WHEN] The same shipping line is reimported with a single tax line
+        Clear(JShippingLines);
+        Clear(JTaxLines);
+        AddTaxLineToArray(JTaxLines, 'TAX1', ChannelLiableScenario::TrueValue);
+        AddShippingLine(JShippingLines, ShippingLineId, JTaxLines);
+        ShippingCharges.UpdateShippingCostInfos(OrderHeader, JShippingLines);
+
+        // [THEN] The stale tax line is removed and no duplicates remain
+        OrderTaxLine.SetRange("Parent Id", ShippingLineId);
+        LibraryAssert.AreEqual(1, OrderTaxLine.Count(), 'Reimport must replace the tax lines without duplicates or stale rows.');
+        OrderTaxLine.FindFirst();
+        LibraryAssert.AreEqual('TAX1', OrderTaxLine.Title, 'The remaining tax line must be the reimported one.');
+    end;
+
+    [Test]
+    [HandlerFunctions('ShippingChargesHttpHandler')]
+    procedure UnitTestShippingTaxLinesRemovedWhenShippingLineRemoved()
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderShippingCharges: Record "Shpfy Order Shipping Charges";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        ShippingCharges: Codeunit "Shpfy Shipping Charges";
+        JShippingLines: JsonArray;
+        JFirstTaxLines: JsonArray;
+        JSecondTaxLines: JsonArray;
+        JReimportShippingLines: JsonArray;
+        JReimportTaxLines: JsonArray;
+        FirstShippingLineId: BigInteger;
+        SecondShippingLineId: BigInteger;
+        ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue;
+    begin
+        // [SCENARIO] When a shipping line is no longer returned by Shopify, its shipping charge and tax lines are removed.
+        Initialize();
+
+        // [GIVEN] Shopify Shop and an imported Shopify order
+        Shop := CommunicationMgt.GetShopRecord();
+        CreateImportedOrderHeader(OrderHeader);
+
+        // [GIVEN] Two shipping lines, each with a tax line, are imported
+        FirstShippingLineId := LibraryRandom.RandInt(100000);
+        SecondShippingLineId := LibraryRandom.RandInt(100000);
+
+        AddTaxLineToArray(JFirstTaxLines, 'TAX1', ChannelLiableScenario::TrueValue);
+        AddShippingLine(JShippingLines, FirstShippingLineId, JFirstTaxLines);
+        AddTaxLineToArray(JSecondTaxLines, 'TAX2', ChannelLiableScenario::FalseValue);
+        AddShippingLine(JShippingLines, SecondShippingLineId, JSecondTaxLines);
+        ShippingCharges.UpdateShippingCostInfos(OrderHeader, JShippingLines);
+
+        // [WHEN] Only the first shipping line is returned on reimport
+        AddTaxLineToArray(JReimportTaxLines, 'TAX1', ChannelLiableScenario::TrueValue);
+        AddShippingLine(JReimportShippingLines, FirstShippingLineId, JReimportTaxLines);
+        ShippingCharges.UpdateShippingCostInfos(OrderHeader, JReimportShippingLines);
+
+        // [THEN] The removed shipping charge and its tax lines are deleted
+        LibraryAssert.IsFalse(OrderShippingCharges.Get(SecondShippingLineId), 'The removed shipping charge must be deleted.');
+        OrderTaxLine.SetRange("Parent Id", SecondShippingLineId);
+        LibraryAssert.AreEqual(0, OrderTaxLine.Count(), 'Tax lines of the removed shipping line must be deleted.');
+        OrderTaxLine.SetRange("Parent Id", FirstShippingLineId);
+        LibraryAssert.AreEqual(1, OrderTaxLine.Count(), 'The remaining shipping line must keep its tax line.');
+    end;
     #endregion
 
     [HttpClientHandler]
@@ -465,6 +669,96 @@ codeunit 139546 "Shpfy Shipping Charges Test"
         OrderShippingCharges.Title := CopyStr(LibraryRandom.RandText(50), 1, MaxStrLen(OrderShippingCharges.Title));
         OrderShippingCharges.Amount := LibraryRandom.RandDec(10, 0);
         OrderShippingCharges.Insert(true);
+    end;
+
+    local procedure CreateImportedOrderHeader(var OrderHeader: Record "Shpfy Order Header")
+    var
+        ImportOrder: Codeunit "Shpfy Import Order";
+    begin
+        ImportOrder.SetShop(Shop.Code);
+        ImportShopifyOrder(Shop, OrderHeader, ImportOrder, false);
+    end;
+
+    local procedure VerifyShippingTaxLineChannelLiable(ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue; ExpectedChannelLiable: Boolean)
+    var
+        OrderHeader: Record "Shpfy Order Header";
+        OrderTaxLine: Record "Shpfy Order Tax Line";
+        ShippingCharges: Codeunit "Shpfy Shipping Charges";
+        JShippingLines: JsonArray;
+        JTaxLines: JsonArray;
+        ShippingLineId: BigInteger;
+    begin
+        Initialize();
+
+        // [GIVEN] Shopify Shop and an imported Shopify order
+        Shop := CommunicationMgt.GetShopRecord();
+        CreateImportedOrderHeader(OrderHeader);
+
+        // [GIVEN] A shipping line with a single tax line for the given channelLiable scenario
+        ShippingLineId := LibraryRandom.RandInt(100000);
+        Clear(JTaxLines);
+        AddTaxLineToArray(JTaxLines, 'TAX1', ChannelLiableScenario);
+        AddShippingLine(JShippingLines, ShippingLineId, JTaxLines);
+
+        // [WHEN] Shipping cost infos are imported
+        ShippingCharges.UpdateShippingCostInfos(OrderHeader, JShippingLines);
+
+        // [THEN] A tax line is stored with the expected Channel Liable value
+        OrderTaxLine.SetRange("Parent Id", ShippingLineId);
+        LibraryAssert.AreEqual(1, OrderTaxLine.Count(), 'Exactly one shipping tax line must be stored.');
+        OrderTaxLine.FindFirst();
+        LibraryAssert.AreEqual(ExpectedChannelLiable, OrderTaxLine."Channel Liable", 'Shipping tax line Channel Liable is not as expected.');
+    end;
+
+    local procedure AddShippingLine(var JShippingLines: JsonArray; ShippingLineId: BigInteger; JTaxLines: JsonArray)
+    var
+        JShippingLine: JsonObject;
+        JPriceSet: JsonObject;
+        JShopMoney: JsonObject;
+        JPresentmentMoney: JsonObject;
+    begin
+        JShippingLine.Add('id', StrSubstNo(ShippingLineGIdTok, ShippingLineId));
+        JShippingLine.Add('title', StrSubstNo('Shipping %1', ShippingLineId));
+        JShippingLine.Add('code', 'STD');
+        JShippingLine.Add('source', 'shopify');
+        JShopMoney.Add('amount', '20');
+        JPriceSet.Add('shopMoney', JShopMoney);
+        JPresentmentMoney.Add('amount', '24');
+        JPriceSet.Add('presentmentMoney', JPresentmentMoney);
+        JShippingLine.Add('originalPriceSet', JPriceSet);
+        JShippingLine.Add('taxLines', JTaxLines);
+        JShippingLines.Add(JShippingLine);
+    end;
+
+    local procedure AddTaxLineToArray(var JTaxLines: JsonArray; Title: Text; ChannelLiableScenario: Option Missing,TrueValue,FalseValue,NullValue)
+    var
+        JTaxLine: JsonObject;
+        JPriceSet: JsonObject;
+        JShopMoney: JsonObject;
+        JPresentmentMoney: JsonObject;
+        JNull: JsonValue;
+    begin
+        JTaxLine.Add('title', Title);
+        JTaxLine.Add('rate', 0.1);
+        JTaxLine.Add('ratePercentage', 10);
+        JShopMoney.Add('amount', '5');
+        JPriceSet.Add('shopMoney', JShopMoney);
+        JPresentmentMoney.Add('amount', '6');
+        JPriceSet.Add('presentmentMoney', JPresentmentMoney);
+        JTaxLine.Add('priceSet', JPriceSet);
+        case ChannelLiableScenario of
+            ChannelLiableScenario::TrueValue:
+                JTaxLine.Add('channelLiable', true);
+            ChannelLiableScenario::FalseValue:
+                JTaxLine.Add('channelLiable', false);
+            ChannelLiableScenario::NullValue:
+                begin
+                    JNull.SetValueToNull();
+                    JTaxLine.Add('channelLiable', JNull);
+                end;
+        // Missing: channelLiable is intentionally not added
+        end;
+        JTaxLines.Add(JTaxLine);
     end;
 
     local procedure CreateGLAccount(var GLAccount: Record "G/L Account")

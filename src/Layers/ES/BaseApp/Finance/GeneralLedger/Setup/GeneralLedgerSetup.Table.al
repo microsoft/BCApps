@@ -1771,22 +1771,6 @@ table 98 "General Ledger Setup"
             AllowedPostingDate := CalcDate('<+1D>', AllowedPostingDate);
     end;
 
-    [Scope('OnPrem')]
-    procedure CheckAdjustForPaymentDisc()
-    begin
-        VATPostingSetup.SetRange("Adjust for Payment Discount", true);
-        if VATPostingSetup.FindFirst() then
-            Error(
-              '%1 %2 %3 use %4.', VATPostingSetup.TableName,
-              VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group",
-              VATPostingSetup.FieldName("Adjust for Payment Discount"));
-        TaxJurisdiction.SetRange("Adjust for Payment Discount", true);
-        if TaxJurisdiction.FindFirst() then
-            Error(
-              '%1 %2 use %3.', TaxJurisdiction.TableName,
-              TaxJurisdiction.Code, TaxJurisdiction.FieldName("Adjust for Payment Discount"));
-    end;
-
     /// <summary>
     /// Updates global dimension number assignments for dimension values when changing global dimension configuration.
     /// </summary>
@@ -1865,6 +1849,22 @@ table 98 "General Ledger Setup"
 
         UseVATFieldRef := GeneralLedgerSetupRecordRef.Field(UseVATFieldNo);
         exit(UseVATFieldRef.Value);
+    end;
+
+    [Scope('OnPrem')]
+    procedure CheckAdjustForPaymentDisc()
+    begin
+        VATPostingSetup.SetRange("Adjust for Payment Discount", true);
+        if VATPostingSetup.FindFirst() then
+            Error(
+              '%1 %2 %3 use %4.', VATPostingSetup.TableName,
+              VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group",
+              VATPostingSetup.FieldName("Adjust for Payment Discount"));
+        TaxJurisdiction.SetRange("Adjust for Payment Discount", true);
+        if TaxJurisdiction.FindFirst() then
+            Error(
+              '%1 %2 use %3.', TaxJurisdiction.TableName,
+              TaxJurisdiction.Code, TaxJurisdiction.FieldName("Adjust for Payment Discount"));
     end;
 
     /// <summary>
