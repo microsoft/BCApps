@@ -55,5 +55,20 @@ codeunit 1293 "Isolated Storage Management"
 
         exit(ISOLATEDSTORAGE.SetEncrypted(CopyStr(Key, 1, 200), Value, Datascope));
     end;
+
+    [NonDebuggable]
+    [Scope('OnPrem')]
+    procedure Get("Key": Text; Datascope: DataScope; IsolationLevel: IsolationLevel; var Value: Text): Boolean
+    begin
+        Value := '';
+        exit(ISOLATEDSTORAGE.Get(CopyStr(Key, 1, 200), Datascope, IsolationLevel, Value));
+    end;
+
+    [Scope('OnPrem')]
+    procedure Get("Key": Text; Datascope: DataScope; IsolationLevel: IsolationLevel; var Value: SecretText): Boolean
+    begin
+        Clear(Value);
+        exit(ISOLATEDSTORAGE.Get(CopyStr(Key, 1, 200), Datascope, IsolationLevel, Value));
+    end;
 }
 
