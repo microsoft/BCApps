@@ -115,6 +115,168 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     end;
 
     [Test]
+    procedure ExportPostedSalesInvoiceInZUGFeRDFormatWithSecondServicePresent()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 8414] The ZUGFeRD export no longer looks the service up by format via FindLast;
+        // with a second ZUGFeRD service present the export still succeeds using the triggering service
+        // threaded through the ZUGFeRD Export Context.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice.
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+
+        // [GIVEN] A second ZUGFeRD service whose Code sorts after the triggering service.
+        CreateTrailingZUGFeRDService();
+
+        // [WHEN] Export ZUGFeRD Electronic Document using the triggering service.
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+        RemoveTrailingZUGFeRDServices();
+
+        // [THEN] ZUGFeRD Electronic Document is produced correctly.
+        VerifyHeaderData(SalesInvoiceHeader, TempXMLBuffer);
+    end;
+
+    [Test]
+    procedure ZUGFeRDExportContextCarriesServiceAndClearsOnStop()
+    var
+        ServiceFromContext: Record "E-Document Service";
+        ZUGFeRDExportContext: Codeunit "ZUGFeRD Export Context";
+    begin
+        // [SCENARIO 8414] The ZUGFeRD Export Context carries the triggering service between Start and
+        // Stop and clears it on Stop, so the plain report-print path never inherits a stale service.
+        Initialize();
+
+        // [GIVEN] No context is bound.
+        Assert.IsFalse(ZUGFeRDExportContext.HasContext(), 'No context should be bound before Start');
+
+        // [WHEN] The context is started but no service is pushed yet
+        ZUGFeRDExportContext.Start();
+
+        // [THEN] HasContext is still false - bound alone must not suppress the legacy fallback
+        Assert.IsFalse(ZUGFeRDExportContext.HasContext(), 'A started context without a service should not report a context');
+
+        // [WHEN] A blank service is pushed
+        Clear(ServiceFromContext);
+        ZUGFeRDExportContext.SetEDocumentService(ServiceFromContext);
+
+        // [THEN] The blank service is refused
+        Assert.IsFalse(ZUGFeRDExportContext.HasContext(), 'A blank service should be refused by the context');
+
+        // [WHEN] The triggering service is pushed.
+        ZUGFeRDExportContext.SetEDocumentService(EDocumentService);
+
+        // [THEN] The context is bound and returns the pushed service.
+        Assert.IsTrue(ZUGFeRDExportContext.HasContext(), 'Context should report a context once a real service is pushed');
+        ZUGFeRDExportContext.GetEDocumentService(ServiceFromContext);
+        Assert.AreEqual(EDocumentService.Code, ServiceFromContext.Code, 'Context should carry the triggering service');
+
+        // [WHEN] The context is stopped.
+        ZUGFeRDExportContext.Stop();
+
+        // [THEN] The context is no longer bound and returns no service (no leak to the plain-print path).
+        Clear(ServiceFromContext);
+        Assert.IsFalse(ZUGFeRDExportContext.HasContext(), 'Context should be cleared after Stop');
+        ZUGFeRDExportContext.GetEDocumentService(ServiceFromContext);
+        Assert.AreEqual('', ServiceFromContext.Code, 'No service should be returned once the context is stopped');
+    end;
+
+    [Test]
+    procedure ZUGFeRDBlankContextStillFallsBackToFindLastLookup()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        BlankEDocumentService: Record "E-Document Service";
+        TempRecordExportBuffer: Record "Record Export Buffer" temporary;
+        LegacyExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
+        ZUGFeRDExportContext: Codeunit "ZUGFeRD Export Context";
+        TrailingServiceCode: Code[20];
+    begin
+        // [SCENARIO 8414] A context that is started but only ever receives a blank service must not
+        // suppress the legacy FindLast fallback - otherwise the export would silently use a blank service.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice and a trailing ZUGFeRD service
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        TrailingServiceCode := CreateTrailingZUGFeRDService();
+
+        // [WHEN] The context is started and only a blank service is pushed, then the export runs
+        LibraryEDocDE.ClearCapturedEDocumentService();
+        BindSubscription(LibraryEDocDE);
+        ZUGFeRDExportContext.Start();
+        ZUGFeRDExportContext.SetEDocumentService(BlankEDocumentService);
+        TempRecordExportBuffer.RecordID := SalesInvoiceHeader.RecordId();
+        TempRecordExportBuffer."Electronic Document Format" := Format("E-Document Format"::ZUGFeRD);
+        TempRecordExportBuffer.Insert();
+        LegacyExportZUGFeRDDocument.Run(TempRecordExportBuffer);
+        ZUGFeRDExportContext.Stop();
+        UnbindSubscription(LibraryEDocDE);
+        RemoveTrailingZUGFeRDServices();
+
+        // [THEN] The legacy FindLast lookup still ran, so the event carried the trailing service
+        Assert.AreEqual(1, LibraryEDocDE.GetEDocumentServiceEventCount(), 'OnAfterFindEDocumentService should be raised once');
+        Assert.AreEqual(TrailingServiceCode, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'A blank context must not suppress the legacy FindLast fallback');
+    end;
+
+    [Test]
+    procedure OnAfterFindEDocumentServiceFiresWithProvidedServiceZUGFeRD()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+    begin
+        // [SCENARIO 8414] The obsolete OnAfterFindEDocumentService event still fires during the
+        // deprecation window and carries the service threaded through the ZUGFeRD Export Context.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice and a trailing ZUGFeRD service
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        CreateTrailingZUGFeRDService();
+
+        // [WHEN] Export through the format, which sets the context with the triggering service
+        LibraryEDocDE.ClearCapturedEDocumentService();
+        BindSubscription(LibraryEDocDE);
+        ExportInvoice(SalesInvoiceHeader, TempXMLBuffer);
+        UnbindSubscription(LibraryEDocDE);
+        RemoveTrailingZUGFeRDServices();
+
+        // [THEN] The event fired and carried the triggering service, not the trailing one
+        Assert.AreEqual(1, LibraryEDocDE.GetEDocumentServiceEventCount(), 'OnAfterFindEDocumentService should be raised once');
+        Assert.AreEqual(EDocumentService.Code, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'Event should carry the triggering service');
+    end;
+
+    [Test]
+    procedure OnAfterFindEDocumentServiceFiresOnLegacyPathZUGFeRD()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        TempRecordExportBuffer: Record "Record Export Buffer" temporary;
+        LegacyExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
+        TrailingServiceCode: Code[20];
+    begin
+        // [SCENARIO 8414] A legacy/customized report path that never sets the ZUGFeRD Export Context
+        // keeps the original behaviour: the FindLast lookup runs and the event fires with that service.
+        Initialize();
+
+        // [GIVEN] Create and Post Sales Invoice and a trailing ZUGFeRD service
+        SalesInvoiceHeader.Get(CreateAndPostSalesDocument("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        TrailingServiceCode := CreateTrailingZUGFeRDService();
+
+        // [WHEN] The export is run directly, so the context is never set
+        LibraryEDocDE.ClearCapturedEDocumentService();
+        BindSubscription(LibraryEDocDE);
+        TempRecordExportBuffer.RecordID := SalesInvoiceHeader.RecordId();
+        TempRecordExportBuffer."Electronic Document Format" := Format("E-Document Format"::ZUGFeRD);
+        TempRecordExportBuffer.Insert();
+        LegacyExportZUGFeRDDocument.Run(TempRecordExportBuffer);
+        UnbindSubscription(LibraryEDocDE);
+        RemoveTrailingZUGFeRDServices();
+
+        // [THEN] The event fired and carried the service resolved by FindLast
+        Assert.AreEqual(1, LibraryEDocDE.GetEDocumentServiceEventCount(), 'OnAfterFindEDocumentService should be raised once');
+        Assert.AreEqual(TrailingServiceCode, LibraryEDocDE.GetCapturedEDocumentServiceCode(), 'Event should carry the service resolved by FindLast');
+    end;
+
+    [Test]
     procedure ExportPostedSalesInvoiceInZUGFeRDFormatVerifyBuyerReferenceAsCustomerReference();
     var
         Customer: Record Customer;
@@ -2255,6 +2417,29 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         TempXMLBuffer.LoadFromStream(PdfAttachmentStream);
     end;
 
+    local procedure CreateTrailingZUGFeRDService(): Code[20]
+    var
+        TrailingEDocumentService: Record "E-Document Service";
+    begin
+        // Insert a second ZUGFeRD service whose Code sorts strictly after the triggering service, so
+        // that a FindLast() lookup by format would select this one instead of the triggering service.
+        RemoveTrailingZUGFeRDServices();
+        TrailingEDocumentService := EDocumentService;
+        TrailingEDocumentService.Code := CopyStr(CopyStr(EDocumentService.Code, 1, MaxStrLen(TrailingEDocumentService.Code) - 1) + 'Z', 1, MaxStrLen(TrailingEDocumentService.Code));
+        TrailingEDocumentService.Insert();
+        exit(TrailingEDocumentService.Code);
+    end;
+
+    local procedure RemoveTrailingZUGFeRDServices()
+    var
+        TrailingEDocumentService: Record "E-Document Service";
+    begin
+        // The export path commits under codeunit-level test isolation, so remove the extra service
+        // explicitly to keep the single-service assumption for the rest of the suite.
+        TrailingEDocumentService.SetFilter(Code, '<>%1', EDocumentService.Code);
+        TrailingEDocumentService.DeleteAll();
+    end;
+
     local procedure VerifyHeaderData(SalesInvoiceHeader: Record "Sales Invoice Header"; var TempXMLBuffer: Record "XML Buffer" temporary);
     var
         DocumentTok: Label '/rsm:CrossIndustryInvoice', Locked = true;
@@ -3122,8 +3307,13 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
     local procedure Initialize();
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"ZUGFeRD XML Document Tests");
-        if IsInitialized then
+        if IsInitialized then begin
+            // Self-heal: a prior test that asserted (and possibly failed) after inserting a trailing
+            // service leaves it behind under codeunit-level isolation. Remove it so every test starts
+            // from the single-service fixture regardless of a previous failure.
+            RemoveTrailingZUGFeRDServices();
             exit;
+        end;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"ZUGFeRD XML Document Tests");
         IsInitialized := true;
         CompanyInformation.Get();
