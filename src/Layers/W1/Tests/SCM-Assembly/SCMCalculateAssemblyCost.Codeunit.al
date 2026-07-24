@@ -7,6 +7,7 @@ namespace Microsoft.Assembly.Test;
 using Microsoft.Assembly.Document;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Setup;
+using Microsoft.Finance.VAT.Setup;
 using Microsoft.Inventory.BOM;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
@@ -15,6 +16,8 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Setup;
 using Microsoft.Manufacturing.StandardCost;
 using Microsoft.Projects.Resources.Resource;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
 using System.Environment.Configuration;
 
 codeunit 137911 "SCM Calculate Assembly Cost"
@@ -41,10 +44,15 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         NotificationLifecycleMgt: Codeunit "Notification Lifecycle Mgt.";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryPurchase: Codeunit "Library - Purchase";
         WorkDate2: Date;
+        VATBusPostingGroup: Code[20];
+        VATProdPostingGroup: Code[20];
         TEXT_PARENT: Label 'Parent';
         TEXT_CHILD: Label 'Child';
         TEXT_ItemA: Label 'ItemA';
+        AssemblyOutputCostDistortedErr: Label 'Running Calc. Assembly Std. Cost distorted the assembly output Cost Amount (Actual); a spurious Manufacturing Overhead variance was posted.';
+        AssemblyOutputIndirectCostErr: Label 'Running Calc. Assembly Std. Cost distorted the assembly output indirect (Manufacturing Overhead) cost; the Cost Amount (Actual) no longer matches the rolled standard overhead.';
         Initialized: Boolean;
 
     [Test]
@@ -501,6 +509,150 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         Assert.RecordCount(ValueEntry, 0);
     end;
 
+    [Test]
+    procedure CalcAssemblyStdCostDoesNotDistortAssemblyOutputActualCost()
+    var
+        AssemblyItem: Record Item;
+        ComponentItem: Record Item;
+        Resource: Record Resource;
+        BOMComponent: Record "BOM Component";
+        PurchRcptLine: Record "Purch. Rcpt. Line";
+        VATPostingSetup: Record "VAT Posting Setup";
+        OrderQty: Decimal;
+    begin
+        // [FEATURE] [Assembly] [Standard Cost] [Cost Adjustment] [Item Charge]
+        // [SCENARIO 640456] After an item charge changes the component cost, adjusting a standard-cost assembly
+        // whose "Indirect Cost %" has more than two decimals (1.12345) must not post a spurious Manufacturing
+        // Overhead variance on the assembly output. Such a variance drifts "Cost Amount (Actual)" away from the
+        // rolled standard cost.
+        Initialize();
+        // Adjustment must run only on the explicit "Adjust Cost - Item Entries" calls below, so that the exact
+        // posting sequence that reproduces the bug is preserved.
+        LibraryInventory.SetAutomaticCostAdjmtNever();
+        // The scenario is verified on value entries only. Disable automatic cost posting to G/L so the test does
+        // not depend on country-specific General Posting Setup G/L accounts (e.g. CH leaves accounts such as
+        // "Inventory Adjmt. Account"/"Overhead Applied Account" blank for the blank-Gen.-Bus./MANUFACT combo).
+        LibraryInventory.SetAutomaticCostPosting(false);
+        // Also disable expected cost posting to G/L so order posting never posts interim inventory values to G/L
+        // either. With both automatic and expected G/L cost posting off, no assembly/adjustment step posts to G/L,
+        // so no General Posting Setup account (Inventory Adjmt./Overhead Applied/...) is ever required.
+        LibraryInventory.SetExpectedCostPosting(false);
+
+        // Belt-and-suspenders: also fill the inventory/manufacturing accounts on every existing General Posting
+        // Setup combination (the assembly output/resource capacity postings use the blank-Gen.-Bus./MANUFACT combo,
+        // which some localizations such as DK leave incomplete) so the test never depends on country-specific setup.
+        EnsureAllGeneralPostingSetupAccounts();
+
+        // The purchase postings below (component receipt+invoice and freight item charge invoice) post to G/L and
+        // therefore need a VAT Posting Setup for the vendor's "VAT Bus. Posting Group" and the line's "VAT Prod.
+        // Posting Group". Some localizations (e.g. US/CA) have no matching combination for the default library
+        // groups, so create one explicit VAT Posting Setup and use it consistently for the vendor, items and
+        // item charge, keeping the test independent of country-specific VAT setup.
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
+        VATBusPostingGroup := VATPostingSetup."VAT Bus. Posting Group";
+        VATProdPostingGroup := VATPostingSetup."VAT Prod. Posting Group";
+
+        // [GIVEN] A standard-cost assembly item with a sub-cent "Indirect Cost %" (1.12345)
+        CreateItem(AssemblyItem, AssemblyItem."Costing Method"::Standard, AssemblyItem."Replenishment System"::Assembly, 0);
+        AssemblyItem.Validate("Indirect Cost %", 1.12345);
+        AssemblyItem.Modify(true);
+
+        // [GIVEN] A FIFO component (quantity per 10) and a resource (quantity per 2) on the assembly BOM
+        CreateItem(ComponentItem, ComponentItem."Costing Method"::FIFO, ComponentItem."Replenishment System"::Purchase, 0);
+        Resource.Get(LibraryKitting.CreateResourceWithNewUOM(1, 1));
+        // Align the resource's "Gen. Prod. Posting Group" with the assembly item's. The resource capacity posting
+        // during assembly output uses the assembly header's "Gen. Bus. Posting Group" together with the resource's
+        // "Gen. Prod. Posting Group"; in some localizations the resource defaults to a group (e.g. FREIGHT) that has
+        // no General Posting Setup for that Gen. Bus. group, so posting fails with "General Posting Setup does not
+        // exist". Reusing the assembly item's group guarantees a valid combination (the assembly output posts with
+        // the same pair) whose accounts EnsureAllGeneralPostingSetupAccounts has already filled.
+        Resource.Validate("Gen. Prod. Posting Group", AssemblyItem."Gen. Prod. Posting Group");
+        Resource.Modify(true);
+        LibraryKitting.CreateBOMComponentLine(
+          AssemblyItem, BOMComponent.Type::Item, ComponentItem."No.", 10, ComponentItem."Base Unit of Measure", false);
+        LibraryKitting.CreateBOMComponentLine(
+          AssemblyItem, BOMComponent.Type::Resource, Resource."No.", 2, Resource."Base Unit of Measure", false);
+
+        // [GIVEN] The component is purchased (1000 @ 1.00), cost adjusted, and the assembly standard cost is calculated
+        PostPurchaseOrderReceiveInvoice(ComponentItem."No.", 1000, 1.0, PurchRcptLine);
+        LibraryCosting.AdjustCostItemEntries(ComponentItem."No.", '');
+        CalculateAssemblyStandardCost(AssemblyItem."No.");
+
+        // [GIVEN] An assembly order (qty 10) is posted and cost is adjusted
+        OrderQty := 10;
+        CreateAndPostAssemblyHeader(AssemblyItem."No.", OrderQty, WorkDate2);
+        LibraryCosting.AdjustCostItemEntries(AssemblyItem."No.", '');
+
+        // [WHEN] A freight item charge (1000 @ 1.00) is assigned to the component receipt, the assembly standard
+        // cost is recalculated (this intermediate recalculation is what reproduces the bug - the reported issue
+        // only occurs when Calc. Assembly Std. Cost runs between the two cost adjustments), and cost is adjusted
+        PostFreightChargeToReceipt(PurchRcptLine, 1000, 1.0);
+        CalculateAssemblyStandardCost(AssemblyItem."No.");
+        LibraryCosting.AdjustCostItemEntries(AssemblyItem."No.", '');
+
+        // [THEN] No spurious Manufacturing Overhead variance is posted on the assembly output
+        Assert.AreEqual(
+          0, GetAssemblyOutputOverheadVarianceCount(AssemblyItem."No."),
+          AssemblyOutputCostDistortedErr);
+
+        // [THEN] The customer-visible indirect (Manufacturing Overhead) cost on the assembly output equals the
+        // rolled standard overhead (1.12). This asserts the actual end-state Cost Amount (Actual) of the overhead
+        // against the rolled standard cost, so the test fails if the overhead drifts to an incorrect amount
+        // (e.g. 1.17 as reported in the bug) rather than only checking for the absence of a variance entry.
+        AssemblyItem.Get(AssemblyItem."No.");
+        Assert.AreEqual(
+          ExpectedRolledIndirectCost(AssemblyItem, OrderQty),
+          GetAssemblyOutputIndirectCostAmount(AssemblyItem."No."),
+          AssemblyOutputIndirectCostErr);
+    end;
+
+    local procedure GetAssemblyOutputOverheadVarianceCount(ItemNo: Code[20]): Integer
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        ValueEntry.SetRange("Item No.", ItemNo);
+        ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::"Assembly Output");
+        ValueEntry.SetRange("Entry Type", ValueEntry."Entry Type"::Variance);
+        ValueEntry.SetRange("Variance Type", ValueEntry."Variance Type"::"Manufacturing Overhead");
+        exit(ValueEntry.Count());
+    end;
+
+    local procedure GetAssemblyOutputIndirectCostAmount(ItemNo: Code[20]) IndirectCost: Decimal
+    var
+        ValueEntry: Record "Value Entry";
+    begin
+        // The customer-visible manufacturing overhead on the assembly output is the sum of the applied indirect
+        // cost value entries and any Manufacturing Overhead variance entries. A spurious variance (the bug) drifts
+        // this total away from the rolled standard overhead.
+        ValueEntry.SetRange("Item No.", ItemNo);
+        ValueEntry.SetRange("Item Ledger Entry Type", ValueEntry."Item Ledger Entry Type"::"Assembly Output");
+        ValueEntry.SetFilter(
+          "Entry Type", '%1|%2', ValueEntry."Entry Type"::"Indirect Cost", ValueEntry."Entry Type"::Variance);
+        ValueEntry.SetLoadFields("Entry Type", "Variance Type", "Cost Amount (Actual)");
+        if ValueEntry.FindSet() then
+            repeat
+                if (ValueEntry."Entry Type" = ValueEntry."Entry Type"::"Indirect Cost") or
+                   (ValueEntry."Variance Type" = ValueEntry."Variance Type"::"Manufacturing Overhead")
+                then
+                    IndirectCost += ValueEntry."Cost Amount (Actual)";
+            until ValueEntry.Next() = 0;
+    end;
+
+    local procedure ExpectedRolledIndirectCost(Item: Record Item; Qty: Decimal): Decimal
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        DirectCostShare: Decimal;
+    begin
+        // Recreate the rolled standard overhead the same way CalcOvhdCost does: "Indirect Cost %" applied to the
+        // standard material/capacity direct-cost shares (which stay stable across cost adjustments), scaled to the
+        // posted output quantity and rounded once to the amount rounding precision.
+        GeneralLedgerSetup.Get();
+        DirectCostShare :=
+          (Item."Single-Level Material Cost" + Item."Single-Level Capacity Cost" +
+           Item."Single-Level Subcontrd. Cost" + Item."Single-Level Cap. Ovhd Cost") * Qty;
+        exit(Round(DirectCostShare * Item."Indirect Cost %" / 100, GeneralLedgerSetup."Amount Rounding Precision"));
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"SCM Calculate Assembly Cost");
@@ -565,7 +717,23 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         Item.Validate("Costing Method", CostingMethod);
         Item.Validate("Replenishment System", ReplenishmentSystem);
         Item.Validate("Standard Cost", StandardCostAmt);
+        Item.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
         Item.Modify(true);
+    end;
+
+    local procedure EnsureAllGeneralPostingSetupAccounts()
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+    begin
+        // Fill the inventory/manufacturing accounts on every existing General Posting Setup combination so cost
+        // adjustment/assembly posting does not depend on country-specific demo data leaving accounts blank
+        // (e.g. the blank-Gen.-Bus./MANUFACT combo used by resource capacity postings in DK/CH).
+        if GeneralPostingSetup.FindSet() then
+            repeat
+                LibraryERM.SetGeneralPostingSetupInvtAccounts(GeneralPostingSetup);
+                LibraryERM.SetGeneralPostingSetupMfgAccounts(GeneralPostingSetup);
+                GeneralPostingSetup.Modify(true);
+            until GeneralPostingSetup.Next() = 0;
     end;
 
     local procedure PostPositiveAdjustment(ItemNo: Code[20]; Qty: Decimal)
@@ -607,6 +775,70 @@ codeunit 137911 "SCM Calculate Assembly Cost"
         TestItem.Get(ItemNo);
         Assert.AreEqual(TestItem."Standard Cost", Expected,
           StrSubstNo('Standard cost is wrong for %1, Expected %2 got %3', TestItem."No.", Expected, TestItem."Standard Cost"))
+    end;
+
+    local procedure PostPurchaseOrderReceiveInvoice(ItemNo: Code[20]; Quantity: Decimal; DirectUnitCost: Decimal; var PurchRcptLine: Record "Purch. Rcpt. Line")
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        LibraryPurchase.CreatePurchHeader(
+          PurchaseHeader, PurchaseHeader."Document Type"::Order, LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATBusPostingGroup));
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, Quantity);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Modify(true);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        PurchRcptLine.SetRange("Order No.", PurchaseHeader."No.");
+        PurchRcptLine.SetRange("No.", ItemNo);
+        PurchRcptLine.FindFirst();
+    end;
+
+    local procedure PostFreightChargeToReceipt(PurchRcptLine: Record "Purch. Rcpt. Line"; Quantity: Decimal; DirectUnitCost: Decimal)
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        LibraryPurchase.CreatePurchHeader(
+          PurchaseHeader, PurchaseHeader."Document Type"::Invoice, LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATBusPostingGroup));
+        LibraryPurchase.CreatePurchaseLine(
+          PurchaseLine, PurchaseHeader, PurchaseLine.Type::"Charge (Item)", CreateItemChargeNoWithVATProdGroup(), Quantity);
+        PurchaseLine.Validate("Direct Unit Cost", DirectUnitCost);
+        PurchaseLine.Modify(true);
+        AssignItemChargeToReceipt(PurchaseLine, PurchRcptLine);
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, false, true);
+    end;
+
+    local procedure CreateItemChargeNoWithVATProdGroup(): Code[20]
+    var
+        ItemCharge: Record "Item Charge";
+    begin
+        // Use the test's own VAT Posting Setup so the freight invoice posts in every localization (the default
+        // library item charge picks a zero-VAT setup whose VAT Prod. Posting Group is blank in US/CA).
+        ItemCharge.Get(LibraryInventory.CreateItemChargeNoWithoutVAT());
+        ItemCharge.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
+        ItemCharge.Modify(true);
+        exit(ItemCharge."No.");
+    end;
+
+    local procedure AssignItemChargeToReceipt(PurchaseLine: Record "Purchase Line"; PurchRcptLine: Record "Purch. Rcpt. Line")
+    var
+        ItemChargeAssgntPurch: Record "Item Charge Assignment (Purch)";
+    begin
+        ItemChargeAssgntPurch.Init();
+        ItemChargeAssgntPurch."Document Type" := PurchaseLine."Document Type";
+        ItemChargeAssgntPurch."Document No." := PurchaseLine."Document No.";
+        ItemChargeAssgntPurch."Document Line No." := PurchaseLine."Line No.";
+        ItemChargeAssgntPurch."Line No." := 10000;
+        ItemChargeAssgntPurch."Item Charge No." := PurchaseLine."No.";
+        ItemChargeAssgntPurch."Applies-to Doc. Type" := ItemChargeAssgntPurch."Applies-to Doc. Type"::Receipt;
+        ItemChargeAssgntPurch."Applies-to Doc. No." := PurchRcptLine."Document No.";
+        ItemChargeAssgntPurch."Applies-to Doc. Line No." := PurchRcptLine."Line No.";
+        ItemChargeAssgntPurch."Item No." := PurchRcptLine."No.";
+        ItemChargeAssgntPurch."Unit Cost" := PurchaseLine."Direct Unit Cost";
+        ItemChargeAssgntPurch.Insert();
+        ItemChargeAssgntPurch.Validate("Qty. to Assign", PurchaseLine.Quantity);
+        ItemChargeAssgntPurch.Modify(true);
     end;
 
     local procedure ValidateUnitCost(ItemNo: Code[20]; Expected: Decimal)

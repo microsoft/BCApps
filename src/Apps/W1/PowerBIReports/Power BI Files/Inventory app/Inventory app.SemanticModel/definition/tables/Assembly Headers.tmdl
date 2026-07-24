@@ -20,14 +20,22 @@ table 'Assembly Headers'
 			
 			VAR Endpoint = "&page=902&"
 			VAR BaseLink = [Base Link] & Endpoint
-			// Filter Context
-			VAR Items = CONCATENATEX(VALUES('Assembly Headers'[itemNo]),'Assembly Headers'[itemNo], "|")
-			VAR DimensionSetIDs = CONCATENATEX(VALUES('Assembly Headers'[dimensionSetID]), 'Assembly Headers'[dimensionSetID], "|")
-			
-			VAR ItemFilter = "filter='Assembly Header'.'Item No.' IS '" & Items & "'"
-			VAR DimensionFilter = " AND 'Assembly Header'.'Dimension Set ID' IS '" & DimensionSetIDs & "'"
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( BaseLink )
+			    + LEN ( "filter='Assembly Header'.'Item No.' IS ''" )
+			    + SUMX ( VALUES ( 'Assembly Headers'[itemNo] ), LEN ( 'Assembly Headers'[itemNo] ) + 1 )
+			    + LEN ( " AND 'Assembly Header'.'Dimension Set ID' IS ''" )
+			    + SUMX ( VALUES ( 'Assembly Headers'[dimensionSetID] ), LEN ( 'Assembly Headers'[dimensionSetID] ) + 1 )
 			RETURN
-			BaseLink & ItemFilter & DimensionFilter
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        BaseLink
+			            & "filter='Assembly Header'.'Item No.' IS '" & CONCATENATEX(VALUES('Assembly Headers'[itemNo]),'Assembly Headers'[itemNo], "|") & "'"
+			            & " AND 'Assembly Header'.'Dimension Set ID' IS '" & CONCATENATEX(VALUES('Assembly Headers'[dimensionSetID]), 'Assembly Headers'[dimensionSetID], "|") & "'",
+			BaseLink
+			    )
 		lineageTag: 3d92849b-6824-4e15-901a-75d98078471d
 
 	column itemNo

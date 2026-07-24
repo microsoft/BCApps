@@ -6,7 +6,9 @@ namespace Microsoft.eServices.EDocument;
 
 using Microsoft.eServices.EDocument.IO.Peppol;
 using Microsoft.eServices.EDocument.OrderMatch;
+#if not CLEAN29
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
+#endif
 using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
@@ -41,7 +43,9 @@ permissionset 6105 "E-Doc. Core - User"
     #endregion Logging
         tabledata "E-Doc. Imported Line" = IMD,
         tabledata "E-Doc. Order Match" = IMD,
+#if not CLEAN29
         tabledata "E-Doc. PO Match Prop. Buffer" = IMD,
+#endif
         tabledata "Service Participant" = IMD,
     #region Purchase draft
         tabledata "E-Doc. Import Parameters" = IMD,
