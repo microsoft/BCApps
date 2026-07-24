@@ -2345,6 +2345,63 @@ codeunit 148017 "FEC Audit File Export Tests"
         VerifyExportGLEntriesReport(GLRegister, AuditFile, '', BankAccount."No.", BankAccount.Name);
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerYes')]
+    procedure PaymentDiscountLineHasCustomerInfo()
+    var
+        Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
+        CustLedgerEntry: Record "Cust. Ledger Entry";
+        GenJournalBatch: Record "Gen. Journal Batch";
+        AuditFile: Record "Audit File";
+        iStream: InStream;
+        StartingDate: Date;
+        InvoiceDocNo: Code[20];
+        PaymentDocNo: Code[20];
+        InvoiceAmount: Decimal;
+        DiscountAmount: Decimal;
+        PmtDiscAccountNo: Code[20];
+    begin
+        // [SCENARIO 639574] CompAuxNum and CompAuxLib are informed for Payment Discount lines in the French Audit File
+        Initialize();
+        StartingDate := GetStartingDate();
+
+        // [GIVEN] Customer with a payment-discount payment term whose posting group has a Payment Disc. Debit Acc.
+        CreateCustomer(Customer);
+        CustomerPostingGroup.Get(Customer."Customer Posting Group");
+        if CustomerPostingGroup."Payment Disc. Debit Acc." = '' then begin
+            CustomerPostingGroup.Validate("Payment Disc. Debit Acc.", LibraryERM.CreateGLAccountNo());
+            CustomerPostingGroup.Modify(true);
+        end;
+        PmtDiscAccountNo := CustomerPostingGroup."Payment Disc. Debit Acc.";
+
+        // [GIVEN] A posted sales invoice with a possible payment discount
+        CreateGenJournalBatch(GenJournalBatch);
+        InvoiceAmount := LibraryRandom.RandDecInRange(1000, 2000, 2);
+        InvoiceDocNo :=
+          CreateGenJournalLine(GenJournalBatch, "Gen. Journal Document Type"::Invoice, "Gen. Journal Account Type"::Customer,
+            Customer."No.", StartingDate, InvoiceAmount);
+        LibraryERM.FindCustomerLedgerEntry(CustLedgerEntry, "Gen. Journal Document Type"::Invoice, InvoiceDocNo);
+        DiscountAmount := CustLedgerEntry."Original Pmt. Disc. Possible";
+        Assert.IsTrue(DiscountAmount > 0, 'The posted invoice should have a possible payment discount.');
+
+        // [GIVEN] A payment for (invoice amount - discount) applied to the invoice within the discount date, so the discount is granted
+        PaymentDocNo :=
+          CreateGenJournalLine(GenJournalBatch, "Gen. Journal Document Type"::Payment, "Gen. Journal Account Type"::Customer,
+            Customer."No.", StartingDate, -(InvoiceAmount - DiscountAmount));
+        ApplyAndPostGenJournalLine(PaymentDocNo, "Gen. Journal Document Type"::Invoice, InvoiceDocNo);
+
+        // [WHEN] Export Audit File in FEC format
+        RunFECExport(AuditFile, '', StartingDate, StartingDate, false);
+
+        // [THEN] The Payment Discount line (posted to the posting group's Payment Disc. Debit Acc.) has
+        // [THEN] CompAuxNum = Customer No. and CompAuxLib = Customer Name
+        CreateReadStream(iStream, AuditFile);
+        Assert.IsTrue(
+          FindPaymentDiscountLineWithParty(iStream, PmtDiscAccountNo, Customer."No.", Customer.Name),
+          'The payment discount line with the customer number and name was not found in the FEC file.');
+    end;
+
     local procedure Initialize()
     begin
         LibrarySetupStorage.Restore();
@@ -2385,6 +2442,24 @@ codeunit 148017 "FEC Audit File Export Tests"
     begin
         AuditFile.CalcFields("File Content");
         AuditFile."File Content".CreateInStream(FileInStream, TextEncoding::UTF8);
+    end;
+
+    local procedure FindPaymentDiscountLineWithParty(var FileInStream: InStream; PmtDiscAccountNo: Code[20]; ExpectedPartyNo: Code[20]; ExpectedPartyName: Text): Boolean
+    var
+        LineFields: List of [Text];
+        LineToRead: Text;
+    begin
+        while not FileInStream.EOS() do begin
+            FileInStream.ReadText(LineToRead);
+            LineFields := LineToRead.Split('|');
+            if LineFields.Count() >= 8 then
+                if LineFields.Get(5) = PmtDiscAccountNo then begin // field 5 = CompteNum
+                    Assert.AreEqual(ExpectedPartyNo, LineFields.Get(7), GetErrorTextForAssertStmnt(7)); // field 7 = CompAuxNum
+                    Assert.AreEqual(ExpectedPartyName, LineFields.Get(8), GetErrorTextForAssertStmnt(8)); // field 8 = CompAuxLib
+                    exit(true);
+                end;
+        end;
+        exit(false);
     end;
 
     local procedure RunFECExport(var AuditFile: Record "Audit File"; GLAccountNoFilter: Text; StartDate: Date; EndDate: Date; IncludeOpeningBalances: Boolean)

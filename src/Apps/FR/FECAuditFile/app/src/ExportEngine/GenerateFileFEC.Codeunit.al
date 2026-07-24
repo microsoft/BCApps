@@ -9,6 +9,7 @@ using Microsoft.Bank.Ledger;
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Vendor;
@@ -44,6 +45,8 @@ codeunit 10826 "Generate File FEC"
         SourceCodesDescription: Dictionary of [Code[10], Text[100]];
         PayablesAccounts: Dictionary of [Code[20], Code[20]];
         ReceivablesAccounts: Dictionary of [Code[20], Code[20]];
+        PmtDiscountAccounts: Dictionary of [Code[20], Boolean];
+        PmtDiscountAccountsInitialized: Boolean;
         BankAccounts: Dictionary of [Code[20], Text[100]];
         BankAccPostingGroups: Dictionary of [Code[20], Code[20]];
         ProgressDialog: Dialog;
@@ -233,6 +236,9 @@ codeunit 10826 "Generate File FEC"
                     end;
 
             end;
+        if (PartyNo = '') and IsPaymentDiscountAccount(GLEntry."G/L Account No.") then
+            GetPartyForPaymentDiscount(GLEntry, PartyNo, PartyName);
+
         AllowMultiplePosting(PartyNo, PartyName, GLEntry, Customer);
 
         FindGLRegister(GLRegister, GLEntry."Entry No.");
@@ -669,6 +675,78 @@ codeunit 10826 "Generate File FEC"
         if CustomerPostingGroup.Get(CustomerPostingGroupCode) then begin
             ReceivablesAccounts.Add(CustomerPostingGroup.Code, CustomerPostingGroup."Receivables Account");
             ReceivablesAcc := CustomerPostingGroup."Receivables Account";
+        end;
+    end;
+
+    local procedure IsPaymentDiscountAccount(GLAccountNo: Code[20]): Boolean
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        CustomerPostingGroup: Record "Customer Posting Group";
+        VendorPostingGroup: Record "Vendor Posting Group";
+    begin
+        if GLAccountNo = '' then
+            exit(false);
+
+        if not PmtDiscountAccountsInitialized then begin
+            GeneralPostingSetup.SetLoadFields(
+                "Sales Pmt. Disc. Debit Acc.", "Sales Pmt. Disc. Credit Acc.",
+                "Purch. Pmt. Disc. Debit Acc.", "Purch. Pmt. Disc. Credit Acc.");
+            if GeneralPostingSetup.FindSet() then
+                repeat
+                    AddPmtDiscountAccount(GeneralPostingSetup."Sales Pmt. Disc. Debit Acc.");
+                    AddPmtDiscountAccount(GeneralPostingSetup."Sales Pmt. Disc. Credit Acc.");
+                    AddPmtDiscountAccount(GeneralPostingSetup."Purch. Pmt. Disc. Debit Acc.");
+                    AddPmtDiscountAccount(GeneralPostingSetup."Purch. Pmt. Disc. Credit Acc.");
+                until GeneralPostingSetup.Next() = 0;
+
+            CustomerPostingGroup.SetLoadFields("Payment Disc. Debit Acc.", "Payment Disc. Credit Acc.");
+            if CustomerPostingGroup.FindSet() then
+                repeat
+                    AddPmtDiscountAccount(CustomerPostingGroup."Payment Disc. Debit Acc.");
+                    AddPmtDiscountAccount(CustomerPostingGroup."Payment Disc. Credit Acc.");
+                until CustomerPostingGroup.Next() = 0;
+
+            VendorPostingGroup.SetLoadFields("Payment Disc. Debit Acc.", "Payment Disc. Credit Acc.");
+            if VendorPostingGroup.FindSet() then
+                repeat
+                    AddPmtDiscountAccount(VendorPostingGroup."Payment Disc. Debit Acc.");
+                    AddPmtDiscountAccount(VendorPostingGroup."Payment Disc. Credit Acc.");
+                until VendorPostingGroup.Next() = 0;
+
+            PmtDiscountAccountsInitialized := true;
+        end;
+
+        exit(PmtDiscountAccounts.ContainsKey(GLAccountNo));
+    end;
+
+    local procedure AddPmtDiscountAccount(GLAccountNo: Code[20])
+    begin
+        if (GLAccountNo <> '') and (not PmtDiscountAccounts.ContainsKey(GLAccountNo)) then
+            PmtDiscountAccounts.Add(GLAccountNo, true);
+    end;
+
+    local procedure GetPartyForPaymentDiscount(GLEntry: Record "G/L Entry"; var PartyNo: Code[20]; var PartyName: Text[100])
+    var
+        Customer: Record Customer;
+        Vendor: Record Vendor;
+    begin
+        case GLEntry."Source Type" of
+            GLEntry."Source Type"::Customer:
+                begin
+                    Customer.SetLoadFields(Name);
+                    if Customer.Get(GLEntry."Source No.") then begin
+                        PartyNo := Customer."No.";
+                        PartyName := Customer.Name;
+                    end;
+                end;
+            GLEntry."Source Type"::Vendor:
+                begin
+                    Vendor.SetLoadFields(Name);
+                    if Vendor.Get(GLEntry."Source No.") then begin
+                        PartyNo := Vendor."No.";
+                        PartyName := Vendor.Name;
+                    end;
+                end;
         end;
     end;
 
