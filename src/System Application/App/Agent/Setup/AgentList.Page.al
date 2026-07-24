@@ -47,6 +47,11 @@ page 4316 "Agent List"
                 {
                     Caption = 'State';
                 }
+                field(Substate; Rec.Substate)
+                {
+                    Caption = 'Substate';
+                    Editable = false;
+                }
                 field("Can Access Current Company"; Rec."Can Access Current Company")
                 {
                     Caption = 'Can Access Current Company';
@@ -75,6 +80,35 @@ page 4316 "Agent List"
                         Error(NoAgentSetupErr);
 
                     Agent.OpenSetupPageId(Rec."Agent Metadata Provider", Rec."User Security ID");
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ArchiveAgent)
+            {
+                ApplicationArea = All;
+                Caption = 'Archive';
+                ToolTip = 'Archive the selected agent. You can only archive an inactive agent. The agent and its existing tasks and logs remain available as read-only. Archiving cannot be undone.';
+                Image = Archive;
+                Enabled = ArchiveActionEnabled;
+
+                trigger OnAction()
+                var
+                    Agent: Codeunit Agent;
+                    ArchiveConfirmation: Page "Agent Archive Confirmation";
+                begin
+                    if Rec.IsEmpty() then
+                        Error(NoAgentSetupErr);
+
+                    if Rec.State <> Rec.State::Disabled then
+                        Error(DeactivateBeforeArchivingErr);
+
+                    Rec.TestField("Display Name");
+                    ArchiveConfirmation.SetAgentDisplayName(Rec."Display Name");
+                    ArchiveConfirmation.RunModal();
+                    if not ArchiveConfirmation.IsConfirmed() then
+                        exit;
+
+                    Agent.Archive(Rec."User Security ID");
                     CurrPage.Update(false);
                 end;
             }
@@ -121,6 +155,34 @@ page 4316 "Agent List"
                 begin
                     ShouldShowAllCompanies := true;
                     SetCompanyFilter();
+                end;
+            }
+            action(ShowAllAgents)
+            {
+                ApplicationArea = All;
+                Caption = 'Show all agents';
+                ToolTip = 'Show all agents, including archived ones.';
+                Image = RemoveFilterLines;
+                Visible = not ShouldShowAllAgents;
+
+                trigger OnAction()
+                begin
+                    ShouldShowAllAgents := true;
+                    SetAgentSubstateFilter();
+                end;
+            }
+            action(HideArchivedAgents)
+            {
+                ApplicationArea = All;
+                Caption = 'Hide archived agents';
+                ToolTip = 'Hide agents that have been archived.';
+                Image = FilterLines;
+                Visible = ShouldShowAllAgents;
+
+                trigger OnAction()
+                begin
+                    ShouldShowAllAgents := false;
+                    SetAgentSubstateFilter();
                 end;
             }
         }
@@ -186,6 +248,8 @@ page 4316 "Agent List"
             AgentImpl.ShowNoAgentsAvailableNotification();
 
         ShouldShowAllCompanies := false;
+        ShouldShowAllAgents := false;
+        SetAgentSubstateFilter();
         SetCompanyFilter();
     end;
 
@@ -204,6 +268,8 @@ page 4316 "Agent List"
         AgentImpl: Codeunit "Agent Impl.";
     begin
         CopilotAvailabilityTxt := AgentImpl.GetCopilotAvailabilityDisplayText(Rec);
+        AgentIsArchived := Rec.Substate = Rec.Substate::Archived;
+        ArchiveActionEnabled := (not AgentIsArchived) and Rec."Can Curr. User Configure Agent";
     end;
 
     local procedure SetCompanyFilter()
@@ -215,8 +281,22 @@ page 4316 "Agent List"
         CurrPage.Update(false);
     end;
 
+    local procedure SetAgentSubstateFilter()
+    begin
+        // Hide archived agents from the default list; the Show all agents action reveals them.
+        if ShouldShowAllAgents then
+            Rec.SetRange(Substate)
+        else
+            Rec.SetRange(Substate, Rec.Substate::None);
+        CurrPage.Update(false);
+    end;
+
     var
         CopilotAvailabilityTxt: Text;
         ShouldShowAllCompanies: Boolean;
+        ShouldShowAllAgents: Boolean;
+        ArchiveActionEnabled: Boolean;
+        AgentIsArchived: Boolean;
         NoAgentSetupErr: Label 'No agents have been setup. You must set up an agent first.';
+        DeactivateBeforeArchivingErr: Label 'Deactivate the agent before archiving it.';
 }

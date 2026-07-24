@@ -19,10 +19,12 @@ codeunit 133961 "Agent Test"
         Assert: Codeunit "Library Assert";
         Agent: Codeunit Agent;
         LibraryTestAgent: Codeunit "Library Mock Agent";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
 
     local procedure Initialize()
     begin
         LibraryTestAgent.DeleteAllAgents();
+        LibraryVariableStorage.Clear();
     end;
 
     #region Create Agent Tests
@@ -962,6 +964,721 @@ codeunit 133961 "Agent Test"
         Assert.IsTrue(Agent.IsActive(AgentId), 'Agent should be active again');
 
         // [THEN] All state transitions should work correctly as verified above
+    end;
+
+    #endregion
+
+    #region Archive Tests
+
+    [Test]
+    procedure ArchiveDisabledAgentSetsArchived()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Archiving an inactive agent sets its substate to Archived
+
+        // [GIVEN] An inactive (deactivated) agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived initially');
+
+        // [WHEN] Archiving the agent
+        Agent.Archive(AgentId);
+
+        // [THEN] The agent should be reported as archived
+        Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should be archived');
+
+        // [THEN] The agent record substate should be Archived
+        AgentRecord.Get(AgentId);
+        Assert.AreEqual(AgentRecord.Substate::Archived, AgentRecord.Substate, 'Agent substate should be Archived');
+    end;
+
+    [Test]
+    procedure ArchiveActiveAgentErrors()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Archiving an active agent is rejected
+
+        // [GIVEN] An active agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Assert.IsTrue(Agent.IsActive(AgentId), 'Agent should be active initially');
+
+        // [WHEN] Archiving the active agent
+        // [THEN] An error is raised asking to deactivate first
+        asserterror Agent.Archive(AgentId);
+        Assert.ExpectedError('Deactivate the agent before archiving it.');
+    end;
+
+    [Test]
+    procedure IsArchivedFalseForNewAgent()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] A newly created and deactivated agent is not archived
+
+        // [GIVEN] A deactivated agent that has not been archived
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+
+        // [WHEN] Checking the archived state
+        // [THEN] The agent is not archived
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived');
+    end;
+
+    [Test]
+    procedure ReArchiveArchivedAgentIsNoOp()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Archiving an already-archived agent is an idempotent no-op (no error)
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+        Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should be archived after the first archive');
+
+        // [WHEN] Agent.Archive is called a second time
+        Agent.Archive(AgentId);
+
+        // [THEN] No error is raised and the agent remains archived
+        Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should remain archived after re-archive');
+    end;
+
+    [Test]
+    procedure ReactivateArchivedAgentErrors()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] An archived agent cannot be reactivated
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [WHEN] Activating the archived agent
+        // [THEN] The platform rejects the modification because the agent is archived
+        asserterror Agent.Activate(AgentId);
+        Assert.ExpectedError('An archived agent cannot be modified.');
+
+        // [THEN] The agent remains archived and disabled
+        Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should remain archived after a failed reactivation');
+        Assert.IsFalse(Agent.IsActive(AgentId), 'Agent should remain inactive after a failed reactivation');
+    end;
+
+    [Test]
+    procedure ArchivedAgentHiddenFromAgentList()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentListTestPage: TestPage "Agent List";
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] An archived agent is not shown in the Agent List page
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [WHEN] Opening the Agent List page and showing agents for all companies
+        AgentListTestPage.OpenView();
+        AgentListTestPage.ShowAllCompanies.Invoke();
+
+        // [THEN] The archived agent is not reachable in the Agent List
+        Assert.IsFalse(AgentListTestPage.GoToKey(AgentId), 'Archived agent should not appear in the Agent List');
+        AgentListTestPage.Close();
+    end;
+
+    [Test]
+    procedure ArchivedAgentRevealedByShowAllAgentsToggle()
+    var
+        AgentRecord: Record Agent;
+        AgentListTestPage: TestPage "Agent List";
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] The Show all agents / Hide archived agents toggle controls archived-agent visibility on the Agent List
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := CreateActiveAgent(AgentRecord, 'Archived List Toggle Agent');
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [GIVEN] The Agent List showing agents for all companies
+        AgentListTestPage.OpenView();
+        AgentListTestPage.ShowAllCompanies.Invoke();
+
+        // [THEN] The archived agent is hidden by default
+        Assert.IsFalse(AgentListTestPage.GoToKey(AgentId), 'Archived agent should be hidden by default');
+
+        // [WHEN] Invoking Show all agents
+        AgentListTestPage.ShowAllAgents.Invoke();
+
+        // [THEN] The archived agent becomes visible
+        Assert.IsTrue(AgentListTestPage.GoToKey(AgentId), 'Archived agent should be visible after Show all agents');
+
+        // [WHEN] Invoking Hide archived agents
+        AgentListTestPage.HideArchivedAgents.Invoke();
+
+        // [THEN] The archived agent is hidden again
+        Assert.IsFalse(AgentListTestPage.GoToKey(AgentId), 'Archived agent should be hidden again after Hide archived agents');
+
+        AgentListTestPage.Close();
+    end;
+
+    [Test]
+    procedure ArchivedAgentRemainsRetrievable()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Archiving an agent is a soft-delete: the agent record is retained and reports the archived state
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [THEN] The agent record still exists and is reported as archived
+        Assert.IsTrue(AgentRecord.Get(AgentId), 'Archived agent should remain retrievable after archiving');
+        Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should report as archived after archiving');
+    end;
+
+    [Test]
+    procedure NonArchivedAgentShownInAgentList()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentListTestPage: TestPage "Agent List";
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] A deactivated, non-archived agent is still shown in the Agent List page
+
+        // [GIVEN] A deactivated agent that has not been archived
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+
+        // [WHEN] Opening the Agent List page and showing agents for all companies
+        AgentListTestPage.OpenView();
+        AgentListTestPage.ShowAllCompanies.Invoke();
+
+        // [THEN] The non-archived agent is reachable in the Agent List
+        Assert.IsTrue(AgentListTestPage.GoToKey(AgentId), 'Non-archived agent should appear in the Agent List');
+        AgentListTestPage.Close();
+    end;
+
+    [Test]
+    procedure SetProfileOnArchivedAgentErrors()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentId: Guid;
+        ProfileID: Code[30];
+        ProfileAppID: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Setting a profile on an archived agent is rejected
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        ProfileID := CopyStr(Any.AlphanumericText(MaxStrLen(ProfileID)), 1, MaxStrLen(ProfileID));
+        ProfileAppID := Any.GuidValue();
+
+        // [WHEN] Setting the profile on the archived agent
+        // [THEN] An error is raised that the archived agent cannot be modified
+        asserterror Agent.SetProfile(AgentId, ProfileID, ProfileAppID);
+        Assert.ExpectedError('The agent is archived and cannot be modified.');
+    end;
+
+    [Test]
+    [HandlerFunctions('SendArchivedAgentNotificationHandler')]
+    procedure ArchivedAgentUserSettingsActionDisabledOnCard()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentCardPage: TestPage "Agent Card";
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] The Agent User Settings action is disabled on the card for an archived agent, so its settings cannot be edited
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [WHEN] Opening the agent card for the archived agent
+        AgentCardPage.OpenView();
+        AgentCardPage.GoToKey(AgentId);
+
+        // [THEN] The Agent User Settings action is disabled
+        Assert.IsFalse(AgentCardPage.UserSettingsAction.Enabled(), 'Agent User Settings action should be disabled for an archived agent');
+
+        AgentCardPage.Close();
+    end;
+
+    [Test]
+    [HandlerFunctions('SendArchivedAgentNotificationHandler')]
+    procedure ArchivedAgentConfigureActionEnabledOnCard()
+    var
+        AgentRecord: Record Agent;
+        Any: Codeunit Any;
+        AgentCardPage: TestPage "Agent Card";
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] The Configure action stays enabled on the card for an archived agent, so its configuration can still be reviewed
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [WHEN] Opening the agent card for the archived agent
+        AgentCardPage.OpenView();
+        AgentCardPage.GoToKey(AgentId);
+
+        // [THEN] The Configure action is enabled - the setup page opens for review; instructions stay frozen at the platform and providers make their own config read-only for archived agents
+        Assert.IsTrue(AgentCardPage.AgentSetup.Enabled(), 'Configure action should be enabled for an archived agent so its configuration can be reviewed');
+
+        AgentCardPage.Close();
+    end;
+
+    [Test]
+    procedure UpdateLocalizationSettingsOnArchivedAgentErrors()
+    var
+        AgentRecord: Record Agent;
+        TempNewUserSettings: Record "User Settings";
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Updating localization settings on an archived agent is rejected
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        TempNewUserSettings."User Security ID" := AgentId;
+        TempNewUserSettings."Locale ID" := Any.IntegerInRange(1000, 9999);
+        TempNewUserSettings."Language ID" := Any.IntegerInRange(1000, 9999);
+        TempNewUserSettings."Time Zone" := CopyStr(Any.AlphanumericText(30), 1, 30);
+
+        // [WHEN] Updating localization settings on the archived agent
+        // [THEN] An error is raised that the archived agent cannot be modified
+        asserterror Agent.UpdateLocalizationSettings(AgentId, TempNewUserSettings);
+        Assert.ExpectedError('The agent is archived and cannot be modified.');
+    end;
+
+    [Test]
+    procedure UpdateAccessControlOnArchivedAgentErrors()
+    var
+        AgentRecord: Record Agent;
+        TempAccessControlBuffer: Record "Access Control Buffer" temporary;
+        Any: Codeunit Any;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Assigning permission sets on an archived agent is rejected
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [WHEN] Assigning permission sets on the archived agent
+        // [THEN] An error is raised that the archived agent cannot be modified
+        asserterror Agent.UpdateAccessControl(AgentId, TempAccessControlBuffer);
+        Assert.ExpectedError('The agent is archived and cannot be modified.');
+    end;
+
+    [Test]
+    procedure UpdateAgentAccessControlOnArchivedAgentSucceeds()
+    var
+        AgentRecord: Record Agent;
+        TempAgentAccessControl: Record "Agent Access Control" temporary;
+        Any: Codeunit Any;
+        AgentId: Guid;
+        SecondUserId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Access control is authorization metadata, not agent data, so it stays administrable on an archived agent
+
+        // [GIVEN] A deactivated, archived agent
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            CopyStr(Any.AlphanumericText(80), 1, 80),
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+        Agent.Deactivate(AgentId);
+        Agent.Archive(AgentId);
+
+        // [GIVEN] The current user plus a second user staged in the access-control buffer
+        TempAgentAccessControl."Agent User Security ID" := AgentId;
+        TempAgentAccessControl."User Security ID" := UserSecurityId();
+        TempAgentAccessControl.Insert();
+
+        SecondUserId := Any.GuidValue();
+        TempAgentAccessControl."User Security ID" := SecondUserId;
+        TempAgentAccessControl.Insert();
+
+        // [WHEN] Updating access control on the archived agent
+        Agent.UpdateAgentAccessControl(AgentId, TempAgentAccessControl);
+
+        // [THEN] The second user - which the create baseline does not include - was granted access, proving the
+        // update path actually applied on an archived agent instead of silently no-opping (archiving freezes agent
+        // data, not who may access it).
+        Clear(TempAgentAccessControl);
+        Agent.GetUserAccess(AgentId, TempAgentAccessControl);
+        TempAgentAccessControl.SetRange("User Security ID", SecondUserId);
+        Assert.IsFalse(TempAgentAccessControl.IsEmpty(), 'The newly granted user should be present after updating an archived agent''s access control');
+    end;
+
+    [Test]
+    [HandlerFunctions('AgentArchiveConfirmationModalHandler')]
+    procedure ArchiveConfirmationExactNameArchivesAgent()
+    var
+        AgentRecord: Record Agent;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Typing the agent's exact display name and choosing OK in the confirmation dialog archives the agent
+
+        // [GIVEN] A deactivated agent with a mixed-case display name
+        AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
+
+        // [GIVEN] The confirmation dialog will receive the exact display name and be accepted with OK
+        LibraryVariableStorage.Enqueue(AgentRecord."Display Name");
+        LibraryVariableStorage.Enqueue(true);
+
+        // [WHEN] Invoking the Archive action from the Agent List
+        InvokeArchiveActionFromList(AgentId);
+
+        // [THEN] The agent is archived
+        Assert.IsTrue(Agent.IsArchived(AgentId), 'Agent should be archived after confirming with the exact display name');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('AgentArchiveConfirmationModalHandler')]
+    procedure ArchiveConfirmationWrongCaseDoesNotArchive()
+    var
+        AgentRecord: Record Agent;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] The confirmation is case-sensitive: the same name typed in a different case is rejected
+
+        // [GIVEN] A deactivated agent with a mixed-case display name
+        AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
+
+        // [GIVEN] The user types the display name in upper case (the mixed-case original differs character-by-character)
+        LibraryVariableStorage.Enqueue(UpperCase(AgentRecord."Display Name"));
+        LibraryVariableStorage.Enqueue(true);
+
+        // [WHEN] Invoking the Archive action and confirming with OK
+        // [THEN] The name-mismatch error is raised and the agent is not archived
+        asserterror InvokeArchiveActionFromList(AgentId);
+        Assert.ExpectedError('The name you entered does not exactly match the agent''s display name.');
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when the typed name differs only in case');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('AgentArchiveConfirmationModalHandler')]
+    procedure ArchiveConfirmationExtraSpaceDoesNotArchive()
+    var
+        AgentRecord: Record Agent;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] A whitespace mistake (a space where a character should be) is rejected
+
+        // [GIVEN] A deactivated agent
+        AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
+
+        // [GIVEN] The user types the name with the final character replaced by a space (same length, char mismatch)
+        LibraryVariableStorage.Enqueue(
+            CopyStr(
+                CopyStr(AgentRecord."Display Name", 1, StrLen(AgentRecord."Display Name") - 1) + ' ',
+                1,
+                MaxStrLen(AgentRecord."Display Name")));
+        LibraryVariableStorage.Enqueue(true);
+
+        // [WHEN] Invoking the Archive action and confirming with OK
+        // [THEN] The name-mismatch error is raised and the agent is not archived
+        asserterror InvokeArchiveActionFromList(AgentId);
+        Assert.ExpectedError('The name you entered does not exactly match the agent''s display name.');
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when extra whitespace is typed');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('AgentArchiveConfirmationModalHandler')]
+    procedure ArchiveConfirmationLengthMismatchDoesNotArchive()
+    var
+        AgentRecord: Record Agent;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] A name of the wrong length (a missing character) is rejected
+
+        // [GIVEN] A deactivated agent
+        AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
+
+        // [GIVEN] The user types the name with the last character missing
+        LibraryVariableStorage.Enqueue(CopyStr(AgentRecord."Display Name", 1, StrLen(AgentRecord."Display Name") - 1));
+        LibraryVariableStorage.Enqueue(true);
+
+        // [WHEN] Invoking the Archive action and confirming with OK
+        // [THEN] The name-mismatch error is raised and the agent is not archived
+        asserterror InvokeArchiveActionFromList(AgentId);
+        Assert.ExpectedError('The name you entered does not exactly match the agent''s display name.');
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when the typed name has the wrong length');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('AgentArchiveConfirmationModalHandler')]
+    procedure ArchiveConfirmationEmptyInputDoesNotArchive()
+    var
+        AgentRecord: Record Agent;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Confirming with OK while the input is empty is rejected
+
+        // [GIVEN] A deactivated agent
+        AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
+
+        // [GIVEN] The user leaves the input empty and chooses OK
+        LibraryVariableStorage.Enqueue('');
+        LibraryVariableStorage.Enqueue(true);
+
+        // [WHEN] Invoking the Archive action and confirming with OK
+        // [THEN] The name-mismatch error is raised and the agent is not archived
+        asserterror InvokeArchiveActionFromList(AgentId);
+        Assert.ExpectedError('The name you entered does not exactly match the agent''s display name.');
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when no name is typed');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    [HandlerFunctions('AgentArchiveConfirmationModalHandler')]
+    procedure ArchiveConfirmationCancelDoesNotArchive()
+    var
+        AgentRecord: Record Agent;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Cancelling the confirmation dialog leaves the agent unarchived without raising an error
+
+        // [GIVEN] A deactivated agent
+        AgentId := CreateDeactivatedAgent(AgentRecord, 'Archive Confirm Agent');
+
+        // [GIVEN] The user dismisses the dialog with Cancel (even though the exact name was typed)
+        LibraryVariableStorage.Enqueue(AgentRecord."Display Name");
+        LibraryVariableStorage.Enqueue(false);
+
+        // [WHEN] Invoking the Archive action and cancelling the dialog
+        InvokeArchiveActionFromList(AgentId);
+
+        // [THEN] No error is raised and the agent is not archived
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'Agent should not be archived when the confirmation is cancelled');
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure ArchiveActionOnActiveAgentRequiresDeactivationFirst()
+    var
+        AgentRecord: Record Agent;
+        AgentId: Guid;
+    begin
+        Initialize();
+
+        // [SCENARIO] Invoking Archive on an active agent explains it must be deactivated first, instead of silently disabling the action, and does not archive it
+
+        // [GIVEN] An active (enabled) agent
+        AgentId := CreateActiveAgent(AgentRecord, 'Active Archive Agent');
+
+        // [WHEN] Invoking the Archive action from the Agent List
+        // [THEN] The deactivate-first error is raised before any confirmation dialog, and the agent is not archived
+        asserterror InvokeArchiveActionFromList(AgentId);
+        Assert.ExpectedError('Deactivate the agent before archiving it.');
+        Assert.IsFalse(Agent.IsArchived(AgentId), 'An active agent should not be archived; it must be deactivated first');
+    end;
+
+    [ModalPageHandler]
+    procedure AgentArchiveConfirmationModalHandler(var AgentArchiveConfirmation: TestPage "Agent Archive Confirmation")
+    var
+        NameToType: Text;
+        CloseWithOK: Boolean;
+    begin
+        NameToType := LibraryVariableStorage.DequeueText();
+        CloseWithOK := LibraryVariableStorage.DequeueBoolean();
+        AgentArchiveConfirmation.DisplayNameConfirmation.SetValue(NameToType);
+        if CloseWithOK then
+            AgentArchiveConfirmation.OK().Invoke()
+        else
+            AgentArchiveConfirmation.Cancel().Invoke();
+    end;
+
+    [SendNotificationHandler]
+    procedure SendArchivedAgentNotificationHandler(var ArchivedNotification: Notification): Boolean
+    begin
+        Assert.AreEqual('This agent is archived and can no longer be modified. Its tasks and logs remain available for auditing.', ArchivedNotification.Message(), 'Unexpected notification was raised on the archived agent card.');
+        exit(true);
+    end;
+
+    local procedure CreateDeactivatedAgent(var AgentRecord: Record Agent; DisplayName: Text[80]) AgentId: Guid
+    var
+        Any: Codeunit Any;
+    begin
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            DisplayName,
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        Agent.Deactivate(AgentId);
+
+        // GetOrCreateDefaultAgent does not reload the record on the create path; fetch it so callers
+        // read the actual stored display name back from the database.
+        AgentRecord.Get(AgentId);
+    end;
+
+    local procedure CreateActiveAgent(var AgentRecord: Record Agent; DisplayName: Text[80]) AgentId: Guid
+    var
+        Any: Codeunit Any;
+    begin
+        AgentId := LibraryTestAgent.GetOrCreateDefaultAgent(
+            AgentRecord,
+            CopyStr(Any.AlphanumericText(MaxStrLen(AgentRecord."User Name")), 1, MaxStrLen(AgentRecord."User Name")),
+            DisplayName,
+            CopyStr(Any.AlphanumericText(2048), 1, 2048));
+
+        // GetOrCreateDefaultAgent activates the agent but does not reload the record on the create path; fetch it
+        // so callers read the actual stored state and display name back from the database.
+        AgentRecord.Get(AgentId);
+    end;
+
+    local procedure InvokeArchiveActionFromList(AgentId: Guid)
+    var
+        AgentListTestPage: TestPage "Agent List";
+    begin
+        // Show agents for all companies so the company-access filter cannot hide the agent, then drive the
+        // production Archive action which opens the confirmation dialog handled by AgentArchiveConfirmationModalHandler.
+        AgentListTestPage.OpenView();
+        AgentListTestPage.ShowAllCompanies.Invoke();
+        Assert.IsTrue(AgentListTestPage.GoToKey(AgentId), 'Agent should be reachable in the Agent List');
+        AgentListTestPage.ArchiveAgent.Invoke();
+        AgentListTestPage.Close();
     end;
 
     #endregion

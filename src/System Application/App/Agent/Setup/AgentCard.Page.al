@@ -104,12 +104,20 @@ page 4315 "Agent Card"
                     Importance = Standard;
                     Caption = 'State';
                     ToolTip = 'Specifies if the agent is active or inactive.';
+                    Editable = StateEditable;
 
                     trigger OnValidate()
                     begin
                         ChangeState();
                         UpdateControls();
                     end;
+                }
+                field(Substate; Rec.Substate)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Substate';
+                    ToolTip = 'Specifies whether the agent is archived.';
+                    Editable = false;
                 }
             }
             part(Permissions; "View Agent Permissions")
@@ -128,6 +136,36 @@ page 4315 "Agent Card"
     }
     actions
     {
+        area(Processing)
+        {
+            action(ArchiveAgent)
+            {
+                ApplicationArea = All;
+                Caption = 'Archive';
+                ToolTip = 'Archive the selected agent. The agent and its existing tasks and logs remain available as read-only. Archiving cannot be undone.';
+                Image = Archive;
+                Enabled = ArchiveActionEnabled;
+
+                trigger OnAction()
+                var
+                    Agent: Codeunit Agent;
+                    ArchiveConfirmation: Page "Agent Archive Confirmation";
+                begin
+                    if Rec.State <> Rec.State::Disabled then
+                        Error(DeactivateBeforeArchivingErr);
+
+                    Rec.TestField("Display Name");
+                    ArchiveConfirmation.SetAgentDisplayName(Rec."Display Name");
+                    ArchiveConfirmation.RunModal();
+                    if not ArchiveConfirmation.IsConfirmed() then
+                        exit;
+
+                    Agent.Archive(Rec."User Security ID");
+                    Message(AgentArchivedMsg);
+                    CurrPage.Update(false);
+                end;
+            }
+        }
         area(Navigation)
         {
             action(AgentSetup)
@@ -149,6 +187,7 @@ page 4315 "Agent Card"
                 Caption = 'Agent User Settings';
                 ToolTip = 'Set up the user settings for the agent.';
                 Image = SetupLines;
+                Enabled = not AgentIsArchived;
 
                 trigger OnAction()
                 var
@@ -215,6 +254,9 @@ page 4315 "Agent Card"
         end;
 
         CopilotAvailabilityTxt := AgentImpl.GetCopilotAvailabilityDisplayText(Rec);
+        AgentIsArchived := Rec.Substate = Rec.Substate::Archived;
+        ArchiveActionEnabled := (not AgentIsArchived) and Rec."Can Curr. User Configure Agent";
+        StateEditable := not AgentIsArchived;
     end;
 
     local procedure ChangeState()
@@ -242,6 +284,25 @@ page 4315 "Agent Card"
     trigger OnAfterGetCurrRecord()
     begin
         UpdateControls();
+        SendArchivedNotificationIfNeeded();
+    end;
+
+    local procedure SendArchivedNotificationIfNeeded()
+    var
+        ArchivedNotification: Notification;
+    begin
+        if not AgentIsArchived then begin
+            Clear(LastNotifiedArchivedAgentId);
+            exit;
+        end;
+
+        if LastNotifiedArchivedAgentId = Rec."User Security ID" then
+            exit;
+
+        LastNotifiedArchivedAgentId := Rec."User Security ID";
+        ArchivedNotification.Message(AgentArchivedNotificationMsg);
+        ArchivedNotification.Scope(NotificationScope::LocalScope);
+        ArchivedNotification.Send();
     end;
 
     local procedure OpenSetupPage()
@@ -256,8 +317,13 @@ page 4315 "Agent Card"
         TempUserSettingsRecord: Record "User Settings";
         Language: Codeunit Language;
         ProfileDisplayName, CopilotAvailabilityTxt : Text;
+        ArchiveActionEnabled, AgentIsArchived, StateEditable : Boolean;
+        LastNotifiedArchivedAgentId: Guid;
         ProfileChangedQst: Label 'Changing the agent''s profile may affect its accuracy and performance. It could also grant access to unexpected fields and actions.\\Do you want to continue?';
         OpenConfigurationPageQst: Label 'To activate the agent, use the configuration page. Would you like to open this page now?';
         YouCannotEnableAgentWithoutUsingConfigurationPageErr: Label 'You can''t activate the agent from this page. Use the action to configure and activate the agent.';
         YouDoNotHavePermissionToModifyThisAgentErr: Label 'You do not have permission to modify this agent. Contact your system administrator to update your permissions or to mark you as one of the administrators for the agent.';
+        DeactivateBeforeArchivingErr: Label 'Deactivate the agent before archiving it.';
+        AgentArchivedMsg: Label 'The agent has been archived.';
+        AgentArchivedNotificationMsg: Label 'This agent is archived and can no longer be modified. Its tasks and logs remain available for auditing.';
 }
