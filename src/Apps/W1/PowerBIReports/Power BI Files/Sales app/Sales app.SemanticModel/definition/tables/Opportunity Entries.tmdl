@@ -64,10 +64,24 @@ table 'Opportunity Entries'
 			VAR OpportunityNos = CONCATENATEX(VALUES('Opportunity Entries'[Opportunity No.]), 'Opportunity Entries'[Opportunity No.], "|")
 			VAR EntryNos = CONCATENATEX(VALUES('Opportunity Entries'[Opportunity Entry No.]), 'Opportunity Entries'[Opportunity Entry No.], "|")
 			
-			RETURN 
+			VAR PageLink = 
 			    [Base Link] 
-			    & "&page=5130&filter='Opportunity Entry'.'Opportunity No.' IS '" & OpportunityNos & "'"
-			    & " AND 'Opportunity Entry'.'Entry No.' IS '" & EntryNos & "'"
+			    & "&page=5130"
+			// Project the URL length from the raw filter values without building the (possibly huge) URL string
+			VAR ProjectedLength =
+			    LEN ( PageLink )
+			    + LEN ( "&filter='Opportunity Entry'.'Opportunity No.' IS ''" )
+			    + SUMX ( VALUES ( 'Opportunity Entries'[Opportunity No.] ), LEN ( 'Opportunity Entries'[Opportunity No.] ) + 1 )
+			    + LEN ( " AND 'Opportunity Entry'.'Entry No.' IS ''" )
+			    + SUMX ( VALUES ( 'Opportunity Entries'[Opportunity Entry No.] ), LEN ( 'Opportunity Entries'[Opportunity Entry No.] ) + 1 )
+			RETURN
+			    // Fall back to the unfiltered page if the URL exceeds the 2000 character limit
+			    IF (
+			        ProjectedLength <= 2000,
+			        PageLink & "&filter='Opportunity Entry'.'Opportunity No.' IS '" & CONCATENATEX(VALUES('Opportunity Entries'[Opportunity No.]), 'Opportunity Entries'[Opportunity No.], "|") & "'"
+			    & " AND 'Opportunity Entry'.'Entry No.' IS '" & CONCATENATEX(VALUES('Opportunity Entries'[Opportunity Entry No.]), 'Opportunity Entries'[Opportunity Entry No.], "|") & "'",
+			        PageLink
+			    )
 			
 			```
 		displayFolder: _Opportunity Entry Measures
