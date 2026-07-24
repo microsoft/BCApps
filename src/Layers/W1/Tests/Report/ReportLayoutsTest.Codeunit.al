@@ -492,9 +492,13 @@ codeunit 139595 "Report Layouts Test"
     local procedure EnsureNewLayoutsAreCleaned()
     var
         TenantReportLayout: Record "Tenant Report Layout";
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
     begin
         TenantReportLayout.SetRange("Report ID", 139595);
         TenantReportLayout.DeleteAll();
+
+        TenantReportLayoutOverride.SetRange("Report ID", 139595);
+        TenantReportLayoutOverride.DeleteAll();
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Report Layouts Impl.", 'OnBeforeUpload', '', false, false)]
@@ -659,9 +663,227 @@ codeunit 139595 "Report Layouts Test"
             'Layout status should be Draft after cycling back.');
     end;
 
+    [Test]
+    [HandlerFunctions('StatusChangedMessageHandler')]
+    procedure TestSetExtensionLayoutStatusWritesOverride()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] Setting the status of an extension-installed layout writes a Tenant Report Layout
+        // Override record instead of copying the layout into the tenant table.
+
+        // Init - remove any tenant layouts/overrides for the test report
+        EnsureNewLayoutsAreCleaned();
+
+        // The test report (139595) ships an RDLC layout via its rendering section, so it surfaces in
+        // Report Layout List as an extension-installed layout (User Defined = false).
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
+
+        // Act - Set status to Approved via the page action
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        Assert.IsTrue(ReportLayoutsPage.SetApproved.Enabled(), 'Set Approved should be enabled for extension layouts.');
+        ReportLayoutsPage.SetApproved.Invoke();
+        ReportLayoutsPage.Close();
+
+        // Assert - a company-specific override carries the Approved status...
+        Assert.IsTrue(
+            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+            'An override record should have been created for the extension layout.');
+        Assert.IsTrue(TenantReportLayoutOverride."Override Layout Status", 'The Override Layout Status flag should be set.');
+        Assert.AreEqual(
+            Enum::"Report Layout Status"::Approved,
+            TenantReportLayoutOverride."Layout Status",
+            'The override should carry the Approved status.');
+
+        // ...and no copy was made into the tenant table.
+        TenantReportLayout.SetRange("Report ID", 139595);
+        Assert.IsTrue(TenantReportLayout.IsEmpty(), 'No copy should have been created in Tenant Report Layout.');
+    end;
+
     [MessageHandler]
     procedure StatusChangedMessageHandler(Message: Text[1024])
     begin
+    end;
+
+    [Test]
+    [HandlerFunctions('ConfirmHandler,StatusChangedMessageHandler')]
+    procedure TestSetGlobalScopeExtensionLayoutStatusConfirmsAndUpdatesGlobal()
+    var
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] Changing the status of an extension layout that already has a GLOBAL override
+        // prompts for confirmation and updates the global override, not a company-specific one.
+        EnsureNewLayoutsAreCleaned();
+
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
+
+        // Establish global scope by seeding a global override for the layout.
+        TenantReportLayoutOverride.Init();
+        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
+        TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
+        TenantReportLayoutOverride."Company Name" := '';
+        TenantReportLayoutOverride.Description := EditedLayoutNameTxt;
+        TenantReportLayoutOverride."Override Description" := true;
+        TenantReportLayoutOverride.Insert(true);
+
+        // Act - Set status to Approved; scope is global, so a confirmation is expected (ConfirmHandler = Yes)
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        ReportLayoutsPage.SetApproved.Invoke();
+        ReportLayoutsPage.Close();
+
+        // Assert - the GLOBAL override carries the Approved status; no company-specific override was created
+        Assert.IsTrue(
+            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+            'The global override should still exist.');
+        Assert.IsTrue(TenantReportLayoutOverride."Override Layout Status", 'Override Layout Status should be set on the global override.');
+        Assert.AreEqual(
+            Enum::"Report Layout Status"::Approved,
+            TenantReportLayoutOverride."Layout Status",
+            'The global override should carry the Approved status.');
+        Assert.IsFalse(
+            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+            'No company-specific override should have been created for a global-scope layout.');
+    end;
+
+    [Test]
+    procedure TestMixedScopeBatchStatusIsRejected()
+    var
+        ReportLayoutList: Record "Report Layout List";
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        ReportLayoutsImpl: Codeunit "Report Layouts Impl.";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] A batch status change spanning mixed scopes (one global, one company-default
+        // extension layout) is rejected, keeping each run to a single unambiguous scope.
+        // Driven through the internal impl codeunit (Tests-Report is in BaseApp internalsVisibleTo)
+        // because a TestPage cannot multi-select records for CurrPage.SetSelectionFilter.
+        EnsureNewLayoutsAreCleaned();
+
+        // Report 139595 ships two extension layouts; make the first global-scope, leave the second
+        // at company-default scope.
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        Assert.AreEqual(2, ReportLayoutList.Count(), 'The test report should ship two extension layouts.');
+        ReportLayoutList.FindFirst();
+
+        TenantReportLayoutOverride.Init();
+        TenantReportLayoutOverride."Report ID" := 139595;
+        TenantReportLayoutOverride."Name" := ReportLayoutList."Name";
+        TenantReportLayoutOverride."Runtime Package ID" := ReportLayoutList."Runtime Package ID";
+        TenantReportLayoutOverride."Company Name" := '';
+        TenantReportLayoutOverride."Layout Status" := Enum::"Report Layout Status"::Draft;
+        TenantReportLayoutOverride."Override Layout Status" := true;
+        TenantReportLayoutOverride.Insert(true);
+
+        // Act - batch over BOTH extension layouts (mixed scope)
+        ReportLayoutList.Reset();
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        ReportLayoutsImpl.SetSelectedCompany(CompanyName());
+        asserterror ReportLayoutsImpl.SetLayoutStatusBatch(ReportLayoutList, Enum::"Report Layout Status"::Approved);
+
+        // Assert - rejected with the mixed-scope error
+        Assert.ExpectedError('different scopes');
+    end;
+
+    [Test]
+    [HandlerFunctions('EditExtensionOverrideGlobalDescHandler')]
+    procedure TestEditExtensionLayoutWritesGlobalDescriptionOverride()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] Editing an extension-installed layout's description writes a global
+        // Tenant Report Layout Override record instead of copying the layout.
+        EnsureNewLayoutsAreCleaned();
+
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
+
+        // Act - Edit info (override mode), global scope
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        ReportLayoutsPage.EditLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        // Assert - a global description override exists, no tenant copy
+        Assert.IsTrue(
+            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", ''),
+            'A global override record should have been created.');
+        Assert.IsTrue(TenantReportLayoutOverride."Override Description", 'The Override Description flag should be set.');
+        Assert.AreEqual(EditedLayoutNameTxt, TenantReportLayoutOverride.Description, 'The override should carry the edited description.');
+
+        TenantReportLayout.SetRange("Report ID", 139595);
+        Assert.IsTrue(TenantReportLayout.IsEmpty(), 'No copy should have been created in Tenant Report Layout.');
+    end;
+
+    [Test]
+    [HandlerFunctions('EditExtensionOverrideCompanyObsoleteHandler')]
+    procedure TestEditExtensionLayoutWritesCompanyObsoleteOverride()
+    var
+        TenantReportLayout: Record "Tenant Report Layout";
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] Marking an extension-installed layout obsolete for the current company writes a
+        // company-specific override (one-way IsObsolete) instead of copying the layout.
+        EnsureNewLayoutsAreCleaned();
+
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
+
+        // Act - Edit info (override mode), company scope, mark obsolete
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        ReportLayoutsPage.EditLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        // Assert - a company-specific obsolete override exists, no tenant copy
+        Assert.IsTrue(
+            TenantReportLayoutOverride.Get(139595, ReportLayoutList."Name", ReportLayoutList."Runtime Package ID", CompanyName()),
+            'A company-specific override record should have been created.');
+        Assert.IsTrue(TenantReportLayoutOverride."Override IsObsolete", 'The Override IsObsolete flag should be set.');
+        Assert.IsTrue(TenantReportLayoutOverride.IsObsolete, 'The override should mark the layout obsolete.');
+
+        TenantReportLayout.SetRange("Report ID", 139595);
+        Assert.IsTrue(TenantReportLayout.IsEmpty(), 'No copy should have been created in Tenant Report Layout.');
+    end;
+
+    [ModalPageHandler]
+    procedure EditExtensionOverrideGlobalDescHandler(var ReportLayoutEditDialog: TestPage "Report Layout Edit Dialog")
+    begin
+        ReportLayoutEditDialog.Description.SetValue(EditedLayoutNameTxt);
+        ReportLayoutEditDialog.AvailableInAllCompanies.SetValue(true);
+        ReportLayoutEditDialog.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure EditExtensionOverrideCompanyObsoleteHandler(var ReportLayoutEditDialog: TestPage "Report Layout Edit Dialog")
+    begin
+        ReportLayoutEditDialog.AvailableInAllCompanies.SetValue(false);
+        ReportLayoutEditDialog.IsObsolete.SetValue(true);
+        ReportLayoutEditDialog.OK().Invoke();
     end;
 
     var
