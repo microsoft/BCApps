@@ -1,7 +1,11 @@
+#if not CLEAN29
 codeunit 144010 "Company Field Report Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteReason = 'Moved to the FI Core app.';
+    ObsoleteTag = '29.0';
 
     trigger OnRun()
     begin
@@ -767,3 +771,4 @@ codeunit 144010 "Company Field Report Test"
 
 
 }
+#endif
