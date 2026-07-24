@@ -5,10 +5,16 @@
 
 namespace Microsoft.Bank.Payment;
 
+#if not CLEAN29
 using Microsoft.Foundation.Navigate;
+#endif
 
+#if not CLEAN29
 page 32000004 "Ref. Payment - Export"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
     Caption = 'Ref. Payment - Export';
     DataCaptionFields = "Due Date";
     DeleteAllowed = false;
@@ -145,4 +151,5 @@ page 32000004 "Ref. Payment - Export"
     var
         Navigate: Page Navigate;
 }
+#endif
 

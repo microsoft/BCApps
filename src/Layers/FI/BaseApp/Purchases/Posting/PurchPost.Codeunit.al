@@ -892,8 +892,10 @@ codeunit 90 "Purch.-Post"
         if PurchHeader.Invoice and not PurchHeader.IsCreditDocType() then
             PurchHeader.TestField("Due Date", ErrorInfo.Create());
 
+#if not CLEAN29
         if PurchHeader.Invoice and (PurchHeader."Document Type" in [PurchHeader."Document Type"::Invoice, PurchHeader."Document Type"::Order]) then
             PurchHeader.TestField("Invoice Message");
+#endif
 
         if PurchHeader.Receive then begin
             PurchHeader.Receive := CheckTrackingAndWarehouseForReceive(PurchHeader);

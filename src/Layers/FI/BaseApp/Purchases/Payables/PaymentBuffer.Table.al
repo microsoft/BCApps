@@ -130,33 +130,53 @@ table 372 "Payment Buffer"
             DataClassification = SystemMetadata;
             TableRelation = "Remit Address".Code where("Vendor No." = field("Vendor No."));
         }
+#pragma warning disable AS0105
         field(32000000; "Message Type"; Option)
         {
             Caption = 'Message Type';
             InitValue = "Reference No.";
             OptionCaption = 'Reference No.,Invoice Information,Message,Long Message,Tax Message';
             OptionMembers = "Reference No.","Invoice Information",Message,"Long Message","Tax Message";
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
         }
         field(32000001; "Invoice Message"; Text[250])
         {
             Caption = 'Invoice Message';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
         }
         field(32000002; "Invoice Message 2"; Text[250])
         {
             Caption = 'Invoice Message 2';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
         }
         field(32000003; "Payment Date"; Date)
         {
             Caption = 'Payment Date';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
         }
         field(32000004; "Bal. Account No."; Code[20])
         {
             Caption = 'Bal. Account No.';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
         }
         field(32000005; "Attached to Line No."; Integer)
         {
             Caption = 'Attached to Line No.';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
         }
+#pragma warning restore AS0105
     }
 
     keys
@@ -168,12 +188,14 @@ table 372 "Payment Buffer"
         key(Key2; "Document No.")
         {
         }
+#pragma warning disable AS0105
         key(Key3; "Document No.", "Bal. Account No.")
         {
         }
         key(Key4; "Payment Date", "Vendor No.", "Document No.")
         {
         }
+#pragma warning restore AS0105
     }
 
     fieldgroups

@@ -1,3 +1,4 @@
+#if not CLEANSCHEMA32
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -13,6 +14,14 @@ using System.Telemetry;
 table 32000000 "Reference File Setup"
 {
     Caption = 'Reference File Setup';
+#if not CLEAN29
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '32.0';
+#endif
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
     DataClassification = CustomerContent;
 
     fields
@@ -131,3 +140,4 @@ table 32000000 "Reference File Setup"
         FIBankTok: Label 'FI Electronic Banking', Locked = true;
         Text13400: Label 'is not valid with respect to minimal length 8 and maximal length 13.';
 }
+#endif

@@ -1,7 +1,11 @@
+#if not CLEAN29
 codeunit 144009 "E-BANKING Export Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
 
     trigger OnRun()
     begin
@@ -346,4 +350,5 @@ codeunit 144009 "E-BANKING Export Test"
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
     end;
 }
+#endif
 

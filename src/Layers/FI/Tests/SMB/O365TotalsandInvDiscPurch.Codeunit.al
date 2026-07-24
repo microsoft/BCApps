@@ -1468,13 +1468,9 @@ codeunit 138024 "O365 Totals and Inv.Disc.Purch"
     end;
 
     local procedure CreateInvoceWithOneLineThroughTestPage(Vendor: Record Vendor; Item: Record Item; ItemQuantity: Integer; var PurchaseInvoice: TestPage "Purchase Invoice")
-    var
-        RefPurchaseHeader: Record "Purchase Header";
     begin
         PurchaseInvoice.OpenNew();
         PurchaseInvoice."Buy-from Vendor Name".SetValue(Vendor.Name);
-        PurchaseInvoice."Message Type".SetValue(RefPurchaseHeader."Message Type"::Message);
-        PurchaseInvoice."Invoice Message".SetValue(LibraryUtility.GenerateGUID());
 
         PurchaseInvoice.PurchLines.First();
         PurchaseInvoice.PurchLines."No.".SetValue(Item."No.");

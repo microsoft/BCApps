@@ -272,7 +272,11 @@ codeunit 110000 "Interface Basis Data"
         RunCodeunit(CODEUNIT::"Create Cost Budget Lines");
 
         RunCodeunit(CODEUNIT::"Create Payment Reg. Setup");
+#if not CLEAN29
+#pragma warning disable AL0432
         RunCodeunit(CODEUNIT::"Create Reference File Setup");
+#pragma warning restore AL0432
+#endif
 
         InsertOnlineMapSetup();
 

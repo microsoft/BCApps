@@ -1,3 +1,4 @@
+#if not CLEANSCHEMA32
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -5,12 +6,22 @@
 
 namespace Microsoft.Bank.Payment;
 
+#if not CLEAN29
 using Microsoft.Bank.BankAccount;
+#endif
 
 table 32000003 "Foreign Payment Types"
 {
     Caption = 'Foreign Payment Types';
+#if not CLEAN29
     LookupPageID = "Payment Method Codes";
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '32.0';
+#endif
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
     DataClassification = CustomerContent;
 
     fields
@@ -48,4 +59,5 @@ table 32000003 "Foreign Payment Types"
     {
     }
 }
+#endif
 

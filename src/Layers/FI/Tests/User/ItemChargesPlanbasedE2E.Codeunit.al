@@ -568,15 +568,12 @@ codeunit 135406 "Item Charges Plan-based E2E"
 
     local procedure CreatePurchaseInvoiceWithItemCharges(VendorNo: Code[20]; ItemNo: Code[20]; ItemChargeNo: Code[20]) PurchaseInvoiceNo: Code[20]
     var
-        PurchaseHeader: Record "Purchase Header";
         PurchaseLine: Record "Purchase Line";
         PurchaseInvoice: TestPage "Purchase Invoice";
     begin
         PurchaseInvoice.OpenNew();
         PurchaseInvoice."Buy-from Vendor Name".SetValue(VendorNo);
         PurchaseInvoice."Vendor Invoice No.".SetValue(LibraryUtility.GenerateGUID());
-        PurchaseInvoice."Message Type".SetValue(PurchaseHeader."Message Type"::Message);
-        PurchaseInvoice."Invoice Message".SetValue(LibraryUtility.GenerateGUID());
 
         CreatePurchaseInvoiceLine(
           PurchaseInvoice, Format(PurchaseLine.Type::Item), ItemNo, LibraryRandom.RandIntInRange(1, 10), LibraryRandom.RandDecInRange(1, 1000, 2));

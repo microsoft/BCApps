@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -866,11 +866,15 @@ page 50 "Purchase Order"
                         }
                     }
                 }
+#if not CLEAN29
                 field("Message Type"; Rec."Message Type")
                 {
                     ApplicationArea = Basic, Suite;
                     ShowMandatory = true;
                     ToolTip = 'Specifies the message type for the purchase header.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
                 field("Invoice Message"; Rec."Invoice Message")
                 {
@@ -878,7 +882,11 @@ page 50 "Purchase Order"
                     Importance = Promoted;
                     ShowMandatory = true;
                     ToolTip = 'Specifies an invoice message for the purchase header.';
+                    ObsoleteState = Pending;
+                    ObsoleteTag = '29.0';
+                    ObsoleteReason = 'Moved to Banking and Payments FI app.';
                 }
+#endif
                 group("Remit-to")
                 {
                     ShowCaption = false;

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -1059,8 +1059,13 @@ table 81 "Gen. Journal Line"
 
             trigger OnValidate()
             begin
-                if "Payment date" = 0D then
-                    "Payment date" := "Due Date";
+#if not CLEAN29
+                if not FIBankingPaymentFeature.IsEnabled() then
+#pragma warning disable AL0432
+                    if "Payment date" = 0D then
+                        "Payment date" := "Due Date";
+#pragma warning restore AL0432
+#endif
             end;
         }
         /// <summary>
@@ -3857,9 +3862,19 @@ table 81 "Gen. Journal Line"
             ObsoleteTag = '25.0';
         }
 #endif
+#if not CLEANSCHEMA32
+#pragma warning disable AA0232
         field(32000000; "Reference No."; Code[20])
         {
             Caption = 'Reference No.';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
         field(32000001; "Message Type"; Option)
         {
@@ -3867,10 +3882,22 @@ table 81 "Gen. Journal Line"
             InitValue = "Reference No";
             OptionCaption = 'Reference No,Invoice Information,Message,Long Message,Tax Message';
             OptionMembers = "Reference No","Invoice Information",Message,"Long Message","Tax Message";
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
         field(32000002; "Invoice Message"; Text[250])
         {
             Caption = 'Invoice Message';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
 
             trigger OnValidate()
             begin
@@ -3883,10 +3910,18 @@ table 81 "Gen. Journal Line"
                     if StrLen("Invoice Message") > 70 then
                         Error(Text1090006, FieldCaption("Invoice Message"), 70);
             end;
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
         field(32000003; "Invoice Message 2"; Text[250])
         {
             Caption = 'Invoice Message 2';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
 
             trigger OnValidate()
             begin
@@ -3894,11 +3929,25 @@ table 81 "Gen. Journal Line"
                     if StrLen("Invoice Message" + "Invoice Message 2") > 420 then
                         Error(Text1090008, FieldCaption("Invoice Message"), FieldCaption("Invoice Message 2"), 420);
             end;
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
         field(32000004; "Payment date"; Date)
         {
             Caption = 'Payment date';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
+#pragma warning restore AA0232
+#endif
     }
 
     keys
@@ -3913,7 +3962,11 @@ table 81 "Gen. Journal Line"
         }
         key(Key3; "Account Type", "Account No.", "Applies-to Doc. Type", "Applies-to Doc. No.")
         {
+#if not CLEAN29
+#pragma warning disable AL0432
             IncludedFields = "Reference No.";
+#pragma warning restore AL0432
+#endif
         }
         key(Key4; "Document No.")
         {
@@ -4140,9 +4193,12 @@ table 81 "Gen. Journal Line"
         ExportAgainQst: Label 'One or more of the selected lines have already been exported. Do you want to export them again?';
         NothingToExportErr: Label 'There is nothing to export.';
         NotExistErr: Label 'Document number %1 does not exist or is already closed.', Comment = '%1=Document number';
+#if not CLEAN29
         RefNoCheck: Codeunit "Bank Nos Check";
+        FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
         Text1090006: Label '%1 too long, maximum length is %2 characters.';
         Text1090008: Label '%1 and %2 are too long, maximum length is %3 characters.';
+#endif
         DocNoFilterErr: Label 'The document numbers cannot be renumbered while there is an active filter on the Document No. field.';
         DueDateMsg: Label 'This posting date will cause an overdue payment.';
 #pragma warning disable AA0470
@@ -5446,7 +5502,12 @@ table 81 "Gen. Journal Line"
             end;
             SetAmountWithCustLedgEntry();
             UpdateDocumentTypeAndAppliesTo(CustLedgEntry."Document Type", CustLedgEntry."Document No.");
-            "Reference No." := CustLedgEntry."Reference No.";
+#if not CLEAN29
+            if not FIBankingPaymentFeature.IsEnabled() then
+#pragma warning disable AL0432
+                "Reference No." := CustLedgEntry."Reference No.";
+#pragma warning restore AL0432
+#endif
             OnLookUpAppliesToDocCustOnAfterUpdateDocumentTypeAndAppliesTo(Rec, CustLedgEntry);
         end;
     end;
@@ -5536,8 +5597,14 @@ table 81 "Gen. Journal Line"
             end;
             SetAmountWithVendLedgEntry();
             UpdateDocumentTypeAndAppliesTo(VendLedgEntry."Document Type", VendLedgEntry."Document No.");
-            "Message Type" := VendLedgEntry."Message Type";
-            "Invoice Message" := VendLedgEntry."Invoice Message";
+#if not CLEAN29
+            if not FIBankingPaymentFeature.IsEnabled() then begin
+#pragma warning disable AL0432
+                "Message Type" := VendLedgEntry."Message Type";
+                "Invoice Message" := VendLedgEntry."Invoice Message";
+#pragma warning restore AL0432
+            end;
+#endif
             OnLookUpAppliesToDocVendOnAfterUpdateDocumentTypeAndAppliesTo(Rec, VendLedgEntry);
         end;
 
@@ -7228,10 +7295,16 @@ table 81 "Gen. Journal Line"
         ReadGLSetup();
         if GLSetup."Journal Templ. Name Mandatory" then
             "Journal Template Name" := PurchHeader."Journal Templ. Name";
-        "Message Type" := PurchHeader."Message Type";
-        "Invoice Message" := PurchHeader."Invoice Message";
-        "Invoice Message 2" := PurchHeader."Invoice Message 2";
-        "Payment date" := PurchHeader."Due Date";
+#if not CLEAN29
+        if not FIBankingPaymentFeature.IsEnabled() then begin
+#pragma warning disable AL0432
+            "Message Type" := PurchHeader."Message Type";
+            "Invoice Message" := PurchHeader."Invoice Message";
+            "Invoice Message 2" := PurchHeader."Invoice Message 2";
+            "Payment date" := PurchHeader."Due Date";
+#pragma warning restore AL0432
+        end;
+#endif
 
         if PurchHeader."Remit-to Code" <> '' then
             "Remit-to Code" := PurchHeader."Remit-to Code";
@@ -7280,9 +7353,15 @@ table 81 "Gen. Journal Line"
             "Pmt. Discount Date" := PurchHeader."Prepmt. Pmt. Discount Date";
             "Payment Discount %" := PurchHeader."Prepmt. Payment Discount %";
         end;
-        "Message Type" := PurchHeader."Message Type";
-        "Invoice Message" := PurchHeader."Invoice Message";
-        "Invoice Message 2" := PurchHeader."Invoice Message 2";
+#if not CLEAN29
+        if not FIBankingPaymentFeature.IsEnabled() then begin
+#pragma warning disable AL0432
+            "Message Type" := PurchHeader."Message Type";
+            "Invoice Message" := PurchHeader."Invoice Message";
+            "Invoice Message 2" := PurchHeader."Invoice Message 2";
+#pragma warning restore AL0432
+        end;
+#endif
 
         OnAfterCopyGenJnlLineFromPurchHeaderPrepmtPost(PurchHeader, Rec, UsePmtDisc);
     end;

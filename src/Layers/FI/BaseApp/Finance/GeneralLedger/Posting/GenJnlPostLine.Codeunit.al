@@ -7,7 +7,9 @@ namespace Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Check;
 using Microsoft.Bank.Ledger;
+#if not CLEAN29
 using Microsoft.Bank.Payment;
+#endif
 using Microsoft.CostAccounting.Journal;
 using Microsoft.CostAccounting.Setup;
 using Microsoft.Finance.Currency;
@@ -29,7 +31,9 @@ using Microsoft.FixedAssets.Posting;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.NoSeries;
+#if not CLEAN29
 using Microsoft.Foundation.PaymentTerms;
+#endif
 using Microsoft.Foundation.Period;
 using Microsoft.HumanResources.Employee;
 using Microsoft.HumanResources.Payables;
@@ -178,6 +182,9 @@ codeunit 12 "Gen. Jnl.-Post Line"
         SourceCodeSetupRead: Boolean;
         IsGLRegInserted: Boolean;
         IgnoreJournalTemplNameMandatoryCheck: Boolean;
+#if not CLEAN29
+        FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
+#endif
 
         NeedsRoundingErr: Label '%1 needs to be rounded', Comment = '%1 - amount';
         PurchaseAlreadyExistsErr: Label 'Purchase %1 %2 already exists for this vendor.', Comment = '%1 = Document Type; %2 = Document No.';
@@ -1287,12 +1294,18 @@ codeunit 12 "Gen. Jnl.-Post Line"
             InitCustLedgEntry(GenJournalLine, CustLedgEntry);
             OnPostCustOnAfterInitCustLedgEntry(GenJournalLine, CustLedgEntry, Cust, CustPostingGr);
 
-            if GenJournalLine."Reference No." <> '' then
-                CustLedgEntry."Reference No." := GenJournalLine."Reference No."
-            else
-                CustLedgEntry."Reference No." := GenJournalLine."Invoice Message";
+#if not CLEAN29
+            if not FIBankingPaymentFeature.IsEnabled() then begin
+#pragma warning disable AL0432
+                if GenJournalLine."Reference No." <> '' then
+                    CustLedgEntry."Reference No." := GenJournalLine."Reference No."
+                else
+                    CustLedgEntry."Reference No." := GenJournalLine."Invoice Message";
 
-            UpdateImportedRefPayment(GenJournalLine, CustLedgEntry);
+                UpdateImportedRefPayment(GenJournalLine, CustLedgEntry);
+#pragma warning restore AL0432
+            end;
+#endif
 
             if not Cust."Block Payment Tolerance" then
                 CalcPmtTolerancePossible(
@@ -1420,11 +1433,19 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnPostVendOnBeforeInitVendLedgEntry(GenJournalLine, VendLedgEntry, CVLedgEntryBuf, TempDtldCVLedgEntryBuf, VendPostingGr);
         InitVendLedgEntry(GenJournalLine, VendLedgEntry);
 
-        if VendLedgEntry."Payment Date" = 0D then
-            VendLedgEntry."Payment Date" := GenJournalLine."Due Date";
+#if not CLEAN29
+        if not FIBankingPaymentFeature.IsEnabled() then
+#pragma warning disable AL0432
+            if VendLedgEntry."Payment Date" = 0D then
+                VendLedgEntry."Payment Date" := GenJournalLine."Due Date";
+#pragma warning restore AL0432
+#endif
 
         OnPostVendOnAfterInitVendLedgEntry(GenJournalLine, VendLedgEntry, Vend, TaxAmount, TaxAmountLCY);
-        UpdateExportedRefPayment(GenJournalLine);
+#if not CLEAN29
+        if not FIBankingPaymentFeature.IsEnabled() then
+            UpdateExportedRefPayment(GenJournalLine);
+#endif
 
         if not Vend."Block Payment Tolerance" then
             CalcPmtTolerancePossible(
@@ -3906,8 +3927,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
         TempDtldCVLedgEntryBuf: Record "Detailed CV Ledg. Entry Buffer" temporary;
         CVLedgEntryBuf: Record "CV Ledger Entry Buffer";
         GenJnlLine: Record "Gen. Journal Line";
+#if not CLEAN29
         PaymentTerms: Record "Payment Terms";
         RefPaymentMgt: Codeunit "Ref. Payment Management";
+#endif
         DtldLedgEntryInserted: Boolean;
         IsHandled: Boolean;
     begin
@@ -3956,13 +3979,19 @@ codeunit 12 "Gen. Jnl.-Post Line"
         OnCustPostApplyCustLedgEntryOnBeforeCopyFromCustLedgEntry(GenJnlLine, CVLedgEntryBuf, CustLedgEntry);
         CVLedgEntryBuf.CopyFromCustLedgEntry(CustLedgEntry);
 
-        if Cust."Payment Terms Code" <> '' then
-            if PaymentTerms.Get(Cust."Payment Terms Code") then
-                CustLedgEntry."Disreg. Pmt. Disc. at Full Pmt" := PaymentTerms."Disreg. Pmt. Disc. at Full Pmt"
-            else
-                CustLedgEntry."Disreg. Pmt. Disc. at Full Pmt" := false;
-        if GenJnlLine."Document Type" = GenJnlLine."Document Type"::Payment then
-            RefPaymentMgt.CheckIfPaidInFull(GenJnlLine);
+#if not CLEAN29
+        if not FIBankingPaymentFeature.IsEnabled() then begin
+#pragma warning disable AL0432
+            if Cust."Payment Terms Code" <> '' then
+                if PaymentTerms.Get(Cust."Payment Terms Code") then
+                    CustLedgEntry."Disreg. Pmt. Disc. at Full Pmt" := PaymentTerms."Disreg. Pmt. Disc. at Full Pmt"
+                else
+                    CustLedgEntry."Disreg. Pmt. Disc. at Full Pmt" := false;
+            if GenJnlLine."Document Type" = GenJnlLine."Document Type"::Payment then
+                RefPaymentMgt.CheckIfPaidInFull(GenJnlLine);
+#pragma warning restore AL0432
+        end;
+#endif
 
         OnCustPostApplyCustLedgEntryOnBeforeApplyCustLedgEntry(CustLedgEntry, GenJnlLine, CVLedgEntryBuf);
         ApplyCustLedgEntry(CVLedgEntryBuf, TempDtldCVLedgEntryBuf, GenJnlLine, Cust);
@@ -7686,6 +7715,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                            DtldCVLedgEntryBuf."Entry Type"::"Payment Discount Tolerance (VAT Excl.)"]);
     end;
 
+#if not CLEAN29
     [Scope('OnPrem')]
     procedure UpdateImportedRefPayment(GenJnlLine: Record "Gen. Journal Line"; var CustLedgEntry: Record "Cust. Ledger Entry")
     var
@@ -7726,6 +7756,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             RefPaymentExported.Modify();
         end;
     end;
+#endif
 
     local procedure UpdateVATEntryTaxDetails(GenJnlLine: Record "Gen. Journal Line"; var VATEntry: Record "VAT Entry"; TaxDetail: Record "Tax Detail"; var TaxJurisdiction: Record "Tax Jurisdiction")
     begin

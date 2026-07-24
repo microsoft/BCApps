@@ -1227,10 +1227,19 @@ codeunit 130512 "Library - Purchase"
         exit(LibraryJournals.SelectGenJournalTemplate(GenJournalTemplate.Type::Payments, PAGE::"Payment Journal"));
     end;
 
+#if CLEAN29
+#pragma warning disable AA0137 // PurchaseHeader is only consumed by pre-CLEAN29 code below
+#endif
     procedure TransferPurchaseHdrMandatoryFields(var PurchaseHeader: Record "Purchase Header")
     begin
+#if CLEAN29
+#pragma warning restore AA0137
+#else
+#pragma warning disable AL0432
         PurchaseHeader.Validate("Message Type", PurchaseHeader."Message Type"::Message);
         PurchaseHeader.Validate("Invoice Message", LibraryUtility.GenerateGUID());
+#pragma warning restore AL0432
+#endif
     end;
 
     procedure UndoPurchaseReceiptLine(var PurchRcptLine: Record "Purch. Rcpt. Line")

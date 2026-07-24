@@ -5,14 +5,20 @@
 
 namespace Microsoft.Bank.Reports;
 
+#if not CLEAN29
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Payment;
 using Microsoft.Bank.Setup;
 using System.IO;
 using System.Utilities;
+#endif
 
+#if not CLEAN29
 report 32000000 "Import Ref. Payment"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
     Caption = 'Import Ref. Payment';
     ProcessingOnly = true;
 
@@ -270,4 +276,5 @@ report 32000000 "Import Ref. Payment"
         FileName := NewFileName;
     end;
 }
+#endif
 

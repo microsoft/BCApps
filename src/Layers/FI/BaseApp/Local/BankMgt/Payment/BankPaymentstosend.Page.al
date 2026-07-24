@@ -5,12 +5,18 @@
 
 namespace Microsoft.Bank.Payment;
 
+#if not CLEAN29
 using Microsoft.Bank.Reports;
 using Microsoft.Purchases.Setup;
 using System.Telemetry;
+#endif
 
+#if not CLEAN29
 page 32000006 "Bank Payments to send"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
     ApplicationArea = Basic, Suite;
     Caption = 'Bank Payments to send';
     DelayedInsert = true;
@@ -353,4 +359,5 @@ page 32000006 "Bank Payments to send"
         TotalAmountLCY := PurchRefLines."Amount (LCY)";
     end;
 }
+#endif
 

@@ -5,10 +5,16 @@
 
 namespace Microsoft.Bank.Setup;
 
+#if not CLEAN29
 using System.Telemetry;
+#endif
 
+#if not CLEAN29
 page 32000000 "Bank Reference File Setup"
 {
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
     ApplicationArea = Basic, Suite;
     Caption = 'Bank Reference File Setup';
     PageType = Card;
@@ -114,4 +120,5 @@ page 32000000 "Bank Reference File Setup"
         FeatureTelemetry.LogUptake('1000HN4', FIBankTok, Enum::"Feature Uptake Status"::Discovered);
     end;
 }
+#endif
 

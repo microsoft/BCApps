@@ -60,8 +60,12 @@ codeunit 122003 "Create Purchase Document"
             PurchaseHeader.Validate("Vendor Invoice No.", VendorInvoiceNo)
         else
             PurchaseHeader.Validate("Vendor Invoice No.", PurchaseHeader."No.");
+#if not CLEAN29
+#pragma warning disable AL0432
         PurchaseHeader.Validate("Message Type", PurchaseHeader."Message Type"::Message);
         PurchaseHeader.Validate("Invoice Message", PurchaseHeader."No.");
+#pragma warning restore AL0432
+#endif
         PurchaseHeader.Modify();
     end;
 

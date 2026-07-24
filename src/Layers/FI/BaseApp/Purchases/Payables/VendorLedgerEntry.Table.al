@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -731,25 +731,61 @@ table 25 "Vendor Ledger Entry"
             DataClassification = CustomerContent;
             ToolTip = 'Specifies if there is an ongoing dispute for this document.';
         }
+#if not CLEANSCHEMA32
+#pragma warning disable AA0232
         field(32000000; "Message Type"; Option)
         {
             Caption = 'Message Type';
             InitValue = "Reference No.";
             OptionCaption = 'Reference No.,Invoice Information,Message,Long Message,Tax Message';
             OptionMembers = "Reference No.","Invoice Information",Message,"Long Message","Tax Message";
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
         field(32000001; "Invoice Message"; Text[250])
         {
             Caption = 'Invoice Message';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
         field(32000002; "Invoice Message 2"; Text[250])
         {
             Caption = 'Invoice Message 2';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
         field(32000003; "Payment Date"; Date)
         {
             Caption = 'Payment Date';
+            ObsoleteReason = 'Moved to Banking and Payments FI app.';
+#if not CLEAN29
+            ObsoleteState = Pending;
+            ObsoleteTag = '29.0';
+#else
+            ObsoleteState = Removed;
+            ObsoleteTag = '32.0';
+#endif
         }
+#pragma warning restore AA0232
+#endif
     }
 
     keys
@@ -994,12 +1030,14 @@ table 25 "Vendor Ledger Entry"
         "Document Type" := GenJnlLine."Document Type";
         "Document No." := GenJnlLine."Document No.";
         "External Document No." := GenJnlLine."External Document No.";
+#if not CLEAN29
         "Message Type" := GenJnlLine."Message Type";
         "Invoice Message" := GenJnlLine."Invoice Message";
         "Invoice Message 2" := GenJnlLine."Invoice Message 2";
         "Payment Date" := GenJnlLine."Payment date";
         if GenJnlLine."Payment date" = 0D then
             "Payment Date" := GenJnlLine."Due Date";
+#endif
         Description := GenJnlLine.Description;
         "Currency Code" := GenJnlLine."Currency Code";
         "Purchase (LCY)" := GenJnlLine."Sales/Purch. (LCY)";

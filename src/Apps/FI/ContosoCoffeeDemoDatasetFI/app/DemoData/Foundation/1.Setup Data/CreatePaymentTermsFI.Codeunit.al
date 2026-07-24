@@ -25,8 +25,18 @@ codeunit 13438 "Create Payment Terms FI"
         end;
     end;
 
+#if CLEAN29
+#pragma warning disable AA0137 // PaymentTerms and DisregPmtDiscatFullPmt are only consumed by pre-CLEAN29 code below
+#endif
     local procedure ValidateRecordFields(var PaymentTerms: Record "Payment Terms"; DisregPmtDiscatFullPmt: Boolean)
     begin
+#if CLEAN29
+#pragma warning restore AA0137
+#endif
+#if not CLEAN29
+#pragma warning disable AL0432
         PaymentTerms.Validate("Disreg. Pmt. Disc. at Full Pmt", DisregPmtDiscatFullPmt);
+#pragma warning restore AL0432
+#endif
     end;
 }

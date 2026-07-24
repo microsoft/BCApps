@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Bank.DirectDebit;
 
+#if not CLEAN29
 using Microsoft.Bank.Payment;
+#endif
 using Microsoft.Finance.GeneralLedger.Journal;
 
 /// <summary>
@@ -53,7 +55,12 @@ codeunit 1222 "SEPA CT-Prepare Source"
     /// <param name="TempGenJnlLine">Target temporary table to populate with generated journal lines.</param>
     local procedure CreateTempJnlLines(var FromGenJnlLine: Record "Gen. Journal Line"; var TempGenJnlLine: Record "Gen. Journal Line" temporary)
     var
+#if not CLEAN29
+#pragma warning disable AL0432
         RefPmtExp: Record "Ref. Payment - Exported";
+#pragma warning restore AL0432
+        FIBankingPaymentFeature: Codeunit "FI Banking Payment Feature";
+#endif
         IsHandled: Boolean;
     begin
         IsHandled := false;
@@ -61,40 +68,46 @@ codeunit 1222 "SEPA CT-Prepare Source"
         if IsHandled then
             exit;
 
-        RefPmtExp.SetRange(Transferred, false);
-        RefPmtExp.SetRange("Applied Payments", false);
-        RefPmtExp.SetRange("SEPA Payment", true);
+#if not CLEAN29
+        if not FIBankingPaymentFeature.IsEnabled() then begin
+#pragma warning disable AL0432
+            RefPmtExp.SetRange(Transferred, false);
+            RefPmtExp.SetRange("Applied Payments", false);
+            RefPmtExp.SetRange("SEPA Payment", true);
 
-        if RefPmtExp.FindSet() then
-            repeat
-                TempGenJnlLine.Init();
-                TempGenJnlLine."Journal Template Name" := '';
-                TempGenJnlLine."Journal Batch Name" := '';
-                case RefPmtExp."Document Type" of
-                    RefPmtExp."Document Type"::Invoice:
-                        TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
-                    else
-                        TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::" ";
-                end;
-                TempGenJnlLine."Document No." := RefPmtExp."Document No.";
-                TempGenJnlLine."Line No." := RefPmtExp."No.";
-                TempGenJnlLine."Account No." := RefPmtExp."Vendor No.";
-                TempGenJnlLine."Account Type" := TempGenJnlLine."Account Type"::Vendor;
-                TempGenJnlLine."Bal. Account Type" := TempGenJnlLine."Bal. Account Type"::"Bank Account";
-                TempGenJnlLine."Bal. Account No." := RefPmtExp."Payment Account";
-                TempGenJnlLine."External Document No." := RefPmtExp."External Document No.";
-                TempGenJnlLine.Amount := RefPmtExp.Amount;
-                TempGenJnlLine."Applies-to Doc. Type" := Enum::"Gen. Journal Document Type".FromInteger(RefPmtExp."Document Type");
-                TempGenJnlLine."Applies-to Doc. No." := RefPmtExp."Document No.";
-                TempGenJnlLine."Currency Code" := RefPmtExp."Currency Code";
-                TempGenJnlLine."Due Date" := RefPmtExp."Due Date";
-                TempGenJnlLine."Posting Date" := RefPmtExp."Payment Date";
-                TempGenJnlLine."Recipient Bank Account" := RefPmtExp."Vendor Account";
-                TempGenJnlLine.Description := CopyStr(RefPmtExp."Description 2", 1, MaxStrLen(TempGenJnlLine.Description));
-                TempGenJnlLine."Message to Recipient" := RefPmtExp."External Document No.";
+            if RefPmtExp.FindSet() then
+                repeat
+                    TempGenJnlLine.Init();
+                    TempGenJnlLine."Journal Template Name" := '';
+                    TempGenJnlLine."Journal Batch Name" := '';
+                    case RefPmtExp."Document Type" of
+                        RefPmtExp."Document Type"::Invoice:
+                            TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::Payment;
+                        else
+                            TempGenJnlLine."Document Type" := TempGenJnlLine."Document Type"::" ";
+                    end;
+                    TempGenJnlLine."Document No." := RefPmtExp."Document No.";
+                    TempGenJnlLine."Line No." := RefPmtExp."No.";
+                    TempGenJnlLine."Account No." := RefPmtExp."Vendor No.";
+                    TempGenJnlLine."Account Type" := TempGenJnlLine."Account Type"::Vendor;
+                    TempGenJnlLine."Bal. Account Type" := TempGenJnlLine."Bal. Account Type"::"Bank Account";
+                    TempGenJnlLine."Bal. Account No." := RefPmtExp."Payment Account";
+                    TempGenJnlLine."External Document No." := RefPmtExp."External Document No.";
+                    TempGenJnlLine.Amount := RefPmtExp.Amount;
+                    TempGenJnlLine."Applies-to Doc. Type" := Enum::"Gen. Journal Document Type".FromInteger(RefPmtExp."Document Type");
+                    TempGenJnlLine."Applies-to Doc. No." := RefPmtExp."Document No.";
+                    TempGenJnlLine."Currency Code" := RefPmtExp."Currency Code";
+                    TempGenJnlLine."Due Date" := RefPmtExp."Due Date";
+                    TempGenJnlLine."Posting Date" := RefPmtExp."Payment Date";
+                    TempGenJnlLine."Recipient Bank Account" := RefPmtExp."Vendor Account";
+                    TempGenJnlLine.Description := CopyStr(RefPmtExp."Description 2", 1, MaxStrLen(TempGenJnlLine.Description));
+                    TempGenJnlLine."Message to Recipient" := RefPmtExp."External Document No.";
 
-                TempGenJnlLine.Insert();
-            until RefPmtExp.Next() = 0;
+                    TempGenJnlLine.Insert();
+                until RefPmtExp.Next() = 0;
+#pragma warning restore AL0432
+        end;
+#endif
 
         OnAfterCreateTempJnlLines(FromGenJnlLine, TempGenJnlLine);
     end;

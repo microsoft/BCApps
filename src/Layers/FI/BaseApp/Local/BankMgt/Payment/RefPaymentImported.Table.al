@@ -1,3 +1,4 @@
+#if not CLEANSCHEMA32
 // ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
@@ -12,8 +13,16 @@ using Microsoft.Sales.Receivables;
 table 32000001 "Ref. Payment - Imported"
 {
     Caption = 'Ref. Payment - Imported';
+#if not CLEAN29
     DrillDownPageID = "Ref. Payment - Import";
     LookupPageID = "Ref. Payment - Import";
+    ObsoleteState = Pending;
+    ObsoleteTag = '29.0';
+#else
+    ObsoleteState = Removed;
+    ObsoleteTag = '32.0';
+#endif
+    ObsoleteReason = 'Moved to Banking and Payments FI app.';
     DataClassification = CustomerContent;
 
     fields
@@ -217,4 +226,5 @@ table 32000001 "Ref. Payment - Imported"
         Cust: Record Customer;
         CustEntry: Record "Cust. Ledger Entry";
 }
+#endif
 
