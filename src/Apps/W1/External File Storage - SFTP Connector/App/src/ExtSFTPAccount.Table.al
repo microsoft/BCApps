@@ -76,7 +76,7 @@ table 4621 "Ext. SFTP Account"
         field(13; Fingerprints; Text[1024])
         {
             Caption = 'Fingerprints';
-            ToolTip = 'Specifies the known host fingerprints for this SFTP account. Each fingerprint must be prefixed with sha256: or md5:. Multiple fingerprints can be separated with commas.';
+            ToolTip = 'Specifies the known host fingerprints for this SFTP account. Each fingerprint must be prefixed with sha256:. Multiple fingerprints can be separated with commas.';
             Access = Internal;
             DataClassification = SystemMetadata;
         }
