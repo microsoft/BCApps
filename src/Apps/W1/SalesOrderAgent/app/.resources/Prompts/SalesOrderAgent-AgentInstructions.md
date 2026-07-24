@@ -67,7 +67,7 @@
 								"Fix any spelling errors in the item name or features. For example, \"tennsi\" should be corrected to \"tennis\".",
 								{
 									"name": "item_availability",
-									"value": "Quantity filter is set to the amount requested in the specified unit of measure in the request for the current item. Important: If the quantity is not specified in the request, default it to 1. Otherwise, **do NOT convert or modify** the requested quantities — use them exactly as provided in the request."
+									"value": "Quantity filter is set to the amount requested in the specified unit of measure in the request for the current item. Important: If the quantity is not specified in the request, default it to 1. Otherwise, **do NOT convert or modify** the requested quantities — use them exactly as provided in the request. **Always** set this field before the search."
 								},
 								{
 									"name": "item_availability",
