@@ -1443,4 +1443,49 @@ codeunit 139883 "E-Doc Process Test"
         ItemReference.Insert();
     end;
 
+    [Test]
+    procedure NewServiceDefaultsToImportProcessV2()
+    var
+        EDocumentService: Record "E-Document Service";
+    begin
+        // [WHEN] A new E-Document Service record is initialized
+        EDocumentService.Init();
+        // [THEN] Import Process defaults to Version 2.0
+        Assert.AreEqual(
+            EDocumentService."Import Process"::"Version 2.0", EDocumentService."Import Process",
+            'New services must default to the v2 draft pipeline.');
+    end;
+
+    [Test]
+    procedure DraftFormatSelectableForImportProcessV2()
+    var
+        EDocService: Record "E-Document Service";
+        EDocServicePage: TestPage "E-Document Service";
+    begin
+        // [FEATURE] [E-Document] [Import]
+        // [SCENARIO] The draft format ("Read into Draft Impl.") is selectable on the service card for Version 2.0 services
+        if EDocService.Get('V2DRAFTFMT') then
+            EDocService.Delete();
+
+        // [GIVEN] An E-Document Service using import process Version 2.0
+        EDocService.Init();
+        EDocService.Code := 'V2DRAFTFMT';
+        EDocService."Import Process" := EDocService."Import Process"::"Version 2.0";
+        EDocService.Insert();
+
+        // [WHEN] Opening the service card and selecting a draft format
+        EDocServicePage.OpenEdit();
+        EDocServicePage.GoToRecord(EDocService);
+        // [THEN] The draft format field is available so the user can tell v2 how to read the incoming document
+        Assert.IsTrue(EDocServicePage."Read into Draft Impl.".Editable(), 'Draft Format must be editable for Version 2.0 services.');
+        EDocServicePage."Read into Draft Impl.".SetValue(Enum::"E-Doc. Read into Draft"::PEPPOL);
+        EDocServicePage.Close();
+
+        // [THEN] The selected format is persisted on the service
+        EDocService.Find();
+        Assert.AreEqual(
+            Enum::"E-Doc. Read into Draft"::PEPPOL, EDocService."Read into Draft Impl.",
+            'The selected draft format must be stored on the service.');
+    end;
+
 }
