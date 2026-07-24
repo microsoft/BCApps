@@ -34,7 +34,6 @@ report 790 "Calculate Inventory"
 
                 trigger OnAfterGetRecord()
                 var
-                    ItemVariant: Record "Item Variant";
                     ByBin: Boolean;
                     ExecuteLoop: Boolean;
                     InsertTempSKU: Boolean;
@@ -46,11 +45,9 @@ report 790 "Calculate Inventory"
                     if ("Location Code" <> '') and Location."Use As In-Transit" then
                         CurrReport.Skip();
 
-                    if "Item Ledger Entry"."Variant Code" <> '' then begin
-                        ItemVariant.SetLoadFields(Blocked);
-                        if ItemVariant.Get("Item Ledger Entry"."Item No.", "Item Ledger Entry"."Variant Code") and ItemVariant.Blocked then
+                    if "Item Ledger Entry"."Variant Code" <> '' then
+                        if IsItemVariantBlocked("Item Ledger Entry"."Item No.", "Item Ledger Entry"."Variant Code") then
                             CurrReport.Skip();
-                    end;
 
                     if ColumnDim <> '' then
                         TransferDim("Dimension Set ID");
@@ -66,12 +63,9 @@ report 790 "Calculate Inventory"
                     if not SkipCycleSKU("Location Code", "Item No.", "Variant Code") then
                         if ByBin then begin
                             if not TempSKU.Get("Location Code", "Item No.", "Variant Code") then begin
-                                InsertTempSKU := false;
-                                if "Variant Code" = '' then
-                                    InsertTempSKU := true
-                                else
-                                    if ItemVariant.Get("Item No.", "Variant Code") then
-                                        InsertTempSKU := true;
+                                InsertTempSKU := "Variant Code" = '';
+                                if not InsertTempSKU then
+                                    InsertTempSKU := ItemVariantExists("Item No.", "Variant Code");
                                 if InsertTempSKU then begin
                                     TempSKU."Item No." := "Item No.";
                                     TempSKU."Variant Code" := "Variant Code";
@@ -150,7 +144,6 @@ report 790 "Calculate Inventory"
 
                 trigger OnAfterGetRecord()
                 var
-                    ItemVariant: Record "Item Variant";
                     IsHandled: Boolean;
                 begin
                     IsHandled := false;
@@ -159,11 +152,9 @@ report 790 "Calculate Inventory"
                         if not "Item Ledger Entry".IsEmpty() then
                             CurrReport.Break();   // Skip if item has any record in Item Ledger Entry.
 
-                    if "Warehouse Entry"."Variant Code" <> '' then begin
-                        ItemVariant.SetLoadFields(Blocked);
-                        if ItemVariant.Get("Item No.", "Variant Code") and ItemVariant.Blocked then
+                    if "Warehouse Entry"."Variant Code" <> '' then
+                        if IsItemVariantBlocked("Item No.", "Variant Code") then
                             CurrReport.Skip();
-                    end;
 
                     Clear(TempQuantityOnHandBuffer);
                     TempQuantityOnHandBuffer."Item No." := "Item No.";
@@ -202,6 +193,8 @@ report 790 "Calculate Inventory"
                 if not HideValidationDialog then
                     Window.Update();
                 TempSKU.DeleteAll();
+
+                InvalidateItemVariantCache();
             end;
 
             trigger OnPostDataItem()
@@ -363,6 +356,8 @@ report 790 "Calculate Inventory"
         NoSeriesBatch: Codeunit "No. Series - Batch";
         DimBufMgt: Codeunit "Dimension Buffer Management";
         Window: Dialog;
+        ItemVariantBlockedCache: Dictionary of [Code[10], Integer];
+        CachedVariantItemNo: Code[20];
         NextLineNo: Integer;
         ZeroQtySave: Boolean;
         AdjustPosQty: Boolean;
@@ -747,6 +742,75 @@ report 790 "Calculate Inventory"
                 if SKU.Get(LocationCode, ItemNo, VariantCode) then
                     exit(true);
         exit(false);
+    end;
+
+    local procedure IsItemVariantBlocked(ItemNo: Code[20]; VariantCode: Code[10]): Boolean
+    var
+        Blocked: Boolean;
+    begin
+        // Returns true only when the variant exists for this item AND is blocked.
+        if not LookupItemVariantAndBlockedState(ItemNo, VariantCode, Blocked) then
+            exit(false);
+
+        exit(Blocked);
+    end;
+
+    local procedure ItemVariantExists(ItemNo: Code[20]; VariantCode: Code[10]): Boolean
+    var
+        DummyBlocked: Boolean;
+    begin
+        exit(LookupItemVariantAndBlockedState(ItemNo, VariantCode, DummyBlocked));
+    end;
+
+    local procedure InvalidateItemVariantCache()
+    begin
+        Clear(ItemVariantBlockedCache);
+        CachedVariantItemNo := '';
+    end;
+
+    local procedure LookupItemVariantAndBlockedState(ItemNo: Code[20]; VariantCode: Code[10]; var Blocked: Boolean): Boolean
+    var
+        ItemVariantState: Integer;
+    begin
+        // Cache Item Variant Blocked state per Item to avoid repeated SQL roundtrips.
+        // Each (Item, Variant) pair is fetched at most once; the cache is invalidated when the outer Item changes.
+        Blocked := false;
+        if (ItemNo = '') or (VariantCode = '') then
+            exit(false);
+
+        if CachedVariantItemNo <> ItemNo then begin
+            Clear(ItemVariantBlockedCache);
+            CachedVariantItemNo := ItemNo;
+        end;
+
+        ItemVariantState := GetItemVariantState(ItemNo, VariantCode);
+
+        Blocked := ItemVariantState = 2;
+        exit(ItemVariantState <> 0);
+    end;
+
+    local procedure GetItemVariantState(ItemNo: Code[20]; VariantCode: Code[10]): Integer
+    var
+        ItemVariant: Record "Item Variant";
+        ItemVariantState: Integer;
+    begin
+        // Returns the cached state for (ItemNo, VariantCode); fetches from the database on miss.
+        // 0 = variant does not exist, 1 = exists and not blocked, 2 = exists and blocked.
+        if ItemVariantBlockedCache.Get(VariantCode, ItemVariantState) then
+            exit(ItemVariantState);
+
+        ItemVariant.SetLoadFields(Blocked);
+        case true of
+            not ItemVariant.Get(ItemNo, VariantCode):
+                ItemVariantState := 0;
+            ItemVariant.Blocked:
+                ItemVariantState := 2;
+            else
+                ItemVariantState := 1;
+        end;
+        ItemVariantBlockedCache.Add(VariantCode, ItemVariantState);
+
+        exit(ItemVariantState);
     end;
 
     procedure GetLocation(LocationCode: Code[10]): Boolean
