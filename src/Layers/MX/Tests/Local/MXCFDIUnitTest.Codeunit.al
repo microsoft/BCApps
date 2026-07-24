@@ -2839,12 +2839,13 @@
     end;
 
     [Test]
-    [HandlerFunctions('RequestStampMenuHandler,ErrorMessagesHandler')]
+    [HandlerFunctions('RequestStampMenuHandler')]
     procedure RequestStampRaisesNoRelationDocsErrorWhenCFDIRelation04()
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        ErrorMessages: TestPage "Error Messages";
         PostedDocumentNo: Code[20];
     begin
         // [FEATURE] [CFDI]
@@ -2865,11 +2866,13 @@
         SalesInvoiceHeader.Modify();
 
         // [WHEN] RequestStampEDocument is called on Posted Sales Invoice "SI"
+        ErrorMessages.Trap();
         asserterror SalesInvoiceHeader.RequestStampEDocument();
 
-        // [THEN] Error 'No relation documents specified for the replacement of previous CFDIs.' with code 'Dialog' is raised
-        Assert.ExpectedError('No relation documents specified for the replacement of previous CFDIs.');
-        Assert.ExpectedErrorCode('Dialog');
+        // [THEN] Error 'No relation documents specified for the replacement of previous CFDIs.' is shown
+        ErrorMessages.FILTER.SetFilter("Table Number", Format(DATABASE::"Sales Invoice Header"));
+        ErrorMessages.FILTER.SetFilter("Field Number", Format(SalesInvoiceHeader.FieldNo("CFDI Relation")));
+        ErrorMessages.Description.AssertEquals(NoRelationDocumentsExistErr);
     end;
 
     [Test]
@@ -3619,10 +3622,4 @@
         Choice := 1;
     end;
 
-    [PageHandler]
-    [Scope('OnPrem')]
-    procedure ErrorMessagesHandler(var ErrorMessages: TestPage "Error Messages")
-    begin
-        Error(ErrorMessages.Description.Value());
-    end;
 }
