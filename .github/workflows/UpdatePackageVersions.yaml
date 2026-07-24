@@ -57,7 +57,7 @@ jobs:
       - name: Update Package Versions
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        uses: microsoft/BCApps/.github/actions/RunAutomation@main
+        uses: ./.github/actions/RunAutomation
         with:
           automations: UpdateAppBaselines,UpdateAppTranslations
           targetBranch: ${{ matrix.branch }}

@@ -11,8 +11,8 @@ $ErrorActionPreference = "Stop"
 $ProgressPreference = "SilentlyContinue"
 Set-StrictMode -Version 2.0
 
-# Import EnlistmentHelperFunctions module
-Import-Module "$PSScriptRoot/../../../build/scripts/EnlistmentHelperFunctions.psm1" -DisableNameChecking
+# Initialize enlistment (sets $repoRoot and loads shared modules)
+. "$env:GITHUB_WORKSPACE/init.ps1"
 
 if ($WhatIf) {
     Write-Host "::notice::Running in WhatIf mode - no workflow runs will be deleted and no comments will be added"

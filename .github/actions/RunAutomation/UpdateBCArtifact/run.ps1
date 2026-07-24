@@ -9,7 +9,7 @@ param (
 Install-Module -Name BcContainerHelper -AllowPrerelease -Force
 Import-Module BcContainerHelper -DisableNameChecking
 
-Import-Module $PSScriptRoot\..\..\..\..\build\scripts\EnlistmentHelperFunctions.psm1
+. "$env:GITHUB_WORKSPACE/init.ps1"
 
 $newArtifactUrl = Update-BCArtifactVersion
 

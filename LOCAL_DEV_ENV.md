@@ -10,12 +10,12 @@
 ## Create a development environment
 
 The development environment is a docker container running Business Central locally.
-In order to create it, simply run `.\build\scripts\DevEnv\NewDevEnv.ps1` with the desired parameters.
+In order to create it, simply run `.\eng\DevTools\NewDevEnv.ps1` with the desired parameters.
 
 
 ### Example - Set up a container and VSCode
 ```
-.\build\scripts\DevEnv\NewDevEnv.ps1 -ContainerName 'BCApps-Dev'
+.\eng\DevTools\NewDevEnv.ps1 -ContainerName 'BCApps-Dev'
 ```
 
 Running the above will
@@ -25,7 +25,7 @@ Running the above will
 
 ### Example - Set up a container, VSCode and publish a new system app
 ```
-.\build\scripts\DevEnv\NewDevEnv.ps1 -ContainerName 'BCApps-Dev' -ProjectPaths '.\src\System Application\App'
+.\eng\DevTools\NewDevEnv.ps1 -ContainerName 'BCApps-Dev' -ProjectPaths '.\src\System Application\App'
 ```
 Running the above will
 * Create a new container (if one doesn't already exist)
@@ -34,7 +34,7 @@ Running the above will
 
 ### Example - Set up a container, VSCode and publish a new system app and tests
 ```
-.\build\scripts\DevEnv\NewDevEnv.ps1 -ContainerName 'BCApps-Dev' -ProjectPaths '.\src\System Application\*'
+.\eng\DevTools\NewDevEnv.ps1 -ContainerName 'BCApps-Dev' -ProjectPaths '.\src\System Application\*'
 ```
 Running the above will
 * Create a new container (if one doesn't already exist)
@@ -52,7 +52,7 @@ Because the source is split across layers, you don't edit the layer folders dire
 All commands are provided by the `GDLDevelopment` PowerShell module. Import it once per session:
 
 ```powershell
-Import-Module .\build\scripts\GDLDevelopment\GDLDevelopment.psm1
+Import-Module .\eng\DevTools\GDLDevelopment\GDLDevelopment.psm1
 ```
 
 ### Create a view
@@ -98,7 +98,7 @@ When you change a file in the `W1` (worldwide) base layer, the same change often
 Import the module and run `Invoke-Miapp` from the repository root:
 
 ```powershell
-Import-Module .\build\scripts\Miapp\MicroApp.psm1
+Import-Module .\eng\Shared\Miapp\MicroApp.psm1
 Invoke-Miapp
 ```
 
@@ -120,4 +120,4 @@ Invoke-Miapp -Interactive
 
 > **Tip:** Run Miapp after committing your `W1` changes — it compares against the base branch (`origin/HEAD`, typically `main`) to determine what to propagate.
 
-For the full list of parameters, the integration workflow, configuration, and troubleshooting, see the [Miapp README](build/scripts/Miapp/README.md).
+For the full list of parameters, the integration workflow, configuration, and troubleshooting, see the [Miapp README](eng/Shared/Miapp/README.md).

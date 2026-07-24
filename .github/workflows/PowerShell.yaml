@@ -50,4 +50,4 @@ jobs:
 
       - name: Run PS Tests
         run: |
-          . (Join-Path "." "build/scripts/tests/runTests.ps1")
+          . (Join-Path "." "eng/CI/tests/runTests.ps1")

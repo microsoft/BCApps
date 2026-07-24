@@ -74,7 +74,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Add unstable tests from run
-        uses: microsoft/BCApps/.github/actions/UpdateUnstableTests@main
+        uses: ./.github/actions/UpdateUnstableTests
         with:
           branch: ${{ matrix.branch }}
           run-id: ${{ inputs.runId }}

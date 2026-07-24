@@ -81,7 +81,7 @@ BCApps spans the whole Business Central application platform, so the right start
 - [Create a .NET wrapper module](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-create-a-wrapper-module)
 - [Change a module](https://learn.microsoft.com/dynamics365/business-central/dev-itpro/developer/devenv-change-a-module)
 
-**Working on the Base Application, a first-party app, or a developer tool?** Many apps under `src/Apps` and `src/Tools` ship their own `README.md` describing their architecture and test setup — start there. The whole repository is built and tested with [AL-Go for GitHub](https://github.com/microsoft/AL-Go); the AL-Go projects are defined under `build/projects`.
+**Working on the Base Application, a first-party app, or a developer tool?** Many apps under `src/Apps` and `src/Tools` ship their own `README.md` describing their architecture and test setup — start there. The whole repository is built and tested with [AL-Go for GitHub](https://github.com/microsoft/AL-Go); the AL-Go projects are defined under `eng/AL-Go`.
 
 ## More Resources
 * This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
