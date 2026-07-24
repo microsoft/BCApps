@@ -284,8 +284,7 @@ tableextension 11703 "Sales Header CZL" extends "Sales Header"
 
             trigger OnValidate()
             begin
-                if "EU 3-Party Intermed. Role CZL" then
-                    "EU 3-Party Trade" := true;
+                "EU 3-Party Trade" := "EU 3-Party Intermed. Role CZL";
             end;
         }
         field(31112; "Original Doc. VAT Date CZL"; Date)

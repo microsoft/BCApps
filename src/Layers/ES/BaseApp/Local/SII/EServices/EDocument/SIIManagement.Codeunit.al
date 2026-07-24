@@ -38,25 +38,25 @@ codeunit 10756 "SII Management"
         MarkAsNotAcceptedErr: Label 'Marked as not accepted by %1 on %2.', Comment = '%1 = user id;%2 = date time of mark';
         MarkAsAcceptedErr: Label 'Marked as accepted by %1 on %2.', Comment = '%1 = user id;%2 = date time of mark';
 
-    [EventSubscriber(ObjectType::Page, Page::"Sales Invoice", 'OnOpenPageEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Sales Invoice", 'OnOpenPageEvent', '', true, false)]
     local procedure OnSalesInvoicePageOpen(var Rec: Record "Sales Header")
     begin
         CreateSetupNotification();
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Purchase Invoice", 'OnOpenPageEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Purchase Invoice", 'OnOpenPageEvent', '', true, false)]
     local procedure OnPurchInvoicePageOpen(var Rec: Record "Purchase Header")
     begin
         CreateSetupNotification();
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Sales Credit Memo", 'OnOpenPageEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Sales Credit Memo", 'OnOpenPageEvent', '', true, false)]
     local procedure OnSalesCreditMemoPageOpen(var Rec: Record "Sales Header")
     begin
         CreateSetupNotification();
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"Purchase Credit Memo", 'OnOpenPageEvent', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::"Purchase Credit Memo", 'OnOpenPageEvent', '', true, false)]
     local procedure OnPurchCreditMemoPageOpen(var Rec: Record "Purchase Header")
     begin
         CreateSetupNotification();
@@ -121,7 +121,7 @@ codeunit 10756 "SII Management"
         exit('C36C1441-6711-4878-9EB4-B8C8EAECD925');
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", 'OnRegisterManualSetup', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Guided Experience", 'OnRegisterManualSetup', '', true, false)]
     local procedure HandleRegisterBusinessSetup()
     var
         SIISetup: Record "SII Setup";
