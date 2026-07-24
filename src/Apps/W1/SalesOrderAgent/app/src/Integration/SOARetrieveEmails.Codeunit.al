@@ -43,6 +43,7 @@ codeunit 4582 "SOA Retrieve Emails"
         PageCountExceededTelemetryTxt: label 'PDF Attachment ignored because it exceeds page count of %1.', Locked = true;
         PageCountCallFailedTelemetryTxt: label 'Unable to calculate PDF Attachment''s page count.', Locked = true;
         MaxAttachmentsExceededTelemetryTxt: label 'Number of attachments exceeds maximum allowed.', Locked = true;
+        AttachmentIgnoredTelemetryTxt: Label 'Attachment ignored: %1.', Comment = '%1 = Ignore reason', Locked = true;
         ProcessedCategoryTok: Label 'Processed by Sales Order Agent', Locked = true;
 
     local procedure RetrieveEmails(var SOASetup: Record "SOA Setup")
@@ -208,15 +209,19 @@ codeunit 4582 "SOA Retrieve Emails"
 
     local procedure AddEmailAttachmentToTaskMessage(AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder"; var EmailMessage: Codeunit "Email Message"; var SOASetupRec: Record "SOA Setup")
     var
+        TempAgentTaskFile: Record "Agent Task File" temporary;
         SOASetup: Codeunit "SOA Setup";
         InStream: InStream;
+        OutStream: OutStream;
         FileMIMEType: Text[100];
         IsFileMimeTypeSupported: Boolean;
         ExceedsPageCountThreshold: Boolean;
+        ExceedsFileSizeThreshold: Boolean;
         PdfContent: Boolean;
         Ignore: Boolean;
         IgnoredReason: Text[250];
         NoOfAttachments: Integer;
+        AttachmentSizeInBytes: Integer;
         SupportedAttachmentLbl: Label 'Email has supported attachment: %1', Locked = true, Comment = '%1 = MIME type of the attachment';
         UnsupportedAttachmentLbl: Label 'Email has unsupported attachment: %1', Locked = true, Comment = '%1 = MIME type of the attachment';
     begin
@@ -226,34 +231,49 @@ codeunit 4582 "SOA Retrieve Emails"
         NoOfAttachments := 0;
         repeat
             if not EmailMessage.Attachments_IsInline() then begin
-                EmailMessage.Attachments_GetContent(InStream);
+                Ignore := false;
+                AttachmentSizeInBytes := EmailMessage.Attachments_GetLength();
+                ExceedsFileSizeThreshold := AttachmentSizeInBytes > SOASetup.GetMaxAttachmentSizeInBytes();
                 FileMIMEType := CopyStr(EmailMessage.Attachments_GetContentType(), 1, 100);
 
-                if not SOASetupRec."Analyze Attachments" then begin
+                if ExceedsFileSizeThreshold then begin
                     Ignore := true;
-                    IgnoredReason := CopyStr(Format(Enum::"SOA Email Attachment Status"::AnalyzeAttachmentsNotEnabled), 1, MaxStrLen(IgnoredReason));
-                    AgentTaskMessageBuilder.AddAttachment(EmailMessage.Attachments_GetName(), FileMIMEType, InStream, Ignore, IgnoredReason);
+                    IgnoredReason := CopyStr(Format(Enum::"SOA Email Attachment Status"::ExceedsFileSize), 1, MaxStrLen(IgnoredReason));
+                    AgentTaskMessageBuilder.AddIgnoredAttachment(EmailMessage.Attachments_GetName(), FileMIMEType, IgnoredReason);
+                    LogIgnoredAttachmentTelemetry(SOASetup, IgnoredReason, FileMIMEType, AttachmentSizeInBytes);
                 end else begin
+                    EmailMessage.Attachments_GetContent(InStream);
+                    Clear(TempAgentTaskFile);
+                    TempAgentTaskFile.Content.CreateOutStream(OutStream);
+                    CopyStream(OutStream, InStream);
+                    TempAgentTaskFile.Content.CreateInStream(InStream);
                     ExceedsPageCountThreshold := false;
-                    IsFileMimeTypeSupported := SOASetup.SupportedAttachmentContentType(FileMIMEType);
-                    if IsFileMimeTypeSupported then begin
-                        PdfContent := SOASetup.IsPdfAttachmentContentType(FileMIMEType);
-                        if PdfContent then begin
-                            if not SOASetup.DocumentExceedsPageCountThreshold(InStream, ExceedsPageCountThreshold) then
-                                FeatureTelemetry.LogError('0000QHK', SOASetup.GetFeatureName(), 'Document exceeds page count threshold', PageCountCallFailedTelemetryTxt);
-                            if ExceedsPageCountThreshold then
-                                FeatureTelemetry.LogUsage('0000QHL', SOASetup.GetFeatureName(), StrSubstNo(PageCountExceededTelemetryTxt, Format(SOASetup.PageCountThreshold())));
+                    if SOASetupRec."Analyze Attachments" then begin
+                        IsFileMimeTypeSupported := SOASetup.SupportedAttachmentContentType(FileMIMEType);
+                        if IsFileMimeTypeSupported then begin
+                            PdfContent := SOASetup.IsPdfAttachmentContentType(FileMIMEType);
+                            if PdfContent then begin
+                                if not SOASetup.DocumentExceedsPageCountThreshold(InStream, ExceedsPageCountThreshold) then
+                                    FeatureTelemetry.LogError('0000QHK', SOASetup.GetFeatureName(), 'Document exceeds page count threshold', PageCountCallFailedTelemetryTxt);
+                                if ExceedsPageCountThreshold then
+                                    FeatureTelemetry.LogUsage('0000QHL', SOASetup.GetFeatureName(), StrSubstNo(PageCountExceededTelemetryTxt, Format(SOASetup.PageCountThreshold())));
+                            end;
                         end;
                     end;
 
                     Ignore := IgnoreAttachment(IsFileMimeTypeSupported, ExceedsPageCountThreshold, NoOfAttachments, SOASetupRec, IgnoredReason);
+                    TempAgentTaskFile.Content.CreateInStream(InStream);
                     AgentTaskMessageBuilder.AddAttachment(EmailMessage.Attachments_GetName(), FileMIMEType, InStream, Ignore, IgnoredReason);
 
+                    if Ignore then
+                        LogIgnoredAttachmentTelemetry(SOASetup, IgnoredReason, FileMIMEType, AttachmentSizeInBytes);
+
                     // Log telemetry for SOA session
-                    if IsFileMimeTypeSupported then
-                        FeatureTelemetry.LogUsage('0000QBM', SOASetup.GetFeatureName(), StrSubstNo(SupportedAttachmentLbl, FileMIMEType))
-                    else
-                        FeatureTelemetry.LogUsage('0000QBN', SOASetup.GetFeatureName(), StrSubstNo(UnsupportedAttachmentLbl, FileMIMEType));
+                    if SOASetupRec."Analyze Attachments" then
+                        if IsFileMimeTypeSupported then
+                            FeatureTelemetry.LogUsage('0000QBM', SOASetup.GetFeatureName(), StrSubstNo(SupportedAttachmentLbl, FileMIMEType))
+                        else
+                            FeatureTelemetry.LogUsage('0000QBN', SOASetup.GetFeatureName(), StrSubstNo(UnsupportedAttachmentLbl, FileMIMEType));
                 end;
 
                 if not Ignore then
@@ -290,6 +310,16 @@ codeunit 4582 "SOA Retrieve Emails"
         end;
 
         exit(false);
+    end;
+
+    local procedure LogIgnoredAttachmentTelemetry(SOASetup: Codeunit "SOA Setup"; IgnoredReason: Text[250]; FileMIMEType: Text[100]; AttachmentSizeInBytes: Integer)
+    var
+        TelemetryDimensions: Dictionary of [Text, Text];
+    begin
+        TelemetryDimensions.Set('IgnoredReason', IgnoredReason);
+        TelemetryDimensions.Set('FileMIMEType', FileMIMEType);
+        TelemetryDimensions.Set('AttachmentSizeInBytes', Format(AttachmentSizeInBytes));
+        FeatureTelemetry.LogUsage('0000UMB', SOASetup.GetFeatureName(), StrSubstNo(AttachmentIgnoredTelemetryTxt, IgnoredReason), TelemetryDimensions);
     end;
 
     local procedure SetAttachmentsTransferred(var SOAEmail: Record "SOA Email"; EmailMessage: Codeunit "Email Message")
