@@ -116,12 +116,14 @@ codeunit 137428 "Prod. Def. Wiz. Save Test"
         OriginalItemBOMNo: Code[20];
         ItemNo: Code[20];
         LocationCode: Code[10];
+        PreWizardLastRoutingNo: Code[20];
+        PostWizardLastRoutingNo: Code[20];
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO F3] Save = StockkeepingUnit, source was SKU → SKU BOM/Routing updated
         Initialize();
 
-        // [GIVEN] SKU with no BOM/Routing; Item has BOM-A
+        // [GIVEN] SKU with no BOM/Routing; Item has BOM-A and no Routing
         OriginalItemBOMNo := ProdDefWizLibrary.CreateBOM(2);
         ItemNo := ProdDefWizLibrary.CreateItemWithBOMAndRouting(OriginalItemBOMNo, '');
         LocationCode := ProdDefWizLibrary.CreateLocationCode();
@@ -130,13 +132,20 @@ codeunit 137428 "Prod. Def. Wiz. Save Test"
             "Prod. Definition Display"::Edit, "Prod. Definition Display"::Edit);
 
         // [WHEN] User opens wizard from SKU Card, enables Save = StockkeepingUnit, finishes
+        PreWizardLastRoutingNo := ProdDefWizCheckLib.GetLastRoutingNo();
         Commit();
         ProdDefManager.RunForSource(SKU, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] SKU."Production BOM No." is set to the wizard-selected BOM; Item."Production BOM No." still = BOM-A
+        PostWizardLastRoutingNo := ProdDefWizCheckLib.GetLastRoutingNo();
         Assert.IsTrue(WizardFinished, 'Wizard should have finished');
         ProdDefWizCheckLib.VerifySKUHasBOM(ItemNo, LocationCode, '', OriginalItemBOMNo);
         ProdDefWizCheckLib.VerifyItemBOMUnchanged(ItemNo, OriginalItemBOMNo);
+
+        // [THEN] SKU."Routing No." is set to the wizard-created Routing; Item."Routing No." remains unchanged (blank)
+        Assert.AreNotEqual(PreWizardLastRoutingNo, PostWizardLastRoutingNo, 'Wizard should have created a new Routing');
+        ProdDefWizCheckLib.VerifySKUHasRouting(ItemNo, LocationCode, '', PostWizardLastRoutingNo);
+        ProdDefWizCheckLib.VerifyItemRoutingUnchanged(ItemNo, '');
     end;
 
     [Test]

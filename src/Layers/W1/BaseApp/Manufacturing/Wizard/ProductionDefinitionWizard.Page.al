@@ -10,6 +10,7 @@ using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.Setup;
 using System.Environment;
+using System.Telemetry;
 using System.Utilities;
 
 page 99001021 "Production Definition Wizard"
@@ -420,6 +421,7 @@ page 99001021 "Production Definition Wizard"
         MediaResourcesStandard: Record "Media Resources";
         TempData: Codeunit "Prod. Definition Temp Data";
         ProdDefinitionVersionMgmt: Codeunit "Prod. Definition Version Mgmt.";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         Finished: Boolean;
         BOMRoutingFromSource: Enum "Prod. Definition Source";
         BOMRoutingFromSourceTxt: Text;
@@ -427,6 +429,8 @@ page 99001021 "Production Definition Wizard"
         NewVersionIntroductionLbl: Label 'Turn on "Create New Version" to make the lines below editable. Note that existing versions cannot be modified — the wizard always creates a new version. It assigns a temporary version code and lets you modify the lines freely. When you finish the wizard and the changes are saved, the temporary code is replaced by a number from the version number series and the version is certified automatically.';
         SaveBOMRtngSourceNotEmptyErr: Label 'Please select a valid source for saving BOM and Routing changes.';
         SaveBOMRtngSKUNotAllowedErr: Label 'Stockkeeping Unit is not allowed when the source is Item.';
+        ProdDefWizardFeatureNameTok: Label 'Production Definition Wizard', Locked = true;
+        SaveTargetRequiredErr: Label 'Please select a target for saving BOM and Routing changes (Item or Stockkeeping Unit) before finishing.';
 
     trigger OnInit()
     begin
@@ -444,6 +448,8 @@ page 99001021 "Production Definition Wizard"
         EnableControls();
         SetBOMRoutingEditable();
         SetShowEditOptionsEnabled();
+
+        FeatureTelemetry.LogUptake('0000PDW0', ProdDefWizardFeatureNameTok, Enum::"Feature Uptake Status"::Discovered);
 
         if Rec.FindFirst() then;
     end;
@@ -726,8 +732,6 @@ page 99001021 "Production Definition Wizard"
     end;
 
     local procedure FinishAction()
-    var
-        SaveTargetRequiredErr: Label 'Please select a target for saving BOM and Routing changes (Item or Stockkeeping Unit) before finishing.';
     begin
         if SaveBOMRouting and (BOMRoutingSaveTarget = BOMRoutingSaveTarget::Empty) then
             Error(SaveTargetRequiredErr);

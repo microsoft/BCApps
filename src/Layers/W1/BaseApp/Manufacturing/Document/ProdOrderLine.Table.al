@@ -494,9 +494,11 @@ table 5406 "Prod. Order Line"
                 ModifyRecord: Boolean;
                 IsHandled: Boolean;
             begin
-                IsHandled := IsTemporary();
                 OnBeforeValidateRoutingNo(Rec, xRec, CurrFieldNo, IsHandled);
                 if IsHandled then
+                    exit;
+
+                if IsTemporary() then
                     exit;
 
                 "Routing Version Code" := '';

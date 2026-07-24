@@ -24,6 +24,7 @@ codeunit 137420 "Prod. Def. Wiz. Library"
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibrarySales: Codeunit "Library - Sales";
         LibraryWarehouse: Codeunit "Library - Warehouse";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
         LibraryRandom: Codeunit "Library - Random";
 
     procedure CreateItemWithBOMAndRouting(BOMNo: Code[20]; RoutingNo: Code[20]): Code[20]
@@ -352,11 +353,10 @@ codeunit 137420 "Prod. Def. Wiz. Library"
         Item: Record Item;
         ItemTrackingCode: Record "Item Tracking Code";
     begin
-        ItemTrackingCode.Init();
-        ItemTrackingCode.Code := CopyStr('LOT' + Format(LibraryRandom.RandIntInRange(1000, 9999)), 1, 10);
+        LibraryItemTracking.CreateItemTrackingCode(ItemTrackingCode, false, false);
         ItemTrackingCode."Lot Sales Outbound Tracking" := true;
         ItemTrackingCode."Lot Manuf. Inbound Tracking" := true;
-        ItemTrackingCode.Insert(true);
+        ItemTrackingCode.Modify(true);
         Item.Get(CreateItemWithBOMAndRouting(BOMNo, RoutingNo));
         Item.Validate("Item Tracking Code", ItemTrackingCode.Code);
         Item.Modify(true);

@@ -1395,9 +1395,11 @@ table 5407 "Prod. Order Component"
         ProdOrderLine: Record "Prod. Order Line";
         IsHandled: Boolean;
     begin
-        IsHandled := IsTemporary();
         OnBeforeCreateDim(Rec, DefaultDimSource, CurrFieldNo, IsHandled);
         if IsHandled then
+            exit;
+
+        if IsTemporary() then
             exit;
 
         SourceCodeSetup.Get();
@@ -1622,17 +1624,14 @@ table 5407 "Prod. Order Component"
         WMSManagement: Codeunit "WMS Management";
         IsHandled: Boolean;
     begin
-        IsHandled := IsTemporary();
-        OnBeforeGetDefaultConsumptionBin(Rec, ProdOrderRtngLine, BinCode, ProdOrderLine, IsHandled);
+        OnBeforeGetDefaultConsumptionBin(Rec, ProdOrderRtngLine, BinCode);
 
-        if IsHandled then
-            exit;
-
-        if not IsTemporary() then
+        if not IsTemporary() then begin
             ProdOrderLine.Get(Status, "Prod. Order No.", "Prod. Order Line No.");
-        if "Location Code" = ProdOrderLine."Location Code" then
-            if FindFirstRtngLine(ProdOrderRtngLine, ProdOrderLine) then
-                BinCode := GetBinCodeFromRtngLine(ProdOrderRtngLine);
+            if "Location Code" = ProdOrderLine."Location Code" then
+                if FindFirstRtngLine(ProdOrderRtngLine, ProdOrderLine) then
+                    BinCode := GetBinCodeFromRtngLine(ProdOrderRtngLine);
+        end;
 
         OnGetDefaultConsumptionBinOnAfterGetBinCodeFromRtngLine(Rec, ProdOrderRtngLine, BinCode);
         if BinCode <> '' then
@@ -1761,9 +1760,11 @@ table 5407 "Prod. Order Component"
         ProdOrderComp2: Record "Prod. Order Component";
         OverwriteBinCode, IsHandled : Boolean;
     begin
-        IsHandled := IsTemporary();
         OnBeforeUpdateBin(ProdOrderComp, FieldNo, FieldCaption, IsHandled);
         if IsHandled then
+            exit;
+
+        if IsTemporary() then
             exit;
 
         ProdOrderComp2 := ProdOrderComp;
@@ -2341,7 +2342,7 @@ table 5407 "Prod. Order Component"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeGetDefaultConsumptionBin(var ProdOrderComponent: Record "Prod. Order Component"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var BinCode: Code[20]; var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
+    local procedure OnBeforeGetDefaultConsumptionBin(var ProdOrderComponent: Record "Prod. Order Component"; var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var BinCode: Code[20])
     begin
     end;
 

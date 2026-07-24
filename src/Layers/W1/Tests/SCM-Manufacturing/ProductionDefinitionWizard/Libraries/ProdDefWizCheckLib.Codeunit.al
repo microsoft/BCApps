@@ -20,6 +20,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
         ItemShouldHaveBOMLbl: Label 'Item %1 should have BOM No. = %2', Locked = true;
         ItemShouldHaveRoutingLbl: Label 'Item %1 should have Routing No. = %2', Locked = true;
         SKUShouldHaveBOMLbl: Label 'SKU (%1/%2/%3) should have BOM No. = %4', Locked = true;
+        SKUShouldHaveRoutingLbl: Label 'SKU (%1/%2/%3) should have Routing No. = %4', Locked = true;
         ProdOrderShouldExistLbl: Label 'Production Order should exist for item %1', Locked = true;
         ProdOrderShouldNotExistLbl: Label 'No Production Order should exist for item %1', Locked = true;
         ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
@@ -96,6 +97,15 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
         SKU.Get(LocationCode, ItemNo, VariantCode);
         Assert.AreEqual(ExpectedBOMNo, SKU."Production BOM No.",
             StrSubstNo(SKUShouldHaveBOMLbl, ItemNo, LocationCode, VariantCode, ExpectedBOMNo));
+    end;
+
+    procedure VerifySKUHasRouting(ItemNo: Code[20]; LocationCode: Code[10]; VariantCode: Code[10]; ExpectedRoutingNo: Code[20])
+    var
+        SKU: Record "Stockkeeping Unit";
+    begin
+        SKU.Get(LocationCode, ItemNo, VariantCode);
+        Assert.AreEqual(ExpectedRoutingNo, SKU."Routing No.",
+            StrSubstNo(SKUShouldHaveRoutingLbl, ItemNo, LocationCode, VariantCode, ExpectedRoutingNo));
     end;
 
     procedure VerifyNoProdOrderForItem(ItemNo: Code[20])

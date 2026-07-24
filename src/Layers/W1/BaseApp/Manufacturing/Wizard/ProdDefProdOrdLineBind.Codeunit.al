@@ -45,25 +45,6 @@ codeunit 99001023 "Prod. Def. ProdOrdLine Bind"
         ProdOrder := StoredProdOrder;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", 'OnBeforeGetDefaultConsumptionBin', '', false, false)]
-    local procedure OnBeforeGetDefaultConsumptionBinForProdOrderComp(var ProdOrderComponent: Record "Prod. Order Component"; var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
-    begin
-        if not ProdOrderComponent.IsTemporary() then
-            exit;
-        if StoredProdOrderLine."Prod. Order No." = '' then
-            exit;
-        if ProdOrderComponent.Status <> StoredProdOrderLine.Status then
-            exit;
-        if ProdOrderComponent."Prod. Order No." <> StoredProdOrderLine."Prod. Order No." then
-            exit;
-        if ProdOrderComponent."Prod. Order Line No." <> StoredProdOrderLine."Line No." then
-            exit;
-        IsHandled := false;
-        if ProdOrderLine.Get(ProdOrderComponent.Status, ProdOrderComponent."Prod. Order No.", ProdOrderComponent."Prod. Order Line No.") then
-            exit;
-        ProdOrderLine := StoredProdOrderLine;
-    end;
-
     [EventSubscriber(ObjectType::Table, Database::"Prod. Order Component", 'OnBeforeGetProdOrderNeeds', '', false, false)]
     local procedure OnBeforeGetProdOrderNeedsForProdOrderComp(var ProdOrderComponent: Record "Prod. Order Component"; var ProdOrderLine: Record "Prod. Order Line"; var IsHandled: Boolean)
     begin

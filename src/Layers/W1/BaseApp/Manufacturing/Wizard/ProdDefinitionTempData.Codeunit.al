@@ -38,6 +38,13 @@ codeunit 99001016 "Prod. Definition Temp Data"
         GlobalSourceType: Enum "Prod. Definition Source";
         RoutingBOMSourceType: Enum "Prod. Definition Source";
         ProdOrderStatus: Enum "Production Order Status";
+        ItemInventoriableTypeCache: Dictionary of [Code[20], Boolean];
+        TempProdOrderNoLbl: Label 'TEMP-%1', Locked = true, MaxLength = 20;
+        ProductionOrderQtyZeroOrNegativeErr: Label 'Cannot create a production order from Sales Line %1 line %2: the calculated quantity (%3) is zero or negative because the line is fully or over-reserved.', Comment = '%1 = Document No., %2 = Line No., %3 = Quantity';
+        BOMForLbl: Label 'BOM for %1';
+        TempBOMNoLbl: Label 'TEMP-BOM-%1', Locked = true, MaxLength = 20;
+        RoutingForLbl: Label 'Routing for %1';
+        TempRoutingNoLbl: Label 'TEMP-RTNG-%1', Locked = true, MaxLength = 20;
 
     /// <summary>
     /// Initializes the temporary data from an item record, setting item details and clearing production tables.
@@ -111,9 +118,6 @@ codeunit 99001016 "Prod. Definition Temp Data"
     end;
 
     local procedure CreateTemporaryProductionOrderFromSalesLine(SalesLine: Record "Sales Line")
-    var
-        TempProdOrderNoLbl: Label 'TEMP-%1', Locked = true, MaxLength = 20;
-        ProductionOrderQtyZeroOrNegativeErr: Label 'Cannot create a production order from Sales Line %1 line %2: the calculated quantity (%3) is zero or negative because the line is fully or over-reserved.', Comment = '%1 = Document No., %2 = Line No., %3 = Quantity';
     begin
         TempProdOrder.Reset();
         TempProdOrder.DeleteAll();
@@ -198,8 +202,6 @@ codeunit 99001016 "Prod. Definition Temp Data"
     internal procedure InitializeNewTemporaryBOMInformation(ItemNo: Code[20]; ItemDescription: Text[100]; BaseUOMCode: Code[10])
     var
         BOMNo: Code[20];
-        BOMForLbl: Label 'BOM for %1';
-        TempBOMNoLbl: Label 'TEMP-BOM-%1', Locked = true, MaxLength = 20;
     begin
         ClearBOMTables();
 
@@ -225,8 +227,6 @@ codeunit 99001016 "Prod. Definition Temp Data"
     internal procedure InitializeNewTemporaryRoutingInformation(ItemNo: Code[20]; ItemDescription: Text[100])
     var
         RoutingNo: Code[20];
-        RoutingForLbl: Label 'Routing for %1';
-        TempRoutingNoLbl: Label 'TEMP-RTNG-%1', Locked = true, MaxLength = 20;
     begin
         ClearRoutingTables();
 

@@ -16,6 +16,7 @@ using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Document;
 using Microsoft.Utilities;
+using System.Telemetry;
 
 codeunit 99001017 "Production Definition Manager"
 {
@@ -23,9 +24,14 @@ codeunit 99001017 "Production Definition Manager"
         TempData: Codeunit "Prod. Definition Temp Data";
         ProdDefVersionMgmt: Codeunit "Prod. Definition Version Mgmt.";
         ProdDefSourceInitializer: Codeunit "Prod. Def. Source Initializer";
+        FeatureTelemetry: Codeunit "Feature Telemetry";
         BomRtngSaveTarget: Enum "Prod. Definition Save Target";
         WizardMode: Enum "Prod. Definition Mode";
         ProdOrderNotificationIdTok: Label '{5A3C5A1F-3B2E-4C8D-9F0A-1B2C3D4E5F6A}', Locked = true;
+        ProdDefWizardFeatureNameTok: Label 'Production Definition Wizard', Locked = true;
+        CreateProdOrderNotSupportedErr: Label 'Creating a production order directly is not supported when the wizard is called from an Item or Stockkeeping Unit. Use the Sales Line source instead.';
+        ProdOrderCreatedMsg: Label 'Production Order %1 has been created.', Comment = '%1 = Production Order No.';
+        OpenProdOrderActionLbl: Label 'Open Production Order';
 
     /// <summary>
     /// Opens the Production Definition Wizard for any source record type using the default Released production order status.
@@ -86,8 +92,6 @@ codeunit 99001017 "Production Definition Manager"
     end;
 
     local procedure ValidateSourceTypeForMode(SourceType: Enum "Prod. Definition Source"; Mode: Enum "Prod. Definition Mode")
-    var
-        CreateProdOrderNotSupportedErr: Label 'Creating a production order directly is not supported when the wizard is called from an Item or Stockkeeping Unit. Use the Sales Line source instead.';
     begin
         if Mode <> Mode::CreateProductionOrder then
             exit;
@@ -485,8 +489,10 @@ codeunit 99001017 "Production Definition Manager"
         ManufacturingSetup.SetLoadFields("Always Save Modified Versions");
         ManufacturingSetup.Get();
 
-        if (BomRtngSaveTarget <> BomRtngSaveTarget::Empty) or ManufacturingSetup."Always Save Modified Versions" then
+        if (BomRtngSaveTarget <> BomRtngSaveTarget::Empty) or ManufacturingSetup."Always Save Modified Versions" then begin
             ProcessBOMAndRoutingData(ItemNo);
+            FeatureTelemetry.LogUptake('0000PDW1', ProdDefWizardFeatureNameTok, Enum::"Feature Uptake Status"::"Set up");
+        end;
 
         if WizardMode = WizardMode::CreateProductionOrder then begin
             ProdOrderDirectCreator.CreateProductionOrderFromTempData(TempData, ProdOrder);
@@ -495,6 +501,9 @@ codeunit 99001017 "Production Definition Manager"
             FlushReleasedProdOrderForSalesSource(ProdOrder);
             SendProdOrderCreatedNotification(ProdOrder);
         end;
+
+        FeatureTelemetry.LogUptake('0000PDW2', ProdDefWizardFeatureNameTok, Enum::"Feature Uptake Status"::Used);
+        FeatureTelemetry.LogUsage('0000PDW3', ProdDefWizardFeatureNameTok, 'Production Definition Wizard completed');
 
         OnAfterPostWizardProcessing(TempData, ProdOrder);
     end;
@@ -512,6 +521,7 @@ codeunit 99001017 "Production Definition Manager"
         if (BOMNo <> '') or (RoutingNo <> '') then
             SourceType := SourceType::Item;
 
+        StockkeepingUnit.SetLoadFields("Production BOM No.", "Routing No.");
         if StockkeepingUnit.Get(LocationCode, ItemNo, VariantCode) then begin
             if StockkeepingUnit."Production BOM No." <> '' then
                 BOMNo := StockkeepingUnit."Production BOM No.";
@@ -590,8 +600,6 @@ codeunit 99001017 "Production Definition Manager"
     local procedure SendProdOrderCreatedNotification(ProdOrder: Record "Production Order")
     var
         ProdOrderNotification: Notification;
-        ProdOrderCreatedMsg: Label 'Production Order %1 has been created.', Comment = '%1 = Production Order No.';
-        OpenProdOrderActionLbl: Label 'Open Production Order';
     begin
         ProdOrderNotification.Id(GetProdOrderCreatedNotificationId());
         ProdOrderNotification.Message(StrSubstNo(ProdOrderCreatedMsg, ProdOrder."No."));

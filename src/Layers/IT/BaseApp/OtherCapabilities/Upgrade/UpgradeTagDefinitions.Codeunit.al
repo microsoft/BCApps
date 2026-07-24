@@ -180,6 +180,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetServiceShptLineFieldsUpgradeTag());
         PerCompanyUpgradeTags.Add(GetZeroClosedBankAccountLedgerEntriesUpgradeTag());
         PerCompanyUpgradeTags.Add(GetDepreciationBooksGLIntegrationUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetProdDefinitionDisplaySetupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetLegacySubcontractingUpgradeTag());
     end;
 
@@ -1271,6 +1272,11 @@ codeunit 9998 "Upgrade Tag Definitions"
     internal procedure GetLegacySubcontractingUpgradeTag(): Code[250]
     begin
         exit('MS-406123-LegacySubcontracting-20260507');
+    end;
+
+    internal procedure GetProdDefinitionDisplaySetupUpgradeTag(): Code[250]
+    begin
+        exit('MS-629001-ProdDefinitionDisplaySetupUpgradeTag-20260723');
     end;
 
 }

@@ -28,7 +28,7 @@ codeunit 99001018 "Prod. Order Direct Creator"
 
         TempData.GetGlobalProdOrderLine(TempProdOrderLine);
         if not TempProdOrderLine.FindFirst() then
-            Error(TempRecordNotFoundErr, TempProdOrderLine.TableCaption(), TempData.GetGlobalSourceType());
+            RaiseTempRecordNotFoundError(TempProdOrderLine.TableCaption(), Format(TempData.GetGlobalSourceType()));
 
         CreateProdOrderLineFromTemp(ProdOrderLine, ProdOrder, TempProdOrderLine);
         TransferComponentsAndRoutingLines(ProdOrderLine, TempData);
@@ -40,7 +40,7 @@ codeunit 99001018 "Prod. Order Direct Creator"
     begin
         TempData.GetGlobalProdOrder(TempProdOrder);
         if not TempProdOrder.FindFirst() then
-            Error(TempRecordNotFoundErr, TempProdOrder.TableCaption(), TempData.GetGlobalSourceType());
+            RaiseTempRecordNotFoundError(TempProdOrder.TableCaption(), Format(TempData.GetGlobalSourceType()));
 
         Clear(ProdOrder);
         ProdOrder.Init();
@@ -104,6 +104,17 @@ codeunit 99001018 "Prod. Order Direct Creator"
             ProdOrderLine.Modify(true)
         else
             ProdOrderLine.Insert(true);
+    end;
+
+    local procedure RaiseTempRecordNotFoundError(RecordCaption: Text; SourceType: Text)
+    var
+        TempRecordNotFoundErrorInfo: ErrorInfo;
+    begin
+        TempRecordNotFoundErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        TempRecordNotFoundErrorInfo.ErrorType := ErrorType::Internal;
+        TempRecordNotFoundErrorInfo.Verbosity := Verbosity::Error;
+        TempRecordNotFoundErrorInfo.Message := StrSubstNo(TempRecordNotFoundErr, RecordCaption, SourceType);
+        Error(TempRecordNotFoundErrorInfo);
     end;
 
     local procedure TransferComponentsAndRoutingLines(var ProdOrderLine: Record "Prod. Order Line"; var TempData: Codeunit "Prod. Definition Temp Data")

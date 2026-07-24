@@ -38,7 +38,7 @@ codeunit 99001022 "Prod. Def. Source Initializer"
         if not DataTypeManagement.GetRecordRef(Source, SourceRecRef) then begin
             OnInitializeFromSource(TempData, Source, IsHandled);
             if not IsHandled then
-                Error(UnknownSourceTypeErr, Format(Source));
+                RaiseUnknownSourceTypeError(Source);
             exit;
         end;
 
@@ -61,9 +61,20 @@ codeunit 99001022 "Prod. Def. Source Initializer"
             else begin
                 OnInitializeFromSource(TempData, Source, IsHandled);
                 if not IsHandled then
-                    Error(UnknownSourceTypeErr, Format(Source));
+                    RaiseUnknownSourceTypeError(Source);
             end;
         end;
+    end;
+
+    local procedure RaiseUnknownSourceTypeError(Source: Variant)
+    var
+        UnknownSourceTypeErrorInfo: ErrorInfo;
+    begin
+        UnknownSourceTypeErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        UnknownSourceTypeErrorInfo.ErrorType := ErrorType::Internal;
+        UnknownSourceTypeErrorInfo.Verbosity := Verbosity::Error;
+        UnknownSourceTypeErrorInfo.Message := StrSubstNo(UnknownSourceTypeErr, Format(Source));
+        Error(UnknownSourceTypeErrorInfo);
     end;
 
     /// <summary>
