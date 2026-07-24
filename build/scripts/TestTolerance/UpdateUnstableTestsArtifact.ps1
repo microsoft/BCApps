@@ -72,21 +72,22 @@ try {
     Write-Host "::notice::Observed $($failedTests.Count) distinct failed test(s) across $($RunIds.Count) run(s)."
 
     # --- 2. Build the unstable tests list (additive merge or full recompute) ---
+    # Load the existing artifact so each still-unstable test's 'unstableSince' timestamp can be preserved
+    # (via Set-UnstableSince below) rather than reset when the list is recomputed or appended to.
+    $existingPath = Receive-UnstableTestsArtifact -Branch $Branch -OutputDirectory $downloadDir
+    $existingTests = @()
+    if ($existingPath -and (Test-Path $existingPath)) {
+        $existing = Get-Content -Raw -Path $existingPath | ConvertFrom-Json
+        if (($existing.PSObject.Properties['tests']) -and $existing.tests) {
+            $existingTests = @($existing.tests)
+        }
+        Write-Host "Existing unstable tests list for branch '$Branch' has $($existingTests.Count) test(s)."
+    }
+    else {
+        Write-Host "No existing unstable tests artifact found for branch '$Branch'."
+    }
+
     if ($Additive) {
-        $existingPath = Receive-UnstableTestsArtifact -Branch $Branch -OutputDirectory $downloadDir
-
-        $existingTests = @()
-        if ($existingPath -and (Test-Path $existingPath)) {
-            $existing = Get-Content -Raw -Path $existingPath | ConvertFrom-Json
-            if (($existing.PSObject.Properties['tests']) -and $existing.tests) {
-                $existingTests = @($existing.tests)
-            }
-            Write-Host "Existing unstable tests list for branch '$Branch' has $($existingTests.Count) test(s)."
-        }
-        else {
-            Write-Host "No existing unstable tests artifact found for branch '$Branch'. Starting from an empty list."
-        }
-
         if ($failedTests.Count -eq 0) {
             Write-Host "::warning::No failed tests found in the supplied run(s). The unstable tests list will be rewritten unchanged."
         }
@@ -97,6 +98,10 @@ try {
         $updatedTests = Update-UnstableTestsList -FailedTests $failedTests -RunCount $RunIds.Count
         $tests = @($updatedTests.Values | ForEach-Object { ConvertTo-UnstableTestEntry -Test $_ -Repository $repo })
     }
+
+    # Stamp 'unstableSince' once per test: keep any timestamp a test already has (including one carried in
+    # the previous artifact), stamp the rest with the current UTC time.
+    $tests = @(Set-UnstableSince -Tests ([System.Collections.IList]$tests) -ExistingTests ([System.Collections.IList]$existingTests))
 
     # --- 3. Write artifact ---
     Save-UnstableTestsArtifact -Branch $Branch -RunIds $RunIds -Tests ([System.Collections.IList]$tests) -OutputPath $OutputPath

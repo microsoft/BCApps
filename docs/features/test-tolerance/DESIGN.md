@@ -2,7 +2,7 @@
 
 > Status: Draft — core decisions made, implementation complete
 > Owner: Engineering Systems
-> Last updated: 2026-04-28
+> Last updated: 2026-07-24
 
 ## 1. Summary
 
@@ -95,7 +95,11 @@ The correlation logic lives in `TestTolerance.psm1`, split into a computational,
 
 Each test is identified by a three-part normalized key: `extensionId::codeunit::testMethod` (all lowercase). The `extensionId` is read from the `<properties><property name="extensionid">` element in the test results XML; it is empty-string for suites without that property. Two tests with the same codeunit and testMethod name but different extension IDs are treated as distinct tests.
 
-> **Schema migration note:** Unstable-tests artifacts produced before the `extensionId` field was added use the old two-part key format (`codeunit::testMethod`). When a run downloads such an artifact, no matches will be found and tolerance will silently degrade to zero for that run. The artifact will be overwritten with the new three-part key format after the next UpdateUnstableTests run completes.
+**Unstable-since timestamp**
+
+Each entry records an `unstableSince` field: an ISO 8601 UTC timestamp of when the test first entered the unstable list. Just before the artifact is written, a single pass (`Set-UnstableSince`) applies one rule to every entry: if it already has an `unstableSince` value, keep it; otherwise stamp the current UTC time. Because the sliding window (Path A) fully recomputes the list on every run, "already set" also consults the previous artifact — an entry whose timestamp was recorded on an earlier run is treated as already set and preserved — so the field reflects *since when* the test has been continuously unstable rather than the last recompute time. A test that self-heals (drops off the list) and later returns starts a fresh `unstableSince`.
+
+> **Schema migration note:** Unstable-tests artifacts produced before the `extensionId` field was added use the old two-part key format (`codeunit::testMethod`). When a run downloads such an artifact, no matches will be found and tolerance will silently degrade to zero for that run. The artifact will be overwritten with the new three-part key format after the next UpdateUnstableTests run completes. Likewise, artifacts produced before the `unstableSince` field existed carry no timestamp; the first run after this change stamps `unstableSince` to that run's time for every surviving test, and the value is then preserved on subsequent runs.
 
 **Artifact lifecycle**
 

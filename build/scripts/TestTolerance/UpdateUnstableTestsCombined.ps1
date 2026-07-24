@@ -85,6 +85,20 @@ New-Item -ItemType Directory -Path $cicdWorkDir -Force | Out-Null
 New-Item -ItemType Directory -Path $prWorkDir -Force | Out-Null
 
 try {
+    # Load the existing artifact once. It serves two purposes: preserving each test's 'unstableSince'
+    # timestamp across the Path A full recompute (which rebuilds every entry from scratch, and would
+    # otherwise reset the timestamp to "now"), and acting as the fallback base list when there is no
+    # CI/CD window to recompute from.
+    $existingTests = @()
+    $existingPath = Receive-UnstableTestsArtifact -Branch $Branch -OutputDirectory $existingDir
+    if ($existingPath -and (Test-Path $existingPath)) {
+        $existing = Get-Content -Raw -Path $existingPath | ConvertFrom-Json
+        if (($existing.PSObject.Properties['tests']) -and $existing.tests) {
+            $existingTests = @($existing.tests)
+        }
+        Write-Host "Existing unstable tests list for '$Branch' has $($existingTests.Count) test(s)."
+    }
+
     # --- Path A: recompute the base list from the recent CI/CD window ---
     Write-Host "::group::Path A · Recompute from recent CI/CD runs (branch '$Branch')"
     $cicdRunIds = @(Find-UnstableTestRunIds `
@@ -104,15 +118,8 @@ try {
     }
     else {
         # No CI/CD runs to recompute from. Do NOT wipe the list: fall back to the existing artifact as the
-        # base so Path B stays purely additive on top of it.
-        $existingPath = Receive-UnstableTestsArtifact -Branch $Branch -OutputDirectory $existingDir
-        if ($existingPath -and (Test-Path $existingPath)) {
-            $existing = Get-Content -Raw -Path $existingPath | ConvertFrom-Json
-            if (($existing.PSObject.Properties['tests']) -and $existing.tests) {
-                $baseEntries = @($existing.tests)
-            }
-            Write-Host "Existing unstable tests list for '$Branch' has $($baseEntries.Count) test(s)."
-        }
+        # base so Path B stays purely additive on top of it. Existing entries keep their unstableSince.
+        $baseEntries = @($existingTests)
         Write-Host "::endgroup::"
         Write-Host "::warning::Path A (CI/CD): no completed runs with test results for '$Branch'. Preserving the existing list ($($baseEntries.Count) test(s)) as the base."
     }
@@ -135,6 +142,10 @@ try {
 
     # --- Merge Path B additively on top of the Path A base and write once ---
     $tests = @(Add-FailedTestsToUnstableTests -ExistingTests ([System.Collections.IList]$baseEntries) -FailedTests $crossPrFailed -Repository $repo)
+
+    # Stamp 'unstableSince' once per test: keep any timestamp a test already has (including one carried in
+    # the previous artifact, so it survives the Path A full recompute); stamp the rest with the current UTC time.
+    $tests = @(Set-UnstableSince -Tests ([System.Collections.IList]$tests) -ExistingTests ([System.Collections.IList]$existingTests))
 
     $allRunIds = @()
     $allRunIds += @($cicdRunIds)

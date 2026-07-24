@@ -171,11 +171,11 @@ function Get-UnstableTestKey {
       "branch": "main",
       "updatedAt": "2026-04-24T00:00:00Z",
       "tests": [
-        { "extensionId": "...", "codeunitId": 137404, "codeunitName": "SCM Manufacturing", "testMethod": "TestSomething", "reason": "...", "linkedIssue": "..." }
+        { "extensionId": "...", "codeunitId": 137404, "codeunitName": "SCM Manufacturing", "testMethod": "TestSomething", "reason": "...", "linkedIssue": "...", "unstableSince": "2026-04-24T00:00:00.0000000Z" }
       ]
     }
 
-    The 'reason' and 'linkedIssue' fields are optional. The function returns an empty
+    The 'reason', 'linkedIssue' and 'unstableSince' fields are optional. The function returns an empty
     hashtable when the file does not exist, so callers can treat "no artifact" as
     "no unstable tests yet".
 
@@ -907,6 +907,9 @@ function Get-FailedTestsFromRuns {
     Update-UnstableTestsList). 'Reason' overrides the entry reason; when empty, the test's own Reason
     property (if any) is used. 'Repository' is used to build the sourceRunUrl from the test's SourceRunId.
 
+    The 'unstableSince' timestamp is left empty here; Set-UnstableSince stamps it just before the artifact
+    is written so the "set once, then leave it" rule lives in a single place.
+
 .Parameter Test
     A single failed/unstable test object with PascalCase properties.
 .Parameter Reason
@@ -929,6 +932,7 @@ function ConvertTo-UnstableTestEntry {
     $sourceRunId = if ($Test.PSObject.Properties['SourceRunId']) { [string]$Test.SourceRunId } else { '' }
     $reasonValue = if ($Reason) { $Reason } elseif ($Test.PSObject.Properties['Reason']) { [string]$Test.Reason } else { '' }
     $linkedIssue = if ($Test.PSObject.Properties['LinkedIssue']) { [string]$Test.LinkedIssue } else { '' }
+    $unstableSince = if ($Test.PSObject.Properties['UnstableSince']) { [string]$Test.UnstableSince } else { '' }
 
     return [pscustomobject][ordered]@{
         extensionId    = if ($Test.PSObject.Properties['ExtensionId']) { [string]$Test.ExtensionId } else { '' }
@@ -939,8 +943,75 @@ function ConvertTo-UnstableTestEntry {
         failureDetail  = if ($Test.PSObject.Properties['FailureDetail']) { [string]$Test.FailureDetail } else { '' }
         reason         = $reasonValue
         linkedIssue    = $linkedIssue
+        unstableSince  = $unstableSince
         sourceRunUrl   = if ($Repository -and $sourceRunId) { "https://github.com/$Repository/actions/runs/$sourceRunId" } else { '' }
     }
+}
+
+<#
+.Synopsis
+    Ensures every unstable test entry has an 'unstableSince' timestamp: set it once, then leave it.
+.Description
+    Applies one rule to each entry about to be written to the artifact: if 'unstableSince' is already set,
+    leave it; otherwise set it. This is the only place that assigns the timestamp, so a test's clock starts
+    when it first appears in the list and is preserved on every later update while it stays unstable.
+
+    Because the sliding window fully recomputes the list each run (rebuilding entries from scratch, so their
+    'unstableSince' starts empty), the previous artifact's entries are passed as 'ExistingTests': an entry
+    that already had a timestamp there is treated as "already set" and reuses it, otherwise the current UTC
+    time is stamped.
+.Parameter Tests
+    The list of artifact entries (camelCase) about to be written. Entries are updated in place.
+.Parameter ExistingTests
+    The 'tests' array from the previous artifact, used so timestamps survive a full recompute.
+#>
+function Set-UnstableSince {
+    [CmdletBinding()]
+    [OutputType([System.Collections.IList])]
+    param(
+        [System.Collections.IList] $Tests = @(),
+
+        [System.Collections.IList] $ExistingTests = @()
+    )
+
+    $now = (Get-Date).ToUniversalTime().ToString('o')
+
+    # Timestamps already recorded in the previous artifact, so they survive a full recompute.
+    $existingSince = @{}
+    foreach ($entry in $ExistingTests) {
+        if ($null -eq $entry) { continue }
+        if (-not ($entry.PSObject.Properties['unstableSince'])) { continue }
+        if ([string]::IsNullOrWhiteSpace([string]$entry.unstableSince)) { continue }
+        $existingSince[(Get-EntryUnstableTestKey -Entry $entry)] = $entry.unstableSince
+    }
+
+    foreach ($entry in $Tests) {
+        if ($null -eq $entry) { continue }
+
+        # Already set: leave it. Otherwise reuse the previous artifact's value, else stamp now.
+        $current = if ($entry.PSObject.Properties['unstableSince']) { [string]$entry.unstableSince } else { '' }
+        if (-not [string]::IsNullOrWhiteSpace($current)) { continue }
+
+        $key = Get-EntryUnstableTestKey -Entry $entry
+        $value = if ($existingSince.ContainsKey($key)) { $existingSince[$key] } else { $now }
+
+        if ($entry.PSObject.Properties['unstableSince']) { $entry.unstableSince = $value }
+        else { $entry | Add-Member -NotePropertyName 'unstableSince' -NotePropertyValue $value }
+    }
+
+    return $Tests
+}
+
+<#
+.Synopsis
+    Computes the 'extensionId::codeunit::testMethod' key for an artifact entry (camelCase properties).
+#>
+function Get-EntryUnstableTestKey {
+    param($Entry)
+    $method = if ($Entry.PSObject.Properties['testMethod']) { [string]$Entry.testMethod } else { '' }
+    $extId = if ($Entry.PSObject.Properties['extensionId']) { [string]$Entry.extensionId } else { '' }
+    $cuId = if ($Entry.PSObject.Properties['codeunitId']) { [int]$Entry.codeunitId } else { 0 }
+    return Get-UnstableTestKey -CodeunitId $cuId -TestMethod $method -ExtensionId $extId
 }
 
 <#
@@ -1607,6 +1678,7 @@ Export-ModuleMember -Function `
     Find-UnstableTestRunIds, `
     Get-FailedTestsFromRuns, `
     ConvertTo-UnstableTestEntry, `
+    Set-UnstableSince, `
     Save-UnstableTestsArtifact, `
     Add-FailedTestsToUnstableTests, `
     Select-CrossPrUnstableTests, `

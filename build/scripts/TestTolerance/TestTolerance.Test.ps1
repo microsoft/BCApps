@@ -66,7 +66,7 @@ Describe "TestTolerance" {
   "branch": "main",
   "updatedAt": "2026-04-24T00:00:00Z",
   "tests": [
-    { "extensionId": "ext-1", "codeunitId": 100, "codeunitName": "My Codeunit", "testMethod": "TestA", "reason": "timing", "linkedIssue": "https://example/issues/1" },
+    { "extensionId": "ext-1", "codeunitId": 100, "codeunitName": "My Codeunit", "testMethod": "TestA", "reason": "timing", "linkedIssue": "https://example/issues/1", "unstableSince": "2026-04-24T00:00:00.0000000Z" },
     { "codeunitId": 200, "codeunitName": "Other Codeunit", "testMethod": "TestB" }
   ]
 }
@@ -403,6 +403,71 @@ Describe "TestTolerance" {
         }
     }
 
+    Context "ConvertTo-UnstableTestEntry" {
+        It "leaves unstableSince empty for a test that has none (stamped later by Set-UnstableSince)" {
+            $test = [pscustomobject]@{ ExtensionId = 'ext-1'; CodeunitId = 300; CodeunitName = 'A'; TestMethod = 'T1' }
+
+            $entry = ConvertTo-UnstableTestEntry -Test $test -Repository 'owner/repo'
+
+            $entry.PSObject.Properties['unstableSince'] | Should -Not -BeNullOrEmpty
+            $entry.unstableSince | Should -Be ''
+        }
+
+        It "uses the test's own UnstableSince when it carries one" {
+            $test = [pscustomobject]@{ ExtensionId = 'ext-1'; CodeunitId = 300; CodeunitName = 'A'; TestMethod = 'T1'; UnstableSince = '2026-02-02T00:00:00.0000000Z' }
+
+            $entry = ConvertTo-UnstableTestEntry -Test $test -Repository 'owner/repo'
+            $entry.unstableSince | Should -Be '2026-02-02T00:00:00.0000000Z'
+        }
+    }
+
+    Context "Set-UnstableSince" {
+        It "stamps a fresh UTC ISO 8601 timestamp for a test with no unstableSince" {
+            $tests = @(
+                [pscustomobject]@{ extensionId = 'ext-1'; codeunitId = 300; codeunitName = 'A'; testMethod = 'T1'; unstableSince = '' }
+            )
+            $before = (Get-Date).ToUniversalTime()
+
+            $result = @(Set-UnstableSince -Tests $tests -ExistingTests @())
+
+            $result[0].unstableSince | Should -Not -BeNullOrEmpty
+            $parsed = [datetimeoffset]::Parse($result[0].unstableSince).UtcDateTime
+            $parsed | Should -BeGreaterOrEqual $before.AddSeconds(-5)
+            $parsed | Should -BeLessOrEqual (Get-Date).ToUniversalTime().AddSeconds(5)
+        }
+
+        It "keeps an unstableSince that is already set on the entry" {
+            $tests = @(
+                [pscustomobject]@{ extensionId = 'ext-1'; codeunitId = 300; codeunitName = 'A'; testMethod = 'T1'; unstableSince = '2026-01-01T00:00:00.0000000Z' }
+            )
+
+            $result = @(Set-UnstableSince -Tests $tests -ExistingTests @())
+            $result[0].unstableSince | Should -Be '2026-01-01T00:00:00.0000000Z'
+        }
+
+        It "preserves a timestamp from the previous artifact matched by test key (survives full recompute)" {
+            $tests = @(
+                [pscustomobject]@{ extensionId = 'ext-1'; codeunitId = 300; codeunitName = 'A'; testMethod = 'T1'; unstableSince = '' }
+            )
+            $existing = @(
+                [pscustomobject]@{ extensionId = 'ext-1'; codeunitId = 300; codeunitName = 'A'; testMethod = 'T1'; unstableSince = '2025-12-31T00:00:00.0000000Z' }
+            )
+
+            $result = @(Set-UnstableSince -Tests $tests -ExistingTests $existing)
+            $result[0].unstableSince | Should -Be '2025-12-31T00:00:00.0000000Z'
+        }
+
+        It "adds an unstableSince property when the entry lacks one entirely" {
+            $tests = @(
+                [pscustomobject]@{ extensionId = 'ext-1'; codeunitId = 300; codeunitName = 'A'; testMethod = 'T1' }
+            )
+
+            $result = @(Set-UnstableSince -Tests $tests -ExistingTests @())
+            $result[0].PSObject.Properties['unstableSince'] | Should -Not -BeNullOrEmpty
+            $result[0].unstableSince | Should -Not -BeNullOrEmpty
+        }
+    }
+
     Context "Add-FailedTestsToUnstableTests" {
         It "appends new failed tests to an empty existing list" {
             $failed = @{
@@ -470,6 +535,19 @@ Describe "TestTolerance" {
             $merged[0].note | Should -Be 'legacy'
             $merged[1].reason | Should -Be 'pre-existing'
             $merged[2].testMethod | Should -Be 'T2'
+        }
+
+        It "preserves an existing entry's unstableSince and leaves new entries empty (stamped later)" {
+            $existing = @(
+                [pscustomobject]@{ extensionId = 'ext-1'; codeunitId = 300; codeunitName = 'A'; testMethod = 'T1'; reason = 'pre-existing'; unstableSince = '2026-01-01T00:00:00.0000000Z' }
+            )
+            $failed = @{
+                'ext-2::400::t2' = [pscustomobject]@{ ExtensionId = 'ext-2'; CodeunitId = 400; CodeunitName = 'B'; TestMethod = 'T2'; FailureMessage = 'm2'; SourceRunId = '1000' }
+            }
+
+            $merged = @(Add-FailedTestsToUnstableTests -ExistingTests $existing -FailedTests $failed -Repository 'owner/repo')
+            $merged[0].unstableSince | Should -Be '2026-01-01T00:00:00.0000000Z'
+            $merged[1].unstableSince | Should -Be ''
         }
 
         It "uses the test's own Reason when the failed test carries one" {
