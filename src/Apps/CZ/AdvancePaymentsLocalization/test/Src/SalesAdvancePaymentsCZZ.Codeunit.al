@@ -32,6 +32,8 @@ codeunit 148109 "Sales Advance Payments CZZ"
         UnapplyAdvLetterQst: Label 'Unapply advance letter: %1\Continue?', Comment = '%1 = Advance Letters';
         UsageNoPossibleQst: Label 'Usage all applicated advances is not possible.\Continue?';
         PostCashDocumentQst: Label 'Do you want to post Cash Document Header %1?', Comment = '%1 = Cash Document No.';
+        BlockedCustomerErr: Label 'You cannot %1 this type of document when Customer %2 is blocked with type %3', Comment = '%1 = create/post, %2 = customer no., %3 = blocked type';
+        PrivacyBlockedCustomerErr: Label 'You cannot %1 this type of document when Customer %2 is blocked for privacy.', Comment = '%1 = create/post, %2 = customer no.';
 
     local procedure Initialize()
     var
@@ -2771,6 +2773,129 @@ codeunit 148109 "Sales Advance Payments CZZ"
 
         // [THEN] Verify no error occur when Copy the Document from Posted Sales Invoice to Sales Return Order.
         CopyDocumentMgt.CopySalesDoc("Sales Document Type From"::"Posted Invoice", DocumentNo, SalesHeader[2]);
+    end;
+
+    [Test]
+    procedure CreateSalesAdvLetterWithCustomerBlockedAll()
+    begin
+        CreateSalesAdvLetterWithBlockedCustomerBase(Enum::"Customer Blocked"::All, false);
+    end;
+
+    [Test]
+    procedure CreateSalesAdvLetterWithCustomerBlockedShip()
+    begin
+        CreateSalesAdvLetterWithBlockedCustomerBase(Enum::"Customer Blocked"::Ship, false);
+    end;
+
+    [Test]
+    procedure CreateSalesAdvLetterWithCustomerBlockedInvoice()
+    begin
+        CreateSalesAdvLetterWithBlockedCustomerBase(Enum::"Customer Blocked"::Invoice, false);
+    end;
+
+    [Test]
+    procedure CreateSalesAdvLetterWithPrivacyBlockedCustomer()
+    begin
+        CreateSalesAdvLetterWithBlockedCustomerBase(Enum::"Customer Blocked"::" ", true);
+    end;
+
+    [Test]
+    procedure PostPaymentSalesAdvLetterWithCustomerBlockedAll()
+    begin
+        PostPaymentSalesAdvLetterWithBlockedCustomerBase(Enum::"Customer Blocked"::All, false);
+    end;
+
+    [Test]
+    procedure PostPaymentSalesAdvLetterWithCustomerBlockedShip()
+    begin
+        PostPaymentSalesAdvLetterWithBlockedCustomerBase(Enum::"Customer Blocked"::Ship, false);
+    end;
+
+    [Test]
+    procedure PostPaymentSalesAdvLetterWithCustomerBlockedInvoice()
+    begin
+        PostPaymentSalesAdvLetterWithBlockedCustomerBase(Enum::"Customer Blocked"::Invoice, false);
+    end;
+
+    [Test]
+    procedure PostPaymentSalesAdvLetterWithPrivacyBlockedCustomer()
+    begin
+        PostPaymentSalesAdvLetterWithBlockedCustomerBase(Enum::"Customer Blocked"::" ", true);
+    end;
+
+    local procedure CreateSalesAdvLetterWithBlockedCustomerBase(CustomerBlocked: Enum "Customer Blocked"; PrivacyBlocked: Boolean)
+    var
+        SalesAdvLetterHeaderCZZ: Record "Sales Adv. Letter Header CZZ";
+        Customer: Record Customer;
+    begin
+        // [SCENARIO] Creating sales advance letter with blocked customer must fail
+        Initialize();
+
+        // [GIVEN] Customer has been created and blocked
+        CreateBlockedCustomer(Customer, CustomerBlocked, PrivacyBlocked);
+
+        // [WHEN] Create sales advance letter with blocked customer
+        asserterror LibrarySalesAdvancesCZZ.CreateSalesAdvLetterHeader(SalesAdvLetterHeaderCZZ, AdvanceLetterTemplateCZZ.Code, Customer."No.", '');
+
+        // [THEN] Error will occur
+        if PrivacyBlocked then
+            Assert.ExpectedError(StrSubstNo(PrivacyBlockedCustomerErr, 'create', Customer."No."))
+        else
+            Assert.ExpectedError(StrSubstNo(BlockedCustomerErr, 'create', Customer."No.", CustomerBlocked));
+    end;
+
+    local procedure PostPaymentSalesAdvLetterWithBlockedCustomerBase(CustomerBlocked: Enum "Customer Blocked"; PrivacyBlocked: Boolean)
+    var
+        SalesAdvLetterHeaderCZZ: Record "Sales Adv. Letter Header CZZ";
+        SalesAdvLetterLineCZZ: Record "Sales Adv. Letter Line CZZ";
+        Customer: Record Customer;
+        GenJournalLine: Record "Gen. Journal Line";
+    begin
+        // [SCENARIO] Posting payment for sales advance letter with blocked customer must fail
+        Initialize();
+
+        // [GIVEN] Sales advance letter has been created
+        // [GIVEN] Sales advance letter line with normal VAT has been created
+        CreateSalesAdvLetter(SalesAdvLetterHeaderCZZ, SalesAdvLetterLineCZZ);
+
+        // [GIVEN] Sales advance letter has been released
+        LibrarySalesAdvancesCZZ.ReleaseSalesAdvLetter(SalesAdvLetterHeaderCZZ);
+
+        // [GIVEN] Sales advance payment has been prepared in general journal
+        LibrarySalesAdvancesCZZ.CreateSalesAdvancePayment(
+            GenJournalLine, SalesAdvLetterHeaderCZZ."Bill-to Customer No.", -SalesAdvLetterLineCZZ."Amount Including VAT",
+            SalesAdvLetterHeaderCZZ."Currency Code", SalesAdvLetterHeaderCZZ."No.", 0, 0D);
+
+        // [GIVEN] Customer has been blocked
+        Customer.Get(SalesAdvLetterHeaderCZZ."Bill-to Customer No.");
+        if PrivacyBlocked then
+            Customer.Validate("Privacy Blocked", PrivacyBlocked)
+        else
+            Customer.Validate(Blocked, CustomerBlocked);
+        Customer.Modify(true);
+
+        // [WHEN] Post sales advance payment
+        asserterror LibrarySalesAdvancesCZZ.PostSalesAdvancePayment(GenJournalLine);
+
+        // [THEN] Error will occur
+        if PrivacyBlocked then
+            Assert.ExpectedError(StrSubstNo(PrivacyBlockedCustomerErr, 'post', Customer."No."))
+        else
+            Assert.ExpectedError(StrSubstNo(BlockedCustomerErr, 'post', Customer."No.", CustomerBlocked));
+    end;
+
+    local procedure CreateBlockedCustomer(var Customer: Record Customer; CustomerBlocked: Enum "Customer Blocked"; PrivacyBlocked: Boolean)
+    var
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        LibrarySalesAdvancesCZZ.FindVATPostingSetup(VATPostingSetup);
+        LibrarySalesAdvancesCZZ.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        if PrivacyBlocked then
+            Customer.Validate("Privacy Blocked", PrivacyBlocked)
+        else
+            Customer.Validate(Blocked, CustomerBlocked);
+        Customer.Modify(true);
     end;
 
     local procedure CreateSalesAdvLetterBase(var SalesAdvLetterHeaderCZZ: Record "Sales Adv. Letter Header CZZ"; var SalesAdvLetterLineCZZ: Record "Sales Adv. Letter Line CZZ"; CustomerNo: Code[20]; CurrencyCode: Code[10]; VATPostingSetup: Record "VAT Posting Setup")
