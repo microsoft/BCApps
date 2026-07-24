@@ -50,11 +50,6 @@
     "codeunitId": 132532
   },
   {
-    "codeunitName": "Cloud Migration Property Test",
-    "method": "TestReplicateDataProperty",
-    "codeunitId": 135160
-  },
-  {
     "codeunitName": "Test Granules",
     "method": "AllAppObjectsAreInAtLeastOneNonO365FullPermissionSet",
     "codeunitId": 132532
