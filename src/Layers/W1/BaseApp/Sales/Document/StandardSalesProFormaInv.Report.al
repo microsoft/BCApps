@@ -445,6 +445,13 @@ report 1302 "Standard Sales - Pro Forma Inv"
             Caption = 'Standard Sales Proforma Invoice (Word)';
             Summary = 'The Standard Sales Proforma Invoice (Word) provides a basic layout.';
         }
+        layout("StandardSalesProFormaInvBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/Document/StandardSalesProFormaInvBody.docx';
+            Caption = 'Body-only: Standard Sales Proforma Invoice (Word)';
+            Summary = 'Body-only: The Standard Sales Proforma Invoice (Word) provides a basic layout.';
+        }
     }
 
     labels
