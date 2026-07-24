@@ -1043,6 +1043,27 @@ report 1307 "Standard Sales - Credit Memo"
             Caption = 'Standard Sales Credit Memo Email (Word)';
             Summary = 'The Standard Sales Credit Memo Email (Word) provides an email body layout.';
         }
+        layout("StandardSalesCreditMemoBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/History/StandardSalesCreditMemoBody.docx';
+            Caption = 'Body-only: Standard Sales Credit Memo (Word)';
+            Summary = 'Body-only: The Standard Sales Credit Memo (Word) provides a basic layout.';
+        }
+        layout("StandardSalesCreditMemoThemableBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/History/StandardSalesCreditMemoThemableBody.docx';
+            Caption = 'Body-only: Standard Sales Credit Memo - themable Word layout';
+            Summary = 'Body-only: The Standard Sales Credit Memo (Word) provides a basic Themable layout.';
+        }
+        layout("StandardSalesCreditMemoEmailBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/History/StandardSalesCreditMemoEmailBody.docx';
+            Caption = 'Body-only: Standard Sales Credit Memo Email (Word)';
+            Summary = 'Body-only: The Standard Sales Credit Memo Email (Word) provides an email body layout.';
+        }
     }
 
     labels

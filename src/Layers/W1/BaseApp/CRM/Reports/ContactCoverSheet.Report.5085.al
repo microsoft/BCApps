@@ -236,6 +236,12 @@ report 5085 "Contact Cover Sheet"
             LayoutFile = './CRM/Reports/ContactCoverSheet.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
+        layout(WordLayoutBody)
+        {
+            Type = Word;
+            LayoutFile = './CRM/Reports/ContactCoverSheetBody.docx';
+            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+        }
     }
 
     labels

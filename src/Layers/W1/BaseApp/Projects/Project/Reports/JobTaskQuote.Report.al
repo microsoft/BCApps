@@ -252,6 +252,13 @@ report 1017 "Job Task Quote"
             Caption = 'Project Task Quote (Word)';
             Summary = 'The Project Task Quote (Word) provides a basic layout.';
         }
+        layout("JobTaskQuoteBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Projects/Project/JobTaskQuoteBody.docx';
+            Caption = 'Body-only: Project Task Quote (Word)';
+            Summary = 'Body-only: The Project Task Quote (Word) provides a basic layout.';
+        }
     }
 
     labels

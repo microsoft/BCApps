@@ -91,6 +91,13 @@ report 5084 "Email Merge"
             Caption = 'EMail Merge (Word)';
             Summary = 'The EMail Merge (Word) provides a basic layout.';
         }
+        layout("DefaultEmailMergeDocBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './CRM/DefaultEmailMergeDocBody.docx';
+            Caption = 'Body-only: EMail Merge (Word)';
+            Summary = 'Body-only: The EMail Merge (Word) provides a basic layout.';
+        }
     }
 
     labels

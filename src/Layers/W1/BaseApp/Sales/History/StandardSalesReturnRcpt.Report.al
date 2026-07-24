@@ -628,6 +628,27 @@ report 1309 "Standard Sales - Return Rcpt."
             Caption = 'Standard Sales Return Receipt - themable Word layout';
             Summary = 'The Standard Sales Return Receipt - Themable (Word) provides a Themable layout.';
         }
+        layout("StandardSalesReturnRcptBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/History/StandardSalesReturnRcptBody.docx';
+            Caption = 'Body-only: Standard Sales Return Receipt (Word)';
+            Summary = 'Body-only: The Standard Sales Return Receipt (Word) provides a basic layout.';
+        }
+        layout("StandardSalesReturnRcptBlueBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/History/StandardSalesReturnRcptBlueBody.docx';
+            Caption = 'Body-only: Standard Sales Return Receipt - Blue (Word)';
+            Summary = 'Body-only: The Standard Sales Return Receipt - Blue (Word) provides a simple layout with a blue theme.';
+        }
+        layout("StandardSalesReturnRcptBlueThemableBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/History/StandardSalesReturnRcptBlueThemableBody.docx';
+            Caption = 'Body-only: Standard Sales Return Receipt - themable Word layout';
+            Summary = 'Body-only: The Standard Sales Return Receipt - Themable (Word) provides a Themable layout.';
+        }
     }
 
     labels
