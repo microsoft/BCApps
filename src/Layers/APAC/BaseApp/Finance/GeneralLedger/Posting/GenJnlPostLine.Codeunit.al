@@ -236,7 +236,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
             SequenceNoMgt.ClearSequenceNoCheck();
 
         GenJnlLine.Copy(GenJnlLine2);
-        Code(GenJnlLine, true);
+        Post(GenJnlLine, true);
         OnAfterRunWithCheck(GenJnlLine);
         GenJnlLine2 := GenJnlLine;
         exit(GLEntryNo);
@@ -259,13 +259,51 @@ codeunit 12 "Gen. Jnl.-Post Line"
             exit(GLEntryNo);
 
         GenJnlLine.Copy(GenJnlLine2);
-        Code(GenJnlLine, false);
+        Post(GenJnlLine, false);
         OnAfterRunWithoutCheck(GenJnlLine);
         GenJnlLine2 := GenJnlLine;
         exit(GLEntryNo);
     end;
 
-    local procedure "Code"(var GenJnlLine: Record "Gen. Journal Line"; CheckLine: Boolean)
+    /// <summary>
+    /// A wrapper procedure to delegate to either a procedure that allows commit or a procedure that ignores commit.
+    /// By default, commits are suppressed during the critical posting window to prevent duplicate-key races
+    /// on G/L Entry (table 17). Subscribers can opt out by setting IgnoreCommit to false via OnSetCommitBehavior.
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line that is being posted.</param>
+    /// <param name="CheckLine">Indicates whether to check the lines before posting.</param>
+    local procedure Post(var GenJnlLine: Record "Gen. Journal Line"; CheckLine: Boolean)
+    var
+        IgnoreCommit: Boolean;
+    begin
+        IgnoreCommit := true;
+        OnSetCommitBehavior(IgnoreCommit);
+
+        if IgnoreCommit then
+            PostLineCommitBehaviorIgnore(GenJnlLine, CheckLine)
+        else
+            PostLine(GenJnlLine, CheckLine);
+    end;
+
+    /// <summary>
+    /// A wrapper procedure to delegate to PostLine in order to ignore commits.
+    /// While this procedure is on the call stack, the platform turns every Commit() into a no-op,
+    /// preventing intermittent duplicate-key errors on G/L Entry (table 17).
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line that is being posted.</param>
+    /// <param name="CheckLine">Indicates whether to check the line before posting.</param>
+    [CommitBehavior(CommitBehavior::Ignore)]
+    local procedure PostLineCommitBehaviorIgnore(var GenJnlLine: Record "Gen. Journal Line"; CheckLine: Boolean)
+    begin
+        PostLine(GenJnlLine, CheckLine);
+    end;
+
+    /// <summary>
+    /// Posting procedure for general journal lines
+    /// </summary>
+    /// <param name="GenJnlLine">The general journal line that is being posted.</param>
+    /// <param name="CheckLine">Indicates whether to check the line before posting.</param>
+    local procedure PostLine(var GenJnlLine: Record "Gen. Journal Line"; CheckLine: Boolean)
     var
         xGLEntryNo: Integer;
         Balancing: Boolean;
@@ -13566,6 +13604,11 @@ codeunit 12 "Gen. Jnl.-Post Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnPostUnapplyOnBeforeInsertTempVATEntry(var VATEntry: Record "VAT Entry"; var UnapplyVATEntries: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSetCommitBehavior(var IgnoreCommit: Boolean)
     begin
     end;
 }
