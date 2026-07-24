@@ -1381,6 +1381,7 @@ codeunit 90 "Purch.-Post"
                 OnPostGLAccICLineOnBeforeCreateJobPurchLine(PurchHeader, PurchLine, IsHandled);
                 if not IsHandled then begin
                     CreateJobPurchLine(JobPurchLine, PurchLine, PurchHeader."Prices Including VAT");
+                    UpdateJobPurchLineUnitCostForInvDisc(PurchHeader, JobPurchLine);
                     OnPostGLAccICLineOnAfterCreateJobPurchLine(PurchHeader);
                     InvoicePostingInterface.PrepareJobLine(PurchHeader, JobPurchLine, PurchLineACY);
                 end;
@@ -6296,6 +6297,39 @@ codeunit 90 "Purch.-Post"
                 JobPurchLine2."Direct Unit Cost" := JobPurchLine2."Direct Unit Cost" / (1 + JobPurchLine2."VAT %" / 100);
 
         OnAfterCreateJobPurchLine(JobPurchLine2, PurchLine2);
+    end;
+
+    local procedure UpdateJobPurchLineUnitCostForInvDisc(PurchHeader: Record "Purchase Header"; var JobPurchLine2: Record "Purchase Line")
+    var
+        UnitCostLCY: Decimal;
+    begin
+        if JobPurchLine2.Type <> JobPurchLine2.Type::"G/L Account" then
+            exit;
+
+        if JobPurchLine2."Qty. to Invoice" = 0 then
+            exit;
+
+        if JobPurchLine2."Inv. Disc. Amount to Invoice" = 0 then
+            exit;
+
+        GetGLSetup();
+        if PurchHeader."Currency Code" = '' then
+            UnitCostLCY := JobPurchLine2.Amount
+        else
+            UnitCostLCY :=
+                Round(
+                    CurrExchRate.ExchangeAmtFCYToLCY(
+                        PurchHeader.GetUseDate(), PurchHeader."Currency Code", JobPurchLine2.Amount, PurchHeader."Currency Factor"),
+                    GLSetup."Amount Rounding Precision");
+
+        JobPurchLine2."Unit Cost (LCY)" :=
+            Round(
+                UnitCostLCY * JobPurchLine2."Qty. per Unit of Measure" / JobPurchLine2."Qty. to Invoice",
+                GLSetup."Unit-Amount Rounding Precision");
+        JobPurchLine2."Unit Cost" :=
+            Round(
+                JobPurchLine2.Amount * JobPurchLine2."Qty. per Unit of Measure" / JobPurchLine2."Qty. to Invoice",
+                GLSetup."Unit-Amount Rounding Precision");
     end;
 
     local procedure RevertWarehouseEntry(var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; JobNo: Code[20]; PostJobConsumptionBeforePurch: Boolean): Boolean
