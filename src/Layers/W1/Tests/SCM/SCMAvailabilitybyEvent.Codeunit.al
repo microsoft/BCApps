@@ -30,8 +30,10 @@ codeunit 137009 "SCM Availability by Event"
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
         LibraryNotificationMgt: Codeunit "Library - Notification Mgt.";
+        ProdOrderAvailabilityMgt: Codeunit "Prod. Order Availability Mgt.";
         Initialized: Boolean;
         WrongReservedQtyErr: Label 'Wrong reserved quantity in Item Availability by Event';
+        DemandAfterDueDateMissingErr: Label 'Item Availability by Event must show demand dated after the production order Due Date.';
 
     local procedure Initialize()
     begin
@@ -588,6 +590,50 @@ codeunit 137009 "SCM Availability by Event"
         LibraryVariableStorage.AssertEmpty();
     end;
 
+    [Test]
+    [HandlerFunctions('ItemAvailabilityByEventShowsLaterDemandHandler,ConfirmHandlerNo')]
+    procedure ItemAvailByEventFromProdOrderLineShowsDemandAfterDueDate()
+    var
+        Item: Record Item;
+        ProductionOrder: Record "Production Order";
+        ProdOrderLine: Record "Prod. Order Line";
+        SalesLine: Record "Sales Line";
+        Qty: Decimal;
+        DueDate: Date;
+        LaterShipmentDate: Date;
+    begin
+        // [FEATURE] [Item Availability] [Prod. Order] [Manufacturing]
+        // [SCENARIO 598820] Item Availability by Event opened from a production order line shows demand dated after the production order Due Date.
+        Initialize();
+        Qty := LibraryRandom.RandIntInRange(10, 20);
+        DueDate := WorkDate();
+        LaterShipmentDate := CalcDate('<1M>', DueDate);
+
+        // [GIVEN] Item "I".
+        LibraryInventory.CreateItem(Item);
+
+        // [GIVEN] Sales order for "I" with a shipment date one month after the production order Due Date.
+        CreateSalesOrder(SalesLine, Item."No.", Qty, LaterShipmentDate);
+
+        // [GIVEN] Firm Planned production order for "I" with an earlier Due Date.
+        LibraryManufacturing.CreateProductionOrder(ProductionOrder, ProductionOrder.Status::"Firm Planned", Item, '', '', Qty, DueDate);
+        FindProdOrderLine(ProdOrderLine, ProductionOrder);
+
+        // [WHEN] Open Item Availability by Event from the production order line.
+        LibraryVariableStorage.Enqueue(SalesLine."Document No.");
+        ProdOrderAvailabilityMgt.ShowItemAvailFromProdOrderLine(ProdOrderLine, "Item Availability Type"::"Event");
+
+        // [THEN] The later sales demand is shown on the page (verified in ItemAvailabilityByEventShowsLaterDemandHandler).
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    local procedure FindProdOrderLine(var ProdOrderLine: Record "Prod. Order Line"; ProductionOrder: Record "Production Order")
+    begin
+        ProdOrderLine.SetRange(Status, ProductionOrder.Status);
+        ProdOrderLine.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderLine.FindFirst();
+    end;
+
     local procedure AutoReservePurchaseLine(PurchaseLine: Record "Purchase Line")
     var
         ReservMgt: Codeunit "Reservation Management";
@@ -807,6 +853,20 @@ codeunit 137009 "SCM Availability by Event"
     procedure ConfirmHadlerYes(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ConfirmHandler]
+    procedure ConfirmHandlerNo(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
+    end;
+
+    [ModalPageHandler]
+    procedure ItemAvailabilityByEventShowsLaterDemandHandler(var ItemAvailabilitybyEvent: TestPage "Item Availability by Event")
+    begin
+        ItemAvailabilitybyEvent.Filter.SetFilter("Document No.", LibraryVariableStorage.DequeueText());
+        Assert.IsTrue(ItemAvailabilitybyEvent.First(), DemandAfterDueDateMissingErr);
+        ItemAvailabilitybyEvent.OK().Invoke();
     end;
 
     [ModalPageHandler]
