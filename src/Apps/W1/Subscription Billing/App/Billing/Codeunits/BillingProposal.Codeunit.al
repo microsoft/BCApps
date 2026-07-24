@@ -26,6 +26,7 @@ codeunit 8062 "Billing Proposal"
         PurchaseCreditMemoExistsForBillingLineQst: Label 'There is a purchase credit memo that needs to be posted before an invoice can be created. Do you want to open the credit memo?';
         BillingLinesForAllContractLinesExistsErr: Label 'There are billing lines for all contract lines. For contract lines with billing lines, the invoice must be created in recurring billing.';
         NotAuthorizedToClearOrDeleteDocumentErr: Label 'You are not authorized to clear billing templates or delete billing documents. To perform these actions, you must be set up as an Auto Contract Billing user in the User Setup.';
+        BillingProposalProgressTxt: Label 'Creating Billing Proposal...\Contract No. #1#################################\Partner No. #2#################################\Processed: #3########## / #4##########', Comment = '%1=Contract No., %2=Partner No., %3=Contracts processed, %4=Total contracts';
 
     procedure InitTempTable(var TempBillingLine: Record "Billing Line" temporary; GroupBy: Enum "Contract Billing Grouping")
     var
@@ -154,8 +155,11 @@ codeunit 8062 "Billing Proposal"
         BillingTemplate: Record "Billing Template";
         CustomerContract: Record "Customer Subscription Contract";
         VendorContract: Record "Vendor Subscription Contract";
+        ProposalWindow: Dialog;
         FilterText: Text;
         BillingRhythmFilterText: Text;
+        TotalContractsCount: Integer;
+        ContractCounter: Integer;
     begin
         SalesHeaderGlobal.Reset();
         BillingTemplate.Get(BillingTemplateCode);
@@ -175,20 +179,46 @@ codeunit 8062 "Billing Proposal"
                     if FilterText <> '' then
                         CustomerContract.SetView(FilterText);
                     BillingRhythmFilterText := CustomerContract.GetFilter("Billing Rhythm Filter");
+                    if GuiAllowed then begin
+                        TotalContractsCount := CustomerContract.Count();
+                        ProposalWindow.Open(BillingProposalProgressTxt);
+                        ProposalWindow.Update(4, TotalContractsCount);
+                    end;
                     if CustomerContract.FindSet() then
                         repeat
+                            ContractCounter += 1;
+                            if GuiAllowed then begin
+                                ProposalWindow.Update(1, CustomerContract."No.");
+                                ProposalWindow.Update(2, CustomerContract."Sell-to Customer No.");
+                                ProposalWindow.Update(3, ContractCounter);
+                            end;
                             ProcessContractServiceCommitments(BillingTemplate, CustomerContract."No.", '', BillingDate, BillingToDate, BillingRhythmFilterText, AutomatedBilling);
                         until CustomerContract.Next() = 0;
+                    if GuiAllowed then
+                        ProposalWindow.Close();
                 end;
             "Service Partner"::Vendor:
                 begin
                     if FilterText <> '' then
                         VendorContract.SetView(FilterText);
                     BillingRhythmFilterText := VendorContract.GetFilter("Billing Rhythm Filter");
+                    if GuiAllowed then begin
+                        TotalContractsCount := VendorContract.Count();
+                        ProposalWindow.Open(BillingProposalProgressTxt);
+                        ProposalWindow.Update(4, TotalContractsCount);
+                    end;
                     if VendorContract.FindSet() then
                         repeat
+                            ContractCounter += 1;
+                            if GuiAllowed then begin
+                                ProposalWindow.Update(1, VendorContract."No.");
+                                ProposalWindow.Update(2, VendorContract."Pay-to Vendor No.");
+                                ProposalWindow.Update(3, ContractCounter);
+                            end;
                             ProcessContractServiceCommitments(BillingTemplate, VendorContract."No.", '', BillingDate, BillingToDate, BillingRhythmFilterText, AutomatedBilling);
                         until VendorContract.Next() = 0;
+                    if GuiAllowed then
+                        ProposalWindow.Close();
                 end;
         end;
 
@@ -200,16 +230,20 @@ codeunit 8062 "Billing Proposal"
                 begin
                     SalesHeaderGlobal.MarkedOnly(true);
                     if SalesHeaderGlobal.Count <> 0 then begin
-                        Page.Run(Page::"Sales Credit Memos", SalesHeaderGlobal);
-                        Message(CreditMemoPreventsProposalCreationLbl);
+                        if GuiAllowed then
+                            Page.Run(Page::"Sales Credit Memos", SalesHeaderGlobal);
+                        if GuiAllowed then
+                            Message(CreditMemoPreventsProposalCreationLbl);
                     end;
                 end;
             Enum::"Service Partner"::Vendor:
                 begin
                     PurchaseHeaderGlobal.MarkedOnly(true);
                     if PurchaseHeaderGlobal.Count <> 0 then begin
-                        Page.Run(Page::"Purchase Credit Memos", PurchaseHeaderGlobal);
-                        Message(CreditMemoPreventsProposalCreationLbl);
+                        if GuiAllowed then
+                            Page.Run(Page::"Purchase Credit Memos", PurchaseHeaderGlobal);
+                        if GuiAllowed then
+                            Message(CreditMemoPreventsProposalCreationLbl);
                     end;
                 end;
         end;
