@@ -302,6 +302,13 @@ report 1016 "Job Quote"
             Caption = 'Project Quote (Word)';
             Summary = 'The Project Quote (Word) provides a basic layout.';
         }
+        layout("JobQuoteBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Projects/Project/JobQuoteBody.docx';
+            Caption = 'Body-only: Project Quote (Word)';
+            Summary = 'Body-only: The Project Quote (Word) provides a basic layout.';
+        }
     }
 
     labels
