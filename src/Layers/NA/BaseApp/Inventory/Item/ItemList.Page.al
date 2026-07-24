@@ -1033,7 +1033,6 @@ page 31 "Item List"
                     Caption = 'Item/Vendor Catalog';
                     Image = "Report";
                     RunObject = Report "Item/Vendor Catalog";
-                    ToolTip = 'View a list of the vendors for the selected items. For each combination of item and vendor, it shows direct unit cost, lead time calculation and the vendor''s item number.';
                 }
                 action("Phys. Inventory List")
                 {
@@ -1207,7 +1206,6 @@ page 31 "Item List"
                         Caption = 'Item Expiration - Quantity';
                         Image = "Report";
                         RunObject = Report "Item Expiration - Quantity";
-                        ToolTip = 'View an overview of the quantities of selected items in your inventory whose expiration dates fall within a certain period. The list shows the number of units of the selected item that will expire in a given time period. For each of the items that you specify when setting up the report, the printed document shows the number of units that will expire during each of three periods of equal length and the total inventory quantity of the selected item.';
                     }
                 }
                 action("Picking List by Item")
@@ -1260,7 +1258,6 @@ page 31 "Item List"
                         Caption = 'Item Age Composition - Value';
                         Image = "Report";
                         RunObject = Report "Item Age Composition - Value";
-                        ToolTip = 'View, print, or save an overview of the current age composition of selected items in your inventory.';
                     }
                     action("Inventory Valuation")
                     {
@@ -1307,7 +1304,6 @@ page 31 "Item List"
                     //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                     //PromotedCategory = "Report";
                     RunObject = Report "Inventory - Sales Back Orders";
-                    ToolTip = 'Shows a list of order lines with shipment dates that are exceeded. The report also shows if there are other items for the customer on back order.';
                 }
                 action("Sales Order Status")
                 {

@@ -1030,7 +1030,6 @@ page 31 "Item List"
                     Caption = 'Item/Vendor Catalog';
                     Image = "Report";
                     RunObject = Report "Item/Vendor Catalog";
-                    ToolTip = 'View a list of the vendors for the selected items. For each combination of item and vendor, it shows direct unit cost, lead time calculation and the vendor''s item number.';
                 }
                 action("Phys. Inventory List")
                 {
@@ -1083,7 +1082,6 @@ page 31 "Item List"
                     Caption = 'Inventory Availability';
                     Image = "Report";
                     RunObject = Report "Inventory Availability";
-                    ToolTip = 'View, print, or save a summary of historical inventory transactions with selected items, for example, to decide when to purchase the items. The report specifies quantity on sales order, quantity on purchase order, back orders from vendors, minimum inventory, and whether there are reorders.';
                 }
                 group("Item Register")
                 {
@@ -1153,7 +1151,6 @@ page 31 "Item List"
                         Caption = 'Inventory - Transaction Detail';
                         Image = "Report";
                         RunObject = Report "Inventory - Transaction Detail";
-                        ToolTip = 'View transaction details with entries for the selected items for a selected period. The report shows the inventory at the beginning of the period, all of the increase and decrease entries during the period with a running update of the inventory, and the inventory at the close of the period. The report can be used at the close of an accounting period, for example, or for an audit.';
                     }
                     action("Item Charges - Specification")
                     {
@@ -1181,7 +1178,6 @@ page 31 "Item List"
                         Caption = 'Item Expiration - Quantity';
                         Image = "Report";
                         RunObject = Report "Item Expiration - Quantity";
-                        ToolTip = 'View an overview of the quantities of selected items in your inventory whose expiration dates fall within a certain period. The list shows the number of units of the selected item that will expire in a given time period. For each of the items that you specify when setting up the report, the printed document shows the number of units that will expire during each of three periods of equal length and the total inventory quantity of the selected item.';
                     }
                 }
                 group(Reports)
@@ -1201,7 +1197,6 @@ page 31 "Item List"
                         Caption = 'Inventory - Customer Sales';
                         Image = "Report";
                         RunObject = Report "Inventory - Customer Sales";
-                        ToolTip = 'View, print, or save a list of customers that have purchased selected items within a selected period, for example, to analyze customers'' purchasing patterns. The report specifies quantity, amount, discount, profit percentage, and profit.';
                     }
                     action("Inventory - Top 10 List")
                     {
@@ -1209,7 +1204,6 @@ page 31 "Item List"
                         Caption = 'Inventory - Top 10 List';
                         Image = "Report";
                         RunObject = Report "Inventory - Top 10 List";
-                        ToolTip = 'View information about the items with the highest or lowest sales within a selected period. You can also choose that items that are not on hand or have not been sold are not included in the report. The items are sorted by order size within the selected period. The list gives a quick overview of the items that have sold either best or worst, or the items that have the most or fewest units on inventory.';
                     }
                 }
                 group("Finance Reports")
@@ -1237,7 +1231,6 @@ page 31 "Item List"
                         Caption = 'Item Age Composition - Value';
                         Image = "Report";
                         RunObject = Report "Item Age Composition - Value";
-                        ToolTip = 'View, print, or save an overview of the current age composition of selected items in your inventory.';
                     }
                 }
             }
@@ -1250,7 +1243,6 @@ page 31 "Item List"
                     Caption = 'Inventory Order Details';
                     Image = "Report";
                     RunObject = Report "Inventory Order Details";
-                    ToolTip = 'View a list of the orders that have not yet been shipped or received and the items in the orders. It shows the order number, customer''s name, shipment date, order quantity, quantity on back order, outstanding quantity and unit price, as well as possible discount percentage and amount. The quantity on back order and outstanding quantity and amount are totaled for each item. The report can be used to find out whether there are currently shipment problems or any can be expected.';
                 }
                 action("Inventory Purchase Orders")
                 {
@@ -1258,7 +1250,6 @@ page 31 "Item List"
                     Caption = 'Inventory Purchase Orders';
                     Image = "Report";
                     RunObject = Report "Inventory Purchase Orders";
-                    ToolTip = 'View a list of items on order from vendors. It also shows the expected receipt date and the quantity and amount on back orders. The report can be used, for example, to see when items should be received and whether a reminder of a back order should be issued.';
                 }
                 action("Inventory - Vendor Purchases")
                 {
@@ -1266,7 +1257,6 @@ page 31 "Item List"
                     Caption = 'Inventory - Vendor Purchases';
                     Image = "Report";
                     RunObject = Report "Inventory - Vendor Purchases";
-                    ToolTip = 'View a list of the vendors that your company has purchased items from within a selected period. It shows invoiced quantity, amount and discount. The report can be used to analyze a company''s item purchases.';
                 }
                 action("Inventory - Reorders")
                 {
@@ -1281,7 +1271,6 @@ page 31 "Item List"
                     Caption = 'Inventory - Sales Back Orders';
                     Image = "Report";
                     RunObject = Report "Inventory - Sales Back Orders";
-                    ToolTip = 'Shows a list of order lines with shipment dates that are exceeded. The report also shows if there are other items for the customer on back order.';
                 }
             }
         }

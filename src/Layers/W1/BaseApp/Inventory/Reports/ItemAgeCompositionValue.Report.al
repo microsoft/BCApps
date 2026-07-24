@@ -12,6 +12,7 @@ report 5808 "Item Age Composition - Value"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Item Age Composition by Quantity and Value';
+    ToolTip = 'View, print, or save an overview of the current age composition of selected items in your inventory.';
     UsageCategory = ReportsAndAnalysis;
     DataAccessIntent = ReadOnly;
     DefaultRenderingLayout = Excel;
