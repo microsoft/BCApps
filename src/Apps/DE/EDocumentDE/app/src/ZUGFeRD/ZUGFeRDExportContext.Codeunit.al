@@ -26,7 +26,7 @@ using Microsoft.eServices.EDocument;
 /// <c>EventSubscriberInstance = Manual</c>: a caller creates a local instance and calls
 /// <see cref="Start"/> which runs <c>BindSubscription(this)</c> to register that instance as the
 /// live carrier for the current call stack. State lives on the bound instance, not on a singleton.
-/// Set/Get/HasContext publish internal IntegrationEvents that only the bound instance answers.
+/// Set/Get/HasContext publish internal events that only the bound instance answers.
 /// <see cref="Stop"/> unbinds and clears the captured state. A <c>SingleInstance</c> singleton was
 /// deliberately not used: it would share state across all sessions on the NST, so a UI export and a
 /// Job Queue batch running in parallel would stomp on each other. BindSubscription is per-session,
@@ -123,17 +123,17 @@ codeunit 11039 "ZUGFeRD Export Context"
     end;
 
     #region Internal pub/sub bridge - the bound instance captures writes and answers reads
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false, false)]
     local procedure OnSetEDocumentService(NewEDocumentService: Record "E-Document Service")
     begin
     end;
 
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false, false)]
     local procedure OnHasContext(var Result: Boolean)
     begin
     end;
 
-    [IntegrationEvent(false, false)]
+    [InternalEvent(false, false)]
     local procedure OnGetEDocumentService(var EDocumentService: Record "E-Document Service")
     begin
     end;

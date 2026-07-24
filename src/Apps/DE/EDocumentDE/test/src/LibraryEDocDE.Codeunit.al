@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.Formats;
 
+#if not CLEAN29
 using Microsoft.eServices.EDocument;
+#endif
 using System.Reflection;
 
 codeunit 13925 "Library - E-Doc DE"
