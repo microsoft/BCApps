@@ -10980,7 +10980,7 @@ table 37 "Sales Line"
     /// <returns>The quantity in the base unit of measure.</returns>
     procedure CalcBaseQty(Qty: Decimal; FromFieldName: Text; ToFieldName: Text) Result: Decimal
     var
-        IsHandled: Boolean;        
+        IsHandled: Boolean;
     begin
         OnBeforeCalcBaseQty(Rec, Qty, FromFieldName, ToFieldName);
 
@@ -11183,10 +11183,16 @@ table 37 "Sales Line"
                 until SelectedSalesLine.Next() = 0;
     end;
 
+    procedure RestoreLookupSelection()
+    begin
+        RestoreLookupSelectionWithResult();
+    end;
+
     /// <summary>
     /// Restores the selected record from the lookup state manager to the sales line.
     /// </summary>
-    procedure RestoreLookupSelection()
+    /// <returns>True if a lookup selection was restored; otherwise false.</returns>
+    procedure RestoreLookupSelectionWithResult() SelectionRestored: Boolean
     var
         GLAccount: Record "G/L Account";
         Item: Record Item;
@@ -11197,6 +11203,8 @@ table 37 "Sales Line"
         RecVariant: Variant;
     begin
         if LookupStateManager.IsRecordSaved() then begin
+            SelectionRestored := true;
+            CurrFieldNo := FieldNo("No.");
             case Rec.Type of
                 Rec.Type::Item:
                     begin

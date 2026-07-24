@@ -36,6 +36,7 @@ codeunit 137049 "SCM Reservation"
         ExpCurrentReservedQty: Decimal;
         TotalQuantityErr: Label 'Total Quantity must match.';
         ReservedQuantityErr: Label 'Current Reserved Quantity must match.';
+        OutstandingQuantityErr: Label 'The sales line should have an outstanding quantity to reserve.';
         CancelReservationTxt: Label 'Do you want to cancel all reservations';
         NegativeAdjQty: Decimal;
         OutputQuantity: Option Partial,Full,Excess;
@@ -2627,6 +2628,51 @@ codeunit 137049 "SCM Reservation"
         // Verify: Done in AvailableProdLinesPageHandler
     end;
 
+    [Test]
+    procedure AutoReserveWhenItemSelectedByDescriptionLookupInSalesOrder()
+    var
+        Item: Record Item;
+        SalesHeader: Record "Sales Header";
+        SalesLine: Record "Sales Line";
+        SalesOrder: TestPage "Sales Order";
+    begin
+        // [FEATURE] [Reservation] [Sales Order]
+        // [SCENARIO] Reservation is created when a "Reserve = Always" item is resolved through the Description lookup in a sales line.
+        Initialize();
+
+        // [GIVEN] An item with "Reserve" = Always and inventory available.
+        CreateItemAndUpdateInventory(Item, LibraryRandom.RandIntInRange(50, 100));
+        Item.Get(Item."No.");  // Re-read the item as posting the item journal updated its rowversion.
+        Item.Validate(Reserve, Item.Reserve::Always);
+        Item.Modify(true);
+
+        // [GIVEN] A sales order line for the item that is not yet reserved (inserted without the page-driven auto-reservation).
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, Item."No.", LibraryRandom.RandIntInRange(5, 10));
+        SalesLine.CalcFields("Reserved Qty. (Base)");
+        SalesLine.TestField("Reserved Qty. (Base)", 0);
+
+        // [GIVEN] The Description lookup selection is recorded, mirroring the page "OnAfterLookup" trigger where "No." is already set.
+        SaveItemLookupSelection(SalesLine, Item);
+        // [GIVEN] The Description is cleared so validating it on the page raises OnValidate while "No." stays unchanged.
+        SalesLine.Description := '';
+        SalesLine.Modify();
+
+        // [WHEN] The Description is validated on the page (the restored-lookup path, with "No." unchanged).
+        SalesOrder.OpenEdit();
+        SalesOrder.GotoRecord(SalesHeader);
+        SalesOrder.SalesLines.First();
+        SalesOrder.SalesLines.Description.SetValue(Item.Description);
+        SalesOrder.Close();
+
+        // [THEN] The sales line is fully reserved for the outstanding quantity.
+        SelectSalesLine(SalesLine, SalesHeader."No.");
+        SalesLine.TestField("No.", Item."No.");
+        SalesLine.CalcFields("Reserved Qty. (Base)");
+        Assert.AreNotEqual(0, SalesLine."Outstanding Qty. (Base)", OutstandingQuantityErr);
+        Assert.AreEqual(SalesLine."Outstanding Qty. (Base)", SalesLine."Reserved Qty. (Base)", ReservedQuantityErr);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -3198,6 +3244,14 @@ codeunit 137049 "SCM Reservation"
         SalesLine.SetRange("Document Type", SalesLine."Document Type"::Order);
         SalesLine.SetRange("Document No.", DocumentNo);
         SalesLine.FindFirst();
+    end;
+
+    local procedure SaveItemLookupSelection(SalesLine: Record "Sales Line"; Item: Record Item)
+    var
+        ItemRecordRef: RecordRef;
+    begin
+        ItemRecordRef.GetTable(Item);
+        SalesLine.SaveLookupSelection(ItemRecordRef);
     end;
 
     local procedure CreateAndPostPurchaseOrder(var PurchaseHeader: Record "Purchase Header"; ItemNo: Code[20]; Quantity: Decimal; Invoice: Boolean)
