@@ -199,7 +199,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Delete Campaign Entries';
-                        ToolTip = 'Delete Campaign Entries';
 
                         RunObject = report "Delete Campaign Entries";
                         Ellipsis = true;
@@ -208,7 +207,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Delete Logged Segments';
-                        ToolTip = 'Delete Logged Segments';
 
                         RunObject = report "Delete Logged Segments";
                         Ellipsis = true;
@@ -217,7 +215,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Delete Opportunities';
-                        ToolTip = 'Delete Opportunities';
 
                         RunObject = report "Delete Opportunities";
                         Ellipsis = true;
@@ -226,7 +223,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Delete Tasks';
-                        ToolTip = 'Delete Tasks';
 
                         RunObject = report "Delete Tasks";
                         Ellipsis = true;
@@ -235,7 +231,6 @@ page 9035 "Data Administration"
                     {
                         ApplicationArea = RelationshipMgmt;
                         Caption = 'Delete Interaction Log Entries';
-                        ToolTip = 'Delete Interaction Log Entries';
                         RunObject = report "Delete Interaction Log Entries";
                         Ellipsis = true;
                     }

@@ -169,7 +169,6 @@ page 9026 "Sales & Relationship Mgr. RC"
                 Caption = 'Campaign - &Details';
                 Image = "Report";
                 RunObject = Report "Campaign - Details";
-                ToolTip = 'Show detailed information about the campaign.';
             }
         }
         area(embedding)

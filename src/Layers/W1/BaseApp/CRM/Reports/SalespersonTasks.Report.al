@@ -10,6 +10,7 @@ report 5057 "Salesperson - Tasks"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Salesperson Tasks';
+    ToolTip = 'View the list of marketing tasks that exist for the salesperson.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 
