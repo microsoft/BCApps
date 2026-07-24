@@ -156,6 +156,24 @@ codeunit 457 "Environment Information"
     end;
 
     /// <summary>
+    /// Gets the physical location of the application service the environment is hosted on (for example, "Canada Central").
+    /// </summary>
+    /// <returns>The application service location if available; otherwise, an empty string.</returns>
+    procedure GetApplicationServiceLocation(): Text
+    begin
+        exit(EnvironmentInformationImpl.GetApplicationServiceLocation());
+    end;
+
+    /// <summary>
+    /// Checks whether the Azure geography of the application service the environment is hosted on is within the Microsoft EU Data Boundary (EUDB).
+    /// </summary>
+    /// <returns>True if the environment is hosted within the EU Data Boundary, false otherwise.</returns>
+    procedure IsApplicationServiceInEUDB(): Boolean
+    begin
+        exit(EnvironmentInformationImpl.IsApplicationServiceInEUDB());
+    end;
+
+    /// <summary>
     /// Gets the value of the specified environment setting. This is only callable from Microsoft published apps.
     /// </summary>
     /// <param name="SettingName">The name of the setting.</param>
