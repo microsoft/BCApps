@@ -5,6 +5,7 @@
 namespace Microsoft.eServices.EDocument.Formats;
 
 using Microsoft.Bank.BankAccount;
+using Microsoft.CRM.Team;
 using Microsoft.eServices.EDocument;
 using Microsoft.eServices.EDocument.Integration;
 using Microsoft.Finance.Currency;
@@ -59,6 +60,7 @@ codeunit 13918 "XRechnung XML Document Tests"
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
         AttributeNotFoundErr: Label 'Attribute %1 not found for node: %2', Locked = true;
         TooManyDecimalPlacesErr: Label 'Expected at most %1 decimal places but found %2 in %3', Locked = true;
+        SellerContactReasonErr: Label 'must be filled in. It is required for the seller contact (BG-6) of the electronic document', Locked = true;
         IsInitialized: Boolean;
 
     #region SalesInvoice
@@ -1647,6 +1649,291 @@ codeunit 13918 "XRechnung XML Document Tests"
     end;
     #endregion
 
+    #region SellerContact
+    [Test]
+    procedure CheckSalesInvoiceInXRechnungFormatSalespersonWithoutName();
+    var
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] Posting is blocked when the assigned salesperson has no Name, because the seller contact (BG-6) cannot be supplied.
+        Initialize();
+
+        // [GIVEN] Salesperson with Phone No. and E-Mail but without Name
+        CreateSalespersonWithContactInfo(SalespersonPurchaser);
+        SalespersonPurchaser.Name := '';
+        SalespersonPurchaser.Modify();
+
+        // [GIVEN] Sales Invoice with that salesperson
+        CreateSalesInvoiceWithSalesperson(SalesHeader, SalespersonPurchaser.Code);
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error names the Name field and the Salesperson/Purchaser as the source
+        Assert.ExpectedError(StrSubstNo('%1 %2', SalespersonPurchaser.FieldCaption(Name), SellerContactReasonErr));
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInXRechnungFormatSalespersonWithoutPhoneNo();
+    var
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] Posting is blocked when the assigned salesperson has no Phone No.
+        Initialize();
+
+        // [GIVEN] Salesperson with Name and E-Mail but without Phone No.
+        CreateSalespersonWithContactInfo(SalespersonPurchaser);
+        SalespersonPurchaser."Phone No." := '';
+        SalespersonPurchaser.Modify();
+
+        // [GIVEN] Sales Invoice with that salesperson
+        CreateSalesInvoiceWithSalesperson(SalesHeader, SalespersonPurchaser.Code);
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error names the Phone No. field and the Salesperson/Purchaser as the source
+        Assert.ExpectedError(StrSubstNo('%1 %2', SalespersonPurchaser.FieldCaption("Phone No."), SellerContactReasonErr));
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInXRechnungFormatSalespersonWithoutEmail();
+    var
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] Posting is blocked when the assigned salesperson has no E-Mail.
+        Initialize();
+
+        // [GIVEN] Salesperson with Name and Phone No. but without E-Mail
+        CreateSalespersonWithContactInfo(SalespersonPurchaser);
+        SalespersonPurchaser."E-Mail" := '';
+        SalespersonPurchaser.Modify();
+
+        // [GIVEN] Sales Invoice with that salesperson
+        CreateSalesInvoiceWithSalesperson(SalesHeader, SalespersonPurchaser.Code);
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error names the E-Mail field and the Salesperson/Purchaser as the source
+        Assert.ExpectedError(StrSubstNo('%1 %2', SalespersonPurchaser.FieldCaption("E-Mail"), SellerContactReasonErr));
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInXRechnungFormatSalespersonWithCompleteContact();
+    var
+        CompanyInfo: Record "Company Information";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] A complete salesperson supplies the seller contact (BG-6) even when Company Information is incomplete.
+        Initialize();
+
+        // [GIVEN] Company Information without Contact Person and without Phone No.
+        SetCompleteCompanyInfoContact();
+        CompanyInfo.Get();
+        CompanyInfo."Contact Person" := '';
+        CompanyInfo."Phone No." := '';
+        CompanyInfo.Modify();
+
+        // [GIVEN] Salesperson with Name, Phone No. and E-Mail
+        CreateSalespersonWithContactInfo(SalespersonPurchaser);
+
+        // [GIVEN] Sales Invoice with that salesperson
+        CreateSalesInvoiceWithSalesperson(SalesHeader, SalespersonPurchaser.Code);
+
+        // [WHEN/THEN] Check does not throw an error
+        CheckSalesHeader(SalesHeader);
+
+        SetCompleteCompanyInfoContact();
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInXRechnungFormatNoSalespersonCompanyInfoWithoutContactPerson();
+    var
+        CompanyInfo: Record "Company Information";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] Posting is blocked when no salesperson is assigned and Company Information has no Contact Person.
+        Initialize();
+
+        // [GIVEN] Company Information without Contact Person
+        SetCompleteCompanyInfoContact();
+        CompanyInfo.Get();
+        CompanyInfo."Contact Person" := '';
+        CompanyInfo.Modify();
+
+        // [GIVEN] Sales Invoice without a salesperson
+        CreateSalesInvoiceWithSalesperson(SalesHeader, '');
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error names the Contact Person field and Company Information as the source
+        Assert.ExpectedError(StrSubstNo('%1 %2', CompanyInfo.FieldCaption("Contact Person"), SellerContactReasonErr));
+
+        SetCompleteCompanyInfoContact();
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInXRechnungFormatNoSalespersonCompanyInfoWithoutPhoneNo();
+    var
+        CompanyInfo: Record "Company Information";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] Posting is blocked when no salesperson is assigned and Company Information has no Phone No.
+        Initialize();
+
+        // [GIVEN] Company Information without Phone No.
+        SetCompleteCompanyInfoContact();
+        CompanyInfo.Get();
+        CompanyInfo."Phone No." := '';
+        CompanyInfo.Modify();
+
+        // [GIVEN] Sales Invoice without a salesperson
+        CreateSalesInvoiceWithSalesperson(SalesHeader, '');
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error names the Phone No. field and Company Information as the source
+        Assert.ExpectedError(StrSubstNo('%1 %2', CompanyInfo.FieldCaption("Phone No."), SellerContactReasonErr));
+
+        SetCompleteCompanyInfoContact();
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInXRechnungFormatCompanyInfoWithoutEmail();
+    var
+        CompanyInfo: Record "Company Information";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] Posting is blocked when Company Information has no E-Mail, because it supplies
+        // the seller electronic address (BT-34). That also guarantees the seller contact e-mail (BT-43)
+        // whenever the contact falls back to Company Information.
+        Initialize();
+
+        // [GIVEN] Company Information with a complete seller contact but without E-Mail
+        SetCompleteCompanyInfoContact();
+        CompanyInfo.Get();
+        CompanyInfo."E-Mail" := '';
+        CompanyInfo.Modify();
+
+        // [GIVEN] Sales Invoice without a salesperson
+        CreateSalesInvoiceWithSalesperson(SalesHeader, '');
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error names the E-Mail field of Company Information
+        Assert.ExpectedError(CompanyInfo.FieldCaption("E-Mail"));
+
+        SetCompleteCompanyInfoContact();
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInXRechnungFormatNoSalespersonCompanyInfoComplete();
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] A complete Company Information supplies the seller contact (BG-6) when no salesperson is assigned.
+        Initialize();
+
+        // [GIVEN] Sales Invoice without a salesperson and complete Company Information contact data
+        SetCompleteCompanyInfoContact();
+        CreateSalesInvoiceWithSalesperson(SalesHeader, '');
+
+        // [WHEN/THEN] Check does not throw an error
+        CheckSalesHeader(SalesHeader);
+    end;
+
+    [Test]
+    procedure CheckSalesInvoiceInXRechnungFormatDeletedSalespersonFallsBackToCompanyInfo();
+    var
+        CompanyInfo: Record "Company Information";
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        SalesHeader: Record "Sales Header";
+    begin
+        // [SCENARIO 8416] When the assigned salesperson no longer exists the seller contact falls back to Company Information, like the export does.
+        Initialize();
+
+        // [GIVEN] Company Information without Contact Person
+        SetCompleteCompanyInfoContact();
+        CompanyInfo.Get();
+        CompanyInfo."Contact Person" := '';
+        CompanyInfo.Modify();
+
+        // [GIVEN] Sales Invoice with a salesperson that is deleted afterwards
+        CreateSalespersonWithContactInfo(SalespersonPurchaser);
+        CreateSalesInvoiceWithSalesperson(SalesHeader, SalespersonPurchaser.Code);
+        SalespersonPurchaser.Delete();
+
+        // [WHEN] Check the document
+        asserterror CheckSalesHeader(SalesHeader);
+
+        // [THEN] The error names Company Information as the source, not the salesperson
+        Assert.ExpectedError(StrSubstNo('%1 %2', CompanyInfo.FieldCaption("Contact Person"), SellerContactReasonErr));
+
+        SetCompleteCompanyInfoContact();
+    end;
+
+    [Test]
+    procedure CheckServiceInvoiceInXRechnungFormatSalespersonWithoutPhoneNo();
+    var
+        SalespersonPurchaser: Record "Salesperson/Purchaser";
+        ServiceHeader: Record "Service Header";
+    begin
+        // [SCENARIO 8416] The seller contact check also applies to service documents.
+        Initialize();
+
+        // [GIVEN] Salesperson with Name and E-Mail but without Phone No.
+        CreateSalespersonWithContactInfo(SalespersonPurchaser);
+        SalespersonPurchaser."Phone No." := '';
+        SalespersonPurchaser.Modify();
+
+        // [GIVEN] Service Invoice with that salesperson
+        ServiceHeader.Get(ServiceHeader."Document Type"::Invoice, CreateServiceDocumentWithLine());
+        ServiceHeader.Validate("Salesperson Code", SalespersonPurchaser.Code);
+        ServiceHeader.Modify(true);
+
+        // [WHEN] Check the document
+        asserterror CheckServiceHeader(ServiceHeader);
+
+        // [THEN] The error names the Phone No. field and the Salesperson/Purchaser as the source
+        Assert.ExpectedError(StrSubstNo('%1 %2', SalespersonPurchaser.FieldCaption("Phone No."), SellerContactReasonErr));
+    end;
+
+    [Test]
+    procedure CheckServiceInvoiceInXRechnungFormatNoSalespersonCompanyInfoWithoutPhoneNo();
+    var
+        CompanyInfo: Record "Company Information";
+        ServiceHeader: Record "Service Header";
+    begin
+        // [SCENARIO 8416] The seller contact check also applies to service documents without a salesperson.
+        Initialize();
+
+        // [GIVEN] Company Information without Phone No.
+        SetCompleteCompanyInfoContact();
+        CompanyInfo.Get();
+        CompanyInfo."Phone No." := '';
+        CompanyInfo.Modify();
+
+        // [GIVEN] Service Invoice without a salesperson
+        ServiceHeader.Get(ServiceHeader."Document Type"::Invoice, CreateServiceDocumentWithLine());
+
+        // [WHEN] Check the document
+        asserterror CheckServiceHeader(ServiceHeader);
+
+        // [THEN] The error names the Phone No. field and Company Information as the source
+        Assert.ExpectedError(StrSubstNo('%1 %2', CompanyInfo.FieldCaption("Phone No."), SellerContactReasonErr));
+
+        SetCompleteCompanyInfoContact();
+    end;
+    #endregion
+
     local procedure CreateAndPostSalesDocument(DocumentType: Enum "Sales Document Type"; LineType: Enum "Sales Line Type"; InvoiceDiscount: Boolean): Code[20];
     var
         SalesHeader: Record "Sales Header";
@@ -2072,6 +2359,38 @@ codeunit 13918 "XRechnung XML Document Tests"
     begin
         SourceDocumentHeader.GetTable(ServiceHeader);
         ExportXRechnungFormat.Check(SourceDocumentHeader, EDocumentService, "E-Document Processing Phase"::Release);
+    end;
+
+    local procedure CreateSalespersonWithContactInfo(var SalespersonPurchaser: Record "Salesperson/Purchaser")
+    begin
+        LibrarySales.CreateSalesperson(SalespersonPurchaser);
+        SalespersonPurchaser.Validate(Name, CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(SalespersonPurchaser.Name)));
+        SalespersonPurchaser.Validate("Phone No.", Format(LibraryRandom.RandIntInRange(1000000, 9999999)));
+        SalespersonPurchaser.Validate("E-Mail", LibraryUtility.GenerateRandomEmail());
+        SalespersonPurchaser.Modify(true);
+    end;
+
+    local procedure CreateSalesInvoiceWithSalesperson(var SalesHeader: Record "Sales Header"; SalespersonCode: Code[20])
+    begin
+        SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesDocumentWithLine("Sales Document Type"::Invoice, Enum::"Sales Line Type"::Item, false));
+        SalesHeader.Validate("Salesperson Code", SalespersonCode);
+        SalesHeader.Modify(true);
+    end;
+
+    /// <summary>
+    /// Fills the Company Information seller contact (BG-6) fields with valid values.
+    /// Initialize() seeds them only once per suite, so the seller contact tests call this both before
+    /// and after blanking a field, to stay independent of the order the tests run in.
+    /// </summary>
+    local procedure SetCompleteCompanyInfoContact()
+    var
+        CompanyInfo: Record "Company Information";
+    begin
+        CompanyInfo.Get();
+        CompanyInfo."Contact Person" := CopyStr(LibraryUtility.GenerateRandomText(50), 1, MaxStrLen(CompanyInfo."Contact Person"));
+        CompanyInfo."Phone No." := CopyStr(LibraryUtility.GenerateRandomText(20), 1, MaxStrLen(CompanyInfo."Phone No."));
+        CompanyInfo."E-Mail" := LibraryUtility.GenerateRandomEmail();
+        CompanyInfo.Modify();
     end;
 
     local procedure CheckSalesHeader(SalesHeader: Record "Sales Header")
@@ -3198,6 +3517,8 @@ codeunit 13918 "XRechnung XML Document Tests"
         CompanyInformation.IBAN := LibraryUtility.GenerateMOD97CompliantCode();
         CompanyInformation."SWIFT Code" := LibraryUtility.GenerateGUID();
         CompanyInformation."E-Mail" := LibraryUtility.GenerateRandomEmail();
+        CompanyInformation."Contact Person" := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(CompanyInformation."Contact Person"));
+        CompanyInformation."Phone No." := Format(LibraryRandom.RandIntInRange(1000000, 9999999));
         CompanyInformation.Modify();
 
         GeneralLedgerSetup.Get();
