@@ -149,7 +149,7 @@ codeunit 13920 "ZUGFeRD Format" implements "E-Document"
 
     /// <summary>
     /// Checks the Company Information data that the electronic document requires.
-    /// The E-Mail supplies the seller electronic address (BT-34), which XRechnung requires
+    /// The E-Mail supplies the seller electronic address (BT-34), which ZUGFeRD requires
     /// (PEPPOL-EN16931-R020). BT-34 is a party level routing address and is always taken from Company
     /// Information, never from the salesperson, so it is independent of the seller contact (BG-6).
     /// </summary>

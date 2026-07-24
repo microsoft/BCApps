@@ -57,8 +57,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         ZUGFeRDFormat: Codeunit "ZUGFeRD Format";
         ExportZUGFeRDDocument: Codeunit "Export ZUGFeRD Document";
         IncorrectValueErr: Label 'Incorrect value for %1', Locked = true;
-        SellerContactSalespersonErr: Label 'The %1 field for %2 %3 must be filled in. It is required for the seller contact (BG-6) of the electronic document.', Locked = true;
-        SellerContactCompanyInfoErr: Label 'The %1 field in %2 must be filled in. It is required for the seller contact (BG-6) of the electronic document.', Locked = true;
+        SellerContactReasonErr: Label 'must be filled in. It is required for the seller contact (BG-6) of the electronic document', Locked = true;
         IsInitialized: Boolean;
 
     #region SalesInvoice
@@ -1702,7 +1701,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         asserterror CheckSalesHeader(SalesHeader);
 
         // [THEN] The error names the Phone No. field and the Salesperson/Purchaser as the source
-        Assert.ExpectedError(StrSubstNo(SellerContactSalespersonErr, SalespersonPurchaser.FieldCaption("Phone No."), SalespersonPurchaser.TableCaption(), SalespersonPurchaser.Code));
+        Assert.ExpectedError(StrSubstNo('%1 %2', SalespersonPurchaser.FieldCaption("Phone No."), SellerContactReasonErr));
     end;
 
     [Test]
@@ -1727,7 +1726,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         asserterror CheckSalesHeader(SalesHeader);
 
         // [THEN] The error names the Contact Person field and Company Information as the source
-        Assert.ExpectedError(StrSubstNo(SellerContactCompanyInfoErr, CompanyInfo.FieldCaption("Contact Person"), CompanyInfo.TableCaption()));
+        Assert.ExpectedError(StrSubstNo('%1 %2', CompanyInfo.FieldCaption("Contact Person"), SellerContactReasonErr));
 
         SetCompleteCompanyInfoContact();
     end;
@@ -1783,7 +1782,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         asserterror CheckServiceHeader(ServiceHeader);
 
         // [THEN] The error names the Phone No. field and Company Information as the source
-        Assert.ExpectedError(StrSubstNo(SellerContactCompanyInfoErr, CompanyInfo.FieldCaption("Phone No."), CompanyInfo.TableCaption()));
+        Assert.ExpectedError(StrSubstNo('%1 %2', CompanyInfo.FieldCaption("Phone No."), SellerContactReasonErr));
 
         SetCompleteCompanyInfoContact();
     end;
@@ -1809,7 +1808,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         asserterror CheckSalesHeader(SalesHeader);
 
         // [THEN] The error names the Name field and the Salesperson/Purchaser as the source
-        Assert.ExpectedError(StrSubstNo(SellerContactSalespersonErr, SalespersonPurchaser.FieldCaption(Name), SalespersonPurchaser.TableCaption(), SalespersonPurchaser.Code));
+        Assert.ExpectedError(StrSubstNo('%1 %2', SalespersonPurchaser.FieldCaption(Name), SellerContactReasonErr));
     end;
 
     [Test]
@@ -1833,7 +1832,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         asserterror CheckSalesHeader(SalesHeader);
 
         // [THEN] The error names the E-Mail field and the Salesperson/Purchaser as the source
-        Assert.ExpectedError(StrSubstNo(SellerContactSalespersonErr, SalespersonPurchaser.FieldCaption("E-Mail"), SalespersonPurchaser.TableCaption(), SalespersonPurchaser.Code));
+        Assert.ExpectedError(StrSubstNo('%1 %2', SalespersonPurchaser.FieldCaption("E-Mail"), SellerContactReasonErr));
     end;
 
     [Test]
@@ -1858,7 +1857,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         asserterror CheckSalesHeader(SalesHeader);
 
         // [THEN] The error names the Phone No. field and Company Information as the source
-        Assert.ExpectedError(StrSubstNo(SellerContactCompanyInfoErr, CompanyInfo.FieldCaption("Phone No."), CompanyInfo.TableCaption()));
+        Assert.ExpectedError(StrSubstNo('%1 %2', CompanyInfo.FieldCaption("Phone No."), SellerContactReasonErr));
 
         SetCompleteCompanyInfoContact();
     end;
@@ -1933,7 +1932,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         asserterror CheckSalesHeader(SalesHeader);
 
         // [THEN] The error names Company Information as the source, not the salesperson
-        Assert.ExpectedError(StrSubstNo(SellerContactCompanyInfoErr, CompanyInfo.FieldCaption("Contact Person"), CompanyInfo.TableCaption()));
+        Assert.ExpectedError(StrSubstNo('%1 %2', CompanyInfo.FieldCaption("Contact Person"), SellerContactReasonErr));
 
         SetCompleteCompanyInfoContact();
     end;
@@ -1961,7 +1960,7 @@ codeunit 13922 "ZUGFeRD XML Document Tests"
         asserterror CheckServiceHeader(ServiceHeader);
 
         // [THEN] The error names the Phone No. field and the Salesperson/Purchaser as the source
-        Assert.ExpectedError(StrSubstNo(SellerContactSalespersonErr, SalespersonPurchaser.FieldCaption("Phone No."), SalespersonPurchaser.TableCaption(), SalespersonPurchaser.Code));
+        Assert.ExpectedError(StrSubstNo('%1 %2', SalespersonPurchaser.FieldCaption("Phone No."), SellerContactReasonErr));
     end;
     #endregion
 

@@ -314,11 +314,11 @@ codeunit 11038 "E-Document DE Helper"
             SalespersonPurchaser.SetLoadFields(Name, "Phone No.", "E-Mail");
             if SalespersonPurchaser.Get(SalespersonCode) then begin
                 if SalespersonPurchaser.Name = '' then
-                    Error(SellerContactSalespersonErr, SalespersonPurchaser.FieldCaption(Name), SalespersonPurchaser.TableCaption(), SalespersonCode);
+                    SalespersonPurchaser.FieldError(Name, SellerContactReasonErr);
                 if SalespersonPurchaser."Phone No." = '' then
-                    Error(SellerContactSalespersonErr, SalespersonPurchaser.FieldCaption("Phone No."), SalespersonPurchaser.TableCaption(), SalespersonCode);
+                    SalespersonPurchaser.FieldError("Phone No.", SellerContactReasonErr);
                 if SalespersonPurchaser."E-Mail" = '' then
-                    Error(SellerContactSalespersonErr, SalespersonPurchaser.FieldCaption("E-Mail"), SalespersonPurchaser.TableCaption(), SalespersonCode);
+                    SalespersonPurchaser.FieldError("E-Mail", SellerContactReasonErr);
                 exit;
             end;
         end;
@@ -326,9 +326,9 @@ codeunit 11038 "E-Document DE Helper"
         CompanyInformation.SetLoadFields("Contact Person", "Phone No.");
         CompanyInformation.Get();
         if CompanyInformation."Contact Person" = '' then
-            Error(SellerContactCompanyInfoErr, CompanyInformation.FieldCaption("Contact Person"), CompanyInformation.TableCaption());
+            CompanyInformation.FieldError("Contact Person", SellerContactReasonErr);
         if CompanyInformation."Phone No." = '' then
-            Error(SellerContactCompanyInfoErr, CompanyInformation.FieldCaption("Phone No."), CompanyInformation.TableCaption());
+            CompanyInformation.FieldError("Phone No.", SellerContactReasonErr);
     end;
 
     local procedure GetSalespersonCode(SourceDocumentHeader: RecordRef): Code[20]
@@ -364,6 +364,5 @@ codeunit 11038 "E-Document DE Helper"
         FineRoutingCharsErr: Label 'The fine routing segment must contain only letters (A-Z) and digits (0-9). Found: "%1".', Comment = '%1 = fine routing value';
         CheckDigitFormatErr: Label 'The check digit must be exactly 2 digits. Found: "%1".', Comment = '%1 = check digit value';
         CheckDigitVerifyErr: Label 'The check digit verification failed (Mod 97-10). The E-Invoice Routing No. may contain a typo.';
-        SellerContactSalespersonErr: Label 'The %1 field for %2 %3 must be filled in. It is required for the seller contact (BG-6) of the electronic document.', Comment = '%1 = caption of the missing field, %2 = Salesperson/Purchaser table caption, %3 = Salesperson Code';
-        SellerContactCompanyInfoErr: Label 'The %1 field in %2 must be filled in. It is required for the seller contact (BG-6) of the electronic document.', Comment = '%1 = caption of the missing field, %2 = Company Information table caption';
+        SellerContactReasonErr: Label 'must be filled in. It is required for the seller contact (BG-6) of the electronic document';
 }
