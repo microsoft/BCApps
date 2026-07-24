@@ -162,7 +162,7 @@ page 9872 "New Security Group"
     end;
 
     var
-        TempSelectedSecurityGroup: Record "Security Group Buffer";
+        TempSelectedSecurityGroup: Record "Security Group Buffer" temporary;
         SecurityGroup: Codeunit "Security Group";
         NewSecurityGroupCodeValue: Code[20];
         NewSecurityGroupNameValue: Text;

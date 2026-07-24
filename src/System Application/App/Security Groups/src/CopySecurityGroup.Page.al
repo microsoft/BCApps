@@ -136,7 +136,7 @@ page 9873 "Copy Security Group"
     end;
 
     var
-        TempSelectedSecurityGroup: Record "Security Group Buffer";
+        TempSelectedSecurityGroup: Record "Security Group Buffer" temporary;
         SecurityGroup: Codeunit "Security Group";
         SourceSecurityGroupCode: Code[20];
         NewSecurityGroupCodeValue: Code[20];

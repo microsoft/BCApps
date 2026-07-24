@@ -84,7 +84,7 @@ page 8889 "Email Attachments"
 
                 trigger OnAction()
                 var
-                    TempEmailAttachments: Record "Email Attachments";
+                    TempEmailAttachments: Record "Email Attachments" temporary;
                     FeatureTelemetry: Codeunit "Feature Telemetry";
                     EmailChooseScenarioAttachments: Page "Email Choose Scenario Attach";
                 begin

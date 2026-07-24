@@ -90,7 +90,7 @@ codeunit 8902 "Email Scenario Attach Impl."
 
     procedure AddAttachmentToMessage(var Message: Codeunit "Email Message"; CurrentEmailScenario: Enum "Email Scenario")
     var
-        TempEmailAttachments: Record "Email Attachments";
+        TempEmailAttachments: Record "Email Attachments" temporary;
         AttachmentsCount: Integer;
     begin
         if CurrentEmailScenario.AsInteger() <> 0 then begin

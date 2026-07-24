@@ -138,7 +138,7 @@ codeunit 4325 "Agent Setup Impl."
     local procedure UpdateFields(var AgentSetupBuffer: Record "Agent Setup Buffer"; UserSecurityID: Guid; AgentMetadataProvider: Enum "Agent Metadata Provider"; DefaultUserName: Code[50]; DefaultDisplayName: Text[80])
     var
         Agent: Record Agent;
-        TempUserSettings: Record "User Settings";
+        TempUserSettings: Record "User Settings" temporary;
         Language: Codeunit Language;
         AgentMetadata: Interface IAgentMetadata;
     begin
@@ -166,7 +166,7 @@ codeunit 4325 "Agent Setup Impl."
     [Scope('OnPrem')]
     procedure OpenLanguageAndRegionPage(var AgentSetupBuffer: Record "Agent Setup Buffer"): Boolean
     var
-        TempUserSettings: Record "User Settings";
+        TempUserSettings: Record "User Settings" temporary;
         Language: Codeunit Language;
         AgentUserSettings: Page "Agent User Settings";
     begin
@@ -209,7 +209,7 @@ codeunit 4325 "Agent Setup Impl."
 
     internal procedure AppendAgentSummary(var AgentSetupBuffer: Record "Agent Setup Buffer"; SummaryText: Text): Text
     var
-        TempUserSettings: Record "User Settings";
+        TempUserSettings: Record "User Settings" temporary;
         Language: Codeunit Language;
         NewSummaryText: Text;
     begin
@@ -240,7 +240,7 @@ codeunit 4325 "Agent Setup Impl."
     local procedure CreateAgent(var AgentSetupBuffer: Record "Agent Setup Buffer"): Guid
     var
         AgentRecord: Record Agent;
-        TempNewUserSettings: Record "User Settings";
+        TempNewUserSettings: Record "User Settings" temporary;
         TemporaryAgentAccessControl: Record "Agent Access Control" temporary;
         Agent: Codeunit Agent;
     begin
@@ -257,7 +257,7 @@ codeunit 4325 "Agent Setup Impl."
     local procedure UpdateAgent(var AgentSetupBuffer: Record "Agent Setup Buffer")
     var
         AgentRecord: Record Agent;
-        TempNewUserSettings: Record "User Settings";
+        TempNewUserSettings: Record "User Settings" temporary;
         TemporaryAgentAccessControl: Record "Agent Access Control" temporary;
         Agent: Codeunit Agent;
     begin

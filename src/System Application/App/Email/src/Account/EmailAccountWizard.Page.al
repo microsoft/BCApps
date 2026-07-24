@@ -419,7 +419,7 @@ page 8886 "Email Account Wizard"
 
     trigger OnInit()
     var
-        TempDefaultAccount: Record "Email Account";
+        TempDefaultAccount: Record "Email Account" temporary;
         EmailAccountImpl: Codeunit "Email Account Impl.";
         EmailScenario: Codeunit "Email Scenario";
     begin
@@ -576,7 +576,7 @@ page 8886 "Email Account Wizard"
     end;
 
     var
-        TempRegisteredAccount: Record "Email Account";
+        TempRegisteredAccount: Record "Email Account" temporary;
         RegisteredRateLimit: Record "Email Rate Limit";
         MediaResourcesStandard: Record "Media Resources";
         MediaResourcesDone: Record "Media Resources";

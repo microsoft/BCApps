@@ -204,7 +204,7 @@ codeunit 9871 "Security Group Impl."
         UserProperty: Record "User Property";
         [SecurityFiltering(SecurityFilter::Ignored)]
         DummySecurityGroup: Record "Security Group";
-        TempLocalSecurityGroupBuffer: Record "Security Group Buffer";
+        TempLocalSecurityGroupBuffer: Record "Security Group Buffer" temporary;
         EntraGroupId: Text;
         NavUserAccountHelper: DotNet NavUserAccountHelper;
         LocalWindowsGroupName: Text;
@@ -249,7 +249,7 @@ codeunit 9871 "Security Group Impl."
     procedure GetGroups(var SecurityGroupBuffer: Record "Security Group Buffer"; FetchGroupNames: Boolean)
     var
         SecurityGroup: Record "Security Group";
-        TempLocalSecurityGroupBuffer: Record "Security Group Buffer";
+        TempLocalSecurityGroupBuffer: Record "Security Group Buffer" temporary;
     begin
         TempLocalSecurityGroupBuffer.Copy(SecurityGroupBuffer, true);
         TempLocalSecurityGroupBuffer.Reset();
@@ -282,7 +282,7 @@ codeunit 9871 "Security Group Impl."
     procedure GetMembers(var SecurityGroupMemberBuffer: Record "Security Group Member Buffer"): List of [Code[20]]
     var
         SecurityGroup: Record "Security Group";
-        TempLocalSecurityGroupMemberBuffer: Record "Security Group Member Buffer";
+        TempLocalSecurityGroupMemberBuffer: Record "Security Group Member Buffer" temporary;
         FeatureTelemetry: Codeunit "Feature Telemetry";
         SkippedSecurityGroups: List of [Code[20]];
     begin
@@ -533,7 +533,7 @@ codeunit 9871 "Security Group Impl."
 
     procedure SendNotificationForDeletedGroups(var SecurityGroupBuffer: Record "Security Group Buffer")
     var
-        TempLocalSecurityGroupBuffer: Record "Security Group Buffer";
+        TempLocalSecurityGroupBuffer: Record "Security Group Buffer" temporary;
         MissingGroupsNotification: Notification;
         GroupCodesTextBuilder: TextBuilder;
         MissingGroupCodes: Text;

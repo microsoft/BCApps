@@ -205,7 +205,7 @@ page 2515 "AppSource Product List"
 
     local procedure ReloadAllProducts()
     var
-        TempAppSourceProduct: Record "AppSource Product";
+        TempAppSourceProduct: Record "AppSource Product" temporary;
     begin
         TempAppSourceProduct.Copy(Rec);
         AppSourceProductManager.GetProductsAndPopulateRecord(TempAppSourceProduct);

@@ -17,7 +17,7 @@ codeunit 8892 "Email Scenario Impl."
     procedure GetEmailAccount(Scenario: Enum "Email Scenario"; var EmailAccount: Record "Email Account"): Boolean
     var
         EmailScenario: Record "Email Scenario";
-        TempAllEmailAccounts: Record "Email Account";
+        TempAllEmailAccounts: Record "Email Account" temporary;
         EmailAccounts: Codeunit "Email Account";
     begin
         EmailAccounts.GetAllAccounts(TempAllEmailAccounts);
@@ -81,9 +81,9 @@ codeunit 8892 "Email Scenario Impl."
     /// <param name="Result">A flatten tree structure representing the all the email accounts and the scenarios assigned to them.</param>
     procedure GetScenariosByEmailAccount(var Result: Record "Email Account Scenario")
     var
-        TempEmailAccounts: Record "Email Account";
-        TempEmailAccountScenarios: Record "Email Account Scenario";
-        TempDefaultAccount: Record "Email Account";
+        TempEmailAccounts: Record "Email Account" temporary;
+        TempEmailAccountScenarios: Record "Email Account Scenario" temporary;
+        TempDefaultAccount: Record "Email Account" temporary;
         EmailAccount: Codeunit "Email Account";
         DisplayName: Text[2048];
         Position: Integer;
@@ -181,7 +181,7 @@ codeunit 8892 "Email Scenario Impl."
     procedure AddScenarios(EmailAccount: Record "Email Account Scenario"): Boolean
     var
         EmailScenario: Record "Email Scenario";
-        TempSelectedScenarios: Record "Email Account Scenario";
+        TempSelectedScenarios: Record "Email Account Scenario" temporary;
         ScenariosForAccount: Page "Email Scenarios for Account";
     begin
         EmailAccountImpl.CheckPermissions();
@@ -263,7 +263,7 @@ codeunit 8892 "Email Scenario Impl."
 
     procedure ChangeAccount(var EmailScenario: Record "Email Account Scenario"): Boolean
     var
-        TempSelectedAccount: Record "Email Account";
+        TempSelectedAccount: Record "Email Account" temporary;
         Scenario: Record "Email Scenario";
         EmailAccount: Codeunit "Email Account";
         AccountsPage: Page "Email Accounts";

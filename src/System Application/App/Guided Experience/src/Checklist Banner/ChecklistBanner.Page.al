@@ -343,7 +343,7 @@ page 1990 "Checklist Banner"
     }
 
     var
-        TempChecklistItemBuffer: Record "Checklist Item Buffer";
+        TempChecklistItemBuffer: Record "Checklist Item Buffer" temporary;
         ChecklistBannerImpl: Codeunit "Checklist Banner Impl.";
         ChecklistImplementation: Codeunit "Checklist Implementation";
         ChecklistStatus: Enum "Checklist Status";

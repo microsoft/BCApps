@@ -61,7 +61,7 @@ page 9821 "Inherited Permission Sets Part"
     [Scope('OnPrem')]
     procedure Refresh()
     var
-        TempSecurityGroupMemberBuffer: Record "Security Group Member Buffer";
+        TempSecurityGroupMemberBuffer: Record "Security Group Member Buffer" temporary;
         SecurityGroup: Codeunit "Security Group";
     begin
         SecurityGroup.GetMembers(TempSecurityGroupMemberBufferToRefresh);
@@ -113,7 +113,7 @@ page 9821 "Inherited Permission Sets Part"
     end;
 
     var
-        TempSecurityGroupMemberBufferToRefresh: Record "Security Group Member Buffer";
+        TempSecurityGroupMemberBufferToRefresh: Record "Security Group Member Buffer" temporary;
         PermissionSetNotFound: Boolean;
         IsInitializedByCaller: Boolean;
 }

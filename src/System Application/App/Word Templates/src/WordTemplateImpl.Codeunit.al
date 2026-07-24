@@ -848,7 +848,7 @@ codeunit 9988 "Word Template Impl."
 
     internal procedure AddSelectedTable(var WordTemplatesRelatedBuffer: Record "Word Templates Related Buffer"; WordTemplateCode: Code[30]; var TempWordTemplateField: Record "Word Template Field" temporary): Boolean
     var
-        TempRecordSelectionBuffer: Record "Record Selection Buffer";
+        TempRecordSelectionBuffer: Record "Record Selection Buffer" temporary;
         AllObjWithCaption: Record AllObjWithCaption;
         RecordSelection: Codeunit "Record Selection";
         RelatedCode: Code[5];
@@ -1195,7 +1195,7 @@ codeunit 9988 "Word Template Impl."
 
     internal procedure GetCustomMergeFields(TableId: Integer; RelatedTableCode: Code[5]; var MailMergeFields: List of [Text]; var WordTemplateField: Record "Word Template Field")
     var
-        TempWordTemplateCustomFieldRecord: Record "Word Template Custom Field";
+        TempWordTemplateCustomFieldRecord: Record "Word Template Custom Field" temporary;
         WordTemplateCodeunit: Codeunit "Word Template";
         WordTemplateCustomField: Codeunit "Word Template Custom Field";
         WordTemplateFieldSelection: Codeunit "Word Template Field Selection";
