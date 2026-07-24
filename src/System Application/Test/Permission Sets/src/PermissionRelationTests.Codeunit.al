@@ -648,7 +648,6 @@ codeunit 132438 "Permission Relation Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestOpenPermissionsOverview()
     var
@@ -670,7 +669,6 @@ codeunit 132438 "Permission Relation Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestOpenPermissionsOverviewForPermissionSet()
     var
@@ -693,7 +691,6 @@ codeunit 132438 "Permission Relation Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestOpenPermissionsOverviewForTable()
     var
@@ -716,7 +713,6 @@ codeunit 132438 "Permission Relation Tests"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
     [TransactionModel(TransactionModel::AutoRollback)]
     procedure TestPermissionSetPageWhereUsedAction()
     var
