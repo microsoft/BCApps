@@ -2462,6 +2462,66 @@ codeunit 137055 "SCM Warehouse Pick"
             end;
     end;
 
+    [Test]
+    [HandlerFunctions('ReservationPageHandler')]
+    [Scope('OnPrem')]
+    procedure CreatePickForRemainingQtyWhenPreviousPickPlacedInNonDefaultShipmentBin()
+    var
+        Location: Record Location;
+        WarehouseEmployee: Record "Warehouse Employee";
+        Item: Record Item;
+        ShipZone: Record Zone;
+        DefaultShipmentBin: Record Bin;
+        NonDefaultShipmentBin: Record Bin;
+        SalesHeaderFirst: Record "Sales Header";
+        SalesHeaderSecond: Record "Sales Header";
+        WarehouseShipmentHeader: Record "Warehouse Shipment Header";
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        TotalQty: Decimal;
+        FirstShipmentQty: Decimal;
+        RemainingQty: Decimal;
+    begin
+        // [SCENARIO 642378] Create Pick for the remaining quantity succeeds when a previous registered pick placed the
+        // picked-but-not-shipped quantity into a Ship-type bin other than the location's default Shipment Bin.
+        // [SCENARIO 642378] Previously the picked quantity was only looked for in the location's default Shipment Bin, so
+        // when the shipment was directed to a different ship bin the picked quantity was treated as zero. That wrongly
+        // removed the reservation cover on the picks/shipments, making the remaining inventory look unavailable and
+        // raising "Nothing to handle. The quantity to be picked is in bin ..., which is not set up for picking.".
+        Initialize();
+
+        // [GIVEN] Directed put-away and pick location with two Ship-type bins in the SHIP zone.
+        LibraryWarehouse.CreateFullWMSLocation(Location, 2);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+        LibraryWarehouse.FindZone(ShipZone, Location.Code, LibraryWarehouse.SelectBinType(false, true, false, false), false);
+        LibraryWarehouse.FindBin(DefaultShipmentBin, Location.Code, ShipZone.Code, 1);      // Location's default Shipment Bin.
+        LibraryWarehouse.FindBin(NonDefaultShipmentBin, Location.Code, ShipZone.Code, 2);   // Alternative Ship-type bin.
+
+        // [GIVEN] A random quantity of an item is in a pick bin, split across two shipments.
+        TotalQty := LibraryRandom.RandIntInRange(100, 200);
+        FirstShipmentQty := LibraryRandom.RandIntInRange(1, TotalQty - 1);
+        RemainingQty := TotalQty - FirstShipmentQty;
+        LibraryInventory.CreateItem(Item);
+        UpdateInventoryInPickBin(Item, Location.Code, TotalQty);
+
+        // [GIVEN] The first sales order, reserved against inventory, is picked into the non-default Ship-type bin, but not shipped.
+        CreateReleaseAndReserveSalesOrder(SalesHeaderFirst, Location.Code, Item."No.", FirstShipmentQty, true);
+        LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeaderFirst);
+        FindWarehouseShipmentHeader(WarehouseShipmentHeader, SalesHeaderFirst."No.");
+        UpdateShipmentBinOnWhseShipment(WarehouseShipmentHeader, NonDefaultShipmentBin.Code);
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+        FindWarehouseActivityHeader(WarehouseActivityHeader, WarehouseActivityHeader.Type::Pick, Location.Code, SalesHeaderFirst."No.");
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [WHEN] Create Pick for a second sales order for the remaining quantity.
+        CreateReleaseAndReserveSalesOrder(SalesHeaderSecond, Location.Code, Item."No.", RemainingQty, false);
+        LibraryWarehouse.CreateWhseShipmentFromSO(SalesHeaderSecond);
+        FindWarehouseShipmentHeader(WarehouseShipmentHeader, SalesHeaderSecond."No.");
+        LibraryWarehouse.CreatePick(WarehouseShipmentHeader);
+
+        // [THEN] The pick for the remaining quantity is created (before the fix it failed with "Nothing to handle").
+        VerifyPick(SalesHeaderSecond."No.", Item."No.", Location.Code, RemainingQty);
+    end;
+
     local procedure Initialize()
     var
         WarehouseActivityLine: Record "Warehouse Activity Line";
@@ -3038,6 +3098,54 @@ codeunit 137055 "SCM Warehouse Pick"
           WarehouseJournalBatch."Journal Template Name", WarehouseJournalBatch.Name, LocationCode, true);
         LibraryWarehouse.CalculateWhseAdjustment(Item, ItemJournalBatch);
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
+    end;
+
+    local procedure UpdateInventoryInPickBin(Item: Record Item; LocationCode: Code[10]; Quantity: Decimal)
+    var
+        Zone: Record Zone;
+        Bin: Record Bin;
+        WarehouseJournalLine: Record "Warehouse Journal Line";
+    begin
+        EnsureGeneralPostingSetupForItem(Item);
+        LibraryWarehouse.FindZone(Zone, LocationCode, LibraryWarehouse.SelectBinType(false, false, true, true), false);
+        LibraryWarehouse.FindBin(Bin, LocationCode, Zone.Code, 1);
+        LibraryWarehouse.WarehouseJournalSetup(LocationCode, WarehouseJournalTemplate, WarehouseJournalBatch);
+        LibraryInventory.ClearItemJournal(ItemJournalTemplate, ItemJournalBatch);
+        LibraryWarehouse.CreateWhseJournalLine(
+          WarehouseJournalLine, WarehouseJournalBatch."Journal Template Name", WarehouseJournalBatch.Name,
+          LocationCode, Zone.Code, Bin.Code,
+          WarehouseJournalLine."Entry Type"::"Positive Adjmt.", Item."No.", Quantity);
+        CalculateAndPostWhseAdjustment(Item, LocationCode);
+    end;
+
+    local procedure EnsureGeneralPostingSetupForItem(Item: Record Item)
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        LibraryERM: Codeunit "Library - ERM";
+    begin
+        // The whse adjustment posts with a blank Gen. Bus. Posting Group, so the ('', Item Gen. Prod. Posting Group)
+        // combination must exist with inventory accounts even though the item picked a group from a "full" setup that
+        // used a non-blank Gen. Bus. Posting Group.
+        if not GeneralPostingSetup.Get('', Item."Gen. Prod. Posting Group") then begin
+            GeneralPostingSetup.Init();
+            GeneralPostingSetup.Validate("Gen. Bus. Posting Group", '');
+            GeneralPostingSetup.Validate("Gen. Prod. Posting Group", Item."Gen. Prod. Posting Group");
+            GeneralPostingSetup.Insert(true);
+        end;
+        LibraryERM.SetGeneralPostingSetupInvtAccounts(GeneralPostingSetup);
+        GeneralPostingSetup.Modify(true);
+    end;
+
+    local procedure UpdateShipmentBinOnWhseShipment(WarehouseShipmentHeader: Record "Warehouse Shipment Header"; BinCode: Code[20])
+    var
+        WarehouseShipmentLine: Record "Warehouse Shipment Line";
+    begin
+        WarehouseShipmentLine.SetRange("No.", WarehouseShipmentHeader."No.");
+        WarehouseShipmentLine.FindSet();
+        repeat
+            WarehouseShipmentLine.Validate("Bin Code", BinCode);
+            WarehouseShipmentLine.Modify(true);
+        until WarehouseShipmentLine.Next() = 0;
     end;
 
     local procedure UpdateBinOnActivityLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; SourceNo: Code[20]; BinCode: Code[20]; ActionType: Enum "Warehouse Action Type")
