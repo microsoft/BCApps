@@ -177,6 +177,16 @@ codeunit 3702 "Environment Information Impl."
         exit(NavTenantSettingsHelper.GetLinkedPowerPlatformEnvironmentId());
     end;
 
+    procedure GetApplicationServiceLocation(): Text
+    begin
+        exit(NavTenantSettingsHelper.GetAppServiceLocation());
+    end;
+
+    procedure IsApplicationServiceInEUDB(): Boolean
+    begin
+        exit(NavTenantSettingsHelper.GetAppServiceInEUDB());
+    end;
+
     procedure GetEnvironmentSetting(SettingName: Text; ModuleInfo: ModuleInfo): Text
     begin
         if ModuleInfo.Publisher <> 'Microsoft' then
