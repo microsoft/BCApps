@@ -45,6 +45,11 @@ codeunit 149042 "AIT Test Run Iteration"
         SetAITTestSuite(ActiveAITTestSuite);
 
         RunAITTestMethodLine(Rec, ActiveAITTestSuite);
+
+        // Clear the active-suite marker once the line has run so a subsequent language-first data-driven test
+        // executed standalone on the platform test runner (same session) is not mistaken for a suite run — which
+        // would make AIT Test Handler skip its per-case logging (IsRunningUnderAITSuite would stay true).
+        Clear(ActiveAITTestSuite);
     end;
 
     local procedure InitializeAITTestMethodLineForRun(var AITTestMethodLine: Record "AIT Test Method Line"; var AITTestSuite: Record "AIT Test Suite")
@@ -127,6 +132,16 @@ codeunit 149042 "AIT Test Run Iteration"
     internal procedure GetAITTestSuite(var CurrAITTestSuite: Record "AIT Test Suite")
     begin
         CurrAITTestSuite := GlobalAITTestSuite;
+    end;
+
+    /// <summary>
+    /// Indicates whether an AIT test suite is currently driving execution (the app-based runner). Returns false when
+    /// a language-first data-driven test is executed directly on the platform test runner, in which case the
+    /// <see cref="AIT Test Handler"/> owns the per-case bracketing and logging instead of the event subscribers here.
+    /// </summary>
+    internal procedure IsRunningUnderAITSuite(): Boolean
+    begin
+        exit(ActiveAITTestSuite.Code <> '');
     end;
 
     procedure AddToNoOfLogEntriesExecuted()
