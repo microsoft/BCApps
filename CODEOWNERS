@@ -20,6 +20,61 @@
 
 # App Finance
 /src/Apps/W1/PowerBIReports @microsoft/d365-bc-finance-1
+/src/Apps/APAC/EDocumentFormats @microsoft/d365-bc-finance-1
+/src/Apps/CH/SwissQRBill @microsoft/d365-bc-finance-1
+/src/Apps/CZ/FixedAssetLocalization @microsoft/d365-bc-finance-1
+/src/Apps/DE/EDocumentDE @microsoft/d365-bc-finance-1
+/src/Apps/DE/Elster @microsoft/d365-bc-finance-1
+/src/Apps/DK/ElectronicVATDeclarationDK @microsoft/d365-bc-finance-1
+/src/Apps/DK/EnforcedDigitalVouchersDK @microsoft/d365-bc-finance-1
+/src/Apps/DK/FIK @microsoft/d365-bc-finance-1
+/src/Apps/DK/NemhandelNotification @microsoft/d365-bc-finance-1
+/src/Apps/DK/SAFTModificationDK @microsoft/d365-bc-finance-1
+/src/Apps/DK/VATReportsDK @microsoft/d365-bc-finance-1
+/src/Apps/ES/EDocumentFormats @microsoft/d365-bc-finance-1
+/src/Apps/FR/FAReportsFR @microsoft/d365-bc-finance-1
+/src/Apps/FR/FECAuditFile @microsoft/d365-bc-finance-1
+/src/Apps/FR/PaymentManagementFR @microsoft/d365-bc-finance-1
+/src/Apps/FR/ServiceDeclarationFR @microsoft/d365-bc-finance-1
+/src/Apps/GB/GovTalk @microsoft/d365-bc-finance-1
+/src/Apps/GB/IdealPostcodes @microsoft/d365-bc-finance-1
+/src/Apps/GB/PostingDateCheckOnPosting @microsoft/d365-bc-finance-1
+/src/Apps/GB/ReportsGB @microsoft/d365-bc-finance-1
+/src/Apps/GB/ReverseChargeVAT @microsoft/d365-bc-finance-1
+/src/Apps/GB/UKMakingTaxDigital @microsoft/d365-bc-finance-1
+/src/Apps/GB/UKPostcodeGetAddressIO @microsoft/d365-bc-finance-1
+/src/Apps/GB/VATReporting @microsoft/d365-bc-finance-1
+/src/Apps/NA/Ceridian @microsoft/d365-bc-finance-1
+/src/Apps/NA/EnvestnetYodleeBankFeeds @microsoft/d365-bc-finance-1
+/src/Apps/NA/ExtendedBankDepositNA @microsoft/d365-bc-finance-1
+/src/Apps/NA/MX_DIOT @microsoft/d365-bc-finance-1
+/src/Apps/NA/Onprem\ Permissions\ NA @microsoft/d365-bc-finance-1
+/src/Apps/NL/NLDigitalTaxDeclaration @microsoft/d365-bc-finance-1
+/src/Apps/NO/ElectronicVATSubmission @microsoft/d365-bc-finance-1
+/src/Apps/NO/NorwegianSAFT @microsoft/d365-bc-finance-1
+/src/Apps/SE/SIE @microsoft/d365-bc-finance-1
+/src/Apps/US/IRS1096 @microsoft/d365-bc-finance-1
+/src/Apps/US/IRSForms @microsoft/d365-bc-finance-1
+/src/Apps/W1/AMCBanking365Fundamentals @microsoft/d365-bc-finance-1
+/src/Apps/W1/AuditFileExport @microsoft/d365-bc-finance-1
+/src/Apps/W1/BankAccRecWithAI @microsoft/d365-bc-finance-1
+/src/Apps/W1/BankDeposits @microsoft/d365-bc-finance-1
+/src/Apps/W1/CompanyHub @microsoft/d365-bc-finance-1
+/src/Apps/W1/CrossEnvironmentIntercompany @microsoft/d365-bc-finance-1
+/src/Apps/W1/EnforcedDigitalVouchers @microsoft/d365-bc-finance-1
+/src/Apps/W1/ExciseTaxes @microsoft/d365-bc-finance-1
+/src/Apps/W1/LatePaymentPredictor @microsoft/d365-bc-finance-1
+/src/Apps/W1/MasterDataManagement @microsoft/d365-bc-finance-1
+/src/Apps/W1/PayPalPaymentsStandard @microsoft/d365-bc-finance-1
+/src/Apps/W1/ReviewGLEntries @microsoft/d365-bc-finance-1
+/src/Apps/W1/SAF-T @microsoft/d365-bc-finance-1
+/src/Apps/W1/ServiceDeclaration @microsoft/d365-bc-finance-1
+/src/Apps/W1/ServiceManagement @microsoft/d365-bc-finance-1
+/src/Apps/W1/StatisticalAccounts @microsoft/d365-bc-finance-1
+/src/Apps/W1/Sustainability @microsoft/d365-bc-finance-1
+/src/Apps/W1/SustainabilityCopilotSuggestion @microsoft/d365-bc-finance-1
+/src/Apps/W1/VATGroupManagement @microsoft/d365-bc-finance-1
+/src/Apps/W1/WithholdingTax @microsoft/d365-bc-finance-1
 
 # App Security
 dotnet.al @microsoft/d365-bc-app-security
