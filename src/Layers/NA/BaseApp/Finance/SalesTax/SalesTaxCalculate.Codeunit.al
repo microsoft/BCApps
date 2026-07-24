@@ -606,12 +606,10 @@ codeunit 398 "Sales Tax Calculate"
                         // This temporary table should be cleared before the first call
                         // to this routine.  All subsequent calls will use the values in
                         // that get put into this temporary table.
-
                         TempTaxDetailMaximums := TaxDetail;
                         if not TempTaxDetailMaximums.Find() then
                             TempTaxDetailMaximums.Insert();
 
-                    if TaxLiable then begin
                         if (Abs(TaxBaseAmount) <= TaxDetail."Maximum Amount/Qty.") or
                            (TaxDetail."Maximum Amount/Qty." = 0)
                         then begin
