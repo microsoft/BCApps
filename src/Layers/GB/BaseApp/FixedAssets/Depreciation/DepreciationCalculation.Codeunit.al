@@ -495,6 +495,7 @@ codeunit 5616 "Depreciation Calculation"
     procedure DeprInFiscalYear(FANo: Code[20]; DeprBookCode: Code[10]; StartingDate: Date): Decimal
     var
         FALedgEntry: Record "FA Ledger Entry";
+        FADepreciationBook: Record "FA Depreciation Book";
         FADateCalc: Codeunit "FA Date Calculation";
         LocalAmount: Decimal;
         EntryAmounts: array[4] of Decimal;
@@ -502,6 +503,10 @@ codeunit 5616 "Depreciation Calculation"
         i: Integer;
     begin
         FiscalYearBegin := FADateCalc.GetFiscalYear(DeprBookCode, StartingDate);
+        FADepreciationBook.SetLoadFields("Depreciation Starting Date");
+        if FADepreciationBook.Get(FANo, DeprBookCode) then
+            if FADepreciationBook."Depreciation Starting Date" > FiscalYearBegin then
+                FiscalYearBegin := FADepreciationBook."Depreciation Starting Date";
         SetFAFilter(FALedgEntry, FANo, DeprBookCode, true);
         FALedgEntry.SetFilter("FA Posting Date", '%1..', FiscalYearBegin);
         FALedgEntry.SetRange("FA Posting Type", FALedgEntry."FA Posting Type"::Depreciation);

@@ -2,12 +2,12 @@ Describe "TestTolerance" {
     BeforeAll {
         Import-Module "$PSScriptRoot\TestTolerance.psm1" -Force
 
-        $script:tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("TestTolerance-Tests-" + [System.Guid]::NewGuid().ToString('N'))
+        $script:tempRoot = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("TestTolerance-Tests-" + [System.Guid]::NewGuid().ToString('N'))
         New-Item -ItemType Directory -Path $script:tempRoot -Force | Out-Null
 
         function New-TempFile {
             param([string] $Name, [string] $Content)
-            $path = Join-Path $script:tempRoot $Name
+            $path = Join-Path -Path $script:tempRoot -ChildPath $Name
             Set-Content -Path $path -Value $Content -Encoding UTF8
             return $path
         }
@@ -55,7 +55,7 @@ Describe "TestTolerance" {
 
     Context "Read-UnstableTestsList" {
         It "returns empty hashtable when file does not exist" {
-            $result = Read-UnstableTestsList -Path (Join-Path $script:tempRoot 'does-not-exist.json')
+            $result = Read-UnstableTestsList -Path (Join-Path -Path $script:tempRoot -ChildPath 'does-not-exist.json')
             $result | Should -BeOfType [hashtable]
             $result.Count | Should -Be 0
         }
@@ -203,11 +203,15 @@ Describe "TestTolerance" {
             [xml]$result = Get-Content -Raw -Path $path
             $suite = $result.DocumentElement.testsuite
             $suite.GetAttribute('failures') | Should -Be '1'
-            $suite.SelectSingleNode("testcase[@name='T1']").SelectSingleNode('failure') | Should -BeNullOrEmpty
+            $suite.GetAttribute('skipped') | Should -Be '1'
+            $t1 = $suite.SelectSingleNode("testcase[@name='T1 (tolerated)']")
+            $t1 | Should -Not -BeNullOrEmpty
+            $t1.SelectSingleNode('failure') | Should -BeNullOrEmpty
+            $t1.SelectSingleNode('skipped') | Should -Not -BeNullOrEmpty
             $suite.SelectSingleNode("testcase[@name='T2']").SelectSingleNode('failure') | Should -Not -BeNullOrEmpty
         }
 
-        It "removes failure nodes for tolerated tests and decrements failure count" {
+        It "reclassifies tolerated failures as skipped and decrements failure count" {
             $xml = @'
 <?xml version="1.0" encoding="utf-8"?>
 <testsuites>
@@ -226,13 +230,20 @@ Describe "TestTolerance" {
             [xml]$result = Get-Content -Raw -Path $path
             $suite = $result.DocumentElement.testsuite
             $suite.GetAttribute('failures') | Should -Be '1'
+            $suite.GetAttribute('skipped') | Should -Be '1'
 
-            $t1 = $suite.SelectSingleNode("testcase[@name='T1']")
+            $t1 = $suite.SelectSingleNode("testcase[@name='T1 (tolerated)']")
+            $t1 | Should -Not -BeNullOrEmpty
             $t1.SelectSingleNode('failure') | Should -BeNullOrEmpty
+            $skipped = $t1.SelectSingleNode('skipped')
+            $skipped | Should -Not -BeNullOrEmpty
+            $skipped.GetAttribute('message') | Should -Match 'tolerated'
+            $skipped.InnerText | Should -Match 'm1'
             $t1.SelectSingleNode('system-out').InnerText | Should -Match 'TOLERATED'
 
             $t2 = $suite.SelectSingleNode("testcase[@name='T2']")
             $t2.SelectSingleNode('failure') | Should -Not -BeNullOrEmpty
+            $t2.SelectSingleNode('skipped') | Should -BeNullOrEmpty
         }
 
         It "is a no-op when nothing is tolerated" {
@@ -258,12 +269,12 @@ Describe "TestTolerance" {
         }
 
         It "returns false when unstable tests file does not exist" {
-            Test-ShouldTolerateFailures -TestResultsPath 'any' -UnstableTestsPath (Join-Path $script:tempRoot 'no-file.json') | Should -BeFalse
+            Test-ShouldTolerateFailures -TestResultsPath 'any' -UnstableTestsPath (Join-Path -Path $script:tempRoot -ChildPath 'no-file.json') | Should -BeFalse
         }
 
         It "returns false when test results file does not exist" {
             $unstablePath = New-TempFile -Name 'unstable-for-tolerate.json' -Content '{"tests":[{"extensionId":"ext1","codeunitId":300,"codeunitName":"A","testMethod":"T1"}]}'
-            Test-ShouldTolerateFailures -TestResultsPath (Join-Path $script:tempRoot 'no-results.xml') -UnstableTestsPath $unstablePath | Should -BeFalse
+            Test-ShouldTolerateFailures -TestResultsPath (Join-Path -Path $script:tempRoot -ChildPath 'no-results.xml') -UnstableTestsPath $unstablePath | Should -BeFalse
         }
 
         It "returns false when unstable list is empty" {
@@ -459,6 +470,203 @@ Describe "TestTolerance" {
             $merged[0].note | Should -Be 'legacy'
             $merged[1].reason | Should -Be 'pre-existing'
             $merged[2].testMethod | Should -Be 'T2'
+        }
+
+        It "uses the test's own Reason when the failed test carries one" {
+            $failed = @{
+                'ext-1::300::t1' = [pscustomobject]@{ ExtensionId = 'ext-1'; CodeunitId = 300; CodeunitName = 'A'; TestMethod = 'T1'; FailureMessage = 'm1'; SourceRunId = '2001'; Reason = 'Auto-detected: failed on 3 distinct PRs' }
+            }
+
+            $merged = @(Add-FailedTestsToUnstableTests -ExistingTests @() -FailedTests $failed -Repository 'owner/repo')
+            $merged.Count | Should -Be 1
+            $merged[0].reason | Should -Be 'Auto-detected: failed on 3 distinct PRs'
+        }
+    }
+
+    Context "Select-CrossPrUnstableTests" {
+        BeforeAll {
+            function New-FailedTest {
+                param([string] $Ext = '', [int] $Cu = 300, [string] $Method = 'T1', [string] $Key)
+                return [pscustomobject]@{
+                    ExtensionId    = $Ext
+                    CodeunitId     = $Cu
+                    CodeunitName   = 'A'
+                    TestMethod     = $Method
+                    FailureMessage = 'boom'
+                    FailureDetail  = 'stack'
+                    Key            = $Key
+                }
+            }
+        }
+
+        It "marks a test failing on two distinct PRs as unstable" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FailedTest -Key '::300::t1')) },
+                [pscustomobject]@{ PrNumber = 102; RunId = '901'; FailedTests = @((New-FailedTest -Key '::300::t1')) }
+            )
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -WindowHours 6 -MinDistinctPrs 2
+            $result.Count | Should -Be 1
+            $result.ContainsKey('::300::t1') | Should -BeTrue
+            $result['::300::t1'].SourceRunId | Should -Be '900'
+        }
+
+        It "ignores a test failing on only one PR" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FailedTest -Key '::300::t1')) }
+            )
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -WindowHours 6 -MinDistinctPrs 2
+            $result.Count | Should -Be 0
+        }
+
+        It "counts distinct PRs, not runs (same PR retried does not qualify)" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FailedTest -Key '::300::t1')) },
+                [pscustomobject]@{ PrNumber = 101; RunId = '901'; FailedTests = @((New-FailedTest -Key '::300::t1')) }
+            )
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -WindowHours 6 -MinDistinctPrs 2
+            $result.Count | Should -Be 0
+        }
+
+        It "distinguishes tests by extensionId" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FailedTest -Ext 'ext-a' -Key 'ext-a::300::t1')) },
+                [pscustomobject]@{ PrNumber = 102; RunId = '901'; FailedTests = @((New-FailedTest -Ext 'ext-b' -Key 'ext-b::300::t1')) }
+            )
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -WindowHours 6 -MinDistinctPrs 2
+            $result.Count | Should -Be 0
+        }
+
+        It "reason mentions the distinct PR count, branch, and window" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FailedTest -Key '::300::t1')) },
+                [pscustomobject]@{ PrNumber = 102; RunId = '901'; FailedTests = @((New-FailedTest -Key '::300::t1')) },
+                [pscustomobject]@{ PrNumber = 103; RunId = '902'; FailedTests = @((New-FailedTest -Key '::300::t1')) }
+            )
+            $result = Select-CrossPrUnstableTests -Branch 'releases/26.0' -Observations $obs -MinDistinctPrs 2 -WindowHours 6
+            $result['::300::t1'].Reason | Should -Match '3 distinct PRs'
+            $result['::300::t1'].Reason | Should -Match 'releases/26.0'
+            $result['::300::t1'].Reason | Should -Match '6 h'
+        }
+
+        It "respects a higher MinDistinctPrs threshold" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FailedTest -Key '::300::t1')) },
+                [pscustomobject]@{ PrNumber = 102; RunId = '901'; FailedTests = @((New-FailedTest -Key '::300::t1')) }
+            )
+            (Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -WindowHours 6 -MinDistinctPrs 3).Count | Should -Be 0
+            (Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -WindowHours 6 -MinDistinctPrs 2).Count | Should -Be 1
+        }
+
+        It "returns an empty hashtable for no observations" {
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations @() -WindowHours 6 -MinDistinctPrs 2
+            $result.Count | Should -Be 0
+        }
+
+        It "skips observations without a PR number" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = ''; RunId = '900'; FailedTests = @((New-FailedTest -Key '::300::t1')) },
+                [pscustomobject]@{ PrNumber = 102; RunId = '901'; FailedTests = @((New-FailedTest -Key '::300::t1')) }
+            )
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs -WindowHours 6 -MinDistinctPrs 2
+            $result.Count | Should -Be 0
+        }
+
+        It "handles observations whose FailedTests is a List[object] (as produced by Find-CrossPrUnstableTests)" {
+            # Find-CrossPrUnstableTests stores each run's failures in a System.Collections.Generic.List[object].
+            # Wrapping such a list in the array-subexpression operator @() throws "Argument types do not match"
+            # on some PowerShell/.NET builds, so the selection must enumerate it without @().
+            $obs = New-Object System.Collections.Generic.List[object]
+            foreach ($pr in 101, 102) {
+                $failed = New-Object System.Collections.Generic.List[object]
+                $failed.Add((New-FailedTest -Key '::300::t1')) | Out-Null
+                $obs.Add([pscustomobject]@{ PrNumber = $pr; RunId = "90$pr"; FailedTests = $failed }) | Out-Null
+            }
+            $result = Select-CrossPrUnstableTests -Branch 'main' -Observations $obs.ToArray() -WindowHours 6 -MinDistinctPrs 2
+            $result.Count | Should -Be 1
+            $result.ContainsKey('::300::t1') | Should -BeTrue
+        }
+    }
+
+    Context "Get-PrFailingTestsMap" {
+        BeforeAll {
+            function New-FT {
+                param([string] $Key)
+                return [pscustomobject]@{ Key = $Key }
+            }
+        }
+
+        It "returns an empty map for no observations" {
+            $map = Get-PrFailingTestsMap -Observations @()
+            $map.Count | Should -Be 0
+        }
+
+        It "unions a PR's failing tests across its attempts (same PR, multiple runs)" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FT -Key '::300::t1')) },
+                [pscustomobject]@{ PrNumber = 101; RunId = '901'; FailedTests = @((New-FT -Key '::300::t2')) }
+            )
+            $map = Get-PrFailingTestsMap -Observations $obs
+            $map.Count | Should -Be 1
+            $map['101'] | Should -Be @('::300::t1', '::300::t2')
+        }
+
+        It "de-duplicates the same test failing on several attempts of one PR" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FT -Key '::300::t1')) },
+                [pscustomobject]@{ PrNumber = 101; RunId = '901'; FailedTests = @((New-FT -Key '::300::t1')) }
+            )
+            $map = Get-PrFailingTestsMap -Observations $obs
+            $map['101'].Count | Should -Be 1
+            $map['101'][0] | Should -Be '::300::t1'
+        }
+
+        It "keeps each PR's failing tests separate and orders PRs numerically" {
+            $obs = @(
+                [pscustomobject]@{ PrNumber = 102; RunId = '901'; FailedTests = @((New-FT -Key '::300::t2')) },
+                [pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = @((New-FT -Key '::300::t1')) }
+            )
+            $map = Get-PrFailingTestsMap -Observations $obs
+            @($map.Keys) | Should -Be @('101', '102')
+            $map['101'] | Should -Be @('::300::t1')
+            $map['102'] | Should -Be @('::300::t2')
+        }
+
+        It "handles a FailedTests value that is a List[object]" {
+            $failed = New-Object System.Collections.Generic.List[object]
+            $failed.Add((New-FT -Key '::300::t1')) | Out-Null
+            $obs = @([pscustomobject]@{ PrNumber = 101; RunId = '900'; FailedTests = $failed })
+            $map = Get-PrFailingTestsMap -Observations $obs
+            $map['101'] | Should -Be @('::300::t1')
+        }
+    }
+
+    Context "Save-UnstableTestsArtifact" {
+        BeforeEach {
+            $script:outFile = Join-Path -Path ([System.IO.Path]::GetTempPath()) -ChildPath ("ut-save-" + [System.Guid]::NewGuid().ToString('N') + ".json")
+        }
+        AfterEach {
+            if ($script:outFile -and (Test-Path $script:outFile)) { Remove-Item $script:outFile -Force -ErrorAction SilentlyContinue }
+        }
+
+        It "writes an empty tests array when the list is empty" {
+            # An empty run (no Path A recompute, no cross-PR detections) still writes the artifact. The
+            # empty case previously threw when the tests value was normalized with [object[]] (which yields
+            # $null for an empty collection) and then '.Count' was read under StrictMode.
+            Save-UnstableTestsArtifact -Branch 'main' -RunIds @('1') -Tests ([System.Collections.IList]@()) -OutputPath $script:outFile
+            $json = Get-Content -Raw -Path $script:outFile | ConvertFrom-Json
+            $json.branch | Should -Be 'main'
+            @($json.tests).Count | Should -Be 0
+        }
+
+        It "writes all entries when Tests is a List[object]" {
+            # The combined driver passes the merged list; enumerating a List[object] via @() would throw
+            # "Argument types do not match" on some PowerShell/.NET builds.
+            $tests = New-Object System.Collections.Generic.List[object]
+            $tests.Add([pscustomobject]@{ extensionId = 'e'; codeunitId = 1; testMethod = 'T1' }) | Out-Null
+            $tests.Add([pscustomobject]@{ extensionId = 'e'; codeunitId = 2; testMethod = 'T2' }) | Out-Null
+            Save-UnstableTestsArtifact -Branch 'main' -RunIds @('1', '2') -Tests $tests -OutputPath $script:outFile
+            $json = Get-Content -Raw -Path $script:outFile | ConvertFrom-Json
+            @($json.tests).Count | Should -Be 2
         }
     }
 }
