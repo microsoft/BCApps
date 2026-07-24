@@ -326,7 +326,7 @@
     end;
 
     [Test]
-    [HandlerFunctions('DepreciationCalcFAJnlMessageHandler')]
+    [HandlerFunctions('DepreciationCalcFAJnlConfirmHandler')]
     [Scope('OnPrem')]
     procedure DecliningBalanceDeprBasisExcludesDeprPostedBeforeStartingDate()
     var
@@ -3836,5 +3836,90 @@
         CurrencyExchangeRate.Validate("Exchange Rate Amount", LibraryRandom.RandDec(100, 2));
         CurrencyExchangeRate.Validate("Relational Exch. Rate Amount", LibraryRandom.RandDec(50, 2));
         CurrencyExchangeRate.Modify(true);
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure DepreciationCalcConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Assert.ExpectedMessage(CompletionStatsGenJnlQst, Question);
+        Reply := false;
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure DepreciationCalcFAJnlConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        Reply := false;
+    end;
+
+    [SendNotificationHandler]
+    [Scope('OnPrem')]
+    procedure AcquireFANotificationHandler(var AcquireFANotification: Notification): Boolean
+    begin
+        exit(true);
+    end;
+
+    [RecallNotificationHandler]
+    [Scope('OnPrem')]
+    procedure RecallNotificationHandler(var AcquireFANotification: Notification): Boolean
+    begin
+        exit(true);
+    end;
+
+    [MessageHandler]
+    [Scope('OnPrem')]
+    procedure MessageHandler(Message: Text[1024])
+    begin
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
+    begin
+        // Handler for confirmation messages, always send positive reply.
+        Reply := true;
+    end;
+
+    [PageHandler]
+    [Scope('OnPrem')]
+    procedure FAPageHandler(var FixedAssetJournal: TestPage "Fixed Asset Journal")
+    var
+        FAJnlBatchName: Variant;
+    begin
+        LibraryVariableStorage.Dequeue(FAJnlBatchName);
+
+        // Verify: FA Journal Page open with the same value of created batch when open through batches.
+        Assert.AreEqual(FixedAssetJournal.CurrentJnlBatchName.Value, FAJnlBatchName, StrSubstNo(ExpectedBatchError, FAJnlBatchName));
+    end;
+
+    [PageHandler]
+    [Scope('OnPrem')]
+    procedure FixedAssetGLJournalPageHandler(var FixedAssetGLJournal: TestPage "Fixed Asset G/L Journal")
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        CurrencyCode: Text;
+    begin
+        CurrencyCode := LibraryVariableStorage.DequeueText();
+
+        GenJournalLine.SetRange("Account Type", FixedAssetGLJournal."Account Type".AsInteger());
+        GenJournalLine.SetRange("Account No.", FixedAssetGLJournal."Account No.".Value);
+        GenJournalLine.FindFirst();
+        GenJournalLine.TestField("Currency Code", CurrencyCode);
+    end;
+
+    [PageHandler]
+    [Scope('OnPrem')]
+    procedure FAGLJournalPageHandler(var FixedAssetGLJournal: TestPage "Fixed Asset G/L Journal")
+    var
+        GenJournalLine: Record "Gen. Journal Line";
+        GenJournalBatchName: Code[10];
+    begin
+        GenJournalBatchName := LibraryVariableStorage.DequeueText();
+
+        GenJournalLine.SetRange("Account Type", FixedAssetGLJournal."Account Type".AsInteger());
+        GenJournalLine.SetRange("Account No.", FixedAssetGLJournal."Account No.".Value);
+        GenJournalLine.FindFirst();
+        GenJournalLine.TestField("Journal Batch Name", GenJournalBatchName);
     end;
 }

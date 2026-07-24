@@ -167,15 +167,6 @@ page 5407 "Prod. Order Comp. Line List"
                         Page.Run(0, ItemLedgerEntry);
                     end;
                 }
-#if not CLEAN28
-                field("Qty. on Transfer Order (Base)"; Rec."Qty. on Transfer Order (Base)")
-                {
-                    ApplicationArea = LegacySubcontracting;
-                    ToolTip = 'Specifies the item amount that is on the transfer order.';
-                    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
                 field("Qty. in Transit (Base)"; Rec."Qty. in Transit (Base)")
                 {
                     ApplicationArea = LegacySubcontracting;

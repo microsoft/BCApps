@@ -203,31 +203,6 @@ page 99000818 "Prod. Order Components"
                         Page.Run(0, ItemLedgerEntry);
                     end;
                 }
-#if not CLEAN28
-                field("Qty. on Transfer Order (Base)"; Rec."Qty. on Transfer Order (Base)")
-                {
-                    ApplicationArea = LegacySubcontracting;
-                    ToolTip = 'Specifies the item amount that is on the transfer order.';
-                    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-                field("Qty. in Transit (Base)"; Rec."Qty. in Transit (Base)")
-                {
-                    ApplicationArea = LegacySubcontracting;
-                    ToolTip = 'Specifies the items that are in transit.';
-                    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
-                field("Qty. transf. to Subcontractor"; Rec."Qty. transf. to Subcontractor")
-                {
-                    ApplicationArea = LegacySubcontracting;
-                    ToolTip = 'Specifies the item amount that will be transferred to the subcontractor.';
-                    ObsoleteReason = 'Preparation for replacement by Subcontracting app';
-                    ObsoleteState = Pending;
-                    ObsoleteTag = '27.0';
-                }
 #endif
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {

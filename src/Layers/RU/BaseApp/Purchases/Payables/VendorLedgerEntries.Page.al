@@ -13,7 +13,7 @@ using Microsoft.Finance.GeneralLedger.Reversal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Foundation.Navigate;
-using Microsoft.Purchases.History;
+using Microsoft.Foundation.Reporting;
 using Microsoft.Purchases.Remittance;
 using Microsoft.Purchases.Setup;
 using System.Diagnostics;
@@ -606,36 +606,21 @@ page 29 "Vendor Ledger Entries"
                         Clear(CalcRunningVendBalance);
                     end;
                 }
-                action("Change Vendor VAT Invoice")
+                action(SendVendorRemittanceAdvice)
                 {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Change Vendor VAT Invoice';
-                    Ellipsis = true;
-                    Image = ChangePaymentTolerance;
-
-                    trigger OnAction()
-                    begin
-                        ChangeVendVATInvoice();
-                    end;
-                }
-                action("Return Prepayment")
-                {
-                    ApplicationArea = Prepayments;
-                    Caption = 'Return Prepayment';
-                    Image = ReturnOrder;
-                    ToolTip = 'Prepare to return the prepayment from the vendor.';
+                    ApplicationArea = All;
+                    Caption = 'Send Remittance Advice';
+                    Image = SendToMultiple;
+                    ToolTip = 'Send the remittance advice before posting a payment journal or after posting a payment. The advice contains vendor invoice numbers, which helps vendors to perform reconciliations.';
 
                     trigger OnAction()
                     var
-                        PostPrepayment: Report "Return Prepayment";
+                        VendorLedgerEntry: Record "Vendor Ledger Entry";
                     begin
-                        Rec.TestField(Prepayment, true);
-                        Rec.TestField("Document Type", Rec."Document Type"::Payment);
-                        Rec.TestField(Open, true);
-                        Clear(PostPrepayment);
-                        PostPrepayment.InitializeRequest(Rec."Entry No.", 1);
-                        PostPrepayment.Run();
-                        CurrPage.Update();
+                        VendorLedgerEntry := Rec;
+                        CurrPage.SetSelectionFilter(VendorLedgerEntry);
+                        VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Payment);
+                        SendVendorRecords(VendorLedgerEntry);
                     end;
                 }
                 group(IncomingDocument)
@@ -892,6 +877,7 @@ page 29 "Vendor Ledger Entries"
         DebitCreditVisible: Boolean;
         VendNameVisible: Boolean;
         ExportToPaymentFileConfirmTxt: Label 'Editing the Exported to Payment File field will change the payment suggestions in the Payment Journal. Edit this field only if you must correct a mistake.\Do you want to continue?';
+        RemittanceAdviceTxt: Label 'Remittance Advice';
 
     protected var
         Dim1Visible: Boolean;
@@ -950,6 +936,23 @@ page 29 "Vendor Ledger Entries"
     begin
         ChangeLogEntry.SetRange("Table No.", Database::"Vendor Ledger Entry");
         ChangeLogEntry.SetRange("Primary Key Field 1 Value", Format(Rec."Entry No.", 0, 9));
+    end;
+
+    local procedure SendVendorRecords(var VendorLedgerEntry: Record "Vendor Ledger Entry")
+    var
+        DocumentSendingProfile: Record "Document Sending Profile";
+        DummyReportSelections: Record "Report Selections";
+        ReportSelectionInteger: Integer;
+    begin
+        if not VendorLedgerEntry.FindSet() then
+            exit;
+
+        DummyReportSelections.Usage := DummyReportSelections.Usage::"P.V.Remit.";
+        ReportSelectionInteger := DummyReportSelections.Usage.AsInteger();
+
+        DocumentSendingProfile.SendVendorRecords(
+            ReportSelectionInteger, VendorLedgerEntry, RemittanceAdviceTxt, Rec."Vendor No.", Rec."Document No.",
+            VendorLedgerEntry.FieldNo("Vendor No."), VendorLedgerEntry.FieldNo("Document No."));
     end;
 }
 
