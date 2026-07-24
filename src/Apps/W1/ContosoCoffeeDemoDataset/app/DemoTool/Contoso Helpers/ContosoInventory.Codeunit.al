@@ -13,6 +13,7 @@ using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Setup;
 
 codeunit 5699 "Contoso Inventory"
 {
@@ -269,6 +270,40 @@ codeunit 5699 "Contoso Inventory"
         if ContosoCoffeeDemoDataSetup."Company Type" <> ContosoCoffeeDemoDataSetup."Company Type"::"Sales Tax" then
             ItemTempl.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
         ItemTempl.Validate(Reserve, Reserve);
+        ItemTempl.Modify(true);
+    end;
+
+    procedure InsertItemTemplateData(TemplateCode: Code[20]; Description: Text[100]; BaseUnitofMeasure: Code[20]; ItemType: Enum "Item Type"; InventoryPostingGroup: Code[20]; GenProdPostingGroup: Code[20]; VATProdPostingGroup: Code[20]; Reserve: Enum "Reserve Method"; CostingMethod: Enum "Costing Method"; ReplenishmentSystem: Enum "Replenishment System"; ManufacturingPolicy: Enum "Manufacturing Policy"; FlushingMethod: Enum "Flushing Method"; ReorderingPolicy: Enum "Reordering Policy"; IncludeInventory: Boolean; TimeBucket: Code[20]; LotSize: Decimal)
+    var
+        ContosoCoffeeDemoDataSetup: Record "Contoso Coffee Demo Data Setup";
+        ItemTempl: Record "Item Templ.";
+    begin
+        ContosoCoffeeDemoDataSetup.Get();
+
+        if not ItemTempl.Get(TemplateCode) then begin
+            ItemTempl.Validate(Code, TemplateCode);
+            ItemTempl.Validate(Description, Description);
+            ItemTempl.Insert(true);
+        end;
+
+        ItemTempl.Validate("Base Unit of Measure", BaseUnitofMeasure);
+        ItemTempl.Validate(Type, ItemType);
+        ItemTempl.Validate("Costing Method", CostingMethod);
+        ItemTempl.Validate("Inventory Posting Group", InventoryPostingGroup);
+        ItemTempl.Validate("Gen. Prod. Posting Group", GenProdPostingGroup);
+        if ContosoCoffeeDemoDataSetup."Company Type" <> ContosoCoffeeDemoDataSetup."Company Type"::"Sales Tax" then
+            ItemTempl.Validate("VAT Prod. Posting Group", VATProdPostingGroup);
+        ItemTempl.Validate(Reserve, Reserve);
+        ItemTempl.Validate("Replenishment System", ReplenishmentSystem);
+        ItemTempl.Validate("Manufacturing Policy", ManufacturingPolicy);
+        ItemTempl.Validate("Flushing Method", FlushingMethod);
+        ItemTempl.Validate("Reordering Policy", ReorderingPolicy);
+        ItemTempl.Validate("Include Inventory", IncludeInventory);
+        if TimeBucket <> '' then begin
+            Evaluate(ItemTempl."Time Bucket", TimeBucket);
+            ItemTempl.Validate("Time Bucket");
+        end;
+        ItemTempl.Validate("Lot Size", LotSize);
         ItemTempl.Modify(true);
     end;
 
