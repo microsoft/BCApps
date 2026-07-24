@@ -178,13 +178,19 @@ page 9010 "Production Planner Role Center"
                     RunObject = Report "Prod. Order - Shortage List";
                     ToolTip = 'View a list of the missing quantity per production order. The report shows how the inventory development is planned from today until the set day - for example whether orders are still open.';
                 }
+#if not CLEAN29
                 action("D&etailed Calculation")
                 {
                     ApplicationArea = Manufacturing;
-                    Caption = 'D&etailed Calculation';
+                    Caption = 'D&etailed Calculation (Obsolete)';
                     Image = "Report";
                     RunObject = Report "Detailed Calculation";
+                    ToolTip = 'View a cost list per item taking into account the scrap.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the page BOM Cost Shares and report Production Cost Shares. This report will be removed in a future release.';
+                    ObsoleteTag = '29.0';
                 }
+#endif
 #if not CLEAN27
                 action("P&roduction Order - Calculation")
                 {

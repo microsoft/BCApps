@@ -96,6 +96,7 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
             group(AssemblyProduction)
             {
                 Caption = 'Assembly/Production';
+
                 action("Where-Used (Top Level)")
                 {
                     ApplicationArea = Assembly;
@@ -132,27 +133,38 @@ pageextension 99000751 "Mfg. Item List" extends "Item List"
                     Image = "Report";
                     RunObject = Report "Cost Shares Breakdown";
                 }
+#if not CLEAN29
                 action("Detailed Calculation")
                 {
                     ApplicationArea = Basic, Suite;
-                    Caption = 'Detailed Calculation';
+                    Caption = 'Detailed Calculation (Obsolete)';
                     Image = "Report";
                     RunObject = Report "Detailed Calculation";
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the page BOM Cost Shares and report Production Cost Shares. This report will be removed in a future release.';
+                    ObsoleteTag = '29.0';
                 }
                 action("Rolled-up Cost Shares")
                 {
                     ApplicationArea = Manufacturing;
-                    Caption = 'Rolled-up Cost Shares';
+                    Caption = 'Rolled-up Cost Shares (Obsolete)';
                     Image = "Report";
                     RunObject = Report "Rolled-up Cost Shares";
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the page BOM Cost Shares and report Production Cost Shares. This report will be removed in a future release.';
+                    ObsoleteTag = '29.0';
                 }
                 action("Single-Level Cost Shares")
                 {
                     ApplicationArea = Manufacturing;
-                    Caption = 'Single-Level Cost Shares';
+                    Caption = 'Single-Level Cost Shares (Obsolete)';
                     Image = "Report";
                     RunObject = Report "Single-level Cost Shares";
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'This report has been replaced by the page BOM Cost Shares and report Production Cost Shares. This report will be removed in a future release.';
+                    ObsoleteTag = '29.0';
                 }
+#endif
             }
         }
         addafter("Invt. Valuation - Cost Spec.")

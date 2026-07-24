@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+﻿﻿// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -392,6 +392,11 @@ table 5870 "BOM Buffer"
         {
             Caption = 'Calculation Formula';
         }
+        field(86; "Last Unit Cost Calc. Date"; Date)
+        {
+            Caption = 'Last Unit Cost Calc. Date';
+            DataClassification = SystemMetadata;
+        }
     }
 
     keys
@@ -521,6 +526,7 @@ table 5870 "BOM Buffer"
         "Lead Time Calculation" := Item."Lead Time Calculation";
         "Safety Lead Time" := Item."Safety Lead Time";
         "Inventoriable" := Item.IsInventoriableType();
+        "Last Unit Cost Calc. Date" := Item."Last Unit Cost Calc. Date";
 
         SetRange("Location Code");
         SetRange("Variant Code");
