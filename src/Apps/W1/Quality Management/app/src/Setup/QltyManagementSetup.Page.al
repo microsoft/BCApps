@@ -20,6 +20,7 @@ page 20400 "Qlty. Management Setup"
     DeleteAllowed = false;
     InsertAllowed = false;
     SourceTable = "Qlty. Management Setup";
+    AccessByPermission = tabledata "Qlty. Management Setup" = R;
     UsageCategory = Administration;
     ApplicationArea = QualityManagement;
     AboutTitle = 'About Quality Management Setup';
@@ -254,7 +255,7 @@ page 20400 "Qlty. Management Setup"
                 {
                     ApplicationArea = QualityManagement;
                     Caption = 'Source Configurations';
-                    ToolTip = 'View the quality inspection source configurations. This page defines how data is automatically populated into quality inspections from other tables, including how records are linked between source and target tables. It is read-only in most scenarios and intended for advanced configuration.';
+                    ToolTip = 'View the quality inspection source configurations. This page defines how data is automatically populated into quality inspections from other tables, including how records are linked between source and target tables.';
                     Image = Relationship;
                     RunObject = Page "Qlty. Ins. Source Config. List";
                     RunPageMode = View;
