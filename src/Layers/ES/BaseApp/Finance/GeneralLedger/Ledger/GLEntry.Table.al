@@ -789,10 +789,6 @@ table 17 "G/L Entry"
             Caption = 'Period Trans. No.';
             DataClassification = SystemMetadata;
         }
-        field(7000000; "Bill No."; Code[20])
-        {
-            Caption = 'Bill No.';
-        }
     }
 
     keys
@@ -844,7 +840,7 @@ table 17 "G/L Entry"
         key(Key12; "VAT Bus. Posting Group", "VAT Prod. Posting Group")
         {
         }
-        key(Key13; "G/L Account No.", "Document No.", "Bill No.")
+        key(Key13; "G/L Account No.", "Document No.")
         {
             SumIndexFields = Amount, "Additional-Currency Amount";
         }
@@ -1060,7 +1056,6 @@ table 17 "G/L Entry"
         "No. Series" := GenJnlLine."Posting No. Series";
         "IC Partner Code" := GenJnlLine."IC Partner Code";
         "Prod. Order No." := GenJnlLine."Prod. Order No.";
-        "Bill No." := GenJnlLine."Bill No.";
 
         OnAfterCopyGLEntryFromGenJnlLine(Rec, GenJnlLine);
     end;
@@ -1158,6 +1153,8 @@ table 17 "G/L Entry"
     /// </summary>
     /// <param name="DeferralPostBuffer">Deferral posting buffer to copy from</param>
     procedure CopyFromDeferralPostBuffer(DeferralPostBuffer: Record "Deferral Posting Buffer")
+    var
+        Test: Boolean;
     begin
         "System-Created Entry" := DeferralPostBuffer."System-Created Entry";
         "Gen. Posting Type" := DeferralPostBuffer."Gen. Posting Type";
@@ -1170,7 +1167,7 @@ table 17 "G/L Entry"
         "Tax Group Code" := DeferralPostBuffer."Tax Group Code";
         "Use Tax" := DeferralPostBuffer."Use Tax";
 
-        OnAfterCopyFromDeferralPostBuffer(Rec, DeferralPostBuffer);
+        OnAfterCopyFromDeferralPostBuffer(Rec, DeferralPostBuffer, Test);
     end;
 
     /// <summary>
@@ -1218,8 +1215,9 @@ table 17 "G/L Entry"
     /// </summary>
     /// <param name="GLEntry">G/L entry being updated</param>
     /// <param name="DeferralPostingBuffer">Source deferral posting buffer</param>
+    /// <param name="Test">Test flag</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterCopyFromDeferralPostBuffer(var GLEntry: Record "G/L Entry"; DeferralPostingBuffer: Record "Deferral Posting Buffer")
+    local procedure OnAfterCopyFromDeferralPostBuffer(var GLEntry: Record "G/L Entry"; DeferralPostingBuffer: Record "Deferral Posting Buffer"; Test: Boolean)
     begin
     end;
 
