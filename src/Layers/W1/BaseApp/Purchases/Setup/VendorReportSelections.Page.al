@@ -23,7 +23,9 @@ page 9658 "Vendor Report Selections"
         {
             repeater(Group)
             {
+#if not CLEAN29
                 FreezeColumn = "Custom Report Description";
+#endif
                 field(Usage2; Usage2)
                 {
                     ApplicationArea = Basic, Suite;
@@ -56,6 +58,8 @@ page 9658 "Vendor Report Selections"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Report Name';
                 }
+#if not CLEAN29
+#pragma warning disable AL0432
                 field("Custom Report Description"; Rec."Custom Report Description")
                 {
                     ApplicationArea = Basic, Suite;
@@ -94,6 +98,8 @@ page 9658 "Vendor Report Selections"
                         end;
                     end;
                 }
+#pragma warning restore AL0432
+#endif
                 field(SendToEmail; Rec."Send To Email")
                 {
                     ApplicationArea = Basic, Suite;
@@ -117,6 +123,8 @@ page 9658 "Vendor Report Selections"
                     ApplicationArea = Basic, Suite;
                     Visible = false;
                 }
+#if not CLEAN29
+#pragma warning disable AL0432
                 field("Email Body Layout Description"; Rec."Email Body Layout Description")
                 {
                     ApplicationArea = Basic, Suite;
@@ -136,6 +144,8 @@ page 9658 "Vendor Report Selections"
                         CurrPage.Update(true);
                     end;
                 }
+#pragma warning restore AL0432
+#endif
                 field("Email Body Layout"; ReportSelectionsImpl.GetReportLayoutCaption(Rec."Report ID", Rec."Email Body Layout Name", Rec."Email Body Layout AppID"))
                 {
                     ApplicationArea = Basic, Suite;

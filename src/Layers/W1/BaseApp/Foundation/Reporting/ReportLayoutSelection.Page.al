@@ -70,7 +70,9 @@ page 9652 "Report Layout Selection"
                 field("Custom Report Layout Code"; Rec."Custom Report Layout Code")
                 {
                     ApplicationArea = Basic, Suite;
+#pragma warning disable AL0432
                     TableRelation = "Custom Report Layout" where("Report ID" = field("Report ID"));
+#pragma warning restore AL0432
                     Visible = false;
 
                     trigger OnValidate()
@@ -89,7 +91,9 @@ page 9652 "Report Layout Selection"
 
                     trigger OnValidate()
                     var
+#pragma warning disable AL0432
                         CustomReportLayout2: Record "Custom Report Layout";
+#pragma warning restore AL0432
                     begin
                         if Rec.Type = Rec.Type::"Custom Layout" then begin
                             CustomReportLayout2.SetCurrentKey("Report ID", "Company Name", Type);
@@ -113,6 +117,8 @@ page 9652 "Report Layout Selection"
         }
         area(factboxes)
         {
+#if not CLEAN29
+#pragma warning disable AL0432
             part("Custom Layouts"; "Report Layouts Part")
             {
                 ApplicationArea = Basic, Suite;
@@ -121,6 +127,8 @@ page 9652 "Report Layout Selection"
                 SubPageLink = "Report ID" = field("Report ID");
                 UpdatePropagation = Both;
             }
+#pragma warning restore AL0432
+#endif
         }
     }
 
@@ -485,7 +493,9 @@ page 9652 "Report Layout Selection"
 #if not CLEAN28
     local procedure SelectReportLayout(): Boolean
     var
+#pragma warning disable AL0432
         CustomReportLayout: Record "Custom Report Layout";
+#pragma warning restore AL0432
         OK: Boolean;
     begin
         CustomReportLayout.FilterGroup(4);

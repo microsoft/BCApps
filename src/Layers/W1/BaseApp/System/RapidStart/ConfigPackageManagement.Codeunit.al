@@ -1512,7 +1512,9 @@ codeunit 8611 "Config. Package Management"
             Database::Microsoft.Pricing.Calculation."Price Calculation Setup",
                 Database::"Company Information":
                 ConfigPackageTable."Processing Order" += 1;
+#pragma warning disable AL0432
             Database::Microsoft.Foundation.Reporting."Custom Report Layout":
+#pragma warning restore AL0432
                 // Moving Layouts to be on the top
                 ConfigPackageTable."Processing Order" := 0;
             // Moving Jobs tables down so contacts table can be processed first
