@@ -150,9 +150,9 @@ pageextension 99000750 "Mfg. Item Card" extends "Item Card"
             action("Mfg. Export Item Data")
             {
                 ApplicationArea = Manufacturing;
-                Caption = 'Export Item Data';
+                Caption = 'Export item data';
                 Image = ExportFile;
-                ToolTip = 'Use this function to export manufacturing item related data to text file (you can attach this file to support requests in case you may have issues with costing calculation).';
+                ToolTip = 'Use this function to export item related data to text file (you can attach this file to support requests in case you may have issues with costing calculation).';
 
                 trigger OnAction()
                 var
