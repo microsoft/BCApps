@@ -6,6 +6,8 @@ codeunit 137053 "SCM Low-Level Code"
     var
         Assert: Codeunit Assert;
         LibraryManufacturing: Codeunit "Library - Manufacturing";
+        LibraryInventory: Codeunit "Library - Inventory";
+        LibraryWarehouse: Codeunit "Library - Warehouse";
         CloseBOMQst: Label 'All versions attached to the BOM will be closed. Close BOM?';
         ConfirmQst: Label 'Calculate low-level code?';
         RecursiveLoopDetected: Label 'A recursive loop was found in the following chain of nodes: %1.';
@@ -397,6 +399,38 @@ codeunit 137053 "SCM Low-Level Code"
         Assert.ExpectedError(StrSubstNo(RecursiveLoopDetected, StrSubstNo('%1, %2, %3, %4, %5, %6, %7', GetKey(ItemA), GetKey(ProdBOMA), GetKey(ItemB), GetKey(ProdBOMB), GetKey(ItemC), GetKey(ProdBOMC), GetKey(ItemB))));
     end;
 
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [HandlerFunctions('BOMConfirmHandler')]
+    procedure TestItemAndSKUsSharingSameProductionBOM()
+    var
+        ParentItem: Record Item;
+        ChildItem: Record Item;
+        LowLevelCodeCalculator: Codeunit "Low-Level Code Calculator";
+        ProductionBOMNo: Code[20];
+    begin
+        // [SCENARIO] Calculating low-level codes succeeds when an item and several of its stockkeeping units all point to the same production BOM, without raising a duplicate BOM tree node error.
+
+        // [GIVEN] An item with a certified production BOM that contains a child item.
+        DeleteDemoDataEntities();
+        DeleteAllStockkeepingUnits();
+        CreateItem(ParentItem);
+        CreateItem(ChildItem);
+        ProductionBOMNo := CreateBOM(ParentItem, ChildItem);
+
+        // [GIVEN] Two stockkeeping units for the parent item that reference the same production BOM.
+        CreateSKUForItemWithProductionBOM(ParentItem."No.", ProductionBOMNo);
+        CreateSKUForItemWithProductionBOM(ParentItem."No.", ProductionBOMNo);
+
+        // [WHEN] Low-level codes are calculated.
+        ClearAllLowLevelCodes();
+        LowLevelCodeCalculator.Calculate();
+
+        // [THEN] The calculation completes without error and the low-level codes are correct.
+        VerifyItemLowLevelCode(ParentItem."No.", 0);
+        VerifyItemLowLevelCode(ChildItem."No.", 1);
+    end;
+
     local procedure DeleteDemoDataEntities()
     var
         Item: Record Item;
@@ -526,6 +560,25 @@ codeunit 137053 "SCM Low-Level Code"
     begin
         BOMNode.CreateForProdBOM(ProdBOMHeader."No.", 0, LowLevelCodeParameter);
         exit(BOMNode.GetKey());
+    end;
+
+    local procedure DeleteAllStockkeepingUnits()
+    var
+        StockkeepingUnit: Record "Stockkeeping Unit";
+    begin
+        StockkeepingUnit.DeleteAll();
+    end;
+
+    local procedure CreateSKUForItemWithProductionBOM(ItemNo: Code[20]; ProductionBOMNo: Code[20])
+    var
+        StockkeepingUnit: Record "Stockkeeping Unit";
+        Location: Record Location;
+    begin
+        LibraryWarehouse.CreateLocation(Location);
+        LibraryInventory.CreateStockkeepingUnitForLocationAndVariant(StockkeepingUnit, Location.Code, ItemNo, '');
+        StockkeepingUnit.Validate("Replenishment System", StockkeepingUnit."Replenishment System"::"Prod. Order");
+        StockkeepingUnit.Validate("Production BOM No.", ProductionBOMNo);
+        StockkeepingUnit.Modify(true);
     end;
 
     [ConfirmHandler]

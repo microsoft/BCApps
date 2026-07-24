@@ -304,8 +304,12 @@ table 38 "Purchase Header"
 
                 if (xRec."Buy-from Vendor No." = "Buy-from Vendor No.") and
                    (xRec."Pay-to Vendor No." <> "Pay-to Vendor No.")
-                then
-                    RecreatePurchLines(PayToVendorTxt);
+                then begin
+                    IsHandled := false;
+                    OnValidatePayToVendorNoOnBeforeRecreatePurchLines(Rec, xRec, IsHandled);
+                    if not IsHandled then
+                        RecreatePurchLines(PayToVendorTxt);
+                end;
 
                 if not SkipPayToContact then
                     UpdatePayToCont("Pay-to Vendor No.");
@@ -7990,6 +7994,12 @@ table 38 "Purchase Header"
                 exit(GetRangeMax("Buy-from Contact No."));
     end;
 
+    procedure GetContactDetails(var BuyFromContact: Record Contact; var PayToContact: Record Contact)
+    begin
+        BuyFromContact.GetOrClear("Buy-from Contact No.");
+        PayToContact.GetOrClear("Pay-to Contact No.");
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterInitDefaultDimensionSources(var PurchaseHeader: Record "Purchase Header"; var DefaultDimSource: List of [Dictionary of [Integer, Code[20]]]; FieldNo: Integer)
     begin
@@ -8912,6 +8922,11 @@ table 38 "Purchase Header"
 
     [IntegrationEvent(false, false)]
     local procedure OnValidatePaytoVendorNoBeforeRecreateLines(var PurchaseHeader: Record "Purchase Header"; CallingFieldNo: Integer)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValidatePayToVendorNoOnBeforeRecreatePurchLines(var PurchaseHeader: Record "Purchase Header"; xPurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
     begin
     end;
 

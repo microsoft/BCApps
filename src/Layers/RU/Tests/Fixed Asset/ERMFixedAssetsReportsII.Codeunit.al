@@ -837,6 +837,70 @@ codeunit 134981 "ERM Fixed Assets Reports - II"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure SetFAPostingGroupDoesNotClearFAPostingGroupWhenDepreciationBookPostingGroupIsBlank()
+    var
+        FAGenReport: Codeunit "FA General Report";
+        FixedAsset: Record "Fixed Asset";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FAPostingGroupCode: Code[20];
+    begin
+        // [SCENARIO] SetFAPostingGroup does not clear FA Posting Group on Fixed Asset
+        // when related FA Depreciation Book has blank FA Posting Group.
+
+        // [GIVEN] Fixed Asset and related FA Depreciation Book exist, and FA Depreciation Book has blank FA Posting Group.
+        Initialize();
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateFADepreciationBook(FADepreciationBook, FixedAsset);
+        FAPostingGroupCode := FixedAsset."FA Posting Group";
+        FADepreciationBook.Validate("FA Posting Group", '');
+        FADepreciationBook.Modify(true);
+
+        // [WHEN] SetFAPostingGroup is called.
+        FixedAsset.SetRange("No.", FixedAsset."No.");
+        FAGenReport.SetFAPostingGroup(FixedAsset, FADepreciationBook."Depreciation Book Code");
+
+        // [THEN] FA Posting Group on Fixed Asset remains unchanged.
+        FixedAsset.Get(FixedAsset."No.");
+        FixedAsset.TestField("FA Posting Group", FAPostingGroupCode);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
+    procedure SetFAPostingGroupUpdatesFAPostingGroupWhenDepreciationBookPostingGroupIsDifferentAndNotBlank()
+    var
+        FAGenReport: Codeunit "FA General Report";
+        FixedAsset: Record "Fixed Asset";
+        FADepreciationBook: Record "FA Depreciation Book";
+        FAPostingGroup: Record "FA Posting Group";
+        NewFAPostingGroupCode: Code[20];
+    begin
+        // [SCENARIO] SetFAPostingGroup updates FA Posting Group on Fixed Asset
+        // when related FA Depreciation Book has a different non-blank FA Posting Group.
+
+        // [GIVEN] Fixed Asset and related FA Depreciation Book exist, and FA Depreciation Book has a different non-blank FA Posting Group.
+        Initialize();
+        LibraryFixedAsset.CreateFAWithPostingGroup(FixedAsset);
+        CreateFADepreciationBook(FADepreciationBook, FixedAsset);
+        LibraryFixedAsset.CreateFAPostingGroup(FAPostingGroup);
+        NewFAPostingGroupCode := FAPostingGroup.Code;
+        if NewFAPostingGroupCode = FixedAsset."FA Posting Group" then begin
+            LibraryFixedAsset.CreateFAPostingGroup(FAPostingGroup);
+            NewFAPostingGroupCode := FAPostingGroup.Code;
+        end;
+        FADepreciationBook.Validate("FA Posting Group", NewFAPostingGroupCode);
+        FADepreciationBook.Modify(true);
+
+        // [WHEN] SetFAPostingGroup is called.
+        FixedAsset.SetRange("No.", FixedAsset."No.");
+        FAGenReport.SetFAPostingGroup(FixedAsset, FADepreciationBook."Depreciation Book Code");
+
+        // [THEN] FA Posting Group on Fixed Asset is updated from FA Depreciation Book.
+        FixedAsset.Get(FixedAsset."No.");
+        FixedAsset.TestField("FA Posting Group", NewFAPostingGroupCode);
+    end;
+
+    [Test]
     [HandlerFunctions('CalculateDepreciationRequestPageHandler,MessageHandler')]
     [Scope('OnPrem')]
     procedure DepCalculationWithDecliningBalance()
