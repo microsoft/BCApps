@@ -110,7 +110,6 @@ codeunit 13913 "E-Document OIOUBL Handler" implements IStructuredFormatReader
         EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
         VendorNo: Code[20];
     begin
-        EDocumentPurchaseHeader."E-Document Type" := "E-Document Type"::"Purchase Invoice";
 #pragma warning disable AA0139
         EDocumentXMLHelper.SetStringValueInField(OIOUBLXml, XmlNamespaces, '/inv:Invoice/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."), EDocumentPurchaseHeader."Sales Invoice No.");
         EDocumentXMLHelper.SetDateValueInField(OIOUBLXml, XmlNamespaces, '/inv:Invoice/cbc:IssueDate', EDocumentPurchaseHeader."Document Date");
@@ -128,7 +127,7 @@ codeunit 13913 "E-Document OIOUBL Handler" implements IStructuredFormatReader
         ParseAccountingCustomerParty(OIOUBLXml, XmlNamespaces, EDocumentPurchaseHeader, 'inv:Invoice');
         if VendorNo <> '' then
             EDocumentPurchaseHeader."[BC] Vendor No." := VendorNo;
-        InsertOIOUBLPurchaseLines(OIOUBLXml, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", EDocumentPurchaseHeader."E-Document Type");
+        InsertOIOUBLPurchaseLines(OIOUBLXml, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", "E-Document Type"::"Purchase Invoice");
     end;
 
     local procedure PopulateEDocumentForCreditNote(OIOUBLXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var EDocument: Record "E-Document")
@@ -136,7 +135,6 @@ codeunit 13913 "E-Document OIOUBL Handler" implements IStructuredFormatReader
         EDocumentXMLHelper: Codeunit "E-Document PEPPOL Utility";
         VendorNo: Code[20];
     begin
-        EDocumentPurchaseHeader."E-Document Type" := "E-Document Type"::"Purchase Credit Memo";
 #pragma warning disable AA0139
         EDocumentXMLHelper.SetStringValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Sales Invoice No."), EDocumentPurchaseHeader."Sales Invoice No.");
         EDocumentXMLHelper.SetDateValueInField(OIOUBLXml, XmlNamespaces, '/cn:CreditNote/cbc:IssueDate', EDocumentPurchaseHeader."Document Date");
@@ -153,7 +151,7 @@ codeunit 13913 "E-Document OIOUBL Handler" implements IStructuredFormatReader
         ParseAccountingCustomerParty(OIOUBLXml, XmlNamespaces, EDocumentPurchaseHeader, 'cn:CreditNote');
         if VendorNo <> '' then
             EDocumentPurchaseHeader."[BC] Vendor No." := VendorNo;
-        InsertOIOUBLPurchaseLines(OIOUBLXml, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", EDocumentPurchaseHeader."E-Document Type");
+        InsertOIOUBLPurchaseLines(OIOUBLXml, XmlNamespaces, EDocumentPurchaseHeader."E-Document Entry No.", "E-Document Type"::"Purchase Credit Memo");
     end;
 
     local procedure ParseAccountingSupplierParty(OIOUBLXml: XmlDocument; XmlNamespaces: XmlNamespaceManager; var EDocumentPurchaseHeader: Record "E-Document Purchase Header"; var EDocument: Record "E-Document"; DocumentType: Text) VendorNo: Code[20]
