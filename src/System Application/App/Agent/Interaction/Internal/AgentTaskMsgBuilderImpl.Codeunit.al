@@ -19,6 +19,7 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         GlobalAgentTaskMessage: Record "Agent Task Message";
         GlobalIgnoreAttachmentsList: Dictionary of [BigInteger, Boolean];
         GlobalIgnoredReasonByFileId: Dictionary of [BigInteger, Text[250]];
+        GlobalIgnoredAttachmentsWithoutContent: List of [BigInteger];
         GlobalFrom: Text[250];
         GlobalMessageExternalID: Text[2048];
         GlobalMessageText: Text;
@@ -113,8 +114,16 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
                 IgnoredReason := '';
                 if GlobalIgnoredReasonByFileId.ContainsKey(TempAgentTaskFileToAttach.ID) then
                     IgnoredReason := GlobalIgnoredReasonByFileId.Get(TempAgentTaskFileToAttach.ID);
-                AgentMessageImpl.SetIgnoreAttachment(GlobalIgnoreAttachment or IgnoreAttachment);
-                AgentMessageImpl.AddAttachment(GlobalAgentTaskMessage, TempAgentTaskFileToAttach, IgnoredReason);
+                if GlobalIgnoredAttachmentsWithoutContent.Contains(TempAgentTaskFileToAttach.ID) then
+                    AgentMessageImpl.AddIgnoredAttachment(
+                        GlobalAgentTaskMessage,
+                        TempAgentTaskFileToAttach."File Name",
+                        TempAgentTaskFileToAttach."File MIME Type",
+                        IgnoredReason)
+                else begin
+                    AgentMessageImpl.SetIgnoreAttachment(GlobalIgnoreAttachment or IgnoreAttachment);
+                    AgentMessageImpl.AddAttachment(GlobalAgentTaskMessage, TempAgentTaskFileToAttach, IgnoredReason);
+                end;
             until TempAgentTaskFileToAttach.Next() = 0;
 
         if SetTaskStatusToReady then
@@ -133,6 +142,15 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
     procedure AddAttachment(FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream): codeunit "Agent Task Msg. Builder Impl."
     begin
         AddAttachment(FileName, FileMIMEType, InStream, false, '');
+        exit(this);
+    end;
+
+    [Scope('OnPrem')]
+    procedure AddIgnoredAttachment(FileName: Text[250]; FileMIMEType: Text[100]; IgnoredReason: Text[250]): codeunit "Agent Task Msg. Builder Impl."
+    begin
+        InitializeAttachment(FileName, FileMIMEType);
+        GlobalIgnoredReasonByFileId.Add(TempAgentTaskFileToAttach.ID, IgnoredReason);
+        GlobalIgnoredAttachmentsWithoutContent.Add(TempAgentTaskFileToAttach.ID);
         exit(this);
     end;
 
@@ -250,6 +268,15 @@ codeunit 4311 "Agent Task Msg. Builder Impl."
         until TempAgentTaskFileToAttach.Next() = 0;
 
         exit(true);
+    end;
+
+    local procedure InitializeAttachment(FileName: Text[250]; FileMIMEType: Text[100])
+    begin
+        Clear(TempAgentTaskFileToAttach);
+        TempAgentTaskFileToAttach."File Name" := FileName;
+        TempAgentTaskFileToAttach."File MIME Type" := FileMIMEType;
+        TempAgentTaskFileToAttach.ID := TempAgentTaskFileToAttach.Count() + 1;
+        TempAgentTaskFileToAttach.Insert();
     end;
 
     local procedure VerifyMandatoryFieldsSet()

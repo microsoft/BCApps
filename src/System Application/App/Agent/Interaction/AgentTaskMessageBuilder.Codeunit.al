@@ -218,6 +218,21 @@ codeunit 4316 "Agent Task Message Builder"
     end;
 
     /// <summary>
+    /// Add an ignored attachment without storing its content.
+    /// The attachment metadata will be added when the message is created.
+    /// </summary>
+    /// <param name="FileName">The name of the ignored file.</param>
+    /// <param name="FileMIMEType">The MIME type of the ignored file.</param>
+    /// <param name="IgnoredReason">Specifies why the attachment was ignored.</param>
+    /// <returns>This instance of the Agent Task Message Builder.</returns>
+    procedure AddIgnoredAttachment(FileName: Text[250]; FileMIMEType: Text[100]; IgnoredReason: Text[250]): codeunit "Agent Task Message Builder"
+    begin
+        FeatureAccessManagement.AgentManagementAllowed(true);
+        AgentTaskMsgBuilderImpl.AddIgnoredAttachment(FileName, FileMIMEType, IgnoredReason);
+        exit(this);
+    end;
+
+    /// <summary>
     /// Attach a file to the task message.
     /// The file will be attached when the message is created.
     /// It is possible to attach multiple files to the message.
