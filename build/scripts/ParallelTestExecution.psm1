@@ -249,9 +249,11 @@ function Merge-TestResultFiles {
     Race lives in InteractionManager.InvokeInteractions
     (Prod.ClientFwk\Interactions\InteractionManager.cs, around line 203 at time of writing).
     Any of these fingerprints is sufficient evidence: "Cannot open page 130455",
-    "InvokeInteractions failed with status code 500", or a stack frame referencing
+    "InvokeInteractions failed with status code 500", a stack frame referencing
     "InteractionManager.cs:line N" (line number not pinned, so platform refactors do not
-    silently invalidate the match).
+    silently invalidate the match), or "ClientSession State is InError" which indicates
+    the BC server session entered an error state due to a platform-level crash (e.g.
+    NavMediaImage.BytesAsync ArgumentNullException) before any tests could run.
 .PARAMETER Output
     The combined output (stdout + stderr + verbose) captured from a finished background
     job. Null or empty returns $false.
@@ -262,7 +264,7 @@ function Test-TransientTestFailure {
     )
 
     if ([string]::IsNullOrEmpty($Output)) { return $false }
-    return [bool]($Output -match 'Cannot open page 130455|InvokeInteractions failed with status code 500|InteractionManager\.cs:line \d+')
+    return [bool]($Output -match 'Cannot open page 130455|InvokeInteractions failed with status code 500|InteractionManager\.cs:line \d+|ClientSession State is InError')
 }
 
 <#

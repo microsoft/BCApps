@@ -98,3 +98,42 @@ Describe "ParallelTestExecution app-name resolution" {
         }
     }
 }
+
+Describe "Test-TransientTestFailure pattern detection" {
+    It "returns false for null or empty output" {
+        InModuleScope ParallelTestExecution {
+            Test-TransientTestFailure $null  | Should -BeFalse
+            Test-TransientTestFailure ''     | Should -BeFalse
+        }
+    }
+
+    It "detects 'Cannot open page 130455'" {
+        InModuleScope ParallelTestExecution {
+            Test-TransientTestFailure 'Exception occurred while running tests: Cannot open page 130455.' | Should -BeTrue
+        }
+    }
+
+    It "detects 'InvokeInteractions failed with status code 500'" {
+        InModuleScope ParallelTestExecution {
+            Test-TransientTestFailure 'InvokeInteractions failed with status code 500' | Should -BeTrue
+        }
+    }
+
+    It "detects an InteractionManager.cs stack frame" {
+        InModuleScope ParallelTestExecution {
+            Test-TransientTestFailure 'at InteractionManager.cs:line 203' | Should -BeTrue
+        }
+    }
+
+    It "detects 'ClientSession State is InError'" {
+        InModuleScope ParallelTestExecution {
+            Test-TransientTestFailure 'Exception occurred while running tests: ClientSession State is InError (Wait time 3 seconds) /' | Should -BeTrue
+        }
+    }
+
+    It "returns false for unrelated output" {
+        InModuleScope ParallelTestExecution {
+            Test-TransientTestFailure 'Tests Passed: 42, Failed: 0' | Should -BeFalse
+        }
+    }
+}
