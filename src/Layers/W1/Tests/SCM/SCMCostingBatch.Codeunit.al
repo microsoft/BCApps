@@ -1833,7 +1833,7 @@ codeunit 137402 "SCM Costing Batch"
         LibraryERMCountryData.CreateGeneralPostingSetupData();
         LibraryERMCountryData.UpdateGeneralPostingSetup();
         LibraryERMCountryData.UpdateJournalTemplMandatory(false);
-        RunAdjustCostItemEntries('');
+        LibraryCosting.AdjustCostItemEntries('', '');
         PostInvtCostToGL();
         LibrarySetupStorage.SaveSalesSetup();
         LibrarySetupStorage.SaveGeneralLedgerSetup();
