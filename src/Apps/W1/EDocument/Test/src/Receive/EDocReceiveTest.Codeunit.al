@@ -2049,6 +2049,232 @@ codeunit 139628 "E-Doc. Receive Test"
     end;
 
     [Test]
+    internal procedure ReceivePurchaseInvoice_RaisesOnBeforeLogErrorIfItemNotFound()
+    var
+        EDocService: Record "E-Document Service";
+        Item: Record Item;
+        UnitOfMeasure: Record "Unit of Measure";
+        VATPostingSetup: Record "VAT Posting Setup";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        ItemReference: Record "Item Reference";
+        EDocServiceDataExchDef: Record "E-Doc. Service Data Exch. Def.";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        EDocImportPublisherMock: Codeunit "E-Doc. Import Publisher Mock";
+        TempBlob: Codeunit "Temp Blob";
+        EDocServicePage: TestPage "E-Document Service";
+        EDocumentPage: TestPage "E-Document";
+        Document: Text;
+        XMLInstream: InStream;
+    begin
+        // [FEATURE] [E-Document] [Receive]
+        // [SCENARIO] OnBeforeLogErrorIfItemNotFound is raised during V1 import line processing, letting subscribers resolve the item before the standard not-found error is logged
+        Initialize();
+        BindSubscription(EDocImplState);
+
+        // [GIVEN] e-Document service to receive one single purchase invoice
+        LibraryEDoc.CreateTestReceiveServiceForEDoc(EDocService, Enum::"E-Document Integration"::Mock);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 1);
+        Vendor.Get(LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        Item.Get(LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"));
+
+        Vendor."VAT Registration No." := 'GB123456789';
+        Vendor."Receive E-Document To" := Enum::"E-Document Type"::"Purchase Invoice";
+        Vendor."Country/Region Code" := CountryRegion.Code;
+        Vendor.Modify();
+
+        UnitOfMeasure.Code := 'PCS';
+        UnitOfMeasure.Description := 'Test';
+        UnitOfMeasure."International Standard Code" := 'PCS';
+        if not UnitOfMeasure.Insert() then
+            UnitOfMeasure.Get('PCS');
+
+        ItemUnitOfMeasure."Item No." := Item."No.";
+        ItemUnitOfMeasure.Code := UnitOfMeasure.Code;
+        ItemUnitOfMeasure."Qty. per Unit of Measure" := 1;
+        if ItemUnitOfMeasure.Insert() then;
+
+        ItemReference.DeleteAll();
+        ItemReference."Item No." := Item."No.";
+        ItemReference."Reference Type" := ItemReference."Reference Type"::Vendor;
+        ItemReference."Reference Type No." := Vendor."No.";
+        ItemReference."Reference No." := '1000';
+        ItemReference.Insert();
+
+        Item."Base Unit of Measure" := UnitOfMeasure.Code;
+        Item."Purch. Unit of Measure" := UnitOfMeasure.Code;
+        Item.Modify();
+
+        EDocService."Document Format" := "E-Document Format"::"Data Exchange";
+        EDocService."Lookup Account Mapping" := false;
+        EDocService."Lookup Item GTIN" := false;
+        EDocService."Lookup Item Reference" := true;
+        EDocService."Resolve Unit Of Measure" := false;
+        EDocService."Validate Line Discount" := false;
+        EDocService."Verify Totals" := false;
+        EDocService."Use Batch Processing" := false;
+        EDocService."Validate Receiving Company" := false;
+        EDocService.Modify();
+
+        EDocServiceDataExchDef."E-Document Format Code" := EDocService.Code;
+        EDocServiceDataExchDef."Document Type" := EDocServiceDataExchDef."Document Type"::"Purchase Invoice";
+        EDocServiceDataExchDef."Impt. Data Exchange Def. Code" := 'EDOCPEPPOLINVIMP';
+        EDocServiceDataExchDef.Insert();
+
+        TempXMLBuffer.LoadFromText(EDocReceiveFiles.GetDocument1());
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+#pragma warning disable AA0210
+        TempXMLBuffer.SetRange(Path, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID');
+#pragma warning restore AA0210
+        TempXMLBuffer.FindFirst();
+        TempXMLBuffer.Value := Vendor."VAT Registration No.";
+        TempXMLBuffer.Modify();
+
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.FindFirst();
+        TempXMLBuffer.Save(TempBlob);
+
+        TempBlob.CreateInStream(XMLInstream, TextEncoding::UTF8);
+        XMLInstream.Read(Document);
+
+        LibraryVariableStorage.Clear();
+        LibraryVariableStorage.Enqueue(Document);
+        LibraryVariableStorage.Enqueue(1);
+        EDocImplState.SetVariableStorage(LibraryVariableStorage);
+
+        // [GIVEN] Subscriber to OnBeforeLogErrorIfItemNotFound is bound
+        BindSubscription(EDocImportPublisherMock);
+
+        // [WHEN] Running Receive
+        EDocServicePage.OpenView();
+        EDocServicePage.Filter.SetFilter(Code, EDocService.Code);
+        EDocServicePage.Receive.Invoke();
+
+        UnbindSubscription(EDocImportPublisherMock);
+
+        // [THEN] Purchase invoice is created and OnBeforeLogErrorIfItemNotFound was raised during line processing
+        EDocumentPage.OpenView();
+        EDocumentPage.Last();
+        Assert.AreEqual(Format(Enum::"E-Document Service Status"::"Imported Document Created"), EDocumentPage.InboundEDocFactbox.Status.Value(), 'Wrong service status for processed document');
+        Assert.IsTrue(EDocImportPublisherMock.GetOnBeforeLogErrorIfItemNotFoundCount() > 0, 'OnBeforeLogErrorIfItemNotFound should be raised for each line during import processing.');
+        Assert.IsTrue(EDocImportPublisherMock.GetLastItemFoundOnEntry(), 'Subscribers should observe ItemFound = true when the standard lookup resolved the line.');
+
+        EDocService."Document Format" := "E-Document Format"::Mock;
+        EDocService.Modify();
+    end;
+
+    [Test]
+    internal procedure ReceivePurchaseInvoice_RaisesOnBeforeLogErrorIfItemNotFound_Unresolved()
+    var
+        EDocService: Record "E-Document Service";
+        Item: Record Item;
+        UnitOfMeasure: Record "Unit of Measure";
+        VATPostingSetup: Record "VAT Posting Setup";
+        ItemUnitOfMeasure: Record "Item Unit of Measure";
+        ItemReference: Record "Item Reference";
+        EDocServiceDataExchDef: Record "E-Doc. Service Data Exch. Def.";
+        TempXMLBuffer: Record "XML Buffer" temporary;
+        EDocImportPublisherMock: Codeunit "E-Doc. Import Publisher Mock";
+        TempBlob: Codeunit "Temp Blob";
+        EDocServicePage: TestPage "E-Document Service";
+        EDocumentPage: TestPage "E-Document";
+        Document: Text;
+        XMLInstream: InStream;
+    begin
+        // [FEATURE] [E-Document] [Receive]
+        // [SCENARIO] OnBeforeLogErrorIfItemNotFound is raised with ItemFound = false when no standard lookup resolves the line, ahead of the standard not-found error logging
+        Initialize();
+        BindSubscription(EDocImplState);
+
+        // [GIVEN] e-Document service to receive one single purchase invoice
+        LibraryEDoc.CreateTestReceiveServiceForEDoc(EDocService, Enum::"E-Document Integration"::Mock);
+        LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, Enum::"Tax Calculation Type"::"Normal VAT", 1);
+        Vendor.Get(LibraryPurchase.CreateVendorWithVATBusPostingGroup(VATPostingSetup."VAT Bus. Posting Group"));
+        Item.Get(LibraryInventory.CreateItemWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"));
+
+        Vendor."VAT Registration No." := 'GB123456789';
+        Vendor."Receive E-Document To" := Enum::"E-Document Type"::"Purchase Invoice";
+        Vendor."Country/Region Code" := CountryRegion.Code;
+        Vendor.Modify();
+
+        UnitOfMeasure.Code := 'PCS';
+        UnitOfMeasure.Description := 'Test';
+        UnitOfMeasure."International Standard Code" := 'PCS';
+        if not UnitOfMeasure.Insert() then
+            UnitOfMeasure.Get('PCS');
+
+        ItemUnitOfMeasure."Item No." := Item."No.";
+        ItemUnitOfMeasure.Code := UnitOfMeasure.Code;
+        ItemUnitOfMeasure."Qty. per Unit of Measure" := 1;
+        if ItemUnitOfMeasure.Insert() then;
+
+        // [GIVEN] No item reference matches the imported line
+        ItemReference.DeleteAll();
+
+        Item."Base Unit of Measure" := UnitOfMeasure.Code;
+        Item."Purch. Unit of Measure" := UnitOfMeasure.Code;
+        Item.Modify();
+
+        EDocService."Document Format" := "E-Document Format"::"Data Exchange";
+        EDocService."Lookup Account Mapping" := false;
+        EDocService."Lookup Item GTIN" := false;
+        EDocService."Lookup Item Reference" := true;
+        EDocService."Resolve Unit Of Measure" := false;
+        EDocService."Validate Line Discount" := false;
+        EDocService."Verify Totals" := false;
+        EDocService."Use Batch Processing" := false;
+        EDocService."Validate Receiving Company" := false;
+        EDocService.Modify();
+
+        EDocServiceDataExchDef."E-Document Format Code" := EDocService.Code;
+        EDocServiceDataExchDef."Document Type" := EDocServiceDataExchDef."Document Type"::"Purchase Invoice";
+        EDocServiceDataExchDef."Impt. Data Exchange Def. Code" := 'EDOCPEPPOLINVIMP';
+        EDocServiceDataExchDef.Insert();
+
+        TempXMLBuffer.LoadFromText(EDocReceiveFiles.GetDocument1());
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.SetRange(Type, TempXMLBuffer.Type::Element);
+#pragma warning disable AA0210
+        TempXMLBuffer.SetRange(Path, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID');
+#pragma warning restore AA0210
+        TempXMLBuffer.FindFirst();
+        TempXMLBuffer.Value := Vendor."VAT Registration No.";
+        TempXMLBuffer.Modify();
+
+        TempXMLBuffer.Reset();
+        TempXMLBuffer.FindFirst();
+        TempXMLBuffer.Save(TempBlob);
+
+        TempBlob.CreateInStream(XMLInstream, TextEncoding::UTF8);
+        XMLInstream.Read(Document);
+
+        LibraryVariableStorage.Clear();
+        LibraryVariableStorage.Enqueue(Document);
+        LibraryVariableStorage.Enqueue(1);
+        EDocImplState.SetVariableStorage(LibraryVariableStorage);
+
+        // [GIVEN] Subscriber to OnBeforeLogErrorIfItemNotFound is bound
+        BindSubscription(EDocImportPublisherMock);
+
+        // [WHEN] Running Receive
+        EDocServicePage.OpenView();
+        EDocServicePage.Filter.SetFilter(Code, EDocService.Code);
+        EDocServicePage.Receive.Invoke();
+
+        UnbindSubscription(EDocImportPublisherMock);
+
+        // [THEN] The document ends in processing error and the subscriber observed the line as unresolved
+        EDocumentPage.OpenView();
+        EDocumentPage.Last();
+        Assert.AreEqual(Format(Enum::"E-Document Service Status"::"Imported Document Processing Error"), EDocumentPage.InboundEDocFactbox.Status.Value(), 'Wrong service status for processed document');
+        Assert.IsTrue(EDocImportPublisherMock.GetOnBeforeLogErrorIfItemNotFoundCount() > 0, 'OnBeforeLogErrorIfItemNotFound should be raised for the unresolved line.');
+        Assert.IsFalse(EDocImportPublisherMock.GetLastItemFoundOnEntry(), 'Subscribers should observe ItemFound = false when no standard lookup resolved the line.');
+
+        EDocService."Document Format" := "E-Document Format"::Mock;
+        EDocService.Modify();
+    end;
+
+    [Test]
     [HandlerFunctions('SelectPOHandlerFirst')]
     internal procedure ReceiveSinglePurchaseInvoice_PEPPOL_WithAttachment_ToOrder26()
     var
