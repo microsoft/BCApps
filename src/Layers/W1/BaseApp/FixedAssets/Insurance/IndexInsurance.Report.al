@@ -13,6 +13,7 @@ report 5691 "Index Insurance"
 {
     ApplicationArea = FixedAssets;
     Caption = 'Index Insurance';
+    ToolTip = 'Run the Index Insurance report.';
     ProcessingOnly = true;
     UsageCategory = Tasks;
 

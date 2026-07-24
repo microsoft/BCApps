@@ -2004,21 +2004,18 @@ page 8901 "Finance Manager Role Center"
                     ApplicationArea = FixedAssets;
                     Caption = 'Calculate Depreciation...';
                     RunObject = report "Calculate Depreciation";
-                    Tooltip = 'Run the Calculate Depreciation report.';
                 }
                 action("Fixed Assets...")
                 {
                     ApplicationArea = FixedAssets;
                     Caption = 'Index Fixed Assets...';
                     RunObject = report "Index Fixed Assets";
-                    Tooltip = 'Run the Index Fixed Assets report.';
                 }
                 action("Insurance...")
                 {
                     ApplicationArea = FixedAssets;
                     Caption = 'Index Insurance...';
                     RunObject = report "Index Insurance";
-                    Tooltip = 'Run the Index Insurance report.';
                 }
                 group("Group45")
                 {
@@ -2085,21 +2082,18 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = FixedAssets;
                             Caption = 'FA Posting Group - Net Change';
                             RunObject = report "FA Posting Group - Net Change";
-                            Tooltip = 'Run the FA Posting Group - Net Change report.';
                         }
                         action("Register1")
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'FA Register';
                             RunObject = report "Fixed Asset Register";
-                            Tooltip = 'Run the FA Register report.';
                         }
                         action("Acquisition List")
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'FA Acquisition List';
                             RunObject = report "Fixed Asset - Acquisition List";
-                            Tooltip = 'Run the FA Acquisition List report.';
                         }
 #if not CLEAN28
                         action("Analysis1")
@@ -2118,14 +2112,12 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = FixedAssets;
                             Caption = 'FA Book Value 01';
                             RunObject = report "Fixed Asset - Book Value 01";
-                            Tooltip = 'Run the FA Book Value 01 report.';
                         }
                         action("Book Value 02")
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'FA Book Value 02';
                             RunObject = report "Fixed Asset - Book Value 02";
-                            Tooltip = 'Run the FA Book Value 02 report.';
                         }
 #if not CLEAN28
                         action("Details")
@@ -2144,14 +2136,12 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = FixedAssets;
                             Caption = 'FA G/L Analysis';
                             RunObject = report "Fixed Asset - G/L Analysis";
-                            Tooltip = 'Run the FA G/L Analysis report.';
                         }
                         action("List1")
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'FA List';
                             RunObject = report "Fixed Asset - List";
-                            Tooltip = 'Run the FA List report.';
                         }
 #if not CLEAN28
                         action("Projected Value")
@@ -2174,42 +2164,36 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = FixedAssets;
                             Caption = 'Uninsured FAs';
                             RunObject = report "Insurance - Uninsured FAs";
-                            Tooltip = 'Run the Uninsured FAs report.';
                         }
                         action("Register2")
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'Insurance Register';
                             RunObject = report "Insurance Register";
-                            Tooltip = 'Run the Insurance Register report.';
                         }
                         action("Analysis2")
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'Insurance Analysis';
                             RunObject = report "Insurance - Analysis";
-                            Tooltip = 'Run the Insurance Analysis report.';
                         }
                         action("Coverage Details")
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'Insurance Coverage Details';
                             RunObject = report "Insurance - Coverage Details";
-                            Tooltip = 'Run the Insurance Coverage Details report.';
                         }
                         action("List2")
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'Insurance List';
                             RunObject = report "Insurance - List";
-                            Tooltip = 'Run the Insurance List report.';
                         }
                         action("Tot. Value Insured")
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'FA Total Value Insured';
                             RunObject = report "Insurance - Tot. Value Insured";
-                            Tooltip = 'Run the FA Total Value Insured report.';
                         }
                     }
                     group("Group49")
@@ -2220,28 +2204,24 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = FixedAssets;
                             Caption = 'Maintenance Register';
                             RunObject = report "Maintenance Register";
-                            Tooltip = 'Run the Maintenance Register report.';
                         }
                         action("Analysis3")
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'Maintenance Analysis';
                             RunObject = report "Maintenance - Analysis";
-                            Tooltip = 'Run the Maintenance Analysis report.';
                         }
                         action("Details1")
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'Maintenance Details';
                             RunObject = report "Maintenance - Details";
-                            Tooltip = 'Run the Maintenance Details report.';
                         }
                         action("Next Service")
                         {
                             ApplicationArea = FixedAssets;
                             Caption = 'Maintenance Next Service';
                             RunObject = report "Maintenance - Next Service";
-                            Tooltip = 'Run the Maintenance Next Service report.';
                         }
                     }
                 }

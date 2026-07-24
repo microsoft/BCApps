@@ -222,7 +222,6 @@ page 9001 "Accounting Manager Role Center"
                 Caption = 'Fixed Asset - Book Value 01';
                 Image = "Report";
                 RunObject = Report "Fixed Asset - Book Value 01";
-                ToolTip = 'View detailed information about acquisition cost, depreciation and book value for both individual assets and groups of assets. For each of these three amount types, amounts are calculated at the beginning and at the end of a specified period as well as for the period itself.';
             }
             action("Fixed Asset - Book Value 03")
             {
@@ -933,7 +932,6 @@ page 9001 "Accounting Manager Role Center"
                 Ellipsis = true;
                 Image = CalculateDepreciation;
                 RunObject = Report "Calculate Depreciation";
-                ToolTip = 'Calculate depreciation according to the conditions that you define. If the fixed assets that are included in the batch job are integrated with the general ledger (defined in the depreciation book that is used in the batch job), the resulting entries are transferred to the fixed assets general ledger journal. Otherwise, the batch job transfers the entries to the fixed asset journal. You can then post the journal or adjust the entries before posting, if necessary.';
             }
             action("Import Co&nsolidation from Database")
             {

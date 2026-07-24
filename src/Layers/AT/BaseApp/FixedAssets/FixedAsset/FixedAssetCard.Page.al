@@ -695,7 +695,6 @@ page 5600 "Fixed Asset Card"
                 Caption = 'FA Book Value';
                 Image = "Report";
                 RunObject = Report "Fixed Asset - Book Value 01";
-                ToolTip = 'View detailed information about acquisition cost, depreciation and book value for both individual fixed assets and groups of fixed assets. For each of these three amount types, amounts are calculated at the beginning and at the end of a specified period as well as for the period itself.';
             }
             action("FA Book Val. - Appr. & Write-D")
             {
@@ -703,7 +702,6 @@ page 5600 "Fixed Asset Card"
                 Caption = 'FA Book Val. - Appr. & Write-D';
                 Image = "Report";
                 RunObject = Report "Fixed Asset - Book Value 02";
-                ToolTip = 'View detailed information about acquisition cost, depreciation, appreciation, write-down and book value for both individual fixed assets and groups of fixed assets. For each of these categories, amounts are calculated at the beginning and at the end of a specified period, as well as for the period itself.';
             }
 #if not CLEAN28
             action(Analysis)
@@ -735,7 +733,6 @@ page 5600 "Fixed Asset Card"
                 Caption = 'G/L Analysis';
                 Image = "Report";
                 RunObject = Report "Fixed Asset - G/L Analysis";
-                ToolTip = 'View an analysis of your fixed assets with various types of data for individual fixed assets and/or groups of fixed assets.';
             }
             action(Register)
             {
@@ -743,7 +740,6 @@ page 5600 "Fixed Asset Card"
                 Caption = 'Register';
                 Image = Confirm;
                 RunObject = Report "Fixed Asset Register";
-                ToolTip = 'View registers containing all the fixed asset entries that are created. Each register shows the first and last entry number of its entries.';
             }
         }
         area(Promoted)
