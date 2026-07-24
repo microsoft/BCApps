@@ -297,12 +297,12 @@ codeunit 9852 "Effective Permissions Mgt."
         ExpandedPermission: Record "Expanded Permission";
         PermissionSetBuffer: Record "Permission Set Buffer";
         AssignedRead, AssignedInsert, AssignedModify, AssignedDelete, AssignedExecute : Integer;
+        ExpandedPermissionFound: Boolean;
     begin
         PermissionBuffer.Reset();
         PermissionBuffer.DeleteAll();
 
         ExpandedPermission.SetRange("Object Type", PassedObjectType);
-        ExpandedPermission.SetFilter("Object ID", '%1|%2', 0, PassedObjectId);
 
         // find permissions from all permission sets for this user
         AccessControl.SetFilter("User Security ID", GetAccessControlFilterForUser(PassedUserID));
@@ -327,7 +327,16 @@ codeunit 9852 "Effective Permissions Mgt."
 
                     ExpandedPermission.SetRange("App ID", AccessControl."App ID");
                     ExpandedPermission.SetRange("Role ID", AccessControl."Role ID");
-                    if ExpandedPermission.FindFirst() then begin
+
+                    // Specific object permissions override the wildcard entry.
+                    ExpandedPermission.SetRange("Object ID", PassedObjectId);
+                    ExpandedPermissionFound := ExpandedPermission.FindFirst();
+                    if not ExpandedPermissionFound then begin
+                        ExpandedPermission.SetRange("Object ID", 0);
+                        ExpandedPermissionFound := ExpandedPermission.FindFirst();
+                    end;
+
+                    if ExpandedPermissionFound then begin
                         FillPermissionBufferFromExpandedPermission(PermissionBuffer, ExpandedPermission);
                         SetHighestAssignedPermission(PermissionBuffer, AssignedRead, AssignedInsert, AssignedModify, AssignedDelete, AssignedExecute);
                         PermissionBuffer.Order := PermissionBuffer.Source;
