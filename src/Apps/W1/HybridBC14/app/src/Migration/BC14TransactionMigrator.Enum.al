@@ -20,4 +20,14 @@ enum 46888 "BC14 Transaction Migrator" implements "BC14 Migrator"
         Caption = 'G/L Entries';
         Implementation = "BC14 Migrator" = "BC14 G/L Entry Migrator";
     }
+    value(1; "Customer Ledger Entries")
+    {
+        Caption = 'Customer Ledger Entries';
+        Implementation = "BC14 Migrator" = "BC14 Cust. Ledger Migrator";
+    }
+    value(2; "Vendor Ledger Entries")
+    {
+        Caption = 'Vendor Ledger Entries';
+        Implementation = "BC14 Migrator" = "BC14 Vendor Ledger Migrator";
+    }
 }
