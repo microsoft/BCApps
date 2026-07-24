@@ -24,7 +24,9 @@ codeunit 9121 "SharePoint Graph Uri Builder"
         ListsLbl: Label '/sites/%1/lists', Locked = true;
         ListByIdLbl: Label '/sites/%1/lists/%2', Locked = true;
         ListItemsLbl: Label '/sites/%1/lists/%2/items', Locked = true;
+        ListItemByIdLbl: Label '/sites/%1/lists/%2/items/%3', Locked = true;
         CreateListItemLbl: Label '/sites/%1/lists/%2/items', Locked = true;
+        UpdateListItemFieldsLbl: Label '/sites/%1/lists/%2/items/%3/fields', Locked = true;
         SiteByHostAndPathLbl: Label '/sites/%1:%2', Locked = true;
         DriveLbl: Label '/sites/%1/drive', Locked = true;
         DrivesLbl: Label '/sites/%1/drives', Locked = true;
@@ -111,6 +113,28 @@ codeunit 9121 "SharePoint Graph Uri Builder"
     procedure GetCreateListItemEndpoint(ListId: Text): Text
     begin
         exit(StrSubstNo(CreateListItemLbl, SiteId, EscapeDataString(ListId)));
+    end;
+
+    /// <summary>
+    /// Gets the endpoint for getting a single list item by ID.
+    /// </summary>
+    /// <param name="ListId">The list ID.</param>
+    /// <param name="ItemId">The item ID.</param>
+    /// <returns>The endpoint.</returns>
+    procedure GetListItemByIdEndpoint(ListId: Text; ItemId: Text): Text
+    begin
+        exit(StrSubstNo(ListItemByIdLbl, SiteId, EscapeDataString(ListId), EscapeDataString(ItemId)));
+    end;
+
+    /// <summary>
+    /// Gets the endpoint for updating list item fields.
+    /// </summary>
+    /// <param name="ListId">The list ID.</param>
+    /// <param name="ItemId">The item ID.</param>
+    /// <returns>The endpoint.</returns>
+    procedure GetUpdateListItemFieldsEndpoint(ListId: Text; ItemId: Text): Text
+    begin
+        exit(StrSubstNo(UpdateListItemFieldsLbl, SiteId, EscapeDataString(ListId), EscapeDataString(ItemId)));
     end;
 
     /// <summary>
