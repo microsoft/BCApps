@@ -811,7 +811,6 @@ page 9018 "Administrator Role Center"
                     Caption = 'Date Compress &Resource Ledger Entries';
                     Image = Resource;
                     RunObject = Report "Date Compress Resource Ledger";
-                    ToolTip = 'Save database space by combining related entries in one new entry. You can compress entries from closed fiscal years only.';
                 }
                 action("Date Compress &FA Ledger Entries")
                 {

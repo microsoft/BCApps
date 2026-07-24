@@ -13,6 +13,7 @@ report 1009 "Job Actual To Budget"
     AdditionalSearchTerms = 'Job Actual To Budget';
     ApplicationArea = Jobs;
     Caption = 'Project Actual To Budget';
+    ToolTip = 'Compare budgeted and usage amounts for selected projects. All lines of the selected project show quantity, total cost, and line amount.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

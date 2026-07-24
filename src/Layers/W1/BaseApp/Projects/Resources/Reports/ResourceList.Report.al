@@ -11,6 +11,7 @@ report 1101 "Resource - List"
 {
     ApplicationArea = Jobs;
     Caption = 'Resource - List';
+    ToolTip = 'View a list of unit prices for the resources. By default, a unit price is based on the price in the Resource Prices window. If there is no valid alternative price, then the unit price from the resource card is used. The report can be used by the company''s salespeople or sent to customers.';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

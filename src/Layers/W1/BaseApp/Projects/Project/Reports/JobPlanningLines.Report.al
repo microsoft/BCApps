@@ -13,6 +13,7 @@ report 1006 "Job - Planning Lines"
     AdditionalSearchTerms = 'Job - Planning Lines';
     ApplicationArea = Jobs;
     Caption = 'Project - Planning Lines';
+    ToolTip = 'View all planning lines for the project. You use this window to plan what items, resources, and general ledger expenses that you expect to use on a project (budget) or you can specify what you actually agreed with your customer that he should pay for the project (billable).';
     UsageCategory = ReportsAndAnalysis;
     DefaultRenderingLayout = RDLCLayout;
 

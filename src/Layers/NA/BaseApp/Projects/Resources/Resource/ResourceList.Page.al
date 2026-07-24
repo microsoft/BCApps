@@ -511,7 +511,6 @@ page 77 "Resource List"
                 Caption = 'Resource Statistics';
                 Image = "Report";
                 RunObject = Report "Resource Statistics";
-                ToolTip = 'View detailed, historical information for the resource.';
             }
             action("Resource Usage")
             {
@@ -519,7 +518,6 @@ page 77 "Resource List"
                 Caption = 'Resource Usage';
                 Image = "Report";
                 RunObject = Report "Resource Usage";
-                ToolTip = 'View the resource utilization that has taken place. The report includes the resource capacity, quantity of usage, and the remaining balance.';
             }
             action("Resource - Cost Breakdown")
             {
@@ -536,7 +534,6 @@ page 77 "Resource List"
                 Image = "Report";
                 Visible = not ExtendedPriceEnabled;
                 RunObject = Report "Resource - Price List";
-                ToolTip = 'Specifies a list of unit prices for the selected resources. By default, a unit price is based on the price in the Resource Prices window. If there is no valid alternative price, then the unit price from the resource card is used. The report can be used by the company''s salespeople or sent to customers.';
             }
             action("Res. Price List")
             {
@@ -555,7 +552,6 @@ page 77 "Resource List"
                 //The property 'PromotedCategory' can only be set if the property 'Promoted' is set to 'true'
                 //PromotedCategory = "Report";
                 RunObject = Report "Resource Register";
-                ToolTip = 'View a list of all the resource registers. Every time a resource entry is posted, a register is created. Every register shows the first and last entry numbers of its entries. You can use the information in a resource register to document when entries were posted.';
             }
         }
         area(processing)
