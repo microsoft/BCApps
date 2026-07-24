@@ -147,6 +147,11 @@
       "publisher": "Microsoft"
     },
     {
+      "id": "1ecba011-fc8c-4b60-b6bf-97248fe43419",
+      "name": "Tests-SCM-Warehouse",
+      "publisher": "Microsoft"
+    },
+    {
       "id": "88f3615c-370c-4f39-bb5f-54e096c984e9",
       "name": "Tests-SCM-Manufacturing",
       "publisher": "Microsoft"

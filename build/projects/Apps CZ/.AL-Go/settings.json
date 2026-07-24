@@ -246,6 +246,7 @@
     "../../../src/Layers/W1/Tests/SCM-Assembly",
     "../../../src/Layers/W1/Tests/SCM-Manufacturing",
     "../../../src/Layers/W1/Tests/SCM-Service",
+    "../../../src/Layers/W1/Tests/SCM-Warehouse",
     "../../../src/Layers/W1/Tests/SINGLESERVER",
     "../../../src/Layers/W1/Tests/SMB",
     "../../../src/Layers/W1/Tests/TestLibraries",
