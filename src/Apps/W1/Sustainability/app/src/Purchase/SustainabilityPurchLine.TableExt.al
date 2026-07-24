@@ -452,14 +452,15 @@ tableextension 6211 "Sustainability Purch. Line" extends "Purchase Line"
         {
             AutoFormatType = 0;
             Caption = 'Installation Multiplier';
+            InitValue = 1;
             DataClassification = CustomerContent;
 
             trigger OnValidate()
             begin
-                if Rec."Installation Multiplier" <> 0 then
+                if (Rec."Installation Multiplier" <> 0) and (Rec."Installation Multiplier" <> xRec."Installation Multiplier") then
                     ValidateEmissionPrerequisite(Rec, xRec, Rec.FieldNo("Installation Multiplier"));
 
-                if (Rec."Installation Multiplier" <> xRec."Installation Multiplier") and (Rec."Sust. Account No." <> '') then
+                if (Rec."Installation Multiplier" <> xRec."Installation Multiplier") and IsSustainabilityFormulaPurchaseLine() then
                     SustainabilityCalcMgt.CalculationEmissions(Rec);
             end;
         }
@@ -567,7 +568,7 @@ tableextension 6211 "Sustainability Purch. Line" extends "Purchase Line"
     begin
         exit((Rec."Sust. Account No." <> '') and
              ((Rec."Unit for Sust. Formulas" <> '') or (Rec."Fuel/Electricity" <> 0) or (Rec."Time Factor" <> 0) or
-             (Rec.Distance <> 0) or (Rec."Custom Amount" <> 0) or (Rec."Installation Multiplier" <> 0)));
+             (Rec.Distance <> 0) or (Rec."Custom Amount" <> 0)));
     end;
 
     local procedure UpdateDefaultEmissionOnPurchLine(var PurchaseLine: Record "Purchase Line")
@@ -635,7 +636,6 @@ tableextension 6211 "Sustainability Purch. Line" extends "Purchase Line"
         PurchLine.Validate(Distance, 0);
         PurchLine.Validate("Time Factor", 0);
         PurchLine.Validate("Custom Amount", 0);
-        PurchLine.Validate("Installation Multiplier", 0);
     end;
 
     local procedure ValidateEmissionPrerequisite(PurchaseLine: Record "Purchase Line"; xPurchaseLine: Record "Purchase Line"; CurrentFieldNo: Integer)
@@ -718,8 +718,7 @@ tableextension 6211 "Sustainability Purch. Line" extends "Purchase Line"
            (xPurchaseLine."Fuel/Electricity" <> 0) or
            (xPurchaseLine."Custom Amount" <> 0) or
            (xPurchaseLine.Distance <> 0) or
-           (xPurchaseLine."Time Factor" <> 0) or
-           (xPurchaseLine."Installation Multiplier" <> 0)
+           (xPurchaseLine."Time Factor" <> 0)
         then
             exit;
 
@@ -740,7 +739,6 @@ tableextension 6211 "Sustainability Purch. Line" extends "Purchase Line"
         PurchaseLine.TestField("Custom Amount", 0);
         PurchaseLine.TestField(Distance, 0);
         PurchaseLine.TestField("Time Factor", 0);
-        PurchaseLine.TestField("Installation Multiplier", 0);
     end;
 
     local procedure UpdatePurchaseLineFromAccountSubcategory()

@@ -296,6 +296,7 @@ table 6217 "Sustainability Setup"
         Rec.Validate("Item Emissions", true);
         Rec.Validate("Resource Emissions", true);
         Rec.Validate("Fixed Asset Emissions", true);
+        Rec.Validate("Item Charge Emissions", true);
         Rec.Validate("Work/Machine Center Emissions", true);
     end;
 
