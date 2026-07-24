@@ -951,7 +951,11 @@ table 5409 "Prod. Order Routing Line"
 
     local procedure GetProdOrderLine()
     begin
+        OnBeforeGetProdOrderLine(Rec, ProdOrderLine, ProdOrderLineRead);
         if ProdOrderLineRead then
+            exit;
+
+        if Rec.IsTemporary() then
             exit;
 
         ProdOrderLine.SetRange(Status, Status);
@@ -1226,6 +1230,9 @@ table 5409 "Prod. Order Routing Line"
         IsHandled := false;
         OnBeforeCalcStartingEndingDates(Rec, PlanningDirection, IsHandled);
         if IsHandled then
+            exit;
+
+        if IsTemporary() then
             exit;
 
         if "Routing Status" = "Routing Status"::Finished then
@@ -1609,6 +1616,9 @@ table 5409 "Prod. Order Routing Line"
         TempProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary;
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
     begin
+        if Rec.IsTemporary() then
+            exit;
+
         if SkipUpdateOfCompBinCodes then
             exit;
 
@@ -1837,6 +1847,30 @@ table 5409 "Prod. Order Routing Line"
         exit("Next Operation No." <> '');
     end;
 
+    internal procedure CheckPreviousAndNextForTemp()
+    var
+        TempAffectedRoutingLine: Record "Prod. Order Routing Line" temporary;
+        PrevOperNo: Code[30];
+        NextOperNo: Code[30];
+    begin
+        PrevOperNo := Rec."Previous Operation No.";
+        NextOperNo := Rec."Next Operation No.";
+
+        TempAffectedRoutingLine.Copy(Rec, true);
+
+        if PrevOperNo <> '' then
+            if TempAffectedRoutingLine.Get(Rec.Status, Rec."Prod. Order No.", Rec."Routing Reference No.", Rec."Routing No.", PrevOperNo) then begin
+                TempAffectedRoutingLine."Next Operation No." := NextOperNo;
+                TempAffectedRoutingLine.Modify();
+            end;
+
+        if NextOperNo <> '' then
+            if TempAffectedRoutingLine.Get(Rec.Status, Rec."Prod. Order No.", Rec."Routing Reference No.", Rec."Routing No.", NextOperNo) then begin
+                TempAffectedRoutingLine."Previous Operation No." := PrevOperNo;
+                TempAffectedRoutingLine.Modify();
+            end;
+    end;
+
     [IntegrationEvent(false, false)]
     local procedure OnAfterCalcStartingEndingDates(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var xProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line"; CallingFieldNo: Integer)
     begin
@@ -2026,5 +2060,9 @@ table 5409 "Prod. Order Routing Line"
     local procedure OnCheckPreviousAndNextOnBeforeInsertTempRemainingProdOrderRtngLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderRoutingLineFiltered: Record "Prod. Order Routing Line"; var TempDeletedProdOrderRoutingLine: Record "Prod. Order Routing Line" temporary; var ErrorOnNext: Boolean; var ErrorOnPrevious: Boolean)
     begin
     end;
-}
 
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeGetProdOrderLine(ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var ProdOrderLine: Record "Prod. Order Line"; var ProdOrderLineRead: Boolean)
+    begin
+    end;
+}
