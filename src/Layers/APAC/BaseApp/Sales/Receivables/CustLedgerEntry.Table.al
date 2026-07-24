@@ -14,7 +14,6 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.ReceivablesPayables;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
@@ -1077,41 +1076,11 @@ table 21 "Cust. Ledger Entry"
             Caption = 'Pre Adjmt. Reason Code';
             TableRelation = "Reason Code";
         }
-        field(28040; "Rem. Amt for WHT"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = "Currency Code";
-            Caption = 'Rem. Amt for WHT';
-        }
         field(28041; "Rem. Amt"; Decimal)
         {
             AutoFormatType = 1;
             AutoFormatExpression = "Currency Code";
             Caption = 'Rem. Amt';
-        }
-        field(28042; "WHT Amount"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = "Currency Code";
-            CalcFormula = sum("WHT Entry".Amount where("Bill-to/Pay-to No." = field("Customer No."),
-                                                        "Transaction No." = field("Transaction No.")));
-            Caption = 'WHT Amount';
-            Editable = false;
-            FieldClass = FlowField;
-        }
-        field(28043; "WHT Amount (LCY)"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            CalcFormula = sum("WHT Entry"."Amount (LCY)" where("Bill-to/Pay-to No." = field("Customer No."),
-                                                                "Transaction No." = field("Transaction No.")));
-            Caption = 'WHT Amount (LCY)';
-            Editable = false;
-            FieldClass = FlowField;
-        }
-        field(28044; "WHT Payment"; Boolean)
-        {
-            Caption = 'WHT Payment';
         }
     }
 
@@ -1541,7 +1510,6 @@ table 21 "Cust. Ledger Entry"
         Adjustment := GenJnlLine.Adjustment;
         "BAS Adjustment" := GenJnlLine."BAS Adjustment";
         "Adjustment Applies-to" := GenJnlLine."Adjustment Applies-to";
-        "WHT Payment" := GenJnlLine."WHT Payment";
 
         OnAfterCopyCustLedgerEntryFromGenJnlLine(Rec, GenJnlLine);
     end;

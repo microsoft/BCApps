@@ -6682,6 +6682,7 @@ table 81 "Gen. Journal Line"
             "Ship-to/Order Address Code" := '';
             "Sell-to/Buy-from No." := '';
             UpdateCountryCodeAndVATRegNo('');
+            OnCleanLineOnAfterUpdateCountryCodeAndVATRegNo(Rec, xRec);
         end;
 
         case "Account Type" of
@@ -7680,13 +7681,16 @@ table 81 "Gen. Journal Line"
             "Gen. Prod. Posting Group" := GLAcc."Gen. Prod. Posting Group";
             "VAT Bus. Posting Group" := GLAcc."VAT Bus. Posting Group";
             "VAT Prod. Posting Group" := GLAcc."VAT Prod. Posting Group";
+            OnGetGLAccountOnAfterCopyVATSetupToJnlLines(Rec, GLAcc);
         end;
         "Tax Area Code" := GLAcc."Tax Area Code";
         "Tax Liable" := GLAcc."Tax Liable";
         "Tax Group Code" := GLAcc."Tax Group Code";
         if Rec."Posting Date" <> 0D then
-            if "Posting Date" = ClosingDate("Posting Date") then
+            if "Posting Date" = ClosingDate("Posting Date") then begin
                 ClearPostingGroups();
+                OnGetAccountNoOnAfterClearPostingGroupsForClosingDate(Rec);
+            end;
         Validate("Deferral Code", GLAcc."Default Deferral Template Code");
 
         GLSetup.Get();
@@ -12746,6 +12750,21 @@ table 81 "Gen. Journal Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetAccCurrencyCode(var GenJnlLine: Record "Gen. Journal Line"; var CurrencyCode: Code[10]; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetGLAccountOnAfterCopyVATSetupToJnlLines(var Rec: Record "Gen. Journal Line"; var GLAcc: Record "G/L Account")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnGetAccountNoOnAfterClearPostingGroupsForClosingDate(var Rec: Record "Gen. Journal Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCleanLineOnAfterUpdateCountryCodeAndVATRegNo(var Rec: Record "Gen. Journal Line"; var xRec: Record "Gen. Journal Line")
     begin
     end;
 }

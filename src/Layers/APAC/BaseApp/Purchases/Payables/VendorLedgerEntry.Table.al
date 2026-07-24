@@ -14,7 +14,6 @@ using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.ReceivablesPayables;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.Foundation.Attachment;
 using Microsoft.Foundation.AuditCodes;
@@ -770,37 +769,11 @@ table 25 "Vendor Ledger Entry"
         {
             Caption = 'EFT Bank Account No.';
         }
-        field(28040; "Rem. Amt for WHT"; Decimal)
-        {
-            AutoFormatExpression = "Currency Code";
-            AutoFormatType = 1;
-            Caption = 'Rem. Amt for WHT';
-        }
         field(28041; "Rem. Amt"; Decimal)
         {
             AutoFormatExpression = "Currency Code";
             AutoFormatType = 1;
             Caption = 'Rem. Amt';
-        }
-        field(28042; "WHT Amount"; Decimal)
-        {
-            AutoFormatExpression = "Currency Code";
-            AutoFormatType = 1;
-            CalcFormula = sum("WHT Entry".Amount where("Bill-to/Pay-to No." = field("Vendor No."),
-                                                        "Original Document No." = field("Document No.")));
-            Caption = 'WHT Amount';
-            Editable = false;
-            FieldClass = FlowField;
-        }
-        field(28043; "WHT Amount (LCY)"; Decimal)
-        {
-            AutoFormatExpression = '';
-            AutoFormatType = 1;
-            CalcFormula = sum("WHT Entry"."Amount (LCY)" where("Bill-to/Pay-to No." = field("Vendor No."),
-                                                                "Original Document No." = field("Document No.")));
-            Caption = 'WHT Amount (LCY)';
-            Editable = false;
-            FieldClass = FlowField;
         }
     }
 

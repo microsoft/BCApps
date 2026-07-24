@@ -2369,20 +2369,6 @@ table 18 Customer
         {
             Caption = 'S/T Expiry Date';
         }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            TableRelation = "WHT Business Posting Group";
-        }
-        field(28041; "WHT Payable Amount (LCY)"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            CalcFormula = sum("WHT Entry"."Rem Unrealized Amount (LCY)" where("Bill-to/Pay-to No." = field("No."),
-                                                                               "Transaction Type" = const(Sale)));
-            Caption = 'WHT Payable Amount (LCY)';
-            FieldClass = FlowField;
-        }
         field(28070; "Tax Document Type"; Option)
         {
             Caption = 'Tax Document Type';

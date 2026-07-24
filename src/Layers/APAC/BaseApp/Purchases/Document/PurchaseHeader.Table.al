@@ -23,7 +23,6 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.BatchProcessing;
@@ -140,7 +139,6 @@ table 38 "Purchase Header"
                     "Buy-from Contact" := Vend.Contact;
                 "Gen. Bus. Posting Group" := Vend."Gen. Bus. Posting Group";
                 "VAT Bus. Posting Group" := Vend."VAT Bus. Posting Group";
-                "WHT Business Posting Group" := Vend."WHT Business Posting Group";
                 "Tax Area Code" := Vend."Tax Area Code";
                 "Tax Liable" := Vend."Tax Liable";
                 "VAT Country/Region Code" := Vend."Country/Region Code";
@@ -2886,16 +2884,6 @@ table 38 "Purchase Header"
         field(11622; "ABN Division Part No."; Text[3])
         {
             Caption = 'ABN Division Part No.';
-        }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            TableRelation = "WHT Business Posting Group";
-        }
-        field(28041; "Actual Vendor No."; Code[20])
-        {
-            Caption = 'Actual Vendor No.';
-            TableRelation = Vendor;
         }
         field(28050; "WHT Amount"; Decimal)
         {

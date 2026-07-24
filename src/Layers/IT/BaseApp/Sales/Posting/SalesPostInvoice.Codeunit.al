@@ -699,6 +699,8 @@ codeunit 815 "Sales Post Invoice" implements "Invoice Posting"
         GenJnlLine."Orig. Pmt. Disc. Possible(LCY)" :=
             CurrExchRate.ExchangeAmtFCYToLCY(
                 SalesHeader.GetUseDate(), SalesHeader."Currency Code", -TotalSalesLine."Pmt. Discount Amount", SalesHeader."Currency Factor");
+
+        SalesPostInvoiceEvents.RunOnAfterInitGenJnlLineAmountFieldsFromTotalLines(GenJnlLine, SalesHeader, TotalSalesLine, TotalSalesLineLCY);
     end;
 
     /// <summary>

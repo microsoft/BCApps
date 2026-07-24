@@ -45,7 +45,6 @@ using Microsoft.Finance.VAT.RateChange;
 using Microsoft.Finance.VAT.Registration;
 using Microsoft.Finance.VAT.Reporting;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Insurance;
@@ -97,7 +96,6 @@ using System.Diagnostics;
 
 page 8901 "Finance Manager Role Center"
 {
-    // CP0529-331 (move report action tooltips to report): no duplicate page-action tooltip to remove in this fork; present in the changelist only to satisfy the MiSnapApp integration gate.
     Caption = 'Finance Manager Role Center';
     PageType = RoleCenter;
 
@@ -236,22 +234,6 @@ page 8901 "Finance Manager Role Center"
                             Caption = 'VAT Report - Vendor';
                             RunObject = Report "VAT Report - Vendor";
                         }
-                    }
-                }
-                group("Group3")
-                {
-                    Caption = 'WHT';
-                    action("WHT E-Filing")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'WHT E-Filing';
-                        RunObject = Report "WHT E-Filing";
-                    }
-                    action("Calc. and Post WHT Settlement")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Calc. and Post WHT Settlement';
-                        RunObject = Report "Calc. and Post WHT Settlement";
                     }
                 }
                 group("Group4")
@@ -439,9 +421,9 @@ page 8901 "Finance Manager Role Center"
                     }
                     // action("Simulation Register")
                     // {
-                    //     ApplicationArea = Basic, Suite;
-                    //     Caption = 'Simulation Register';
-                    //     RunObject = page 28160;
+                    // 	ApplicationArea = Basic,Suite;
+                    // 	Caption = 'Simulation Register';
+                    // 	RunObject = page 28160;
                     // }
                     action("GST Purchase Entries")
                     {
@@ -513,12 +495,6 @@ page 8901 "Finance Manager Role Center"
                             ApplicationArea = Basic, Suite;
                             Caption = 'Financial Analysis Report';
                             RunObject = Report "Financial Analysis Report";
-                        }
-                        action("Withholding Summary")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Withholding Summary';
-                            RunObject = Report "Withholding Summary";
                         }
                     }
                     group("Group11")
@@ -675,42 +651,6 @@ page 8901 "Finance Manager Role Center"
                             Caption = 'Bank Detail Cashflow Compare';
                             RunObject = Report "Bank Detail Cashflow Compare";
                         }
-                        action("WHT PND 1")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'WHT PND 1';
-                            RunObject = Report "WHT PND 1";
-                        }
-                        action("WHT PND 2")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'WHT PND 2';
-                            RunObject = Report "WHT PND 2";
-                        }
-                        action("WHT PND 3")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'WHT PND 3';
-                            RunObject = Report "WHT PND 3";
-                        }
-                        action("WHT Report - PND 53")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'WHT Report - PND 53';
-                            RunObject = Report "WHT Report - PND 53";
-                        }
-                        action("WHT Certificate - Other Copy")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'WHT Certificate - Other Copy';
-                            RunObject = Report "WHT Certificate - Other Copy";
-                        }
-                        action("WHT Certificate TH - Copy")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'WHT Certificate TH - Copy';
-                            RunObject = Report "WHT Certificate TH - Copy";
-                        }
                     }
                     group("Group12")
                     {
@@ -820,18 +760,6 @@ page 8901 "Finance Manager Role Center"
                     Caption = 'Payment Registration';
                     RunObject = page "Payment Registration";
                 }
-                action("Deposit")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Bank Deposits';
-                    RunObject = codeunit "Open Deposits Page";
-                }
-                action("Posted Bank Deposit")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Bank Deposits';
-                    RunObject = codeunit "Open P. Bank Deposits L. Page";
-                }
                 action("Post Dated Checks - Sales")
                 {
                     ApplicationArea = Basic, Suite;
@@ -843,6 +771,18 @@ page 8901 "Finance Manager Role Center"
                     ApplicationArea = Basic, Suite;
                     Caption = 'Post Dated Checks-Purchases';
                     RunObject = page "Post Dated Checks-Purchases";
+                }
+                action("Deposit")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Bank Deposits';
+                    RunObject = codeunit "Open Deposits Page";
+                }
+                action("Posted Bank Deposit")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Posted Bank Deposits';
+                    RunObject = codeunit "Open P. Bank Deposits L. Page";
                 }
                 group("Group16")
                 {
@@ -1390,18 +1330,6 @@ page 8901 "Finance Manager Role Center"
                         RunObject = page "Posted Return Receipts";
                         Tooltip = 'Open the Posted Return Receipts page.';
                     }
-                    action("Posted Sales Tax Invoice")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Posted Sales Tax Invoice';
-                        RunObject = page "Posted Sales Tax Invoice";
-                    }
-                    action("Posted Sales Tax Credit Memo")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Posted Sales Tax Credit Memo';
-                        RunObject = page "Posted Sales Tax Credit Memo";
-                    }
                     action("GST Sales Entries1")
                     {
                         ApplicationArea = Basic, Suite;
@@ -1455,6 +1383,12 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Customer Statement';
                         RunObject = codeunit "Customer Layout - Statement";
+                    }
+                    action("AU/NZ Statement")
+                    {
+                        ApplicationArea = Basic, Suite;
+                        Caption = 'AU/NZ Statement';
+                        RunObject = Report "AU/NZ Statement";
                     }
                     action("Customer Register")
                     {
@@ -1530,12 +1464,6 @@ page 8901 "Finance Manager Role Center"
                         ObsoleteTag = '28.0';
                     }
 #endif
-                    action("AU/NZ Statement")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'AU/NZ Statement';
-                        RunObject = Report "AU/NZ Statement";
-                    }
 #if not CLEAN28
                     action("Sales Statistics")
                     {
@@ -1610,18 +1538,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'VAT Report - Customer';
                         RunObject = Report "VAT Report - Customer";
-                    }
-                    action("WHT Certificate - Copy")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'WHT Certificate - Copy';
-                        RunObject = Report "WHT Certificate - Other Copy";
-                    }
-                    action("Pending Sales Tax Invoice")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Pending Sales Tax Invoice';
-                        RunObject = Report "Pending Sales Tax Invoice";
                     }
                 }
                 group("Group37")
@@ -1868,12 +1784,6 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'VAT Report - Vendor';
                         RunObject = Report "VAT Report - Vendor";
                     }
-                    action("WHT Certificate - Other Copy1")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'WHT Certificate - Other Copy';
-                        RunObject = Report "WHT Certificate - Other Copy";
-                    }
                 }
                 group("Group41")
                 {
@@ -1956,18 +1866,6 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'Posted Purchase Return Shipments';
                         RunObject = page "Posted Return Shipments";
                         Tooltip = 'Open the Posted Purchase Return Shipments page.';
-                    }
-                    action("Posted Purchase Tax Invoice")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Posted Purchase Tax Invoice';
-                        RunObject = page "Posted Purchase Tax Invoice";
-                    }
-                    action("Posted Purch. Tax  Credit Memo")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'Posted Purch. Tax  Credit Memo';
-                        RunObject = page "Posted Purch. Tax  Credit Memo";
                     }
                 }
                 group("Group43")
@@ -2880,30 +2778,6 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'VAT Product Posting Groups';
                         RunObject = page "VAT Product Posting Groups";
                         Tooltip = 'Open the VAT Product Posting Groups page.';
-                    }
-                    action("Business")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'WHT Business Posting Group';
-                        RunObject = page "WHT Business Posting Group";
-                    }
-                    action("Product")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'WHT Product Posting Group';
-                        RunObject = page "WHT Product Posting Group";
-                    }
-                    action("Revenue Types")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'WHT Revenue Types';
-                        RunObject = page "WHT Revenue Types";
-                    }
-                    action("Posting Setup1")
-                    {
-                        ApplicationArea = Basic, Suite;
-                        Caption = 'WHT Posting Setup';
-                        RunObject = page "WHT Posting Setup";
                     }
                 }
             }

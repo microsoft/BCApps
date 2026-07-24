@@ -15,7 +15,6 @@ using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Calculation;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Setup;
@@ -107,17 +106,12 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         PurchLineACY: Record "Purchase Line";
         GenPostingSetup: Record "General Posting Setup";
         InvoicePostingBuffer: Record "Invoice Posting Buffer";
-        PrepmtPurchInvHeader: Record "Purch. Inv. Header";
-        PrepmtWHTEntry: Record "WHT Entry";
         PurchPostPrepayments: Codeunit "Purchase-Post Prepayments";
         AdjAmount: Decimal;
         TotalVAT: Decimal;
         TotalVATACY: Decimal;
         TotalAmount: Decimal;
         TotalAmountACY: Decimal;
-        TotalWHTAmtTobeDeducted: Decimal;
-        TotalWHTAmountToBeDeductedLCY: Decimal;
-        TotalWHTAmountToBeDeductedACY: Integer;
         AmtToDefer: Decimal;
         AmtToDeferACY: Decimal;
         TotalVATBase: Decimal;
@@ -161,31 +155,7 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         if PurchLine."Deferral Code" <> '' then
             GetAmountsForDeferral(PurchLine, AmtToDefer, AmtToDeferACY, DeferralAccount);
 
-        PrepmtPurchInvHeader.Reset();
-        PrepmtPurchInvHeader.SetRange("Prepayment Order No.", PurchLine."Document No.");
-        PrepmtPurchInvHeader.SetRange("Prepayment Invoice", true);
-        if PrepmtPurchInvHeader.FindSet() then
-            repeat
-                PrepmtWHTEntry.SetRange("Document Type", PrepmtWHTEntry."Document Type"::Invoice);
-                PrepmtWHTEntry.SetRange("Document No.", PrepmtPurchInvHeader."No.");
-                PrepmtWHTEntry.SetRange("Gen. Bus. Posting Group", GenPostingSetup."Gen. Bus. Posting Group");
-                PrepmtWHTEntry.SetRange("Gen. Prod. Posting Group", GenPostingSetup."Gen. Prod. Posting Group");
-                if PrepmtWHTEntry.FindSet() then
-                    repeat
-                        TotalWHTAmountToBeDeductedLCY := TotalWHTAmountToBeDeductedLCY + PrepmtWHTEntry."Unrealized Amount (LCY)";
-                        TotalWHTAmtTobeDeducted := TotalWHTAmtTobeDeducted + PrepmtWHTEntry."Unrealized Amount";
-                    until PrepmtWHTEntry.Next() = 0;
-            until PrepmtPurchInvHeader.Next() = 0;
-        if GLSetup."Additional Reporting Currency" <> '' then
-            TotalWHTAmountToBeDeductedACY :=
-              CurrExchRate.ExchangeAmtLCYToFCY(
-                PurchHeader."Posting Date", GLSetup."Additional Reporting Currency",
-                TotalWHTAmtTobeDeducted, 0);
-
-        if PurchLine."Prepayment Line" then begin
-            TotalAmount := TotalAmount + TotalWHTAmountToBeDeductedLCY;
-            TotalAmountACY := TotalAmountACY + TotalWHTAmountToBeDeductedACY;
-        end;
+        PurchPostInvoiceEvents.RunOnPrepareLineOnBeforeSetInvoiceDiscountPosting(PurchHeader, PurchLine, GenPostingSetup, TotalAmount, TotalAmountACY);
 
         InvoiceDiscountPosting := PurchSetup."Discount Posting" in
            [PurchSetup."Discount Posting"::"Invoice Discounts", PurchSetup."Discount Posting"::"All Discounts"];
@@ -393,8 +363,6 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         InvoicePostingBuffer."VAT Difference (ACY)" := PurchLine."VAT Difference (ACY)";
         InvoicePostingBuffer."Amount Including VAT (ACY)" := PurchLine."Amount Including VAT (ACY)";
         InvoicePostingBuffer."VAT Amount(ACY)" := PurchLine."Amount Including VAT (ACY)" - PurchLine."VAT Base (ACY)";
-        InvoicePostingBuffer."WHT Business Posting Group" := PurchLine."WHT Business Posting Group";
-        InvoicePostingBuffer."WHT Product Posting Group" := PurchLine."WHT Product Posting Group";
         InvoicePostingBuffer."VAT Difference" := PurchLine."VAT Difference";
         if InvoicePostingBuffer.Type = InvoicePostingBuffer.Type::"Fixed Asset" then begin
             InvoicePostingBuffer."FA Posting Date" := PurchLine."FA Posting Date";
@@ -638,8 +606,6 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         GenJnlLine."Adjustment Applies-to" := PurchHeader."Adjustment Applies-to";
 
         InvoicePostingBuffer.CopyToGenJnlLine(GenJnlLine);
-        GenJnlLine."WHT Business Posting Group" := InvoicePostingBuffer."WHT Business Posting Group";
-        GenJnlLine."WHT Product Posting Group" := InvoicePostingBuffer."WHT Product Posting Group";
         GenJnlLine."VAT Base (ACY)" := InvoicePostingBuffer."VAT Base (ACY)";
         GenJnlLine."VAT Amount (ACY)" := InvoicePostingBuffer."VAT Amount(ACY)";
         GenJnlLine."VAT Difference (ACY)" := InvoicePostingBuffer."VAT Difference (ACY)";
@@ -1038,7 +1004,6 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         GenJnlLine."Account No." := PurchHeader."Pay-to Vendor No.";
         GenJnlLine.CopyFromPurchHeader(PurchHeader);
         GenJnlLine.SetCurrencyFactor(PurchHeader."Currency Code", PurchHeader."Currency Factor");
-        GenJnlLine."WHT Business Posting Group" := PurchHeader."WHT Business Posting Group";
         GenJnlLine."Vendor Exchange Rate (ACY)" := PurchHeader."Vendor Exchange Rate (ACY)";
         GenJnlLine."System-Created Entry" := true;
 
@@ -1064,17 +1029,9 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
         if IsHandled then
             exit;
 
-        GenJnlLine.Amount := -TotalPurchLine."Amount Including VAT" + PurchHeader."WHT Amount";
-        GenJnlLine."Source Currency Amount" := -TotalPurchLine."Amount Including VAT" + PurchHeader."WHT Amount";
-        if (PurchHeader."WHT Amount" <> 0) and (PurchHeader."Currency Code" <> '') then
-            GenJnlLine."Amount (LCY)" :=
-                -(TotalPurchLineLCY."Amount Including VAT" -
-                  Round(
-                    CurrExchRate.ExchangeAmtFCYToLCY(
-                    PurchHeader."Posting Date", PurchHeader."Currency Code", PurchHeader."WHT Amount", PurchHeader."Currency Factor")))
-        else
-            GenJnlLine."Amount (LCY)" := -TotalPurchLineLCY."Amount Including VAT" + PurchHeader."WHT Amount";
-        GenJnlLine."Amount Including VAT (ACY)" := -TotalPurchLineLCY."Amount Including VAT (ACY)";
+        GenJnlLine.Amount := -TotalPurchLine."Amount Including VAT";
+        GenJnlLine."Source Currency Amount" := -TotalPurchLine."Amount Including VAT";
+        GenJnlLine."Amount (LCY)" := -TotalPurchLineLCY."Amount Including VAT";
         GenJnlLine."Sales/Purch. (LCY)" := -TotalPurchLineLCY.Amount;
         GenJnlLine."Inv. Discount (LCY)" := -TotalPurchLineLCY."Inv. Discount Amount";
         GenJnlLine."Orig. Pmt. Disc. Possible" := -TotalPurchLine."Pmt. Discount Amount";
@@ -1121,7 +1078,6 @@ codeunit 816 "Purch. Post Invoice" implements "Invoice Posting"
             if GenJnlBatch.FindFirst() then
                 GenJnlLine.Validate("Journal Batch Name", GenJnlBatch.Name);
         end;
-        GenJnlLine."WHT Business Posting Group" := PurchHeader."WHT Business Posting Group";
 
         PurchPostInvoiceEvents.RunOnPostBalancingEntryOnAfterInitNewLine(GenJnlLine, PurchHeader);
 

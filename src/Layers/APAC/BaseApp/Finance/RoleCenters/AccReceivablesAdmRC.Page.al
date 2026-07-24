@@ -12,7 +12,6 @@ using Microsoft.Bank.Reconciliation;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.Task;
 using Microsoft.Inventory.Item;
@@ -138,25 +137,6 @@ page 9003 "Acc. Receivables Adm. RC"
                 Image = "Report";
                 RunObject = Report "Customer/Item Sales";
                 ToolTip = 'View a list of item sales for each customer during a selected time period. The report contains information on quantity, sales amount, profit, and possible discounts. It can be used, for example, to analyze a company''s customer groups.';
-            }
-            separator(Action20)
-            {
-            }
-            action("Sales - Tax Invoice")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Sales - Tax Invoice';
-                Image = "Report";
-                RunObject = Report "Sales - Tax Invoice";
-                ToolTip = 'Create a new sales tax invoice.';
-            }
-            action("Sales - Tax Credit Memo")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Sales - Tax Credit Memo';
-                Image = "Report";
-                RunObject = Report "Sales - Tax Cr. Memo";
-                ToolTip = 'Create a new sales tax credit memo.';
             }
             separator(Action1500006)
             {
@@ -383,20 +363,6 @@ page 9003 "Acc. Receivables Adm. RC"
                     Image = GLRegisters;
                     RunObject = Page "G/L Registers";
                     ToolTip = 'View posted G/L entries.';
-                }
-                action("Posted Sales Tax Invoices")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Sales Tax Invoices';
-                    RunObject = Page "Posted Sales Tax Invoices";
-                    ToolTip = 'View the list of posted documents.';
-                }
-                action("Posted Sales Tax Credit Memos")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Caption = 'Posted Sales Tax Credit Memos';
-                    RunObject = Page "Posted Sales Tax Cr. Memos";
-                    ToolTip = 'View the list of posted documents.';
                 }
                 action("Posted Bank Deposits")
                 {

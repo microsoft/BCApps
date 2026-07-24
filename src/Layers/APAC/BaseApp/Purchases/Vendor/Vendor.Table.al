@@ -1682,9 +1682,6 @@ table 23 Vendor
 
             trigger OnValidate()
             begin
-                if "WHT Business Posting Group" <> '' then
-                    Error(Text15000, FieldCaption("WHT Business Posting Group"));
-
                 ABNManagement.CheckABN(ABN, 1);
                 if ABN = '' then
                     Registered := false;
@@ -1705,12 +1702,6 @@ table 23 Vendor
             Caption = 'ABN Division Part No.';
             OptimizeForTextSearch = true;
             Numeric = true;
-
-            trigger OnValidate()
-            begin
-                if "WHT Business Posting Group" <> '' then
-                    Error(Text15000, FieldCaption("WHT Business Posting Group"));
-            end;
         }
         field(11623; "Foreign Vend"; Boolean)
         {
@@ -1737,31 +1728,6 @@ table 23 Vendor
         field(17100; "IRD No."; Text[30])
         {
             Caption = 'IRD No.';
-            OptimizeForTextSearch = true;
-        }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            TableRelation = "WHT Business Posting Group";
-
-            trigger OnValidate()
-            begin
-                if (ABN <> '') or ("ABN Division Part No." <> '') then
-                    Error(Text15000, FieldCaption(ABN));
-            end;
-        }
-        field(28041; "WHT Payable Amount (LCY)"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            CalcFormula = sum("WHT Entry"."Rem Unrealized Amount (LCY)" where("Bill-to/Pay-to No." = field("No."),
-                                                                               "Transaction Type" = const(Purchase)));
-            Caption = 'WHT Payable Amount (LCY)';
-            FieldClass = FlowField;
-        }
-        field(28042; "WHT Registration ID"; Text[20])
-        {
-            Caption = 'WHT Registration ID';
             OptimizeForTextSearch = true;
         }
         field(28043; "ID No."; Text[20])
@@ -2016,7 +1982,6 @@ table 23 Vendor
         Text008: Label 'The %1 %2 has been assigned to %3 %4.\The same %1 cannot be entered on more than one %3.';
         Text009: Label 'Reconciling IC transactions may be difficult if you change IC Partner Code because this %1 has ledger entries in a fiscal year that has not yet been closed.\ Do you still want to change the IC Partner Code?';
         Text010: Label 'You cannot change the contents of the %1 field because this %2 has one or more open ledger entries.';
-        Text15000: Label 'The field %1 must be blank.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         SelectVendorErr: Label 'You must select an existing vendor.';

@@ -17,7 +17,6 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.SalesTax;
 using Microsoft.Finance.VAT.Setup;
-using Microsoft.Finance.WithholdingTax;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Navigate;
@@ -681,43 +680,6 @@ table 124 "Purch. Cr. Memo Hdr."
         field(11622; "ABN Division Part No."; Text[3])
         {
             Caption = 'ABN Division Part No.';
-        }
-        field(28040; "WHT Business Posting Group"; Code[20])
-        {
-            Caption = 'WHT Business Posting Group';
-            TableRelation = "WHT Business Posting Group";
-        }
-        field(28041; "Rem. WHT Prepaid Amount (LCY)"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            CalcFormula = sum("WHT Entry"."Remaining Unrealized Amount" where("Document Type" = const("Credit Memo"),
-                                                                               "Document No." = field("No.")));
-            Caption = 'Rem. WHT Prepaid Amount (LCY)';
-            FieldClass = FlowField;
-        }
-        field(28042; "Paid WHT Prepaid Amount (LCY)"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            CalcFormula = sum("WHT Entry".Amount where("Document Type" = const(Refund),
-                                                        "Document No." = field("No.")));
-            Caption = 'Paid WHT Prepaid Amount (LCY)';
-            FieldClass = FlowField;
-        }
-        field(28043; "Total WHT Prepaid Amount (LCY)"; Decimal)
-        {
-            AutoFormatType = 1;
-            AutoFormatExpression = '';
-            CalcFormula = sum("WHT Entry"."Unrealized Amount" where("Document Type" = const("Credit Memo"),
-                                                                     "Document No." = field("No.")));
-            Caption = 'Total WHT Prepaid Amount (LCY)';
-            FieldClass = FlowField;
-        }
-        field(28045; "Actual Vendor No."; Code[20])
-        {
-            Caption = 'Actual Vendor No.';
-            TableRelation = Vendor;
         }
         field(28070; "Printed Tax Document"; Boolean)
         {
