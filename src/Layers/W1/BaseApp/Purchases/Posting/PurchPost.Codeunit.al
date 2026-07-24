@@ -511,6 +511,7 @@ codeunit 90 "Purch.-Post"
         ItemChargeZeroAmountErr: Label 'The amount for item charge %1 cannot be 0.', Comment = '%1 = Item Charge No.';
         ConfirmUsageWithBlankLineTypeQst: Label 'Usage will not be linked to the project planning line because the Line Type field is empty.\\Do you want to continue?';
         ConfirmUsageWithBlankJobPlanningLineNoQst: Label 'Usage will not be linked to the project planning line because the Project Planning Line No field is empty.\\Do you want to continue?';
+        SelfBillingNoSeriesMissingErr: Label 'Specify a number series for self-billing invoices in the %1 field on vendor %2, or in the %3 field in %4.', Comment = '%1 = Self-Billing Invoice Nos. field caption, %2 = Vendor No., %3 = Posted Self-Billing Inv. Nos. field caption, %4 = Purchases & Payables Setup table caption';
 
     /// <summary>
     /// Generates a record id for an 'empty' line
@@ -3041,10 +3042,7 @@ codeunit 90 "Purch.-Post"
                         ResetPostingNoSeriesFromSetup(PurchHeader."Posting No. Series", PurchSetup."Posted Credit Memo Nos.")
                     else
                         if (PurchHeader."Document Type" <> PurchHeader."Document Type"::"Credit Memo") then
-                            if PurchHeader."Self-Billing Invoice" then
-                                ResetPostingNoSeriesFromSetup(PurchHeader."Posting No. Series", PurchSetup."Posted Self-Billing Inv. Nos.")
-                            else
-                                ResetPostingNoSeriesFromSetup(PurchHeader."Posting No. Series", PurchSetup."Posted Invoice Nos.");
+                            ResetPostingNoSeriesFromSetup(PurchHeader."Posting No. Series", PurchSetup."Posted Invoice Nos.");
                     if PurchHeader."Document Type" = PurchHeader."Document Type"::"Credit Memo" then
                         if (PurchSetup."Posted Credit Memo Nos." <> '') and (PurchHeader."Posting No. Series" = '') then
                             CheckDefaultNoSeries(PurchSetup."Posted Credit Memo Nos.");
@@ -8903,18 +8901,38 @@ codeunit 90 "Purch.-Post"
 
     local procedure UpdateVendorInvoiceNoForSelfBilling(var PurchHeader: Record "Purchase Header")
     var
+        Vendor: Record Vendor;
         NoSeries: Codeunit "No. Series";
+        SelfBillingNoSeriesCode: Code[20];
     begin
         if not (PurchHeader."Document Type" in [PurchHeader."Document Type"::Invoice, PurchHeader."Document Type"::Order]) then
             exit;
 
-        PurchSetup.GetRecordOnce();
-        PurchSetup.TestField("Posted Self-Billing Inv. Nos.");
+        SelfBillingNoSeriesCode := GetSelfBillingInvoiceNoSeries(PurchHeader);
+        if SelfBillingNoSeriesCode = '' then
+            Error(
+                SelfBillingNoSeriesMissingErr,
+                Vendor.FieldCaption("Self-Billing Invoice Nos."),
+                PurchHeader."Buy-from Vendor No.",
+                PurchSetup.FieldCaption("Posted Self-Billing Inv. Nos."),
+                PurchSetup.TableCaption());
 
         if PreviewMode then
             PurchHeader."Vendor Invoice No." := PostingPreviewNoTok
         else
-            PurchHeader."Vendor Invoice No." := NoSeries.GetNextNo(PurchSetup."Posted Self-Billing Inv. Nos.", PurchHeader."Posting Date");
+            PurchHeader."Vendor Invoice No." := NoSeries.GetNextNo(SelfBillingNoSeriesCode, PurchHeader."Posting Date");
+    end;
+
+    local procedure GetSelfBillingInvoiceNoSeries(PurchHeader: Record "Purchase Header"): Code[20]
+    var
+        Vendor: Record Vendor;
+    begin
+        Vendor.SetLoadFields("Self-Billing Invoice Nos.");
+        if Vendor.Get(PurchHeader."Buy-from Vendor No.") and (Vendor."Self-Billing Invoice Nos." <> '') then
+            exit(Vendor."Self-Billing Invoice Nos.");
+
+        PurchSetup.GetRecordOnce();
+        exit(PurchSetup."Posted Self-Billing Inv. Nos.");
     end;
 
     local procedure SelfBillingInvoiceDocument(PurchHeader: Record "Purchase Header"): Boolean
