@@ -60,6 +60,7 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         CancelTok: Label 'Cancelled';
         RejectTok: Label 'Rejected';
         WrongSymbolFoundErr: Label 'Wrong symbol found';
+        CustomerAddressLbl: Label 'Test Street 1', Locked = true;
 
     [Test]
     [Scope('OnPrem')]
@@ -963,6 +964,44 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         XMLReadHelper.VerifyAttributeValue('//ns:Document', 'xmlns', NameSpace);
     end;
 
+    [Test]
+    [HandlerFunctions('ProposalLineConfirmHandler,ProposalProcessedMsgHandler')]
+    procedure VerifyStructuredDebtorAddressInDirectDebitExport()
+    var
+        BankAccount: Record "Bank Account";
+        Customer: Record Customer;
+        DirectDebitMandate: Record "SEPA Direct Debit Mandate";
+        PaymentHistory: Record "Payment History";
+        PaymentHistoryLine: Record "Payment History Line";
+        dbtrPstlAdrPrefix: Text;
+    begin
+        // [SCENARIO 642551] Direct Debit export (report 11000015) writes the debtor address as structured elements (StrtNm, PstCd, TwnNm).
+        Initialize();
+
+        // [GIVEN] SEPA setup with a customer bank account that has address, post code and city.
+        SetUpSEPA(BankAccount, Customer, DirectDebitMandate);
+
+        // [GIVEN] Posted sales invoice and processed proposal.
+        CreateAndPostSalesInvoice(Customer."No.", false);
+        GetEntries(BankAccount."No.");
+        ProcessProposals(BankAccount."No.");
+
+        // [WHEN] Export the SEPA Direct Debit file.
+        ExportSEPAFile(BankAccount."No.");
+
+        // [THEN] The debtor postal address is exported as structured StrtNm, PstCd and TwnNm nodes (not a single AdrLine).
+        PaymentHistoryLine.SetRange("Our Bank", BankAccount."No.");
+        PaymentHistoryLine.FindFirst();
+
+        FindPaymentHistory(BankAccount."No.", PaymentHistory);
+        dbtrPstlAdrPrefix := '//ns:Document/ns:CstmrDrctDbtInitn/ns:PmtInf/ns:DrctDbtTxInf/ns:Dbtr/ns:PstlAdr';
+        XMLReadHelper.Initialize(PaymentHistory."File on Disk", NameSpace);
+        XMLReadHelper.VerifyNodeCountByXPath(dbtrPstlAdrPrefix + '/ns:AdrLine', 0);
+        XMLReadHelper.VerifyNodeValueByXPath(dbtrPstlAdrPrefix + '/ns:StrtNm', PaymentHistoryLine."Account Holder Address");
+        XMLReadHelper.VerifyNodeValueByXPath(dbtrPstlAdrPrefix + '/ns:PstCd', PaymentHistoryLine."Account Holder Post Code");
+        XMLReadHelper.VerifyNodeValueByXPath(dbtrPstlAdrPrefix + '/ns:TwnNm', PaymentHistoryLine."Account Holder City");
+    end;
+
     local procedure Initialize()
     var
         PurchasesPayablesSetup: Record "Purchases & Payables Setup";
@@ -1107,6 +1146,9 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         PostCode: Record "Post Code";
     begin
         LibrarySales.CreateCustomer(Customer);
+        Customer.Validate(Address, CopyStr(CustomerAddressLbl, 1, MaxStrLen(Customer.Address)));
+        Customer.Modify(true);
+
         CustomerBankAccount.Init();
         CustomerBankAccount.Validate(Code, BankAccount.Name);
         CustomerBankAccount.Validate("Customer No.", Customer."No.");
@@ -1625,6 +1667,9 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         DirectDebitMandate: Record "SEPA Direct Debit Mandate";
         PaymentHistoryLine: Record "Payment History Line";
         pmtInfPrefix: Text[50];
+        StreetName: Text[70];
+        PostalCode: Text[16];
+        TownName: Text[35];
     begin
         CompanyInfo.Get();
         GLSetup.Get();
@@ -1654,8 +1699,10 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         BankAcc.Get(PaymentHistoryLine."Our Bank");
         XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:Cdtr/ns:Nm',
           '+' + CopyStr(BankAcc."Account Holder Name", 2)); // starts with '&'
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:Cdtr/ns:PstlAdr',
+        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:Cdtr/ns:PstlAdr/ns:StrtNm',
           '.' + CopyStr(BankAcc."Account Holder Address", 2)); // starts with '@'
+        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:Cdtr/ns:PstlAdr/ns:PstCd', BankAcc."Account Holder Post Code");
+        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:Cdtr/ns:PstlAdr/ns:TwnNm', BankAcc."Account Holder City");
 
         // CdtrAcct
         XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:CdtrAcct/ns:Id/ns:IBAN',
@@ -1665,11 +1712,13 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
         XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:CdtrAgt/ns:FinInstnId/ns:BICFI',
           CopyStr(BankAcc."SWIFT Code", 1, 11));
 
-        // UltmtCdtr
+        // UltmtCdtr - structured postal address
         XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:UltmtCdtr/ns:Nm',
           CompanyInfo.Name);
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:UltmtCdtr/ns:PstlAdr',
-          CompanyInfo.Address);
+        GetCompanyAddress(StreetName, PostalCode, TownName);
+        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:UltmtCdtr/ns:PstlAdr/ns:StrtNm', StreetName);
+        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:UltmtCdtr/ns:PstlAdr/ns:PstCd', PostalCode);
+        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:UltmtCdtr/ns:PstlAdr/ns:TwnNm', TownName);
         XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:ChrgBr[1]', 'SLEV');
 
         // CdtrSchmeId
@@ -1701,7 +1750,9 @@ codeunit 144104 "Test SEPA PAIN 008.001.08"
           DelChr(CopyStr(PaymentHistoryLine.IBAN, 1, 34)));
 
         XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:UltmtDbtr/ns:Nm', Customer.Name);
-        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:UltmtDbtr/ns:PstlAdr', Customer.Address);
+        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:UltmtDbtr/ns:PstlAdr/ns:StrtNm', CustomerAddressLbl);
+        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:UltmtDbtr/ns:PstlAdr/ns:PstCd', Customer."Post Code");
+        XMLReadHelper.VerifyNodeValueByXPath(pmtInfPrefix + '/ns:DrctDbtTxInf/ns:UltmtDbtr/ns:PstlAdr/ns:TwnNm', Customer.City);
 
         XMLReadHelper.VerifyNodeValue('//ns:Ustrd', GetUnstructiredRemittanceInfo(PaymentHistoryLine));
     end;
