@@ -10,31 +10,31 @@ using Microsoft.Sales.Receivables;
 
 codeunit 7000094 "CRT Gen. Journal Line"
 {
-    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", OnLookUpAppliesToDocCustOnAfterUpdateDocumentTypeAndAppliesTo, '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", OnLookUpAppliesToDocCustOnAfterUpdateDocumentTypeAndAppliesTo, '', true, false)]
     local procedure OnLookUpAppliesToDocCustOnAfterUpdateDocumentTypeAndAppliesTo(var GenJournalLine: Record "Gen. Journal Line"; CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
         GenJournalLine."Applies-to Bill No." := CustLedgerEntry."Bill No.";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", OnLookUpAppliesToDocVendOnAfterUpdateDocumentTypeAndAppliesTo, '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", OnLookUpAppliesToDocVendOnAfterUpdateDocumentTypeAndAppliesTo, '', true, false)]
     local procedure OnLookUpAppliesToDocVendOnAfterUpdateDocumentTypeAndAppliesTo(var GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
         GenJournalLine."Applies-to Bill No." := VendorLedgerEntry."Bill No.";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", OnFindFirstCustLedgEntryWithAppliesToDocNoOnAfterSetFilters, '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", OnFindFirstCustLedgEntryWithAppliesToDocNoOnAfterSetFilters, '', true, false)]
     local procedure OnFindFirstCustLedgEntryWithAppliesToDocNoOnAfterSetFilters(var GenJournalLine: Record "Gen. Journal Line"; AccNo: Code[20]; var CustLedgEntry: Record "Cust. Ledger Entry")
     begin
         CustLedgEntry.SetRange("Bill No.", GenJournalLine."Applies-to Bill No.");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", OnFindFirstVendLedgEntryWithAppliesToDocNoOnAfterSetFilters, '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", OnFindFirstVendLedgEntryWithAppliesToDocNoOnAfterSetFilters, '', true, false)]
     local procedure OnFindFirstVendLedgEntryWithAppliesToDocNoOnAfterSetFilters(var GenJournalLine: Record "Gen. Journal Line"; AccNo: Code[20]; var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
         VendorLedgerEntry.SetRange("Bill No.", GenJournalLine."Applies-to Bill No.");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", OnValidatePaymentTermsCodeOnBeforeCalculatePmtDiscountDate, '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", OnValidatePaymentTermsCodeOnBeforeCalculatePmtDiscountDate, '', true, false)]
     local procedure OnValidatePaymentTermsCodeOnBeforeCalculatePmtDiscountDate(var GenJournalLine: Record "Gen. Journal Line"; PaymentTerms: Record "Payment Terms"; var IsHandled: Boolean)
     begin
         case GenJournalLine."Document Type" of
@@ -45,7 +45,7 @@ codeunit 7000094 "CRT Gen. Journal Line"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", OnValidatePaymentTermsCodeOnElseCase, '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Line", OnValidatePaymentTermsCodeOnElseCase, '', true, false)]
     local procedure OnValidatePaymentTermsCodeOnElseCase(var Rec: Record "Gen. Journal Line"; var PaymentTerms: Record "Payment Terms"; var IsHandled: Boolean)
     begin
         if not (Rec."Document Type" = Rec."Document Type"::Bill) then

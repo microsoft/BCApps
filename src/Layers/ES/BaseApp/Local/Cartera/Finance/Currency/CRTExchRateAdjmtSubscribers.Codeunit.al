@@ -23,7 +23,7 @@ using Microsoft.Sales.Receivables;
 codeunit 7000097 "CRT ExchRateAdjmtSubscribers"
 {
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Exch. Rate Adjmt. Process", 'OnBeforeGetLocalCustAccountNo', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Exch. Rate Adjmt. Process", 'OnBeforeGetLocalCustAccountNo', '', true, false)]
     local procedure GetLocalCustAccountNo(CustLedgerEntry: Record "Cust. Ledger Entry"; var AccountNo: Code[20]; var IsHandled: Boolean)
     var
         CustPostingGr: Record "Customer Posting Group";
@@ -77,7 +77,7 @@ codeunit 7000097 "CRT ExchRateAdjmtSubscribers"
         IsHandled := AccountNo <> '';
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Exch. Rate Adjmt. Process", 'OnAdjustCustomerLedgerEntryOnAfterPrepareAdjust', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Exch. Rate Adjmt. Process", 'OnAdjustCustomerLedgerEntryOnAfterPrepareAdjust', '', true, false)]
     local procedure CreateLocalCustDocuments(var CustLedgerEntry: Record "Cust. Ledger Entry"; CurrAdjAmount: Decimal; OldAdjAmount: Decimal)
     begin
         CreateCustCarteraDocuments(CustLedgerEntry, CurrAdjAmount, OldAdjAmount);
@@ -120,7 +120,7 @@ codeunit 7000097 "CRT ExchRateAdjmtSubscribers"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Exch. Rate Adjmt. Process", 'OnBeforeGetLocalVendAccountNo', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Exch. Rate Adjmt. Process", 'OnBeforeGetLocalVendAccountNo', '', true, false)]
     local procedure GetLocalVendAccountNo(VendLedgerEntry: Record "Vendor Ledger Entry"; var AccountNo: Code[20]; var IsHandled: Boolean)
     var
         VendPostingGr: Record "Vendor Posting Group";
@@ -151,7 +151,7 @@ codeunit 7000097 "CRT ExchRateAdjmtSubscribers"
         IsHandled := AccountNo <> '';
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Exch. Rate Adjmt. Process", 'OnAdjustVendorLedgerEntryOnAfterPrepareAdjust', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Exch. Rate Adjmt. Process", 'OnAdjustVendorLedgerEntryOnAfterPrepareAdjust', '', true, false)]
     local procedure CreateLocalVendDocuments(var VendorLedgerEntry: Record "Vendor Ledger Entry"; CurrAdjAmount: Decimal; OldAdjAmount: Decimal)
     begin
         CreateVendCarteraDocuments(VendorLedgerEntry, CurrAdjAmount, OldAdjAmount);

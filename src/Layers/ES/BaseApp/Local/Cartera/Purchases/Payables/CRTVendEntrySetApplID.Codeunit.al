@@ -12,7 +12,7 @@ codeunit 7000107 "CRTVendEntrySetApplID"
         CannotBeAppliedErr: Label '%1 cannot be applied, since it is included in a bill group.', Comment = '%1 = Description';
         CannotBeAppliedTryAgainErr: Label '%1 cannot be applied, since it is included in a bill group. Remove it from its bill group and try again.', Comment = '%1 = Description';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Vend. Entry-SetAppl.ID", 'OnBeforeUpdateVendLedgerEntry', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Vend. Entry-SetAppl.ID", 'OnBeforeUpdateVendLedgerEntry', '', true, false)]
     local procedure OnBeforeUpdateVendLedgerEntry(var TempVendLedgEntry: Record "Vendor Ledger Entry" temporary; ApplyingVendLedgEntry: Record "Vendor Ledger Entry"; AppliesToID: Code[50]; VendEntryApplID: Code[50]; var IsHandled: Boolean)
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";

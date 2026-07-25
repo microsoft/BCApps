@@ -88,49 +88,49 @@ codeunit 7000115 "CRTNavigateCartera"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindCustEntriesOnAfterSetFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindCustEntriesOnAfterSetFilters', '', true, false)]
     local procedure OnFindCustEntriesOnAfterSetFilters(var CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
         if IsCarteraFilterActive() then
             CustLedgerEntry.SetFilter("Bill No.", CarteraDocNoFilter);
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindCustEntriesOnAfterDtldCustLedgEntriesSetFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindCustEntriesOnAfterDtldCustLedgEntriesSetFilters', '', true, false)]
     local procedure OnFindCustEntriesOnAfterDtldCustLedgEntriesSetFilters(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     begin
         if IsCarteraFilterActive() then
             DetailedCustLedgEntry.SetFilter("Bill No.", CarteraDocNoFilter);
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindVendEntriesOnAfterSetFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindVendEntriesOnAfterSetFilters', '', true, false)]
     local procedure OnFindVendEntriesOnAfterSetFilters(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     begin
         if IsCarteraFilterActive() then
             VendorLedgerEntry.SetFilter("Bill No.", CarteraDocNoFilter);
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindVendEntriesOnAfterDtldVendLedgEntriesSetFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindVendEntriesOnAfterDtldVendLedgEntriesSetFilters', '', true, false)]
     local procedure OnFindVendEntriesOnAfterDtldVendLedgEntriesSetFilters(var DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry")
     begin
         if IsCarteraFilterActive() then
             DetailedVendorLedgEntry.SetFilter("Bill No.", CarteraDocNoFilter);
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindBankEntriesOnAfterSetFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindBankEntriesOnAfterSetFilters', '', true, false)]
     local procedure OnFindBankEntriesOnAfterSetFilters(var BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
     begin
         if IsCarteraFilterActive() then
             BankAccountLedgerEntry.SetFilter("Bill No.", CarteraDocNoFilter);
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindGLEntriesOnAfterSetFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindGLEntriesOnAfterSetFilters', '', true, false)]
     local procedure OnFindGLEntriesOnAfterSetFilters(var GLEntry: Record "G/L Entry")
     begin
         if IsCarteraFilterActive() then
             GLEntry.SetFilter("Bill No.", CarteraDocNoFilter);
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnAfterFindLedgerEntries', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnAfterFindLedgerEntries', '', true, false)]
     local procedure OnAfterFindLedgerEntries(var DocumentEntry: Record "Document Entry"; DocNoFilter: Text; PostingDateFilter: Text)
     begin
         if HasDocumentEntry(DocumentEntry, Database::"Cust. Ledger Entry") then
@@ -154,7 +154,7 @@ codeunit 7000115 "CRTNavigateCartera"
         RemoveDocumentEntry(DocumentEntry, Database::"Job Ledger Entry");
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnAfterFindPostedDocuments', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnAfterFindPostedDocuments', '', true, false)]
     local procedure OnAfterFindPostedDocuments(var DocNoFilter: Text; var PostingDateFilter: Text; var DocumentEntry: Record "Document Entry")
     var
         PostedBillGr: Record "Posted Bill Group";
@@ -204,7 +204,7 @@ codeunit 7000115 "CRTNavigateCartera"
         RemoveDocumentEntry(DocumentEntry, Database::"Purch. Inv. Header");
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindExtRecordsOnBeforeFormUpdate', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnFindExtRecordsOnBeforeFormUpdate', '', true, false)]
     local procedure OnFindExtRecordsOnBeforeFormUpdate(var Rec: Record "Document Entry"; var SalesInvHeader: Record "Sales Invoice Header"; var SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
         if not IsCarteraFilterActive() then
@@ -214,7 +214,7 @@ codeunit 7000115 "CRTNavigateCartera"
         RemoveDocumentEntry(Rec, Database::"Sales Cr.Memo Header");
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnBeforeShowRecords', '', false, false)]
+    [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnBeforeShowRecords', '', true, false)]
     local procedure OnBeforeShowRecords(var TempDocumentEntry: Record "Document Entry" temporary; DocNoFilter: Text; PostingDateFilter: Text; ItemTrackingSearch: Boolean; ContactNo: Code[250]; ExtDocNo: Code[250]; var IsHandled: Boolean)
     var
         CarteraDoc: Record "Cartera Doc.";

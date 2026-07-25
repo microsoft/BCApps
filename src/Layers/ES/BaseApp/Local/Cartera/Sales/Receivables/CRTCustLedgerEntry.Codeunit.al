@@ -10,7 +10,7 @@ using Microsoft.Finance.ReceivablesPayables;
 codeunit 7000088 "CRT Cust. Ledger Entry"
 {
 
-    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", OnAfterValidateEvent, 'Due Date', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", OnAfterValidateEvent, 'Due Date', true, false)]
     local procedure DueDateOnAfterValidate(var Rec: Record "Cust. Ledger Entry"; var xRec: Record "Cust. Ledger Entry"; CurrFieldNo: Integer)
     var
         DocumentMisc: Codeunit "Document-Misc";
@@ -19,7 +19,7 @@ codeunit 7000088 "CRT Cust. Ledger Entry"
             DocumentMisc.UpdateReceivableDueDate(Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", OnAfterValidateEvent, 'Payment Method Code', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", OnAfterValidateEvent, 'Payment Method Code', true, false)]
     local procedure PaymentMethodCodeOnAfterValidate(var Rec: Record "Cust. Ledger Entry"; var xRec: Record "Cust. Ledger Entry"; CurrFieldNo: Integer)
     var
         CarteraDoc: Record "Cartera Doc.";
@@ -31,26 +31,26 @@ codeunit 7000088 "CRT Cust. Ledger Entry"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", OnAfterCopyCustLedgerEntryFromGenJnlLine, '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", OnAfterCopyCustLedgerEntryFromGenJnlLine, '', true, false)]
     local procedure OnAfterCopyCustLedgerEntryFromGenJnlLine(var CustLedgerEntry: Record "Cust. Ledger Entry"; GenJournalLine: Record "Gen. Journal Line")
     begin
         CustLedgerEntry."Bill No." := GenJournalLine."Bill No.";
         CustLedgerEntry."Applies-to Bill No." := GenJournalLine."Applies-to Bill No.";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", OnSetApplyToFiltersOnBeforeSetFilters, '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", OnSetApplyToFiltersOnBeforeSetFilters, '', true, false)]
     local procedure OnSetApplyToFiltersOnBeforeSetFilters(var Rec: Record "Cust. Ledger Entry")
     begin
         Rec.SetFilter("Document Situation", '<>%1', Rec."Document Situation"::"Posted BG/PO");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", OnAfterSetAppliesToDocFilters, '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", OnAfterSetAppliesToDocFilters, '', true, false)]
     local procedure OnAfterSetAppliesToDocFilters(var Rec: Record "Cust. Ledger Entry"; var GenJnlLine: Record "Gen. Journal Line")
     begin
         Rec.SetRange("Bill No.", GenJnlLine."Applies-to Bill No.");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", OnAfterClearDocumentFilters, '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Cust. Ledger Entry", OnAfterClearDocumentFilters, '', true, false)]
     local procedure OnAfterClearDocumentFilters(var Rec: Record "Cust. Ledger Entry")
     begin
         Rec.SetRange("Bill No.");

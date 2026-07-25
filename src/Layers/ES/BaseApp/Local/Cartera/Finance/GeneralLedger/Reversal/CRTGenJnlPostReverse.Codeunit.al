@@ -9,14 +9,14 @@ using Microsoft.Sales.Receivables;
 
 codeunit 7000099 "CRT GenJnl Post Reverse"
 {
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Reverse", 'OnReverseCustLedgEntryOnBeforeInsertCustLedgEntry', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Reverse", 'OnReverseCustLedgEntryOnBeforeInsertCustLedgEntry', '', true, false)]
     local procedure OnReverseCustLedgEntryOnBeforeInsertCustLedgEntry(var NewCustLedgerEntry: Record "Cust. Ledger Entry"; CustLedgerEntry: Record "Cust. Ledger Entry")
     begin
         NewCustLedgerEntry."Amount (LCY) stats." := -NewCustLedgerEntry."Amount (LCY) stats.";
         NewCustLedgerEntry."Remaining Amount (LCY) stats." := -NewCustLedgerEntry."Remaining Amount (LCY) stats.";
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Reverse", 'OnReverseVendLedgEntryOnBeforeInsertVendLedgEntry', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Reverse", 'OnReverseVendLedgEntryOnBeforeInsertVendLedgEntry', '', true, false)]
     local procedure OnReverseVendLedgEntryOnBeforeInsertVendLedgEntry(var NewVendLedgEntry: Record "Vendor Ledger Entry"; VendLedgEntry: Record "Vendor Ledger Entry")
     begin
         NewVendLedgEntry."Amount (LCY) stats." := -NewVendLedgEntry."Amount (LCY) stats.";

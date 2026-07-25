@@ -16,7 +16,7 @@ codeunit 7000112 "CRTCustEntryApplyPostedEnt"
         CarteraApplyPositionErr: Label 'To apply a set of entries containing bills, rejected invoices or invoices to cartera, the cursor should be positioned on an entry different than bill type, rejected invoice or invoices to cartera.';
         UnapplyBlankedDocTypeErr: Label 'You cannot unapply the entries because one entry has a blank document type.';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CustEntry-Apply Posted Entries", 'OnBeforeApply', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CustEntry-Apply Posted Entries", 'OnBeforeApply', '', true, false)]
     local procedure OnBeforeApply(var CustLedgerEntry: Record "Cust. Ledger Entry"; var DocumentNo: Code[20]; var ApplicationDate: Date)
     begin
         if (CustLedgerEntry."Document Type" = CustLedgerEntry."Document Type"::Bill) or
@@ -30,7 +30,7 @@ codeunit 7000112 "CRTCustEntryApplyPostedEnt"
             Error(CarteraApplyPositionErr);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CustEntry-Apply Posted Entries", 'OnBeforePostApplyCustLedgEntry', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CustEntry-Apply Posted Entries", 'OnBeforePostApplyCustLedgEntry', '', true, false)]
     local procedure OnBeforePostApplyCustLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; CustLedgerEntry: Record "Cust. Ledger Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line"; ApplyUnapplyParameters: Record "Apply Unapply Parameters")
     begin
         if CustLedgerEntry."Document Type" <> CustLedgerEntry."Document Type"::Bill then
@@ -41,14 +41,14 @@ codeunit 7000112 "CRTCustEntryApplyPostedEnt"
         GenJnlPostLine.SetIDBillSettlement(IsToSetIDBillSettlement(CustLedgerEntry));
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CustEntry-Apply Posted Entries", 'OnAfterCheckInitialDocumentType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CustEntry-Apply Posted Entries", 'OnAfterCheckInitialDocumentType', '', true, false)]
     local procedure OnAfterCheckInitialDocumentType(var DtldCustLedgEntry: Record "Detailed Cust. Ledg. Entry")
     begin
         if DtldCustLedgEntry."Initial Document Type" = DtldCustLedgEntry."Initial Document Type"::" " then
             Error(UnapplyBlankedDocTypeErr);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CustEntry-Apply Posted Entries", 'OnPostUnApplyCustomerCommitOnAfterSetFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CustEntry-Apply Posted Entries", 'OnPostUnApplyCustomerCommitOnAfterSetFilters', '', true, false)]
     local procedure OnPostUnApplyCustomerCommitOnAfterSetFilters(var DetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry"; DetailedCustLedgEntry2: Record "Detailed Cust. Ledg. Entry")
     begin
         if DetailedCustLedgEntry.FindSet() then

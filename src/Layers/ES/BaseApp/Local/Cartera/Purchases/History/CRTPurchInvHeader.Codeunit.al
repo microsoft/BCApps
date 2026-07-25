@@ -10,7 +10,7 @@ codeunit 7000106 "CRT Purch. Inv. Header"
 {
     Access = Internal;
 
-    [EventSubscriber(ObjectType::Table, Database::"Purch. Inv. Header", 'OnLookupAppliesToDocNoOnAfterSetFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Purch. Inv. Header", 'OnLookupAppliesToDocNoOnAfterSetFilters', '', true, false)]
     local procedure OnLookupAppliesToDocNoOnAfterSetFilters(var VendLedgEntry: Record "Vendor Ledger Entry"; PurchInvHeader: Record "Purch. Inv. Header")
     begin
         VendLedgEntry.SetRange("Bill No.", PurchInvHeader."Applies-to Bill No.");

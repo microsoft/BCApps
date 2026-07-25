@@ -10,7 +10,7 @@ codeunit 7000101 "CRT Purch. Cr. Memo Hdr."
 {
     Access = Internal;
 
-    [EventSubscriber(ObjectType::Table, Database::"Purch. Cr. Memo Hdr.", 'OnLookupAppliesToDocNoOnAfterSetFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Purch. Cr. Memo Hdr.", 'OnLookupAppliesToDocNoOnAfterSetFilters', '', true, false)]
     local procedure OnLookupAppliesToDocNoOnAfterSetFilters(var VendLedgEntry: Record "Vendor Ledger Entry"; PurchCrMemoHeader: Record "Purch. Cr. Memo Hdr.")
     begin
         VendLedgEntry.SetRange("Bill No.", PurchCrMemoHeader."Applies-to Bill No.");

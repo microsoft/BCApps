@@ -12,7 +12,7 @@ using Microsoft.Foundation.AuditCodes;
 /// </summary>
 codeunit 7000195 "CRT Gen. Jnl. Template Subs"
 {
-    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Template", 'OnAfterValidateType', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Gen. Journal Template", 'OnAfterValidateType', '', true, false)]
     local procedure OnAfterValidateType(var GenJournalTemplate: Record "Gen. Journal Template"; SourceCodeSetup: Record "Source Code Setup")
     begin
         if GenJournalTemplate.Type = "Gen. Journal Template Type"::Cartera then begin

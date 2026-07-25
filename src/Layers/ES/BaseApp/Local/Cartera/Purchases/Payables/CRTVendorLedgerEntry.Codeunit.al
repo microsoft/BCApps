@@ -10,7 +10,7 @@ using Microsoft.Foundation.PaymentTerms;
 
 codeunit 7000086 "CRT Vendor Ledger Entry"
 {
-    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", OnAfterValidateEvent, 'Due Date', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", OnAfterValidateEvent, 'Due Date', true, false)]
     local procedure DueDateOnAfterValidate(var Rec: Record "Vendor Ledger Entry"; var xRec: Record "Vendor Ledger Entry"; CurrFieldNo: Integer)
     var
         PaymentTerms: Record "Payment Terms";
@@ -23,13 +23,13 @@ codeunit 7000086 "CRT Vendor Ledger Entry"
             DocMisc.UpdatePayableDueDate(Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", OnAfterValidateEvent, 'Amount to Apply', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", OnAfterValidateEvent, 'Amount to Apply', true, false)]
     local procedure AmountToApplyOnAfterValidate(var Rec: Record "Vendor Ledger Entry"; var xRec: Record "Vendor Ledger Entry"; CurrFieldNo: Integer)
     begin
         Rec.CheckBillSituation();
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", OnAfterValidateEvent, 'Payment Method Code', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", OnAfterValidateEvent, 'Payment Method Code', true, false)]
     local procedure PaymentMethodCodeOnAfterValidate(var Rec: Record "Vendor Ledger Entry"; var xRec: Record "Vendor Ledger Entry"; CurrFieldNo: Integer)
     var
         CarteraDoc: Record "Cartera Doc.";
@@ -41,14 +41,14 @@ codeunit 7000086 "CRT Vendor Ledger Entry"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", OnAfterCopyVendLedgerEntryFromGenJnlLine, '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", OnAfterCopyVendLedgerEntryFromGenJnlLine, '', true, false)]
     local procedure OnAfterCopyVendLedgerEntryFromGenJnlLine(var VendorLedgerEntry: Record "Vendor Ledger Entry"; GenJournalLine: Record "Gen. Journal Line")
     begin
         VendorLedgerEntry."Bill No." := GenJournalLine."Bill No.";
         VendorLedgerEntry."Applies-to Bill No." := GenJournalLine."Applies-to Bill No.";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", OnAfterCopyVendLedgerEntryFromCVLedgEntryBuffer, '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", OnAfterCopyVendLedgerEntryFromCVLedgEntryBuffer, '', true, false)]
     local procedure OnAfterCopyVendLedgerEntryFromCVLedgEntryBuffer(var VendorLedgerEntry: Record "Vendor Ledger Entry"; CVLedgerEntryBuffer: Record "CV Ledger Entry Buffer")
     begin
         VendorLedgerEntry."Bill No." := CVLedgerEntryBuffer."Bill No.";
@@ -57,13 +57,13 @@ codeunit 7000086 "CRT Vendor Ledger Entry"
         VendorLedgerEntry."Document Status" := CVLedgerEntryBuffer."Document Status";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", OnAfterSetAppliesToDocFilters, '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", OnAfterSetAppliesToDocFilters, '', true, false)]
     local procedure OnAfterSetAppliesToDocFilters(var Rec: Record "Vendor Ledger Entry"; var GenJnlLine: Record "Gen. Journal Line")
     begin
         Rec.SetRange("Bill No.", GenJnlLine."Applies-to Bill No.");
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", OnAfterClearDocumentFilters, '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Vendor Ledger Entry", OnAfterClearDocumentFilters, '', true, false)]
     local procedure OnAfterClearDocumentFilters(var Rec: Record "Vendor Ledger Entry")
     begin
         Rec.SetRange("Bill No.");

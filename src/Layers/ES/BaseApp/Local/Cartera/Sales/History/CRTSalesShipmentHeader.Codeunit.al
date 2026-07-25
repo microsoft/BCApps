@@ -10,7 +10,7 @@ codeunit 7000105 "CRT Sales Shipment Header"
 {
     Access = Internal;
 
-    [EventSubscriber(ObjectType::Table, Database::"Sales Shipment Header", 'OnLookupAppliesToDocNoOnAfterSetFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Sales Shipment Header", 'OnLookupAppliesToDocNoOnAfterSetFilters', '', true, false)]
     local procedure OnLookupAppliesToDocNoOnAfterSetFilters(var CustLedgEntry: Record "Cust. Ledger Entry"; SalesShipmentHeader: Record "Sales Shipment Header")
     begin
         CustLedgEntry.SetRange("Bill No.", SalesShipmentHeader."Applies-to Bill No.");

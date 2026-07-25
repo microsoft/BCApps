@@ -13,7 +13,7 @@ codeunit 7000098 "CRT Reversal Entry"
         EntryCannotBeReversedErr: Label 'The entry cannot be reversed';
         CannotReverseCarteraInvoiceErr: Label 'You can not reverse entries that sent invoices to Cartera.';
 
-    [EventSubscriber(ObjectType::Table, Database::"Reversal Entry", 'OnBeforeCheckGLAcc', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Reversal Entry", 'OnBeforeCheckGLAcc', '', true, false)]
     local procedure OnBeforeCheckGLAcc(var GLEntry: Record "G/L Entry")
     var
         GLRegDoc: Codeunit "G/L Reg.-Docs.";

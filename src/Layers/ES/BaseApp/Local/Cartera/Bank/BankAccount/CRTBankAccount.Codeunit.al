@@ -16,13 +16,13 @@ codeunit 7000080 "CRT Bank Account"
         CannotChangeDueToPostedBillGroupsErr: Label 'You cannot change %1 because there are one or more posted bill groups for this bank account.', Comment = '%1 = Field caption';
         CannotChangeDueToPostedPmtOrdersErr: Label 'You cannot change %1 because there are one or more posted payment orders for this bank account.', Comment = '%1 = Field caption';
 
-    [EventSubscriber(ObjectType::Table, Database::"Bank Account", OnAfterValidateEvent, 'No.', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Bank Account", OnAfterValidateEvent, 'No.', true, false)]
     local procedure NoOnAfterValidate(var Rec: Record "Bank Account"; var xRec: Record "Bank Account"; CurrFieldNo: Integer)
     begin
         Rec."Operation Fees Code" := Rec."No.";
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Bank Account", OnAfterValidateEvent, 'Currency Code', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Bank Account", OnAfterValidateEvent, 'Currency Code', true, false)]
     local procedure CurrencyCodeOnAfterValidate(var Rec: Record "Bank Account"; var xRec: Record "Bank Account"; CurrFieldNo: Integer)
     var
         PostedBillGr: Record "Posted Bill Group";
@@ -40,7 +40,7 @@ codeunit 7000080 "CRT Bank Account"
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Bank Account", OnAfterDeleteEvent, '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Bank Account", OnAfterDeleteEvent, '', true, false)]
     local procedure CurrencyCodeOnAfterDelete(var Rec: Record "Bank Account")
     var
         Suffix: Record Suffix;

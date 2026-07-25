@@ -10,7 +10,7 @@ codeunit 7000103 "CRT Sales Cr. Memo Header"
 {
     Access = Internal;
 
-    [EventSubscriber(ObjectType::Table, Database::"Sales Cr.Memo Header", 'OnLookupAppliesToDocNoOnAfterSetFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Table, Database::"Sales Cr.Memo Header", 'OnLookupAppliesToDocNoOnAfterSetFilters', '', true, false)]
     local procedure OnLookupAppliesToDocNoOnAfterSetFilters(var CustLedgEntry: Record "Cust. Ledger Entry"; SalesCrMemoHeader: Record "Sales Cr.Memo Header")
     begin
         CustLedgEntry.SetRange("Bill No.", SalesCrMemoHeader."Applies-to Bill No.");

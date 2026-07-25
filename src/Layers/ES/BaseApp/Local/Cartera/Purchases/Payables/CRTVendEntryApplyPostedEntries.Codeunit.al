@@ -15,7 +15,7 @@ codeunit 7000188 "CRTVendEntryApplyPostedEntries"
         CarteraApplyPositionErr: Label 'To apply a set of entries containing bills, the cursor should be positioned on an entry different than bill type or Invoice to cartera type.';
         UnapplyBlankedDocTypeErr: Label 'You cannot unapply the entries because one entry has a blank document type.';
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VendEntry-Apply Posted Entries", 'OnBeforeApply', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VendEntry-Apply Posted Entries", 'OnBeforeApply', '', true, false)]
     local procedure OnBeforeApply(var VendorLedgerEntry: Record "Vendor Ledger Entry"; var DocumentNo: Code[20]; var ApplicationDate: Date)
     begin
         if (VendorLedgerEntry."Document Type" = VendorLedgerEntry."Document Type"::Bill) or
@@ -26,7 +26,7 @@ codeunit 7000188 "CRTVendEntryApplyPostedEntries"
             Error(CarteraApplyPositionErr);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VendEntry-Apply Posted Entries", 'OnBeforePostApplyVendLedgEntry', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VendEntry-Apply Posted Entries", 'OnBeforePostApplyVendLedgEntry', '', true, false)]
     local procedure OnBeforePostApplyVendLedgEntry(var GenJournalLine: Record "Gen. Journal Line"; VendorLedgerEntry: Record "Vendor Ledger Entry"; var GenJnlPostLine: Codeunit "Gen. Jnl.-Post Line")
     begin
         if VendorLedgerEntry."Document Type" <> VendorLedgerEntry."Document Type"::Bill then
@@ -38,14 +38,14 @@ codeunit 7000188 "CRTVendEntryApplyPostedEntries"
         GenJnlPostLine.SetIDInvoiceSettlement(BeAppliedToInvoice(VendorLedgerEntry));
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VendEntry-Apply Posted Entries", 'OnAfterCheckInitialDocumentType', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VendEntry-Apply Posted Entries", 'OnAfterCheckInitialDocumentType', '', true, false)]
     local procedure OnAfterCheckInitialDocumentType(var DtldVendLedgEntry: Record "Detailed Vendor Ledg. Entry")
     begin
         if DtldVendLedgEntry."Initial Document Type" = DtldVendLedgEntry."Initial Document Type"::" " then
             Error(UnapplyBlankedDocTypeErr);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VendEntry-Apply Posted Entries", 'OnPostUnApplyVendorOnAfterDtldVendLedgEntrySetFilters', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"VendEntry-Apply Posted Entries", 'OnPostUnApplyVendorOnAfterDtldVendLedgEntrySetFilters', '', true, false)]
     local procedure OnPostUnApplyVendorOnAfterDtldVendLedgEntrySetFilters(var DetailedVendorLedgEntry: Record "Detailed Vendor Ledg. Entry"; DetailedVendorLedgEntry2: Record "Detailed Vendor Ledg. Entry")
     begin
         if DetailedVendorLedgEntry.FindSet() then
