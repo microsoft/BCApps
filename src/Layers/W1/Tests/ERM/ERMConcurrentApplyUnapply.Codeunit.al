@@ -658,7 +658,6 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
 
         if IsInitialized then begin
             EnableConcurrentPosting(true);
-            Commit();
             exit;
         end;
 
@@ -678,13 +677,11 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
         LibraryERMCountryData.UpdateJournalTemplMandatory(false);
 
         IsInitialized := true;
-        Commit();
 
         LibrarySetupStorage.Save(DATABASE::"General Ledger Setup");
         LibrarySetupStorage.Save(DATABASE::"Source Code Setup");
 
         EnableConcurrentPosting(true);
-        Commit();
 
         LibraryTestInitialize.OnAfterTestSuiteInitialize(Codeunit::"ERM Concurrent Apply Unapply");
     end;
@@ -826,10 +823,9 @@ codeunit 134081 "ERM Concurrent Apply Unapply"
     var
         EmployeePostingGroup: Record "Employee Posting Group";
     begin
-        EmployeePostingGroup.Init();
-        EmployeePostingGroup.Code := LibraryERM.CreateNoSeriesCode();
-        EmployeePostingGroup."Payables Account" := GLAccountNo;
-        EmployeePostingGroup.Insert(true);
+        LibraryHumanResource.CreateEmployeePostingGroup(EmployeePostingGroup);
+        EmployeePostingGroup.Validate("Payables Account", GLAccountNo);
+        EmployeePostingGroup.Modify(true);
     end;
 
     local procedure CreateEmployeeJournalLine(var GenJournalLine: Record "Gen. Journal Line"; NoOfLine: Integer; EmployeeNo: Code[20]; DocumentType: Enum "Gen. Journal Document Type"; Amount: Decimal)

@@ -48,7 +48,6 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
         // [GIVEN] A balanced Gen. Journal Line
         CreateSimpleGLJournalLine(GenJournalLine);
-        Commit();
 
         // [WHEN] The journal line is posted
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
@@ -62,7 +61,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
         // [THEN] A new G/L Register is created
         GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
-        Assert.IsTrue(GLRegister.FindFirst(), 'A G/L Register should have been created after posting');
+        Assert.IsTrue(not GLRegister.IsEmpty(), 'A G/L Register should have been created after posting');
     end;
 
     [Test]
@@ -89,7 +88,6 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
         // [GIVEN] A balanced Gen. Journal Line
         CreateSimpleGLJournalLine(GenJournalLine);
-        Commit();
 
         // [WHEN] The journal line is posted
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
@@ -103,7 +101,7 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
         // [THEN] A new G/L Register is created
         GLRegister.SetFilter("No.", '>%1', LastGLRegisterNo);
-        Assert.IsTrue(GLRegister.FindFirst(), 'A G/L Register should have been created after posting');
+        Assert.IsTrue(not GLRegister.IsEmpty(), 'A G/L Register should have been created after posting');
     end;
 
     [Test]
@@ -130,26 +128,26 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
         // [GIVEN] A Sales Invoice
         LibrarySales.CreateSalesInvoice(SalesHeader);
-        Commit();
 
         // [WHEN] The Sales Invoice is posted
         LibrarySales.PostSalesDocument(SalesHeader, true, true);
 
         // [THEN] New G/L entries are created
         GLEntry.SetFilter("Entry No.", '>%1', LastGLEntryNo);
-        Assert.IsTrue(GLEntry.FindFirst(), 'G/L entries should have been created after posting the Sales Invoice');
+        Assert.IsTrue(not GLEntry.IsEmpty(), 'G/L entries should have been created after posting the Sales Invoice');
 
         // [THEN] Each new G/L entry has SIFT Bucket No. = Entry No. mod 5
-        repeat
-            Assert.AreEqual(
-                GLEntry."Entry No." mod 5,
-                GLEntry."SIFT Bucket No.",
-                'SIFT Bucket No. must equal Entry No. mod 5 for all new G/L entries');
-        until GLEntry.Next() = 0;
+        if GLEntry.FindSet() then
+            repeat
+                Assert.AreEqual(
+                    GLEntry."Entry No." mod 5,
+                    GLEntry."SIFT Bucket No.",
+                    'SIFT Bucket No. must equal Entry No. mod 5 for all new G/L entries');
+            until GLEntry.Next() = 0;
 
         // [THEN] New Detailed Cust. Ledg. entries are created
         DetailedCustLedgEntry.SetFilter("Entry No.", '>%1', LastDtldEntryNo);
-        Assert.IsTrue(DetailedCustLedgEntry.FindFirst(), 'Detailed Cust. Ledg. entries should have been created');
+        Assert.IsTrue(not DetailedCustLedgEntry.IsEmpty(), 'Detailed Cust. Ledg. entries should have been created');
     end;
 
     [Test]
@@ -176,26 +174,26 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
         // [GIVEN] A Purchase Invoice
         LibraryPurchase.CreatePurchaseInvoice(PurchaseHeader);
-        Commit();
 
         // [WHEN] The Purchase Invoice is posted
         LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
 
         // [THEN] New G/L entries are created
         GLEntry.SetFilter("Entry No.", '>%1', LastGLEntryNo);
-        Assert.IsTrue(GLEntry.FindFirst(), 'G/L entries should have been created after posting the Purchase Invoice');
+        Assert.IsTrue(not GLEntry.IsEmpty(), 'G/L entries should have been created after posting the Purchase Invoice');
 
         // [THEN] Each new G/L entry has SIFT Bucket No. = Entry No. mod 5
-        repeat
-            Assert.AreEqual(
-                GLEntry."Entry No." mod 5,
-                GLEntry."SIFT Bucket No.",
-                'SIFT Bucket No. must equal Entry No. mod 5 for all new G/L entries');
-        until GLEntry.Next() = 0;
+        if GLEntry.FindSet() then
+            repeat
+                Assert.AreEqual(
+                    GLEntry."Entry No." mod 5,
+                    GLEntry."SIFT Bucket No.",
+                    'SIFT Bucket No. must equal Entry No. mod 5 for all new G/L entries');
+            until GLEntry.Next() = 0;
 
         // [THEN] New Detailed Vendor Ledg. entries are created
         DetailedVendorLedgEntry.SetFilter("Entry No.", '>%1', LastDtldEntryNo);
-        Assert.IsTrue(DetailedVendorLedgEntry.FindFirst(), 'Detailed Vendor Ledg. entries should have been created');
+        Assert.IsTrue(not DetailedVendorLedgEntry.IsEmpty(), 'Detailed Vendor Ledg. entries should have been created');
     end;
 
     [Test]
@@ -333,18 +331,17 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
 
         // [GIVEN] A journal line posted to a VAT-enabled account
         CreateVATJournalLine(GenJournalLine, GenJournalBatch);
-        Commit();
 
         // [WHEN] The journal is posted
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
 
         // [THEN] New G/L entries are created
         GLEntry.SetFilter("Entry No.", '>%1', LastGLEntryNo);
-        Assert.IsTrue(GLEntry.FindFirst(), 'G/L entries should have been created');
+        Assert.IsTrue(not GLEntry.IsEmpty(), 'G/L entries should have been created');
 
         // [THEN] New VAT entries are created
         VATEntry.SetFilter("Entry No.", '>%1', LastVATEntryNo);
-        Assert.IsTrue(VATEntry.FindFirst(), 'VAT entries should have been created');
+        Assert.IsTrue(not VATEntry.IsEmpty(), 'VAT entries should have been created');
     end;
 
     [Test]
@@ -380,7 +377,6 @@ codeunit 134080 "ERM Concurrent Gen.Jnl.Posting"
         GenJournalLine.SetRange("Journal Batch Name", GenJournalBatch.Name);
         GenJournalLine.FindFirst(); // Required for ES
         GenJournalLine.ModifyAll("Document No.", GenJournalLine."Document No.");
-        Commit();
 
         // [WHEN] The batch is posted
         LibraryERM.PostGeneralJnlLine(GenJournalLine);
