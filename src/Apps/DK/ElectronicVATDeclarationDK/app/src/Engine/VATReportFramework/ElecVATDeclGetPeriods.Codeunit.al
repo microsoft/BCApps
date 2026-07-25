@@ -177,6 +177,7 @@ codeunit 13610 "Elec. VAT Decl. Get Periods"
                     Error(OverlappingPeriodErr, VATReturnPeriod."No.", VATReturnPeriod."Start Date", VATReturnPeriod."End Date", StartDate, EndDate);
             until VATReturnPeriod.Next() = 0;
 
+        Clear(VATReturnPeriod);
         VATReturnPeriod.Validate("End Date", EndDate);
         VATReturnPeriod.Validate("Due Date", DueDate);
         VATReturnPeriod.Validate("Start Date", StartDate);
