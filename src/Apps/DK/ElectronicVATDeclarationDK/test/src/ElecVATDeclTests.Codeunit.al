@@ -78,6 +78,31 @@ codeunit 148015 "Elec. VAT Decl. Tests"
 
     [Test]
     [HandlerFunctions('MessageHandler')]
+    procedure ResponsePeriodsAreIndependentOfFrequencyOrder()
+    var
+        VATReturnPeriod: Record "VAT Return Period";
+        ElecVATDeclGetPeriods: Codeunit "Elec. VAT Decl. Get Periods";
+        ResponseText: Text;
+    begin
+        Initialize();
+        ResponseText := GetResponseXml(
+            GetPeriodXml('Halvår', '2026-12-01') +
+            GetPeriodXml('Måned', '2026-05-01'));
+
+        ElecVATDeclGetPeriods.GetVATReturnPeriodsFromResponseText(ResponseText, true);
+
+        VATReturnPeriod.SetRange("Start Date", 20260401D);
+        VATReturnPeriod.SetRange("End Date", 20260430D);
+        VATReturnPeriod.SetRange("Due Date", 20260501D);
+        Assert.RecordIsNotEmpty(VATReturnPeriod);
+        VATReturnPeriod.SetRange("Start Date", 20260101D);
+        VATReturnPeriod.SetRange("End Date", 20260630D);
+        VATReturnPeriod.SetRange("Due Date", 20261201D);
+        Assert.RecordIsNotEmpty(VATReturnPeriod);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
     procedure GettingSamePeriodsTwiceDoesNotInsertDuplicates()
     var
         VATReturnPeriod: Record "VAT Return Period";
@@ -117,6 +142,17 @@ codeunit 148015 "Elec. VAT Decl. Tests"
         asserterror ElecVATDeclGetPeriods.GetVATReturnPeriodsFromResponseText(ResponseText, true);
 
         Assert.ExpectedError('does not contain a reporting frequency');
+    end;
+
+    [Test]
+    procedure InvalidDueDateRaisesError()
+    var
+        ElecVATDeclGetPeriods: Codeunit "Elec. VAT Decl. Get Periods";
+    begin
+        asserterror ElecVATDeclGetPeriods.GetVATReturnPeriodsFromResponseText(
+            GetResponseXml(GetPeriodXml('Måned', 'not-a-date')), true);
+
+        Assert.ExpectedError('contains an invalid due date');
     end;
 
     [Test]

@@ -10,6 +10,7 @@ codeunit 13610 "Elec. VAT Decl. Get Periods"
         FeatureTelemetry: Codeunit "Feature Telemetry";
         PeriodsInsertedLbl: Label '%1 periods were received from server. %2 new periods were inserted.', Comment = '%1, %2: number of periods.';
         DueDateNotFoundErr: Label 'The VAT return period received from SKAT does not contain a due date.';
+        InvalidDueDateErr: Label 'The VAT return period received from SKAT contains an invalid due date.';
         FrequencyNotFoundErr: Label 'The VAT return period received from SKAT does not contain a reporting frequency.';
         UnsupportedFrequencyErr: Label 'The reporting frequency %1 received from SKAT is not supported.', Comment = '%1: reporting frequency received from SKAT';
         OverlappingPeriodErr: Label 'VAT return period %1 (%2 - %3) overlaps the period received from SKAT (%4 - %5). Delete the existing period if it is not linked to a VAT return, and then get VAT return periods again.', Comment = '%1: existing period number; %2, %3: existing start and end dates; %4, %5: received start and end dates';
@@ -65,24 +66,38 @@ codeunit 13610 "Elec. VAT Decl. Get Periods"
     local procedure GetFrequencyAwareVATReturnPeriods(ResponseText: Text; var TotalPeriodsFetched: Integer; var PeriodsInserted: Integer)
     var
         ElecVATDeclXml: Codeunit "Elec. VAT Decl. Xml";
-        DueDate: Date;
-        DueDateXmlNode: XmlNode;
-        FrequencyXmlNode: XmlNode;
-        PeriodXmlNode: XmlNode;
         PeriodXmlNodeList: XmlNodeList;
         ReportingFrequency: Enum "Elec. VAT Decl. Rep. Frequency";
-        i: Integer;
     begin
         PeriodXmlNodeList := ElecVATDeclXml.TryGetPeriodNodesFromResponseText(ResponseText);
         TotalPeriodsFetched := PeriodXmlNodeList.Count();
-        for i := 1 to TotalPeriodsFetched do begin
+
+        InsertVATReturnPeriods(PeriodXmlNodeList, ReportingFrequency::Monthly, PeriodsInserted);
+        InsertVATReturnPeriods(PeriodXmlNodeList, ReportingFrequency::Quarterly, PeriodsInserted);
+        InsertVATReturnPeriods(PeriodXmlNodeList, ReportingFrequency::"Semi-Annual", PeriodsInserted);
+    end;
+
+    local procedure InsertVATReturnPeriods(PeriodXmlNodeList: XmlNodeList; ReportingFrequencyToInsert: Enum "Elec. VAT Decl. Rep. Frequency"; var PeriodsInserted: Integer)
+    var
+        ElecVATDeclXml: Codeunit "Elec. VAT Decl. Xml";
+        DueDateXmlNode: XmlNode;
+        FrequencyXmlNode: XmlNode;
+        PeriodXmlNode: XmlNode;
+        ReportingFrequency: Enum "Elec. VAT Decl. Rep. Frequency";
+        DueDate: Date;
+        i: Integer;
+    begin
+        for i := 1 to PeriodXmlNodeList.Count() do begin
             PeriodXmlNodeList.Get(i, PeriodXmlNode);
             if not ElecVATDeclXml.TryGetDueDateNodeFromPeriodNode(PeriodXmlNode, DueDateXmlNode) then
                 Error(DueDateNotFoundErr);
             if not ElecVATDeclXml.TryGetFrequencyNodeFromPeriodNode(PeriodXmlNode, FrequencyXmlNode) then
                 Error(FrequencyNotFoundErr);
-            Evaluate(DueDate, DueDateXmlNode.AsXmlElement().InnerText());
             ReportingFrequency := GetReportingFrequency(FrequencyXmlNode.AsXmlElement().InnerText());
+            if ReportingFrequency <> ReportingFrequencyToInsert then
+                continue;
+            if not Evaluate(DueDate, DueDateXmlNode.AsXmlElement().InnerText()) then
+                Error(InvalidDueDateErr);
             if InsertVATReturnPeriod(DueDate, ReportingFrequency) then
                 PeriodsInserted += 1;
         end;
@@ -98,7 +113,8 @@ codeunit 13610 "Elec. VAT Decl. Get Periods"
         DueDateXmlNodeList := ElecVATDeclXml.TryGetDueDateNodesFromResponseText(ResponseText);
         TotalPeriodsFetched := DueDateXmlNodeList.Count();
         foreach DueDateXmlNode in DueDateXmlNodeList do begin
-            Evaluate(DueDate, DueDateXmlNode.AsXmlElement().InnerText());
+            if not Evaluate(DueDate, DueDateXmlNode.AsXmlElement().InnerText()) then
+                Error(InvalidDueDateErr);
             if InsertLegacyVATReturnPeriod(DueDate) then
                 PeriodsInserted += 1;
         end;
@@ -111,7 +127,7 @@ codeunit 13610 "Elec. VAT Decl. Get Periods"
         StartDate: Date;
     begin
         EndDate := CalcDate('<-3M+CM>', DueDate);
-        StartDate := CalcDate('<-1Q+1D>', EndDate);
+        StartDate := CalcDate('<-CQ>', EndDate);
         VATReturnPeriod.SetRange("End Date", EndDate);
         if not VATReturnPeriod.IsEmpty() then
             exit;
@@ -155,8 +171,11 @@ codeunit 13610 "Elec. VAT Decl. Get Periods"
         VATReturnPeriod.Reset();
         VATReturnPeriod.SetFilter("Start Date", '<=%1', EndDate);
         VATReturnPeriod.SetFilter("End Date", '>=%1', StartDate);
-        if VATReturnPeriod.FindFirst() then
-            Error(OverlappingPeriodErr, VATReturnPeriod."No.", VATReturnPeriod."Start Date", VATReturnPeriod."End Date", StartDate, EndDate);
+        if VATReturnPeriod.FindSet() then
+            repeat
+                if (VATReturnPeriod."Start Date" < StartDate) or (VATReturnPeriod."End Date" > EndDate) then
+                    Error(OverlappingPeriodErr, VATReturnPeriod."No.", VATReturnPeriod."Start Date", VATReturnPeriod."End Date", StartDate, EndDate);
+            until VATReturnPeriod.Next() = 0;
 
         VATReturnPeriod.Validate("End Date", EndDate);
         VATReturnPeriod.Validate("Due Date", DueDate);

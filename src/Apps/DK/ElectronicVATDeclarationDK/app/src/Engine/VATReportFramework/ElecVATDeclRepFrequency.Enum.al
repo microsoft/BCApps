@@ -2,6 +2,7 @@ namespace Microsoft.Finance.VAT.Reporting;
 
 enum 13605 "Elec. VAT Decl. Rep. Frequency"
 {
+    Access = Internal;
     Extensible = false;
 
     value(0; Monthly)
