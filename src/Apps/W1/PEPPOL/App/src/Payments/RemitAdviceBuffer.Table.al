@@ -1,6 +1,5 @@
 namespace Microsoft.Peppol;
 
-using Microsoft.Bank.BankAccount;
 using Microsoft.Finance.Currency;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Purchases.Payables;
