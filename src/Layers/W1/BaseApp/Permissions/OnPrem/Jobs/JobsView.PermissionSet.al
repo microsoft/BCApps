@@ -41,6 +41,7 @@ permissionset 5679 "Jobs - View"
                   tabledata "Inventory Posting Group" = R,
                   tabledata "Inventory Posting Setup" = R,
                   tabledata Job = RM,
+                  tabledata "Job Assigned Resource" = RIMD,
                   tabledata "Job Ledger Entry" = Rimd,
                   tabledata "Job Planning Line - Calendar" = RIMD,
                   tabledata "Job Planning Line" = RIMD,

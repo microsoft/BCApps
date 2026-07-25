@@ -32,6 +32,7 @@ if ($prs.Count -eq 0) {
 
 $now = [DateTime]::UtcNow
 $restarted = 0
+$skipped = 0
 $failed = 0
 
 foreach ($pr in $prs) {
@@ -42,6 +43,7 @@ foreach ($pr in $prs) {
     # Process PRs in MERGEABLE and UNKNOWN states (UNKNOWN means GitHub hasn't computed mergeability yet)
     if ($pr.mergeable -eq "CONFLICTING") {
         Write-Host "  PR has merge conflicts (state: CONFLICTING), skipping"
+        $skipped++
         continue
     }
 
@@ -63,6 +65,7 @@ foreach ($pr in $prs) {
 
     if (-not $statusCheck) {
         Write-Host "  No 'Pull Request Status Check' found for this PR"
+        $skipped++
         continue
     }
 
@@ -71,6 +74,7 @@ foreach ($pr in $prs) {
     # Check if the check is completed and successful
     if ($statusCheck.state -ne "SUCCESS") {
         Write-Host "  Check state is '$($statusCheck.state)', not 'SUCCESS', skipping"
+        $skipped++
         continue
     }
 
@@ -155,6 +159,7 @@ This will automatically trigger a new **Pull Request Build** workflow run.
 Write-Host ""
 Write-Host "Summary:"
 Write-Host "  ✓ Successfully processed: $restarted PR(s)"
+Write-Host "  ↷ Skipped: $skipped PR(s)"
 Write-Host "  ✗ Failed to process: $failed PR(s)"
 
 # Add GitHub Actions job summary
@@ -170,6 +175,7 @@ if ($env:GITHUB_STEP_SUMMARY) {
     else {
         Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✓ Successfully processed: **$restarted** PR(s) (deleted stale workflow runs and added comments)"
     }
+    Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ↷ Skipped: **$skipped** PR(s) (non-mergeable, no status check, or check not successful)"
     Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- ✗ Failed to process: **$failed** PR(s)"
 }
 
@@ -178,3 +184,4 @@ if ($failed -gt 0 -and -not $WhatIf) {
     Write-Host "::error::Failed to process $failed PR(s)"
     exit 1
 }
+exit 0

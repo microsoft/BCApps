@@ -980,6 +980,8 @@ permissionset 7931 "D365 TEAM MEMBER"
                   tabledata "Item Vendor" = RIMD,
                   tabledata Job = RIMD,
                   tabledata "Job Archive" = RIMD,
+                  tabledata "Job Assigned Resource" = RIMD,
+                  tabledata "Job Assigned Resource Archive" = RIM,
                   tabledata "Job Buffer" = Rm,
                   tabledata "Job Cue" = RM,
                   tabledata "Job Difference Buffer" = Rm,

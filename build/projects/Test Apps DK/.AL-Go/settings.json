@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go-Actions/v9.1/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/16948d91ca57e875e3d823536bac740c0ca1fdbd/Actions/.Modules/settings.schema.json",
   "projectName": "Unit Tests (DK)",
   "gitHubRunner": "GitHub-BCAppsPL",
   "projectsToTest": [
@@ -48,7 +48,9 @@
         "testType": "Legacy",
         "bucketNumber": 1,
         "companyName": "CRONUS International Ltd.",
-        "overwriteSettings": [ "additionalDemoDataTypes" ],
+        "overwriteSettings": [
+          "additionalDemoDataTypes"
+        ],
         "additionalDemoDataTypes": []
       }
     },
