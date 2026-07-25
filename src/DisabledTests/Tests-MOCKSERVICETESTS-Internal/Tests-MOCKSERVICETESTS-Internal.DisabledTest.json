@@ -873,5 +873,70 @@
     "codeunitId": 139325,
     "method": "DocumentService_OnPremSetup_CorrectLink",
     "codeunitName": "Document Service Mock Tests"
+  },
+  {
+    "codeunitId": 134272,
+    "method": "TestXE_XMLCurrencyImport",
+    "codeunitName": "Currency Web Serv. E2E Tests"
+  },
+  {
+    "codeunitId": 135098,
+    "method": "TestSyncRequestContainsVendorABN",
+    "codeunitName": "OCR Master Data Sync Tests"
+  },
+  {
+    "codeunitId": 135098,
+    "method": "TestSyncRequestContainsERSAccountNumber",
+    "codeunitName": "OCR Master Data Sync Tests"
+  },
+  {
+    "codeunitId": 144521,
+    "method": "TestSuccessResponse",
+    "codeunitName": "GovTalkMessage Management Test"
+  },
+  {
+    "codeunitId": 144521,
+    "method": "TestErrorResponse",
+    "codeunitName": "GovTalkMessage Management Test"
+  },
+  {
+    "codeunitId": 144521,
+    "method": "TestECSLSuccessResponse",
+    "codeunitName": "GovTalkMessage Management Test"
+  },
+  {
+    "codeunitId": 144521,
+    "method": "TestECSLErrorResponse",
+    "codeunitName": "GovTalkMessage Management Test"
+  },
+  {
+    "codeunitId": 144523,
+    "method": "TestRegisteredInAssistedSetup",
+    "codeunitName": "GovTalk Setup Test"
+  },
+  {
+    "codeunitId": 144525,
+    "method": "TestSubmitAcceptedRequest",
+    "codeunitName": "Test Submit VAT Declare Rqst"
+  },
+  {
+    "codeunitId": 144525,
+    "method": "TestSubmitRejectedRequest",
+    "codeunitName": "Test Submit VAT Declare Rqst"
+  },
+  {
+    "codeunitId": 144527,
+    "method": "ECSLXMLGenerateAllNodesQuarterly",
+    "codeunitName": "ECSL XML Gen. Test"
+  },
+  {
+    "codeunitId": 144527,
+    "method": "ECSLXMLGenerateAllNodesMonthly",
+    "codeunitName": "ECSL XML Gen. Test"
+  },
+  {
+    "codeunitId": 144527,
+    "method": "TestECSalesListXMLCreationWithoutGovTalk",
+    "codeunitName": "ECSL XML Gen. Test"
   }
 ]
