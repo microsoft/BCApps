@@ -2919,7 +2919,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
             (SupplyInventoryProfile."Qty. per Unit of Measure" * UOMMgt.QtyRndPrecision() + QtyRoundingPrecisionBase) / 2
         then
             if ReqLine."Quantity (Base)" <> SupplyInventoryProfile."Remaining Quantity (Base)" then begin
-                ReqLine."Remaining Qty. (Base)" += SupplyInventoryProfile."Remaining Quantity (Base)" - ReqLine."Quantity (Base)";
+                ReqLine."Remaining Qty. (Base)" := SupplyInventoryProfile."Remaining Quantity (Base)";
                 ReqLine."Quantity (Base)" := SupplyInventoryProfile."Remaining Quantity (Base)";
             end;
     end;
