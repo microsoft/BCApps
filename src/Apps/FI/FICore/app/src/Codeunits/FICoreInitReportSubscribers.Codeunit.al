@@ -4,8 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.FinancialReports;
 
-using Microsoft.Foundation.Company;
 using Microsoft.Finance.VAT.Reporting;
+using Microsoft.Foundation.Company;
 using Microsoft.Purchases.Document;
 using Microsoft.Sales.Customer;
 using Microsoft.Sales.Document;
