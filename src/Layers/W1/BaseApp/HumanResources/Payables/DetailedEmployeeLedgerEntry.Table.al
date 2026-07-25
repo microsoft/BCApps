@@ -10,6 +10,7 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.ReceivablesPayables;
 using Microsoft.Foundation.AuditCodes;
+using Microsoft.Foundation.NoSeries;
 using Microsoft.HumanResources.Employee;
 using Microsoft.Utilities;
 using System.Security.AccessControl;
@@ -234,6 +235,22 @@ table 5223 "Detailed Employee Ledger Entry"
     end;
 
     [InherentPermissions(PermissionObjectType::TableData, Database::"Detailed Employee Ledger Entry", 'r')]
+    /// <summary>
+    /// Retrieves the next entry number from the Detailed Employee Ledger Entry table.
+    /// </summary>
+    /// <returns>Next Detailed Employee Ledger Entry number to be used in the system</returns>
+    procedure GetNextEntryNo(): Integer
+    var
+        SequenceNoMgt: Codeunit "Sequence No. Mgt.";
+    begin
+        exit(SequenceNoMgt.GetNextSeqNo(DATABASE::"Detailed Employee Ledger Entry"));
+    end;
+
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Detailed Employee Ledger Entry", 'r')]
+    /// <summary>
+    /// Retrieves the last entry number from the Detailed Employee Ledger Entry table.
+    /// </summary>
+    /// <returns>Last Detailed Employee Ledger Entry number used in the system</returns>
     procedure GetLastEntryNo(): Integer;
     var
         FindRecordManagement: Codeunit "Find Record Management";

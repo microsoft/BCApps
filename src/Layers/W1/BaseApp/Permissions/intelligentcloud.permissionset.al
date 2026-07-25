@@ -810,6 +810,7 @@ permissionset 6121 "INTELLIGENT CLOUD"
                   tabledata "G/L Entry - VAT Entry Link" = R,
                   tabledata "G/L Entry" = R,
                   tabledata "G/L Register" = R,
+                  tabledata "G/L Transaction" = r,
                   tabledata "Gen. Business Posting Group" = R,
                   tabledata "Gen. Jnl. Allocation" = R,
                   tabledata "Gen. Jnl. Dim. Filter" = R,
