@@ -133,7 +133,10 @@ page 99000896 "Available - Transfer Lines"
                             else
                                 CreateReservation(NewQtyReserved, NewQtyReservedBase)
                         else
-                            Error(Text001);
+                            if TransferDirection = TransferDirection::Inbound then
+                                Error(Text004)
+                            else
+                                Error(Text001);
                     end;
                 }
                 action(CancelReservation)
@@ -195,6 +198,7 @@ page 99000896 "Available - Transfer Lines"
         Text002: Label 'Do you want to cancel the reservation?';
 #pragma warning disable AA0470
         Text003: Label 'Available Quantity is %1.';
+        Text004: Label 'Inbound quantities cannot be reserved until the items are received at the Transfer-to location.';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
 
@@ -313,6 +317,7 @@ page 99000896 "Available - Transfer Lines"
                 begin
                     Rec.SetFilter("Receipt Date", ReservMgt.GetAvailabilityFilter(ReservEntry."Shipment Date"));
                     Rec.SetRange("Transfer-to Code", ReservEntry."Location Code");
+                    Rec.SetFilter("Qty. in Transit (Base)", '>0');
                 end;
         end;
 
