@@ -1,4 +1,4 @@
-codeunit 13479 "Depr. Diff. Calculation FI"
+codeunit 148152 "Depr. Diff. Calculation FI"
 {
     Subtype = Test;
     TestPermissions = Disabled;

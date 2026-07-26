@@ -36,8 +36,8 @@
   "application": "$(app_minimumVersion)",
   "idRanges": [
     {
-      "from": 13462,
-      "to": 13485
+      "from": 148152,
+      "to": 148152
     }
   ],
   "resourceExposurePolicy": {
