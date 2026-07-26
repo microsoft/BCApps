@@ -23,7 +23,7 @@ tableextension 11388 "VAT Statement Line NL" extends "VAT Statement Line"
         }
     }
 
-    procedure UpdateElecTaxDeclCategoryCode()
+    internal procedure UpdateElecTaxDeclCategoryCode()
     var
         IsHandled: Boolean;
     begin

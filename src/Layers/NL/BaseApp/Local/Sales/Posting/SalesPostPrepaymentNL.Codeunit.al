@@ -7,7 +7,7 @@ namespace Microsoft.Sales.Posting;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Sales.Document;
 
-codeunit 11339 SalesPostPrepayNL
+codeunit 11339 SalesPostPrepaymentNL
 {
     Access = Internal;
 

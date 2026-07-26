@@ -106,7 +106,7 @@ tableextension 11300 "Vendor NL" extends Vendor
         IsHandled: Boolean;
     begin
         IsHandled := false;
-        OnBeforeUpdateVendorBankAccounts(Rec, IsHandled, VendBankAcc);
+        OnBeforeUpdateVendorBankAccounts(IsHandled, VendBankAcc, Rec);
         if (not GuiAllowed) or IsHandled then
             exit;
 
@@ -134,7 +134,7 @@ tableextension 11300 "Vendor NL" extends Vendor
     end;
 
     [IntegrationEvent(true, false)]
-    local procedure OnBeforeUpdateVendorBankAccounts(var Vendor: Record Vendor; var IsHandled: Boolean; var VendorBankAccount: Record "Vendor Bank Account")
+    local procedure OnBeforeUpdateVendorBankAccounts(var IsHandled: Boolean; var VendorBankAccount: Record "Vendor Bank Account"; var Vendor: Record Vendor)
     begin
     end;
 }

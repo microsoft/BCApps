@@ -107,7 +107,7 @@ tableextension 11462 "Customer NL" extends Customer
         PartnerTypeMismatchQst: Label 'The Partner Type does not match the Partner Type defined in Transaction Mode. Do you still want to change the Partner Type?';
 
     [Scope('OnPrem')]
-    procedure UpdateCustomerBankAccounts(UseFieldCaption: Text[250])
+    internal procedure UpdateCustomerBankAccounts(UseFieldCaption: Text[250])
     var
         CustBankAcc: Record "Customer Bank Account";
         IsHandled: Boolean;

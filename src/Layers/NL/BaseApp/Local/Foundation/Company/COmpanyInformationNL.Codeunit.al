@@ -8,6 +8,7 @@ using Microsoft.Utilities;
 
 codeunit 11361 "Company Information NL"
 {
+    Access = Internal;
 
     [EventSubscriber(ObjectType::Table, Database::"Company Information", 'OnAfterValidateEvent', 'Bank Account No.', false, false)]
     local procedure OnAfterValidateEventBankAccountNo(var Rec: Record "Company Information"; var xRec: Record "Company Information")

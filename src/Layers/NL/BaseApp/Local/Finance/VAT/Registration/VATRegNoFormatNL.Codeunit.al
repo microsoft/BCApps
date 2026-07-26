@@ -13,6 +13,8 @@ using System.Reflection;
 /// </summary>
 codeunit 13381 "VAT Reg. No. Format NL"
 {
+    Access = Internal;
+
     [EventSubscriber(ObjectType::Table, Database::"VAT Registration No. Format", OnBeforeCheckCompanyInfo, '', false, false)]
     local procedure OnBeforeCheckCompanyInfo(VATRegNo: Text[20]; var IsHandled: Boolean)
     var
