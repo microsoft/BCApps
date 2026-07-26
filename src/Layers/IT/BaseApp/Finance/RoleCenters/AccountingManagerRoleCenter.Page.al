@@ -6,7 +6,6 @@ namespace Microsoft.Finance.RoleCenters;
 
 using Microsoft.Bank.BankAccount;
 using Microsoft.Bank.Deposit;
-using Microsoft.Bank.Payment;
 using Microsoft.Bank.Reconciliation;
 using Microsoft.Bank.Reports;
 using Microsoft.CashFlow.Account;
@@ -1006,14 +1005,6 @@ page 9001 "Accounting Manager Role Center"
                 ToolTip = 'View the list of periodic VAT settlements.';
             }
 #endif
-            action("Social Security")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Social Security';
-                Image = SocialSecurity;
-                RunObject = Page "Contribution Card";
-                ToolTip = 'View the contribution taxes that have been applied to a purchase invoice from an independent contractor or consultant.';
-            }
             separator(Action80)
             {
                 Caption = 'Administration';

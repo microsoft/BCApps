@@ -2184,4 +2184,3 @@ page 26 "Vendor Card"
     begin
     end;
 }
-

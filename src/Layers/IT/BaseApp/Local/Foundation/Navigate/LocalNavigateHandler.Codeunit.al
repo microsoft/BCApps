@@ -16,10 +16,6 @@ codeunit 355 "Local Navigate Handler"
         [SecurityFiltering(SecurityFilter::Filtered)]
         GLBookEntry: Record "GL Book Entry";
         [SecurityFiltering(SecurityFilter::Filtered)]
-        ComputedContribution: Record "Computed Contribution";
-        [SecurityFiltering(SecurityFilter::Filtered)]
-        Contributions: Record Contributions;
-        [SecurityFiltering(SecurityFilter::Filtered)]
         IssuedCustBillHeader: Record "Issued Customer Bill Header";
 
     [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnAfterNavigateFindRecords', '', false, false)]
@@ -32,14 +28,6 @@ codeunit 355 "Local Navigate Handler"
         if VATBookEntry.ReadPermission then begin
             SetVATBookEntryFilters(DocNoFilter, PostingDateFilter);
             DocumentEntry.InsertIntoDocEntry(Database::"VAT Book Entry", VATBookEntry.TableCaption(), VATBookEntry.Count);
-        end;
-        if ComputedContribution.ReadPermission then begin
-            SetComputedContributionFilters(DocNoFilter, PostingDateFilter);
-            DocumentEntry.InsertIntoDocEntry(Database::"Computed Contribution", ComputedContribution.TableCaption(), ComputedContribution.Count);
-        end;
-        if Contributions.ReadPermission then begin
-            SetContributionsFilters(DocNoFilter, PostingDateFilter);
-            DocumentEntry.InsertIntoDocEntry(Database::Contributions, Contributions.TableCaption(), Contributions.Count);
         end;
         if IssuedCustBillHeader.ReadPermission then begin
             SetIssuedCustBillHeaderFilters(DocNoFilter, PostingDateFilter);
@@ -60,16 +48,6 @@ codeunit 355 "Local Navigate Handler"
                 begin
                     SetVATBookEntryFilters(DocNoFilter, PostingDateFilter);
                     PAGE.Run(0, VATBookEntry);
-                end;
-            Database::"Computed Contribution":
-                begin
-                    SetComputedContributionFilters(DocNoFilter, PostingDateFilter);
-                    PAGE.Run(0, ComputedContribution);
-                end;
-            Database::Contributions:
-                begin
-                    SetContributionsFilters(DocNoFilter, PostingDateFilter);
-                    PAGE.Run(0, Contributions);
                 end;
             Database::"Issued Customer Bill Header":
                 begin
@@ -93,22 +71,6 @@ codeunit 355 "Local Navigate Handler"
         VATBookEntry.SetCurrentKey("Document No.", "Posting Date");
         VATBookEntry.SetFilter("Document No.", DocNoFilter);
         VATBookEntry.SetFilter("Posting Date", PostingDateFilter);
-    end;
-
-    local procedure SetComputedContributionFilters(DocNoFilter: Text; PostingDateFilter: Text)
-    begin
-        ComputedContribution.Reset();
-        ComputedContribution.SetCurrentKey("Vendor No.", "Document Date", "Document No.");
-        ComputedContribution.SetFilter("Document No.", DocNoFilter);
-        ComputedContribution.SetFilter("Posting Date", PostingDateFilter);
-    end;
-
-    local procedure SetContributionsFilters(DocNoFilter: Text; PostingDateFilter: Text)
-    begin
-        Contributions.Reset();
-        Contributions.SetCurrentKey("Vendor No.", "Document Date", "Document No.");
-        Contributions.SetFilter("Document No.", DocNoFilter);
-        Contributions.SetFilter("Posting Date", PostingDateFilter);
     end;
 
     local procedure SetIssuedCustBillHeaderFilters(DocNoFilter: Text; PostingDateFilter: Text)

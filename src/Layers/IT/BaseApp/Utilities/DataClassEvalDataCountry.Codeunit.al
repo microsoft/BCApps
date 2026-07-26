@@ -55,13 +55,6 @@ codeunit 1752 "Data Class. Eval. Data Country"
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Cause of Absence");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Compress Depreciation");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Interest on Arrears");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Contribution Code");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Contribution Code Line");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Contribution Bracket");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Contribution Bracket Line");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Computed Contribution");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Contribution Payment");
-        DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::Contributions);
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Customs Office");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Customs Authority Vendor");
         DataClassificationEvalData.SetTableFieldsToNormal(DATABASE::"Check Fiscal Code Setup");

@@ -71,7 +71,6 @@ codeunit 100 "Calc. G/L Acc. Where-Used"
         InventoryPostingSetup: Record "Inventory Posting Setup";
         ICPartner: Record "IC Partner";
         PaymentMethod: Record "Payment Method";
-        ContributionCode: Record "Contribution Code";
         BillPostingGroup: Record "Bill Posting Group";
         Bill: Record Bill;
     begin
@@ -176,15 +175,6 @@ codeunit 100 "Calc. G/L Acc. Where-Used"
                 PAGE.Run(PAGE::"Sales & Receivables Setup");
             Database::"Purchases & Payables Setup":
                 PAGE.Run(PAGE::"Purchases & Payables Setup");
-            Database::"Contribution Code":
-                begin
-                    ContributionCode.Code := CopyStr(GLAccWhereUsed."Key 1", 1, MaxStrLen(ContributionCode.Code));
-                    Evaluate(ContributionCode."Contribution Type", GLAccWhereUsed."Key 2");
-                    if ContributionCode."Contribution Type" = ContributionCode."Contribution Type"::INAIL then
-                        PAGE.Run(PAGE::"Contribution Codes-INAIL", ContributionCode)
-                    else
-                        PAGE.Run(PAGE::"Contribution Codes-INPS", ContributionCode);
-                end;
             Database::"Bill Posting Group":
                 begin
                     BillPostingGroup."No." := CopyStr(GLAccWhereUsed."Key 1", 1, MaxStrLen(BillPostingGroup."No."));
@@ -402,7 +392,6 @@ codeunit 100 "Calc. G/L Acc. Where-Used"
     local procedure AddCountryTables(var TableBuffer: Record "Integer")
     begin
         TableBuffer.Reset();
-        AddTable(TableBuffer, Database::"Contribution Code");
         AddTable(TableBuffer, Database::"Bill Posting Group");
         AddTable(TableBuffer, Database::Bill);
     end;

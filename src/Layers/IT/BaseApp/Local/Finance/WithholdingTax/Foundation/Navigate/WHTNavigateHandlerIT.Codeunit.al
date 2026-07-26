@@ -4,11 +4,17 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Foundation.Navigate;
 
+using Microsoft.Bank.Payment;
 using Microsoft.Finance.WithholdingTax;
 
 codeunit 12115 "WHT Navigate Handler IT"
 {
     var
+        [SecurityFiltering(SecurityFilter::Filtered)]
+        ComputedContribution: Record "Computed Contribution";
+        [SecurityFiltering(SecurityFilter::Filtered)]
+        Contributions: Record Contributions;
+        [SecurityFiltering(SecurityFilter::Filtered)]
         ComputedWithholdingTax: Record "Computed Withholding Tax";
         [SecurityFiltering(SecurityFilter::Filtered)]
         WithholdingTax: Record "Withholding Tax";
@@ -16,6 +22,14 @@ codeunit 12115 "WHT Navigate Handler IT"
     [EventSubscriber(ObjectType::Page, Page::Navigate, 'OnAfterNavigateFindRecords', '', false, false)]
     local procedure OnAfterNavigateFindRecords(var DocumentEntry: Record "Document Entry"; DocNoFilter: Text; PostingDateFilter: Text)
     begin
+        if ComputedContribution.ReadPermission then begin
+            SetComputedContributionFilters(DocNoFilter, PostingDateFilter);
+            DocumentEntry.InsertIntoDocEntry(Database::"Computed Contribution", ComputedContribution.TableCaption(), ComputedContribution.Count);
+        end;
+        if Contributions.ReadPermission then begin
+            SetContributionsFilters(DocNoFilter, PostingDateFilter);
+            DocumentEntry.InsertIntoDocEntry(Database::Contributions, Contributions.TableCaption(), Contributions.Count);
+        end;
         if ComputedWithholdingTax.ReadPermission then begin
             SetComputedWithholdingTaxFilters(DocNoFilter, PostingDateFilter);
             DocumentEntry.InsertIntoDocEntry(Database::"Computed Withholding Tax", ComputedWithholdingTax.TableCaption(), ComputedWithholdingTax.Count);
@@ -30,6 +44,16 @@ codeunit 12115 "WHT Navigate Handler IT"
     local procedure OnBeforeShowRecords(var TempDocumentEntry: Record "Document Entry"; DocNoFilter: Text; PostingDateFilter: Text; var IsHandled: Boolean; ContactNo: Code[250])
     begin
         case TempDocumentEntry."Table ID" of
+            Database::"Computed Contribution":
+                begin
+                    SetComputedContributionFilters(DocNoFilter, PostingDateFilter);
+                    PAGE.Run(0, ComputedContribution);
+                end;
+            Database::Contributions:
+                begin
+                    SetContributionsFilters(DocNoFilter, PostingDateFilter);
+                    PAGE.Run(0, Contributions);
+                end;
             Database::"Computed Withholding Tax":
                 begin
                     SetComputedWithholdingTaxFilters(DocNoFilter, PostingDateFilter);
@@ -41,6 +65,22 @@ codeunit 12115 "WHT Navigate Handler IT"
                     PAGE.Run(0, WithholdingTax);
                 end;
         end;
+    end;
+
+    local procedure SetComputedContributionFilters(DocNoFilter: Text; PostingDateFilter: Text)
+    begin
+        ComputedContribution.Reset();
+        ComputedContribution.SetCurrentKey("Vendor No.", "Document Date", "Document No.");
+        ComputedContribution.SetFilter("Document No.", DocNoFilter);
+        ComputedContribution.SetFilter("Posting Date", PostingDateFilter);
+    end;
+
+    local procedure SetContributionsFilters(DocNoFilter: Text; PostingDateFilter: Text)
+    begin
+        Contributions.Reset();
+        Contributions.SetCurrentKey("Vendor No.", "Document Date", "Document No.");
+        Contributions.SetFilter("Document No.", DocNoFilter);
+        Contributions.SetFilter("Posting Date", PostingDateFilter);
     end;
 
     local procedure SetComputedWithholdingTaxFilters(DocNoFilter: Text; PostingDateFilter: Text)

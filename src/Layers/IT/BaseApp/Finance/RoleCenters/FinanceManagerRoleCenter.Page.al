@@ -1808,38 +1808,6 @@ page 8901 "Finance Manager Role Center"
                         Caption = 'Purchases & Payables Setup';
                         RunObject = page "Purchases & Payables Setup";
                     }
-                    group("Group62")
-                    {
-                        Caption = 'Social Security';
-                        action("Social Security  Code")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Social Security  Code';
-                            RunObject = page "Contribution Codes-INPS";
-                        }
-                        action("Social Security Brackets")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Brackets';
-                            RunObject = page "Contribution Brackets";
-                        }
-                    }
-                    group("Group63")
-                    {
-                        Caption = 'INAIL';
-                        action("Code")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'INAIL Code';
-                            RunObject = page "Contribution Codes-INAIL";
-                        }
-                        action("Social Security Brackets1")
-                        {
-                            ApplicationArea = Basic, Suite;
-                            Caption = 'Brackets';
-                            RunObject = page "Contribution Brackets";
-                        }
-                    }
                 }
             }
             group("Group42")

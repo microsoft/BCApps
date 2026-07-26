@@ -7,7 +7,7 @@ namespace Microsoft.Purchases.Document;
 using Microsoft.Finance.WithholdingTax;
 using Microsoft.Purchases.Vendor;
 
-codeunit 12201 "WHT Purchase Header IT"
+codeunit 12241 "WHT Purchase Header IT"
 {
     var
         PurchWithhContribution: Record "Purch. Withh. Contribution";

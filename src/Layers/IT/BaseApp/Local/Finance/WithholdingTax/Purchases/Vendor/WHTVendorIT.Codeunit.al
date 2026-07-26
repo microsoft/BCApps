@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Purchases.Vendor;
 
-codeunit 12211 "WHT Vendor IT"
+codeunit 12240 "WHT Vendor IT"
 {
 
     [EventSubscriber(ObjectType::Table, Database::Vendor, 'OnAfterGetTaxCode', '', true, false)]

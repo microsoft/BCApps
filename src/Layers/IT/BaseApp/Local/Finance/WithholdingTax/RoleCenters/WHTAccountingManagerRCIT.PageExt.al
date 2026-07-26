@@ -101,6 +101,14 @@ pageextension 12107 "WHT Accounting Manager RC IT" extends "Accounting Manager R
                 RunObject = Page "Withholding Tax Card";
                 ToolTip = 'View the  withholding tax card.';
             }
+            action("Social Security")
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Social Security';
+                Image = SocialSecurity;
+                RunObject = Page "Contribution Card";
+                ToolTip = 'View the contribution taxes that have been applied to a purchase invoice from an independent contractor or consultant.';
+            }
         }
     }
 }
