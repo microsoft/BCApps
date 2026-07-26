@@ -10,10 +10,9 @@ using Microsoft.Purchases.Payables;
 using Microsoft.Sales.History;
 using Microsoft.Sales.Receivables;
 
-codeunit 7000101 "CRT DataClass EvalData Country"
+codeunit 7000114 "CRT DataClass EvalData Country"
 {
     var
-        DataClassificationMgt: Codeunit "Data Classification Mgt.";
         DataClassificationEvalData: Codeunit "Data Classification Eval. Data";
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Data Class. Eval. Data Country", 'OnAfterClassifyCountrySpecificTables', '', true, false)]
