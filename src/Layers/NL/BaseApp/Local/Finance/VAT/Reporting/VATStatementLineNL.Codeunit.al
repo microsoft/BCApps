@@ -6,6 +6,7 @@ namespace Microsoft.Finance.VAT.Reporting;
 
 codeunit 11366 "VAT Statement Line NL"
 {
+    Access = Internal;
 
     [EventSubscriber(ObjectType::Table, Database::"VAT Statement Line", OnAfterValidateEvent, 'Type', false, false)]
     local procedure OnAfterValidateEventType(var Rec: Record "VAT Statement Line"; xRec: Record "VAT Statement Line")
