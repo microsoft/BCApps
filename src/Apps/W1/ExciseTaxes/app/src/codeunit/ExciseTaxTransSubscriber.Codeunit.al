@@ -59,13 +59,16 @@ codeunit 7413 "Excise Tax Trans Subscriber"
     [EventSubscriber(ObjectType::Table, Database::"Sust. Excise Jnl. Line", OnAfterCopyFromItem, '', false, false)]
     local procedure OnAfterCopyFromItem(var ExciseJournalLine: Record "Sust. Excise Jnl. Line"; Item: Record Item)
     var
+        ItemExciseTax: Record "Item Excise Tax";
         ExciseTaxCalculation: Codeunit "Excise Tax Calculation";
     begin
         if not ExciseTaxCalculation.IsExciseTaxEntry(ExciseJournalLine) then
             exit;
 
-        ExciseJournalLine.Validate("Excise Unit of Measure Code", Item."Excise Unit of Measure Code");
-        ExciseJournalLine.Validate("Quantity for Excise Tax", Item."Quantity for Excise Tax");
+        if ItemExciseTax.Get(Item."No.", ExciseJournalLine."Excise Tax Type") then begin
+            ExciseJournalLine.Validate("Excise Unit of Measure Code", ItemExciseTax."Excise Unit of Measure Code");
+            ExciseJournalLine.Validate("Quantity for Excise Tax", ItemExciseTax."Quantity for Excise Tax");
+        end;
         ExciseJournalLine.Validate("Excise Duty", GetExciseDutyForSource(ExciseJournalLine."Excise Tax Type", ExciseJournalLine."Source Type", ExciseJournalLine."Source No.", ExciseJournalLine."Posting Date"));
     end;
 

@@ -7,7 +7,6 @@ namespace Microsoft.ExciseTaxes;
 using Microsoft.FixedAssets.FixedAsset;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.Foundation.NoSeries;
-using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Purchases.History;
 using Microsoft.Sustainability.ExciseTax;
@@ -58,17 +57,16 @@ codeunit 7412 "Excise Tax Calculation"
 
     internal procedure CreateExciseJournalLineForItem(TaxTypeCode: Code[20]; StartingDate: Date; EndingDate: Date; ItemFilter: Text[250]; PostingDate: Date)
     var
-        Item: Record Item;
+        ItemExciseTax: Record "Item Excise Tax";
     begin
-        Item.SetLoadFields("Excise Tax Type");
-        Item.SetRange("Excise Tax Type", TaxTypeCode);
+        ItemExciseTax.SetRange("Excise Tax Type Code", TaxTypeCode);
         if ItemFilter <> '' then
-            Item.SetFilter("No.", ItemFilter);
+            ItemExciseTax.SetFilter("Item No.", ItemFilter);
 
-        if Item.FindSet() then
+        if ItemExciseTax.FindSet() then
             repeat
-                ProcessEntryTypesForSource(Item."No.", "Sust. Excise Jnl. Source Type"::Item, Item."Excise Tax Type", StartingDate, EndingDate, PostingDate);
-            until Item.Next() = 0;
+                ProcessEntryTypesForSource(ItemExciseTax."Item No.", "Sust. Excise Jnl. Source Type"::Item, TaxTypeCode, StartingDate, EndingDate, PostingDate);
+            until ItemExciseTax.Next() = 0;
     end;
 
     internal procedure CreateExciseJournalLineForFixedAsset(TaxTypeCode: Code[20]; StartingDate: Date; EndingDate: Date; FixedAssetFilter: Text[250]; PostingDate: Date)
@@ -149,10 +147,12 @@ codeunit 7412 "Excise Tax Calculation"
         SetFilterOnILEEntryType(EntryType, ItemLedgerEntry);
         if ItemLedgerEntry.FindSet() then
             repeat
-                if not ExciseJournalLineExist(ItemLedgerEntry) then begin
+                if not ExciseJournalLineExist(ItemLedgerEntry, TaxType) then begin
                     InitializeExciseJournalLine(ExciseJnlLine, ExciseJournalBatch, PostingDate, LineNo);
                     UpdateExciseJournalLineFromItemLedgerEntry(ExciseJnlLine, ItemLedgerEntry, TaxType, EntryType);
+                    OnBeforeInsertExciseJournalLineForItem(ExciseJnlLine, ItemLedgerEntry);
                     ExciseJnlLine.Insert(true);
+                    OnAfterInsertExciseJournalLineForItem(ExciseJnlLine, ItemLedgerEntry);
                     LineNo += 10000;
                 end;
             until ItemLedgerEntry.Next() = 0;
@@ -178,7 +178,9 @@ codeunit 7412 "Excise Tax Calculation"
                 if not ExciseJournalLineExist(FALedgerEntry) then begin
                     InitializeExciseJournalLine(ExciseJnlLine, ExciseJournalBatch, PostingDate, LineNo);
                     UpdateExciseJournalLineFromFALedgerEntry(ExciseJnlLine, FALedgerEntry, TaxType, EntryType);
+                    OnBeforeInsertExciseJournalLineForFixedAsset(ExciseJnlLine, FALedgerEntry);
                     ExciseJnlLine.Insert(true);
+                    OnAfterInsertExciseJournalLineForFixedAsset(ExciseJnlLine, FALedgerEntry);
                     LineNo += 10000;
                 end;
             until FALedgerEntry.Next() = 0;
@@ -340,12 +342,13 @@ codeunit 7412 "Excise Tax Calculation"
         SustExciseJournalLine.Validate("Country/Region Code", PurchaseCrMemoHeader."Buy-from Country/Region Code");
     end;
 
-    local procedure ExciseJournalLineExist(ItemLedgerEntry: Record "Item Ledger Entry"): Boolean
+    local procedure ExciseJournalLineExist(ItemLedgerEntry: Record "Item Ledger Entry"; TaxType: Code[20]): Boolean
     var
         ExciseJournalLine: Record "Sust. Excise Jnl. Line";
     begin
         ExciseJournalLine.SetLoadFields("Item Ledger Entry No.");
         ExciseJournalLine.SetRange("Item Ledger Entry No.", ItemLedgerEntry."Entry No.");
+        ExciseJournalLine.SetRange("Excise Tax Type", TaxType);
         if not ExciseJournalLine.IsEmpty() then
             exit(true);
     end;
@@ -358,5 +361,25 @@ codeunit 7412 "Excise Tax Calculation"
         ExciseJournalLine.SetRange("FA Ledger Entry No.", FALedgerEntry."Entry No.");
         if not ExciseJournalLine.IsEmpty() then
             exit(true);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertExciseJournalLineForItem(var ExciseJournalLine: Record "Sust. Excise Jnl. Line"; ItemLedgerEntry: Record "Item Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInsertExciseJournalLineForItem(var ExciseJournalLine: Record "Sust. Excise Jnl. Line"; ItemLedgerEntry: Record "Item Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeInsertExciseJournalLineForFixedAsset(var ExciseJournalLine: Record "Sust. Excise Jnl. Line"; FALedgerEntry: Record "FA Ledger Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterInsertExciseJournalLineForFixedAsset(var ExciseJournalLine: Record "Sust. Excise Jnl. Line"; FALedgerEntry: Record "FA Ledger Entry")
+    begin
     end;
 }
