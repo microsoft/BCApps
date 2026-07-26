@@ -16,7 +16,7 @@ pageextension 7415 "Excise Item Card Ext" extends "Item Card"
             group("Excise Tax")
             {
                 Caption = 'Excise Tax';
-                Visible= false;
+                Visible = false;
                 ObsoleteState = Pending;
                 ObsoleteReason = 'Replaced by the Item Excise Tax table to support multiple excise taxes per item.';
                 ObsoleteTag = '29.0';
@@ -24,16 +24,25 @@ pageextension 7415 "Excise Item Card Ext" extends "Item Card"
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies which excise tax type applies to this item.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the Item Excise Tax table to support multiple excise taxes per item.';
+                    ObsoleteTag = '29.0';
                 }
                 field("Quantity for Excise Tax"; Rec."Quantity for Excise Tax")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the amount per unit based on tax basis.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the Item Excise Tax table to support multiple excise taxes per item.';
+                    ObsoleteTag = '29.0';
                 }
                 field("Excise Unit of Measure Code"; Rec."Excise Unit of Measure Code")
                 {
                     ApplicationArea = All;
                     ToolTip = 'Specifies the unit of measure for tax basis.';
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'Replaced by the Item Excise Tax table to support multiple excise taxes per item.';
+                    ObsoleteTag = '29.0';
                 }
             }
         }
