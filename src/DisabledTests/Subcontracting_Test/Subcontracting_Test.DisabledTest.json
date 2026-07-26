@@ -16,5 +16,11 @@
     "codeunitId": 139989,
     "codeunitName": "Subc. Subcontracting Test",
     "method": "CancelInvoiceWithSubcontractingItemChargeIsBlocked"
+  },
+  {
+    "bug": "641388",
+    "codeunitId": 149911,
+    "codeunitName": "Subc. WIP Trans. Create Test",
+    "method": "WIPTransferRemainderCreatedWhenOpenLineQuantityReduced"
   }
 ]

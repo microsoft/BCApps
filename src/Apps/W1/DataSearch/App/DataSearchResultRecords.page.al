@@ -378,6 +378,7 @@ page 2682 "Data Search Result Records"
     internal procedure SetSourceRecRef(var RecRef: RecordRef; TableSubtype: Integer; SearchString: Text; NewPageCaption: Text)
     var
         DataSearchInTable: Codeunit "Data Search in Table";
+        DataSearchEvents: Codeunit "Data Search Events";
         FldRef: FieldRef;
     begin
         if RecRef.Number = 0 then
@@ -389,6 +390,7 @@ page 2682 "Data Search Result Records"
         FldRef := SourceRecRef.Field(SourceRecRef.SystemModifiedAtNo);
         SourceRecRef.SetView(StrSubstNo(SetViewLbl, FldRef.Name));
         DataSearchInTable.SetFiltersOnRecRef(SourceRecRef, TableSubtype, SearchString);
+        DataSearchEvents.OnBeforeSearchTable(SourceRecRef);
         TableCaptionTxt := NewPageCaption;
     end;
 

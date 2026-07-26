@@ -6,6 +6,7 @@ namespace Microsoft.Bank.DirectDebit;
 
 using Microsoft.Bank.Payment;
 using Microsoft.Finance.GeneralLedger.Journal;
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Company;
 using System.Telemetry;
 
@@ -103,8 +104,14 @@ xmlport 1001 "SEPA CT pain.001.001.09"
                             {
 
                                 trigger OnBeforePassVariable()
+                                var
+                                    GeneralLedgerSetup: Record "General Ledger Setup";
                                 begin
-                                    Cd := 'SEPA';
+                                    GeneralLedgerSetup.Get();
+                                    if GeneralLedgerSetup."SEPA Non-Euro Export" then
+                                        Cd := 'NURG'
+                                    else
+                                        Cd := 'SEPA';
                                 end;
                             }
                         }

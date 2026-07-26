@@ -129,7 +129,9 @@ codeunit 144741 "BCPT Setup Card Test"
         BCPTSetupCardTest: Codeunit "BCPT Setup Card Test";
         BCPTStartTests: Codeunit "BCPT Start Tests";
         BCPTSetupCard: TestPage "BCPT Setup Card";
+        ActualNoOfIterations: Integer;
         UnexpectedNoOfSqlStmtsLbl: Label 'Unexpected value in %1. Expected %2, Actual %3', Locked = true;
+        OrValueLbl: Label '%1 or %2', Locked = true;
     begin
         Initialize();
 
@@ -145,8 +147,13 @@ codeunit 144741 "BCPT Setup Card Test"
         BCPTSetupCard.OpenView();
         BCPTSetupCard.GoToRecord(BCPTHeader);
         BCPTSetupCard.BCPTLines.Status.AssertEquals(BCPTLine.Status::Completed);
-        Assert.IsTrue(BCPTSetupCard.BCPTLines.NoOfIterations.AsInteger() >= NoOfIterationsToRun, StrSubstNo(UnexpectedNoOfSqlStmtsLbl, BCPTLogEntry.FieldCaption("No. of SQL Statements"), NoOfIterationsToRun, BCPTSetupCard.BCPTLines.NoOfIterations.AsInteger()));
-        BCPTSetupCard.BCPTLines.NoOfSQLStmts.AssertEquals(NoOfIterationsToRun);
+        ActualNoOfIterations := BCPTSetupCard.BCPTLines.NoOfIterations.AsInteger();
+        Assert.IsTrue(ActualNoOfIterations >= NoOfIterationsToRun, StrSubstNo(UnexpectedNoOfSqlStmtsLbl, BCPTSetupCard.BCPTLines.NoOfIterations.Caption, NoOfIterationsToRun, ActualNoOfIterations));
+        // The codeunit issues exactly 1 SQL statement per iteration, but the very first database access in the session also
+        // counts 2 extra SQL statements from system tables. Therefore the total is either ActualNoOfIterations or ActualNoOfIterations + 2.
+        Assert.IsTrue(
+            BCPTSetupCard.BCPTLines.NoOfSQLStmts.AsInteger() in [ActualNoOfIterations, ActualNoOfIterations + 2],
+            StrSubstNo(UnexpectedNoOfSqlStmtsLbl, BCPTLogEntry.FieldCaption("No. of SQL Statements"), StrSubstNo(OrValueLbl, ActualNoOfIterations, ActualNoOfIterations + 2), BCPTSetupCard.BCPTLines.NoOfSQLStmts.AsInteger()));
         BCPTSetupCard.BCPTLines.AvgSQLStmts.AssertEquals(1);
         BCPTSetupCard.Close();
     end;

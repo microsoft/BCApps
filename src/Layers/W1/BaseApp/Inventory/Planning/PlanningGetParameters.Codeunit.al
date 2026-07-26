@@ -24,6 +24,8 @@ codeunit 99000855 "Planning-Get Parameters"
         ManualScheduling: Boolean;
 
     procedure AtSKU(var SKU: Record "Stockkeeping Unit"; ItemNo: Code[20]; VariantCode: Code[10]; LocationCode: Code[10])
+    var
+        IsHandled: Boolean;
     begin
         GetInventorySetUp();
         if (ItemNo <> GlobalSKU."Item No.") or
@@ -72,12 +74,15 @@ codeunit 99000855 "Planning-Get Parameters"
 
         OnAtSKUOnBeforeSetSafetyLeadTime(GlobalSKU, ManualScheduling);
 
-        if not ManualScheduling then
-            if Format(GlobalSKU."Safety Lead Time") = '' then
-                if Format(InventorySetup."Default Safety Lead Time") <> '' then
-                    GlobalSKU."Safety Lead Time" := InventorySetup."Default Safety Lead Time"
-                else
-                    Evaluate(GlobalSKU."Safety Lead Time", '<0D>');
+        IsHandled := false;
+        OnAtSKUOnBeforeAssignDefaultSafetyLeadTime(GlobalSKU, ManualScheduling, IsHandled);
+        if not IsHandled then
+            if not ManualScheduling then
+                if Format(GlobalSKU."Safety Lead Time") = '' then
+                    if Format(InventorySetup."Default Safety Lead Time") <> '' then
+                        GlobalSKU."Safety Lead Time" := InventorySetup."Default Safety Lead Time"
+                    else
+                        Evaluate(GlobalSKU."Safety Lead Time", '<0D>');
 
 
         AdjustInvalidSettings(GlobalSKU);
@@ -378,6 +383,11 @@ codeunit 99000855 "Planning-Get Parameters"
 
     [IntegrationEvent(false, false)]
     local procedure OnAtSKUOnBeforeSetSafetyLeadTime(var GlobalSKU: Record "Stockkeeping Unit"; ManualScheduling: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAtSKUOnBeforeAssignDefaultSafetyLeadTime(var GlobalStockkeepingUnit: Record "Stockkeeping Unit"; var ManualScheduling: Boolean; var IsHandled: Boolean)
     begin
     end;
 }

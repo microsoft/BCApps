@@ -109,6 +109,12 @@ page 30127 "Shpfy Variants"
                     ApplicationArea = All;
                     ToolTip = 'Specifies the price of a product variant.';
                 }
+                field(CompareAtPrice; Rec."Compare at Price")
+                {
+                    ApplicationArea = All;
+                    Visible = false;
+                    ToolTip = 'Specifies the original price of the product variant in Shopify before a discount. Shopify displays it alongside the current price to show the price reduction.';
+                }
                 field(Barcode; Rec.Barcode)
                 {
                     ApplicationArea = All;
@@ -127,12 +133,12 @@ page 30127 "Shpfy Variants"
                 field(CreatedAt; Rec."Created At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time when the product variant was created.';
+                    ToolTip = 'Specifies the date and time when the product variant was created in Shopify.';
                 }
                 field(UpdatedAt; Rec."Updated At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time when the product variant was last modified.';
+                    ToolTip = 'Specifies the date and time when the product variant was last modified in Shopify.';
                 }
                 field(InventoryPolicy; Rec."Inventory Policy")
                 {

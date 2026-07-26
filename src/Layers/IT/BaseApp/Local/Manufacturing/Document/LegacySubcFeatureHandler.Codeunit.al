@@ -22,13 +22,13 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
 
     var
         ITMigrationAppIdTok: Label '6d51d1f2-2b87-4e3a-bf5e-c27682fa0320', Locked = true;
-        ITMigrationAppNotInstalledErr: Label 'The app "IT Subcontracting Migration" must be installed before you can disable Legacy Subcontracting. Please install the app first and then use the dedicated action "Disable Legacy Subcontracting" to disable Legacy Subcontracting and migrate to the new subcontracting app.';
         SubcontractingAppIdTok: Label '1f32a50d-0057-4b95-b5df-cc04d7e89470', Locked = true;
-        SubcontractingAppNotInstalledErr: Label 'The app "Subcontracting App" must be installed before you can disable Legacy Subcontracting. Please install the app first before migrating to the new subcontracting app.';
         SubcontractingAppInstalledErr: Label 'Cannot activate legacy subcontracting while the Subcontracting app is installed. Use the Subcontracting app features instead.';
         OpenSubcontractingTransfersExistErr: Label 'There are still open transfer orders with WIP Items. All subcontracting transfer orders must be completed before disabling Legacy Subcontracting.';
         OpenWIPPurchaseOrdersExistErr: Label 'There are still open subcontracting purchase orders. All subcontracting purchase orders must be completed before disabling Legacy Subcontracting.';
         MigrationNotAllowedInProductionErr: Label 'To help you migrate safely, disabling Legacy Subcontracting and moving to the Subcontracting app is currently limited to sandbox environments. Test the migration in a sandbox copy of this environment first to validate the transition. Production environments will be enabled in a future release.';
+        InstallSubcontractingAppQst: Label 'The Subcontracting app is required to disable Legacy Subcontracting. Do you want to install it now?';
+        InstallITMigrationAppQst: Label 'The IT Subcontracting Migration app is needed to migrate your data. Do you want to install it now?';
 
     /// <summary>
     /// Returns whether Legacy Subcontracting is enabled in Manufacturing Setup.
@@ -51,6 +51,8 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
 
     /// <summary>
     /// Checks whether Legacy Subcontracting can be disabled and raises an error if the preconditions are not met.
+    /// When a required app is missing, it offers to install it inline and stops - after the install completes and the
+    /// session reloads, the user runs the disable action again (installing one app per run until both are present and migration proceeds).
     /// </summary>
     procedure CheckCanDisableLegacySubcontracting()
     begin
@@ -63,12 +65,27 @@ codeunit 99008501 "Legacy Subc. Feature Handler"
         if OpenWIPPurchaseLinesExist() then
             Error(OpenWIPPurchaseOrdersExistErr);
 
-        if not IsSubcontractingAppInstalled() then
-            Error(SubcontractingAppNotInstalledErr);
+        if not IsSubcontractingAppInstalled() then begin
+            OfferToInstallApp(SubcontractingAppIdTok, InstallSubcontractingAppQst);
+            exit;
+        end;
 
         if DatabaseHasLegacySubcontractingData() then
-            if not IsITMigrationAppInstalled() then
-                Error(ITMigrationAppNotInstalledErr);
+            if not IsITMigrationAppInstalled() then begin
+                OfferToInstallApp(ITMigrationAppIdTok, InstallITMigrationAppQst);
+                exit;
+            end;
+    end;
+
+    /// <summary>
+    /// Offers to install a required app inline. If the user accepts, the app is installed and the session is scheduled to reload.
+    /// </summary>
+    local procedure OfferToInstallApp(AppId: Text; InstallQst: Text)
+    var
+        ExtensionManagement: Codeunit "Extension Management";
+    begin
+        if Confirm(InstallQst, true) then
+            ExtensionManagement.InstallMarketplaceExtension(AppId);
     end;
 
     /// <summary>

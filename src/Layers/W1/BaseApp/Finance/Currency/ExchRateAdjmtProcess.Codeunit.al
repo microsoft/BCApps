@@ -241,6 +241,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     local procedure AdjustCustomers()
     var
         Customer: Record Customer;
+        CustPostingGroupFilter: Text;
     begin
         CustNo := 0;
         GetNewCustLedgEntryNo();
@@ -248,13 +249,15 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         CustNoTotal := Customer.Count();
         Customer.SetView(ExchRateAdjmtParameters."Customer Filter");
         Customer.SetRange("Date Filter", ExchRateAdjmtParameters."Start Date", ExchRateAdjmtParameters."End Date");
+        CustPostingGroupFilter := Customer.GetFilter("Customer Posting Group");
+        Customer.SetRange("Customer Posting Group");
         if Customer.FindSet() then
             repeat
                 CustNo := CustNo + 1;
                 if not ExchRateAdjmtParameters."Hide UI" then
                     Window.Update(2, Round(CustNo / CustNoTotal * 10000, 1));
 
-                ProcessCustomerAdjustment(Customer);
+                ProcessCustomerAdjustment(Customer, CustPostingGroupFilter);
             until Customer.Next() = 0;
 
         if CustNo <> 0 then
@@ -264,6 +267,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
     local procedure AdjustVendors();
     var
         Vendor: Record Vendor;
+        VendPostingGroupFilter: Text;
     begin
         VendNo := 0;
         GetNewVendLedgEntryNo();
@@ -271,13 +275,15 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         VendNoTotal := Vendor.Count();
         Vendor.SetView(ExchRateAdjmtParameters."Vendor Filter");
         Vendor.SetRange("Date Filter", ExchRateAdjmtParameters."Start Date", ExchRateAdjmtParameters."End Date");
+        VendPostingGroupFilter := Vendor.GetFilter("Vendor Posting Group");
+        Vendor.SetRange("Vendor Posting Group");
         if Vendor.FindSet() then
             repeat
                 VendNo := VendNo + 1;
                 if not ExchRateAdjmtParameters."Hide UI" then
                     Window.Update(3, Round(VendNo / VendNoTotal * 10000, 1));
 
-                ProcessVendorAdjustment(Vendor);
+                ProcessVendorAdjustment(Vendor, VendPostingGroupFilter);
             until Vendor.Next() = 0;
 
         if VendNo <> 0 then
@@ -600,14 +606,14 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         OnAfterSetVATEntryFilters(VATEntry);
     end;
 
-    local procedure ProcessCustomerAdjustment(var Customer: Record Customer)
+    local procedure ProcessCustomerAdjustment(var Customer: Record Customer; CustPostingGroupFilter: Text)
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
         DtldCustLedgEntryToAdjust: Record "Detailed Cust. Ledg. Entry";
         TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary;
     begin
         TotalAdjAmount := 0;
-        PrepareTempCustLedgEntry(Customer, TempCustLedgerEntry);
+        PrepareTempCustLedgEntry(Customer, TempCustLedgerEntry, CustPostingGroupFilter);
 
         if TempCustLedgerEntry.Find('-') then
             repeat
@@ -659,14 +665,14 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         OnAfterSetDtldCustLedgEntryFilters(DtldCustLedgEntry2, CustLedgEntry2);
     end;
 
-    local procedure ProcessVendorAdjustment(var Vendor: Record Vendor)
+    local procedure ProcessVendorAdjustment(var Vendor: Record Vendor; VendPostingGroupFilter: Text)
     var
         VendorLedgerEntry: Record "Vendor Ledger Entry";
         DtldVendLedgEntryToAdjust: Record "Detailed Vendor Ledg. Entry";
         TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary;
     begin
         TotalAdjAmount := 0;
-        PrepareTempVendLedgEntry(Vendor, TempVendorLedgerEntry);
+        PrepareTempVendLedgEntry(Vendor, TempVendorLedgerEntry, VendPostingGroupFilter);
 
         if TempVendorLedgerEntry.Find('-') then
             repeat
@@ -1293,7 +1299,7 @@ codeunit 699 "Exch. Rate Adjmt. Process"
             until TempDtldEmplLedgEntry.Next() = 0;
     end;
 
-    local procedure PrepareTempCustLedgEntry(var Customer: Record Customer; var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary)
+    local procedure PrepareTempCustLedgEntry(var Customer: Record Customer; var TempCustLedgerEntry: Record "Cust. Ledger Entry" temporary; CustPostingGroupFilter: Text)
     var
         CustLedgerEntry2: Record "Cust. Ledger Entry";
         DtldCustLedgEntry2: Record "Detailed Cust. Ledg. Entry";
@@ -1322,7 +1328,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                 CustLedgerEntry2."Entry No." := DtldCustLedgEntry2."Cust. Ledger Entry No.";
                 if CustLedgerEntry2.Find('=') then
                     if (CustLedgerEntry2."Posting Date" >= ExchRateAdjmtParameters."Start Date") and
-                        (CustLedgerEntry2."Posting Date" <= ExchRateAdjmtParameters."End Date")
+                        (CustLedgerEntry2."Posting Date" <= ExchRateAdjmtParameters."End Date") and
+                        CustLedgEntryMatchesPostingGroupFilter(CustLedgerEntry2, CustPostingGroupFilter)
                     then begin
                         TempCustLedgerEntry."Entry No." := CustLedgerEntry2."Entry No.";
                         if TempCustLedgerEntry.Insert() then;
@@ -1333,6 +1340,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         CustLedgerEntry2.SetRange("Customer No.", Customer."No.");
         CustLedgerEntry2.SetRange(Open, true);
         CustLedgerEntry2.SetRange("Posting Date", 0D, ExchRateAdjmtParameters."End Date");
+        if CustPostingGroupFilter <> '' then
+            CustLedgerEntry2.SetFilter("Customer Posting Group", CustPostingGroupFilter);
         OnPrepareTempCustLedgEntryOnAfterSetCustLedgerEntryFilters(CustLedgerEntry2);
         if CustLedgerEntry2.Find('-') then
             repeat
@@ -1342,7 +1351,20 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         CustLedgerEntry2.Reset();
     end;
 
-    local procedure PrepareTempVendLedgEntry(var Vendor: Record Vendor; var TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary);
+    local procedure CustLedgEntryMatchesPostingGroupFilter(var CustLedgerEntry: Record "Cust. Ledger Entry"; CustPostingGroupFilter: Text): Boolean
+    var
+        CustLedgerEntryFilter: Record "Cust. Ledger Entry";
+    begin
+        if CustPostingGroupFilter = '' then
+            exit(true);
+
+        CustLedgerEntryFilter := CustLedgerEntry;
+        CustLedgerEntryFilter.SetRange("Entry No.", CustLedgerEntry."Entry No.");
+        CustLedgerEntryFilter.SetFilter("Customer Posting Group", CustPostingGroupFilter);
+        exit(not CustLedgerEntryFilter.IsEmpty());
+    end;
+
+    local procedure PrepareTempVendLedgEntry(var Vendor: Record Vendor; var TempVendorLedgerEntry: Record "Vendor Ledger Entry" temporary; VendPostingGroupFilter: Text);
     var
         VendorLedgerEntry2: Record "Vendor Ledger Entry";
         DtldVendLedgEntry2: Record "Detailed Vendor Ledg. Entry";
@@ -1370,7 +1392,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                 VendorLedgerEntry2."Entry No." := DtldVendLedgEntry2."Vendor Ledger Entry No.";
                 if VendorLedgerEntry2.Find('=') then
                     if (VendorLedgerEntry2."Posting Date" >= ExchRateAdjmtParameters."Start Date") and
-                        (VendorLedgerEntry2."Posting Date" <= ExchRateAdjmtParameters."End Date")
+                        (VendorLedgerEntry2."Posting Date" <= ExchRateAdjmtParameters."End Date") and
+                        VendLedgEntryMatchesPostingGroupFilter(VendorLedgerEntry2, VendPostingGroupFilter)
                     then begin
                         TempVendorLedgerEntry."Entry No." := VendorLedgerEntry2."Entry No.";
                         if TempVendorLedgerEntry.Insert() then;
@@ -1381,6 +1404,8 @@ codeunit 699 "Exch. Rate Adjmt. Process"
         VendorLedgerEntry2.SetRange("Vendor No.", Vendor."No.");
         VendorLedgerEntry2.SetRange(Open, true);
         VendorLedgerEntry2.SetRange("Posting Date", 0D, ExchRateAdjmtParameters."End Date");
+        if VendPostingGroupFilter <> '' then
+            VendorLedgerEntry2.SetFilter("Vendor Posting Group", VendPostingGroupFilter);
         OnPrepareTempVendLedgEntryOnAfterSetVendLedgerEntryFilters(VendorLedgerEntry2);
         if VendorLedgerEntry2.Find('-') then
             repeat
@@ -1388,6 +1413,19 @@ codeunit 699 "Exch. Rate Adjmt. Process"
                 if TempVendorLedgerEntry.Insert() then;
             until VendorLedgerEntry2.Next() = 0;
         VendorLedgerEntry2.Reset();
+    end;
+
+    local procedure VendLedgEntryMatchesPostingGroupFilter(var VendorLedgerEntry: Record "Vendor Ledger Entry"; VendPostingGroupFilter: Text): Boolean
+    var
+        VendorLedgerEntryFilter: Record "Vendor Ledger Entry";
+    begin
+        if VendPostingGroupFilter = '' then
+            exit(true);
+
+        VendorLedgerEntryFilter := VendorLedgerEntry;
+        VendorLedgerEntryFilter.SetRange("Entry No.", VendorLedgerEntry."Entry No.");
+        VendorLedgerEntryFilter.SetFilter("Vendor Posting Group", VendPostingGroupFilter);
+        exit(not VendorLedgerEntryFilter.IsEmpty());
     end;
 
     local procedure PrepareTempEmplLedgEntry(var Employee: Record Employee; var TempEmployeeLedgerEntry: Record "Employee Ledger Entry" temporary);
