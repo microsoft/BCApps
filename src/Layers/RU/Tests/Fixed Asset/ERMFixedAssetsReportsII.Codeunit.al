@@ -901,7 +901,7 @@ codeunit 134981 "ERM Fixed Assets Reports - II"
     end;
 
     [Test]
-    [HandlerFunctions('CalculateDepreciationRequestPageHandler,DepreciationCalcConfirmHandler')]
+    [HandlerFunctions('CalculateDepreciationRequestPageHandler,MessageHandler')]
     [Scope('OnPrem')]
     procedure DepCalculationWithDecliningBalance()
     var

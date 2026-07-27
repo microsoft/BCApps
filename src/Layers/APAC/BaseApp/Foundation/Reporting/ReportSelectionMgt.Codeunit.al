@@ -84,6 +84,8 @@ codeunit 1901 "Report Selection Mgt."
         InitReportSelection("Report Selection Usage"::"P.Arch.Order");
         InitReportSelection("Report Selection Usage"::"P.Arch.Return");
         InitReportSelection("Report Selection Usage"::"P.Arch.Blanket");
+        InitReportSelection("Report Selection Usage"::"P.TaxInvoice");
+        InitReportSelection("Report Selection Usage"::"P.TaxCreditMemo");
         InitReportSelection("Report Selection Usage"::"V.Remittance");
         InitReportSelection("Report Selection Usage"::"P.V.Remit.");
 
