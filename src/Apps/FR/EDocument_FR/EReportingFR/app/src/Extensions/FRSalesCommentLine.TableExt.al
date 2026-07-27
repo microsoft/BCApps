@@ -14,7 +14,7 @@ tableextension 10975 "FR Sales Comment Line" extends "Sales Comment Line"
         {
             Caption = 'French Regulatory Type';
             DataClassification = CustomerContent;
-            ToolTip = 'Specifies the French regulatory purpose when this comment must be included in the electronic invoice.';
+            ToolTip = 'Specifies the French regulatory purpose of the comment. The selected type is automatically added as a prefix when the comment is exported to an electronic invoice.';
         }
     }
 }

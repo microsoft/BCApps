@@ -294,7 +294,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         XmlDoc: XmlDocument;
         CommentText: Text[80];
     begin
-        // [SCENARIO] A maintained French regulatory comment is exported as a UBL header note
+        // [SCENARIO] A maintained French regulatory comment is automatically prefixed with its type in a UBL header note
         Initialize();
 
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('', "Electronic Address Scheme"::"EM")));
