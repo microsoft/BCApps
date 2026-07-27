@@ -1,0 +1,25 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.ExpenseAgent;
+
+permissionset 7213 EACorpCardAdmin
+{
+    Access = Internal;
+    Assignable = false;
+    Caption = 'Corp Card Admin';
+
+    IncludedPermissionSets = EACorpCardEdit;
+
+    Permissions =
+        tabledata EACorpCardProvider = D,
+        tabledata EACorpCard = D,
+        tabledata EACorpCardTrans = D,
+        tabledata EACorpCardTransDetail = D,
+        tabledata EACorpCardBatch = D,
+        tabledata EACorpCardException = D,
+        tabledata EACorpCardMCCMap = D,
+        tabledata EACorpCardMerchantRule = D,
+        tabledata EACorpCardSetup = D;
+}
