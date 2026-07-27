@@ -10,9 +10,9 @@ codeunit 7242 EACorpCardImportOrch
 
     internal procedure RunProvider(CorpCardProvider: Record EACorpCardProvider)
     var
-        CorpCardProviderImpl: Interface IEACorpCardProvider;
         CorpCardBatch: Record EACorpCardBatch;
         CorpCardProvReg: Codeunit EACorpCardProvReg;
+        CorpCardProviderImpl: Interface IEACorpCardProvider;
     begin
         CorpCardProvReg.ResolveProvider(CorpCardProvider, CorpCardProviderImpl);
 
