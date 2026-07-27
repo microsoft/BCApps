@@ -192,9 +192,9 @@ report 790 "Calculate Inventory"
 
                 if not HideValidationDialog then
                     Window.Update();
-                TempSKU.DeleteAll();
 
-                InvalidateItemVariantCache();
+                TempSKU.DeleteAll();
+                ClearItemVariantCache();
             end;
 
             trigger OnPostDataItem()
@@ -762,7 +762,7 @@ report 790 "Calculate Inventory"
         exit(LookupItemVariantAndBlockedState(ItemNo, VariantCode, DummyBlocked));
     end;
 
-    local procedure InvalidateItemVariantCache()
+    local procedure ClearItemVariantCache()
     begin
         Clear(ItemVariantBlockedCache);
         CachedVariantItemNo := '';
