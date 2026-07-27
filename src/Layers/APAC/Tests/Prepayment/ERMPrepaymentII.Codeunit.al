@@ -2099,7 +2099,7 @@ codeunit 134101 "ERM Prepayment II"
         SalesPrepaymentsAccount: Code[20];
     begin
         // [FEATURE] [Sales] [Invoice Discount] [Prices Including VAT]
-        // [SCENARIO 641515] Prepayment Invoice Amount is correct for a Sales Order with Invoice Discount, Prices Including VAT and a negative non-inventory line.
+        // [SCENARIO 641515] Prepayment Invoice Amount is calculated from lines for a Sales Order with Invoice Discount, Prices Including VAT and a negative non-inventory line.
 
         // [GIVEN] Enable Invoice Rounding and "Check Prepmt. when Posting".
         Initialize();
