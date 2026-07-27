@@ -273,6 +273,12 @@ report 99000789 "Subcontractor - Dispatch List"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordLayoutBody)
+        {
+            Type = Word;
+            LayoutFile = './Manufacturing/Reports/SubcontractorDispatchListBody.docx';
+            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+        }
     }
 
     labels
