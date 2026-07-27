@@ -1379,4 +1379,8 @@ codeunit 9998 "Upgrade Tag Definitions"
         // Upgrade legacy Job-related warehouse records from (Database::Job, 0) to (Database::"Job Planning Line", Order)
         exit('MS-625654-WarehouseActivitySourceTypeForJobPlanningLineUpgradeTag-20260518');
     end;
+    internal procedure GetProdDefinitionDisplaySetupUpgradeTag(): Code[250]
+    begin
+        exit('MS-629001-ProdDefinitionDisplaySetupUpgradeTag-20260723');
+    end;
 }
