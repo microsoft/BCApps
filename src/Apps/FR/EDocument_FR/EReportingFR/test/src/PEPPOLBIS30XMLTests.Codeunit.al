@@ -712,14 +712,14 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         repeat
             LineIndex += 1;
             if AppendShipmentIndex then
-                SalesInvoiceLine."Shipment No." := CopyStr(ShipmentNo + Format(LineIndex), 1, MaxStrLen(SalesInvoiceLine."Shipment No."));
+                SalesInvoiceLine."Shipment No." := CopyStr(ShipmentNo + Format(LineIndex), 1, MaxStrLen(SalesInvoiceLine."Shipment No."))
             else
-            SalesInvoiceLine."Shipment No." := CopyStr(ShipmentNo, 1, MaxStrLen(SalesInvoiceLine."Shipment No."));
+                SalesInvoiceLine."Shipment No." := CopyStr(ShipmentNo, 1, MaxStrLen(SalesInvoiceLine."Shipment No."));
             SalesInvoiceLine."Shipment Line No." := SalesInvoiceLine."Line No.";
             if AppendOrderIndex then
-                SalesInvoiceLine."Order No." := CopyStr(OrderNo + Format(LineIndex), 1, MaxStrLen(SalesInvoiceLine."Order No."));
+                SalesInvoiceLine."Order No." := CopyStr(OrderNo + Format(LineIndex), 1, MaxStrLen(SalesInvoiceLine."Order No."))
             else
-            SalesInvoiceLine."Order No." := CopyStr(OrderNo, 1, MaxStrLen(SalesInvoiceLine."Order No."));
+                SalesInvoiceLine."Order No." := CopyStr(OrderNo, 1, MaxStrLen(SalesInvoiceLine."Order No."));
             SalesInvoiceLine."Order Line No." := SalesInvoiceLine."Line No.";
             SalesInvoiceLine.Modify();
             if SalesInvoiceLine."Shipment No." <> '' then
