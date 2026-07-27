@@ -122,6 +122,10 @@ codeunit 10145 "E-Invoice Mgt."
         RoundingFallbackStartedMsg: Label 'Rounding fallback started. Default model failed with error code: %1. Attempting alternative rounding models.', Locked = true;
         RoundingFallbackSucceededMsg: Label 'Rounding fallback succeeded with rounding model %1 after %2 stamp request(s).', Locked = true;
         RoundingFallbackExhaustedMsg: Label 'Rounding fallback exhausted all models after %1 stamp request(s). Last error code: %2.', Locked = true;
+        SubmissionStartedMsg: Label 'Stamp submission started for document type: %1.', Locked = true;
+        SubmissionCompletedMsg: Label 'Stamp submission completed for document type: %1. Attempts: %2, Result: %3, Error code: %4, Rounding model: %5.', Locked = true;
+        SubmissionResultSuccessTxt: Label 'Success', Locked = true;
+        SubmissionResultErrorTxt: Label 'Error', Locked = true;
         SpecialCharsTxt: Label 'áéíñóúüÁÉÍÑÓÚÜ', Locked = true;
         SchemaLocation1xsdTxt: Label '%1  %2', Comment = '%1 - namespase; %2 - xsd location.';
         SchemaLocation2xsdTxt: Label '%1  %2  %3  %4', Comment = '%1 - namespase1; %2 - xsd location1; %3 - namespase2; %4 - xsd location2.';
@@ -7853,7 +7857,11 @@ codeunit 10145 "E-Invoice Mgt."
         StampAttempts: Integer;
         AdvanceAmount: Decimal;
         AdvanceSettle: Boolean;
+        DocTypeText: Text;
     begin
+        DocTypeText := GetDocTypeTextFromDatabaseId(DocumentHeaderRecordRef.Number);
+        Session.LogMessage('0000MF7', StrSubstNo(SubmissionStartedMsg, DocTypeText), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
+
         AdvanceSettle := false;
         if (DocumentHeaderRecordRef.Number = DATABASE::"Sales Invoice Header") and (not Reverse) then begin
             DocumentHeaderRecordRef.SetTable(SalesInvoiceHeader);
@@ -7872,8 +7880,10 @@ codeunit 10145 "E-Invoice Mgt."
         // CFDI40111 - Descuento on non-I/E/N voucher type
         // CFDI40119 - Total <> SubTotal - Descuento + Traslados - Retenciones
         // CFDI40167 - Per-line tax Importe <> Round(Base * Rate, 6)
-        if not (ErrorCode in ['CFDI40108', 'CFDI40110', 'CFDI40111', 'CFDI40119', 'CFDI40167']) then
+        if not (ErrorCode in ['CFDI40108', 'CFDI40110', 'CFDI40111', 'CFDI40119', 'CFDI40167']) then begin
+            LogSubmissionCompleted(DocTypeText, StampAttempts, ErrorCode, RoundingModel);
             exit;
+        end;
 
         Session.LogMessage('0000MF4', StrSubstNo(RoundingFallbackStartedMsg, ErrorCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
 
@@ -7886,6 +7896,7 @@ codeunit 10145 "E-Invoice Mgt."
             ErrorCode := DocumentHeaderRecordRef.Field(10035).Value();
             if not (ErrorCode in ['CFDI40108', 'CFDI40110', 'CFDI40111', 'CFDI40119', 'CFDI40167']) then begin
                 Session.LogMessage('0000MF5', StrSubstNo(RoundingFallbackSucceededMsg, InitialModel, StampAttempts), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
+                LogSubmissionCompleted(DocTypeText, StampAttempts, ErrorCode, RoundingModel);
                 exit;
             end;
         end;
@@ -7899,11 +7910,32 @@ codeunit 10145 "E-Invoice Mgt."
                 ErrorCode := DocumentHeaderRecordRef.Field(10035).Value();
                 if not (ErrorCode in ['CFDI40108', 'CFDI40110', 'CFDI40111', 'CFDI40119', 'CFDI40167']) then begin
                     Session.LogMessage('0000MF5', StrSubstNo(RoundingFallbackSucceededMsg, ModelIndex, StampAttempts), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
+                    LogSubmissionCompleted(DocTypeText, StampAttempts, ErrorCode, RoundingModel);
                     exit;
                 end;
             end;
 
         Session.LogMessage('0000MF6', StrSubstNo(RoundingFallbackExhaustedMsg, StampAttempts, ErrorCode), Verbosity::Error, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
+        LogSubmissionCompleted(DocTypeText, StampAttempts, ErrorCode, RoundingModel);
+    end;
+
+    local procedure LogSubmissionCompleted(DocTypeText: Text; StampAttempts: Integer; ErrorCode: Code[10]; UsedRoundingModel: Integer)
+    var
+        ResultText: Text;
+        Severity: Verbosity;
+    begin
+        if ErrorCode = '' then begin
+            ResultText := SubmissionResultSuccessTxt;
+            Severity := Verbosity::Normal;
+        end else begin
+            ResultText := SubmissionResultErrorTxt;
+            Severity := Verbosity::Warning;
+        end;
+
+        Session.LogMessage(
+            '0000MF8',
+            StrSubstNo(SubmissionCompletedMsg, DocTypeText, StampAttempts, ResultText, ErrorCode, UsedRoundingModel),
+            Severity, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', MXElectronicInvoicingTok);
     end;
 
     local procedure UpdatePartialPaymentAmounts(var TempDetailedCustLedgEntry: Record "Detailed Cust. Ledg. Entry" temporary; var CustLedgerEntry: Record "Cust. Ledger Entry"; var TempVATAmountLine: Record "VAT Amount Line" temporary)
