@@ -26,6 +26,8 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
                   tabledata "Sales Comment Line" = rimd,
                   tabledata "Service Participant" = rimd,
                   tabledata "Sales Invoice Line" = rimd,
+                  tabledata "Sales Shipment Header" = rimd,
+                  tabledata "Sales Shipment Line" = rimd,
                   tabledata "Sales & Receivables Setup" = rimd,
                   tabledata Customer = rimd;
 
@@ -312,7 +314,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
-        Assert.AreEqual(CommentText, GetNodeByPath(XmlDoc, '/Invoice/cbc:Note'), StrSubstNo(IncorrectValueErr, 'Note'));
+        Assert.AreEqual('#AAB#' + CommentText, GetNodeByPath(XmlDoc, '/Invoice/cbc:Note'), StrSubstNo(IncorrectValueErr, 'Note'));
     end;
 
     [Test]
@@ -395,24 +397,33 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     procedure ExportSalesInvSelectsExtendedCTCForMultipleOrders()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
         XmlDoc: XmlDocument;
     begin
         // [SCENARIO] An invoice containing lines from distinct orders uses the Extended CTC profile
         Initialize();
 
         SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithTwoLines(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
-        SetPostedInvoiceLineReferences(SalesInvoiceHeader."No.", 'SHIPMENT-1', 'ORDER-', false, true);
+        SetPostedInvoiceLineReferences(SalesInvoiceHeader."No.", '', 'ORDER-', false, true);
 
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
         Assert.AreEqual('EXTENDED-CTC-FR', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
             StrSubstNo(IncorrectValueErr, 'CustomizationID'));
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.FindFirst();
+        Assert.AreEqual(SalesInvoiceLine."Order No.", GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:OrderLineReference/cac:OrderReference/cbc:ID'),
+            StrSubstNo(IncorrectValueErr, 'OrderReference ID'));
+        Assert.AreEqual(Format(SalesInvoiceLine."Order Line No.", 0, 9), GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:OrderLineReference/cbc:LineID'),
+            StrSubstNo(IncorrectValueErr, 'OrderLineReference LineID'));
     end;
 
     [Test]
     procedure ExportSalesInvSelectsExtendedCTCForMultipleShipments()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesInvoiceLine: Record "Sales Invoice Line";
+        SalesShipmentHeader: Record "Sales Shipment Header";
         XmlDoc: XmlDocument;
     begin
         // [SCENARIO] An invoice containing lines from distinct shipments uses the Extended CTC profile
@@ -425,6 +436,13 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
         Assert.AreEqual('EXTENDED-CTC-FR', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
             StrSubstNo(IncorrectValueErr, 'CustomizationID'));
+        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.FindFirst();
+        SalesShipmentHeader.Get(SalesInvoiceLine."Shipment No.");
+        Assert.AreEqual(SalesInvoiceLine."Shipment No.", GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:Delivery/cbc:ID'),
+            StrSubstNo(IncorrectValueErr, 'Delivery ID'));
+        Assert.AreEqual(Format(SalesShipmentHeader."Posting Date", 0, 9), GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:Delivery/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, 'ActualDeliveryDate'));
     end;
 
     [Test]
@@ -697,12 +715,34 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
                 SalesInvoiceLine."Shipment No." := CopyStr(ShipmentNo + Format(LineIndex), 1, MaxStrLen(SalesInvoiceLine."Shipment No."));
             else
             SalesInvoiceLine."Shipment No." := CopyStr(ShipmentNo, 1, MaxStrLen(SalesInvoiceLine."Shipment No."));
+            SalesInvoiceLine."Shipment Line No." := SalesInvoiceLine."Line No.";
             if AppendOrderIndex then
                 SalesInvoiceLine."Order No." := CopyStr(OrderNo + Format(LineIndex), 1, MaxStrLen(SalesInvoiceLine."Order No."));
             else
             SalesInvoiceLine."Order No." := CopyStr(OrderNo, 1, MaxStrLen(SalesInvoiceLine."Order No."));
+            SalesInvoiceLine."Order Line No." := SalesInvoiceLine."Line No.";
             SalesInvoiceLine.Modify();
+            if SalesInvoiceLine."Shipment No." <> '' then
+                CreatePostedShipmentReference(SalesInvoiceLine."Shipment No.", SalesInvoiceLine."Shipment Line No.");
         until SalesInvoiceLine.Next() = 0;
+    end;
+
+    local procedure CreatePostedShipmentReference(ShipmentNo: Code[20]; ShipmentLineNo: Integer)
+    var
+        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesShipmentLine: Record "Sales Shipment Line";
+    begin
+        if not SalesShipmentHeader.Get(ShipmentNo) then begin
+            SalesShipmentHeader.Init();
+            SalesShipmentHeader."No." := ShipmentNo;
+            SalesShipmentHeader."Posting Date" := WorkDate();
+            SalesShipmentHeader.Insert();
+        end;
+
+        SalesShipmentLine.Init();
+        SalesShipmentLine."Document No." := ShipmentNo;
+        SalesShipmentLine."Line No." := ShipmentLineNo;
+        SalesShipmentLine.Insert();
     end;
 
     local procedure CreateSalesInvoiceWithLine(CustomerNo: Code[20]): Code[20]

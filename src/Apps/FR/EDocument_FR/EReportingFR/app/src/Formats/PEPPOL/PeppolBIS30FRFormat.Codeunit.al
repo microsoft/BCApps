@@ -114,11 +114,10 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
 
         if XmlDoc.SelectSingleNode('/*/cbc:CustomizationID', NamespaceMgr, CustomizationIdNode) then begin
             CustomizationIdElement := CustomizationIdNode.AsXmlElement();
-            CustomizationIdElement.InnerText := ExtendedCTCFranceCustomizationIdTok;
+            CustomizationIdElement.InnerText(ExtendedCTCFranceCustomizationIdTok);
         end;
 
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
-        SalesInvoiceLine.SetFilter("Shipment No.", '<>%1', '');
         if SalesInvoiceLine.FindSet() then
             repeat
                 InjectExtendedLineReferences(XmlDoc, NamespaceMgr, SalesInvoiceLine);
@@ -165,11 +164,6 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         DeliveryElement: XmlElement;
         LineXPath: Text;
     begin
-        if not SalesShipmentLine.Get(SalesInvoiceLine."Shipment No.", SalesInvoiceLine."Shipment Line No.") then
-            exit;
-        if not SalesShipmentHeader.Get(SalesShipmentLine."Document No.") then
-            exit;
-
         LineXPath := StrSubstNo('/*/cac:InvoiceLine[cbc:ID=''%1'']', Format(SalesInvoiceLine."Line No.", 0, 9));
         if not XmlDoc.SelectSingleNode(LineXPath, NamespaceMgr, InvoiceLineNode) then
             exit;
@@ -184,6 +178,11 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             OrderLineReferenceElement.Add(OrderReferenceElement);
             ItemNode.AddBeforeSelf(OrderLineReferenceElement);
         end;
+
+        if not SalesShipmentLine.Get(SalesInvoiceLine."Shipment No.", SalesInvoiceLine."Shipment Line No.") then
+            exit;
+        if not SalesShipmentHeader.Get(SalesShipmentLine."Document No.") then
+            exit;
 
         DeliveryElement := XmlElement.Create('Delivery', CacNamespaceTok);
         DeliveryElement.Add(XmlElement.Create('ID', CbcNamespaceTok, SalesShipmentLine."Document No."));
@@ -224,10 +223,15 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         SalesCommentLine.SetFilter("FR Regulatory Comment Type", '<>%1', SalesCommentLine."FR Regulatory Comment Type"::None);
         if SalesCommentLine.FindSet() then
             repeat
-                NoteElement := XmlElement.Create('Note', CbcNamespaceTok, SalesCommentLine.Comment);
+                NoteElement := XmlElement.Create('Note', CbcNamespaceTok, StrSubstNo(RegulatoryCommentFormatTok, GetRegulatoryCommentTypeCode(SalesCommentLine."FR Regulatory Comment Type"), SalesCommentLine.Comment));
                 AnchorNode.AddAfterSelf(NoteElement);
                 AnchorNode := NoteElement.AsXmlNode();
             until SalesCommentLine.Next() = 0;
+    end;
+
+    local procedure GetRegulatoryCommentTypeCode(RegulatoryCommentType: Enum "FR Regulatory Comment Type"): Text
+    begin
+        exit(RegulatoryCommentType.Names.Get(RegulatoryCommentType.Ordinals.IndexOf(RegulatoryCommentType.AsInteger())));
     end;
 
     local procedure InitNamespaceManager(var NamespaceMgr: XmlNamespaceManager; XmlDoc: XmlDocument)
@@ -504,4 +508,5 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         CbcNamespaceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', Locked = true;
         CacNamespaceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', Locked = true;
         ExtendedCTCFranceCustomizationIdTok: Label 'EXTENDED-CTC-FR', Locked = true;
+        RegulatoryCommentFormatTok: Label '#%1#%2', Locked = true;
 }
