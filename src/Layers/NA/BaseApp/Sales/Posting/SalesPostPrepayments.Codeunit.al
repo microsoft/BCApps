@@ -2084,21 +2084,7 @@ codeunit 442 "Sales-Post Prepayments"
     begin
         if HasInvoiceDiscount and (SalesHeader."Prepayment %" <> 0) then begin
             Currency.Initialize(SalesHeader."Currency Code");
-            SalesHeader.CalcFields(Amount, "Amount Including VAT");
-            
-            SalesLine.SetLoadFields(Amount, "Prepayment %");
-            SalesLine.SetRange("Document Type", SalesHeader."Document Type");
-            SalesLine.SetRange("Document No.", SalesHeader."No.");
-            SalesLine.SetFilter(Type, '<>%1', SalesLine.Type::" ");
-            SalesLine.SetFilter("Prepmt. Line Amount", '<>0');
-            if SalesLine.FindSet() then
-                repeat
-                    if SalesHeader."Prepmt. Include Tax" then
-                PrepmtAmt += Round(SalesLine."Amount Including VAT" * SalesLine."Prepayment %" / 100, Currency."Amount Rounding Precision")
-            else
-                PrepmtAmt += Round(SalesLine.Amount * SalesLine."Prepayment %" / 100, Currency."Amount Rounding Precision");
-                until SalesLine.Next() = 0;
-            PrepmtAmt := Round(PrepmtAmt, Currency."Amount Rounding Precision");
+            PrepmtAmt := CalcPrepmtAmount(SalesHeader, Currency);
             if TotalPrepmtInvLineBuffer.Amount > PrepmtAmt then begin
                 DifferenceAmt := TotalPrepmtInvLineBuffer.Amount - PrepmtAmt;
 
@@ -2111,6 +2097,27 @@ codeunit 442 "Sales-Post Prepayments"
                 end;
             end;
         end;
+    end;
+
+    local procedure CalcPrepmtAmount(SalesHeader: Record "Sales Header"; Currency: Record Currency): Decimal
+    var
+        SalesLine: Record "Sales Line";
+        PrepmtAmt: Decimal;
+    begin
+        SalesLine.SetLoadFields(Amount, "Prepayment %");
+        SalesLine.SetRange("Document Type", SalesHeader."Document Type");
+        SalesLine.SetRange("Document No.", SalesHeader."No.");
+        SalesLine.SetFilter(Type, '<>%1', SalesLine.Type::" ");
+        SalesLine.SetFilter("Prepmt. Line Amount", '<>0');
+        if SalesLine.FindSet() then
+            repeat
+                repeat
+                    if SalesHeader."Prepmt. Include Tax" then
+                        PrepmtAmt += Round(SalesLine."Amount Including VAT" * SalesLine."Prepayment %" / 100, Currency."Amount Rounding Precision")
+                    else
+                        PrepmtAmt += Round(SalesLine.Amount * SalesLine."Prepayment %" / 100, Currency."Amount Rounding Precision");
+                until SalesLine.Next() = 0;
+        exit(Round(PrepmtAmt, Currency."Amount Rounding Precision"));
     end;
 
     /// <summary>
