@@ -109,7 +109,7 @@ jobs:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
           buildMode: ${{ inputs.buildMode }}
-          get: useCompilerFolder,workspaceCompilation,keyVaultCodesignCertificateName,doNotSignApps,doNotRunTests,doNotRunBcptTests,doNotRunpageScriptingTests,artifact,generateDependencyArtifact,trustedSigning,useGitSubmodules,trackALAlertsInGitHub,skipUpgrade
+          get: useCompilerFolder,workspaceCompilation,keyVaultCodesignCertificateName,doNotSignApps,doNotRunTests,doNotRunBcptTests,doNotRunpageScriptingTests,useSeparateTestAction,artifact,generateDependencyArtifact,trustedSigning,useGitSubmodules,trackALAlertsInGitHub,skipUpgrade
 
       - name: Run Build Initialize hook
         if: hashFiles(format('{0}/.AL-Go/BuildInitialize.ps1', inputs.project)) != ''
@@ -227,6 +227,17 @@ jobs:
           baselineWorkflowRunId: ${{ inputs.baselineWorkflowRunId }}
           baselineWorkflowSHA: ${{ inputs.baselineWorkflowSHA }}
           previousAppsPath: ${{ steps.DownloadPreviousRelease.outputs.PreviousAppsPath }}
+
+      - name: Run Tests
+        uses: microsoft/AL-Go/Actions/RunTests@16948d91ca57e875e3d823536bac740c0ca1fdbd
+        if: steps.DetermineBuildProject.outputs.BuildIt == 'True' && env.useSeparateTestAction == 'True'
+        env:
+          Secrets: '${{ steps.ReadSecrets.outputs.Secrets }}'
+          BuildMode: ${{ inputs.buildMode }}
+        with:
+          shell: ${{ inputs.shell }}
+          project: ${{ inputs.project }}
+          installTestAppsJson: ${{ steps.DownloadProjectDependencies.outputs.DownloadedTestApps }}
 
       - name: Sign
         id: sign
