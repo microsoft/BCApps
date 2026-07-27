@@ -31,5 +31,12 @@ reportextension 6166 "PostedSalesInvoiceWithQR" extends "Standard Sales - Invoic
             Caption = 'Standard Sales Invoice - E-Document (Word)';
             Summary = 'The "Standard Sales Invoice - E-Document (Word)" provides the layout including E-Document QR code support.';
         }
+        layout("StandardSalesInvoiceBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './.resources/Template/StandardSalesInvoicewithQRBody.docx';
+            Caption = 'Body-only: Standard Sales Invoice - E-Document (Word)';
+            Summary = 'Body-only: The "Standard Sales Invoice - E-Document (Word)" provides the layout including E-Document QR code support.';
+        }
     }
 }
