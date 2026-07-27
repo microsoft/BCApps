@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
@@ -9,6 +9,9 @@ using Microsoft.CRM.Team;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
 using Microsoft.Foundation.PaymentTerms;
+using Microsoft.Sales.History;
+using Microsoft.Foundation.Enums;
+using Microsoft.Service.History;
 
 codeunit 13648 "OIOUBL-Common Logic"
 {
@@ -412,7 +415,13 @@ codeunit 13648 "OIOUBL-Common Logic"
         RootElement.Add(AllowanceChargeElement);
     end;
 
-    procedure InsertTaxSubtotal(var RootElement: XmlElement; VATCalculationType: Option; TaxableAmount: Decimal; TaxAmount: Decimal; VATPercentage: Decimal; CurrencyCode: Code[10]);
+    procedure InsertTaxSubtotal(var RootElement: XmlElement; VATCalculationType: Enum "Tax Calculation Type"; TaxableAmount: Decimal; TaxAmount: Decimal; VATPercentage: Decimal; CurrencyCode: Code[10]);
+    begin
+        InsertTaxSubtotalByCategory(
+          RootElement, GetTaxCategoryID(VATCalculationType, VATPercentage), VATPercentage, TaxableAmount, TaxAmount, CurrencyCode);
+    end;
+
+    procedure InsertTaxSubtotalByCategory(var RootElement: XmlElement; TaxCategoryID: Text; VATPercentage: Decimal; TaxableAmount: Decimal; TaxAmount: Decimal; CurrencyCode: Code[10]);
     var
         TaxSubtotalElement: XmlElement;
     begin
@@ -426,13 +435,12 @@ codeunit 13648 "OIOUBL-Common Logic"
           XmlElement.Create('TaxAmount', DocNameSpaceCBC,
             XmlAttribute.Create('currencyID', CurrencyCode),
             OIOUBLDocumentEncode.DecimalToText(TaxAmount)));
-        InsertTaxCategory(TaxSubtotalElement,
-          GetTaxCategoryID(VATCalculationType, VATPercentage), VATPercentage);
+        InsertTaxCategory(TaxSubtotalElement, TaxCategoryID, VATPercentage);
 
         RootElement.Add(TaxSubtotalElement);
     end;
 
-    procedure InsertLineTaxTotal(var RootElement: XmlElement; AmountIncludingVAT: Decimal; Amount: Decimal; VATCalculationType: Option; VATPercent: Decimal; CurrencyCode: Code[10]);
+    procedure InsertLineTaxTotal(var RootElement: XmlElement; TaxableAmount: Decimal; TaxAmount: Decimal; VATCalculationType: Enum "Tax Calculation Type"; VATPercent: Decimal; CurrencyCode: Code[10]);
     var
         TaxTotalElement: XmlElement;
     begin
@@ -441,11 +449,134 @@ codeunit 13648 "OIOUBL-Common Logic"
         TaxTotalElement.Add(
           XmlElement.Create('TaxAmount', DocNameSpaceCBC,
             XmlAttribute.Create('currencyID', CurrencyCode),
-            OIOUBLDocumentEncode.DecimalToText(AmountIncludingVAT - Amount)));
+            OIOUBLDocumentEncode.DecimalToText(TaxAmount)));
         InsertTaxSubtotal(TaxTotalElement, VATCalculationType,
-          Amount, AmountIncludingVAT - Amount, VATPercent, CurrencyCode);
+          TaxableAmount, TaxAmount, VATPercent, CurrencyCode);
 
         RootElement.Add(TaxTotalElement);
+    end;
+
+    /// <summary>
+    /// Accumulate one Sales Invoice line into the per-(TaxCategory, VAT %) tax groups.
+    /// </summary>
+    /// <param name="TempTaxGroupBuffer">Buffer where the tax group information is being accumulated</param>
+    /// <param name="SalesInvoiceLine">Line being accumulated</param>
+    procedure AddLineToTaxGroups(var TempTaxGroupBuffer: Record "OIOUBL-Tax Group Buffer"; SalesInvoiceLine: Record "Sales Invoice Line");
+    begin
+        AddLineToTaxGroups(
+          TempTaxGroupBuffer, SalesInvoiceLine."VAT Calculation Type", SalesInvoiceLine."VAT %",
+          SalesInvoiceLine.Amount, SalesInvoiceLine."Amount Including VAT", SalesInvoiceLine."Inv. Discount Amount");
+    end;
+
+    /// <summary>
+    /// Accumulate one Sales Credit Memo line into the per-(TaxCategory, VAT %) tax groups.
+    /// </summary>
+    /// <param name="TempTaxGroupBuffer">Buffer where the tax group information is being accumulated</param>
+    /// <param name="SalesCrMemoLine">Line being accumulated</param>
+    procedure AddLineToTaxGroups(var TempTaxGroupBuffer: Record "OIOUBL-Tax Group Buffer"; SalesCrMemoLine: Record "Sales Cr.Memo Line");
+    begin
+        AddLineToTaxGroups(
+          TempTaxGroupBuffer, SalesCrMemoLine."VAT Calculation Type", SalesCrMemoLine."VAT %",
+          SalesCrMemoLine.Amount, SalesCrMemoLine."Amount Including VAT", SalesCrMemoLine."Inv. Discount Amount");
+    end;
+
+    /// <summary>
+    /// Accumulate one Service Invoice line into the per-(TaxCategory, VAT %) tax groups.
+    /// </summary>
+    /// <param name="TempTaxGroupBuffer">Buffer where the tax group information is being accumulated</param>
+    /// <param name="ServiceInvoiceLine">Line being accumulated</param>
+    procedure AddLineToTaxGroups(var TempTaxGroupBuffer: Record "OIOUBL-Tax Group Buffer"; ServiceInvoiceLine: Record "Service Invoice Line");
+    begin
+        AddLineToTaxGroups(
+          TempTaxGroupBuffer, ServiceInvoiceLine."VAT Calculation Type", ServiceInvoiceLine."VAT %",
+          ServiceInvoiceLine.Amount, ServiceInvoiceLine."Amount Including VAT", ServiceInvoiceLine."Inv. Discount Amount");
+    end;
+
+    /// <summary>
+    /// Accumulate one Service Credit Memo line into the per-(TaxCategory, VAT %) tax groups.
+    /// </summary>
+    /// <param name="TempTaxGroupBuffer">Buffer where the tax group information is being accumulated</param>
+    /// <param name="ServiceCrMemoLine">Line being accumulated</param>
+    procedure AddLineToTaxGroups(var TempTaxGroupBuffer: Record "OIOUBL-Tax Group Buffer"; ServiceCrMemoLine: Record "Service Cr.Memo Line");
+    begin
+        AddLineToTaxGroups(
+          TempTaxGroupBuffer, ServiceCrMemoLine."VAT Calculation Type", ServiceCrMemoLine."VAT %",
+          ServiceCrMemoLine.Amount, ServiceCrMemoLine."Amount Including VAT", ServiceCrMemoLine."Inv. Discount Amount");
+    end;
+
+    local procedure AddLineToTaxGroups(var TempTaxGroupBuffer: Record "OIOUBL-Tax Group Buffer"; VATCalculationType: Enum "Tax Calculation Type"; VATPercent: Decimal; Amount: Decimal; AmountIncludingVAT: Decimal; InvDiscountAmount: Decimal);
+    var
+        TaxCategoryID: Text[15];
+    begin
+        TaxCategoryID := GetTaxCategoryID(VATCalculationType, VATPercent);
+        if not TempTaxGroupBuffer.Get(TaxCategoryID, VATPercent) then begin
+            TempTaxGroupBuffer.Init();
+            TempTaxGroupBuffer."OIOUBL-Tax Category ID" := TaxCategoryID;
+            TempTaxGroupBuffer."OIOUBL-VAT %" := VATPercent;
+            TempTaxGroupBuffer.Insert();
+        end;
+        TempTaxGroupBuffer."OIOUBL-Taxable Amount" += Amount;
+        TempTaxGroupBuffer."OIOUBL-Tax Amount" += AmountIncludingVAT - Amount;
+        TempTaxGroupBuffer."OIOUBL-Inv. Discount Amount" += InvDiscountAmount;
+        TempTaxGroupBuffer.Modify();
+    end;
+
+    /// <summary>
+    /// Inserts document's TaxTotal with one TaxSubtotal per tax-category group
+    /// </summary>
+    /// <param name="RootElement">Where in the XML the group is inserted</param>
+    /// <param name="TempTaxGroupBuffer">The buffer containing the tax groups</param>
+    /// <param name="CurrencyCode">The currency code for the amounts</param>
+    procedure InsertGroupedInvoiceTaxTotal(var RootElement: XmlElement; var TempTaxGroupBuffer: Record "OIOUBL-Tax Group Buffer"; CurrencyCode: Code[10]);
+    var
+        TaxTotalElement: XmlElement;
+        TotalTaxAmount: Decimal;
+    begin
+        if TempTaxGroupBuffer.IsEmpty() then
+            exit;
+
+        TaxTotalElement := XmlElement.Create('TaxTotal', DocNameSpaceCAC);
+
+        TotalTaxAmount := 0;
+        if TempTaxGroupBuffer.FindSet() then
+            repeat
+                TotalTaxAmount += TempTaxGroupBuffer."OIOUBL-Tax Amount";
+            until TempTaxGroupBuffer.Next() = 0;
+        TaxTotalElement.Add(
+          XmlElement.Create('TaxAmount', DocNameSpaceCBC,
+            XmlAttribute.Create('currencyID', CurrencyCode),
+            OIOUBLDocumentEncode.DecimalToText(TotalTaxAmount)));
+
+        if TempTaxGroupBuffer.FindSet() then
+            repeat
+                InsertTaxSubtotalByCategory(
+                  TaxTotalElement, TempTaxGroupBuffer."OIOUBL-Tax Category ID", TempTaxGroupBuffer."OIOUBL-VAT %",
+                  TempTaxGroupBuffer."OIOUBL-Taxable Amount", TempTaxGroupBuffer."OIOUBL-Tax Amount", CurrencyCode);
+            until TempTaxGroupBuffer.Next() = 0;
+
+        RootElement.Add(TaxTotalElement);
+    end;
+
+    /// <summary>
+    /// Inserts the header level discounts as document's AllowanceCharge. One per tax-category group present in the buffer.
+    /// </summary>
+    /// <param name="RootElement">Where in the XML the allowance charges are inserted</param>
+    /// <param name="TempTaxGroupBuffer">The buffer containing the tax groups</param>
+    /// <param name="CurrencyCode">The currency code for the amounts</param>
+    procedure InsertInvoiceDiscountAllowanceCharges(var RootElement: XmlElement; var TempTaxGroupBuffer: Record "OIOUBL-Tax Group Buffer"; CurrencyCode: Code[10]);
+    var
+        AllowanceChargeID: Integer;
+    begin
+        AllowanceChargeID := 0;
+        if TempTaxGroupBuffer.FindSet() then
+            repeat
+                if TempTaxGroupBuffer."OIOUBL-Inv. Discount Amount" > 0 then begin
+                    AllowanceChargeID += 1;
+                    InsertAllowanceCharge(
+                      RootElement, AllowanceChargeID, 'Rabat', TempTaxGroupBuffer."OIOUBL-Tax Category ID",
+                      TempTaxGroupBuffer."OIOUBL-Inv. Discount Amount", CurrencyCode, TempTaxGroupBuffer."OIOUBL-VAT %");
+                end;
+            until TempTaxGroupBuffer.Next() = 0;
     end;
 
     procedure InsertLegalMonetaryTotal(var InvoiceElement: XmlElement; LineAmount: Decimal; TaxAmount: Decimal; TotalAmount: Decimal; TotalInvDiscountAmount: Decimal; CurrencyCode: Code[10])
@@ -589,7 +720,7 @@ codeunit 13648 "OIOUBL-Common Logic"
           'xmlns:udt="urn:un:unece:uncefact:data:specification:UnqualifiedDataTypesSchemaModule:2"/> ');
     end;
 
-    procedure GetTaxCategoryID(Type: Option "Normal VAT","Reverse Charge VAT","Full VAT","Sales Tax"; VATPercent: Decimal): Text[15];
+    procedure GetTaxCategoryID(Type: Enum "Tax Calculation Type"; VATPercent: Decimal): Text[15];
     begin
         case Type of
             Type::"Normal VAT":
