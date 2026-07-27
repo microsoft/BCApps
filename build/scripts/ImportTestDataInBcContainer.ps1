@@ -886,7 +886,7 @@ try {
 }
 
 # Create additional tenants by cloning the default tenant (which now has all apps + demo data)
-# Number of tenants (including default) can be overridden via "numberOfTenantsForTesting" in AL-Go settings; defaults to 3
+# Number of tenants (including default) can be overridden via "numberOfTenantsForTesting" in AL-Go settings; defaults to 6
 $numberOfTenants = Get-ALGoSetting -Key "numberOfTenantsForTesting"
 if ($null -eq $numberOfTenants -or $numberOfTenants -lt 1) {
     throw "AL-Go setting 'numberOfTenantsForTesting' is missing or invalid. Set it to a positive integer in .github/AL-Go-Settings.json."

@@ -13,7 +13,7 @@
   "useProjectDependencies": true,
   "repoVersion": "29.0",
   "memoryLimit": "16G",
-  "numberOfTenantsForTesting": 3,
+  "numberOfTenantsForTesting": 6,
   "workspaceCompilation": {
     "enabled": true,
     "parallelism": -1
