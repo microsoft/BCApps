@@ -1098,8 +1098,12 @@ codeunit 6500 "Item Tracking Management"
                 TempPostedWhseRcptLine.Modify();
             until WhseItemEntryRelation.Next() = 0
         else begin
-            TempPostedWhseRcptLine := PostedWhseRcptLine;
-            TempPostedWhseRcptLine.Insert();
+            IsHandled := false;
+            OnSplitPostedWhseReceiptLineOnNotFindWhseItemEntryRelation(PostedWhseRcptLine, TempPostedWhseRcptLine, IsHandled);
+            if not IsHandled then begin
+                TempPostedWhseRcptLine := PostedWhseRcptLine;
+                TempPostedWhseRcptLine.Insert();
+            end;
         end;
 
         OnAfterSplitPostedWhseReceiptLine(PostedWhseRcptLine, TempPostedWhseRcptLine);
@@ -3702,6 +3706,11 @@ codeunit 6500 "Item Tracking Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeSplitPostedWhseReceiptLine(PostedWhseRcptLine: Record "Posted Whse. Receipt Line"; var TempPostedWhseRcptLine: Record "Posted Whse. Receipt Line" temporary; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSplitPostedWhseReceiptLineOnNotFindWhseItemEntryRelation(PostedWhseRcptLine: Record "Posted Whse. Receipt Line"; var TempPostedWhseRcptLine: Record "Posted Whse. Receipt Line" temporary; var IsHandled: Boolean)
     begin
     end;
 
