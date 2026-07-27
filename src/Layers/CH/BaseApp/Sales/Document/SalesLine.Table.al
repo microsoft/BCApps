@@ -10297,7 +10297,7 @@ table 37 "Sales Line"
     procedure ClearSalesHeader()
     begin
         Clear(SalesHeader);
-        SuppressSalesHeaderExistsVerification := false;
+        SetSuppressSalesHeaderExistsVerification(false);
     end;
 
     local procedure GetBlockedItemNotificationID(): Guid
@@ -12205,7 +12205,7 @@ table 37 "Sales Line"
     /// <param name="SalesHeader">The sales header to get.</param>
     /// <param name="IsHanded">Set to true to skip the default processing.</param>
     /// <param name="Currency">The currency record.</param>
-    /// <param name="HasSalesHeader">Set to true to indicate whether the sales header has been retrieved.</param>
+    /// <param name="HasSalesHeader">Set to true to indicate whether the sales header has been retrieved, which sets global variable SuppressSalesHeaderExistsVerification to skip the verification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetSalesHeader(var SalesLine: Record "Sales Line"; var SalesHeader: Record "Sales Header"; var IsHanded: Boolean; var Currency: Record Currency; var HasSalesHeader: Boolean)
     begin

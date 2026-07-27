@@ -9610,7 +9610,7 @@ table 39 "Purchase Line"
     procedure ClearPurchaseHeader()
     begin
         Clear(PurchHeader);
-        SuppressPurchaseHeaderExistsVerification := false;
+        SetSuppressPurchaseHeaderExistsVerification(false);
     end;
 
     local procedure GetBlockedItemNotificationID(): Guid
@@ -11908,6 +11908,14 @@ table 39 "Purchase Line"
     begin
     end;
 
+    /// <summary>
+    /// Raised before getting the purchase header for the purchase line.
+    /// </summary>
+    /// <param name="PurchaseLine">The purchase line being processed.</param>
+    /// <param name="PurchaseHeader">The purchase header to get.</param>
+    /// <param name="IsHandled">Set to true to skip the default processing.</param>
+    /// <param name="Currency">The currency record.</param>
+    /// <param name="HasPurchHeader">Set to true to indicate whether the purchase header has been retrieved, which sets global variable SuppressPurchaseHeaderExistsVerification to skip the verification.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeGetPurchHeader(var PurchaseLine: Record "Purchase Line"; var PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean; var Currency: Record Currency; var HasPurchHeader: Boolean)
     begin
