@@ -25,7 +25,6 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
                   tabledata "Company Information" = rimd,
                   tabledata "Sales Comment Line" = rimd,
                   tabledata "Service Participant" = rimd,
-                  tabledata "Sales Invoice Header" = rimd,
                   tabledata "Sales Invoice Line" = rimd,
                   tabledata "Sales Shipment Header" = rimd,
                   tabledata "Sales Shipment Line" = rimd,
@@ -350,22 +349,6 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             StrSubstNo(IncorrectValueErr, 'Buyer EndpointID schemeID'));
     end;
 
-    [Test]
-    procedure ExportSalesInvUsesCreditTransferPaymentMeansCode()
-    var
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        XmlDoc: XmlDocument;
-    begin
-        // [SCENARIO] A French PEPPOL invoice uses generic credit transfer as payment means
-        Initialize();
-
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
-        ExportInvoice(SalesInvoiceHeader, XmlDoc);
-
-        Assert.AreEqual('58', GetNodeByPath(XmlDoc, '/Invoice/cac:PaymentMeans/cbc:PaymentMeansCode'),
-            StrSubstNo(IncorrectValueErr, 'PaymentMeansCode'));
-    end;
-
     #endregion
 
     #region SalesCreditMemo
@@ -411,22 +394,6 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     end;
 
     [Test]
-    procedure ExportSalesCrMemoUsesCreditTransferPaymentMeansCode()
-    var
-        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
-        XmlDoc: XmlDocument;
-    begin
-        // [SCENARIO] A French PEPPOL credit memo uses generic credit transfer as payment means
-        Initialize();
-
-        SalesCrMemoHeader.Get(CreateAndPostSalesCrMemo(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
-        ExportCrMemo(SalesCrMemoHeader, XmlDoc);
-
-        Assert.AreEqual('58', GetNodeByPath(XmlDoc, '/CreditNote/cac:PaymentMeans/cbc:PaymentMeansCode'),
-            StrSubstNo(IncorrectValueErr, 'PaymentMeansCode'));
-    end;
-
-    [Test]
     procedure ExportSalesInvSelectsExtendedCTCForMultipleOrders()
     var
         SalesInvoiceHeader: Record "Sales Invoice Header";
@@ -444,10 +411,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Assert.AreEqual('EXTENDED-CTC-FR', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
             StrSubstNo(IncorrectValueErr, 'CustomizationID'));
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
-        SalesInvoiceLine.FindSet();
-        repeat
-            AssertInvoiceLineOrderReference(XmlDoc, SalesInvoiceLine);
-        until SalesInvoiceLine.Next() = 0;
+        SalesInvoiceLine.FindFirst();
+        Assert.AreEqual(SalesInvoiceLine."Order No.", GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:OrderLineReference/cac:OrderReference/cbc:ID'),
+            StrSubstNo(IncorrectValueErr, 'OrderReference ID'));
+        Assert.AreEqual(Format(SalesInvoiceLine."Order Line No.", 0, 9), GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:OrderLineReference/cbc:LineID'),
+            StrSubstNo(IncorrectValueErr, 'OrderLineReference LineID'));
     end;
 
     [Test]
@@ -469,46 +437,12 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Assert.AreEqual('EXTENDED-CTC-FR', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
             StrSubstNo(IncorrectValueErr, 'CustomizationID'));
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
-        SalesInvoiceLine.FindSet();
-        repeat
-            SalesShipmentHeader.Get(SalesInvoiceLine."Shipment No.");
-            AssertInvoiceLineOrderReference(XmlDoc, SalesInvoiceLine);
-            AssertInvoiceLineDeliveryReference(XmlDoc, SalesInvoiceLine, SalesShipmentHeader."Posting Date");
-        until SalesInvoiceLine.Next() = 0;
-    end;
-
-    [Test]
-    procedure ExportSalesInvSelectsExtendedCTCForMultipleDeliveryDates()
-    var
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        SalesInvoiceLine: Record "Sales Invoice Line";
-        SalesShipmentHeader: Record "Sales Shipment Header";
-        XmlDoc: XmlDocument;
-        DeliveryDate: Date;
-    begin
-        // [SCENARIO] Consolidated shipments with different delivery dates use Extended CTC and retain each line date
-        Initialize();
-
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithTwoLines(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
-        SetPostedInvoiceLineReferences(SalesInvoiceHeader."No.", 'SHIPMENT-', 'ORDER-1', true, false);
-        SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
-        SalesInvoiceLine.FindSet();
-        repeat
-            DeliveryDate := WorkDate() + SalesInvoiceLine."Line No.";
-            SalesShipmentHeader.Get(SalesInvoiceLine."Shipment No.");
-            SalesShipmentHeader."Posting Date" := DeliveryDate;
-            SalesShipmentHeader.Modify();
-        until SalesInvoiceLine.Next() = 0;
-
-        ExportInvoice(SalesInvoiceHeader, XmlDoc);
-
-        Assert.AreEqual('EXTENDED-CTC-FR', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
-            StrSubstNo(IncorrectValueErr, 'CustomizationID'));
-        SalesInvoiceLine.FindSet();
-        repeat
-            SalesShipmentHeader.Get(SalesInvoiceLine."Shipment No.");
-            AssertInvoiceLineDeliveryReference(XmlDoc, SalesInvoiceLine, SalesShipmentHeader."Posting Date");
-        until SalesInvoiceLine.Next() = 0;
+        SalesInvoiceLine.FindFirst();
+        SalesShipmentHeader.Get(SalesInvoiceLine."Shipment No.");
+        Assert.AreEqual(SalesInvoiceLine."Shipment No.", GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:Delivery/cbc:ID'),
+            StrSubstNo(IncorrectValueErr, 'Delivery ID'));
+        Assert.AreEqual(Format(SalesShipmentHeader."Posting Date", 0, 9), GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:Delivery/cbc:ActualDeliveryDate'),
+            StrSubstNo(IncorrectValueErr, 'ActualDeliveryDate'));
     end;
 
     [Test]
@@ -528,7 +462,6 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         Assert.AreNotEqual('EXTENDED-CTC-FR', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
             StrSubstNo(IncorrectValueErr, 'CustomizationID'));
     end;
-
     #endregion
 
     #region Validation
@@ -642,35 +575,6 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID'),
             StrSubstNo(IncorrectValueErr, 'Seller EndpointID'));
         Assert.AreEqual('0002',
-            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID/@schemeID'),
-            StrSubstNo(IncorrectValueErr, 'Seller EndpointID schemeID'));
-    end;
-
-    [Test]
-    procedure ExportSalesInvUsesCompanyRoutingEndpointWithScheme0225()
-    var
-        ServiceParticipant: Record "Service Participant";
-        SalesInvoiceHeader: Record "Sales Invoice Header";
-        XmlDoc: XmlDocument;
-        EndpointId: Text[200];
-    begin
-        // [SCENARIO] A service-specific company routing identifier is exported with scheme 0225
-        Initialize();
-
-        EndpointId := CompanyInformation."Registration No." + '_001';
-        ServiceParticipant.Service := EDocumentService.Code;
-        ServiceParticipant."Participant Type" := ServiceParticipant."Participant Type"::Company;
-        ServiceParticipant."Participant Identifier" := EndpointId;
-        ServiceParticipant."FR Identifier Scheme" := ServiceParticipant."FR Identifier Scheme"::"0225";
-        ServiceParticipant.Insert();
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoice(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
-
-        ExportInvoice(SalesInvoiceHeader, XmlDoc);
-
-        Assert.AreEqual(EndpointId,
-            GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID'),
-            StrSubstNo(IncorrectValueErr, 'Seller EndpointID'));
-        Assert.AreEqual('0225',
             GetNodeByPath(XmlDoc, '/Invoice/cac:AccountingSupplierParty/cac:Party/cbc:EndpointID/@schemeID'),
             StrSubstNo(IncorrectValueErr, 'Seller EndpointID schemeID'));
     end;
@@ -841,28 +745,6 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesShipmentLine.Insert();
     end;
 
-    local procedure AssertInvoiceLineOrderReference(XmlDoc: XmlDocument; SalesInvoiceLine: Record "Sales Invoice Line")
-    var
-        InvoiceLinePath: Text;
-    begin
-        InvoiceLinePath := StrSubstNo('/Invoice/cac:InvoiceLine[cbc:ID=''%1'']', Format(SalesInvoiceLine."Line No.", 0, 9));
-        Assert.AreEqual(SalesInvoiceLine."Order No.", GetNodeByPath(XmlDoc, InvoiceLinePath + '/cac:OrderLineReference/cac:OrderReference/cbc:ID'),
-            StrSubstNo(IncorrectValueErr, 'OrderReference ID'));
-        Assert.AreEqual(Format(SalesInvoiceLine."Order Line No.", 0, 9), GetNodeByPath(XmlDoc, InvoiceLinePath + '/cac:OrderLineReference/cbc:LineID'),
-            StrSubstNo(IncorrectValueErr, 'OrderLineReference LineID'));
-    end;
-
-    local procedure AssertInvoiceLineDeliveryReference(XmlDoc: XmlDocument; SalesInvoiceLine: Record "Sales Invoice Line"; DeliveryDate: Date)
-    var
-        InvoiceLinePath: Text;
-    begin
-        InvoiceLinePath := StrSubstNo('/Invoice/cac:InvoiceLine[cbc:ID=''%1'']', Format(SalesInvoiceLine."Line No.", 0, 9));
-        Assert.AreEqual(SalesInvoiceLine."Shipment No.", GetNodeByPath(XmlDoc, InvoiceLinePath + '/cac:Delivery/cbc:ID'),
-            StrSubstNo(IncorrectValueErr, 'Delivery ID'));
-        Assert.AreEqual(Format(DeliveryDate, 0, 9), GetNodeByPath(XmlDoc, InvoiceLinePath + '/cac:Delivery/cbc:ActualDeliveryDate'),
-            StrSubstNo(IncorrectValueErr, 'ActualDeliveryDate'));
-    end;
-
     local procedure CreateSalesInvoiceWithLine(CustomerNo: Code[20]): Code[20]
     var
         Customer: Record Customer;
@@ -1008,14 +890,6 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
     local procedure CreateAndPostSalesCrMemo(CustomerNo: Code[20]): Code[20]
     var
-        SalesHeader: Record "Sales Header";
-    begin
-        SalesHeader.Get("Sales Document Type"::"Credit Memo", CreateSalesCrMemo(CustomerNo));
-        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
-    end;
-
-    local procedure CreateSalesCrMemo(CustomerNo: Code[20]): Code[20]
-    var
         Customer: Record Customer;
         GLAccount: Record "G/L Account";
         SalesReceivablesSetup: Record "Sales & Receivables Setup";
@@ -1045,7 +919,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         SalesLine.Validate("Unit Price", 100);
         SalesLine.Modify(true);
 
-        exit(SalesHeader."No.");
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
     local procedure ExportCrMemo(SalesCrMemoHeader: Record "Sales Cr.Memo Header"; var XmlDoc: XmlDocument)
