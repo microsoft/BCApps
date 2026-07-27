@@ -43,6 +43,7 @@ table 18466 "Applied Delivery Challan"
             var
                 DeliveryChallanLine1: Record "Delivery Challan Line";
                 ItemLedgerEntry: Record "Item Ledger Entry";
+                SubOrderCompListVend: Record "Sub Order Comp. List Vend";
                 DeliveryChallanLineList: Page "Delivery Challan Line";
             begin
                 DeliveryChallanLine.Reset();
@@ -50,6 +51,14 @@ table 18466 "Applied Delivery Challan"
                 DeliveryChallanLine.SetRange("Document Line No.", "Document Line No.");
                 DeliveryChallanLine.SetRange("Parent Item No.", "Parent Item No.");
                 DeliveryChallanLine.SetRange("Item No.", "Item No.");
+                SubOrderCompListVend.Reset();
+                SubOrderCompListVend.SetRange("Document No.", "Document No.");
+                SubOrderCompListVend.SetRange("Document Line No.", "Document Line No.");
+                SubOrderCompListVend.SetRange("Parent Item No.", "Parent Item No.");
+                SubOrderCompListVend.SetRange("Line No.", "Line No.");
+                SubOrderCompListVend.SetRange("Item No.", "Item No.");
+                if SubOrderCompListVend.FindFirst() then
+                    DeliveryChallanLine.SetRange("Variant Code", SubOrderCompListVend."Variant Code");
                 DeliveryChallanLine.SetFilter("Remaining Quantity", '<>0');
                 DeliveryChallanLineList.SetTableView(DeliveryChallanLine);
                 DeliveryChallanLineList.LookupMode := true;
@@ -71,6 +80,10 @@ table 18466 "Applied Delivery Challan"
                     ItemLedgerEntry.SetRange("Order Line No.", DeliveryChallanLine1."Production Order Line No.");
                     ItemLedgerEntry.SetRange("External Document No.", DeliveryChallanLine1."Delivery Challan No.");
                     ItemLedgerEntry.SetRange("Item No.", "Item No.");
+                    ItemLedgerEntry.SetRange("Variant Code", DeliveryChallanLine1."Variant Code");
+                    ItemLedgerEntry.SetRange(Open, true);
+                    ItemLedgerEntry.SetRange(Positive, true);
+                    ItemLedgerEntry.SetFilter("Remaining Quantity", '>0');
                     if ItemLedgerEntry.FindFirst() then
                         "Applies-to Entry" := ItemLedgerEntry."Entry No."
                     else
@@ -282,6 +295,10 @@ table 18466 "Applied Delivery Challan"
         ItemLedgerEntry.SetRange("Order Line No.", DeliveryChallanLine."Production Order Line No.");
         ItemLedgerEntry.SetRange("External Document No.", DeliveryChallanLine."Delivery Challan No.");
         ItemLedgerEntry.SetRange("Item No.", "Item No.");
+        ItemLedgerEntry.SetRange("Variant Code", DeliveryChallanLine."Variant Code");
+        ItemLedgerEntry.SetRange(Open, true);
+        ItemLedgerEntry.SetRange(Positive, true);
+        ItemLedgerEntry.SetFilter("Remaining Quantity", '>0');
         if ItemLedgerEntry.FindFirst() then
             "Applies-to Entry" := ItemLedgerEntry."Entry No."
         else
@@ -309,6 +326,10 @@ table 18466 "Applied Delivery Challan"
         ItemLedgerEntry.SetRange("Order Line No.", DeliveryChallanLine."Production Order Line No.");
         ItemLedgerEntry.SetRange("External Document No.", DeliveryChallanLine."Delivery Challan No.");
         ItemLedgerEntry.SetRange("Item No.", "Item No.");
+        ItemLedgerEntry.SetRange("Variant Code", DeliveryChallanLine."Variant Code");
+        ItemLedgerEntry.SetRange(Open, true);
+        ItemLedgerEntry.SetRange(Positive, true);
+        ItemLedgerEntry.SetFilter("Remaining Quantity", '>0');
         if ItemLedgerEntry.FindFirst() then
             "Applies-to Entry" := ItemLedgerEntry."Entry No."
         else
@@ -337,6 +358,10 @@ table 18466 "Applied Delivery Challan"
         ItemLedgerEntry.SetRange("Order Line No.", DeliveryChallanLine."Production Order Line No.");
         ItemLedgerEntry.SetRange("External Document No.", DeliveryChallanLine."Delivery Challan No.");
         ItemLedgerEntry.SetRange("Item No.", "Item No.");
+        ItemLedgerEntry.SetRange("Variant Code", DeliveryChallanLine."Variant Code");
+        ItemLedgerEntry.SetRange(Open, true);
+        ItemLedgerEntry.SetRange(Positive, true);
+        ItemLedgerEntry.SetFilter("Remaining Quantity", '>0');
         if ItemLedgerEntry.FindFirst() then
             "Applies-to Entry" := ItemLedgerEntry."Entry No."
         else
