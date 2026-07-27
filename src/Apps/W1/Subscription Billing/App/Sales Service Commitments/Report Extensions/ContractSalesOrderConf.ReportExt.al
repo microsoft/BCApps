@@ -121,6 +121,13 @@ reportextension 8010 "Contract Sales Order Conf." extends "Standard Sales - Orde
             Caption = 'Sales Order Confirmation for Subscription Billing (Word)';
             Summary = 'The Sales Order Confirmation for Subscription Billing (Word) provides a simple layout that is also relatively easy for an end-user to modify.';
         }
+        layout("SalesOrderConfForSubscriptionBillingBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales Service Commitments/Report Extensions/Layouts/SalesOrderConfForSubscriptionBillingBody.docx';
+            Caption = 'Body-only: Sales Order Confirmation for Subscription Billing (Word)';
+            Summary = 'Body-only: The Sales Order Confirmation for Subscription Billing (Word) provides a simple layout that is also relatively easy for an end-user to modify.';
+        }
     }
     var
         TempServiceCommitmentForLineCaption: Record "Name/Value Buffer" temporary;
