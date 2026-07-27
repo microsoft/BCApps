@@ -1,0 +1,41 @@
+{
+  "id": "8f41d123-35ca-46d5-bf6e-c4fd2a9470d4",
+  "name": "Tests-SCM-Reservation",
+  "publisher": "Microsoft",
+  "version": "29.0.0.0",
+  "platform": "29.0.0.0",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "dependencies": [
+    {
+      "id": "8f41d123-35ca-46d5-bf6e-c4fd2a9470d4",
+      "name": "Tests-TestLibraries",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "8f41d123-35ca-46d5-bf6e-c4fd2a9470d4",
+      "name": "System Application Test Library",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "8f41d123-35ca-46d5-bf6e-c4fd2a9470d4",
+      "publisher": "Microsoft",
+      "name": "Library Variable Storage",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "8f41d123-35ca-46d5-bf6e-c4fd2a9470d4",
+      "name": "Business Foundation Test Libraries",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    }
+  ],
+  "target": "OnPrem",
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "application": "29.0.0.0"
+}

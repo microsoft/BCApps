@@ -152,6 +152,26 @@
       "publisher": "Microsoft"
     },
     {
+      "id": "4f458f6b-47c2-41bb-9b05-78b66b52dcde",
+      "name": "Tests-SCM-Costing",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "47946531-3c0b-4b18-8e92-c7673c785e2a",
+      "name": "Tests-SCM-Planning",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "8f41d123-35ca-46d5-bf6e-c4fd2a9470d4",
+      "name": "Tests-SCM-Reservation",
+      "publisher": "Microsoft"
+    },
+    {
+      "id": "1c6b74a7-fa42-42f5-bc45-00a03f2e83a2",
+      "name": "Tests-SCM-Workflow",
+      "publisher": "Microsoft"
+    },
+    {
       "id": "88f3615c-370c-4f39-bb5f-54e096c984e9",
       "name": "Tests-SCM-Manufacturing",
       "publisher": "Microsoft"

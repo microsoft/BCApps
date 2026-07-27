@@ -1,0 +1,41 @@
+{
+  "id": "4f458f6b-47c2-41bb-9b05-78b66b52dcde",
+  "name": "Tests-SCM-Costing",
+  "publisher": "Microsoft",
+  "version": "29.0.0.0",
+  "platform": "29.0.0.0",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "dependencies": [
+    {
+      "id": "4f458f6b-47c2-41bb-9b05-78b66b52dcde",
+      "name": "Tests-TestLibraries",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "4f458f6b-47c2-41bb-9b05-78b66b52dcde",
+      "name": "System Application Test Library",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "4f458f6b-47c2-41bb-9b05-78b66b52dcde",
+      "publisher": "Microsoft",
+      "name": "Library Variable Storage",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "4f458f6b-47c2-41bb-9b05-78b66b52dcde",
+      "name": "Business Foundation Test Libraries",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    }
+  ],
+  "target": "OnPrem",
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "application": "29.0.0.0"
+}

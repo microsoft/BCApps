@@ -1,4 +1,4 @@
-﻿{
+{
   "defaults": {
     "multiCountryPackageCacheFolder": "$env:INETROOT\\run\\WW\\AllExtensions",
     "packageCacheFolder": "$env:INETROOT\\run\\$CountryCode\\AllExtensions",
@@ -1297,6 +1297,98 @@
     "Tests-SCM-Warehouse": {
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\SCM-Warehouse",
       "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\SCM-Warehouse\\app.json",
+      "assemblyProbingFolders": [
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.AspNetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.NetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\$env:dotNetVersion",
+        "$Env:PkgSystem_Management\\lib\\netstandard2.0",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
+        "$env:INETROOT\\test\\App\\MockService\\MockService",
+        "$env:INETROOT\\test\\App\\MockTest"
+      ],
+      "isGDLProject": true,
+      "unsupportedCountries": [
+        "NA"
+      ],
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\basetest.ruleset.json",
+      "dvdFolder": "Applications\\BaseApp\\Test",
+      "owningteam": "\\AI Business Solutions\\SCM"
+    },
+    "Tests-SCM-Costing": {
+      "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\SCM-Costing",
+      "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\SCM-Costing\\app.json",
+      "assemblyProbingFolders": [
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.AspNetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.NetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\$env:dotNetVersion",
+        "$Env:PkgSystem_Management\\lib\\netstandard2.0",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
+        "$env:INETROOT\\test\\App\\MockService\\MockService",
+        "$env:INETROOT\\test\\App\\MockTest"
+      ],
+      "isGDLProject": true,
+      "unsupportedCountries": [
+        "NA"
+      ],
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\basetest.ruleset.json",
+      "dvdFolder": "Applications\\BaseApp\\Test",
+      "owningteam": "\\AI Business Solutions\\SCM"
+    },
+    "Tests-SCM-Planning": {
+      "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\SCM-Planning",
+      "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\SCM-Planning\\app.json",
+      "assemblyProbingFolders": [
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.AspNetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.NetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\$env:dotNetVersion",
+        "$Env:PkgSystem_Management\\lib\\netstandard2.0",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
+        "$env:INETROOT\\test\\App\\MockService\\MockService",
+        "$env:INETROOT\\test\\App\\MockTest"
+      ],
+      "isGDLProject": true,
+      "unsupportedCountries": [
+        "NA"
+      ],
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\basetest.ruleset.json",
+      "dvdFolder": "Applications\\BaseApp\\Test",
+      "owningteam": "\\AI Business Solutions\\SCM"
+    },
+    "Tests-SCM-Reservation": {
+      "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\SCM-Reservation",
+      "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\SCM-Reservation\\app.json",
+      "assemblyProbingFolders": [
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.AspNetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.NetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\$env:dotNetVersion",
+        "$Env:PkgSystem_Management\\lib\\netstandard2.0",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
+        "$env:INETROOT\\test\\App\\MockService\\MockService",
+        "$env:INETROOT\\test\\App\\MockTest"
+      ],
+      "isGDLProject": true,
+      "unsupportedCountries": [
+        "NA"
+      ],
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\basetest.ruleset.json",
+      "dvdFolder": "Applications\\BaseApp\\Test",
+      "owningteam": "\\AI Business Solutions\\SCM"
+    },
+    "Tests-SCM-Workflow": {
+      "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\SCM-Workflow",
+      "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\SCM-Workflow\\app.json",
       "assemblyProbingFolders": [
         "$env:ProgramFiles\\dotnet\\shared\\Microsoft.AspNetCore.App\\$env:dotNetVersion",
         "$env:ProgramFiles\\dotnet\\shared\\Microsoft.NetCore.App\\$env:dotNetVersion",

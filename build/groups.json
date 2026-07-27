@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "name": "System Application",
     "groups": [
@@ -575,6 +575,62 @@
   },
   {
     "name": "Tests-SCM-Warehouse",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
+    "name": "Tests-SCM-Costing",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
+    "name": "Tests-SCM-Planning",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
+    "name": "Tests-SCM-Reservation",
+    "groups": [
+      {
+        "name": "Base"
+      },
+      {
+        "name": "Financials"
+      },
+      {
+        "name": "OnPrem"
+      }
+    ]
+  },
+  {
+    "name": "Tests-SCM-Workflow",
     "groups": [
       {
         "name": "Base"

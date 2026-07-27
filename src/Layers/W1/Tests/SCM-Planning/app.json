@@ -1,0 +1,41 @@
+{
+  "id": "47946531-3c0b-4b18-8e92-c7673c785e2a",
+  "name": "Tests-SCM-Planning",
+  "publisher": "Microsoft",
+  "version": "29.0.0.0",
+  "platform": "29.0.0.0",
+  "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "dependencies": [
+    {
+      "id": "47946531-3c0b-4b18-8e92-c7673c785e2a",
+      "name": "Tests-TestLibraries",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "47946531-3c0b-4b18-8e92-c7673c785e2a",
+      "name": "System Application Test Library",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "47946531-3c0b-4b18-8e92-c7673c785e2a",
+      "publisher": "Microsoft",
+      "name": "Library Variable Storage",
+      "version": "29.0.0.0"
+    },
+    {
+      "id": "47946531-3c0b-4b18-8e92-c7673c785e2a",
+      "name": "Business Foundation Test Libraries",
+      "publisher": "Microsoft",
+      "version": "29.0.0.0"
+    }
+  ],
+  "target": "OnPrem",
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "application": "29.0.0.0"
+}
