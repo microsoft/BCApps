@@ -32,6 +32,7 @@ codeunit 137009 "SCM Availability by Event"
         LibraryNotificationMgt: Codeunit "Library - Notification Mgt.";
         Initialized: Boolean;
         WrongReservedQtyErr: Label 'Wrong reserved quantity in Item Availability by Event';
+        ProdOrderComponentNotFoundErr: Label 'Mocked Prod. Order Component not found on "Prod. Order Components" page.';
 
     local procedure Initialize()
     begin
@@ -652,6 +653,26 @@ codeunit 137009 "SCM Availability by Event"
           'Asserting that the ultimo Suggested Projected Inventory match');
     end;
 
+    [Test]
+    procedure ActConsumptionQtyHiddenOnFirmPlannedProdOrderComponentsPage()
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderComponents: TestPage "Prod. Order Components";
+        MockedQty: Decimal;
+    begin
+        // [SCENARIO 636784] "Act. Consumption (Qty)" on "Prod. Order Components" page is 0 when the component belongs to a Firm Planned production order.
+        Initialize();
+
+        // [GIVEN] A Firm Planned Prod. Order Component with a matching Consumption Item Ledger Entry.
+        MockedQty := LibraryRandom.RandDecInRange(10, 100, 2);
+        MockProdOrderComponentWithStatus(ProdOrderComponent, ProdOrderComponent.Status::"Firm Planned");
+        MockConsumptionItemLedgerEntry(ProdOrderComponent, MockedQty);
+
+        // [WHEN] Open the "Prod. Order Components" page for the component.
+        // [THEN] The "Act. Consumption (Qty)" control shows 0 (value is hidden for Firm Planned status).
+        OpenProdOrderComponentsAndAssertActConsQty(ProdOrderComponent, ProdOrderComponents, 0);
+    end;
+
     local procedure NoSeriesSetup()
     var
         PurchPayablesSetup: Record "Purchases & Payables Setup";
@@ -726,6 +747,51 @@ codeunit 137009 "SCM Availability by Event"
         ProdOrderComponent."Remaining Quantity" := Qty;
         ProdOrderComponent."Remaining Qty. (Base)" := Qty;
         ProdOrderComponent.Insert();
+    end;
+
+    local procedure MockProdOrderComponentWithStatus(var ProdOrderComponent: Record "Prod. Order Component"; NewStatus: Enum "Production Order Status")
+    var
+        Item: Record Item;
+    begin
+        LibraryInventory.CreateItem(Item);
+
+        ProdOrderComponent.Init();
+        ProdOrderComponent.Status := NewStatus;
+        ProdOrderComponent."Prod. Order No." :=
+            CopyStr(LibraryUtility.GenerateRandomCode(ProdOrderComponent.FieldNo("Prod. Order No."), Database::"Prod. Order Component"), 1, MaxStrLen(ProdOrderComponent."Prod. Order No."));
+        ProdOrderComponent."Prod. Order Line No." := 10000;
+        ProdOrderComponent."Line No." := 10000;
+        ProdOrderComponent."Item No." := Item."No.";
+        ProdOrderComponent."Due Date" := WorkDate();
+        ProdOrderComponent.Insert();
+    end;
+
+    local procedure MockConsumptionItemLedgerEntry(ProdOrderComponent: Record "Prod. Order Component"; ConsumedQty: Decimal)
+    var
+        ItemLedgerEntry: Record "Item Ledger Entry";
+    begin
+        ItemLedgerEntry.Init();
+        ItemLedgerEntry."Entry No." := LibraryUtility.GetNewRecNo(ItemLedgerEntry, ItemLedgerEntry.FieldNo("Entry No."));
+        ItemLedgerEntry."Entry Type" := ItemLedgerEntry."Entry Type"::Consumption;
+        ItemLedgerEntry."Order Type" := ItemLedgerEntry."Order Type"::Production;
+        ItemLedgerEntry."Order No." := ProdOrderComponent."Prod. Order No.";
+        ItemLedgerEntry."Order Line No." := ProdOrderComponent."Prod. Order Line No.";
+        ItemLedgerEntry."Prod. Order Comp. Line No." := ProdOrderComponent."Line No.";
+        ItemLedgerEntry."Item No." := ProdOrderComponent."Item No.";
+        ItemLedgerEntry."Posting Date" := WorkDate();
+
+        ItemLedgerEntry.Quantity := -ConsumedQty;
+        ItemLedgerEntry.Insert();
+    end;
+
+    local procedure OpenProdOrderComponentsAndAssertActConsQty(ProdOrderComponent: Record "Prod. Order Component"; var ProdOrderComponents: TestPage "Prod. Order Components"; ExpectedShownQty: Decimal)
+    begin
+        ProdOrderComponents.OpenView();
+        ProdOrderComponents.Filter.SetFilter(Status, Format(ProdOrderComponent.Status));
+        ProdOrderComponents.Filter.SetFilter("Prod. Order No.", ProdOrderComponent."Prod. Order No.");
+        Assert.IsTrue(ProdOrderComponents.First(), ProdOrderComponentNotFoundErr);
+        ProdOrderComponents."Act. Consumption (Qty)".AssertEquals(ExpectedShownQty);
+        ProdOrderComponents.Close();
     end;
 
     local procedure GetRequisitionWkshBatch(): Code[10]
