@@ -44,6 +44,7 @@ codeunit 17 "Gen. Jnl.-Post Reverse"
                   TableData "Cust. Ledger Entry" = rimd,
                   TableData "Vendor Ledger Entry" = rimd,
                   TableData "G/L Register" = rm,
+                  TableData "G/L Transaction" = rm,
                   TableData "G/L Entry - VAT Entry Link" = rimd,
                   TableData "VAT Entry" = rimd,
                   TableData "Bank Account Ledger Entry" = rimd,
