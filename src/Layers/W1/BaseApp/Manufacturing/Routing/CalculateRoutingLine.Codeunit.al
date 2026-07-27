@@ -1364,7 +1364,7 @@ codeunit 99000774 "Calculate Routing Line"
         CalcExpectedCost(ProdOrderRoutingLine, TotalQtyPerOperation, TotalCapacityPerOperation);
 
         IsHandled := false;
-        OnBeforeScheduleRoutingLine(ProdOrderRoutingLine, CalcStartEndDate, IsHandled);
+        OnBeforeScheduleRoutingLine(ProdOrderRoutingLine, CalcStartEndDate, IsHandled, Direction);
         if not IsHandled then
             if ProdOrderRoutingLine."Schedule Manually" then
                 CalculateRoutingLineFixed()
@@ -2345,7 +2345,7 @@ codeunit 99000774 "Calculate Routing Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeScheduleRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var CalcStartEndDate: Boolean; var IsHandled: Boolean)
+    local procedure OnBeforeScheduleRoutingLine(var ProdOrderRoutingLine: Record "Prod. Order Routing Line"; var CalcStartEndDate: Boolean; var IsHandled: Boolean; var Direction: Option Forward,Backward)
     begin
     end;
 

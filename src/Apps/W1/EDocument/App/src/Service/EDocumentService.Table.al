@@ -269,6 +269,7 @@ table 6103 "E-Document Service"
         {
             Caption = 'Import Process';
             DataClassification = SystemMetadata;
+            InitValue = "Version 2.0";
             ToolTip = 'Specifies the import process for the document.';
         }
         field(32; "Automatic Import Processing"; Enum "E-Doc. Automatic Processing")
