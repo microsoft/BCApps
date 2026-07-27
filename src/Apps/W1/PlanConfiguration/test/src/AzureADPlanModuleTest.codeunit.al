@@ -852,6 +852,7 @@ codeunit 139509 "Azure AD Plan Module Test"
         AddSubscriptionPlanToUser(User, PlanIds.GetGlobalAdminPlanId());
 
         // [GIVEN] The Premium plan configuration is customized and does not contain SUPER
+        PlanConfigurationLibrary.ClearPlanConfigurations();
         PlanConfigurationLibrary.AddConfiguration(PlanIds.GetPremiumPlanId(), true);
 
         // [WHEN] RefreshUserPlanAssignments is invoked (first login flow)
@@ -888,6 +889,7 @@ codeunit 139509 "Azure AD Plan Module Test"
         AddSubscriptionPlanToUser(User, PlanIds.GetD365AdminPlanId());
 
         // [GIVEN] The Premium plan configuration is customized and does not contain SUPER
+        PlanConfigurationLibrary.ClearPlanConfigurations();
         PlanConfigurationLibrary.AddConfiguration(PlanIds.GetPremiumPlanId(), true);
 
         // [WHEN] RefreshUserPlanAssignments is invoked (first login flow)
@@ -923,6 +925,7 @@ codeunit 139509 "Azure AD Plan Module Test"
         CreateUserWithPlan(User, PlanIds.GetPremiumPlanId());
 
         // [GIVEN] The Premium plan configuration is customized and does not contain SUPER
+        PlanConfigurationLibrary.ClearPlanConfigurations();
         PlanConfigurationLibrary.AddConfiguration(PlanIds.GetPremiumPlanId(), true);
 
         // [WHEN] RefreshUserPlanAssignments is invoked (first login flow)
@@ -960,6 +963,7 @@ codeunit 139509 "Azure AD Plan Module Test"
         CreateUserWithPlan(User, PlanIds.GetPremiumPlanId());
 
         // [GIVEN] The Premium plan configuration is customized and explicitly contains SUPER
+        PlanConfigurationLibrary.ClearPlanConfigurations();
         PlanConfigurationLibrary.AddConfiguration(PlanIds.GetPremiumPlanId(), true);
         PlanConfiguration.AddCustomPermissionSetToPlan(PlanIds.GetPremiumPlanId(), 'SUPER', NullGuid, 0, '');
 
@@ -999,6 +1003,7 @@ codeunit 139509 "Azure AD Plan Module Test"
         AddSubscriptionPlanToUser(User, PlanIds.GetDelegatedAdminPlanId());
 
         // [GIVEN] The Premium plan configuration is customized and does not contain SUPER
+        PlanConfigurationLibrary.ClearPlanConfigurations();
         PlanConfigurationLibrary.AddConfiguration(PlanIds.GetPremiumPlanId(), true);
 
         // [WHEN] RefreshUserPlanAssignments is invoked (first login flow)
@@ -1035,6 +1040,7 @@ codeunit 139509 "Azure AD Plan Module Test"
         LibraryPermissions.AddUserToPlan(User."User Security ID", PlanIds.GetPremiumPlanId());
 
         // [GIVEN] The Premium plan configuration is customized and does not contain SUPER
+        PlanConfigurationLibrary.ClearPlanConfigurations();
         PlanConfigurationLibrary.AddConfiguration(PlanIds.GetPremiumPlanId(), true);
 
         // [WHEN] RefreshUserPlanAssignments is invoked (existing user flow)
