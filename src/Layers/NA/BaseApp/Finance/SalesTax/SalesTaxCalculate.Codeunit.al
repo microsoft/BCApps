@@ -63,9 +63,9 @@ codeunit 398 "Sales Tax Calculate"
 
 #pragma warning disable AA0074
 #pragma warning disable AA0470
-        MissingTaxAreaValuesErr: Label '%1 in %2 %3 must be filled in with unique values when %4 is %5.';
-        SalesTaxAmountIncorrectErr: Label 'The sales tax amount for the %1 %2 and the %3 %4 is incorrect. The calculated sales tax amount is %5, but was supposed to be %6.';
-        Text003: Label 'Lines is not initialized';
+        MissingTaxAreaValuesErr: Label '%1 in %2 %3 must be filled in with unique values when %4 is %5.', Comment = '%1 - Field Caption, %2 - Table Caption, %3 - Tax Area Code, %4 - Field Caption, %5 - Boolean value';
+        SalesTaxAmountIncorrectErr: Label 'The sales tax amount for the %1 %2 and the %3 %4 is incorrect. The calculated sales tax amount is %5, but was supposed to be %6.', Comment = '%1 - Tax Area Code, %2 - Field Caption, %3 - Tax Group Code, %4 - Field Caption, %5 - Calculated Sales Tax Amount, %6 - Expected Sales Tax Amount';
+        LineIsNotInitializedErr: Label 'Lines is not initialized';
         Text1020000: Label 'Tax country/region %1 is being used.  You must use %2.';
         Text1020001: Label 'Note to Programmers: The function "CopyTaxDifferences" must not be called unless the function "EndSalesTaxCalculation", or the function "PutSalesTaxAmountLineTable", is called first.';
 #pragma warning restore AA0470
@@ -670,9 +670,8 @@ codeunit 398 "Sales Tax Calculate"
         TaxAmount := Round(TaxAmount);
 
         if (TaxAmount <> DesiredTaxAmount) and (Abs(TaxAmount - DesiredTaxAmount) <= 0.01) then
-            if TempTaxDetail.FindSet(true) then begin
-                TempTaxDetail."Tax Below Maximum" :=
-                  TempTaxDetail."Tax Below Maximum" - TaxAmount + DesiredTaxAmount;
+            if TempTaxDetail.FindFirst() then begin
+                TempTaxDetail."Tax Below Maximum" := TempTaxDetail."Tax Below Maximum" - TaxAmount + DesiredTaxAmount;
                 TempTaxDetail.Modify();
                 TaxAmount := DesiredTaxAmount;
             end;
@@ -729,7 +728,7 @@ codeunit 398 "Sales Tax Calculate"
         ReturnTaxAmount := 0;
 
         if not Initialised then
-            Error(Text003);
+            Error(LineIsNotInitializedErr);
 
         if FirstLine then begin
             if not TempTaxDetail.Find('-') then begin

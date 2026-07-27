@@ -99,6 +99,7 @@ table 322 "Tax Detail"
         field(10010; "Expense/Capitalize"; Boolean)
         {
             Caption = 'Expense/Capitalize';
+            DataClassification = SystemMetadata;
         }
     }
 
