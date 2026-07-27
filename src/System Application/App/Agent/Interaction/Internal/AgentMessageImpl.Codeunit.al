@@ -102,7 +102,7 @@ codeunit 4308 "Agent Message Impl."
         FileInstream: InStream;
     begin
         TempAgentTaskFile.CalcFields(Content);
-        if not TempAgentTaskFile.Content.HasValue() then
+        if not TempAgentTaskFile.Content.HasValue() and (IgnoredReason = '') then
             exit;
 
         TempAgentTaskFile.Content.CreateInStream(FileInstream, AgentTaskImpl.GetDefaultEncoding());
@@ -117,6 +117,7 @@ codeunit 4308 "Agent Message Impl."
     procedure AddAttachment(var AgentTaskMessage: Record "Agent Task Message"; FileName: Text[250]; FileMIMEType: Text[100]; InStream: InStream; IgnoredReason: Text[250])
     var
         AgentTaskFile: Record "Agent Task File";
+        AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
         AgentTaskImpl: Codeunit "Agent Task Impl.";
         OutStream: OutStream;
     begin
@@ -128,29 +129,11 @@ codeunit 4308 "Agent Message Impl."
         CopyStream(OutStream, InStream);
         AgentTaskFile.Insert();
 
-        AddAttachmentLink(AgentTaskMessage, AgentTaskFile, GlobalIgnoreAttachment, IgnoredReason);
-    end;
-
-    procedure AddIgnoredAttachment(var AgentTaskMessage: Record "Agent Task Message"; FileName: Text[250]; FileMIMEType: Text[100]; IgnoredReason: Text[250])
-    var
-        AgentTaskFile: Record "Agent Task File";
-    begin
-        AgentTaskFile."Task ID" := AgentTaskMessage."Task ID";
-        AgentTaskFile."File Name" := FileName;
-        AgentTaskFile."File MIME Type" := FileMIMEType;
-        AgentTaskFile.Insert();
-
-        AddAttachmentLink(AgentTaskMessage, AgentTaskFile, true, IgnoredReason);
-    end;
-
-    local procedure AddAttachmentLink(var AgentTaskMessage: Record "Agent Task Message"; AgentTaskFile: Record "Agent Task File"; Ignored: Boolean; IgnoredReason: Text[250])
-    var
-        AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
-    begin
+        // Link task file to task message
         AgentTaskMessageAttachment."Task ID" := AgentTaskMessage."Task ID";
         AgentTaskMessageAttachment."Message ID" := AgentTaskMessage.ID;
         AgentTaskMessageAttachment."File ID" := AgentTaskFile.ID;
-        AgentTaskMessageAttachment.Ignored := Ignored;
+        AgentTaskMessageAttachment.Ignored := GlobalIgnoreAttachment;
         AgentTaskMessageAttachment."Ignored Reason" := CopyStr(IgnoredReason, 1, MaxStrLen(AgentTaskMessageAttachment."Ignored Reason"));
         AgentTaskMessageAttachment.Insert();
     end;

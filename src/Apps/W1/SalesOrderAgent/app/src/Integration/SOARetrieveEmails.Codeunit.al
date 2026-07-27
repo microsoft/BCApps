@@ -239,7 +239,10 @@ codeunit 4582 "SOA Retrieve Emails"
                 if ExceedsFileSizeThreshold then begin
                     Ignore := true;
                     IgnoredReason := CopyStr(Format(Enum::"SOA Email Attachment Status"::ExceedsFileSize), 1, MaxStrLen(IgnoredReason));
-                    AgentTaskMessageBuilder.AddIgnoredAttachment(EmailMessage.Attachments_GetName(), FileMIMEType, IgnoredReason);
+                    Clear(TempAgentTaskFile);
+                    TempAgentTaskFile.Content.CreateOutStream(OutStream);
+                    TempAgentTaskFile.Content.CreateInStream(InStream);
+                    AgentTaskMessageBuilder.AddAttachment(EmailMessage.Attachments_GetName(), FileMIMEType, InStream, true, IgnoredReason);
                     LogIgnoredAttachmentTelemetry(SOASetup, IgnoredReason, FileMIMEType, AttachmentSizeInBytes);
                 end else begin
                     EmailMessage.Attachments_GetContent(InStream);

@@ -18,7 +18,7 @@ codeunit 133963 "Agent Message Test"
         AgentTask: Codeunit "Agent Task";
         AgentMessage: Codeunit "Agent Message";
         LibraryTestAgent: Codeunit "Library Mock Agent";
-        IgnoredAttachmentExternalIdTok: Label 'MSGBLD-TEST-019', Locked = true;
+        EmptyIgnoredAttachmentExternalIdTok: Label 'MSGBLD-TEST-019', Locked = true;
         ExceedsFileSizeReasonTok: Label 'Exceeds file size limit', Locked = true;
 
     local procedure Initialize()
@@ -1275,7 +1275,7 @@ codeunit 133963 "Agent Message Test"
     end;
 
     [Test]
-    procedure AddIgnoredAttachmentWithoutContent()
+    procedure AddIgnoredEmptyAttachment()
     var
         AgentRecord: Record Agent;
         AgentTaskRecord: Record "Agent Task";
@@ -1284,12 +1284,13 @@ codeunit 133963 "Agent Message Test"
         TempAgentTaskFile: Record "Agent Task File" temporary;
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
-        AgentMessage: Codeunit "Agent Message";
+        TempBlob: Codeunit "Temp Blob";
         AgentUserId: Guid;
+        EmptyInStream: InStream;
     begin
         Initialize();
 
-        // [SCENARIO] Add an ignored attachment without storing its content
+        // [SCENARIO] Add an ignored attachment with an empty stream
 
         // [GIVEN] A test agent with a task
         AgentUserId := LibraryTestAgent.GetOrCreateDefaultAgent(
@@ -1299,26 +1300,27 @@ codeunit 133963 "Agent Message Test"
             'You are a test agent for ignored attachment metadata testing.');
 
         AgentTaskBuilder
-            .Initialize(AgentUserId, 'Ignored Attachment Metadata Test Task')
-            .SetExternalId(IgnoredAttachmentExternalIdTok);
+            .Initialize(AgentUserId, 'Ignored Empty Attachment Test Task')
+            .SetExternalId(EmptyIgnoredAttachmentExternalIdTok);
         AgentTaskRecord := AgentTaskBuilder.Create(false, false);
+        TempBlob.CreateInStream(EmptyInStream);
 
-        // [WHEN] A message is created with an ignored attachment without content
+        // [WHEN] A message is created with an ignored empty attachment
         AgentTaskMessageBuilder
-            .Initialize('Sender', 'Message with ignored attachment metadata')
+            .Initialize('Sender', 'Message with ignored empty attachment')
             .SetAgentTask(AgentTaskRecord)
-            .AddIgnoredAttachment('oversized.pdf', 'application/pdf', ExceedsFileSizeReasonTok);
+            .AddAttachment('oversized.pdf', 'application/pdf', EmptyInStream, true, ExceedsFileSizeReasonTok);
         AgentTaskMessageRecord := AgentTaskMessageBuilder.Create(false);
 
         AgentMessage.GetAttachments(AgentTaskRecord.Id, AgentTaskMessageRecord.Id, TempAgentTaskFile);
 
-        // [THEN] The attachment metadata exists without file content
+        // [THEN] The attachment metadata exists with zero-byte content
         Assert.AreEqual(1, TempAgentTaskFile.Count(), 'One attachment should exist');
         TempAgentTaskFile.FindFirst();
         TempAgentTaskFile.CalcFields(Content);
         Assert.AreEqual('oversized.pdf', TempAgentTaskFile."File Name", 'Attachment file name should match');
         Assert.AreEqual('application/pdf', TempAgentTaskFile."File MIME Type", 'Attachment MIME type should match');
-        Assert.IsFalse(TempAgentTaskFile.Content.HasValue(), 'Ignored attachment should not store content');
+        Assert.AreEqual(0, TempAgentTaskFile.Content.Length(), 'Ignored attachment should have zero-byte content');
 
         // [THEN] The attachment is ignored with the supplied reason
         AgentTaskMessageAttachment.SetRange("Task ID", AgentTaskRecord.Id);
