@@ -13,6 +13,7 @@ using Microsoft.eServices.EDocument.Processing;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.EServices.EDocument.Processing.Import.Sales;
+using Microsoft.eServices.EDocument.Processing.Message;
 using Microsoft.eServices.EDocument.Service.Participant;
 
 permissionset 6101 "E-Doc. Core - Read"
@@ -34,6 +35,7 @@ permissionset 6101 "E-Doc. Core - Read"
         tabledata "E-Doc. Data Storage" = R,
         tabledata "E-Document Service Status" = R,
         tabledata "E-Document Integration Log" = R,
+        tabledata "E-Document Message" = R,
     #endregion Logging
         tabledata "E-Doc. Imported Line" = R,
         tabledata "E-Doc. Order Match" = R,

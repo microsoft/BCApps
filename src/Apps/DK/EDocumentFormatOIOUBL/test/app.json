@@ -1,26 +1,26 @@
 {
-  "id": "e1d97edc-c239-46b4-8d84-6368bdf67c8c",
-  "name": "E-Document Core Tests",
+  "id": "f78b9487-b911-4db1-893b-5a5c310919b8",
+  "name": "E-Document Format for OIOUBL Tests",
   "publisher": "Microsoft",
-  "brief": "E-Document Core Tests",
-  "description": "E-Document Core Tests",
+  "brief": "E-Document Format for OIOUBL Tests.",
+  "description": "Tests for E-Document Format for OIOUBL.",
   "version": "29.0.0.0",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=2009120",
-  "help": "https://go.microsoft.com/fwlink/?linkid=2204541",
+  "help": "https://go.microsoft.com/fwlink/?linkid=2299409",
   "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2299409",
   "logo": "ExtensionLogo.png",
-  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2206603",
   "dependencies": [
     {
-      "name": "E-Document Core",
       "id": "e1d97edc-c239-46b4-8d84-6368bdf67c8b",
+      "name": "E-Document Core",
       "publisher": "Microsoft",
       "version": "29.0.0.0"
     },
     {
-      "id": "e1966889-b5fb-4fda-a84c-ea71b590e1a9",
-      "name": "PEPPOL",
+      "id": "e1d97edc-c239-46b4-8d84-6368bdf67c8c",
+      "name": "E-Document Core Tests",
       "publisher": "Microsoft",
       "version": "29.0.0.0"
     },
@@ -43,61 +43,30 @@
       "version": "29.0.0.0"
     },
     {
-      "id": "2156302a-872f-4568-be0b-60968696f0d5",
-      "publisher": "Microsoft",
-      "name": "AI Test Toolkit",
-      "version": "29.0.0.0"
-    },
-    {
-      "id": "e7320ebb-08b3-4406-b1ec-b4927d3e280b",
-      "name": "Any",
+      "id": "8228f99b-cce5-4b9c-b247-9ee1145b7470",
+      "name": "E-Document format for OIOUBL",
       "publisher": "Microsoft",
       "version": "29.0.0.0"
     }
   ],
   "screenshots": [],
   "platform": "29.0.0.0",
+  "features": [
+    "TranslationFile"
+  ],
   "idRanges": [
     {
-      "from": 6160,
-      "to": 6160
-    },
-    {
-      "from": 139500,
-      "to": 139899
-    },
-    {
-      "from": 133501,
-      "to": 133509
-    },
-    {
-      "from": 133519,
-      "to": 133529
-    },
-    {
-      "from": 133710,
-      "to": 133721
-    },
-    {
-      "from": 135575,
-      "to": 135576
-    },
-    {
-      "from": 135647,
-      "to": 135649
+      "from": 148061,
+      "to": 148062
     }
+  ],
+  "resourceFolders": [
+    ".resources"
   ],
   "resourceExposurePolicy": {
     "allowDebugging": true,
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "application": "29.0.0.0",
-  "target": "OnPrem",
-  "resourceFolders": [
-    ".resources"
-  ],
-  "features": [
-    "TranslationFile"
-  ]
+  "application": "29.0.0.0"
 }
