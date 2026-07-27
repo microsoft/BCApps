@@ -70,6 +70,7 @@
 /src/Apps/W1/ServiceDeclaration @microsoft/d365-bc-finance-1
 /src/Apps/W1/ServiceManagement @microsoft/d365-bc-finance-1
 /src/Apps/W1/StatisticalAccounts @microsoft/d365-bc-finance-1
+/src/Apps/W1/Subscription\ Billing @microsoft/d365-bc-finance-1
 /src/Apps/W1/Sustainability @microsoft/d365-bc-finance-1
 /src/Apps/W1/SustainabilityCopilotSuggestion @microsoft/d365-bc-finance-1
 /src/Apps/W1/VATGroupManagement @microsoft/d365-bc-finance-1
