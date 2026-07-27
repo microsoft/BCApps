@@ -35,12 +35,11 @@ codeunit 139023 "Environment Info Test Partner"
     procedure IsApplicationServiceInEUDBRequiresMicrosoftPublisher()
     var
         EnvironmentInformation: Codeunit "Environment Information";
-        IsInEUDB: Boolean;
     begin
         // [SCENARIO] A partner app cannot read application service EUDB membership.
 
         // [WHEN] A partner-published app requests EUDB membership
-        asserterror IsInEUDB := EnvironmentInformation.IsApplicationServiceInEUDB();
+        asserterror EnvironmentInformation.IsApplicationServiceInEUDB();
 
         // [THEN] Access is denied
         Assert.ExpectedError(MicrosoftPublisherOnlyErr);
