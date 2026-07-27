@@ -479,6 +479,13 @@ report 107 "Customer - Order Summary"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            LayoutFile = '.\Sales\Reports\CustomerOrderSummaryBody.docx';
+            Caption = 'Body-only: Customer Order Summary Word';
+            Summary = 'Body-only: Built in layout for the Customer Order Summary word report.';
+        }
     }
     labels
     {
