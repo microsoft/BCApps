@@ -73,7 +73,6 @@ pageextension 18767 "Bank Receipt Voucher" extends "Bank Receipt Voucher"
     var
         CalculateTax: Codeunit "Calculate Tax";
     begin
-        CurrPage.SaveRecord();
         CalculateTax.CallTaxEngineOnGenJnlLine(Rec, xRec);
     end;
 }

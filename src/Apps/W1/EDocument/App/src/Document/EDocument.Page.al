@@ -8,12 +8,10 @@ using Microsoft.Bank.Reconciliation;
 using Microsoft.eServices.EDocument.Integration.Receive;
 using Microsoft.eServices.EDocument.Integration.Send;
 using Microsoft.eServices.EDocument.OrderMatch;
-using Microsoft.eServices.EDocument.OrderMatch.Copilot;
 using Microsoft.eServices.EDocument.Processing.Import;
 using Microsoft.eServices.EDocument.Processing.Import.Purchase;
 using Microsoft.eServices.EDocument.Service;
 using Microsoft.Foundation.Attachment;
-using System.Telemetry;
 using System.Utilities;
 
 page 6121 "E-Document"
@@ -460,7 +458,15 @@ page 6121 "E-Document"
         {
             group(Category_Process)
             {
-                actionref(MatchToOrderCE_Promoted; MatchToOrderCopilotEnabled) { }
+#if not CLEAN29
+                actionref(MatchToOrderCE_Promoted; MatchToOrderCopilotEnabled)
+                {
+                    Visible = false;
+                    ObsoleteState = Pending;
+                    ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
+                    ObsoleteTag = '29.0';
+                }
+#endif
                 actionref(MatchToOrder_Promoted; MatchToOrder) { }
                 actionref(LinkOrder_Promoted; LinkOrder) { }
                 actionref(CreateDocument_Promoted; CreateDocument) { }
@@ -482,20 +488,18 @@ page 6121 "E-Document"
         }
         area(Prompting)
         {
+#if not CLEAN29
             action(MatchToOrderCopilotEnabled)
             {
                 Caption = 'Match Purchase Order';
                 ToolTip = 'Match E-document lines to Purchase Order.';
                 Image = SparkleFilled;
-                Visible = ShowMapToOrder;
-
-                trigger OnAction()
-                var
-                    EDocOrderMatch: Codeunit "E-Doc. Line Matching";
-                begin
-                    EDocOrderMatch.RunMatching(Rec, true);
-                end;
+                Visible = false;
+                ObsoleteState = Pending;
+                ObsoleteReason = 'The E-Document Purchase Order Matching Copilot has been deprecated. AI-assisted line matching is now handled at import time in the E-Document Purchase Draft experience by codeunit "E-Doc. AI Tool Processor".';
+                ObsoleteTag = '29.0';
             }
+#endif
         }
     }
 
@@ -599,8 +603,6 @@ page 6121 "E-Document"
         EDocService: Record "E-Document Service";
         EDocServiceStatus2: Record "E-Document Service Status";
         EDocLog: Codeunit "E-Document Log";
-        FeatureTelemetry: Codeunit "Feature Telemetry";
-        EDocPOCopilotMatching: Codeunit "E-Doc. PO Copilot Matching";
     begin
         if not IsIncomingDoc then
             exit;
@@ -610,7 +612,6 @@ page 6121 "E-Document"
             EDocServiceStatus2.Get(Rec."Entry No", EDocService.Code);
             ShowMapToOrder := EDocServiceStatus2.Status = Enum::"E-Document Service Status"::"Order Linked";
             ShowRelink := true;
-            FeatureTelemetry.LogUptake('0000MMK', EDocPOCopilotMatching.FeatureName(), Enum::"Feature Uptake Status"::Discovered);
         end;
     end;
 

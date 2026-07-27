@@ -11,6 +11,7 @@ permissionset 9862 "Permission Sets - Objects"
     Assignable = false;
     Permissions =
         codeunit "Permission Set Relation" = X,
+        codeunit "Permissions Overview" = X,
         codeunit "Log Activity Permissions" = X,
         page "Expanded Permissions" = X,
         page "Expanded Permissions Factbox" = X,

@@ -596,6 +596,7 @@ codeunit 99000787 "Create Prod. Order Lines"
                     if ProdOrderLine3."Planning Level Code" < ProdOrderComp3."Planning Level Code" then
                         ProdOrderLine3."Planning Level Code" := ProdOrderComp3."Planning Level Code";
                     AdjustDateAndTime(ProdOrderLine3, ProdOrderComp3."Due Date", ProdOrderComp3."Due Date", ProdOrderComp3."Due Time");
+                    OnUpdateProdOrderLineOnBeforeUpdateCompPlanningLevel(ProdOrderLine3);
                     UpdateCompPlanningLevel(ProdOrderLine3);
                     CalcProdOrder.Recalculate(ProdOrderLine3, Direction::Backward, LetDueDateDecrease);
                     ProdOrderLine3.Modify();
@@ -696,6 +697,11 @@ codeunit 99000787 "Create Prod. Order Lines"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateProdOrderLine(var ProdOrderLine: Record "Prod. Order Line"; Direction: Option Forward,Backward; LetDueDateDecrease: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateProdOrderLineOnBeforeUpdateCompPlanningLevel(var ProdOrderLine: Record "Prod. Order Line")
     begin
     end;
 

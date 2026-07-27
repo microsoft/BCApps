@@ -322,6 +322,7 @@ report 99001501 "Subc. Create Transf. Order"
         WIPPreviousOperationNoDict: Dictionary of [Code[10], Code[10]];
         WIPSourceQtyDict: Dictionary of [Code[10], Decimal];
         WIPSourceLocationList: List of [Code[10]];
+        OpenWIPLineQtyBase: Decimal;
     begin
         if not ProdOrderLine.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
             exit(false);
@@ -332,7 +333,7 @@ report 99001501 "Subc. Create Transf. Order"
         if not ProdOrderRoutingLine."Transfer WIP Item" then
             exit(false);
 
-        if not CheckCreateWIPTransfer(PurchaseLine) then
+        if not CheckCreateWIPTransfer(PurchaseLine, OpenWIPLineQtyBase) then
             exit(false);
 
         PurchLineQtyBase := CalcPurchLineQtyBase(PurchaseLine, ProdOrderLine);
@@ -347,7 +348,7 @@ report 99001501 "Subc. Create Transf. Order"
 
         if WIPSourceLocationList.Count() = 1 then begin
             GetTransferToLocationCodeForPurchaseHeader("Purchase Header", Vendor, TransferToLocCode);
-            PostedWIPQtyBase := GetWIPQtyBase(PurchaseLine, TransferToLocCode);
+            PostedWIPQtyBase := GetWIPQtyBase(PurchaseLine, TransferToLocCode) + OpenWIPLineQtyBase;
         end;
 
         Item.SetLoadFields("Base Unit of Measure");
@@ -503,13 +504,12 @@ report 99001501 "Subc. Create Transf. Order"
             WIPQtyBase := WIPLedgerEntry."Quantity (Base)";
     end;
 
-    local procedure CheckCreateWIPTransfer(PurchaseLine: Record "Purchase Line"): Boolean
+    local procedure CheckCreateWIPTransfer(PurchaseLine: Record "Purchase Line"; var OpenWIPLineQtyBase: Decimal): Boolean
     var
         ProdOrderLine: Record "Prod. Order Line";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         PurchaseHeader: Record "Purchase Header";
         VendorFromPurchOrder: Record Vendor;
-        TransferLineToCheck: Record "Transfer Line";
         LocCode: Code[10];
         PurchLineQtyBase: Decimal;
         TransferToLocationCode: Code[10];
@@ -519,16 +519,7 @@ report 99001501 "Subc. Create Transf. Order"
         WIPSourceQtyDict: Dictionary of [Code[10], Decimal];
         WIPSourceLocationList: List of [Code[10]];
     begin
-        TransferLineToCheck.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.");
-        TransferLineToCheck.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
-        TransferLineToCheck.SetRange("Subc. Prod. Order No.", PurchaseLine."Prod. Order No.");
-        TransferLineToCheck.SetRange("Subc. Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
-        TransferLineToCheck.SetRange("Subc. Operation No.", PurchaseLine."Operation No.");
-        TransferLineToCheck.SetRange("Derived From Line No.", 0);
-        TransferLineToCheck.SetRange("Transfer WIP Item", true);
-        if not TransferLineToCheck.IsEmpty() then
-            exit(false);
-
+        OpenWIPLineQtyBase := 0;
         if not ProdOrderLine.Get("Production Order Status"::Released, PurchaseLine."Prod. Order No.", PurchaseLine."Prod. Order Line No.") then
             exit(false);
 
@@ -561,13 +552,24 @@ report 99001501 "Subc. Create Transf. Order"
             exit(false);
 
         PostedWIPQtyBase := GetWIPQtyBase(PurchaseLine, TransferToLocationCode);
+        OpenWIPLineQtyBase := GetOpenWIPTransferLineQtyBase(PurchaseLine);
 
-        if WIPPreviousOperationNoDict.Keys().Count() > 1 then
-            foreach LocCode in WIPPreviousOperationNoDict.Keys() do
-                if LocCode <> '' then
-                    exit(ExpectedQtyBase > 0);
+        exit((PostedWIPQtyBase + OpenWIPLineQtyBase) < ExpectedQtyBase);
+    end;
 
-        exit(PostedWIPQtyBase < ExpectedQtyBase);
+    local procedure GetOpenWIPTransferLineQtyBase(PurchaseLine: Record "Purchase Line"): Decimal
+    var
+        TransferLineToCheck: Record "Transfer Line";
+    begin
+        TransferLineToCheck.SetCurrentKey("Subc. Prod. Order No.", "Subc. Prod. Order Line No.", "Subc. Routing Reference No.", "Subc. Routing No.", "Subc. Operation No.");
+        TransferLineToCheck.SetRange("Subc. Purch. Order No.", PurchaseLine."Document No.");
+        TransferLineToCheck.SetRange("Subc. Prod. Order No.", PurchaseLine."Prod. Order No.");
+        TransferLineToCheck.SetRange("Subc. Prod. Order Line No.", PurchaseLine."Prod. Order Line No.");
+        TransferLineToCheck.SetRange("Subc. Operation No.", PurchaseLine."Operation No.");
+        TransferLineToCheck.SetRange("Derived From Line No.", 0);
+        TransferLineToCheck.SetRange("Transfer WIP Item", true);
+        TransferLineToCheck.CalcSums("Quantity (Base)");
+        exit(TransferLineToCheck."Quantity (Base)");
     end;
 
     local procedure CalcPurchLineQtyBase(PurchaseLine: Record "Purchase Line"; ProdOrderLine: Record "Prod. Order Line"): Decimal

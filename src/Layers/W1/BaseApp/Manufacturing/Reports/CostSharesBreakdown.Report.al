@@ -66,7 +66,17 @@ report 5848 "Cost Shares Breakdown"
                 DataItemTableView = sorting("Order Type", "Order No.", "Order Line No.") where("Order Type" = const(Production));
 
                 trigger OnAfterGetRecord()
+                var
+                    TempItem: Record Item temporary;
                 begin
+                    if Item.Get("Capacity Ledger Entry"."Item No.") then begin
+                        TempItem := Item;
+                        TempItem.Insert();
+                        TempItem.CopyFilters(Item);
+                        if TempItem.IsEmpty() then
+                            CurrReport.Skip();
+                    end;
+
                     InsertCapLedgEntryCostShare("Capacity Ledger Entry");
                 end;
 

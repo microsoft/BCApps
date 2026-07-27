@@ -414,14 +414,15 @@ function Get-GitCurrentRemoteBranch {
     [OutputType([string])]
     param()
 
-    try {
-        (git rev-parse --symbolic-full-name '@{u}' 2>&1).ToString()
-    } catch {
-        $allowedErrors = @('fatal: no upstream configured for branch *')
-        $ex = $_.Exception
-        if(-not ($allowedErrors | ? { $ex.Message -ilike $_})) {
-            Throw $_
-        }
+    [string] $output = (git rev-parse --symbolic-full-name '@{u}' 2>&1)
+
+    if ($LASTEXITCODE -eq 0) {
+        return $output
+    }
+
+    $allowedErrors = @('fatal: no upstream configured for branch *')
+    if(-not ($allowedErrors | ? { $output -ilike $_})) {
+        Throw $output
     }
 }
 

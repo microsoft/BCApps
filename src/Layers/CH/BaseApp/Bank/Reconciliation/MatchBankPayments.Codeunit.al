@@ -1081,7 +1081,8 @@ codeunit 1255 "Match Bank Payments"
                 DocumentMatching(
                     BankPmtApplRule, BankAccReconciliationLine,
                     TempLedgerEntryMatchingBuffer."Document No.",
-                    TempLedgerEntryMatchingBuffer."External Document No.", TempLedgerEntryMatchingBuffer."Payment Reference");
+                    TempLedgerEntryMatchingBuffer."External Document No.",
+                    TempLedgerEntryMatchingBuffer."Payment Reference");
                 TotalTimeDocumentNoMatching += CurrentDateTime() - StartTime;
             end else begin
                 StartTime := CurrentDateTime();

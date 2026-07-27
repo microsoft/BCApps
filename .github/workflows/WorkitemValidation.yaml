@@ -3,6 +3,7 @@ on:
   pull_request_target:
     types: [opened, synchronize, reopened, edited]
     branches: [ 'main', 'releases/*' ]
+  merge_group:
 
 permissions:
   contents: read
@@ -15,12 +16,12 @@ defaults:
 
 jobs:
   GitHubIssueValidation:
-    if: github.repository_owner == 'microsoft' && github.event.pull_request.state == 'open'
+    if: github.repository_owner == 'microsoft' && github.event.pull_request.state == 'open' && github.event_name != 'merge_group'
     name: 'Validate link to issues'
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
           egress-policy: audit
 
@@ -34,13 +35,13 @@ jobs:
           build/scripts/PullRequestValidation/ValidateIssuesForPullRequest.ps1 -PullRequestNumber ${{ github.event.pull_request.number }} -Repository ${{ github.repository }}
 
   WorkItemValidationForMicrosoft:
-    if: github.repository_owner == 'microsoft' && github.event.pull_request.state == 'open'
+    if: github.repository_owner == 'microsoft' && github.event.pull_request.state == 'open' && github.event_name != 'merge_group'
     name: 'For Microsoft: Validate link to internal work items'
     runs-on: ubuntu-latest
     needs: GitHubIssueValidation
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@9af89fc71515a100421586dfdb3dc9c984fbf411 # v2.19.4
+        uses: step-security/harden-runner@bf7454d06d71f1098171f2acdf0cd4708d7b5920 # v2.20.0
         with:
           egress-policy: audit
 

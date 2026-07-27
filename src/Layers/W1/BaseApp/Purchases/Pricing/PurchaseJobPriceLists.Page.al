@@ -130,6 +130,7 @@ page 7020 "Purchase Job Price Lists"
     var
         FeaturePriceCalculation: Codeunit "Feature - Price Calculation";
     begin
+        OnBeforeOnInit();
         FeaturePriceCalculation.FailIfFeatureDisabled();
     end;
 
@@ -160,5 +161,10 @@ page 7020 "Purchase Job Price Lists"
         PriceUXManagement: Codeunit "Price UX Management";
     begin
         PriceUXManagement.SetPriceListsFilters(Rec, PriceSourceList, AmountType);
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOnInit()
+    begin
     end;
 }

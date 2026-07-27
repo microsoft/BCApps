@@ -26,6 +26,7 @@ page 20401 "Qlty. Tests"
     PageType = List;
     SourceTable = "Qlty. Test";
     SourceTableView = sorting(Code);
+    AccessByPermission = tabledata "Qlty. Test" = R;
     UsageCategory = Administration;
     ApplicationArea = QualityManagement;
 

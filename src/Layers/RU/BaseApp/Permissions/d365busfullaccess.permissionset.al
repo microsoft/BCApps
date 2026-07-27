@@ -221,6 +221,8 @@ permissionset 959 "D365 BUS FULL ACCESS"
                   tabledata "Tenant Profile Extension" = imd,
                   tabledata "Tenant Profile Page Metadata" = imd,
                   tabledata "Tenant Profile Setting" = imd,
+                  tabledata "Tenant Report Layout Cfg" = RIMD,
+                  tabledata "Tenant Report Layout Selection" = RIMD,
                   tabledata "Tenant Web Service" = R,
                   tabledata User = D,
                   tabledata "AAD Application" = RIMD,

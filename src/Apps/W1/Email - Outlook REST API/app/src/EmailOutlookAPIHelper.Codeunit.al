@@ -433,7 +433,7 @@ codeunit 4509 "Email - Outlook API Helper"
         HTMLBody := Filters."Body Type" = Filters."Body Type"::HTML;
         if Filters."Last Message Only" then
             Body := KeepLastMessageOnly(Body);
-        EmailMessage.Create('', Subject, Body, HTMLBody, true);
+        EmailMessage.Create('', Subject, Body, HTMLBody, not Filters.GetBypassBodySanitization());
 
         if HasAttachments then
             AddAttachmentsToMessage(EmailJsonObject, EmailMessage);

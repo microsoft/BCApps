@@ -708,7 +708,13 @@ codeunit 5817 "Undo Posting Management"
     procedure CollectItemLedgEntries(var TempItemLedgEntry: Record "Item Ledger Entry" temporary; SourceType: Integer; DocumentNo: Code[20]; LineNo: Integer; BaseQty: Decimal; EntryRef: Integer)
     var
         ItemLedgEntry: Record "Item Ledger Entry";
+        IsHandled: Boolean;
     begin
+        IsHandled := false;
+        OnBeforeCollectItemLedgEntries(TempItemLedgEntry, SourceType, DocumentNo, LineNo, BaseQty, EntryRef, IsHandled);
+        if IsHandled then
+            exit;
+
         TempItemLedgEntry.Reset();
         if not TempItemLedgEntry.IsEmpty() then
             TempItemLedgEntry.DeleteAll();
@@ -1290,6 +1296,11 @@ codeunit 5817 "Undo Posting Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeAdjustQuantityRounding(var ItemJnlLine: Record "Item Journal Line"; var NonDistrQuantity: Decimal; NonDistrQuantityBase: Decimal; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCollectItemLedgEntries(var TempItemLedgEntry: Record "Item Ledger Entry" temporary; SourceType: Integer; DocumentNo: Code[20]; LineNo: Integer; BaseQty: Decimal; EntryReference: Integer; var IsHandled: Boolean)
     begin
     end;
 

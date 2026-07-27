@@ -20,7 +20,10 @@ codeunit 137103 "Cost Adjustment Parallel Run"
         LibraryManufacturing: Codeunit "Library - Manufacturing";
         LibraryAssembly: Codeunit "Library - Assembly";
         LibraryWarehouse: Codeunit "Library - Warehouse";
+        Assert: Codeunit Assert;
         Initialized: Boolean;
+        TrackGLStartPosting: Boolean;
+        GLStartPostingCount: Integer;
 
     local procedure Initialize()
     var
@@ -1291,6 +1294,70 @@ codeunit 137103 "Cost Adjustment Parallel Run"
         Item.TestField("Cost is Adjusted", false);
 
         UnbindSubscription(this);
+    end;
+
+    [Test]
+    procedure ItemByItemCommit_GLPostingRestartsAfterEachCommit()
+    var
+        Item1, Item2 : Record Item;
+        FilterItem: Record Item;
+        TempCostAdjustmentParameter: Record "Cost Adjustment Parameter" temporary;
+        InventoryAdjustmentHandler: Codeunit "Inventory Adjustment Handler";
+        CostAdjustmentParamsMgt: Codeunit "Cost Adjustment Params Mgt.";
+    begin
+        // [SCENARIO 637264] Offline cost adjustment with Item-by-Item commit must re-take the
+        // G/L Entry lock per item. After each per-item Commit() the cached NextEntryNo is reset, so the
+        // next item goes through StartPosting (re-lock + re-read) instead of the stale ContinuePosting
+        // fast path - which is what removes the duplicate-key race on table 17 under concurrency.
+        Initialize();
+
+        // [GIVEN] Automatic adjustment off (so the offline run does the work).
+        SetAutomaticCostAdjustment(false);
+
+        // [GIVEN] Two FIFO items with inbound + outbound entries that need cost adjustment.
+        CreateItem(Item1, Item1."Costing Method"::FIFO, 0);
+        CreateItem(Item2, Item2."Costing Method"::FIFO, 0);
+        PostItemJournalLine(Item1."No.", 10, 12.5, WorkDate());
+        PostItemJournalLine(Item1."No.", -10, 0, WorkDate());
+        PostItemJournalLine(Item2."No.", 10, 17.5, WorkDate());
+        PostItemJournalLine(Item2."No.", -10, 0, WorkDate());
+
+        TrackGLStartPosting := true;
+        GLStartPostingCount := 0;
+
+        // [GIVEN] Offline cost adjustment parameters with Item-by-Item commit enabled, posting to G/L.
+        TempCostAdjustmentParameter.Init();
+        TempCostAdjustmentParameter."Online Adjustment" := false;
+        TempCostAdjustmentParameter."Post to G/L" := true;
+        TempCostAdjustmentParameter."Item-By-Item Commit" := true;
+        CostAdjustmentParamsMgt.SetParameters(TempCostAdjustmentParameter);
+
+        FilterItem.SetFilter("No.", '%1|%2', Item1."No.", Item2."No.");
+        InventoryAdjustmentHandler.SetFilterItem(FilterItem);
+
+        // [WHEN] The cost adjustment runs over both items, committing after each.
+        BindSubscription(this);
+        Commit();
+        InventoryAdjustmentHandler.MakeInventoryAdjustment(CostAdjustmentParamsMgt);
+        UnbindSubscription(this);
+        TrackGLStartPosting := false;
+
+        // [THEN] Each adjusted item re-entered StartPosting (NextEntryNo reset to 0) instead of the
+        // stale ContinuePosting fast path, so the lock was re-taken at least once per item.
+        Assert.IsTrue(GLStartPostingCount >= 2, 'CU12 should re-take the G/L lock after each per-item commit.');
+
+        // [THEN] Both items are adjusted without a duplicate-key error.
+        Item1.Get(Item1."No.");
+        Item1.TestField("Cost is Adjusted", true);
+        Item2.Get(Item2."No.");
+        Item2.TestField("Cost is Adjusted", true);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Gen. Jnl.-Post Line", OnBeforeStartOrContinuePosting, '', false, false)]
+    local procedure CountStartPostingOnBeforeStartOrContinuePosting(NextEntryNo: Integer)
+    begin
+        if TrackGLStartPosting and (NextEntryNo = 0) then
+            GLStartPostingCount += 1;
     end;
 
     local procedure FindProdOrderLine(var ProdOrderLine: Record "Prod. Order Line"; ProductionOrder: Record "Production Order")

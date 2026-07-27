@@ -537,6 +537,10 @@ codeunit 905 "Assembly Line Management"
         if UpdateDimension then
             AssemblyLine.UpdateDim(AsmHeader."Dimension Set ID", OldAsmHeader."Dimension Set ID");
 
+        OnUpdateExistingLineOnBeforeModifyAssemblyLine(
+            AsmHeader, OldAsmHeader, CurrFieldNo, AssemblyLine, UpdateDueDate, UpdateLocation,
+            UpdateQuantity, UpdateUOM, UpdateQtyToConsume, UpdateDimension);
+
         AssemblyLine.Modify(true);
     end;
 
@@ -638,6 +642,10 @@ codeunit 905 "Assembly Line Management"
         CopyInventoriableItemAsmLines(TempAssemblyLine2, TempAssemblyLine);
         AvailToPromise(TempAssemblyHeader, TempAssemblyLine2, QtyAvailToMake, EarliestAvailableDateX);
         QtyAvailTooLow := QtyAvailToMake < TempAssemblyHeader."Remaining Quantity";
+        IsHandled := false;
+        OnShowAvailabilityOnAfterCalcQtyAvailTooLow(TempAssemblyHeader, TempAssemblyLine, ShowPageEvenIfEnoughComponentsAvailable, QtyAvailToMake, EarliestAvailableDateX, QtyAvailTooLow, Rollback, IsHandled);
+        if IsHandled then
+            exit(Rollback);
 
         if QtyAvailTooLow and not ShowPageEvenIfEnoughComponentsAvailable then
             Rollback := CreateAndSendNotification(TempAssemblyHeader, TempAssemblyLine)
@@ -1014,6 +1022,11 @@ codeunit 905 "Assembly Line Management"
     end;
 
     [IntegrationEvent(false, false)]
+    local procedure OnShowAvailabilityOnAfterCalcQtyAvailTooLow(var TempAssemblyHeader: Record "Assembly Header" temporary; var TempAssemblyLine: Record "Assembly Line" temporary; ShowPageEvenIfEnoughComponentsAvailable: Boolean; QtyAvailToMake: Decimal; EarliestAvailableDate: Date; var QtyAvailTooLow: Boolean; var RollBack: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateAssemblyLines(var AsmHeader: Record "Assembly Header"; OldAsmHeader: Record "Assembly Header"; FieldNum: Integer; ReplaceLinesFromBOM: Boolean; CurrFieldNo: Integer; CurrentFieldNum: Integer; var IsHandled: Boolean; HideValidationDialog: Boolean)
     begin
     end;
@@ -1025,6 +1038,11 @@ codeunit 905 "Assembly Line Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeUpdateExistingLine(var AsmHeader: Record "Assembly Header"; OldAsmHeader: Record "Assembly Header"; CurrFieldNo: Integer; var AssemblyLine: Record "Assembly Line"; UpdateDueDate: Boolean; UpdateLocation: Boolean; UpdateQuantity: Boolean; UpdateUOM: Boolean; UpdateQtyToConsume: Boolean; UpdateDimension: Boolean; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnUpdateExistingLineOnBeforeModifyAssemblyLine(var AssemblyHeader: Record "Assembly Header"; OldAssemblyHeader: Record "Assembly Header"; CurrentFieldNo: Integer; var AssemblyLine: Record "Assembly Line"; UpdateDueDate: Boolean; UpdateLocation: Boolean; UpdateQuantity: Boolean; UpdateUOM: Boolean; UpdateQtyToConsume: Boolean; UpdateDimension: Boolean)
     begin
     end;
 

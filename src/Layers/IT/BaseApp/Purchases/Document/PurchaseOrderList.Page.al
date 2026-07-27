@@ -39,12 +39,7 @@ page 9307 "Purchase Order List"
     QueryCategory = 'Purchase Order List';
     RefreshOnActivate = true;
     SourceTable = "Purchase Header";
-#if not CLEAN28
-    SourceTableView = where("Document Type" = const(Order),
-                            "Subcontracting Order" = const(false));
-#else
     SourceTableView = where("Document Type" = const(Order));
-#endif
     UsageCategory = Lists;
     AdditionalSearchTerms = 'Procurement List, Buy Order Overview, Vendor Orders, Order Purchase Log, Acquisition List, Supplier Orders, Buy List, Purchase Log, Supply Order List, Goods Order Overview';
 
