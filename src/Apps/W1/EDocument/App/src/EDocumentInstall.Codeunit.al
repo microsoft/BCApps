@@ -4,7 +4,9 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument.IO;
 
+#if not CLEAN29
 using Microsoft.eServices.EDocument.OrderMatch.Copilot;
+#endif
 using System.IO;
 using System.Reflection;
 using System.Upgrade;
@@ -21,12 +23,14 @@ codeunit 6161 "E-Document Install"
         InsertDataExchV2();
     end;
 
+#if not CLEAN29
     trigger OnInstallAppPerDatabase()
     var
         EDocAIMatching: Codeunit "E-Doc. PO Copilot Matching";
     begin
         EDocAIMatching.RegisterAICapability();
     end;
+#endif
 
     internal procedure InsertDataExch()
     var

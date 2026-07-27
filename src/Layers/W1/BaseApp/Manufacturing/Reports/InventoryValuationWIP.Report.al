@@ -185,6 +185,14 @@ report 5802 "Inventory Valuation - WIP"
                     LastOutput := 0;
                     AtLastDate := 0;
                     LastWIP := 0;
+                    ValueOfWIP := 0;
+                    ValueOfMatConsump := 0;
+                    ValueOfCap := 0;
+                    ValueOfOutput := 0;
+                    ValueOfInvOutput1 := 0;
+                    ValueOfExpOutput1 := 0;
+                    ValueOfExpOutput2 := 0;
+                    ValueOfCostPstdToGL := 0;
 
                     if (CountRecord = LengthRecord) and IsNotWIP() then begin
                         ValueEntryOnPostDataItem();
@@ -207,13 +215,6 @@ report 5802 "Inventory Valuation - WIP"
                     end;
 
                     if not IsNotWIP() then begin
-                        ValueOfWIP := 0;
-                        ValueOfMatConsump := 0;
-                        ValueOfCap := 0;
-                        ValueOfOutput := 0;
-                        ValueOfInvOutput1 := 0;
-                        ValueOfExpOutput1 := 0;
-                        ValueOfExpOutput2 := 0;
                         if EntryFound then
                             ValueOfCostPstdToGL := "Cost Posted to G/L";
 

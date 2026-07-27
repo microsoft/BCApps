@@ -289,6 +289,7 @@ report 7131 "Import Item Budget from Excel"
         CurrColumnDimValue: Code[20];
         TotalRecNo: Integer;
         HeaderRowNo: Integer;
+        IsHandled: Boolean;
         SourceTypeFilter: Enum "Analysis Source Type";
         LineDimOption: Enum "Item Budget Dimension Type";
         ColumnDimOption: Enum "Item Budget Dimension Type";
@@ -431,46 +432,55 @@ report 7131 "Import Item Budget from Excel"
                             CurrLineDimValue := CopyStr(ExcelBuf."Cell Value as Text", 1, MaxStrLen(CurrLineDimValue));
                             ExcelBuf.SetRange("Row No.", ExcelBuf."Row No.");
                             while ExcelBuf.Next() <> 0 do begin
-                                CurrColumnDimValue := GetCurrColumnDimValue(ExcelBuf."Column No.", HeaderRowNo);
-                                ExchangeFiltersWithDimValue(
-                                  CurrLineDimValue,
-                                  CurrColumnDimValue,
-                                  LineDimOption,
-                                  ColumnDimOption,
-                                  DateFilter,
-                                  ItemFilter,
-                                  LocationFilter,
-                                  GlobalDim1Filter,
-                                  GlobalDim2Filter,
-                                  BudgetDim1Filter,
-                                  BudgetDim2Filter,
-                                  BudgetDim3Filter,
-                                  SourceNoFilter,
-                                  SourceTypeFilter);
+                                IsHandled := false;
+                                Clear(CurrColumnDimValue);
+                                OnAnalyseDataOnBeforeGetCurrColumnDimValue(ExcelBuf, HeaderRowNo, CurrLineDimValue, CurrColumnDimValue, IsHandled);
+                                if not IsHandled then
+                                    CurrColumnDimValue := GetCurrColumnDimValue(ExcelBuf."Column No.", HeaderRowNo);
 
-                                ItemBudgetBuf.Init();
-                                ItemBudgetBuf."Item No." := ItemFilter;
-                                if SourceTypeFilter <> SourceTypeFilter::" " then
-                                    ItemBudgetBuf."Source Type" := SourceTypeFilter
-                                else
-                                    ItemBudgetBuf."Source Type" := Enum::"Analysis Source Type".FromInteger(LineDimOption.AsInteger());
-                                ItemBudgetBuf."Source No." := SourceNoFilter;
-                                ItemBudgetBuf."Location Code" := LocationFilter;
-                                ItemBudgetBuf."Global Dimension 1 Code" := GlobalDim1Filter;
-                                ItemBudgetBuf."Global Dimension 2 Code" := GlobalDim2Filter;
-                                ItemBudgetBuf."Budget Dimension 1 Code" := BudgetDim1Filter;
-                                ItemBudgetBuf."Budget Dimension 2 Code" := BudgetDim2Filter;
-                                ItemBudgetBuf."Budget Dimension 3 Code" := BudgetDim3Filter;
-                                Evaluate(ItemBudgetBuf.Date, DateFilter);
-                                case ValueType of
-                                    ValueType::"Sales Amount":
-                                        Evaluate(ItemBudgetBuf."Sales Amount", ExcelBuf."Cell Value as Text");
-                                    ValueType::"COGS / Cost Amount":
-                                        Evaluate(ItemBudgetBuf."Cost Amount", ExcelBuf."Cell Value as Text");
-                                    ValueType::Quantity:
-                                        Evaluate(ItemBudgetBuf.Quantity, ExcelBuf."Cell Value as Text");
+                                IsHandled := false;
+                                OnAnalyseDataOnBeforeProcessImportedMatrixCell(ExcelBuf, HeaderRowNo, CurrLineDimValue, CurrColumnDimValue, IsHandled);
+                                if not IsHandled then begin
+                                    ExchangeFiltersWithDimValue(
+                                        CurrLineDimValue,
+                                        CurrColumnDimValue,
+                                        LineDimOption,
+                                        ColumnDimOption,
+                                        DateFilter,
+                                        ItemFilter,
+                                        LocationFilter,
+                                        GlobalDim1Filter,
+                                        GlobalDim2Filter,
+                                        BudgetDim1Filter,
+                                        BudgetDim2Filter,
+                                        BudgetDim3Filter,
+                                        SourceNoFilter,
+                                        SourceTypeFilter);
+
+                                    ItemBudgetBuf.Init();
+                                    ItemBudgetBuf."Item No." := ItemFilter;
+                                    if SourceTypeFilter <> SourceTypeFilter::" " then
+                                        ItemBudgetBuf."Source Type" := SourceTypeFilter
+                                    else
+                                        ItemBudgetBuf."Source Type" := Enum::"Analysis Source Type".FromInteger(LineDimOption.AsInteger());
+                                    ItemBudgetBuf."Source No." := SourceNoFilter;
+                                    ItemBudgetBuf."Location Code" := LocationFilter;
+                                    ItemBudgetBuf."Global Dimension 1 Code" := GlobalDim1Filter;
+                                    ItemBudgetBuf."Global Dimension 2 Code" := GlobalDim2Filter;
+                                    ItemBudgetBuf."Budget Dimension 1 Code" := BudgetDim1Filter;
+                                    ItemBudgetBuf."Budget Dimension 2 Code" := BudgetDim2Filter;
+                                    ItemBudgetBuf."Budget Dimension 3 Code" := BudgetDim3Filter;
+                                    Evaluate(ItemBudgetBuf.Date, DateFilter);
+                                    case ValueType of
+                                        ValueType::"Sales Amount":
+                                            Evaluate(ItemBudgetBuf."Sales Amount", ExcelBuf."Cell Value as Text");
+                                        ValueType::"COGS / Cost Amount":
+                                            Evaluate(ItemBudgetBuf."Cost Amount", ExcelBuf."Cell Value as Text");
+                                        ValueType::Quantity:
+                                            Evaluate(ItemBudgetBuf.Quantity, ExcelBuf."Cell Value as Text");
+                                    end;
+                                    ItemBudgetBuf.Insert();
                                 end;
-                                ItemBudgetBuf.Insert();
                             end;
                             ExcelBuf.SetRange("Row No.");
                         end;
@@ -685,6 +695,16 @@ report 7131 "Import Item Budget from Excel"
     procedure SetFileNameSilent(NewFileName: Text)
     begin
         ServerFileName := NewFileName;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAnalyseDataOnBeforeGetCurrColumnDimValue(var ExcelBuffer: Record "Excel Buffer"; HeaderRowNo: Integer; CurrLineDimValue: Code[20]; var CurrColumnDimValue: Code[20]; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAnalyseDataOnBeforeProcessImportedMatrixCell(var ExcelBuffer: Record "Excel Buffer"; HeaderRowNo: Integer; CurrLineDimValue: Code[20]; CurrColumnDimValue: Code[20]; var IsHandled: Boolean)
+    begin
     end;
 }
 

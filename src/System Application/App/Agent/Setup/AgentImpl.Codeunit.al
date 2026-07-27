@@ -533,7 +533,7 @@ codeunit 4301 "Agent Impl."
         SetupPageRecordRef.Open(PageMetadata.SourceTable, PageMetadata.SourceTableTemporary);
 
         FieldMetadata.SetRange(TableNo, PageMetadata.SourceTable);
-        FieldMetadata.SetRange(FieldName, UserSecurityIdTok);
+        FieldMetadata.SetFilter(FieldName, StrSubstNo('@%1', UserSecurityIdTok));
         if not FieldMetadata.FindFirst() then
             Error(SetupPageSourceTableMissingFieldErr, SetupPageId, UserSecurityIdTok);
 

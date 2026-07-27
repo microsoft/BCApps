@@ -4985,6 +4985,97 @@ codeunit 137404 "SCM Manufacturing"
         end;
     end;
 
+    [Test]
+    [HandlerFunctions('CalculateWorkCenterCalendarReqPageHandler')]
+    procedure CalculateWorkCenterCalendarActionOnWorkCenterCard()
+    var
+        WorkCenter: Record "Work Center";
+    begin
+        // [FEATURE] [Capacity] [Shop Calendar] [UI]
+        // [SCENARIO 638433] Calculate Work Center Calendar action on the Work Center Card creates calendar entries for the work center.
+
+        // [GIVEN] Create a Work Center with capacity in a working shop calendar.
+        Initialize();
+        CreateWorkCenterWithWorkingCalendarAndCapacity(WorkCenter);
+
+        // [WHEN] Open the Work Center Card and invoke the Calculate Work Center Calendar action.
+        InvokeCalcWorkCenterCalendarActionFromCard(WorkCenter);
+
+        // [THEN] Verify Calendar Entry is created for the Work Center.
+        VerifyCalendarEntryExistence("Capacity Type"::"Work Center", WorkCenter."No.", true);
+    end;
+
+    [Test]
+    [HandlerFunctions('CalcMachineCenterCalendarReqPageHandler')]
+    [Scope('OnPrem')]
+    procedure CalculateMachineCenterCalendarActionOnMachineCenterCard()
+    var
+        MachineCenter: Record "Machine Center";
+        WorkCenter: Record "Work Center";
+    begin
+        // [FEATURE] [Capacity] [Shop Calendar] [UI]
+        // [SCENARIO 638433] Calculate Machine Center Calendar action on the Machine Center Card creates calendar entries for the machine center.
+
+        // [GIVEN] Create a Machine Center for a Work Center with a working shop calendar.
+        Initialize();
+        CreateMachineCenterWithWorkingCalendarAndCapacity(MachineCenter, WorkCenter);
+
+        // [WHEN] Open the Machine Center Card and invoke the Calculate Machine Center Calendar action.
+        InvokeCalcMachineCenterCalendarActionFromCard(MachineCenter);
+
+        // [THEN] Verify Calendar Entry is created for the Machine Center.
+        VerifyCalendarEntryExistence("Capacity Type"::"Machine Center", MachineCenter."No.", true);
+    end;
+
+    [Test]
+    [HandlerFunctions('CalculateWorkCenterCalendarReqPageHandler')]
+    procedure CalcWorkCenterCalendarReportFilteredByWorkCenterGroupCode()
+    var
+        WorkCenter: array[2] of Record "Work Center";
+        WorkCenterGroup: Record "Work Center Group";
+    begin
+        // [FEATURE] [Capacity] [Shop Calendar]
+        // [SCENARIO 638433] The Calculate Work Center Calendar report request page can filter by Work Center Group Code.
+
+        // [GIVEN] Create two Work Centers in different Work Center Groups.
+        Initialize();
+        CreateWorkCenterWithWorkingCalendarAndCapacity(WorkCenter[1]);
+        CreateWorkCenterWithWorkingCalendarAndCapacity(WorkCenter[2]);
+        LibraryManufacturing.CreateWorkCenterGroup(WorkCenterGroup);
+        WorkCenter[1].Validate("Work Center Group Code", WorkCenterGroup.Code);
+        WorkCenter[1].Modify(true);
+
+        // [WHEN] Run the Calculate Work Center Calendar report filtered by Work Center Group Code from the request page.
+        RunCalcWorkCenterCalendarReportWithGroupFilter(WorkCenter[1]."No.", WorkCenter[2]."No.", WorkCenterGroup.Code);
+
+        // [THEN] Verify Calendar Entries are created only for the Work Center that belongs to the filtered group.
+        VerifyCalendarEntryExistence("Capacity Type"::"Work Center", WorkCenter[1]."No.", true);
+        VerifyCalendarEntryExistence("Capacity Type"::"Work Center", WorkCenter[2]."No.", false);
+    end;
+
+    [Test]
+    [HandlerFunctions('CalcMachineCenterCalendarReqPageHandler')]
+    procedure CalcMachineCenterCalendarReportFilteredByWorkCenterNo()
+    var
+        MachineCenter: array[2] of Record "Machine Center";
+        WorkCenter: array[2] of Record "Work Center";
+    begin
+        // [FEATURE] [Capacity] [Shop Calendar]
+        // [SCENARIO 638433] The Calc. Machine Center Calendar report request page can filter by Work Center No.
+
+        // [GIVEN] Create two Machine Centers belonging to two different Work Centers.
+        Initialize();
+        CreateMachineCenterWithWorkingCalendarAndCapacity(MachineCenter[1], WorkCenter[1]);
+        CreateMachineCenterWithWorkingCalendarAndCapacity(MachineCenter[2], WorkCenter[2]);
+
+        // [WHEN] Run the Calc. Machine Center Calendar report filtered by Work Center No. from the request page.
+        RunCalcMachineCenterCalendarReportWithWorkCenterNoFilter(MachineCenter[1]."No.", MachineCenter[2]."No.", WorkCenter[1]."No.");
+
+        // [THEN] Verify Calendar Entries are created only for the Machine Center of the filtered Work Center.
+        VerifyCalendarEntryExistence("Capacity Type"::"Machine Center", MachineCenter[1]."No.", true);
+        VerifyCalendarEntryExistence("Capacity Type"::"Machine Center", MachineCenter[2]."No.", false);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -7959,6 +8050,88 @@ codeunit 137404 "SCM Manufacturing"
         LibraryInventory.PostItemJournalLine(ItemJournalBatch."Journal Template Name", ItemJournalBatch.Name);
     end;
 
+    local procedure CreateWorkCenterWithWorkingCalendarAndCapacity(var WorkCenter: Record "Work Center")
+    var
+        ShopCalendarWorkingDays: Record "Shop Calendar Working Days";
+    begin
+        CreateWorkCenterWithWorkCenterGroup(WorkCenter, CreateShopCalendarCodeWithAllDaysWorking(ShopCalendarWorkingDays));
+        ModifyCapacityOfWorkCenter(WorkCenter);
+    end;
+
+    local procedure CreateMachineCenterWithWorkingCalendarAndCapacity(var MachineCenter: Record "Machine Center"; var WorkCenter: Record "Work Center")
+    begin
+        CreateWorkCenterWithWorkingCalendarAndCapacity(WorkCenter);
+        MachineCenter.Get(CreateMachineCenter(WorkCenter."No."));
+        ModifyCapacityOfMachineCenter(MachineCenter."No.");
+    end;
+
+    local procedure InvokeCalcWorkCenterCalendarActionFromCard(var WorkCenter: Record "Work Center")
+    var
+        WorkCenterCard: TestPage "Work Center Card";
+    begin
+        LibraryVariableStorage.Enqueue(WorkDate());
+        LibraryVariableStorage.Enqueue(WorkDate());
+        LibraryVariableStorage.Enqueue(''); // no additional Work Center Group Code filter
+        Commit();
+        WorkCenterCard.OpenView();
+        WorkCenterCard.GotoRecord(WorkCenter);
+        WorkCenterCard."Calculate Work Center Calendar".Invoke();
+        WorkCenterCard.Close();
+    end;
+
+    local procedure InvokeCalcMachineCenterCalendarActionFromCard(var MachineCenter: Record "Machine Center")
+    var
+        MachineCenterCard: TestPage "Machine Center Card";
+    begin
+        LibraryVariableStorage.Enqueue(WorkDate());
+        LibraryVariableStorage.Enqueue(WorkDate());
+        LibraryVariableStorage.Enqueue(''); // no additional Work Center No. filter
+        Commit();
+        MachineCenterCard.OpenView();
+        MachineCenterCard.GotoRecord(MachineCenter);
+        MachineCenterCard."Calculate Machine Center Calendar".Invoke();
+        MachineCenterCard.Close();
+    end;
+
+    local procedure RunCalcWorkCenterCalendarReportWithGroupFilter(WorkCenterNo1: Code[20]; WorkCenterNo2: Code[20]; WorkCenterGroupCodeFilter: Code[10])
+    var
+        WorkCenterFilter: Record "Work Center";
+        CalculateWorkCenterCalendarReport: Report "Calculate Work Center Calendar";
+    begin
+        LibraryVariableStorage.Enqueue(WorkDate());
+        LibraryVariableStorage.Enqueue(WorkDate());
+        LibraryVariableStorage.Enqueue(WorkCenterGroupCodeFilter);
+        Commit();
+        WorkCenterFilter.SetFilter("No.", '%1|%2', WorkCenterNo1, WorkCenterNo2);
+        CalculateWorkCenterCalendarReport.SetTableView(WorkCenterFilter);
+        CalculateWorkCenterCalendarReport.RunModal();
+    end;
+
+    local procedure RunCalcMachineCenterCalendarReportWithWorkCenterNoFilter(MachineCenterNo1: Code[20]; MachineCenterNo2: Code[20]; WorkCenterNoFilter: Code[20])
+    var
+        MachineCenterFilter: Record "Machine Center";
+        CalcMachineCenterCalendarReport: Report "Calc. Machine Center Calendar";
+    begin
+        LibraryVariableStorage.Enqueue(WorkDate());
+        LibraryVariableStorage.Enqueue(WorkDate());
+        LibraryVariableStorage.Enqueue(WorkCenterNoFilter);
+        Commit();
+        MachineCenterFilter.SetFilter("No.", '%1|%2', MachineCenterNo1, MachineCenterNo2);
+        CalcMachineCenterCalendarReport.SetTableView(MachineCenterFilter);
+        CalcMachineCenterCalendarReport.RunModal();
+    end;
+
+    local procedure VerifyCalendarEntryExistence(CapacityType: Enum "Capacity Type"; No: Code[20]; ShouldExist: Boolean)
+    var
+        CalendarEntry: Record "Calendar Entry";
+    begin
+        CalendarEntry.SetRange("Capacity Type", CapacityType);
+        CalendarEntry.SetRange("No.", No);
+        if ShouldExist then
+            Assert.RecordIsNotEmpty(CalendarEntry)
+        else
+            Assert.RecordIsEmpty(CalendarEntry);
+    end;
 
     [ModalPageHandler]
     [Scope('OnPrem')]
@@ -8071,6 +8244,40 @@ codeunit 137404 "SCM Manufacturing"
         ExchangeProductionBOMItem.CopyRoutingLink.SetValue(true);
         ExchangeProductionBOMItem.StartingDate.SetValue(StartDate);
         ExchangeProductionBOMItem.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure CalculateWorkCenterCalendarReqPageHandler(var CalculateWorkCenterCalendar: TestRequestPage "Calculate Work Center Calendar")
+    var
+        StartingDate: Date;
+        EndingDate: Date;
+        WorkCenterGroupCode: Code[10];
+    begin
+        StartingDate := LibraryVariableStorage.DequeueDate();
+        EndingDate := LibraryVariableStorage.DequeueDate();
+        WorkCenterGroupCode := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(WorkCenterGroupCode));
+        CalculateWorkCenterCalendar.StartingDate.SetValue(StartingDate);
+        CalculateWorkCenterCalendar.EndingDate.SetValue(EndingDate);
+        if WorkCenterGroupCode <> '' then
+            CalculateWorkCenterCalendar."Work Center".SetFilter("Work Center Group Code", WorkCenterGroupCode);
+        CalculateWorkCenterCalendar.OK().Invoke();
+    end;
+
+    [RequestPageHandler]
+    procedure CalcMachineCenterCalendarReqPageHandler(var CalcMachineCenterCalendar: TestRequestPage "Calc. Machine Center Calendar")
+    var
+        StartingDate: Date;
+        EndingDate: Date;
+        WorkCenterNo: Code[20];
+    begin
+        StartingDate := LibraryVariableStorage.DequeueDate();
+        EndingDate := LibraryVariableStorage.DequeueDate();
+        WorkCenterNo := CopyStr(LibraryVariableStorage.DequeueText(), 1, MaxStrLen(WorkCenterNo));
+        CalcMachineCenterCalendar.StartingDate.SetValue(StartingDate);
+        CalcMachineCenterCalendar.EndingDate.SetValue(EndingDate);
+        if WorkCenterNo <> '' then
+            CalcMachineCenterCalendar."Machine Center".SetFilter("Work Center No.", WorkCenterNo);
+        CalcMachineCenterCalendar.OK().Invoke();
     end;
 }
 

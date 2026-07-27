@@ -253,6 +253,7 @@ page 7015 "Sales Price Lists"
     var
         FeaturePriceCalculation: Codeunit "Feature - Price Calculation";
     begin
+        OnBeforeOnInit();
         FeaturePriceCalculation.FailIfFeatureDisabled();
     end;
 
@@ -334,6 +335,11 @@ page 7015 "Sales Price Lists"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterSetCurrRecOnAfterGetRecord(var PriceListHeader: Record "Price List Header"; var PriceListHeaderCurrRec: Record "Price List Header")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeOnInit()
     begin
     end;
 

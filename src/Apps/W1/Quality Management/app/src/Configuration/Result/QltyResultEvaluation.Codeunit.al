@@ -16,6 +16,11 @@ using System.Utilities;
 codeunit 20410 "Qlty. Result Evaluation"
 {
     TableNo = "Qlty. Inspection Line";
+    Permissions = tabledata "Qlty. Test" = r,
+                  tabledata "Qlty. Inspection Result" = r,
+                  tabledata "Qlty. Inspection Header" = rm,
+                  tabledata "Qlty. Inspection Line" = rim,
+                  tabledata "Qlty. I. Result Condit. Conf." = r;
 
     var
         IsDefaultNumberTok: Label '<>0', Locked = true;

@@ -297,12 +297,35 @@ page 99000760 "Machine Center Card"
                 }
             }
         }
+        area(processing)
+        {
+            action("Calculate Machine Center Calendar")
+            {
+                ApplicationArea = Manufacturing;
+                Caption = 'Calculate Machine Center Calendar';
+                Image = CalcWorkCenterCalendar;
+                ToolTip = 'Create new calendar entries for the machine center to define the available daily capacity.';
+
+                trigger OnAction()
+                var
+                    MachineCenter: Record "Machine Center";
+                    CalcMachineCenterCalendar: Report "Calc. Machine Center Calendar";
+                begin
+                    MachineCenter.SetRange("No.", Rec."No.");
+                    CalcMachineCenterCalendar.SetTableView(MachineCenter);
+                    CalcMachineCenterCalendar.RunModal();
+                end;
+            }
+        }
         area(Promoted)
         {
             group(Category_Process)
             {
                 Caption = 'Process', Comment = 'Generated from the PromotedActionCategories property index 1.';
 
+                actionref("Calculate Machine Center Calendar_Promoted"; "Calculate Machine Center Calendar")
+                {
+                }
                 actionref("Lo&ad_Promoted"; "Lo&ad")
                 {
                 }

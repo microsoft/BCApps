@@ -45,4 +45,4 @@ from throttle status and sleeps before requests that would exceed budget.
 - Many operations come in pairs for cursor-based pagination (e.g.,
   `Customers_GetCustomerIds` / `Customers_GetNextCustomerIds`).
 - Cost values are hand-tuned integers, not computed. The API version is
-  pinned in `ShpfyCommunicationMgt` (currently `2026-01`), not here.
+  pinned in `ShpfyCommunicationMgt` (currently `2026-07`), not here.

@@ -324,7 +324,7 @@ codeunit 4400 "SOA Setup"
         SOASetup."Quote Review" := false;
         SOASetup."Order Review" := false;
         SOASetup."Create Order from Quote" := true;
-        SOASetup."Search Only Available Items" := true;
+        SOASetup."Search Only Available Items" := false;
         SOASetup."Incl. Capable to Promise" := false;
         SOASetup."Send Sales Quote" := true;
     end;
@@ -435,39 +435,6 @@ codeunit 4400 "SOA Setup"
         TempAccessControlBuffer."App ID" := ModuleInfo.Id;
         TempAccessControlBuffer."Role ID" := SOAEditTok;
         TempAccessControlBuffer.Insert();
-    end;
-
-    internal procedure GetAgent(var TempSOAgent: Record Agent temporary)
-    begin
-        GetAgent(TempSOAgent, GetDefaultSOAAgentName());
-    end;
-
-    internal procedure GetAgent(var TempSOAgent: Record Agent temporary; AgentName: Text[50])
-    var
-        Agents: Record Agent;
-    begin
-        if IsNullGuid(TempSOAgent."User Security ID") then begin
-            Agents.SetRange("User Name", GetSOAUsername());
-            Agents.SetRange("Display Name", GetSOAUserDisplayName(AgentName));
-            if Agents.FindFirst() then begin
-                TempSOAgent := Agents;
-                TempSOAgent.Insert();
-                exit;
-            end
-            else
-                SetAgentDefaults(TempSOAgent, AgentName);
-        end else begin
-            Agents.Get(TempSOAgent."User Security ID");
-            TempSOAgent.TransferFields(Agents, true);
-        end;
-    end;
-
-    local procedure SetAgentDefaults(var TempSOAgent: Record Agent temporary; AgentName: Text[50])
-    begin
-        TempSOAgent.Init();
-        TempSOAgent."User Name" := GetSOAUsername();
-        TempSOAgent."Display Name" := GetSOAUserDisplayName(AgentName);
-        TempSOAgent.Insert();
     end;
 
     internal procedure GetSOASetup(var TempSOASetup: Record "SOA Setup" temporary; AgentUserSecurityID: Guid)
@@ -1086,7 +1053,7 @@ codeunit 4400 "SOA Setup"
     var
         SOAImpl: Codeunit "SOA Impl";
         Agent: Codeunit Agent;
-        SalesOrderAgentNameLbl: Label 'SALES ORDER AGENT', MaxLength = 17;
+        SalesOrderAgentNameLbl: Label 'SALES ORDER AGENT', Locked = true, MaxLength = 17;
         SalesOrderAgentDisplayNameLbl: Label 'Sales Order Agent', MaxLength = 80;
         SalesOrderAgentTypeLbl: Label 'By Microsoft';
         SOAEditTok: Label 'SOA - EDIT', Locked = true, MaxLength = 20;

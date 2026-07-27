@@ -527,6 +527,7 @@ codeunit 900 "Assembly-Post"
         AssemblyLine.SetRange("Document Type", AssemblyHeader."Document Type");
         AssemblyLine.SetRange("Document No.", AssemblyHeader."No.");
         SortLines(AssemblyLine);
+        OnPostLinesOnAfterAssemblyLineSetFilters(AssemblyHeader, AssemblyLine, PostedAssemblyHeader);
 
         LineCounter := 0;
         if AssemblyLine.FindSet() then
@@ -1897,6 +1898,11 @@ codeunit 900 "Assembly-Post"
 
     [IntegrationEvent(false, false)]
     local procedure OnPostLinesOnAfterGetLineQtys(var LineQty: Decimal; var LineQtyBase: Decimal; var AssemblyLine: Record "Assembly Line")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnPostLinesOnAfterAssemblyLineSetFilters(AssemblyHeader: Record "Assembly Header"; var AssemblyLine: Record "Assembly Line"; PostedAssemblyHeader: Record "Posted Assembly Header")
     begin
     end;
 
