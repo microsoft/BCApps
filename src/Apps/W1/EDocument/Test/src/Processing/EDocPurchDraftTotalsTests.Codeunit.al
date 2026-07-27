@@ -296,22 +296,22 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
     end;
 
     [Test]
-    procedure DismissedHeaderSuppressesSubTotalMismatchNotification()
+    procedure DismissedNotificationSuppressesSubTotalMismatchNotification()
     var
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentPurchaseLine: Record "E-Document Purchase Line";
         EDocumentPurchaseDraft: TestPage "E-Document Purchase Draft";
     begin
-        // [SCENARIO] When the header is flagged as dismissed, opening the draft (OnAfterGetRecord) does not re-show the mismatch notification
+        // [SCENARIO] When the notification is marked dismissed, opening the draft (OnAfterGetRecord) does not re-show the mismatch notification
         Initialize();
 
         // [GIVEN] A draft with header Sub Total 1000 and a single line subtotal 500 (mismatch beyond tolerance)
         CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
         CreatePurchaseLine(EDocumentPurchaseLine, EDocument."Entry No", 10000, 1, 500);
 
-        // [GIVEN] The dismissal flag is already set on the header
-        SetHeaderDismissedFlag(EDocument."Entry No", true);
+        // [GIVEN] The notification row is already marked as dismissed for the user
+        SetSubTotalMismatchDismissed(EDocument."Entry No", true);
 
         // [WHEN] Opening the purchase draft (fires OnAfterGetRecord repeatedly)
         OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
@@ -333,10 +333,10 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         // [SCENARIO] Editing a line amount while dismissed re-arms and re-shows the mismatch notification
         Initialize();
 
-        // [GIVEN] A draft with header Sub Total 1000, one line subtotal 500 (mismatch), flagged as dismissed
+        // [GIVEN] A draft with header Sub Total 1000, one line subtotal 500 (mismatch), marked as dismissed
         CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
         CreatePurchaseLine(EDocumentPurchaseLine, EDocument."Entry No", 10000, 1, 500);
-        SetHeaderDismissedFlag(EDocument."Entry No", true);
+        SetSubTotalMismatchDismissed(EDocument."Entry No", true);
 
         // [GIVEN] The draft is open and the notification is suppressed
         OpenPurchaseDraft(EDocumentPurchaseDraft, EDocument);
@@ -345,14 +345,14 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         // [WHEN] Editing the line quantity to 3 (lines subtotal 1500, still a mismatch)
         EDocumentPurchaseDraft.Lines.Quantity.SetValue(3);
 
-        // [THEN] The notification is shown again and the header flag is cleared
+        // [THEN] The notification is shown again and the dismissed state is cleared
         Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'Editing an amount must re-arm and re-show the mismatch notification.');
-        Assert.IsFalse(GetHeaderDismissedFlag(EDocument."Entry No"), 'Editing an amount must clear the dismissed flag.');
+        Assert.IsFalse(GetSubTotalMismatchDismissed(EDocument."Entry No"), 'Editing an amount must clear the dismissed state.');
         EDocumentPurchaseDraft.Close();
     end;
 
     [Test]
-    procedure DismissActionSetsHeaderDismissedFlagAndDeletesRecord()
+    procedure DismissActionMarksNotificationDismissed()
     var
         EDocument: Record "E-Document";
         EDocumentPurchaseHeader: Record "E-Document Purchase Header";
@@ -360,22 +360,22 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         EDocumentNotification: Codeunit "E-Document Notification";
         DismissNotification: Notification;
     begin
-        // [SCENARIO] Invoking the Dismiss action sets the header dismissed flag and deletes the persisted notification
+        // [SCENARIO] Invoking the Dismiss action marks the persisted notification as dismissed (row is kept, not deleted)
         Initialize();
 
         // [GIVEN] A draft with a persisted Sub Total Mismatch notification
         CreatePurchaseDraft(EDocument, EDocumentPurchaseHeader, 1000);
         CreatePurchaseLine(EDocumentPurchaseLine, EDocument."Entry No", 10000, 1, 500);
         EDocumentNotification.AddSubTotalMismatchNotification(EDocument."Entry No");
-        Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'The notification must exist before dismissing.');
+        Assert.AreEqual(1, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'The notification must be shown before dismissing.');
 
         // [WHEN] The Dismiss action runs
         DismissNotification := BuildSubTotalMismatchNotification(EDocument."Entry No");
         EDocumentNotification.DismissSubTotalMismatchNotification(DismissNotification);
 
-        // [THEN] The persisted record is deleted and the header flag is set
-        Assert.AreEqual(0, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'Dismissing must delete the persisted notification.');
-        Assert.IsTrue(GetHeaderDismissedFlag(EDocument."Entry No"), 'Dismissing must set the header dismissed flag.');
+        // [THEN] The notification is no longer shown but the row persists marked as dismissed
+        Assert.AreEqual(0, CountSubTotalMismatchNotifications(EDocument."Entry No"), 'Dismissing must stop showing the notification.');
+        Assert.IsTrue(GetSubTotalMismatchDismissed(EDocument."Entry No"), 'Dismissing must mark the notification as dismissed.');
     end;
 
     local procedure Initialize()
@@ -434,6 +434,7 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         EDocumentNotificationRec.SetRange("E-Document Entry No.", EDocumentEntryNo);
         EDocumentNotificationRec.SetRange(Type, "E-Document Notification Type"::"Sub Total Mismatch");
         EDocumentNotificationRec.SetRange("User Id", UserId());
+        EDocumentNotificationRec.SetRange(Dismissed, false);
         exit(EDocumentNotificationRec.Count());
     end;
 
@@ -444,31 +445,42 @@ codeunit 135648 "E-Doc Purch Draft Totals Tests"
         Assert.AreEqual(ExpectedTotal, EDocumentPurchaseHeader.Total, 'Header Total must not be changed by line edits.');
     end;
 
-    local procedure GetHeaderDismissedFlag(EDocumentEntryNo: Integer): Boolean
+    local procedure GetSubTotalMismatchDismissed(EDocumentEntryNo: Integer): Boolean
     var
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentNotificationRec: Record "E-Document Notification";
     begin
-        EDocumentPurchaseHeader.Get(EDocumentEntryNo);
-        exit(EDocumentPurchaseHeader."Sub Total Mismatch Dismissed");
+        if EDocumentNotificationRec.Get(EDocumentEntryNo, SubTotalMismatchNotificationId(), UserId()) then
+            exit(EDocumentNotificationRec.Dismissed);
+        exit(false);
     end;
 
-    local procedure SetHeaderDismissedFlag(EDocumentEntryNo: Integer; Dismissed: Boolean)
+    local procedure SetSubTotalMismatchDismissed(EDocumentEntryNo: Integer; Dismissed: Boolean)
     var
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
+        EDocumentNotificationRec: Record "E-Document Notification";
     begin
-        EDocumentPurchaseHeader.Get(EDocumentEntryNo);
-        EDocumentPurchaseHeader."Sub Total Mismatch Dismissed" := Dismissed;
-        EDocumentPurchaseHeader.Modify();
+        if not EDocumentNotificationRec.Get(EDocumentEntryNo, SubTotalMismatchNotificationId(), UserId()) then begin
+            EDocumentNotificationRec.Init();
+            EDocumentNotificationRec."E-Document Entry No." := EDocumentEntryNo;
+            EDocumentNotificationRec.ID := SubTotalMismatchNotificationId();
+            EDocumentNotificationRec."User Id" := UserId();
+            EDocumentNotificationRec.Type := "E-Document Notification Type"::"Sub Total Mismatch";
+            EDocumentNotificationRec.Insert();
+        end;
+        EDocumentNotificationRec.Dismissed := Dismissed;
+        EDocumentNotificationRec.Modify();
+    end;
+
+    local procedure SubTotalMismatchNotificationId(): Guid
+    begin
+        exit('a1e6c0d2-3b4f-4c8a-9d1e-2f7b6a5c4d3e');
     end;
 
     local procedure BuildSubTotalMismatchNotification(EDocumentEntryNo: Integer) Notification: Notification
     var
         EDocumentNotificationRec: Record "E-Document Notification";
-        MismatchId: Guid;
     begin
-        MismatchId := 'a1e6c0d2-3b4f-4c8a-9d1e-2f7b6a5c4d3e';
         Notification.SetData(EDocumentNotificationRec.FieldName("E-Document Entry No."), Format(EDocumentEntryNo));
-        Notification.SetData(EDocumentNotificationRec.FieldName(ID), MismatchId);
+        Notification.SetData(EDocumentNotificationRec.FieldName(ID), SubTotalMismatchNotificationId());
     end;
 
     [SendNotificationHandler]

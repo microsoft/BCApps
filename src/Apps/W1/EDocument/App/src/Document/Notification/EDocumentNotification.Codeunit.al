@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.eServices.EDocument;
 
-using Microsoft.EServices.EDocument.Processing.Import.Purchase;
 using System.Environment.Configuration;
 
 codeunit 6123 "E-Document Notification"
@@ -89,6 +88,7 @@ codeunit 6123 "E-Document Notification"
             "E-Document Notification Type"::"Vendor Matched By Name Not Address",
             "E-Document Notification Type"::"Sub Total Mismatch");
         EDocumentNotification.SetRange("User Id", UserId());
+        EDocumentNotification.SetRange(Dismissed, false);
         if not EDocumentNotification.FindSet() then
             exit;
 
@@ -99,6 +99,7 @@ codeunit 6123 "E-Document Notification"
 
     /// <summary>
     /// Dismisses the notification of the certain Purchase Document Draft that informs a user about a vendor that is matched by name but not by address.
+    /// The persisted notification row is kept and marked as dismissed so it is not re-shown to this user.
     /// </summary>
     /// <param name="Notification"></param>
     procedure DismissVendorMatchedByNameNotAddressNotification(Notification: Notification)
@@ -111,7 +112,8 @@ codeunit 6123 "E-Document Notification"
         Evaluate(Id, Notification.GetData(EDocumentNotification.FieldName(ID)));
         if not EDocumentNotification.Get(EDocumentEntryNo, Id, UserId()) then
             exit;
-        EDocumentNotification.Delete(true);
+        EDocumentNotification.Dismissed := true;
+        EDocumentNotification.Modify(true);
     end;
 
     /// <summary>
@@ -135,24 +137,50 @@ codeunit 6123 "E-Document Notification"
 
     /// <summary>
     /// Dismisses the Sub Total Mismatch notification for the current Purchase Document Draft.
+    /// The persisted notification row is kept and marked as dismissed so the mismatch is not
+    /// re-shown to this user until an amount edit re-arms it.
     /// </summary>
     /// <param name="Notification">Current notification</param>
     procedure DismissSubTotalMismatchNotification(Notification: Notification)
     var
         EDocumentNotification: Record "E-Document Notification";
-        EDocumentPurchaseHeader: Record "E-Document Purchase Header";
         EDocumentEntryNo: Integer;
         Id: Guid;
     begin
         Evaluate(EDocumentEntryNo, Notification.GetData(EDocumentNotification.FieldName("E-Document Entry No.")));
         Evaluate(Id, Notification.GetData(EDocumentNotification.FieldName(ID)));
-        if EDocumentPurchaseHeader.Get(EDocumentEntryNo) then begin
-            EDocumentPurchaseHeader."Sub Total Mismatch Dismissed" := true;
-            EDocumentPurchaseHeader.Modify();
-        end;
         if not EDocumentNotification.Get(EDocumentEntryNo, Id, UserId()) then
             exit;
-        EDocumentNotification.Delete(true);
+        EDocumentNotification.Dismissed := true;
+        EDocumentNotification.Modify(true);
+    end;
+
+    /// <summary>
+    /// Returns whether the current user has dismissed the Sub Total Mismatch notification for the e-document.
+    /// </summary>
+    /// <param name="EDocumentEntryNo">Id of e-document</param>
+    procedure IsSubTotalMismatchDismissed(EDocumentEntryNo: Integer): Boolean
+    var
+        EDocumentNotification: Record "E-Document Notification";
+    begin
+        if EDocumentNotification.Get(EDocumentEntryNo, GetSubTotalMismatchNotificationId(), UserId()) then
+            exit(EDocumentNotification.Dismissed);
+        exit(false);
+    end;
+
+    /// <summary>
+    /// Re-arms the Sub Total Mismatch notification for the current user by removing a previously
+    /// dismissed row, so the mismatch can be evaluated and shown again after an amount edit.
+    /// </summary>
+    /// <param name="EDocumentEntryNo">Id of e-document</param>
+    procedure ReArmSubTotalMismatchNotification(EDocumentEntryNo: Integer)
+    var
+        EDocumentNotification: Record "E-Document Notification";
+    begin
+        if not EDocumentNotification.Get(EDocumentEntryNo, GetSubTotalMismatchNotificationId(), UserId()) then
+            exit;
+        if EDocumentNotification.Dismissed then
+            EDocumentNotification.Delete(true);
     end;
 
     /// <summary>

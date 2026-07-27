@@ -427,10 +427,8 @@ page 6183 "E-Doc. Purchase Draft Subform"
                 Error(DiscountExceedsSubtotalErr);
         if not EDocumentPurchaseHeader.Get(Rec."E-Document Entry No.") then
             exit;
-        if UserModifiedAmount and EDocumentPurchaseHeader."Sub Total Mismatch Dismissed" then begin
-            EDocumentPurchaseHeader."Sub Total Mismatch Dismissed" := false;
-            EDocumentPurchaseHeader.Modify();
-        end;
+        if UserModifiedAmount then
+            EDocumentNotification.ReArmSubTotalMismatchNotification(Rec."E-Document Entry No.");
         CheckSubTotalMatchesLines(EDocumentPurchaseHeader);
     end;
 
@@ -470,7 +468,7 @@ page 6183 "E-Doc. Purchase Draft Subform"
 
         if Difference > Tolerance then begin
             Telemetry.LogMessage('', SubTotalMismatchNotificationShownTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, CustomDimensions);
-            if not EDocPurchaseHeader."Sub Total Mismatch Dismissed" then begin
+            if not EDocumentNotification.IsSubTotalMismatchDismissed(EDocPurchaseHeader."E-Document Entry No.") then begin
                 EDocumentNotification.AddSubTotalMismatchNotification(EDocPurchaseHeader."E-Document Entry No.");
                 EDocumentNotification.SendPurchaseDocumentDraftNotifications(EDocPurchaseHeader."E-Document Entry No.");
             end;
