@@ -4,7 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Finance.Reports;
 
-using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GST.Base;
 using Microsoft.Finance.TaxBase;
 using Microsoft.Sales.Customer;
@@ -76,7 +75,7 @@ report 18049 "GSTR-1 File Format"
                     NatureofSupply::HSN:
                         begin
                             MakeExcelBodyHSN();
-                            CreateandOpenExcel(HSNTxt);
+                            CreateandOpenExcel(GetHSNFileFormatTxt());
                         end;
                     NatureofSupply::EXEMP:
                         begin
@@ -129,17 +128,42 @@ report 18049 "GSTR-1 File Format"
 
                         trigger OnValidate()
                         begin
+                            if NatureofSupply <> NatureofSupply::HSN then begin
+                                HSNNatureOfSupplyOption := HSNNatureOfSupplyOption::" ";
+                                Clear(HSNNatureOfSupplyFilter);
+                            end;
+
                             case NatureofSupply of
                                 NatureofSupply::B2CL:
-                                    B2CLimit := 250000;
+                                    B2CLimitValue := 250000;
                                 NatureofSupply::B2CS:
-                                    B2CLimit := 250000;
+                                    B2CLimitValue := 250000;
                                 else
-                                    B2CLimit := 0.00
+                                    B2CLimitValue := 0.00
                             end;
                         end;
                     }
-                    field(B2CLimit; B2CLimit)
+                    field(HSNNatureOfSupplyChoice; HSNNatureOfSupplyOption)
+                    {
+                        Caption = 'Nature of Supply';
+                        OptionCaption = ' ,B2B,B2C';
+                        ToolTip = 'Specifies whether the HSN summary is generated for B2B or B2C supplies.';
+                        ApplicationArea = Basic, Suite;
+                        Editable = NatureofSupply = NatureofSupply::HSN;
+
+                        trigger OnValidate()
+                        begin
+                            case HSNNatureOfSupplyOption of
+                                HSNNatureOfSupplyOption::B2B:
+                                    HSNNatureOfSupplyFilter := HSNNatureOfSupplyFilter::B2B;
+                                HSNNatureOfSupplyOption::B2C:
+                                    HSNNatureOfSupplyFilter := HSNNatureOfSupplyFilter::B2C;
+                                else
+                                    Clear(HSNNatureOfSupplyFilter);
+                            end;
+                        end;
+                    }
+                    field(B2CLimit; B2CLimitValue)
                     {
                         AutoFormatType = 0;
                         Caption = 'B2C Limit';
@@ -173,12 +197,13 @@ report 18049 "GSTR-1 File Format"
         LocationGSTIN: Code[15];
         ReturnDate: Date;
         StartDate: Date;
-        B2CLimit: Decimal;
+        B2CLimitValue: Decimal;
         EndDate: Date;
         Counter: Integer;
         Progress: Dialog;
-        ProgressMsg: Label 'Processing......#1######################\';
+        ProgressMsg: Label 'Processing......#1######################\', Comment = '%1 = progress counter';
         B2BTxt: Label 'b2b';
+        B2CTxt: Label 'b2c';
         B2CLTxt: Label 'b2cl';
         ELbl: Label 'E';
         B2CSTxt: Label 'b2cs';
@@ -263,9 +288,11 @@ report 18049 "GSTR-1 File Format"
         EXempNonGSTIntraRegAmt: Decimal;
         ExempNonGSTInterUnRegAmt: Decimal;
         ExempNonGSTIntraUnRegAmt: Decimal;
+        HSNNatureOfSupplyFilter: Enum "GST Nature of Supply";
+        HSNNatureOfSupplyOption: Option " ",B2B,B2C;
         NatureofSupply: Enum "Nature of Supply";
 
-    procedure MakeExcelHeaderB2B()
+    local procedure MakeExcelHeaderB2B()
     begin
         TempExcelBuffer.NewRow();
         AddTextColumn(GSTINUINTxt);
@@ -325,11 +352,11 @@ report 18049 "GSTR-1 File Format"
             FillInvoiceValue(GSTR1B2BQuery);
         end
         else begin
-            AddDateColumn(GetDocumentDate(GSTR1B2BQuery.Document_No_, "GST Document Type"::Invoice));
+            AddDateColumn(GetDocumentDate(GSTR1B2BQuery.Document_No_, Microsoft.Finance.GST.Base."GST Document Type"::Invoice));
             if GSTR1B2BQuery.Finance_Charge_Memo then
                 AddNumberColumn(GetInvoiceValueFinCharge(GSTR1B2BQuery.Document_No_))
             else
-                AddNumberColumn(GetInvoiceValue(GSTR1B2BQuery.Document_No_, "GST Document Type"::Invoice));
+                AddNumberColumn(GetInvoiceValue(GSTR1B2BQuery.Document_No_, Microsoft.Finance.GST.Base."GST Document Type"::Invoice));
         end;
 
         if GSTR1B2BQuery.Buyer_Seller_State_Code <> '' then
@@ -413,7 +440,7 @@ report 18049 "GSTR-1 File Format"
         GSTR1B2CLQuery.SetRange(GSTR1B2CLQuery.GST_Jurisdiction_Type, "GST Jurisdiction Type"::Interstate);
         GSTR1B2CLQuery.Open();
         while GSTR1B2CLQuery.Read() do
-            if GetInvoiceValue(GSTR1B2CLQuery.Document_No_, "GST Document Type"::Invoice) >= B2CLimit then
+            if GetInvoiceValue(GSTR1B2CLQuery.Document_No_, Microsoft.Finance.GST.Base."GST Document Type"::Invoice) >= B2CLimitValue then
                 FillExcelBufferForB2CL(GSTR1B2CLQuery);
     end;
 
@@ -425,7 +452,7 @@ report 18049 "GSTR-1 File Format"
         TempExcelBuffer.NewRow();
         AddTextColumn(GSTR1B2CLQuery.Document_No_);
         AddDateColumn(GSTR1B2CLQuery.Posting_Date);
-        AddNumberColumn(GetInvoiceValue(GSTR1B2CLQuery.Document_No_, "GST Document Type"::Invoice));
+        AddNumberColumn(GetInvoiceValue(GSTR1B2CLQuery.Document_No_, Microsoft.Finance.GST.Base."GST Document Type"::Invoice));
 
         if GSTR1B2CLQuery.Buyer_Seller_State_Code <> '' then
             AddTextColumn(GSTR1B2CLQuery.State_Code__GST_Reg__No__ + '-' + GSTR1B2CLQuery.Description)
@@ -481,7 +508,7 @@ report 18049 "GSTR-1 File Format"
         GSTR1B2CSQuery.SetRange(Location__Reg__No_, LocationGSTIN);
         GSTR1B2CSQuery.SetRange(Posting_Date, StartDate, EndDate);
         GSTR1B2CSQuery.SetFilter(GST_Customer_Type, '%1', "GST Customer Type"::Unregistered);
-        GSTR1B2CSQuery.SetFilter(Document_Type, '%1|%2', "GST Document Type"::Invoice, "GST Document Type"::"Credit Memo");
+        GSTR1B2CSQuery.SetFilter(Document_Type, '%1|%2', Microsoft.Finance.GST.Base."GST Document Type"::Invoice, Microsoft.Finance.GST.Base."GST Document Type"::"Credit Memo");
         GSTR1B2CSQuery.Open();
         while GSTR1B2CSQuery.Read() do
             FillExcelBufferForB2CS(GSTR1B2CSQuery);
@@ -508,7 +535,7 @@ report 18049 "GSTR-1 File Format"
         GSTR1B2CSIntraAmt.SetRange(e_Comm__Operator_GST_Reg__No_, GSTR1B2CSQuery.e_Comm__Operator_GST_Reg__No_);
         GSTR1B2CSIntraAmt.SetRange(Buyer_Seller_State_Code, GSTR1B2CSQuery.Buyer_Seller_State_Code);
         GSTR1B2CSIntraAmt.SetRange(GST__, GSTR1B2CSQuery.GST__);
-        GSTR1B2CSIntraAmt.SetFilter(Document_Type, '%1|%2', "GST Document Type"::Invoice, "GST Document Type"::"Credit Memo");
+        GSTR1B2CSIntraAmt.SetFilter(Document_Type, '%1|%2', Microsoft.Finance.GST.Base."GST Document Type"::Invoice, Microsoft.Finance.GST.Base."GST Document Type"::"Credit Memo");
         GSTR1B2CSIntraAmt.Open();
         while GSTR1B2CSIntraAmt.Read() do
             GSTRB2CSIntraAmount := GSTR1B2CSIntraAmt.GST_Base_Amount;
@@ -519,7 +546,7 @@ report 18049 "GSTR-1 File Format"
         GSTR1B2CSInter.SetRange(e_Comm__Operator_GST_Reg__No_, GSTR1B2CSQuery.e_Comm__Operator_GST_Reg__No_);
         GSTR1B2CSInter.SetRange(GSTR1B2CSInter.Buyer_Seller_State_Code, GSTR1B2CSQuery.Buyer_Seller_State_Code);
         GSTR1B2CSInter.SetRange(GST__, GSTR1B2CSQuery.GST__);
-        GSTR1B2CSInter.SetRange(Document_Type, "GST Document Type"::Invoice);
+        GSTR1B2CSInter.SetRange(Document_Type, Microsoft.Finance.GST.Base."GST Document Type"::Invoice);
         GSTR1B2CSInter.Open();
         while GSTR1B2CSInter.Read() do
             GSTR1B2CSInterBaseAmt := GSTR1B2CSInter.GST_Base_Amount;
@@ -530,7 +557,7 @@ report 18049 "GSTR-1 File Format"
         GSTR1B2CSCrMemo.SetRange(e_Comm__Operator_GST_Reg__No_, GSTR1B2CSQuery.e_Comm__Operator_GST_Reg__No_);
         GSTR1B2CSCrMemo.SetRange(GSTR1B2CSCrMemo.Buyer_Seller_State_Code, GSTR1B2CSQuery.Buyer_Seller_State_Code);
         GSTR1B2CSCrMemo.SetRange(GST__, GSTR1B2CSQuery.GST__);
-        GSTR1B2CSCrMemo.SetRange(Document_Type, "GST Document Type"::"Credit Memo");
+        GSTR1B2CSCrMemo.SetRange(Document_Type, Microsoft.Finance.GST.Base."GST Document Type"::"Credit Memo");
         GSTR1B2CSCrMemo.Open();
         while GSTR1B2CSCrMemo.Read() do
             GSTR1B2CSInterBaseAmt += GSTR1B2CSCrMemo.GST_Base_Amount;
@@ -541,7 +568,7 @@ report 18049 "GSTR-1 File Format"
         GSTR1B2CSCessAmt.SetRange(Location__Reg__No_, LocationGSTIN);
         GSTR1B2CSCessAmt.SetRange(Posting_Date, StartDate, EndDate);
         GSTR1B2CSCessAmt.SetFilter(GST_Customer_Type, '%1', "GST Customer Type"::Unregistered);
-        GSTR1B2CSCessAmt.SetFilter(Document_Type, '%1|%2', "GST Document Type"::Invoice, "GST Document Type"::"Credit Memo");
+        GSTR1B2CSCessAmt.SetFilter(Document_Type, '%1|%2', Microsoft.Finance.GST.Base."GST Document Type"::Invoice, Microsoft.Finance.GST.Base."GST Document Type"::"Credit Memo");
         GSTR1B2CSCessAmt.Open();
         if GSTR1B2CSCessAmt.Read() then begin
             GSTR1B2CSIntraCess.SetRange(Location__Reg__No_, LocationGSTIN);
@@ -549,7 +576,7 @@ report 18049 "GSTR-1 File Format"
             GSTR1B2CSIntraCess.SetFilter(GST_Customer_Type, '%1', "GST Customer Type"::Unregistered);
             GSTR1B2CSIntraCess.SetRange(e_Comm__Operator_GST_Reg__No_, GSTR1B2CSQuery.e_Comm__Operator_GST_Reg__No_);
             GSTR1B2CSIntraCess.SetRange(Buyer_Seller_State_Code, GSTR1B2CSQuery.Buyer_Seller_State_Code);
-            GSTR1B2CSIntraCess.SetFilter(Document_Type, '%1|%2', "GST Document Type"::Invoice, "GST Document Type"::"Credit Memo");
+            GSTR1B2CSIntraCess.SetFilter(Document_Type, '%1|%2', Microsoft.Finance.GST.Base."GST Document Type"::Invoice, Microsoft.Finance.GST.Base."GST Document Type"::"Credit Memo");
             GSTR1B2CSIntraCess.Open();
             while GSTR1B2CSIntraCess.Read() do
                 GSTR1IntraCess := GSTR1B2CSIntraCess.GST_Amount;
@@ -559,7 +586,7 @@ report 18049 "GSTR-1 File Format"
             GSTR1B2CInterCess.SetFilter(GST_Customer_Type, '%1', "GST Customer Type"::Unregistered);
             GSTR1B2CInterCess.SetRange(e_Comm__Operator_GST_Reg__No_, GSTR1B2CSQuery.e_Comm__Operator_GST_Reg__No_);
             GSTR1B2CInterCess.SetRange(Buyer_Seller_State_Code, GSTR1B2CSQuery.Buyer_Seller_State_Code);
-            GSTR1B2CInterCess.SetFilter(Document_Type, '%1|%2', "GST Document Type"::Invoice, "GST Document Type"::"Credit Memo");
+            GSTR1B2CInterCess.SetFilter(Document_Type, '%1|%2', Microsoft.Finance.GST.Base."GST Document Type"::Invoice, Microsoft.Finance.GST.Base."GST Document Type"::"Credit Memo");
             GSTR1B2CInterCess.Open();
             while GSTR1B2CInterCess.Read() do
                 GSTR1InterCess := GSTR1B2CInterCess.GST_Amount;
@@ -645,10 +672,15 @@ report 18049 "GSTR-1 File Format"
     var
         GSTR1HSNQuery: Query GSTR1HSNQuery;
     begin
+        if NatureofSupply <> NatureofSupply::HSN then
+            exit;
+
         MakeExcelHeaderHSN();
         GSTR1HSNQuery.SetRange(Location__Reg__No_, LocationGSTIN);
         GSTR1HSNQuery.SetRange(Posting_Date, StartDate, EndDate);
-        GSTR1HSNQuery.SetFilter(GSTR1HSNQuery.Document_Type, '%1|%2', "GST Document Type"::Invoice, "GST Document Type"::"Credit Memo");
+        GSTR1HSNQuery.SetFilter(GSTR1HSNQuery.Document_Type, '%1|%2', Microsoft.Finance.GST.Base."GST Document Type"::Invoice, Microsoft.Finance.GST.Base."GST Document Type"::"Credit Memo");
+        if HSNNatureOfSupplyOption <> HSNNatureOfSupplyOption::" " then
+            GSTR1HSNQuery.SetRange(GSTR1HSNQuery.Nature_of_Supply, HSNNatureOfSupplyFilter);
         GSTR1HSNQuery.Open();
         while GSTR1HSNQuery.Read() do
             FillExcelBufferForHSN(GSTR1HSNQuery);
@@ -668,30 +700,34 @@ report 18049 "GSTR-1 File Format"
         GSTR1HSNGSTAmt.SetRange(Location__Reg__No_, LocationGSTIN);
         GSTR1HSNGSTAmt.SetRange(Posting_Date, StartDate, EndDate);
         GSTR1HSNGSTAmt.SetRange(HSN_SAC_Code, GSTR1HSNQuery.HSN_SAC_Code);
+        if HSNNatureOfSupplyOption <> HSNNatureOfSupplyOption::" " then
+            GSTR1HSNGSTAmt.SetRange(GSTR1HSNGSTAmt.Nature_of_Supply, HSNNatureOfSupplyFilter);
         GSTR1HSNGSTAmt.SetRange(GST_Component_Code, CGSTLbl);
         GSTR1HSNGSTAmt.SetRange(UOM, GSTR1HSNQuery.UOM);
         GSTR1HSNGSTAmt.Open();
         while GSTR1HSNGSTAmt.Read() do
-            HSNCGSTAmt := GSTR1HSNGSTAmt.GST_Amount;
+            HSNCGSTAmt += GSTR1HSNGSTAmt.GST_Amount;
 
         GSTR1HSNGSTAmt.SetRange(GST_Component_Code, SGSTLbl);
         GSTR1HSNGSTAmt.Open();
         while GSTR1HSNGSTAmt.Read() do
-            HSNSGSTAmt := GSTR1HSNGSTAmt.GST_Amount;
+            HSNSGSTAmt += GSTR1HSNGSTAmt.GST_Amount;
 
         GSTR1HSNGSTAmt.SetRange(GST_Component_Code, IGSTLbl);
         GSTR1HSNGSTAmt.Open();
         while GSTR1HSNGSTAmt.Read() do
-            HSNIGSTAmt := GSTR1HSNGSTAmt.GST_Amount;
+            HSNIGSTAmt += GSTR1HSNGSTAmt.GST_Amount;
 
         GSTR1HSNGSTAmt.SetRange(GST_Component_Code, CessLbl);
         GSTR1HSNGSTAmt.Open();
         while GSTR1HSNGSTAmt.Read() do
-            HSNCessAmt := GSTR1HSNGSTAmt.GST_Amount;
+            HSNCessAmt += GSTR1HSNGSTAmt.GST_Amount;
 
         GSTR1HSNQty.SetRange(Location__Reg__No_, LocationGSTIN);
         GSTR1HSNQty.SetRange(Posting_Date, StartDate, EndDate);
         GSTR1HSNQty.SetRange(HSN_SAC_Code, GSTR1HSNQuery.HSN_SAC_Code);
+        if HSNNatureOfSupplyOption <> HSNNatureOfSupplyOption::" " then
+            GSTR1HSNQty.SetRange(GSTR1HSNQty.Nature_of_Supply, HSNNatureOfSupplyFilter);
         GSTR1HSNQty.SetRange(UOM, GSTR1HSNQuery.UOM);
         GSTR1HSNQty.Open();
         while GSTR1HSNQty.Read() do
@@ -765,7 +801,7 @@ report 18049 "GSTR-1 File Format"
         if GSTR1ExpQuery.Finance_Charge_Memo then
             AddNumberColumn(GetInvoiceValueFinCharge(GSTR1ExpQuery.Document_No_))
         else
-            AddNumberColumn(GetInvoiceValueForExportCustomerType(GSTR1ExpQuery.Document_No_, "GST Document Type"::Invoice));
+            AddNumberColumn(GetInvoiceValueForExportCustomerType(GSTR1ExpQuery.Document_No_, Microsoft.Finance.GST.Base."GST Document Type"::Invoice));
 
         AddTextColumn(GetExitPoint(GSTR1ExpQuery.Document_No_));
         AddTextColumn(GSTR1ExpQuery.Bill_Of_Export_No_);
@@ -938,9 +974,9 @@ report 18049 "GSTR-1 File Format"
         GSTR1CDNRQuery.SetRange(Location__Reg__No_, LocationGSTIN);
         GSTR1CDNRQuery.SetRange(Posting_Date, StartDate, EndDate);
         GSTR1CDNRQuery.SetFilter(Document_Type, '%1|%2|%3',
-            "GST Document Type"::"Credit Memo",
-            "GST Document Type"::Invoice,
-            "GST Document Type"::Refund);
+            Microsoft.Finance.GST.Base."GST Document Type"::"Credit Memo",
+            Microsoft.Finance.GST.Base."GST Document Type"::Invoice,
+            Microsoft.Finance.GST.Base."GST Document Type"::Refund);
         GSTR1CDNRQuery.SetFilter(GST_Customer_Type, '%1|%2|%3|%4',
             "GST Customer Type"::"Deemed Export",
             "GST Customer Type"::"SEZ Development",
@@ -1072,17 +1108,17 @@ report 18049 "GSTR-1 File Format"
         exit(PostingDate);
     end;
 
-    local procedure GSTDocumentType2DocumentTypeEnum(GSTDocumentType: Enum "GST Document Type"): Enum "Document Type Enum"
+    local procedure GSTDocumentType2DocumentTypeEnum(GSTDocumentType: Enum Microsoft.Finance.GST.Base."GST Document Type"): Enum Microsoft.Finance.GST.Base."Document Type Enum"
     begin
         case GSTDocumentType of
-            GSTDocumentType::"Credit Memo":
-                exit("Document Type Enum"::"Credit Memo");
-            GSTDocumentType::Invoice:
-                exit("Document Type Enum"::Invoice);
-            GSTDocumentType::Refund:
-                exit("Document Type Enum"::Refund);
-            GSTDocumentType::Payment:
-                exit("Document Type Enum"::Payment);
+            Microsoft.Finance.GST.Base."GST Document Type"::"Credit Memo":
+                exit(Microsoft.Finance.GST.Base."Document Type Enum"::"Credit Memo");
+            Microsoft.Finance.GST.Base."GST Document Type"::Invoice:
+                exit(Microsoft.Finance.GST.Base."Document Type Enum"::Invoice);
+            Microsoft.Finance.GST.Base."GST Document Type"::Refund:
+                exit(Microsoft.Finance.GST.Base."Document Type Enum"::Refund);
+            Microsoft.Finance.GST.Base."GST Document Type"::Payment:
+                exit(Microsoft.Finance.GST.Base."Document Type Enum"::Payment);
         end;
     end;
 
@@ -1112,9 +1148,9 @@ report 18049 "GSTR-1 File Format"
         GSTR1CDNURQuery.SetRange(Location__Reg__No_, LocationGSTIN);
         GSTR1CDNURQuery.SetRange(Posting_Date, StartDate, EndDate);
         GSTR1CDNURQuery.SetFilter(Document_Type, '%1|%2|%3',
-            "GST Document Type"::"Credit Memo",
-            "GST Document Type"::Invoice,
-            "GST Document Type"::Refund);
+            Microsoft.Finance.GST.Base."GST Document Type"::"Credit Memo",
+            Microsoft.Finance.GST.Base."GST Document Type"::Invoice,
+            Microsoft.Finance.GST.Base."GST Document Type"::Refund);
         GSTR1CDNURQuery.SetFilter(GST_Customer_Type, '%1|%2',
             "GST Customer Type"::Export,
             "GST Customer Type"::Unregistered);
@@ -1211,7 +1247,7 @@ report 18049 "GSTR-1 File Format"
 
     local procedure FilterDGLEUnregCustForCDNUR(GSTR1CDNURQuery: Query GSTR1CDNURQuery): Boolean
     begin
-        if (GSTR1CDNURQuery.GST_Customer_Type = GSTR1CDNURQuery.GST_Customer_Type::Unregistered) and (GetInvoiceValue(GSTR1CDNURQuery.Document_No_, "GST Document Type"::"Credit Memo") >= B2CLimit) then
+        if (GSTR1CDNURQuery.GST_Customer_Type = GSTR1CDNURQuery.GST_Customer_Type::Unregistered) and (GetInvoiceValue(GSTR1CDNURQuery.Document_No_, Microsoft.Finance.GST.Base."GST Document Type"::"Credit Memo") >= B2CLimitValue) then
             exit(true);
     end;
 
@@ -1283,14 +1319,14 @@ report 18049 "GSTR-1 File Format"
         exit(Description);
     end;
 
-    local procedure GetDocumentTypeTxt(GSTDocumentType: Enum "GST Document Type"): Text
+    local procedure GetDocumentTypeTxt(GSTDocumentType: Enum Microsoft.Finance.GST.Base."GST Document Type"): Text
     begin
         case GSTDocumentType of
-            GSTDocumentType::"Credit Memo":
+            Microsoft.Finance.GST.Base."GST Document Type"::"Credit Memo":
                 exit(CLbl);
-            GSTDocumentType::Invoice:
+            Microsoft.Finance.GST.Base."GST Document Type"::Invoice:
                 exit(DLbl);
-            GSTDocumentType::Refund:
+            Microsoft.Finance.GST.Base."GST Document Type"::Refund:
                 exit(RLbl);
         end;
     end;
@@ -1389,8 +1425,8 @@ report 18049 "GSTR-1 File Format"
         GSTR1ExpExemp.SetRange(GST_Without_Payment_of_Duty, false);
         GSTR1ExpExemp.SetRange(GST_Exempted_Goods, false);
         GSTR1ExpExemp.SetFilter(Document_Type, '%1|%2',
-            "GST Document Type"::Invoice,
-            "GST Document Type"::"Credit Memo");
+            Microsoft.Finance.GST.Base."GST Document Type"::Invoice,
+            Microsoft.Finance.GST.Base."GST Document Type"::"Credit Memo");
         GSTR1ExpExemp.SetFilter(GST_Customer_Type, '%1|%2|%3|%4',
             "GST Customer Type"::"Deemed Export",
             "GST Customer Type"::"SEZ Development",
@@ -1416,8 +1452,8 @@ report 18049 "GSTR-1 File Format"
         GSTR1ExpExemp.SetRange(Posting_Date, StartDate, EndDate);
         GSTR1ExpExemp.SetRange(GSTR1ExpExemp.GST_Exempted_Goods, false);
         GSTR1ExpExemp.SetFilter(GSTR1ExpExemp.Document_Type, '%1|%2',
-            "GST Document Type"::Invoice,
-            "GST Document Type"::"Credit Memo");
+            Microsoft.Finance.GST.Base."GST Document Type"::Invoice,
+            Microsoft.Finance.GST.Base."GST Document Type"::"Credit Memo");
         GSTR1ExpExemp.SetFilter(GSTR1ExpExemp.GST_Customer_Type, '%1|%2',
             "GST Customer Type"::Unregistered,
             "GST Customer Type"::Export);
@@ -1441,8 +1477,8 @@ report 18049 "GSTR-1 File Format"
         GSTR1EXEMPQuery.SetRange(Posting_Date, StartDate, EndDate);
         GSTR1EXEMPQuery.SetRange(GST_Exempted_Goods, true);
         GSTR1EXEMPQuery.SetFilter(Document_Type, '%1|%2',
-            "GST Document Type"::Invoice,
-            "GST Document Type"::"Credit Memo");
+            Microsoft.Finance.GST.Base."GST Document Type"::Invoice,
+            Microsoft.Finance.GST.Base."GST Document Type"::"Credit Memo");
         GSTR1EXEMPQuery.SetFilter(GST_Customer_Type, '%1|%2|%3|%4',
             "GST Customer Type"::"Deemed Export",
             "GST Customer Type"::"SEZ Development",
@@ -1543,8 +1579,8 @@ report 18049 "GSTR-1 File Format"
         GSTR1EXEMPQuery.SetRange(Posting_Date, StartDate, EndDate);
         GSTR1EXEMPQuery.SetRange(GST_Exempted_Goods, true);
         GSTR1EXEMPQuery.SetFilter(Document_Type, '%1|%2',
-            "GST Document Type"::Invoice,
-            "GST Document Type"::"Credit Memo");
+            Microsoft.Finance.GST.Base."GST Document Type"::Invoice,
+            Microsoft.Finance.GST.Base."GST Document Type"::"Credit Memo");
         GSTR1EXEMPQuery.SetFilter(GST_Customer_Type, '%1|%2',
             "GST Customer Type"::Unregistered,
             "GST Customer Type"::Export);
@@ -1575,7 +1611,7 @@ report 18049 "GSTR-1 File Format"
         end;
     end;
 
-    local procedure GetInvoiceValue(DocumentNo: Code[20]; DocumentType: Enum "GST Document Type"): Decimal
+    local procedure GetInvoiceValue(DocumentNo: Code[20]; DocumentType: Enum Microsoft.Finance.GST.Base."GST Document Type"): Decimal
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
     begin
@@ -1586,7 +1622,7 @@ report 18049 "GSTR-1 File Format"
         exit(Abs(CustLedgerEntry."Amount (LCY)"));
     end;
 
-    local procedure GetInvoiceValueForExportCustomerType(DocumentNo: Code[20]; DocumentType: Enum "GST Document Type"): Decimal
+    local procedure GetInvoiceValueForExportCustomerType(DocumentNo: Code[20]; DocumentType: Enum Microsoft.Finance.GST.Base."GST Document Type"): Decimal
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
     begin
@@ -1596,23 +1632,23 @@ report 18049 "GSTR-1 File Format"
             exit(Abs(CustLedgerEntry."Sales (LCY)"));
     end;
 
-    local procedure GSTDocumentType2GenJnlDocumentType(GSTDocumentType: Enum "GST Document Type"): Enum "Gen. Journal Document Type"
+    local procedure GSTDocumentType2GenJnlDocumentType(GSTDocumentType: Enum Microsoft.Finance.GST.Base."GST Document Type"): Enum Microsoft.Finance.GeneralLedger.Journal."Gen. Journal Document Type"
     begin
         case GSTDocumentType of
-            GSTDocumentType::" ":
-                exit("Gen. Journal Document Type"::" ");
-            GSTDocumentType::Payment:
-                exit("Gen. Journal Document Type"::Payment);
-            GSTDocumentType::Invoice:
-                exit("Gen. Journal Document Type"::Invoice);
-            GSTDocumentType::"Credit Memo":
-                exit("Gen. Journal Document Type"::"Credit Memo");
-            GSTDocumentType::Refund:
-                exit("Gen. Journal Document Type"::Refund);
+            Microsoft.Finance.GST.Base."GST Document Type"::" ":
+                exit(Microsoft.Finance.GeneralLedger.Journal."Gen. Journal Document Type"::" ");
+            Microsoft.Finance.GST.Base."GST Document Type"::Payment:
+                exit(Microsoft.Finance.GeneralLedger.Journal."Gen. Journal Document Type"::Payment);
+            Microsoft.Finance.GST.Base."GST Document Type"::Invoice:
+                exit(Microsoft.Finance.GeneralLedger.Journal."Gen. Journal Document Type"::Invoice);
+            Microsoft.Finance.GST.Base."GST Document Type"::"Credit Memo":
+                exit(Microsoft.Finance.GeneralLedger.Journal."Gen. Journal Document Type"::"Credit Memo");
+            Microsoft.Finance.GST.Base."GST Document Type"::Refund:
+                exit(Microsoft.Finance.GeneralLedger.Journal."Gen. Journal Document Type"::Refund);
         end;
     end;
 
-    local procedure GetDocumentDate(DocumentNo: Code[20]; DocumentType: Enum "GST Document Type"): Date
+    local procedure GetDocumentDate(DocumentNo: Code[20]; DocumentType: Enum Microsoft.Finance.GST.Base."GST Document Type"): Date
     var
         CustLedgerEntry: Record "Cust. Ledger Entry";
     begin
@@ -1631,6 +1667,18 @@ report 18049 "GSTR-1 File Format"
         if CustLedgerEntry.FindFirst() then
             CustLedgerEntry.CalcFields("Amount (LCY)");
         exit(Abs(CustLedgerEntry."Amount (LCY)"));
+    end;
+
+    local procedure GetHSNFileFormatTxt(): Text[250]
+    begin
+        case HSNNatureOfSupplyOption of
+            HSNNatureOfSupplyOption::B2B:
+                exit(HSNTxt + '(' + B2BTxt + ')');
+            HSNNatureOfSupplyOption::B2C:
+                exit(HSNTxt + '(' + B2CTxt + ')');
+        end;
+
+        exit(HSNTxt);
     end;
 
     local procedure CreateandOpenExcel(FileFormatTxt: Text[250])
