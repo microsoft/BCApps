@@ -307,7 +307,7 @@ codeunit 5626 "FA General Report"
         if FA.Find('-') then
             repeat
                 if FADeprBook.Get(FA."No.", DeprBookCode) then
-                    if FA."FA Posting Group" <> FADeprBook."FA Posting Group" then begin
+                    if (FA."FA Posting Group" <> FADeprBook."FA Posting Group") and (FADeprBook."FA Posting Group" <> '') then begin
                         FA."FA Posting Group" := FADeprBook."FA Posting Group";
                         FA.Modify();
                     end;
