@@ -156,21 +156,27 @@ codeunit 457 "Environment Information"
     end;
 
     /// <summary>
-    /// Gets the physical location of the application service the environment is hosted on (for example, "Canada Central").
+    /// Gets the physical location of the application service the environment is hosted on (for example, "Canada Central"). This is only callable from Microsoft published apps.
     /// </summary>
-    /// <returns>The application service location if available; otherwise, an empty string.</returns>
+    /// <returns>The application service location when running on SaaS infrastructure and the information is available; otherwise, an empty string.</returns>
     procedure GetApplicationServiceLocation(): Text
+    var
+        CallerModuleInfo: ModuleInfo;
     begin
-        exit(EnvironmentInformationImpl.GetApplicationServiceLocation());
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(EnvironmentInformationImpl.GetApplicationServiceLocation(CallerModuleInfo));
     end;
 
     /// <summary>
-    /// Checks whether the Azure geography of the application service the environment is hosted on is within the Microsoft EU Data Boundary (EUDB).
+    /// Checks whether the Azure geography of the application service the environment is hosted on is within the Microsoft EU Data Boundary (EUDB). This is only callable from Microsoft published apps.
     /// </summary>
-    /// <returns>True if the environment is hosted within the EU Data Boundary, false otherwise.</returns>
+    /// <returns>True when the environment is hosted within the EU Data Boundary. False means either that the environment is outside the EU Data Boundary or that the information is unavailable, including when not running on SaaS infrastructure.</returns>
     procedure IsApplicationServiceInEUDB(): Boolean
+    var
+        CallerModuleInfo: ModuleInfo;
     begin
-        exit(EnvironmentInformationImpl.IsApplicationServiceInEUDB());
+        NavApp.GetCallerModuleInfo(CallerModuleInfo);
+        exit(EnvironmentInformationImpl.IsApplicationServiceInEUDB(CallerModuleInfo));
     end;
 
     /// <summary>
