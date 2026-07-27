@@ -101,9 +101,9 @@ codeunit 148057 "Reverse Charge CZL"
     end;
 
     [Test]
-    procedure PostSalesWithCommodityUnderLimit()
+    procedure PostSalesWithCommodityAboveLimit()
     begin
-        // [SCENARIO] Post Sales Invoice with Commodity under limit
+        // [SCENARIO] Post Sales Invoice with Commodity above limit
         Initialize();
 
         // [GIVEN] New Customer has been created
@@ -131,6 +131,84 @@ codeunit 148057 "Reverse Charge CZL"
         asserterror LibrarySales.PostSalesDocument(SalesHeader, false, false);
 
         // [THEN] Error VAT Posting Setup Post Mismatch will occurs
+        Assert.ExpectedError(StrSubstNo(VATPostingSetupPostMismatchErr, CommoditySetupCZL."Commodity Code", CommoditySetupCZL."Commodity Limit Amount LCY",
+                             SalesLine."VAT Calculation Type"::"Normal VAT", Item."No."));
+    end;
+
+    [Test]
+    procedure PostSalesWithCommodityAboveLimitBeforeDiscountBelowAfter()
+    var
+        SalesInvHeader: Record "Sales Invoice Header";
+        PostedDocNo: Code[20];
+    begin
+        // [SCENARIO] Post Sales Invoice where amount before discount exceeds limit but amount after discount is below limit.
+        // The limit check must use the amount after discount (VAT base), so posting with Normal VAT should succeed.
+        Initialize();
+
+        // [GIVEN] New Customer has been created
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify();
+
+        // [GIVEN] New Item has been created
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Validate("Tariff No.", TariffNumber."No.");
+        Item.Modify();
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitofMeasure, Item."No.", UnitofMeasure.Code, 1);
+
+        // [GIVEN] New Sales Invoice has been created
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesDocumentType::Invoice, Customer."No.");
+        SalesHeader.Validate("Posting Date", WorkDate());
+
+        // [GIVEN] Sales Line: Unit Price 200 * Qty 1000 = 200,000 (above limit 100,000)
+        // Line Discount 60% => Amount after discount = 80,000 (below limit 100,000)
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLineType::Item, Item."No.", 1000);
+        SalesLine.Validate("Unit Price", 200);
+        SalesLine.Validate("Line Discount %", 60);
+        SalesLine.Modify(true);
+
+        // [WHEN] Post Sales Invoice
+        PostedDocNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);
+
+        // [THEN] Sales Invoice is posted successfully (amount after discount is below limit, Normal VAT is correct)
+        SalesInvHeader.Get(PostedDocNo);
+    end;
+
+    [Test]
+    procedure PostSalesWithCommodityAboveLimitAfterDiscount()
+    begin
+        // [SCENARIO] Post Sales Invoice where amount after discount still exceeds limit.
+        // Normal VAT should not be allowed - error expected.
+        Initialize();
+
+        // [GIVEN] New Customer has been created
+        LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("VAT Bus. Posting Group", VATPostingSetup."VAT Bus. Posting Group");
+        Customer.Modify();
+
+        // [GIVEN] New Item has been created
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
+        Item.Validate("Tariff No.", TariffNumber."No.");
+        Item.Modify();
+        LibraryInventory.CreateItemUnitOfMeasure(ItemUnitofMeasure, Item."No.", UnitofMeasure.Code, 1);
+
+        // [GIVEN] New Sales Invoice has been created
+        LibrarySales.CreateSalesHeader(SalesHeader, SalesDocumentType::Invoice, Customer."No.");
+        SalesHeader.Validate("Posting Date", WorkDate());
+
+        // [GIVEN] Sales Line: Unit Price 200 * Qty 1000 = 200,000 (above limit 100,000)
+        // Line Discount 20% => Amount after discount = 160,000 (still above limit 100,000)
+        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLineType::Item, Item."No.", 1000);
+        SalesLine.Validate("Unit Price", 200);
+        SalesLine.Validate("Line Discount %", 20);
+        SalesLine.Modify(true);
+
+        // [WHEN] Post Sales Invoice
+        asserterror LibrarySales.PostSalesDocument(SalesHeader, false, false);
+
+        // [THEN] Error VAT Posting Setup Post Mismatch will occur (amount after discount still exceeds limit)
         Assert.ExpectedError(StrSubstNo(VATPostingSetupPostMismatchErr, CommoditySetupCZL."Commodity Code", CommoditySetupCZL."Commodity Limit Amount LCY",
                              SalesLine."VAT Calculation Type"::"Normal VAT", Item."No."));
     end;
