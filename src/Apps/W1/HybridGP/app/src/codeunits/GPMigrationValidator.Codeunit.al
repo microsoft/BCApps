@@ -577,6 +577,8 @@ codeunit 40903 "GP Migration Validator"
         GPPOHeaderValidationBufferTemp: Record "GP PO Validation Buffer";
         GPPOLineValidationBufferTemp: Record "GP PO Validation Buffer";
         PONumber: Code[20];
+        CombinedItemLineQuantity: Decimal;
+        CombinedItemLineQuantityReceived: Decimal;
         EntityType: Text[50];
         LineEntityType: Text[50];
     begin
@@ -628,14 +630,22 @@ codeunit 40903 "GP Migration Validator"
                     repeat
                         MigrationValidationAssert.SetContext(ValidationSuiteIdTok, LineEntityType, GPPOLineValidationBufferTemp."No.");
 
+                        CombinedItemLineQuantity := 0;
+                        CombinedItemLineQuantityReceived := 0;
+
                         PurchaseLine.SetRange("Document Type", "Purchase Document Type"::Order);
                         PurchaseLine.SetRange("Document No.", GPPOHeaderValidationBufferTemp."No.");
                         PurchaseLine.SetRange("No.", GPPOLineValidationBufferTemp."Text 1");
-                        if not MigrationValidationAssert.ValidateRecordExists(Test_POLINEEXISTS_Tok, PurchaseLine.FindFirst(), StrSubstNo(MissingEntityTok, LineEntityType)) then
+                        if not MigrationValidationAssert.ValidateRecordExists(Test_POLINEEXISTS_Tok, PurchaseLine.FindSet(), StrSubstNo(MissingEntityTok, LineEntityType)) then
                             continue;
 
-                        MigrationValidationAssert.ValidateAreEqual(Test_POLINEQTY_Tok, GPPOLineValidationBufferTemp."Decimal 1", PurchaseLine.Quantity, QuantityLbl, true);
-                        MigrationValidationAssert.ValidateAreEqual(Test_POLINEQTYRECV_Tok, GPPOLineValidationBufferTemp."Decimal 2", PurchaseLine."Quantity Received", QuantityRecLbl, true);
+                        repeat
+                            CombinedItemLineQuantity := CombinedItemLineQuantity + PurchaseLine.Quantity;
+                            CombinedItemLineQuantityReceived := CombinedItemLineQuantityReceived + PurchaseLine."Quantity Received";
+                        until PurchaseLine.Next() = 0;
+
+                        MigrationValidationAssert.ValidateAreEqual(Test_POLINEQTY_Tok, GPPOLineValidationBufferTemp."Decimal 1", CombinedItemLineQuantity, QuantityLbl, true);
+                        MigrationValidationAssert.ValidateAreEqual(Test_POLINEQTYRECV_Tok, GPPOLineValidationBufferTemp."Decimal 2", CombinedItemLineQuantityReceived, QuantityRecLbl, true);
                     until GPPOLineValidationBufferTemp.Next() = 0;
             until GPPOHeaderValidationBufferTemp.Next() = 0;
     end;
