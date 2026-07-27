@@ -20,16 +20,6 @@ page 9402 "IPC Address Lookup"
                     ApplicationArea = All;
                     ToolTip = 'Specifies address information';
                 }
-                field(City; Rec.City)
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies city or town';
-                }
-                field("Post Code"; Rec."Post Code")
-                {
-                    ApplicationArea = All;
-                    ToolTip = 'Specifies post code';
-                }
             }
         }
     }
