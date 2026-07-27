@@ -14813,4 +14813,9 @@ table 36 "Sales Header"
     local procedure OnBeforeResponsibilityCenterValidate(var SalesHeader: Record "Sales Header"; xSalesHeader: Record "Sales Header"; var IsHandled: Boolean)
     begin
     end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnDeleteOnBeforeCheckPostingNo(var SalesHeader: Record "Sales Header"; var IsHandled: Boolean)
+    begin
+    end;
 }

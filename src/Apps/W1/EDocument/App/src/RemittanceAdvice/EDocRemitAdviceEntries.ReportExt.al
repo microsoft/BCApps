@@ -1,7 +1,6 @@
 namespace Microsoft.eServices.EDocument.RemittanceAdvice;
 
 using Microsoft.eServices.EDocument;
-using Microsoft.Purchases.Payables;
 using Microsoft.Purchases.Reports;
 
 reportextension 6101 "E-Doc. Remit. Advice Entries" extends "Remittance Advice - Entries"

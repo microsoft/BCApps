@@ -83,6 +83,10 @@ codeunit 1901 "Report Selection Mgt."
         InitReportSelection("Report Selection Usage"::"P.Arch.Order");
         InitReportSelection("Report Selection Usage"::"P.Arch.Return");
         InitReportSelection("Report Selection Usage"::"P.Arch.Blanket");
+        InitReportSelection("Report Selection Usage"::UPI);
+        InitReportSelection("Report Selection Usage"::UPCM);
+        InitReportSelection("Report Selection Usage"::UAS);
+        InitReportSelection("Report Selection Usage"::AS);
         InitReportSelection("Report Selection Usage"::"V.Remittance");
         InitReportSelection("Report Selection Usage"::"P.V.Remit.");
 
@@ -346,7 +350,7 @@ codeunit 1901 "Report Selection Mgt."
             "Report Selection Usage"::"S.Arch.Blanket":
                 InsertRepSelection("Report Selection Usage"::"S.Arch.Blanket", '1', REPORT::"Archived Blanket Sales Order", true, false, true);
             "Report Selection Usage"::"P.Arch.Blanket":
-                InsertRepSelection("Report Selection Usage"::"P.Arch.Blanket", '1', REPORT::"Archived Blanket Purch. Order");
+                InsertRepSelection("Report Selection Usage"::"P.Arch.Blanket", '1', REPORT::"Archived Blanket Purch. Order", true, false, true);
             "Report Selection Usage"::"V.Remittance":
                 InsertRepSelectionForEmailAttachment("Report Selection Usage"::"V.Remittance", '1', REPORT::"Remittance Advice - Journal");
             "Report Selection Usage"::"P.V.Remit.":
@@ -520,7 +524,7 @@ codeunit 1901 "Report Selection Mgt."
         if ReportSelections.Get(ReportUsage, Sequence) then
             exit;
 
-        InsertRepSelection(ReportUsage, Sequence, ReportID);
+        InsertRepSelection(ReportUsage, Sequence, ReportID, true, false, true);
 
         if ReportSelections.Get(ReportUsage, Sequence) then begin
             ReportSelections."Use for Email Attachment" := true;
