@@ -251,9 +251,8 @@ codeunit 149906 "Subc. Whse Combined Scenarios"
         WarehouseReceiptHeader: Record "Warehouse Receipt Header";
         WarehouseReceiptLine: Record "Warehouse Receipt Line";
         WorkCenter: array[2] of Record "Work Center";
-        ItemTrackingErrorText: Text;
+        WarehouseReceiptPage: TestPage "Warehouse Receipt";
         Quantity: Decimal;
-        ItemTrackingOpened: Boolean;
     begin
         // [SCENARIO 642535] Post mixed subcontracting operations at a bin-mandatory receive-only location
         Initialize();
@@ -296,12 +295,12 @@ codeunit 149906 "Subc. Whse Combined Scenarios"
         Assert.AreEqual(0, WarehouseReceiptLine."Qty. (Base)", 'Not-last operation should have zero base quantity');
 
         // [THEN] Item tracking remains blocked for the not-last operation
-        ItemTrackingOpened := TryOpenItemTrackingLines(WarehouseReceiptHeader, WarehouseReceiptLine);
-        ItemTrackingErrorText := GetLastErrorText();
-        Assert.IsFalse(ItemTrackingOpened, 'Item tracking should be blocked for the not-last operation');
-        Assert.AreEqual(
-            'Item tracking lines can only be viewed for subcontracting purchase lines which are linked to a routing line which is the last operation.',
-            ItemTrackingErrorText, 'Unexpected item tracking error');
+        WarehouseReceiptPage.OpenEdit();
+        WarehouseReceiptPage.GoToRecord(WarehouseReceiptHeader);
+        WarehouseReceiptPage.WhseReceiptLines.GoToRecord(WarehouseReceiptLine);
+        asserterror WarehouseReceiptPage.WhseReceiptLines.ItemTrackingLines.Invoke();
+        Assert.ExpectedError(
+            'Item tracking lines can only be viewed for subcontracting purchase lines which are linked to a routing line which is the last operation.');
 
         // [GIVEN] The last operation uses the receipt bin and carries the inventory quantity
         WarehouseReceiptLine.SetRange("Subc. Purchase Line Type", "Subc. Purchase Line Type"::LastOperation);
@@ -344,17 +343,6 @@ codeunit 149906 "Subc. Whse Combined Scenarios"
         WarehouseActivityLine.SetRange("Location Code", Location.Code);
         WarehouseActivityLine.SetRange("Item No.", Item."No.");
         Assert.RecordIsEmpty(WarehouseActivityLine);
-    end;
-
-    [TryFunction]
-    local procedure TryOpenItemTrackingLines(WarehouseReceiptHeader: Record "Warehouse Receipt Header"; WarehouseReceiptLine: Record "Warehouse Receipt Line")
-    var
-        WarehouseReceiptPage: TestPage "Warehouse Receipt";
-    begin
-        WarehouseReceiptPage.OpenEdit();
-        WarehouseReceiptPage.GoToRecord(WarehouseReceiptHeader);
-        WarehouseReceiptPage.WhseReceiptLines.GoToRecord(WarehouseReceiptLine);
-        WarehouseReceiptPage.WhseReceiptLines.ItemTrackingLines.Invoke();
     end;
 
     [Test]
