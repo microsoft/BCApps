@@ -1225,6 +1225,7 @@ codeunit 133963 "Agent Message Test"
         AgentTaskRecord: Record "Agent Task";
         AgentTaskMessageRecord: Record "Agent Task Message";
         TempAgentTaskFile: Record "Agent Task File" temporary;
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
         TempBlob: Codeunit "Temp Blob";
@@ -1272,6 +1273,7 @@ codeunit 133963 "Agent Message Test"
         // [THEN] The attachment file name should match
         TempAgentTaskFile.FindFirst();
         Assert.AreEqual('ignored-file.txt', TempAgentTaskFile."File Name", 'Attachment file name should match');
+        Assert.IsTrue(AgentMessageImpl.IsAttachmentDownloadable(TempAgentTaskFile), 'Ignored attachments with content should remain downloadable');
     end;
 
     [Test]
@@ -1282,6 +1284,7 @@ codeunit 133963 "Agent Message Test"
         AgentTaskMessageRecord: Record "Agent Task Message";
         AgentTaskMessageAttachment: Record "Agent Task Message Attachment";
         TempAgentTaskFile: Record "Agent Task File" temporary;
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
         TempBlob: Codeunit "Temp Blob";
@@ -1321,6 +1324,7 @@ codeunit 133963 "Agent Message Test"
         Assert.AreEqual('oversized.pdf', TempAgentTaskFile."File Name", 'Attachment file name should match');
         Assert.AreEqual('application/pdf', TempAgentTaskFile."File MIME Type", 'Attachment MIME type should match');
         Assert.AreEqual(0, TempAgentTaskFile.Content.Length(), 'Ignored attachment should have zero-byte content');
+        Assert.IsFalse(AgentMessageImpl.IsAttachmentDownloadable(TempAgentTaskFile), 'Contentless attachment metadata should not be downloadable');
 
         // [THEN] The attachment is ignored with the supplied reason
         AgentTaskMessageAttachment.SetRange("Task ID", AgentTaskRecord.Id);

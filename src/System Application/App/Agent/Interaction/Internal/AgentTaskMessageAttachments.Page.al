@@ -103,12 +103,15 @@ page 4309 "Agent Task Message Attachments"
     local procedure DownloadAttachment()
     var
         AgentTaskFile: Record "Agent Task File";
+        AgentMessageImpl: Codeunit "Agent Message Impl.";
         InStream: InStream;
         AttachmentFileName: Text;
         DownloadDialogTitleLbl: Label 'Download Email Attachment';
     begin
         AgentTaskFile.SetAutoCalcFields(Content);
         if not AgentTaskFile.Get(Rec."Task ID", Rec.ID) then
+            exit;
+        if not AgentMessageImpl.IsAttachmentDownloadable(AgentTaskFile) then
             exit;
 
         AttachmentFileName := AgentTaskFile."File Name";
