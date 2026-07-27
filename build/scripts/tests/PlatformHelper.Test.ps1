@@ -78,7 +78,7 @@ Describe "PlatformHelper" {
 
         It "Should return correct URL for valid version" {
             $url = Get-PlatformVersionUrl -Version '29.0.49913.0'
-            $url | Should -Be 'https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/29.0.49913.0'
+            $url | Should -Be 'https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/29.0.49913.0/platform'
         }
 
         It "Should throw for invalid version" {

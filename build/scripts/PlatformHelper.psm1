@@ -43,20 +43,22 @@ function Get-PlatformVersions {
 
 <#
 .SYNOPSIS
-    Gets the full CDN URL for a specific platform version.
+    Gets the platform artifact URL for a specific platform version.
 .DESCRIPTION
-    Constructs and returns the full CDN URL for downloading a specific platform version.
-    Validates that the version exists in the platform index.
+    Constructs and returns the platform artifact URL for a specific platform version.
+    The returned URL can be passed directly to New-BcContainer / New-BcCompilerFolder as
+    the -platformArtifactUrl parameter. Validates that the version exists in the platform index.
 .PARAMETER Version
     The full platform version string (e.g., '29.0.49913.0').
 .OUTPUTS
-    The full CDN URL for the specified platform version.
+    The platform artifact URL for the specified platform version.
 .EXAMPLE
     Get-PlatformVersionUrl -Version '29.0.49913.0'
-    Returns: https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/29.0.49913.0
+    Returns: https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/29.0.49913.0/platform
 #>
 function Get-PlatformVersionUrl {
     [CmdletBinding()]
+    [OutputType([string])]
     param(
         [Parameter(Mandatory = $true)]
         [string] $Version
@@ -67,7 +69,7 @@ function Get-PlatformVersionUrl {
         throw "Platform version '$Version' is not available. Use Get-PlatformVersions to see available versions."
     }
 
-    return "$script:PlatformCdnUrl/platform/$Version"
+    return "$script:PlatformCdnUrl/platform/$Version/platform"
 }
 
 <#
@@ -183,8 +185,7 @@ function Get-BCPlatformArtifactUrl {
     }
 
     $platformVersion = Resolve-PlatformVersion -Version $platformVersion
-    $platformUrl = Get-PlatformVersionUrl -Version $platformVersion
-    return "$platformUrl/platform"
+    return Get-PlatformVersionUrl -Version $platformVersion
 }
 
 <#
