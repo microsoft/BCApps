@@ -418,13 +418,4 @@ page 99000768 "Manufacturing Setup"
 
         ManufacturingSetupNotif.ShowPlanningFieldsMoveNotification();
     end;
-<<<<<<< src/Layers/IT/BaseApp/Manufacturing/Setup/ManufacturingSetup.Page.al
 }
-||||||| Base: src/Layers/W1/BaseApp/Manufacturing/Setup/ManufacturingSetup.Page.al
-
-}
-
-=======
-
-}
->>>>>>> src/Layers/W1/BaseApp/Manufacturing/Setup/ManufacturingSetup.Page.al

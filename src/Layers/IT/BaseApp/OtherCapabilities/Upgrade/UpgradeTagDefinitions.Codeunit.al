@@ -183,6 +183,7 @@ codeunit 9998 "Upgrade Tag Definitions"
         PerCompanyUpgradeTags.Add(GetProdDefinitionDisplaySetupUpgradeTag());
         PerCompanyUpgradeTags.Add(GetLegacySubcontractingUpgradeTag());
         PerCompanyUpgradeTags.Add(GetWarehouseActivitySourceTypeForJobPlanningLineUpgradeTag());
+        PerCompanyUpgradeTags.Add(GetProdDefinitionDisplaySetupUpgradeTag());
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerDatabaseUpgradeTags', '', false, false)]
@@ -1284,5 +1285,4 @@ codeunit 9998 "Upgrade Tag Definitions"
     begin
         exit('MS-629001-ProdDefinitionDisplaySetupUpgradeTag-20260723');
     end;
-
 }
