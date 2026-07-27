@@ -319,7 +319,7 @@ codeunit 37208 "Export Remit. Advice PEPPOL30"
         until LineBuffer.Next() = 0;
     end;
 
-    local procedure GetDocumentCurrencyCode(CurrencyCode: Code[10]) DocumentCurrencyCode: Code[10]
+    local procedure GetDocumentCurrencyCode(CurrencyCode: Code[10]): Code[10]
     var
         GLSetup: Record "General Ledger Setup";
     begin

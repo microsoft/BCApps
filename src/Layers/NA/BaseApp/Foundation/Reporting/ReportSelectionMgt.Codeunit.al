@@ -81,7 +81,6 @@ codeunit 1901 "Report Selection Mgt."
         InitReportSelection("Report Selection Usage"::"P.Arch.Order");
         InitReportSelection("Report Selection Usage"::"P.Arch.Return");
         InitReportSelection("Report Selection Usage"::"P.Arch.Blanket");
-        InitReportSelection("Report Selection Usage"::"V.Remittance");
         InitReportSelection("Report Selection Usage"::"P.V.Remit.");
 
         OnAfterInitReportSelectionPurch();
@@ -275,8 +274,6 @@ codeunit 1901 "Report Selection Mgt."
                 InsertRepSelection("Report Selection Usage"::"S.Arch.Blanket", '1', REPORT::"Archived Blanket Sales Order");
             "Report Selection Usage"::"P.Arch.Blanket":
                 InsertRepSelection("Report Selection Usage"::"P.Arch.Blanket", '1', REPORT::"Archived Blanket Purch. Order");
-            "Report Selection Usage"::"V.Remittance":
-                InsertRepSelectionForEmailAttachment("Report Selection Usage"::"V.Remittance", '1', REPORT::"Remittance Advice - Journal");
             "Report Selection Usage"::"P.V.Remit.":
                 InsertRepSelectionForEmailAttachment("Report Selection Usage"::"P.V.Remit.", '1', REPORT::"Remittance Advice - Entries");
             "Report Selection Usage"::"S.Order Pick Instruction":

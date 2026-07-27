@@ -211,6 +211,8 @@ codeunit 104000 "Upgrade - BaseApp"
         UpgradeDataExchFieldMapping();
         UpgradeJobReportSelection();
         UpgradeJobTaskReportSelection();
+        UpgradeJournalTemplateNamesInSetupTables();
+        UpgradeGenJournalTemplates();
         UpgradeRemittanceAdviceReportSelection();
         UpgradeAccountSchedulesToFinancialReports();
         UpgradeCRMUnitGroupMapping();

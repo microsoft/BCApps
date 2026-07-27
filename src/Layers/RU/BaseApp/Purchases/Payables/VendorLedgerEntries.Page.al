@@ -14,6 +14,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Finance.VAT.Ledger;
 using Microsoft.Foundation.Navigate;
 using Microsoft.Foundation.Reporting;
+using Microsoft.Purchases.History;
 using Microsoft.Purchases.Remittance;
 using Microsoft.Purchases.Setup;
 using System.Diagnostics;
@@ -621,6 +622,38 @@ page 29 "Vendor Ledger Entries"
                         CurrPage.SetSelectionFilter(VendorLedgerEntry);
                         VendorLedgerEntry.SetRange("Document Type", VendorLedgerEntry."Document Type"::Payment);
                         SendVendorRecords(VendorLedgerEntry);
+                    end;
+                }
+                action("Change Vendor VAT Invoice")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Change Vendor VAT Invoice';
+                    Ellipsis = true;
+                    Image = ChangePaymentTolerance;
+
+                    trigger OnAction()
+                    begin
+                        ChangeVendVATInvoice();
+                    end;
+                }
+                action("Return Prepayment")
+                {
+                    ApplicationArea = Prepayments;
+                    Caption = 'Return Prepayment';
+                    Image = ReturnOrder;
+                    ToolTip = 'Prepare to return the prepayment from the vendor.';
+
+                    trigger OnAction()
+                    var
+                        PostPrepayment: Report "Return Prepayment";
+                    begin
+                        Rec.TestField(Prepayment, true);
+                        Rec.TestField("Document Type", Rec."Document Type"::Payment);
+                        Rec.TestField(Open, true);
+                        Clear(PostPrepayment);
+                        PostPrepayment.InitializeRequest(Rec."Entry No.", 1);
+                        PostPrepayment.Run();
+                        CurrPage.Update();
                     end;
                 }
                 group(IncomingDocument)

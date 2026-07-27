@@ -183,7 +183,6 @@ page 5407 "Prod. Order Comp. Line List"
                     ObsoleteState = Pending;
                     ObsoleteTag = '27.0';
                 }
-#endif
                 field("Due Date"; Rec."Due Date")
                 {
                     ApplicationArea = Manufacturing;

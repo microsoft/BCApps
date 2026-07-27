@@ -1270,6 +1270,11 @@ codeunit 9998 "Upgrade Tag Definitions"
         exit('MS-626097-DepreciationBooksGLIntegrationUpgradeTag-20260319');
     end;
 
+    internal procedure GetLegacySubcontractingUpgradeTag(): Code[250]
+    begin
+        exit('MS-406123-LegacySubcontracting-20260507');
+    end;
+
     internal procedure GetRemittanceAdviceReportSelectionUpgradeTag(): Code[250]
     begin
         exit('MS-RemittanceAdviceReportSelection-20260723');

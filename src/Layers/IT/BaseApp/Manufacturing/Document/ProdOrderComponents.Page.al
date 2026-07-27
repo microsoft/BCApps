@@ -203,7 +203,6 @@ page 99000818 "Prod. Order Components"
                         Page.Run(0, ItemLedgerEntry);
                     end;
                 }
-#endif
                 field("Shortcut Dimension 1 Code"; Rec."Shortcut Dimension 1 Code")
                 {
                     ApplicationArea = Dimensions;

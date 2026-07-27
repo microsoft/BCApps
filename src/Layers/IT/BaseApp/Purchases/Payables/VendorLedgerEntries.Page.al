@@ -606,6 +606,27 @@ page 29 "Vendor Ledger Entries"
                         SendVendorRecords(VendorLedgerEntry);
                     end;
                 }
+                separator(Action1130015)
+                {
+                }
+                action(CreateWithHoldTaxEntry)
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Create WithHold Tax entry';
+                    Image = NewSparkle;
+                    ToolTip = 'Generate an entry for withholding tax.';
+
+                    trigger OnAction()
+                    var
+                        WithholdingTax: Record "Withholding Tax";
+                    begin
+                        if Rec."Document Type" <> Rec."Document Type"::Payment then
+                            Error(
+                              Text12100, Rec."Entry No.", Rec."Document Type");
+                        WithholdingTax.CheckWithhEntryExist(Rec);
+                        WithholdingTax.InsertWithholdTax(Rec);
+                    end;
+                }
                 group(IncomingDocument)
                 {
                     Caption = 'Incoming Document';
