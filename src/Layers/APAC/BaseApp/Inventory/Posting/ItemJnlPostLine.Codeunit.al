@@ -4245,7 +4245,7 @@ codeunit 22 "Item Jnl.-Post Line"
             ExpirationDateChecked := true;
         end;
         IsHandled := false;
-        OnCheckExpirationDateOnBeforeAssignExpirationDate(TempTrackingSpecification, ExistingExpirationDate, IsHandled);
+        OnCheckExpirationDateOnBeforeAssignExpirationDate(TempTrackingSpecification, ExistingExpirationDate, IsHandled, GlobalItemTrackingCode, ItemJnlLine2, SignFactor);
         if not IsHandled then
             if ItemJnlLine2."Entry Type" = ItemJnlLine2."Entry Type"::Transfer then
                 if TempTrackingSpecification."Expiration Date" = 0D then
@@ -8210,7 +8210,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCheckExpirationDateOnBeforeAssignExpirationDate(var TempTrackingSpecification: Record "Tracking Specification" temporary; ExistingExpirationDate: Date; var IsHandled: Boolean)
+    local procedure OnCheckExpirationDateOnBeforeAssignExpirationDate(var TempTrackingSpecification: Record "Tracking Specification" temporary; ExistingExpirationDate: Date; var IsHandled: Boolean; GlobalItemTrackingCode: Record "Item Tracking Code"; ItemJnlLine2: Record "Item Journal Line"; SignFactor: Integer)
     begin
     end;
 

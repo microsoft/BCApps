@@ -65,6 +65,11 @@ function Create-BCContainer {
         # Get the platform artifact URL from the BCPlatform version in Packages.json (if specified)
         $platformArtifactUrl = Get-BCPlatformArtifactUrl
 
+        $memoryLimit = Get-ConfigValue -Key "memoryLimit" -ConfigType AL-Go
+        if (-not $memoryLimit) {
+            $memoryLimit = "16G"
+        }
+
         # Create a new container with a single tenant
         $bcContainerHelperConfig.sandboxContainersAreMultitenantByDefault = $false
 
@@ -74,6 +79,7 @@ function Create-BCContainer {
             auth                 = $Authentication
             Credential           = $Credential
             includeAL            = $true
+            memoryLimit          = $memoryLimit
             additionalParameters = @("--volume ""$($baseFolder):c:\sources""")
         }
 
