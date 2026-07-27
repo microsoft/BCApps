@@ -699,7 +699,7 @@ function Receive-UnstableTestsArtifact {
 
     Because the sliding window rebuilds the list from scratch each run, a still-unstable test keeps the
     'unstableSince' it had in the previous artifact ('ExistingTests'); a test that is unstable for the
-    first time is stamped with 'UnstableSince' (this run's time).
+    first time is stamped with this run's time.
 
     Returns the updated hashtable keyed by 'extensionId::codeunit::testMethod'.
 
@@ -710,9 +710,6 @@ function Receive-UnstableTestsArtifact {
 .Parameter ExistingTests
     The 'tests' array from the previous artifact (camelCase entries), used to keep each still-unstable
     test's original 'unstableSince' across the recompute.
-.Parameter UnstableSince
-    Timestamp stamped on a test that is unstable for the first time this run. Defaults to the current UTC
-    time; callers pass one value per run so every newly stamped test shares it.
 #>
 function Update-UnstableTestsList {
     [CmdletBinding()]
@@ -723,19 +720,18 @@ function Update-UnstableTestsList {
 
         [int] $RunCount = 0,
 
-        [System.Collections.IList] $ExistingTests = @(),
-
-        [string] $UnstableSince = ((Get-Date).ToUniversalTime().ToString('o'))
+        [System.Collections.IList] $ExistingTests = @()
     )
 
-    # Prior 'unstableSince' values keyed by test key, so a still-unstable test keeps its original
-    # timestamp when the list is rebuilt from scratch.
+    # A newly unstable test is stamped with this run's time; still-unstable tests keep the prior value.
+    $now = (Get-Date).ToUniversalTime().ToString('o')
     $existingSince = @{}
     foreach ($entry in $ExistingTests) {
-        if ($null -eq $entry) { continue }
-        if (-not ($entry.PSObject.Properties['unstableSince'])) { continue }
-        if ([string]::IsNullOrWhiteSpace([string]$entry.unstableSince)) { continue }
-        $existingSince[(Get-EntryUnstableTestKey -Entry $entry)] = [string]$entry.unstableSince
+        $props = $entry.PSObject.Properties
+        if ((-not $props['unstableSince']) -or [string]::IsNullOrWhiteSpace([string]$entry.unstableSince) -or (-not $props['testMethod'])) { continue }
+        $extId = if ($props['extensionId']) { [string]$entry.extensionId } else { '' }
+        $cuId = if ($props['codeunitId']) { [int]$entry.codeunitId } else { 0 }
+        $existingSince[(Get-UnstableTestKey -CodeunitId $cuId -TestMethod ([string]$entry.testMethod) -ExtensionId $extId)] = [string]$entry.unstableSince
     }
 
     $result = @{}
@@ -752,7 +748,7 @@ function Update-UnstableTestsList {
             SourceRunId    = if ($ft.PSObject.Properties['SourceRunId']) { $ft.SourceRunId } else { '' }
             Reason         = "Auto-detected: failed in at least 1 of the last $RunCount CI/CD run(s)"
             LinkedIssue    = ''
-            UnstableSince  = if ($existingSince.ContainsKey($key)) { $existingSince[$key] } else { $UnstableSince }
+            UnstableSince  = if ($existingSince.ContainsKey($key)) { $existingSince[$key] } else { $now }
         }
     }
 
@@ -930,10 +926,8 @@ function Get-FailedTestsFromRuns {
     Update-UnstableTestsList). 'Reason' overrides the entry reason; when empty, the test's own Reason
     property (if any) is used. 'Repository' is used to build the sourceRunUrl from the test's SourceRunId.
 
-    Every entry records 'unstableSince', the UTC time the test was first added to the list. A test that
-    already carries an UnstableSince (preserved from the previous artifact) keeps it; a test being added
-    for the first time is stamped with 'UnstableSince'. Passing that value in, rather than reading the
-    clock here, keeps it identical for every entry created during the same run.
+    Every entry records 'unstableSince', an ISO 8601 UTC timestamp. If the test already carries one it is
+    kept; otherwise the current time is stamped, marking when the test was first added to the list.
 
 .Parameter Test
     A single failed/unstable test object with PascalCase properties.
@@ -941,9 +935,6 @@ function Get-FailedTestsFromRuns {
     Overrides the entry reason. When empty, the test's own Reason property is used.
 .Parameter Repository
     Repository in '<owner>/<repo>' form, used to build the sourceRunUrl from the test's SourceRunId.
-.Parameter UnstableSince
-    Timestamp to stamp on a test that has no UnstableSince of its own. Defaults to the current UTC time;
-    callers pass a single value computed once per run so all newly created entries share it.
 #>
 function ConvertTo-UnstableTestEntry {
     [CmdletBinding()]
@@ -954,16 +945,13 @@ function ConvertTo-UnstableTestEntry {
 
         [string] $Reason = '',
 
-        [string] $Repository = '',
-
-        [string] $UnstableSince = ((Get-Date).ToUniversalTime().ToString('o'))
+        [string] $Repository = ''
     )
 
     $sourceRunId = if ($Test.PSObject.Properties['SourceRunId']) { [string]$Test.SourceRunId } else { '' }
     $reasonValue = if ($Reason) { $Reason } elseif ($Test.PSObject.Properties['Reason']) { [string]$Test.Reason } else { '' }
     $linkedIssue = if ($Test.PSObject.Properties['LinkedIssue']) { [string]$Test.LinkedIssue } else { '' }
-    $ownSince = if ($Test.PSObject.Properties['UnstableSince']) { [string]$Test.UnstableSince } else { '' }
-    $unstableSince = if (-not [string]::IsNullOrWhiteSpace($ownSince)) { $ownSince } else { $UnstableSince }
+    $unstableSince = if (($Test.PSObject.Properties['UnstableSince']) -and $Test.UnstableSince) { [string]$Test.UnstableSince } else { (Get-Date).ToUniversalTime().ToString('o') }
 
     return [pscustomobject][ordered]@{
         extensionId    = if ($Test.PSObject.Properties['ExtensionId']) { [string]$Test.ExtensionId } else { '' }
@@ -977,18 +965,6 @@ function ConvertTo-UnstableTestEntry {
         unstableSince  = $unstableSince
         sourceRunUrl   = if ($Repository -and $sourceRunId) { "https://github.com/$Repository/actions/runs/$sourceRunId" } else { '' }
     }
-}
-
-<#
-.Synopsis
-    Computes the 'extensionId::codeunit::testMethod' key for an artifact entry (camelCase properties).
-#>
-function Get-EntryUnstableTestKey {
-    param($Entry)
-    $method = if ($Entry.PSObject.Properties['testMethod']) { [string]$Entry.testMethod } else { '' }
-    $extId = if ($Entry.PSObject.Properties['extensionId']) { [string]$Entry.extensionId } else { '' }
-    $cuId = if ($Entry.PSObject.Properties['codeunitId']) { [int]$Entry.codeunitId } else { 0 }
-    return Get-UnstableTestKey -CodeunitId $cuId -TestMethod $method -ExtensionId $extId
 }
 
 <#
@@ -1069,9 +1045,6 @@ function Save-UnstableTestsArtifact {
     Hashtable of newly observed failures keyed by test key to merge in additively.
 .Parameter Repository
     Repository in '<owner>/<repo>' form, used to build sourceRunUrl for newly added entries.
-.Parameter UnstableSince
-    Timestamp stamped on newly added entries (existing entries keep their own). Defaults to the current
-    UTC time; callers pass a single value computed once per run so all new entries share it.
 #>
 function Add-FailedTestsToUnstableTests {
     [CmdletBinding()]
@@ -1082,9 +1055,7 @@ function Add-FailedTestsToUnstableTests {
         [Parameter(Mandatory = $true)]
         [hashtable] $FailedTests,
 
-        [string] $Repository = '',
-
-        [string] $UnstableSince = ((Get-Date).ToUniversalTime().ToString('o'))
+        [string] $Repository = ''
     )
 
     $merged = New-Object System.Collections.Generic.List[object]
@@ -1119,7 +1090,7 @@ function Add-FailedTestsToUnstableTests {
         # empty reason lets ConvertTo-UnstableTestEntry fall back to the test's own Reason property.
         # Tests without a Reason (the additive-from-run path) get the default run-based reason.
         $reason = if (($ft.PSObject.Properties['Reason']) -and $ft.Reason) { '' } else { "Manually added from CI/CD run $sourceRunId" }
-        $merged.Add((ConvertTo-UnstableTestEntry -Test $ft -Reason $reason -Repository $Repository -UnstableSince $UnstableSince)) | Out-Null
+        $merged.Add((ConvertTo-UnstableTestEntry -Test $ft -Reason $reason -Repository $Repository)) | Out-Null
         $seenKeys[$k] = $true
         Write-Host "ADDED UNSTABLE: $k"
         $added++

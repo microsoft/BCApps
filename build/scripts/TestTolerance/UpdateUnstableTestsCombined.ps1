@@ -85,9 +85,6 @@ New-Item -ItemType Directory -Path $cicdWorkDir -Force | Out-Null
 New-Item -ItemType Directory -Path $prWorkDir -Force | Out-Null
 
 try {
-    # One timestamp per run, shared by every test that becomes unstable this run.
-    $now = (Get-Date).ToUniversalTime().ToString('o')
-
     # Load the existing artifact once: it carries each test's 'unstableSince' forward across the Path A
     # recompute, and acts as the fallback base list when there is no CI/CD window to recompute from.
     $existingTests = @()
@@ -112,7 +109,7 @@ try {
     $baseEntries = @()
     if ($cicdRunIds.Count -gt 0) {
         $cicdFailed = Get-FailedTestsFromRuns -RunIds $cicdRunIds -Repository $repo -WorkDirectory $cicdWorkDir
-        $recomputed = Update-UnstableTestsList -FailedTests $cicdFailed -RunCount $cicdRunIds.Count -ExistingTests ([System.Collections.IList]$existingTests) -UnstableSince $now
+        $recomputed = Update-UnstableTestsList -FailedTests $cicdFailed -RunCount $cicdRunIds.Count -ExistingTests ([System.Collections.IList]$existingTests)
         # Entries already carry their 'unstableSince' (kept or stamped by Update-UnstableTestsList).
         $baseEntries = @($recomputed.Values | ForEach-Object { ConvertTo-UnstableTestEntry -Test $_ -Repository $repo })
         Write-Host "::endgroup::"
@@ -143,9 +140,9 @@ try {
     }
 
     # --- Merge Path B additively on top of the Path A base and write once ---
-    # New cross-PR entries are stamped with this run's timestamp; existing entries keep their own
+    # New cross-PR entries are stamped with the current time; existing entries keep their own
     # 'unstableSince', and Path A recomputed entries kept theirs via Update-UnstableTestsList above.
-    $tests = @(Add-FailedTestsToUnstableTests -ExistingTests ([System.Collections.IList]$baseEntries) -FailedTests $crossPrFailed -Repository $repo -UnstableSince $now)
+    $tests = @(Add-FailedTestsToUnstableTests -ExistingTests ([System.Collections.IList]$baseEntries) -FailedTests $crossPrFailed -Repository $repo)
 
     $allRunIds = @()
     $allRunIds += @($cicdRunIds)
