@@ -103,7 +103,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         SalesInvoiceHeader: Record "Sales Invoice Header";
         SalesInvoiceLine: Record "Sales Invoice Line";
         CustomizationIdNode: XmlNode;
-        CustomizationIdElement: XmlElement;
+        NewCustomizationIdNode: XmlNode;
     begin
         if SourceDocumentHeader.Number <> Database::"Sales Invoice Header" then
             exit;
@@ -113,8 +113,8 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
             exit;
 
         if XmlDoc.SelectSingleNode('/*/cbc:CustomizationID', NamespaceMgr, CustomizationIdNode) then begin
-            CustomizationIdElement := CustomizationIdNode.AsXmlElement();
-            CustomizationIdElement.InnerText(ExtendedCTCFranceCustomizationIdTok);
+            NewCustomizationIdNode := XmlElement.Create('CustomizationID', CbcNamespaceTok, ExtendedCTCFranceCustomizationIdTok).AsXmlNode();
+            CustomizationIdNode.ReplaceWith(NewCustomizationIdNode);
         end;
 
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
