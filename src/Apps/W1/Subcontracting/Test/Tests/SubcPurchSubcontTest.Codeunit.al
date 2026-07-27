@@ -841,7 +841,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         ProductionBOMHeader.Validate(Status, ProductionBOMHeader.Status::Certified);
         ProductionBOMHeader.Modify(true);
         FinishedItem.Validate("Production BOM No.", ProductionBOMHeader."No.");
-        FinishedITem.Validate("Routing No.", RoutingHeader."No.");
+        FinishedItem.Validate("Routing No.", RoutingHeader."No.");
         FinishedItem.Modify(true);
 
         // [GIVEN] A released production order
@@ -872,6 +872,7 @@ codeunit 139991 "Subc. Purch. Subcont. Test"
         Assert.IsTrue(PurchaseHeader."Subc. Order",
             'The Subc. Order FlowField must be true for a subcontracting purchase order');
     end;
+
     [ModalPageHandler]
     procedure ItemTrackingLinesSimpleHandler(var ItemTrackingLines: TestPage "Item Tracking Lines")
     begin
