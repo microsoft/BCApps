@@ -6349,8 +6349,7 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                     begin
                                         GetVendorPostingGroup(GenJournalLine, VendorPostingGroup);
                                         AccNo2 := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
-                                        AccNo3 := GetVendorPayablesAccount(GenJournalLine, VendorPostingGroup);
-                                    end;
+                                        AccNo3 := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);                                    end;
                                 GenJournalLine."Account Type"::Employee:
                                     begin
                                         EmployeePostingGroup.Get(GenJournalLine."Posting Group");
