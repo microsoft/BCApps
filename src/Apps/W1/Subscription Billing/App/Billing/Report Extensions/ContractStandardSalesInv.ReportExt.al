@@ -191,6 +191,13 @@ reportextension 8008 "Contract Standard Sales Inv." extends "Standard Sales - In
             Caption = 'Sales Invoice for Subscription Billing (Word)';
             Summary = 'The Sales Invoice for Subscription Billing (Word) provides a simple layout that is also relatively easy for an end-user to modify.';
         }
+        layout("SalesInvoiceForSubscriptionBillingBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Billing/Report Extensions/Layouts/SalesInvoiceForSubscriptionBillingBody.docx';
+            Caption = 'Body-only: Sales Invoice for Subscription Billing (Word)';
+            Summary = 'Body-only: The Sales Invoice for Subscription Billing (Word) provides a simple layout that is also relatively easy for an end-user to modify.';
+        }
     }
 
     protected var
