@@ -578,9 +578,9 @@ codeunit 137500 "SCM Legacy Subcontracting"
         TransferLine: Record "Transfer Line";
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
         EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
-        OpenWIPPurchaseOrdersExistErr: Label 'There are still open purchase orders with WIP Items. All subcontracting purchase orders must be completed before disabling Legacy Subcontracting.';
+        OpenWIPPurchaseOrdersExistErr: Label 'There are still open purchase orders with WIP Items. All purchase orders with WIP Items must be completed before disabling Legacy Subcontracting.';
     begin
-        // [SCENARIO 641607] CheckCanDisableLegacySubcontracting error wording for open purchase orders matches the "WIP Item" filter condition instead of implying all subcontracting purchase orders
+        // [SCENARIO 641607] CheckCanDisableLegacySubcontracting error wording consistently refers to purchase orders with WIP Items in both sentences, instead of implying all subcontracting purchase orders
         Initialize();
 
         // [GIVEN] The environment is testable as a sandbox so the migration pre-checks (beyond the production gate) are reached
@@ -604,8 +604,8 @@ codeunit 137500 "SCM Legacy Subcontracting"
         // [WHEN] Call CheckCanDisableLegacySubcontracting
         asserterror LegacySubcFeatureHandler.CheckCanDisableLegacySubcontracting();
 
-        // [THEN] The error wording refers to purchase orders "with WIP Items", matching the actual filter condition, not "all subcontracting purchase orders"
-        Assert.ExpectedError(OpenWIPPurchaseOrdersExistErr);
+        // [THEN] The full error message consistently refers to purchase orders "with WIP Items" in both sentences, not "all subcontracting purchase orders"
+        Assert.AreEqual(OpenWIPPurchaseOrdersExistErr, GetLastErrorText(), 'Error message wording must consistently describe purchase orders with WIP Items in both sentences.');
 
         EnvironmentInfoTestLibrary.SetTestabilitySandbox(false);
     end;
