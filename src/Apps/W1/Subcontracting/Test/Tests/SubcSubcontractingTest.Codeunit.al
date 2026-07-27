@@ -477,7 +477,6 @@ codeunit 139989 "Subc. Subcontracting Test"
     end;
 
     [Test]
-    [HandlerFunctions('ConfirmHandler')]
     procedure CreateSubcOrderFromRtngLineIgnoresOtherLineComponentsAtSubcLocation()
     var
         Item: Record Item;
