@@ -271,6 +271,13 @@ report 114 "Salesperson - Sales Statistics"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            LayoutFile = './Sales/Reports/SalespersonSalesStatisticsBody.docx';
+            Caption = 'Body-only: Salesperson Sales Statistics Word';
+            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+        }
     }
 
     labels
