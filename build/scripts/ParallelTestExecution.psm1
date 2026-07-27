@@ -633,22 +633,26 @@ function Invoke-ParallelTestExecution {
     $state = [PSCustomObject]@{ jobs = @(); dispatched = $true; completed = $false; finalResult = $false; hasFailures = $false; transient = @(); retried = @{} }
     $state | ConvertTo-Json -Depth 5 | Set-Content $stateFile -Force
 
-    # Single dispatch loop. $pending is processed FIFO; transient platform-race failures
-    # are re-queued onto the back of $pending so the retry runs as part of the normal flow.
-    # The retry cap lives in Receive-TestJobResult: an app already in $state.retried gets
-    # classified as Failed (not Transient) on a second failure.
+    # Single dispatch loop. $pending is processed FIFO and $appNamesToTest arrives ordered
+    # longest-first (see TestConfiguration.json), which is the LPT schedule that keeps the
+    # tail short. The retry cap lives in Receive-TestJobResult: an app already in
+    # $state.retried gets classified as Failed (not Transient) on a second failure.
     $pending = @($appNamesToTest)
 
     while ($pending.Count -gt 0 -or $state.jobs.Count -gt 0 -or $state.transient.Count -gt 0) {
-        # Promote any transient failures back into the dispatch queue.
+        # Promote any transient failures back into the dispatch queue. They go to the FRONT:
+        # a platform race normally kills a job within a minute of dispatch, so the victim is
+        # almost always one of the first (i.e. longest) apps. Appending it instead would
+        # restart the longest app only after every other app had been dispatched, adding its
+        # full duration to the critical path.
         if ($state.transient.Count -gt 0) {
             $toRetry = @($state.transient)
             $state.transient = @()
             Write-Host "Re-queueing $($toRetry.Count) app(s) after transient platform race: $($toRetry -join ', ')"
             foreach ($appName in $toRetry) {
                 $state.retried[$appName] = $true
-                $pending += $appName
             }
+            $pending = @($toRetry) + @($pending)
         }
 
         if ($pending.Count -gt 0) {
