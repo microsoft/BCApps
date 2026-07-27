@@ -327,7 +327,7 @@ codeunit 137500 "SCM Legacy Subcontracting"
     procedure CheckCanDisableRaisesErrorWhenAppNotInstalled()
     var
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
-        ITMigrationAppNotInstalledErr: Label 'The app "IT Subcontracting Migration" must be installed before you can disable Legacy Subcontracting. Please install the app first and then use the dedicated action "Disable Legacy Subcontracting" to disable Legacy Subcontracting and migrate to the new subcontracting app.';
+        ITMigrationAppNotInstalledErr: Label 'To help you migrate safely, disabling Legacy Subcontracting and moving to the Subcontracting app is currently limited to sandbox environments. Test the migration in a sandbox copy of this environment first to validate the transition. Production environments will be enabled in a future release.';
     begin
         // [SCENARIO] CheckCanDisableLegacySubcontracting raises error when new subcontracting app is not installed
         Initialize();
@@ -502,7 +502,7 @@ codeunit 137500 "SCM Legacy Subcontracting"
         LocationTo: Record Location;
         LocationInTransit: Record Location;
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
-        OpenSubcontractingTransfersExistErr: Label 'There are still open transfer orders with WIP Items. All subcontracting transfer orders must be completed before disabling Legacy Subcontracting.';
+        OpenSubcontractingTransfersExistErr: Label 'To help you migrate safely, disabling Legacy Subcontracting and moving to the Subcontracting app is currently limited to sandbox environments. Test the migration in a sandbox copy of this environment first to validate the transition. Production environments will be enabled in a future release.';
     begin
         // [SCENARIO] CheckCanDisableLegacySubcontracting raises error when open WIP transfer orders exist
         Initialize();
@@ -539,7 +539,7 @@ codeunit 137500 "SCM Legacy Subcontracting"
         Item: Record Item;
         TransferLine: Record "Transfer Line";
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
-        OpenWIPPurchaseOrdersExistErr: Label 'There are still open subcontracting purchase orders. All subcontracting purchase orders must be completed before disabling Legacy Subcontracting.';
+        OpenWIPPurchaseOrdersExistErr: Label 'To help you migrate safely, disabling Legacy Subcontracting and moving to the Subcontracting app is currently limited to sandbox environments. Test the migration in a sandbox copy of this environment first to validate the transition. Production environments will be enabled in a future release.';
     begin
         // [SCENARIO] CheckCanDisableLegacySubcontracting raises error when open WIP purchase orders exist
         Initialize();
@@ -568,14 +568,15 @@ codeunit 137500 "SCM Legacy Subcontracting"
 
     [Test]
     [Scope('OnPrem')]
-    procedure PreCheckDisableSucceedsWhenITMigrationAppInstalled()
+    procedure PreCheckDisableFailsWhenITMigrationAppInstalled()
     var
         TransferLine: Record "Transfer Line";
         PurchaseLine: Record "Purchase Line";
         LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
         SCMLegacySubcontracting: Codeunit "SCM Legacy Subcontracting";
+        ExpectedError: Label 'To help you migrate safely, disabling Legacy Subcontracting and moving to the Subcontracting app is currently limited to sandbox environments. Test the migration in a sandbox copy of this environment first to validate the transition. Production environments will be enabled in a future release.';
     begin
-        // [SCENARIO] CheckCanDisableLegacySubcontracting succeeds when no open data exists and IT Migration app is installed
+        // [SCENARIO] CheckCanDisableLegacySubcontracting fails even when no open data exists and IT Migration app is installed
         Initialize();
 
         // [GIVEN] ManufacturingSetup."Legacy Subcontracting" = true
@@ -594,9 +595,10 @@ codeunit 137500 "SCM Legacy Subcontracting"
         BindSubscription(SCMLegacySubcontracting);
 
         // [WHEN] Call CheckCanDisableLegacySubcontracting
-        LegacySubcFeatureHandler.CheckCanDisableLegacySubcontracting();
+        asserterror LegacySubcFeatureHandler.CheckCanDisableLegacySubcontracting();
 
-        // [THEN] No error is raised - the call completed successfully
+        // [THEN] Error: disabling is limited to sandbox environments
+        Assert.ExpectedError(ExpectedError);
         UnbindSubscription(SCMLegacySubcontracting);
     end;
 
