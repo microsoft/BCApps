@@ -1044,6 +1044,34 @@ report 1303 "Standard Sales - Draft Invoice"
             Caption = 'Standard Sales Draft Invoice Email (Word)';
             Summary = 'The Standard Sales Draft Invoice Email (Word) provides a email body layout.';
         }
+        layout("StandardSalesDraftInvoiceBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/Document/StandardSalesDraftInvoiceBody.docx';
+            Caption = 'Body-only: Standard Sales Draft Invoice (Word)';
+            Summary = 'Body-only: The Standard Sales Draft Invoice (Word) provides a basic layout.';
+        }
+        layout("StandardDraftSalesInvoiceBlueBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/Document/StandardDraftSalesInvoiceBlueBody.docx';
+            Caption = 'Body-only: Standard Sales Draft Invoice - Blue (Word)';
+            Summary = 'Body-only: The Standard Sales Draft Invoice -Blue (Word) provides a basic layout with a blue theme.';
+        }
+        layout("StandardDraftSalesInvoiceBlueThemableBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/Document/StandardDraftSalesInvoiceBlueThemableBody.docx';
+            Caption = 'Body-only: Standard Sales Draft Invoice - themable Word layout';
+            Summary = 'Body-only: The Standard Sales Draft Invoice -Themable (Word) provides a Themable layout.';
+        }
+        layout("StandardDraftSalesInvoiceEmailBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/Document/StandardDraftSalesInvoiceEmailBody.docx';
+            Caption = 'Body-only: Standard Sales Draft Invoice Email (Word)';
+            Summary = 'Body-only: The Standard Sales Draft Invoice Email (Word) provides a email body layout.';
+        }
     }
 
     labels
