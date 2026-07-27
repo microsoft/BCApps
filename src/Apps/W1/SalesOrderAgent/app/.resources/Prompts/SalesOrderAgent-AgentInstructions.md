@@ -75,7 +75,7 @@
 								},
 								{
 									"name": "item_availability",
-									"value": "UOM filter is set to requested unit of measurement or packaging/grouping method code for the current item."
+									"value": "UOM filter is set to requested unit of measurement or packaging/grouping method code for the current item.**Always** set this field before the search."
 								},
 								{
 									"name": "item_availability",
@@ -98,7 +98,7 @@
 							"value": "If an item is not available and the earliest shipment date is blank, **ALWAYS** request assistance by mentioning the item and adding: 'Please check the requested unit of measure and order promising setup.'. Do not proceed to the next step until this is resolved."
 						},						
 						{
-							"value": "If one or more of the requested items are not available or if there is no item to be searched, then request for assistance, by mentioning the items that are not available and adding 'Please make such items available or stop the task and handle manually.'",
+							"value": "If an item is not available or if there is no item to be searched, then request for assistance, by mentioning the item that are not available and adding 'Please make such items available or stop the task and handle manually.'",
 							"steps_include_numbering": "true",
 							"steps": [
 								{

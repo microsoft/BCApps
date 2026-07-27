@@ -11,10 +11,10 @@ tableextension 4412 "SOA Item Ext" extends Item
 {
     fields
     {
-        field(4412; "Item Availability Filter"; Text[250])
+        field(4412; "Item Availability Filter"; Text[100])
         {
             Caption = 'Item Availability Filter';
-            DataClassification = CustomerContent;
+            DataClassification = SystemMetadata;
             Editable = false;
             ToolTip = 'Specifies the filter used to determine the availability of the item.';
         }
