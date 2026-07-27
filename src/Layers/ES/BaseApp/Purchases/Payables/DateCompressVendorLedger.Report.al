@@ -19,6 +19,7 @@ report 398 "Date Compress Vendor Ledger"
     Permissions = TableData "G/L Entry" = rimd,
                   TableData "Vendor Ledger Entry" = rimd,
                   TableData "G/L Register" = rimd,
+                  TableData "G/L Transaction" = rimd,
                   TableData "Date Compr. Register" = rimd,
                   TableData "Dimension Set ID Filter Line" = rimd,
                   TableData "Detailed Vendor Ledg. Entry" = rimd;
