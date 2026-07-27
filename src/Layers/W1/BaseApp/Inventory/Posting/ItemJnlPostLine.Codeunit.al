@@ -4198,6 +4198,7 @@ codeunit 22 "Item Jnl.-Post Line"
         SumOfEntries: Decimal;
         SumLot: Decimal;
         IsHandled: Boolean;
+        SkipNewExpirationDateCheck: Boolean;
     begin
         IsHandled := false;
         OnBeforeCheckExpirationDate(
@@ -4213,7 +4214,7 @@ codeunit 22 "Item Jnl.-Post Line"
             ExpirationDateChecked := true;
         end;
         IsHandled := false;
-        OnCheckExpirationDateOnBeforeAssignExpirationDate(TempTrackingSpecification, ExistingExpirationDate, IsHandled);
+        OnCheckExpirationDateOnBeforeAssignExpirationDate(TempTrackingSpecification, ExistingExpirationDate, IsHandled, GlobalItemTrackingCode, ItemJnlLine2, SignFactor);
         if not IsHandled then
             if ItemJnlLine2."Entry Type" = ItemJnlLine2."Entry Type"::Transfer then
                 if TempTrackingSpecification."Expiration Date" = 0D then
@@ -4278,8 +4279,9 @@ codeunit 22 "Item Jnl.-Post Line"
                         SumLot := SignFactor * ItemTrackingMgt.SumNewLotOnTrackingSpec(TempTrackingSpecification)
                     else
                         SumLot := SignFactor * TempTrackingSpecification."Quantity (Base)";
-                    OnCheckExpirationDateOnAfterCalcSumLot(SumLot, SignFactor, TempTrackingSpecification);
-                    if (SumOfEntries > 0) and
+                    SkipNewExpirationDateCheck := false;
+                    OnCheckExpirationDateOnAfterCalcSumLot(SumLot, SignFactor, TempTrackingSpecification, SkipNewExpirationDateCheck);
+                    if (not SkipNewExpirationDateCheck) and (SumOfEntries > 0) and
                        ((SumOfEntries <> SumLot) or (TempTrackingSpecification."New Lot No." <> TempTrackingSpecification."Lot No.")
                        or (TempTrackingSpecification."New Package No." <> TempTrackingSpecification."Package No."))
                     then
@@ -8167,7 +8169,7 @@ codeunit 22 "Item Jnl.-Post Line"
 #endif
 
     [IntegrationEvent(false, false)]
-    local procedure OnCheckExpirationDateOnAfterCalcSumLot(var SumLot: Decimal; SignFactor: Integer; var TempTrackingSpecification: Record "Tracking Specification" temporary)
+    local procedure OnCheckExpirationDateOnAfterCalcSumLot(var SumLot: Decimal; SignFactor: Integer; var TempTrackingSpecification: Record "Tracking Specification" temporary; var SkipNewExpirationDateCheck: Boolean)
     begin
     end;
 
@@ -8177,7 +8179,7 @@ codeunit 22 "Item Jnl.-Post Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnCheckExpirationDateOnBeforeAssignExpirationDate(var TempTrackingSpecification: Record "Tracking Specification" temporary; ExistingExpirationDate: Date; var IsHandled: Boolean)
+    local procedure OnCheckExpirationDateOnBeforeAssignExpirationDate(var TempTrackingSpecification: Record "Tracking Specification" temporary; ExistingExpirationDate: Date; var IsHandled: Boolean; GlobalItemTrackingCode: Record "Item Tracking Code"; ItemJnlLine2: Record "Item Journal Line"; SignFactor: Integer)
     begin
     end;
 

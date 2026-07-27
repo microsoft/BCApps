@@ -117,6 +117,7 @@ permissionset 8322 "Service Documents - Post"
                   tabledata "G/L Entry - VAT Entry Link" = Ri,
                   tabledata "G/L Entry" = Ri,
                   tabledata "G/L Register" = Rim,
+                  tabledata "G/L Transaction" = Rim,
                   tabledata "Gen. Jnl. Allocation" = r,
                   tabledata "Gen. Journal Template" = R,
                   tabledata "General Ledger Setup" = rm,
