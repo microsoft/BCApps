@@ -20,8 +20,10 @@ codeunit 148150 "FI Company Field Report Test"
     local procedure Initialize()
     var
         SalesAndReceivablesSetup: Record "Sales & Receivables Setup";
+        PurchasesAndPayablesSetup: Record "Purchases & Payables Setup";
         FeatureKey: Record "Feature Key";
         FeatureKeyUpdateStatus: Record "Feature Data Update Status";
+        LibraryUtility: Codeunit "Library - Utility";
     begin
         BusinessIdentityCodeTxt := '01234567890123456789';
         RegisteredHomeCityTxt := '01234567890123456789012345678901234567890123456789';
@@ -45,6 +47,23 @@ codeunit 148150 "FI Company Field Report Test"
         CompanyInformation."Business Identity Code" := BusinessIdentityCodeTxt;
         CompanyInformation."Registered Home City" := RegisteredHomeCityTxt;
         CompanyInformation.Modify();
+
+        LibrarySales.SetOrderNoSeriesInSetup();
+        LibrarySales.SetPostedNoSeriesInSetup();
+        LibraryPurchase.SetQuoteNoSeriesInSetup();
+        LibraryPurchase.SetOrderNoSeriesInSetup();
+        LibraryPurchase.SetPostedNoSeriesInSetup();
+
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Quote Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Blanket Order Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Reminder Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Issued Reminder Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Fin. Chrg. Memo Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Sales & Receivables Setup", SalesAndReceivablesSetup.FieldNo("Issued Fin. Chrg. M. Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesAndPayablesSetup.FieldNo("Blanket Order Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesAndPayablesSetup.FieldNo("Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(Database::"Purchases & Payables Setup", PurchasesAndPayablesSetup.FieldNo("Credit Memo Nos."));
 
         SalesAndReceivablesSetup.Get();
         SalesAndReceivablesSetup."Reference Nos." := CreateRefNumberSeries('1000');
