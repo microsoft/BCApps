@@ -226,6 +226,47 @@ codeunit 148015 "Elec. VAT Decl. Tests"
     end;
 
     [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure KeyVaultEnabledFlagUsesReportingFrequencyFromResponse()
+    var
+        VATReturnPeriod: Record "VAT Return Period";
+        ElecVATDeclGetPeriods: Codeunit "Elec. VAT Decl. Get Periods";
+    begin
+        Initialize();
+        SetReportingFrequencyKeyVaultFlag('true');
+
+        ElecVATDeclGetPeriods.GetVATReturnPeriodsFromResponseText(GetResponseXml(GetPeriodXml('Måned', '2026-05-01')));
+
+        VATReturnPeriod.SetRange("Start Date", 20260401D);
+        VATReturnPeriod.SetRange("End Date", 20260430D);
+        VATReturnPeriod.SetRange("Due Date", 20260501D);
+        Assert.RecordIsNotEmpty(VATReturnPeriod);
+    end;
+
+    [Test]
+    [HandlerFunctions('MessageHandler')]
+    [Scope('OnPrem')]
+    procedure KeyVaultDisabledFlagUsesLegacyQuarterlyPeriod()
+    var
+        VATReturnPeriod: Record "VAT Return Period";
+        ElecVATDeclGetPeriods: Codeunit "Elec. VAT Decl. Get Periods";
+        ResponseText: Text;
+    begin
+        Initialize();
+        SetReportingFrequencyKeyVaultFlag('false');
+        ResponseText := GetResponseXml(
+            '<ns1:AngivelseBetalingFristStruktur><ns4:AngivelseFristKalenderBetalingDato>2026-09-01</ns4:AngivelseFristKalenderBetalingDato></ns1:AngivelseBetalingFristStruktur>');
+
+        ElecVATDeclGetPeriods.GetVATReturnPeriodsFromResponseText(ResponseText);
+
+        VATReturnPeriod.SetRange("Start Date", 20260401D);
+        VATReturnPeriod.SetRange("End Date", 20260630D);
+        VATReturnPeriod.SetRange("Due Date", 20260901D);
+        Assert.RecordIsNotEmpty(VATReturnPeriod);
+    end;
+
+    [Test]
     [Scope('OnPrem')]
     procedure ReportingFrequencyIsEnabledWhenKeyVaultFlagIsInvalid()
     var
