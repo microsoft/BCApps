@@ -2,7 +2,7 @@
   "id": "ecb1100e-3081-4c6a-9554-de33c687bf5f",
   "name": "Depreciation Differences FI",
   "publisher": "Microsoft",
-  "version": "$(app_currentVersion)",
+  "version": "29.0.0.0",
   "brief": "First-party app for FI depreciation differences in Business Central.",
   "description": "Implements Finnish posting depreciation differences functionality in Business Central.",
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
@@ -11,8 +11,8 @@
   "url": "https://go.microsoft.com/fwlink/?LinkId=724011",
   "logo": "ExtensionLogo.png",
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2212316",
-  "application": "$(app_minimumVersion)",
-  "platform": "$(app_platformVersion)",
+  "application": "29.0.0.0",
+  "platform": "29.0.0.0",
   "dependencies": [],
   "internalsVisibleTo": [
     {
