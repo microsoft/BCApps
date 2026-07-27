@@ -43,6 +43,7 @@
         VATDateOutOfVATDatesErr: Label 'The VAT Date is not within the range of allowed VAT dates.';
         VATEntrySettlementChangeErr: Label 'You cannot change the contents of this field when %1 is %2.';
         TotalVATAmountErr: Label 'Total VAT Amount must be zero';
+        WarningShownOnceErr: Label 'The VAT Return Period warning should be shown only once for the same VAT date.';
 
     [Test]
     procedure VerifyVATDateEqualsToPostingDate()
@@ -5349,6 +5350,36 @@
             TempVATAmountLine.FieldCaption("Amount Including VAT"));
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandlerCountTrue')]
+    procedure CachedResponseUsedForSameVATDateWithReleasedPeriod()
+    var
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        VATReturnPeriod: Record "VAT Return Period";
+        VATReportHeader: Record "VAT Report Header";
+        DocNo: Code[20];
+        VATDate: Date;
+    begin
+        // [FEATURE] [VAT]
+        // [SCENARIO 639895] Warning is shown only once when a sales invoice with several VAT posting group combinations is posted with a VAT date in a Released VAT Return Period
+        Initialize();
+
+        // [GIVEN] "Control VAT Period" is "Block posting within closed and warn for released period"
+        // [GIVEN] A distinct VAT date "D" and a Released VAT Return Period "P" that covers it
+        VATDate := CalcDate('<1Y>', WorkDate());
+        CleanVATReturnPeriod();
+        CreateVATReturnPeriod(VATReturnPeriod.Status::Open, VATReportHeader.Status::Released, VATDate, VATDate + 1);
+
+        // [WHEN] Posting a sales invoice "I" with two lines that use different VAT Product Posting Groups and VAT date "D", confirming the warning
+        DocNo := CreateAndPostSalesDocWithTwoLines(VATDate, Enum::"Gen. Journal Document Type"::Invoice);
+
+        // [THEN] Sales invoice "I" is posted and the confirmation warning is shown only once
+        SalesInvoiceHeader.Get(DocNo);
+        Assert.AreEqual(1, LibraryVariableStorage.Length(), WarningShownOnceErr);
+        LibraryVariableStorage.DequeueText();
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         PurchaseHeader: Record "Purchase Header";
@@ -6798,6 +6829,14 @@
     procedure ConfirmHandlerFalse(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := false;
+    end;
+
+    [ConfirmHandler]
+    [Scope('OnPrem')]
+    procedure ConfirmHandlerCountTrue(Question: Text[1024]; var Reply: Boolean)
+    begin
+        LibraryVariableStorage.Enqueue(Question);
+        Reply := true;
     end;
 
     [RequestPageHandler]

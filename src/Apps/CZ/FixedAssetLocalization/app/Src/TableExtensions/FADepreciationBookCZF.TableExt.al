@@ -4,8 +4,10 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.FixedAssets;
 
+using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.FixedAssets.Depreciation;
 using Microsoft.FixedAssets.FixedAsset;
+using Microsoft.FixedAssets.Ledger;
 using Microsoft.FixedAssets.Setup;
 
 tableextension 31247 "FA Depreciation Book CZF" extends "FA Depreciation Book"
@@ -172,6 +174,28 @@ tableextension 31247 "FA Depreciation Book CZF" extends "FA Depreciation Book"
             Error(FAPostingGroupMustBeSameErr,
                 Rec.FieldCaption("FA Posting Group"), FASubclass.FieldCaption("Default FA Posting Group"),
                 FASubclass.TableCaption(), FASubclass.Code);
+    end;
+
+    internal procedure BonusDepreciationAppliedCZF(): Boolean
+    var
+        FALedgerEntry: Record "FA Ledger Entry";
+    begin
+        FALedgerEntry.ReadIsolation(IsolationLevel::ReadCommitted);
+        FALedgerEntry.SetCurrentKey("FA No.", "Depreciation Book Code", "FA Posting Category", "FA Posting Type");
+        FALedgerEntry.SetRange("FA No.", Rec."FA No.");
+        FALedgerEntry.SetRange("Depreciation Book Code", Rec."Depreciation Book Code");
+        FALedgerEntry.SetRange("FA Posting Category", FALedgerEntry."FA Posting Category"::" ");
+        FALedgerEntry.SetRange("FA Posting Type", "FA Ledger Entry FA Posting Type"::"Bonus Depreciation");
+        exit(not FALedgerEntry.IsEmpty());
+    end;
+
+    internal procedure BonusDepreciationAmountCZF(): Decimal
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+    begin
+        GeneralLedgerSetup.Get();
+        Rec.CalcFields("Acquisition Cost");
+        exit(Round(Rec."Acquisition Cost" * Rec."Bonus Depreciation %" * 0.01, GeneralLedgerSetup."Amount Rounding Precision"));
     end;
 
     [IntegrationEvent(true, false)]

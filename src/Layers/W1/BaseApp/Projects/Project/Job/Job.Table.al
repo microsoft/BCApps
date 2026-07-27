@@ -1398,6 +1398,7 @@ table 167 Job
 
         // Delete all warehouse requests and warehouse pick requests associated with the Job
         WarehouseRequest.DeleteRequest(Database::Job, 0, "No.");
+        WarehouseRequest.DeleteRequest(Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), "No.");
         DeleteWhsePickRelation();
     end;
 
@@ -1910,6 +1911,7 @@ table 167 Job
             Message(EndingDateChangedMsg, FieldCaption("Ending Date"), "Ending Date");
 
             WarehouseRequest.DeleteRequest(Database::Job, 0, "No.");
+            WarehouseRequest.DeleteRequest(Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), "No.");
             DeleteWhsePickRelation();
         end else begin
             JobCalcWIP.ReOpenJob("No.");
@@ -1928,7 +1930,7 @@ table 167 Job
 
         WarehouseRequest.SetCurrentKey("Source Document", "Source No.");
         WarehouseRequest.SetRange("Source Document", WarehouseRequest."Source Document"::"Job Usage");
-        WarehouseRequest.SetRange("Source Type", Database::Job);
+        WarehouseRequest.SetFilter("Source Type", '%1|%2', Database::Job, Database::"Job Planning Line");
         WarehouseRequest.SetRange("Source No.", "No.");
         Report.RunModal(Report::"Create Invt Put-away/Pick/Mvmt", true, false, WarehouseRequest);
     end;
@@ -2857,11 +2859,11 @@ table 167 Job
         JobPlanningLine.SetFilter("Line Type", '<>%1', JobPlanningLine."Line Type"::Billable);
         JobPlanningLine.SetRange(Type, JobPlanningLine.Type::Item);
         JobPlanningLine.SetFilter("Quantity", '>0');
-        JobPlanningLine.SetLoadFields(JobPlanningLine."Job No.", JobPlanningLine."Job Contract Entry No.", JobPlanningLine."Line No.");
+        JobPlanningLine.SetLoadFields(JobPlanningLine."Job No.", JobPlanningLine."Job Contract Entry No.", JobPlanningLine."Line No.", JobPlanningLine.Status);
 
         if JobPlanningLine.FindSet() then begin
             repeat
-                ItemTrackingMgt.InitItemTrackingForTempWhseWorksheetLine(Enum::"Warehouse Worksheet Document Type"::Job, JobPlanningLine."Job No.", JobPlanningLine."Job Contract Entry No.", Database::Job, 0, JobPlanningLine."Job No.", JobPlanningLine."Job Contract Entry No.", JobPlanningLine."Line No.");
+                ItemTrackingMgt.InitItemTrackingForTempWhseWorksheetLine(Enum::"Warehouse Worksheet Document Type"::Job, JobPlanningLine."Job No.", JobPlanningLine."Job Contract Entry No.", Database::"Job Planning Line", "Job Planning Line Status"::Order.AsInteger(), JobPlanningLine."Job No.", JobPlanningLine."Job Contract Entry No.", JobPlanningLine."Line No.");
             until JobPlanningLine.Next() = 0;
             Commit();
             RunCreatePickFromWhseSource()

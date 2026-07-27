@@ -157,6 +157,14 @@ codeunit 6104 "Import E-Document Process"
 
             OnFoundVendorNo(EDocument, VendNo);
         end;
+
+        if EDocumentPurchaseHeader.Get(EDocument."Entry No") then begin
+            if EDocumentPurchaseHeader."Document Date" <> 0D then
+                EDocument."Document Date" := EDocumentPurchaseHeader."Document Date";
+            if EDocumentPurchaseHeader."Due Date" <> 0D then
+                EDocument."Due Date" := EDocumentPurchaseHeader."Due Date";
+        end;
+
         EDocument.Modify();
     end;
 

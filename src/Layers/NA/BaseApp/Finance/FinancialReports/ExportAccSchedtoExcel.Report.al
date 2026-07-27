@@ -257,7 +257,7 @@ report 29 "Export Acc. Sched. to Excel"
             EnterFilterInCell(
               RowNo, AccSchedLine.GetFilter("Dimension 4 Filter"), GetDimFilterCaption(4), '', TempExcelBuffer."Cell Type"::Text);
 
-        RowNo := RowNo + 1;
+        InsertBlankRowAndFillCells(RowNo, 3, true, false);
         if UseAmtsInAddCurr then
             EnterFilterInCell(
               RowNo, GLSetup."Additional Reporting Currency", Currency.TableCaption(), '', TempExcelBuffer."Cell Type"::Text)
@@ -265,10 +265,11 @@ report 29 "Export Acc. Sched. to Excel"
             EnterFilterInCell(
               RowNo, GLSetup."LCY Code", Currency.TableCaption(), '', TempExcelBuffer."Cell Type"::Text);
 
-        RowNo := RowNo + 1;
+        InsertBlankRowAndFillCells(RowNo, 3, false, true);
+        InsertBlankRowAndFillCells(RowNo, 3, true, false);
         if AccSchedLine.Find('-') then begin
             if ColumnLayout.Find('-') then begin
-                RowNo := RowNo + 1;
+                InsertBlankRowAndFillCells(RowNo, 2, true, false);
                 ColumnNo := 2; // Skip the "Row No." column.
                 repeat
                     ColumnNo := ColumnNo + 1;
@@ -542,6 +543,22 @@ report 29 "Export Acc. Sched. to Excel"
     procedure SetRunForExport()
     begin
         RunForExport := true;
+    end;
+
+    local procedure InsertBlankRowAndFillCells(var RowNo: Integer; ColumnNo: Integer; InsertNewRow: Boolean; FillSingleCellOnly: Boolean)
+    var
+        ColumnIndex: Integer;
+    begin
+        if InsertNewRow then
+            RowNo := RowNo + 1;
+
+        if FillSingleCellOnly then begin
+            EnterCell(RowNo, ColumnNo, '', false, false, false, false, '', TempExcelBuffer."Cell Type"::Text);
+            exit;
+        end;
+
+        for ColumnIndex := 1 to ColumnNo do
+            EnterCell(RowNo, ColumnIndex, '', false, false, false, false, '', TempExcelBuffer."Cell Type"::Text);
     end;
 
     /// <summary>
