@@ -93,6 +93,8 @@ codeunit 13637 "OIOUBL-Export Sales Cr. Memo"
     local procedure InsertCrMemoLine(var CrMemoElement: XmlElement; SalesCrMemoLine: Record "Sales Cr.Memo Line"; CurrencyCode: Code[10])
     var
         CrMemoLineElement: XmlElement;
+        LineTaxableAmount: Decimal;
+        LineTaxAmount: Decimal;
     begin
         CrMemoLineElement := XmlElement.Create('CreditNoteLine', DocNameSpace2);
 
@@ -106,9 +108,12 @@ codeunit 13637 "OIOUBL-Export Sales Cr. Memo"
             XmlAttribute.Create('currencyID', CurrencyCode),
             OIOUBLDocumentEncode.DecimalToText(SalesCrMemoLine.Amount + SalesCrMemoLine."Inv. Discount Amount")));
 
+        OIOUBLXMLGenerator.GetLineTaxAmounts(
+          SalesCrMemoLine.Amount, SalesCrMemoLine."Amount Including VAT", SalesCrMemoLine."Inv. Discount Amount",
+          SalesCrMemoLine."VAT %", Currency."Amount Rounding Precision", LineTaxableAmount, LineTaxAmount);
         OIOUBLXMLGenerator.InsertLineTaxTotal(CrMemoLineElement,
-          SalesCrMemoLine.Amount + SalesCrMemoLine."Inv. Discount Amount",
-          Round((SalesCrMemoLine.Amount + SalesCrMemoLine."Inv. Discount Amount") * SalesCrMemoLine."VAT %" / 100, Currency."Amount Rounding Precision"),
+          LineTaxableAmount,
+          LineTaxAmount,
           SalesCrMemoLine."VAT Calculation Type",
           SalesCrMemoLine."VAT %",
           CurrencyCode);

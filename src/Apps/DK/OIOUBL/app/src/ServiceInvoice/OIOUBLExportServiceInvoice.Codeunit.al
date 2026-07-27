@@ -107,6 +107,8 @@ codeunit 13643 "OIOUBL-Export Service Invoice"
     local procedure InsertInvoiceLine(var InvoiceElement: XmlElement; ServiceInvoiceHeader: Record "Service Invoice Header"; ServiceInvoiceLine: Record "Service Invoice Line"; CurrencyCode: Code[10]; UnitOfMeasureCode: Code[10])
     var
         InvoiceLineElement: XmlElement;
+        LineTaxableAmount: Decimal;
+        LineTaxAmount: Decimal;
     begin
         InvoiceLineElement := XmlElement.Create('InvoiceLine', DocNameSpace2);
 
@@ -122,10 +124,13 @@ codeunit 13643 "OIOUBL-Export Service Invoice"
         InvoiceLineElement.Add(XmlElement.Create('AccountingCost', DocNameSpace, ServiceInvoiceLine."OIOUBL-Account Code"));
         InsertOrderLineReference(InvoiceLineElement, ServiceInvoiceHeader, ServiceInvoiceLine);
 
+        OIOUBLXMLGenerator.GetLineTaxAmounts(
+          ServiceInvoiceLine.Amount, ServiceInvoiceLine."Amount Including VAT", ServiceInvoiceLine."Inv. Discount Amount",
+          ServiceInvoiceLine."VAT %", Currency."Amount Rounding Precision", LineTaxableAmount, LineTaxAmount);
         OIOUBLXMLGenerator.InsertLineTaxTotal(
           InvoiceLineElement,
-          ServiceInvoiceLine.Amount + ServiceInvoiceLine."Inv. Discount Amount",
-          Round((ServiceInvoiceLine.Amount + ServiceInvoiceLine."Inv. Discount Amount") * ServiceInvoiceLine."VAT %" / 100, Currency."Amount Rounding Precision"),
+          LineTaxableAmount,
+          LineTaxAmount,
           ServiceInvoiceLine."VAT Calculation Type",
           ServiceInvoiceLine."VAT %",
           CurrencyCode);

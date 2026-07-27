@@ -115,6 +115,8 @@ codeunit 13636 "OIOUBL-Export Sales Invoice"
     var
         InvoiceLineElement: XmlElement;
         DiscountAmount: Decimal;
+        LineTaxableAmount: Decimal;
+        LineTaxAmount: Decimal;
         AllowanceChargeReason: Text;
     begin
         InvoiceLineElement := XmlElement.Create('InvoiceLine', DocNameSpace2);
@@ -156,10 +158,13 @@ codeunit 13636 "OIOUBL-Export Sales Invoice"
               OIOUBLXMLGenerator.GetTaxCategoryID(SalesInvoiceLine."VAT Calculation Type", SalesInvoiceLine."VAT %"),
               SalesInvoiceLine."Amount Including VAT", CurrencyCode, SalesInvoiceLine."VAT %");
         end;
+        OIOUBLXMLGenerator.GetLineTaxAmounts(
+          SalesInvoiceLine.Amount, SalesInvoiceLine."Amount Including VAT", SalesInvoiceLine."Inv. Discount Amount",
+          SalesInvoiceLine."VAT %", Currency."Amount Rounding Precision", LineTaxableAmount, LineTaxAmount);
         OIOUBLXMLGenerator.InsertLineTaxTotal(
           InvoiceLineElement,
-          SalesInvoiceLine.Amount + SalesInvoiceLine."Inv. Discount Amount",
-          Round((SalesInvoiceLine.Amount + SalesInvoiceLine."Inv. Discount Amount") * SalesInvoiceLine."VAT %" / 100, Currency."Amount Rounding Precision"),
+          LineTaxableAmount,
+          LineTaxAmount,
           SalesInvoiceLine."VAT Calculation Type",
           SalesInvoiceLine."VAT %",
           CurrencyCode);

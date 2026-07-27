@@ -8,9 +8,9 @@ using Microsoft.CRM.Contact;
 using Microsoft.CRM.Team;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.Company;
+using Microsoft.Foundation.Enums;
 using Microsoft.Foundation.PaymentTerms;
 using Microsoft.Sales.History;
-using Microsoft.Foundation.Enums;
 using Microsoft.Service.History;
 
 codeunit 13648 "OIOUBL-Common Logic"
@@ -454,6 +454,30 @@ codeunit 13648 "OIOUBL-Common Logic"
           TaxableAmount, TaxAmount, VATPercent, CurrencyCode);
 
         RootElement.Add(TaxTotalElement);
+    end;
+
+    /// <summary>
+    /// Computes a document line's (pre-header-level-discount) taxable amount and the matching line-level tax amount. Line-level discount is considered in the taxable amount.
+    /// Taxable equals the line's LineExtensionAmount (Amount + Inv. Discount Amount). Tax reuses the posted line VAT (Amount Including VAT - Amount) and adds only the VAT on the invoice discount.
+    /// </summary>
+    /// <param name="Amount">Line net amount (post header and line discount), VAT-excluded.</param>
+    /// <param name="AmountIncludingVAT">Line amount including VAT.</param>
+    /// <param name="InvDiscountAmount">Invoice (header) discount share of the line, VAT-excluded.</param>
+    /// <param name="VATPercent">Line VAT percentage.</param>
+    /// <param name="AmountRoundingPrecision">Rounding precision used for the discount VAT.</param>
+    /// <param name="TaxableAmount">Returns the grossed-up taxable amount.</param>
+    /// <param name="TaxAmount">Returns the matching tax amount.</param>
+    procedure GetLineTaxAmounts(Amount: Decimal; AmountIncludingVAT: Decimal; InvDiscountAmount: Decimal; VATPercent: Decimal; AmountRoundingPrecision: Decimal; var TaxableAmount: Decimal; var TaxAmount: Decimal);
+    var
+        LineVATWithHeaderAndLineDiscount: Decimal; // Line's VAT (with header discount share considered)
+        HeaderShareDiscountVAT: Decimal;
+    begin
+        // The taxable amount includes the header discount because it is later considered by the AllowanceCharge with the same tax category.
+        TaxableAmount := Amount + InvDiscountAmount; // Amount post line discount, pre header discount, VAT-excluded
+        // The tax amount is the VAT of TaxableAmount, but we reuse the posted line VAT (AmountIncludingVAT - Amount) and add only the VAT on the header-level discount
+        LineVATWithHeaderAndLineDiscount := AmountIncludingVAT - Amount;
+        HeaderShareDiscountVAT := Round(InvDiscountAmount * VATPercent / 100, AmountRoundingPrecision);
+        TaxAmount := LineVATWithHeaderAndLineDiscount + HeaderShareDiscountVAT;
     end;
 
     /// <summary>
