@@ -7,7 +7,7 @@ namespace Microsoft.FixedAssets.Depreciation;
 
 using Microsoft.Foundation.Reporting;
 
-codeunit 13467 "Depreciation Differences FI Subscribers"
+codeunit 13467 "Dep Diff FI Subscribers"
 {
     Access = Internal;
     InherentEntitlements = X;
@@ -17,7 +17,7 @@ codeunit 13467 "Depreciation Differences FI Subscribers"
     local procedure OnAfterSubstituteReport(ReportId: Integer; var NewReportId: Integer)
 #if not CLEAN29
     var
-        FeatureCU: Codeunit "Depreciation Differences FI Feature";
+        FeatureCU: Codeunit "Dep Diff FI Feature";
 #endif
     begin
 #if not CLEAN29
@@ -25,6 +25,6 @@ codeunit 13467 "Depreciation Differences FI Subscribers"
             exit;
 #endif
         if ReportId = 13402 then
-            NewReportId := Report::"Calc. and Post Depr. Diff.";
+            NewReportId := Report::"Calc. and Post Depr. Diff. FI";
     end;
 }

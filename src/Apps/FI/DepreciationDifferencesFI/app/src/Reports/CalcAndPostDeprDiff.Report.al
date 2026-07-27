@@ -13,7 +13,7 @@ using Microsoft.FixedAssets.Journal;
 using Microsoft.FixedAssets.Ledger;
 using Microsoft.Foundation.AuditCodes;
 
-report 13478 "Calc. and Post Depr. Diff."
+report 13478 "Calc. and Post Depr. Diff. FI"
 {
     DefaultLayout = RDLC;
     RDLCLayout = './src/Reports/CalcandPostDeprDiff.rdlc';
@@ -284,7 +284,7 @@ report 13478 "Calc. and Post Depr. Diff."
     var
         SourceCodeSetup: Record "Source Code Setup";
         FAPostingGroup: Record "FA Posting Group";
-        DeprDiffPostingBuffer: Record "Depr. Diff. Posting Buffer" temporary;
+        DeprDiffPostingBuffer: Record "Depr. Diff. Posting Buffer FI" temporary;
         GenJnlLine: Record "Gen. Journal Line";
         FALedgerEntry: Record "FA Ledger Entry";
         FADeprBook1: Record "FA Depreciation Book";
@@ -329,7 +329,7 @@ report 13478 "Calc. and Post Depr. Diff."
         GroupTotalCaptionLbl: Label 'Group Total';
         TotalCaptionLbl: Label 'Total';
 
-    local procedure PostJournalLines(DeprDiffBuffer: Record "Depr. Diff. Posting Buffer")
+    local procedure PostJournalLines(DeprDiffBuffer: Record "Depr. Diff. Posting Buffer FI")
     var
         DimMgt: Codeunit DimensionManagement;
         DefaultDimSource: List of [Dictionary of [Integer, Code[20]]];

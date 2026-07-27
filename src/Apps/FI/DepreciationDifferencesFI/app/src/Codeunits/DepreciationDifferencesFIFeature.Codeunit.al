@@ -8,7 +8,7 @@ namespace Microsoft.FixedAssets.Depreciation;
 
 using System.Environment.Configuration;
 
-codeunit 13466 "Depreciation Differences FI Feature"
+codeunit 13466 "Dep Diff FI Feature"
 {
     Access = Internal;
     InherentEntitlements = X;

@@ -17,7 +17,7 @@ pageextension 13480 "Finance Manager RC DeprDiff FI" extends "Finance Manager Ro
             {
                 ApplicationArea = Basic, Suite;
                 Caption = 'Calc. and Post Depr. Difference';
-                RunObject = report "Calc. and Post Depr. Diff.";
+                RunObject = report "Calc. and Post Depr. Diff. FI";
                 ToolTip = 'Calculate and post the difference in accumulated depreciation between two depreciation books for each fixed asset.';
             }
         }

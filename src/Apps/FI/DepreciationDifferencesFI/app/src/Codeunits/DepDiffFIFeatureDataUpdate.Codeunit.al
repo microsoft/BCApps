@@ -10,7 +10,7 @@ using Microsoft.Foundation.Navigate;
 using System.Environment.Configuration;
 using System.Upgrade;
 
-codeunit 13468 "Dep Diff FI Feature Data Update" implements "Feature Data Update"
+codeunit 13468 "Dep Diff FI Feature Data Upd." implements "Feature Data Update"
 {
     Access = Internal;
     Permissions = tabledata "Feature Data Update Status" = rm;

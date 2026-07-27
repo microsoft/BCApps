@@ -538,7 +538,7 @@ codeunit 148152 "Depr. Diff. Calculation FI"
 
     [RequestPageHandler]
     [Scope('OnPrem')]
-    procedure CalcAndPostDeprDifferenceRPH(var CalcAndPostDeprDifferenceRequestPage: TestRequestPage "Calc. and Post Depr. Diff.")
+    procedure CalcAndPostDeprDifferenceRPH(var CalcAndPostDeprDifferenceRequestPage: TestRequestPage "Calc. and Post Depr. Diff. FI")
     var
         Value: Variant;
     begin
@@ -872,7 +872,7 @@ codeunit 148152 "Depr. Diff. Calculation FI"
     local procedure RunCalcAndPostDeprDifferenceReport(FixedAssetFilter: Text)
     var
         FixedAsset: Record "Fixed Asset";
-        CalcAndPostDeprDiffReport: Report "Calc. and Post Depr. Diff.";
+        CalcAndPostDeprDiffReport: Report "Calc. and Post Depr. Diff. FI";
     begin
         FixedAsset.SetFilter("No.", FixedAssetFilter);
         CalcAndPostDeprDiffReport.SetTableView(FixedAsset);
@@ -895,7 +895,7 @@ codeunit 148152 "Depr. Diff. Calculation FI"
         LibraryReportDataset.LoadDataSetFile();
         Assert.IsFalse(
           LibraryReportDataset.FindRow('DifferenceAmt', 0) > -1,
-          StrSubstNo(ZeroDifferenceLineErr, 'Calc. and Post Depr. Diff.'));
+                    StrSubstNo(ZeroDifferenceLineErr, 'Calc. and Post Depr. Diff.'));
     end;
 
     local procedure VerifyCalcAndPostDeprDifferenceReportWithEmptyLines()
@@ -946,7 +946,7 @@ codeunit 148152 "Depr. Diff. Calculation FI"
         UnbindSubscription(TestCU);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Depreciation Differences FI Feature", OnAfterCheckFeatureEnabled, '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Dep Diff FI Feature", OnAfterCheckFeatureEnabled, '', false, false)]
     local procedure OnAfterCheckFeatureEnabled(var IsEnabled: Boolean)
     begin
         IsEnabled := true;
