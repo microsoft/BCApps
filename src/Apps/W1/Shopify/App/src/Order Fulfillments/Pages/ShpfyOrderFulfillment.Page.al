@@ -45,12 +45,12 @@ page 30153 "Shpfy Order Fulfillment"
                 field(CreatedAt; Rec."Created At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time when the fulfillment was created.';
+                    ToolTip = 'Specifies the date and time when the fulfillment was created in Shopify.';
                 }
                 field(UpdatedAt; Rec."Updated At")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the date and time when the fulfillment was last modified.';
+                    ToolTip = 'Specifies the date and time when the fulfillment was last modified in Shopify.';
                 }
                 field(TrackingNumber; Rec."Tracking Number")
                 {

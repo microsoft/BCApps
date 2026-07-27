@@ -16,7 +16,7 @@ shop code and sync type. Order sync specifically keys by `Shop Id` hash
 so multiple BC companies sharing a Shopify shop share the cursor.
 
 `Shpfy Communication Mgt.` is the single API entry point, constructing
-versioned URLs (currently `2026-01`), handling auth, and dispatching
+versioned URLs (currently `2026-07`), handling auth, and dispatching
 GraphQL queries. `Shpfy Communication Events` publishes internal events
 for every API interaction (`OnClientSend`, `OnClientPost`, `OnClientGet`,
 `OnGetContent`, `OnGetAccessToken`) -- tests use these to mock responses.

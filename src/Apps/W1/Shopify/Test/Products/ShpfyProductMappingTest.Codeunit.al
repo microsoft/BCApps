@@ -18,6 +18,7 @@ codeunit 139604 "Shpfy Product Mapping Test"
 
     var
         LibraryAssert: Codeunit "Library Assert";
+        ProductUrlTok: Label 'https://test.myshopify.com/products/test-product', Locked = true;
 
     [Test]
     procedure UnitTestFindMappingWithNoSKUMapping()
@@ -288,5 +289,35 @@ codeunit 139604 "Shpfy Product Mapping Test"
 
         // [THEN] ShopifyProduct."Item SystemId" should be empty (no mapping made)
         LibraryAssert.AreEqual(EmptyGuid, ShopifyProduct."Item SystemId", 'ShopifyProduct."Item SystemId" should be empty when barcode fallback is disabled');
+    end;
+
+    [Test]
+    procedure UnitTestGetProductUrlForItemFromFacade()
+    var
+        Item: Record Item;
+        Shop: Record "Shpfy Shop";
+        ShopifyProduct: Record "Shpfy Product";
+        ShopifyVariant: Record "Shpfy Variant";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        ShopifyProductMgt: Codeunit "Shpfy Product";
+        ActualUrl: Text;
+    begin
+        // [SCENARIO] The "Shpfy Product" facade returns the Shopify product URL for an item in a shop.
+
+        // [GIVEN] A shop with a Shopify product linked to an item and holding a URL
+        Shop := InitializeTest.CreateShop();
+        Item := ProductInitTest.CreateItem();
+        ShopifyVariant := ProductInitTest.CreateStandardProduct(Shop);
+        ShopifyProduct.Get(ShopifyVariant."Product Id");
+        ShopifyProduct."Item SystemId" := Item.SystemId;
+        ShopifyProduct.URL := ProductUrlTok;
+        ShopifyProduct.Modify();
+
+        // [WHEN] Get the product URL through the facade
+        ActualUrl := ShopifyProductMgt.GetProductUrl(Item, Shop.Code);
+
+        // [THEN] The facade returns the product's URL
+        LibraryAssert.AreEqual(ProductUrlTok, ActualUrl, 'The facade should return the Shopify product URL for the item.');
     end;
 }
