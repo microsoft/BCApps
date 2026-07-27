@@ -201,6 +201,13 @@ page 8351 "MCP Config Card"
         }
     }
 
+    trigger OnOpenPage()
+    var
+        MCPNotifications: Codeunit "MCP Notifications";
+    begin
+        MCPNotifications.ShowFeatureDisabledIfApplicable();
+    end;
+
     trigger OnAfterGetRecord()
     begin
         IsDefault := MCPConfigImplementation.IsDefaultConfiguration(Rec);

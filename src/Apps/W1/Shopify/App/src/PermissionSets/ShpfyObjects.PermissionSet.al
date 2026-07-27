@@ -135,6 +135,7 @@ permissionset 30104 "Shpfy - Objects"
         codeunit "Shpfy Create Transl. Product" = X,
         codeunit "Shpfy CreateProdStatusActive" = X,
         codeunit "Shpfy CreateProdStatusDraft" = X,
+        codeunit "Shpfy CreateProdStatusUnlisted" = X,
         codeunit "Shpfy Cust. By Bill-to" = X,
         codeunit "Shpfy Cust. By Default Cust." = X,
         codeunit "Shpfy Cust. By Email/Phone" = X,

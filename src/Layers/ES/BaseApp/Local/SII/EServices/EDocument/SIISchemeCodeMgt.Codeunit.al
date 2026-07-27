@@ -340,7 +340,7 @@ codeunit 10758 "SII Scheme Code Mgt."
         SIIPurchDocSchemeCode.DeleteAll(true);
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnBeforePostSalesDoc', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnBeforePostSalesDoc', '', true, false)]
     local procedure OnBeforePostSalesDoc(var SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean; PreviewMode: Boolean; var HideProgressWindow: Boolean)
     var
         SalesLine: Record "Sales Line";
@@ -403,7 +403,7 @@ codeunit 10758 "SII Scheme Code Mgt."
         end;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnBeforePostPurchaseDoc', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnBeforePostPurchaseDoc', '', true, false)]
     local procedure OnBeforePostPurchaseDoc(var PurchaseHeader: Record "Purchase Header"; PreviewMode: Boolean; CommitIsSupressed: Boolean; var HideProgressWindow: Boolean)
     var
         PurchaseLine: Record "Purchase Line";
@@ -446,7 +446,7 @@ codeunit 10758 "SII Scheme Code Mgt."
         until PurchaseLine.Next() = 0;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterSalesInvHeaderInsert', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterSalesInvHeaderInsert', '', true, false)]
     local procedure OnAfterSalesInvHeaderInsert(var SalesInvHeader: Record "Sales Invoice Header"; SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean)
     var
         SIISalesDocumentSchemeCode: Record "SII Sales Document Scheme Code";
@@ -456,7 +456,7 @@ codeunit 10758 "SII Scheme Code Mgt."
           SIISalesDocumentSchemeCode."Document Type"::"Posted Invoice", SalesInvHeader."No.");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterSalesCrMemoHeaderInsert', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Sales-Post", 'OnAfterSalesCrMemoHeaderInsert', '', true, false)]
     local procedure OnAfterSalesCrMemoHeaderInsert(var SalesCrMemoHeader: Record "Sales Cr.Memo Header"; SalesHeader: Record "Sales Header"; CommitIsSuppressed: Boolean)
     var
         SIISalesDocumentSchemeCode: Record "SII Sales Document Scheme Code";
@@ -466,7 +466,7 @@ codeunit 10758 "SII Scheme Code Mgt."
           SIISalesDocumentSchemeCode."Document Type"::"Posted Credit Memo", SalesCrMemoHeader."No.");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterPurchInvHeaderInsert', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterPurchInvHeaderInsert', '', true, false)]
     local procedure OnAfterPurchInvHeaderInsert(var PurchInvHeader: Record "Purch. Inv. Header"; var PurchHeader: Record "Purchase Header")
     var
         SIIPurchDocSchemeCode: Record "SII Purch. Doc. Scheme Code";
@@ -474,7 +474,7 @@ codeunit 10758 "SII Scheme Code Mgt."
         MovePurchRegimeCodesToPostedDoc(PurchHeader, SIIPurchDocSchemeCode."Document Type"::"Posted Invoice", PurchInvHeader."No.");
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterPurchCrMemoHeaderInsert', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Purch.-Post", 'OnAfterPurchCrMemoHeaderInsert', '', true, false)]
     local procedure OnAfterPurchCrMemoHeaderInsert(var PurchCrMemoHdr: Record "Purch. Cr. Memo Hdr."; var PurchHeader: Record "Purchase Header"; CommitIsSupressed: Boolean)
     var
         SIIPurchDocSchemeCode: Record "SII Purch. Doc. Scheme Code";

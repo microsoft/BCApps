@@ -148,6 +148,7 @@ table 21 "Cust. Ledger Entry"
             AutoFormatType = 1;
             CalcFormula = sum("Detailed Cust. Ledg. Entry".Amount where("Cust. Ledger Entry No." = field("Entry No."),
                                                                          "Posting Date" = field("Date Filter"),
+                                                                         "Excluded from calculation" = const(false),
                                                                          "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Remaining Amount';
             Editable = false;
@@ -179,6 +180,7 @@ table 21 "Cust. Ledger Entry"
             AutoFormatExpression = '';
             CalcFormula = sum("Detailed Cust. Ledg. Entry"."Amount (LCY)" where("Cust. Ledger Entry No." = field("Entry No."),
                                                                                  "Posting Date" = field("Date Filter"),
+                                                                                 "Excluded from calculation" = const(false),
                                                                                  "Prepmt. Diff. in TA" = const(false)));
             Caption = 'Remaining Amt. (LCY)';
             Editable = false;
@@ -487,7 +489,7 @@ table 21 "Cust. Ledger Entry"
         /// <summary>
         /// Specifies the type of balancing account used in the original transaction, such as G/L Account, Bank Account, or Vendor.
         /// </summary>
-        field(51; "Bal. Account Type"; enum "Gen. Journal Account Type")
+        field(51; "Bal. Account Type"; Enum "Gen. Journal Account Type")
         {
             Caption = 'Bal. Account Type';
             ToolTip = 'Specifies the type of account that a balancing entry is posted to, such as BANK for a cash account.';
@@ -1218,10 +1220,6 @@ table 21 "Cust. Ledger Entry"
 #pragma warning disable AA0074
 #pragma warning disable AA0470
         Text000: Label 'must have the same sign as %1';
-#pragma warning restore AA0470
-#pragma warning restore AA0074
-#pragma warning disable AA0074
-#pragma warning disable AA0470
         Text001: Label 'must not be larger than %1';
 #pragma warning restore AA0470
 #pragma warning restore AA0074
