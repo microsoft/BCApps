@@ -33,17 +33,15 @@ codeunit 99001016 "Prod. Definition Temp Data"
         ProdOrdLineBind: Codeunit "Prod. Def. ProdOrdLine Bind";
         GlobalItemNo: Code[20];
         GlobalItemDescription: Text[100];
-        GlobalBaseUOM: Code[10];
         ManufacturingSetupRead: Boolean;
         GlobalSourceType: Enum "Prod. Definition Source";
         RoutingBOMSourceType: Enum "Prod. Definition Source";
         ProdOrderStatus: Enum "Production Order Status";
-        ItemInventoriableTypeCache: Dictionary of [Code[20], Boolean];
         TempProdOrderNoLbl: Label 'TEMP-%1', Locked = true, MaxLength = 20;
         ProductionOrderQtyZeroOrNegativeErr: Label 'Cannot create a production order from Sales Line %1 line %2: the calculated quantity (%3) is zero or negative because the line is fully or over-reserved.', Comment = '%1 = Document No., %2 = Line No., %3 = Quantity';
-        BOMForLbl: Label 'BOM for %1';
+        BOMForLbl: Label 'BOM for %1', Comment = '%1 = Item Description';
         TempBOMNoLbl: Label 'TEMP-BOM-%1', Locked = true, MaxLength = 20;
-        RoutingForLbl: Label 'Routing for %1';
+        RoutingForLbl: Label 'Routing for %1', Comment = '%1 = Item Description';
         TempRoutingNoLbl: Label 'TEMP-RTNG-%1', Locked = true, MaxLength = 20;
 
     /// <summary>
@@ -54,7 +52,6 @@ codeunit 99001016 "Prod. Definition Temp Data"
     begin
         GlobalItemNo := Item."No.";
         GlobalItemDescription := Item.Description;
-        GlobalBaseUOM := Item."Base Unit of Measure";
         ClearSourceContext();
         GlobalSourceType := "Prod. Definition Source"::Item;
         ClearTemporaryProductionTables();
@@ -66,7 +63,6 @@ codeunit 99001016 "Prod. Definition Temp Data"
     /// <param name="SalesLine">The sales line to base the temporary production data on.</param>
     internal procedure InitializeFromSalesLine(SalesLine: Record "Sales Line")
     var
-        Item: Record Item;
         Location: Record Location;
     begin
         ClearSourceContext();
@@ -76,9 +72,6 @@ codeunit 99001016 "Prod. Definition Temp Data"
 
         GlobalItemNo := SalesLine."No.";
         GlobalItemDescription := SalesLine.Description;
-        Item.SetLoadFields("Base Unit of Measure");
-        if Item.Get(SalesLine."No.") then
-            GlobalBaseUOM := Item."Base Unit of Measure";
 
         CreateTemporaryProductionOrderFromSalesLine(SalesLine);
         CreateTemporaryProdOrderLine();
@@ -113,7 +106,6 @@ codeunit 99001016 "Prod. Definition Temp Data"
         Item.Get(SKU."Item No.");
         GlobalItemNo := SKU."Item No.";
         GlobalItemDescription := Item.Description;
-        GlobalBaseUOM := Item."Base Unit of Measure";
         ClearTemporaryProductionTables();
     end;
 

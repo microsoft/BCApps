@@ -228,7 +228,7 @@ codeunit 99001017 "Production Definition Manager"
             if BOMVersionCode = '' then
                 CreateBOMIfNotExists(TempBOMHeader, TempBOMLine, BOMNo)
             else
-                SaveBOMVersionIfRequired(TempBOMHeader, TempBOMLine, BOMNo, BOMVersionCode);
+                SaveBOMVersionIfRequired(TempBOMLine, BOMNo, BOMVersionCode);
         end;
         if TempRoutingLine.FindFirst() then begin
             RoutingNo := TempRoutingLine."Routing No.";
@@ -236,7 +236,7 @@ codeunit 99001017 "Production Definition Manager"
             if RoutingVersionCode = '' then
                 CreateRoutingIfNotExists(TempRoutingHeader, TempRoutingLine, RoutingNo)
             else
-                SaveRoutingVersionIfRequired(TempRoutingHeader, TempRoutingLine, RoutingNo, RoutingVersionCode);
+                SaveRoutingVersionIfRequired(TempRoutingLine, RoutingNo, RoutingVersionCode);
         end;
 
         UpdateSourceWithBOMRoutingNumbers(ItemNo, BOMNo, RoutingNo);
@@ -317,7 +317,7 @@ codeunit 99001017 "Production Definition Manager"
         TempData.LoadRoutingLines(RoutingNo, '');
     end;
 
-    local procedure SaveBOMVersionIfRequired(var TempBOMHeader: Record "Production BOM Header" temporary; var TempBOMLine: Record "Production BOM Line" temporary; BOMNo: Code[20]; BOMVersionCode: Code[20])
+    local procedure SaveBOMVersionIfRequired(var TempBOMLine: Record "Production BOM Line" temporary; BOMNo: Code[20]; BOMVersionCode: Code[20])
     var
         BOMHeader: Record "Production BOM Header";
         BOMLine: Record "Production BOM Line";
@@ -356,7 +356,7 @@ codeunit 99001017 "Production Definition Manager"
         BOMVersion.Modify(true);
     end;
 
-    local procedure SaveRoutingVersionIfRequired(var TempRoutingHeader: Record "Routing Header" temporary; var TempRoutingLine: Record "Routing Line" temporary; RoutingNo: Code[20]; RoutingVersionCode: Code[20])
+    local procedure SaveRoutingVersionIfRequired(var TempRoutingLine: Record "Routing Line" temporary; RoutingNo: Code[20]; RoutingVersionCode: Code[20])
     var
         RoutingHeader: Record "Routing Header";
         RoutingLine: Record "Routing Line";
@@ -483,8 +483,8 @@ codeunit 99001017 "Production Definition Manager"
     local procedure PostWizardProcessing(ItemNo: Code[20])
     var
         ManufacturingSetup: Record "Manufacturing Setup";
-        ProdOrderDirectCreator: Codeunit "Prod. Order Direct Creator";
         ProdOrder: Record "Production Order";
+        ProdOrderDirectCreator: Codeunit "Prod. Order Direct Creator";
     begin
         ManufacturingSetup.SetLoadFields("Always Save Modified Versions");
         ManufacturingSetup.Get();
@@ -540,7 +540,7 @@ codeunit 99001017 "Production Definition Manager"
         if ProdOrder.Status <> ProdOrder.Status::Released then
             exit;
         TempData.GetGlobalSalesLine(TempSalesLine);
-        if not TempSalesLine.FindFirst() then
+        if TempSalesLine.IsEmpty() then
             exit;
         ProdOrderStatusMgt.FlushProdOrder(ProdOrder, ProdOrder.Status, WorkDate());
     end;

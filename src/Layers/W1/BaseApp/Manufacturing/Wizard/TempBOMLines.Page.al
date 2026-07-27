@@ -137,26 +137,6 @@ page 99001029 "Temp BOM Lines"
         }
     }
 
-    var
-        LinesChanged: Boolean;
-
-    trigger OnInsertRecord(BelowxRec: Boolean): Boolean
-    begin
-        LinesChanged := true;
-        exit(true);
-    end;
-
-    trigger OnModifyRecord(): Boolean
-    begin
-        LinesChanged := true;
-        exit(true);
-    end;
-
-    trigger OnDeleteRecord(): Boolean
-    begin
-        LinesChanged := true;
-        exit(true);
-    end;
 
     /// <summary>
     /// Binds the page list to the provided temporary BOM line records.

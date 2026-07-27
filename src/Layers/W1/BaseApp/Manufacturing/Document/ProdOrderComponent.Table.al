@@ -1638,7 +1638,6 @@ table 5407 "Prod. Order Component"
     var
         ProdOrderLine: Record "Prod. Order Line";
         WMSManagement: Codeunit "WMS Management";
-        IsHandled: Boolean;
     begin
         OnBeforeGetDefaultConsumptionBin(Rec, ProdOrderRtngLine, BinCode);
 

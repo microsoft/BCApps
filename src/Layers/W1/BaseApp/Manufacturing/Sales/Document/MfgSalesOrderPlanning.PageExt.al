@@ -44,12 +44,11 @@ pageextension 99000883 "Mfg. Sales Order Planning" extends "Sales Order Planning
 
     procedure CreateProdOrder()
     var
-        CreateOrderFromSales: Page "Create Order From Sales";
         TempSalesPlanningLine: Record "Sales Planning Line" temporary;
+        CreateOrderFromSales: Page "Create Order From Sales";
         NewOrderTypeOption: Option;
         ShowCreateOrderForm: Boolean;
         IsHandled: Boolean;
-        SalesPlanningCount: Integer;
     begin
         UseWizard := false;
         ShowCreateOrderForm := true;
@@ -137,18 +136,16 @@ pageextension 99000883 "Mfg. Sales Order Planning" extends "Sales Order Planning
         HideValidationDialog := false;
         OnBeforeCreateOrder(TempSalesPlanningLine, SalesLine, DoCreateProdOrder, HideValidationDialog);
 
-        if DoCreateProdOrder then begin
-            if UseWizard then begin
-                if ProductionDefinitionManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder, NewStatus) then
-                    OrdersCreated := true;
-            end else begin
+        if DoCreateProdOrder then
+            if not UseWizard then begin
                 OrdersCreated := true;
                 CreateProdOrderFromSale.SetHideValidationDialog(HideValidationDialog);
                 CreateProdOrderFromSale.CreateProductionOrder(SalesLine, NewStatus, NewOrderType);
                 if NewOrderType = NewOrderType::ProjectOrder then
                     EndLoop := true;
-            end;
-        end;
+            end else
+                if ProductionDefinitionManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder, NewStatus) then
+                    OrdersCreated := true;
     end;
 
     [IntegrationEvent(false, false)]
