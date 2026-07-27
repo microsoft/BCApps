@@ -120,6 +120,13 @@ reportextension 8011 "Contract Standard Sales Quote" extends "Standard Sales - Q
             Caption = 'Sales Quote for Subscription Billing (Word)';
             Summary = 'The Sales Quote for Subscription Billing (Word) provides a simple layout that is also relatively easy for an end-user to modify.';
         }
+        layout("SalesQuoteForSubscriptionBillingBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales Service Commitments/Report Extensions/Layouts/SalesQuoteForSubscriptionBillingBody.docx';
+            Caption = 'Body-only: Sales Quote for Subscription Billing (Word)';
+            Summary = 'Body-only: The Sales Quote for Subscription Billing (Word) provides a simple layout that is also relatively easy for an end-user to modify.';
+        }
     }
 
     var
