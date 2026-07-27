@@ -131,6 +131,7 @@ codeunit 144741 "BCPT Setup Card Test"
         BCPTSetupCard: TestPage "BCPT Setup Card";
         ActualNoOfIterations: Integer;
         UnexpectedNoOfSqlStmtsLbl: Label 'Unexpected value in %1. Expected %2, Actual %3', Locked = true;
+        OrValueLbl: Label '%1 or %2', Locked = true;
     begin
         Initialize();
 
@@ -152,7 +153,7 @@ codeunit 144741 "BCPT Setup Card Test"
         // counts 2 extra SQL statements from system tables. Therefore the total is either ActualNoOfIterations or ActualNoOfIterations + 2.
         Assert.IsTrue(
             BCPTSetupCard.BCPTLines.NoOfSQLStmts.AsInteger() in [ActualNoOfIterations, ActualNoOfIterations + 2],
-            StrSubstNo(UnexpectedNoOfSqlStmtsLbl, BCPTLogEntry.FieldCaption("No. of SQL Statements"), StrSubstNo('%1 or %2', ActualNoOfIterations, ActualNoOfIterations + 2), BCPTSetupCard.BCPTLines.NoOfSQLStmts.AsInteger()));
+            StrSubstNo(UnexpectedNoOfSqlStmtsLbl, BCPTLogEntry.FieldCaption("No. of SQL Statements"), StrSubstNo(OrValueLbl, ActualNoOfIterations, ActualNoOfIterations + 2), BCPTSetupCard.BCPTLines.NoOfSQLStmts.AsInteger()));
         BCPTSetupCard.BCPTLines.AvgSQLStmts.AssertEquals(1);
         BCPTSetupCard.Close();
     end;
