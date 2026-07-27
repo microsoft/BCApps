@@ -10,7 +10,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Wizard;
 using Microsoft.Sales.Document;
 
-codeunit 137423 "Prod. Def. Wiz. General Test"
+codeunit 137433 "Prod. Def. Wiz. General Test"
 {
     Subtype = Test;
     TestPermissions = Disabled;
