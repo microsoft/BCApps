@@ -22,7 +22,7 @@
       "id": "ecb1100e-3081-4c6a-9554-de33c687bf5f",
       "name": "Depreciation Differences FI",
       "publisher": "Microsoft",
-      "version": "$(app_currentVersion)"
+      "version": "29.0.0.0"
     }
   ],
   "screenshots": [],
