@@ -87,6 +87,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         InjectSupplierIdentification(XmlDoc, NamespaceMgr, CompanyInformation);
         InjectSupplierEndpoint(XmlDoc, NamespaceMgr, CompanyInformation, EDocumentService.Code);
         InjectRegulatoryComments(XmlDoc, NamespaceMgr, SourceDocumentHeader);
+        InjectPaymentMeansCode(XmlDoc, NamespaceMgr);
         InjectExtendedCTCFranceElements(XmlDoc, NamespaceMgr, SourceDocumentHeader);
 
         HasElecAddress := GetCustomerElecAddress(SourceDocumentHeader, EDocumentService.Code, ElecAddress, ElecAddressScheme);
@@ -232,6 +233,14 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
     local procedure GetRegulatoryCommentTypeCode(RegulatoryCommentType: Enum "FR Regulatory Comment Type"): Text
     begin
         exit(RegulatoryCommentType.Names.Get(RegulatoryCommentType.Ordinals.IndexOf(RegulatoryCommentType.AsInteger())));
+    end;
+
+    local procedure InjectPaymentMeansCode(var XmlDoc: XmlDocument; NamespaceMgr: XmlNamespaceManager)
+    var
+        PaymentMeansCodeNode: XmlNode;
+    begin
+        if XmlDoc.SelectSingleNode('/*/cac:PaymentMeans/cbc:PaymentMeansCode', NamespaceMgr, PaymentMeansCodeNode) then
+            PaymentMeansCodeNode.AsXmlElement().ReplaceWith(XmlElement.Create('PaymentMeansCode', CbcNamespaceTok, PaymentMeansCreditTransferCodeTok));
     end;
 
     local procedure InitNamespaceManager(var NamespaceMgr: XmlNamespaceManager; XmlDoc: XmlDocument)
@@ -497,16 +506,12 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Issued Finance Charge Memo";
         EDocServiceSupportedType.Insert();
 
-        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Purchase Invoice";
-        EDocServiceSupportedType.Insert();
-
-        EDocServiceSupportedType."Source Document Type" := EDocServiceSupportedType."Source Document Type"::"Purchase Credit Memo";
-        EDocServiceSupportedType.Insert();
     end;
 
     var
         CbcNamespaceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2', Locked = true;
         CacNamespaceTok: Label 'urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2', Locked = true;
         ExtendedCTCFranceCustomizationIdTok: Label 'EXTENDED-CTC-FR', Locked = true;
+        PaymentMeansCreditTransferCodeTok: Label '58', Locked = true;
         RegulatoryCommentFormatTok: Label '#%1#%2', Locked = true;
 }
