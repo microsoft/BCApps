@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 interface IEACorpCardProvider
 {
-    procedure Download(var EACorpCardBatch: Record EACorpCardBatch);
+    procedure Download(var CorpCardBatch: Record EACorpCardBatch);
     procedure ParseToStaging(BatchNo: Integer);
     procedure Ack(BatchNo: Integer);
 }
