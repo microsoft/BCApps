@@ -6,6 +6,7 @@ EXTRACTION RULES:
 3. Dates: YYYY-MM-DD format
 4. Extract ALL invoice lines with sequential IDs starting from "1"
 5. Quantity: use "1" only if no quantity column exists on the document
+6. Due date: put the payment due date in "due_date" wherever it appears on the document
 
 CUSTOMER vs VENDOR IDENTIFICATION:
 The JSON structure includes pre-filled accounting_customer_party data. This is OUR company — the buyer receiving the invoice. Use this to distinguish between customer and vendor on the document:
