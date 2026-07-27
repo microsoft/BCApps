@@ -1,4 +1,4 @@
-#if not CLEAN29
+#if not CLEAN28
 namespace Microsoft.Manufacturing.Subcontracting.Migration;
 
 permissionset 149951 "ITSubcMigration-Objs"
@@ -10,6 +10,6 @@ permissionset 149951 "ITSubcMigration-Objs"
 
     ObsoleteState = Pending;
     ObsoleteReason = 'The legacy subcontracting feature is being deprecated.';
-    ObsoleteTag = '29.0';
+    ObsoleteTag = '28.0';
 }
 #endif

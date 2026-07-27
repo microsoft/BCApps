@@ -1217,7 +1217,7 @@ table 111 "Sales Shipment Line"
             OnBeforeInsertInvLineFromShptLine(Rec, SalesLine, SalesOrderLine, IsHandled, TransferOldExtLines);
             if not IsHandled then
                 SalesLine.Insert();
-            OnAfterInsertInvLineFromShptLine(SalesLine, SalesOrderLine, NextLineNo, Rec);
+            OnAfterInsertInvLineFromShptLine(SalesLine, SalesOrderLine, NextLineNo, Rec, TempSalesLine, SalesInvHeader);
 
             ItemTrackingMgt.CopyHandledItemTrkgToInvLine(SalesOrderLine, SalesLine);
 
@@ -1636,8 +1636,10 @@ table 111 "Sales Shipment Line"
     /// <param name="SalesOrderLine">The related sales order line.</param>
     /// <param name="NextLineNo">The next line number after insertion.</param>
     /// <param name="SalesShipmentLine">The source sales shipment line.</param>
+    /// <param name="TempSalesLine">The temporary sales line used during insertion.</param>
+    /// <param name="SalesHeader">The target sales invoice header.</param>
     [IntegrationEvent(false, false)]
-    local procedure OnAfterInsertInvLineFromShptLine(var SalesLine: Record "Sales Line"; SalesOrderLine: Record "Sales Line"; var NextLineNo: Integer; var SalesShipmentLine: Record "Sales Shipment Line")
+    local procedure OnAfterInsertInvLineFromShptLine(var SalesLine: Record "Sales Line"; SalesOrderLine: Record "Sales Line"; var NextLineNo: Integer; var SalesShipmentLine: Record "Sales Shipment Line"; var TempSalesLine: Record "Sales Line" temporary; var SalesHeader: Record "Sales Header")
     begin
     end;
 

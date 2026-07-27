@@ -31,6 +31,7 @@ page 20408 "Qlty. Inspection List"
     PageType = List;
     SourceTable = "Qlty. Inspection Header";
     SourceTableView = sorting("No.", "Re-inspection No.") order(descending);
+    AccessByPermission = tabledata "Qlty. Inspection Header" = R;
     UsageCategory = Lists;
     ApplicationArea = QualityManagement;
     RefreshOnActivate = true;
