@@ -1314,6 +1314,41 @@ report 1306 "Standard Sales - Invoice"
             Caption = 'Standard Sales Invoice Email (Word)';
             Summary = 'The Standard Sales Invoice Email (Word) provides the default email body layout.';
         }
+        layout("StandardSalesInvoiceBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/History/StandardSalesInvoiceBody.docx';
+            Caption = 'Body-only: Standard Sales Invoice (Word)';
+            Summary = 'Body-only: The Standard Sales Invoice (Word) provides a simple layout that is also relatively easy for an end-user to modify.';
+        }
+        layout("StandardSalesInvoiceBlueSimpleBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/History/StandardSalesInvoiceBlueSimpleBody.docx';
+            Caption = 'Body-only: Standard Sales Invoice - Blue (Word)';
+            Summary = 'Body-only: The Standard Sales Invoice - Blue (Word) provides a simple layout with a blue theme.';
+        }
+        layout("StandardSalesInvoiceBlueSimpleThemableBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/History/StandardSalesInvoiceBlueSimpleThemableBody.docx';
+            Caption = 'Body-only: Standard Sales Invoice - themable Word layout';
+            Summary = 'Body-only: The Standard Sales Invoice - Themable (Word) provides a simple Themable layout.';
+        }
+        layout("StandardSalesInvoiceVatSpecBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/History/StandardSalesInvoiceVatSpecBody.docx';
+            Caption = 'Body-only: Standard Sales Invoice - VAT Spec (Word)';
+            Summary = 'Body-only: The Standard Sales Invoice - VAT Spec (Word) provides a layout with VAT Specification.';
+        }
+        layout("StandardSalesInvoiceDefEmailBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/History/StandardSalesInvoiceDefEmailBody.docx';
+            Caption = 'Body-only: Standard Sales Invoice Email (Word)';
+            Summary = 'Body-only: The Standard Sales Invoice Email (Word) provides the default email body layout.';
+        }
     }
 
     labels
