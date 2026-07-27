@@ -9,7 +9,6 @@ using Microsoft.Foundation.Address;
 
 table 7218 EACorpCardTrans
 {
-    Access = Internal;
     Caption = 'Corp Card Transaction';
     DataClassification = CustomerContent;
     LookupPageId = EACorpCardTransList;
@@ -88,6 +87,7 @@ table 7218 EACorpCardTrans
         }
         field(16; "Match Score"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Match Score';
             DecimalPlaces = 0 : 5;
         }

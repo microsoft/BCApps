@@ -8,7 +8,6 @@ using System.IO;
 
 table 7212 EACorpCardBatch
 {
-    Access = Internal;
     Caption = 'Corp Card Import Batch';
     DataClassification = CustomerContent;
     LookupPageId = EACorpCardBatches;

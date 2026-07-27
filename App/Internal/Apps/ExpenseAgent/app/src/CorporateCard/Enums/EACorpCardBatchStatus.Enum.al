@@ -6,7 +6,6 @@ namespace Microsoft.ExpenseAgent;
 
 enum 7226 EACorpCardBatchStatus
 {
-    Access = Internal;
     Caption = 'Corp Card Batch Status';
 
     value(0; Started)
