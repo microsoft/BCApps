@@ -1237,7 +1237,6 @@ page 30101 "Shpfy Shop Card"
         AuthenticationMgt: Codeunit "Shpfy Authentication Mgt.";
         CommunicationMgt: Codeunit "Shpfy Communication Mgt.";
         ShopReview: Codeunit "Shpfy Shop Review";
-        TokenRefresh: Codeunit "Shpfy Token Refresh";
         RefreshTokenExpiredNotification: Notification;
         ApiVersionExpiryDateTime: DateTime;
     begin
@@ -1247,11 +1246,6 @@ page 30101 "Shpfy Shop Card"
             ApiVersionExpiryDateTime := CommunicationMgt.GetApiVersionExpiryDate();
             ApiVersionExpiryDate := DT2Date(ApiVersionExpiryDateTime);
             Rec.CheckApiVersionExpiryDate(ApiVersion, ApiVersionExpiryDateTime);
-
-            // Ensure the recurring token-refresh backstop exists. Scheduled here (not the API path or
-            // install/upgrade) so enqueuing never runs inside a caller's business transaction; an admin
-            // can disable it by setting the Job Queue Entry On Hold.
-            TokenRefresh.ScheduleRefreshJob();
 
             if AuthenticationMgt.CheckScopeChange(Rec) then
                 if Confirm(StrSubstNo(ScopeChangeConfirmLbl, Rec.Code)) then begin
