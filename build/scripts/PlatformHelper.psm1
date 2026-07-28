@@ -43,37 +43,6 @@ function Get-PlatformVersions {
 
 <#
 .SYNOPSIS
-    Gets the platform artifact URL for a specific platform version.
-.DESCRIPTION
-    Constructs and returns the platform artifact URL for a specific platform version.
-    The returned URL can be passed directly to New-BcContainer / New-BcCompilerFolder as
-    the -platformArtifactUrl parameter. Validates that the version exists in the platform index.
-.PARAMETER Version
-    The full platform version string (e.g., '29.0.49913.0').
-.OUTPUTS
-    The platform artifact URL for the specified platform version.
-.EXAMPLE
-    Get-PlatformVersionUrl -Version '29.0.49913.0'
-    Returns: https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/29.0.49913.0/platform
-#>
-function Get-PlatformVersionUrl {
-    [CmdletBinding()]
-    [OutputType([string])]
-    param(
-        [Parameter(Mandatory = $true)]
-        [string] $Version
-    )
-
-    $availableVersions = Get-PlatformVersions
-    if ($availableVersions -notcontains $Version) {
-        throw "Platform version '$Version' is not available. Use Get-PlatformVersions to see available versions."
-    }
-
-    return "$script:PlatformCdnUrl/platform/$Version/platform"
-}
-
-<#
-.SYNOPSIS
     Finds the latest platform version matching a major.minor pattern.
 .DESCRIPTION
     Searches the platform version index for versions matching the specified
@@ -185,7 +154,13 @@ function Get-BCPlatformArtifactUrl {
     }
 
     $platformVersion = Resolve-PlatformVersion -Version $platformVersion
-    return Get-PlatformVersionUrl -Version $platformVersion
+
+    $availableVersions = Get-PlatformVersions
+    if ($availableVersions -notcontains $platformVersion) {
+        throw "Platform version '$platformVersion' is not available. Use Get-PlatformVersions to see available versions."
+    }
+
+    return "$script:PlatformCdnUrl/platform/$platformVersion/platform"
 }
 
 <#
@@ -204,7 +179,6 @@ function Clear-PlatformVersionCache {
 
 Export-ModuleMember -Function @(
     'Get-PlatformVersions',
-    'Get-PlatformVersionUrl',
     'Get-LatestPlatformVersion',
     'Resolve-PlatformVersion',
     'Get-BCPlatformArtifactUrl',

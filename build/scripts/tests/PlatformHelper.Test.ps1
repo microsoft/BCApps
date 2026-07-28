@@ -67,25 +67,6 @@ Describe "PlatformHelper" {
         }
     }
 
-    Describe "Get-PlatformVersionUrl" {
-        BeforeEach {
-            Mock -ModuleName PlatformHelper -CommandName Invoke-WebRequest -MockWith {
-                return @{
-                    Content = $script:testVersions | ConvertTo-Json
-                }
-            }
-        }
-
-        It "Should return correct URL for valid version" {
-            $url = Get-PlatformVersionUrl -Version '29.0.49913.0'
-            $url | Should -Be 'https://bcinsider-fvh2ekdjecfjd6gk.b02.azurefd.net/platform/29.0.49913.0/platform'
-        }
-
-        It "Should throw for invalid version" {
-            { Get-PlatformVersionUrl -Version '99.0.00000.0' } | Should -Throw "*is not available*"
-        }
-    }
-
     Describe "Get-LatestPlatformVersion" {
         BeforeEach {
             Mock -ModuleName PlatformHelper -CommandName Invoke-WebRequest -MockWith {
@@ -154,6 +135,14 @@ Describe "PlatformHelper" {
 
             $url = Get-BCPlatformArtifactUrl
             $url | Should -BeNullOrEmpty
+        }
+
+        It "Should throw when the configured version is not available" {
+            Mock -ModuleName PlatformHelper -CommandName Get-ConfigValue -MockWith {
+                return [PSCustomObject]@{ Version = '99.0.00000.0' }
+            }
+
+            { Get-BCPlatformArtifactUrl } | Should -Throw "*is not available*"
         }
     }
 
