@@ -238,52 +238,22 @@ codeunit 149906 "Subc. Whse Combined Scenarios"
         Item: Record Item;
         ItemLedgerEntry: Record "Item Ledger Entry";
         Location: Record Location;
-        MachineCenter: array[2] of Record "Machine Center";
         PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header";
         PostedWhseReceiptLine: Record "Posted Whse. Receipt Line";
         ProductionOrder: Record "Production Order";
         PurchaseHeader: Record "Purchase Header";
         ReceiveBin: Record Bin;
-        Vendor: Record Vendor;
         WarehouseActivityLine: Record "Warehouse Activity Line";
-        WarehouseEmployee: Record "Warehouse Employee";
         WarehouseEntry: Record "Warehouse Entry";
         WarehouseReceiptHeader: Record "Warehouse Receipt Header";
         WarehouseReceiptLine: Record "Warehouse Receipt Line";
         WorkCenter: array[2] of Record "Work Center";
-        WarehouseReceiptPage: TestPage "Warehouse Receipt";
         Quantity: Decimal;
     begin
         // [SCENARIO 642535] Post mixed subcontracting operations at a bin-mandatory receive-only location
-        Initialize();
-        Quantity := LibraryRandom.RandIntInRange(10, 20);
-
-        // [GIVEN] A production item with last and not-last subcontracting operations for the same vendor
-        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenterSameVendor(WorkCenter, MachineCenter, true);
-        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
-        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkForBothOperations(Item, WorkCenter);
-
-        // [GIVEN] A bin-mandatory location that requires receipt but not put-away
-        SubcWarehouseLibrary.CreateLocationWithRequireReceiveOnlyAndBinMandatory(Location, ReceiveBin);
-        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
-
-        // [GIVEN] The subcontractor uses the receive-only location
-        Vendor.Get(WorkCenter[1]."Subcontractor No.");
-        Vendor."Subc. Location Code" := Location.Code;
-        Vendor."Location Code" := Location.Code;
-        Vendor.Modify();
-
-        // [GIVEN] One released production order and one purchase order containing both operation lines
-        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
-            ProductionOrder, "Production Order Status"::Released,
-            ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
-        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
-        SubcWarehouseLibrary.CreateSubcontractingOrdersViaWorksheet(ProductionOrder."No.", PurchaseHeader);
-        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
-
-        // [GIVEN] One warehouse receipt containing both operation lines
-        SubcWarehouseLibrary.CreateWarehouseReceiptUsingGetSourceDocuments(WarehouseReceiptHeader, Location.Code);
-        SetBinCodeOnWarehouseReceiptLines(WarehouseReceiptHeader, ReceiveBin.Code);
+        // [GIVEN] One warehouse receipt containing last and not-last operations at a bin-mandatory receive-only location
+        CreateMixedOperationsWarehouseReceiptAtBinMandatoryReceiveOnlyLocation(
+            Item, Location, ProductionOrder, PurchaseHeader, ReceiveBin, WarehouseReceiptHeader, WorkCenter, Quantity);
         WarehouseReceiptLine.SetRange("No.", WarehouseReceiptHeader."No.");
         WarehouseReceiptLine.SetRange("Source No.", PurchaseHeader."No.");
         Assert.RecordCount(WarehouseReceiptLine, 2);
@@ -293,14 +263,6 @@ codeunit 149906 "Subc. Whse Combined Scenarios"
         WarehouseReceiptLine.FindFirst();
         Assert.AreEqual('', WarehouseReceiptLine."Bin Code", 'Not-last operation should not use a bin');
         Assert.AreEqual(0, WarehouseReceiptLine."Qty. (Base)", 'Not-last operation should have zero base quantity');
-
-        // [THEN] Item tracking remains blocked for the not-last operation
-        WarehouseReceiptPage.OpenEdit();
-        WarehouseReceiptPage.GoToRecord(WarehouseReceiptHeader);
-        WarehouseReceiptPage.WhseReceiptLines.GoToRecord(WarehouseReceiptLine);
-        asserterror WarehouseReceiptPage.WhseReceiptLines.ItemTrackingLines.Invoke();
-        Assert.ExpectedError(
-            'Item tracking lines can only be viewed for subcontracting purchase lines which are linked to a routing line which is the last operation.');
 
         // [GIVEN] The last operation uses the receipt bin and carries the inventory quantity
         WarehouseReceiptLine.SetRange("Subc. Purchase Line Type", "Subc. Purchase Line Type"::LastOperation);
@@ -343,6 +305,40 @@ codeunit 149906 "Subc. Whse Combined Scenarios"
         WarehouseActivityLine.SetRange("Location Code", Location.Code);
         WarehouseActivityLine.SetRange("Item No.", Item."No.");
         Assert.RecordIsEmpty(WarehouseActivityLine);
+    end;
+
+    [Test]
+    procedure ItemTrackingBlockedForNotLastOperationAtBinMandatoryReceiveOnlyLocation()
+    var
+        Item: Record Item;
+        Location: Record Location;
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        ReceiveBin: Record Bin;
+        WarehouseReceiptHeader: Record "Warehouse Receipt Header";
+        WarehouseReceiptLine: Record "Warehouse Receipt Line";
+        WorkCenter: array[2] of Record "Work Center";
+        WarehouseReceiptPage: TestPage "Warehouse Receipt";
+        Quantity: Decimal;
+    begin
+        // [SCENARIO 642535] Item tracking is blocked for a not-last operation at a bin-mandatory receive-only location
+        // [GIVEN] One warehouse receipt containing last and not-last operations at a bin-mandatory receive-only location
+        CreateMixedOperationsWarehouseReceiptAtBinMandatoryReceiveOnlyLocation(
+            Item, Location, ProductionOrder, PurchaseHeader, ReceiveBin, WarehouseReceiptHeader, WorkCenter, Quantity);
+        WarehouseReceiptLine.SetRange("No.", WarehouseReceiptHeader."No.");
+        WarehouseReceiptLine.SetRange("Source No.", PurchaseHeader."No.");
+        WarehouseReceiptLine.SetRange("Subc. Purchase Line Type", "Subc. Purchase Line Type"::NotLastOperation);
+        WarehouseReceiptLine.FindFirst();
+
+        // [WHEN] Item tracking is opened for the not-last operation
+        WarehouseReceiptPage.OpenEdit();
+        WarehouseReceiptPage.GoToRecord(WarehouseReceiptHeader);
+        WarehouseReceiptPage.WhseReceiptLines.GoToRecord(WarehouseReceiptLine);
+        asserterror WarehouseReceiptPage.WhseReceiptLines.ItemTrackingLines.Invoke();
+
+        // [THEN] Item tracking remains blocked
+        Assert.ExpectedError(
+            'Item tracking lines can only be viewed for subcontracting purchase lines which are linked to a routing line which is the last operation.');
     end;
 
     [Test]
@@ -643,6 +639,38 @@ codeunit 149906 "Subc. Whse Combined Scenarios"
         WarehouseEntry.SetRange("Item No.", ItemNo);
         WarehouseEntry.SetRange("Location Code", LocationCode);
         Assert.RecordIsNotEmpty(WarehouseEntry);
+    end;
+
+    local procedure CreateMixedOperationsWarehouseReceiptAtBinMandatoryReceiveOnlyLocation(var Item: Record Item; var Location: Record Location; var ProductionOrder: Record "Production Order"; var PurchaseHeader: Record "Purchase Header"; var ReceiveBin: Record Bin; var WarehouseReceiptHeader: Record "Warehouse Receipt Header"; var WorkCenter: array[2] of Record "Work Center"; var Quantity: Decimal)
+    var
+        MachineCenter: array[2] of Record "Machine Center";
+        Vendor: Record Vendor;
+        WarehouseEmployee: Record "Warehouse Employee";
+    begin
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(10, 20);
+
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenterSameVendor(WorkCenter, MachineCenter, true);
+        SubcWarehouseLibrary.CreateItemForProductionIncludeRoutingAndProdBOM(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLinkForBothOperations(Item, WorkCenter);
+
+        SubcWarehouseLibrary.CreateLocationWithRequireReceiveOnlyAndBinMandatory(Location, ReceiveBin);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+
+        Vendor.Get(WorkCenter[1]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+        SubcWarehouseLibrary.CreateSubcontractingOrdersViaWorksheet(ProductionOrder."No.", PurchaseHeader);
+        LibraryPurchase.ReleasePurchaseDocument(PurchaseHeader);
+
+        SubcWarehouseLibrary.CreateWarehouseReceiptUsingGetSourceDocuments(WarehouseReceiptHeader, Location.Code);
+        SetBinCodeOnWarehouseReceiptLines(WarehouseReceiptHeader, ReceiveBin.Code);
     end;
 
     local procedure VerifyLedgerEntriesForMultiVendorScenario(ItemNo: Code[20]; Quantity: Decimal; LocationCode: Code[10])
