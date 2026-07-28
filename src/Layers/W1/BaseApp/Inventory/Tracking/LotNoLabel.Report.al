@@ -81,6 +81,13 @@ report 6628 "Lot No Label"
             LayoutFile = './Inventory/Tracking/LotNoLabel.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
+        layout(WordBody)
+        {
+            Type = Word;
+            LayoutFile = './Inventory/Tracking/LotNoLabelBody.docx';
+            Caption = 'Body-only: Lot No Label (Word)';
+            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+        }
     }
 
     var
