@@ -2,8 +2,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-using Microsoft.eServices.EDocument.Processing.Interfaces;
-
 codeunit 148500 "XRechnung Structured Tests"
 {
     Subtype = Test;
