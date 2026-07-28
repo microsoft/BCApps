@@ -109,6 +109,13 @@ report 99000769 "Output Item Label"
             LayoutFile = './Manufacturing/Document/OutputItemLabel.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
+        layout(WordBody)
+        {
+            Type = Word;
+            LayoutFile = './Manufacturing/Document/OutputItemLabelBody.docx';
+            Caption = 'Body-only: Production Output Item Label (Word)';
+            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+        }
     }
 
     var
