@@ -6,6 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 page 7222 EACorpCardExceptions
 {
+    ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Exceptions';
     PageType = List;
     UsageCategory = Lists;

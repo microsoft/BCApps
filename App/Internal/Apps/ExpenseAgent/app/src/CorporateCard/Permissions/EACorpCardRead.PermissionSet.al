@@ -11,6 +11,8 @@ permissionset 7212 EACorpCardRead
     Caption = 'Corp Card Read';
 
     Permissions =
+        page EACorpCardJQSchedule = X,
+        page EACorpCardJQScheduleSubpage = X,
         tabledata EACorpCardProvider = R,
         tabledata EACorpCard = R,
         tabledata EACorpCardTrans = R,

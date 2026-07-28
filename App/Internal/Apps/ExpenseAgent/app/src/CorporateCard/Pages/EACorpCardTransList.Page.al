@@ -6,6 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 page 7223 EACorpCardTransList
 {
+    ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Transactions';
     PageType = List;
     UsageCategory = Lists;

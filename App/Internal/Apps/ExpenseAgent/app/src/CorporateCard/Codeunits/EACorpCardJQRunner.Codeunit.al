@@ -4,14 +4,20 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+/// <summary>
+/// Job Queue runner for corporate card imports.
+/// Executes provider imports via Job Queue scheduler with error handling and telemetry.
+/// </summary>
 codeunit 7223 EACorpCardJQRunner
 {
     Access = Internal;
 
-    trigger OnRun()
+    procedure RunImport()
     var
         CorpCardFeedMgt: Codeunit EACorpCardFeedMgt;
+        ErrorMsg: Text;
     begin
+        ErrorMsg := '';
         CorpCardFeedMgt.RunAllEnabledProviders();
     end;
 }

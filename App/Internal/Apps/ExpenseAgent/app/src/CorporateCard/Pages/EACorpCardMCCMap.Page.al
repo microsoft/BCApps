@@ -6,6 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 page 7225 EACorpCardMCCMap
 {
+    ApplicationArea = Basic, Suite;
     Caption = 'Corp Card MCC Map';
     PageType = List;
     UsageCategory = Lists;

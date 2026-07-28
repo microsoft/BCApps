@@ -35,6 +35,14 @@ table 7214 EACorpCardMCCMap
         {
             Caption = 'Blocked';
         }
+        field(5; Description; Text[100])
+        {
+            Caption = 'Description';
+        }
+        field(6; Active; Boolean)
+        {
+            Caption = 'Active';
+        }
     }
 
     keys

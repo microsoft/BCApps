@@ -51,6 +51,7 @@ codeunit 7243 EACorpCardDataExchProv implements IEACorpCardProvider
         DataExch: Record "Data Exch.";
         DataExchDef: Record "Data Exch. Def";
         CorpCardMapMgt: Codeunit EACorpCardMapMgt;
+        PostImportOrch: Codeunit EACorpCardPostImportOrch;
     begin
         CorpCardBatch.Get(BatchNo);
         if CorpCardBatch."Data Exch Entry No." = 0 then
@@ -69,6 +70,8 @@ codeunit 7243 EACorpCardDataExchProv implements IEACorpCardProvider
         end;
 
         MapDataExchToTrans(CorpCardBatch, CorpCardProvider, DataExch);
+
+        PostImportOrch.ProcessBatchPostImport(BatchNo);
     end;
 
     procedure Ack(BatchNo: Integer)

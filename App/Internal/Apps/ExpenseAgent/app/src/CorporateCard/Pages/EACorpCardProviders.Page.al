@@ -6,6 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 page 7224 EACorpCardProviders
 {
+    ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Providers';
     PageType = List;
     UsageCategory = Administration;
@@ -113,6 +114,42 @@ page 7224 EACorpCardProviders
                     OpenLatestBatchForProvider();
                 end;
             }
+            action(ScheduleImport)
+            {
+                Caption = 'Schedule Import';
+                ApplicationArea = Basic, Suite;
+                Image = Calendar;
+                ToolTip = 'Schedules recurring imports for the selected provider.';
+
+                trigger OnAction()
+                begin
+                    ScheduleProviderImport();
+                end;
+            }
+            action(UnscheduleImport)
+            {
+                Caption = 'Unschedule Import';
+                ApplicationArea = Basic, Suite;
+                Image = Delete;
+                ToolTip = 'Removes the scheduled import job for the selected provider.';
+
+                trigger OnAction()
+                begin
+                    UnscheduleProviderImport();
+                end;
+            }
+            action(ViewSchedule)
+            {
+                Caption = 'View Schedule';
+                ApplicationArea = Basic, Suite;
+                Image = List;
+                ToolTip = 'Views the scheduled import job for the selected provider.';
+
+                trigger OnAction()
+                begin
+                    ViewProviderSchedule();
+                end;
+            }
         }
     }
 
@@ -122,8 +159,6 @@ page 7224 EACorpCardProviders
         SourcePayloadSavedMsg: Label 'Source payload was uploaded for provider %1.', Comment = '%1 = Provider code';
         ImportTriggeredMsg: Label 'Import was triggered for provider %1.', Comment = '%1 = Provider code';
         ReplacePayloadQst: Label 'Provider %1 already has source payload. Do you want to replace it?', Comment = '%1 = Provider code';
-        DataExchDefMissingErr: Label 'Data Exchange Definition Code must be set for provider %1.', Comment = '%1 = Provider code';
-        UnsupportedFeedTypeErr: Label 'Provider %1 feed type %2 is not supported for Data Exchange test payload.', Comment = '%1 = Provider code, %2 = Feed type';
         NoBatchFoundErr: Label 'No import batch exists yet for provider %1.', Comment = '%1 = Provider code';
 
     local procedure UploadSourcePayloadForProvider()
@@ -132,7 +167,6 @@ page 7224 EACorpCardProviders
         OutStr: OutStream;
         FileName: Text;
     begin
-        ValidateProviderForDataExch();
         Rec.CalcFields("Source Payload");
         if Rec."Source Payload".HasValue then
             if not Confirm(ReplacePayloadQst, false, Rec.Code) then
@@ -167,7 +201,6 @@ page 7224 EACorpCardProviders
     var
         CorpCardFeedMgt: Codeunit EACorpCardFeedMgt;
     begin
-        ValidateProviderForDataExch();
         CorpCardFeedMgt.RunImport(Rec.Code);
         Message(ImportTriggeredMsg, Rec.Code);
     end;
@@ -184,19 +217,24 @@ page 7224 EACorpCardProviders
         Page.RunModal(Page::EACorpCardBatches, CorpCardBatch);
     end;
 
-    local procedure ValidateProviderForDataExch()
+    local procedure ScheduleProviderImport()
+    var
+        JQMgt: Codeunit EACorpCardJQMgt;
     begin
-        if Rec."Data Exch Def Code" = '' then
-            Error(DataExchDefMissingErr, Rec.Code);
+        JQMgt.ScheduleProviderImport(Rec.Code, 1440, 080000T, Today());
+        Message('Provider %1 scheduled for daily import.', Rec.Code);
+    end;
 
-        case Rec."Feed Type" of
-            Rec."Feed Type"::DataExch,
-            Rec."Feed Type"::CAMT,
-            Rec."Feed Type"::ISO20022,
-            Rec."Feed Type"::CSV:
-                ;
-            else
-                Error(UnsupportedFeedTypeErr, Rec.Code, Format(Rec."Feed Type"));
-        end;
+    local procedure UnscheduleProviderImport()
+    var
+        JQMgt: Codeunit EACorpCardJQMgt;
+    begin
+        if Confirm('Are you sure you want to unschedule imports for provider %1?', false, Rec.Code) then
+            JQMgt.UnscheduleProviderImport(Rec.Code);
+    end;
+
+    local procedure ViewProviderSchedule()
+    begin
+        Message('Import scheduling is managed via the Schedule Import and Unschedule Import actions.');
     end;
 }

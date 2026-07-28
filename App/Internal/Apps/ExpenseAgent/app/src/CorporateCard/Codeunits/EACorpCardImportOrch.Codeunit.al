@@ -13,6 +13,7 @@ codeunit 7242 EACorpCardImportOrch
         CorpCardBatch: Record EACorpCardBatch;
         CorpCardProvReg: Codeunit EACorpCardProvReg;
         CorpCardProviderImpl: Interface IEACorpCardProvider;
+        AuditSubscribers: Codeunit EACorpCardAuditSubscribers;
     begin
         CorpCardProvReg.ResolveProvider(CorpCardProvider, CorpCardProviderImpl);
 
@@ -22,13 +23,21 @@ codeunit 7242 EACorpCardImportOrch
         CorpCardBatch.Status := CorpCardBatch.Status::Started;
         CorpCardBatch.Insert(true);
 
+        AuditSubscribers.LogImportStarted(CorpCardProvider.Code, CorpCardBatch."Batch No.");
+
         CorpCardProviderImpl.Download(CorpCardBatch);
         CorpCardProviderImpl.ParseToStaging(CorpCardBatch."Batch No.");
         CorpCardProviderImpl.Ack(CorpCardBatch."Batch No.");
 
+        CorpCardBatch.Get(CorpCardBatch."Batch No.");
+        if CorpCardBatch.Status <> CorpCardBatch.Status::Failed then
+            CorpCardBatch.Status := CorpCardBatch.Status::Completed;
+
         CorpCardBatch."Ended DT" := CurrentDateTime();
-        CorpCardBatch.Status := CorpCardBatch.Status::Completed;
         CorpCardBatch.Modify();
+
+        if CorpCardBatch.Status = CorpCardBatch.Status::Completed then
+            AuditSubscribers.LogImportCompleted(CorpCardProvider.Code, CorpCardBatch."Batch No.", CorpCardBatch.Imported, CorpCardBatch.Exceptions, CorpCardBatch.Duplicates);
 
         CorpCardProvider."Last Import DT" := CurrentDateTime();
         CorpCardProvider."Last Batch No." := CorpCardBatch."Batch No.";

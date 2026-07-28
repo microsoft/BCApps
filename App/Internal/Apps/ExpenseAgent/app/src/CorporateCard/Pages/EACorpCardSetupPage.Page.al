@@ -6,6 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 page 7226 EACorpCardSetupPage
 {
+    ApplicationArea = Basic, Suite;
     Caption = 'Corp Card Setup';
     PageType = Card;
     UsageCategory = Administration;
