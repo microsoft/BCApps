@@ -30,6 +30,7 @@ table 7217 EACorpCardSetup
         }
         field(4; "Amount Tolerance"; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Amount Tolerance';
             MinValue = 0;
         }

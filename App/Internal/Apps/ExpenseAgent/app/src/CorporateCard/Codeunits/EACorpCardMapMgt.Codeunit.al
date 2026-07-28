@@ -43,7 +43,7 @@ codeunit 7256 EACorpCardMapMgt
         if CorpCardProvider."Data Exch Map Code" <> '' then
             DataExchFieldMapping.SetRange("Data Exch. Line Def Code", CorpCardProvider."Data Exch Map Code");
 
-        if not DataExchFieldMapping.FindFirst() then
+        if DataExchFieldMapping.IsEmpty() then
             Error(MandatoryFieldMapMissingErr, FieldCaption, CorpCardProvider.Code, CorpCardProvider."Data Exch Def Code");
     end;
 

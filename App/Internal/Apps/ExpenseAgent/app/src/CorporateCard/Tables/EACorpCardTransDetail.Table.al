@@ -28,23 +28,27 @@ table 7219 EACorpCardTransDetail
         }
         field(4; Quantity; Decimal)
         {
+            AutoFormatType = 0;
             Caption = 'Quantity';
             DecimalPlaces = 0 : 5;
         }
         field(5; "Unit Cost"; Decimal)
         {
+            AutoFormatExpression = '';
+            AutoFormatType = 2;
             Caption = 'Unit Cost';
-            AutoFormatType = 1;
         }
         field(6; "VAT Amount"; Decimal)
         {
-            Caption = 'VAT Amount';
+            AutoFormatExpression = '';
             AutoFormatType = 1;
+            Caption = 'VAT Amount';
         }
         field(7; "Tax Amount"; Decimal)
         {
-            Caption = 'Tax Amount';
+            AutoFormatExpression = '';
             AutoFormatType = 1;
+            Caption = 'Tax Amount';
         }
         field(8; "Tax Code"; Code[20])
         {
