@@ -2103,7 +2103,7 @@ codeunit 442 "Sales-Post Prepayments"
         SalesLine: Record "Sales Line";
         PrepmtAmt: Decimal;
     begin
-        SalesLine.SetLoadFields(Amount, "Prepayment %");
+        SalesLine.SetLoadFields("Document Type", "Document No.", Type, Amount, "Prepmt. Line Amount", "Prepayment %","Amount Including VAT");
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         SalesLine.SetFilter(Type, '<>%1', SalesLine.Type::" ");
@@ -2112,9 +2112,9 @@ codeunit 442 "Sales-Post Prepayments"
             repeat
                 repeat
                     if SalesHeader."Prepmt. Include Tax" then
-                        PrepmtAmt += Round(SalesLine."Amount Including VAT" * SalesLine."Prepayment %" / 100, Currency."Amount Rounding Precision")
+                        PrepmtAmt += SalesLine."Amount Including VAT" * SalesLine."Prepayment %" / 100
                     else
-                        PrepmtAmt += Round(SalesLine.Amount * SalesLine."Prepayment %" / 100, Currency."Amount Rounding Precision");
+                        PrepmtAmt += SalesLine.Amount * SalesLine."Prepayment %" / 100;
                 until SalesLine.Next() = 0;
         exit(Round(PrepmtAmt, Currency."Amount Rounding Precision"));
     end;
