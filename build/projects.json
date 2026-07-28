@@ -834,6 +834,98 @@
       "dvdFolder": "Applications\\BaseApp\\Test",
       "owningteam": "\\AI Business Solutions\\Finance"
     },
+    "Tests-ERM-Application": {
+      "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\ERM-Application",
+      "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\ERM-Application\\app.json",
+      "assemblyProbingFolders": [
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.AspNetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.NetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\$env:dotNetVersion",
+        "$Env:PkgSystem_Management\\lib\\netstandard2.0",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
+        "$env:INETROOT\\test\\App\\MockService\\MockService",
+        "$env:INETROOT\\test\\App\\MockTest"
+      ],
+      "isGDLProject": true,
+      "unsupportedCountries": [
+        "NA"
+      ],
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\basetest.ruleset.json",
+      "dvdFolder": "Applications\\BaseApp\\Test",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
+    "Tests-ERM-Sales": {
+      "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\ERM-Sales",
+      "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\ERM-Sales\\app.json",
+      "assemblyProbingFolders": [
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.AspNetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.NetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\$env:dotNetVersion",
+        "$Env:PkgSystem_Management\\lib\\netstandard2.0",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
+        "$env:INETROOT\\test\\App\\MockService\\MockService",
+        "$env:INETROOT\\test\\App\\MockTest"
+      ],
+      "isGDLProject": true,
+      "unsupportedCountries": [
+        "NA"
+      ],
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\basetest.ruleset.json",
+      "dvdFolder": "Applications\\BaseApp\\Test",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
+    "Tests-ERM-Purchase": {
+      "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\ERM-Purchase",
+      "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\ERM-Purchase\\app.json",
+      "assemblyProbingFolders": [
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.AspNetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.NetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\$env:dotNetVersion",
+        "$Env:PkgSystem_Management\\lib\\netstandard2.0",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
+        "$env:INETROOT\\test\\App\\MockService\\MockService",
+        "$env:INETROOT\\test\\App\\MockTest"
+      ],
+      "isGDLProject": true,
+      "unsupportedCountries": [
+        "NA"
+      ],
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\basetest.ruleset.json",
+      "dvdFolder": "Applications\\BaseApp\\Test",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
+    "Tests-ERM-Finance": {
+      "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\ERM-Finance",
+      "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\ERM-Finance\\app.json",
+      "assemblyProbingFolders": [
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.AspNetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.NetCore.App\\$env:dotNetVersion",
+        "$env:ProgramFiles\\dotnet\\shared\\Microsoft.WindowsDesktop.App\\$env:dotNetVersion",
+        "$Env:PkgSystem_Management\\lib\\netstandard2.0",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\ServiceTier",
+        "$Env:PkgMicrosoft_Nav_Platform\\lib\\Tools",
+        "$env:INETROOT\\test\\App\\MockService\\MockService",
+        "$env:INETROOT\\test\\App\\MockTest"
+      ],
+      "isGDLProject": true,
+      "unsupportedCountries": [
+        "NA"
+      ],
+      "isTest": true,
+      "runStaticCodeAnalysis": true,
+      "ruleSetPath": "$ENV:INETROOT\\App\\Rulesets\\basetest.ruleset.json",
+      "dvdFolder": "Applications\\BaseApp\\Test",
+      "owningteam": "\\AI Business Solutions\\Finance"
+    },
     "Tests-Fixed Asset": {
       "projectPath": "$env:INETROOT\\App\\Views\\$CountryCode\\Tests\\Fixed Asset",
       "appJsonPath": "$env:INETROOT\\App\\Layers\\W1\\Tests\\Fixed Asset\\app.json",
