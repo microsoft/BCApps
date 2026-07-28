@@ -262,6 +262,13 @@ report 6102 "E-Doc Sample Purchase Invoice"
             Summary = 'Third sample invoice layout';
             LayoutFile = './src/SampleInvoice/EDocSamplePurchInvoice3.docx';
         }
+        layout(SampleInvoiceLayout1Body)
+        {
+            Type = Word;
+            LayoutFile = './src/SampleInvoice/EDocSamplePurchInvoiceBody.docx';
+            Caption = 'Body-only: First sample invoice layout';
+            Summary = 'Body-only: First sample invoice layout';
+        }
     }
 
     var
