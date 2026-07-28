@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/b57bbcc7f3234fcf83699f463d9334c0605ef4a0/Actions/.Modules/settings.schema.json",
+  "$schema": "https://raw.githubusercontent.com/microsoft/AL-Go/mazhelez-split-runpipeline-design/Actions/.Modules/settings.schema.json",
   "type": "PTE",
   "templateUrl": "https://github.com/microsoft/AL-Go-PTE@preview",
   "bcContainerHelperVersion": "preview",
@@ -11,6 +11,7 @@
   "artifact": "bcinsider/Sandbox/29.0.52913.0//latest",
   "country": "base",
   "useProjectDependencies": true,
+  "useModularBuild": true,
   "repoVersion": "29.0",
   "memoryLimit": "16G",
   "numberOfTenantsForTesting": 3,
