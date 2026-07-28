@@ -14,6 +14,7 @@ if ("$env:GITHUB_RUN_ID" -eq "") {
 
 Import-Module (Join-Path $PSScriptRoot 'PlatformHelper.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'EnlistmentHelperFunctions.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'ResetBcContainerDatabase.psm1') -Force
 
 $platformVersion = (Get-ConfigValue -Key "BCPlatform" -ConfigType Packages).Version
 if ($platformVersion) {
@@ -28,35 +29,23 @@ Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -key
 Set-BcContainerServerConfiguration -containerName $parameters.ContainerName -keyName "UsePermissionSetsFromExtensions" -keyValue "true"
 Restart-BcContainer -containerName $parameters.ContainerName
 
-# Clean-BcContainerDatabase -useNewDatabase requires a developer license file to be present in
-# the container's 'my' folder (it throws "Container must be started with a developer license"
-# otherwise) and imports it into the freshly created database. BCApps CI does not pass a license
-# to New-BcContainer, so seed the 'my' folder with the license that ships in the BC artifact this
-# container was built from. Resolve it deterministically via the artifact manifest so a machine
-# with several cached artifact versions cannot pick a stale or wrong license (e.g. Master vs Cronus).
+# Reset the container's application database in one bulk operation instead of uninstalling every
+# pre-installed app one by one (~19 min). Dropping and recreating the application database removes
+# all apps at once (~4 min). Resolve the developer license from the artifact this container was
+# built from (via the manifest, so a machine with several cached versions cannot pick the wrong
+# one); recreating the database drops the license that was imported at container creation.
 $appArtifactPath = Download-Artifacts -artifactUrl $parameters.artifactUrl
 $artifactManifest = Get-Content (Join-Path $appArtifactPath 'manifest.json') -Raw | ConvertFrom-Json
-$licenseSource = Join-Path $appArtifactPath $artifactManifest.licenseFile
-if (-not (Test-Path $licenseSource)) {
-    throw "Artifact license '$licenseSource' not found; cannot license the reset database."
+$licenseFile = Join-Path $appArtifactPath $artifactManifest.licenseFile
+if (-not (Test-Path $licenseFile)) {
+    throw "Artifact license '$licenseFile' not found; cannot license the reset database."
 }
-$myFolder = Join-Path $bcContainerHelperConfig.hostHelperFolder "Extensions\$($parameters.ContainerName)\my"
-$licenseDestination = Join-Path $myFolder "license$([System.IO.Path]::GetExtension($licenseSource))"
-Write-Host "Seeding developer license '$licenseSource' into '$licenseDestination' for the database reset"
-Copy-Item -Path $licenseSource -Destination $licenseDestination -Force
-
-# Reset the container database in a single atomic operation before removing the apps.
-# '-useNewDatabase' drops and recreates an empty application database (re-importing the license
-# seeded above), leaving only the platform System symbols and the System Application published.
-# This means the loop below only has to remove those few remaining apps, and each removal is cheap
-# because the fresh database has no data/schema to tear down - avoiding the ~19 min per-app
-# 'Sync-NAVApp -mode Clean' loop over ~150 pre-installed apps.
-# A credential is passed because the container uses NavUserPassword authentication.
-Clean-BcContainerDatabase -containerName $parameters.ContainerName -useNewDatabase -credential $parameters.Credential
+Reset-BcContainerApplicationDatabase -ContainerName $parameters.ContainerName -Credential $parameters.Credential -LicenseFile $licenseFile
 
 $installedApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast
 
-# Clean the container for all apps. Apps will be installed by AL-Go
+# The reset leaves only the System Application published. Remove it too so AL-Go publishes the
+# repository-built version. This loop now runs over a single app instead of ~150.
 foreach($app in $installedApps) {
     Write-Host "Removing $($app.Name)"
     UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -doNotSaveData -doNotSaveSchema -force
