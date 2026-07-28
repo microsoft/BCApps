@@ -1176,6 +1176,13 @@ report 1322 "Standard Purchase - Order"
             Caption = 'Standard Purchase Order Blue (Word)';
             Summary = 'The Standard Purchase Order (Word) provides a basic layout with a blue theme.';
         }
+        layout("StandardPurchaseOrderBlueBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Purchases/Document/StandardPurchaseOrderBlueBody.docx';
+            Caption = 'Body-only: Standard Purchase Order Blue (Word)';
+            Summary = 'Body-only: The Standard Purchase Order (Word) provides a basic layout with a blue theme.';
+        }
     }
 
     labels
