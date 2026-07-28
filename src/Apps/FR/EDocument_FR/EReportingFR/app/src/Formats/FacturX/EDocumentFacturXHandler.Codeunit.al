@@ -122,16 +122,20 @@ codeunit 10986 "E-Document Factur-X Handler" implements IStructuredFormatReader,
     /// <returns>The structured data that the Read into Draft stage consumes.</returns>
     internal procedure StructureReceivedEDocument(EDocumentDataStorage: Record "E-Doc. Data Storage"): Interface IStructuredDataType
     var
-        SourceBlob: Codeunit "Temp Blob";
         CIIXml: XmlDocument;
         XmlNamespaces: XmlNamespaceManager;
     begin
-        SourceBlob := EDocumentDataStorage.GetTempBlob();
-        CIIXml := ReadCIIDocument(SourceBlob, XmlNamespaces);
+        CIIXml := ReadCIIDocument(GetSourceBlob(EDocumentDataStorage), XmlNamespaces);
         CIIXml.WriteTo(StructuredData);
         if StructuredData = '' then
             Error(NoEmbeddedInvoiceErr);
         exit(this);
+    end;
+
+    local procedure GetSourceBlob(EDocumentDataStorage: Record "E-Doc. Data Storage") SourceBlob: Codeunit "Temp Blob"
+    begin
+        EDocumentDataStorage.CalcFields("Data Storage");
+        SourceBlob.FromRecord(EDocumentDataStorage, EDocumentDataStorage.FieldNo("Data Storage"));
     end;
 
     internal procedure GetFileFormat(): Enum "E-Doc. File Format"
