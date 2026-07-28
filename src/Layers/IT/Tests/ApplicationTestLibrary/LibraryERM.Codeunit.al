@@ -1421,9 +1421,6 @@ codeunit 131300 "Library - ERM"
     end;
 
     procedure CreateVATBusinessPostingGroup(var VATBusinessPostingGroup: Record "VAT Business Posting Group")
-    var
-        NoSeries: Record "No. Series";
-        NoSeriesCode: Code[20];
     begin
         VATBusinessPostingGroup.Init();
         VATBusinessPostingGroup.Validate(
@@ -1434,20 +1431,8 @@ codeunit 131300 "Library - ERM"
         // Validating Code as Name because value is not important.
         VATBusinessPostingGroup.Validate(Description, VATBusinessPostingGroup.Code);
 
-        // Set "Default Sales/Purchase operation"s - select first appropriate from "No. Series"
-        NoSeries.SetRange("No. Series Type", NoSeries."No. Series Type"::Sales);
-        if NoSeries.FindFirst() then
-            NoSeriesCode := NoSeries.Code
-        else
-            NoSeriesCode := CreateNoSeriesSalesCode();
-        VATBusinessPostingGroup."Default Sales Operation Type" := NoSeriesCode;
-
-        NoSeries.SetRange("No. Series Type", NoSeries."No. Series Type"::Purchase);
-        if NoSeries.FindFirst() then
-            NoSeriesCode := NoSeries.Code
-        else
-            NoSeriesCode := CreateNoSeriesPurchaseCode();
-        VATBusinessPostingGroup."Default Purch. Operation Type" := NoSeriesCode;
+        VATBusinessPostingGroup."Default Sales Operation Type" := CreateNoSeriesSalesCode();
+        VATBusinessPostingGroup."Default Purch. Operation Type" := CreateNoSeriesPurchaseCode();
 
         VATBusinessPostingGroup.Insert(true);
     end;

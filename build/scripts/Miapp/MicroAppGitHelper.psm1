@@ -434,28 +434,44 @@ function Get-GitCurrentBranch {
     git rev-parse --abbrev-ref HEAD
 }
 
-function Initialize-MiappRepoBranchName {
+$script:MiappBaseBranch = $null
+
+function Get-MiappBaseBranch {
+    <#
+    .SYNOPSIS
+    Returns the base branch Miapp integrates from, derived from the repository
+    Miapp operates on - not from any environment variable.
+
+    .DESCRIPTION
+    The base branch is resolved from 'origin/HEAD' of the current repository so
+    that Miapp always targets that repository's own default branch, even when it
+    runs inside a submodule whose default branch differs from the outer repo.
+    Deriving it from the repository (rather than an ambient variable such as
+    $env:RepoBranchName) avoids constructing a non-existent ref like
+    'origin/master' when the outer repo and the submodule use different default
+    branch names. The resolved value is cached for the lifetime of the module.
+    #>
     [CmdletBinding()]
     [OutputType([string])]
     param()
 
-    if ($env:RepoBranchName) {
-        return $env:RepoBranchName
+    if ($script:MiappBaseBranch) {
+        return $script:MiappBaseBranch
     }
 
     [string] $originHeadRef = (git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>$null)
     if ($originHeadRef -imatch '^origin/(.+)$') {
-        $env:RepoBranchName = $Matches[1]
+        $script:MiappBaseBranch = $Matches[1]
     }
 
-    if (-not $env:RepoBranchName) {
+    if (-not $script:MiappBaseBranch) {
         [string] $originHeadBranch = (git remote show origin 2>$null | Select-String 'HEAD branch:' | Select-Object -First 1)
         if ($originHeadBranch -imatch 'HEAD branch:\s*(.+)$') {
-            $env:RepoBranchName = $Matches[1].Trim()
+            $script:MiappBaseBranch = $Matches[1].Trim()
         }
     }
 
-    $env:RepoBranchName
+    $script:MiappBaseBranch
 }
 
 function Get-GitLastCommitSHA1 {
@@ -517,9 +533,9 @@ function GetGitCommittedFiles {
     [OutputType([string[]])]
     param()
 
-    # Returns files committed locally since origin/RepoBranchName
-    if (-not (Initialize-MiappRepoBranchName)) { return }
-    git diff --name-only "origin/$env:RepoBranchName...HEAD" | ? { $_ }
+    # Returns files committed locally since the base branch (origin/HEAD)
+    if (-not (Get-MiappBaseBranch)) { return }
+    git diff --name-only "origin/$(Get-MiappBaseBranch)...HEAD" | ? { $_ }
 }
 
 
@@ -724,7 +740,7 @@ Export-ModuleMember Get-GitCanonicalPath
 Export-ModuleMember Get-GitChangedFiles
 Export-ModuleMember Get-GitCurrentBranch
 Export-ModuleMember Get-GitCurrentRemoteBranch
-Export-ModuleMember Initialize-MiappRepoBranchName
+Export-ModuleMember Get-MiappBaseBranch
 Export-ModuleMember Get-GitFileStatus
 Export-ModuleMember Get-GitLastCommitSHA1
 Export-ModuleMember Get-GitMergeToolConfig

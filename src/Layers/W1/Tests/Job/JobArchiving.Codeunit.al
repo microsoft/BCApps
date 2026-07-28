@@ -17,6 +17,7 @@ codeunit 136321 "Job Archiving"
         LibraryERM: Codeunit "Library - ERM";
         LibraryJob: Codeunit "Library - Job";
         LibraryRandom: Codeunit "Library - Random";
+        LibraryResource: Codeunit "Library - Resource";
         LibrarySales: Codeunit "Library - Sales";
         LibrarySetupStorage: Codeunit "Library - Setup Storage";
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -596,6 +597,103 @@ codeunit 136321 "Job Archiving"
         Assert.AreEqual(2, Job."No. of Archived Versions", 'No. of Archived Versions should be 2 after renumbering');
     end;
 
+    [Test]
+    [HandlerFunctions('ConfirmHandler,MessageHandler')]
+    procedure AssignedResourcesAreArchivedAndRestored()
+    var
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        JobArchive: Record "Job Archive";
+        Resource: Record Resource;
+        JobAssignedResource: Record "Job Assigned Resource";
+        JobAssignedResourceArchive: Record "Job Assigned Resource Archive";
+    begin
+        // [FEATURE] [Assigned Resource]
+        // [SCENARIO] Assigned resources (project- and task-level) are stored on archive and restored with the version.
+        Initialize();
+
+        // [GIVEN] A project with a task, a project-level and a task-level assigned resource.
+        CreateJobAndJobTask(Job, JobTask);
+        LibraryResource.CreateResourceNew(Resource);
+        LibraryJob.CreateJobAssignedResource(Job."No.", '', Resource."No.", JobAssignedResource);
+        LibraryJob.CreateJobAssignedResource(Job."No.", JobTask."Job Task No.", Resource."No.", JobAssignedResource);
+
+        // [GIVEN] The project is archived (version 1).
+        LibraryVariableStorage.Enqueue(StrSubstNo(ArchiveConfirmMsg, Job.TableCaption(), Job."No."));
+        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue(StrSubstNo(JobArchiveMsg, Job."No."));
+        JobArchiveManagement.ArchiveJob(Job);
+        FindJobArchive(JobArchive, Job, 1);
+
+        // [THEN] Both assignments are stored in the archive under version 1.
+        JobAssignedResourceArchive.SetRange("Job No.", Job."No.");
+        JobAssignedResourceArchive.SetRange("Version No.", JobArchive."Version No.");
+        Assert.RecordCount(JobAssignedResourceArchive, 2);
+
+        // [GIVEN] A further assignment is added after archiving.
+        LibraryJob.CreateJobTask(Job, JobTask);
+        LibraryJob.CreateJobAssignedResource(Job."No.", JobTask."Job Task No.", Resource."No.", JobAssignedResource);
+
+        // [WHEN] Version 1 is restored.
+        LibraryVariableStorage.Enqueue(StrSubstNo(RestoreConfirmMsg, Job."No.", 1));
+        LibraryVariableStorage.Enqueue(true);
+        LibraryVariableStorage.Enqueue(StrSubstNo(JobRestoredMsg, Job.TableCaption(), Job."No."));
+        JobArchiveManagement.RestoreJob(JobArchive);
+
+        // [THEN] Only the two archived assignments remain; the post-archive one is gone.
+        JobAssignedResource.Reset();
+        JobAssignedResource.SetRange("Job No.", Job."No.");
+        Assert.RecordCount(JobAssignedResource, 2);
+
+        JobAssignedResource.SetRange("Job Task No.", '');
+        Assert.RecordCount(JobAssignedResource, 1);
+
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
+    [Test]
+    procedure AssignedResourceArchiveIsRenamedWhenJobNoIsChanged()
+    var
+        Job: Record Job;
+        JobTask: Record "Job Task";
+        Resource: Record Resource;
+        JobAssignedResource: Record "Job Assigned Resource";
+        JobAssignedResourceArchive: Record "Job Assigned Resource Archive";
+        NewJobNo, OldJobNo : Code[20];
+    begin
+        // [FEATURE] [Assigned Resource]
+        // [SCENARIO] Archived assigned resources are renamed when the project number is changed.
+        Initialize();
+
+        // [GIVEN] Set Always Archive
+        SetArchiveOption('Always');
+
+        // [GIVEN] A project with a task and a project- and task-level assigned resource
+        CreateJobAndJobTask(Job, JobTask);
+        LibraryResource.CreateResourceNew(Resource);
+        LibraryJob.CreateJobAssignedResource(Job."No.", '', Resource."No.", JobAssignedResource);
+        LibraryJob.CreateJobAssignedResource(Job."No.", JobTask."Job Task No.", Resource."No.", JobAssignedResource);
+
+        // [GIVEN] Change Job Status to create archive version 1
+        Job.Validate("Status", Job."Status"::Planning);
+        Job.Modify(true);
+
+        // [GIVEN] Store the old Job No.
+        OldJobNo := Job."No.";
+
+        // [WHEN] Rename Job No.
+        NewJobNo := CopyStr(LibraryRandom.RandText(15), 1, MaxStrLen(NewJobNo));
+        Job.Rename(NewJobNo);
+
+        // [THEN] The archived assigned resources are renamed to the new Job No.
+        JobAssignedResourceArchive.SetRange("Job No.", NewJobNo);
+        Assert.RecordCount(JobAssignedResourceArchive, 2);
+
+        // [THEN] No archived assigned resources remain under the old Job No.
+        JobAssignedResourceArchive.SetRange("Job No.", OldJobNo);
+        Assert.RecordIsEmpty(JobAssignedResourceArchive);
+    end;
+
     local procedure Initialize()
     begin
         LibraryTestInitialize.OnTestInitialize(CODEUNIT::"Job Archiving");
@@ -617,10 +715,12 @@ codeunit 136321 "Job Archiving"
         JobArchive: Record "Job Archive";
         JobTaskArchive: Record "Job Task Archive";
         JobPlanningLineArchive: Record "Job Planning Line Archive";
+        JobAssignedResourceArchive: Record "Job Assigned Resource Archive";
     begin
         JobArchive.DeleteAll();
         JobTaskArchive.DeleteAll();
         JobPlanningLineArchive.DeleteAll();
+        JobAssignedResourceArchive.DeleteAll();
     end;
 
     local procedure CreateJobAndJobTask(var Job: Record Job; var JobTask: Record "Job Task")

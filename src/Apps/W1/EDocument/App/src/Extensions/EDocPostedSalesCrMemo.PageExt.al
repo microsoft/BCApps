@@ -42,7 +42,9 @@ pageextension 6145 "E-Doc. Posted Sales Cr. Memo" extends "Posted Sales Credit M
                         EDocumentProcessing: Codeunit "E-Document Processing";
                     begin
                         if EDocumentProcessing.CreateEDocumentFromPostedDocumentPage(Rec, Enum::"E-Document Type"::"Sales Credit Memo") then
-                            Message(EDocumentCreatedMsg);
+                            Message(EDocumentCreatedMsg)
+                        else
+                            Message(EDocumentNotCreatedMsg);
                     end;
                 }
             }
@@ -52,6 +54,7 @@ pageextension 6145 "E-Doc. Posted Sales Cr. Memo" extends "Posted Sales Credit M
     var
         EDocumentExists: Boolean;
         EDocumentCreatedMsg: Label 'The e-document has been created.';
+        EDocumentNotCreatedMsg: Label 'The e-document could not be created.';
 
     trigger OnAfterGetRecord()
     var

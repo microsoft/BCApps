@@ -57,7 +57,72 @@ codeunit 10840 "Upgrade Payment Management FR"
         TransferRecords(Database::"Payment Step Ledger", Database::"Payment Step Ledger FR");
         TransferRecords(Database::"Payment Address", Database::"Payment Address FR");
 
+        RemapPaymentStepObjectIDs();
+
         UpgradeTag.SetUpgradeTag(UpgTagPayment.GetPaymentUpgradeTag());
+    end;
+
+    local procedure RemapPaymentStepObjectIDs()
+    var
+        PaymentStepFR: Record "Payment Step FR";
+        ReportMap: Dictionary of [Integer, Integer];
+        XmlPortMap: Dictionary of [Integer, Integer];
+        LegacyReportNo: Integer;
+        LegacyExportNo: Integer;
+    begin
+        BuildPaymentStepObjectIDMaps(ReportMap, XmlPortMap);
+
+        if PaymentStepFR.FindSet(true) then
+            repeat
+                LegacyReportNo := PaymentStepFR."Report No.";
+                LegacyExportNo := PaymentStepFR."Export No.";
+
+                case PaymentStepFR."Action Type" of
+                    PaymentStepFR."Action Type"::Report:
+                        if ReportMap.ContainsKey(LegacyReportNo) then
+                            PaymentStepFR."Report No." := ReportMap.Get(LegacyReportNo);
+                    PaymentStepFR."Action Type"::File:
+                        case PaymentStepFR."Export Type" of
+                            PaymentStepFR."Export Type"::Report:
+                                if ReportMap.ContainsKey(LegacyExportNo) then
+                                    PaymentStepFR."Export No." := ReportMap.Get(LegacyExportNo);
+                            PaymentStepFR."Export Type"::XMLport:
+                                if XmlPortMap.ContainsKey(LegacyExportNo) then
+                                    PaymentStepFR."Export No." := XmlPortMap.Get(LegacyExportNo);
+                        end;
+                end;
+
+                OnAfterRemapPaymentStepObjectIDs(PaymentStepFR, LegacyReportNo, LegacyExportNo);
+
+                PaymentStepFR.Modify();
+            until PaymentStepFR.Next() = 0;
+    end;
+
+    local procedure BuildPaymentStepObjectIDMaps(var ReportMap: Dictionary of [Integer, Integer]; var XmlPortMap: Dictionary of [Integer, Integer])
+    begin
+        ReportMap.Set(10843, 10846); // Recapitulation Form
+        ReportMap.Set(10860, 10845); // Payment List
+        ReportMap.Set(10862, 10850); // Suggest Vendor Payments FR
+        ReportMap.Set(10864, 10849); // Suggest Customer Payments
+        ReportMap.Set(10865, 10834); // Bill
+        ReportMap.Set(10866, 10836); // Draft
+        ReportMap.Set(10867, 10847); // Remittance
+        ReportMap.Set(10868, 10837); // Draft notice
+        ReportMap.Set(10869, 10838); // Draft recapitulation
+        ReportMap.Set(10870, 10852); // Withdraw notice
+        ReportMap.Set(10871, 10853); // Withdraw recapitulation
+        ReportMap.Set(10872, 10839); // Duplicate parameter
+        ReportMap.Set(10873, 10831); // Archive Payment Slips
+        ReportMap.Set(10880, 10840); // ETEBAC Files
+        ReportMap.Set(10881, 10851); // Withdraw
+        ReportMap.Set(10883, 10848); // SEPA ISO20022
+
+        XmlPortMap.Set(10863, 10831); // Import/Export Parameters
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterRemapPaymentStepObjectIDs(var PaymentStepFR: Record "Payment Step FR"; LegacyReportNo: Integer; LegacyExportNo: Integer)
+    begin
     end;
 
     procedure TransferRecords(SourceTableId: Integer; TargetTableId: Integer)

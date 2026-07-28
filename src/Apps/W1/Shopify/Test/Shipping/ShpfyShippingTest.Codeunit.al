@@ -20,6 +20,7 @@ codeunit 139606 "Shpfy Shipping Test"
         Shop: Record "Shpfy Shop";
         Any: Codeunit Any;
         LibraryAssert: Codeunit "Library Assert";
+        OutboundHttpRequests: Codeunit "Library - Variable Storage";
         InitializeTest: Codeunit "Shpfy Initialize Test";
         IsInitialized: Boolean;
 
@@ -257,6 +258,34 @@ codeunit 139606 "Shpfy Shipping Test"
         LibraryAssert.IsFalse(FulfillmentRequest.Contains(Format(FulfillmentOrderHeaderA."Shopify Fulfillment Order Id")), 'Second request should not contain Location A fulfillment order');
     end;
 
+    [Test]
+    [HandlerFunctions('MarketDrivenShippingHttpHandler')]
+    procedure UnitTestGetMarketDrivenShippingMethods()
+    var
+        ShipmentMethodMapping: Record "Shpfy Shipment Method Mapping";
+        ShippingMethods: Codeunit "Shpfy Shipping Methods";
+    begin
+        // [SCENARIO] On a market-driven-shipping shop, GetShippingMethods reads shipping options from the Markets API
+        // [GIVEN] A shop whose features.marketDrivenShipping is true, with one market exposing two active and one inactive shipping option
+        Initialize();
+        ShipmentMethodMapping.SetRange("Shop Code", Shop.Code);
+        ShipmentMethodMapping.DeleteAll();
+        // The handler returns responses in enqueue order: first the feature-detection query, then the markets query.
+        OutboundHttpRequests.Enqueue('GQL Get Market Driven Shipping Feature');
+        OutboundHttpRequests.Enqueue('GQL Get Market Shipping Methods');
+
+        // [WHEN] Retrieving the shipping methods
+        ShippingMethods.GetShippingMethods(Shop);
+
+        // [THEN] Each active market shipping option name is stored as a shipment method mapping
+        LibraryAssert.IsTrue(ShipmentMethodMapping.Get(Shop.Code, 'Standard Shipping'), 'Standard Shipping mapping should be created');
+        LibraryAssert.IsTrue(ShipmentMethodMapping.Get(Shop.Code, 'Express Shipping'), 'Express Shipping mapping should be created');
+        // [THEN] Inactive shipping options are skipped
+        LibraryAssert.IsFalse(ShipmentMethodMapping.Get(Shop.Code, 'Inactive Method'), 'Inactive shipping option should not be created');
+        // [THEN] Exactly the two expected API calls were made
+        OutboundHttpRequests.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
@@ -307,5 +336,34 @@ codeunit 139606 "Shpfy Shipping Test"
 
         Response.Content.WriteFrom(NavApp.GetResourceAsText('Shipping/FulfillmentOrderAcceptResponse.txt', TextEncoding::UTF8));
         exit(false); // Prevents actual HTTP call
+    end;
+
+    [HttpClientHandler]
+    internal procedure MarketDrivenShippingHttpHandler(Request: TestHttpRequestMessage; var Response: TestHttpResponseMessage): Boolean
+    var
+        FeatureResponseTok: Label 'Shipping/MarketDrivenShippingFeatureResponse.txt', Locked = true;
+        MarketShippingResponseTok: Label 'Shipping/MarketShippingMethodsResponse.txt', Locked = true;
+        UnexpectedApiCallErr: Label 'Unexpected number of API calls.', Locked = true;
+    begin
+        if not InitializeTest.VerifyRequestUrl(Request.Path, Shop."Shopify URL") then
+            exit(true);
+
+        // The handler cannot read the request body, so responses are returned in enqueued order,
+        // dispatched on the remaining queue length: first the feature-detection query, then the markets query.
+        case OutboundHttpRequests.Length() of
+            2:
+                LoadResourceIntoHttpResponse(FeatureResponseTok, Response);
+            1:
+                LoadResourceIntoHttpResponse(MarketShippingResponseTok, Response);
+            0:
+                Error(UnexpectedApiCallErr);
+        end;
+        exit(false); // Prevents actual HTTP call
+    end;
+
+    local procedure LoadResourceIntoHttpResponse(ResourceText: Text; var Response: TestHttpResponseMessage)
+    begin
+        Response.Content.WriteFrom(NavApp.GetResourceAsText(ResourceText, TextEncoding::UTF8));
+        OutboundHttpRequests.DequeueText();
     end;
 }

@@ -13,7 +13,7 @@ page 18324 "Pay GST Calculation Details"
     ModifyAllowed = false;
     PageType = List;
     SourceTable = "GST Payment Buffer Details";
-    SourceTableView = sorting("GST Registration No.", "Document No.", "GST Component Code", "Line No.") order(ascending);
+    SourceTableView = sorting("GST Registration No.", "Document No.", "Line No.") order(ascending);
 
     layout
     {
