@@ -829,6 +829,7 @@ permissionset 5117 "D365 AUTOMATION"
                   tabledata "G/L Entry - VAT Entry Link" = Rimd,
                   tabledata "G/L Entry" = Rimd,
                   tabledata "G/L Register" = Rimd,
+                  tabledata "G/L Transaction" = Rimd,
                   tabledata "Gen. Business Posting Group" = RIMD,
                   tabledata "Gen. Jnl. Allocation" = RIMD,
                   tabledata "Gen. Jnl. Dim. Filter" = RIMD,

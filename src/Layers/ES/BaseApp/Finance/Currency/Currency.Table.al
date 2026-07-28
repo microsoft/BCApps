@@ -1436,4 +1436,5 @@ table 4 Currency
     local procedure OnGetGainLossAccountOnOtherEntryType(var Currency: Record Currency; DtldCVLedgEntryBuffer: Record "Detailed CV Ledg. Entry Buffer"; var IsHandled: Boolean; var ReturnValue: Code[20])
     begin
     end;
+
 }

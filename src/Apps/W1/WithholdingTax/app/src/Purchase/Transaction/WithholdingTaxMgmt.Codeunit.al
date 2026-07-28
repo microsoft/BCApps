@@ -609,11 +609,6 @@ codeunit 6785 "Withholding Tax Mgmt."
         exit(false);
     end;
 
-    procedure ShouldCreateWithholdingTax(InvoiceAmount: Decimal; WithholdingPostingSetup: Record "Withholding Tax Posting Setup"): Boolean
-    begin
-        exit(not CheckWithholdingCalculationRule(InvoiceAmount, WithholdingPostingSetup));
-    end;
-
     procedure InsertWithholdingTax(TransType: Option Purchase,Sale) EntryNo: Integer
     var
         WithholdingTaxEntry: Record "Withholding Tax Entry";
@@ -1914,7 +1909,7 @@ codeunit 6785 "Withholding Tax Mgmt."
                 end;
 
                 if WithholdingPostingSetup."Realized Withholding Tax Type" = WithholdingPostingSetup."Realized Withholding Tax Type"::Earliest then
-                    if not ShouldCreateWithholdingTax(WithholdingTaxEntry.Base, WithholdingPostingSetup) then
+                    if Abs(WithholdingTaxEntry.Base) < WithholdingPostingSetup."Wthldg. Tax Min. Inv. Amount" then
                         exit;
 
                 WithholdingTaxEntry.Insert();
@@ -3518,7 +3513,7 @@ codeunit 6785 "Withholding Tax Mgmt."
 
         if WithholdingPostingSetup.Get(GenJnlLine."Wthldg. Tax Bus. Post. Group", GenJnlLine."Wthldg. Tax Prod. Post. Group") then
             if WithholdingPostingSetup."Realized Withholding Tax Type" = WithholdingPostingSetup."Realized Withholding Tax Type"::Earliest then
-                if not ShouldCreateWithholdingTax(WithholdingTaxBase, WithholdingPostingSetup) then
+                if WithholdingTaxBase < WithholdingPostingSetup."Wthldg. Tax Min. Inv. Amount" then
                     WithholdingTaxAmount := 0;
     end;
 

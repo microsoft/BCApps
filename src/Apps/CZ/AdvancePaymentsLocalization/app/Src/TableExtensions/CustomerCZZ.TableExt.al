@@ -16,4 +16,17 @@ tableextension 31045 "Customer CZZ" extends Customer
         SalesAdvLetterHeaderCZZ.SetFilter(Status, '%1|%2', SalesAdvLetterHeaderCZZ.Status::"To Pay", SalesAdvLetterHeaderCZZ.Status::"To Use");
         exit(SalesAdvLetterHeaderCZZ.Count());
     end;
+
+    /// <summary>
+    /// Checks if the customer is blocked for the specified advance letter and raises an error if blocked.
+    /// </summary>
+    /// <param name="Transaction">Indicates whether this is a posting transaction.</param>
+    procedure CheckBlockedCustOnAdvanceLettersCZZ(Transaction: Boolean)
+    begin
+        if "Privacy Blocked" then
+            CustPrivacyBlockedErrorMessage(Rec, Transaction);
+
+        if Blocked <> Blocked::" " then
+            CustBlockedErrorMessage(Rec, Transaction);
+    end;
 }
