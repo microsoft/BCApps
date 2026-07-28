@@ -1105,6 +1105,13 @@ report 1307 "Standard Sales - Credit Memo"
             Caption = 'Standard Sales Credit Memo Blue (Word)';
             Summary = 'The Standard Sales Credit Memo Blue (Word) provides a layout with a blue theme.';
         }
+        layout("StandardSalesCreditMemoBlueBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/History/StandardSalesCreditMemoBlueBody.docx';
+            Caption = 'Body-only: Standard Sales Credit Memo Blue (Word)';
+            Summary = 'Body-only: The Standard Sales Credit Memo Blue (Word) provides a layout with a blue theme.';
+        }
     }
 
     labels
