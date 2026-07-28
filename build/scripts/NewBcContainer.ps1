@@ -31,15 +31,19 @@ Restart-BcContainer -containerName $parameters.ContainerName
 # Clean-BcContainerDatabase -useNewDatabase requires a developer license file to be present in
 # the container's 'my' folder (it throws "Container must be started with a developer license"
 # otherwise) and imports it into the freshly created database. BCApps CI does not pass a license
-# to New-BcContainer, so seed the 'my' folder with the license shipped inside the downloaded BC
-# artifact (a '.bclicense' file now present in the BcContainerHelper artifacts cache).
-$licenseFile = Get-ChildItem -Path $bcContainerHelperConfig.bcartifactsCacheFolder -Recurse -Filter '*.bclicense' -File -ErrorAction SilentlyContinue | Select-Object -First 1
-if ($null -eq $licenseFile) {
-    throw "Could not find a '.bclicense' file under '$($bcContainerHelperConfig.bcartifactsCacheFolder)' to license the new database."
+# to New-BcContainer, so seed the 'my' folder with the license that ships in the BC artifact this
+# container was built from. Resolve it deterministically via the artifact manifest so a machine
+# with several cached artifact versions cannot pick a stale or wrong license (e.g. Master vs Cronus).
+$appArtifactPath = Download-Artifacts -artifactUrl $parameters.artifactUrl
+$artifactManifest = Get-Content (Join-Path $appArtifactPath 'manifest.json') -Raw | ConvertFrom-Json
+$licenseSource = Join-Path $appArtifactPath $artifactManifest.licenseFile
+if (-not (Test-Path $licenseSource)) {
+    throw "Artifact license '$licenseSource' not found; cannot license the reset database."
 }
 $myFolder = Join-Path $bcContainerHelperConfig.hostHelperFolder "Extensions\$($parameters.ContainerName)\my"
-Write-Host "Seeding developer license '$($licenseFile.FullName)' into '$myFolder' for the database reset"
-Copy-Item -Path $licenseFile.FullName -Destination (Join-Path $myFolder 'license.bclicense') -Force
+$licenseDestination = Join-Path $myFolder "license$([System.IO.Path]::GetExtension($licenseSource))"
+Write-Host "Seeding developer license '$licenseSource' into '$licenseDestination' for the database reset"
+Copy-Item -Path $licenseSource -Destination $licenseDestination -Force
 
 # Reset the container database in a single atomic operation before removing the apps.
 # '-useNewDatabase' drops and recreates an empty application database (re-importing the license
