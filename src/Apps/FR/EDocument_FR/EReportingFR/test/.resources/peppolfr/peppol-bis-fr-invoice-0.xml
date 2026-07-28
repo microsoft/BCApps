@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ubl:Invoice xmlns:ubl="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+	xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+	xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2">
+	<cbc:CustomizationID>urn:cen.eu:en16931:2017#compliant#urn:fdc:peppol.eu:2017:poacc:billing:international:fr:3.0</cbc:CustomizationID>
+	<cbc:ProfileID>urn:fdc:peppol.eu:2017:poacc:billing:01:1.0</cbc:ProfileID>
+	<cbc:ID>PBIS-FR-6001</cbc:ID>
+	<cbc:IssueDate>2026-03-02</cbc:IssueDate>
+	<cbc:DueDate>2026-04-01</cbc:DueDate>
+	<cbc:InvoiceTypeCode>380</cbc:InvoiceTypeCode>
+	<cbc:DocumentCurrencyCode>XYZ</cbc:DocumentCurrencyCode>
+	<cbc:BuyerReference>SERVICE-ACHATS</cbc:BuyerReference>
+	<cac:OrderReference>
+		<cbc:ID>CMD-2026-4</cbc:ID>
+	</cac:OrderReference>
+	<cac:AccountingSupplierParty>
+		<cac:Party>
+			<cbc:EndpointID schemeID="0009">12345678901234</cbc:EndpointID>
+			<cac:PartyName>
+				<cbc:Name>Fournisseur SARL</cbc:Name>
+			</cac:PartyName>
+			<cac:PostalAddress>
+				<cbc:StreetName>12 Rue de la Paix</cbc:StreetName>
+				<cbc:CityName>Paris</cbc:CityName>
+				<cbc:PostalZone>75002</cbc:PostalZone>
+				<cac:Country>
+					<cbc:IdentificationCode>FR</cbc:IdentificationCode>
+				</cac:Country>
+			</cac:PostalAddress>
+			<cac:PartyTaxScheme>
+				<cbc:CompanyID>FR12345678901</cbc:CompanyID>
+				<cac:TaxScheme>
+					<cbc:ID>VAT</cbc:ID>
+				</cac:TaxScheme>
+			</cac:PartyTaxScheme>
+			<cac:PartyLegalEntity>
+				<cbc:RegistrationName>Fournisseur SARL</cbc:RegistrationName>
+			</cac:PartyLegalEntity>
+		</cac:Party>
+	</cac:AccountingSupplierParty>
+	<cac:AccountingCustomerParty>
+		<cac:Party>
+			<cbc:EndpointID schemeID="0009">98765432109876</cbc:EndpointID>
+			<cac:PartyName>
+				<cbc:Name>Acheteur SA</cbc:Name>
+			</cac:PartyName>
+			<cac:PostalAddress>
+				<cbc:StreetName>5 Avenue Victor Hugo</cbc:StreetName>
+				<cbc:CityName>Lyon</cbc:CityName>
+				<cbc:PostalZone>69006</cbc:PostalZone>
+				<cac:Country>
+					<cbc:IdentificationCode>FR</cbc:IdentificationCode>
+				</cac:Country>
+			</cac:PostalAddress>
+			<cac:PartyLegalEntity>
+				<cbc:RegistrationName>Acheteur SA</cbc:RegistrationName>
+			</cac:PartyLegalEntity>
+		</cac:Party>
+	</cac:AccountingCustomerParty>
+	<cac:TaxTotal>
+		<cbc:TaxAmount currencyID="XYZ">72</cbc:TaxAmount>
+	</cac:TaxTotal>
+	<cac:LegalMonetaryTotal>
+		<cbc:LineExtensionAmount currencyID="XYZ">360</cbc:LineExtensionAmount>
+		<cbc:TaxExclusiveAmount currencyID="XYZ">360</cbc:TaxExclusiveAmount>
+		<cbc:TaxInclusiveAmount currencyID="XYZ">432</cbc:TaxInclusiveAmount>
+		<cbc:AllowanceTotalAmount currencyID="XYZ">0</cbc:AllowanceTotalAmount>
+		<cbc:PayableAmount currencyID="XYZ">432</cbc:PayableAmount>
+	</cac:LegalMonetaryTotal>
+	<cac:InvoiceLine>
+		<cbc:ID>1</cbc:ID>
+		<cbc:InvoicedQuantity unitCode="H87">3</cbc:InvoicedQuantity>
+		<cbc:LineExtensionAmount currencyID="XYZ">360</cbc:LineExtensionAmount>
+		<cac:Item>
+			<cbc:Name>Chaise de bureau</cbc:Name>
+			<cac:SellersItemIdentification>
+				<cbc:ID>ART-500</cbc:ID>
+			</cac:SellersItemIdentification>
+			<cac:ClassifiedTaxCategory>
+				<cbc:ID>S</cbc:ID>
+				<cbc:Percent>20</cbc:Percent>
+				<cac:TaxScheme>
+					<cbc:ID>VAT</cbc:ID>
+				</cac:TaxScheme>
+			</cac:ClassifiedTaxCategory>
+		</cac:Item>
+		<cac:Price>
+			<cbc:PriceAmount currencyID="XYZ">120</cbc:PriceAmount>
+		</cac:Price>
+	</cac:InvoiceLine>
+</ubl:Invoice>

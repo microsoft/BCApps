@@ -235,6 +235,11 @@ table 6100 "E-Document Purchase Header"
             Caption = 'Applies-to Ext. Invoice No.';
             DataClassification = CustomerContent;
         }
+        field(41; "Buyer Reference"; Text[100])
+        {
+            Caption = 'Buyer Reference';
+            DataClassification = CustomerContent;
+        }
         #endregion Purchase fields
 
         #region Business Central Data - Validated fields [101-200]

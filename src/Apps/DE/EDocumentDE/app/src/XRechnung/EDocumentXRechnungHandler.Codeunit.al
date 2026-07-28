@@ -115,6 +115,7 @@ codeunit 11039 "E-Document XRechnung Handler" implements IStructuredFormatReader
         EDocumentXMLHelper.SetDateValueInField(XRechnungXml, XmlNamespaces, '/inv:Invoice/cbc:DueDate', EDocumentPurchaseHeader."Due Date");
         EDocumentXMLHelper.SetCurrencyValueInField(XRechnungXml, XmlNamespaces, '/inv:Invoice/cbc:DocumentCurrencyCode', MaxStrLen(EDocumentPurchaseHeader."Currency Code"), EDocumentPurchaseHeader."Currency Code");
         EDocumentXMLHelper.SetStringValueInField(XRechnungXml, XmlNamespaces, '/inv:Invoice/cac:OrderReference/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Purchase Order No."), EDocumentPurchaseHeader."Purchase Order No.");
+        EDocumentXMLHelper.SetStringValueInField(XRechnungXml, XmlNamespaces, '/inv:Invoice/cbc:BuyerReference', MaxStrLen(EDocumentPurchaseHeader."Buyer Reference"), EDocumentPurchaseHeader."Buyer Reference");
 #pragma warning restore AA0139
         EDocumentXMLHelper.SetNumberValueInField(XRechnungXml, XmlNamespaces, '/inv:Invoice/cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount', EDocumentPurchaseHeader."Sub Total");
         EDocumentXMLHelper.SetNumberValueInField(XRechnungXml, XmlNamespaces, '/inv:Invoice/cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount', EDocumentPurchaseHeader.Total);
@@ -139,6 +140,7 @@ codeunit 11039 "E-Document XRechnung Handler" implements IStructuredFormatReader
         EDocumentXMLHelper.SetDateValueInField(XRechnungXml, XmlNamespaces, '/cn:CreditNote/cbc:DueDate', EDocumentPurchaseHeader."Due Date");
         EDocumentXMLHelper.SetCurrencyValueInField(XRechnungXml, XmlNamespaces, '/cn:CreditNote/cbc:DocumentCurrencyCode', MaxStrLen(EDocumentPurchaseHeader."Currency Code"), EDocumentPurchaseHeader."Currency Code");
         EDocumentXMLHelper.SetStringValueInField(XRechnungXml, XmlNamespaces, '/cn:CreditNote/cac:OrderReference/cbc:ID', MaxStrLen(EDocumentPurchaseHeader."Purchase Order No."), EDocumentPurchaseHeader."Purchase Order No.");
+        EDocumentXMLHelper.SetStringValueInField(XRechnungXml, XmlNamespaces, '/cn:CreditNote/cbc:BuyerReference', MaxStrLen(EDocumentPurchaseHeader."Buyer Reference"), EDocumentPurchaseHeader."Buyer Reference");
 #pragma warning restore AA0139
         EDocumentXMLHelper.SetNumberValueInField(XRechnungXml, XmlNamespaces, '/cn:CreditNote/cac:LegalMonetaryTotal/cbc:TaxExclusiveAmount', EDocumentPurchaseHeader."Sub Total");
         EDocumentXMLHelper.SetNumberValueInField(XRechnungXml, XmlNamespaces, '/cn:CreditNote/cac:LegalMonetaryTotal/cbc:TaxInclusiveAmount', EDocumentPurchaseHeader.Total);

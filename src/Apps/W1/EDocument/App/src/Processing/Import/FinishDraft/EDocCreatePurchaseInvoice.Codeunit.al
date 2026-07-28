@@ -127,6 +127,8 @@ codeunit 6117 "E-Doc. Create Purchase Invoice" implements IEDocumentFinishDraft,
         EDocPurchaseDocumentHelper.ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Vendor Invoice No."), VendorInvoiceNo);
         if EDocumentPurchaseHeader."Purchase Order No." <> '' then
             PurchaseHeader."Vendor Order No." := CopyStr(EDocumentPurchaseHeader."Purchase Order No.", 1, MaxStrLen(PurchaseHeader."Vendor Order No."));
+        if EDocumentPurchaseHeader."Buyer Reference" <> '' then
+            PurchaseHeader."Your Reference" := CopyStr(EDocumentPurchaseHeader."Buyer Reference", 1, MaxStrLen(PurchaseHeader."Your Reference"));
 
         EDocPurchaseDocumentHelper.ApplyDefaultPostingDateFromSetup(PurchaseHeader, EDocumentPurchaseHeader);
         PurchaseHeader."Invoice Received Date" := PurchaseHeader."Document Date";

@@ -45,4 +45,9 @@ enum 6109 "E-Doc. Read into Draft" implements IStructuredFormatReader
         Caption = 'Data Exchange Purchase';
         Implementation = IStructuredFormatReader = "E-Doc. DataExch. Purch Handler";
     }
+    value(6; "CII")
+    {
+        Caption = 'Cross Industry Invoice';
+        Implementation = IStructuredFormatReader = "E-Document CII Handler";
+    }
 }

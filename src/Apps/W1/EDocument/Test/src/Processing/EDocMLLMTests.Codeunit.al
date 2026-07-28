@@ -202,17 +202,17 @@ codeunit 135647 "EDoc MLLM Tests"
     end;
 
     [Test]
-    procedure PreferredImpl_ReturnsMLLM()
+    procedure PreferredImpl_ReturnsHybridPdf()
     var
         EDocPDFFileFormat: Codeunit "E-Doc. PDF File Format";
     begin
-        // [SCENARIO] PDF documents use MLLM as the preferred structure data implementation
+        // [SCENARIO] PDF documents use Hybrid PDF as the preferred structure data implementation, which falls back to MLLM when no e-invoice is embedded
         LibraryLowerPermission.SetOutsideO365Scope();
 
         Assert.AreEqual(
-            "Structure Received E-Doc."::MLLM,
+            "Structure Received E-Doc."::"Hybrid PDF",
             EDocPDFFileFormat.PreferredStructureDataImplementation(),
-            'PDF processing should return MLLM');
+            'PDF processing should return Hybrid PDF');
     end;
 
 #if not CLEAN29

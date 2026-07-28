@@ -131,6 +131,11 @@ page 6182 "E-Doc. Readable Purchase Doc."
                     Caption = 'Purchase Order No.';
                     ToolTip = 'Specifies the purchase order number.';
                 }
+                field("Buyer Reference"; Rec."Buyer Reference")
+                {
+                    Caption = 'Buyer Reference';
+                    ToolTip = 'Specifies the buyer reference that the vendor stated on the document, such as the German Leitweg-ID.';
+                }
                 field("Applies-to Ext. Invoice No."; Rec."Applies-to Ext. Invoice No.")
                 {
                     Caption = 'Applies-to Ext. Invoice No.';

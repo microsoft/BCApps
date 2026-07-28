@@ -113,6 +113,8 @@ codeunit 6404 "E-Doc. Create Purch. Cr. Memo" implements IEDocumentFinishDraft, 
         EDocPurchaseDocumentHelper.ValidateFieldWithContext(PurchaseHeader, PurchaseHeader.FieldNo("Vendor Cr. Memo No."), VendorCrMemoNo);
         if EDocumentPurchaseHeader."Purchase Order No." <> '' then
             PurchaseHeader."Vendor Order No." := CopyStr(EDocumentPurchaseHeader."Purchase Order No.", 1, MaxStrLen(PurchaseHeader."Vendor Order No."));
+        if EDocumentPurchaseHeader."Buyer Reference" <> '' then
+            PurchaseHeader."Your Reference" := CopyStr(EDocumentPurchaseHeader."Buyer Reference", 1, MaxStrLen(PurchaseHeader."Your Reference"));
         PurchaseHeader.Insert(true);
         EDocPurchaseDocumentHelper.ApplyDefaultPostingDateFromSetup(PurchaseHeader, EDocumentPurchaseHeader);
         PurchaseHeader.Modify();
