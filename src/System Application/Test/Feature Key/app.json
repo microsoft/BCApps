@@ -50,5 +50,8 @@
       "to": 135004
     }
   ],
-  "target": "OnPrem"
+  "target": "OnPrem",
+  "features": [
+    "TranslationsWithNamespaces"
+  ]
 }

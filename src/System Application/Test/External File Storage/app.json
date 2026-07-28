@@ -69,5 +69,8 @@
     }
   ],
   "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2134520",
-  "target": "OnPrem"
+  "target": "OnPrem",
+  "features": [
+    "TranslationsWithNamespaces"
+  ]
 }

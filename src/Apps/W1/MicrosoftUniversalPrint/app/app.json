@@ -29,6 +29,7 @@
   "features": [
     "TranslationFile",
     "GenerateCaptions",
-    "NoImplicitWith"
+    "NoImplicitWith",
+    "TranslationsWithNamespaces"
   ]
 }

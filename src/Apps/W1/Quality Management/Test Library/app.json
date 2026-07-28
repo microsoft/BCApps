@@ -55,6 +55,7 @@
   ],
   "features": [
     "NoImplicitWith",
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ]
 }

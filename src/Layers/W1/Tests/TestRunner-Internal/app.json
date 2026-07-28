@@ -25,5 +25,8 @@
     "includeSourceInSymbolFile": true
   },
   "brief": "TestRunner-Internal (W1)",
-  "application": "29.0.0.0"
+  "application": "29.0.0.0",
+  "features": [
+    "TranslationsWithNamespaces"
+  ]
 }

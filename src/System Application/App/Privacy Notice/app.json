@@ -40,5 +40,8 @@
       "to": 1569
     }
   ],
-  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/"
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/",
+  "features": [
+    "TranslationsWithNamespaces"
+  ]
 }

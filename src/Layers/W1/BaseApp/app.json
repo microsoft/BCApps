@@ -261,7 +261,8 @@
   ],
   "target": "OnPrem",
   "features": [
-    "NoImplicitWith"
+    "NoImplicitWith",
+    "TranslationsWithNamespaces"
   ],
   "resourceExposurePolicy": {
     "allowDebugging": true,

@@ -36,7 +36,8 @@
   "target": "Cloud",
   "features": [
     "TranslationFile",
-    "NoImplicitWith"
+    "NoImplicitWith",
+    "TranslationsWithNamespaces"
   ],
   "runtime": "14.0"
 }

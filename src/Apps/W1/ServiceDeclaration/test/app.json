@@ -56,5 +56,8 @@
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
   },
-  "target": "Cloud"
+  "target": "Cloud",
+  "features": [
+    "TranslationsWithNamespaces"
+  ]
 }

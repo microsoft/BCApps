@@ -12,7 +12,8 @@
   "logo": "ExtensionLogo.png",
   "features": [
     "TranslationFile",
-    "GenerateCaptions"
+    "GenerateCaptions",
+    "TranslationsWithNamespaces"
   ],
   "dependencies": [],
   "screenshots": [],

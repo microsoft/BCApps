@@ -50,5 +50,8 @@
     "includeSourceInSymbolFile": true
   },
   "target": "OnPrem",
-  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2115702"
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2115702",
+  "features": [
+    "TranslationsWithNamespaces"
+  ]
 }

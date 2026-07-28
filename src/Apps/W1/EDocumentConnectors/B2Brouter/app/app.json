@@ -43,6 +43,7 @@
   "target": "Cloud",
   "features": [
     "TranslationFile",
-    "NoImplicitWith"
+    "NoImplicitWith",
+    "TranslationsWithNamespaces"
   ]
 }

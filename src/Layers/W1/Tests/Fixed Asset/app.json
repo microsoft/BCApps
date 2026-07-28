@@ -31,5 +31,8 @@
     "includeSourceInSymbolFile": true
   },
   "application": "29.0.0.0",
-  "brief": "Tests-Fixed Asset (W1)"
+  "brief": "Tests-Fixed Asset (W1)",
+  "features": [
+    "TranslationsWithNamespaces"
+  ]
 }

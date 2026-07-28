@@ -47,7 +47,8 @@
   },
   "target": "Cloud",
   "features": [
-    "TranslationFile"
+    "TranslationFile",
+    "TranslationsWithNamespaces"
   ],
   "resourceFolders": [".resources"]
 }

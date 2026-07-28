@@ -68,5 +68,8 @@
       "to": 1492
     }
   ],
-  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/admin-deploy-excel-addin"
+  "contextSensitiveHelpUrl": "https://learn.microsoft.com/dynamics365/business-central/admin-deploy-excel-addin",
+  "features": [
+    "TranslationsWithNamespaces"
+  ]
 }

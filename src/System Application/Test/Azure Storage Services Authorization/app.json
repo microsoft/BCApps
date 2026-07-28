@@ -31,7 +31,7 @@
     }
   ],
   "screenshots": [],
-  "features": [],
+  "features": ["TranslationsWithNamespaces"],
   "platform": "29.0.0.0",
   "idRanges": [
     {

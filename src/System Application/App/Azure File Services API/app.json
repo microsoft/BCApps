@@ -62,7 +62,8 @@
     "includeSourceInSymbolFile": true
   },
   "features": [
-    "NoImplicitWith"
+    "NoImplicitWith",
+    "TranslationsWithNamespaces"
   ],
   "target": "OnPrem"
 }

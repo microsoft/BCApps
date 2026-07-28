@@ -45,5 +45,8 @@
     "allowDebugging": true,
     "allowDownloadingSource": true,
     "includeSourceInSymbolFile": true
-  }
+  },
+  "features": [
+    "TranslationsWithNamespaces"
+  ]
 }

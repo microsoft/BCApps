@@ -14,7 +14,8 @@
   "screenshots": [],
   "platform": "29.0.0.0",
   "features": [
-    "NoImplicitWith"
+    "NoImplicitWith",
+    "TranslationsWithNamespaces"
   ],
   "target": "OnPrem",
   "idRanges": [

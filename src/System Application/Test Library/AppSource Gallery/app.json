@@ -38,5 +38,8 @@
     }
   ],
   "platform": "29.0.0.0",
-  "target": "OnPrem"
+  "target": "OnPrem",
+  "features": [
+    "TranslationsWithNamespaces"
+  ]
 }

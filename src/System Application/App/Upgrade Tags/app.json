@@ -49,5 +49,8 @@
       "publisher": "Microsoft"
     }
   ],
-  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?LinkId=2206253"
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?LinkId=2206253",
+  "features": [
+    "TranslationsWithNamespaces"
+  ]
 }

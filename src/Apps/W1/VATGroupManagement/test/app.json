@@ -61,5 +61,8 @@
   "target": "OnPrem",
   "resourceFolders": [
     ".resources"
+  ],
+  "features": [
+    "TranslationsWithNamespaces"
   ]
 }

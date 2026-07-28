@@ -31,5 +31,8 @@
       "from": 135536,
       "to": 135536
     }
+  ],
+  "features": [
+    "TranslationsWithNamespaces"
   ]
 }

@@ -135,5 +135,8 @@
     }
   ],
   "target": "OnPrem",
-  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2134520"
+  "contextSensitiveHelpUrl": "https://go.microsoft.com/fwlink/?linkid=2134520",
+  "features": [
+    "TranslationsWithNamespaces"
+  ]
 }

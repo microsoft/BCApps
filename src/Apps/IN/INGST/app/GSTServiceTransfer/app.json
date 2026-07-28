@@ -7,7 +7,8 @@
   "description": "GST Service Transfer allows you to calculate GST when you transfer service from one location to another.",
   "features": [
     "TranslationFile",
-    "GenerateCaptions"
+    "GenerateCaptions",
+    "TranslationsWithNamespaces"
   ],
   "privacyStatement": "https://go.microsoft.com/fwlink/?LinkId=724009",
   "EULA": "https://go.microsoft.com/fwlink/?linkid=724013",
