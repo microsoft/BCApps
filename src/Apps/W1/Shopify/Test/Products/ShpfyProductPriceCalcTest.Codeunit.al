@@ -10,6 +10,7 @@ using Microsoft.Inventory.Item;
 using Microsoft.Pricing.Asset;
 using Microsoft.Pricing.Calculation;
 using Microsoft.Pricing.PriceList;
+using Microsoft.Sales.Customer;
 using Microsoft.Sales.Pricing;
 using System.TestLibraries.Utilities;
 
@@ -208,6 +209,94 @@ codeunit 139605 "Shpfy Product Price Calc. Test"
         LibraryAssert.AreNearlyEqual(InitPrice * (1 - DiscFromBoundary / 100), PriceFromBoundary, 0.01, 'Price for Work Date after the boundary date');
         // [THEN] The second calculation applied the 50% discount valid up to the boundary date (would still be 20% with a stale WorkDate cache).
         LibraryAssert.AreNearlyEqual(InitPrice * (1 - DiscUpToBoundary / 100), PriceBeforeBoundary, 0.01, 'Price for Work Date before the boundary date');
+    end;
+
+    [Test]
+    procedure SetShopAfterCatalogDoesNotUseCatalogCurrencyCode()
+    var
+        Shop: Record "Shpfy Shop";
+        Catalog: Record "Shpfy Catalog";
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        CatalogInitialize: Codeunit "Shpfy Catalog Initialize";
+        ProductPriceCalculation: Codeunit "Shpfy Product Price Calc.";
+        LibraryERM: Codeunit "Library - ERM";
+        CatalogCurrencyCode: Code[10];
+    begin
+        // [SCENARIO] Bug 633092 Defect 1: SetShopAndCatalog caches catalog parameters (including a foreign currency)
+        // into the SingleInstance state. A subsequent SetShop call for the same unmodified shop must force a
+        // re-initialization so that base product prices are calculated in the shop currency, not the catalog currency.
+
+        // [GIVEN] A shop with blank (LCY) currency.
+        Shop := InitializeTest.CreateShop();
+
+        // [GIVEN] A market catalog for the same shop with a foreign currency.
+        CatalogCurrencyCode := LibraryERM.CreateCurrencyWithRounding();
+        Catalog := CatalogInitialize.CreateCatalog("Shpfy Catalog Type"::Market);
+        CatalogInitialize.CopyParametersFromShop(Catalog, Shop);
+        Catalog."Currency Code" := CatalogCurrencyCode;
+        Catalog.Modify();
+
+        // [WHEN] Catalog price sync runs SetShopAndCatalog, then shop product/price sync runs SetShop for the same shop.
+        ProductPriceCalculation.SetShopAndCatalog(Shop, Catalog);
+        ProductPriceCalculation.SetShop(Shop);
+
+        // [THEN] The price calculation state reflects the shop's blank (LCY) currency, not the catalog's foreign currency.
+        LibraryAssert.AreEqual('', ProductPriceCalculation.GetCurrencyCode(), 'Catalog currency must not leak into shop-based price calculation after SetShop.');
+    end;
+
+    [Test]
+    procedure SetShopAfterCatalogWithCustomerDoesNotUseCustomerPrice()
+    var
+        Shop: Record "Shpfy Shop";
+        Catalog: Record "Shpfy Catalog";
+        Item: Record Item;
+        Customer: Record Customer;
+        InitializeTest: Codeunit "Shpfy Initialize Test";
+        ProductInitTest: Codeunit "Shpfy Product Init Test";
+        CatalogInitialize: Codeunit "Shpfy Catalog Initialize";
+        ProductPriceCalculation: Codeunit "Shpfy Product Price Calc.";
+        LibrarySales: Codeunit "Library - Sales";
+        InitUnitCost: Decimal;
+        InitPrice: Decimal;
+        CustDiscPerc: Decimal;
+        UnitCost: Decimal;
+        Price: Decimal;
+        ComparePrice: Decimal;
+    begin
+        // [SCENARIO] Bug 633092 Defect 2: After SetShopAndCatalog with a B2B catalog that has a Customer No.,
+        // SetShop must clear CustomerNo when re-initializing the cached temp sales header. Otherwise the header
+        // is built from the catalog customer's price group and discounts even though the caller asked for shop
+        // base prices, causing wrong (customer-discounted) prices to be sent to Shopify as the shop base price.
+
+        // [GIVEN] A shop, an item with a base price, and a customer with a specific customer-level discount.
+        LibraryPriceCalculation.EnableExtendedPriceCalculation();
+        Shop := InitializeTest.CreateShop();
+        Shop."Allow Line Disc." := true;
+        Shop.Modify();
+        InitUnitCost := Any.DecimalInRange(10, 100, 1);
+        InitPrice := Any.DecimalInRange(2 * InitUnitCost, 4 * InitUnitCost, 1);
+        CustDiscPerc := Any.DecimalInRange(5, 20, 1);
+        Item := ProductInitTest.CreateItem(Shop."Item Templ. Code", InitUnitCost, InitPrice);
+        LibrarySales.CreateCustomer(Customer);
+        ProductInitTest.CreateCustomerPriceList(CopyStr(Shop.Code, 1, 10), Item."No.", InitPrice, CustDiscPerc, Customer);
+
+        // [GIVEN] A catalog linked to that customer (B2B catalog, same currency as shop).
+        Catalog := CatalogInitialize.CreateCatalog("Shpfy Catalog Type"::Company);
+        CatalogInitialize.CopyParametersFromShop(Catalog, Shop);
+        Catalog."Customer No." := Customer."No.";
+        Catalog.Modify();
+
+        // [WHEN] Catalog price sync runs SetShopAndCatalog.
+        ProductPriceCalculation.SetShopAndCatalog(Shop, Catalog);
+
+        // [WHEN] Shop is modified (bumping SystemModifiedAt) and shop price sync runs SetShop.
+        Shop.Modify();
+        Shop.Get(Shop.Code);
+        ProductPriceCalculation.SetShop(Shop);
+        ProductPriceCalculation.CalcPrice(Item, '', '', UnitCost, Price, ComparePrice);
+
+        // [THEN] Price equals the item's base price — the catalog customer's discount must not be applied.
+        LibraryAssert.AreEqual(InitPrice, Price, 'Catalog customer must not leak into shop-based price calculation after SetShop.');
     end;
 
     [ConfirmHandler]

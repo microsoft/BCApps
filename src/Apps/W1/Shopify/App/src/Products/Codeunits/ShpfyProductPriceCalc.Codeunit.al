@@ -43,6 +43,7 @@ codeunit 30182 "Shpfy Product Price Calc."
         CurrencyCode: Code[10];
         PricesIncludingVAT: Boolean;
         AllowLineDisc: Boolean;
+        InitializedFromCatalog: Boolean;
         ItemPriceNotSyncedUoMLbl: Label 'Item price is not synchronized because the unit of measure %1 is not valid for item %2.', Comment = '%1 - Unit of Measure Code, %2 - Item No.';
 
 
@@ -166,8 +167,9 @@ codeunit 30182 "Shpfy Product Price Calc."
     /// <param name="ShopifyShop">Parameter of type Record "Shopify Shop".</param>
     internal procedure SetShop(ShopifyShop: Record "Shpfy Shop")
     begin
-        if (Shop.Code <> ShopifyShop.Code) or (Shop.SystemModifiedAt < ShopifyShop.SystemModifiedAt) or (TempSalesHeader."Document Date" <> WorkDate()) then begin
+        if InitializedFromCatalog or (Shop.Code <> ShopifyShop.Code) or (Shop.SystemModifiedAt < ShopifyShop.SystemModifiedAt) or (TempSalesHeader."Document Date" <> WorkDate()) then begin
             Shop := ShopifyShop;
+            InitializedFromCatalog := false;
             SetParameters(Shop);
             Clear(TempSalesHeader);
             TempSalesHeader.DeleteAll();
@@ -187,6 +189,7 @@ codeunit 30182 "Shpfy Product Price Calc."
         Clear(TempSalesHeader);
         TempSalesHeader.DeleteAll();
         CreateTempSalesHeader();
+        InitializedFromCatalog := true;
     end;
 
     local procedure SetParameters(SourceRec: Variant)
@@ -213,6 +216,7 @@ codeunit 30182 "Shpfy Product Price Calc."
                     PricesIncludingVAT := ShopifyShop."Prices Including VAT";
                     AllowLineDisc := ShopifyShop."Allow Line Disc.";
                     CurrencyCode := ShopifyShop."Currency Code";
+                    CustomerNo := '';
                 end;
             Database::"Shpfy Catalog":
                 begin
