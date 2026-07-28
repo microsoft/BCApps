@@ -908,6 +908,43 @@ codeunit 139509 "Azure AD Plan Module Test"
     [TransactionModel(TransactionModel::AutoRollback)]
     [CommitBehavior(CommitBehavior::Ignore)]
     [Scope('OnPrem')]
+    procedure TestBCAdminKeepsSuperWhenCustomizedPlanOmitsSuper()
+    var
+        User: Record User;
+        AzureADPlan: Codeunit "Azure AD Plan";
+        PlanConfigurationLibrary: Codeunit "Plan Configuration Library";
+        PlanIds: Codeunit "Plan Ids";
+    begin
+        // [SCENARIO] An Internal BC Administrator keeps SUPER on first login even when the assigned license plan
+        // configuration is customized and the customization omits SUPER.
+        Initialize();
+        LibraryLowerPermissions.SetOutsideO365Scope();
+        LibraryLowerPermissions.AddSecurity();
+
+        // [GIVEN] A first-login super user provisioned with a Premium plan and the internal BC Admin plan
+        CreateUserWithPlan(User, PlanIds.GetPremiumPlanId());
+        AddSubscriptionPlanToUser(User, PlanIds.GetBCAdminPlanId());
+
+        // [GIVEN] The Premium plan configuration is customized and does not contain SUPER
+        PlanConfigurationLibrary.ClearPlanConfigurations();
+        PlanConfigurationLibrary.AddConfiguration(PlanIds.GetPremiumPlanId(), true);
+
+        // [WHEN] RefreshUserPlanAssignments is invoked (first login flow)
+        LibraryLowerPermissions.SetO365BusFull();
+        LibraryLowerPermissions.AddSecurity();
+        AzureADPlan.RefreshUserPlanAssignments(User."User Security ID");
+
+        // [THEN] The internal admin still has SUPER
+        Assert.IsTrue(IsUserInPermissionSet(User."User Security ID", 'SUPER'), 'Internal BC Administrator should retain SUPER when the customized plan omits SUPER.');
+
+        // Rollback SaaS test
+        TearDown();
+    end;
+
+    [Test]
+    [TransactionModel(TransactionModel::AutoRollback)]
+    [CommitBehavior(CommitBehavior::Ignore)]
+    [Scope('OnPrem')]
     procedure TestUserLosesSuperWhenCustomizedPlanOmitsSuper()
     var
         User: Record User;
