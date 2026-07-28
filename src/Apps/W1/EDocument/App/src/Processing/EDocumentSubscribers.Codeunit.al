@@ -790,11 +790,6 @@ codeunit 6103 "E-Document Subscribers"
         Telemetry.LogMessage('0000PYF', DraftChangeTok, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::All, TelemetryDimensions);
     end;
 
-    [IntegrationEvent(false, false)]
-    local procedure OnAfterUpdateToPostedPurchaseEDocument(var EDocument: Record "E-Document"; PostedRecord: Variant; PostedDocumentNo: Code[20]; DocumentType: Enum "E-Document Type")
-    begin
-    end;
-
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Release Sales Document", 'OnAfterReleaseSalesDoc', '', false, false)]
     local procedure OnAfterReleaseSalesDoc(var SalesHeader: Record "Sales Header"; PreviewMode: Boolean; var LinesWereModified: Boolean; SkipWhseRequestOperations: Boolean)
     var
