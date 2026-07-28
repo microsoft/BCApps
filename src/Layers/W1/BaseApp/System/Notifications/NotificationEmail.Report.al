@@ -18,9 +18,8 @@ using System.Utilities;
 
 report 1320 "Notification Email"
 {
-    WordLayout = './System/Notifications/NotificationEmail.docx';
     Caption = 'Notification Email';
-    DefaultLayout = Word;
+    DefaultRenderingLayout = "NotificationEmail.docx";
 
     dataset
     {
@@ -127,6 +126,22 @@ report 1320 "Notification Email"
 
         actions
         {
+        }
+    }
+
+    rendering
+    {
+        layout("NotificationEmail.docx")
+        {
+            Type = Word;
+            LayoutFile = './System/Notifications/NotificationEmail.docx';
+        }
+        layout("NotificationEmailBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './System/Notifications/NotificationEmailBody.docx';
+            Caption = 'Body-only: Notification Email (Word)';
+            Summary = 'Body-only: The Notification Email (Word) provides a basic layout.';
         }
     }
 
