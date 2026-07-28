@@ -3150,6 +3150,43 @@
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure VariantMandatoryBlocksRefreshProdOrder()
+    var
+        Item: Record Item;
+        ItemVariant: Record "Item Variant";
+        ProductionOrder: Record "Production Order";
+    begin
+        // [SLICE] [Option to make entry of Variant Code mandatory where variants exist]
+        // [Deliveriable] When Alicia refreshes a production order for an item with variants, the no-variants-selected rule is respected depending on settings
+        Initialize();
+
+        // [GIVEN] Item with available variants and Item."Variant Mandatory if Exists" = Yes
+        CreateMandatoryVariant(Item, ItemVariant);
+
+        // [GIVEN] Production Order with specified item and NO variant chosen
+        LibraryManufacturing.CreateProductionOrder(
+          ProductionOrder, ProductionOrder.Status::"Firm Planned", ProductionOrder."Source Type"::Item, Item."No.", LibraryRandom.RandDec(10, 2));
+        Commit();
+
+        // [WHEN] User tries to refresh the production order
+        asserterror LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+
+        // [THEN] Error is thrown indicating the Variant Code is missing on the production order
+        Assert.ExpectedError(ProductionOrder.FieldCaption(ProductionOrder."Variant Code"));
+        ProductionOrder.Get(ProductionOrder.Status, ProductionOrder."No.");
+
+        // [GIVEN] Variant is specified
+        ProductionOrder.Validate("Variant Code", ItemVariant.Code);
+        ProductionOrder.Modify(true);
+
+        // [WHEN] User tries to refresh the production order
+        LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+
+        // [THEN] No error is thrown
+    end;
+
+    [Test]
     [HandlerFunctions('EmptyMessageHandler')]
     procedure InventoryPutawayCreatedBothForPurchaseLinesWithJobAndWithoutJob()
     var
