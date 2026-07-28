@@ -322,6 +322,13 @@ report 713 "Inventory - Customer Sales"
             Summary = 'Built in layout for the Inventory Customer Sales RDLC (Obsolete) report.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            LayoutFile = '.\Inventory\Reports\InventoryCustomerSalesBody.docx';
+            Caption = 'Body-only: Inventory Customer Sales Word';
+            Summary = 'Body-only: Built in layout for the Inventory Customer Sales Word report.';
+        }
     }
 
     labels
