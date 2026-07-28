@@ -493,7 +493,7 @@ report 10135 "Item Sales Statistics"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnItemVariantOnAfterGetRecordOnBeforePrintOnlyIfSalesCheck(var Item: Record Item; ItemVariant: Record "Item Variant"; PrintOnlyIfSales: Boolean; var SkipRecord: Boolean)
+    local procedure OnItemVariantOnAfterGetRecordOnBeforePrintOnlyIfSalesCheck(var Item: Record Item; var ItemVariant: Record "Item Variant"; PrintOnlyIfSales: Boolean; var SkipRecord: Boolean)
     begin
     end;
 }
