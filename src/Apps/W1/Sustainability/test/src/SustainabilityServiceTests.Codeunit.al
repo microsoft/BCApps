@@ -6,7 +6,6 @@ namespace Microsoft.Sustainability.Tests;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Setup;
-using Microsoft.Finance.VAT.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
@@ -90,9 +89,6 @@ codeunit 148218 "Sustainability Service Tests"
         ServiceLine.Validate("CO2e Per Unit", CO2ePerUnit);
         ServiceLine.Modify();
 
-        // [GIVEN] Ensure Posting Setup exists for the Service Line's posting groups.
-        EnsurePostingSetupForServiceLine(ServiceLine);
-
         // [WHEN] Post the Service Order with Ship and Invoice.
         LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
 
@@ -148,9 +144,6 @@ codeunit 148218 "Sustainability Service Tests"
         ServiceLine.Validate("Sust. Account No.", AccountCode);
         ServiceLine.Validate("CO2e Per Unit", CO2ePerUnit);
         ServiceLine.Modify();
-
-        // [GIVEN] Ensure Posting Setup exists for the Service Line's posting groups.
-        EnsurePostingSetupForServiceLine(ServiceLine);
 
         // [WHEN] Post the Service Order with Ship and Invoice.
         LibraryService.PostServiceOrder(ServiceHeader, true, false, true);
@@ -2883,37 +2876,16 @@ codeunit 148218 "Sustainability Service Tests"
         UpdateServiceLine(ServiceLine, ServiceItemLine."Line No.", Quantity, LibraryRandom.RandDecInRange(1000, 2000, 2));
     end;
 
-    local procedure EnsurePostingSetupForServiceLine(ServiceLine: Record "Service Line")
-    var
-        VATPostingSetup: Record "VAT Posting Setup";
-    begin
-        EnsureGeneralPostingSetup(ServiceLine."Gen. Bus. Posting Group", ServiceLine."Gen. Prod. Posting Group");
-
-        if not VATPostingSetup.Get(ServiceLine."VAT Bus. Posting Group", ServiceLine."VAT Prod. Posting Group") then
-            LibraryERM.CreateVATPostingSetupWithAccounts(VATPostingSetup, VATPostingSetup."VAT Calculation Type"::"Normal VAT", 0);
-    end;
-
     local procedure EnsureGeneralPostingSetupForItem(Item: Record Item)
-    begin
-        EnsureGeneralPostingSetup('', Item."Gen. Prod. Posting Group");
-    end;
-
-    local procedure EnsureGeneralPostingSetup(GenBusPostingGroup: Code[20]; GenProdPostingGroup: Code[20])
     var
         GeneralPostingSetup: Record "General Posting Setup";
     begin
-        if GenProdPostingGroup = '' then
+        if Item."Gen. Prod. Posting Group" = '' then
             exit;
 
-        if not GeneralPostingSetup.Get(GenBusPostingGroup, GenProdPostingGroup) then
-            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, GenBusPostingGroup, GenProdPostingGroup);
+        if not GeneralPostingSetup.Get('', Item."Gen. Prod. Posting Group") then
+            LibraryERM.CreateGeneralPostingSetup(GeneralPostingSetup, '', Item."Gen. Prod. Posting Group");
 
-        if GeneralPostingSetup."Sales Account" = '' then
-            GeneralPostingSetup.Validate("Sales Account", LibraryERM.CreateGLAccountNo());
-        if GeneralPostingSetup."Sales Credit Memo Account" = '' then
-            GeneralPostingSetup.Validate("Sales Credit Memo Account", LibraryERM.CreateGLAccountNo());
-        if GeneralPostingSetup."COGS Account" = '' then
-            GeneralPostingSetup.Validate("COGS Account", LibraryERM.CreateGLAccountNo());
         if GeneralPostingSetup."Inventory Adjmt. Account" = '' then
             GeneralPostingSetup.Validate("Inventory Adjmt. Account", LibraryERM.CreateGLAccountNo());
         if GeneralPostingSetup."Direct Cost Applied Account" = '' then
@@ -2922,6 +2894,8 @@ codeunit 148218 "Sustainability Service Tests"
             GeneralPostingSetup.Validate("Overhead Applied Account", LibraryERM.CreateGLAccountNo());
         if GeneralPostingSetup."Purchase Variance Account" = '' then
             GeneralPostingSetup.Validate("Purchase Variance Account", LibraryERM.CreateGLAccountNo());
+        if GeneralPostingSetup."COGS Account" = '' then
+            GeneralPostingSetup.Validate("COGS Account", LibraryERM.CreateGLAccountNo());
         GeneralPostingSetup.Modify(true);
     end;
 
