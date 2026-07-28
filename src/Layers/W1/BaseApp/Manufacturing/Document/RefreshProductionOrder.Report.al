@@ -404,11 +404,21 @@ report 99001025 "Refresh Production Order"
     local procedure CheckVariantCodeMandatory(var ProductionOrder: Record "Production Order")
     var
         Item: Record Item;
+        IsHandled: Boolean;
     begin
+        // When Calc. Lines = No, prod. order lines already exist with their own variant codes
+        // (e.g. one prod. order with multiple variant-specific lines and a blank header variant),
+        // so the header-level variant is not required.
+        if not CalcLines then
+            exit;
         if ProductionOrder."Source Type" <> ProductionOrder."Source Type"::Item then
             exit;
-        if Item.IsVariantMandatory(true, ProductionOrder."Source No.") then
-            ProductionOrder.TestField("Variant Code");
+        if Item.IsVariantMandatory(true, ProductionOrder."Source No.") then begin
+            IsHandled := false;
+            OnBeforeCheckVariantCodeMandatory(ProductionOrder, IsHandled);
+            if not IsHandled then
+                ProductionOrder.TestField("Variant Code");
+        end;
     end;
 
     local procedure GetRoutingNo(ProductionOrder: Record "Production Order") RoutingNo: Code[20]
@@ -488,6 +498,11 @@ report 99001025 "Refresh Production Order"
 
     [IntegrationEvent(true, false)]
     local procedure OnAfterInitReport()
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckVariantCodeMandatory(var ProductionOrder: Record "Production Order"; var IsHandled: Boolean)
     begin
     end;
 
