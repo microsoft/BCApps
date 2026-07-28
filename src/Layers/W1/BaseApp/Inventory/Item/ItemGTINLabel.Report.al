@@ -75,6 +75,13 @@ report 6625 "Item GTIN Label"
             LayoutFile = './Inventory/Item/ItemGTINLabel.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
+        layout(WordBody)
+        {
+            Type = Word;
+            LayoutFile = './Inventory/Item/ItemGTINLabelBody.docx';
+            Caption = 'Body-only: Item GTIN Label (Word)';
+            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+        }
     }
 
     var
