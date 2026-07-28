@@ -2008,7 +2008,6 @@ codeunit 442 "Sales-Post Prepayments"
 
     local procedure UpdateDifferenceAmount(SalesHeader: Record "Sales Header"; var TotalPrepmtInvLineBuffer: Record "Prepayment Inv. Line Buffer" temporary; var TempPrepmtInvLineBuf: Record "Prepayment Inv. Line Buffer"; HasInvoiceDiscount: Boolean)
     var
-        SalesLine: Record "Sales Line";
         Currency: Record Currency;
         PrepmtAmt: Decimal;
         DifferenceAmt: Decimal;
