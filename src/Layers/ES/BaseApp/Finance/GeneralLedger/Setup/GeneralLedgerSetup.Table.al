@@ -494,7 +494,14 @@ table 98 "General Ledger Setup"
             TableRelation = Currency;
 
             trigger OnValidate()
+            var
+                IsHandled: Boolean;
             begin
+                IsHandled := false;
+                OnBeforeValidateAdditionalReportingCurrency("Additional Reporting Currency", xRec."Additional Reporting Currency", IsHandled);
+                if IsHandled then
+                    exit;
+
                 if ("Additional Reporting Currency" <> xRec."Additional Reporting Currency") and
                    ("Additional Reporting Currency" <> '')
                 then begin
@@ -1764,22 +1771,6 @@ table 98 "General Ledger Setup"
             AllowedPostingDate := CalcDate('<+1D>', AllowedPostingDate);
     end;
 
-    [Scope('OnPrem')]
-    procedure CheckAdjustForPaymentDisc()
-    begin
-        VATPostingSetup.SetRange("Adjust for Payment Discount", true);
-        if VATPostingSetup.FindFirst() then
-            Error(
-              '%1 %2 %3 use %4.', VATPostingSetup.TableName,
-              VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group",
-              VATPostingSetup.FieldName("Adjust for Payment Discount"));
-        TaxJurisdiction.SetRange("Adjust for Payment Discount", true);
-        if TaxJurisdiction.FindFirst() then
-            Error(
-              '%1 %2 use %3.', TaxJurisdiction.TableName,
-              TaxJurisdiction.Code, TaxJurisdiction.FieldName("Adjust for Payment Discount"));
-    end;
-
     /// <summary>
     /// Updates global dimension number assignments for dimension values when changing global dimension configuration.
     /// </summary>
@@ -1860,6 +1851,22 @@ table 98 "General Ledger Setup"
         exit(UseVATFieldRef.Value);
     end;
 
+    [Scope('OnPrem')]
+    procedure CheckAdjustForPaymentDisc()
+    begin
+        VATPostingSetup.SetRange("Adjust for Payment Discount", true);
+        if VATPostingSetup.FindFirst() then
+            Error(
+              '%1 %2 %3 use %4.', VATPostingSetup.TableName,
+              VATPostingSetup."VAT Bus. Posting Group", VATPostingSetup."VAT Prod. Posting Group",
+              VATPostingSetup.FieldName("Adjust for Payment Discount"));
+        TaxJurisdiction.SetRange("Adjust for Payment Discount", true);
+        if TaxJurisdiction.FindFirst() then
+            Error(
+              '%1 %2 use %3.', TaxJurisdiction.TableName,
+              TaxJurisdiction.Code, TaxJurisdiction.FieldName("Adjust for Payment Discount"));
+    end;
+
     /// <summary>
     /// Validates that posting dates fall within allowed posting periods defined in general ledger setup.
     /// </summary>
@@ -1933,6 +1940,19 @@ table 98 "General Ledger Setup"
     /// <param name="NewDimensionCode">New dimension code that was assigned</param>
     [IntegrationEvent(false, false)]
     local procedure OnAfterUpdateDimValueGlobalDimNo(ShortCutDimNo: Integer; OldDimensionCode: Code[20]; NewDimensionCode: Code[20])
+    begin
+    end;
+
+
+    /// <summary>
+    /// Integration event raised before validating the Additional Reporting Currency field.
+    /// Enables custom validation logic and the ability to bypass the standard adjustment and analysis view processing.
+    /// </summary>
+    /// <param name="AdditionalReportingCurrency">New additional reporting currency code being validated, can be modified by subscribers</param>
+    /// <param name="xRecAdditionalReportingCurrency">Previous additional reporting currency code before the change</param>
+    /// <param name="IsHandled">Set to true to bypass standard validation logic</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeValidateAdditionalReportingCurrency(var AdditionalReportingCurrency: Code[10]; xRecAdditionalReportingCurrency: Code[10]; var IsHandled: Boolean)
     begin
     end;
 }

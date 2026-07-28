@@ -2526,6 +2526,8 @@ codeunit 6610 "FS Int. Table Subscriber"
                 IgnoreArchievedServiceOrdersOnQueryPostFilterIgnoreRecord(SourceRecordRef, IgnoreRecord);
             Database::"FS Work Order":
                 IgnoreArchievedCRMWorkOrdersOnQueryPostFilterIgnoreRecord(SourceRecordRef, IgnoreRecord);
+            Database::"Service Item":
+                IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef, IgnoreRecord);
         end;
 
         if FSConnectionSetup.IsEnabled() then
@@ -2689,6 +2691,40 @@ codeunit 6610 "FS Int. Table Subscriber"
         if CRMIntegrationRecord.FindByCRMID(WorkOrderId) then
             if CRMIntegrationRecord."Archived Service Order" then
                 IgnoreRecord := true;
+    end;
+
+    internal procedure IgnoreServiceItemsByConvertToCustomerAssetFlag(SourceRecordRef: RecordRef; var IgnoreRecord: Boolean)
+    var
+        FSConnectionSetup: Record "FS Connection Setup";
+        ServiceItem: Record "Service Item";
+        Item: Record Item;
+        CRMIntegrationRecord: Record "CRM Integration Record";
+        CRMProduct: Record "CRM Product";
+    begin
+        if not FSConnectionSetup.IsEnabled() then
+            exit;
+
+        if IgnoreRecord then
+            exit;
+
+        SourceRecordRef.SetTable(ServiceItem);
+        if ServiceItem."Item No." = '' then
+            exit;
+
+        if CRMIntegrationRecord.FindByRecordID(ServiceItem.RecordId) then
+            exit;
+
+        if not Item.Get(ServiceItem."Item No.") then
+            exit;
+
+        if not CRMIntegrationRecord.FindByRecordID(Item.RecordId) then
+            exit;
+
+        if not CRMProduct.Get(CRMIntegrationRecord."CRM ID") then
+            exit;
+
+        if not CRMProduct.ConvertToCustomerAsset then
+            IgnoreRecord := true;
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Integration Table Synch.", 'OnAfterInitSynchJob', '', true, true)]

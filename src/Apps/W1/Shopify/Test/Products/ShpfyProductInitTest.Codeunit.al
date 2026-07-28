@@ -275,6 +275,41 @@ codeunit 139603 "Shpfy Product Init Test"
         PriceListHeader.Modify();
     end;
 
+    internal procedure CreateDatedAllCustDiscPriceList(ItemNo: Code[20]; DiscUpToBoundary: Decimal; DiscFromBoundary: Decimal; BoundaryDate: Date)
+    var
+        PriceListHeader: Record "Price List Header";
+        PriceListLine: Record "Price List Line";
+    begin
+        LibraryPriceCalculation.CreatePriceHeader(PriceListHeader, PriceListHeader."Price Type"::Sale, PriceListHeader."Source Type"::"All Customers", '');
+
+        // Discount that applies up to and including the boundary date.
+        PriceListLine.Init();
+        PriceListLine.Validate("Price List Code", PriceListHeader.Code);
+        PriceListLine.Validate("Asset Type", PriceListLine."Asset Type"::Item);
+        PriceListLine.Validate("Asset No.", ItemNo);
+        PriceListLine.Validate("Price Type", PriceListLine."Price Type"::Sale);
+        PriceListLine.Validate("Amount Type", PriceListLine."Amount Type"::Discount);
+        PriceListLine.Validate("Source Type", PriceListLine."Source Type"::"All Customers");
+        PriceListLine.Validate("Ending Date", BoundaryDate);
+        PriceListLine.Validate("Line Discount %", DiscUpToBoundary);
+        PriceListLine.Insert(true);
+
+        // Discount that applies from the day after the boundary date onwards.
+        PriceListLine.Init();
+        PriceListLine.Validate("Price List Code", PriceListHeader.Code);
+        PriceListLine.Validate("Asset Type", PriceListLine."Asset Type"::Item);
+        PriceListLine.Validate("Asset No.", ItemNo);
+        PriceListLine.Validate("Price Type", PriceListLine."Price Type"::Sale);
+        PriceListLine.Validate("Amount Type", PriceListLine."Amount Type"::Discount);
+        PriceListLine.Validate("Source Type", PriceListLine."Source Type"::"All Customers");
+        PriceListLine.Validate("Starting Date", BoundaryDate + 1);
+        PriceListLine.Validate("Line Discount %", DiscFromBoundary);
+        PriceListLine.Insert(true);
+
+        PriceListHeader.Validate(Status, PriceListHeader.Status::Active);
+        PriceListHeader.Modify();
+    end;
+
     internal procedure CreateAllCustomerPriceList(Code: Code[10]; ItemNo: Code[20]; Price: Decimal; DiscountPerc: Decimal)
     var
         PriceListLine: Record "Price List Line";

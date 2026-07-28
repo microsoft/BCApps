@@ -120,7 +120,7 @@ function Invoke-IntegrateFile {
         [string] $File,
 
         [ValidateNotNullOrEmpty()]
-        [char] $Status = (Get-GitFileStatus $File "origin/$env:RepoBranchName"),
+        [char] $Status = (Get-GitFileStatus $File "origin/$(Get-MiappBaseBranch)"),
 
         [ValidateNotNull()]
         [HashTable] $Params = @{}
@@ -133,8 +133,8 @@ function Invoke-IntegrateFile {
     [string] $fileName = Get-IntegrationFileName $File
     [string] $branchPath = Get-IntegrationBranchName $File
 
-    if(($Status -ne $GitFileStatus.Deleted) -and -not (Test-GitFileDifferentFromRemote $File "origin/$env:RepoBranchName")) {
-        Write-Verbose "Skipping $File`nThe file status is '$Status' but there is no difference from the version on origin/$($env:RepoBranchName)"
+    if(($Status -ne $GitFileStatus.Deleted) -and -not (Test-GitFileDifferentFromRemote $File "origin/$(Get-MiappBaseBranch)")) {
+        Write-Verbose "Skipping $File`nThe file status is '$Status' but there is no difference from the version on origin/$(Get-MiappBaseBranch)"
         return
     }
 
@@ -154,7 +154,7 @@ function IntegrateBranchedObjects {
         [string] $File,
 
         [ValidateNotNullOrEmpty()]
-        [char] $Status = (Get-GitFileStatus $File "origin/$env:RepoBranchName"),
+        [char] $Status = (Get-GitFileStatus $File "origin/$(Get-MiappBaseBranch)"),
 
         [ValidateNotNullOrEmpty()]
         [string] $BranchPath = (Get-IntegrationBranchName $File),
@@ -331,7 +331,7 @@ function ExcludeOrStageFile {
 
     $file = Resolve-GitPath -Relative -RemoteStyle $DestFile
 
-    if ((Test-Path $DestFile) -and -not (Test-GitFileDifferentFromRemote $file "origin/$env:RepoBranchName")) {
+    if ((Test-Path $DestFile) -and -not (Test-GitFileDifferentFromRemote $file "origin/$(Get-MiappBaseBranch)")) {
         Write-Host "$file does not differ from remote version, adding to ignore list"
         AddFileToExclusionList (Get-GitCanonicalPath $file -Absolute)
     } else {
@@ -520,12 +520,12 @@ function Get-BaseFile {
         [string] $File,
 
         [Parameter()]
-        [char] $Status = (Get-GitFileStatus $File "origin/$env:RepoBranchName")
+        [char] $Status = (Get-GitFileStatus $File "origin/$(Get-MiappBaseBranch)")
     )
 
     if($Status -eq $GitFileStatus.Deleted) { return }
 
-    [string] $baseFile = Get-GitRemoteFile $File "origin/$env:RepoBranchName" $Status
+    [string] $baseFile = Get-GitRemoteFile $File "origin/$(Get-MiappBaseBranch)" $Status
 
     if($baseFile) {
         Write-Verbose "Remote base file found for $File"
