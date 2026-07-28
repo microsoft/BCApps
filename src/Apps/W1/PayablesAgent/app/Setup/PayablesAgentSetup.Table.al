@@ -90,6 +90,11 @@ table 3303 "Payables Agent Setup"
             Caption = 'Email review';
             DataClassification = CustomerContent;
         }
+        field(13; "Applied Instr. Config Hash"; Text[64])
+        {
+            Caption = 'Applied Instructions Configuration Hash';
+            DataClassification = SystemMetadata;
+        }
     }
     keys
     {

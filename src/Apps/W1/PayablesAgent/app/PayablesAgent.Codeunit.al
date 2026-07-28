@@ -188,6 +188,10 @@ codeunit 3303 "Payables Agent" implements IAgentMetadata, IAgentFactory
             exit;
         end;
 
+        // Reconcile the agent's instructions with the current line-matching configuration before the task runs,
+        // so an ECS flag change since the agent was configured/upgraded takes effect (matches the PrepareDraft gate).
+        PayablesAgentSetup.EnsureAgentInstructionsMatchConfiguration(Agent."User Security ID");
+
         BuildAgentTask(EDocument, Agent);
 
         CustomDimensions.Set('ReviewIncomingInvoice', Format(PayablesAgentSetupRec."Review Incoming Invoice", 0, 9));
