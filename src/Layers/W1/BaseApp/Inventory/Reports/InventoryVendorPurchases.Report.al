@@ -232,6 +232,13 @@ report 714 "Inventory - Vendor Purchases"
             Summary = 'Built in layout for the Inventory - Vendor Purchases RDLC (Obsolete) report.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            LayoutFile = './Inventory/Reports/InventoryVendorPurchasesBody.docx';
+            Caption = 'Body-only: Inventory - Vendor Purchases Word';
+            Summary = 'Body-only: Built in layout for the Inventory - Vendor Purchases Word report.';
+        }
     }
 
     labels
