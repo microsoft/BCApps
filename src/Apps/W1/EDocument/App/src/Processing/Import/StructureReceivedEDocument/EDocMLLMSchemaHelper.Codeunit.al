@@ -162,13 +162,19 @@ codeunit 6232 "E-Doc. MLLM Schema Helper"
                     GetDecimal(NestedObj, 'value', TempLine.Quantity);
                     GetString(NestedObj, 'unit_code', MaxStrLen(TempLine."Unit of Measure"), TempLine."Unit of Measure");
                 end;
-                if TempLine.Quantity <= 0 then
-                    TempLine.Quantity := 1;
 
                 if GetNestedObject(LineObj, 'price', NestedObj) then
                     GetDecimal(NestedObj, 'price_amount', TempLine."Unit Price");
 
                 GetDecimal(LineObj, 'line_extension_amount', TempLine."Sub Total");
+
+                if TempLine.Quantity < 0 then
+                    TempLine.Quantity := 0;
+                if TempLine.Quantity = 0 then
+                    if (TempLine."Unit Price" <> 0) and (TempLine."Sub Total" <> 0) then
+                        TempLine.Quantity := Round(TempLine."Sub Total" / TempLine."Unit Price", 0.00001)
+                    else
+                        TempLine.Quantity := 1;
 
                 if GetNestedObject(LineObj, 'allowance_charge', NestedObj) then begin
                     if GetNestedObject(NestedObj, 'amount', NestedObj2) then
