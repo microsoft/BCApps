@@ -77,7 +77,7 @@ flowchart TD
     B -.->|Undo| A
 ```
 
-**Structure received data** (`ImportEDocumentProcess.StructureReceivedData()`): Converts the raw blob into a structured format. The implementation is determined by `"Structure Data Impl."` on the E-Document, which defaults to the preferred implementation for the file format (e.g., PDFs default to hybrid PDF handling, which lifts the embedded e-invoice XML out of a PDF/A-3 container such as ZUGFeRD or Factur-X and otherwise falls back to MLLM extraction). The `IStructureReceivedEDocument` interface returns an `IStructuredDataType` that contains the structured content and specifies how to read it. For already-structured documents (XML), this is a passthrough -- the structured entry number just points to the same storage as the unstructured one.
+**Structure received data** (`ImportEDocumentProcess.StructureReceivedData()`): Converts the raw blob into a structured format. The implementation is determined by `"Structure Data Impl."` on the E-Document, which defaults to the preferred implementation for the file format (e.g., PDFs default to Azure Document Intelligence processing). The `IStructureReceivedEDocument` interface returns an `IStructuredDataType` that contains the structured content and specifies how to read it. For already-structured documents (XML), this is a passthrough -- the structured entry number just points to the same storage as the unstructured one.
 
 **Read into Draft** (`ImportEDocumentProcess.ReadIntoDraft()`): The `IStructuredFormatReader.ReadIntoDraft()` method parses the structured data and populates the E-Document Purchase Header/Line staging tables. It returns the `"E-Doc. Process Draft"` enum value that determines which `IProcessStructuredData` implementation runs next.
 

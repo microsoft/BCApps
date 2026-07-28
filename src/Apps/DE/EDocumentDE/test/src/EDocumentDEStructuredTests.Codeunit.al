@@ -49,7 +49,7 @@ codeunit 148501 "E-Doc. DE Struct. Import Tests"
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         Assert.AreEqual('ZF-INV-1001', EDocumentPurchaseHeader."Sales Invoice No.", 'Wrong document number.');
         Assert.AreEqual('PO-2024-77', EDocumentPurchaseHeader."Purchase Order No.", 'Wrong purchase order number.');
-        Assert.AreEqual('04011000-12345-34', EDocumentPurchaseHeader."Buyer Reference", 'Wrong buyer reference.');
+        Assert.AreEqual('04011000-12345-34', EDocumentPurchaseHeader."Buyer Reference DE", 'Wrong buyer reference.');
         Assert.AreEqual('Fabrikam GmbH', EDocumentPurchaseHeader."Vendor Company Name", 'Wrong vendor name.');
         Assert.AreEqual('Hauptstrasse 1', EDocumentPurchaseHeader."Vendor Address", 'Wrong vendor address.');
         Assert.AreEqual('DE123456789', EDocumentPurchaseHeader."Vendor VAT Id", 'The VAT registration scheme should be preferred over other tax registrations.');
@@ -177,7 +177,7 @@ codeunit 148501 "E-Doc. DE Struct. Import Tests"
         EDocumentPurchaseHeader.GetFromEDocument(EDocument);
         Assert.AreEqual('PBIS-DE-5001', EDocumentPurchaseHeader."Sales Invoice No.", 'Wrong document number.');
         Assert.AreEqual('PO-2026-11', EDocumentPurchaseHeader."Purchase Order No.", 'Wrong purchase order number.');
-        Assert.AreEqual('04011000-12345-34', EDocumentPurchaseHeader."Buyer Reference", 'The Leitweg-ID from BuyerReference should be extracted.');
+        Assert.AreEqual('04011000-12345-34', EDocumentPurchaseHeader."Buyer Reference DE", 'The Leitweg-ID from BuyerReference should be extracted.');
         Assert.AreEqual('CRONUS International', EDocumentPurchaseHeader."Vendor Company Name", 'Wrong vendor name.');
         Assert.AreEqual('The Cannon Group PLC', EDocumentPurchaseHeader."Customer Company Name", 'Wrong customer name.');
         Assert.AreEqual(MockCurrencyCode, EDocumentPurchaseHeader."Currency Code", 'Wrong currency code.');
@@ -191,37 +191,6 @@ codeunit 148501 "E-Doc. DE Struct. Import Tests"
         Assert.AreEqual('Bicycle', EDocumentPurchaseLine.Description, 'Wrong line description.');
         Assert.AreEqual(2, EDocumentPurchaseLine.Quantity, 'Wrong quantity.');
         Assert.AreEqual(1000, EDocumentPurchaseLine."Sub Total", 'Wrong line sub total.');
-    end;
-
-    [Test]
-    procedure PEPPOLBIS30DEBuyerReferenceFlowsToPurchaseInvoice()
-    var
-        EDocument: Record "E-Document";
-        PurchaseHeader: Record "Purchase Header";
-        EDocumentProcessing: Codeunit "E-Document Processing";
-        DataTypeManagement: Codeunit "Data Type Management";
-        RecRef: RecordRef;
-        VariantRecord: Variant;
-    begin
-        // [FEATURE] [E-Document] [PEPPOL BIS 3.0 DE] [Import]
-        // [SCENARIO] The buyer reference of a PEPPOL BIS 3.0 DE invoice ends up on the created purchase invoice
-
-        // [GIVEN] A PEPPOL BIS 3.0 DE invoice from a known vendor is imported
-        Initialize();
-        Vendor."VAT Registration No." := 'DE123456789';
-        Vendor.Modify(true);
-        SetReadIntoDraftImpl("E-Doc. Read into Draft"::"PEPPOL BIS 3.0 DE");
-        CreateInboundEDocumentFromResource(EDocument, PEPPOLBIS30DEInvoiceTok);
-
-        // [WHEN] The document is processed through the finish draft step
-        ProcessEDocumentToStep(EDocument, "Import E-Document Steps"::"Finish draft");
-        EDocument.Get(EDocument."Entry No");
-
-        // [THEN] The created purchase invoice carries the buyer reference in Your Reference
-        EDocumentProcessing.GetRecord(EDocument, VariantRecord);
-        DataTypeManagement.GetRecordRef(VariantRecord, RecRef);
-        RecRef.SetTable(PurchaseHeader);
-        Assert.AreEqual('04011000-12345-34', PurchaseHeader."Your Reference", 'The buyer reference should be transferred to Your Reference.');
     end;
     #endregion
 

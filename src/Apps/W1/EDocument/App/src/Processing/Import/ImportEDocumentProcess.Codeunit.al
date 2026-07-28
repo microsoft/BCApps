@@ -133,9 +133,6 @@ codeunit 6104 "Import E-Document Process"
         // If at this point the E-Document does not have a Read into Draft implementation, we take the one specified by the E-Document service
         if EDocument."Read into Draft Impl." = "E-Doc. Read into Draft"::Unspecified then
             EDocument."Read into Draft Impl." := EDocument.GetEDocumentService()."Read into Draft Impl.";
-        // Hybrid PDFs carry the e-invoice as embedded XML but do not know its syntax, so we derive the reader from the extracted document
-        if (EDocument."Read into Draft Impl." = "E-Doc. Read into Draft"::Unspecified) and (EDocument."Structure Data Impl." = "Structure Received E-Doc."::"Hybrid PDF") then
-            EDocument."Read into Draft Impl." := GetReaderFromStructuredXml(FromBlob);
         IStructuredFormatReader := EDocument."Read into Draft Impl.";
 
         EDocument."Process Draft Impl." := IStructuredFormatReader.ReadIntoDraft(EDocument, FromBlob);
@@ -147,26 +144,6 @@ codeunit 6104 "Import E-Document Process"
             IMessageBuilder := MessageType;
             IMessageBuilder.BuildMessage(EDocument, "E-Doc. Response Type"::Acknowledged, ResponseBlob);
             EDocMessageMgt.CreateMessage(EDocument, MessageType, "E-Document Direction"::Outgoing, "E-Doc. Response Type"::Acknowledged, ResponseBlob);
-        end;
-    end;
-
-    local procedure GetReaderFromStructuredXml(FromBlob: Codeunit "Temp Blob"): Enum "E-Doc. Read into Draft"
-    var
-        StructuredXml: XmlDocument;
-        RootElement: XmlElement;
-    begin
-        if not XmlDocument.ReadFrom(FromBlob.CreateInStream(TextEncoding::UTF8), StructuredXml) then
-            exit("E-Doc. Read into Draft"::Unspecified);
-
-        StructuredXml.GetRoot(RootElement);
-        case UpperCase(RootElement.LocalName()) of
-            'CROSSINDUSTRYINVOICE':
-                exit("E-Doc. Read into Draft"::CII);
-            'INVOICE',
-            'CREDITNOTE':
-                exit("E-Doc. Read into Draft"::PEPPOL);
-            else
-                exit("E-Doc. Read into Draft"::Unspecified);
         end;
     end;
 

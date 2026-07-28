@@ -23,7 +23,7 @@ codeunit 6191 "E-Doc. PDF File Format" implements IEDocFileFormat
     var
         Result: Enum "Structure Received E-Doc.";
     begin
-        Result := "Structure Received E-Doc."::"Hybrid PDF";
+        Result := "Structure Received E-Doc."::MLLM;
 #if not CLEAN29
 #pragma warning disable AL0432
         OnAfterSetIStructureReceivedEDocumentForPdf(Result);

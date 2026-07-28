@@ -15,7 +15,7 @@ interface IEDocFileFormat
     procedure PreferredStructureDataImplementation(): Enum "Structure Received E-Doc."
 ```
 
-The built-in implementations are in `FileFormat/`: XML returns `"Already Structured"`, PDF returns `"Hybrid PDF"` (which extracts the embedded e-invoice XML from PDF/A-3 containers such as ZUGFeRD and Factur-X, and falls back to MLLM extraction for plain PDFs), JSON returns `"Already Structured"`. Your format should point to whichever structuring implementation makes sense.
+The built-in implementations are in `FileFormat/`: XML returns `"Already Structured"`, PDF returns `"ADI"`, JSON returns `"Already Structured"`. Your format should point to whichever structuring implementation makes sense.
 
 **Structured format reader.** Extend the `"E-Doc. Read into Draft"` enum with a new value whose `IStructuredFormatReader` implementation parses the structured blob into `E-Document Purchase Header` / `E-Document Purchase Line` records:
 

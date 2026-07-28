@@ -31,9 +31,4 @@ enum 6103 "Structure Received E-Doc." implements IStructureReceivedEDocument
         Caption = 'MLLM Extraction';
         Implementation = IStructureReceivedEDocument = "E-Document MLLM Handler";
     }
-    value(4; "Hybrid PDF")
-    {
-        Caption = 'Hybrid PDF';
-        Implementation = IStructureReceivedEDocument = "E-Doc. Hybrid PDF Handler";
-    }
 }

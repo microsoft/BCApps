@@ -448,17 +448,17 @@ codeunit 139891 "E-Document Structured Tests"
 
     #region Preferred Structure Implementation
     [Test]
-    procedure TestPdfPreferredImplIsHybridPdf()
+    procedure TestPdfPreferredImplIsMLLM()
     var
         EDocPDFFileFormat: Codeunit "E-Doc. PDF File Format";
     begin
-        // [SCENARIO] The PDF file format returns Hybrid PDF as the preferred structure data implementation
+        // [SCENARIO] The PDF file format returns MLLM as the preferred structure data implementation
         LibraryLowerPermission.SetOutsideO365Scope();
 
         Assert.AreEqual(
-            "Structure Received E-Doc."::"Hybrid PDF",
+            "Structure Received E-Doc."::MLLM,
             EDocPDFFileFormat.PreferredStructureDataImplementation(),
-            'PDF processing should prefer Hybrid PDF');
+            'PDF processing should prefer MLLM');
     end;
     #endregion
 

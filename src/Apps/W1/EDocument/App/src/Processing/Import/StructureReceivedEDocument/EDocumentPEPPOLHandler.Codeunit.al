@@ -22,7 +22,7 @@ using System.Utilities;
 /// </summary>
 codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IEDocResponseProvider
 {
-    Access = Public;
+    Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
 
@@ -138,8 +138,6 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IE
             Header."Sales Invoice No." := CopyStr(Value, 1, MaxStrLen(Header."Sales Invoice No."));
         if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cac:OrderReference/cbc:ID', Value) then
             Header."Purchase Order No." := CopyStr(Value, 1, MaxStrLen(Header."Purchase Order No."));
-        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/inv:Invoice/cbc:BuyerReference', Value) then
-            Header."Buyer Reference" := CopyStr(Value, 1, MaxStrLen(Header."Buyer Reference"));
     end;
 
     local procedure PopulateCreditNoteDocumentInfo(PeppolXML: XmlDocument; XmlNamespaces: XmlNamespaceManager; var Header: Record "E-Document Purchase Header")
@@ -150,8 +148,6 @@ codeunit 6173 "E-Document PEPPOL Handler" implements IStructuredFormatReader, IE
             Header."Sales Invoice No." := CopyStr(Value, 1, MaxStrLen(Header."Sales Invoice No."));
         if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/cre:CreditNote/cac:OrderReference/cbc:ID', Value) then
             Header."Purchase Order No." := CopyStr(Value, 1, MaxStrLen(Header."Purchase Order No."));
-        if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/cre:CreditNote/cbc:BuyerReference', Value) then
-            Header."Buyer Reference" := CopyStr(Value, 1, MaxStrLen(Header."Buyer Reference"));
         if PeppolUtility.TryGetStringValue(PeppolXML, XmlNamespaces, '/cre:CreditNote/cac:BillingReference/cac:InvoiceDocumentReference/cbc:ID', Value) then
             Header."Applies-to Ext. Invoice No." := CopyStr(Value, 1, MaxStrLen(Header."Applies-to Ext. Invoice No."));
         if Header."Applies-to Ext. Invoice No." = '' then
