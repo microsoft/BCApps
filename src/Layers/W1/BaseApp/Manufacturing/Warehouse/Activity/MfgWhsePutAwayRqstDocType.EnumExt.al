@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Warehouse.Activity;
 
-enumextension 99000780 "Mfg. Whse. PutAway Rqst. Doc. Type" extends "Warehouse Put-away Request Document Type"
+enumextension 99000780 "Mfg. WhsePutAwayRqstDocType" extends "Warehouse Put-away Request Document Type"
 {
     value(2; "Production") { Caption = 'Production'; }
 }

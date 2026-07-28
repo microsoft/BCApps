@@ -27,6 +27,7 @@ codeunit 1545 "Workflow Webhook Notification"
         NotificationUrlTxt: Label 'NotificationUrl';
         WorkflowWebhookCategoryLbl: Label 'AL Workflow Webhook', Locked = true;
         WorkflowWebhookCorrelationGuidTxt: Label 'Correlation GUID for workflow webhook notification created: %1', Locked = true;
+        WorkFlowErrorDetailsTxt: Label '%1 - StatusCode: %2 - StatusDescription: %3', Comment = '%1=ErrorDetails, %2=StatusCode, %3=StatusDescription', Locked = true;
 
     procedure Initialize(RetryCount: Integer; WaitTimeInMs: Integer)
     begin
@@ -95,8 +96,9 @@ codeunit 1545 "Workflow Webhook Notification"
                     HttpWebResponse := WebException.Response;
                     if not IsNull(HttpWebResponse) then
                         if not IsNull(HttpWebResponse.StatusCode) then begin
-                            ErrorDetails := StrSubstNo('%1 - StatusCode: %2 - StatusDescription: %3', ErrorDetails,
-                                Format(HttpWebResponse.StatusCode), HttpWebResponse.StatusDescription);
+                            ErrorDetails :=
+                                StrSubstNo(
+                                    WorkFlowErrorDetailsTxt, ErrorDetails, Format(HttpWebResponse.StatusCode), HttpWebResponse.StatusDescription);
                             Retry := ShouldRetry(HttpWebResponse.StatusCode, HttpWebResponse.StatusDescription);
                         end;
                 end;
@@ -116,7 +118,7 @@ codeunit 1545 "Workflow Webhook Notification"
     end;
 
     [TryFunction]
-    [IntegrationEvent(true, true)]
+    [IntegrationEvent(true, false)]
     [Scope('OnPrem')]
     procedure OnPostNotificationRequest(DataID: Guid; WorkflowStepInstanceID: Guid; NotificationUrl: Text; RequestedByUserEmail: Text)
     begin

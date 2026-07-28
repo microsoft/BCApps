@@ -903,7 +903,7 @@ page 190 "Incoming Documents"
         AutomaticCreationActionsAreEnabled := Rec."Data Exchange Type" <> '';
     end;
 
-    [IntegrationEvent(true, true)]
+    [IntegrationEvent(true, false)]
     local procedure OnCloseIncomingDocumentsFromActions(var IncomingDocument: Record "Incoming Document")
     begin
     end;
