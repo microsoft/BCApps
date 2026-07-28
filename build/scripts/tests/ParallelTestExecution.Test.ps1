@@ -139,3 +139,48 @@ Describe "ParallelTestExecution transient retry scheduling" {
         }
     }
 }
+
+Describe "Legacy bucket configuration" {
+    BeforeAll {
+        $script:configPath = Join-Path $PSScriptRoot '../TestConfiguration.json'
+        $script:config = Get-Content $script:configPath -Raw | ConvertFrom-Json
+        $script:bucketKeys = @($script:config.PSObject.Properties.Name | Where-Object { $_ -like 'LegacyTests-Bucket*' })
+        $script:allBucketApps = @()
+        foreach ($k in $script:bucketKeys) { $script:allBucketApps += @($script:config.$k) }
+    }
+
+    It "defines at least one legacy bucket" {
+        $script:bucketKeys.Count | Should -BeGreaterThan 0
+    }
+
+    It "numbers the buckets contiguously from 1" {
+        $numbers = @($script:bucketKeys | ForEach-Object { [int]($_ -replace '^LegacyTests-Bucket','') } | Sort-Object)
+        $numbers | Should -Be @(1..$numbers.Count)
+    }
+
+    It "lists no app in more than one bucket" {
+        # An app in two buckets runs its tests twice; an app in none silently falls through to the
+        # Uncategorized build mode, which uses a different testType and company. Both are silent.
+        $dupes = @($script:allBucketApps | Group-Object | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name })
+        $dupes | Should -BeNullOrEmpty -Because "these apps appear in more than one legacy bucket: $($dupes -join ', ')"
+    }
+
+    It "has no empty bucket" {
+        foreach ($k in $script:bucketKeys) {
+            @($script:config.$k).Count | Should -BeGreaterThan 0 -Because "$k has no apps, so its job would start a container and run nothing"
+        }
+    }
+
+    It "routes every configured app to a bucket that exists" {
+        foreach ($k in $script:bucketKeys) {
+            $n = [int]($k -replace '^LegacyTests-Bucket','')
+            $resolved = Get-AppNamesForBucket -InstalledTestAppNames @($script:config.$k) -TestType 'Legacy' -BucketNumber $n
+            @($resolved).Count | Should -Be @($script:config.$k).Count -Because "$k should dispatch every app it lists"
+        }
+    }
+
+    It "keeps bucketed apps out of the Uncategorized run" {
+        $uncategorized = Get-AppNamesForBucket -InstalledTestAppNames $script:allBucketApps -TestType 'Uncategorized'
+        @($uncategorized).Count | Should -Be 0 -Because "apps assigned to a legacy bucket must not also run as Uncategorized"
+    }
+}
