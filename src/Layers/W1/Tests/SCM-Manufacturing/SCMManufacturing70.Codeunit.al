@@ -3682,6 +3682,55 @@ codeunit 137063 "SCM Manufacturing 7.0"
     end;
 
     [Test]
+    [Scope('OnPrem')]
+    procedure RefreshProdOrderWithCalcLinesRequiresHeaderVariantCheck()
+    var
+        WorkCenter: Record "Work Center";
+        Item: Record Item;
+        Item2: Record Item;
+        Item3: Record Item;
+        ItemVariant: Record "Item Variant";
+        ProductionBOMHeader: Record "Production BOM Header";
+        RoutingHeader: Record "Routing Header";
+        RoutingLine: Record "Routing Line";
+        ProductionOrder: Record "Production Order";
+    begin
+        // [SCENARIO 633092] Refreshing a Released Production Order with Calc. Lines = Yes still requires a header
+        // Variant Code when the source item has "Variant Mandatory if Exists" = Yes, because the lines are calculated
+        // from the header and would otherwise be created without a mandatory variant.
+        Initialize();
+
+        // [GIVEN] Create Work Center.
+        CreateWorkCenter(WorkCenter);
+
+        // [GIVEN] Create a manufactured Item and its component items.
+        CreateMultipleItems(
+          Item, Item2, Item3, Item."Replenishment System"::"Prod. Order", Item3."Replenishment System"::"Prod. Order",
+          Item."Reordering Policy"::Order, false);
+        UpdateItem(Item, Item.FieldNo("Manufacturing Policy"), Item."Manufacturing Policy"::"Make-to-Order");
+
+        // [GIVEN] Create Production BOM and Routing and assign them to the Item.
+        LibraryManufacturing.CreateCertifiedProductionBOM(ProductionBOMHeader, Item2."No.", 1);
+        CreateRoutingWithMultipleRoutingLine(RoutingHeader, WorkCenter."No.", RoutingHeader.Type::Serial, RoutingLine.Type::"Work Center");
+        UpdateItem(Item, Item.FieldNo("Production BOM No."), ProductionBOMHeader."No.");
+        UpdateItem(Item, Item.FieldNo("Routing No."), RoutingHeader."No.");
+
+        // [GIVEN] A variant exists for the Item and the variant is mandatory.
+        LibraryInventory.CreateItemVariant(ItemVariant, Item."No.");
+        UpdateItem(Item, Item.FieldNo("Variant Mandatory if Exists"), Item."Variant Mandatory if Exists"::Yes);
+
+        // [GIVEN] A Released Production Order for the Item with a blank header Variant Code.
+        LibraryManufacturing.CreateProductionOrder(
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, Item."No.", 100);
+
+        // [WHEN] Refresh with Calc. Lines = Yes, Calc. Routings = Yes, Calc. Components = Yes.
+        asserterror LibraryManufacturing.RefreshProdOrder(ProductionOrder, false, true, true, true, false);
+
+        // [THEN] An error is raised because the mandatory header Variant Code is blank.
+        Assert.ExpectedTestFieldError(ProductionOrder.FieldCaption("Variant Code"), '');
+    end;
+
+    [Test]
     [HandlerFunctions('ChangeStatusOnProdOrderToFinished,ErrorMessageHandler')]
     procedure ChangeProductionOrderStatusWithoutVariantCode()
     var
