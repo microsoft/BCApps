@@ -353,7 +353,6 @@ codeunit 4591 "SOA Item Search"
     begin
         AddSameItemVariantAlternativesForMissingVariant(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, SearchQuery);
         KeepSameItemVariantAlternativesOnly(SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants);
-        RemoveMatchingItemsWithBlankVariantAndSameItemAlternatives(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants);
     end;
 
     local procedure AddSameItemVariantAlternativesForMissingVariant(SelectedMatchingItemFilter: Text; SelectedMatchingItemVariants: Dictionary of [Text, Text]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, Text]; SearchQuery: Text)
@@ -488,41 +487,41 @@ codeunit 4591 "SOA Item Search"
         exit(VariantCodes);
     end;
 
-    local procedure RemoveMatchingItemsWithBlankVariantAndSameItemAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, Text]; SelectedAlternativeItemVariants: Dictionary of [Text, Text])
-    var
-        NewSelectedMatchingItemVariants: Dictionary of [Text, Text];
-        ItemSystemId: Text;
-        AlternativeVariantCodes: Text;
-        MatchingVariantCodes: Text;
-        NewSelectedMatchingItemFilter: Text;
-    begin
-        if SelectedMatchingItemFilter = '' then
-            exit;
+    // local procedure RemoveMatchingItemsWithBlankVariantAndSameItemAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, Text]; SelectedAlternativeItemVariants: Dictionary of [Text, Text])
+    // var
+    //     NewSelectedMatchingItemVariants: Dictionary of [Text, Text];
+    //     ItemSystemId: Text;
+    //     AlternativeVariantCodes: Text;
+    //     MatchingVariantCodes: Text;
+    //     NewSelectedMatchingItemFilter: Text;
+    // begin
+    //     if SelectedMatchingItemFilter = '' then
+    //         exit;
 
-        foreach ItemSystemId in SelectedMatchingItemFilter.Split('|') do begin
-            MatchingVariantCodes := '';
-            if SelectedMatchingItemVariants.ContainsKey(ItemSystemId) then
-                MatchingVariantCodes := SelectedMatchingItemVariants.Get(ItemSystemId);
+    //     foreach ItemSystemId in SelectedMatchingItemFilter.Split('|') do begin
+    //         MatchingVariantCodes := '';
+    //         if SelectedMatchingItemVariants.ContainsKey(ItemSystemId) then
+    //             MatchingVariantCodes := SelectedMatchingItemVariants.Get(ItemSystemId);
 
-            if MatchingVariantCodes = '' then
-                if SelectedAlternativeItemVariants.ContainsKey(ItemSystemId) then begin
-                    AlternativeVariantCodes := SelectedAlternativeItemVariants.Get(ItemSystemId);
-                    if AlternativeVariantCodes <> '' then
-                        continue;
-                end;
+    //         if MatchingVariantCodes = '' then
+    //             if SelectedAlternativeItemVariants.ContainsKey(ItemSystemId) then begin
+    //                 AlternativeVariantCodes := SelectedAlternativeItemVariants.Get(ItemSystemId);
+    //                 if AlternativeVariantCodes <> '' then
+    //                     continue;
+    //             end;
 
-            if NewSelectedMatchingItemFilter = '' then
-                NewSelectedMatchingItemFilter := ItemSystemId
-            else
-                NewSelectedMatchingItemFilter += '|' + ItemSystemId;
+    //         if NewSelectedMatchingItemFilter = '' then
+    //             NewSelectedMatchingItemFilter := ItemSystemId
+    //         else
+    //             NewSelectedMatchingItemFilter += '|' + ItemSystemId;
 
-            if not NewSelectedMatchingItemVariants.ContainsKey(ItemSystemId) then
-                NewSelectedMatchingItemVariants.Add(ItemSystemId, MatchingVariantCodes);
-        end;
+    //         if not NewSelectedMatchingItemVariants.ContainsKey(ItemSystemId) then
+    //             NewSelectedMatchingItemVariants.Add(ItemSystemId, MatchingVariantCodes);
+    //     end;
 
-        SelectedMatchingItemFilter := NewSelectedMatchingItemFilter;
-        SelectedMatchingItemVariants := NewSelectedMatchingItemVariants;
-    end;
+    //     SelectedMatchingItemFilter := NewSelectedMatchingItemFilter;
+    //     SelectedMatchingItemVariants := NewSelectedMatchingItemVariants;
+    // end;
 
     local procedure BuildCandidateArrayFromItemFilter(ItemFilter: Text; var CandidateArray: JsonArray)
     var
@@ -645,6 +644,7 @@ codeunit 4591 "SOA Item Search"
 
     local procedure FindFirstAvailableVariant(var Item: Record Item; ItemSystemId: Text; RequiredQuantity: Decimal; InUOMCode: Code[10]; SelectedItemVariants: Dictionary of [Text, Text]; var AvailableVariantCode: Text): Boolean
     var
+        ItemVariant: Record "Item Variant";
         VariantCode: Text;
         VariantCodes: Text;
     begin
@@ -653,6 +653,19 @@ codeunit 4591 "SOA Item Search"
             VariantCodes := SelectedItemVariants.Get(ItemSystemId);
 
         if VariantCodes = '' then begin
+            // If the item has variants, iterate through them to find an available one.
+            // Checking with blank Variant Filter would return 0 when all stock is variant-specific.
+            ItemVariant.SetRange("Item No.", Item."No.");
+            if ItemVariant.FindSet() then
+                repeat
+                    Item.SetRange("Variant Filter", ItemVariant.Code);
+                    if IsRequiredQuantityAvailable(Item, RequiredQuantity, InUOMCode) then begin
+                        AvailableVariantCode := ItemVariant.Code;
+                        exit(true);
+                    end;
+                until ItemVariant.Next() = 0;
+
+            // Item has no variants — check at item level with blank filter.
             Item.SetRange("Variant Filter", '');
             exit(IsRequiredQuantityAvailable(Item, RequiredQuantity, InUOMCode));
         end;
