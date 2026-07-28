@@ -310,6 +310,13 @@ report 708 "Inventory Order Details"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            LayoutFile = '.\Inventory\Reports\InventoryOrderDetailsBody.docx';
+            Caption = 'Body-only: Inventory Order Details Word';
+            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+        }
     }
 
     labels
