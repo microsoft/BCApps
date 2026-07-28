@@ -899,6 +899,7 @@ table 1294 "Applied Payment Entry"
     var
         CustLedgEntry: Record "Cust. Ledger Entry";
     begin
+        CustLedgEntry.SetLoadFields(Description, "Posting Date", "Due Date", "Document Type", "Document No.", "External Document No.", "Currency Code");
         CustLedgEntry.Get("Applies-to Entry No.");
         Description := CustLedgEntry.Description;
         "Posting Date" := CustLedgEntry."Posting Date";
@@ -913,6 +914,7 @@ table 1294 "Applied Payment Entry"
     var
         VendLedgEntry: Record "Vendor Ledger Entry";
     begin
+        VendLedgEntry.SetLoadFields(Description, "Posting Date", "Due Date", "Document Type", "Document No.", "External Document No.", "Currency Code");
         VendLedgEntry.Get("Applies-to Entry No.");
         Description := VendLedgEntry.Description;
         "Posting Date" := VendLedgEntry."Posting Date";
@@ -927,6 +929,7 @@ table 1294 "Applied Payment Entry"
     var
         EmployeeLedgEntry: Record "Employee Ledger Entry";
     begin
+        EmployeeLedgEntry.SetLoadFields(Description, "Posting Date", "Document Type", "Document No.", "Currency Code");
         EmployeeLedgEntry.Get("Applies-to Entry No.");
         Description := EmployeeLedgEntry.Description;
         "Posting Date" := EmployeeLedgEntry."Posting Date";
@@ -939,6 +942,7 @@ table 1294 "Applied Payment Entry"
     var
         BankAccLedgEntry: Record "Bank Account Ledger Entry";
     begin
+        BankAccLedgEntry.SetLoadFields(Description, "Posting Date", "Document Type", "Document No.", "External Document No.", "Currency Code");
         BankAccLedgEntry.Get("Applies-to Entry No.");
         Description := BankAccLedgEntry.Description;
         "Posting Date" := BankAccLedgEntry."Posting Date";
