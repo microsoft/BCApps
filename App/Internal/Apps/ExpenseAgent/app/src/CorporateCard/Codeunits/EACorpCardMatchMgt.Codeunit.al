@@ -12,9 +12,6 @@ codeunit 7211 EACorpCardMatchMgt
 {
     Access = Internal;
 
-    var
-        NoMatchErr: Label 'No matching expense found for transaction %1.';
-
     internal procedure MatchTransaction(var CorpCardTrans: Record EACorpCardTrans; var ExpenseNo: Code[20]): Boolean
     var
         CorpCardSetup: Record EACorpCardSetup;

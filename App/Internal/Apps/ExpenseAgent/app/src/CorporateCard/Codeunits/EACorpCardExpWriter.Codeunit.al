@@ -13,8 +13,7 @@ codeunit 7212 EACorpCardExpWriter implements IEACorpCardExpWriter
     Access = Internal;
 
     var
-        ExpenseUserNotFoundErr: Label 'Expense User not found for card %1.';
-        NoExpenseCategoryErr: Label 'No expense category found from MCC %1 mapping.';
+        ExpenseUserNotFoundErr: Label 'Expense User not found for card %1.', Comment = '%1 is the card id.';
 
     procedure CreateDraftFromTrans(var CorpCardTrans: Record EACorpCardTrans; var ExpenseNo: Code[20])
     var

@@ -46,11 +46,12 @@ codeunit 7213 EACorpCardPostImportOrch
                 CorpCardTrans.Status := CorpCardTrans.Status::Matched;
                 CorpCardTrans."Expense No." := MatchedExpenseNo;
                 MatchedCount += 1;
-            end else if CorpCardSetup."Auto Create Draft" then begin
-                ExpWriter.CreateDraftFromTrans(CorpCardTrans, DraftExpenseNo);
-                AuditSubscribers.LogDraftCreated(CorpCardTrans."Entry No.", DraftExpenseNo);
             end else
-                UnmatchedCount += 1;
+                if CorpCardSetup."Auto Create Draft" then begin
+                    ExpWriter.CreateDraftFromTrans(CorpCardTrans, DraftExpenseNo);
+                    AuditSubscribers.LogDraftCreated(CorpCardTrans."Entry No.", DraftExpenseNo);
+                end else
+                    UnmatchedCount += 1;
 
             CorpCardTrans.Modify();
         until CorpCardTrans.Next() = 0;

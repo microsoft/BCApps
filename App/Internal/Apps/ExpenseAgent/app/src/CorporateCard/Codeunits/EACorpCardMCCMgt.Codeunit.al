@@ -12,10 +12,6 @@ codeunit 7217 EACorpCardMCCMgt
 {
     Access = Internal;
 
-    var
-        MCCMapNotFoundMsg: Label 'No expense category mapping found for MCC %1.', Locked = true;
-        InvalidMCCMsg: Label 'Invalid MCC code: %1. MCC must be 4 digits.', Locked = true;
-
     /// <summary>
     /// Validates MCC code format and returns mapped expense category.
     /// </summary>

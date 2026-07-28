@@ -61,7 +61,6 @@ page 7230 "EACorpCardJQScheduleSubpage"
 
     trigger OnAfterGetRecord()
     var
-        CorpCardProvider: Record EACorpCardProvider;
         EmptyRecordId: RecordId;
     begin
         if Rec."Record ID to Process" = EmptyRecordId then

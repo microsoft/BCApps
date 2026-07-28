@@ -12,8 +12,8 @@ codeunit 7242 EACorpCardImportOrch
     var
         CorpCardBatch: Record EACorpCardBatch;
         CorpCardProvReg: Codeunit EACorpCardProvReg;
-        CorpCardProviderImpl: Interface IEACorpCardProvider;
         AuditSubscribers: Codeunit EACorpCardAuditSubscribers;
+        CorpCardProviderImpl: Interface IEACorpCardProvider;
     begin
         CorpCardProvReg.ResolveProvider(CorpCardProvider, CorpCardProviderImpl);
 

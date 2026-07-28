@@ -15,7 +15,6 @@ codeunit 7219 EACorpCardReportMgt
 
     var
         NoExpensesForEmployeeErr: Label 'No open expenses found for employee %1 to add to the report.', Comment = '%1 = Employee No.';
-        ReportAlreadyExistsErr: Label 'An expense report already exists for employee %1 dated %2. Use the existing report or create a new one.', Comment = '%1 = Employee No., %2 = Date';
         ExpenseNotReadyErr: Label 'Expense %1 is not ready for reporting (status: %2). Status must be Open or Released.', Comment = '%1 = Expense No., %2 = Status';
 
     /// <summary>

@@ -26,33 +26,36 @@ page 7232 "EACorpCardStatisticsFactbox"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Total Batches';
-                    ToolTip = 'Total number of import batches in the last 30 days.';
+                    ToolTip = 'Specifies the total number of import batches in the last 30 days.';
                 }
                 field(TotalTransactions; GetTotalTransactions())
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Total Transactions';
-                    ToolTip = 'Total transactions imported in the last 30 days.';
+                    ToolTip = 'Specifies the total number of transactions imported in the last 30 days.';
                 }
                 field(MatchSuccessRate; GetMatchSuccessRate())
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Match Success Rate (%)';
-                    ToolTip = 'Percentage of transactions successfully matched to expenses.';
+                    ToolTip = 'Specifies the percentage of transactions successfully matched to expenses.';
                     DecimalPlaces = 1;
                 }
                 field(ExceptionRate; GetExceptionRate())
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Exception Rate (%)';
-                    ToolTip = 'Percentage of transactions with exceptions.';
+                    ToolTip = 'Specifies the percentage of transactions with exceptions.';
                     DecimalPlaces = 1;
                 }
                 field(DuplicateRate; GetDuplicateRate())
                 {
                     ApplicationArea = Basic, Suite;
+                    AutoFormatType = 0;
                     Caption = 'Duplicate Rate (%)';
-                    ToolTip = 'Percentage of duplicate transactions detected.';
+                    ToolTip = 'Specifies the percentage of duplicate transactions detected.';
                     DecimalPlaces = 1;
                 }
             }
@@ -67,19 +70,19 @@ page 7232 "EACorpCardStatisticsFactbox"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Unmatched Transactions';
-                    ToolTip = 'Number of transactions awaiting manual matching.';
+                    ToolTip = 'Specifies the number of transactions awaiting manual matching.';
                 }
                 field(DraftCount; GetDraftExpenseCount())
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Draft Expenses';
-                    ToolTip = 'Number of auto-created draft expenses awaiting submission.';
+                    ToolTip = 'Specifies the number of auto-created draft expenses awaiting submission.';
                 }
                 field(ExceptionCount; GetPendingExceptionCount())
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Unresolved Exceptions';
-                    ToolTip = 'Number of exceptions awaiting resolution.';
+                    ToolTip = 'Specifies the number of exceptions awaiting resolution.';
                 }
             }
 
@@ -93,13 +96,13 @@ page 7232 "EACorpCardStatisticsFactbox"
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Enabled Providers';
-                    ToolTip = 'Number of enabled providers ready for import.';
+                    ToolTip = 'Specifies the number of enabled providers ready for import.';
                 }
                 field(ScheduledImports; GetScheduledImportCount())
                 {
                     ApplicationArea = Basic, Suite;
                     Caption = 'Scheduled Imports';
-                    ToolTip = 'Number of providers with scheduled imports.';
+                    ToolTip = 'Specifies the number of providers with scheduled imports.';
                 }
             }
         }
@@ -147,7 +150,7 @@ page 7232 "EACorpCardStatisticsFactbox"
     var
         CorpCardTrans: Record EACorpCardTrans;
         TotalCount: Integer;
-        ExceptionCount: Integer;
+        ExcepCount: Integer;
     begin
         CorpCardTrans.SetFilter("Trans Date", '>=%1', Today() - 30);
         TotalCount := CorpCardTrans.Count();
@@ -155,14 +158,13 @@ page 7232 "EACorpCardStatisticsFactbox"
             exit(0);
 
         CorpCardTrans.SetRange(Status, CorpCardTrans.Status::Exception);
-        ExceptionCount := CorpCardTrans.Count();
+        ExcepCount := CorpCardTrans.Count();
 
-        exit((ExceptionCount / TotalCount) * 100);
+        exit((ExcepCount / TotalCount) * 100);
     end;
 
     local procedure GetDuplicateRate(): Decimal
     var
-        CorpCardTrans: Record EACorpCardTrans;
         CorpCardBatch: Record EACorpCardBatch;
         TotalCount: Integer;
         DuplicateCount: Integer;
