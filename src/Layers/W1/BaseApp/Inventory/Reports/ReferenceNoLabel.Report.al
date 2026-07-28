@@ -84,6 +84,13 @@ report 6626 "Reference No Label"
             LayoutFile = './Inventory/Reports/ReferenceNoLabel.docx';
             Summary = 'Report layout made for print. Use a Word editor to modify the layout.';
         }
+        layout(WordBody)
+        {
+            Type = Word;
+            LayoutFile = './Inventory/Reports/ReferenceNoLabelBody.docx';
+            Caption = 'Body-only: Reference No. Label (Word)';
+            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+        }
     }
 
     var
