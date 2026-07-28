@@ -3710,7 +3710,7 @@ codeunit 6500 "Item Tracking Management"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnSplitPostedWhseReceiptLineOnNotFindWhseItemEntryRelation(PostedWhseRcptLine: Record "Posted Whse. Receipt Line"; var TempPostedWhseRcptLine: Record "Posted Whse. Receipt Line" temporary; var IsHandled: Boolean)
+    local procedure OnSplitPostedWhseReceiptLineOnNotFindWhseItemEntryRelation(PostedWhseReceiptLine: Record "Posted Whse. Receipt Line"; var TempPostedWhseReceiptLine: Record "Posted Whse. Receipt Line" temporary; var IsHandled: Boolean)
     begin
     end;
 
