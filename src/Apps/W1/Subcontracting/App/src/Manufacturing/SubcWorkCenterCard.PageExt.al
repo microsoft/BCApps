@@ -84,5 +84,5 @@ pageextension 99001506 "Subc. Work Center Card" extends "Work Center Card"
         SubcontractingEnabled: Boolean;
 #endif
         IsSubcontractingWorkCenter: Boolean;
-    SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
+        SubcNotificationMgmt: Codeunit "Subc. Notification Mgmt.";
 }
