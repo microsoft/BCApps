@@ -335,7 +335,7 @@ codeunit 9852 "Effective Permissions Mgt."
                     ExpandedPermissionFound := ExpandedPermission.FindFirst();
                     if not ExpandedPermissionFound then begin
                         PermissionBufferFilledFromSpecificPermission := TryFillPermissionBufferFromSpecificPermission(
-                            PermissionBuffer, AccessControl.Scope, AccessControl."App ID", AccessControl."Role ID", PassedObjectType, PassedObjectId);
+                            PermissionBuffer, AccessControl, PassedObjectType, PassedObjectId);
                         ExpandedPermissionFound := PermissionBufferFilledFromSpecificPermission;
                     end;
                     if not ExpandedPermissionFound then begin
@@ -546,36 +546,33 @@ codeunit 9852 "Effective Permissions Mgt."
         PermissionBuffer."Security Filter" := ExpandedPermission."Security Filter";
     end;
 
-    local procedure TryFillPermissionBufferFromSpecificPermission(var PermissionBuffer: Record "Permission Buffer"; AccessControlScope: Option System,Tenant; AppID: Guid; RoleID: Code[20]; ObjectType: Integer; ObjectID: Integer): Boolean
+    local procedure TryFillPermissionBufferFromSpecificPermission(var PermissionBuffer: Record "Permission Buffer"; AccessControl: Record "Access Control"; ObjectType: Integer; ObjectID: Integer): Boolean
     var
         MetadataPermission: Record "Metadata Permission";
         TenantPermission: Record "Tenant Permission";
     begin
-        case AccessControlScope of
-            AccessControlScope::System:
-                begin
-                    MetadataPermission.SetRange("App ID", AppID);
-                    MetadataPermission.SetRange("Role ID", RoleID);
-                    MetadataPermission.SetRange("Object Type", ObjectType);
-                    MetadataPermission.SetRange("Object ID", ObjectID);
-                    if MetadataPermission.FindFirst() then begin
-                        FillPermissionBufferFromMetadataPermission(PermissionBuffer, MetadataPermission);
-                        exit(true);
-                    end;
-                end;
-            AccessControlScope::Tenant:
-                begin
-                    TenantPermission.SetRange("App ID", AppID);
-                    TenantPermission.SetRange("Role ID", RoleID);
-                    TenantPermission.SetRange("Object Type", ObjectType);
-                    TenantPermission.SetRange("Object ID", ObjectID);
-                    if TenantPermission.FindFirst() then begin
-                        FillPermissionBufferFromTenantPermission(PermissionBuffer, TenantPermission);
-                        exit(true);
-                    end;
-                end;
+        // Explicit blank permission lines (exclusions) are not stored in Expanded Permission, so read the source
+        // permission line directly to detect a specific exclusion that must override the wildcard entry.
+        if AccessControl.Scope = AccessControl.Scope::System then begin
+            MetadataPermission.SetRange("App ID", AccessControl."App ID");
+            MetadataPermission.SetRange("Role ID", AccessControl."Role ID");
+            MetadataPermission.SetRange("Object Type", ObjectType);
+            MetadataPermission.SetRange("Object ID", ObjectID);
+            if MetadataPermission.FindFirst() then begin
+                FillPermissionBufferFromMetadataPermission(PermissionBuffer, MetadataPermission);
+                exit(true);
+            end;
+            exit(false);
         end;
 
+        TenantPermission.SetRange("App ID", AccessControl."App ID");
+        TenantPermission.SetRange("Role ID", AccessControl."Role ID");
+        TenantPermission.SetRange("Object Type", ObjectType);
+        TenantPermission.SetRange("Object ID", ObjectID);
+        if TenantPermission.FindFirst() then begin
+            FillPermissionBufferFromTenantPermission(PermissionBuffer, TenantPermission);
+            exit(true);
+        end;
         exit(false);
     end;
 
