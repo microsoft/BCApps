@@ -13,6 +13,7 @@ using System;
 using System.IO;
 using System.Telemetry;
 using System.Text;
+using System.Utilities;
 using System.Xml;
 
 report 11000015 "SEPA ISO20022 Pain 008.001.08"
@@ -79,7 +80,7 @@ report 11000015 "SEPA ISO20022 Pain 008.001.08"
     trigger OnPreReport()
     var
         FeatureTelemetry: Codeunit "Feature Telemetry";
-        SEPADDExportFile: Codeunit "SEPA DD-Export File";     
+        SEPADDExportFile: Codeunit "SEPA DD-Export File";
     begin
         FeatureTelemetry.LogUptake('0000N2B', SEPADDExportFile.FeatureName(), Enum::"Feature Uptake Status"::Used);
         FeatureTelemetry.LogUsage('0000N2C', SEPADDExportFile.FeatureName(), 'Report (NL) SEPA ISO20022 Pain 008.001.08');
@@ -97,12 +98,11 @@ report 11000015 "SEPA ISO20022 Pain 008.001.08"
         FileMgt: Codeunit "File Management";
         XMLDOMManagement: Codeunit "XML DOM Management";
         ReportChecksum: Codeunit "Report Checksum";
+        TempBlob: Codeunit "Temp Blob";
         XMLRootElement: DotNet XmlElement;
         XMLNodeCurr: DotNet XmlNode;
         XMLNewChild: DotNet XmlNode;
-        StreamWriter: DotNet StreamWriter;
-        UTF8Encoding: DotNet UTF8Encoding;
-        ServerTempFileName: Text[250];
+        BlobInStream: InStream;
     begin
         XMLDOMManagement.LoadXMLDocumentFromText('<?xml version="1.0" encoding="UTF-8"?><Document></Document>', XMLDomDoc);
         XMLRootElement := XMLDomDoc.DocumentElement;
@@ -114,17 +114,24 @@ report 11000015 "SEPA ISO20022 Pain 008.001.08"
         ExportGroupHeader(XMLNewChild);
         ExportPaymentInformation(XMLNewChild);
 
-        ServerTempFileName := FileMgt.ServerTempFileName('xml');
-        StreamWriter := StreamWriter.StreamWriter(ServerTempFileName, false, UTF8Encoding.UTF8Encoding(false));
         OnBeforeXMLDomDocSave(XMLDomDoc);
-        XMLDomDoc.Save(StreamWriter);
-        StreamWriter.Close();
+        WriteXmlDocToTempBlob(TempBlob);
 
-        ReportChecksum.GenerateChecksum("Payment History", ServerTempFileName, ExportProtocolCode);
-        FileMgt.DownloadHandler(ServerTempFileName, '', '', '', ExportFileName);
+        ReportChecksum.GenerateChecksumFromBlob("Payment History", TempBlob, ExportProtocolCode);
 
+        TempBlob.CreateInStream(BlobInStream);
+        FileMgt.DownloadFromStreamHandler(BlobInStream, '', '', '', ExportFileName);
+    end;
+
+    local procedure WriteXmlDocToTempBlob(var TempBlob: Codeunit "Temp Blob")
+    var
+        BlobOutStream: OutStream;
+        XMLDocText: Text;
+    begin
+        TempBlob.CreateOutStream(BlobOutStream, TextEncoding::UTF8);
+        XMLDocText := XMLDomDoc.OuterXml;
+        BlobOutStream.WriteText(XMLDocText);
         Clear(XMLDomDoc);
-        FileMgt.DeleteServerFile(ServerTempFileName);
     end;
 
     local procedure ExportGroupHeader(XMLNodeCurr: DotNet XmlNode)
