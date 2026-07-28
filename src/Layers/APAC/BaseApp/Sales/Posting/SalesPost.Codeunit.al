@@ -1913,12 +1913,15 @@ codeunit 80 "Sales-Post"
     procedure PostItemJnlLineWhseLine(var TempWhseJnlLine: Record "Warehouse Journal Line" temporary; var TempWhseTrackingSpecification: Record "Tracking Specification" temporary)
     var
         TempWhseJnlLine2: Record "Warehouse Journal Line" temporary;
+        WMSMgt: Codeunit "WMS Management";
     begin
         OnBeforePostItemJournalLineWarehouseLine(TempWhseJnlLine, TempWhseTrackingSpecification);
         ItemTrackingMgt.SplitWhseJnlLine(TempWhseJnlLine, TempWhseJnlLine2, TempWhseTrackingSpecification, false);
         if TempWhseJnlLine2.FindSet() then
             repeat
                 OnPostItemJnlLineWhseLineOnBeforePostTempWhseJnlLine2(TempWhseJnlLine2, WhseShip, WhseReceive, InvtPickPutaway);
+                if TempWhseJnlLine2."Location Code" <> '' then
+                    WMSMgt.CheckWhseJnlLine(TempWhseJnlLine2, 1, 0, false);
                 WhseJnlPostLine.Run(TempWhseJnlLine2);
             until TempWhseJnlLine2.Next() = 0;
         TempWhseTrackingSpecification.DeleteAll();
@@ -5383,7 +5386,7 @@ codeunit 80 "Sales-Post"
                             TempPrepmtSalesLine."Prepayment %" := TempSalesLine."Prepayment %";
                         OnBeforeTempPrepmtSalesLineModify(TempPrepmtSalesLine, TempSalesLine, SalesHeader, CompleteFunctionality);
                         TempPrepmtSalesLine.Modify();
-                        OnCreatePrepaymentLinesOnAfterTempPrepmtSalesLineModify(TempPrepmtSalesLine, TempSalesLine, SalesHeader);			
+                        OnCreatePrepaymentLinesOnAfterTempPrepmtSalesLineModify(TempPrepmtSalesLine, TempSalesLine, SalesHeader);
                         FillPrepmtLineNoBuf(TempSalesLine."Line No.", TempPrepmtSalesLine."Line No.");
                     end else begin
                         TempPrepmtSalesLine.Init();
@@ -11978,7 +11981,7 @@ codeunit 80 "Sales-Post"
                 DimensionMgt.GetCombinedDimensionSetID(DimSetID, ItemJnlLine2."Shortcut Dimension 1 Code", ItemJnlLine2."Shortcut Dimension 2 Code");
         end;
     end;
-     
+
     local procedure UpdateSalesLineDimSetIDFromAppliedEntry(var SalesLineToPost: Record "Sales Line"; SalesLine: Record "Sales Line")
     var
         ItemLedgEntry: Record "Item Ledger Entry";
