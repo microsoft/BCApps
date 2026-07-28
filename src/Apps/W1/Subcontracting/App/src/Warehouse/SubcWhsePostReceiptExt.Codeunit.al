@@ -15,7 +15,7 @@ using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
 using Microsoft.Warehouse.Journal;
 
-codeunit 99001551 "Subc. WhsePostReceipt Ext"
+codeunit 8175 "Subc. WhsePostReceipt Ext"
 {
     var
 #if not CLEAN28

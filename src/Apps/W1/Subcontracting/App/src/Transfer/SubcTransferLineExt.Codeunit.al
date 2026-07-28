@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Transfer;
 
-codeunit 99001544 "Subc. Transfer Line Ext."
+codeunit 8168 "Subc. Transfer Line Ext."
 {
 #if not CLEAN28
     var

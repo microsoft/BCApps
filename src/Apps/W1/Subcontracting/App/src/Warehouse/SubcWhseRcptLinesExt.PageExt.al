@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Purchases.Document;
 using Microsoft.Warehouse.Document;
 
-pageextension 99001534 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines"
+pageextension 8158 "Subc. Whse Rcpt Lines Ext." extends "Whse. Receipt Lines"
 {
     layout
     {

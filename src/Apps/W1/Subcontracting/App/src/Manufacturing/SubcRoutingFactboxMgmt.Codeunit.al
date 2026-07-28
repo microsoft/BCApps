@@ -11,7 +11,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Purchases.Vendor;
 
-codeunit 99001561 "Subc. Routing Factbox Mgmt."
+codeunit 8185 "Subc. Routing Factbox Mgmt."
 {
 #if not CLEAN28
     var

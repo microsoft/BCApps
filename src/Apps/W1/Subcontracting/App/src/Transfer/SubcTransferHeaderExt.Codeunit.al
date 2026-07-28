@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
-codeunit 99001507 "Subc. Transfer Header Ext."
+codeunit 8131 "Subc. Transfer Header Ext."
 {
 #if not CLEAN28
     var

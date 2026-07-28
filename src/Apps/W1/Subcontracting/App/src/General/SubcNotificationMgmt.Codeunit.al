@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using System.Environment.Configuration;
 
-codeunit 99001506 "Subc. Notification Mgmt."
+codeunit 8130 "Subc. Notification Mgmt."
 {
     var
 #if not CLEAN28

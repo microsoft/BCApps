@@ -10,7 +10,7 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 
-codeunit 99001520 "Subc. Prod. Order Rtng. Ext."
+codeunit 8144 "Subc. Prod. Order Rtng. Ext."
 {
     var
 #if not CLEAN28

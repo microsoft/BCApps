@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using System.Security.AccessControl;
 
-permissionsetextension 99001501 "D365 BUS FULL ACCESS - Subcontracting" extends "D365 BUS FULL ACCESS"
+permissionsetextension 8125 "D365 BUS FULL ACCESS - Subcontracting" extends "D365 BUS FULL ACCESS"
 {
     IncludedPermissionSets = "Subcontract. - Edit";
 }

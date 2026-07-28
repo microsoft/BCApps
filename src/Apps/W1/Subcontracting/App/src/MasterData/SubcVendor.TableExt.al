@@ -8,12 +8,12 @@ using Microsoft.Inventory.Location;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Vendor;
 
-tableextension 99001507 "Subc. Vendor" extends Vendor
+tableextension 8131 "Subc. Vendor" extends Vendor
 {
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001515; "Subc. Location Code"; Code[10])
+        field(8139; "Subc. Location Code"; Code[10])
         {
             Caption = 'Subcontracting Location Code';
             DataClassification = CustomerContent;
@@ -48,14 +48,14 @@ tableextension 99001507 "Subc. Vendor" extends Vendor
                 end;
             end;
         }
-        field(99001516; "Subc. Linked to Work Center"; Boolean)
+        field(8140; "Subc. Linked to Work Center"; Boolean)
         {
             CalcFormula = exist("Work Center" where("Subcontractor No." = field("No.")));
             Caption = 'Linked to Work Center';
             Editable = false;
             FieldClass = FlowField;
         }
-        field(99001517; "Subc. Work Center No."; Code[20])
+        field(8141; "Subc. Work Center No."; Code[20])
         {
             Caption = 'Work Center No.';
             DataClassification = CustomerContent;
