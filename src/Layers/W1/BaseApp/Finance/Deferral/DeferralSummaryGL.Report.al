@@ -296,6 +296,13 @@ report 1700 "Deferral Summary - G/L"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            LayoutFile = './Finance/Deferral/DeferralSummaryGLBody.docx';
+            Caption = 'Body-only: Deferral Summary G/L Word';
+            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+        }
     }
 
     labels
