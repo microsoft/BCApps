@@ -46,6 +46,7 @@ codeunit 9660 "Report Layouts Impl."
         LayoutAlreadyExistsErr: Label 'A layout named "%1" already exists.', Comment = '%1 = Layout Name';
         MixedScopeErr: Label 'The selected layouts have different scopes. Some apply to all companies and some only to the current company. Select layouts of a single scope and try again.';
         GlobalScopeConfirmQst: Label 'One or more of the selected layouts apply to all companies. Changing the status will affect all companies, not only the current one. Do you want to continue?';
+        GlobalOverrideConfirmQst: Label 'This override will apply to all companies, not only the current one. Do you want to continue?';
 
     internal procedure SetSelectedCompany(NewCompanyName: Text)
     begin
@@ -698,6 +699,8 @@ codeunit 9660 "Report Layouts Impl."
         AllCompaniesTxt: Label '';
         AvailableInAllCompanies: Boolean;
         NewIsObsolete: Boolean;
+        ApplyDescription: Boolean;
+        ApplyObsolete: Boolean;
         CustomDimensions: Dictionary of [Text, Text];
     begin
         if SelectedReportLayoutList."User Defined" then begin
@@ -715,18 +718,32 @@ codeunit 9660 "Report Layouts Impl."
             AvailableInAllCompanies := ReportLayoutEditDialog.SelectedAvailableInAllCompanies();
             NewIsObsolete := ReportLayoutEditDialog.SelectedIsObsolete();
 
-            // Extension-installed layout, edited in place (not copied): write an override for the
-            // mutable properties (Description, IsObsolete) instead of copying the layout. The layout
-            // name/identity cannot change here, so NewLayoutName is not used.
-            if (not SelectedReportLayoutList."User Defined") and (not CreateCopy) then begin
-                UpsertLayoutOverride(SelectedReportLayoutList, AvailableInAllCompanies, true, NewDescription, false, Enum::"Report Layout Status"::Draft, true, NewIsObsolete);
-                NewEditedLayoutName := SelectedReportLayoutList.Name;
+            // For an extension layout the override scope comes from the dedicated "Override for all
+            // companies" control, not the (layout-availability) "Available in All Companies" field.
+            if not SelectedReportLayoutList."User Defined" then
+                AvailableInAllCompanies := ReportLayoutEditDialog.SelectedOverrideForAllCompanies();
 
-                CustomDimensions.Add('ReportId', Format(SelectedReportLayoutList."Report ID"));
-                CustomDimensions.Add('LayoutName', SelectedReportLayoutList.Name);
-                CustomDimensions.Add('NewLayoutDescription', NewDescription);
-                AddReportLayoutDimensionsAction('EditOverride', CustomDimensions);
-                Log('0000N0H', 'Report layout properties overridden by user', CustomDimensions);
+            // Extension-installed layout, edited in place (not copied): write an override for only the
+            // properties the user actually changed (a no-op OK writes nothing). IsObsolete is one-way.
+            // Ask first before an all-companies (global) override.
+            if (not SelectedReportLayoutList."User Defined") and (not CreateCopy) then begin
+                NewEditedLayoutName := SelectedReportLayoutList.Name;
+                ApplyDescription := NewDescription <> SelectedReportLayoutList."Description";
+                ApplyObsolete := NewIsObsolete and (not SelectedReportLayoutList.IsObsolete);
+                if not (ApplyDescription or ApplyObsolete) then
+                    exit;
+                if AvailableInAllCompanies then
+                    if not Confirm(GlobalOverrideConfirmQst, false) then
+                        exit;
+                UpsertLayoutOverride(SelectedReportLayoutList, AvailableInAllCompanies, ApplyDescription, NewDescription, false, Enum::"Report Layout Status"::Draft, ApplyObsolete, NewIsObsolete);
+
+                // TODO (Slice 4 C/D): telemetry disabled while testing. The previous Log reused event
+                // id '0000N0H' (dimension-schema clash with the Edit path) and shipped the free-text
+                // description (PII). Re-enable with a dedicated event id and no content dimension.
+                // CustomDimensions.Add('ReportId', Format(SelectedReportLayoutList."Report ID"));
+                // CustomDimensions.Add('LayoutName', SelectedReportLayoutList.Name);
+                // AddReportLayoutDimensionsAction('EditOverride', CustomDimensions);
+                // Log('0000N0H', 'Report layout properties overridden by user', CustomDimensions);
                 exit;
             end;
 

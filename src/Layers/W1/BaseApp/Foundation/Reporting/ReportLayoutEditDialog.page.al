@@ -75,10 +75,10 @@ page 9661 "Report Layout Edit Dialog"
 
                 trigger OnValidate()
                 begin
-                    // In override mode (extension layout) the user always chooses global vs company
-                    // scope, whether they override in place or opt into a copy.
+                    // In override mode (extension layout) checking "Save Changes to a Copy" re-enables
+                    // the Layout Name so the forked copy can be given a distinct name.
                     if OverrideMode then
-                        AvailableInAllCompaniesEditable := true
+                        LayoutNameEditable := CreateCopy
                     else
                         if (CreateCopy) then
                             AvailableInAllCompaniesEditable := true
@@ -98,6 +98,15 @@ page 9661 "Report Layout Edit Dialog"
                 Caption = 'Available in All Companies';
                 ToolTip = 'Specifies whether the layout should be available in all companies or just the current company.';
                 Editable = AvailableInAllCompaniesEditable;
+                Visible = not OverrideMode;
+            }
+            field(OverrideForAllCompanies; OverrideForAllCompanies)
+            {
+                ApplicationArea = Basic, Suite;
+                Caption = 'Override for all companies';
+                ToolTip = 'Specifies whether this override applies to all companies (global) or only the current company. The layout itself stays available everywhere; this controls only the scope of the override.';
+                Visible = OverrideMode;
+                Editable = OverrideMode;
             }
             field(IsObsolete; IsObsolete)
             {
@@ -128,6 +137,7 @@ page 9661 "Report Layout Edit Dialog"
         LayoutNameEditable: Boolean;
         IsObsoleteEditable: Boolean;
         OverrideMode: Boolean;
+        OverrideForAllCompanies: Boolean;
 
     internal procedure SelectedLayoutDescription(): Text[250]
     begin
@@ -142,6 +152,11 @@ page 9661 "Report Layout Edit Dialog"
     internal procedure SelectedAvailableInAllCompanies(): Boolean
     begin
         exit(AvailableInAllCompanies);
+    end;
+
+    internal procedure SelectedOverrideForAllCompanies(): Boolean
+    begin
+        exit(OverrideForAllCompanies);
     end;
 
     internal procedure SelectedIsObsolete(): Boolean
@@ -176,8 +191,9 @@ page 9661 "Report Layout Edit Dialog"
             CreateCopyEditable := true;
             LayoutNameEditable := false;
             IsObsoleteEditable := not ReportLayoutList.IsObsolete;
-            AvailableInAllCompaniesEditable := true;
-            AvailableInAllCompanies := true;
+            // Override scope uses its own control and defaults to the CURRENT company (ask-first
+            // before global) — NOT the "Available in All Companies" layout-availability field.
+            OverrideForAllCompanies := false;
 
         end else begin
             CreateCopy := false;

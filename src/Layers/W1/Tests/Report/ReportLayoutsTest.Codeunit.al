@@ -801,7 +801,7 @@ codeunit 139595 "Report Layouts Test"
     end;
 
     [Test]
-    [HandlerFunctions('EditExtensionOverrideGlobalDescHandler')]
+    [HandlerFunctions('EditExtensionOverrideGlobalDescHandler,ConfirmHandler')]
     procedure TestEditExtensionLayoutWritesGlobalDescriptionOverride()
     var
         TenantReportLayout: Record "Tenant Report Layout";
@@ -870,19 +870,52 @@ codeunit 139595 "Report Layouts Test"
         Assert.IsTrue(TenantReportLayout.IsEmpty(), 'No copy should have been created in Tenant Report Layout.');
     end;
 
+    [Test]
+    [HandlerFunctions('EditExtensionOverrideNoOpHandler')]
+    procedure TestEditExtensionLayoutNoOpWritesNoOverride()
+    var
+        TenantReportLayoutOverride: Record "Tenant Report Layout Override";
+        ReportLayoutList: Record "Report Layout List";
+        ReportLayoutsPage: TestPage "Report Layouts";
+    begin
+        // [FEATURE] [AI TEST]
+        // [SCENARIO] Edit info on an extension layout + OK with no changes writes NO override
+        // (Slice 4 A — no silent global override for a no-op edit).
+        EnsureNewLayoutsAreCleaned();
+
+        ReportLayoutList.SetRange("Report ID", 139595);
+        ReportLayoutList.SetRange("User Defined", false);
+        Assert.IsTrue(ReportLayoutList.FindFirst(), 'The extension-installed test layout should be present.');
+
+        ReportLayoutsPage.OpenView();
+        ReportLayoutsPage.GoToRecord(ReportLayoutList);
+        ReportLayoutsPage.EditLayout.Invoke();
+        ReportLayoutsPage.Close();
+
+        TenantReportLayoutOverride.SetRange("Report ID", 139595);
+        Assert.IsTrue(TenantReportLayoutOverride.IsEmpty(), 'A no-op edit must not create any override.');
+    end;
+
     [ModalPageHandler]
     procedure EditExtensionOverrideGlobalDescHandler(var ReportLayoutEditDialog: TestPage "Report Layout Edit Dialog")
     begin
         ReportLayoutEditDialog.Description.SetValue(EditedLayoutNameTxt);
-        ReportLayoutEditDialog.AvailableInAllCompanies.SetValue(true);
+        ReportLayoutEditDialog.OverrideForAllCompanies.SetValue(true);
         ReportLayoutEditDialog.OK().Invoke();
     end;
 
     [ModalPageHandler]
     procedure EditExtensionOverrideCompanyObsoleteHandler(var ReportLayoutEditDialog: TestPage "Report Layout Edit Dialog")
     begin
-        ReportLayoutEditDialog.AvailableInAllCompanies.SetValue(false);
+        ReportLayoutEditDialog.OverrideForAllCompanies.SetValue(false);
         ReportLayoutEditDialog.IsObsolete.SetValue(true);
+        ReportLayoutEditDialog.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    procedure EditExtensionOverrideNoOpHandler(var ReportLayoutEditDialog: TestPage "Report Layout Edit Dialog")
+    begin
+        // Change nothing, just confirm — should write no override (Slice 4 A).
         ReportLayoutEditDialog.OK().Invoke();
     end;
 
