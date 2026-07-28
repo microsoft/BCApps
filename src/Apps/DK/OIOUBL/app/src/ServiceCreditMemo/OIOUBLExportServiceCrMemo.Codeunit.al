@@ -311,6 +311,12 @@ codeunit 13644 "OIOUBL-Export Service Cr.Memo"
         end;
     end;
 
+    procedure UpdateTaxAmtAndTaxableAmt(Amount: Decimal; AmountIncludingVAT: Decimal; var TaxableAmountParam: Decimal; var TaxAmountParam: Decimal);
+    begin
+        TaxableAmountParam := TaxableAmountParam + Amount;
+        TaxAmountParam := TaxAmountParam + AmountIncludingVAT - Amount;
+    end;
+
     local procedure ExcludeVAT(var ServiceCrMemoLine: Record "Service Cr.Memo Line"; PricesInclVAT: Boolean);
     var
         ExclVATFactor: Decimal;

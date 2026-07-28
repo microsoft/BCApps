@@ -415,6 +415,11 @@ codeunit 13648 "OIOUBL-Common Logic"
         RootElement.Add(AllowanceChargeElement);
     end;
 
+    procedure InsertTaxSubtotal(var RootElement: XmlElement; VATCalculationType: Option; TaxableAmount: Decimal; TaxAmount: Decimal; VATPercentage: Decimal; CurrencyCode: Code[10]);
+    begin
+        InsertTaxSubtotal(RootElement, "Tax Calculation Type".FromInteger(VATCalculationType), TaxableAmount, TaxAmount, VATPercentage, CurrencyCode);
+    end;
+
     procedure InsertTaxSubtotal(var RootElement: XmlElement; VATCalculationType: Enum "Tax Calculation Type"; TaxableAmount: Decimal; TaxAmount: Decimal; VATPercentage: Decimal; CurrencyCode: Code[10]);
     begin
         InsertTaxSubtotalByCategory(
@@ -438,6 +443,11 @@ codeunit 13648 "OIOUBL-Common Logic"
         InsertTaxCategory(TaxSubtotalElement, TaxCategoryID, VATPercentage);
 
         RootElement.Add(TaxSubtotalElement);
+    end;
+
+    procedure InsertLineTaxTotal(var RootElement: XmlElement; AmountIncludingVAT: Decimal; Amount: Decimal; VATCalculationType: Option; VATPercent: Decimal; CurrencyCode: Code[10]);
+    begin
+        InsertLineTaxTotal(RootElement, Amount, AmountIncludingVAT - Amount, "Tax Calculation Type".FromInteger(VATCalculationType), VATPercent, CurrencyCode);
     end;
 
     procedure InsertLineTaxTotal(var RootElement: XmlElement; TaxableAmount: Decimal; TaxAmount: Decimal; VATCalculationType: Enum "Tax Calculation Type"; VATPercent: Decimal; CurrencyCode: Code[10]);
@@ -742,6 +752,11 @@ codeunit 13648 "OIOUBL-Common Logic"
           'xmlns:ccts="urn:oasis:names:specification:ubl:schema:xsd:CoreComponentParameters-2" ' +
           'xmlns:sdt="urn:oasis:names:specification:ubl:schema:xsd:SpecializedDatatypes-2" ' +
           'xmlns:udt="urn:un:unece:uncefact:data:specification:UnqualifiedDataTypesSchemaModule:2"/> ');
+    end;
+
+    procedure GetTaxCategoryID(Type: Option "Normal VAT","Reverse Charge VAT","Full VAT","Sales Tax"; VATPercent: Decimal): Text[15];
+    begin
+        exit(GetTaxCategoryID("Tax Calculation Type".FromInteger(Type), VATPercent));
     end;
 
     procedure GetTaxCategoryID(Type: Enum "Tax Calculation Type"; VATPercent: Decimal): Text[15];

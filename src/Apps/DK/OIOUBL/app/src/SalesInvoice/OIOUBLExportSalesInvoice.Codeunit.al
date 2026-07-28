@@ -395,6 +395,12 @@ codeunit 13636 "OIOUBL-Export Sales Invoice"
         end;
     end;
 
+    procedure UpdateTaxAmtAndTaxableAmt(Amount: Decimal; AmountIncludingVAT: Decimal; var TaxableAmountParam: Decimal; var TaxAmountParam: Decimal);
+    begin
+        TaxableAmountParam := TaxableAmountParam + Amount;
+        TaxAmountParam := TaxAmountParam + AmountIncludingVAT - Amount;
+    end;
+
     procedure ExcludeVAT(var SalesInvLine: Record "Sales Invoice Line"; PricesInclVAT: Boolean);
     var
         ExclVATFactor: Decimal;

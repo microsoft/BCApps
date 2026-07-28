@@ -357,6 +357,12 @@ codeunit 13643 "OIOUBL-Export Service Invoice"
         exit(CompanyInfo.GetOIOUBLPaymentChannelCode());
     end;
 
+    procedure UpdateTaxAmtAndTaxableAmt(Amount: Decimal; AmountIncludingVAT: Decimal; var TaxableAmountParam: Decimal; var TaxAmountParam: Decimal);
+    begin
+        TaxableAmountParam := TaxableAmountParam + Amount;
+        TaxAmountParam := TaxAmountParam + AmountIncludingVAT - Amount;
+    end;
+
     procedure ExcludeVAT(var ServInvLine: Record "Service Invoice Line"; PricesInclVAT: Boolean);
     var
         ExclVATFactor: Decimal;

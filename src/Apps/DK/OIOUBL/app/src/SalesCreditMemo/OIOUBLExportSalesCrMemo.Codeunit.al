@@ -300,6 +300,12 @@ codeunit 13637 "OIOUBL-Export Sales Cr. Memo"
         end;
     end;
 
+    procedure UpdateTaxAmtAndTaxableAmt(Amount: Decimal; AmountIncludingVAT: Decimal; var TaxableAmountParam: Decimal; var TaxAmountParam: Decimal);
+    begin
+        TaxableAmountParam := TaxableAmountParam + Amount;
+        TaxAmountParam := TaxAmountParam + AmountIncludingVAT - Amount;
+    end;
+
     local procedure ExcludeVAT(var SalesCrMemoLine: Record "Sales Cr.Memo Line"; PricesInclVAT: Boolean);
     var
         ExclVATFactor: Decimal;
