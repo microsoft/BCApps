@@ -363,6 +363,13 @@ report 1701 "Deferral Summary - Sales"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            LayoutFile = './Finance/Deferral/DeferralSummarySalesBody.docx';
+            Caption = 'Body-only: Deferral Summary Sales Word';
+            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+        }
     }
 
     labels
