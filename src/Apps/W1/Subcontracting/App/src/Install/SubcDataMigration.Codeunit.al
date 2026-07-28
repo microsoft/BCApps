@@ -1,0 +1,326 @@
+// ------------------------------------------------------------------------------------------------
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+// ------------------------------------------------------------------------------------------------
+namespace Microsoft.Manufacturing.Subcontracting;
+
+using Microsoft.Inventory.Journal;
+using Microsoft.Inventory.Ledger;
+using Microsoft.Inventory.Planning;
+using Microsoft.Inventory.Requisition;
+using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Capacity;
+using Microsoft.Manufacturing.Document;
+using Microsoft.Manufacturing.ProductionBOM;
+using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
+using Microsoft.Purchases.Archive;
+using Microsoft.Purchases.Document;
+using Microsoft.Purchases.History;
+using Microsoft.Purchases.Vendor;
+using Microsoft.Warehouse.Document;
+using Microsoft.Warehouse.History;
+using System.Environment.Configuration;
+using System.Reflection;
+using System.Upgrade;
+
+codeunit 8133 "Subc. Data Migration"
+{
+    Access = Internal;
+
+    internal procedure MigrateRenumberedData()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if UpgradeTag.HasUpgradeTag(GetRenumberedDataMigrationTag()) then begin
+            LogMigrationNotInitiated(MigrationAlreadyCompletedLbl);
+            exit;
+        end;
+
+        if not IsOldTableAvailable(Database::"Subcontractor WIP Ledger Entry") then begin
+            LogMigrationNotInitiated(OldTableNotAvailableLbl);
+            SetRenumberedDataMigrationTag();
+            exit;
+        end;
+
+        LogMigrationInitiated();
+        MigrateRenumberedTables();
+        MigrateInventoryFields();
+        MigrateManufacturingFields();
+        MigratePurchaseFields();
+        MigrateSetupFields();
+        MigrateTransferFields();
+        MigrateWarehouseFields();
+
+        SetRenumberedDataMigrationTag();
+    end;
+
+    local procedure LogMigrationInitiated()
+    begin
+        Session.LogMessage('', MigrationInitiatedMsg, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+    end;
+
+    local procedure LogMigrationNotInitiated(Reason: Text)
+    begin
+        Session.LogMessage('', StrSubstNo(MigrationNotInitiatedMsg, Reason), Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', TelemetryCategoryLbl);
+    end;
+
+    internal procedure SetRenumberedDataMigrationTag()
+    var
+        UpgradeTag: Codeunit "Upgrade Tag";
+    begin
+        if not UpgradeTag.HasUpgradeTag(GetRenumberedDataMigrationTag()) then
+            UpgradeTag.SetUpgradeTag(GetRenumberedDataMigrationTag());
+    end;
+
+    local procedure MigrateRenumberedTables()
+    begin
+        MigrateTableData(Database::"Subcontractor Price");
+        MigrateTableData(Database::"Subcontractor WIP Ledger Entry");
+    end;
+
+    local procedure MigrateInventoryFields()
+    var
+        FieldIds: List of [Integer];
+    begin
+        SetFieldIds(FieldIds, '8134,8135,8136,8137,8138');
+        MigrateTableExtensionFields(Database::"Item Ledger Entry", FieldIds);
+
+        SetFieldIds(FieldIds, '8134,8135,8136,8137,8138,8166');
+        MigrateTableExtensionFields(Database::"Item Journal Line", FieldIds);
+    end;
+
+    local procedure MigrateManufacturingFields()
+    var
+        FieldIds: List of [Integer];
+    begin
+        SetFieldIds(FieldIds, '8124,8136,8137');
+        MigrateTableExtensionFields(Database::"Capacity Ledger Entry", FieldIds);
+
+        SetFieldIds(FieldIds, '8148,8149,8150');
+        MigrateTableExtensionFields(Database::"Planning Component", FieldIds);
+
+        SetFieldIds(FieldIds, '8146');
+        MigrateTableExtensionFields(Database::"Production BOM Line", FieldIds);
+
+        SetFieldIds(FieldIds, '8146,8147,8152');
+        MigrateTableExtensionFields(Database::"Prod. Order Component", FieldIds);
+
+        SetFieldIds(FieldIds, '8174,8184,8185,8186');
+        MigrateTableExtensionFields(Database::"Prod. Order Routing Line", FieldIds);
+
+        SetFieldIds(FieldIds, '8176');
+        MigrateTableExtensionFields(Database::"Production Order", FieldIds);
+
+        SetFieldIds(FieldIds, '8184,8185,8186');
+        MigrateTableExtensionFields(Database::"Routing Line", FieldIds);
+    end;
+
+    local procedure MigratePurchaseFields()
+    var
+        FieldIds: List of [Integer];
+    begin
+        SetFieldIds(FieldIds, '8139,8141');
+        MigrateTableExtensionFields(Database::Vendor, FieldIds);
+
+        SetFieldIds(FieldIds, '8167,8168,8169,8170,8171,8172');
+        MigrateTableExtensionFields(Database::"Purch. Cr. Memo Line", FieldIds);
+        MigrateTableExtensionFields(Database::"Purch. Inv. Line", FieldIds);
+        MigrateTableExtensionFields(Database::"Purch. Rcpt. Line", FieldIds);
+        MigrateTableExtensionFields(Database::"Purchase Line Archive", FieldIds);
+
+        SetFieldIds(FieldIds, '8144');
+        MigrateTableExtensionFields(Database::"Purchase Header", FieldIds);
+        MigrateTableExtensionFields(Database::"Purchase Header Archive", FieldIds);
+
+        SetFieldIds(FieldIds, '8167,8168,8169,8170,8171,8172,8173,8184');
+        MigrateTableExtensionFields(Database::"Purchase Line", FieldIds);
+
+        SetFieldIds(FieldIds, '8140,8141,8142,8143,8144');
+        MigrateTableExtensionFields(Database::"Requisition Line", FieldIds);
+    end;
+
+    local procedure MigrateSetupFields()
+    var
+        FieldIds: List of [Integer];
+    begin
+        SetFieldIds(FieldIds, '8124');
+        MigrateTableExtensionFields(Database::"Application Area Setup", FieldIds);
+
+        SetFieldIds(FieldIds, '8124,8125,8126,8128,8129,8133');
+        MigrateTableExtensionFields(Database::"Manufacturing Setup", FieldIds);
+    end;
+
+    local procedure MigrateTransferFields()
+    var
+        FieldIds: List of [Integer];
+    begin
+        SetFieldIds(FieldIds, '8154,8155,8160,8161,8164,8165');
+        MigrateTableExtensionFields(Database::"Direct Trans. Header", FieldIds);
+        MigrateTableExtensionFields(Database::"Transfer Receipt Header", FieldIds);
+        MigrateTableExtensionFields(Database::"Transfer Shipment Header", FieldIds);
+        MigrateTableExtensionFields(Database::"Transfer Header", FieldIds);
+
+        SetFieldIds(FieldIds, '8154,8155,8156,8157,8158,8159,8160,8161,8162,8163,8184');
+        MigrateTableExtensionFields(Database::"Direct Trans. Line", FieldIds);
+        MigrateTableExtensionFields(Database::"Transfer Receipt Line", FieldIds);
+        MigrateTableExtensionFields(Database::"Transfer Shipment Line", FieldIds);
+
+        SetFieldIds(FieldIds, '8154,8155,8156,8157,8158,8159,8160,8161,8162,8163,8184,8187');
+        MigrateTableExtensionFields(Database::"Transfer Line", FieldIds);
+    end;
+
+    local procedure MigrateWarehouseFields()
+    var
+        FieldIds: List of [Integer];
+    begin
+        SetFieldIds(FieldIds, '8173,8184');
+        MigrateTableExtensionFields(Database::"Posted Whse. Receipt Line", FieldIds);
+        MigrateTableExtensionFields(Database::"Warehouse Receipt Line", FieldIds);
+
+        SetFieldIds(FieldIds, '8184');
+        MigrateTableExtensionFields(Database::"Posted Whse. Shipment Line", FieldIds);
+        MigrateTableExtensionFields(Database::"Warehouse Shipment Line", FieldIds);
+    end;
+
+    local procedure MigrateTableData(NewTableId: Integer)
+    var
+        OldRecordRef: RecordRef;
+        NewRecordRef: RecordRef;
+        OldFieldRef: FieldRef;
+        NewFieldRef: FieldRef;
+        FieldIndex: Integer;
+    begin
+        if not OpenOldTableIfAvailable(NewTableId, OldRecordRef) then
+            exit;
+
+        NewRecordRef.Open(NewTableId);
+        if OldRecordRef.FindSet() then
+            repeat
+                NewRecordRef.Init();
+                for FieldIndex := 1 to OldRecordRef.FieldCount() do begin
+                    OldFieldRef := OldRecordRef.FieldIndex(FieldIndex);
+                    if (OldFieldRef.Class = FieldClass::Normal) and (OldFieldRef.Number < 2000000000) and NewRecordRef.FieldExist(OldFieldRef.Number) then begin
+                        NewFieldRef := NewRecordRef.Field(OldFieldRef.Number);
+                        NewFieldRef.Value := OldFieldRef.Value;
+                    end;
+                end;
+                NewRecordRef.Insert(false);
+            until OldRecordRef.Next() = 0;
+        OldRecordRef.Close();
+        NewRecordRef.Close();
+    end;
+
+    local procedure MigrateTableExtensionFields(TableId: Integer; NewFieldIds: List of [Integer])
+    var
+        RecordRef: RecordRef;
+        OldFieldRef: FieldRef;
+        NewFieldRef: FieldRef;
+        FieldIndex: Integer;
+        RecordModified: Boolean;
+    begin
+        RecordRef.Open(TableId);
+        if not AreOldFieldsAvailable(RecordRef, NewFieldIds) then begin
+            RecordRef.Close();
+            exit;
+        end;
+
+        if RecordRef.FindSet(true) then
+            repeat
+                RecordModified := false;
+                for FieldIndex := 1 to NewFieldIds.Count() do begin
+                    OldFieldRef := RecordRef.Field(GetOldId(NewFieldIds.Get(FieldIndex)));
+                    NewFieldRef := RecordRef.Field(NewFieldIds.Get(FieldIndex));
+                    if NewFieldRef.Value <> OldFieldRef.Value then begin
+                        NewFieldRef.Value := OldFieldRef.Value;
+                        RecordModified := true;
+                    end;
+                end;
+                if RecordModified then
+                    RecordRef.Modify(false);
+            until RecordRef.Next() = 0;
+        RecordRef.Close();
+    end;
+
+    local procedure AreOldFieldsAvailable(RecordRef: RecordRef; NewFieldIds: List of [Integer]): Boolean
+    var
+        FieldIndex: Integer;
+    begin
+        for FieldIndex := 1 to NewFieldIds.Count() do
+            if not RecordRef.FieldExist(GetOldId(NewFieldIds.Get(FieldIndex))) then
+                exit(false);
+
+        exit(true);
+    end;
+
+    local procedure IsOldTableAvailable(NewTableId: Integer): Boolean
+    var
+        OldRecordRef: RecordRef;
+    begin
+        if not OpenOldTableIfAvailable(NewTableId, OldRecordRef) then
+            exit(false);
+
+        OldRecordRef.Close();
+        exit(true);
+    end;
+
+    local procedure OpenOldTableIfAvailable(NewTableId: Integer; var OldRecordRef: RecordRef): Boolean
+    var
+        OldTableMetadata: Record "Table Metadata";
+        NewTableMetadata: Record "Table Metadata";
+        OldTableId: Integer;
+    begin
+        OldTableId := GetOldId(NewTableId);
+        if not OldTableMetadata.Get(OldTableId) then
+            exit(false);
+        if not NewTableMetadata.Get(NewTableId) then
+            exit(false);
+        if (OldTableMetadata.ID <> OldTableId) or (OldTableMetadata.Caption <> NewTableMetadata.Caption) then
+            exit(false);
+
+        OldRecordRef.Open(OldTableId);
+        exit(true);
+    end;
+
+    local procedure SetFieldIds(var FieldIds: List of [Integer]; FieldIdText: Text)
+    var
+        FieldIdList: List of [Text];
+        FieldIndex: Integer;
+        FieldId: Integer;
+    begin
+        Clear(FieldIds);
+        FieldIdList := FieldIdText.Split(',');
+        for FieldIndex := 1 to FieldIdList.Count() do begin
+            Evaluate(FieldId, FieldIdList.Get(FieldIndex));
+            FieldIds.Add(FieldId);
+        end;
+    end;
+
+    local procedure GetOldId(NewId: Integer): Integer
+    begin
+        exit(NewId + GetRenumberingOffset());
+    end;
+
+    local procedure GetRenumberingOffset(): Integer
+    begin
+        exit(98993376);
+    end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]
+    local procedure RegisterPerCompanyUpgradeTag(var PerCompanyUpgradeTags: List of [Code[250]])
+    begin
+        PerCompanyUpgradeTags.Add(GetRenumberedDataMigrationTag());
+    end;
+
+    local procedure GetRenumberedDataMigrationTag(): Code[250]
+    begin
+        exit('MS-Subcontracting-RenumberObjects-28.3-20260728');
+    end;
+
+    var
+        MigrationInitiatedMsg: Label 'Subcontracting renumbering data migration was initiated.', Locked = true;
+        MigrationNotInitiatedMsg: Label 'Subcontracting renumbering data migration was not initiated. Reason: %1', Locked = true;
+        MigrationAlreadyCompletedLbl: Label 'The migration upgrade tag is already set.', Locked = true;
+        OldTableNotAvailableLbl: Label 'The legacy Subcontractor WIP Ledger Entry table is not available.', Locked = true;
+        TelemetryCategoryLbl: Label 'Subcontracting', Locked = true;
+}
