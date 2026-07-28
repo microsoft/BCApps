@@ -11,12 +11,12 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Routing;
 
-tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
+tableextension 8134 "Subc. RequisitionLine" extends "Requisition Line"
 {
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(99001516; "Subc. Standard Task Code"; Code[10])
+        field(8140; "Subc. Standard Task Code"; Code[10])
         {
             Caption = 'Standard Task Code';
             DataClassification = CustomerContent;
@@ -38,7 +38,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
                     UpdateSubcontractorPrice();
             end;
         }
-        field(99001517; "Base UM Qty/PL UM Qty"; Decimal)
+        field(8141; "Base UM Qty/PL UM Qty"; Decimal)
         {
             Access = Internal;
             AutoFormatType = 0;
@@ -49,7 +49,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
             InitValue = 1;
             ToolTip = 'Specifies the quantity of the base unit of measure or the price list unit of measure.';
         }
-        field(99001518; "PL UM Qty/Base UM Qty"; Decimal)
+        field(8142; "PL UM Qty/Base UM Qty"; Decimal)
         {
             Access = Internal;
             AutoFormatType = 0;
@@ -75,7 +75,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
                 end;
             end;
         }
-        field(99001519; "Subc. UoM for Pricelist"; Code[10])
+        field(8143; "Subc. UoM for Pricelist"; Code[10])
         {
             Access = Internal;
             Caption = 'UoM for Price list';
@@ -97,7 +97,7 @@ tableextension 99001510 "Subc. RequisitionLine" extends "Requisition Line"
                     UpdateSubcontractorPriceUOM();
             end;
         }
-        field(99001520; "Subc. Pricelist Cost"; Decimal)
+        field(8144; "Subc. Pricelist Cost"; Decimal)
         {
             Access = Internal;
             AutoFormatExpression = "Currency Code";

@@ -13,7 +13,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Setup;
 using Microsoft.Purchases.Document;
 
-codeunit 99001504 "Subc. Transfer Management"
+codeunit 8128 "Subc. Transfer Management"
 {
     var
         ManufacturingSetup: Record "Manufacturing Setup";

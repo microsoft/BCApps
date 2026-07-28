@@ -11,7 +11,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 
-table 99001560 "Subcontractor WIP Ledger Entry"
+table 8184 "Subcontractor WIP Ledger Entry"
 {
     AllowInCustomizations = AsReadOnly;
     Caption = 'Subcontractor WIP Ledger Entry';
