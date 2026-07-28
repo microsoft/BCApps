@@ -679,6 +679,7 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
         AlreadyThereQst: Label 'You already have at least one rule with these same conditions. Are you sure you want to proceed?';
         YouMustChooseATemplateFirstMsg: Label 'Please choose a template before proceeding.';
         FilterLengthErr: Label 'This filter is too long and must be less than %1 characters.', Comment = '%1=filter string maximum length';
+        NoIntentSelectedErr: Label 'Select a source type (purchase, sales return, transfer, or warehouse receipt) before finishing the setup.';
 
     trigger OnInit();
     begin
@@ -890,7 +891,7 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
             QltyInspectionGenRule.Init();
             QltyInspectionGenRule.SetEntryNo();
             QltyInspectionGenRule.UpdateSortOrder();
-            QltyInspectionGenRule."Source Table No." := 0;
+            QltyInspectionGenRule."Source Table No." := DetermineSourceTableNoForCurrentIntent();
             QltyInspectionGenRule.Insert(true);
         end;
         QltyInspectionGenRule.Validate("Template Code", TemplateCode);
@@ -949,6 +950,22 @@ page 20461 "Qlty. Rec. Gen. Rule S. Guide"
                 Error('');
 
         CurrPage.Close();
+    end;
+
+    local procedure DetermineSourceTableNoForCurrentIntent(): Integer
+    begin
+        case true of
+            IsPurchaseLine:
+                exit(Database::"Purchase Line");
+            IsReturnReceipt:
+                exit(Database::"Sales Line");
+            IsTransferLine:
+                exit(Database::"Transfer Line");
+            IsWarehouseReceipt:
+                exit(Database::"Warehouse Journal Line");
+            else
+                Error(NoIntentSelectedErr);
+        end;
     end;
 
     /// <summary>

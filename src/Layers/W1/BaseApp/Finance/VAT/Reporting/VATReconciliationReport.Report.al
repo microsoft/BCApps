@@ -90,7 +90,7 @@ report 743 "VAT Reconciliation Report"
                     CurrReport.Skip();
 
                 GLEntryVATEntryLink.SetRange("G/L Entry No.", GLEntry."Entry No.");
-                if GLEntryVATEntryLink.IsEmpty() then
+                if not GLEntryVATEntryLink.FindSet() then
                     CurrReport.Skip();
 
                 repeat
@@ -137,6 +137,12 @@ report 743 "VAT Reconciliation Report"
                         Caption = 'Show Transactions without VAT';
                         ToolTip = 'Specifies if you want to have transactions without VAT amounts printed in the report.';
                     }
+                    field(VATReconciliationAmountType; VATReconciliationAmtType)
+                    {
+                        ApplicationArea = VAT;
+                        Caption = 'VAT Amount Type';
+                        ToolTip = 'Specifies if the report includes the Non-Deductible VAT portion in the base and VAT amounts, or reports the deductible portion only.';
+                    }
                 }
             }
         }
@@ -180,6 +186,7 @@ report 743 "VAT Reconciliation Report"
         GLAccount: Record "G/L Account";
         ShowIndividualTransaction: Boolean;
         ShowTransactionWithoutVAT: Boolean;
+        VATReconciliationAmtType: Enum "VAT Reconciliation Amount Type";
         BaseAmountRevCharges: Decimal;
         SalesVATRevCharges: Decimal;
         BaseAmountSalesVAT: Decimal;
@@ -190,14 +197,21 @@ report 743 "VAT Reconciliation Report"
     local procedure SetVATValueFromVATEntry(VATEntryNo: Integer)
     var
         VATEntry: Record "VAT Entry";
+        NonDeductibleVATBase: Decimal;
+        NonDeductibleVATAmount: Decimal;
     begin
         VATEntry.SetLoadFields(Amount, "VAT Calculation Type", Base, "Non-Deductible VAT Base", "Non-Deductible VAT Amount");
         if not VATEntry.Get(VATEntryNo) then
             exit;
 
+        if VATReconciliationAmtType = VATReconciliationAmtType::"Include Non-Deductible VAT" then begin
+            NonDeductibleVATBase := VATEntry."Non-Deductible VAT Base";
+            NonDeductibleVATAmount := VATEntry."Non-Deductible VAT Amount";
+        end;
+
         if VATEntry."VAT Calculation Type" = Enum::"Tax Calculation Type"::"Reverse Charge VAT" then begin
-            BaseAmountRevCharges += VATEntry.Base + VATEntry."Non-Deductible VAT Base";
-            SalesVATRevCharges += VATEntry.Amount + VATEntry."Non-Deductible VAT Amount";
+            BaseAmountRevCharges += VATEntry.Base + NonDeductibleVATBase;
+            SalesVATRevCharges += VATEntry.Amount + NonDeductibleVATAmount;
             exit;
         end;
 
@@ -209,8 +223,8 @@ report 743 "VAT Reconciliation Report"
                 end;
             Enum::"General Posting Type"::Purchase:
                 begin
-                    BaseAmountPurchVAT += VATEntry.Base + VATEntry."Non-Deductible VAT Base";
-                    PurchVAT += VATEntry.Amount + VATEntry."Non-Deductible VAT Amount";
+                    BaseAmountPurchVAT += VATEntry.Base + NonDeductibleVATBase;
+                    PurchVAT += VATEntry.Amount + NonDeductibleVATAmount;
                 end;
         end;
     end;
