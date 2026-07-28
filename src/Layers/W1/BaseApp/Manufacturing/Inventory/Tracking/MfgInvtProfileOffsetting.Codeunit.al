@@ -215,8 +215,7 @@ codeunit 99000869 "Mfg. Invt. Profile Offsetting"
         if DemandReservationEntry."Source Type" <> Database::"Prod. Order Component" then
             exit(false);
 
-        ProdOrderComponent.SetLoadFields("Prod. Order No.", "Item No.", "Line No.");
-        if not ProdOrderComponent.Get(
+        ProdOrderComponent.SetLoadFields(Status, "Prod. Order No.", "Item No.", "Line No.");
              DemandReservationEntry."Source Subtype", DemandReservationEntry."Source ID",
              DemandReservationEntry."Source Prod. Order Line", DemandReservationEntry."Source Ref. No.")
         then
