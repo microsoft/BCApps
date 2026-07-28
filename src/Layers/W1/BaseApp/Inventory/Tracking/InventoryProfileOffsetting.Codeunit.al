@@ -998,6 +998,8 @@ codeunit 99000854 "Inventory Profile Offsetting"
                 SupplyInvtProfile.SetRange("Primary Order Status", DemandInvtProfile."Primary Order Status");
                 SupplyInvtProfile.SetRange("Primary Order No.", DemandInvtProfile."Primary Order No.");
                 SupplyInvtProfile.SetRange("Primary Order Line", DemandInvtProfile."Primary Order Line");
+                if DemandInvtProfile."Primary Order Comp. Line No." <> 0 then
+                    SupplyInvtProfile.SetRange("Primary Order Comp. Line No.", DemandInvtProfile."Primary Order Comp. Line No.");
                 SupplyInvtProfile.SetRange("Source Prod. Order Line");
                 if ((DemandInvtProfile."Ref. Order Type" = DemandInvtProfile."Ref. Order Type"::Assembly) or
                     ((DemandInvtProfile."Ref. Order Type" = DemandInvtProfile."Ref. Order Type"::"Prod. Order") and
@@ -1082,6 +1084,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
                             SupplyInvtProfile."Primary Order Status" := 0;
                             SupplyInvtProfile."Primary Order No." := '';
                             SupplyInvtProfile."Primary Order Line" := 0;
+                            SupplyInvtProfile."Primary Order Comp. Line No." := 0;
                             SetAttributePriority(SupplyInvtProfile);
                         end else
                             SupplyInvtProfile."Untracked Quantity" := 0;
@@ -3841,6 +3844,7 @@ codeunit 99000854 "Inventory Profile Offsetting"
             ToInvProfile."Primary Order Status" := FromInvProfile."Primary Order Status";
             ToInvProfile."Primary Order No." := FromInvProfile."Primary Order No.";
             ToInvProfile."Primary Order Line" := FromInvProfile."Primary Order Line";
+            ToInvProfile."Primary Order Comp. Line No." := FromInvProfile."Primary Order Comp. Line No.";
         end;
 
         ToInvProfile."MPS Order" := FromInvProfile."MPS Order";
@@ -4147,8 +4151,10 @@ codeunit 99000854 "Inventory Profile Offsetting"
                         InventoryProfile."Primary Order No." := InventoryProfile."Source ID";
                         if InventoryProfile."Source Type" <> 5407 then // Database::"Prod. Order Component"
                             InventoryProfile."Primary Order Line" := InventoryProfile."Source Ref. No."
-                        else
+                        else begin
                             InventoryProfile."Primary Order Line" := InventoryProfile."Source Prod. Order Line";
+                            InventoryProfile."Primary Order Comp. Line No." := InventoryProfile."Source Ref. No.";
+                        end;
                     end;
                     IsHandled := false;
                     OnPrepareOrderToOrderLinkOnBeforeInventoryProfileModify(InventoryProfile, TempSKU, IsHandled);
@@ -4603,6 +4609,8 @@ codeunit 99000854 "Inventory Profile Offsetting"
                 ToInventoryProfile.SetRange("Primary Order Status", FromInventoryProfile."Primary Order Status");
                 ToInventoryProfile.SetRange("Primary Order No.", FromInventoryProfile."Primary Order No.");
                 ToInventoryProfile.SetRange("Primary Order Line", FromInventoryProfile."Primary Order Line");
+                if FromInventoryProfile."Primary Order Comp. Line No." <> 0 then
+                    ToInventoryProfile.SetRange("Primary Order Comp. Line No.", FromInventoryProfile."Primary Order Comp. Line No.");
                 ToInventoryProfile.SetTrackingFilter(FromInventoryProfile);
                 OnDemandMatchedSupplyOnAfterSetFiltersToInvProfile(ToInventoryProfile, FromInventoryProfile);
                 ToInventoryProfile.CalcSums("Untracked Quantity");

@@ -293,6 +293,10 @@ table 99000853 "Inventory Profile"
         {
             Caption = 'MPS Order';
         }
+        field(71; "Primary Order Comp. Line No."; Integer)
+        {
+            Caption = 'Primary Order Comp. Line No.';
+        }
         field(6515; "Package No."; Code[50])
         {
             Caption = 'Package No.';
@@ -385,8 +389,10 @@ table 99000853 "Inventory Profile"
                     "Primary Order Type" := OppositeReservationEntry."Source Type";
                     "Primary Order Status" := OppositeReservationEntry."Source Subtype";
                     "Primary Order No." := OppositeReservationEntry."Source ID";
-                    if OppositeReservationEntry."Source Type" = 5407 then // Database::"Prod. Order Component"
+                    if OppositeReservationEntry."Source Type" = 5407 then begin // Database::"Prod. Order Component"
                         "Primary Order Line" := OppositeReservationEntry."Source Prod. Order Line";
+                        "Primary Order Comp. Line No." := OppositeReservationEntry."Source Ref. No.";
+                    end;
                 end;
 
                 Binding := ReservationEntry.Binding;
@@ -573,8 +579,10 @@ table 99000853 "Inventory Profile"
                                 "Primary Order No." := OppositeReservationEntry."Source ID";
                                 if OppositeReservationEntry."Source Type" <> 5407 then // Database::"Prod. Order Component"
                                     "Primary Order Line" := OppositeReservationEntry."Source Ref. No."
-                                else
+                                else begin
                                     "Primary Order Line" := OppositeReservationEntry."Source Prod. Order Line";
+                                    "Primary Order Comp. Line No." := OppositeReservationEntry."Source Ref. No.";
+                                end;
                             end;
                             OnTransferBindingsOnAfterAssignPrimaryOrderInfo(Rec, OppositeReservationEntry);
                             Binding := ReservationEntry.Binding;
