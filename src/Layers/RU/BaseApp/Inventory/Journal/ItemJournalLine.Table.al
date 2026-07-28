@@ -3876,6 +3876,7 @@ table 83 "Item Journal Line"
     /// <param name="ItemTrackingSetup">Item tracking setup to use.</param>
     procedure CheckTrackingIfRequired(ItemTrackingSetup: Record "Item Tracking Setup")
     begin
+        OnBeforeCheckTrackingIfRequired(Rec, ItemTrackingSetup);
         if ItemTrackingSetup."Serial No. Required" then
             TestField("Serial No.");
         if ItemTrackingSetup."Lot No. Required" then
@@ -5154,6 +5155,11 @@ table 83 "Item Journal Line"
 
     [IntegrationEvent(false, false)]
     local procedure OnAfterCheckTrackingIfRequired(ItemJournalLine: Record "Item Journal Line"; ItemTrackingSetup: Record "Item Tracking Setup");
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCheckTrackingIfRequired(ItemJournalLine: Record "Item Journal Line"; ItemTrackingSetup: Record "Item Tracking Setup");
     begin
     end;
 
