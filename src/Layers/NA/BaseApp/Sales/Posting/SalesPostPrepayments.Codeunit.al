@@ -2110,12 +2110,11 @@ codeunit 442 "Sales-Post Prepayments"
         SalesLine.SetFilter("Prepmt. Line Amount", '<>0');
         if SalesLine.FindSet() then
             repeat
-                repeat
-                    if SalesHeader."Prepmt. Include Tax" then
-                        PrepmtAmt += SalesLine."Amount Including VAT" * SalesLine."Prepayment %" / 100
-                    else
-                        PrepmtAmt += SalesLine.Amount * SalesLine."Prepayment %" / 100;
-                until SalesLine.Next() = 0;
+                 if SalesHeader."Prepmt. Include Tax" then
+                     PrepmtAmt += SalesLine."Amount Including VAT" * SalesLine."Prepayment %" / 100
+                 else
+                     PrepmtAmt += SalesLine.Amount * SalesLine."Prepayment %" / 100;
+             until SalesLine.Next() = 0;
         exit(Round(PrepmtAmt, Currency."Amount Rounding Precision"));
     end;
 
