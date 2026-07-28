@@ -400,9 +400,9 @@ codeunit 101009 "Create Country/Region"
         XVanuatuLbl: Label 'Vanuatu', MaxLength = 50;
         XSamoaLbl: Label 'Samoa', MaxLength = 50;
         XCostaRicaLbl: Label 'Costa Rica', MaxLength = 50;
-        XProvinceLbl: Label 'Province', MaxLength = 50;
-        XStateLbl: Label 'State', MaxLength = 50;
-        XRegionLbl: Label 'Region', MaxLength = 50;
+        XProvinceLbl: Label 'Province', MaxLength = 30;
+        XStateLbl: Label 'State', MaxLength = 30;
+        XRegionLbl: Label 'Region', MaxLength = 30;
         XNothernIrelandLbl: Label 'Nothern Ireland', MaxLength = 50;
         XAfghanistanLbl: Label 'Afghanistan', MaxLength = 50;
         XAlbaniaLbl: Label 'Albania', MaxLength = 50;
