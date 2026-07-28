@@ -287,6 +287,13 @@ report 99000753 "Quantity Explosion of BOM"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordLayoutBody)
+        {
+            Type = Word;
+            LayoutFile = './Manufacturing/Reports/QuantityExplosionofBOMBody.docx';
+            Caption = 'Body-only: Quantity Explosion of BOM Word';
+            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+        }
     }
 
     labels
