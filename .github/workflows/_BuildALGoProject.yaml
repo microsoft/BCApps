@@ -401,8 +401,9 @@ jobs:
           testType: "pageScripting"
 
       - name: Cleanup
-        if: always() && steps.DetermineBuildProject.outputs.BuildIt == 'True'
+        if: always() && steps.DetermineBuildProject.outputs.BuildIt == 'True' && env.useModularBuild != 'True'
         uses: microsoft/AL-Go/Actions/PipelineCleanup@mazhelez-split-runpipeline-design
         with:
           shell: ${{ inputs.shell }}
           project: ${{ inputs.project }}
+
