@@ -14,6 +14,9 @@ codeunit 137032 "SCM Costing Purch Returns II"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryInventory: Codeunit "Library - Inventory";
         LibraryCosting: Codeunit "Library - Costing";
+        LibraryItemTracking: Codeunit "Library - Item Tracking";
+        LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryUtility: Codeunit "Library - Utility";
         Assert: Codeunit Assert;
         LibraryTestInitialize: Codeunit "Library - Test Initialize";
         isInitialized: Boolean;
@@ -185,6 +188,68 @@ codeunit 137032 "SCM Costing Purch Returns II"
 
         // 4. Tear Down: Set value of 'Ext. Doc. No. Mandatory' to default in Purchase and Payable Setup.
         UpdatePurchasesPayablesSetup(BaseExactCostReversingMand, BaseExactCostReversingMand);
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesAssignLotPageHandler,PostedPurchaseDocumentLinesModalHandler,ReservationReserveFromCurrentLinePageHandler,ItemTrackingListPageHandler,ConfirmHandler')]
+    [Scope('OnPrem')]
+    procedure PurchReturnReserveSpecificLotExactCostReversing()
+    var
+        Item: Record Item;
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        BaseExactCostReversingMand: Boolean;
+        VendorNo: Code[20];
+        LotNo: Code[50];
+        Quantity: Decimal;
+    begin
+        // [SCENARIO] A purchase return created via Get Posted Document Lines to Reverse and then reserved from
+        // the current line against the receipt item ledger entry (specific lot) posts with Exact Cost Reversing Mandatory.
+        // [BUG] The Reserve action dropped "Appl.-to Item Entry" on the reservation entry, so posting failed with
+        // "Appl.-to Item Entry must have a value in Reservation Entry..." and the manual workaround then failed with
+        // "Applies-to Entry must not be filled out when reservations exist...".
+
+        // [GIVEN] Exact Cost Reversing Mandatory and a lot-tracked item.
+        Initialize();
+        UpdatePurchasesPayablesSetup(BaseExactCostReversingMand, true);
+        LibraryItemTracking.CreateLotItem(Item);
+        Quantity := 1;
+        LotNo := CopyStr(LibraryUtility.GenerateGUID(), 1, MaxStrLen(LotNo));
+
+        // [GIVEN] A posted purchase order (receive + invoice) with a specific lot assigned.
+        VendorNo := CreateAndPostPurchOrderWithLot(Item."No.", LotNo, Quantity);
+
+        // [GIVEN] A purchase return order populated via Get Posted Document Lines to Reverse.
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::"Return Order", VendorNo);
+        UpdatePurchaseHeader(PurchaseHeader);
+        PurchaseHeader.GetPstdDocLinesToReverse();
+
+        // [GIVEN] The return line is reserved from the current line against the receipt entry (specific lot).
+        PurchaseLine.SetRange("Document Type", PurchaseHeader."Document Type");
+        PurchaseLine.SetRange("Document No.", PurchaseHeader."No.");
+        PurchaseLine.SetRange(Type, PurchaseLine.Type::Item);
+        PurchaseLine.FindFirst();
+        PurchaseLine.ShowReservation();
+
+        // [WHEN] Posting the purchase return order (ship + invoice).
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+
+        // [THEN] The inbound receipt entry for the lot is fully reversed (exact cost reversing applied to the correct entry).
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Purchase);
+        ItemLedgerEntry.SetRange("Lot No.", LotNo);
+        ItemLedgerEntry.SetRange(Positive, true);
+        ItemLedgerEntry.FindFirst();
+        ItemLedgerEntry.TestField("Remaining Quantity", 0);
+
+        // [THEN] A return (outbound) entry exists for the same lot.
+        ItemLedgerEntry.SetRange(Positive, false);
+        Assert.IsFalse(ItemLedgerEntry.IsEmpty(), 'Expected an outbound return entry for the reserved lot.');
+
+        // Tear Down.
+        UpdatePurchasesPayablesSetup(BaseExactCostReversingMand, BaseExactCostReversingMand);
+        LibraryVariableStorage.AssertEmpty();
     end;
 
     [Test]
@@ -881,6 +946,22 @@ codeunit 137032 "SCM Costing Purch Returns II"
     begin
     end;
 
+    local procedure CreateAndPostPurchOrderWithLot(ItemNo: Code[20]; LotNo: Code[50]; Quantity: Decimal): Code[20]
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+    begin
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, '');
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, ItemNo, Quantity);
+        PurchaseLine.Validate("Direct Unit Cost", LibraryRandom.RandDec(100, 2) + 50);
+        PurchaseLine.Modify(true);
+        LibraryVariableStorage.Enqueue(LotNo);  // Enqueue value for ItemTrackingLinesAssignLotPageHandler.
+        LibraryVariableStorage.Enqueue(Quantity);  // Enqueue value for ItemTrackingLinesAssignLotPageHandler.
+        PurchaseLine.OpenItemTrackingLines();
+        LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true);
+        exit(PurchaseHeader."Buy-from Vendor No.");
+    end;
+
     [ModalPageHandler]
     [Scope('OnPrem')]
     procedure PostedPurchaseDocumentLinesModalHandler(var PostedPurchaseDocumentLinesPage: TestPage "Posted Purchase Document Lines")
@@ -894,6 +975,30 @@ codeunit 137032 "SCM Costing Purch Returns II"
     procedure ConfirmHandler(Question: Text[1024]; var Reply: Boolean)
     begin
         Reply := true;
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure ItemTrackingLinesAssignLotPageHandler(var ItemTrackingLines: TestPage "Item Tracking Lines")
+    begin
+        ItemTrackingLines."Lot No.".SetValue(LibraryVariableStorage.DequeueText());
+        ItemTrackingLines."Quantity (Base)".SetValue(LibraryVariableStorage.DequeueDecimal());
+        ItemTrackingLines.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure ReservationReserveFromCurrentLinePageHandler(var Reservation: TestPage Reservation)
+    begin
+        Reservation."Reserve from Current Line".Invoke();
+        Reservation.OK().Invoke();
+    end;
+
+    [ModalPageHandler]
+    [Scope('OnPrem')]
+    procedure ItemTrackingListPageHandler(var ItemTrackingList: TestPage "Item Tracking List")
+    begin
+        ItemTrackingList.OK().Invoke();
     end;
 }
 

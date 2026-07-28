@@ -311,6 +311,7 @@ codeunit 99000834 "Purch. Line-Reserve"
     var
         OldReservationEntry: Record "Reservation Entry";
         OppositeReservationEntry: Record "Reservation Entry";
+        ApplyToItemEntryNo: Integer;
         NotFullyReserved: Boolean;
         IsHandled: Boolean;
     begin
@@ -353,16 +354,23 @@ codeunit 99000834 "Purch. Line-Reserve"
                 OldReservationEntry.TestItemFields(PurchaseLine."No.", PurchaseLine."Variant Code", PurchaseLine."Location Code");
 
                 if CheckApplToItemEntry then begin
+                    ApplyToItemEntryNo := OldReservationEntry."Appl.-to Item Entry";
                     if OldReservationEntry."Reservation Status" = OldReservationEntry."Reservation Status"::Reservation then begin
                         OppositeReservationEntry.Get(OldReservationEntry."Entry No.", not OldReservationEntry.Positive);
                         if OppositeReservationEntry."Source Type" <> Database::"Item Ledger Entry" then
-                            NotFullyReserved := true;
+                            NotFullyReserved := true
+                        else
+                            // Line is fully reserved against an item ledger entry, so the exact cost reversing
+                            // link can be derived from that entry when it was not set on the reservation entry.
+                            if ApplyToItemEntryNo = 0 then
+                                ApplyToItemEntryNo := OppositeReservationEntry."Source Ref. No.";
                     end else
                         NotFullyReserved := true;
 
                     if OldReservationEntry."Item Tracking" <> OldReservationEntry."Item Tracking"::None then begin
-                        OldReservationEntry.TestField("Appl.-to Item Entry");
-                        CreateReservEntry.SetApplyToEntryNo(OldReservationEntry."Appl.-to Item Entry");
+                        if ApplyToItemEntryNo = 0 then
+                            OldReservationEntry.TestField("Appl.-to Item Entry");
+                        CreateReservEntry.SetApplyToEntryNo(ApplyToItemEntryNo);
                         CheckApplToItemEntry := false;
                     end;
                 end;
