@@ -358,7 +358,10 @@ page 5734 "Item Category Attributes"
         exit(ItemCategoryCode);
     end;
 
-
+    procedure GetBlankOptionAttributeNotificationID(): Guid
+    begin
+        exit('1ab28806-432f-46cc-844e-85b0fc36f883');
+    end;
 
     local procedure InsertItemAttributeValueMapping(ItemCategory: Code[20]; AttributeID: Integer; AttributeValueID: Integer)
     var
