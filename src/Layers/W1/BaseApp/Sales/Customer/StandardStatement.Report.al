@@ -991,6 +991,20 @@ report 1316 "Standard Statement"
             Caption = 'Standard Customer Statement Email (Word)';
             Summary = 'The Standard Customer Statement Email (Word) provides an email body layout.';
         }
+        layout("StandardStatementBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/Customer/StandardStatementBody.docx';
+            Caption = 'Body-only: Standard Customer Statement (Word)';
+            Summary = 'Body-only: The Standard Customer Statement (Word) provides a basic layout.';
+        }
+        layout("StandardCustomerStatementEmailBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/Customer/StandardCustomerStatementEmailBody.docx';
+            Caption = 'Body-only: Standard Customer Statement Email (Word)';
+            Summary = 'Body-only: The Standard Customer Statement Email (Word) provides an email body layout.';
+        }
     }
 
     labels
