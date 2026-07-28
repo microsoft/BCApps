@@ -285,7 +285,9 @@ report 10135 "Item Sales Statistics"
 
                     Item.SetRange("Variant Filter", Code);
                     Item.CalcFields("Sales (Qty.)", "Sales (LCY)", "COGS (LCY)");
-                    if (Item."Sales (Qty.)" = 0) and PrintOnlyIfSales then
+                    SkipRecord := (Item."Sales (Qty.)" = 0) and PrintOnlyIfSales;
+                    OnItemVariantOnAfterGetRecordOnBeforePrintOnlyIfSalesCheck(Item, "Item Variant", PrintOnlyIfSales, SkipRecord);
+                    if SkipRecord then
                         CurrReport.Skip();
                     Profit := Item."Sales (LCY)" - Item."COGS (LCY)";
                     if Item."Sales (LCY)" <> 0 then
@@ -451,6 +453,7 @@ report 10135 "Item Sales Statistics"
         IncludeItemDescriptions: Boolean;
         BreakdownByVariant: Boolean;
         BlankVariant: Boolean;
+        SkipRecord: Boolean;
         NoShow: Boolean;
         ItemFilter: Text;
         Title: Text[80];
@@ -487,6 +490,11 @@ report 10135 "Item Sales Statistics"
     begin
         ItemVariant.SetRange("Item No.", Item."No.");
         exit(ItemVariant.FindFirst())
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnItemVariantOnAfterGetRecordOnBeforePrintOnlyIfSalesCheck(var Item: Record Item; ItemVariant: Record "Item Variant"; PrintOnlyIfSales: Boolean; var SkipRecord: Boolean)
+    begin
     end;
 }
 
