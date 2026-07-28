@@ -77,6 +77,9 @@ codeunit 30161 "Shpfy Import Order"
         OrderEvents: Codeunit "Shpfy Order Events";
         OrderFulfillments: Codeunit "Shpfy Order Fulfillments";
         ProcessedConflictErr: Label 'The order has already been processed in Business Central, but an edition was received from Shopify. Changes were not propagated to the processed order in Business Central. Update the processed documents to match the received data from Shopify.';
+        DuplicateISOCodeTelemetryLbl: Label 'Multiple currencies found with ISO Code %1. Count: %2.', Comment = '%1 - ISO currency code from Shopify, %2 - number of currencies matching that ISO Code', Locked = true;
+        CurrencyNotFoundTelemetryLbl: Label 'No currency found with ISO Code %1.', Comment = '%1 - ISO currency code from Shopify', Locked = true;
+        CategoryTok: Label 'Shopify Integration', Locked = true;
 
     local procedure ImportOrderAndCreateOrUpdate(ShopCode: Code[20]; OrderId: BigInteger)
     var
@@ -647,16 +650,38 @@ codeunit 30161 "Shpfy Import Order"
         Currency: Record Currency;
         GeneralLedgerSetup: Record "General Ledger Setup";
         CurrencyCode: Code[10];
+        CurrencyCount: Integer;
     begin
+        if ShopifyCurrencyCode = '' then
+            exit('');
+
+        GeneralLedgerSetup.Get();
+        if CopyStr(ShopifyCurrencyCode, 1, MaxStrLen(GeneralLedgerSetup."LCY Code")) = GeneralLedgerSetup."LCY Code" then
+            exit('');
+
         Currency.SetLoadFields(Code);
         Currency.SetRange("ISO Code", CopyStr(ShopifyCurrencyCode, 1, 3));
-        if Currency.FindFirst() then
+        CurrencyCount := Currency.Count();
+        if CurrencyCount = 1 then begin
+            Currency.FindFirst();
             CurrencyCode := Currency.Code;
-        GeneralLedgerSetup.Get();
+        end else
+            if CurrencyCount > 1 then begin
+                Session.LogMessage('0000S1A', StrSubstNo(DuplicateISOCodeTelemetryLbl, ShopifyCurrencyCode, CurrencyCount), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+                Currency.FindFirst();
+                CurrencyCode := Currency.Code;
+            end else
+                if Currency.Get(CopyStr(ShopifyCurrencyCode, 1, MaxStrLen(Currency.Code))) then
+                    CurrencyCode := Currency.Code
+                else
+                    Session.LogMessage('0000S1B', StrSubstNo(CurrencyNotFoundTelemetryLbl, ShopifyCurrencyCode), Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', CategoryTok);
+
+        // Edge case: "LCY Code" is configured as a non-ISO currency code, so the fast path
+        // above did not catch it. Treat the resolved BC currency code as LCY as well.
         if CurrencyCode = GeneralLedgerSetup."LCY Code" then
-            exit('')
-        else
-            exit(CurrencyCode);
+            exit('');
+
+        exit(CurrencyCode);
     end;
 
     local procedure ImportCustomAttributtes(ShopifyOrderId: BigInteger; JCustomAttributtes: JsonArray)

@@ -10,7 +10,7 @@ using Microsoft.Sales.Customer;
 
 codeunit 30272 "Shpfy Update Price Source"
 {
-    Access = Internal;
+    Access = Public;
     EventSubscriberInstance = Manual;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Price Source - Customer", 'OnBeforeGetId', '', true, false)]
