@@ -1126,6 +1126,13 @@ report 1305 "Standard Sales - Order Conf."
             Caption = 'Standard Sales Order Confirmation Blue (Word)';
             Summary = 'Simple layout with most necessary fields with a blue theme.';
         }
+        layout("StandardSalesOrderConfBlueBody.docx")
+        {
+            Type = Word;
+            LayoutFile = './Sales/Document/StandardSalesOrderConfBlueBody.docx';
+            Caption = 'Body-only: Standard Sales Order Confirmation Blue (Word)';
+            Summary = 'Body-only: Simple layout with most necessary fields with a blue theme.';
+        }
     }
 
     labels
