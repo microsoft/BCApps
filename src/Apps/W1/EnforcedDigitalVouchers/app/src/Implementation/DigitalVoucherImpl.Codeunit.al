@@ -8,7 +8,6 @@ using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 using Microsoft.Finance.GeneralLedger.Posting;
 using Microsoft.Finance.GeneralLedger.Reports;
-using System.Telemetry;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.Reporting;
 using Microsoft.Purchases.Document;
@@ -28,6 +27,7 @@ using System.Environment.Configuration;
 using System.IO;
 using System.Media;
 using System.Reflection;
+using System.Telemetry;
 using System.Utilities;
 
 codeunit 5579 "Digital Voucher Impl."
@@ -274,7 +274,7 @@ codeunit 5579 "Digital Voucher Impl."
         exit(not IncomingDocumentAttachment.IsEmpty());
     end;
 
-    local procedure AttachIncomingEDocument(EDocument: Record "E-Document"; SourceDocumentHeader: RecordRef; var TempBlob: Codeunit "Temp Blob")
+    local procedure AttachIncomingEDocument(EDocument: Record "E-Document"; var TempBlob: Codeunit "Temp Blob")
     var
         DigitalVoucherEntrySetup: Record "Digital Voucher Entry Setup";
         IncomingDocumentAttachment: Record "Incoming Document Attachment";
@@ -315,7 +315,6 @@ codeunit 5579 "Digital Voucher Impl."
     local procedure AttachOutgoingEDocument(var EDocument: Record "E-Document"; PostedRecord: Variant)
     var
         DigitalVoucherEntrySetup: Record "Digital Voucher Entry Setup";
-        VoucherEDocumentCheck: Codeunit "Voucher E-Document Check";
         RecRef: RecordRef;
         DocNo: Code[20];
         PostingDate: Date;
@@ -885,7 +884,7 @@ codeunit 5579 "Digital Voucher Impl."
         if not Success then
             exit;
 
-        AttachIncomingEDocument(EDocument, SourceDocumentHeaderMapped, TempBlob);
+        AttachIncomingEDocument(EDocument, TempBlob);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"E-Doc. Integration Management", OnAfterUpdateToPostedPurchaseEDocument, '', false, false)]
