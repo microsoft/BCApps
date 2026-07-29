@@ -329,14 +329,15 @@ codeunit 9852 "Effective Permissions Mgt."
                     ExpandedPermission.SetRange("App ID", AccessControl."App ID");
                     ExpandedPermission.SetRange("Role ID", AccessControl."Role ID");
 
-                    // Specific object permissions override the wildcard entry.
+                    // Specific object permissions override wildcard permissions, even when the wildcard has already
+                    // been expanded to the requested object in Expanded Permission.
                     PermissionBufferFilledFromSpecificPermission := false;
-                    ExpandedPermission.SetRange("Object ID", PassedObjectId);
-                    ExpandedPermissionFound := ExpandedPermission.FindFirst();
+                    ExpandedPermissionFound := TryFillPermissionBufferFromSpecificPermission(
+                        PermissionBuffer, AccessControl, PassedObjectType, PassedObjectId);
+                    PermissionBufferFilledFromSpecificPermission := ExpandedPermissionFound;
                     if not ExpandedPermissionFound then begin
-                        PermissionBufferFilledFromSpecificPermission := TryFillPermissionBufferFromSpecificPermission(
-                            PermissionBuffer, AccessControl, PassedObjectType, PassedObjectId);
-                        ExpandedPermissionFound := PermissionBufferFilledFromSpecificPermission;
+                        ExpandedPermission.SetRange("Object ID", PassedObjectId);
+                        ExpandedPermissionFound := ExpandedPermission.FindFirst();
                     end;
                     if not ExpandedPermissionFound then begin
                         ExpandedPermission.SetRange("Object ID", 0);
