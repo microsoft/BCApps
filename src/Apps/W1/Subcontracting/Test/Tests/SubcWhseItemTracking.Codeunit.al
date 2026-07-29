@@ -19,6 +19,7 @@ using Microsoft.Warehouse.Activity;
 using Microsoft.Warehouse.Document;
 using Microsoft.Warehouse.History;
 using Microsoft.Warehouse.Setup;
+using Microsoft.Warehouse.Structure;
 
 codeunit 149905 "Subc. Whse Item Tracking"
 {
@@ -556,6 +557,142 @@ codeunit 149905 "Subc. Whse Item Tracking"
         ItemLedgerEntry.FindFirst();
         Assert.AreEqual(Quantity, ItemLedgerEntry.Quantity, 'Item Ledger Entry Quantity should match for non-last operation');
         Assert.AreEqual(LotNo, ItemLedgerEntry."Lot No.", 'Item Ledger Entry Lot No. should match for non-last operation');
+    end;
+
+    [Test]
+    [HandlerFunctions('ItemTrackingLinesPageHandler')]
+    procedure SplitPutAwayPlaceLineAcrossBinsKeepsSingleTakeLineWithLotTracking()
+    var
+        Bin1: Record Bin;
+        Bin2: Record Bin;
+        Item: Record Item;
+        ItemLedgerEntry: Record "Item Ledger Entry";
+        Location: Record Location;
+        MachineCenter: array[2] of Record "Machine Center";
+        NewWarehouseActivityLine: Record "Warehouse Activity Line";
+        PostedWhseReceiptHeader: Record "Posted Whse. Receipt Header";
+        ProductionOrder: Record "Production Order";
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        PutAwayBin: Record Bin;
+        ReceiveBin: Record Bin;
+        Vendor: Record Vendor;
+        WarehouseActivityHeader: Record "Warehouse Activity Header";
+        WarehouseActivityLine: Record "Warehouse Activity Line";
+        WarehouseEmployee: Record "Warehouse Employee";
+        WarehouseReceiptHeader: Record "Warehouse Receipt Header";
+        WarehouseReceiptLine: Record "Warehouse Receipt Line";
+        WorkCenter: array[2] of Record "Work Center";
+        NoSeriesCodeunit: Codeunit "No. Series";
+        LotNo: Code[50];
+        Qty1: Decimal;
+        Qty2: Decimal;
+        Quantity: Decimal;
+        WarehouseReceiptPage: TestPage "Warehouse Receipt";
+    begin
+        // [SCENARIO] Split the two-step Put-away "Place" line across two bins while a single lot covers
+        // the full Last Operation quantity, and confirm the paired "Take" line remains a single,
+        // unsplit line for the full quantity while both split "Place" lines retain the assigned Lot No.
+        // and post correct per-bin Bin Content / Item Ledger quantities.
+        // [FEATURE] Subcontracting Item Tracking - Bin splitting combined with Take/Place Put-away lines
+
+        // [GIVEN] Complete Setup of Manufacturing, include Work- and Machine Centers, Lot-tracked Item
+        Initialize();
+        Quantity := LibraryRandom.RandIntInRange(10, 20);
+        Qty1 := Round(Quantity / 2, 1);
+        Qty2 := Quantity - Qty1;
+
+        // [GIVEN] Create and Calculate needed Work and Machine Center with Subcontracting
+        SubcWarehouseLibrary.CreateAndCalculateNeededWorkAndMachineCenter(WorkCenter, MachineCenter, true);
+
+        // [GIVEN] Create Lot-tracked Item for Production include Routing and Prod. BOM
+        SubcWarehouseLibrary.CreateLotTrackedItemForProductionWithSetup(Item, WorkCenter, MachineCenter);
+        SubcWarehouseLibrary.UpdateProdBomAndRoutingWithRoutingLink(Item, WorkCenter[2]."No.");
+
+        // [GIVEN] Create Location with Warehouse Handling (Take/Place Put-away) and two extra put-away bins
+        SubcWarehouseLibrary.CreateLocationWithWarehouseHandlingAndBins(Location, ReceiveBin, PutAwayBin);
+        LibraryWarehouse.CreateWarehouseEmployee(WarehouseEmployee, Location.Code, false);
+        LibraryWarehouse.CreateBin(Bin1, Location.Code, 'SPLIT1', '', '');
+        LibraryWarehouse.CreateBin(Bin2, Location.Code, 'SPLIT2', '', '');
+
+        // [GIVEN] Update Vendor with Subcontracting Location Code
+        Vendor.Get(WorkCenter[2]."Subcontractor No.");
+        Vendor."Subc. Location Code" := Location.Code;
+        Vendor."Location Code" := Location.Code;
+        Vendor.Modify();
+
+        // [GIVEN] Create and Refresh Production Order
+        SubcWarehouseLibrary.CreateAndRefreshProductionOrder(
+            ProductionOrder, "Production Order Status"::Released,
+            ProductionOrder."Source Type"::Item, Item."No.", Quantity, Location.Code);
+        SubcWarehouseLibrary.UpdateSubMgmtSetupWithReqWkshTemplate();
+
+        // [GIVEN] Create Subcontracting Purchase Order and Warehouse Receipt
+        SubcWarehouseLibrary.CreateSubcontractingOrderFromProdOrderRouting(Item."Routing No.", WorkCenter[2]."No.", PurchaseLine);
+        PurchaseHeader.Get(PurchaseLine."Document Type", PurchaseLine."Document No.");
+        SubcWarehouseLibrary.CreateWarehouseReceiptFromPurchaseOrder(PurchaseHeader, WarehouseReceiptHeader);
+
+        WarehouseReceiptLine.SetRange("No.", WarehouseReceiptHeader."No.");
+        WarehouseReceiptLine.FindFirst();
+
+        // [GIVEN] A single lot covering the full quantity is assigned on the Warehouse Receipt Line
+        LotNo := NoSeriesCodeunit.GetNextNo(Item."Lot Nos.");
+        HandlingMode := HandlingMode::Insert;
+        HandlingSerialNo := '';
+        HandlingLotNo := LotNo;
+        HandlingQty := Quantity;
+
+        WarehouseReceiptPage.OpenEdit();
+        WarehouseReceiptPage.GoToRecord(WarehouseReceiptHeader);
+        WarehouseReceiptPage.WhseReceiptLines.GoToRecord(WarehouseReceiptLine);
+        WarehouseReceiptPage.WhseReceiptLines.ItemTrackingLines.Invoke();
+        WarehouseReceiptPage.Close();
+
+        // [WHEN] Warehouse Receipt posted, then Put-away created (Take + Place lines, both for the single lot)
+        SubcWarehouseLibrary.PostWarehouseReceipt(WarehouseReceiptHeader, PostedWhseReceiptHeader);
+        SubcWarehouseLibrary.CreatePutAwayFromPostedWhseReceipt(PostedWhseReceiptHeader, WarehouseActivityHeader);
+
+        WarehouseActivityLine.SetRange("Activity Type", WarehouseActivityHeader.Type);
+        WarehouseActivityLine.SetRange("No.", WarehouseActivityHeader."No.");
+        WarehouseActivityLine.SetRange("Action Type", WarehouseActivityLine."Action Type"::Place);
+        WarehouseActivityLine.FindFirst();
+        Assert.AreEqual(LotNo, WarehouseActivityLine."Lot No.", 'Place line should carry the assigned lot before splitting.');
+
+        // [WHEN] The Place line is split across two bins using the standard Warehouse Activity Line SplitLine method
+        // (the same procedure invoked by the "Split Line" action on the Put-away page)
+        WarehouseActivityLine.Validate("Bin Code", Bin1.Code);
+        WarehouseActivityLine.Validate(Quantity, Qty1);
+        WarehouseActivityLine.Validate("Qty. to Handle", Qty1);
+        WarehouseActivityLine.Modify(true);
+
+        WarehouseActivityLine.SplitLine(WarehouseActivityLine, NewWarehouseActivityLine);
+        NewWarehouseActivityLine.Validate("Bin Code", Bin2.Code);
+        NewWarehouseActivityLine.Validate(Quantity, Qty2);
+        NewWarehouseActivityLine.Validate("Qty. to Handle", Qty2);
+        NewWarehouseActivityLine.Modify(true);
+
+        // [THEN] Both split Place lines retain the original Lot No.; the paired Take line remains a single,
+        // unsplit line for the full received quantity
+        Assert.AreEqual(LotNo, NewWarehouseActivityLine."Lot No.", 'Split Place line should retain the lot number.');
+        WarehouseActivityLine.SetRange("Action Type", WarehouseActivityLine."Action Type"::Take);
+        Assert.RecordCount(WarehouseActivityLine, 1);
+        WarehouseActivityLine.FindFirst();
+        Assert.AreEqual(Quantity, WarehouseActivityLine.Quantity, 'Take line must remain unsplit for the full received quantity.');
+        Assert.AreEqual(LotNo, WarehouseActivityLine."Lot No.", 'Take line should carry the assigned lot.');
+
+        // [WHEN] The Put-away (single Take line, two split Place lines) is registered/posted
+        LibraryWarehouse.RegisterWhseActivity(WarehouseActivityHeader);
+
+        // [THEN] Each bin receives its split quantity, both under the same lot; total output reconciles
+        SubcWarehouseLibrary.VerifyBinContents(Location.Code, Bin1.Code, Item."No.", Qty1);
+        SubcWarehouseLibrary.VerifyBinContents(Location.Code, Bin2.Code, Item."No.", Qty2);
+
+        ItemLedgerEntry.SetRange("Item No.", Item."No.");
+        ItemLedgerEntry.SetRange("Lot No.", LotNo);
+        ItemLedgerEntry.SetRange("Entry Type", ItemLedgerEntry."Entry Type"::Output);
+        Assert.RecordIsNotEmpty(ItemLedgerEntry);
+        ItemLedgerEntry.CalcSums(Quantity);
+        Assert.AreEqual(Quantity, ItemLedgerEntry.Quantity, 'Total output quantity across both split bins must reconcile with the full lot quantity.');
     end;
 
     [ModalPageHandler]

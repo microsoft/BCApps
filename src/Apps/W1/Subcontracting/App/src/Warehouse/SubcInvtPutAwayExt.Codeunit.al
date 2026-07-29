@@ -9,7 +9,9 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Journal;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Posting;
+using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
+using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 using Microsoft.Warehouse.Activity;
 
@@ -137,7 +139,7 @@ codeunit 99001572 "Subc. Invt. Put-away Ext"
     // Qty. per Unit of Measure (see Subscriber A), so CalcQty must perform the normal
     // division; skipping it here would return the wrong (unconverted) quantity.
     [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Line", OnBeforeCalcQty, '', false, false)]
-    local procedure SuppressCalcQtyTestFieldForNotLastOp_OnBeforeCalcQty(var WarehouseActivityLine: Record "Warehouse Activity Line"; QtyBase: Decimal; var IsHandled: Boolean)
+    local procedure SuppressCalcQtyTestFieldForNotLastOp_OnBeforeCalcQty(var WarehouseActivityLine: Record "Warehouse Activity Line"; QtyBase: Decimal; var NewQtyBase: Decimal; var IsHandled: Boolean)
     begin
         if WarehouseActivityLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::NotLastOperation then
             IsHandled := true;
@@ -224,4 +226,116 @@ codeunit 99001572 "Subc. Invt. Put-away Ext"
     //             end;
     //     end;
     // end;
+    // Subscriber G: Fix the source document line quantity used by the item-tracking match check
+    // for Subcontracting LastOperation Purchase Lines, instead of bypassing the check entirely.
+    // LastOperation lines carry "Qty. per Unit of Measure" = 0 on the Purchase Line itself (see
+    // Subscriber A above - the real value is only restored on the Warehouse Activity Line).
+    // Base app's item-tracking match check (ItemTrackingManagement.RegisterNewItemTrackingLines)
+    // computes the source document line's remaining quantity directly off the Purchase Line
+    // (PurchLineReserve.GetSourceValue -> "Outstanding Qty. (Base)" = "Outstanding Quantity" *
+    // "Qty. per Unit of Measure"), which is therefore always 0 for these lines - causing a false
+    // "Cannot match item tracking" error even when the assigned tracking quantity is correct.
+    // Rather than disabling the check via AllowWhseOverpick (which would also let through
+    // genuine overpicking), this subscriber recalculates QtyToHandleOnSourceDocLine using the
+    // item's real Qty. per Unit of Measure, so the built-in check keeps protecting against
+    // actual overpicking on these lines.
+    // NOTE: The registered tracking quantity itself does not depend on this value - it is
+    // computed by RegisterNewItemTrackingLines from TempTrackingSpecification."Qty. to Handle
+    // (Base)" (derived from the correctly split Warehouse Activity Line tracking specs), so it
+    // remains correct regardless of this fix.
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Item Tracking Management", OnRegisterNewItemTrackingLinesOnBeforeCannotMatchItemTrackingError, '', false, false)]
+    local procedure FixSourceDocLineQtyForSubcLastOperation_OnRegisterNewItemTrackingLinesOnBeforeCannotMatchItemTrackingError(var TempTrackingSpecification: Record "Tracking Specification" temporary; var QtyToHandleToNewRegister: Decimal; var QtyToHandleInItemTracking: Decimal; var QtyToHandleOnSourceDocLine: Decimal; var IsHandled: Boolean; var AllowWhseOverpick: Boolean)
+    var
+        PurchaseLine: Record "Purchase Line";
+        Item: Record Item;
+        UnitOfMeasureManagement: Codeunit "Unit of Measure Management";
+    begin
+        if TempTrackingSpecification."Source Type" <> Database::"Purchase Line" then
+            exit;
+        if not PurchaseLine.Get(Enum::"Purchase Document Type".FromInteger(TempTrackingSpecification."Source Subtype"), TempTrackingSpecification."Source ID", TempTrackingSpecification."Source Ref. No.") then
+            exit;
+        if PurchaseLine."Subc. Purchase Line Type" <> "Subc. Purchase Line Type"::LastOperation then
+            exit;
+
+        Item.SetLoadFields("No.", "Base Unit of Measure");
+        Item.Get(PurchaseLine."No.");
+        QtyToHandleOnSourceDocLine :=
+            PurchaseLine."Outstanding Quantity" * UnitOfMeasureManagement.GetQtyPerUnitOfMeasure(Item, PurchaseLine."Unit of Measure Code");
+    end;
+
+    // Subscriber H: Suppress the mandatory item-tracking TestField("Qty. (Base)", 1)/Serial No./
+    // Lot No. checks entirely for NotLastOperation lines. A NotLastOperation line always carries
+    // "Qty. (Base)" = 0 (see Subscribers B/E above - there is nothing physical to track on this
+    // line, the actual output is posted against the LastOperation line instead) and, per the
+    // Item Tracking Lines UI block (Subscriber elsewhere blocking "Open Item Tracking Lines" for
+    // NotLastOperation purchase lines), a Serial/Lot/Package No. can never legitimately be
+    // assigned to it either - so there is nothing to test. Without this,
+    // WarehouseActivityLine.TestTrackingIfRequired (called from Whse.-Activity-Post.
+    // CheckItemTracking) unconditionally TestFields Qty. (Base) = 1 together with Serial/Lot No.,
+    // blocking posting of every NotLastOperation line for a tracking-mandatory item.
+    [EventSubscriber(ObjectType::Table, Database::"Warehouse Activity Line", OnBeforeTestTrackingIfRequired, '', false, false)]
+    local procedure SuppressTrackingTestFieldForNotLastOp_OnBeforeTestTrackingIfRequired(WarehouseActivityLine: Record "Warehouse Activity Line"; WhseItemTrackingSetup: Record "Item Tracking Setup"; var IsHandled: Boolean)
+    begin
+        if WarehouseActivityLine."Subc. Purchase Line Type" <> "Subc. Purchase Line Type"::NotLastOperation then
+            exit;
+
+        IsHandled := true;
+    end;
+
+    // Subscriber I: Skip the Bin Mandatory physical checks (TestField("Bin Code") and the related
+    // capacity check) in Whse.-Activity-Post.CheckWarehouseActivityLine for NotLastOperation
+    // lines. A NotLastOperation line never posts a physical Warehouse Entry (see Subscriber B
+    // above), so at a Bin Mandatory location without any resolvable Default Bin Code it should
+    // remain postable with a blank Bin Code, mirroring the equivalent, pre-existing bypass for
+    // Transfer WIP Item lines in "Subc. Invt. Pick Ext".Codeunit.al's
+    // SkipPhysicalChecksForWipItemPickLine_OnBeforeCheckWarehouseActivityLine.
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Whse.-Activity-Post", OnBeforeCheckWarehouseActivityLine, '', false, false)]
+    local procedure SkipPhysicalChecksForNotLastOp_OnBeforeCheckWarehouseActivityLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; WarehouseActivityHeader: Record "Warehouse Activity Header"; Location: Record Location; var IsHandled: Boolean)
+    begin
+        if WarehouseActivityLine."Subc. Purchase Line Type" = "Subc. Purchase Line Type"::NotLastOperation then
+            IsHandled := true;
+    end;
+
+    // Subscriber J: Redirect the item-tracking reservation lookup performed while creating the
+    // Inventory Put-away line from a Subcontracting LastOperation purchase line to the linked
+    // Prod. Order Line instead of the Purchase Line itself.
+    //
+    // Background: subcontracting purchase lines that are linked to a production order can never
+    // carry item tracking of their own - the base-app guard "Mfg. Purchase Document Mgt.".
+    // OnOpenItemTrackingLinesOnAfterCheck unconditionally blocks opening "Item Tracking Lines" on
+    // such a purchase line, and the real subcontracting UI flow instead assigns Serial/Lot/
+    // Package No. against the *Prod. Order Line*'s own output tracking ("Subc. Purchase Line
+    // Ext".OpenItemTrackingOfProdOrderLine). "Create Inventory Put-away".FindReservationFromPurchaseLine
+    // only ever looks for a Reservation Entry with Source Type = Purchase Line
+    // (FindReservationEntry(Database::"Purchase Line", ...)), which a Prod. Order Line-based
+    // tracking assignment never creates - so the resulting Warehouse Activity Line is always
+    // created untracked, forcing tracking to be assigned manually on the activity line after the
+    // fact (and forcing a single, unsplit line even when several lots/serials were tracked).
+    //
+    // This mirrors the equivalent, already-shipped extensibility point base Manufacturing uses
+    // for Prod. Output/Prod. Consumption put-away lines ("Mfg. Create Inventory Put-Away".
+    // FindReservationFromProdOrderLine): it calls back into the running "Create Inventory
+    // Put-away" instance (received here as the extra "sender" parameter, auto-bound by the
+    // platform to the codeunit instance that raised the event even though it is not part of the
+    // event's own declared signature) to populate that instance's private tracking-specification
+    // buffer via the internal FindReservationEntry procedure, using the Prod. Order Line as the
+    // reservation source instead of the Purchase Line. As a result the activity line(s) are
+    // created already tracked - and automatically split into one line per lot/serial/package,
+    // exactly as if the tracking had been assigned on the purchase line itself - eliminating the
+    // need to assign Serial No./Lot No./Package No. by hand on the Warehouse Activity Line.
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Create Inventory Put-away", OnBeforeFindReservationFromPurchaseLine, '', false, false)]
+    local procedure RedirectReservationLookupToProdOrderLine_OnBeforeFindReservationFromPurchaseLine(var PurchLine: Record "Purchase Line"; var WhseItemTrackingSetup: Record "Item Tracking Setup"; var ItemTrackingMgt: Codeunit "Item Tracking Management"; var ReservationFound: Boolean; var IsHandled: Boolean; sender: Codeunit "Create Inventory Put-away")
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+    begin
+        if not PurchLine.IsSubcontractingLineWithLastOperation(ProdOrderLine) then
+            exit;
+
+        ItemTrackingMgt.GetWhseItemTrkgSetup(PurchLine."No.", WhseItemTrackingSetup);
+        if WhseItemTrackingSetup.TrackingRequired() then
+            ReservationFound :=
+                sender.FindReservationEntry(Database::"Prod. Order Line", ProdOrderLine.Status.AsInteger(), ProdOrderLine."Prod. Order No.", ProdOrderLine."Line No.");
+
+        IsHandled := true;
+    end;
 }

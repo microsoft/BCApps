@@ -1471,7 +1471,7 @@ codeunit 7321 "Create Inventory Put-away"
     begin
     end;
 
-    [IntegrationEvent(false, false)]
+    [IntegrationEvent(true, false)]
     local procedure OnBeforeFindReservationFromPurchaseLine(var PurchLine: Record "Purchase Line"; var WhseItemTrackingSetup: Record "Item Tracking Setup"; var ItemTrackingMgt: Codeunit "Item Tracking Management"; var ReservationFound: Boolean; var IsHandled: Boolean)
     begin
     end;

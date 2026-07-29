@@ -1049,6 +1049,7 @@ table 5767 "Warehouse Activity Line"
 
     procedure CalcQty(QtyBase: Decimal): Decimal
     var
+        NewQtyBase: Decimal;
         IsHandled: Boolean;
     begin
         OnBeforeCalcQty(Rec, QtyBase, NewQtyBase, IsHandled);
@@ -1070,9 +1071,13 @@ table 5767 "Warehouse Activity Line"
             NotEnough := false;
             if WarehouseActivityLine.Find('-') then
                 repeat
-                    WarehouseActivityLine.Validate("Qty. to Handle", WarehouseActivityLine."Qty. Outstanding");
-                    if WarehouseActivityLine."Qty. to Handle (Base)" <> WarehouseActivityLine."Qty. Outstanding (Base)" then
-                        WarehouseActivityLine.Validate("Qty. to Handle (Base)", WarehouseActivityLine."Qty. Outstanding (Base)");
+                    IsHandled := false;
+                    OnBeforeAutofillQtyToHandleLine(WarehouseActivityLine, IsHandled);
+                    if not IsHandled then begin
+                        WarehouseActivityLine.Validate("Qty. to Handle", WarehouseActivityLine."Qty. Outstanding");
+                        if WarehouseActivityLine."Qty. to Handle (Base)" <> WarehouseActivityLine."Qty. Outstanding (Base)" then
+                            WarehouseActivityLine.Validate("Qty. to Handle (Base)", WarehouseActivityLine."Qty. Outstanding (Base)");
+                    end;
                     WarehouseActivityLine.Modify();
                     OnAfterAutofillQtyToHandleLine(WarehouseActivityLine);
 
@@ -1102,12 +1107,18 @@ table 5767 "Warehouse Activity Line"
     end;
 
     procedure AutofillQtyToHandleOnLine(var WarehouseActivityLine: Record "Warehouse Activity Line")
+    var
+        IsHandled: Boolean;
     begin
         OnBeforeAutofillQtyToHandleOnLine(WarehouseActivityLine);
 
-        WarehouseActivityLine.Validate("Qty. to Handle", WarehouseActivityLine."Qty. Outstanding");
-        if WarehouseActivityLine."Qty. to Handle (Base)" <> WarehouseActivityLine."Qty. Outstanding (Base)" then
-            WarehouseActivityLine.Validate("Qty. to Handle (Base)", WarehouseActivityLine."Qty. Outstanding (Base)");
+        IsHandled := false;
+        OnBeforeAutofillQtyToHandleLine(WarehouseActivityLine, IsHandled);
+        if not IsHandled then begin
+            WarehouseActivityLine.Validate("Qty. to Handle", WarehouseActivityLine."Qty. Outstanding");
+            if WarehouseActivityLine."Qty. to Handle (Base)" <> WarehouseActivityLine."Qty. Outstanding (Base)" then
+                WarehouseActivityLine.Validate("Qty. to Handle (Base)", WarehouseActivityLine."Qty. Outstanding (Base)");
+        end;
         WarehouseActivityLine.Modify();
 
         if WarehouseActivityLine."Qty. to Handle" < WarehouseActivityLine."Qty. Outstanding" then
@@ -3469,7 +3480,12 @@ table 5767 "Warehouse Activity Line"
     end;
 
     [IntegrationEvent(false, false)]
-    local procedure OnBeforeCalcQty(var WarehouseActivityLine: Record "Warehouse Activity Line"; QtyBase: Decimal;var NewQtyBase Decimal; var IsHandled: Boolean)
+    local procedure OnBeforeAutofillQtyToHandleLine(var WarehouseActivityLine: Record "Warehouse Activity Line"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnBeforeCalcQty(var WarehouseActivityLine: Record "Warehouse Activity Line"; QtyBase: Decimal; var NewQtyBase: Decimal; var IsHandled: Boolean)
     begin
     end;
 
@@ -3866,4 +3882,3 @@ table 5767 "Warehouse Activity Line"
     begin
     end;
 }
-
