@@ -189,7 +189,7 @@ codeunit 139610 SendRemittanceAdvice
     begin
         PaymentJournal.OpenEdit();
         PaymentJournal.CurrentJnlBatchName.SetValue(GenJournalLine."Journal Batch Name");
-        PaymentJournal.SendRemittanceAdvice.Invoke();
+        PaymentJournal.SendVendorRemittanceAdvice.Invoke();
         PaymentJournal.Close();
     end;
 
@@ -203,7 +203,7 @@ codeunit 139610 SendRemittanceAdvice
         VendorLedgerEntry.FINDFIRST();
         VendorLedgerEntries.OPENEDIT();
         VendorLedgerEntries.GOTORECORD(VendorLedgerEntry);
-        VendorLedgerEntries.SendRemittanceAdvice.INVOKE();
+        VendorLedgerEntries.SendVendorRemittanceAdvice.INVOKE();
         VendorLedgerEntries.CLOSE();
     end;
 
