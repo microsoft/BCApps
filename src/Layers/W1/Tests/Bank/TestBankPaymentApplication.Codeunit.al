@@ -2123,6 +2123,7 @@ codeunit 134263 "Test Bank Payment Application"
     end;
 
     [Test]
+    [HandlerFunctions('ConfirmHandler')]
     [Scope('OnPrem')]
     procedure VendorFcyApplicationMultiPostingGroupsE2E()
     var
