@@ -473,9 +473,11 @@ codeunit 4591 "SOA Item Search"
         ItemVariant: Record "Item Variant";
         VariantCodes: Text;
     begin
+        Item.SetLoadFields("No.");
         if not Item.GetBySystemId(ItemSystemId) then
             exit('');
 
+        ItemVariant.SetLoadFields(Code);
         ItemVariant.SetRange("Item No.", Item."No.");
         if ItemVariant.FindSet() then
             repeat
