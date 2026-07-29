@@ -2109,11 +2109,8 @@ codeunit 134101 "ERM Prepayment II"
         // [GIVEN] Sales Order with 100% Prepayment, "Prices Including VAT", 10% Invoice Discount, two item lines and a negative non-inventory line with 0% Prepayment.
         SalesPrepaymentsAccount := SetupPrepaymentOrderWithNegativeNonInventoryLine(SalesHeader, LineGLAccount);
 
-        // Sum the net prepayment amount of the prepayment lines before posting.
-        FindSalesLine(SalesLine, SalesHeader."Document Type", SalesHeader."No.");
-        repeat
-            PrePaymentLineAmount += Round(SalesLine.Amount * SalesLine."Prepayment %" / 100);
-        until SalesLine.Next() = 0;
+         // [GIVEN] Sum the net prepayment amount of the prepayment lines before posting.
+        PrePaymentLineAmount := GetSalesPrepaymentLineAmount(SalesHeader);
 
         // [WHEN] Post Prepayment Invoice on Sales Header.
         SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
@@ -2521,6 +2518,18 @@ codeunit 134101 "ERM Prepayment II"
         exit(VendorLedgerEntry."Amount (LCY)");
     end;
 
+    local procedure GetSalesPrepaymentLineAmount(SalesHeader: Record "Sales Header"): Decimal
+    var
+        SalesLine: Record "Sales Line";
+        PrepaymentLineAmount: Decimal;
+    begin
+        FindSalesLine(SalesLine, SalesHeader."Document Type", SalesHeader."No.");
+        repeat
+            PrepaymentLineAmount += Round(SalesLine.Amount * SalesLine."Prepayment %" / 100);
+        until SalesLine.Next() = 0;
+        exit(PrepaymentLineAmount);
+    end;
+
     local procedure InvoicePostedPurchaseOrder(var PurchaseHeader: Record "Purchase Header"; BuyFromVendorNo: Code[20]; DocumentNoFilter: Text; CurrencyCode: Code[10]; PostingDate: Date): Code[20]
     var
         PurchRcptLine: Record "Purch. Rcpt. Line";
@@ -2693,6 +2702,11 @@ codeunit 134101 "ERM Prepayment II"
         ItemNo: Code[20];
         NonInventoryItemNo: Code[20];
         CustomerNo: Code[20];
+        PositiveLineQuantity: Decimal;
+        FirstUnitPrice: Decimal;
+        SecondUnitPrice: Decimal;
+        NegativeLineQuantity: Decimal;
+        NegativeLineUnitPrice: Decimal;
     begin
         // Setup Prepayment VAT accounts.
         SalesPrepaymentsAccount := LibrarySales.CreatePrepaymentVATSetup(LineGLAccount, VATCalculationType);
@@ -2714,14 +2728,19 @@ codeunit 134101 "ERM Prepayment II"
         SalesHeader.Modify(true);
 
         // Add two positive item lines with 100% Prepayment.
-        CreateSalesLineWithUnitPrice(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, 1, 1000);
-        CreateSalesLineWithUnitPrice(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, 1, 500);
+        PositiveLineQuantity := LibraryRandom.RandIntInRange(2, 10);
+        FirstUnitPrice := LibraryRandom.RandDecInRange(100, 1000, 2);
+        SecondUnitPrice := LibraryRandom.RandDecInRange(100, 1000, 2);
+        CreateSalesLineWithUnitPrice(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, PositiveLineQuantity, FirstUnitPrice);
+        CreateSalesLineWithUnitPrice(SalesLine, SalesHeader, SalesLine.Type::Item, ItemNo, PositiveLineQuantity, SecondUnitPrice);
 
         // Add negative Non-Inventory line with 0% Prepayment.
         CreateSalesLineWithUnitPrice(SalesLine, SalesHeader, SalesLine.Type::Item, NonInventoryItemNo, 0, 0);
         SalesLine.Validate("Prepayment %", 0);
-        SalesLine.Validate("Quantity", -1);
-        SalesLine.Validate("Unit Price", 1000);
+        NegativeLineQuantity := -LibraryRandom.RandIntInRange(1, 2);
+        NegativeLineUnitPrice := LibraryRandom.RandDecInRange(10, 50, 2);
+        SalesLine.Validate("Quantity", NegativeLineQuantity);
+        SalesLine.Validate("Unit Price", NegativeLineUnitPrice);
         SalesLine.Modify(true);
 
         // Calculate the customer Invoice Discount.

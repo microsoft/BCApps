@@ -2035,7 +2035,7 @@ codeunit 442 "Sales-Post Prepayments"
         SalesLine: Record "Sales Line";
         PrepmtAmt: Decimal;
     begin
-        SalesLine.SetLoadFields("Document Type", "Document No.", Type, Amount, "Prepmt. Line Amount", "Prepayment %");
+        SalesLine.SetLoadFields(Type, Amount, "Prepmt. Line Amount", "Prepayment %");
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         SalesLine.SetFilter(Type, '<>%1', SalesLine.Type::" ");
