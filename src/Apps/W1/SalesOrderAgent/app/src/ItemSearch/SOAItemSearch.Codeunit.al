@@ -382,6 +382,7 @@ codeunit 4591 "SOA Item Search"
 
     local procedure AddSameItemVariantAlternativesForMissingVariant(SelectedMatchingItemFilter: Text; SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; SearchQuery: Text)
     var
+        Item: Record Item;
         FallbackAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]];
         AlternativeVariantCodes: List of [Code[10]];
         MatchingVariantCodes: List of [Code[10]];
@@ -392,6 +393,7 @@ codeunit 4591 "SOA Item Search"
         if SelectedMatchingItemFilter = '' then
             exit;
 
+        Item.SetLoadFields("No.", Description, "Description 2");
         foreach ItemSystemId in SelectedMatchingItemFilter.Split('|') do begin
             Clear(MatchingVariantCodes);
             if SelectedMatchingItemVariants.ContainsKey(ItemSystemId) then
@@ -405,8 +407,11 @@ codeunit 4591 "SOA Item Search"
                     continue;
             end;
 
-            if HasVariantSignalForItem(ItemSystemId, SearchQuery) then begin
-                VariantCodes := GetItemVariantCodes(ItemSystemId);
+            if not Item.GetBySystemId(ItemSystemId) then
+                continue;
+
+            if HasVariantSignalForItem(Item, SearchQuery) then begin
+                VariantCodes := GetItemVariantCodes(Item."No.");
                 if VariantCodes.Count() > 0 then begin
                     if FallbackAlternativeItemFilter = '' then
                         FallbackAlternativeItemFilter := ItemSystemId
@@ -466,14 +471,10 @@ codeunit 4591 "SOA Item Search"
         SelectedAlternativeItemVariants := SameItemAlternativeItemVariants;
     end;
 
-    local procedure HasVariantSignalForItem(ItemSystemId: Text; SearchQuery: Text): Boolean
+    local procedure HasVariantSignalForItem(Item: Record Item; SearchQuery: Text): Boolean
     var
-        Item: Record Item;
         SearchToken: Text;
     begin
-        if not Item.GetBySystemId(ItemSystemId) then
-            exit(false);
-
         SearchQuery := LowerCase(SearchQuery);
         foreach SearchToken in SearchQuery.Split(' ') do begin
             SearchToken := SearchToken.Trim();
@@ -491,18 +492,13 @@ codeunit 4591 "SOA Item Search"
         exit(false);
     end;
 
-    local procedure GetItemVariantCodes(ItemSystemId: Text): List of [Code[10]]
+    local procedure GetItemVariantCodes(ItemNo: Code[20]): List of [Code[10]]
     var
-        Item: Record Item;
         ItemVariant: Record "Item Variant";
         VariantCodes: List of [Code[10]];
     begin
-        Item.SetLoadFields("No.");
-        if not Item.GetBySystemId(ItemSystemId) then
-            exit(VariantCodes);
-
         ItemVariant.SetLoadFields(Code);
-        ItemVariant.SetRange("Item No.", Item."No.");
+        ItemVariant.SetRange("Item No.", ItemNo);
         if ItemVariant.FindSet() then
             repeat
                 VariantCodes.Add(ItemVariant.Code);
