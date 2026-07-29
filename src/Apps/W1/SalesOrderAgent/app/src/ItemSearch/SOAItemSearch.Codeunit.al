@@ -552,7 +552,10 @@ codeunit 4591 "SOA Item Search"
 
     local procedure AddSelectedItem(var SelectedItemFilter: Text; var SelectedItemVariants: Dictionary of [Text, List of [Code[10]]]; SelectedItemNo: Text; ItemNoToSystemId: Dictionary of [Text, Text]; RawSelectedItemVariants: Dictionary of [Text, List of [Code[10]]])
     var
-        VariantCodes: List of [Code[10]];
+        ItemVariant: Record "Item Variant";
+        RawVariantCodes: List of [Code[10]];
+        ValidVariantCodes: List of [Code[10]];
+        VariantCode: Code[10];
         ItemSystemId: Text;
     begin
         if SelectedItemNo = '' then
@@ -560,17 +563,24 @@ codeunit 4591 "SOA Item Search"
         if not ItemNoToSystemId.ContainsKey(SelectedItemNo) then
             exit;
 
+        if RawSelectedItemVariants.ContainsKey(SelectedItemNo) then begin
+            RawVariantCodes := RawSelectedItemVariants.Get(SelectedItemNo);
+            foreach VariantCode in RawVariantCodes do
+                if ItemVariant.Get(CopyStr(SelectedItemNo, 1, MaxStrLen(ItemVariant."Item No.")), VariantCode) then
+                    ValidVariantCodes.Add(VariantCode);
+
+            if (RawVariantCodes.Count() > 0) and (ValidVariantCodes.Count() = 0) then
+                exit;
+        end;
+
         ItemSystemId := ItemNoToSystemId.Get(SelectedItemNo);
         if SelectedItemFilter = '' then
             SelectedItemFilter := ItemSystemId
         else
             SelectedItemFilter += '|' + ItemSystemId;
 
-        if RawSelectedItemVariants.ContainsKey(SelectedItemNo) then
-            VariantCodes := RawSelectedItemVariants.Get(SelectedItemNo);
-
         if not SelectedItemVariants.ContainsKey(ItemSystemId) then
-            SelectedItemVariants.Add(ItemSystemId, VariantCodes);
+            SelectedItemVariants.Add(ItemSystemId, ValidVariantCodes);
     end;
 
     local procedure StoreResolvedItemVariants(ItemFilter: Text; SelectedItemVariants: Dictionary of [Text, Code[10]])

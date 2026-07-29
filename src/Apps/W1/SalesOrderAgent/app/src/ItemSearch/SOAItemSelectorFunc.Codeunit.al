@@ -70,6 +70,9 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
 
                         if ItemObject.Get('variant_code', ResultToken) then
                             VariantCode := ResultToken.AsValue().AsText();
+                        VariantCode := VariantCode.Trim();
+                        if not IsAllowedVariantCodeFormat(VariantCode) then
+                            continue;
 
                         if ItemObject.Get('confidence', ResultToken) then
                             Confidence := ResultToken.AsValue().AsText()
