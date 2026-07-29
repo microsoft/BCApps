@@ -17,6 +17,7 @@ using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using System.Environment.Configuration;
+using System.TestLibraries.Environment;
 
 codeunit 137500 "SCM Legacy Subcontracting"
 {
@@ -568,6 +569,49 @@ codeunit 137500 "SCM Legacy Subcontracting"
 
     [Test]
     [Scope('OnPrem')]
+    procedure PreCheckDisableErrorWordingMatchesWIPItemFilterForPurchaseOrders()
+    var
+        PurchaseHeader: Record "Purchase Header";
+        PurchaseLine: Record "Purchase Line";
+        Vendor: Record Vendor;
+        Item: Record Item;
+        TransferLine: Record "Transfer Line";
+        LegacySubcFeatureHandler: Codeunit "Legacy Subc. Feature Handler";
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
+        OpenWIPPurchaseOrdersExistErr: Label 'There are still open purchase orders with WIP Items. All purchase orders with WIP Items must be completed before disabling Legacy Subcontracting.';
+    begin
+        // [SCENARIO 641607] CheckCanDisableLegacySubcontracting error wording consistently refers to purchase orders with WIP Items in both sentences, instead of implying all subcontracting purchase orders
+        Initialize();
+
+        // [GIVEN] The environment is testable as a sandbox so the migration pre-checks (beyond the production gate) are reached
+        EnvironmentInfoTestLibrary.SetTestabilitySandbox(true);
+
+        // [GIVEN] ManufacturingSetup."Legacy Subcontracting" = true
+        SetLegacySubcontracting(true);
+
+        // [GIVEN] No open WIP transfers (to pass the first check)
+        TransferLine.SetRange("WIP Item", true);
+        TransferLine.DeleteAll();
+
+        // [GIVEN] An open purchase order line with "WIP Item" = true exists
+        LibraryPurchase.CreateVendor(Vendor);
+        LibraryPurchase.CreatePurchHeader(PurchaseHeader, PurchaseHeader."Document Type"::Order, Vendor."No.");
+        LibraryInventory.CreateItem(Item);
+        LibraryPurchase.CreatePurchaseLine(PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, Item."No.", 1);
+        PurchaseLine."WIP Item" := true;
+        PurchaseLine.Modify();
+
+        // [WHEN] Call CheckCanDisableLegacySubcontracting
+        asserterror LegacySubcFeatureHandler.CheckCanDisableLegacySubcontracting();
+
+        // [THEN] The full error message consistently refers to purchase orders "with WIP Items" in both sentences, not "all subcontracting purchase orders"
+        Assert.AreEqual(OpenWIPPurchaseOrdersExistErr, GetLastErrorText(), 'Error message wording must consistently describe purchase orders with WIP Items in both sentences.');
+
+        EnvironmentInfoTestLibrary.SetTestabilitySandbox(false);
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure PreCheckDisableFailsWhenITMigrationAppInstalled()
     var
         TransferLine: Record "Transfer Line";
@@ -603,9 +647,15 @@ codeunit 137500 "SCM Legacy Subcontracting"
     end;
 
     local procedure Initialize()
+    var
+        EnvironmentInfoTestLibrary: Codeunit "Environment Info Test Library";
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"SCM Legacy Subcontracting");
         LibraryApplicationArea.EnablePremiumSetup();
+
+        // Ensure every test starts from a known, non-sandbox testability state, regardless of
+        // whether a previous test left the SingleInstance sandbox flag set (e.g. on assertion failure).
+        EnvironmentInfoTestLibrary.SetTestabilitySandbox(false);
 
         if Initialized then
             exit;
