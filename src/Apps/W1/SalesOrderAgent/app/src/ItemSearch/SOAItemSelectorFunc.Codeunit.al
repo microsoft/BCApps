@@ -18,9 +18,12 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
         AlternativeItems: Text;
         MatchingItemVariants: Dictionary of [Text, List of [Code[10]]];
         AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]];
+        UnresolvedVariantRequests: Dictionary of [Text, Boolean];
         FunctionNameTok: Label 'select_best_matching_item', Locked = true;
         MatchingTok: Label 'matching', Locked = true;
         AlternativeTok: Label 'alternative', Locked = true;
+        UnresolvedInterchangeableTok: Label 'unresolved_interchangeable', Locked = true;
+        UnresolvedNonInterchangeableTok: Label 'unresolved_non_interchangeable', Locked = true;
 
     [NonDebuggable]
     procedure GetPrompt(): JsonObject
@@ -39,12 +42,15 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
         ItemObject: JsonObject;
         ItemNo: Text;
         VariantCode: Text;
+        VariantResolution: Text;
         Confidence: Text;
+        AlternativesAllowed: Boolean;
     begin
         MatchingItems := '';
         AlternativeItems := '';
         Clear(MatchingItemVariants);
         Clear(AlternativeItemVariants);
+        Clear(UnresolvedVariantRequests);
 
         // Parse per-item confidence payloads and separate into matching/alternative lists.
         if Arguments.Get('selected_items', ResultToken) then
@@ -54,6 +60,7 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
                     if ItemToken.IsObject() then begin
                         ItemNo := '';
                         VariantCode := '';
+                        VariantResolution := '';
                         Confidence := '';
                         ItemObject := ItemToken.AsObject();
                         if ItemObject.Get('item_no', ResultToken) then
@@ -80,6 +87,38 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
                             if Confidence = AlternativeTok then
                                 if AddItemToList(AlternativeItems, ItemNo) then
                                     AddVariantCodeToDictionary(AlternativeItemVariants, ItemNo, VariantCode);
+
+                        if ItemObject.Get('variant_resolution', ResultToken) then
+                            VariantResolution := ResultToken.AsValue().AsText();
+                        case VariantResolution of
+                            UnresolvedInterchangeableTok:
+                                if not UnresolvedVariantRequests.ContainsKey(ItemNo) then
+                                    UnresolvedVariantRequests.Add(ItemNo, true);
+                            UnresolvedNonInterchangeableTok:
+                                if not UnresolvedVariantRequests.ContainsKey(ItemNo) then
+                                    UnresolvedVariantRequests.Add(ItemNo, false);
+                        end;
+                    end;
+            end;
+
+        if Arguments.Get('unresolved_variant_requests', ResultToken) then
+            if ResultToken.IsArray() then begin
+                SelectedItemsArray := ResultToken.AsArray();
+                foreach ItemToken in SelectedItemsArray do
+                    if ItemToken.IsObject() then begin
+                        ItemObject := ItemToken.AsObject();
+                        if not ItemObject.Get('item_no', ResultToken) then
+                            continue;
+                        ItemNo := ResultToken.AsValue().AsText().Trim();
+                        if not IsAllowedItemNoFormat(ItemNo) then
+                            continue;
+
+                        if not ItemObject.Get('alternatives_allowed', ResultToken) then
+                            continue;
+                        AlternativesAllowed := ResultToken.AsValue().AsBoolean();
+
+                        if not UnresolvedVariantRequests.ContainsKey(ItemNo) then
+                            UnresolvedVariantRequests.Add(ItemNo, AlternativesAllowed);
                     end;
             end;
 
@@ -203,5 +242,11 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
         GetSelectionResult(MatchingItemsFilter, AlternativeItemsFilter);
         MatchingVariants := MatchingItemVariants;
         AlternativeVariants := AlternativeItemVariants;
+    end;
+
+    internal procedure GetSelectionResultWithVariantsAndUnresolvedRequests(var MatchingItemsFilter: Text; var AlternativeItemsFilter: Text; var MatchingVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeVariants: Dictionary of [Text, List of [Code[10]]]; var UnresolvedRequests: Dictionary of [Text, Boolean])
+    begin
+        GetSelectionResultWithVariants(MatchingItemsFilter, AlternativeItemsFilter, MatchingVariants, AlternativeVariants);
+        UnresolvedRequests := UnresolvedVariantRequests;
     end;
 }

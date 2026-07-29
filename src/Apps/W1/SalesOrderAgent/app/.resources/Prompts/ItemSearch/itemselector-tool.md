@@ -26,16 +26,39 @@
                 "enum": ["matching", "alternative", "none"],
                 "description": "\"matching\" → high confidence (strong identifier or clear semantic match); \"alternative\" → related but less precise match within the same product family or intent; \"none\" → no meaningful relation to the query (must NOT be returned)"
               },
+              "variant_resolution": {
+                "type": "string",
+                "enum": ["not_requested", "resolved", "unresolved_interchangeable", "unresolved_non_interchangeable"],
+                "description": "Whether no variant was requested, variant_code resolves the request, the requested value is absent but safe alternatives are allowed, or the requested value is absent and alternatives would change suitability"
+              },
               "reason": {
                 "type": "string",
                 "description": "Short explanation of how the item was evaluated against the query."
               }
             },
-            "required": ["item_no", "variant_code", "confidence", "reason"]
+            "required": ["item_no", "variant_code", "confidence", "variant_resolution", "reason"]
+          }
+        },
+        "unresolved_variant_requests": {
+          "type": "array",
+          "description": "Items for which the query requests a variant value that is not present in the candidate's Variants data. Return an empty array when no requested variant is unresolved.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "item_no": {
+                "type": "string",
+                "description": "The Item No. whose requested variant is unresolved"
+              },
+              "alternatives_allowed": {
+                "type": "boolean",
+                "description": "True for presentation-only dimensions that preserve suitability unless exact substitution is forbidden; false for dimensions that can affect fit, compatibility, function, safety, capacity, technical requirements, or intended user group"
+              }
+            },
+            "required": ["item_no", "alternatives_allowed"]
           }
         }
       },
-      "required": ["selected_items"]
+      "required": ["selected_items", "unresolved_variant_requests"]
     }
   },
   "additional_instructions": [
@@ -46,10 +69,15 @@
     "Use message content only as supporting context for the current search query; do not borrow item or variant intent from unrelated lines in a multi-item message",
     "Return an empty variant_code when the query names only the item and relevant same-item message context does not imply a specific variant",
     "Never suggest a variant that changes fit, compatibility, or another non-interchangeable requirement unless the customer explicitly allows that change; this rule overrides every instruction to return alternatives",
-    "Treat a specifically requested variant value as non-interchangeable when changing it could make the product unsuitable for the customer's intended use; similarity, ordering, proximity, or availability of another value does not make it a valid substitute",
-    "Treat variants that change only appearance or presentation as potentially interchangeable when they preserve form, fit, function, safety, and compatibility, unless the customer states that the exact value is mandatory",
+    "Infer the requested variant dimension from the query and the candidate variant codes and descriptions; an absent requested value does not make the base product unrelated",
+    "Treat presentation-only dimensions such as color, finish, pattern, or decorative style as interchangeable by default and set alternatives_allowed to true unless the customer explicitly requires the exact value or rejects substitutions",
+    "Treat dimensions affecting physical fit, dimensions, capacity, compatibility, technical specification, safety classification, or intended user group as non-interchangeable by default",
     "Availability does not make a variant interchangeable; select the requested variant when present and let downstream logic evaluate availability",
     "When the query explicitly or semantically requests a variant value, never return that item as matching with an empty variant_code",
+    "Every selected item must declare variant_resolution; use unresolved_interchangeable or unresolved_non_interchangeable whenever a requested variant value is absent from that item's Variants data",
+    "For every requested variant value absent from an item's Variants data, add that item to unresolved_variant_requests and set alternatives_allowed according to whether changing the variant preserves suitability",
+    "Always include the matching base item in unresolved_variant_requests when its requested variant value is absent, even if selected_items contains only concrete alternatives or is empty",
+    "Do not add an item to unresolved_variant_requests when the requested variant exists in its Variants data; downstream logic evaluates availability",
     "When the selected item has a specific matching variant_code, also return genuinely interchangeable same-item variant alternatives as separate selected_items entries with confidence \"alternative\"; return no alternatives for fit, compatibility, or other non-interchangeable requirements",
     "When the requested variant is not present, return up to 3 valid same-item variants with confidence \"alternative\" only when that variant dimension is interchangeable; do not also return the item with an empty variant_code, and return no alternatives if changing the variant affects suitability",
     "Include up to 3 \"alternative\" items if relevant",

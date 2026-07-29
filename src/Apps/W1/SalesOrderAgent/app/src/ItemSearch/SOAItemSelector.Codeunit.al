@@ -41,21 +41,29 @@ codeunit 4417 "SOA Item Selector"
     end;
 
     internal procedure SelectBestMatchingItemWithVariants(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItemFilter: Text; var AlternativeItemFilter: Text; var MatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]): Boolean
+    var
+        DummyUnresolvedVariantRequests: Dictionary of [Text, Boolean];
+    begin
+        exit(SelectBestMatchingItemWithVariantsAndUnresolvedRequests(SearchQuery, MessageContent, CandidateArray, MatchingItemFilter, AlternativeItemFilter, MatchingItemVariants, AlternativeItemVariants, DummyUnresolvedVariantRequests));
+    end;
+
+    internal procedure SelectBestMatchingItemWithVariantsAndUnresolvedRequests(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItemFilter: Text; var AlternativeItemFilter: Text; var MatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; var UnresolvedVariantRequests: Dictionary of [Text, Boolean]): Boolean
     begin
         MatchingItemFilter := '';
         AlternativeItemFilter := '';
         Clear(MatchingItemVariants);
         Clear(AlternativeItemVariants);
+        Clear(UnresolvedVariantRequests);
 
-        if not TrySelectBestMatchingItem(SearchQuery, MessageContent, CandidateArray, MatchingItemFilter, AlternativeItemFilter, MatchingItemVariants, AlternativeItemVariants) then
+        if not TrySelectBestMatchingItem(SearchQuery, MessageContent, CandidateArray, MatchingItemFilter, AlternativeItemFilter, MatchingItemVariants, AlternativeItemVariants, UnresolvedVariantRequests) then
             exit(false);
 
-        exit((MatchingItemFilter <> '') or (AlternativeItemFilter <> ''));
+        exit((MatchingItemFilter <> '') or (AlternativeItemFilter <> '') or (UnresolvedVariantRequests.Count() > 0));
     end;
 
     [NonDebuggable]
     [TryFunction]
-    local procedure TrySelectBestMatchingItem(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItems: Text; var AlternativeItems: Text; var MatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]])
+    local procedure TrySelectBestMatchingItem(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItems: Text; var AlternativeItems: Text; var MatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; var UnresolvedVariantRequests: Dictionary of [Text, Boolean])
     var
         ItemSelectorFunc: Codeunit "SOA Item Selector Func";
         AzureOpenAI: Codeunit "Azure OpenAI";
@@ -95,8 +103,8 @@ codeunit 4417 "SOA Item Selector"
         // Extract matching and alternative items from function response
         foreach AOAIFunctionResponse in AOAIOperationResponse.GetFunctionResponses() do begin
             ItemSelectorFunc.Execute(AOAIFunctionResponse.GetArguments());
-            ItemSelectorFunc.GetSelectionResultWithVariants(MatchingItems, AlternativeItems, MatchingItemVariants, AlternativeItemVariants);
-            if (MatchingItems <> '') or (AlternativeItems <> '') then
+            ItemSelectorFunc.GetSelectionResultWithVariantsAndUnresolvedRequests(MatchingItems, AlternativeItems, MatchingItemVariants, AlternativeItemVariants, UnresolvedVariantRequests);
+            if (MatchingItems <> '') or (AlternativeItems <> '') or (UnresolvedVariantRequests.Count() > 0) then
                 exit;
         end;
     end;
