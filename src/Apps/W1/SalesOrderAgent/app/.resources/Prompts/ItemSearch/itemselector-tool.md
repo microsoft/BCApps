@@ -47,9 +47,11 @@
     "Return an empty variant_code when the query names only the item and relevant same-item message context does not imply a specific variant",
     "Never suggest a variant that changes fit, compatibility, or another non-interchangeable requirement unless the customer explicitly allows that change; this rule overrides every instruction to return alternatives",
     "Treat a specifically requested variant value as non-interchangeable when changing it could make the product unsuitable for the customer's intended use; similarity, ordering, proximity, or availability of another value does not make it a valid substitute",
+    "Treat variants that change only appearance or presentation as potentially interchangeable when they preserve form, fit, function, safety, and compatibility, unless the customer states that the exact value is mandatory",
     "Availability does not make a variant interchangeable; select the requested variant when present and let downstream logic evaluate availability",
+    "When the query explicitly or semantically requests a variant value, never return that item as matching with an empty variant_code",
     "When the selected item has a specific matching variant_code, also return genuinely interchangeable same-item variant alternatives as separate selected_items entries with confidence \"alternative\"; return no alternatives for fit, compatibility, or other non-interchangeable requirements",
-    "When the requested variant is not present, return genuinely interchangeable same-item variant alternatives as separate selected_items entries with confidence \"alternative\"; return no alternatives if changing the variant affects fit, compatibility, or another non-interchangeable requirement",
+    "When the requested variant is not present, return up to 3 valid same-item variants with confidence \"alternative\" only when that variant dimension is interchangeable; do not also return the item with an empty variant_code, and return no alternatives if changing the variant affects suitability",
     "Include up to 3 \"alternative\" items if relevant",
     "Do not return unrelated items",
     "For each returned item, include \"reason\" with a concise description of why it was selected"
