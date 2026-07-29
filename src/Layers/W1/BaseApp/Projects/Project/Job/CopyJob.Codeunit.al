@@ -21,6 +21,7 @@ codeunit 1006 "Copy Job"
         CopyPrices: Boolean;
         CopyQuantity: Boolean;
         CopyDimensions: Boolean;
+        CopyAssignedResources: Boolean;
         JobPlanningLineSource: Option "Job Planning Lines","Job Ledger Entries";
         JobPlanningLineType: Option " ",Budget,Billable;
         JobLedgerEntryType: Option " ",Usage,Sale;
@@ -120,8 +121,30 @@ codeunit 1006 "Copy Job"
                 end;
                 if CopyDimensions then
                     CopyJobTaskDimensions(SourceJobTask, TargetJobTask);
+                if CopyAssignedResources then
+                    CopyJobAssignedResources(SourceJobTask."Job No.", SourceJobTask."Job Task No.", TargetJobTask."Job No.", TargetJobTask."Job Task No.");
                 OnAfterCopyJobTask(TargetJobTask, SourceJobTask, CopyPrices, CopyQuantity);
             until SourceJobTask.Next() = 0;
+        if CopyAssignedResources then
+            CopyJobAssignedResources(SourceJob."No.", '', TargetJob."No.", '');
+    end;
+
+    local procedure CopyJobAssignedResources(SourceJobNo: Code[20]; SourceJobTaskNo: Code[20]; TargetJobNo: Code[20]; TargetJobTaskNo: Code[20])
+    var
+        SourceJobAssignedResource: Record "Job Assigned Resource";
+        TargetJobAssignedResource: Record "Job Assigned Resource";
+    begin
+        SourceJobAssignedResource.SetRange("Job No.", SourceJobNo);
+        SourceJobAssignedResource.SetRange("Job Task No.", SourceJobTaskNo);
+        if SourceJobAssignedResource.FindSet() then
+            repeat
+                TargetJobAssignedResource.Init();
+                TargetJobAssignedResource."Job No." := TargetJobNo;
+                TargetJobAssignedResource."Job Task No." := TargetJobTaskNo;
+                TargetJobAssignedResource."Resource No." := SourceJobAssignedResource."Resource No.";
+                // Insert only when the assignment does not already exist so existing rows are never overwritten.
+                if not TargetJobAssignedResource.Insert() then;
+            until SourceJobAssignedResource.Next() = 0;
     end;
 
     procedure CopyJobPlanningLines(SourceJobTask: Record "Job Task"; TargetJobTask: Record "Job Task")
@@ -402,6 +425,11 @@ codeunit 1006 "Copy Job"
     begin
         JobTaskDateRangeFrom := JobTaskDateRangeFrom2;
         JobTaskDateRangeTo := JobTaskDateRangeTo2;
+    end;
+
+    procedure SetCopyAssignedResources(CopyAssignedResources2: Boolean)
+    begin
+        CopyAssignedResources := CopyAssignedResources2;
     end;
 
     procedure GetJobTaskDateRange(var JobTaskDateRangeFrom2: Date; var JobTaskDateRangeTo2: Date)

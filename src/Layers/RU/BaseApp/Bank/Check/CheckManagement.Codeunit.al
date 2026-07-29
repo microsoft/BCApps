@@ -265,7 +265,9 @@ codeunit 367 CheckManagement
         GenJnlLine2.Validate("Currency Code", BankAcc."Currency Code");
         GenJnlLine2."Allow Zero-Amount Posting" := true;
         CheckUnpostedVendor(CheckLedgEntry, GenJnlLine2);
-        OnFinancialVoidCheckOnBeforeCheckBalAccountType(GenJnlLine2, CheckLedgEntry, BankAccLedgEntry3);
+        IsHandled := false;
+        OnFinancialVoidCheckOnBeforeCheckBalAccountType(GenJnlLine2, CheckLedgEntry, BankAccLedgEntry3, BalanceAmountLCY, IsHandled);
+        if not IsHandled then
         case CheckLedgEntry."Bal. Account Type" of
             CheckLedgEntry."Bal. Account Type"::"G/L Account":
                 FinancialVoidPostGLAccount(GenJnlLine2, BankAccLedgEntry2, CheckLedgEntry, BalanceAmountLCY);
@@ -1249,11 +1251,13 @@ codeunit 367 CheckManagement
     /// <param name="GenJournalLine">General journal line for the void operation</param>
     /// <param name="CheckLedgerEntry">Check ledger entry being voided</param>
     /// <param name="BankAccountLedgerEntry">Bank account ledger entry associated with the check</param>
+    /// <param name="BalanceAmountLCY">Running balancing amount in LCY. A subscriber that sets IsHandled must add the LCY amounts it posts so the caller's currency-rounding calculation stays balanced.</param>
+    /// <param name="IsHandled">Set to true to skip the standard balance account type posting logic</param>
     /// <remarks>
     /// Raised from FinancialVoidCheck procedure before processing balance account type specific logic.
     /// </remarks>
     [IntegrationEvent(false, false)]
-    local procedure OnFinancialVoidCheckOnBeforeCheckBalAccountType(var GenJournalLine: Record "Gen. Journal Line"; var CheckLedgerEntry: Record "Check Ledger Entry"; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry")
+    local procedure OnFinancialVoidCheckOnBeforeCheckBalAccountType(var GenJournalLine: Record "Gen. Journal Line"; var CheckLedgerEntry: Record "Check Ledger Entry"; var BankAccountLedgerEntry: Record "Bank Account Ledger Entry"; var BalanceAmountLCY: Decimal; var IsHandled: Boolean)
     begin
     end;
 

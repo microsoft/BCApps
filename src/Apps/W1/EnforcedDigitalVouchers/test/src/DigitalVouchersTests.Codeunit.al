@@ -910,6 +910,7 @@ codeunit 139515 "Digital Vouchers Tests"
         InitSetupGenerateAutomatically("Digital Voucher Entry Type"::"Purchase Document", "Digital Voucher Check Type"::Attachment);
         LibraryLowerPermissions.SetO365Setup();
         LibraryLowerPermissions.AddPurchDocsPost();
+        LibraryLowerPermissions.AddeRead();
         // [WHEN] Post purchase invoice
         PurchInvHeader.Get(ReceiveAndInvoicePurchaseInvoice());
         // [THEN] "No. Printed" is 0 for the posted purchase invoice
@@ -937,6 +938,7 @@ codeunit 139515 "Digital Vouchers Tests"
         InitSetupGenerateAutomatically("Digital Voucher Entry Type"::"Purchase Document", "Digital Voucher Check Type"::Attachment);
         LibraryLowerPermissions.SetO365Setup();
         LibraryLowerPermissions.AddPurchDocsPost();
+        LibraryLowerPermissions.AddeRead();
         // [WHEN] Post purchase credit memo
         PurchCrMemoHdr.Get(ShipAndInvoicePurchaseCrMemo());
         // [THEN] "No. Printed" is 0 for the posted purchase credit memo
@@ -964,6 +966,7 @@ codeunit 139515 "Digital Vouchers Tests"
         InitSetupGenerateAutomatically("Digital Voucher Entry Type"::"Sales Document", "Digital Voucher Check Type"::Attachment);
         LibraryLowerPermissions.SetO365Setup();
         LibraryLowerPermissions.AddSalesDocsPost();
+        LibraryLowerPermissions.AddeRead();
         // [WHEN] Post sales invoice
         SalesInvHeader.Get(ShipAndInvoiceSalesInvoice());
         // [THEN] "No. Printed" is 0 for the posted sales invoice
@@ -992,6 +995,7 @@ codeunit 139515 "Digital Vouchers Tests"
         InitSetupGenerateAutomatically("Digital Voucher Entry Type"::"Sales Document", "Digital Voucher Check Type"::Attachment);
         LibraryLowerPermissions.SetO365Setup();
         LibraryLowerPermissions.AddSalesDocsPost();
+        LibraryLowerPermissions.AddeRead();
         // [WHEN] Post sales credit memo
         SalesCrMemoHeader.Get(ReceiveAndInvoiceSalesCrMemo());
         // [THEN] "No. Printed" is 0 for the posted sales credit memo

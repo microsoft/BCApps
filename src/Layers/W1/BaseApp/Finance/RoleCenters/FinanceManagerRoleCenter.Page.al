@@ -98,6 +98,14 @@ page 8901 "Finance Manager Role Center"
 {
     Caption = 'Finance Manager Role Center';
     PageType = RoleCenter;
+
+    layout
+    {
+        area(rolecenter)
+        {
+        }
+    }
+
     actions
     {
         area(Sections)
@@ -2195,7 +2203,6 @@ page 8901 "Finance Manager Role Center"
                         ApplicationArea = Basic, Suite;
                         Caption = 'Item Age Composition - Value';
                         RunObject = report "Item Age Composition - Value";
-                        Tooltip = 'Run the Item Age Composition - Value report.';
                     }
                     action("Item Register - Value")
                     {
