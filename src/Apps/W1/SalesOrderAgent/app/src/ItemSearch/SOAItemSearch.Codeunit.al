@@ -216,10 +216,12 @@ codeunit 4591 "SOA Item Search"
         SearchFilter := Rec.GetFilter("No."); //Get current search filter
         Rec.FilterGroup(OriginalFilterGroup);
 
-        if (SearchFilter = CrossColumnSearchFilter) or (SearchFilter = '=''<>*''') then //If the search filter is the same as the last one, or empty filter then we don't need to search
+        if SearchFilter = CrossColumnSearchFilter then //If the search filter is the same as the last one, then we don't need to search
             exit;
         CrossColumnSearchFilter := SearchFilter;
         Clear(ResolvedItemVariants);
+        if SearchFilter = '=''<>*''' then //If the search filter is empty, clear the previous search state without running a new search
+            exit;
 
         ExtractSearchKeyWords(SearchFilter, SplitSearchKeywords, SearchKeyWordsTrimmed);
 
