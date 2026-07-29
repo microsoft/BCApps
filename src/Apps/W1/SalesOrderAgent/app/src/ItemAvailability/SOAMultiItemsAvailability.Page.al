@@ -215,6 +215,13 @@ page 4410 "SOA Multi Items Availability"
                         CurrPage.Update(false);
                     end;
                 }
+                field(avaFilter; Rec.GetFilter("Item Availability Filter"))
+                {
+                    // Temporary field used to debug the agent logs
+                    Caption = 'AVA Filter';
+                    ToolTip = 'Specifies the item availability filter.';
+                    Editable = false;
+                }
                 field(CalculateEarliestShipmentDate; CalculateEarliestShipmentDate)
                 {
                     Caption = 'Calculate Earliest Shipment Date';
@@ -735,8 +742,11 @@ page 4410 "SOA Multi Items Availability"
             AvailabilityFilterValues.Set('Contact', ContactNo);
             AvailabilityFilterValues.Set('Location', LocationFilter);
             Rec.SetFilter("Item Availability Filter", BuildAvailabilityFilterText() + '|*');
-        end else
+        end else begin
             ParseAvailabilityFilter();
+            if DateFilter <> '' then
+                Rec.SetFilter("Date Filter", DateFilter);
+        end;
 
         FindPeriod('');
     end;
@@ -767,7 +777,6 @@ page 4410 "SOA Multi Items Availability"
     begin
         RawFilter := Rec.GetFilter("Item Availability Filter");
 
-        // Stored format is "Key:Value;Key:Value;...|*". Remove the trailing "|*" marker if present.
         if RawFilter.EndsWith('|*') then
             RawFilter := CopyStr(RawFilter, 1, StrLen(RawFilter) - 2);
 
