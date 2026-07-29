@@ -266,8 +266,10 @@ $MiappConfig = @{
 
 ### Environment Variables
 
-- `$env:RepoBranchName` - Base branch name used for comparisons (defaults to `origin/HEAD`, typically `main`, when not set)
 - `$env:MIAPP_DIR` - Directory for miapp temporary files (default: $env:USERPROFILE)
+
+> The base branch used for comparisons is derived automatically from the
+> repository's own `origin/HEAD` (typically `main` for BCApps).
 
 ### Output
 

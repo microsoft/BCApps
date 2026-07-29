@@ -209,6 +209,7 @@ codeunit 1303 "Correct Posted Sales Invoice"
     procedure CreateCreditMemoCopyDocument(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesHeader: Record "Sales Header"): Boolean
     var
         SalesHdr: Record "Sales Header";
+        ConfirmQuestion: Text;
     begin
         OnBeforeCreateCreditMemoCopyDocument(SalesInvoiceHeader);
         TestNoFixedAssetInSalesInvoice(SalesInvoiceHeader);
@@ -220,9 +221,12 @@ codeunit 1303 "Correct Posted Sales Invoice"
         end;
         SalesHdr.SetRange("Document Type", SalesHdr."Document Type"::Order);
         SalesHdr.SetRange("No.", SalesInvoiceHeader."Order No.");
-        if not SalesHdr.IsEmpty then
-            if not Confirm(CreateCreditMemoQst) then
+        if not SalesHdr.IsEmpty then begin
+            ConfirmQuestion := CreateCreditMemoQst;
+            OnCreateCreditMemoCopyDocumentOnBeforeConfirm(SalesInvoiceHeader, SalesHdr, ConfirmQuestion);
+            if not Confirm(ConfirmQuestion) then
                 exit(false);
+        end;
 
         CreateCopyDocument(SalesInvoiceHeader, SalesHeader, SalesHeader."Document Type"::"Credit Memo", false);
 
@@ -1393,6 +1397,17 @@ codeunit 1303 "Correct Posted Sales Invoice"
     /// <param name="SalesInvoiceHeader">The posted sales invoice to copy from.</param>
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCreateCreditMemoCopyDocument(var SalesInvoiceHeader: Record "Sales Invoice Header")
+    begin
+    end;
+
+    /// <summary>
+    /// Raised before confirming the creation of a corrective credit memo for an invoice posted from a sales order.
+    /// </summary>
+    /// <param name="SalesInvoiceHeader">The posted sales invoice being corrected.</param>
+    /// <param name="SalesHeader">The originating sales order the invoice was posted from.</param>
+    /// <param name="ConfirmQuestion">The confirmation text to be shown. Subscribers can modify it.</param>
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateCreditMemoCopyDocumentOnBeforeConfirm(var SalesInvoiceHeader: Record "Sales Invoice Header"; var SalesHeader: Record "Sales Header"; var ConfirmQuestion: Text)
     begin
     end;
 

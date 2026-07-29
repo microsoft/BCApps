@@ -142,11 +142,6 @@ codeunit 11601 "BAS Management"
         if BASCalcSheet2.Exported then
             if not Confirm(Text1450004, false) then
                 exit;
-        GLSetup.Get();
-        if GLSetup."BAS Group Company" then
-            BASCalcSheet2.TestField(Consolidated, true);
-        if GLSetup."BAS Group Company" then
-            BASCalcSheet2.TestField("Group Consolidated", true);
 
         CheckBASCalcSheetExported(BASCalcSheet2.A1, BASCalcSheet2."BAS Version");
 
@@ -216,7 +211,7 @@ codeunit 11601 "BAS Management"
         end;
 
         BASCalcEntry.Reset();
-        if GLSetup."BAS Group Company" then begin
+        if BASCalcSheet2."Group Consolidated" then begin
             BASCalcEntry.SetCurrentKey("Consol. BAS Doc. No.", "Consol. Version No.");
             BASCalcEntry.SetRange("Consol. BAS Doc. No.", BASCalcSheet2.A1);
             BASCalcEntry.SetRange("Consol. Version No.", BASCalcSheet2."BAS Version");

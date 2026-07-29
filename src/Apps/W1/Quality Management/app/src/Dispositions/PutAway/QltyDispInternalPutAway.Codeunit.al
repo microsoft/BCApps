@@ -73,6 +73,11 @@ codeunit 20447 "Qlty. Disp. Internal Put-away" implements "Qlty. Disposition"
         end;
 
         repeat
+            QltyInventoryAvailability.ErrorIfFromBinIsReceiveBin(QltyInspectionHeader, TempQuantityToActQltyDispositionBuffer.GetFromLocationCode(), TempQuantityToActQltyDispositionBuffer.GetFromBinCode());
+        until TempQuantityToActQltyDispositionBuffer.Next() = 0;
+
+        TempQuantityToActQltyDispositionBuffer.FindSet();
+        repeat
             if (WhseInternalPutAwayHeader."Location Code" <> TempQuantityToActQltyDispositionBuffer."Location Filter") or (WhseInternalPutAwayHeader."From Bin Code" <> TempQuantityToActQltyDispositionBuffer."Bin Filter") then begin
                 CreateInternalPutawayHeader(WhseInternalPutAwayHeader, TempQuantityToActQltyDispositionBuffer.GetFromLocationCode(), TempQuantityToActQltyDispositionBuffer.GetFromBinCode());
 

@@ -52,6 +52,7 @@ codeunit 139506 "WFW Requisition Worksheet"
         BatchWorkflowStatusFactboxMustBeVisibleLbl: Label 'Batch workflow Status factbox must be visible';
         ImposedRestrictionMustBeShownLbl: Label 'Imposed restriction must be shown.';
         CannotRenameRecordErr: Label 'You cannot rename a %1.', Comment = '%1 = Table Caption';
+        WrongBatchShownOnOpenRecordLbl: Label 'Open Record must show the requisition worksheet batch of the selected approval entry.';
 
     [Test]
     procedure TestEnsureNecessaryTableRelatiosnsAreSetup()
@@ -1545,6 +1546,47 @@ codeunit 139506 "WFW Requisition Worksheet"
         Assert.ExpectedError('');
     end;
 
+    [Test]
+    [HandlerFunctions('ReqWorksheetVerifyBatchPageHandler')]
+    procedure OpenRecordShowsCorrectBatchAfterViewingDifferentRequisitionWkshBatch()
+    var
+        FirstRequisitionWkshName: Record "Requisition Wksh. Name";
+        SecondRequisitionWkshName: Record "Requisition Wksh. Name";
+        TempRequisitionWkshName: Record "Requisition Wksh. Name" temporary;
+        RequisitionLine: Record "Requisition Line";
+        PageManagement: Codeunit "Page Management";
+    begin
+        // [SCENARIO 639932] Open Record shows the correct Requisition Worksheet batch after viewing a different batch.
+        Initialize();
+
+        // [GIVEN] Two Requisition Worksheet batches (same template), each with one requisition line.
+        CreateRequisitionWkshNameWithOneRequisitionLine(FirstRequisitionWkshName, RequisitionLine);
+        CreateRequisitionWkshNameWithOneRequisitionLine(SecondRequisitionWkshName, RequisitionLine);
+
+        // [GIVEN] The batches are ordered so the first one opened sorts before the second one.
+        if FirstRequisitionWkshName.Name > SecondRequisitionWkshName.Name then begin
+            TempRequisitionWkshName := FirstRequisitionWkshName;
+            FirstRequisitionWkshName := SecondRequisitionWkshName;
+            SecondRequisitionWkshName := TempRequisitionWkshName;
+        end;
+
+        // [GIVEN] Both batches have an open approval entry for the current user (as shown in Requests to Approve).
+        CreateOpenApprovalEntryForCurrentUser(FirstRequisitionWkshName.RecordId);
+        CreateOpenApprovalEntryForCurrentUser(SecondRequisitionWkshName.RecordId);
+        Commit();
+
+        // [GIVEN] The approver uses Open Record for the first batch and closes the worksheet.
+        LibraryVariableStorage.Enqueue(FirstRequisitionWkshName.Name);
+        PageManagement.PageRun(FirstRequisitionWkshName);
+
+        // [WHEN] The approver uses Open Record for the second, different batch.
+        LibraryVariableStorage.Enqueue(SecondRequisitionWkshName.Name);
+        PageManagement.PageRun(SecondRequisitionWkshName);
+
+        // [THEN] Each Open Record shows its own batch (verified in ReqWorksheetVerifyBatchPageHandler).
+        LibraryVariableStorage.AssertEmpty();
+    end;
+
     local procedure Initialize()
     var
         Workflow: Record Workflow;
@@ -2031,5 +2073,14 @@ codeunit 139506 "WFW Requisition Worksheet"
     begin
         LibraryVariableStorage.Dequeue(VariableVariant);
         ApprovalEntries.Close();
+    end;
+
+    [PageHandler]
+    procedure ReqWorksheetVerifyBatchPageHandler(var ReqWorksheet: TestPage "Req. Worksheet")
+    begin
+        Assert.AreEqual(
+            LibraryVariableStorage.DequeueText(), ReqWorksheet.CurrentJnlBatchName.Value(),
+            WrongBatchShownOnOpenRecordLbl);
+        ReqWorksheet.Close();
     end;
 }
