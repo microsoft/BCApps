@@ -545,7 +545,6 @@ page 77 "Resource List"
                 Image = "Report";
                 Visible = ExtendedPriceEnabled;
                 RunObject = Report "Res. Price List";
-                ToolTip = 'Specifies a list of unit prices for the selected resources. By default, a unit price is based on the price in the Resource Prices window. If there is no valid alternative price, then the unit price from the resource card is used. The report can be used by the company''s salespeople or sent to customers.';
             }
             action("Resource Register")
             {
