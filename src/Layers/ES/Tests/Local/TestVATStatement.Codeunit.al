@@ -40,7 +40,7 @@ codeunit 147590 "Test VAT Statement"
         XMLReadMissingElementErr: Label 'Element <%1> is missing.', Locked = true;
         XMLReadElementValueErr: Label 'Unexpected value in xml file for Element <%1>.', Locked = true;
         XMLReadAttributeValueErr: Label 'Unexpected value in xml file for Attribute <%1>.', Locked = true;
-        XMLReadNotFoundInSubtreeErr: Label 'Node <%1> with value <%2> was not found in subtree <%3>.', Locked = true;
+        XMLReadNotFoundInSubtreeErr: Label 'Node <%1> with value <%2> was not found in subtree <%3>.', Comment = '%1 = node name, %2 = expected node value, %3 = subtree root node name.', Locked = true;
 
     [Test]
     [HandlerFunctions('TemplateSelectionModalPageHandler')]
@@ -416,9 +416,10 @@ codeunit 147590 "Test VAT Statement"
                 BaseAmountText := '0.' + DelChr(DelChr(Format(BaseAmount, 0, '<Decimal>'), '=', '.'), '=', ',');
         end;
 
-        if NodeType = AEATTransferenceFormatXML."Line Type"::Attribute then
-            asserterror XMLReadVerifyAttributeValue(RootNodeName, NodeName, BaseAmountText) // Bug
-        else
+        if NodeType = AEATTransferenceFormatXML."Line Type"::Attribute then begin
+          asserterror XMLReadVerifyAttributeValue(RootNodeName, NodeName, BaseAmountText); // Bug
+          Assert.ExpectedError(KnownFailureUnexpErr);
+        end else
             XMLReadVerifyNodeValueInSubtree(RootNodeName, NodeName, BaseAmountText);
     end;
 
@@ -2707,7 +2708,7 @@ codeunit 147590 "Test VAT Statement"
         NodeIndex: Integer;
     begin
         XMLReadDoc.SelectNodes('//' + RootNodeName + '//' + NodeName, FoundNodes);
-        for NodeIndex := 1 to FoundNodes.Count() do begin
+        for NodeIndex := 0 to FoundNodes.Count() - 1 do begin
             FoundNodes.Get(NodeIndex, FoundNode);
             if XMLReadEqual(ExpectedNodeValue, FoundNode.AsXmlElement().InnerText()) then
                 exit;

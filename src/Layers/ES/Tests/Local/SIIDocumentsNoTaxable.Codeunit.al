@@ -3251,33 +3251,27 @@ codeunit 147524 "SII Documents No Taxable"
         SalesOrderHeader: Record "Sales Header";
         PostedSalesInvoiceHeader: Record "Sales Invoice Header";
         CreditMemoSalesHeader: Record "Sales Header";
-        Customer: Record Customer;
         VATPostingSetup: Record "VAT Posting Setup";
+        VATBusinessPostingGroup: Record "VAT Business Posting Group";
+        VATProductPostingGroup: Record "VAT Product Posting Group";
         SalesLine: Record "Sales Line";
-        CustomerNo: Code[20];
         PostedInvoiceNo: Code[20];
         CorrectPostedSalesInvoice: Codeunit "Correct Posted Sales Invoice";
     begin
-        Customer.Reset();
-        Customer.SetCurrentKey("No.");
-        if not Customer.FindFirst() then
-            Error('Could not find any customer. Create and configure at least one customer before running this test.');
-        CustomerNo := Customer."No.";
-
-        LibrarySales.CreateSalesHeader(SalesOrderHeader, SalesOrderHeader."Document Type"::Order, CustomerNo);
+        LibrarySales.CreateSalesHeader(SalesOrderHeader, SalesOrderHeader."Document Type"::Order, LibrarySales.CreateCustomerNo());
         SalesOrderHeader.Validate("Special Scheme Code", SalesOrderHeader."Special Scheme Code"::"17 Operations Under The One-Stop-Shop Regime");
         SalesOrderHeader.Modify(true);
-        VATPostingSetup.SetRange("VAT Bus. Posting Group", SalesOrderHeader."VAT Bus. Posting Group");
-        VATPostingSetup.SetRange("One Stop Shop Reporting", true);
-        VATPostingSetup.SetRange("Sales Special Scheme Code", VATPostingSetup."Sales Special Scheme Code"::"17 Operations Under The One-Stop-Shop Regime");
-        if not VATPostingSetup.FindFirst() then
-            Error(
-              'Could not find VAT Posting Setup with VAT Bus. Posting Group %1, One Stop Shop Reporting = true and Sales Special Scheme Code = 17.',
-              SalesOrderHeader."VAT Bus. Posting Group");
+        VATBusinessPostingGroup.Get(SalesOrderHeader."VAT Bus. Posting Group");
+        LibrarySII.CreateVATPostingSetup(
+          VATPostingSetup, VATProductPostingGroup, VATBusinessPostingGroup,
+          VATPostingSetup."VAT Calculation Type"::"Normal VAT", LibraryRandom.RandInt(50), false);
+        VATPostingSetup.Validate("Sales Special Scheme Code", VATPostingSetup."Sales Special Scheme Code"::"17 Operations Under The One-Stop-Shop Regime");
+        VATPostingSetup.Validate("One Stop Shop Reporting", true);
+        VATPostingSetup.Modify(true);
 
         LibrarySales.CreateSalesLine(
-          SalesLine, SalesOrderHeader, SalesLine.Type::Item,
-          LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), LibraryRandom.RandInt(100));
+          SalesLine, SalesOrderHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), LibraryRandom.RandInt(100));
+        SalesLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
         SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
         SalesLine.Modify(true);
         PostedInvoiceNo := LibrarySales.PostSalesDocument(SalesOrderHeader, true, true);
@@ -3296,8 +3290,8 @@ codeunit 147524 "SII Documents No Taxable"
         CreditMemoSalesHeader.TestField("ID Type", CreditMemoSalesHeader."ID Type"::"02-VAT Registration No.");
 
         LibrarySales.CreateSalesLine(
-          SalesLine, CreditMemoSalesHeader, SalesLine.Type::Item,
-          LibraryInventory.CreateItemNoWithVATProdPostingGroup(VATPostingSetup."VAT Prod. Posting Group"), LibraryRandom.RandInt(100));
+          SalesLine, CreditMemoSalesHeader, SalesLine.Type::"G/L Account", LibraryERM.CreateGLAccountWithSalesSetup(), LibraryRandom.RandInt(100));
+        SalesLine.Validate("VAT Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group");
         SalesLine.Validate("Unit Price", LibraryRandom.RandDec(100, 2));
         SalesLine.Modify(true);
 
