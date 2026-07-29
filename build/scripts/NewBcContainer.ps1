@@ -14,6 +14,7 @@ if ("$env:GITHUB_RUN_ID" -eq "") {
 
 Import-Module (Join-Path $PSScriptRoot 'PlatformHelper.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'EnlistmentHelperFunctions.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'ArtifactBaseline.psm1') -Force
 
 $platformVersion = (Get-ConfigValue -Key "BCPlatform" -ConfigType Packages).Version
 if ($platformVersion) {
@@ -30,8 +31,45 @@ Restart-BcContainer -containerName $parameters.ContainerName
 
 $installedApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast
 
-# Clean the container for all apps. Apps will be installed by AL-Go
-foreach($app in $installedApps) {
+# PROTOTYPE: the artifact database already has every app of the BCApps commit it was built from
+# published, installed and synchronized. Only remove the apps that changed since that commit.
+# See build/scripts/ArtifactBaseline.md. Any doubt falls back to removing everything.
+$baseline = [PSCustomObject]@{ IsUsable = $false; Reason = 'Not enabled'; BaselineCommit = ''; ChangedAppNames = @(); KnownAppNames = @() }
+if ((Get-ALGoSetting -Key 'useArtifactBaseline') -eq $true) {
+    try {
+        if (-not $parameters.ContainsKey('artifactUrl') -or -not $parameters.artifactUrl) {
+            throw "No artifactUrl was passed to New-BcContainer"
+        }
+        $baseline = Resolve-ArtifactBaseline -ArtifactUrl $parameters.artifactUrl -BaseFolder (Get-BaseFolder) -BuildMode "$env:BuildMode"
+    }
+    catch {
+        $baseline.Reason = "Failed to resolve the artifact baseline - $($_.Exception.Message)"
+    }
+    Write-Host "ARTIFACT BASELINE: usable=$($baseline.IsUsable) commit=$($baseline.BaselineCommit) - $($baseline.Reason)"
+}
+
+if ($baseline.IsUsable) {
+    # Remove the apps that changed since the artifact, plus anything in the artifact database
+    # that this repository does not produce (which today's clean-everything loop also removes).
+    $appsToRemove = @(Get-AppsToUnpublish -InstalledApps $installedApps -ChangedAppNames $baseline.ChangedAppNames -KnownAppNames $baseline.KnownAppNames)
+    Write-Host "ARTIFACT BASELINE: reusing $($installedApps.Count - $appsToRemove.Count) app(s) from the artifact, refreshing $($appsToRemove.Count)"
+}
+else {
+    $appsToRemove = $installedApps
+}
+
+$removedNames = @($appsToRemove | ForEach-Object { $_.Name })
+Set-ArtifactBaselineState -State @{
+    IsUsable          = $baseline.IsUsable
+    Reason            = $baseline.Reason
+    BaselineCommit    = $baseline.BaselineCommit
+    ChangedAppNames   = @($baseline.ChangedAppNames)
+    # Apps that survive in the container - anything else still has to be published by AL-Go.
+    ContainerAppNames = @($installedApps | Where-Object { $removedNames -notcontains $_.Name } | ForEach-Object { $_.Name })
+} | Out-Null
+
+# Clean the container for the apps that AL-Go is going to (re)publish
+foreach($app in $appsToRemove) {
     Write-Host "Removing $($app.Name)"
     UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -doNotSaveData -doNotSaveSchema -force
 

@@ -46,6 +46,26 @@ if ($appFiles -is [string]) {
 }
 
 $parameters["appFile"] = $filteredAppFiles
+
+# PROTOTYPE: skip publishing apps that the artifact database already has, unchanged.
+# See build/scripts/ArtifactBaseline.md.
+Import-Module (Join-Path $PSScriptRoot 'ArtifactBaseline.psm1') -Force
+$baselineState = Get-ArtifactBaselineState
+if ($baselineState -and $baselineState.IsUsable) {
+    $appsToPublish = @($parameters["appFile"] | Where-Object {
+        Test-ShouldPublishAppFile -AppFile $_ -ChangedAppNames @($baselineState.ChangedAppNames) -ContainerAppNames @($baselineState.ContainerAppNames)
+    })
+    $skipped = @($parameters["appFile"]).Count - $appsToPublish.Count
+    if ($skipped -gt 0) {
+        Write-Host "ARTIFACT BASELINE: skipping $skipped app(s) already published by the artifact"
+    }
+    if ($appsToPublish.Count -eq 0) {
+        Write-Host "ARTIFACT BASELINE: nothing left to publish in this batch"
+        return
+    }
+    $parameters["appFile"] = $appsToPublish
+}
+
 $parameters["scope"] = "Global"
 # Publish only — do not install. Installation is handled by ImportTestDataInBcContainer.ps1
 # which controls the install order based on test type (e.g. Legacy needs DemoTool to run
