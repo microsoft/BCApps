@@ -236,7 +236,7 @@ page 3304 "Payables Agent Setup"
                     field(MailboxFolder; TempOutlookSetup."Email Folder")
                     {
                         Caption = 'Folder';
-                        ToolTip = 'Specifies the email folder that the agent monitors. Leave blank to monitor the entire mailbox. When a folder is set and email review is ''Only if untrusted'', every email in it is treated as trusted and skips review, so the known-senders list is not consulted.';
+                        ToolTip = 'Specifies the email folder that the agent monitors. Leave blank to monitor the entire mailbox. When a folder is set and email review is ''Manage per sender'', every email in it is treated as trusted and skips review, so the known-senders list is not consulted.';
                         Editable = false;
 
                         trigger OnAssistEdit()
