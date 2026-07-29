@@ -381,6 +381,13 @@ report 99000788 "Prod. Order - Shortage List"
             Summary = 'Report layout made in the legacy RDLC format. Use an RDLC editor to modify the layout.';
         }
 #endif
+        layout(WordBody)
+        {
+            Type = Word;
+            LayoutFile = './Manufacturing/Reports/ProdOrderShortageListBody.docx';
+            Caption = 'Body-only: Prod. Order - Shortage List Word';
+            Summary = 'Body-only: Report layout made for print. Use a Word editor to modify the layout.';
+        }
     }
 
     labels
