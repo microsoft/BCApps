@@ -8,5 +8,5 @@ using System.Security.AccessControl;
 
 permissionsetextension 8126 "D365 BASIC - Subcontracting" extends "D365 BASIC"
 {
-    IncludedPermissionSets = "Subcontract. - Read";
+    IncludedPermissionSets = "Subcontract - Read";
 }
