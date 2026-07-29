@@ -37,13 +37,8 @@ codeunit 20509 "Subc. Data Migration"
             exit;
         end;
 
-        if not IsOldTableAvailable(Database::"Subcontractor WIP Ledger Entry") then begin
-            LogMigrationNotInitiated(OldTableNotAvailableLbl);
-            SetRenumberedDataMigrationTag();
-            exit;
-        end;
-
         LogMigrationInitiated();
+        MigrateWorksheetFields();
         MigrateRenumberedTables();
         MigrateInventoryFields();
         MigrateManufacturingFields();
@@ -74,9 +69,26 @@ codeunit 20509 "Subc. Data Migration"
     end;
 
     local procedure MigrateRenumberedTables()
+    var
+        FieldIds: List of [Integer];
     begin
-        MigrateTableData(Database::"Subcontractor Price");
-        MigrateTableData(Database::"Subcontractor WIP Ledger Entry");
+        SetFieldIds(FieldIds, '1,2,3,4,5,6,7,8,9,10,20,30');
+        MigrateTableData(Database::"Subcontractor Price", FieldIds);
+
+        SetFieldIds(FieldIds, '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21');
+        MigrateTableData(Database::"Subcontractor WIP Ledger Entry", FieldIds);
+    end;
+
+    local procedure MigrateWorksheetFields()
+    var
+        ReqWkshTemplate: Record "Req. Wksh. Template";
+        DataTransfer: DataTransfer;
+    begin
+        DataTransfer.SetTables(Database::"Req. Wksh. Template", Database::"Req. Wksh. Template");
+        DataTransfer.AddSourceFilter(ReqWkshTemplate.FieldNo(Type), '=%1', GetOldId(20500));
+        DataTransfer.AddConstantValue(ReqWkshTemplate.Type::Subcontracting, ReqWkshTemplate.FieldNo(Type));
+        DataTransfer.UpdateAuditFields(false);
+        DataTransfer.CopyFields();
     end;
 
     local procedure MigrateInventoryFields()
@@ -183,73 +195,64 @@ codeunit 20509 "Subc. Data Migration"
         MigrateTableExtensionFields(Database::"Warehouse Shipment Line", FieldIds);
     end;
 
-    local procedure MigrateTableData(NewTableId: Integer)
+    local procedure MigrateTableData(NewTableId: Integer; FieldIds: List of [Integer])
     var
         DataTransfer: DataTransfer;
-        OldRecordRef: RecordRef;
-        NewRecordRef: RecordRef;
-        OldFieldRef: FieldRef;
         FieldIndex: Integer;
     begin
-        if not OpenOldTableIfAvailable(NewTableId, OldRecordRef) then
+        if not IsOldTableAvailable(NewTableId) then
+            exit;
+        if not AreFieldsAvailable(GetOldId(NewTableId), FieldIds) then
+            exit;
+        if not AreFieldsAvailable(NewTableId, FieldIds) then
             exit;
 
-        NewRecordRef.Open(NewTableId);
         DataTransfer.SetTables(GetOldId(NewTableId), NewTableId);
-        for FieldIndex := 1 to OldRecordRef.FieldCount() do begin
-            OldFieldRef := OldRecordRef.FieldIndex(FieldIndex);
-            if (OldFieldRef.Class = FieldClass::Normal) and (OldFieldRef.Number < 2000000000) and NewRecordRef.FieldExist(OldFieldRef.Number) then
-                DataTransfer.AddFieldValue(OldFieldRef.Number, OldFieldRef.Number);
-        end;
+        for FieldIndex := 1 to FieldIds.Count() do
+            DataTransfer.AddFieldValue(FieldIds.Get(FieldIndex), FieldIds.Get(FieldIndex));
         DataTransfer.UpdateAuditFields(false);
-        OldRecordRef.Close();
-        NewRecordRef.Close();
         DataTransfer.CopyRows();
     end;
 
     local procedure MigrateTableExtensionFields(TableId: Integer; NewFieldIds: List of [Integer])
     var
         DataTransfer: DataTransfer;
-        RecordRef: RecordRef;
         FieldIndex: Integer;
     begin
-        RecordRef.Open(TableId);
-        if not AreOldFieldsAvailable(RecordRef, NewFieldIds) then begin
-            RecordRef.Close();
+        if not AreOldFieldsAvailable(TableId, NewFieldIds) then
             exit;
-        end;
 
         DataTransfer.SetTables(TableId, TableId);
         for FieldIndex := 1 to NewFieldIds.Count() do
             DataTransfer.AddFieldValue(GetOldId(NewFieldIds.Get(FieldIndex)), NewFieldIds.Get(FieldIndex));
         DataTransfer.UpdateAuditFields(false);
-        RecordRef.Close();
         DataTransfer.CopyFields();
     end;
 
-    local procedure AreOldFieldsAvailable(RecordRef: RecordRef; NewFieldIds: List of [Integer]): Boolean
+    local procedure AreOldFieldsAvailable(TableId: Integer; NewFieldIds: List of [Integer]): Boolean
     var
+        OldFieldIds: List of [Integer];
         FieldIndex: Integer;
     begin
         for FieldIndex := 1 to NewFieldIds.Count() do
-            if not RecordRef.FieldExist(GetOldId(NewFieldIds.Get(FieldIndex))) then
+            OldFieldIds.Add(GetOldId(NewFieldIds.Get(FieldIndex)));
+
+        exit(AreFieldsAvailable(TableId, OldFieldIds));
+    end;
+
+    local procedure AreFieldsAvailable(TableId: Integer; FieldIds: List of [Integer]): Boolean
+    var
+        Field: Record Field;
+        FieldIndex: Integer;
+    begin
+        for FieldIndex := 1 to FieldIds.Count() do
+            if not Field.Get(TableId, FieldIds.Get(FieldIndex)) then
                 exit(false);
 
         exit(true);
     end;
 
     local procedure IsOldTableAvailable(NewTableId: Integer): Boolean
-    var
-        OldRecordRef: RecordRef;
-    begin
-        if not OpenOldTableIfAvailable(NewTableId, OldRecordRef) then
-            exit(false);
-
-        OldRecordRef.Close();
-        exit(true);
-    end;
-
-    local procedure OpenOldTableIfAvailable(NewTableId: Integer; var OldRecordRef: RecordRef): Boolean
     var
         OldTableMetadata: Record "Table Metadata";
         NewTableMetadata: Record "Table Metadata";
@@ -263,7 +266,6 @@ codeunit 20509 "Subc. Data Migration"
         if (OldTableMetadata.ID <> OldTableId) or (OldTableMetadata.Caption <> NewTableMetadata.Caption) then
             exit(false);
 
-        OldRecordRef.Open(OldTableId);
         exit(true);
     end;
 
@@ -306,6 +308,5 @@ codeunit 20509 "Subc. Data Migration"
         MigrationInitiatedMsg: Label 'Subcontracting renumbering data migration was initiated.', Locked = true;
         MigrationNotInitiatedMsg: Label 'Subcontracting renumbering data migration was not initiated. Reason: %1', Locked = true;
         MigrationAlreadyCompletedLbl: Label 'The migration upgrade tag is already set.', Locked = true;
-        OldTableNotAvailableLbl: Label 'The legacy Subcontractor WIP Ledger Entry table is not available.', Locked = true;
         TelemetryCategoryLbl: Label 'Subcontracting', Locked = true;
 }
