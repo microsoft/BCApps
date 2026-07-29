@@ -9,9 +9,11 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.Address;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.NoSeries;
+using Microsoft.HumanResources.Employee;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Sales.Customer;
 using Microsoft.Utilities;
+using Microsoft.WithholdingTax.Employee;
 using System.Telemetry;
 
 table 6788 "Withholding Tax Entry"
@@ -361,6 +363,74 @@ table 6788 "Withholding Tax Entry"
         field(65; Prepayment; Boolean)
         {
             Caption = 'Prepayment';
+        }
+        field(100; "Party Type"; Enum "Withholding Party Type")
+        {
+            Caption = 'Party Type';
+            Editable = false;
+        }
+        field(101; "Employee No."; Code[20])
+        {
+            Caption = 'Employee No.';
+            Editable = false;
+            TableRelation = if ("Party Type" = const(Employee)) Employee;
+        }
+        field(102; "Empl. Ledger Entry No."; Integer)
+        {
+            Caption = 'Employee Ledger Entry No.';
+            Editable = false;
+        }
+        field(103; "Calculation Base"; Enum "Withholding Calculation Base")
+        {
+            Caption = 'Calculation Base';
+            Editable = false;
+        }
+        field(104; "Calculation Method"; Enum "Withholding Calculation Method")
+        {
+            Caption = 'Calculation Method';
+            Editable = false;
+        }
+        field(105; "Component Order"; Integer)
+        {
+            Caption = 'Component Order';
+            Editable = false;
+        }
+        field(106; "Threshold Base"; Enum "Withholding Threshold Base")
+        {
+            Caption = 'Threshold Base';
+            Editable = false;
+        }
+        field(107; "Threshold Evaluated"; Boolean)
+        {
+            Caption = 'Threshold Evaluated';
+            Editable = false;
+        }
+        field(108; "Threshold Exceeded"; Boolean)
+        {
+            Caption = 'Threshold Exceeded';
+            Editable = false;
+        }
+        field(109; "Period Start Date"; Date)
+        {
+            Caption = 'Period Start Date';
+            Editable = false;
+        }
+        field(110; "Period End Date"; Date)
+        {
+            Caption = 'Period End Date';
+            Editable = false;
+        }
+        field(111; "WHT Group Code"; Code[20])
+        {
+            Caption = 'WHT Group Code';
+            Editable = false;
+            TableRelation = "Withholding Tax Group";
+        }
+        field(112; "Taxable Base Amount"; Decimal)
+        {
+            Caption = 'Taxable Base Amount';
+            AutoFormatType = 1;
+            Editable = false;
         }
         field(28101; "Pymt. Disc. Diff. Base"; Decimal)
         {
