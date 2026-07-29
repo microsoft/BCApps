@@ -2088,10 +2088,10 @@ codeunit 137269 "SCM Transfer Reservation"
         TransferLine: Record "Transfer Line";
         ItemNo: Code[20];
     begin
-        // [SCENARIO 641400] Deleting a Transfer Order header that has a reserved line succeeds and clears the reservation.
+        // [SCENARIO 643376] Deleting a Transfer Order header that has a reserved line succeeds and clears the reservation.
         Initialize();
 
-        // [GIVEN] A released Transfer Order with one line reserved outbound from inventory.
+        // [GIVEN] A Transfer Order with one line reserved outbound from inventory.
         CreateTransferOrderQtyOneReservedOutbound(TransferHeader, TransferLine);
         ItemNo := TransferLine."Item No.";
 
@@ -2120,7 +2120,7 @@ codeunit 137269 "SCM Transfer Reservation"
         DocumentNo: Code[20];
         ItemNo: Code[20];
     begin
-        // [SCENARIO 641400] Deleting an individual reserved Transfer Line succeeds and clears the reservation, consistent with header deletion.
+        // [SCENARIO 643376] Deleting an individual reserved Transfer Line succeeds and clears the reservation, consistent with header deletion.
         Initialize();
 
         // [GIVEN] A Transfer Order with one line reserved outbound from inventory.
@@ -2152,7 +2152,7 @@ codeunit 137269 "SCM Transfer Reservation"
         TransferLineForHeaderDelete: Record "Transfer Line";
         TransferLineForLineDelete: Record "Transfer Line";
     begin
-        // [SCENARIO 641400] Deleting a reserved Transfer Line and deleting the Transfer Order header both succeed, so the two paths behave consistently.
+        // [SCENARIO 643376] Deleting a reserved Transfer Line and deleting the Transfer Order header both succeed, so the two paths behave consistently.
         Initialize();
 
         // [GIVEN] A reserved Transfer Order whose line will be deleted directly.
