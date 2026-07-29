@@ -10,7 +10,7 @@ using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Integration.Shopify;
 using System.TestLibraries.Utilities;
 
-codeunit 139554 "Shpfy Transactions Test"
+codeunit 139575 "Shpfy Transactions Test"
 {
     Subtype = Test;
     TestType = Uncategorized;
