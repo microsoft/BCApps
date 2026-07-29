@@ -20,6 +20,7 @@ codeunit 13668 "Elec. VAT Decl. Az. Key Vault"
         AKVReportingFrequencyEnabledTok: Label 'DKElecVAT-ReportingFrequencyEnabled', Locked = true;
         AVKCompanyCertTok: Label 'DKElecVAT-CompanyCert', Locked = true;
         ReportingFrequencyConfigurationReadTxt: Label 'Reporting frequency configuration read', Locked = true;
+        InvalidReportingFrequencyConfigurationTxt: Label 'Reporting frequency configuration is invalid', Locked = true;
 
     [NonDebuggable]
     procedure GetClientCertificateBase64FromAKV() ClientCertificateBase64: Text
@@ -72,17 +73,13 @@ codeunit 13668 "Elec. VAT Decl. Az. Key Vault"
                 ConfigurationStatus := 'Invalid';
             end;
 
-        CustomDimensions.Add('FeatureName', FeatureNameTxt);
         CustomDimensions.Add('Enabled', Format(Enabled, 0, 9));
         CustomDimensions.Add('ConfigurationStatus', ConfigurationStatus);
         if ConfigurationStatus = 'Invalid' then
-            Session.LogMessage(
-                '0000M7M', ReportingFrequencyConfigurationReadTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher,
-                CustomDimensions)
+            FeatureTelemetry.LogError(
+                '0000M7M', FeatureNameTxt, ReportingFrequencyConfigurationReadTxt, InvalidReportingFrequencyConfigurationTxt, '', CustomDimensions)
         else
-            Session.LogMessage(
-                '0000M7M', ReportingFrequencyConfigurationReadTxt, Verbosity::Normal, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher,
-                CustomDimensions);
+            FeatureTelemetry.LogUsage('0000M7M', FeatureNameTxt, ReportingFrequencyConfigurationReadTxt, CustomDimensions);
 
         exit(Enabled);
     end;
