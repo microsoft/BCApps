@@ -9,7 +9,6 @@ namespace Microsoft.Agent.SalesOrderAgent;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Document;
-using System.Agents;
 using System.Environment.Configuration;
 using System.Telemetry;
 
@@ -19,7 +18,6 @@ codeunit 4591 "SOA Item Search"
     EventSubscriberInstance = Manual;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Agent Task Message" = r;
 
     var
         AgentTaskID: BigInteger;
@@ -188,6 +186,7 @@ codeunit 4591 "SOA Item Search"
         SOASetup: Record "SOA Setup";
         Item: Record Item;
         BroaderItemSearch: Codeunit "SOA Broader Item Search";
+        TaskMessageReader: Codeunit "SOA Task Message Reader";
         CandidateArray: JsonArray;
         SearchKeyWordsTrimmed: List of [Text];
         SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]];
@@ -247,7 +246,7 @@ codeunit 4591 "SOA Item Search"
                 // Run item selection for all candidate payloads so variant resolution is consistent.
                 if CandidateArray.Count() > 0 then begin
                     SearchQuery := BuildSearchQueryText(SearchKeyWordsTrimmed);
-                    MessageContent := GetLastIncomingMessageContent();
+                    MessageContent := TaskMessageReader.GetLastIncomingMessageContent(AgentTaskID);
                     if SelectBestItem(ItemFilter, SearchQuery, MessageContent, CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants, UnresolvedVariantRequests) then begin
                         NormalizeVariantAlternatives(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, UnresolvedVariantRequests);
                         ItemSelectorUsed := true;
@@ -360,30 +359,6 @@ codeunit 4591 "SOA Item Search"
                     exit(true);
             end;
         exit(false);
-    end;
-
-    local procedure GetLastIncomingMessageContent(): Text
-    var
-        AgentTaskMessage: Record "Agent Task Message";
-        MessageContent: Text;
-        InStream: InStream;
-    begin
-        if AgentTaskID = 0 then
-            exit('');
-
-        AgentTaskMessage.ReadIsolation := IsolationLevel::ReadCommitted;
-        AgentTaskMessage.SetAutoCalcFields(Content);
-        AgentTaskMessage.SetRange("Task ID", AgentTaskID);
-        AgentTaskMessage.SetRange(Type, AgentTaskMessage.Type::Input);
-        AgentTaskMessage.SetFilter(Status, '<>%1&<>%2', AgentTaskMessage.Status::Discarded, AgentTaskMessage.Status::Rejected);
-        AgentTaskMessage.SetCurrentKey(SystemCreatedAt);
-        AgentTaskMessage.Ascending(false);
-        if not AgentTaskMessage.FindFirst() then
-            exit('');
-
-        AgentTaskMessage.Content.CreateInStream(InStream, TextEncoding::UTF8);
-        InStream.Read(MessageContent);
-        exit(MessageContent);
     end;
 
     local procedure NormalizeVariantAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; UnresolvedVariantRequests: Dictionary of [Text, Boolean])
