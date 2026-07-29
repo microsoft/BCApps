@@ -362,7 +362,7 @@ codeunit 4591 "SOA Item Search"
         if AgentTaskID = 0 then
             exit('');
 
-        AgentTaskMessage.ReadIsolation := IsolationLevel::ReadUncommitted;
+        AgentTaskMessage.ReadIsolation := IsolationLevel::ReadCommitted;
         AgentTaskMessage.SetAutoCalcFields(Content);
         AgentTaskMessage.SetRange("Task ID", AgentTaskID);
         AgentTaskMessage.SetRange(Type, AgentTaskMessage.Type::Input);
