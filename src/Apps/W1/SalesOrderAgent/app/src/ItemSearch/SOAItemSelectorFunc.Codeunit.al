@@ -16,8 +16,8 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
     var
         MatchingItems: Text;
         AlternativeItems: Text;
-        MatchingItemVariants: Dictionary of [Text, Text];
-        AlternativeItemVariants: Dictionary of [Text, Text];
+        MatchingItemVariants: Dictionary of [Text, List of [Code[10]]];
+        AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]];
         FunctionNameTok: Label 'select_best_matching_item', Locked = true;
         MatchingTok: Label 'matching', Locked = true;
         AlternativeTok: Label 'alternative', Locked = true;
@@ -121,32 +121,25 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
         exit(false);
     end;
 
-    local procedure AddVariantCodeToDictionary(var ItemVariants: Dictionary of [Text, Text]; ItemNo: Text; VariantCode: Text)
+    local procedure AddVariantCodeToDictionary(var ItemVariants: Dictionary of [Text, List of [Code[10]]]; ItemNo: Text; VariantCodeText: Text)
     var
-        ExistingVariantCode: Text;
-        VariantCodes: Text;
+        VariantCodes: List of [Code[10]];
+        VariantCode: Code[10];
     begin
-        VariantCode := VariantCode.Trim();
-        if not IsAllowedVariantCodeFormat(VariantCode) then
-            VariantCode := '';
+        VariantCodeText := VariantCodeText.Trim();
+        if IsAllowedVariantCodeFormat(VariantCodeText) then
+            VariantCode := CopyStr(VariantCodeText, 1, MaxStrLen(VariantCode));
 
-        if not ItemVariants.ContainsKey(ItemNo) then begin
-            ItemVariants.Add(ItemNo, VariantCode);
-            exit;
-        end;
+        if ItemVariants.ContainsKey(ItemNo) then
+            VariantCodes := ItemVariants.Get(ItemNo);
 
-        if VariantCode = '' then
-            exit;
+        if (VariantCode <> '') and not VariantCodes.Contains(VariantCode) then
+            VariantCodes.Add(VariantCode);
 
-        VariantCodes := ItemVariants.Get(ItemNo);
-        foreach ExistingVariantCode in VariantCodes.Split('|') do
-            if ExistingVariantCode = VariantCode then
-                exit;
-
-        if VariantCodes = '' then
-            ItemVariants.Set(ItemNo, VariantCode)
+        if ItemVariants.ContainsKey(ItemNo) then
+            ItemVariants.Set(ItemNo, VariantCodes)
         else
-            ItemVariants.Set(ItemNo, VariantCodes + '|' + VariantCode);
+            ItemVariants.Add(ItemNo, VariantCodes);
     end;
 
     local procedure IsAllowedItemNoFormat(ItemNo: Text): Boolean
@@ -186,8 +179,8 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
             CharTxt := CopyStr(VariantCode, i, 1);
             CharCode := CharTxt[1];
 
-            // Reject control characters (0-31), pipe (124), and DEL (127).
-            if (CharCode <= 31) or (CharCode = 124) or (CharCode = 127) then
+            // Reject control characters (0-31) and DEL (127).
+            if (CharCode <= 31) or (CharCode = 127) then
                 exit(false);
         end;
 
@@ -205,7 +198,7 @@ codeunit 4416 "SOA Item Selector Func" implements "AOAI Function"
         AlternativeItemsFilter := AlternativeItems;
     end;
 
-    internal procedure GetSelectionResultWithVariants(var MatchingItemsFilter: Text; var AlternativeItemsFilter: Text; var MatchingVariants: Dictionary of [Text, Text]; var AlternativeVariants: Dictionary of [Text, Text])
+    internal procedure GetSelectionResultWithVariants(var MatchingItemsFilter: Text; var AlternativeItemsFilter: Text; var MatchingVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeVariants: Dictionary of [Text, List of [Code[10]]])
     begin
         GetSelectionResult(MatchingItemsFilter, AlternativeItemsFilter);
         MatchingVariants := MatchingItemVariants;

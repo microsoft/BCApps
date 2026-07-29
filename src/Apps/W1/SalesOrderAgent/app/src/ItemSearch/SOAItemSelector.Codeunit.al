@@ -29,18 +29,18 @@ codeunit 4417 "SOA Item Selector"
     /// <returns>True if matching or alternative items were selected, false if no selection made</returns>
     internal procedure SelectBestMatchingItem(SearchQuery: Text; CandidateArray: JsonArray; var MatchingItemFilter: Text; var AlternativeItemFilter: Text): Boolean
     var
-        DummyMatchingItemVariants: Dictionary of [Text, Text];
-        DummyAlternativeItemVariants: Dictionary of [Text, Text];
+        DummyMatchingItemVariants: Dictionary of [Text, List of [Code[10]]];
+        DummyAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]];
     begin
         exit(SelectBestMatchingItemWithVariants(SearchQuery, CandidateArray, MatchingItemFilter, AlternativeItemFilter, DummyMatchingItemVariants, DummyAlternativeItemVariants));
     end;
 
-    internal procedure SelectBestMatchingItemWithVariants(SearchQuery: Text; CandidateArray: JsonArray; var MatchingItemFilter: Text; var AlternativeItemFilter: Text; var MatchingItemVariants: Dictionary of [Text, Text]; var AlternativeItemVariants: Dictionary of [Text, Text]): Boolean
+    internal procedure SelectBestMatchingItemWithVariants(SearchQuery: Text; CandidateArray: JsonArray; var MatchingItemFilter: Text; var AlternativeItemFilter: Text; var MatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]): Boolean
     begin
         exit(SelectBestMatchingItemWithVariants(SearchQuery, '', CandidateArray, MatchingItemFilter, AlternativeItemFilter, MatchingItemVariants, AlternativeItemVariants));
     end;
 
-    internal procedure SelectBestMatchingItemWithVariants(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItemFilter: Text; var AlternativeItemFilter: Text; var MatchingItemVariants: Dictionary of [Text, Text]; var AlternativeItemVariants: Dictionary of [Text, Text]): Boolean
+    internal procedure SelectBestMatchingItemWithVariants(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItemFilter: Text; var AlternativeItemFilter: Text; var MatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]): Boolean
     begin
         MatchingItemFilter := '';
         AlternativeItemFilter := '';
@@ -55,7 +55,7 @@ codeunit 4417 "SOA Item Selector"
 
     [NonDebuggable]
     [TryFunction]
-    local procedure TrySelectBestMatchingItem(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItems: Text; var AlternativeItems: Text; var MatchingItemVariants: Dictionary of [Text, Text]; var AlternativeItemVariants: Dictionary of [Text, Text])
+    local procedure TrySelectBestMatchingItem(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItems: Text; var AlternativeItems: Text; var MatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var AlternativeItemVariants: Dictionary of [Text, List of [Code[10]]])
     var
         ItemSelectorFunc: Codeunit "SOA Item Selector Func";
         AzureOpenAI: Codeunit "Azure OpenAI";

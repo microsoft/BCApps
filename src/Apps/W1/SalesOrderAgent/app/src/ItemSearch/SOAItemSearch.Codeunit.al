@@ -23,7 +23,7 @@ codeunit 4591 "SOA Item Search"
 
     var
         AgentTaskID: BigInteger;
-        ResolvedItemVariants: Dictionary of [Text, Text];
+        ResolvedItemVariants: Dictionary of [Text, Code[10]];
         NotificationMsg: Label 'The available inventory for item %1 is lower than the entered quantity at this location at the requested shipment date.', Comment = '%1=Item Description';
         NotificationCTPDateMsg: Label 'Earliest possible shipping date for the new quantity is %1.', Comment = '%1=Earliest Shipment Date';
 
@@ -122,13 +122,9 @@ codeunit 4591 "SOA Item Search"
 
     [EventSubscriber(ObjectType::Page, Page::"SOA Multi Items Availability", OnGetResolvedVariant, '', false, false)]
     local procedure GetResolvedVariant(ItemSystemId: Guid; var VariantCode: Code[10])
-    var
-        VariantCodeText: Text;
     begin
-        if ResolvedItemVariants.ContainsKey(Format(ItemSystemId)) then begin
-            VariantCodeText := ResolvedItemVariants.Get(Format(ItemSystemId));
-            VariantCode := CopyStr(VariantCodeText, 1, MaxStrLen(VariantCode));
-        end;
+        if ResolvedItemVariants.ContainsKey(Format(ItemSystemId)) then
+            VariantCode := ResolvedItemVariants.Get(Format(ItemSystemId));
     end;
 
     [EventSubscriber(ObjectType::Table, Database::"Sales Line", OnAfterCheckItemAvailable, '', false, false)]
@@ -194,12 +190,12 @@ codeunit 4591 "SOA Item Search"
         BroaderItemSearch: Codeunit "SOA Broader Item Search";
         CandidateArray: JsonArray;
         SearchKeyWordsTrimmed: List of [Text];
-        SelectedMatchingItemVariants: Dictionary of [Text, Text];
-        SelectedAlternativeItemVariants: Dictionary of [Text, Text];
-        EmptyItemVariants: Dictionary of [Text, Text];
-        AvailableMatchingItemVariants: Dictionary of [Text, Text];
-        AvailableAlternativeItemVariants: Dictionary of [Text, Text];
-        AvailableItemVariants: Dictionary of [Text, Text];
+        SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]];
+        SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]];
+        EmptyItemVariants: Dictionary of [Text, List of [Code[10]]];
+        AvailableMatchingItemVariants: Dictionary of [Text, Code[10]];
+        AvailableAlternativeItemVariants: Dictionary of [Text, Code[10]];
+        AvailableItemVariants: Dictionary of [Text, Code[10]];
         SearchFilter: Text;
         SearchQuery: Text;
         SplitSearchKeywords: Text;
@@ -308,13 +304,13 @@ codeunit 4591 "SOA Item Search"
         OnAfterFindRecordItem(ItemFilter, Which, CrossColumnSearchFilter, Found, RequiredQuantity, InUOMCode);
     end;
 
-    local procedure SelectBestItem(ItemFilter: Text; SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var SelectedMatchingItemFilter: Text; var SelectedAlternativeItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, Text]; var SelectedAlternativeItemVariants: Dictionary of [Text, Text]): Boolean
+    local procedure SelectBestItem(ItemFilter: Text; SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var SelectedMatchingItemFilter: Text; var SelectedAlternativeItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]): Boolean
     var
         Item: Record Item;
         ItemSelector: Codeunit "SOA Item Selector";
         ItemNoToSystemId: Dictionary of [Text, Text];
-        RawSelectedMatchingItemVariants: Dictionary of [Text, Text];
-        RawSelectedAlternativeItemVariants: Dictionary of [Text, Text];
+        RawSelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]];
+        RawSelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]];
         RawSelectedMatchingItemFilter: Text;
         RawSelectedAlternativeItemFilter: Text;
         SelectedMatchingItemNo: Text;
@@ -377,41 +373,41 @@ codeunit 4591 "SOA Item Search"
         exit(MessageContent);
     end;
 
-    local procedure NormalizeVariantAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, Text]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, Text]; SearchQuery: Text)
+    local procedure NormalizeVariantAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; SearchQuery: Text)
     begin
         AddSameItemVariantAlternativesForMissingVariant(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, SearchQuery);
         KeepSameItemVariantAlternativesOnly(SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants);
         RemoveMatchingItemsWithBlankVariantAndSameItemAlternatives(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants);
     end;
 
-    local procedure AddSameItemVariantAlternativesForMissingVariant(SelectedMatchingItemFilter: Text; SelectedMatchingItemVariants: Dictionary of [Text, Text]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, Text]; SearchQuery: Text)
+    local procedure AddSameItemVariantAlternativesForMissingVariant(SelectedMatchingItemFilter: Text; SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; SearchQuery: Text)
     var
-        FallbackAlternativeItemVariants: Dictionary of [Text, Text];
+        FallbackAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]];
+        AlternativeVariantCodes: List of [Code[10]];
+        MatchingVariantCodes: List of [Code[10]];
+        VariantCodes: List of [Code[10]];
         ItemSystemId: Text;
-        AlternativeVariantCodes: Text;
-        VariantCodes: Text;
         FallbackAlternativeItemFilter: Text;
-        MatchingVariantCodes: Text;
     begin
         if SelectedMatchingItemFilter = '' then
             exit;
 
         foreach ItemSystemId in SelectedMatchingItemFilter.Split('|') do begin
-            MatchingVariantCodes := '';
+            Clear(MatchingVariantCodes);
             if SelectedMatchingItemVariants.ContainsKey(ItemSystemId) then
                 MatchingVariantCodes := SelectedMatchingItemVariants.Get(ItemSystemId);
 
-            if MatchingVariantCodes <> '' then
+            if MatchingVariantCodes.Count() > 0 then
                 continue;
             if SelectedAlternativeItemVariants.ContainsKey(ItemSystemId) then begin
                 AlternativeVariantCodes := SelectedAlternativeItemVariants.Get(ItemSystemId);
-                if AlternativeVariantCodes <> '' then
+                if AlternativeVariantCodes.Count() > 0 then
                     continue;
             end;
 
             if HasVariantSignalForItem(ItemSystemId, SearchQuery) then begin
                 VariantCodes := GetItemVariantCodes(ItemSystemId);
-                if VariantCodes <> '' then begin
+                if VariantCodes.Count() > 0 then begin
                     if FallbackAlternativeItemFilter = '' then
                         FallbackAlternativeItemFilter := ItemSystemId
                     else
@@ -428,13 +424,13 @@ codeunit 4591 "SOA Item Search"
         SelectedAlternativeItemVariants := FallbackAlternativeItemVariants;
     end;
 
-    local procedure KeepSameItemVariantAlternativesOnly(SelectedMatchingItemFilter: Text; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, Text])
+    local procedure KeepSameItemVariantAlternativesOnly(SelectedMatchingItemFilter: Text; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]])
     var
         MatchingItemSystemIds: Dictionary of [Text, Boolean];
-        SameItemAlternativeItemVariants: Dictionary of [Text, Text];
+        SameItemAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]];
+        VariantCodes: List of [Code[10]];
         AlternativeItemSystemId: Text;
         MatchingItemSystemId: Text;
-        VariantCodes: Text;
         SameItemAlternativeItemFilter: Text;
     begin
         if (SelectedMatchingItemFilter = '') or (SelectedAlternativeItemFilter = '') then
@@ -451,7 +447,7 @@ codeunit 4591 "SOA Item Search"
                 continue;
 
             VariantCodes := SelectedAlternativeItemVariants.Get(AlternativeItemSystemId);
-            if VariantCodes = '' then
+            if VariantCodes.Count() = 0 then
                 continue;
 
             if SameItemAlternativeItemFilter = '' then
@@ -495,49 +491,46 @@ codeunit 4591 "SOA Item Search"
         exit(false);
     end;
 
-    local procedure GetItemVariantCodes(ItemSystemId: Text): Text
+    local procedure GetItemVariantCodes(ItemSystemId: Text): List of [Code[10]]
     var
         Item: Record Item;
         ItemVariant: Record "Item Variant";
-        VariantCodes: Text;
+        VariantCodes: List of [Code[10]];
     begin
         Item.SetLoadFields("No.");
         if not Item.GetBySystemId(ItemSystemId) then
-            exit('');
+            exit(VariantCodes);
 
         ItemVariant.SetLoadFields(Code);
         ItemVariant.SetRange("Item No.", Item."No.");
         if ItemVariant.FindSet() then
             repeat
-                if VariantCodes = '' then
-                    VariantCodes := ItemVariant.Code
-                else
-                    VariantCodes += '|' + ItemVariant.Code;
+                VariantCodes.Add(ItemVariant.Code);
             until ItemVariant.Next() = 0;
 
         exit(VariantCodes);
     end;
 
-    local procedure RemoveMatchingItemsWithBlankVariantAndSameItemAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, Text]; SelectedAlternativeItemVariants: Dictionary of [Text, Text])
+    local procedure RemoveMatchingItemsWithBlankVariantAndSameItemAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]])
     var
-        NewSelectedMatchingItemVariants: Dictionary of [Text, Text];
+        NewSelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]];
+        AlternativeVariantCodes: List of [Code[10]];
+        MatchingVariantCodes: List of [Code[10]];
         ItemSystemId: Text;
-        AlternativeVariantCodes: Text;
-        MatchingVariantCodes: Text;
         NewSelectedMatchingItemFilter: Text;
     begin
         if SelectedMatchingItemFilter = '' then
             exit;
 
         foreach ItemSystemId in SelectedMatchingItemFilter.Split('|') do begin
-            MatchingVariantCodes := '';
+            Clear(MatchingVariantCodes);
             if SelectedMatchingItemVariants.ContainsKey(ItemSystemId) then
                 MatchingVariantCodes := SelectedMatchingItemVariants.Get(ItemSystemId);
 
-            if MatchingVariantCodes = '' then
+            if MatchingVariantCodes.Count() = 0 then
                 if SelectedAlternativeItemVariants.ContainsKey(ItemSystemId) then begin
                     AlternativeVariantCodes := SelectedAlternativeItemVariants.Get(ItemSystemId);
-                    if AlternativeVariantCodes <> '' then
+                    if AlternativeVariantCodes.Count() > 0 then
                         continue;
                 end;
 
@@ -599,10 +592,10 @@ codeunit 4591 "SOA Item Search"
         until Item.Next() = 0;
     end;
 
-    local procedure AddSelectedItem(var SelectedItemFilter: Text; var SelectedItemVariants: Dictionary of [Text, Text]; SelectedItemNo: Text; ItemNoToSystemId: Dictionary of [Text, Text]; RawSelectedItemVariants: Dictionary of [Text, Text])
+    local procedure AddSelectedItem(var SelectedItemFilter: Text; var SelectedItemVariants: Dictionary of [Text, List of [Code[10]]]; SelectedItemNo: Text; ItemNoToSystemId: Dictionary of [Text, Text]; RawSelectedItemVariants: Dictionary of [Text, List of [Code[10]]])
     var
+        VariantCodes: List of [Code[10]];
         ItemSystemId: Text;
-        VariantCode: Text;
     begin
         if SelectedItemNo = '' then
             exit;
@@ -616,16 +609,16 @@ codeunit 4591 "SOA Item Search"
             SelectedItemFilter += '|' + ItemSystemId;
 
         if RawSelectedItemVariants.ContainsKey(SelectedItemNo) then
-            VariantCode := RawSelectedItemVariants.Get(SelectedItemNo);
+            VariantCodes := RawSelectedItemVariants.Get(SelectedItemNo);
 
         if not SelectedItemVariants.ContainsKey(ItemSystemId) then
-            SelectedItemVariants.Add(ItemSystemId, VariantCode);
+            SelectedItemVariants.Add(ItemSystemId, VariantCodes);
     end;
 
-    local procedure StoreResolvedItemVariants(ItemFilter: Text; SelectedItemVariants: Dictionary of [Text, Text])
+    local procedure StoreResolvedItemVariants(ItemFilter: Text; SelectedItemVariants: Dictionary of [Text, Code[10]])
     var
         ItemSystemId: Text;
-        VariantCode: Text;
+        VariantCode: Code[10];
     begin
         if ItemFilter = '' then
             exit;
@@ -638,11 +631,11 @@ codeunit 4591 "SOA Item Search"
             end;
     end;
 
-    local procedure BuildFilteredItemFilter(SourceItemFilter: Text; var Rec: Record Item; RequiredQuantity: Decimal; InUOMCode: Code[10]; ApplyAvailabilityFilter: Boolean; SelectedItemVariants: Dictionary of [Text, Text]; var AvailableItemVariants: Dictionary of [Text, Text]): Text
+    local procedure BuildFilteredItemFilter(SourceItemFilter: Text; var Rec: Record Item; RequiredQuantity: Decimal; InUOMCode: Code[10]; ApplyAvailabilityFilter: Boolean; SelectedItemVariants: Dictionary of [Text, List of [Code[10]]]; var AvailableItemVariants: Dictionary of [Text, Code[10]]): Text
     var
         Item: Record Item;
         ItemSystemId: Guid;
-        VariantCode: Text;
+        VariantCode: Code[10];
         FilteredItemFilter: Text;
         ResultCount: Integer;
     begin
@@ -674,21 +667,21 @@ codeunit 4591 "SOA Item Search"
         exit(FilteredItemFilter.TrimEnd('|'));
     end;
 
-    local procedure FindFirstAvailableVariant(var Item: Record Item; ItemSystemId: Text; RequiredQuantity: Decimal; InUOMCode: Code[10]; SelectedItemVariants: Dictionary of [Text, Text]; var AvailableVariantCode: Text): Boolean
+    local procedure FindFirstAvailableVariant(var Item: Record Item; ItemSystemId: Text; RequiredQuantity: Decimal; InUOMCode: Code[10]; SelectedItemVariants: Dictionary of [Text, List of [Code[10]]]; var AvailableVariantCode: Code[10]): Boolean
     var
-        VariantCode: Text;
-        VariantCodes: Text;
+        VariantCodes: List of [Code[10]];
+        VariantCode: Code[10];
     begin
         AvailableVariantCode := '';
         if SelectedItemVariants.ContainsKey(ItemSystemId) then
             VariantCodes := SelectedItemVariants.Get(ItemSystemId);
 
-        if VariantCodes = '' then begin
+        if VariantCodes.Count() = 0 then begin
             Item.SetRange("Variant Filter", '');
             exit(IsRequiredQuantityAvailable(Item, RequiredQuantity, InUOMCode));
         end;
 
-        foreach VariantCode in VariantCodes.Split('|') do begin
+        foreach VariantCode in VariantCodes do begin
             Item.SetRange("Variant Filter", CopyStr(VariantCode, 1, MaxStrLen(Item."Variant Filter")));
             if IsRequiredQuantityAvailable(Item, RequiredQuantity, InUOMCode) then begin
                 AvailableVariantCode := VariantCode;
@@ -699,22 +692,22 @@ codeunit 4591 "SOA Item Search"
         exit(false);
     end;
 
-    local procedure GetFirstVariantCode(ItemSystemId: Text; SelectedItemVariants: Dictionary of [Text, Text]): Text
+    local procedure GetFirstVariantCode(ItemSystemId: Text; SelectedItemVariants: Dictionary of [Text, List of [Code[10]]]): Code[10]
     var
-        VariantCode: Text;
-        VariantCodes: Text;
+        VariantCodes: List of [Code[10]];
+        VariantCode: Code[10];
     begin
         if not SelectedItemVariants.ContainsKey(ItemSystemId) then
             exit('');
 
         VariantCodes := SelectedItemVariants.Get(ItemSystemId);
-        foreach VariantCode in VariantCodes.Split('|') do
+        foreach VariantCode in VariantCodes do
             exit(VariantCode);
 
         exit('');
     end;
 
-    local procedure AddAvailableItemVariant(var AvailableItemVariants: Dictionary of [Text, Text]; ItemSystemId: Text; VariantCode: Text)
+    local procedure AddAvailableItemVariant(var AvailableItemVariants: Dictionary of [Text, Code[10]]; ItemSystemId: Text; VariantCode: Code[10])
     begin
         if AvailableItemVariants.ContainsKey(ItemSystemId) then
             AvailableItemVariants.Set(ItemSystemId, VariantCode)
