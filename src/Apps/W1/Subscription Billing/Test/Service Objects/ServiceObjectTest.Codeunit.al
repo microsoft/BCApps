@@ -1949,6 +1949,7 @@ codeunit 148157 "Service Object Test"
 
     local procedure VerifySubscriptionLineDates(var SubscriptionLine: Record "Subscription Line"; StartDate: Date; InitialTerm: Text; NoticePeriod: Text)
     var
+        DateTimeManagement: Codeunit "Date Time Management";
         ExpectedEndDate: Date;
         ExpectedTermUntil: Date;
         ExpectedCancellationPossibleUntil: Date;
@@ -1959,6 +1960,8 @@ codeunit 148157 "Service Object Test"
         else
             ExpectedEndDate := 0D;
         ExpectedCancellationPossibleUntil := CalcDate('-' + NoticePeriod, ExpectedTermUntil);
+        if DateTimeManagement.IsLastDayOfMonth(ExpectedTermUntil) then
+            DateTimeManagement.MoveDateToLastDayOfMonth(ExpectedCancellationPossibleUntil);
 
         SubscriptionLine.TestField("Subscription Line Start Date", StartDate);
         SubscriptionLine.TestField("Subscription Line End Date", ExpectedEndDate);
