@@ -206,7 +206,7 @@ page 31146 "EET Entry Card CZL"
                 field("Fiscal Identification Code"; Rec."Fiscal Identification Code")
                 {
                     ApplicationArea = Basic, Suite;
-                    ToolTip = 'Specifies the content of the field for the Fiscal identification code of the receipt.';
+                    ToolTip = 'Specifies the content of the field for the Confirmation code of the receipt.';
                 }
             }
         }

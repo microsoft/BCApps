@@ -109,7 +109,7 @@ table 31128 "EET Entry CZL"
         }
         field(78; "Fiscal Identification Code"; Text[39])
         {
-            Caption = 'Fiscal Identification Code';
+            Caption = 'Confirmation Code';
             DataClassification = CustomerContent;
         }
         field(85; "Receipt Serial No."; Code[50])
@@ -139,6 +139,7 @@ table 31128 "EET Entry CZL"
             Caption = 'Total Sales Amount';
             DataClassification = CustomerContent;
         }
+        // TODO: obsolete begin
         field(155; "Amount Exempted From VAT"; Decimal)
         {
             AutoFormatType = 1;
@@ -219,6 +220,7 @@ table 31128 "EET Entry CZL"
             AutoFormatExpression = '';
             DataClassification = CustomerContent;
         }
+        // TODO: obsolete end
         field(190; "Amt. For Subseq. Draw/Settle"; Decimal)
         {
             AutoFormatType = 1;
@@ -271,7 +273,6 @@ table 31128 "EET Entry CZL"
 
     var
         EETCashRegisterCZL: Record "EET Cash Register CZL";
-        EETControlCodesMgtCZL: Codeunit "EET Control Codes Mgt. CZL";
         EETManagementCZL: Codeunit "EET Management CZL";
         SignatureCodeErr: Label 'The signature code of EET Entry is not valid. Some of the following fields have changed.\"%1"\"%2"\"%3"\"%4"\"%5"\"%6"', Comment = '%1 = field caption, %2 = field caption, %3 = field caption, %4 = field caption, %5 = field caption, %6 = field caption';
 
@@ -402,6 +403,7 @@ table 31128 "EET Entry CZL"
         exit(EETBusinessPremisesCZL.Identification);
     end;
 
+    // TODO: obsolete
     procedure SaveSignatureCode(SignatureCode: Text)
     var
         SignatureCodeOutStream: OutStream;
@@ -413,6 +415,7 @@ table 31128 "EET Entry CZL"
         SignatureCodeOutStream.Write(SignatureCode);
     end;
 
+    // TODO: obsolete
     procedure GetSignatureCode(): Text
     var
         SignatureCodeInStream: InStream;
@@ -424,16 +427,19 @@ table 31128 "EET Entry CZL"
         exit(SignatureCode);
     end;
 
+    // TODO: obsolete
     procedure HasSignatureCode(): Boolean
     begin
         exit("Taxpayer's Signature Code".HasValue());
     end;
 
+    // TODO: obsolete
     procedure GenerateSignatureCode(): Text
     begin
-        exit(EETControlCodesMgtCZL.GenerateSignatureCode(Rec));
+        exit('');
     end;
 
+    // TODO: obsolete
     procedure CheckSignatureCode()
     var
         IsHandled: Boolean;
@@ -454,11 +460,13 @@ table 31128 "EET Entry CZL"
                 FieldCaption("Total Sales Amount"));
     end;
 
+    // TODO: obsolete
     procedure GenerateSecurityCode(SignatureCode: Text): Text[44]
     begin
-        exit(EETControlCodesMgtCZL.GenerateSecurityCode(SignatureCode));
+        exit('');
     end;
 
+    // TODO: obsolete
     procedure GenerateControlCodes(Force: Boolean)
     begin
         if not HasSignatureCode() or Force then
