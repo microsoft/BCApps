@@ -47,7 +47,6 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         PeppolBIS30FRFormat: Codeunit "Peppol BIS 3.0 FR Format";
         IncorrectValueErr: Label 'Incorrect value for %1', Comment = '%1 = XML element path', Locked = true;
         IsInitialized: Boolean;
-        CustomerVATNoSequence: Integer;
 
     #region SalesInvoice
     [Test]
@@ -797,24 +796,13 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             Customer.Address := CopyStr(LibraryUtility.GenerateRandomText(MaxStrLen(Customer.Address)), 1, MaxStrLen(Customer.Address));
         if Customer."Post Code" = '' then
             Customer.Validate("Post Code", '75001');
-        Customer.Validate("VAT Registration No.", GetNextCustomerVATRegistrationNo());
+        Customer.Validate("VAT Registration No.", LibraryERM.GenerateVATRegistrationNo('FR'));
 
         Customer.Validate("FR Electronic Address", FRElectronicAddress);
         Customer.Validate("FR Elec. Address Scheme", AddressScheme);
         Customer.Modify(true);
 
         exit(Customer."No.");
-    end;
-
-    local procedure GetNextCustomerVATRegistrationNo(): Text[20]
-    var
-        VATNoBody: Text[11];
-        SequenceText: Text;
-    begin
-        CustomerVATNoSequence += 1;
-        SequenceText := Format(CustomerVATNoSequence);
-        VATNoBody := CopyStr(PadStr('', 11 - StrLen(SequenceText), '0') + SequenceText, 1, 11);
-        exit('FR' + VATNoBody);
     end;
 
     local procedure GetCustomerVATRegistrationNo(CustomerNo: Code[20]): Text[20]
