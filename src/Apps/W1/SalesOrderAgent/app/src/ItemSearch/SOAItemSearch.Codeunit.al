@@ -120,8 +120,8 @@ codeunit 4591 "SOA Item Search"
         SOABilling.LogInventoryInquiryReplied(AgentTaskID);
     end;
 
-    [EventSubscriber(ObjectType::Page, Page::"SOA Multi Items Availability", OnGetResolvedVariant, '', false, false)]
-    local procedure GetResolvedVariant(ItemSystemId: Guid; var VariantCode: Code[10])
+    [EventSubscriber(ObjectType::Page, Page::"SOA Multi Items Availability", OnGetResolvedVariantCodeOnBeforeExit, '', false, false)]
+    local procedure OnGetResolvedVariantCodeOnBeforeExit(ItemSystemId: Guid; var VariantCode: Code[10])
     begin
         if ResolvedItemVariants.ContainsKey(Format(ItemSystemId)) then
             VariantCode := ResolvedItemVariants.Get(Format(ItemSystemId));

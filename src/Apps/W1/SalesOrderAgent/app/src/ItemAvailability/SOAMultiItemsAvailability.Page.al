@@ -1020,7 +1020,7 @@ page 4410 "SOA Multi Items Availability"
     var
         VariantCode: Code[10];
     begin
-        OnGetResolvedVariant(Rec.SystemId, VariantCode);
+        OnGetResolvedVariantCodeOnBeforeExit(Rec.SystemId, VariantCode);
         exit(VariantCode);
     end;
 
@@ -1035,7 +1035,7 @@ page 4410 "SOA Multi Items Availability"
     end;
 
     [InternalEvent(false, false)]
-    local procedure OnGetResolvedVariant(ItemSystemId: Guid; var VariantCode: Code[10])
+    local procedure OnGetResolvedVariantCodeOnBeforeExit(ItemSystemId: Guid; var VariantCode: Code[10])
     begin
     end;
 }
