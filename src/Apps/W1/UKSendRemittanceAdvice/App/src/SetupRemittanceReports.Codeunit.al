@@ -5,6 +5,7 @@
 
 namespace Microsoft.Purchases.Vendor.RemittanceAdvice;
 
+#if not CLEAN29
 using Microsoft.Foundation.Reporting;
 using Microsoft.Purchases.Reports;
 
@@ -43,3 +44,4 @@ codeunit 4031 SetupRemittanceReports
         end;
     end;
 }
+#endif

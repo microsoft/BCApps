@@ -884,16 +884,12 @@ page 29 "Vendor Ledger Entries"
     var
         DocumentSendingProfile: Record "Document Sending Profile";
         DummyReportSelections: Record "Report Selections";
-        ReportSelectionInteger: Integer;
     begin
         if not VendorLedgerEntry.FindSet() then
             exit;
 
-        DummyReportSelections.Usage := DummyReportSelections.Usage::"P.V.Remit.";
-        ReportSelectionInteger := DummyReportSelections.Usage.AsInteger();
-
         DocumentSendingProfile.SendVendorRecords(
-            ReportSelectionInteger, VendorLedgerEntry, RemittanceAdviceTxt, Rec."Vendor No.", Rec."Document No.",
+            DummyReportSelections.Usage::"P.V.Remit.".AsInteger(), VendorLedgerEntry, RemittanceAdviceTxt, Rec."Vendor No.", Rec."Document No.",
             VendorLedgerEntry.FieldNo("Vendor No."), VendorLedgerEntry.FieldNo("Document No."));
     end;
 }

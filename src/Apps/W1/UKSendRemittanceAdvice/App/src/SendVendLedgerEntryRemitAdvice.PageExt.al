@@ -10,10 +10,6 @@ using Microsoft.Purchases.Payables;
 
 pageextension 4023 SendVendLedgerEntryRemitAdvice extends "Vendor Ledger Entries"
 {
-    ObsoleteReason = 'The Send Remittance Advice action is now available natively on page "Vendor Ledger Entries" (action SendVendorRemittanceAdvice) in Microsoft.Purchases.Payables.';
-    ObsoleteState = Pending;
-    ObsoleteTag = '29.0';
-
     layout
     {
         // Add changes to page layout here
@@ -21,6 +17,7 @@ pageextension 4023 SendVendLedgerEntryRemitAdvice extends "Vendor Ledger Entries
 
     actions
     {
+#if not CLEAN29
         addlast("F&unctions")
         {
             // Add changes to page actions here
@@ -29,6 +26,9 @@ pageextension 4023 SendVendLedgerEntryRemitAdvice extends "Vendor Ledger Entries
                 ApplicationArea = All;
                 Caption = 'Send Remittance Advice';
                 Image = SendToMultiple;
+                ObsoleteReason = 'The Send Remittance Advice action is now available natively on page "Vendor Ledger Entries" (action SendVendorRemittanceAdvice) in Microsoft.Purchases.Payables.';
+                ObsoleteState = Pending;
+                ObsoleteTag = '29.0';
                 ToolTip = 'Send the remittance advice before posting a payment journal or after posting a payment. The advice contains vendor invoice numbers, which helps vendors to perform reconciliations.';
 
                 trigger OnAction()
@@ -42,6 +42,7 @@ pageextension 4023 SendVendLedgerEntryRemitAdvice extends "Vendor Ledger Entries
                 end;
             }
         }
+#endif
     }
     local procedure SendVendorRecords(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     var

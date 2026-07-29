@@ -891,22 +891,5 @@ page 29 "Vendor Ledger Entries"
         ChangeLogEntry.SetRange("Table No.", Database::"Vendor Ledger Entry");
         ChangeLogEntry.SetRange("Primary Key Field 1 Value", Format(Rec."Entry No.", 0, 9));
     end;
-
-    local procedure SendVendorRecords(var VendorLedgerEntry: Record "Vendor Ledger Entry")
-    var
-        DocumentSendingProfile: Record "Document Sending Profile";
-        DummyReportSelections: Record "Report Selections";
-        ReportSelectionInteger: Integer;
-    begin
-        if not VendorLedgerEntry.FindSet() then
-            exit;
-
-        DummyReportSelections.Usage := DummyReportSelections.Usage::"P.V.Remit.";
-        ReportSelectionInteger := DummyReportSelections.Usage.AsInteger();
-
-        DocumentSendingProfile.SendVendorRecords(
-            ReportSelectionInteger, VendorLedgerEntry, RemittanceAdviceTxt, Rec."Vendor No.", Rec."Document No.",
-            VendorLedgerEntry.FieldNo("Vendor No."), VendorLedgerEntry.FieldNo("Document No."));
-    end;
 }
 
