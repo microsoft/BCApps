@@ -35,18 +35,30 @@ leave the rest alone.
 NAV build            ->  artifact manifest.json   { "bcAppsCommit": "<sha>" }
 BCApps PR build      ->  git diff <sha>..HEAD     -> changed files
                      ->  app dependency graph      -> changed apps + their dependents
-                     ->  unpublish/publish only those; reuse everything else
+                     ->  keep the rest published; unpublish and republish only those
 ```
 
-1. `NewBcContainer.ps1` reads the artifact manifest, diffs the commit, and unpublishes **only**
-   the affected apps (plus any app in the artifact that BCApps does not produce, which today's
-   loop also removes).
-2. `PublishBcContainerApp.ps1` skips the `.app` files whose app is unchanged and still in the
-   container. New apps and test apps the artifact database does not have are published as usual.
-3. Everything else in the pipeline is untouched.
+1. `NewBcContainer.ps1` reads the artifact manifest, diffs the commit, and decides which apps to
+   keep.
+2. **Every app is uninstalled**, and only the changed ones (plus apps this repo does not produce,
+   plus apps that must never be in a test container) are unpublished. The retained apps are left
+   **published and synchronized but not installed** - exactly the state AL-Go's publish step
+   leaves an app in today.
+3. `PublishBcContainerApp.ps1` skips the `.app` files whose app is retained and unchanged. New
+   apps and anything the container does not hold are published as usual.
+4. `ImportTestDataInBcContainer.ps1` and the test runner are untouched.
 
-No extra storage, no upload/download, no cache to invalidate: the artifact is downloaded and
-restored by the build anyway, and the artifact url itself is the cache key.
+Step 2 is what makes this safe. Because retained apps end up *published but not installed*:
+
+- **Install order stays under the pipeline's control.** The `Legacy` test type deliberately
+  installs only the base apps + DemoTool, generates demo data, and only then installs the rest.
+  If retained apps stayed installed, `Install-BaseAppsForDemoTool` would silently become a no-op
+  and the DemoTool would run against a fully installed container.
+- **Test discovery is unchanged.** Every test project sets `"runTestsInAllInstalledTestApps": true`,
+  so the set of tests that run is derived from the *installed* apps. Retaining installed apps
+  would change which tests execute.
+
+Only the publish/sync work is skipped - the container still ends up in today's shape.
 
 ## NAV side (implemented)
 
@@ -119,26 +131,47 @@ Any of these gives up on reuse and behaves exactly like today:
 | Condition | Why |
 | --- | --- |
 | No commit in the manifest | Nothing to compare against |
-| Commit not reachable from the clone (after a shallow fetch attempt) | Cannot diff |
+| Commit not reachable from the clone | Cannot diff. A shallow (CI) clone is fetched once; a complete clone is never made shallow |
 | `git diff` fails | Cannot diff |
-| Build mode is not `Default` (e.g. `Clean`) | Different preprocessor symbols - the artifact binaries are not equivalent |
+| Build mode changes compilation | Different preprocessor symbols mean the artifact binaries are not equivalent. Derived from the settings (any build mode whose `conditionalSettings` set `preprocessorSymbols` - today that is `Clean`), **not** an allow-list of `Default`: no container-building project uses `Default`, they build in `IntegrationTests` / `UncategorizedTests` / `LegacyTestsBucket1` / `LegacyTestsBucket2` |
 | A changed file matches `fullBuildPatterns` | AL-Go recompiles everything, so the container must be rebuilt too |
+| A changed file is `.github/**` or a project `settings.json` | These change *how* apps compile (preprocessor symbols, analyzers, rulesets) or which apps a project builds, but match no `fullBuildPattern` and map to no app |
 | A changed `src/` file cannot be mapped to an app | Unknown blast radius |
 | More than 75% of apps affected | Reuse buys nothing |
 | Feature setting absent / `BCAPPS_ARTIFACT_BASELINE=disabled` | Explicitly off |
 
+Additional guarantees:
+
+- **Apps are identified by publisher + name**, not name alone. This repository contains several
+  apps that share a name (`Tests-Local` in the BE/MX/W1 layers, `Data Archive` in both
+  `src/Apps` and `src/System Application`), and matching on name alone could skip publishing an
+  app the container never had.
+- **Apps that must never be in a test container** (`Library - No Transactions`,
+  `Prevent Metadata Updates Library`) are always unpublished. Both are built from this
+  repository, so they would otherwise look like ordinary reusable apps - and
+  `Prevent Metadata Updates Library` changes runtime behavior.
+- **Apps this repository does not produce are unpublished**, keeping the container's contents
+  equal to what this build publishes, as today.
+- **The decision is stamped with the container name and the workflow run/attempt.** The publish
+  hook runs in a separate process and the temp folder is shared on a developer machine and on
+  reused runners; state that does not belong to the current container is ignored rather than
+  trusted.
+- **`BCAPPS_ARTIFACT_BASELINE_COMMIT` is ignored in CI**, so the manifest is the only source of
+  truth there.
+
 ## What to watch when validating this
 
+- **This has never run in a real CI build.** The first version of this change guarded on
+  `BuildMode -eq 'Default'`, which no container-building project uses, so the feature could not
+  activate at all. That is fixed and covered by a regression test, but the payoff and the
+  behavior still have to be measured on a real `Test Apps` run before it is enabled.
 - **Versions.** Reused apps keep the artifact version (e.g. `29.0.53000.0`) instead of the
   build's `29.0.2147483647.x`. BCApps app.json dependencies are pinned at `<major>.<minor>.0.0`,
   so they are satisfied - but anything that asserts on exact app versions will notice.
 - **Binary provenance.** Reused apps are the NAV-built binaries, not the ones this build
   compiled. Same source commit, different compiler invocation.
-- **Test apps.** They ship in the artifact too (`Microsoft_Tests-*.app`), but the demo database
-  does not necessarily have them published; those are published as before.
 - **Country projects.** Each country artifact carries its own apps; the diff is country-agnostic
-  (it works on the whole repo graph), so a country project simply reuses whatever its artifact
-  had.
+  (it works on the whole repo graph), so a country project reuses whatever its artifact had.
 - **Freshness.** The win shrinks as the artifact ages - a stale artifact means a large diff. The
   `UpdateBCArtifactVersion` automation already keeps it current; this makes that valuable.
 

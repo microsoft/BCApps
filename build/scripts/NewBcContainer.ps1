@@ -32,47 +32,57 @@ Restart-BcContainer -containerName $parameters.ContainerName
 $installedApps = Get-BcContainerAppInfo -containerName $parameters.ContainerName -tenantSpecificProperties -sort DependenciesLast
 
 # PROTOTYPE: the artifact database already has every app of the BCApps commit it was built from
-# published, installed and synchronized. Only remove the apps that changed since that commit.
+# published, installed and synchronized. Keep the ones whose source has not changed since that
+# commit - they only get uninstalled, which leaves them in exactly the state AL-Go's publish step
+# produces today, so install order and test discovery downstream are unaffected.
 # See build/scripts/ArtifactBaseline.md. Any doubt falls back to removing everything.
-$baseline = [PSCustomObject]@{ IsUsable = $false; Reason = 'Not enabled'; BaselineCommit = ''; ChangedAppNames = @(); KnownAppNames = @() }
-if ((Get-ALGoSetting -Key 'useArtifactBaseline') -eq $true) {
-    try {
+$appsToRemove = $installedApps
+$appsToKeep = @()
+$baseline = [PSCustomObject]@{ IsUsable = $false; Reason = 'Not enabled'; BaselineCommit = ''; ChangedApps = @(); KnownApps = @() }
+
+try {
+    if ((Get-ALGoSetting -Key 'useArtifactBaseline') -eq $true) {
         if (-not $parameters.ContainsKey('artifactUrl') -or -not $parameters.artifactUrl) {
             throw "No artifactUrl was passed to New-BcContainer"
         }
         $baseline = Resolve-ArtifactBaseline -ArtifactUrl $parameters.artifactUrl -BaseFolder (Get-BaseFolder) -BuildMode "$env:BuildMode"
-    }
-    catch {
-        $baseline.Reason = "Failed to resolve the artifact baseline - $($_.Exception.Message)"
-    }
-    Write-Host "ARTIFACT BASELINE: usable=$($baseline.IsUsable) commit=$($baseline.BaselineCommit) - $($baseline.Reason)"
-}
+        Write-Host "ARTIFACT BASELINE: usable=$($baseline.IsUsable) commit=$($baseline.BaselineCommit) - $($baseline.Reason)"
 
-if ($baseline.IsUsable) {
-    # Remove the apps that changed since the artifact, plus anything in the artifact database
-    # that this repository does not produce (which today's clean-everything loop also removes).
-    $appsToRemove = @(Get-AppsToUnpublish -InstalledApps $installedApps -ChangedAppNames $baseline.ChangedAppNames -KnownAppNames $baseline.KnownAppNames)
-    Write-Host "ARTIFACT BASELINE: reusing $($installedApps.Count - $appsToRemove.Count) app(s) from the artifact, refreshing $($appsToRemove.Count)"
+        if ($baseline.IsUsable) {
+            $split = Split-ContainerApps -InstalledApps @($installedApps) -ChangedApps @($baseline.ChangedApps) -KnownApps @($baseline.KnownApps)
+            $appsToRemove = @($split.ToUnpublish)
+            $appsToKeep = @($split.ToKeep)
+            Write-Host "ARTIFACT BASELINE: reusing $($appsToKeep.Count) app(s) from the artifact, refreshing $($appsToRemove.Count)"
+        }
+    }
 }
-else {
+catch {
+    Write-Host "ARTIFACT BASELINE: disabled for this build - $($_.Exception.Message)"
+    $baseline.IsUsable = $false
     $appsToRemove = $installedApps
+    $appsToKeep = @()
 }
 
-$removedNames = @($appsToRemove | ForEach-Object { $_.Name })
-Set-ArtifactBaselineState -State @{
-    IsUsable          = $baseline.IsUsable
-    Reason            = $baseline.Reason
-    BaselineCommit    = $baseline.BaselineCommit
-    ChangedAppNames   = @($baseline.ChangedAppNames)
-    # Apps that survive in the container - anything else still has to be published by AL-Go.
-    ContainerAppNames = @($installedApps | Where-Object { $removedNames -notcontains $_.Name } | ForEach-Object { $_.Name })
+Set-ArtifactBaselineState -ContainerName $parameters.ContainerName -State @{
+    IsUsable     = $baseline.IsUsable
+    Reason       = $baseline.Reason
+    ChangedApps  = @($baseline.ChangedApps)
+    # Apps left published in the container; anything else must still be published by AL-Go.
+    RetainedApps = @($appsToKeep | ForEach-Object { Get-AppKey -Publisher $_.Publisher -Name $_.Name })
 } | Out-Null
 
-# Clean the container for the apps that AL-Go is going to (re)publish
-foreach($app in $appsToRemove) {
+# Uninstall every app: the retained ones must end up published-but-not-installed, which is the
+# state AL-Go's publish step leaves apps in and which ImportTestDataInBcContainer.ps1 expects.
+foreach($app in $installedApps) {
     Write-Host "Removing $($app.Name)"
     UnInstall-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -doNotSaveData -doNotSaveSchema -force
+}
 
+# Unpublish the apps AL-Go is going to (re)publish
+foreach($app in $appsToRemove) {
+    # $AppsToUnpublish is the script parameter (note the different casing): it lets a project
+    # keep specific apps published. Do not rename it into $appsToRemove - PowerShell variable
+    # names are case-insensitive, so the two would silently become one.
     if (($AppsToUnpublish -contains "All") -or ($AppsToUnpublish -contains $app.Name)) {
         Write-Host "Unpublishing $($app.Name)"
         Unpublish-BcContainerApp -containerName $parameters.ContainerName -name $app.Name -unInstall -doNotSaveData -doNotSaveSchema -force

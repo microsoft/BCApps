@@ -3,10 +3,12 @@ Param(
     [string[]]$AdditionalAppsNotToPublish = @()
 )
 
-$listOfAppsNotToPublish = @(
-    "Library - No Transactions",
-    "Prevent Metadata Updates Library"
-) + $AdditionalAppsNotToPublish
+Import-Module (Join-Path $PSScriptRoot 'ArtifactBaseline.psm1') -Force
+
+# Apps that must never end up in a test container. The list is owned by ArtifactBaseline.psm1 so
+# that the container hook removes exactly the same apps from the artifact database that this hook
+# refuses to publish.
+$listOfAppsNotToPublish = @(Get-AppsNeverInContainer) + $AdditionalAppsNotToPublish
 
 function Test-ShouldPublishApp() {
     param(
@@ -47,13 +49,13 @@ if ($appFiles -is [string]) {
 
 $parameters["appFile"] = $filteredAppFiles
 
-# PROTOTYPE: skip publishing apps that the artifact database already has, unchanged.
+# PROTOTYPE: skip publishing apps the artifact database already holds, unchanged. The state is
+# only trusted when it was written for this container by this run.
 # See build/scripts/ArtifactBaseline.md.
-Import-Module (Join-Path $PSScriptRoot 'ArtifactBaseline.psm1') -Force
-$baselineState = Get-ArtifactBaselineState
+$baselineState = Get-ArtifactBaselineState -ContainerName $parameters["containerName"]
 if ($baselineState -and $baselineState.IsUsable) {
     $appsToPublish = @($parameters["appFile"] | Where-Object {
-        Test-ShouldPublishAppFile -AppFile $_ -ChangedAppNames @($baselineState.ChangedAppNames) -ContainerAppNames @($baselineState.ContainerAppNames)
+        Test-ShouldPublishAppFile -AppFile $_ -ChangedApps @($baselineState.ChangedApps) -RetainedApps @($baselineState.RetainedApps)
     })
     $skipped = @($parameters["appFile"]).Count - $appsToPublish.Count
     if ($skipped -gt 0) {
@@ -67,7 +69,7 @@ if ($baselineState -and $baselineState.IsUsable) {
 }
 
 $parameters["scope"] = "Global"
-# Publish only — do not install. Installation is handled by ImportTestDataInBcContainer.ps1
+# Publish only - do not install. Installation is handled by ImportTestDataInBcContainer.ps1
 # which controls the install order based on test type (e.g. Legacy needs DemoTool to run
 # before certain apps are installed).
 $parameters["install"] = $false

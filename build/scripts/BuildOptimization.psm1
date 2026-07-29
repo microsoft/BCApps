@@ -43,6 +43,7 @@ function Get-AppDependencyGraph {
         $graph[$appId] = [PSCustomObject]@{
             Id           = $appId
             Name         = $json.name
+            Publisher    = $json.publisher
             AppFolder    = $file.DirectoryName
             Dependencies = $depIds
             Dependents   = [System.Collections.Generic.List[string]]::new()
