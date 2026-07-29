@@ -3639,6 +3639,7 @@ codeunit 137063 "SCM Manufacturing 7.0"
         Item: array[4] of Record Item;
         ItemVariant: array[2] of Record "Item Variant";
         ProductionBOMHeader: array[2] of Record "Production BOM Header";
+        ProdOrderLine: Record "Prod. Order Line";
         ReleasedProductionOrders: TestPage "Released Production Orders";
     begin
         // [SCENARIO 598660] Changing the Status of Released Production Orders to Finished from the List of Released Production Orders will stop the process when Variant Code is missing.
@@ -3667,8 +3668,11 @@ codeunit 137063 "SCM Manufacturing 7.0"
             ProductionOrder[1], ProductionOrder[1].Status::Released,
             ProductionOrder[1]."Source Type"::Item, Item[1]."No.", LibraryRandom.RandInt(5));
 
-        // [GIVEN] Refresh Production Order "X".
-        LibraryManufacturing.RefreshProdOrder(ProductionOrder[1], false, true, true, true, false);
+        // [GIVEN] A Prod. Order Line for "X" with a blank Variant Code, mimicking the state a refresh produced
+        // before variant validation moved into Refresh Production Order (Bug 633092); the missing Variant Code is
+        // now enforced only when changing the status to Finished.
+        LibraryManufacturing.CreateProdOrderLine(
+            ProdOrderLine, ProductionOrder[1].Status, ProductionOrder[1]."No.", Item[1]."No.", '', '', ProductionOrder[1].Quantity);
 
         // [GIVEN] Create Production Order "Y".
         LibraryManufacturing.CreateProductionOrder(
