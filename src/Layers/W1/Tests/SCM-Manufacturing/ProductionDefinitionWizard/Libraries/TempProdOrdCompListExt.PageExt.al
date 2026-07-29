@@ -16,6 +16,8 @@ pageextension 137435 "Temp ProdOrdCompList Ext." extends "Temp Prod. Order Comp.
             {
                 ApplicationArea = All;
                 Caption = 'Test Delete';
+                ToolTip = 'Deletes the record for testing purposes.';
+                Image = Delete;
 
                 trigger OnAction()
                 begin

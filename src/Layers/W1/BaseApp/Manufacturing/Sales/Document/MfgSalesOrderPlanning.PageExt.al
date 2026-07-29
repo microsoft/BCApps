@@ -39,8 +39,7 @@ pageextension 99000883 "Mfg. Sales Order Planning" extends "Sales Order Planning
         NewStatus: Enum "Production Order Status";
         NewOrderType: Enum "Create Production Order Type";
         UseWizard: Boolean;
-
-        Text001: Label 'There is nothing to plan.';
+        NothingToPlanMsg: Label 'There is nothing to plan.';
 
     procedure CreateProdOrder()
     var
@@ -56,8 +55,10 @@ pageextension 99000883 "Mfg. Sales Order Planning" extends "Sales Order Planning
         NewOrderTypeOption := NewOrderType.AsInteger();
         TempSalesPlanningLine.Copy(Rec, true);
         CurrPage.SetSelectionFilter(TempSalesPlanningLine);
+        if not TempSalesPlanningLine.MarkedOnly then
+            TempSalesPlanningLine.Copy(Rec, true);
 
-        OnBeforeCreateProdOrder(TempSalesPlanningLine, NewStatus, NewOrderTypeOption, ShowCreateOrderForm, IsHandled);
+        OnBeforeCreateProdOrder(Rec, NewStatus, NewOrderTypeOption, ShowCreateOrderForm, IsHandled);
         NewOrderType := "Create Production Order Type".FromInteger(NewOrderTypeOption);
         if IsHandled then
             exit;
@@ -69,12 +70,12 @@ pageextension 99000883 "Mfg. Sales Order Planning" extends "Sales Order Planning
 
             CreateOrderFromSales.GetParameters(NewStatus, NewOrderType);
             UseWizard := CreateOrderFromSales.GetUseProductDefinitionWizard();
-            OnCreateProdOrderOnAfterGetParameters(TempSalesPlanningLine, NewStatus, NewOrderType);
+            OnCreateProdOrderOnAfterGetParameters(Rec, NewStatus, NewOrderType);
             Clear(CreateOrderFromSales);
         end;
 
         if not CreateOrders(TempSalesPlanningLine) then
-            Message(Text001);
+            Message(NothingToPlanMsg);
 
         Rec.SetRange("Planning Status");
 

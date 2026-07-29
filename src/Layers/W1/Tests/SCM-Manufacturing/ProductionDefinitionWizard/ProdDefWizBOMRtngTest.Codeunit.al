@@ -49,14 +49,18 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
     procedure TestD1_BOMLoadedFromItemBOM_TwoLines()
     var
         Item: Record Item;
-        ProdDefManager: Codeunit "Production Definition Manager";
         ProductionBOMLine: Record "Production BOM Line";
+        ProdDefManager: Codeunit "Production Definition Manager";
         BOMNo: Code[20];
         RoutingNo: Code[20];
         ItemNo: Code[20];
         WC1No: Code[20];
         WC2No: Code[20];
         ActualItemNo: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        BOMLinesShouldDisplay2LinesFromCertifiedBOMLbl: Label 'BOMLinesPart should display exactly 2 lines from the certified BOM';
+        BOMComponentShouldBelongToBOMLbl: Label 'BOM component %1 should belong to BOM %2', Comment = '%1 = component item No.; %2 = Production BOM No.';
+        BOMLineQtyPerShouldBeGreaterThanZeroLbl: Label 'BOM line for component %1 should have Quantity per > 0', Comment = '%1 = component item No.';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO D1] BOM lines loaded from Item's Production BOM on open
@@ -76,13 +80,13 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] BOMLinesPart displays exactly 2 lines, each a component of the BOM
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProductionBOMLine.SetRange("Production BOM No.", BOMNo);
         ActualBOMLineItemNos.Remove('');
-        Assert.AreEqual(ProductionBOMLine.Count(), ActualBOMLineItemNos.Count(), 'BOMLinesPart should display exactly 2 lines from the certified BOM');
+        Assert.AreEqual(ProductionBOMLine.Count(), ActualBOMLineItemNos.Count(), BOMLinesShouldDisplay2LinesFromCertifiedBOMLbl);
         foreach ActualItemNo in ActualBOMLineItemNos do begin
             ProductionBOMLine.SetRange("No.", ActualItemNo);
-            Assert.IsTrue(ProductionBOMLine.FindFirst(), StrSubstNo('BOM component %1 should belong to BOM %2', ActualItemNo, BOMNo));
+            Assert.IsTrue(ProductionBOMLine.FindFirst(), StrSubstNo(BOMComponentShouldBelongToBOMLbl, ActualItemNo, BOMNo));
         end;
 
         // [THEN] Each BOM line has Quantity per > 0 (lines created with Qty = line index 1, 2, ...)
@@ -92,7 +96,7 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
         if ProductionBOMLine.FindSet() then
             repeat
                 Assert.IsTrue(ProductionBOMLine."Quantity per" > 0,
-                    StrSubstNo('BOM line for component %1 should have Quantity per > 0', ProductionBOMLine."No."));
+                    StrSubstNo(BOMLineQtyPerShouldBeGreaterThanZeroLbl, ProductionBOMLine."No."));
             until ProductionBOMLine.Next() = 0;
     end;
 
@@ -101,14 +105,23 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
     procedure TestD2_RoutingLoadedFromItemRouting_TwoLines()
     var
         Item: Record Item;
-        ProdDefManager: Codeunit "Production Definition Manager";
         RoutingLine: Record "Routing Line";
+        ProdDefManager: Codeunit "Production Definition Manager";
         BOMNo: Code[20];
         RoutingNo: Code[20];
         ItemNo: Code[20];
         WC1No: Code[20];
         WC2No: Code[20];
         ActualWCNo: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        RoutingLinesShouldDisplay2LinesFromCertifiedRoutingLbl: Label 'RoutingLinesPart should display exactly 2 lines from the certified Routing';
+        RoutingWorkCenterShouldBelongToRoutingLbl: Label 'Routing work center %1 should belong to Routing %2', Comment = '%1 = work center No.; %2 = Routing No.';
+        RoutingLineOperation10MustExistLbl: Label 'Routing line operation 10 must exist';
+        RoutingLine10SetupTimeShouldBe10Lbl: Label 'Routing line 10 Setup Time should be 10';
+        RoutingLine10RunTimeShouldBe5Lbl: Label 'Routing line 10 Run Time should be 5';
+        RoutingLineOperation20MustExistLbl: Label 'Routing line operation 20 must exist';
+        RoutingLine20SetupTimeShouldBe15Lbl: Label 'Routing line 20 Setup Time should be 15';
+        RoutingLine20RunTimeShouldBe8Lbl: Label 'Routing line 20 Run Time should be 8';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO D2] Routing lines loaded from Item's Routing on open
@@ -128,13 +141,13 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] RoutingLinesPart displays exactly 2 lines, each a work center of the Routing
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         RoutingLine.SetRange("Routing No.", RoutingNo);
         ActualRoutingLineWCNos.Remove('');
-        Assert.AreEqual(RoutingLine.Count(), ActualRoutingLineWCNos.Count(), 'RoutingLinesPart should display exactly 2 lines from the certified Routing');
+        Assert.AreEqual(RoutingLine.Count(), ActualRoutingLineWCNos.Count(), RoutingLinesShouldDisplay2LinesFromCertifiedRoutingLbl);
         foreach ActualWCNo in ActualRoutingLineWCNos do begin
             RoutingLine.SetRange("No.", ActualWCNo);
-            Assert.IsTrue(RoutingLine.FindFirst(), StrSubstNo('Routing work center %1 should belong to Routing %2', ActualWCNo, RoutingNo));
+            Assert.IsTrue(RoutingLine.FindFirst(), StrSubstNo(RoutingWorkCenterShouldBelongToRoutingLbl, ActualWCNo, RoutingNo));
         end;
 
         // [THEN] Routing lines carry the expected Setup Time and Run Time values
@@ -143,13 +156,13 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
         RoutingLine.SetRange("Routing No.", RoutingNo);
         RoutingLine.SetRange("Version Code", '');
         RoutingLine.SetRange("Operation No.", '10');
-        Assert.IsTrue(RoutingLine.FindFirst(), 'Routing line operation 10 must exist');
-        Assert.AreEqual(10, RoutingLine."Setup Time", 'Routing line 10 Setup Time should be 10');
-        Assert.AreEqual(5, RoutingLine."Run Time", 'Routing line 10 Run Time should be 5');
+        Assert.IsTrue(RoutingLine.FindFirst(), RoutingLineOperation10MustExistLbl);
+        Assert.AreEqual(10, RoutingLine."Setup Time", RoutingLine10SetupTimeShouldBe10Lbl);
+        Assert.AreEqual(5, RoutingLine."Run Time", RoutingLine10RunTimeShouldBe5Lbl);
         RoutingLine.SetRange("Operation No.", '20');
-        Assert.IsTrue(RoutingLine.FindFirst(), 'Routing line operation 20 must exist');
-        Assert.AreEqual(15, RoutingLine."Setup Time", 'Routing line 20 Setup Time should be 15');
-        Assert.AreEqual(8, RoutingLine."Run Time", 'Routing line 20 Run Time should be 8');
+        Assert.IsTrue(RoutingLine.FindFirst(), RoutingLineOperation20MustExistLbl);
+        Assert.AreEqual(15, RoutingLine."Setup Time", RoutingLine20SetupTimeShouldBe15Lbl);
+        Assert.AreEqual(8, RoutingLine."Run Time", RoutingLine20RunTimeShouldBe8Lbl);
     end;
 
     [Test]
@@ -164,6 +177,10 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
         ItemNo: Code[20];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        SelectedBOMVersionShouldBeV2Lbl: Label 'SelectedBOMVersion should be V2 (active version as of WorkDate)';
+        BOMVersionV2ShouldBeCertifiedLbl: Label 'BOM version V2 should be Certified';
+        BOMVersionV2StartingDateShouldEqualWorkDateLbl: Label 'BOM version V2 Starting Date should equal WorkDate()';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO D3] BOM version is selected as default active version
@@ -185,15 +202,15 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] SelectedBOMVersion shows V2 (most recent active version)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.AreEqual('V2', ActualSelectedBOMVersion, 'SelectedBOMVersion should be V2 (active version as of WorkDate)');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.AreEqual('V2', ActualSelectedBOMVersion, SelectedBOMVersionShouldBeV2Lbl);
 
         // [THEN] BOM version V2 is certified and has the correct Starting Date
         ProductionBOMVersion.Get(BOMNo, 'V2');
         Assert.AreEqual(ProductionBOMVersion.Status::Certified, ProductionBOMVersion.Status,
-            'BOM version V2 should be Certified');
+            BOMVersionV2ShouldBeCertifiedLbl);
         Assert.AreEqual(WorkDate(), ProductionBOMVersion."Starting Date",
-            'BOM version V2 Starting Date should equal WorkDate()');
+            BOMVersionV2StartingDateShouldEqualWorkDateLbl);
     end;
 
     [Test]
@@ -208,6 +225,10 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
         ItemNo: Code[20];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        SelectedRoutingVersionShouldBeV2Lbl: Label 'SelectedRoutingVersion should be V2 (active version as of WorkDate)';
+        RoutingVersionV2ShouldBeCertifiedLbl: Label 'Routing version V2 should be Certified';
+        RoutingVersionV2StartingDateShouldEqualWorkDateLbl: Label 'Routing version V2 Starting Date should equal WorkDate()';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO D4] Routing version is selected as default active version
@@ -229,14 +250,14 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] SelectedRoutingVersion shows V2 (most recent active version as of WorkDate)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.AreEqual('V2', ActualSelectedRoutingVersion, 'SelectedRoutingVersion should be V2 (active version as of WorkDate)');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.AreEqual('V2', ActualSelectedRoutingVersion, SelectedRoutingVersionShouldBeV2Lbl);
         // [THEN] Routing version V2 is certified and has the correct Starting Date
         RoutingVersion.Get(RoutingNo, 'V2');
         Assert.AreEqual(RoutingVersion.Status::Certified, RoutingVersion.Status,
-            'Routing version V2 should be Certified');
+            RoutingVersionV2ShouldBeCertifiedLbl);
         Assert.AreEqual(WorkDate(), RoutingVersion."Starting Date",
-            'Routing version V2 Starting Date should equal WorkDate()');
+            RoutingVersionV2StartingDateShouldEqualWorkDateLbl);
     end;
 
     [Test]
@@ -244,8 +265,8 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
     procedure TestD5_AssistEditBOMNo_ReloadsBOMLines()
     var
         Item: Record Item;
-        ProdDefManager: Codeunit "Production Definition Manager";
         ProductionBOMLine: Record "Production BOM Line";
+        ProdDefManager: Codeunit "Production Definition Manager";
         BOMBNo: Code[20];
         OriginalBOMNo: Code[20];
         RoutingNo: Code[20];
@@ -253,6 +274,10 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
         WC1No: Code[20];
         WC2No: Code[20];
         ActualItemNo: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        BOMLinesShouldDisplay3LinesFromNewBOMBLbl: Label 'BOMLinesPart should display 3 lines from the newly selected BOM-B';
+        BOMComponentShouldBelongToBOMBLbl: Label 'BOM component %1 should belong to BOM-B %2', Comment = '%1 = component item No.; %2 = Production BOM No.';
+        ItemProdBOMNoShouldBeUpdatedLbl: Label 'Item Production BOM No. should be updated to the new BOM after wizard when Save=true';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO D5] AssistEdit on BOM No. selects a different BOM → BOM lines reload from the new BOM
@@ -274,19 +299,19 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] BOMLinesPart now shows 3 lines from BOM-B, each a component of BOM-B
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProductionBOMLine.SetRange("Production BOM No.", BOMBNo);
         ActualBOMLineItemNos.Remove('');
-        Assert.AreEqual(ProductionBOMLine.Count(), ActualBOMLineItemNos.Count(), 'BOMLinesPart should display 3 lines from the newly selected BOM-B');
+        Assert.AreEqual(ProductionBOMLine.Count(), ActualBOMLineItemNos.Count(), BOMLinesShouldDisplay3LinesFromNewBOMBLbl);
         foreach ActualItemNo in ActualBOMLineItemNos do begin
             ProductionBOMLine.SetRange("No.", ActualItemNo);
-            Assert.IsTrue(ProductionBOMLine.FindFirst(), StrSubstNo('BOM component %1 should belong to BOM-B %2', ActualItemNo, BOMBNo));
+            Assert.IsFalse(ProductionBOMLine.IsEmpty(), StrSubstNo(BOMComponentShouldBelongToBOMBLbl, ActualItemNo, BOMBNo));
         end;
 
         // [THEN] Item BOM No. is changed to TargetBOMNoForLookup in the database (Save=true → new BOM retained)
         Item.Get(ItemNo);
         Assert.AreEqual(TargetBOMNoForLookup, Item."Production BOM No.",
-            'Item Production BOM No. should be updated to the new BOM after wizard when Save=true');
+            ItemProdBOMNoShouldBeUpdatedLbl);
     end;
 
     [Test]
@@ -294,8 +319,8 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
     procedure TestD6_AssistEditRoutingNo_ReloadsRoutingLines()
     var
         Item: Record Item;
-        ProdDefManager: Codeunit "Production Definition Manager";
         RoutingLine: Record "Routing Line";
+        ProdDefManager: Codeunit "Production Definition Manager";
         BOMNo: Code[20];
         RoutingBNo: Code[20];
         OriginalRoutingNo: Code[20];
@@ -304,6 +329,10 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
         WC2No: Code[20];
         WC3No: Code[20];
         ActualWCNo: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        RoutingLinesShouldDisplay2LinesFromNewRoutingBLbl: Label 'RoutingLinesPart should display 2 lines from the newly selected Routing-B';
+        RoutingWorkCenterShouldBelongToRoutingBLbl: Label 'Routing work center %1 should belong to Routing-B %2', Comment = '%1 = work center No.; %2 = Routing No.';
+        ItemRoutingNoShouldBeUpdatedLbl: Label 'Item Routing No. should be updated to the new Routing after wizard when Save=true';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO D6] AssistEdit on Routing No. selects a different Routing → Routing lines reload
@@ -325,19 +354,19 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] RoutingLinesPart now shows 2 lines from Routing-B, each a work center of Routing-B
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         RoutingLine.SetRange("Routing No.", RoutingBNo);
         ActualRoutingLineWCNos.Remove('');
-        Assert.AreEqual(RoutingLine.Count(), ActualRoutingLineWCNos.Count(), 'RoutingLinesPart should display 2 lines from the newly selected Routing-B');
+        Assert.AreEqual(RoutingLine.Count(), ActualRoutingLineWCNos.Count(), RoutingLinesShouldDisplay2LinesFromNewRoutingBLbl);
         foreach ActualWCNo in ActualRoutingLineWCNos do begin
             RoutingLine.SetRange("No.", ActualWCNo);
-            Assert.IsTrue(RoutingLine.FindFirst(), StrSubstNo('Routing work center %1 should belong to Routing-B %2', ActualWCNo, RoutingBNo));
+            Assert.IsFalse(RoutingLine.IsEmpty(), StrSubstNo(RoutingWorkCenterShouldBelongToRoutingBLbl, ActualWCNo, RoutingBNo));
         end;
 
         // [THEN] Item Routing No. is updated in the database (Save=true → new Routing retained)
         Item.Get(ItemNo);
         Assert.AreEqual(TargetRoutingNoForLookup, Item."Routing No.",
-            'Item Routing No. should be updated to the new Routing after wizard when Save=true');
+            ItemRoutingNoShouldBeUpdatedLbl);
     end;
 
     [Test]
@@ -346,9 +375,9 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
     var
         SalesLine: Record "Sales Line";
         ProdOrder: Record "Production Order";
-        ProdDefManager: Codeunit "Production Definition Manager";
         ProdOrderComponent: Record "Prod. Order Component";
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        ProdDefManager: Codeunit "Production Definition Manager";
         BOMNo: Code[20];
         RoutingNo: Code[20];
         ItemNo: Code[20];
@@ -357,6 +386,11 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
         LocationCode: Code[10];
         ActualItemNo: Code[20];
         ActualNo: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        ComponentsPartShouldListLinesLbl: Label 'ComponentsPart should list 2 lines matching the Prod. Order components';
+        ComponentItemShouldExistLbl: Label 'Component item %1 should exist in the created Prod. Order', Comment = '%1 = item No.';
+        ProdOrderRoutingPartShouldListLinesLbl: Label 'ProdOrderRoutingPart should list 2 lines matching the Prod. Order routing lines';
+        WorkCenterShouldExistLbl: Label 'Work center %1 should exist in the created Prod. Order routing', Comment = '%1 = work center No.';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO D7] Components Preview (Step 4) and Routing Preview (Step 5) show correct lines
@@ -379,23 +413,23 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
 
         // [THEN] ComponentsPart shows items matching the created Prod. Order components;
         //        ProdOrderRoutingPart shows work centers matching the created Prod. Order routing lines
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdOrderComponent.SetRange(Status, ProdOrder.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrder."No.");
         ActualComponentItemNos.Remove('');
-        Assert.AreEqual(ProdOrderComponent.Count(), ActualComponentItemNos.Count(), 'ComponentsPart should list 2 lines matching the Prod. Order components');
+        Assert.AreEqual(ProdOrderComponent.Count(), ActualComponentItemNos.Count(), ComponentsPartShouldListLinesLbl);
         foreach ActualItemNo in ActualComponentItemNos do begin
             ProdOrderComponent.SetRange("Item No.", ActualItemNo);
-            Assert.IsTrue(ProdOrderComponent.FindFirst(), StrSubstNo('Component item %1 should exist in the created Prod. Order', ActualItemNo));
+            Assert.IsFalse(ProdOrderComponent.IsEmpty(), StrSubstNo(ComponentItemShouldExistLbl, ActualItemNo));
         end;
         ProdOrderRoutingLine.SetRange(Status, ProdOrder.Status);
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrder."No.");
         ActualProdRoutingWCNos.Remove('');
-        Assert.AreEqual(ProdOrderRoutingLine.Count(), ActualProdRoutingWCNos.Count(), 'ProdOrderRoutingPart should list 2 lines matching the Prod. Order routing lines');
+        Assert.AreEqual(ProdOrderRoutingLine.Count(), ActualProdRoutingWCNos.Count(), ProdOrderRoutingPartShouldListLinesLbl);
         foreach ActualNo in ActualProdRoutingWCNos do begin
             ProdOrderRoutingLine.SetRange("No.", ActualNo);
-            Assert.IsTrue(ProdOrderRoutingLine.FindFirst(), StrSubstNo('Work center %1 should exist in the created Prod. Order routing', ActualNo));
+            Assert.IsFalse(ProdOrderRoutingLine.IsEmpty(), StrSubstNo(WorkCenterShouldExistLbl, ActualNo));
         end;
 
         // [THEN] Prod. Order fields: Qty = 5 (from SalesLine), Due Date = WorkDate() +1, Location matches SalesLine
@@ -515,7 +549,7 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
     begin
         ProductionBOMList.Filter.SetFilter("No.", TargetBOMNoForLookup);
         ProductionBOMList.First();
-        ProductionBOMList.OK.Invoke();
+        ProductionBOMList.OK().Invoke();
     end;
 
     [ModalPageHandler]
@@ -549,7 +583,7 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
     begin
         RoutingList.Filter.SetFilter("No.", TargetRoutingNoForLookup);
         RoutingList.First();
-        RoutingList.OK.Invoke();
+        RoutingList.OK().Invoke();
     end;
 
 
@@ -599,6 +633,7 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
         WC1No: Code[20];
         ComponentItemNo: Code[20];
         LocationCode: Code[10];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO D8] BOM line fields (Length, Width, Weight, Depth, Scrap %, Calculation Formula) are transferred to Prod. Order Component on Production Order creation
@@ -620,7 +655,7 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Prod. Order Component has Scrap % = 5, Length = 2, Width = 3, Weight = 4, Depth = 1 from BOM line
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderComponentBOMFields(ProdOrder, ComponentItemNo, 5, 2, 3, 4, 1);
         // [THEN] Prod. Order Component has Calculation Formula = Fixed Quantity from BOM line
@@ -641,6 +676,7 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
         WC2No: Code[20];
         CapUOMCode: Code[10];
         LocationCode: Code[10];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO D9] Routing line fields (UOM codes, Fixed Scrap Qty, Scrap Factor %, Send-Ahead Qty, Concurrent Capacities, Lot Size, Prev/Next Operation No.) are transferred to Prod. Order Routing Line on Production Order creation
@@ -665,7 +701,7 @@ codeunit 137426 "Prod. Def. Wiz. BOM Rtng Test"
         //        Previous Op No. = '' (first in serial routing), Next Op No. = '20' (auto-populated on certification)
         //        All time UOM codes match the created Capacity UOM; Fixed Scrap Qty = 3, Scrap Factor % = 10,
         //        Send-Ahead Qty = 5, Concurrent Capacities = 2, Lot Size = 1
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderRoutingLineExtendedFields(
             ProdOrder, '10', '', '20', CapUOMCode, CapUOMCode, CapUOMCode, CapUOMCode, 3, 10, 5, 2, 1);

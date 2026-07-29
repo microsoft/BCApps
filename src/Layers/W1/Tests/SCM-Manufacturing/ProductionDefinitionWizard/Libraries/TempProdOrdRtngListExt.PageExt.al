@@ -16,6 +16,8 @@ pageextension 137434 "Temp ProdOrdRtngList Ext." extends "Temp Prod. Ord. Rtng L
             {
                 ApplicationArea = All;
                 Caption = 'Test Delete';
+                ToolTip = 'Deletes the record for testing purposes.';
+                Image = Delete;
 
                 trigger OnAction()
                 begin

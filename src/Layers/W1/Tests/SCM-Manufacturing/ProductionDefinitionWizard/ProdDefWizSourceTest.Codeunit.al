@@ -46,6 +46,9 @@ codeunit 137424 "Prod. Def. Wiz. Source Test"
         ProductionBOMLine: Record "Production BOM Line";
         ProdDefManager: Codeunit "Production Definition Manager";
         ItemNo: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        SourceShouldBeEmptyLbl: Label 'Source should be empty when item has no BOM or Routing';
+        ItemBOMShouldHavePlaceholderLineLbl: Label 'Item BOM should have 1 placeholder line';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO B1] Neither SKU nor Item has BOM/Routing → Empty source, placeholder lines created
@@ -63,11 +66,11 @@ codeunit 137424 "Prod. Def. Wiz. Source Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] Source = Empty; wizard saved a placeholder BOM with 1 line to the item
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.AreEqual('Manufacturing Setup', ActualSourceText, 'Source should be empty when item has no BOM or Routing');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.AreEqual('Manufacturing Setup', ActualSourceText, SourceShouldBeEmptyLbl);
         Item.Get(ItemNo);
         ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
-        Assert.AreEqual(1, ProductionBOMLine.Count(), 'Item BOM should have 1 placeholder line');
+        Assert.AreEqual(1, ProductionBOMLine.Count(), ItemBOMShouldHavePlaceholderLineLbl);
     end;
 
     [Test]
@@ -79,6 +82,9 @@ codeunit 137424 "Prod. Def. Wiz. Source Test"
         ProdDefManager: Codeunit "Production Definition Manager";
         BOMNo: Code[20];
         ItemNo: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        SourceShouldBeItemLbl: Label 'Source should be Item';
+        BOMAShouldHaveTwoLinesLbl: Label 'BOM-A should have 2 lines';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO B2] Item has only BOM (no Routing) → Partial scenario, BOM from Item, Routing placeholder
@@ -97,11 +103,11 @@ codeunit 137424 "Prod. Def. Wiz. Source Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] Source = Item; BOM-A has 2 lines in the database
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.AreEqual('Item', ActualSourceText, 'Source should be Item');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.AreEqual('Item', ActualSourceText, SourceShouldBeItemLbl);
         ProductionBOMLine.SetRange("Production BOM No.", BOMNo);
         ProductionBOMLine.SetRange("Version Code", '');
-        Assert.AreEqual(2, ProductionBOMLine.Count(), 'BOM-A should have 2 lines');
+        Assert.AreEqual(2, ProductionBOMLine.Count(), BOMAShouldHaveTwoLinesLbl);
     end;
 
     [Test]
@@ -115,6 +121,9 @@ codeunit 137424 "Prod. Def. Wiz. Source Test"
         ItemNo: Code[20];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        SourceShouldBeItemLbl: Label 'Source should be Item';
+        ItemBOMShouldHavePlaceholderLineLbl: Label 'Item BOM should have 1 placeholder line';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO B3] Item has only Routing (no BOM) → Partial scenario, Routing from Item, BOM placeholder
@@ -133,11 +142,11 @@ codeunit 137424 "Prod. Def. Wiz. Source Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] Source = Item; wizard saved a placeholder BOM with 1 line to the item
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.AreEqual('Item', ActualSourceText, 'Source should be Item');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.AreEqual('Item', ActualSourceText, SourceShouldBeItemLbl);
         Item.Get(ItemNo);
         ProductionBOMLine.SetRange("Production BOM No.", Item."Production BOM No.");
-        Assert.AreEqual(1, ProductionBOMLine.Count(), 'Item BOM should have 1 placeholder line');
+        Assert.AreEqual(1, ProductionBOMLine.Count(), ItemBOMShouldHavePlaceholderLineLbl);
     end;
 
     [Test]
@@ -153,6 +162,8 @@ codeunit 137424 "Prod. Def. Wiz. Source Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        SourceShouldBeItemNoSKUForLocationLbl: Label 'Source should be Item (no SKU for location)';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO B4] InitializeFromSalesLine: item data resolved when no SKU for that location
@@ -174,8 +185,8 @@ codeunit 137424 "Prod. Def. Wiz. Source Test"
 
         // [THEN] Source = Item; prod order has 2 component lines from BOM-A;
         //         prod order quantity = 5, due date = WorkDate(), location = sales line location, variant = ''
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.AreEqual('Item', ActualSourceText, 'Source should be Item (no SKU for location)');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.AreEqual('Item', ActualSourceText, SourceShouldBeItemNoSKUForLocationLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderHasComponentCount(ProdOrder, 2);
         ProdDefWizCheckLib.VerifyProdOrderFields(ProdOrder, ItemNo, 5, WorkDate(), LocationCode, '');
@@ -254,6 +265,9 @@ codeunit 137424 "Prod. Def. Wiz. Source Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        BOMNoInWizardShouldBeSKUBOMLbl: Label 'BOM No. in wizard should be the SKU BOM (not empty); mixed-source resolution failed';
+        RoutingNoInWizardShouldComeFromItemLbl: Label 'Routing No. in wizard should come from Item even though SKU has no Routing; GetBOMAndRoutingFromBestSource must not exit early';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO B5] SKU has BOM only (no Routing); Item has Routing only (no BOM).
@@ -282,12 +296,12 @@ codeunit 137424 "Prod. Def. Wiz. Source Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Wizard shows BOM from SKU
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         Assert.AreEqual(SKUBOMNo, ActualBOMNoFromWizardB5,
-            'BOM No. in wizard should be the SKU BOM (not empty); mixed-source resolution failed');
+            BOMNoInWizardShouldBeSKUBOMLbl);
         // [THEN] Wizard shows Routing from Item (not empty) — key assertion for the critical bug
         Assert.AreEqual(ItemRoutingNo, ActualRoutingNoFromWizardB5,
-            'Routing No. in wizard should come from Item even though SKU has no Routing; GetBOMAndRoutingFromBestSource must not exit early');
+            RoutingNoInWizardShouldComeFromItemLbl);
         // [THEN] Production Order has 2 components (from SKU BOM) and 2 routing lines (from Item Routing)
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderHasComponentCount(ProdOrder, 2);

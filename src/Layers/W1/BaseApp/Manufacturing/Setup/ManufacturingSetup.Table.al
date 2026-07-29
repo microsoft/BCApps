@@ -401,7 +401,7 @@ table 99000765 "Manufacturing Setup"
         {
             Caption = 'Default Prod. Wiz. Component Item No.';
             DataClassification = CustomerContent;
-            TableRelation = Item;
+            TableRelation = Item where(Type = filter(Inventory | "Non-Inventory"));
             ToolTip = 'Specifies the default item to use when initializing a new BOM from scratch through the production order creation wizard.';
         }
         field(311; "Def. Wiz. Flushing Method"; Enum "Flushing Method")

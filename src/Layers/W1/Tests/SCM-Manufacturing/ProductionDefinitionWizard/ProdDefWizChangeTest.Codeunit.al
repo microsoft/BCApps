@@ -43,7 +43,6 @@ codeunit 137429 "Prod. Def. Wiz. Change Test"
         ActualEditBOMAfterVersionSelect: Boolean;
         ActualSelectedBOMVersionAfterAssistEdit: Text;
         TargetBOMVersionForH5: Code[20];
-        ActualComponentCountAfterBackForward: Integer;
 
 
     [Test]
@@ -57,6 +56,8 @@ codeunit 137429 "Prod. Def. Wiz. Change Test"
         RoutingNo: Code[20];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        SelectedBOMNoRetainedAfterBackForwardLbl: Label 'SelectedBOMNo should be retained after Back/Forward navigation';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO H1] Change BOM No. on Step 2, step back to Step 1 and forward again → new BOM retained
@@ -76,10 +77,10 @@ codeunit 137429 "Prod. Def. Wiz. Change Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] SelectedBOMNo is retained; BOM lines match selected BOM
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         // The actual verification is done inside the handler:
         // after Back and Forward, SelectedBOMNo should equal OriginalBOMNo (or whatever was set on Step 2)
-        Assert.AreEqual(OriginalBOMNo, ActualBOMNoAfterBackForward, 'SelectedBOMNo should be retained after Back/Forward navigation');
+        Assert.AreEqual(OriginalBOMNo, ActualBOMNoAfterBackForward, SelectedBOMNoRetainedAfterBackForwardLbl);
         // Confirm Item still carries the correct BOM after wizard finishes
         ProdDefWizCheckLib.VerifyItemHasBOM(ItemNo, OriginalBOMNo);
         ProdDefWizCheckLib.VerifyItemHasRouting(ItemNo, RoutingNo);
@@ -98,6 +99,8 @@ codeunit 137429 "Prod. Def. Wiz. Change Test"
         WC1No: Code[20];
         WC2No: Code[20];
         WC3No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        SelectedBOMNoUnchangedAfterRoutingChangeLbl: Label 'SelectedBOMNo should remain unchanged after Routing change on Step 3';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO H2] Change Routing No. on Step 3, go back to Step 2 → BOM selection is unchanged
@@ -119,9 +122,9 @@ codeunit 137429 "Prod. Def. Wiz. Change Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] SelectedBOMNo on Step 2 is still OriginalBOMNo (routing change did not affect BOM)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         Assert.AreEqual(OriginalBOMNo, ActualBOMNoAfterRoutingChange,
-            'SelectedBOMNo should remain unchanged after Routing change on Step 3');
+            SelectedBOMNoUnchangedAfterRoutingChangeLbl);
         // Confirm Item BOM is unchanged and Routing is updated to Routing-B after wizard completes
         ProdDefWizCheckLib.VerifyItemHasBOM(ItemNo, OriginalBOMNo);
         ProdDefWizCheckLib.VerifyItemHasRouting(ItemNo, RoutingBNo);
@@ -138,6 +141,8 @@ codeunit 137429 "Prod. Def. Wiz. Change Test"
         ItemNo: Code[20];
         WC1No: Code[20];
         WC2No: Code[20];
+        BOMLinesEditableAfterOverrideLbl: Label 'BOM lines should be editable after user overrides BOMRoutingDisplay to Edit';
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO H3] Changing BOMRoutingDisplay on Step 1 from Show to Edit → BOM step becomes editable
@@ -158,8 +163,8 @@ codeunit 137429 "Prod. Def. Wiz. Change Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] EditBOMLines = true; Item BOM and Routing unchanged (Save = false)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.IsTrue(ActualEditBOMAfterOverride, 'BOM lines should be editable after user overrides BOMRoutingDisplay to Edit');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.IsTrue(ActualEditBOMAfterOverride, BOMLinesEditableAfterOverrideLbl);
         ProdDefWizCheckLib.VerifyItemHasBOM(ItemNo, BOMNo);
         ProdDefWizCheckLib.VerifyItemHasRouting(ItemNo, RoutingNo);
     end;
@@ -175,6 +180,8 @@ codeunit 137429 "Prod. Def. Wiz. Change Test"
         ItemNo: Code[20];
         WC1No: Code[20];
         WC2No: Code[20];
+        BOMStepNotVisibleAfterHideLbl: Label 'BOM step should not be visible after changing BOMRoutingDisplay to Hide';
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO H4] Changing BOMRoutingDisplay to Hide on Step 1 → BOM and Routing steps are skipped
@@ -195,8 +202,8 @@ codeunit 137429 "Prod. Def. Wiz. Change Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] BOM step is not shown; Item BOM and Routing unchanged (Save = false)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.IsFalse(ActualBOMStepVisible, 'BOM step should not be visible after changing BOMRoutingDisplay to Hide');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.IsFalse(ActualBOMStepVisible, BOMStepNotVisibleAfterHideLbl);
         ProdDefWizCheckLib.VerifyItemHasBOM(ItemNo, BOMNo);
         ProdDefWizCheckLib.VerifyItemHasRouting(ItemNo, RoutingNo);
     end;
@@ -209,6 +216,10 @@ codeunit 137429 "Prod. Def. Wiz. Change Test"
         ProdDefManager: Codeunit "Production Definition Manager";
         BOMNo: Code[20];
         ItemNo: Code[20];
+        CreateBOMVersionResetAfterVersionSelectLbl: Label 'CreateBOMVersion should be reset to false after selecting existing certified version';
+        BOMLinesNotEditableWhenExistingVersionSelectedLbl: Label 'BOM lines should not be editable when existing certified version is selected';
+        SelectedBOMVersionAfterAssistEditLbl: Label 'SelectedBOMVersion should be V001 after AssistEdit selects the existing certified version';
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO H5] Create New BOM Version = true; user AssistEdits SelectedBOMVersion to pick existing certified version → CreateBOMVersion reset to false; BOM lines reload from existing version
@@ -229,10 +240,10 @@ codeunit 137429 "Prod. Def. Wiz. Change Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] CreateBOMVersion = false; BOM lines not editable (existing certified version); Item BOM unchanged (Save = false)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.IsFalse(ActualCreateBOMVersionAfterVersionSelect, 'CreateBOMVersion should be reset to false after selecting existing certified version');
-        Assert.IsFalse(ActualEditBOMAfterVersionSelect, 'BOM lines should not be editable when existing certified version is selected');
-        Assert.AreEqual('V001', ActualSelectedBOMVersionAfterAssistEdit, 'SelectedBOMVersion should be V001 after AssistEdit selects the existing certified version');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.IsFalse(ActualCreateBOMVersionAfterVersionSelect, CreateBOMVersionResetAfterVersionSelectLbl);
+        Assert.IsFalse(ActualEditBOMAfterVersionSelect, BOMLinesNotEditableWhenExistingVersionSelectedLbl);
+        Assert.AreEqual('V001', ActualSelectedBOMVersionAfterAssistEdit, SelectedBOMVersionAfterAssistEditLbl);
         ProdDefWizCheckLib.VerifyItemHasBOM(ItemNo, BOMNo);
         // [THEN] BOM version V001 has exactly 1 line (from CreateBOMVersionAndCertify); verifies BOM lines were reloaded from the correct version
         ProdDefWizCheckLib.VerifyBOMVersionLineCount(BOMNo, 'V001', 1);
@@ -327,7 +338,7 @@ codeunit 137429 "Prod. Def. Wiz. Change Test"
     begin
         RoutingList.Filter.SetFilter("No.", TargetRoutingNoForH2);
         RoutingList.First();
-        RoutingList.OK.Invoke();
+        RoutingList.OK().Invoke();
     end;
 
     [ModalPageHandler]
@@ -360,7 +371,7 @@ codeunit 137429 "Prod. Def. Wiz. Change Test"
     begin
         BOMVersionList.Filter.SetFilter("Version Code", TargetBOMVersionForH5);
         BOMVersionList.First();
-        BOMVersionList.OK.Invoke();
+        BOMVersionList.OK().Invoke();
     end;
 
     [Test]
@@ -376,6 +387,7 @@ codeunit 137429 "Prod. Def. Wiz. Change Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO H6] User navigates to Step 4 (Components), Back to Step 3, Forward to Step 4 again.
@@ -393,12 +405,11 @@ codeunit 137429 "Prod. Def. Wiz. Change Test"
             "Prod. Definition Display"::Edit, "Prod. Definition Display"::Edit);
 
         // [WHEN] User navigates to Step 4 (Components), Back to Step 3 (Routing), Forward to Step 4 again, then Finish
-        ActualComponentCountAfterBackForward := 0;
         Commit();
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Wizard finished; ProdOrder has exactly 2 components (not 4 from stale temp-data)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderHasComponentCount(ProdOrder, 2);
     end;

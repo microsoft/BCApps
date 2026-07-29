@@ -70,7 +70,7 @@ codeunit 99001022 "Prod. Def. Source Initializer"
     var
         UnknownSourceTypeErrorInfo: ErrorInfo;
     begin
-        UnknownSourceTypeErrorInfo.DataClassification := DataClassification::SystemMetadata;
+        UnknownSourceTypeErrorInfo.DataClassification := DataClassification::CustomerContent;
         UnknownSourceTypeErrorInfo.ErrorType := ErrorType::Internal;
         UnknownSourceTypeErrorInfo.Verbosity := Verbosity::Error;
         UnknownSourceTypeErrorInfo.Message := StrSubstNo(UnknownSourceTypeErr, Format(Source));

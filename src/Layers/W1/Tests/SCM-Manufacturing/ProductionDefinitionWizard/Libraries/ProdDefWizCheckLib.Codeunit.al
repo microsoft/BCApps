@@ -8,37 +8,20 @@ using Microsoft.Inventory.Item;
 using Microsoft.Inventory.Location;
 using Microsoft.Inventory.Tracking;
 using Microsoft.Manufacturing.Document;
-using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
+using Microsoft.Manufacturing.Setup;
 using Microsoft.Sales.Document;
 
 codeunit 137422 "Prod. Def. Wiz. Check Lib."
 {
     var
         Assert: Codeunit Assert;
-        ItemShouldHaveBOMLbl: Label 'Item %1 should have BOM No. = %2', Locked = true;
-        ItemShouldHaveRoutingLbl: Label 'Item %1 should have Routing No. = %2', Locked = true;
-        SKUShouldHaveBOMLbl: Label 'SKU (%1/%2/%3) should have BOM No. = %4', Locked = true;
-        SKUShouldHaveRoutingLbl: Label 'SKU (%1/%2/%3) should have Routing No. = %4', Locked = true;
-        ProdOrderShouldExistLbl: Label 'Production Order should exist for item %1', Locked = true;
-        ProdOrderShouldNotExistLbl: Label 'No Production Order should exist for item %1', Locked = true;
-        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
-        ComponentCountMismatchLbl: Label 'Expected %1 Prod. Order components but found %2', Locked = true;
-        RoutingLineCountMismatchLbl: Label 'Expected %1 Prod. Order routing lines but found %2', Locked = true;
-        BOMVersionShouldBeCertifiedLbl: Label 'BOM %1 version %2 should be certified', Locked = true;
-        BOMVersionShouldNotExistLbl: Label 'BOM %1 version %2 should not exist', Locked = true;
-        RoutingVersionShouldBeCertifiedLbl: Label 'Routing %1 version %2 should be certified', Locked = true;
-        RoutingVersionShouldNotExistLbl: Label 'Routing Version should not exist for Routing %1', Locked = true;
-        BOMVersionShouldBeNewLbl: Label 'BOM %1 should have a new version after the wizard; previous: %2, last is still: %3', Locked = true;
-        RoutingVersionShouldBeNewLbl: Label 'Routing %1 should have a new version after the wizard; previous: %2, last is still: %3', Locked = true;
-        ReservationShouldExistLbl: Label 'Reservation Entry should exist for Sales Line %1/%2', Locked = true;
-        ReservationShouldNotExistLbl: Label 'Reservation Entry should NOT exist for Sales Line %1/%2', Locked = true;
-        ReservationShouldLinkProdOrderLbl: Label 'Reservation Entry should exist linking Sales Line %1/%2 to Production Order %3', Locked = true;
 
     procedure VerifyItemHasBOM(ItemNo: Code[20]; ExpectedBOMNo: Code[20])
     var
         Item: Record Item;
+        ItemShouldHaveBOMLbl: Label 'Item %1 should have BOM No. = %2', Locked = true;
     begin
         Item.Get(ItemNo);
         Assert.AreEqual(ExpectedBOMNo, Item."Production BOM No.",
@@ -48,6 +31,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyItemHasRouting(ItemNo: Code[20]; ExpectedRoutingNo: Code[20])
     var
         Item: Record Item;
+        ItemShouldHaveRoutingLbl: Label 'Item %1 should have Routing No. = %2', Locked = true;
     begin
         Item.Get(ItemNo);
         Assert.AreEqual(ExpectedRoutingNo, Item."Routing No.",
@@ -57,6 +41,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyItemBOMUnchanged(ItemNo: Code[20]; OriginalBOMNo: Code[20])
     var
         Item: Record Item;
+        ItemShouldHaveBOMLbl: Label 'Item %1 should have BOM No. = %2', Locked = true;
     begin
         Item.Get(ItemNo);
         Assert.AreEqual(OriginalBOMNo, Item."Production BOM No.",
@@ -66,6 +51,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyItemRoutingUnchanged(ItemNo: Code[20]; OriginalRoutingNo: Code[20])
     var
         Item: Record Item;
+        ItemShouldHaveRoutingLbl: Label 'Item %1 should have Routing No. = %2', Locked = true;
     begin
         Item.Get(ItemNo);
         Assert.AreEqual(OriginalRoutingNo, Item."Routing No.",
@@ -75,6 +61,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyItemHasAnyBOM(ItemNo: Code[20])
     var
         Item: Record Item;
+        ItemShouldHaveBOMLbl: Label 'Item %1 should have BOM No. = %2', Locked = true;
     begin
         Item.Get(ItemNo);
         Assert.AreNotEqual('', Item."Production BOM No.",
@@ -84,6 +71,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyItemHasAnyRouting(ItemNo: Code[20])
     var
         Item: Record Item;
+        ItemShouldHaveRoutingLbl: Label 'Item %1 should have Routing No. = %2', Locked = true;
     begin
         Item.Get(ItemNo);
         Assert.AreNotEqual('', Item."Routing No.",
@@ -93,6 +81,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifySKUHasBOM(ItemNo: Code[20]; LocationCode: Code[10]; VariantCode: Code[10]; ExpectedBOMNo: Code[20])
     var
         SKU: Record "Stockkeeping Unit";
+        SKUShouldHaveBOMLbl: Label 'SKU (%1/%2/%3) should have BOM No. = %4', Locked = true;
     begin
         SKU.Get(LocationCode, ItemNo, VariantCode);
         Assert.AreEqual(ExpectedBOMNo, SKU."Production BOM No.",
@@ -102,6 +91,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifySKUHasRouting(ItemNo: Code[20]; LocationCode: Code[10]; VariantCode: Code[10]; ExpectedRoutingNo: Code[20])
     var
         SKU: Record "Stockkeeping Unit";
+        SKUShouldHaveRoutingLbl: Label 'SKU (%1/%2/%3) should have Routing No. = %4', Locked = true;
     begin
         SKU.Get(LocationCode, ItemNo, VariantCode);
         Assert.AreEqual(ExpectedRoutingNo, SKU."Routing No.",
@@ -111,6 +101,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyNoProdOrderForItem(ItemNo: Code[20])
     var
         ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderShouldNotExistLbl: Label 'No Production Order should exist for item %1', Locked = true;
     begin
         ProdOrderLine.SetRange("Item No.", ItemNo);
         Assert.IsTrue(ProdOrderLine.IsEmpty(),
@@ -120,6 +111,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyProdOrderExists(ItemNo: Code[20]; var ProdOrder: Record "Production Order")
     var
         ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderShouldExistLbl: Label 'Production Order should exist for item %1', Locked = true;
     begin
         ProdOrderLine.SetRange("Item No.", ItemNo);
         Assert.IsTrue(ProdOrderLine.FindFirst(),
@@ -130,6 +122,8 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyProdOrderFields(ProdOrder: Record "Production Order"; ItemNo: Code[20]; Qty: Decimal; DueDate: Date; LocationCode: Code[10]; VariantCode: Code[10])
     var
         ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderShouldExistLbl: Label 'Production Order should exist for item %1', Locked = true;
+        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
     begin
         ProdOrderLine.SetRange(Status, ProdOrder.Status);
         ProdOrderLine.SetRange("Prod. Order No.", ProdOrder."No.");
@@ -154,6 +148,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     var
         ProdOrderComponent: Record "Prod. Order Component";
         ActualCount: Integer;
+        ComponentCountMismatchLbl: Label 'Expected %1 Prod. Order components but found %2', Locked = true;
     begin
         ProdOrderComponent.SetRange(Status, ProdOrder.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrder."No.");
@@ -166,6 +161,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
         ActualCount: Integer;
+        RoutingLineCountMismatchLbl: Label 'Expected %1 Prod. Order routing lines but found %2', Locked = true;
     begin
         ProdOrderRoutingLine.SetRange(Status, ProdOrder.Status);
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrder."No.");
@@ -177,6 +173,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyNoBOMVersionExists(BOMNo: Code[20])
     var
         ProductionBOMVersion: Record "Production BOM Version";
+        BOMVersionShouldNotExistLbl: Label 'BOM %1 version %2 should not exist', Locked = true;
     begin
         ProductionBOMVersion.SetRange("Production BOM No.", BOMNo);
         Assert.IsTrue(ProductionBOMVersion.IsEmpty(),
@@ -186,6 +183,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyNoRoutingVersionExists(RoutingNo: Code[20])
     var
         RoutingVersion: Record "Routing Version";
+        RoutingVersionShouldNotExistLbl: Label 'Routing Version should not exist for Routing %1', Locked = true;
     begin
         RoutingVersion.SetRange("Routing No.", RoutingNo);
         Assert.IsTrue(RoutingVersion.IsEmpty(),
@@ -215,6 +213,8 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyNewLastBOMVersionCertified(BOMNo: Code[20]; PreviousVersionCode: Code[20])
     var
         ProductionBOMVersion: Record "Production BOM Version";
+        BOMVersionShouldBeCertifiedLbl: Label 'BOM %1 version %2 should be certified', Locked = true;
+        BOMVersionShouldBeNewLbl: Label 'BOM %1 should have a new version after the wizard; previous: %2, last is still: %3', Locked = true;
     begin
         ProductionBOMVersion.SetRange("Production BOM No.", BOMNo);
         Assert.IsTrue(ProductionBOMVersion.FindLast(),
@@ -228,6 +228,8 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyNewLastRoutingVersionCertified(RoutingNo: Code[20]; PreviousVersionCode: Code[20])
     var
         RoutingVersion: Record "Routing Version";
+        RoutingVersionShouldBeCertifiedLbl: Label 'Routing %1 version %2 should be certified', Locked = true;
+        RoutingVersionShouldBeNewLbl: Label 'Routing %1 should have a new version after the wizard; previous: %2, last is still: %3', Locked = true;
     begin
         RoutingVersion.SetRange("Routing No.", RoutingNo);
         Assert.IsTrue(RoutingVersion.FindLast(),
@@ -241,6 +243,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyReservationExistsForSalesLine(SalesLine: Record "Sales Line")
     var
         ReservationEntry: Record "Reservation Entry";
+        ReservationShouldExistLbl: Label 'Reservation Entry should exist for Sales Line %1/%2', Locked = true;
     begin
         ReservationEntry.SetRange("Source Type", Database::"Sales Line");
         ReservationEntry.SetRange("Source Subtype", SalesLine."Document Type".AsInteger());
@@ -253,6 +256,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyReservationLinksToProductionOrder(SalesLine: Record "Sales Line"; ProdOrder: Record "Production Order")
     var
         ReservationEntry: Record "Reservation Entry";
+        ReservationShouldLinkProdOrderLbl: Label 'Reservation Entry should exist linking Sales Line %1/%2 to Production Order %3', Locked = true;
     begin
         // Verify the supply side of the reservation points to the specific Production Order
         ReservationEntry.SetRange("Source Type", Database::"Prod. Order Line");
@@ -265,6 +269,8 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     end;
 
     procedure VerifyProdOrderStatus(ProdOrder: Record "Production Order"; ExpectedStatus: Enum "Production Order Status")
+    var
+        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
     begin
         Assert.AreEqual(ExpectedStatus, ProdOrder.Status,
             StrSubstNo(ProdOrderFieldMismatchLbl, 'Status', Format(ExpectedStatus), Format(ProdOrder.Status)));
@@ -273,6 +279,8 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyProdOrderLineHasBOM(ItemNo: Code[20]; ExpectedBOMNo: Code[20])
     var
         ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderShouldExistLbl: Label 'Production Order should exist for item %1', Locked = true;
+        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
     begin
         ProdOrderLine.SetRange("Item No.", ItemNo);
         Assert.IsTrue(ProdOrderLine.FindFirst(),
@@ -284,6 +292,8 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyProdOrderLineHasRouting(ItemNo: Code[20]; ExpectedRoutingNo: Code[20])
     var
         ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderShouldExistLbl: Label 'Production Order should exist for item %1', Locked = true;
+        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
     begin
         ProdOrderLine.SetRange("Item No.", ItemNo);
         Assert.IsTrue(ProdOrderLine.FindFirst(),
@@ -295,6 +305,8 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyProdOrderLineHasBOMVersion(ItemNo: Code[20]; ExpectedVersionCode: Code[20])
     var
         ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderShouldExistLbl: Label 'Production Order should exist for item %1', Locked = true;
+        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
     begin
         ProdOrderLine.SetRange("Item No.", ItemNo);
         Assert.IsTrue(ProdOrderLine.FindFirst(),
@@ -306,6 +318,8 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyProdOrderLineHasRoutingVersion(ItemNo: Code[20]; ExpectedVersionCode: Code[20])
     var
         ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderShouldExistLbl: Label 'Production Order should exist for item %1', Locked = true;
+        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
     begin
         ProdOrderLine.SetRange("Item No.", ItemNo);
         Assert.IsTrue(ProdOrderLine.FindFirst(),
@@ -317,6 +331,8 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyProdOrderLineScrapPct(ItemNo: Code[20]; ExpectedScrapPct: Decimal)
     var
         ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderShouldExistLbl: Label 'Production Order should exist for item %1', Locked = true;
+        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
     begin
         ProdOrderLine.SetRange("Item No.", ItemNo);
         Assert.IsTrue(ProdOrderLine.FindFirst(),
@@ -328,6 +344,8 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyProdOrderComponentHasQtyPerForFirstComponent(ProdOrder: Record "Production Order"; ExpectedQtyPer: Decimal)
     var
         ProdOrderComponent: Record "Prod. Order Component";
+        ComponentCountMismatchLbl: Label 'Expected %1 Prod. Order components but found %2', Locked = true;
+        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
     begin
         ProdOrderComponent.SetRange(Status, ProdOrder.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrder."No.");
@@ -340,6 +358,8 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyProdOrderRoutingLineRunTime(ProdOrder: Record "Production Order"; OperationNo: Code[10]; ExpectedRunTime: Decimal)
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        RoutingLineCountMismatchLbl: Label 'Expected %1 Prod. Order routing lines but found %2', Locked = true;
+        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
     begin
         ProdOrderRoutingLine.SetRange(Status, ProdOrder.Status);
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrder."No.");
@@ -353,6 +373,8 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyProdOrderComponentHasVariantCode(ProdOrder: Record "Production Order"; ExpectedVariantCode: Code[10])
     var
         ProdOrderComponent: Record "Prod. Order Component";
+        ComponentCountMismatchLbl: Label 'Expected %1 Prod. Order components but found %2', Locked = true;
+        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
     begin
         ProdOrderComponent.SetRange(Status, ProdOrder.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrder."No.");
@@ -365,6 +387,8 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyProdOrderComponentHasDescription2(ProdOrder: Record "Production Order"; ExpectedDesc2: Text[50])
     var
         ProdOrderComponent: Record "Prod. Order Component";
+        ComponentCountMismatchLbl: Label 'Expected %1 Prod. Order components but found %2', Locked = true;
+        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
     begin
         ProdOrderComponent.SetRange(Status, ProdOrder.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrder."No.");
@@ -377,6 +401,8 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyProdOrderRoutingLineHasDescription2(ProdOrder: Record "Production Order"; ExpectedDesc2: Text[50])
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        RoutingLineCountMismatchLbl: Label 'Expected %1 Prod. Order routing lines but found %2', Locked = true;
+        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
     begin
         ProdOrderRoutingLine.SetRange(Status, ProdOrder.Status);
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrder."No.");
@@ -389,6 +415,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyProdOrderComponentFlushingMethod(ProdOrder: Record "Production Order"; ExpectedFlushingMethod: Enum "Flushing Method")
     var
         ProdOrderComponent: Record "Prod. Order Component";
+        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
     begin
         ProdOrderComponent.SetRange(Status, ProdOrder.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrder."No.");
@@ -404,6 +431,10 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     var
         ReservationEntry: Record "Reservation Entry";
         ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderShouldExistLbl: Label 'Production Order should exist for item %1', Locked = true;
+        ReservationShouldExistLbl: Label 'Reservation Entry should exist for Sales Line %1/%2', Locked = true;
+        ReservationQtyShouldBeGreaterThanZeroLbl: Label 'Reservation base quantity should be greater than zero';
+        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
     begin
         ProdOrderLine.SetRange("Item No.", ItemNo);
         Assert.IsTrue(ProdOrderLine.FindFirst(),
@@ -415,7 +446,7 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
         Assert.IsTrue(ReservationEntry.FindFirst(),
             StrSubstNo(ReservationShouldExistLbl, SalesLine."Document No.", SalesLine."Line No."));
         Assert.IsTrue(Abs(ReservationEntry."Quantity (Base)") > 0,
-            'Reservation base quantity should be greater than zero');
+            ReservationQtyShouldBeGreaterThanZeroLbl);
         Assert.AreNearlyEqual(ProdOrderLine."Remaining Qty. (Base)", Abs(ReservationEntry."Quantity (Base)"), 0.01,
             StrSubstNo(ProdOrderFieldMismatchLbl,
                 'Reservation Quantity (Base)',
@@ -427,6 +458,9 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     var
         ProdOrderLine: Record "Prod. Order Line";
         ReservationEntry: Record "Reservation Entry";
+        ProdOrderShouldExistLbl: Label 'Production Order should exist for item %1', Locked = true;
+        ReservationShouldExistForProdOrderLineLbl: Label 'Reservation Entry should exist for Prod. Order Line of item %1', Comment = '%1 = Item No.';
+        LotNoShouldMatchExpectedLbl: Label 'Lot No. on Reservation Entry should match expected: %1', Comment = '%1 = Expected Lot No.';
     begin
         ProdOrderLine.SetRange("Item No.", ItemNo);
         Assert.IsTrue(ProdOrderLine.FindFirst(),
@@ -436,21 +470,22 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
         ReservationEntry.SetRange("Source ID", ProdOrderLine."Prod. Order No.");
         ReservationEntry.SetRange("Source Prod. Order Line", ProdOrderLine."Line No.");
         Assert.IsTrue(ReservationEntry.FindFirst(),
-            'Reservation Entry should exist for Prod. Order Line of item ' + ItemNo);
+            StrSubstNo(ReservationShouldExistForProdOrderLineLbl, ItemNo));
         Assert.AreEqual(ExpectedLotNo, ReservationEntry."Lot No.",
-            'Lot No. on Reservation Entry should match expected: ' + ExpectedLotNo);
+            StrSubstNo(LotNoShouldMatchExpectedLbl, ExpectedLotNo));
     end;
 
     procedure VerifyBOMVersionLineCount(BOMNo: Code[20]; VersionCode: Code[20]; ExpectedCount: Integer)
     var
         ProductionBOMLine: Record "Production BOM Line";
         ActualCount: Integer;
+        BOMVersionLineCountMismatchLbl: Label 'BOM %1 version %2: expected %3 lines but found %4', Comment = '%1 = Production BOM No.; %2 = Version Code; %3 = Expected line count; %4 = Actual line count';
     begin
         ProductionBOMLine.SetRange("Production BOM No.", BOMNo);
         ProductionBOMLine.SetRange("Version Code", VersionCode);
         ActualCount := ProductionBOMLine.Count();
         Assert.AreEqual(ExpectedCount, ActualCount,
-            StrSubstNo('BOM %1 version %2: expected %3 lines but found %4',
+            StrSubstNo(BOMVersionLineCountMismatchLbl,
                 BOMNo, VersionCode, ExpectedCount, ActualCount));
     end;
 
@@ -458,12 +493,13 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     var
         RoutingLine: Record "Routing Line";
         ActualCount: Integer;
+        RoutingVersionLineCountMismatchLbl: Label 'Routing %1 version %2: expected %3 lines but found %4', Comment = '%1 = Routing No.; %2 = Version Code; %3 = Expected line count; %4 = Actual line count';
     begin
         RoutingLine.SetRange("Routing No.", RoutingNo);
         RoutingLine.SetRange("Version Code", VersionCode);
         ActualCount := RoutingLine.Count();
         Assert.AreEqual(ExpectedCount, ActualCount,
-            StrSubstNo('Routing %1 version %2: expected %3 lines but found %4',
+            StrSubstNo(RoutingVersionLineCountMismatchLbl,
                 RoutingNo, VersionCode, ExpectedCount, ActualCount));
     end;
 
@@ -490,6 +526,8 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyProdOrderComponentBOMFields(ProdOrder: Record "Production Order"; ComponentItemNo: Code[20]; ExpectedScrapPct: Decimal; ExpectedLength: Decimal; ExpectedWidth: Decimal; ExpectedWeight: Decimal; ExpectedDepth: Decimal)
     var
         ProdOrderComponent: Record "Prod. Order Component";
+        ComponentCountMismatchLbl: Label 'Expected %1 Prod. Order components but found %2', Locked = true;
+        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
     begin
         ProdOrderComponent.SetRange(Status, ProdOrder.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrder."No.");
@@ -511,6 +549,8 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyProdOrderComponentCalcFormula(ProdOrder: Record "Production Order"; ComponentItemNo: Code[20])
     var
         ProdOrderComponent: Record "Prod. Order Component";
+        ComponentCountMismatchLbl: Label 'Expected %1 Prod. Order components but found %2', Locked = true;
+        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
     begin
         ProdOrderComponent.SetRange(Status, ProdOrder.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrder."No.");
@@ -528,6 +568,8 @@ codeunit 137422 "Prod. Def. Wiz. Check Lib."
     procedure VerifyProdOrderRoutingLineExtendedFields(ProdOrder: Record "Production Order"; OperationNo: Code[10]; ExpectedPrevOpNo: Code[30]; ExpectedNextOpNo: Code[30]; ExpectedSetupUOM: Code[10]; ExpectedRunUOM: Code[10]; ExpectedWaitUOM: Code[10]; ExpectedMoveUOM: Code[10]; ExpectedFixedScrapQty: Decimal; ExpectedScrapFactorPct: Decimal; ExpectedSendAheadQty: Decimal; ExpectedConcurrentCap: Decimal; ExpectedLotSize: Decimal)
     var
         ProdOrderRoutingLine: Record "Prod. Order Routing Line";
+        RoutingLineCountMismatchLbl: Label 'Expected %1 Prod. Order routing lines but found %2', Locked = true;
+        ProdOrderFieldMismatchLbl: Label 'Production Order field %1: expected %2, got %3', Locked = true;
     begin
         ProdOrderRoutingLine.SetRange(Status, ProdOrder.Status);
         ProdOrderRoutingLine.SetRange("Prod. Order No.", ProdOrder."No.");

@@ -32,7 +32,6 @@ codeunit 137428 "Prod. Def. Wiz. Save Test"
         WizardFinished: Boolean;
         // Handler state
         ActualSaveTargetAfterToggleOff: Text;
-        ActualSKUNotAllowedErrorRaised: Boolean;
 
 
     [Test]
@@ -46,6 +45,7 @@ codeunit 137428 "Prod. Def. Wiz. Save Test"
         ItemNo: Code[20];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO F1] Save toggle OFF → Item Card BOM/Routing unchanged after finish
@@ -64,7 +64,7 @@ codeunit 137428 "Prod. Def. Wiz. Save Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] Item."Production BOM No." and Item."Routing No." remain unchanged
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyItemBOMUnchanged(ItemNo, BOMNo);
         ProdDefWizCheckLib.VerifyItemRoutingUnchanged(ItemNo, RoutingNo);
     end;
@@ -80,6 +80,9 @@ codeunit 137428 "Prod. Def. Wiz. Save Test"
         PostWizardLastBOMNo: Code[20];
         PreWizardLastRoutingNo: Code[20];
         PostWizardLastRoutingNo: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        WizardShouldHaveCreatedNewBOMLbl: Label 'Wizard should have created a new Production BOM';
+        WizardShouldHaveCreatedNewRoutingLbl: Label 'Wizard should have created a new Routing';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO F2] Save = Item, source was Item → Item BOM/Routing updated to selected values
@@ -100,9 +103,9 @@ codeunit 137428 "Prod. Def. Wiz. Save Test"
         // [THEN] Item."Production BOM No." is populated with the wizard-selected BOM; Item."Routing No." with the wizard-selected Routing
         PostWizardLastBOMNo := ProdDefWizCheckLib.GetLastProductionBOMNo();
         PostWizardLastRoutingNo := ProdDefWizCheckLib.GetLastRoutingNo();
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.AreNotEqual(PreWizardLastBOMNo, PostWizardLastBOMNo, 'Wizard should have created a new Production BOM');
-        Assert.AreNotEqual(PreWizardLastRoutingNo, PostWizardLastRoutingNo, 'Wizard should have created a new Routing');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.AreNotEqual(PreWizardLastBOMNo, PostWizardLastBOMNo, WizardShouldHaveCreatedNewBOMLbl);
+        Assert.AreNotEqual(PreWizardLastRoutingNo, PostWizardLastRoutingNo, WizardShouldHaveCreatedNewRoutingLbl);
         ProdDefWizCheckLib.VerifyItemHasBOM(ItemNo, PostWizardLastBOMNo);
         ProdDefWizCheckLib.VerifyItemHasRouting(ItemNo, PostWizardLastRoutingNo);
     end;
@@ -118,6 +121,8 @@ codeunit 137428 "Prod. Def. Wiz. Save Test"
         LocationCode: Code[10];
         PreWizardLastRoutingNo: Code[20];
         PostWizardLastRoutingNo: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        WizardShouldHaveCreatedNewRoutingLbl: Label 'Wizard should have created a new Routing';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO F3] Save = StockkeepingUnit, source was SKU → SKU BOM/Routing updated
@@ -138,12 +143,12 @@ codeunit 137428 "Prod. Def. Wiz. Save Test"
 
         // [THEN] SKU."Production BOM No." is set to the wizard-selected BOM; Item."Production BOM No." still = BOM-A
         PostWizardLastRoutingNo := ProdDefWizCheckLib.GetLastRoutingNo();
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifySKUHasBOM(ItemNo, LocationCode, '', OriginalItemBOMNo);
         ProdDefWizCheckLib.VerifyItemBOMUnchanged(ItemNo, OriginalItemBOMNo);
 
         // [THEN] SKU."Routing No." is set to the wizard-created Routing; Item."Routing No." remains unchanged (blank)
-        Assert.AreNotEqual(PreWizardLastRoutingNo, PostWizardLastRoutingNo, 'Wizard should have created a new Routing');
+        Assert.AreNotEqual(PreWizardLastRoutingNo, PostWizardLastRoutingNo, WizardShouldHaveCreatedNewRoutingLbl);
         ProdDefWizCheckLib.VerifySKUHasRouting(ItemNo, LocationCode, '', PostWizardLastRoutingNo);
         ProdDefWizCheckLib.VerifyItemRoutingUnchanged(ItemNo, '');
     end;
@@ -183,6 +188,8 @@ codeunit 137428 "Prod. Def. Wiz. Save Test"
         Item: Record Item;
         ProdDefManager: Codeunit "Production Definition Manager";
         ItemNo: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        SaveTargetShouldBeClearedLbl: Label 'SaveBOMRoutingToSource should be cleared (Empty) after Save toggle off';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO F5] Save toggle ON and then OFF: SaveBOMRoutingToSource is cleared
@@ -200,8 +207,8 @@ codeunit 137428 "Prod. Def. Wiz. Save Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] SaveBOMRoutingToSource = Empty
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.AreEqual(' ', ActualSaveTargetAfterToggleOff, 'SaveBOMRoutingToSource should be cleared (Empty) after Save toggle off');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.AreEqual(' ', ActualSaveTargetAfterToggleOff, SaveTargetShouldBeClearedLbl);
     end;
 
     [Test]
@@ -215,6 +222,7 @@ codeunit 137428 "Prod. Def. Wiz. Save Test"
         ItemNo: Code[20];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO F6] DefineItemStructure mode: finish without Save does not create any production order
@@ -233,7 +241,7 @@ codeunit 137428 "Prod. Def. Wiz. Save Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] No Production Order record exists for this item
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyNoProdOrderForItem(ItemNo);
     end;
 
@@ -282,10 +290,10 @@ codeunit 137428 "Prod. Def. Wiz. Save Test"
     begin
         // Enable Save first to activate SaveBomRtngToSourceField
         Wizard.SaveBOMRoutingField.SetValue(true);
-        // Attempt to set StockkeepingUnit — should raise an error since source is Item
+        // Attempt to set StockkeepingUnit — it should reset to Item since source is Item
         Wizard.SaveBOMRtngToSourceField.SetValue("Prod. Definition Save Target"::StockkeepingUnit);
-        ActualSKUNotAllowedErrorRaised := true;
-        // Finish (if possible)
+        ActualSaveTargetAfterToggleOff := Wizard.SaveBOMRtngToSourceField.Value();
+        // Finish
         while Wizard.ActionNext.Enabled() do
             Wizard.ActionNext.Invoke();
         if Wizard.ActionFinish.Enabled() then begin

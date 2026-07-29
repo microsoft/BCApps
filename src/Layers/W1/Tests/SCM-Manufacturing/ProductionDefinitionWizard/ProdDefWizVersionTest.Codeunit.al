@@ -36,12 +36,9 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ActualEditBOMLines: Boolean;
         ActualSelectedBOMVersionText: Text;
         ActualCreateBOMVersionToggleRaisedError: Boolean;
-        ActualCreateBOMVersionErrorText: Text;
         ActualEditRoutingLines: Boolean;
         ActualSelectedRoutingVersionText: Text;
         ActualCreateRoutingVersionToggleRaisedError: Boolean;
-        ActualCreateRoutingVersionErrorText: Text;
-
 
     [Test]
     [HandlerFunctions('HandleWizardToggleCreateBOMVersionOn')]
@@ -52,6 +49,9 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         BOMNo: Code[20];
         ItemNo: Code[20];
         LocationCode: Code[10];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        BOMLinesShouldBeEditableLbl: Label 'BOM lines should be editable after toggling Create New BOM Version';
+        SelectedBOMVersionShouldStartWithTempLbl: Label 'SelectedBOMVersion should start with TEMP';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO E1] "Create New BOM Version" toggle enabled → BOM lines become editable
@@ -60,6 +60,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         // [GIVEN] Wizard is on Step 2; BOMRoutingDisplay = Edit; item has a certified BOM with Version Nos. series
         BOMNo := ProdDefWizLibrary.CreateBOM(2); // already sets Version Nos.
         ItemNo := ProdDefWizLibrary.CreateItemWithBOMAndRouting(BOMNo, '');
+        LocationCode := ProdDefWizLibrary.CreateLocationCode();
         ProdDefWizLibrary.CreateSalesLine(SalesLine, ItemNo, 5, LocationCode, '', WorkDate());
         ProdDefWizSetupLib.ConfigureForPartiallyAvailable(
             "Prod. Definition Display"::Edit, "Prod. Definition Display"::Edit);
@@ -73,9 +74,9 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         // [THEN] EditBOMLines = true; SelectedBOMVersion starts with 'TEMP'
         // Note: Save=false and AlwaysSaveModifiedVersions=false → the TEMP version is discarded at Finish.
         // VerifyNoBOMVersionExists confirms the version was not inadvertently committed to the database.
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.IsTrue(ActualEditBOMLines, 'BOM lines should be editable after toggling Create New BOM Version');
-        Assert.IsTrue(ActualSelectedBOMVersionText.StartsWith('TEMP'), 'SelectedBOMVersion should start with TEMP');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.IsTrue(ActualEditBOMLines, BOMLinesShouldBeEditableLbl);
+        Assert.IsTrue(ActualSelectedBOMVersionText.StartsWith('TEMP'), SelectedBOMVersionShouldStartWithTempLbl);
         ProdDefWizCheckLib.VerifyItemHasBOM(ItemNo, BOMNo);
         ProdDefWizCheckLib.VerifyNoBOMVersionExists(BOMNo);
     end;
@@ -88,6 +89,8 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ProdDefManager: Codeunit "Production Definition Manager";
         BOMNo: Code[20];
         ItemNo: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        SelectedBOMVersionShouldBeClearedLbl: Label 'SelectedBOMVersion should be cleared after turning off Create New BOM Version';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO E2] "Create New BOM Version" disabled (turned off again) → BOM lines revert to source lines
@@ -106,8 +109,8 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] SelectedBOMVersion is cleared (empty)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.AreEqual('', ActualSelectedBOMVersionText, 'SelectedBOMVersion should be cleared after turning off Create New BOM Version');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.AreEqual('', ActualSelectedBOMVersionText, SelectedBOMVersionShouldBeClearedLbl);
         ProdDefWizCheckLib.VerifyItemHasBOM(ItemNo, BOMNo);
         ProdDefWizCheckLib.VerifyNoBOMVersionExists(BOMNo);
     end;
@@ -123,6 +126,9 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ItemNo: Code[20];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldNotHaveFinishedLbl: Label 'Wizard should not have finished';
+        RoutingLinesShouldBeEditableLbl: Label 'Routing lines should be editable after toggling Create New Routing Version';
+        SelectedRoutingVersionShouldStartWithTempLbl: Label 'SelectedRoutingVersion should start with TEMP';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO E3] "Create New Routing Version" toggle enabled → Routing lines become editable
@@ -144,9 +150,9 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
 
         // [THEN] EditRoutingLines = true; SelectedRoutingVersion starts with 'TEMP';
         // the TEMP version is discarded at closing
-        Assert.IsFalse(WizardFinished, 'Wizard should not have finished');
-        Assert.IsTrue(ActualEditRoutingLines, 'Routing lines should be editable after toggling Create New Routing Version');
-        Assert.IsTrue(ActualSelectedRoutingVersionText.StartsWith('TEMP'), 'SelectedRoutingVersion should start with TEMP');
+        Assert.IsFalse(WizardFinished, WizardShouldNotHaveFinishedLbl);
+        Assert.IsTrue(ActualEditRoutingLines, RoutingLinesShouldBeEditableLbl);
+        Assert.IsTrue(ActualSelectedRoutingVersionText.StartsWith('TEMP'), SelectedRoutingVersionShouldStartWithTempLbl);
         ProdDefWizCheckLib.VerifyItemHasBOM(ItemNo, BOMNo);
         ProdDefWizCheckLib.VerifyItemHasRouting(ItemNo, RoutingNo);
         ProdDefWizCheckLib.VerifyNoBOMVersionExists(BOMNo);
@@ -162,6 +168,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         BOMNo: Code[20];
         ItemNo: Code[20];
         LastBOMVersionBefore: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO E4] "Create New BOM Version" on finish: new BOM version is created and certified
@@ -180,7 +187,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] The item still has the same BOM; a new certified BOM version was created
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyItemHasBOM(ItemNo, BOMNo);
         ProdDefWizCheckLib.VerifyNewLastBOMVersionCertified(BOMNo, LastBOMVersionBefore);
     end;
@@ -199,6 +206,9 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         WC1No: Code[20];
         WC2No: Code[20];
         LastRoutingVersionBefore: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        RoutingVersionTypeShouldMatchSourceLbl: Label 'New Routing version Type should match the source Routing Header Type (Serial/Parallel), not remain blank';
+        RoutingVersionStartingDateShouldBeWorkDateLbl: Label 'New Routing version Starting Date should be WorkDate()';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO E5] "Create New Routing Version" on finish: new Routing version is created and certified
@@ -218,7 +228,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] The item still has the same Routing; a new certified Routing version was created
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyItemHasRouting(ItemNo, RoutingNo);
         ProdDefWizCheckLib.VerifyNewLastRoutingVersionCertified(RoutingNo, LastRoutingVersionBefore);
 
@@ -228,11 +238,11 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         RoutingVersion.SetRange("Routing No.", RoutingNo);
         RoutingVersion.FindLast();
         Assert.AreEqual(Format(RoutingHeader.Type), Format(RoutingVersion.Type),
-            'New Routing version Type should match the source Routing Header Type (Serial/Parallel), not remain blank');
+            RoutingVersionTypeShouldMatchSourceLbl);
 
         // [THEN] The new Routing version Starting Date = WorkDate()
         Assert.AreEqual(WorkDate(), RoutingVersion."Starting Date",
-            'New Routing version Starting Date should be WorkDate()');
+            RoutingVersionStartingDateShouldBeWorkDateLbl);
     end;
 
     [Test]
@@ -243,6 +253,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ProdDefManager: Codeunit "Production Definition Manager";
         BOMNo: Code[20];
         ItemNo: Code[20];
+        CreateBOMVersionWithoutVersionNosShouldErrorLbl: Label 'Turning on Create New BOM Version without Version Nos. should raise an error';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO E6] BOM without Version Nos. series → "Create New BOM Version" check raises error
@@ -261,10 +272,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] An error is raised indicating version number series is required
-        Assert.IsTrue(ActualCreateBOMVersionToggleRaisedError, 'Turning on Create New BOM Version without Version Nos. should raise an error');
-        Assert.AreNotEqual('', ActualCreateBOMVersionErrorText, 'Error text must be captured to confirm the correct error was raised');
-        Assert.IsTrue(ActualCreateBOMVersionErrorText.Contains('Version Nos.'),
-            StrSubstNo('Expected error about ''Version Nos.'' but got: %1', ActualCreateBOMVersionErrorText));
+        Assert.IsTrue(ActualCreateBOMVersionToggleRaisedError, CreateBOMVersionWithoutVersionNosShouldErrorLbl);
         ProdDefWizCheckLib.VerifyItemHasBOM(ItemNo, BOMNo);
         ProdDefWizCheckLib.VerifyNoBOMVersionExists(BOMNo);
     end;
@@ -279,6 +287,8 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         BOMNo: Code[20];
         ItemNo: Code[20];
         LastBOMVersionBefore: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        AlwaysSaveModifiedVersionsMustBeTrueLbl: Label 'AlwaysSaveModifiedVersions must be true in Manufacturing Setup before the wizard runs';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO E7] Always Save Modified Versions = true → new version kept even when Save toggle is off
@@ -292,7 +302,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
             "Prod. Definition Display"::Edit, "Prod. Definition Display"::Edit);
         ProdDefWizSetupLib.SetAlwaysSaveModifiedVersions(true);
         // Re-read Manufacturing Setup to confirm the flag was persisted before the wizard runs
-        Assert.IsTrue(ProdDefWizSetupLib.GetAlwaysSaveModifiedVersions(), 'AlwaysSaveModifiedVersions must be true in Manufacturing Setup before the wizard runs');
+        Assert.IsTrue(ProdDefWizSetupLib.GetAlwaysSaveModifiedVersions(), AlwaysSaveModifiedVersionsMustBeTrueLbl);
         LastBOMVersionBefore := ProdDefWizCheckLib.GetLastBOMVersionCode(BOMNo);
 
         // [WHEN] User finishes wizard with Create New BOM Version = true but SaveBOMRouting = false
@@ -300,7 +310,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] Item BOM unchanged; a new certified BOM version was saved
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyItemBOMUnchanged(ItemNo, BOMNo);
         ProdDefWizCheckLib.VerifyNewLastBOMVersionCertified(BOMNo, LastBOMVersionBefore);
 
@@ -319,6 +329,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ProdDefManager: Codeunit "Production Definition Manager";
         RoutingNo: Code[20];
         ItemNo: Code[20];
+        CreateRoutingVersionWithoutVersionNosShouldErrorLbl: Label 'Turning on Create New Routing Version without Version Nos. should raise an error';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO E9] Routing without Version Nos. series → "Create New Routing Version" check raises error
@@ -337,10 +348,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] An error is raised indicating version number series is required
-        Assert.IsTrue(ActualCreateRoutingVersionToggleRaisedError, 'Turning on Create New Routing Version without Version Nos. should raise an error');
-        Assert.AreNotEqual('', ActualCreateRoutingVersionErrorText, 'Error text must be captured to confirm the correct error was raised');
-        Assert.IsTrue(ActualCreateRoutingVersionErrorText.Contains('Version Nos.'),
-            StrSubstNo('Expected error about ''Version Nos.'' but got: %1', ActualCreateRoutingVersionErrorText));
+        Assert.IsTrue(ActualCreateRoutingVersionToggleRaisedError, CreateRoutingVersionWithoutVersionNosShouldErrorLbl);
         ProdDefWizCheckLib.VerifyItemHasRouting(ItemNo, RoutingNo);
         ProdDefWizCheckLib.VerifyNoRoutingVersionExists(RoutingNo);
     end;
@@ -404,13 +412,15 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
 
     [ModalPageHandler]
     procedure HandleWizardToggleCreateBOMVersionError(var Wizard: TestPage "Production Definition Wizard")
+    var
+        VersionNosRequiredErr: Label 'Version Nos. must have a value.';
     begin
         // Navigate to Step 2 (BOM)
         Wizard.ActionNext.Invoke();
         // Toggle on Create New BOM Version — expect error because no Version Nos. series
         asserterror Wizard.CreateBOMVersionField.SetValue(true);
+        Assert.ExpectedError(VersionNosRequiredErr);
         ActualCreateBOMVersionToggleRaisedError := true;
-        ActualCreateBOMVersionErrorText := GetLastErrorText();
         // Close wizard by invoking Finish (if still enabled)
         if Wizard.ActionFinish.Enabled() then
             Wizard.ActionFinish.Invoke();
@@ -435,6 +445,8 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
 
     [ModalPageHandler]
     procedure HandleWizardToggleCreateRoutingVersionError(var Wizard: TestPage "Production Definition Wizard")
+    var
+        VersionNosRequiredErr: Label 'Version Nos. must have a value.';
     begin
         // Navigate to Step 2 (BOM)
         Wizard.ActionNext.Invoke();
@@ -442,8 +454,8 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         Wizard.ActionNext.Invoke();
         // Toggle on Create New Routing Version — expect error because no Version Nos. series
         asserterror Wizard.CreateRoutingVersionField.SetValue(true);
+        Assert.ExpectedError(VersionNosRequiredErr);
         ActualCreateRoutingVersionToggleRaisedError := true;
-        ActualCreateRoutingVersionErrorText := GetLastErrorText();
         // Close wizard by invoking Finish (if still enabled)
         if Wizard.ActionFinish.Enabled() then
             Wizard.ActionFinish.Invoke();
@@ -518,6 +530,8 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ItemNo: Code[20];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        SelectedRoutingVersionShouldBeClearedLbl: Label 'SelectedRoutingVersion should be cleared after turning off Create New Routing Version';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO E8] "Create New Routing Version" disabled (turned off again) → Routing lines revert to source lines
@@ -537,8 +551,8 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] SelectedRoutingVersion is cleared (empty); no routing version committed to the database
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.AreEqual('', ActualSelectedRoutingVersionText, 'SelectedRoutingVersion should be cleared after turning off Create New Routing Version');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.AreEqual('', ActualSelectedRoutingVersionText, SelectedRoutingVersionShouldBeClearedLbl);
         ProdDefWizCheckLib.VerifyItemHasRouting(ItemNo, RoutingNo);
         ProdDefWizCheckLib.VerifyNoRoutingVersionExists(RoutingNo);
     end;
@@ -554,6 +568,9 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         BOMNo: Code[20];
         ItemNo: Code[20];
         LastBOMVersionBefore: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        NewBOMVersionMustHaveAtLeastOneLineLbl: Label 'New BOM version %1 must have at least one line', Comment = '%1 = Production BOM Version Code';
+        BOMLineVersionCodeMustEqualNewVersionLbl: Label 'BOM line "Version Code" must equal the new version code; expected %1, got %2', Comment = '%1 = expected Version Code; %2 = actual Version Code';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO E_BOMVersionLines] After the wizard creates a new BOM version every BOM line carries
@@ -573,7 +590,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] A new certified BOM version exists
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyNewLastBOMVersionCertified(BOMNo, LastBOMVersionBefore);
 
         // [THEN] Every BOM line under the new version has "Version Code" = the new version code
@@ -582,10 +599,10 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ProductionBOMLine.SetRange("Production BOM No.", BOMNo);
         ProductionBOMLine.SetRange("Version Code", ProductionBOMVersion."Version Code");
         Assert.IsTrue(ProductionBOMLine.FindSet(),
-            StrSubstNo('New BOM version %1 must have at least one line', ProductionBOMVersion."Version Code"));
+            StrSubstNo(NewBOMVersionMustHaveAtLeastOneLineLbl, ProductionBOMVersion."Version Code"));
         repeat
             Assert.AreEqual(ProductionBOMVersion."Version Code", ProductionBOMLine."Version Code",
-                StrSubstNo('BOM line "Version Code" must equal the new version code; expected %1, got %2',
+                StrSubstNo(BOMLineVersionCodeMustEqualNewVersionLbl,
                     ProductionBOMVersion."Version Code", ProductionBOMLine."Version Code"));
         until ProductionBOMLine.Next() = 0;
     end;
@@ -627,6 +644,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         BOMNo: Code[20];
         ItemNo: Code[20];
         LastBOMVersionBefore: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO E10] "Create New BOM Version" enabled; user navigates Back then Forward on the
@@ -647,7 +665,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] A new certified BOM version was created
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyNewLastBOMVersionCertified(BOMNo, LastBOMVersionBefore);
 
         // [THEN] The new BOM version has exactly 2 lines — not 4 due to stale TempBOMLine records
@@ -672,6 +690,8 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         WC1No: Code[20];
         WC2No: Code[20];
         LastRoutingVersionBefore: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        AlwaysSaveModifiedVersionsMustBeTrueLbl: Label 'AlwaysSaveModifiedVersions must be true in Manufacturing Setup before the wizard runs';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO E11] Always Save Modified Versions = true → new Routing version kept even when
@@ -687,7 +707,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
             "Prod. Definition Display"::Edit, "Prod. Definition Display"::Edit);
         ProdDefWizSetupLib.SetAlwaysSaveModifiedVersions(true);
         Assert.IsTrue(ProdDefWizSetupLib.GetAlwaysSaveModifiedVersions(),
-            'AlwaysSaveModifiedVersions must be true in Manufacturing Setup before the wizard runs');
+            AlwaysSaveModifiedVersionsMustBeTrueLbl);
         LastRoutingVersionBefore := ProdDefWizCheckLib.GetLastRoutingVersionCode(RoutingNo);
 
         // [WHEN] User finishes wizard with Create New Routing Version = true but SaveBOMRouting = false
@@ -695,7 +715,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] Item Routing unchanged; a new certified Routing version was saved
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyItemRoutingUnchanged(ItemNo, RoutingNo);
         ProdDefWizCheckLib.VerifyNewLastRoutingVersionCertified(RoutingNo, LastRoutingVersionBefore);
 
@@ -719,6 +739,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         WC1No: Code[20];
         WC2No: Code[20];
         LastRoutingVersionBefore: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO E12] "Create New Routing Version" enabled; user navigates Back then Forward on the
@@ -740,7 +761,7 @@ codeunit 137427 "Prod. Def. Wiz. Version Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] A new certified Routing version was created
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyNewLastRoutingVersionCertified(RoutingNo, LastRoutingVersionBefore);
 
         // [THEN] The new Routing version has exactly 2 lines — not 4 due to stale TempRoutingLine records

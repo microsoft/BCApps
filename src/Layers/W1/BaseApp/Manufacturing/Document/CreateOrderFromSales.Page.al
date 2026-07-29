@@ -62,10 +62,8 @@ page 99000884 "Create Order From Sales"
         OrderStatus := CreateStatus;
     end;
 
-    protected var
-        OrderType: Enum "Create Production Order Type";
-
     var
+        OrderType: Enum "Create Production Order Type";
         OrderStatus: Enum "Production Order Status";
         CreateStatus: Enum "Create Production Order Status";
         UseProductDefinitionWizard: Boolean;

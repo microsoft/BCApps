@@ -13,8 +13,8 @@ using Microsoft.Manufacturing.Capacity;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
-using Microsoft.Sales.Document;
 using Microsoft.Sales.Customer;
+using Microsoft.Sales.Document;
 
 codeunit 137420 "Prod. Def. Wiz. Library"
 {
@@ -218,11 +218,7 @@ codeunit 137420 "Prod. Def. Wiz. Library"
 
     procedure CreateStockkeepingUnitWithBOMAndRouting(var SKU: Record "Stockkeeping Unit"; ItemNo: Code[20]; LocationCode: Code[10]; VariantCode: Code[10]; BOMNo: Code[20]; RoutingNo: Code[20])
     begin
-        SKU.Init();
-        SKU."Item No." := ItemNo;
-        SKU."Location Code" := LocationCode;
-        SKU."Variant Code" := VariantCode;
-        SKU.Insert(true);
+        LibraryInventory.CreateStockkeepingUnitForLocationAndVariant(SKU, LocationCode, ItemNo, VariantCode);
         SKU.Validate("Production BOM No.", BOMNo);
         SKU.Validate("Routing No.", RoutingNo);
         SKU.Modify(true);

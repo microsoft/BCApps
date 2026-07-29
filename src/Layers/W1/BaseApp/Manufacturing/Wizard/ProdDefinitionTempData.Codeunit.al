@@ -39,6 +39,7 @@ codeunit 99001016 "Prod. Definition Temp Data"
         ProdOrderStatus: Enum "Production Order Status";
         TempProdOrderNoLbl: Label 'TEMP-%1', Locked = true, MaxLength = 20;
         ProductionOrderQtyZeroOrNegativeErr: Label 'Cannot create a production order from Sales Line %1 line %2: the calculated quantity (%3) is zero or negative because the line is fully or over-reserved.', Comment = '%1 = Document No., %2 = Line No., %3 = Quantity';
+        ShowSalesLineLbl: Label 'Show sales line';
         BOMForLbl: Label 'BOM for %1', Comment = '%1 = Item Description';
         TempBOMNoLbl: Label 'TEMP-BOM-%1', Locked = true, MaxLength = 20;
         RoutingForLbl: Label 'Routing for %1', Comment = '%1 = Item Description';
@@ -78,7 +79,8 @@ codeunit 99001016 "Prod. Definition Temp Data"
 
         TempProdOrderLine.Description := SalesLine.Description;
         TempProdOrderLine."Description 2" := SalesLine."Description 2";
-        if Location.Get(TempProdOrderLine."Location Code") and not Location."Require Pick" and (SalesLine."Bin Code" <> '') then
+        Location.SetLoadFields("Require Pick");
+        if (SalesLine."Bin Code" <> '') and Location.Get(TempProdOrderLine."Location Code") and not Location."Require Pick" then
             TempProdOrderLine."Bin Code" := SalesLine."Bin Code";
         TempProdOrderLine."Shortcut Dimension 1 Code" := SalesLine."Shortcut Dimension 1 Code";
         TempProdOrderLine."Shortcut Dimension 2 Code" := SalesLine."Shortcut Dimension 2 Code";
@@ -110,6 +112,8 @@ codeunit 99001016 "Prod. Definition Temp Data"
     end;
 
     local procedure CreateTemporaryProductionOrderFromSalesLine(SalesLine: Record "Sales Line")
+    var
+        ProductionOrderQtyErrorInfo: ErrorInfo;
     begin
         TempProdOrder.Reset();
         TempProdOrder.DeleteAll();
@@ -125,8 +129,15 @@ codeunit 99001016 "Prod. Definition Temp Data"
         TempProdOrder.Validate("Variant Code", SalesLine."Variant Code");
         SalesLine.CalcFields("Reserved Qty. (Base)");
         TempProdOrder.Quantity := SalesLine."Outstanding Qty. (Base)" - SalesLine."Reserved Qty. (Base)";
-        if TempProdOrder.Quantity <= 0 then
-            Error(ProductionOrderQtyZeroOrNegativeErr, SalesLine."Document No.", SalesLine."Line No.", TempProdOrder.Quantity);
+        if TempProdOrder.Quantity <= 0 then begin
+            ProductionOrderQtyErrorInfo.DataClassification := DataClassification::CustomerContent;
+            ProductionOrderQtyErrorInfo.ErrorType := ErrorType::Client;
+            ProductionOrderQtyErrorInfo.Message := StrSubstNo(ProductionOrderQtyZeroOrNegativeErr, SalesLine."Document No.", SalesLine."Line No.", TempProdOrder.Quantity);
+            ProductionOrderQtyErrorInfo.RecordId := SalesLine.RecordId;
+            ProductionOrderQtyErrorInfo.PageNo := Page::"Sales Order";
+            ProductionOrderQtyErrorInfo.AddNavigationAction(ShowSalesLineLbl);
+            Error(ProductionOrderQtyErrorInfo);
+        end;
         TempProdOrder.InitRecord();
         TempProdOrder.Insert();
     end;

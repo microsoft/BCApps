@@ -52,6 +52,8 @@ codeunit 137433 "Prod. Def. Wiz. General Test"
         ItemNo: Code[20];
         PreWizardLastBOMNo: Code[20];
         PostWizardLastBOMNo: Code[20];
+        WizardShouldHaveFinishedSuccessfullyLbl: Label 'Wizard should have finished successfully';
+        WizardShouldHaveCreatedNewBOMLbl: Label 'Wizard should have created a new Production BOM';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO A1] Open wizard from Item with no BOM/Routing — wizard opens and finishes; BOM assigned
@@ -71,8 +73,8 @@ codeunit 137433 "Prod. Def. Wiz. General Test"
 
         // [THEN] Wizard opened and completed; Item now has a Production BOM assigned
         PostWizardLastBOMNo := ProdDefWizCheckLib.GetLastProductionBOMNo();
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished successfully');
-        Assert.AreNotEqual(PreWizardLastBOMNo, PostWizardLastBOMNo, 'Wizard should have created a new Production BOM');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedSuccessfullyLbl);
+        Assert.AreNotEqual(PreWizardLastBOMNo, PostWizardLastBOMNo, WizardShouldHaveCreatedNewBOMLbl);
         ProdDefWizCheckLib.VerifyItemHasBOM(ItemNo, PostWizardLastBOMNo);
     end;
 
@@ -86,6 +88,8 @@ codeunit 137433 "Prod. Def. Wiz. General Test"
         LocationCode: Code[10];
         PreWizardLastBOMNo: Code[20];
         PostWizardLastBOMNo: Code[20];
+        WizardShouldHaveFinishedFromSKULbl: Label 'Wizard should have finished successfully from SKU';
+        WizardShouldHaveCreatedNewBOMForSKULbl: Label 'Wizard should have created a new Production BOM for the SKU';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO A2] Open wizard from SKU — wizard opens and finishes; BOM assigned to SKU
@@ -106,8 +110,8 @@ codeunit 137433 "Prod. Def. Wiz. General Test"
 
         // [THEN] Wizard opens and finishes without error; SKU now has a Production BOM assigned
         PostWizardLastBOMNo := ProdDefWizCheckLib.GetLastProductionBOMNo();
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished successfully from SKU');
-        Assert.AreNotEqual(PreWizardLastBOMNo, PostWizardLastBOMNo, 'Wizard should have created a new Production BOM for the SKU');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedFromSKULbl);
+        Assert.AreNotEqual(PreWizardLastBOMNo, PostWizardLastBOMNo, WizardShouldHaveCreatedNewBOMForSKULbl);
         ProdDefWizCheckLib.VerifySKUHasBOM(ItemNo, LocationCode, '', PostWizardLastBOMNo);
     end;
 
@@ -118,6 +122,7 @@ codeunit 137433 "Prod. Def. Wiz. General Test"
         Item: Record Item;
         ProdDefManager: Codeunit "Production Definition Manager";
         ItemNo: Code[20];
+        BackButtonShouldBeDisabledStep1Lbl: Label 'Back button should be disabled on Step 1';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO A3] Wizard step navigation: Back button on Step 1 is disabled
@@ -134,7 +139,7 @@ codeunit 137433 "Prod. Def. Wiz. General Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] ActionBack.Enabled = false on Step 1
-        Assert.IsTrue(Step1BackWasDisabled, 'Back button should be disabled on Step 1');
+        Assert.IsTrue(Step1BackWasDisabled, BackButtonShouldBeDisabledStep1Lbl);
     end;
 
     [Test]
@@ -144,6 +149,7 @@ codeunit 137433 "Prod. Def. Wiz. General Test"
         Item: Record Item;
         ProdDefManager: Codeunit "Production Definition Manager";
         ItemNo: Code[20];
+        BackButtonShouldBeEnabledStep2Lbl: Label 'Back button should be enabled on Step 2';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO A4] Wizard step navigation: Back button becomes enabled on Step 2
@@ -160,7 +166,7 @@ codeunit 137433 "Prod. Def. Wiz. General Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] ActionBack.Enabled = true on Step 2
-        Assert.IsTrue(Step2BackWasEnabled, 'Back button should be enabled on Step 2');
+        Assert.IsTrue(Step2BackWasEnabled, BackButtonShouldBeEnabledStep2Lbl);
     end;
 
     [Test]
@@ -170,6 +176,8 @@ codeunit 137433 "Prod. Def. Wiz. General Test"
         Item: Record Item;
         ProdDefManager: Codeunit "Production Definition Manager";
         ItemNo: Code[20];
+        Step4ShouldNotBeVisibleInDefineItemStructureLbl: Label 'Step 4 (Components) should not be visible in DefineItemStructure mode';
+        Step5ShouldNotBeVisibleInDefineItemStructureLbl: Label 'Step 5 (Prod. Routing) should not be visible in DefineItemStructure mode';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO A5] DefineItemStructure mode: wizard has exactly Steps 1–3
@@ -186,8 +194,8 @@ codeunit 137433 "Prod. Def. Wiz. General Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] Steps 4 (Components Preview) and 5 (Production Routing Preview) are never shown
-        Assert.IsFalse(DefineItemStructure_Step4Visible, 'Step 4 (Components) should not be visible in DefineItemStructure mode');
-        Assert.IsFalse(DefineItemStructure_Step5Visible, 'Step 5 (Prod. Routing) should not be visible in DefineItemStructure mode');
+        Assert.IsFalse(DefineItemStructure_Step4Visible, Step4ShouldNotBeVisibleInDefineItemStructureLbl);
+        Assert.IsFalse(DefineItemStructure_Step5Visible, Step5ShouldNotBeVisibleInDefineItemStructureLbl);
     end;
 
     [Test]
@@ -203,6 +211,10 @@ codeunit 137433 "Prod. Def. Wiz. General Test"
         WC2No: Code[20];
         RoutingNo: Code[20];
         LocationCode: Code[10];
+        Step2ShouldBeVisibleInCreateProdOrderLbl: Label 'Step 2 (BOM) should be visible in CreateProductionOrder mode';
+        Step3ShouldBeVisibleInCreateProdOrderLbl: Label 'Step 3 (Routing) should be visible in CreateProductionOrder mode';
+        Step4ShouldBeVisibleInCreateProdOrderLbl: Label 'Step 4 (Components) should be visible in CreateProductionOrder mode';
+        Step5ShouldBeVisibleInCreateProdOrderLbl: Label 'Step 5 (Prod. Routing) should be visible in CreateProductionOrder mode';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO A6] CreateProductionOrder mode: wizard has Steps 1–5
@@ -227,10 +239,10 @@ codeunit 137433 "Prod. Def. Wiz. General Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Steps 2, 3, 4 and 5 are all shown
-        Assert.IsTrue(CreateProdOrder_Step2Visible, 'Step 2 (BOM) should be visible in CreateProductionOrder mode');
-        Assert.IsTrue(CreateProdOrder_Step3Visible, 'Step 3 (Routing) should be visible in CreateProductionOrder mode');
-        Assert.IsTrue(CreateProdOrder_Step4Visible, 'Step 4 (Components) should be visible in CreateProductionOrder mode');
-        Assert.IsTrue(CreateProdOrder_Step5Visible, 'Step 5 (Prod. Routing) should be visible in CreateProductionOrder mode');
+        Assert.IsTrue(CreateProdOrder_Step2Visible, Step2ShouldBeVisibleInCreateProdOrderLbl);
+        Assert.IsTrue(CreateProdOrder_Step3Visible, Step3ShouldBeVisibleInCreateProdOrderLbl);
+        Assert.IsTrue(CreateProdOrder_Step4Visible, Step4ShouldBeVisibleInCreateProdOrderLbl);
+        Assert.IsTrue(CreateProdOrder_Step5Visible, Step5ShouldBeVisibleInCreateProdOrderLbl);
         // Verify a Production Order was actually created for the item after wizard completes
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderHasComponentCount(ProdOrder, 2);
@@ -342,10 +354,11 @@ codeunit 137433 "Prod. Def. Wiz. General Test"
     procedure HandleWizardSaveToSKUAndCaptureBOM(var Wizard: TestPage "Production Definition Wizard")
     var
         SaveBomRoutingToSource: Boolean;
+        SaveBOMRoutingToSourceShouldBeSKULbl: Label 'SaveBOMRoutingToSource should be StockkeepingUnit when Save is enabled for SKU source';
     begin
         Evaluate(SaveBomRoutingToSource, Wizard.SaveBOMRoutingField.Value());
         Assert.IsTrue(SaveBomRoutingToSource,
-            'SaveBOMRoutingToSource should be StockkeepingUnit when Save is enabled for SKU source');
+            SaveBOMRoutingToSourceShouldBeSKULbl);
         // Navigate to finish
         while Wizard.ActionNext.Enabled() do
             Wizard.ActionNext.Invoke();

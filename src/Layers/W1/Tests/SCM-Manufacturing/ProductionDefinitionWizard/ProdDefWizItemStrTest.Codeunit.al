@@ -43,6 +43,7 @@ codeunit 137432 "Prod. Def. Wiz. Item Str. Test"
         ProdDefManager: Codeunit "Production Definition Manager";
         OriginalBOMNo: Code[20];
         ItemNo: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO K1] Mode = DefineItemStructure; user selects a different BOM in the wizard; Save = false → Item BOM unchanged after finish
@@ -59,7 +60,7 @@ codeunit 137432 "Prod. Def. Wiz. Item Str. Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] Item."Production BOM No." still equals BOM-A (finish without save leaves Item unchanged)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyItemBOMUnchanged(ItemNo, OriginalBOMNo);
     end;
 
@@ -72,6 +73,8 @@ codeunit 137432 "Prod. Def. Wiz. Item Str. Test"
         ProdDefManager: Codeunit "Production Definition Manager";
         BOMNo: Code[20];
         ItemNo: Code[20];
+        RunForSourceShouldReturnFalseLbl: Label 'RunForSource should return false when wizard is cancelled';
+        WizardFinishedShouldBeFalseLbl: Label 'WizardFinished should be false after cancel';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO K2] DefineItemStructure mode: user cancels wizard → Item unchanged, no Production Order created
@@ -90,8 +93,8 @@ codeunit 137432 "Prod. Def. Wiz. Item Str. Test"
         WizardResult := ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] RunForSource returns false; Item BOM is unchanged; no Production Order exists
-        Assert.IsFalse(WizardResult, 'RunForSource should return false when wizard is cancelled');
-        Assert.IsFalse(WizardFinished, 'WizardFinished should be false after cancel');
+        Assert.IsFalse(WizardResult, RunForSourceShouldReturnFalseLbl);
+        Assert.IsFalse(WizardFinished, WizardFinishedShouldBeFalseLbl);
         ProdDefWizCheckLib.VerifyItemBOMUnchanged(ItemNo, BOMNo);
         ProdDefWizCheckLib.VerifyNoProdOrderForItem(ItemNo);
     end;
@@ -130,7 +133,7 @@ codeunit 137432 "Prod. Def. Wiz. Item Str. Test"
     begin
         ProductionBOMList.Filter.SetFilter("No.", TargetBOMNoForK1);
         ProductionBOMList.First();
-        ProductionBOMList.OK.Invoke();
+        ProductionBOMList.OK().Invoke();
     end;
 
     local procedure Initialize()
@@ -161,12 +164,13 @@ codeunit 137432 "Prod. Def. Wiz. Item Str. Test"
         Item: Record Item;
         ProdDefManager: Codeunit "Production Definition Manager";
         ItemNo: Code[20];
-        WC1No: Code[20];
-        WC2No: Code[20];
         PreWizardLastBOMNo: Code[20];
         PostWizardLastBOMNo: Code[20];
         PreWizardLastRoutingNo: Code[20];
         PostWizardLastRoutingNo: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        WizardShouldHaveCreatedNewBOMLbl: Label 'Wizard should have created a new Production BOM';
+        WizardShouldHaveCreatedNewRoutingLbl: Label 'Wizard should have created a new Routing';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO K3] Mode = DefineItemStructure; Save = Item → Item."Production BOM No." and "Routing No." are assigned after finish
@@ -187,9 +191,9 @@ codeunit 137432 "Prod. Def. Wiz. Item Str. Test"
         // [THEN] Item."Production BOM No." and "Routing No." are now assigned to the wizard-created BOM/Routing
         PostWizardLastBOMNo := ProdDefWizCheckLib.GetLastProductionBOMNo();
         PostWizardLastRoutingNo := ProdDefWizCheckLib.GetLastRoutingNo();
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.AreNotEqual(PreWizardLastBOMNo, PostWizardLastBOMNo, 'Wizard should have created a new Production BOM');
-        Assert.AreNotEqual(PreWizardLastRoutingNo, PostWizardLastRoutingNo, 'Wizard should have created a new Routing');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.AreNotEqual(PreWizardLastBOMNo, PostWizardLastBOMNo, WizardShouldHaveCreatedNewBOMLbl);
+        Assert.AreNotEqual(PreWizardLastRoutingNo, PostWizardLastRoutingNo, WizardShouldHaveCreatedNewRoutingLbl);
         ProdDefWizCheckLib.VerifyItemHasBOM(ItemNo, PostWizardLastBOMNo);
         ProdDefWizCheckLib.VerifyItemHasRouting(ItemNo, PostWizardLastRoutingNo);
     end;

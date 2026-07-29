@@ -44,7 +44,6 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         TargetBOMVersionCode: Code[20];
         TargetRoutingVersionCode: Code[20];
 
-
     [Test]
     [HandlerFunctions('HandleWizardSimpleFinish')]
     procedure TestJ1_InitFromSalesLine_ProdOrderHeaderCorrect()
@@ -61,6 +60,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         WC2No: Code[20];
         OrderQty: Decimal;
         ShipmentDate: Date;
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J1] InitializeFromSalesLine: Prod. Order header created with correct fields
@@ -83,7 +83,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order: SourceNo=ItemNo, Qty=10, DueDate=ShipmentDate, Location=EAST, Variant=RED-V
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderFields(ProdOrder, ItemNo, OrderQty, ShipmentDate, LocationCode, VariantCode);
     end;
@@ -101,6 +101,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J2] InitializeFromSalesLine: Prod. Order components created from BOM
@@ -120,7 +121,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order Component lines exist (2 components from BOM)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderHasComponentCount(ProdOrder, 2);
     end;
@@ -138,6 +139,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J3] InitializeFromSalesLine: Prod. Order routing lines created from Routing
@@ -157,7 +159,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order Routing Lines match the Routing operations (2 lines)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderHasRoutingLineCount(ProdOrder, 2);
     end;
@@ -176,6 +178,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J4] CreateProductionOrder mode from Sales Line: reservation entry created linking Sales Line demand to Prod. Order
@@ -198,7 +201,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] A Reservation Entry exists linking the Sales Line demand to the created Production Order
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyReservationExistsForSalesLine(SalesLine);
         ProdDefWizCheckLib.VerifyReservationLinksToProductionOrder(SalesLine, ProdOrder);
@@ -213,6 +216,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager: Codeunit "Production Definition Manager";
         ItemNo: Code[20];
         LocationCode: Code[10];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J5] CreateProductionOrder mode, BOM/Routing both empty: Production Order is still created
@@ -232,7 +236,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order is created; references the item and quantity
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderFields(ProdOrder, ItemNo, 3, WorkDate(), LocationCode, '');
     end;
@@ -255,6 +259,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         WC2No: Code[20];
         WC3No: Code[20];
         WC4No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J6] Sales Line with SKU whose location matches the sales line location → SKU BOM/Routing used
@@ -277,7 +282,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order components come from SKU BOM-B (3 lines, not 2)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderHasComponentCount(ProdOrder, 3);
     end;
@@ -294,6 +299,8 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        RunForSourceReturnFalseOnCancelLbl: Label 'RunForSource should return false when wizard is cancelled';
+        WizardFinishedFalseAfterCancelLbl: Label 'WizardFinished should be false after cancel';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J7] User cancels the wizard → RunForSource returns false and no Production Order is created
@@ -314,8 +321,8 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         WizardResult := ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] RunForSource returns false and no Production Order is created
-        Assert.IsFalse(WizardResult, 'RunForSource should return false when wizard is cancelled');
-        Assert.IsFalse(WizardFinished, 'WizardFinished should be false after cancel');
+        Assert.IsFalse(WizardResult, RunForSourceReturnFalseOnCancelLbl);
+        Assert.IsFalse(WizardFinished, WizardFinishedFalseAfterCancelLbl);
         ProdDefWizCheckLib.VerifyNoProdOrderForItem(ItemNo);
     end;
 
@@ -332,6 +339,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J8] RunForSource with ProdOrderStatus = Planned → Production Order created with Planned status
@@ -351,7 +359,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder, "Production Order Status"::Planned);
 
         // [THEN] Created Production Order has Planned status
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderStatus(ProdOrder, "Production Order Status"::Planned);
     end;
@@ -369,6 +377,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J9] Sales Line with partial reservation → Production Order qty = outstanding - reserved
@@ -393,7 +402,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order quantity = 10 - 3 = 7
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderFields(ProdOrder, ItemNo, 7, WorkDate(), LocationCode, '');
     end;
@@ -410,6 +419,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        RunForSourceReturnTrueOnSkipLbl: Label 'RunForSource should return true when interaction is skipped';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J10] Both ShowRtngBOMSelect and ShowProdCompSelect = Hide → wizard page skipped, ProdOrder auto-created
@@ -429,7 +439,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         WizardResult := ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Returns true and Production Order was auto-created
-        Assert.IsTrue(WizardResult, 'RunForSource should return true when interaction is skipped');
+        Assert.IsTrue(WizardResult, RunForSourceReturnTrueOnSkipLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
     end;
 
@@ -442,6 +452,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager: Codeunit "Production Definition Manager";
         ItemNo: Code[20];
         LocationCode: Code[10];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J11] Save = true with SaveBOMRoutingToSource = Item in CreateProductionOrder mode → Item BOM/Routing updated
@@ -459,7 +470,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Item BOM and Routing are updated AND Production Order is created
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyItemHasAnyBOM(ItemNo);
         ProdDefWizCheckLib.VerifyItemHasAnyRouting(ItemNo);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
@@ -477,6 +488,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J12] Wizard finishes → Production Order line has correct Production BOM No. and Routing No.
@@ -496,7 +508,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order line has Production BOM No. = BOMNo and Routing No. = RoutingNo
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderLineHasBOM(ItemNo, BOMNo);
         ProdDefWizCheckLib.VerifyProdOrderLineHasRouting(ItemNo, RoutingNo);
     end;
@@ -513,6 +525,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J13] User selects BOM version V1 in Step 2 → ProdOrder line Production BOM Version Code = V1
@@ -535,7 +548,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order line Production BOM Version Code = V1
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderLineHasBOMVersion(ItemNo, 'V1');
     end;
 
@@ -551,6 +564,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J14] User selects Routing version V1 in Step 3 → ProdOrder line Routing Version Code = V1
@@ -573,7 +587,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order line Routing Version Code = V1
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderLineHasRoutingVersion(ItemNo, 'V1');
     end;
 
@@ -590,6 +604,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J15] ProdCompDisplay = Edit; user modifies Qty per in Step 4 → ProdOrder component has modified qty
@@ -609,7 +624,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] First Production Order component has Quantity per = 99
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderComponentHasQtyPerForFirstComponent(ProdOrder, 99);
     end;
@@ -627,6 +642,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J16] ProdCompDisplay = Edit; user adds component in Step 4 → added component present in ProdOrder
@@ -646,7 +662,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order has 3 components (2 original + 1 added)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderHasComponentCount(ProdOrder, 3);
     end;
@@ -664,6 +680,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J17] ProdCompDisplay = Edit; user deletes component in Step 4 → deleted component absent from ProdOrder
@@ -683,7 +700,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order has 1 component (2 - 1 deleted)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderHasComponentCount(ProdOrder, 1);
     end;
@@ -701,6 +718,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J18] ProdCompDisplay = Edit; user modifies Run Time in Step 5 → ProdOrder routing line has modified run time
@@ -720,7 +738,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order routing line for operation '10' has Run Time = 999
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderRoutingLineRunTime(ProdOrder, '10', 999);
     end;
@@ -738,6 +756,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J19] ProdCompDisplay = Edit; user adds routing operation in Step 5 → added operation present in ProdOrder
@@ -757,7 +776,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order has 3 routing lines (2 original + 1 added)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderHasRoutingLineCount(ProdOrder, 3);
     end;
@@ -775,6 +794,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J20] ProdCompDisplay = Edit; user deletes routing operation in Step 5 → deleted operation absent from ProdOrder
@@ -794,7 +814,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order has 1 routing line (2 - 1 deleted)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderHasRoutingLineCount(ProdOrder, 1);
     end;
@@ -812,6 +832,8 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        NotificationContainsProdOrderNoLbl: Label 'Notification message should contain the Production Order No.';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J21] After wizard completes from Sales Line, a notification is sent containing the Production Order No.
@@ -832,10 +854,10 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] The captured notification message contains the created Production Order No.
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         Assert.IsTrue(CapturedNotificationMessage.Contains(ProdOrder."No."),
-            'Notification message should contain the Production Order No.');
+            NotificationContainsProdOrderNoLbl);
     end;
 
     [Test]
@@ -851,6 +873,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J22] When item has an existing Production BOM, the wizard does not overwrite the component flushing method with the setup default; components retain their original (Manual) flushing method
@@ -871,7 +894,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Wizard completes without error; Production Order exists with Released status; components retain their original Manual flushing method (not overridden by the Backward setup default)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderStatus(ProdOrder, "Production Order Status"::Released);
         ProdDefWizCheckLib.VerifyProdOrderComponentFlushingMethod(ProdOrder, "Flushing Method"::"Pick + Manual");
@@ -892,6 +915,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         WC2No: Code[20];
         ComponentItemNo: Code[20];
         ExpectedDesc2: Text[50];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J23] BOM line with Description 2 → Production Order component carries the same Description 2
@@ -912,7 +936,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order component carries Description 2 from the BOM line
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderComponentHasDescription2(ProdOrder, ExpectedDesc2);
     end;
@@ -930,6 +954,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WCNo: Code[20];
         ExpectedDesc2: Text[50];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J24] Routing line with Description 2 → Production Order routing line carries the same Description 2
@@ -950,7 +975,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order routing line carries Description 2 from the Routing line
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderRoutingLineHasDescription2(ProdOrder, ExpectedDesc2);
     end;
@@ -968,6 +993,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedWithoutErrorLbl: Label 'Wizard should have finished without error';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J25] Sales Line with no Shipment Date → wizard runs without error, Production Order created
@@ -987,7 +1013,8 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Wizard finished without error; Production Order exists with empty Due Date
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished without error');
+        // [THEN] Wizard finished without error; Production Order exists with empty Due Date
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedWithoutErrorLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
     end;
 
@@ -1003,6 +1030,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ItemNo: Code[20];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J26] Sales Line with blank Location Code → Production Order created with blank location
@@ -1021,7 +1049,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order exists with blank Location Code
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderFields(ProdOrder, ItemNo, 3, WorkDate(), '', '');
     end;
@@ -1041,6 +1069,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J27] Sales Line whose item has Qty. per Unit of Measure ≠ 1 → reservation base quantity is correctly calculated using UOM conversion
@@ -1063,7 +1092,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Reservation exists for the Sales Line and the reservation base quantity matches the Production Order remaining base quantity
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyReservationExistsForSalesLine(SalesLine);
         ProdDefWizCheckLib.VerifyReservationBaseQtyMatchesProdOrderRemainingBase(SalesLine, ItemNo);
@@ -1084,6 +1113,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         WC1No: Code[20];
         WC2No: Code[20];
         LotNo: Code[50];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J28] Sales Line with item-tracking lot number entries → CopyItemTracking transfers tracking to Production Order line after wizard completes
@@ -1105,7 +1135,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Wizard completes; tracking is transferred: a reservation entry with the lot number exists for the Production Order line
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyTrackingSpecExistsForProdOrderLine(ItemNo, LotNo);
     end;
@@ -1125,6 +1155,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         WC1No: Code[20];
         WC2No: Code[20];
         ScrapPct: Decimal;
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J29] Item with Scrap % = 10 → Production Order line created by wizard has Scrap % = 10
@@ -1148,7 +1179,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order line has Scrap % = 10
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderLineScrapPct(ItemNo, ScrapPct);
     end;
@@ -1172,6 +1203,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         WC2No: Code[20];
         WC3No: Code[20];
         WC4No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J30] Sales Line with Variant+Location matching a SKU → SKU BOM/Routing used over item-level
@@ -1195,7 +1227,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order has 3 components from SKU BOM-B (not 2 from item BOM-A)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProdDefWizCheckLib.VerifyProdOrderHasComponentCount(ProdOrder, 3);
     end;
@@ -1210,6 +1242,9 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager: Codeunit "Production Definition Manager";
         ItemNo: Code[20];
         LocationCode: Code[10];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        FirstComponentFlushingMethodBackwardLbl: Label 'Flushing Method of the first component should match the setup default (Backward)';
+        LastComponentFlushingMethodBackwardLbl: Label 'Flushing Method of the last component should match the setup default (Backward)';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J31] When item has no Production BOM (temporary creation case), the wizard applies the setup default flushing method to the manually added component
@@ -1228,15 +1263,15 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Production Order exists; the added component has the Backward flushing method from the item default (temporary creation case), setup component flushing method is applied to the first component, and the last component has flushing method from item
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
 
         ProdOrderComponent.SetRange(Status, ProdOrder.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrder."No.");
         ProdOrderComponent.FindFirst();
-        Assert.AreEqual("Flushing Method"::Backward, ProdOrderComponent."Flushing Method", 'Flushing Method of the first component should match the setup default (Backward)');
+        Assert.AreEqual("Flushing Method"::Backward, ProdOrderComponent."Flushing Method", FirstComponentFlushingMethodBackwardLbl);
         ProdOrderComponent.FindLast();
-        Assert.AreEqual("Flushing Method"::"Pick + Manual", ProdOrderComponent."Flushing Method", 'Flushing Method of the last component should match the setup default (Backward)');
+        Assert.AreEqual("Flushing Method"::"Pick + Manual", ProdOrderComponent."Flushing Method", LastComponentFlushingMethodBackwardLbl);
     end;
 
     [Test]
@@ -1253,6 +1288,9 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         WC2No: Code[20];
         SalesQty: Decimal;
         ComponentQtyPer: Decimal;
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        TempComponentExpectedQtyNonZeroLbl: Label 'Temporary component Expected Quantity must be non-zero after Quantity per validation';
+        ExpectedQtyEqualsSalesQtyTimesQtyPerLbl: Label 'Expected Quantity should equal Sales Qty × Quantity per';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO J32] In Step 4 (component preview), temporary components display non-zero Expected Quantity after Quantity per is set
@@ -1275,11 +1313,11 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] The second temporary component's Expected Quantity is non-zero (= SalesQty * ComponentQtyPer = 10)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
         Assert.IsTrue(CapturedExpectedQty > 0,
-            'Temporary component Expected Quantity must be non-zero after Quantity per validation');
+            TempComponentExpectedQtyNonZeroLbl);
         Assert.AreNearlyEqual(SalesQty * ComponentQtyPer, CapturedExpectedQty, 0.01,
-            'Expected Quantity should equal Sales Qty × Quantity per');
+            ExpectedQtyEqualsSalesQtyTimesQtyPerLbl);
     end;
 
     [ModalPageHandler]
@@ -1358,7 +1396,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
     begin
         BOMVersionList.Filter.SetFilter("Version Code", TargetBOMVersionCode);
         BOMVersionList.First();
-        BOMVersionList.OK.Invoke();
+        BOMVersionList.OK().Invoke();
     end;
 
     [ModalPageHandler]
@@ -1386,7 +1424,7 @@ codeunit 137431 "Prod. Def. Wiz. Sales Test"
     begin
         RoutingVersionList.Filter.SetFilter("Version Code", TargetRoutingVersionCode);
         RoutingVersionList.First();
-        RoutingVersionList.OK.Invoke();
+        RoutingVersionList.OK().Invoke();
     end;
 
     [ModalPageHandler]

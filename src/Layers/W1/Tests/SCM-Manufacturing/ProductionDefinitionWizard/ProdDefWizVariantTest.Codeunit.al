@@ -82,6 +82,11 @@ codeunit 137430 "Prod. Def. Wiz. Variant Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        SourceShouldBeStockkeepingUnitVariantMatchLbl: Label 'Source should be Stockkeeping Unit (matched by variant)';
+        WizardShouldHaveShownBOMLinesFromSKUBOMBLbl: Label 'Wizard should have shown BOM lines from SKU BOM-B';
+        WizardBOMLineCountShouldMatchSKUBOMBLbl: Label 'Wizard BOM line count should match SKU BOM-B line count (not Item BOM-A)';
+        BOMLineItemShouldBelongToSKUBOMBLbl: Label 'BOM line item %1 should belong to SKU BOM-B, not Item BOM-A', Comment = '%1 = BOM line item No.';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO I2] SKU with variant: wizard initializes from correct SKU (matching variant)
@@ -104,19 +109,19 @@ codeunit 137430 "Prod. Def. Wiz. Variant Test"
         ProdDefManager.RunForSource(SKU, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] Source = StockkeepingUnit; BOM lines match BOM-B (not BOM-A from Item)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.AreEqual('Stockkeeping Unit', ActualSourceText, 'Source should be Stockkeeping Unit (matched by variant)');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.AreEqual('Stockkeeping Unit', ActualSourceText, SourceShouldBeStockkeepingUnitVariantMatchLbl);
         // Verify wizard displayed lines from SKU BOM-B, not Item BOM-A
         ProductionBOMLine.SetRange("Production BOM No.", SKUBOMNo);
         ActualBOMLineItemNos.Remove('');
-        Assert.IsTrue(ActualBOMLineItemNos.Count() > 0, 'Wizard should have shown BOM lines from SKU BOM-B');
+        Assert.IsTrue(ActualBOMLineItemNos.Count() > 0, WizardShouldHaveShownBOMLinesFromSKUBOMBLbl);
         Assert.AreEqual(ProductionBOMLine.Count(), ActualBOMLineItemNos.Count(),
-            'Wizard BOM line count should match SKU BOM-B line count (not Item BOM-A)');
+            WizardBOMLineCountShouldMatchSKUBOMBLbl);
         foreach ActualBOMLineItemNo in ActualBOMLineItemNos do
             if ActualBOMLineItemNo <> '' then begin
                 ProductionBOMLine.SetRange("No.", ActualBOMLineItemNo);
-                Assert.IsTrue(ProductionBOMLine.FindFirst(),
-                    StrSubstNo('BOM line item %1 should belong to SKU BOM-B, not Item BOM-A', ActualBOMLineItemNo));
+                Assert.IsFalse(ProductionBOMLine.IsEmpty(),
+                    StrSubstNo(BOMLineItemShouldBelongToSKUBOMBLbl, ActualBOMLineItemNo));
             end;
         // DefineItemStructure mode: no production order should have been created
         ProdDefWizCheckLib.VerifyNoProdOrderForItem(ItemNo);
@@ -142,6 +147,11 @@ codeunit 137430 "Prod. Def. Wiz. Variant Test"
         LocationCode: Code[10];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        SourceShouldBeStockkeepingUnitExactVariantMatchLbl: Label 'Source should be StockkeepingUnit (exact variant match)';
+        WizardShouldHaveShownAtLeastOneBOMLineLbl: Label 'Wizard should have shown at least one BOM line';
+        WizardBOMLineCountShouldMatchSKU2BOMLbl: Label 'Wizard BOM line count should match SKU2''s BOM line count';
+        BOMLineItemShouldBelongToSKU2BOMLbl: Label 'BOM line item %1 should belong to SKU2''s BOM (exact variant match), not SKU1''s', Comment = '%1 = BOM line item No.';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO I3] SKU lookup considers both location and variant code — exact variant match wins
@@ -173,20 +183,20 @@ codeunit 137430 "Prod. Def. Wiz. Variant Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] SKU2 is selected (exact variant match); its BOM populates the wizard
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.AreEqual('Stockkeeping Unit', ActualSourceText, 'Source should be StockkeepingUnit (exact variant match)');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.AreEqual('Stockkeeping Unit', ActualSourceText, SourceShouldBeStockkeepingUnitExactVariantMatchLbl);
         // CreateProductionOrder mode: a production order must exist for this item
         ProdDefWizCheckLib.VerifyProdOrderExists(ItemNo, ProdOrder);
         ProductionBOMLine.SetRange("Production BOM No.", SKU2BOMNo);
         // Verify the wizard showed BOM lines and that the count matches SKU2's BOM
         ActualBOMLineItemNos.Remove('');
-        Assert.IsTrue(ActualBOMLineItemNos.Count() > 0, 'Wizard should have shown at least one BOM line');
-        Assert.AreEqual(ProductionBOMLine.Count(), ActualBOMLineItemNos.Count(), 'Wizard BOM line count should match SKU2''s BOM line count');
+        Assert.IsTrue(ActualBOMLineItemNos.Count() > 0, WizardShouldHaveShownAtLeastOneBOMLineLbl);
+        Assert.AreEqual(ProductionBOMLine.Count(), ActualBOMLineItemNos.Count(), WizardBOMLineCountShouldMatchSKU2BOMLbl);
         foreach ActualBOMLineItemNo in ActualBOMLineItemNos do
             if ActualBOMLineItemNo <> '' then begin
                 ProductionBOMLine.SetRange("No.", ActualBOMLineItemNo);
-                Assert.IsTrue(ProductionBOMLine.FindFirst(),
-                    StrSubstNo('BOM line item %1 should belong to SKU2''s BOM (exact variant match), not SKU1''s', ActualBOMLineItemNo));
+                Assert.IsFalse(ProductionBOMLine.IsEmpty(),
+                    StrSubstNo(BOMLineItemShouldBelongToSKU2BOMLbl, ActualBOMLineItemNo));
             end;
     end;
 

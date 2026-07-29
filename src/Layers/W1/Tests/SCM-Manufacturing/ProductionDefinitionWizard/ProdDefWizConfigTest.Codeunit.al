@@ -52,6 +52,8 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         ItemNo: Code[20];
         WC1No: Code[20];
         WC2No: Code[20];
+        BOMStepVisibleLbl: Label 'BOM step (Step 2) should be visible in DefineItemStructure mode regardless of setup';
+        RoutingStepVisibleLbl: Label 'Routing step (Step 3) should be visible in DefineItemStructure mode regardless of setup';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO C1] In DefineItemStructure mode, BOMRoutingDisplay is always forced to Edit — setup Hide is ignored
@@ -72,8 +74,8 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] Step 2 (BOM) and Step 3 (Routing) are visible because DefineItemStructure always forces Edit
-        Assert.IsTrue(ActualBOMStepVisible, 'BOM step (Step 2) should be visible in DefineItemStructure mode regardless of setup');
-        Assert.IsTrue(ActualRoutingStepVisible, 'Routing step (Step 3) should be visible in DefineItemStructure mode regardless of setup');
+        Assert.IsTrue(ActualBOMStepVisible, BOMStepVisibleLbl);
+        Assert.IsTrue(ActualRoutingStepVisible, RoutingStepVisibleLbl);
     end;
 
     [Test]
@@ -87,6 +89,9 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         ItemNo: Code[20];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        BOMLinesEditableForcedEditLbl: Label 'BOM lines should be editable in DefineItemStructure mode regardless of Show setting';
+        CreateBOMVersionFieldEnabledLbl: Label 'CreateBOMVersionField should be enabled in DefineItemStructure mode regardless of Show setting';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO C2] In DefineItemStructure mode, BOMRoutingDisplay is always forced to Edit — setup Show is overridden
@@ -106,9 +111,9 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] BOMLinesPart.Enabled = true because DefineItemStructure mode forces Edit regardless of Show setup
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.IsFalse(ActualEditBOMLines, 'BOM lines should be editable in DefineItemStructure mode regardless of Show setting');
-        Assert.IsTrue(CreateBOMVersionFieldEnabled, 'CreateBOMVersionField should be enabled in DefineItemStructure mode regardless of Show setting');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.IsFalse(ActualEditBOMLines, BOMLinesEditableForcedEditLbl);
+        Assert.IsTrue(CreateBOMVersionFieldEnabled, CreateBOMVersionFieldEnabledLbl);
     end;
 
     [Test]
@@ -123,6 +128,8 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         WC1No: Code[20];
         WC2No: Code[20];
         LocationCode: Code[10];
+        ComponentsStepNotVisibleHideLbl: Label 'Components step (Step 4) should not be visible when ProdComp = Hide';
+        ProdRoutingStepNotVisibleHideLbl: Label 'Prod. Routing step (Step 5) should not be visible when ProdComp = Hide';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO C3] ProdComponentDisplay = Hide → Steps 4 and 5 are skipped
@@ -144,8 +151,8 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Steps 4 and 5 are not visible
-        Assert.IsFalse(ActualComponentsStepVisible, 'Components step (Step 4) should not be visible when ProdComp = Hide');
-        Assert.IsFalse(ActualProdRoutingStepVisible, 'Prod. Routing step (Step 5) should not be visible when ProdComp = Hide');
+        Assert.IsFalse(ActualComponentsStepVisible, ComponentsStepNotVisibleHideLbl);
+        Assert.IsFalse(ActualProdRoutingStepVisible, ProdRoutingStepNotVisibleHideLbl);
     end;
 
     [Test]
@@ -159,6 +166,9 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         ItemNo: Code[20];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        ComponentsStepNotVisibleShowLbl: Label 'Components step (Step 4) should not be visible when ProdComp = Show';
+        ProdCompDisplayFieldShouldBeHideLbl: Label 'ProdCompDisplayField should be Hide';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO C4] ProdCompDisplay = Show → Components step is not visible; display mode is Hide (read-only), because of definition mode = DefineItemStructure
@@ -179,9 +189,9 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] Components step is not visible; ProdCompDisplayField = 'Hide'
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.IsFalse(ActualComponentsStepVisible, 'Components step (Step 4) should not be visible when ProdComp = Show');
-        Assert.AreEqual('Hide', ActualProdCompDisplayValue, 'ProdCompDisplayField should be Hide');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.IsFalse(ActualComponentsStepVisible, ComponentsStepNotVisibleShowLbl);
+        Assert.AreEqual('Hide', ActualProdCompDisplayValue, ProdCompDisplayFieldShouldBeHideLbl);
     end;
 
     [Test]
@@ -191,6 +201,7 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         Item: Record Item;
         ProdDefManager: Codeunit "Production Definition Manager";
         ItemNo: Code[20];
+        ShowEditOptionsEnabledLbl: Label 'Show/Edit options group should be enabled when Allow Edit UI Selection = true';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO C5] Allow Edit UI Selection = true → Show/Edit options group is enabled on Step 1
@@ -207,7 +218,7 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] ShowEditOptionsGroup.Enabled = true
-        Assert.IsTrue(ActualShowEditOptionsEnabled, 'Show/Edit options group should be enabled when Allow Edit UI Selection = true');
+        Assert.IsTrue(ActualShowEditOptionsEnabled, ShowEditOptionsEnabledLbl);
     end;
 
     [Test]
@@ -217,6 +228,7 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         Item: Record Item;
         ProdDefManager: Codeunit "Production Definition Manager";
         ItemNo: Code[20];
+        ShowEditOptionsDisabledLbl: Label 'Show/Edit options group should be disabled when Allow Edit UI Selection = false';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO C6] Allow Edit UI Selection = false → Show/Edit options group is disabled on Step 1
@@ -233,7 +245,7 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] ShowEditOptionsGroup.Enabled = false
-        Assert.IsFalse(ActualShowEditOptionsEnabled, 'Show/Edit options group should be disabled when Allow Edit UI Selection = false');
+        Assert.IsFalse(ActualShowEditOptionsEnabled, ShowEditOptionsDisabledLbl);
     end;
 
 
@@ -326,6 +338,8 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         ProdDefManager: Codeunit "Production Definition Manager";
         ItemNo: Code[20];
         LocationCode: Code[10];
+        BOMRoutingDisplayFromNothingLbl: Label 'BOMRoutingDisplay should come from ShowRtngBOMSelect_Nothing = Show';
+        ProdCompDisplayFromNothingLbl: Label 'ProdCompDisplay should come from ShowProdCompSelect_Nothing = Show';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO C7] NothingAvailable scenario → BOMRoutingDisplay and ProdCompDisplay resolved from ShowRtngBOMSelect_Nothing / ShowProdCompSelect_Nothing
@@ -349,8 +363,8 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Display fields come from Nothing scenario settings
-        Assert.AreEqual('Show', ActualBOMRoutingDisplayValue, 'BOMRoutingDisplay should come from ShowRtngBOMSelect_Nothing = Show');
-        Assert.AreEqual('Show', ActualProdCompDisplayValue, 'ProdCompDisplay should come from ShowProdCompSelect_Nothing = Show');
+        Assert.AreEqual('Show', ActualBOMRoutingDisplayValue, BOMRoutingDisplayFromNothingLbl);
+        Assert.AreEqual('Show', ActualProdCompDisplayValue, ProdCompDisplayFromNothingLbl);
     end;
 
     [Test]
@@ -362,6 +376,8 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         BOMNo: Code[20];
         ItemNo: Code[20];
         LocationCode: Code[10];
+        BOMRoutingDisplayFromPartialLbl: Label 'BOMRoutingDisplay should come from ShowRtngBOMSelect_Partial = Edit';
+        ProdCompDisplayFromPartialLbl: Label 'ProdCompDisplay should come from ShowProdCompSelect_Partial = Edit';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO C8] PartiallyAvailable scenario → BOMRoutingDisplay and ProdCompDisplay resolved from ShowRtngBOMSelect_Partial / ShowProdCompSelect_Partial
@@ -386,8 +402,8 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Display fields come from Partial scenario settings
-        Assert.AreEqual('Edit', ActualBOMRoutingDisplayValue, 'BOMRoutingDisplay should come from ShowRtngBOMSelect_Partial = Edit');
-        Assert.AreEqual('Edit', ActualProdCompDisplayValue, 'ProdCompDisplay should come from ShowProdCompSelect_Partial = Edit');
+        Assert.AreEqual('Edit', ActualBOMRoutingDisplayValue, BOMRoutingDisplayFromPartialLbl);
+        Assert.AreEqual('Edit', ActualProdCompDisplayValue, ProdCompDisplayFromPartialLbl);
     end;
 
     [Test]
@@ -402,6 +418,8 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         WC1No: Code[20];
         WC2No: Code[20];
         LocationCode: Code[10];
+        BOMRoutingDisplayFromBothLbl: Label 'BOMRoutingDisplay should come from ShowRtngBOMSelect_Both = Show';
+        ProdCompDisplayFromBothLbl: Label 'ProdCompDisplay should come from ShowProdCompSelect_Both = Show';
     begin
         // [FEATURE] Production Definition Wizard
         // [SCENARIO C9] BothAvailable scenario → BOMRoutingDisplay and ProdCompDisplay resolved from ShowRtngBOMSelect_Both / ShowProdCompSelect_Both
@@ -427,8 +445,8 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         ProdDefManager.RunForSource(SalesLine, "Prod. Definition Mode"::CreateProductionOrder);
 
         // [THEN] Display fields come from Both scenario settings
-        Assert.AreEqual('Show', ActualBOMRoutingDisplayValue, 'BOMRoutingDisplay should come from ShowRtngBOMSelect_Both = Show');
-        Assert.AreEqual('Show', ActualProdCompDisplayValue, 'ProdCompDisplay should come from ShowProdCompSelect_Both = Show');
+        Assert.AreEqual('Show', ActualBOMRoutingDisplayValue, BOMRoutingDisplayFromBothLbl);
+        Assert.AreEqual('Show', ActualProdCompDisplayValue, ProdCompDisplayFromBothLbl);
     end;
 
     [ModalPageHandler]
@@ -474,18 +492,19 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
     var
         Item: Record Item;
         ProdDefManager: Codeunit "Production Definition Manager";
-        BOMNo: Code[20];
         RoutingNo: Code[20];
         ItemNo: Code[20];
         WC1No: Code[20];
         WC2No: Code[20];
+        WizardShouldHaveFinishedLbl: Label 'Wizard should have finished';
+        BOMLinesEditableWhenEditLbl: Label 'BOM lines should be editable when Display = Edit';
     begin
         // [FEATURE] Production Definition Wizard
-        // [SCENARIO C_Edit] BOMRoutingDisplay = Edit → BOM lines part is enabled (editable)
+        // [SCENARIO C_Edit] BOMRoutingDisplay = Edit — BOM lines part is enabled (editable)
         Initialize();
 
         // [GIVEN] Manufacturing Setup: ShowRtngBOMSelect_Both = Edit
-        BOMNo := ProdDefWizLibrary.CreateBOM(2);
+        ProdDefWizLibrary.CreateBOM(2);
         RoutingNo := ProdDefWizLibrary.CreateRoutingWithTwoLines(WC1No, WC2No);
         ItemNo := ProdDefWizLibrary.CreateItemWithBOMAndRouting('', RoutingNo);
         Item.Get(ItemNo);
@@ -498,8 +517,8 @@ codeunit 137425 "Prod. Def. Wiz. Config Test"
         ProdDefManager.RunForSource(Item, "Prod. Definition Mode"::DefineItemStructure);
 
         // [THEN] BOMLinesPart.Enabled = true (Display = Edit means editable)
-        Assert.IsTrue(WizardFinished, 'Wizard should have finished');
-        Assert.IsTrue(ActualEditBOMLines, 'BOM lines should be editable when Display = Edit');
+        Assert.IsTrue(WizardFinished, WizardShouldHaveFinishedLbl);
+        Assert.IsTrue(ActualEditBOMLines, BOMLinesEditableWhenEditLbl);
     end;
 
 }
