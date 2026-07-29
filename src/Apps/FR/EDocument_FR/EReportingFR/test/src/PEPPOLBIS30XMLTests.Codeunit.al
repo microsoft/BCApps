@@ -786,8 +786,11 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
     local procedure CreateCustomer(FRElectronicAddress: Text[250]; AddressScheme: Enum "Electronic Address Scheme"): Code[20]
     var
         Customer: Record Customer;
+        CustomerPostingGroup: Record "Customer Posting Group";
     begin
+        LibrarySales.CreateCustomerPostingGroup(CustomerPostingGroup);
         LibrarySales.CreateCustomer(Customer);
+        Customer.Validate("Customer Posting Group", CustomerPostingGroup.Code);
         if Customer."Country/Region Code" = '' then
             Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
         if Customer.Address = '' then
