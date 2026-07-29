@@ -2361,6 +2361,7 @@ codeunit 148017 "FEC Audit File Export Tests"
         InvoiceAmount: Decimal;
         DiscountAmount: Decimal;
         PmtDiscAccountNo: Code[20];
+        LineToRead: Text;
     begin
         // [SCENARIO 639574] CompAuxNum and CompAuxLib are informed for Payment Discount lines in the French Audit File
         Initialize();
@@ -2391,15 +2392,13 @@ codeunit 148017 "FEC Audit File Export Tests"
             Customer."No.", StartingDate, -(InvoiceAmount - DiscountAmount));
         ApplyAndPostGenJournalLine(PaymentDocNo, "Gen. Journal Document Type"::Invoice, InvoiceDocNo);
 
-        // [WHEN] Export Audit File in FEC format
-        RunFECExport(AuditFile, '', StartingDate, StartingDate, false);
+        // [WHEN] Export Audit File in FEC format for the Payment Disc. Debit Acc. only
+        RunFECExport(AuditFile, PmtDiscAccountNo, StartingDate, StartingDate, false);
 
-        // [THEN] The Payment Discount line (posted to the posting group's Payment Disc. Debit Acc.) has
-        // [THEN] CompAuxNum = Customer No. and CompAuxLib = Customer Name
+        // [THEN] The exported Payment Discount line has CompAuxNum = Customer No. and CompAuxLib = Customer Name
         CreateReadStream(iStream, AuditFile);
-        Assert.IsTrue(
-          FindPaymentDiscountLineWithParty(iStream, PmtDiscAccountNo, Customer."No.", Customer.Name),
-          'The payment discount line with the customer number and name was not found in the FEC file.');
+        iStream.ReadText(LineToRead); // header
+        VerifyFilePartyNoAndName(iStream, Customer."No.", Customer.Name);
     end;
 
     local procedure Initialize()
@@ -2442,24 +2441,6 @@ codeunit 148017 "FEC Audit File Export Tests"
     begin
         AuditFile.CalcFields("File Content");
         AuditFile."File Content".CreateInStream(FileInStream, TextEncoding::UTF8);
-    end;
-
-    local procedure FindPaymentDiscountLineWithParty(var FileInStream: InStream; PmtDiscAccountNo: Code[20]; ExpectedPartyNo: Code[20]; ExpectedPartyName: Text): Boolean
-    var
-        LineFields: List of [Text];
-        LineToRead: Text;
-    begin
-        while not FileInStream.EOS() do begin
-            FileInStream.ReadText(LineToRead);
-            LineFields := LineToRead.Split('|');
-            if LineFields.Count() >= 8 then
-                if LineFields.Get(5) = PmtDiscAccountNo then begin // field 5 = CompteNum
-                    Assert.AreEqual(ExpectedPartyNo, LineFields.Get(7), GetErrorTextForAssertStmnt(7)); // field 7 = CompAuxNum
-                    Assert.AreEqual(ExpectedPartyName, LineFields.Get(8), GetErrorTextForAssertStmnt(8)); // field 8 = CompAuxLib
-                    exit(true);
-                end;
-        end;
-        exit(false);
     end;
 
     local procedure RunFECExport(var AuditFile: Record "Audit File"; GLAccountNoFilter: Text; StartDate: Date; EndDate: Date; IncludeOpeningBalances: Boolean)

@@ -679,44 +679,49 @@ codeunit 10826 "Generate File FEC"
     end;
 
     local procedure IsPaymentDiscountAccount(GLAccountNo: Code[20]): Boolean
+    begin
+        if GLAccountNo = '' then
+            exit(false);
+
+        InitPmtDiscountAccountList();
+        exit(PmtDiscountAccounts.ContainsKey(GLAccountNo));
+    end;
+
+    local procedure InitPmtDiscountAccountList()
     var
         GeneralPostingSetup: Record "General Posting Setup";
         CustomerPostingGroup: Record "Customer Posting Group";
         VendorPostingGroup: Record "Vendor Posting Group";
     begin
-        if GLAccountNo = '' then
-            exit(false);
+        if PmtDiscountAccountsInitialized then
+            exit;
 
-        if not PmtDiscountAccountsInitialized then begin
-            GeneralPostingSetup.SetLoadFields(
-                "Sales Pmt. Disc. Debit Acc.", "Sales Pmt. Disc. Credit Acc.",
-                "Purch. Pmt. Disc. Debit Acc.", "Purch. Pmt. Disc. Credit Acc.");
-            if GeneralPostingSetup.FindSet() then
-                repeat
-                    AddPmtDiscountAccount(GeneralPostingSetup."Sales Pmt. Disc. Debit Acc.");
-                    AddPmtDiscountAccount(GeneralPostingSetup."Sales Pmt. Disc. Credit Acc.");
-                    AddPmtDiscountAccount(GeneralPostingSetup."Purch. Pmt. Disc. Debit Acc.");
-                    AddPmtDiscountAccount(GeneralPostingSetup."Purch. Pmt. Disc. Credit Acc.");
-                until GeneralPostingSetup.Next() = 0;
+        GeneralPostingSetup.SetLoadFields(
+            "Sales Pmt. Disc. Debit Acc.", "Sales Pmt. Disc. Credit Acc.",
+            "Purch. Pmt. Disc. Debit Acc.", "Purch. Pmt. Disc. Credit Acc.");
+        if GeneralPostingSetup.FindSet() then
+            repeat
+                AddPmtDiscountAccount(GeneralPostingSetup."Sales Pmt. Disc. Debit Acc.");
+                AddPmtDiscountAccount(GeneralPostingSetup."Sales Pmt. Disc. Credit Acc.");
+                AddPmtDiscountAccount(GeneralPostingSetup."Purch. Pmt. Disc. Debit Acc.");
+                AddPmtDiscountAccount(GeneralPostingSetup."Purch. Pmt. Disc. Credit Acc.");
+            until GeneralPostingSetup.Next() = 0;
 
-            CustomerPostingGroup.SetLoadFields("Payment Disc. Debit Acc.", "Payment Disc. Credit Acc.");
-            if CustomerPostingGroup.FindSet() then
-                repeat
-                    AddPmtDiscountAccount(CustomerPostingGroup."Payment Disc. Debit Acc.");
-                    AddPmtDiscountAccount(CustomerPostingGroup."Payment Disc. Credit Acc.");
-                until CustomerPostingGroup.Next() = 0;
+        CustomerPostingGroup.SetLoadFields("Payment Disc. Debit Acc.", "Payment Disc. Credit Acc.");
+        if CustomerPostingGroup.FindSet() then
+            repeat
+                AddPmtDiscountAccount(CustomerPostingGroup."Payment Disc. Debit Acc.");
+                AddPmtDiscountAccount(CustomerPostingGroup."Payment Disc. Credit Acc.");
+            until CustomerPostingGroup.Next() = 0;
 
-            VendorPostingGroup.SetLoadFields("Payment Disc. Debit Acc.", "Payment Disc. Credit Acc.");
-            if VendorPostingGroup.FindSet() then
-                repeat
-                    AddPmtDiscountAccount(VendorPostingGroup."Payment Disc. Debit Acc.");
-                    AddPmtDiscountAccount(VendorPostingGroup."Payment Disc. Credit Acc.");
-                until VendorPostingGroup.Next() = 0;
+        VendorPostingGroup.SetLoadFields("Payment Disc. Debit Acc.", "Payment Disc. Credit Acc.");
+        if VendorPostingGroup.FindSet() then
+            repeat
+                AddPmtDiscountAccount(VendorPostingGroup."Payment Disc. Debit Acc.");
+                AddPmtDiscountAccount(VendorPostingGroup."Payment Disc. Credit Acc.");
+            until VendorPostingGroup.Next() = 0;
 
-            PmtDiscountAccountsInitialized := true;
-        end;
-
-        exit(PmtDiscountAccounts.ContainsKey(GLAccountNo));
+        PmtDiscountAccountsInitialized := true;
     end;
 
     local procedure AddPmtDiscountAccount(GLAccountNo: Code[20])
