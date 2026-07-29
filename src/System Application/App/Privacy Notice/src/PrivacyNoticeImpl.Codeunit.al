@@ -13,7 +13,8 @@ codeunit 1565 "Privacy Notice Impl."
     InherentEntitlements = X;
     InherentPermissions = X;
     Permissions = tabledata Company = r,
-                  tabledata "Privacy Notice" = im;
+                  tabledata "Privacy Notice" = rim,
+                  tabledata "Privacy Notice Approval" = r;
 
     var
         EmptyGuid: Guid;
@@ -118,6 +119,8 @@ codeunit 1565 "Privacy Notice Impl."
         exit(CheckPrivacyNoticeApprovalState(PrivacyNoticeId, true));
     end;
 
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Privacy Notice", 'r')]
+    [InherentPermissions(PermissionObjectType::TableData, Database::"Privacy Notice Approval", 'r')]
     procedure CheckPrivacyNoticeApprovalState(PrivacyNoticeId: Code[50]; SkipCheckInEval: Boolean): Enum "Privacy Notice Approval State"
     var
         Company: Record Company;
