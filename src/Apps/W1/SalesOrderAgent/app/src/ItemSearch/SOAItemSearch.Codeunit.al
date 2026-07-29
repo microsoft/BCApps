@@ -582,6 +582,7 @@ codeunit 4591 "SOA Item Search"
             ColumnValuesObject.Add('Description 2', Item."Description 2");
 
             ItemVariant.SetRange("Item No.", Item."No.");
+            ItemVariant.SetLoadFields(Code, Description, "Description 2");
             if ItemVariant.FindSet() then
                 repeat
                     Clear(VariantObject);
