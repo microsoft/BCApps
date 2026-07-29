@@ -78,9 +78,11 @@ codeunit 4418 "SOA Reply Retry Mgt."
 
     local procedure ValidateMessageAccess(AgentTaskMessage: Record "Agent Task Message"; var SOASetup: Record "SOA Setup")
     var
+        SOASetupCU: Codeunit "SOA Setup";
         OwnerUserSecurityID: Guid;
     begin
         SOASetup.GetBasedOnAgentUserSecurityID(AgentTaskMessage."Agent User Security ID", true);
+        SOASetupCU.EnsureAgentNotArchived(SOASetup."User Security ID");
         OwnerUserSecurityID := SOASetup."Owner User Security ID";
         if IsNullGuid(OwnerUserSecurityID) then
             OwnerUserSecurityID := SOASetup."User Security ID";

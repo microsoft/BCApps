@@ -28,7 +28,8 @@ codeunit 4400 "SOA Setup"
     Access = Internal;
     InherentEntitlements = X;
     InherentPermissions = X;
-    Permissions = tabledata "Email Inbox" = rd;
+    Permissions = tabledata "Email Inbox" = rd,
+                  tabledata Agent = r;
 #pragma warning restore AS0049
 
     /// <summary>
@@ -118,6 +119,7 @@ codeunit 4400 "SOA Setup"
         SOASetup: Record "SOA Setup";
         AgentSystemPermissions: Codeunit "Agent System Permissions";
         CurrentOwnerUserSecurityID: Guid;
+        ActiveInstanceCount: Integer;
     begin
         if not AgentSystemPermissions.CurrentUserHasCanManageAllAgentsPermission() then
             // Limit agent creation to agent admins.
@@ -125,8 +127,13 @@ codeunit 4400 "SOA Setup"
 
         CurrentOwnerUserSecurityID := UserSecurityId();
         SOASetup.SetRange("Owner User Security ID", CurrentOwnerUserSecurityID);
+        if SOASetup.FindSet() then
+            repeat
+                if not IsAgentArchived(SOASetup."User Security ID") then
+                    ActiveInstanceCount += 1;
+            until SOASetup.Next() = 0;
 
-        exit(SOASetup.Count() < MaxSOAInstances());
+        exit(ActiveInstanceCount < MaxSOAInstances());
     end;
 
     internal procedure MaxSOAInstances(): Integer
@@ -159,6 +166,7 @@ codeunit 4400 "SOA Setup"
         if IsNullGuid(AgentSetupBuffer."User Security ID") then
             AgentSetupBuffer."User Security ID" := TempSOASetup."User Security ID";
 
+        EnsureAgentNotArchived(TempSOASetup."User Security ID");
         EnsureAgentIdentityDefaults(TempSOASetup);
 
         if IsNullGuid(AgentSetupBuffer."User Security ID") then
@@ -359,6 +367,7 @@ codeunit 4400 "SOA Setup"
         SOAPromptBuilder: Codeunit "SOA Prompt Builder";
         InstructionsSecret: SecretText;
     begin
+        EnsureAgentNotArchived(TempSOASetup."User Security ID");
         SOAPromptBuilder.PrepareInstructions(InstructionsSecret, TempSOASetup);
         Agent.SetInstructions(TempSOASetup."User Security ID", InstructionsSecret);
         TempSOASetup."Instructions Last Sync At" := CurrentDateTime();
@@ -385,6 +394,7 @@ codeunit 4400 "SOA Setup"
     var
         CurrentSOASetup: Record "SOA Setup";
     begin
+        EnsureAgentNotArchived(SOASetup."User Security ID");
         if not CurrentSOASetup.Get(SOASetup.RecordId) then
             exit;
 
@@ -477,6 +487,9 @@ codeunit 4400 "SOA Setup"
         if not CurrentSOASetup.Get(SOASetup.RecordId) then
             exit(false);
 
+        if IsAgentArchived(CurrentSOASetup."User Security ID") then
+            exit(false);
+
         if not (CurrentSOASetup.State = CurrentSOASetup.State::Enabled) then
             exit(false);
 
@@ -502,14 +515,20 @@ codeunit 4400 "SOA Setup"
 
         OtherSOASetup.SetRange("Agent Name", SOASetup."Agent Name");
         OtherSOASetup.SetFilter(ID, '<>%1', SOASetup.ID);
-        if not OtherSOASetup.IsEmpty() then
-            Error(AgentNameConflictErr);
+        if OtherSOASetup.FindSet() then
+            repeat
+                if not IsAgentArchived(OtherSOASetup."User Security ID") then
+                    Error(AgentNameConflictErr);
+            until OtherSOASetup.Next() = 0;
 
         OtherSOASetup.Reset();
         OtherSOASetup.SetRange("Agent Initials", SOASetup."Agent Initials");
         OtherSOASetup.SetFilter(ID, '<>%1', SOASetup.ID);
-        if not OtherSOASetup.IsEmpty() then
-            Error(AgentInitialsConflictErr);
+        if OtherSOASetup.FindSet() then
+            repeat
+                if not IsAgentArchived(OtherSOASetup."User Security ID") then
+                    Error(AgentInitialsConflictErr);
+            until OtherSOASetup.Next() = 0;
     end;
 
     internal procedure CheckMailboxUnique(SOASetup: Record "SOA Setup")
@@ -525,14 +544,36 @@ codeunit 4400 "SOA Setup"
 
         if SOASetup."Email Folder Id" = '' then begin
             OtherSOASetup.SetRange("Email Folder Id", '');
-            if OtherSOASetup.FindFirst() then
-                Error(MailboxAlreadyUsedWithoutFolderErr, OtherSOASetup."Agent Name", OtherSOASetup."Agent Initials");
+            if OtherSOASetup.FindSet() then
+                repeat
+                    if not IsAgentArchived(OtherSOASetup."User Security ID") then
+                        Error(MailboxAlreadyUsedWithoutFolderErr, OtherSOASetup."Agent Name", OtherSOASetup."Agent Initials");
+                until OtherSOASetup.Next() = 0;
             exit;
         end;
 
         OtherSOASetup.SetRange("Email Folder Id", SOASetup."Email Folder Id");
-        if OtherSOASetup.FindFirst() then
-            Error(MailboxAndFolderAlreadyUsedErr, OtherSOASetup."Agent Name", OtherSOASetup."Agent Initials");
+        if OtherSOASetup.FindSet() then
+            repeat
+                if not IsAgentArchived(OtherSOASetup."User Security ID") then
+                    Error(MailboxAndFolderAlreadyUsedErr, OtherSOASetup."Agent Name", OtherSOASetup."Agent Initials");
+            until OtherSOASetup.Next() = 0;
+    end;
+
+    internal procedure IsAgentArchived(AgentUserSecurityID: Guid): Boolean
+    var
+        AgentCU: Codeunit Agent;
+    begin
+        if IsNullGuid(AgentUserSecurityID) then
+            exit(false);
+
+        exit(AgentCU.IsArchived(AgentUserSecurityID));
+    end;
+
+    internal procedure EnsureAgentNotArchived(AgentUserSecurityID: Guid)
+    begin
+        if IsAgentArchived(AgentUserSecurityID) then
+            Error(AgentArchivedCannotBeModifiedErr);
     end;
 
     internal procedure GetEmailAccount(var SOASetup: Record "SOA Setup"; var TempEmailAccount: Record "Email Account" temporary)
@@ -1094,4 +1135,5 @@ codeunit 4400 "SOA Setup"
         SignatureNoteLbl: Label 'We write mails with AI. We review and send with care.';
         MailboxAlreadyUsedWithoutFolderErr: Label 'This email account is already used by Sales Order Agent "%1" (%2).', Comment = '%1 = agent name, %2 = agent initials';
         MailboxAndFolderAlreadyUsedErr: Label 'This email account and folder combination is already used by Sales Order Agent "%1" (%2).', Comment = '%1 = agent name, %2 = agent initials';
+        AgentArchivedCannotBeModifiedErr: Label 'The agent is archived and cannot be modified.';
 }

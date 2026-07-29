@@ -33,6 +33,7 @@ codeunit 4419 "SOA Send Reply"
 
         InputAgentTaskMessage.Get(Rec."Task ID", Rec."Input Message ID");
         SOASetup.GetBasedOnAgentUserSecurityID(Rec."Agent User Security ID", true);
+        SOASetupCU.EnsureAgentNotArchived(SOASetup."User Security ID");
 
         Subject := StrSubstNo(EmailSubjectTxt, InputAgentTaskMessage."Task ID");
         Body := AgentMessage.GetText(Rec);

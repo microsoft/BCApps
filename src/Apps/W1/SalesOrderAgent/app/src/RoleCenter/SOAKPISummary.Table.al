@@ -75,11 +75,19 @@ table 4596 "SOA KPI Summary"
     }
 
     internal procedure GetSafe(AgentSecurityID: Guid)
+    var
+        SOASetupCU: Codeunit "SOA Setup";
     begin
         if IsNullGuid(AgentSecurityID) then
             exit;
 
         Rec.ReadIsolation := IsolationLevel::ReadCommitted;
+        if SOASetupCU.IsAgentArchived(AgentSecurityID) then begin
+            if not Rec.Get(AgentSecurityID) then
+                Clear(Rec);
+            exit;
+        end;
+
         if not Rec.Get(AgentSecurityID) then begin
             Rec.Init();
             Rec."User Security ID" := AgentSecurityID;
@@ -88,7 +96,12 @@ table 4596 "SOA KPI Summary"
     end;
 
     internal procedure UpdateEntryKPIs(var SOAKPIEntry: Record "SOA KPI Entry"; PreviousAmount: Decimal; InsertedRecord: Boolean; AgentSecurityID: Guid)
+    var
+        SOASetupCU: Codeunit "SOA Setup";
     begin
+        if SOASetupCU.IsAgentArchived(AgentSecurityID) then
+            exit;
+
         Rec.GetSafe(AgentSecurityID);
         case SOAKPIEntry."Record Type" of
             SOAKPIEntry."Record Type"::"Sales Order":
@@ -125,10 +138,14 @@ table 4596 "SOA KPI Summary"
         SOASetup: Record "SOA Setup";
         AgentTask: Record "Agent Task";
         AgentTaskMessage: Record "Agent Task Message";
+        SOASetupCU: Codeunit "SOA Setup";
         BlankUpdatedDateTime: DateTime;
         UpdateDateTime: DateTime;
     begin
         if IsNullGuid(AgentSecurityID) then
+            exit;
+
+        if SOASetupCU.IsAgentArchived(AgentSecurityID) then
             exit;
 
         SOASetup.SetRange("User Security ID", AgentSecurityID);

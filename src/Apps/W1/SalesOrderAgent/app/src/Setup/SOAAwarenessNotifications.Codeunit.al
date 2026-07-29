@@ -33,6 +33,7 @@ codeunit 4323 "SOA Awareness Notifications"
     var
         MyNotifications: Record "My Notifications";
         SOASetup: Record "SOA Setup";
+        SOASetupCU: Codeunit "SOA Setup";
         AgentSession: Codeunit "Agent Session";
         AgentMetadataProvider: Enum "Agent Metadata Provider";
     begin
@@ -43,7 +44,13 @@ codeunit 4323 "SOA Awareness Notifications"
         if AgentSession.IsAgentSession(AgentMetadataProvider) then
             exit(false);
 
-        exit(SOASetup.IsEmpty());
+        if SOASetup.FindSet() then
+            repeat
+                if not SOASetupCU.IsAgentArchived(SOASetup."User Security ID") then
+                    exit(false);
+            until SOASetup.Next() = 0;
+
+        exit(true);
     end;
 
     local procedure ProcessManualActionCounter()

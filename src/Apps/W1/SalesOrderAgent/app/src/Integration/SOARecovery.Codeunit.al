@@ -39,6 +39,9 @@ codeunit 4584 "SOA Recovery"
     begin
         TelemetryDimensions.Add('SOASetupId', Format(Setup.ID));
 
+        if SOAImpl.StopScheduledTasksIfArchived(Setup) then
+            exit;
+
         // Check if capability is enabled
         if not AzureOpenAI.IsEnabled(Enum::"Copilot Capability"::"Sales Order Agent", true) then begin
             FeatureTelemetry.LogError('0000NF6', SOASetupCU.GetFeatureName(), 'Sales order agent capability check', TelemetryAgentCapabilityNotEnabledLbl, GetLastErrorCallStack(), TelemetryDimensions);

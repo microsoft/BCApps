@@ -33,6 +33,12 @@ codeunit 4585 "SOA Error Handler"
         TelemetryDimensions.Add('SOASetupId', Format(Setup.ID));
         FeatureTelemetry.LogError('0000NDM', SOASetupCU.GetFeatureName(), 'RunSOAErrorHandler', TelemetryAgentTaskFailedLbl, GetLastErrorCallStack(), TelemetryDimensions);
 
+        if SOAImpl.StopScheduledTasksIfArchived(Setup) then
+            exit;
+
+        if not SOASetupCU.CheckSOASetupStillValid(Setup) then
+            exit;
+
         SOAImpl.ScheduleSOAgent(Setup);
     end;
 }

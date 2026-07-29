@@ -52,6 +52,7 @@ codeunit 4589 "SOA Upgrade"
         SOASetupRec: Record "SOA Setup";
         TempSOASetup: Record "SOA Setup" temporary;
         EnvironmentInformation: Codeunit "Environment Information";
+        SOASetupCU: Codeunit "SOA Setup";
     begin
         if not EnvironmentInformation.IsSaaSInfrastructure() then
             exit;
@@ -60,11 +61,13 @@ codeunit 4589 "SOA Upgrade"
             exit;
 
         repeat
-            TempSOASetup := SOASetupRec;
-            TempSOASetup.Insert();
-            if not TryUpdateAgentInstructions(SOASetupRec, TempSOASetup) then
-                Session.LogMessage('0000U1P', FailedToUpdateSOAInstructionsTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'SOA Upgrade', 'ErrorCallStack', GetLastErrorCallStack());
-            TempSOASetup.DeleteAll();
+            if not SOASetupCU.IsAgentArchived(SOASetupRec."User Security ID") then begin
+                TempSOASetup := SOASetupRec;
+                TempSOASetup.Insert();
+                if not TryUpdateAgentInstructions(SOASetupRec, TempSOASetup) then
+                    Session.LogMessage('0000U1P', FailedToUpdateSOAInstructionsTxt, Verbosity::Warning, DataClassification::SystemMetadata, TelemetryScope::ExtensionPublisher, 'Category', 'SOA Upgrade', 'ErrorCallStack', GetLastErrorCallStack());
+                TempSOASetup.DeleteAll();
+            end;
         until SOASetupRec.Next() = 0;
     end;
 
@@ -126,13 +129,18 @@ codeunit 4589 "SOA Upgrade"
     local procedure AddDailyEmailLimit()
     var
         SOASetup: Record "SOA Setup";
+        SOASetupCU: Codeunit "SOA Setup";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         if not UpgradeTag.HasUpgradeTag(GetSetDailyEmailLimitTag()) then begin
-            if SOASetup.FindFirst() then begin
-                SOASetup."Message Limit" := SOASetup.GetDefaultMessageLimit();
-                SOASetup.Modify();
-            end;
+            if SOASetup.FindSet() then
+                repeat
+                    if not SOASetupCU.IsAgentArchived(SOASetup."User Security ID") then begin
+                        SOASetup."Message Limit" := SOASetup.GetDefaultMessageLimit();
+                        SOASetup.Modify();
+                        break;
+                    end;
+                until SOASetup.Next() = 0;
 
             UpgradeTag.SetUpgradeTag(GetSetDailyEmailLimitTag());
         end;
@@ -141,13 +149,18 @@ codeunit 4589 "SOA Upgrade"
     local procedure SetMarkEmailAsRead()
     var
         SOASetup: Record "SOA Setup";
+        SOASetupCU: Codeunit "SOA Setup";
         UpgradeTag: Codeunit "Upgrade Tag";
     begin
         if not UpgradeTag.HasUpgradeTag(GetSetMarkEmailAsReadTag()) then begin
-            if SOASetup.FindFirst() then begin
-                SOASetup."Mark Email As Read" := true;
-                SOASetup.Modify();
-            end;
+            if SOASetup.FindSet() then
+                repeat
+                    if not SOASetupCU.IsAgentArchived(SOASetup."User Security ID") then begin
+                        SOASetup."Mark Email As Read" := true;
+                        SOASetup.Modify();
+                        break;
+                    end;
+                until SOASetup.Next() = 0;
 
             UpgradeTag.SetUpgradeTag(GetSetMarkEmailAsReadTag());
         end;
@@ -167,18 +180,20 @@ codeunit 4589 "SOA Upgrade"
             repeat
                 IsModified := false;
 
-                if SOASetup."Agent Name" = '' then begin
-                    SOASetup."Agent Name" := CopyStr(SOASetupCU.GetSOAUserDisplayName(), 1, MaxStrLen(SOASetup."Agent Name"));
-                    IsModified := true;
-                end;
+                if not SOASetupCU.IsAgentArchived(SOASetup."User Security ID") then begin
+                    if SOASetup."Agent Name" = '' then begin
+                        SOASetup."Agent Name" := CopyStr(SOASetupCU.GetSOAUserDisplayName(), 1, MaxStrLen(SOASetup."Agent Name"));
+                        IsModified := true;
+                    end;
 
-                if SOASetup."Agent Initials" = '' then begin
-                    SOASetup."Agent Initials" := SOASetupCU.GetInitials();
-                    IsModified := true;
-                end;
+                    if SOASetup."Agent Initials" = '' then begin
+                        SOASetup."Agent Initials" := SOASetupCU.GetInitials();
+                        IsModified := true;
+                    end;
 
-                if IsModified then
-                    SOASetup.Modify();
+                    if IsModified then
+                        SOASetup.Modify();
+                end;
             until SOASetup.Next() = 0;
 
         UpgradeTag.SetUpgradeTag(GetAgentIdentityTag());
@@ -187,6 +202,7 @@ codeunit 4589 "SOA Upgrade"
     local procedure UpgradeOwnerUserSecurityID()
     var
         SOASetup: Record "SOA Setup";
+        SOASetupCU: Codeunit "SOA Setup";
         UpgradeTag: Codeunit "Upgrade Tag";
         IsModified: Boolean;
     begin
@@ -196,13 +212,15 @@ codeunit 4589 "SOA Upgrade"
         if SOASetup.FindSet() then
             repeat
                 IsModified := false;
-                if IsNullGuid(SOASetup."Owner User Security ID") and (not IsNullGuid(SOASetup."User Security ID")) then begin
-                    SOASetup."Owner User Security ID" := SOASetup."User Security ID";
-                    IsModified := true;
-                end;
+                if not SOASetupCU.IsAgentArchived(SOASetup."User Security ID") then begin
+                    if IsNullGuid(SOASetup."Owner User Security ID") and (not IsNullGuid(SOASetup."User Security ID")) then begin
+                        SOASetup."Owner User Security ID" := SOASetup."User Security ID";
+                        IsModified := true;
+                    end;
 
-                if IsModified then
-                    SOASetup.Modify();
+                    if IsModified then
+                        SOASetup.Modify();
+                end;
             until SOASetup.Next() = 0;
 
         UpgradeTag.SetUpgradeTag(GetOwnerUserSecurityIDTag());

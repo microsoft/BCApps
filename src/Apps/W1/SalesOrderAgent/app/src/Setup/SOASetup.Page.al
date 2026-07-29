@@ -118,6 +118,7 @@ page 4400 "SOA Setup"
                         StyleExpr = true;
                         Style = StandardAccent;
                         Editable = false;
+                        Enabled = not AgentIsArchived;
                         ToolTip = 'Create a new task for the Sales Order Agent by entering the sender, message text, and any attachments.';
 
                         trigger OnDrillDown()
@@ -449,7 +450,7 @@ page 4400 "SOA Setup"
             systemaction(OK)
             {
                 Caption = 'Update';
-                Enabled = IsConfigUpdated;
+                Enabled = IsConfigUpdated and not AgentIsArchived;
                 ToolTip = 'Apply the changes to the agent setup.';
             }
             systemaction(Cancel)
@@ -479,6 +480,10 @@ page 4400 "SOA Setup"
         UserSecurityIDFilter := Rec.GetFilter("User Security ID");
         if not Evaluate(UserSecurityID, UserSecurityIDFilter) then
             Clear(UserSecurityID);
+
+        AgentIsArchived := not IsNullGuid(UserSecurityID) and SOASetupCU.IsAgentArchived(UserSecurityID);
+        if AgentIsArchived then
+            CurrPage.Editable(false);
 
         if not IsNullGuid(UserSecurityID) then
             if SOASetupRec.GetBasedOnAgentUserSecurityID(UserSecurityID, false) then begin
@@ -530,6 +535,12 @@ page 4400 "SOA Setup"
         ActivateWithoutMonitoringLbl: Label 'The monitoring of email is not enabled. Are you sure you want to continue?';
         DeactivateWarningLbl: Label 'If you deactivate the agent, you won''t be able to reactivate it because you don''t have permission to the current mail account (activated by %1). Are you sure you want continue?', Comment = '%1=Username of user who activated the agent.';
     begin
+        if AgentIsArchived then begin
+            if IsConfigUpdated then
+                SOASetupCU.EnsureAgentNotArchived(Rec."User Security ID");
+            exit(true);
+        end;
+
         if EnabledAgentFirstConfig() then
             if Confirm(ReadyToActivateLbl) then
                 Rec.State := Rec.State::Enabled;
@@ -764,8 +775,10 @@ page 4400 "SOA Setup"
 
     local procedure UpdateEmailSignature()
     var
+        SOASetupCU: Codeunit "SOA Setup";
         EmailTemplatePage: Page "SOA Email Template";
     begin
+        SOASetupCU.EnsureAgentNotArchived(Rec."User Security ID");
         if not Rec."Configure Email Template" then
             exit;
         EmailTemplatePage.SetCurrentSignatureAsTxt(Rec.GetEmailSignatureAsTxt());
@@ -805,4 +818,5 @@ page 4400 "SOA Setup"
         InboxFolderNameTok: Label 'Inbox', Locked = true;
         InboxFolderIdTok: Label 'inbox', Locked = true;
         NoFolderSelectedInboxWarningQst: Label 'There is no mail folder selected, so the agent will process emails from the inbox (%1 emails since %2). Do you want to continue?', Comment = '%1=email count, %2=start date';
+        AgentIsArchived: Boolean;
 }

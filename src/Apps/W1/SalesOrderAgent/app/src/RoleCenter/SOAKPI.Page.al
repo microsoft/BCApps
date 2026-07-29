@@ -145,16 +145,23 @@ page 4402 "SOA KPI"
     local procedure GetCurrentUserAgentSecurityID(): Guid
     var
         SOASetup: Record "SOA Setup";
+        SOASetupCU: Codeunit "SOA Setup";
     begin
         SOASetup.SetRange("Owner User Security ID", UserSecurityId());
-        if SOASetup.FindFirst() then
-            exit(SOASetup."User Security ID");
+        if SOASetup.FindSet() then
+            repeat
+                if not SOASetupCU.IsAgentArchived(SOASetup."User Security ID") then
+                    exit(SOASetup."User Security ID");
+            until SOASetup.Next() = 0;
 
         // Backward compatibility for setups created before Owner User Security ID existed.
         SOASetup.Reset();
         SOASetup.SetRange("User Security ID", UserSecurityId());
-        if SOASetup.FindFirst() then
-            exit(SOASetup."User Security ID");
+        if SOASetup.FindSet() then
+            repeat
+                if not SOASetupCU.IsAgentArchived(SOASetup."User Security ID") then
+                    exit(SOASetup."User Security ID");
+            until SOASetup.Next() = 0;
     end;
 
     local procedure GetAmount(CurrentAmount: Decimal; var NewAmount: Decimal; var NewAmountFormat: Text)

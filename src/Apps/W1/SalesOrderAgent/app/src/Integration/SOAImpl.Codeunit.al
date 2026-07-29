@@ -33,6 +33,9 @@ codeunit 4587 "SOA Impl"
         ScheduledTaskId: Guid;
         TelemetryDimensions: Dictionary of [Text, Text];
     begin
+        if StopScheduledTasksIfArchived(SOASetup) then
+            exit;
+
         if IsNullGuid(SOASetup.SystemId) then begin
             FeatureTelemetry.LogError('0000NDU', SOASetupCU.GetFeatureName(), 'Invalid SOA Setup', TelemetrySOASetupRecordNotValidLbl, GetLastErrorCallStack(), TelemetryDimensions);
             exit;
@@ -64,20 +67,25 @@ codeunit 4587 "SOA Impl"
     var
         SOASetup: Record "SOA Setup";
         User: Record User;
+        SOASetupCU: Codeunit "SOA Setup";
+        CanReadUser: Boolean;
     begin
         SOASetup.ReadIsolation := IsolationLevel::ReadUncommitted;
         if not SOASetup.FindSet() then
             exit(false);
 
-        // Picking safe option to assume it is enabled if no read permissions are in the system and there is SOA setup.
         User.ReadIsolation := IsolationLevel::ReadUncommitted;
-        if not User.ReadPermission() then
-            exit(true);
+        CanReadUser := User.ReadPermission();
 
         repeat
-            if User.Get(SOASetup."User Security ID") then
-                if User.State = User.State::Enabled then
+            if not SOASetupCU.IsAgentArchived(SOASetup."User Security ID") then begin
+                // Picking safe option to assume it is enabled if no read permissions are in the system.
+                if not CanReadUser then
                     exit(true);
+                if User.Get(SOASetup."User Security ID") then
+                    if User.State = User.State::Enabled then
+                        exit(true);
+            end;
         until SOASetup.Next() = 0;
 
         exit(false);
@@ -111,6 +119,24 @@ codeunit 4587 "SOA Impl"
         SOASetup."Recovery Scheduled Task ID" := NullGuid;
     end;
 
+    internal procedure StopScheduledTasksIfArchived(var SOASetup: Record "SOA Setup"): Boolean
+    var
+        CurrentSOASetup: Record "SOA Setup";
+        SOASetupCU: Codeunit "SOA Setup";
+    begin
+        if not SOASetupCU.IsAgentArchived(SOASetup."User Security ID") then
+            exit(false);
+
+        if not CurrentSOASetup.Get(SOASetup.RecordId) then
+            exit(true);
+
+        RemoveScheduledTask(CurrentSOASetup);
+        CurrentSOASetup.Modify();
+        SOASetup := CurrentSOASetup;
+        Commit();
+        exit(true);
+    end;
+
     local procedure ScheduleDelay(SOASetupCU: Codeunit "SOA Setup"; var SOASetup: Record "SOA Setup"): Integer
     var
         InstanceOffset: Integer;
@@ -127,7 +153,9 @@ codeunit 4587 "SOA Impl"
     local procedure GetInstanceOffset(var SOASetup: Record "SOA Setup"): Integer
     var
         OtherSOASetup: Record "SOA Setup";
+        SOASetupCU: Codeunit "SOA Setup";
         OwnerUserSecurityID: Guid;
+        InstanceOffset: Integer;
     begin
         // Give each instance a distinct ordinal (0-based) based on its position among the same owner user's
         // instances, so dispatcher staggering aligns with per-user task scheduling limits.
@@ -138,7 +166,13 @@ codeunit 4587 "SOA Impl"
         OtherSOASetup.ReadIsolation := IsolationLevel::ReadUncommitted;
         OtherSOASetup.SetRange("Owner User Security ID", OwnerUserSecurityID);
         OtherSOASetup.SetFilter(ID, '<%1', SOASetup.ID);
-        exit(OtherSOASetup.Count());
+        if OtherSOASetup.FindSet() then
+            repeat
+                if not SOASetupCU.IsAgentArchived(OtherSOASetup."User Security ID") then
+                    InstanceOffset += 1;
+            until OtherSOASetup.Next() = 0;
+
+        exit(InstanceOffset);
     end;
 
     local procedure ScheduleRecoveryDelay(): Integer

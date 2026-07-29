@@ -27,8 +27,10 @@ codeunit 4415 "SOA Create Task Impl"
 
     internal procedure OpenCreateTaskPage(AgentUserSecurityID: Guid)
     var
+        SOASetupCU: Codeunit "SOA Setup";
         SOACreateTask: Page "SOA Create Task";
     begin
+        SOASetupCU.EnsureAgentNotArchived(AgentUserSecurityID);
         SOACreateTask.SetAgentUserSecurityID(AgentUserSecurityID);
         SOACreateTask.LookupMode(true);
         SOACreateTask.RunModal();
@@ -83,10 +85,13 @@ codeunit 4415 "SOA Create Task Impl"
     var
         SOASetup: Record "SOA Setup";
         SOARetrieveEmails: Codeunit "SOA Retrieve Emails";
+        SOASetupCU: Codeunit "SOA Setup";
         AgentTaskBuilder: Codeunit "Agent Task Builder";
         AgentTaskMessageBuilder: Codeunit "Agent Task Message Builder";
         AgentTaskTitle: Text[150];
     begin
+        SOASetupCU.EnsureAgentNotArchived(GlobalAgentUserSecurityID);
+
         if SenderEmail = '' then
             Error(YouMustSetSenderEmailErr);
 

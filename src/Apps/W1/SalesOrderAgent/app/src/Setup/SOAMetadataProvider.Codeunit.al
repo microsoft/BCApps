@@ -76,7 +76,7 @@ codeunit 4401 "SOA Metadata Provider" implements IAgentMetadata, IAgentFactory, 
 
     procedure IsManualAgentTaskCreationEnabled(AgentUserId: Guid; ManualTaskType: Enum "Manual Agent Task Creation Type"): Boolean
     begin
-        exit(ManualTaskType = ManualTaskType::Default);
+        exit((ManualTaskType = ManualTaskType::Default) and not SOASetupCU.IsAgentArchived(AgentUserId));
     end;
 
     procedure IsMultipleFileUploadAllowed(AgentUserId: Guid): Boolean
@@ -86,6 +86,7 @@ codeunit 4401 "SOA Metadata Provider" implements IAgentMetadata, IAgentFactory, 
 
     procedure CreateManualAgentTask(AgentUserId: Guid; Files: List of [FileUpload])
     begin
+        SOASetupCU.EnsureAgentNotArchived(AgentUserId);
         SOACreateTaskImpl.OpenCreateTaskPage(AgentUserId);
     end;
 
