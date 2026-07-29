@@ -6387,36 +6387,10 @@ codeunit 12 "Gen. Jnl.-Post Line"
                                   (DetailedCVLedgEntryBuffer."Document Type" in [DetailedCVLedgEntryBuffer."Document Type"::Payment,
                                                        DetailedCVLedgEntryBuffer."Document Type"::"Credit Memo"]);
                             GenJournalLine."Account Type"::Vendor:
-<<<<<<< src/Layers/RU/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
                                 GenJournalLine.Correction :=
                                   not DetailedCVLedgEntryBuffer."Initial Entry Positive" xor
                                   (DetailedCVLedgEntryBuffer."Document Type" in [DetailedCVLedgEntryBuffer."Document Type"::Payment,
                                                        DetailedCVLedgEntryBuffer."Document Type"::"Credit Memo"]);
-||||||| Base: src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
-                                begin
-                                    GetVendorPostingGroup(GenJournalLine, VendorPostingGroup);
-                                    AccNo2 := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
-                                    AccNo3 := GetVendorPayablesAccount(GenJournalLine, VendorPostingGroup);
-                                end;
-                            GenJournalLine."Account Type"::Employee:
-                                begin
-                                    EmployeePostingGroup.Get(GenJournalLine."Posting Group");
-                                    AccNo2 := GetEmplDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
-                                    AccNo3 := GetEmployeePayablesAccount(GenJournalLine, EmployeePostingGroup);
-                                end;
-=======
-                                begin
-                                    GetVendorPostingGroup(GenJournalLine, VendorPostingGroup);
-                                    AccNo2 := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
-                                    AccNo3 := GetVendDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
-                                end;
-                            GenJournalLine."Account Type"::Employee:
-                                begin
-                                    EmployeePostingGroup.Get(GenJournalLine."Posting Group");
-                                    AccNo2 := GetEmplDtldCVLedgEntryBufferAccNo(GenJournalLine, DetailedCVLedgEntryBuffer);
-                                    AccNo3 := GetEmployeePayablesAccount(GenJournalLine, EmployeePostingGroup);
-                                end;
->>>>>>> src/Layers/W1/BaseApp/Finance/GeneralLedger/Posting/GenJnlPostLine.Codeunit.al
                         end;
                     if DetailedCVLedgEntryBuffer."Prepmt. Diff." then
                         PrepmtDiffMgt.InsertPrepmtDiffBufEntry(
