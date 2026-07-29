@@ -300,8 +300,6 @@ codeunit 1901 "Report Selection Mgt."
                 InsertRepSelection("Report Selection Usage"::"P.TaxCreditMemo", '1', REPORT::"Purch. - Tax Cr. Memo");
             "Report Selection Usage"::"WHT Certificate":
                 InsertRepSelection("Report Selection Usage"::"WHT Certificate", '1', REPORT::"WHT Certificate - Other");
-            "Report Selection Usage"::"P.V.Remit.":
-                InsertRepSelection("Report Selection Usage"::"P.V.Remit.", '1', REPORT::"Remittance Advice - Entries");
             "Report Selection Usage"::JQ:
                 InsertRepSelection("Report Selection Usage"::JQ, '1', Report::"Job Quote");
             "Report Selection Usage"::"Job Task Quote":
