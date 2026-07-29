@@ -774,7 +774,7 @@ codeunit 4591 "SOA Item Search"
         end;
 
         // Log usage
-        FeatureTelemetry.LogUsage('0000QB0', SOASetup.GetFeatureName(), 'SOA Multi Items Availability: Find Items', TelemetryCustomDimension)
+        FeatureTelemetry.LogUsage('0000QB7', SOASetup.GetFeatureName(), 'SOA Multi Items Availability: Find Items v2', TelemetryCustomDimension)
     end;
 
     [InternalEvent(false, false)]
