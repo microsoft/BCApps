@@ -386,7 +386,7 @@ codeunit 4591 "SOA Item Search"
         exit(MessageContent);
     end;
 
-    internal procedure NormalizeVariantAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; UnresolvedVariantRequests: Dictionary of [Text, Boolean])
+    local procedure NormalizeVariantAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; UnresolvedVariantRequests: Dictionary of [Text, Boolean])
     begin
         AddAllowedUnresolvedVariantAlternatives(SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, UnresolvedVariantRequests);
         RemoveUnresolvedAlternativeItemsWithoutVariants(SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, UnresolvedVariantRequests);
