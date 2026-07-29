@@ -58,7 +58,7 @@
 					"steps": [
 						"Use the \"Item Availability\" action to open the item availability page.",
 						{
-							"value": "Use all the item-related keywords to search for items by invoking search. Don't proceed before performing a search first.",
+							"value": "Use all the item-related keywords to search for items by invoking search. Before invoking search, you MUST first set the Quantity, Date and UOM filter fields for the current item as described below — invoking search before all three are set is not allowed. Don't proceed before performing a search first.",
 							"steps_include_numbering": "true",
 							"steps": [
 								"{% if page.id == 4410 -%}",
@@ -89,7 +89,11 @@
 									"name": "item_availability",
 									"value": "Location filter is set to the designated location code used for calculating availability. If not empty or **is equal to two single quotes**, **always** use in search. Do not modify this value under any circumstances."
 								},
-								"Do NOT include quantity, date and unit of measure in search text, but use the dedicated filter fields instead."
+								"Do NOT include quantity, date and unit of measure in search text, but use the dedicated filter fields instead.",
+								{
+									"name": "item_availability",
+									"value": "Always perform the search as the final action for the current item, and only after ALL filter fields (Quantity filter, Date filter and UOM filter) have been set. Before searching, confirm that all three filters are set; if any one of them is still not set, set it now and only then invoke search. If a filter has no value in the request, still set it explicitly to blank — leaving it untouched is not allowed."
+								}
 							]
 						},
 						"{% endif -%}",
@@ -98,7 +102,7 @@
 							"value": "If an item is not available and the earliest shipment date is blank, **ALWAYS** request assistance by mentioning the item and adding: 'Please check the requested unit of measure and order promising setup.'. Do not proceed to the next step until this is resolved."
 						},						
 						{
-							"value": "If one or more of the requested items are not available or if there is no item to be searched, then request for assistance, by mentioning the items that are not available and adding 'Please make such items available or stop the task and handle manually.'",
+							"value": "If an item is not available or if there is no item to be searched, then request for assistance, by mentioning the item that are not available and adding 'Please make such items available or stop the task and handle manually.'",
 							"steps_include_numbering": "true",
 							"steps": [
 								{

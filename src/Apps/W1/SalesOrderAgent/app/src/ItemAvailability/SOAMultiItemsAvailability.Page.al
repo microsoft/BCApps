@@ -82,6 +82,9 @@ page 4410 "SOA Multi Items Availability"
 
                     trigger OnValidate()
                     begin
+                        if DateFilter <> '' then
+                            SetAvailabilityFilter('Date', DateFilter);
+
                         Rec.SetFilter("Date Filter", DateFilter);
                         FindPeriod('');
                     end;
@@ -165,6 +168,7 @@ page 4410 "SOA Multi Items Availability"
                     trigger OnValidate()
                     begin
                         LocationFilter := LocationFilter.ToUpper();
+
                         Rec.SetFilter("Location Filter", LocationFilter);
                         CurrPage.Update(false);
                     end;
@@ -178,6 +182,8 @@ page 4410 "SOA Multi Items Availability"
 
                     trigger OnValidate()
                     begin
+                        if Format(QuantityFilter) <> '' then
+                            SetAvailabilityFilter('Quantity', Format(QuantityFilter));
                         CurrPage.Update(false);
                     end;
                 }
@@ -204,9 +210,17 @@ page 4410 "SOA Multi Items Availability"
                             else
                                 InUOMCode := '';
                         end;
-
+                        if InUOMCode <> '' then
+                            SetAvailabilityFilter('UOM', InUOMCode);
                         CurrPage.Update(false);
                     end;
+                }
+                field(avaFilter; Rec.GetFilter("Item Availability Filter"))
+                {
+                    // Temporary field used to debug the agent logs
+                    Caption = 'AVA Filter';
+                    ToolTip = 'Specifies the item availability filter.';
+                    Editable = false;
                 }
                 field(CalculateEarliestShipmentDate; CalculateEarliestShipmentDate)
                 {
@@ -707,24 +721,94 @@ page 4410 "SOA Multi Items Availability"
 
     trigger OnOpenPage()
     var
-        SOAKPITrackAll: Codeunit "SOA - KPI Track All";
-        AgentTaskID: BigInteger;
         OriginalFilterGroup: Integer;
     begin
+        if Rec.GetFilter("Location Filter") <> '' then
+            LocationFilter := Rec.GetFilter("Location Filter");
+
         LanguageCode := GetLanguageCode(ContactNo, CustomerNo);
         Rec.SetFilter("Location Filter", '%1', LocationFilter);
         Rec.SetRange("Drop Shipment Filter", false);
         Rec.SetRange("Variant Filter", '');
-        if SOAKPITrackAll.IsOrderTakerAgentSession(AgentTaskID) then begin
+        if IsAgentSession then begin
             OriginalFilterGroup := Rec.FilterGroup();
             Rec.FilterGroup(-1);
             Rec.SetRange("No.", '<>*');
             Rec.FilterGroup(OriginalFilterGroup);
             if LocationFilter = '' then
                 LocationFilter := '''''';
+
+            AvailabilityFilterValues.Set('Customer', CustomerNo);
+            AvailabilityFilterValues.Set('Contact', ContactNo);
+            AvailabilityFilterValues.Set('Location', LocationFilter);
+            Rec.SetFilter("Item Availability Filter", BuildAvailabilityFilterText() + '|*');
+        end else begin
+            ParseAvailabilityFilter();
+            if DateFilter <> '' then
+                Rec.SetFilter("Date Filter", DateFilter);
         end;
 
         FindPeriod('');
+    end;
+
+    local procedure SetAvailabilityFilter(FilterKey: Text; FilterValue: Text)
+    begin
+        if not IsAgentSession then
+            exit;
+
+        AvailabilityFilterValues.Set(FilterKey, FilterValue);
+        Rec.SetFilter("Item Availability Filter", BuildAvailabilityFilterText() + '|*');
+    end;
+
+    local procedure BuildAvailabilityFilterText() Result: Text
+    var
+        FilterKey: Text;
+    begin
+        foreach FilterKey in AvailabilityFilterValues.Keys() do
+            Result += FilterKey + ':' + AvailabilityFilterValues.Get(FilterKey) + ';';
+    end;
+
+    local procedure ParseAvailabilityFilter()
+    var
+        RawFilter: Text;
+        FilterEntries: List of [Text];
+        FilterEntry: Text;
+        SeparatorPos: Integer;
+    begin
+        RawFilter := Rec.GetFilter("Item Availability Filter");
+
+        if RawFilter.EndsWith('|*') then
+            RawFilter := CopyStr(RawFilter, 1, StrLen(RawFilter) - 2);
+
+        if RawFilter = '' then
+            exit;
+
+        Clear(AvailabilityFilterValues);
+        FilterEntries := RawFilter.Split(';');
+        foreach FilterEntry in FilterEntries do begin
+            SeparatorPos := StrPos(FilterEntry, ':');
+            if SeparatorPos > 1 then
+                AvailabilityFilterValues.Set(CopyStr(FilterEntry, 1, SeparatorPos - 1), CopyStr(FilterEntry, SeparatorPos + 1));
+        end;
+
+        ApplyParsedAvailabilityFilter();
+    end;
+
+    local procedure ApplyParsedAvailabilityFilter()
+    begin
+        if AvailabilityFilterValues.ContainsKey('Date') then
+            DateFilter := AvailabilityFilterValues.Get('Date');
+        if AvailabilityFilterValues.ContainsKey('Customer') then
+            CustomerNo := CopyStr(AvailabilityFilterValues.Get('Customer'), 1, MaxStrLen(CustomerNo));
+        if AvailabilityFilterValues.ContainsKey('Contact') then
+            ContactNo := CopyStr(AvailabilityFilterValues.Get('Contact'), 1, MaxStrLen(ContactNo));
+        if AvailabilityFilterValues.ContainsKey('Location') then
+            LocationFilter := AvailabilityFilterValues.Get('Location');
+        if AvailabilityFilterValues.ContainsKey('Quantity') then
+            if not Evaluate(QuantityFilter, AvailabilityFilterValues.Get('Quantity')) then
+                QuantityFilter := 0;
+        if AvailabilityFilterValues.ContainsKey('UOM') then
+            InUOMCode := CopyStr(AvailabilityFilterValues.Get('UOM'), 1, MaxStrLen(InUOMCode));
     end;
 
     trigger OnFindRecord(Which: Text): Boolean
@@ -816,6 +900,7 @@ page 4410 "SOA Multi Items Availability"
         EarliestShipmentDate: Date;
         Available, CalculateEarliestShipmentDate, OptionsVisible, IsAgentSession, IncludeCapableToPromiseItems, MatchingItem : Boolean;
         PriceCalcNotificationSent: Boolean;
+        AvailabilityFilterValues: Dictionary of [Text, Text];
         PreviewDisclaimerLbl: Label 'Item Availability page (preview). Learn more';
         PreviewDisclaimerURLLbl: Label 'https://go.microsoft.com/fwlink/?linkid=2303848', Locked = true;
         PriceCheckDocNoLbl: Label 'SOA-PRICECHECK', Locked = true;
