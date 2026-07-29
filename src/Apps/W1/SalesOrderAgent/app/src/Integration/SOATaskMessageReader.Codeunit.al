@@ -7,7 +7,7 @@ namespace Microsoft.Agent.SalesOrderAgent;
 
 using System.Agents;
 
-codeunit 4580 "SOA Task Message Reader"
+codeunit 4420 "SOA Task Message Reader"
 {
     Access = Internal;
     InherentEntitlements = X;
