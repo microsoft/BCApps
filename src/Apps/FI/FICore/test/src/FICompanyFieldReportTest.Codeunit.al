@@ -11,6 +11,7 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryRandom: Codeunit "Library - Random";
         LibraryReportDataset: Codeunit "Library - Report Dataset";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
+        LibraryService: Codeunit "Library - Service";
         LibraryERM: Codeunit "Library - ERM";
         Assert: Codeunit Assert;
         BusinessIdentityCodeTxt: Text[20];
@@ -30,6 +31,8 @@ codeunit 148150 "FI Company Field Report Test"
 
         LibrarySales.SetCreditWarningsToNoWarnings();
         LibrarySales.SetStockoutWarning(false);
+        LibraryERM.SetLCYCode('EUR');
+        LibraryService.SetupServiceMgtNoSeries();
         LibraryVariableStorage.Clear();
 
         if FeatureKey.Get('ReminderTermsCommunicationTexts') then begin
@@ -173,7 +176,9 @@ codeunit 148150 "FI Company Field Report Test"
     begin
         LibrarySales.CreateCustomer(Customer);
         LibrarySales.CreateSalesHeader(SalesHeader, Type, Customer."No.");
-        LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(1000));
+        LibrarySales.CreateSalesLine(
+            SalesLine, SalesHeader, SalesLine.Type::Item,
+            CreateItemNo(Customer."Gen. Bus. Posting Group", Customer."VAT Bus. Posting Group"), LibraryRandom.RandInt(1000));
         if Post then
             DocumentNumber := LibrarySales.PostSalesDocument(SalesHeader, true, true)
         else
@@ -198,7 +203,8 @@ codeunit 148150 "FI Company Field Report Test"
         if PurchaseHeader."Document Type" = PurchaseHeader."Document Type"::"Credit Memo" then
             PurchaseHeader."Vendor Cr. Memo No." := VendorCrMemoNoTxt;
         LibraryPurchase.CreatePurchaseLine(
-            PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item, LibraryInventory.CreateItemNo(), LibraryRandom.RandInt(1000));
+            PurchaseLine, PurchaseHeader, PurchaseLine.Type::Item,
+            CreateItemNo(Vendor."Gen. Bus. Posting Group", Vendor."VAT Bus. Posting Group"), LibraryRandom.RandInt(1000));
         if Post then
             DocumentNumber := LibraryPurchase.PostPurchaseDocument(PurchaseHeader, true, true)
         else
@@ -214,12 +220,13 @@ codeunit 148150 "FI Company Field Report Test"
         ServiceInvoiceHeader: Record "Service Invoice Header";
         ServiceLine: Record "Service Line";
         Customer: Record Customer;
-        LibraryService: Codeunit "Library - Service";
         DocumentNumber: Variant;
     begin
         LibrarySales.CreateCustomer(Customer);
         LibraryService.CreateServiceHeader(ServiceHeader, Type, Customer."No.");
-        LibraryService.CreateServiceLine(ServiceLine, ServiceHeader, ServiceLine.Type::Item, LibraryInventory.CreateItemNo());
+        LibraryService.CreateServiceLine(
+            ServiceLine, ServiceHeader, ServiceLine.Type::Item,
+            CreateItemNo(Customer."Gen. Bus. Posting Group", Customer."VAT Bus. Posting Group"));
         ServiceLine.Validate(Quantity, 1);
         ServiceLine.Modify();
         if Post then begin
@@ -239,7 +246,6 @@ codeunit 148150 "FI Company Field Report Test"
         ServiceContractLine: Record "Service Contract Line";
         Customer: Record Customer;
         ServiceItem: Record "Service Item";
-        LibraryService: Codeunit "Library - Service";
         DocumentNumber: Variant;
     begin
         LibrarySales.CreateCustomer(Customer);
@@ -250,6 +256,21 @@ codeunit 148150 "FI Company Field Report Test"
         LibraryVariableStorage.Enqueue(DocumentNumber);
         Commit();
         exit(DocumentNumber);
+    end;
+
+    local procedure CreateItemNo(GenBusPostingGroup: Code[20]; VATBusPostingGroup: Code[20]): Code[20]
+    var
+        GeneralPostingSetup: Record "General Posting Setup";
+        VATPostingSetup: Record "VAT Posting Setup";
+    begin
+        GeneralPostingSetup.SetRange("Gen. Bus. Posting Group", GenBusPostingGroup);
+        LibraryERM.FindGeneralPostingSetupInvtFull(GeneralPostingSetup);
+        VATPostingSetup.SetRange("VAT Bus. Posting Group", VATBusPostingGroup);
+        LibraryERM.FindVATPostingSetupInvt(VATPostingSetup);
+
+        exit(
+            LibraryInventory.CreateItemNoWithPostingSetup(
+                GeneralPostingSetup."Gen. Prod. Posting Group", VATPostingSetup."VAT Prod. Posting Group"));
     end;
 
     local procedure InitializeReminderMemoReport()
