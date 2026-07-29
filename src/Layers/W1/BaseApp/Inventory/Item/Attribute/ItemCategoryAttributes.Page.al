@@ -134,15 +134,14 @@ page 5734 "Item Category Attributes"
         TempItemAttributeValueToInsert: Record "Item Attribute Value" temporary;
         ItemAttributeValueMapping: Record "Item Attribute Value Mapping";
         ItemAttributeManagement: Codeunit "Item Attribute Management";
-        ErrorMsg: Text;
     begin
         if ItemCategoryCode <> '' then begin
             ItemAttribute.Get(Rec."Attribute ID");
 
-            if (ItemAttribute.Type = ItemAttribute.Type::Option) and (Rec.Value = '') then begin
-                ErrorMsg := StrSubstNo(BlankOptionAttributeNotificationMsg, Rec."Attribute Name");
-                Error(ErrorMsg);
-            end;
+            // Allow the line to be created without a value so the user can select one;
+            // blank Option values are simply not persisted (see SaveAttributes).
+            if (ItemAttribute.Type = ItemAttribute.Type::Option) and (Rec.Value = '') then
+                exit(true);
 
             ItemAttributeValueMapping."Table ID" := DATABASE::"Item Category";
             ItemAttributeValueMapping."No." := ItemCategoryCode;
@@ -242,14 +241,17 @@ page 5734 "Item Category Attributes"
 
         if TempNewItemAttributeValue.FindSet() then
             repeat
-                ItemAttributeValueMapping."Table ID" := DATABASE::"Item Category";
-                ItemAttributeValueMapping."No." := CategoryCode;
-                ItemAttributeValueMapping."Item Attribute ID" := TempNewItemAttributeValue."Attribute ID";
-                ItemAttributeValueMapping."Item Attribute Value ID" := TempNewItemAttributeValue.ID;
-                OnSaveAttributesOnBeforeItemAttributeValueMappingInsert(ItemAttributeValueMapping, TempNewItemAttributeValue);
-                ItemAttributeValueMapping.Insert();
-                ItemAttribute.Get(ItemAttributeValueMapping."Item Attribute ID");
-                ItemAttribute.RemoveUnusedArbitraryValues();
+                ItemAttribute.Get(TempNewItemAttributeValue."Attribute ID");
+                // Do not persist a mapping for a blank Option-type value.
+                if not ((ItemAttribute.Type = ItemAttribute.Type::Option) and (TempNewItemAttributeValue.Value = '')) then begin
+                    ItemAttributeValueMapping."Table ID" := DATABASE::"Item Category";
+                    ItemAttributeValueMapping."No." := CategoryCode;
+                    ItemAttributeValueMapping."Item Attribute ID" := TempNewItemAttributeValue."Attribute ID";
+                    ItemAttributeValueMapping."Item Attribute Value ID" := TempNewItemAttributeValue.ID;
+                    OnSaveAttributesOnBeforeItemAttributeValueMappingInsert(ItemAttributeValueMapping, TempNewItemAttributeValue);
+                    ItemAttributeValueMapping.Insert();
+                    ItemAttribute.RemoveUnusedArbitraryValues();
+                end;
             until TempNewItemAttributeValue.Next() = 0;
 
         TempNewCategItemAttributeValue.LoadCategoryAttributesFactBoxData(CategoryCode);
