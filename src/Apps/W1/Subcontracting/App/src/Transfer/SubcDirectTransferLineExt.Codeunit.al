@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
-codeunit 8172 "Subc. DirectTransferLine Ext."
+codeunit 20548 "Subc. DirectTransferLine Ext."
 {
     [EventSubscriber(ObjectType::Table, Database::"Direct Trans. Line", OnAfterCopyFromTransferLine, '', false, false)]
     local procedure OnAfterCopyFromTransferLine_T5745(var DirectTransLine: Record "Direct Trans. Line"; TransferLine: Record "Transfer Line")

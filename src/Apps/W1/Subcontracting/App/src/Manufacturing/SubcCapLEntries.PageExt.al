@@ -9,7 +9,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.History;
 using Microsoft.Utilities;
 
-pageextension 8126 "Subc. CapLEntries" extends "Capacity Ledger Entries"
+pageextension 20502 "Subc. CapLEntries" extends "Capacity Ledger Entries"
 {
     layout
     {

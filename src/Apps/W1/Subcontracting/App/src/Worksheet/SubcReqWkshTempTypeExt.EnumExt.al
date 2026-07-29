@@ -5,9 +5,9 @@
 namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Requisition;
-enumextension 8124 "Subc. ReqWkshTempType Ext." extends "Req. Worksheet Template Type"
+enumextension 20500 "Subc. ReqWkshTempType Ext." extends "Req. Worksheet Template Type"
 {
-    value(8124; Subcontracting)
+    value(20500; Subcontracting)
     {
         Caption = 'Subcontracting';
     }

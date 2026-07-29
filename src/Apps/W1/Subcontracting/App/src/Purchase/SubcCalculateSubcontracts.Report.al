@@ -15,7 +15,7 @@ using Microsoft.Manufacturing.Setup;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Document;
 
-report 8129 "Subc. Calculate Subcontracts"
+report 20505 "Subc. Calculate Subcontracts"
 {
     ApplicationArea = Subcontracting;
     Caption = 'Calculate Subcontracts';

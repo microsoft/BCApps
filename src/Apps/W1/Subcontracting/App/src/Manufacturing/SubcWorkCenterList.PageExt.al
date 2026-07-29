@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.WorkCenter;
 
-pageextension 8131 "Subc. Work Center List" extends "Work Center List"
+pageextension 20507 "Subc. Work Center List" extends "Work Center List"
 {
     actions
     {

@@ -8,7 +8,7 @@ using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 
-codeunit 8140 "Subc. Req. Wksh. Make Ord."
+codeunit 20516 "Subc. Req. Wksh. Make Ord."
 {
 #if not CLEAN28
     var

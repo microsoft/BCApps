@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-enum 8133 "WIP Document Type"
+enum 20509 "WIP Document Type"
 {
     Extensible = true;
     value(0; "Transfer Order")

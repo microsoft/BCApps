@@ -24,7 +24,7 @@ using System.Environment.Configuration;
 using System.Reflection;
 using System.Upgrade;
 
-codeunit 8133 "Subc. Data Migration"
+codeunit 20509 "Subc. Data Migration"
 {
     Access = Internal;
 
@@ -83,10 +83,10 @@ codeunit 8133 "Subc. Data Migration"
     var
         FieldIds: List of [Integer];
     begin
-        SetFieldIds(FieldIds, '8134,8135,8136,8137,8138');
+        SetFieldIds(FieldIds, '20510,20511,20512,20513,20514');
         MigrateTableExtensionFields(Database::"Item Ledger Entry", FieldIds);
 
-        SetFieldIds(FieldIds, '8134,8135,8136,8137,8138,8166');
+        SetFieldIds(FieldIds, '20510,20511,20512,20513,20514,20542');
         MigrateTableExtensionFields(Database::"Item Journal Line", FieldIds);
     end;
 
@@ -94,25 +94,25 @@ codeunit 8133 "Subc. Data Migration"
     var
         FieldIds: List of [Integer];
     begin
-        SetFieldIds(FieldIds, '8124,8136,8137');
+        SetFieldIds(FieldIds, '20500,20512,20513');
         MigrateTableExtensionFields(Database::"Capacity Ledger Entry", FieldIds);
 
-        SetFieldIds(FieldIds, '8148,8149,8150');
+        SetFieldIds(FieldIds, '20524,20525,20526');
         MigrateTableExtensionFields(Database::"Planning Component", FieldIds);
 
-        SetFieldIds(FieldIds, '8146');
+        SetFieldIds(FieldIds, '20522');
         MigrateTableExtensionFields(Database::"Production BOM Line", FieldIds);
 
-        SetFieldIds(FieldIds, '8146,8147,8152');
+        SetFieldIds(FieldIds, '20522,20523,20528');
         MigrateTableExtensionFields(Database::"Prod. Order Component", FieldIds);
 
-        SetFieldIds(FieldIds, '8174,8184,8185,8186');
+        SetFieldIds(FieldIds, '20550,20560,20561,20562');
         MigrateTableExtensionFields(Database::"Prod. Order Routing Line", FieldIds);
 
-        SetFieldIds(FieldIds, '8176');
+        SetFieldIds(FieldIds, '20552');
         MigrateTableExtensionFields(Database::"Production Order", FieldIds);
 
-        SetFieldIds(FieldIds, '8184,8185,8186');
+        SetFieldIds(FieldIds, '20560,20561,20562');
         MigrateTableExtensionFields(Database::"Routing Line", FieldIds);
     end;
 
@@ -120,23 +120,23 @@ codeunit 8133 "Subc. Data Migration"
     var
         FieldIds: List of [Integer];
     begin
-        SetFieldIds(FieldIds, '8139,8141');
+        SetFieldIds(FieldIds, '20515,20517');
         MigrateTableExtensionFields(Database::Vendor, FieldIds);
 
-        SetFieldIds(FieldIds, '8167,8168,8169,8170,8171,8172');
+        SetFieldIds(FieldIds, '20543,20544,20545,20546,20547,20548');
         MigrateTableExtensionFields(Database::"Purch. Cr. Memo Line", FieldIds);
         MigrateTableExtensionFields(Database::"Purch. Inv. Line", FieldIds);
         MigrateTableExtensionFields(Database::"Purch. Rcpt. Line", FieldIds);
         MigrateTableExtensionFields(Database::"Purchase Line Archive", FieldIds);
 
-        SetFieldIds(FieldIds, '8144');
+        SetFieldIds(FieldIds, '20520');
         MigrateTableExtensionFields(Database::"Purchase Header", FieldIds);
         MigrateTableExtensionFields(Database::"Purchase Header Archive", FieldIds);
 
-        SetFieldIds(FieldIds, '8167,8168,8169,8170,8171,8172,8173,8184');
+        SetFieldIds(FieldIds, '20543,20544,20545,20546,20547,20548,20549,20560');
         MigrateTableExtensionFields(Database::"Purchase Line", FieldIds);
 
-        SetFieldIds(FieldIds, '8140,8141,8142,8143,8144');
+        SetFieldIds(FieldIds, '20516,20517,20518,20519,20520');
         MigrateTableExtensionFields(Database::"Requisition Line", FieldIds);
     end;
 
@@ -144,10 +144,10 @@ codeunit 8133 "Subc. Data Migration"
     var
         FieldIds: List of [Integer];
     begin
-        SetFieldIds(FieldIds, '8124');
+        SetFieldIds(FieldIds, '20500');
         MigrateTableExtensionFields(Database::"Application Area Setup", FieldIds);
 
-        SetFieldIds(FieldIds, '8124,8125,8126,8128,8129,8133');
+        SetFieldIds(FieldIds, '20500,20501,20502,20504,20505,20509');
         MigrateTableExtensionFields(Database::"Manufacturing Setup", FieldIds);
     end;
 
@@ -155,18 +155,18 @@ codeunit 8133 "Subc. Data Migration"
     var
         FieldIds: List of [Integer];
     begin
-        SetFieldIds(FieldIds, '8154,8155,8160,8161,8164,8165');
+        SetFieldIds(FieldIds, '20530,20531,20536,20537,20540,20541');
         MigrateTableExtensionFields(Database::"Direct Trans. Header", FieldIds);
         MigrateTableExtensionFields(Database::"Transfer Receipt Header", FieldIds);
         MigrateTableExtensionFields(Database::"Transfer Shipment Header", FieldIds);
         MigrateTableExtensionFields(Database::"Transfer Header", FieldIds);
 
-        SetFieldIds(FieldIds, '8154,8155,8156,8157,8158,8159,8160,8161,8162,8163,8184');
+        SetFieldIds(FieldIds, '20530,20531,20532,20533,20534,20535,20536,20537,20538,20539,20560');
         MigrateTableExtensionFields(Database::"Direct Trans. Line", FieldIds);
         MigrateTableExtensionFields(Database::"Transfer Receipt Line", FieldIds);
         MigrateTableExtensionFields(Database::"Transfer Shipment Line", FieldIds);
 
-        SetFieldIds(FieldIds, '8154,8155,8156,8157,8158,8159,8160,8161,8162,8163,8184,8187');
+        SetFieldIds(FieldIds, '20530,20531,20532,20533,20534,20535,20536,20537,20538,20539,20560,20563');
         MigrateTableExtensionFields(Database::"Transfer Line", FieldIds);
     end;
 
@@ -174,50 +174,44 @@ codeunit 8133 "Subc. Data Migration"
     var
         FieldIds: List of [Integer];
     begin
-        SetFieldIds(FieldIds, '8173,8184');
+        SetFieldIds(FieldIds, '20549,20560');
         MigrateTableExtensionFields(Database::"Posted Whse. Receipt Line", FieldIds);
         MigrateTableExtensionFields(Database::"Warehouse Receipt Line", FieldIds);
 
-        SetFieldIds(FieldIds, '8184');
+        SetFieldIds(FieldIds, '20560');
         MigrateTableExtensionFields(Database::"Posted Whse. Shipment Line", FieldIds);
         MigrateTableExtensionFields(Database::"Warehouse Shipment Line", FieldIds);
     end;
 
     local procedure MigrateTableData(NewTableId: Integer)
     var
+        DataTransfer: DataTransfer;
         OldRecordRef: RecordRef;
         NewRecordRef: RecordRef;
         OldFieldRef: FieldRef;
-        NewFieldRef: FieldRef;
         FieldIndex: Integer;
     begin
         if not OpenOldTableIfAvailable(NewTableId, OldRecordRef) then
             exit;
 
         NewRecordRef.Open(NewTableId);
-        if OldRecordRef.FindSet() then
-            repeat
-                NewRecordRef.Init();
-                for FieldIndex := 1 to OldRecordRef.FieldCount() do begin
-                    OldFieldRef := OldRecordRef.FieldIndex(FieldIndex);
-                    if (OldFieldRef.Class = FieldClass::Normal) and (OldFieldRef.Number < 2000000000) and NewRecordRef.FieldExist(OldFieldRef.Number) then begin
-                        NewFieldRef := NewRecordRef.Field(OldFieldRef.Number);
-                        NewFieldRef.Value := OldFieldRef.Value;
-                    end;
-                end;
-                NewRecordRef.Insert(false);
-            until OldRecordRef.Next() = 0;
+        DataTransfer.SetTables(GetOldId(NewTableId), NewTableId);
+        for FieldIndex := 1 to OldRecordRef.FieldCount() do begin
+            OldFieldRef := OldRecordRef.FieldIndex(FieldIndex);
+            if (OldFieldRef.Class = FieldClass::Normal) and (OldFieldRef.Number < 2000000000) and NewRecordRef.FieldExist(OldFieldRef.Number) then
+                DataTransfer.AddFieldValue(OldFieldRef.Number, OldFieldRef.Number);
+        end;
+        DataTransfer.UpdateAuditFields(false);
         OldRecordRef.Close();
         NewRecordRef.Close();
+        DataTransfer.CopyRows();
     end;
 
     local procedure MigrateTableExtensionFields(TableId: Integer; NewFieldIds: List of [Integer])
     var
+        DataTransfer: DataTransfer;
         RecordRef: RecordRef;
-        OldFieldRef: FieldRef;
-        NewFieldRef: FieldRef;
         FieldIndex: Integer;
-        RecordModified: Boolean;
     begin
         RecordRef.Open(TableId);
         if not AreOldFieldsAvailable(RecordRef, NewFieldIds) then begin
@@ -225,21 +219,12 @@ codeunit 8133 "Subc. Data Migration"
             exit;
         end;
 
-        if RecordRef.FindSet(true) then
-            repeat
-                RecordModified := false;
-                for FieldIndex := 1 to NewFieldIds.Count() do begin
-                    OldFieldRef := RecordRef.Field(GetOldId(NewFieldIds.Get(FieldIndex)));
-                    NewFieldRef := RecordRef.Field(NewFieldIds.Get(FieldIndex));
-                    if NewFieldRef.Value <> OldFieldRef.Value then begin
-                        NewFieldRef.Value := OldFieldRef.Value;
-                        RecordModified := true;
-                    end;
-                end;
-                if RecordModified then
-                    RecordRef.Modify(false);
-            until RecordRef.Next() = 0;
+        DataTransfer.SetTables(TableId, TableId);
+        for FieldIndex := 1 to NewFieldIds.Count() do
+            DataTransfer.AddFieldValue(GetOldId(NewFieldIds.Get(FieldIndex)), NewFieldIds.Get(FieldIndex));
+        DataTransfer.UpdateAuditFields(false);
         RecordRef.Close();
+        DataTransfer.CopyFields();
     end;
 
     local procedure AreOldFieldsAvailable(RecordRef: RecordRef; NewFieldIds: List of [Integer]): Boolean
@@ -303,7 +288,7 @@ codeunit 8133 "Subc. Data Migration"
 
     local procedure GetRenumberingOffset(): Integer
     begin
-        exit(98993376);
+        exit(98981000);
     end;
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Upgrade Tag", 'OnGetPerCompanyUpgradeTags', '', false, false)]

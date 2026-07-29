@@ -11,7 +11,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Utilities;
 using Microsoft.Warehouse.Document;
 
-codeunit 8158 "Subc. Purchase Line Ext"
+codeunit 20534 "Subc. Purchase Line Ext"
 {
     var
 #if not CLEAN28

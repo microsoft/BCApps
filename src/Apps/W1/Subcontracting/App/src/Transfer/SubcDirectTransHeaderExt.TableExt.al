@@ -7,24 +7,24 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Purchases.Vendor;
 
-tableextension 8148 "Subc. DirectTransHeader Ext." extends "Direct Trans. Header"
+tableextension 20524 "Subc. DirectTransHeader Ext." extends "Direct Trans. Header"
 {
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(8154; "Subcontr. Purch. Order No."; Code[20])
+        field(20530; "Subcontr. Purch. Order No."; Code[20])
         {
             Caption = 'Subcontr. Purch. Order No.';
             DataClassification = CustomerContent;
             Editable = false;
         }
-        field(8155; "Subcontr. PO Line No."; Integer)
+        field(20531; "Subcontr. PO Line No."; Integer)
         {
             Caption = 'Subcontr. Purch. Order Line No.';
             DataClassification = CustomerContent;
             Editable = false;
         }
-        field(8160; "Source ID"; Code[20])
+        field(20536; "Source ID"; Code[20])
         {
             Caption = 'Source ID';
             DataClassification = CustomerContent;
@@ -45,17 +45,17 @@ tableextension 8148 "Subc. DirectTransHeader Ext." extends "Direct Trans. Header
                 HandleSubcontractingSourceLookup(Rec);
             end;
         }
-        field(8161; "Source Ref. No."; Integer)
+        field(20537; "Source Ref. No."; Integer)
         {
             Caption = 'Source Ref. No.';
             DataClassification = CustomerContent;
         }
-        field(8164; "Source Type"; Enum "Transfer Source Type")
+        field(20540; "Source Type"; Enum "Transfer Source Type")
         {
             Caption = 'Source Type';
             DataClassification = CustomerContent;
         }
-        field(8165; "Return Order"; Boolean)
+        field(20541; "Return Order"; Boolean)
         {
             Caption = 'Return Order';
             DataClassification = CustomerContent;

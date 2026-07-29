@@ -9,7 +9,7 @@ using Microsoft.Purchases.Document;
 using Microsoft.Purchases.Vendor;
 using Microsoft.Utilities;
 
-codeunit 8157 "Subc. Purchase Header Ext"
+codeunit 20533 "Subc. Purchase Header Ext"
 {
     var
 #if not CLEAN28

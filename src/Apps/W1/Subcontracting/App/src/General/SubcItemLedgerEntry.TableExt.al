@@ -7,35 +7,35 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Ledger;
 using Microsoft.Purchases.Document;
 
-tableextension 8124 "Subc. Item Ledger Entry" extends "Item Ledger Entry"
+tableextension 20500 "Subc. Item Ledger Entry" extends "Item Ledger Entry"
 {
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(8134; "Subc. Prod. Order No."; Code[20])
+        field(20510; "Subc. Prod. Order No."; Code[20])
         {
             Caption = 'Prod. Order No.';
             DataClassification = CustomerContent;
         }
-        field(8135; "Subc. Prod. Order Line No."; Integer)
+        field(20511; "Subc. Prod. Order Line No."; Integer)
         {
             Caption = 'Prod. Order Line No.';
             DataClassification = CustomerContent;
         }
-        field(8136; "Subc. Purch. Order No."; Code[20])
+        field(20512; "Subc. Purch. Order No."; Code[20])
         {
             Caption = 'Subc. Purch. Order No.';
             DataClassification = CustomerContent;
             TableRelation = "Purchase Header"."No." where("Document Type" = const(Order));
         }
-        field(8137; "Subc. Purch. Order Line No."; Integer)
+        field(20513; "Subc. Purch. Order Line No."; Integer)
         {
             Caption = 'Subc. Purch. Order Line No.';
             DataClassification = CustomerContent;
             TableRelation = "Purchase Line"."Line No." where("Document Type" = const(Order),
                                                               "Document No." = field("Subc. Purch. Order No."));
         }
-        field(8138; "Subc. Operation No."; Code[10])
+        field(20514; "Subc. Operation No."; Code[10])
         {
             Caption = 'Subc. Operation No.';
             DataClassification = CustomerContent;

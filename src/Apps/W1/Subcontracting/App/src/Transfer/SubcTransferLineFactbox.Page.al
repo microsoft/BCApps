@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
-page 8125 "Subc. Transfer Line Factbox"
+page 20501 "Subc. Transfer Line Factbox"
 {
     ApplicationArea = Subcontracting;
     Caption = 'Subcontracting Details';

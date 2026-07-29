@@ -8,7 +8,7 @@ using Microsoft.Foundation.Company;
 using Microsoft.Manufacturing.Setup;
 using System.Environment.Configuration;
 
-codeunit 8126 "Subc. Business Setup Ext."
+codeunit 20502 "Subc. Business Setup Ext."
 {
     var
         SubcontractingDescriptionLbl: Label 'Make manual Subcontracting Setup';

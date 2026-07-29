@@ -6,39 +6,39 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Transfer;
 
-tableextension 8145 "Subc. Trans Rcpt Header Ext." extends "Transfer Receipt Header"
+tableextension 20521 "Subc. Trans Rcpt Header Ext." extends "Transfer Receipt Header"
 {
     AllowInCustomizations = AsReadOnly;
     fields
     {
-        field(8154; "Subcontr. Purch. Order No."; Code[20])
+        field(20530; "Subcontr. Purch. Order No."; Code[20])
         {
             Caption = 'Subcontr. Purch. Order No.';
             DataClassification = CustomerContent;
             Editable = false;
         }
-        field(8155; "Subcontr. PO Line No."; Integer)
+        field(20531; "Subcontr. PO Line No."; Integer)
         {
             Caption = 'Subcontr. Purch. Order Line No.';
             DataClassification = CustomerContent;
             Editable = false;
         }
-        field(8160; "Source ID"; Code[20])
+        field(20536; "Source ID"; Code[20])
         {
             Caption = 'Source ID';
             DataClassification = CustomerContent;
         }
-        field(8161; "Source Ref. No."; Integer)
+        field(20537; "Source Ref. No."; Integer)
         {
             Caption = 'Source Ref. No.';
             DataClassification = CustomerContent;
         }
-        field(8164; "Subc. Source Type"; Enum "Transfer Source Type")
+        field(20540; "Subc. Source Type"; Enum "Transfer Source Type")
         {
             Caption = 'Source Type';
             DataClassification = CustomerContent;
         }
-        field(8165; "Subc. Return Order"; Boolean)
+        field(20541; "Subc. Return Order"; Boolean)
         {
             Caption = 'Return Order';
             DataClassification = CustomerContent;

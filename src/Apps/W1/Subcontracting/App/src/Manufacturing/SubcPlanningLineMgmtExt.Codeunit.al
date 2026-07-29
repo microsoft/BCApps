@@ -12,7 +12,7 @@ using Microsoft.Manufacturing.Document;
 using Microsoft.Manufacturing.ProductionBOM;
 using Microsoft.Manufacturing.Routing;
 
-codeunit 8142 "Subc. Planning Line Mgmt Ext."
+codeunit 20518 "Subc. Planning Line Mgmt Ext."
 {
 #if not CLEAN28
     var

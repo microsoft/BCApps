@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.Setup;
 
-codeunit 8127 "Subcontracting Comp. Init."
+codeunit 20503 "Subcontracting Comp. Init."
 {
     var
         ReqWkshTempDescLbl: Label 'Subcontracting', MaxLength = 80;

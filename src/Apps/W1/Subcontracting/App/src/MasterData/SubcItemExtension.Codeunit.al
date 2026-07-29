@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Inventory.Item;
 
-codeunit 8156 "Subc. Item Extension"
+codeunit 20532 "Subc. Item Extension"
 {
     [EventSubscriber(ObjectType::Table, Database::Item, OnAfterDeleteEvent, '', false, false)]
     local procedure OnAfterDeleteItem(var Rec: Record Item; RunTrigger: Boolean)

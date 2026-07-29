@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using System.Upgrade;
 
-codeunit 8125 "Subcontracting Install"
+codeunit 20501 "Subcontracting Install"
 {
     Subtype = Install;
 

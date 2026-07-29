@@ -12,7 +12,7 @@ using Microsoft.Inventory.Tracking;
 using Microsoft.Inventory.Transfer;
 using Microsoft.Manufacturing.Document;
 
-codeunit 8171 "Subc. TransOrderPostTrans Ext"
+codeunit 20547 "Subc. TransOrderPostTrans Ext"
 {
 #if not CLEAN28
     var

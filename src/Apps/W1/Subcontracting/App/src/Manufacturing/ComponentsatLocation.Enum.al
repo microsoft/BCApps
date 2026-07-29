@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.Manufacturing.Subcontracting;
 
-enum 8127 "Components at Location"
+enum 20503 "Components at Location"
 {
     Extensible = true;
     value(0; Empty)

@@ -8,7 +8,7 @@ using Microsoft.Inventory.Ledger;
 using Microsoft.Manufacturing.Document;
 using Microsoft.Purchases.Document;
 
-codeunit 8186 "Subc. Comp. Factbox Mgmt."
+codeunit 20562 "Subc. Comp. Factbox Mgmt."
 {
 #if not CLEAN28
     var

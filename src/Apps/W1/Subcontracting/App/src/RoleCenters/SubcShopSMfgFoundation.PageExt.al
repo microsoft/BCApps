@@ -7,7 +7,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 using Microsoft.Inventory.Requisition;
 using Microsoft.Manufacturing.RoleCenters;
 
-pageextension 8163 "Subc. Shop S. Mfg Foundation" extends "Shop Supervisor Mfg Foundation"
+pageextension 20539 "Subc. Shop S. Mfg Foundation" extends "Shop Supervisor Mfg Foundation"
 {
     actions
     {

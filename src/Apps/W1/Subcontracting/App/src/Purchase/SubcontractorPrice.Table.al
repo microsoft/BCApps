@@ -10,7 +10,7 @@ using Microsoft.Manufacturing.Routing;
 using Microsoft.Manufacturing.WorkCenter;
 using Microsoft.Purchases.Vendor;
 
-table 8124 "Subcontractor Price"
+table 20500 "Subcontractor Price"
 {
     AllowInCustomizations = AsReadOnly;
     Caption = 'Subcontractor Price';

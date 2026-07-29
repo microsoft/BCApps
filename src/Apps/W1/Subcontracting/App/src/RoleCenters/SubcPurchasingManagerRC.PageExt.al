@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Purchases.RoleCenters;
 
-pageextension 8159 "Subc. Purchasing Manager RC" extends "Purchasing Manager Role Center"
+pageextension 20535 "Subc. Purchasing Manager RC" extends "Purchasing Manager Role Center"
 {
     actions
     {

@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Purchases.Document;
 
-page 8142 "Subc. Purchase Line Factbox"
+page 20518 "Subc. Purchase Line Factbox"
 {
     ApplicationArea = Subcontracting;
     Caption = 'Subcontracting Details';

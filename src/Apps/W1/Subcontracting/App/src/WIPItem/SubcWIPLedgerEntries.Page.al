@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.Document;
 
-page 8184 "Subc. WIP Ledger Entries"
+page 20560 "Subc. WIP Ledger Entries"
 {
     ApplicationArea = Subcontracting;
     Caption = 'Subcontracting WIP Entries';

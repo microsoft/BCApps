@@ -6,7 +6,7 @@ namespace Microsoft.Manufacturing.Subcontracting;
 
 using Microsoft.Manufacturing.WorkCenter;
 
-pageextension 8130 "Subc. Work Center Card" extends "Work Center Card"
+pageextension 20506 "Subc. Work Center Card" extends "Work Center Card"
 {
     layout
     {
