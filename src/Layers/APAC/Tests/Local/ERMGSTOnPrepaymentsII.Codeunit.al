@@ -1023,6 +1023,60 @@ codeunit 141027 "ERM GST On Prepayments II"
 
     [Test]
     [Scope('OnPrem')]
+    procedure GSTOnSalesPrepmtCrMemoAfterPartialFinalInvoice()
+    var
+        GeneralLedgerSetup: Record "General Ledger Setup";
+        SalesCrMemoHeader: Record "Sales Cr.Memo Header";
+        SalesHeader: Record "Sales Header";
+        SalesInvoiceHeader: Record "Sales Invoice Header";
+        SalesLine: Record "Sales Line";
+        DocumentNo: Code[20];
+        DeductedVATAmount: Decimal;
+        DeductedVATBase: Decimal;
+        PrepmtInvVATAmount: Decimal;
+    begin
+        // [SCENARIO 8896] GST on a Sales Prepayment Credit Memo posted after a partial final Invoice excludes the prepayment GST that the partial Invoice already deducted.
+
+        // [GIVEN] Full GST On Prepayment. Create Sales Order, post Sales Prepayment Invoice and make payment for the same.
+        Initialize();
+        GeneralLedgerSetup.Get();
+        UpdateLocalFunctionalitiesOnGeneralLedgerSetup(true, true, true);  // TRUE for Enable GST, GST Reports, Full GST On Prepayment.
+        CreateSalesOrderAndUpdateGeneralPostingSetup(SalesLine, '', LibraryRandom.RandDec(10, 2), false);  // Taking blank value for Currency Code, random value for Prepayment Pct., FALSE for Prices Including VAT.
+        PostPaymentForSalesPrepaymentInvoice(SalesHeader, SalesLine);
+        FindPrepaymentSalesInvoiceHeader(SalesInvoiceHeader, SalesHeader."Sell-to Customer No.");
+        SalesInvoiceHeader.CalcFields(Amount);
+        PrepmtInvVATAmount := SalesInvoiceHeader."Amount Including VAT" - SalesInvoiceHeader.Amount;
+
+        // [GIVEN] Post a partial final Invoice, deducting part of the prepayment and its GST.
+        UpdateQuantityToInvoiceOnSalesLine(SalesLine);
+        DocumentNo := LibrarySales.PostSalesDocument(SalesHeader, true, true);  // Post as Ship and Invoice.
+        GetPrepmtDeductedVATOnSalesInvoice(DocumentNo, DeductedVATAmount, DeductedVATBase);
+
+        // [THEN] The Sales Order line stores the prepayment GST deducted by the partial Invoice.
+        SalesLine.Get(SalesLine."Document Type", SalesLine."Document No.", SalesLine."Line No.");
+        Assert.AreNearlyEqual(
+          DeductedVATAmount, SalesLine."Prepmt. VAT Amount Deducted", LibraryERM.GetAmountRoundingPrecision(), AmountMustMatchMsg);
+        Assert.AreNearlyEqual(
+          DeductedVATBase, SalesLine."Prepmt. VAT Base Deducted", LibraryERM.GetAmountRoundingPrecision(), AmountMustMatchMsg);
+
+        // [WHEN] Post the Sales Prepayment Credit Memo.
+        LibrarySales.PostSalesPrepaymentCrMemo(SalesHeader);
+
+        // [THEN] The Credit Memo GST equals the prepaid GST minus the GST already deducted by the partial Invoice.
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        SalesCrMemoHeader.Get(SalesHeader."Last Prepmt. Cr. Memo No.");
+        SalesCrMemoHeader.CalcFields(Amount, "Amount Including VAT");
+        Assert.AreNearlyEqual(
+          PrepmtInvVATAmount - DeductedVATAmount, SalesCrMemoHeader."Amount Including VAT" - SalesCrMemoHeader.Amount,
+          LibraryERM.GetAmountRoundingPrecision(), AmountMustMatchMsg);
+
+        // Tear Down.
+        UpdateLocalFunctionalitiesOnGeneralLedgerSetup(
+          GeneralLedgerSetup."Enable GST (Australia)", GeneralLedgerSetup."GST Report", GeneralLedgerSetup."Full GST on Prepayment");
+    end;
+
+    [Test]
+    [Scope('OnPrem')]
     procedure GLEntryAfterPostPartialPurchInvAndPrepaymentInv()
     var
         GeneralLedgerSetup: Record "General Ledger Setup";
@@ -1507,6 +1561,21 @@ codeunit 141027 "ERM GST On Prepayments II"
         SalesInvoiceHeader.SetRange("Sell-to Customer No.", SellToCustomerNo);
         SalesInvoiceHeader.FindFirst();
         SalesInvoiceHeader.CalcFields("Amount Including VAT");
+    end;
+
+    local procedure GetPrepmtDeductedVATOnSalesInvoice(DocumentNo: Code[20]; var DeductedVATAmount: Decimal; var DeductedVATBase: Decimal)
+    var
+        SalesInvoiceLine: Record "Sales Invoice Line";
+    begin
+        DeductedVATAmount := 0;
+        DeductedVATBase := 0;
+        SalesInvoiceLine.SetRange("Document No.", DocumentNo);
+        SalesInvoiceLine.SetRange("Prepayment Line", true);
+        SalesInvoiceLine.FindSet();
+        repeat
+            DeductedVATAmount += SalesInvoiceLine.Amount - SalesInvoiceLine."Amount Including VAT";  // Deduction lines are negative, so this yields the reversed GST as a positive amount.
+            DeductedVATBase -= SalesInvoiceLine."VAT Base Amount";
+        until SalesInvoiceLine.Next() = 0;
     end;
 
     local procedure GetPayableAccount(No: Code[20]): Code[20]
