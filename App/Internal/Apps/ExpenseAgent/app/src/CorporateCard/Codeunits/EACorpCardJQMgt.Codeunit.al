@@ -15,6 +15,7 @@ codeunit 7215 EACorpCardJQMgt
     Access = Internal;
 
     var
+        CorpCardImportTxt: Label 'Corp Card import - %1', Comment = '%1 = Provider code';
         JobQueueAlreadyExistsErr: Label 'Job Queue entry for provider %1 already exists.', Comment = '%1 = Provider code';
         NoProviderErr: Label 'Provider %1 not found.', Comment = '%1 = Provider code';
 
@@ -33,7 +34,7 @@ codeunit 7215 EACorpCardJQMgt
         JobQueueEntry.Init();
         JobQueueEntry."Object Type to Run" := JobQueueEntry."Object Type to Run"::Codeunit;
         JobQueueEntry."Object ID to Run" := Codeunit::EACorpCardJQRunner;
-        JobQueueEntry.Description := StrSubstNo('Corp Card import - %1', ProviderCode);
+        JobQueueEntry.Description := StrSubstNo(CorpCardImportTxt, ProviderCode);
         JobQueueEntry."Record ID to Process" := CorpCardProvider.RecordId;
         JobQueueEntry."Maximum No. of Attempts to Run" := 3;
         JobQueueEntry."No. of Minutes between Runs" := MinutesBetweenRuns;
@@ -80,6 +81,6 @@ codeunit 7215 EACorpCardJQMgt
         JobQueueEntry: Record "Job Queue Entry";
     begin
         JobQueueEntry.SetRange("Record ID to Process", RecordId);
-        exit(JobQueueEntry.FindFirst());
+        exit(not JobQueueEntry.IsEmpty());
     end;
 }

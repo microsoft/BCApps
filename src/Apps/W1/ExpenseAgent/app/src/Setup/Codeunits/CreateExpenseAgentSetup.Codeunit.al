@@ -84,7 +84,7 @@ codeunit 6970 "Create Expense Agent Setup"
     begin
         SequenceNo := 1;
         repeat
-            CandidateCardId := CopyStr(StrSubstNo('CARD-%1', PadNumberLeft(SequenceNo, 4)), 1, MaxStrLen(CorpCard."Card Id"));
+            CandidateCardId := CopyStr(StrSubstNo(CardIDTok, PadNumberLeft(SequenceNo, 4)), 1, MaxStrLen(CorpCard."Card Id"));
             SequenceNo += 1;
         until not CorpCard.Get(CandidateCardId);
 
@@ -380,9 +380,16 @@ codeunit 6970 "Create Expense Agent Setup"
         CardTok: Label 'Card', Locked = true;
         CashTok: Label 'Cash', Locked = true;
         BankTok: Label 'Bank', Locked = true;
+<<<<<<< HEAD:src/Apps/W1/ExpenseAgent/app/src/Setup/Codeunits/CreateExpenseAgentSetup.Codeunit.al
         XCARDTxt: Label 'Card';
         XCASHTxt: Label 'Cash';
         XBANKTxt: Label 'Bank';
+=======
+        CardIDTok: Label 'CARD-%1', Locked = true;
+        CardDescriptionLbl: Label 'Card';
+        CashDescriptionLbl: Label 'Cash';
+        BankDescriptionLbl: Label 'Bank';
+>>>>>>> 03c1b96ab71 (Fix compile errors):App/Internal/Apps/ExpenseAgent/app/src/Setup/Codeunits/CreateExpenseAgentSetup.Codeunit.al
         MilesTxt: Label 'Miles';
         MilesCodeTxt: Label 'MILES';
 }
