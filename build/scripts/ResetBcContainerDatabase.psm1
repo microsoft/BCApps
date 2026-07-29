@@ -97,7 +97,9 @@ function Reset-BcContainerApplicationDatabase {
     New-BcContainerBcUser -containerName $ContainerName -Credential $Credential -PermissionSetId SUPER -ChangePasswordAtNextLogOn:$false
 
     # Switch back to multitenant: split the application from the tenant, copy to a fresh 'default' tenant.
-    Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock { Param($databaseName, $databaseServer, $databaseInstance)
+    # -usePwsh $false forces Windows PowerShell 5.1: this block calls Invoke-Sqlcmd and SMO-based
+    # Export-/Copy-NavDatabase, which fail to load the SQL SMO assemblies under the container's pwsh7.
+    Invoke-ScriptInBcContainer -containerName $ContainerName -useSession $false -usePwsh $false -scriptblock { Param($databaseName, $databaseServer, $databaseInstance)
         $databaseServerInstance = $databaseServer
         if ($databaseInstance) { $databaseServerInstance += "\$databaseInstance" }
 
@@ -113,7 +115,9 @@ function Reset-BcContainerApplicationDatabase {
         Write-Host "Copying tenant template to default tenant"
         Copy-NavDatabase -SourceDatabaseName "tenant" -DestinationDatabaseName "default"
         Write-Host "Mounting default tenant"
-        Mount-NavDatabase -ServerInstance $ServerInstance -TenantId "default" -DatabaseName "default"
+        # -allowAppDatabaseWrite is required so demo-data generation (DemoTool) can insert records such
+        # as Media into the application database; without it the tenant mounts read-only against the app DB.
+        Mount-NavDatabase -ServerInstance $ServerInstance -TenantId "default" -DatabaseName "default" -allowAppDatabaseWrite
     } -argumentList $customConfig.DatabaseName, $customConfig.DatabaseServer, $customConfig.DatabaseInstance
 }
 
