@@ -33,14 +33,15 @@ codeunit 7212 EACorpCardExpWriter implements IEACorpCardExpWriter
 
         Expense.Init();
         Expense."Expense User No." := ExpenseUserNo;
+        Expense."Status" := Expense."Status"::Open;
+        if ExpenseCategory <> '' then
+            Expense.Validate("Expense Category", ExpenseCategory);
         Expense.Description := CopyStr(CorpCardTrans."Merchant Norm", 1, MaxStrLen(Expense.Description));
         Expense."Merchant Name" := CopyStr(CorpCardTrans."Merchant Norm", 1, MaxStrLen(Expense."Merchant Name"));
         Expense."Expense Date" := CorpCardTrans."Trans Date";
         Expense.Amount := CorpCardTrans.Amount;
         Expense."Currency Code" := CorpCardTrans."Currency Code";
-        if ExpenseCategory <> '' then
-            Expense."Expense Category" := ExpenseCategory;
-        Expense."Status" := Expense."Status"::Open;
+        Expense."Credit Card Feed No." := CorpCardTrans."Entry No.";
 
         Expense.Insert(true);
         ExpenseNo := Expense."No.";

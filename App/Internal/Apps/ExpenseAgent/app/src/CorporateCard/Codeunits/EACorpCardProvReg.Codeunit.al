@@ -17,8 +17,10 @@ codeunit 7241 EACorpCardProvReg
     begin
         case CorpCardProvider."Feed Type" of
             CorpCardProvider."Feed Type"::DataExch,
-            CorpCardProvider."Feed Type"::CAMT,
+            CorpCardProvider."Feed Type"::CAMT053,
+            CorpCardProvider."Feed Type"::CAMT054,
             CorpCardProvider."Feed Type"::ISO20022,
+            CorpCardProvider."Feed Type"::XML,
             CorpCardProvider."Feed Type"::CSV:
                 CorpCardProviderImpl := CorpCardDataExchProv;
             else

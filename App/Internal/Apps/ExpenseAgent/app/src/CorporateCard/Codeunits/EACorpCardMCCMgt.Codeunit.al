@@ -37,62 +37,39 @@ codeunit 7217 EACorpCardMCCMgt
     /// Can be called during setup or upgrade.
     /// </summary>
     internal procedure InitializeDefaultMCCMappings()
+    begin
+        EnsureMCCMapping('4112', 'Rail Passenger Transport', 'GROUNDTRAN', 'Ground Transportation');
+        EnsureMCCMapping('4121', 'Taxicabs and Limousines', 'GROUNDTRAN', 'Ground Transportation');
+        EnsureMCCMapping('4511', 'Airlines', 'AIRLINE', 'Airline');
+        EnsureMCCMapping('4722', 'Travel Agencies', 'TRAVELAGENCY', 'Travel Agency');
+        EnsureMCCMapping('5111', 'Office Supplies', 'OFFICESUPPLIES', 'Office Supplies');
+        EnsureMCCMapping('5541', 'Service Stations', 'CAR', 'Car');
+        EnsureMCCMapping('5812', 'Restaurants', 'MEALS', 'Meals');
+        EnsureMCCMapping('5943', 'Stationery and Office Stores', 'OFFICESUPPLIES', 'Office Supplies');
+        EnsureMCCMapping('7011', 'Hotels and Lodging', 'HOTELS', 'Hotels');
+        EnsureMCCMapping('7523', 'Parking Lots and Garages', 'PARKING', 'Parking');
+
+        // Keep legacy defaults that may already be used in existing test/demo setups.
+        EnsureMCCMapping('7394', 'Car Rental', 'RENTALCARS', 'Rental Cars');
+        EnsureMCCMapping('7399', 'Business Services', 'MISC', 'Miscellaneous');
+        EnsureMCCMapping('5542', 'Fuel Dispensers', 'CAR', 'Car');
+    end;
+
+    local procedure EnsureMCCMapping(MCC: Code[4]; Description: Text[100]; CategoryCode: Code[20]; CategoryDescription: Text[100])
     var
         MCCMap: Record EACorpCardMCCMap;
     begin
-        // Airlines
-        if not MCCMap.Get('4511') then begin
-            MCCMap.MCC := '4511';
-            MCCMap.Description := 'Airlines';
-            MCCMap."Expense Category" := GetOrCreateCategory('Travel');
-            MCCMap.Active := true;
-            MCCMap.Insert();
-        end;
+        EnsureCategoryExists(CategoryCode, CategoryDescription);
 
-        // Hotel/Lodging
-        if not MCCMap.Get('7011') then begin
-            MCCMap.MCC := '7011';
-            MCCMap.Description := 'Hotels/Lodging';
-            MCCMap."Expense Category" := GetOrCreateCategory('Travel');
-            MCCMap.Active := true;
-            MCCMap.Insert();
-        end;
+        if MCCMap.Get(MCC) then
+            exit;
 
-        // Restaurants
-        if not MCCMap.Get('5812') then begin
-            MCCMap.MCC := '5812';
-            MCCMap.Description := 'Restaurants';
-            MCCMap."Expense Category" := GetOrCreateCategory('Meals');
-            MCCMap.Active := true;
-            MCCMap.Insert();
-        end;
-
-        // Rental Car
-        if not MCCMap.Get('7394') then begin
-            MCCMap.MCC := '7394';
-            MCCMap.Description := 'Car Rental';
-            MCCMap."Expense Category" := GetOrCreateCategory('Travel');
-            MCCMap.Active := true;
-            MCCMap.Insert();
-        end;
-
-        // Office/Business Services
-        if not MCCMap.Get('7399') then begin
-            MCCMap.MCC := '7399';
-            MCCMap.Description := 'Business Services';
-            MCCMap."Expense Category" := GetOrCreateCategory('Office Supplies');
-            MCCMap.Active := true;
-            MCCMap.Insert();
-        end;
-
-        // Gas
-        if not MCCMap.Get('5542') then begin
-            MCCMap.MCC := '5542';
-            MCCMap.Description := 'Fuel';
-            MCCMap."Expense Category" := GetOrCreateCategory('Transportation');
-            MCCMap.Active := true;
-            MCCMap.Insert();
-        end;
+        MCCMap.Init();
+        MCCMap.MCC := MCC;
+        MCCMap.Description := Description;
+        MCCMap."Expense Category" := CategoryCode;
+        MCCMap.Active := true;
+        MCCMap.Insert();
     end;
 
     /// <summary>
@@ -127,16 +104,21 @@ codeunit 7217 EACorpCardMCCMgt
         exit(true);
     end;
 
-    local procedure GetOrCreateCategory(CategoryName: Text[100]): Code[20]
+    local procedure EnsureCategoryExists(CategoryCode: Code[20]; CategoryDescription: Text[100])
     var
         ExpenseCategory: Record "Expense Category";
     begin
-        // Try to find existing category
-        ExpenseCategory.SetFilter(Description, StrSubstNo('@*%1*', CategoryName));
-        if ExpenseCategory.FindFirst() then
-            exit(ExpenseCategory.Code);
+        if ExpenseCategory.Get(CategoryCode) then begin
+            if (ExpenseCategory.Description = '') and (CategoryDescription <> '') then begin
+                ExpenseCategory.Validate(Description, CategoryDescription);
+                ExpenseCategory.Modify(true);
+            end;
+            exit;
+        end;
 
-        // Return first matching or empty if not found
-        exit('');
+        ExpenseCategory.Init();
+        ExpenseCategory.Validate(Code, CategoryCode);
+        ExpenseCategory.Validate(Description, CategoryDescription);
+        ExpenseCategory.Insert(true);
     end;
 }

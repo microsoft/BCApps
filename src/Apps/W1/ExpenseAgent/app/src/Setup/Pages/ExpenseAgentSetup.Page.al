@@ -406,6 +406,20 @@ page 6996 "Expense Agent Setup"
                         Rec.CreateDefaultSettings();
                     end;
                 }
+                action("Apply Corp Card Default Settings")
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Apply corp card default settings';
+                    Image = SetupPayment;
+                    ToolTip = 'Applies corporate card defaults, including provider setup, data exchange mapping, user card links, and corporate card setup values.';
+
+                    trigger OnAction()
+                    var
+                        CreateCorpCardSetup: Codeunit "Create Corp Card Setup";
+                    begin
+                        CreateCorpCardSetup.CreateDefaults();
+                    end;
+                }
             }
             action("Agent Consumption")
             {

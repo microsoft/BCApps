@@ -265,9 +265,9 @@ page 7224 EACorpCardProviders
 
     local procedure InitializeDataExchangeForProvider()
     var
-        CorpCardDESeed: Codeunit EACorpCardDESeed;
+        CreateCorpCardSetup: Codeunit "Create Corp Card Setup";
     begin
-        CorpCardDESeed.EnsureForProvider(Rec);
+        CreateCorpCardSetup.EnsureDataExchangeForProvider(Rec);
         CurrPage.Update(false);
         Message(DataExchangeInitializedMsg, Rec.Code, Rec."Data Exch Def Code", Rec."Data Exch Map Code");
     end;

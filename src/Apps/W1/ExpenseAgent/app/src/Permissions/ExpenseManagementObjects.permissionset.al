@@ -224,7 +224,7 @@ permissionset 6904 "Expense Management - Objects"
         codeunit EACorpCardApprovalMgt = X,
         codeunit EACorpCardAuditSubscribers = X,
         codeunit EACorpCardDataExchProv = X,
-        codeunit EACorpCardDESeed = X,
+        codeunit "Create Corp Card Setup" = X,
         codeunit EACorpCardDENoop = X,
         codeunit EACorpCardDedupMgt = X,
         codeunit EACorpCardEnhancedMatchMgt = X,

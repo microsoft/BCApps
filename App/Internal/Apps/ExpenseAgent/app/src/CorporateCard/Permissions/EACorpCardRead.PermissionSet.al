@@ -13,7 +13,7 @@ permissionset 7212 EACorpCardRead
     Permissions =
         page EACorpCardJQSchedule = X,
         page EACorpCardJQScheduleSubpage = X,
-        codeunit EACorpCardDESeed = X,
+        codeunit "Create Corp Card Setup" = X,
         codeunit EACorpCardDENoop = X,
         tabledata EACorpCardProvider = R,
         tabledata EACorpCard = R,

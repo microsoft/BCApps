@@ -73,4 +73,53 @@ codeunit 7256 EACorpCardMapMgt
 
         Handled := true;
     end;
+
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"Process Data Exch.", 'OnSetFieldOnBeforeFieldRefValidate', '', false, false)]
+    local procedure OnSetFieldOnBeforeFieldRefValidate(TransformedValue: Text; var DataExchField: Record "Data Exch. Field"; DataExchFieldMapping: Record "Data Exch. Field Mapping"; FieldRef: FieldRef; DataExchColumnDef: Record "Data Exch. Column Def"; var IsHandled: Boolean)
+    var
+        CorpCardTrans: Record EACorpCardTrans;
+        NormalizedCardId: Text;
+    begin
+        if DataExchFieldMapping."Table ID" <> Database::EACorpCardTrans then
+            exit;
+
+        if DataExchFieldMapping."Field ID" <> CorpCardTrans.FieldNo("Card Id") then
+            exit;
+
+        if StrPos(UpperCase(TransformedValue), 'CARDID=') = 0 then
+            exit;
+
+        NormalizedCardId := ExtractTaggedValueCaseInsensitive(TransformedValue, 'CARDID=');
+        if NormalizedCardId = '' then
+            exit;
+
+        FieldRef.Value := CopyStr(NormalizedCardId, 1, FieldRef.Length);
+        FieldRef.Validate();
+        IsHandled := true;
+    end;
+
+    local procedure ExtractTaggedValueCaseInsensitive(SourceText: Text; TagUpper: Text): Text
+    var
+        SourceUpper: Text;
+        TagPos: Integer;
+        ValuePos: Integer;
+        EndPos: Integer;
+        ValueTxt: Text;
+    begin
+        SourceUpper := UpperCase(SourceText);
+        TagPos := StrPos(SourceUpper, TagUpper);
+        if TagPos = 0 then
+            exit('');
+
+        ValuePos := TagPos + StrLen(TagUpper);
+        if ValuePos > StrLen(SourceText) then
+            exit('');
+
+        ValueTxt := CopyStr(SourceText, ValuePos);
+        EndPos := StrPos(ValueTxt, ';');
+        if EndPos > 0 then
+            ValueTxt := CopyStr(ValueTxt, 1, EndPos - 1);
+
+        exit(DelChr(ValueTxt, '<>', ' "'));
+    end;
 }

@@ -20,41 +20,50 @@ table 7211 EACorpCard
         field(1; "Card Id"; Code[50])
         {
             Caption = 'Card Id';
+            ToolTip = 'Specifies the unique identifier for the card.';
         }
         field(2; "Provider Code"; Code[20])
         {
             Caption = 'Provider Code';
             TableRelation = EACorpCardProvider.Code;
+            ToolTip = 'Specifies the provider code for the card.';
         }
         field(3; "External Card Ref"; Code[50])
         {
             Caption = 'External Card Reference';
+            ToolTip = 'Specifies the external reference for the card.';
         }
         field(4; "Masked Card No."; Text[30])
         {
             Caption = 'Masked Card No.';
+            ToolTip = 'Specifies the masked card number.';
         }
         field(5; "Expense User No."; Code[20])
         {
             Caption = 'Expense User No.';
             TableRelation = "Expense User"."No.";
+            ToolTip = 'Specifies the expense user number associated with the card.';
         }
         field(6; "Currency Code"; Code[10])
         {
             Caption = 'Currency Code';
             TableRelation = Currency.Code;
+            ToolTip = 'Specifies the currency code for the card.';
         }
         field(7; Blocked; Boolean)
         {
             Caption = 'Blocked';
+            ToolTip = 'Indicates whether the card is blocked.';
         }
         field(8; "Valid From"; Date)
         {
             Caption = 'Valid From';
+            ToolTip = 'Specifies the date from which the card is valid.';
         }
         field(9; "Valid To"; Date)
         {
             Caption = 'Valid To';
+            ToolTip = 'Specifies the date until which the card is valid.';
         }
     }
 

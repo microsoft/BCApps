@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.054.001.08">
+  <GrpHdr>
+    <MsgId>EA-ISO20022-SAMPLE-001</MsgId>
+    <CreDtTm>2026-07-29T09:30:00Z</CreDtTm>
+  </GrpHdr>
+  <Notification>
+    <Account>
+      <Id>
+        <IBAN>DE89370400440532013000</IBAN>
+      </Id>
+      <Owner>Expense Agent Sample Corp</Owner>
+    </Account>
+
+    <Transaction>
+      <ProviderTransId>ISO-TRX-0001</ProviderTransId>
+      <CardId>CARD-0001</CardId>
+      <TransDate>2026-07-26</TransDate>
+      <PostingDate>2026-07-27</PostingDate>
+      <Amount>123.45</Amount>
+      <CurrencyCode>EUR</CurrencyCode>
+      <MerchantRaw>Contoso Travel GmbH</MerchantRaw>
+      <MCC>4511</MCC>
+      <Country>DE</Country>
+      <Notes>Flight ticket Berlin to Copenhagen</Notes>
+    </Transaction>
+
+    <Transaction>
+      <ProviderTransId>ISO-TRX-0002</ProviderTransId>
+      <CardId>CARD-0002</CardId>
+      <TransDate>2026-07-27</TransDate>
+      <PostingDate>2026-07-28</PostingDate>
+      <Amount>67.80</Amount>
+      <CurrencyCode>EUR</CurrencyCode>
+      <MerchantRaw>Northwind Hotel A/S</MerchantRaw>
+      <MCC>7011</MCC>
+      <Country>DK</Country>
+      <Notes>Hotel night and breakfast</Notes>
+    </Transaction>
+  </Notification>
+</Document>

@@ -25,8 +25,16 @@ enum 7220 EACorpCardFeedType
     {
         Caption = 'ISO20022';
     }
-    value(4; CAMT)
+    value(4; XML)
     {
-        Caption = 'CAMT';
+        Caption = 'XML';
+    }
+    value(5; CAMT053)
+    {
+        Caption = 'CAMT.053';
+    }
+    value(6; CAMT054)
+    {
+        Caption = 'CAMT.054';
     }
 }

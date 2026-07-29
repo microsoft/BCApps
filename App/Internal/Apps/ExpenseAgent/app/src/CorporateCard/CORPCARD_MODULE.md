@@ -15,7 +15,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 ### Design Principles
 
 1. **Automated Import Pipeline** - Provider-driven file import with field mapping validation
-2. **Multi-Format Support** - CSV, generic XML, and SEPA CAMT mapping profiles
+2. **Multi-Format Support** - CSV, XML, ISO20022, CAMT.053, and CAMT.054 mapping profiles
 3. **Configurable Creation Mode** - AutoDraft can create one draft per imported transaction
 4. **Scheduled Processing** - Job Queue integration for recurring imports with retry resilience
 5. **Standard Workflows** - Leverages platform Expense Report approval and GL posting
@@ -244,20 +244,27 @@ Platform ExpenseReportPost (Codeunit 6987)
 
 ### Post-Deployment (First-Time Tasks)
 
-1. **Initialize MCC Mappings**
-   ```al
-   var MCCMgt: Codeunit EACorpCardMCCMgt;
-   begin
-     MCCMgt.InitializeDefaultMCCMappings();
-   end;
-   ```
-   Creates 6 default mappings:
-   - 4511 (Airlines) → Travel
-   - 7011 (Hotels) → Travel
-   - 5812 (Restaurants) → Meals
-   - 7394 (Car Rental) → Travel
-   - 7399 (Business Services) → Office Supplies
-   - 5542 (Fuel) → Transportation
+1. **Apply Corp Card Default Settings**
+    - Navigate: Expense Agent Setup → Setup → Apply corp card default settings
+    - Runs codeunit Create Corp Card Setup and now also initializes MCC mappings and related Expense Categories.
+    - MCC/category seeding is idempotent (existing records are not duplicated).
+
+    Seeded MCC mappings from sample feeds:
+    - 4112 (Rail Passenger Transport) → GROUNDTRAN
+    - 4121 (Taxicabs and Limousines) → GROUNDTRAN
+    - 4511 (Airlines) → AIRLINE
+    - 4722 (Travel Agencies) → TRAVELAGENCY
+    - 5111 (Office Supplies) → OFFICESUPPLIES
+    - 5541 (Service Stations) → CAR
+    - 5812 (Restaurants) → MEALS
+    - 5943 (Stationery and Office Stores) → OFFICESUPPLIES
+    - 7011 (Hotels and Lodging) → HOTELS
+    - 7523 (Parking Lots and Garages) → PARKING
+
+    Legacy demo mappings retained:
+    - 7394 (Car Rental) → RENTALCARS
+    - 7399 (Business Services) → MISC
+    - 5542 (Fuel Dispensers) → CAR
 
 2. **Access Corporate Card Features**
    - Navigate: Expense Management Role Center → Corporate Card group
@@ -416,7 +423,7 @@ Pages are interlinked with drill-down actions:
 ✅ **Regex Patterns:** Custom pattern matching for merchant name standardization  
 ✅ **Priority-Based:** Rules sorted by priority, first match wins  
 ✅ **Category Mapping:** Patterns can assign expense category automatically  
-✅ **MCC Integration:** Alternative 4-digit code mapping for category  
+✅ **MCC Integration:** 4-digit code mapping with auto-created category seeds  
 
 ### Job Queue Scheduling
 
@@ -502,7 +509,7 @@ Pages are interlinked with drill-down actions:
 
 ## Known Limitations
 
-1. **MCC Initialization Manual:** Default MCC mappings must be initialized by user (not auto on setup)
+1. **MCC Category Scope:** Demo MCC/category mappings are seeded for sample coverage; production tenants should review and extend mappings based on local card programs
 2. **Max String Length:** Levenshtein algorithm capped at 100 characters (longer strings truncated)
 3. **Regex Performance:** Complex regex patterns may slow normalization (use specific patterns)
 4. **Single Approver:** Approval workflow uses first approver from setup (no chain routing)
@@ -565,6 +572,6 @@ Pages are interlinked with drill-down actions:
 
 ---
 
-**Document Version:** 1.1  
+**Document Version:** 1.2  
 **Last Updated:** 2026-07-29  
-**Module Status:** Active (CSV/XML/CAMT import and AutoDraft 1:1 flow enabled)
+**Module Status:** Active (CSV/XML/ISO20022/CAMT.053/CAMT.054 import and AutoDraft 1:1 flow enabled)

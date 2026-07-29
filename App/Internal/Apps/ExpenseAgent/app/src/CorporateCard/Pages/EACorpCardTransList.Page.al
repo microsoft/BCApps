@@ -58,6 +58,11 @@ page 7223 EACorpCardTransList
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the transaction currency code.';
                 }
+                field(MCC; Rec.MCC)
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the merchant category code for this transaction.';
+                }
                 field(Status; Rec.Status)
                 {
                     ApplicationArea = Basic, Suite;

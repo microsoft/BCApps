@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.054.001.08">
-  <BkToCstmrDbtCdtNtfctn>
+  <BkToCstmrStmt>
     <GrpHdr>
       <MsgId>EA-CAMT54-0001</MsgId>
       <CreDtTm>2026-07-29T07:44:34</CreDtTm>
       <NbOfNtfctns>1</NbOfNtfctns>
     </GrpHdr>
-    <Ntfctn>
+    <Stmt>
       <Id>EA-NTF-2026-06</Id>
       <CreDtTm>2026-06-30T23:59:59</CreDtTm>
       <Acct>
@@ -1951,6 +1951,6 @@
           </TxDtls>
         </NtryDtls>
       </Ntry>
-    </Ntfctn>
-  </BkToCstmrDbtCdtNtfctn>
+    </Stmt>
+  </BkToCstmrStmt>
 </Document>

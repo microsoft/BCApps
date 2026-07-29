@@ -20,15 +20,16 @@ codeunit 7243 EACorpCardDataExchProv implements IEACorpCardProvider
         ProviderDefCodeMissingErr: Label 'Data Exchange Definition Code must be set on provider %1.', Comment = '%1 = Provider code';
         InvalidTransErr: Label 'Mandatory data is missing for provider transaction %1.', Comment = '%1 = Provider transaction ID';
         NoParsedLinesErr: Label 'No transaction lines were parsed from file %1 for provider %2. Verify Data Exchange definition %3 and mapping %4.', Comment = '%1 = file name, %2 = provider code, %3 = Data Exch Def Code, %4 = Data Exch Line Def Code';
+        NonCsvFallbackErr: Label 'No Data Exchange fields were parsed for non-CSV provider %1 (feed type %2). Verify Data Exchange definition %3 and line mapping %4.', Comment = '%1 = provider code, %2 = feed type, %3 = Data Exch Def Code, %4 = Data Exch Line Def Code';
 
     procedure Download(var CorpCardBatch: Record EACorpCardBatch)
     var
         DataExch: Record "Data Exch.";
         CorpCardProvider: Record EACorpCardProvider;
-        CorpCardDESeed: Codeunit EACorpCardDESeed;
+        CreateCorpCardSetup: Codeunit "Create Corp Card Setup";
     begin
         CorpCardProvider.Get(CorpCardBatch."Provider Code");
-        CorpCardDESeed.EnsureForProvider(CorpCardProvider);
+        CreateCorpCardSetup.EnsureDataExchangeForProvider(CorpCardProvider);
         if CorpCardProvider."Data Exch Def Code" = '' then
             Error(ProviderDefCodeMissingErr, CorpCardProvider.Code);
 
@@ -57,7 +58,7 @@ codeunit 7243 EACorpCardDataExchProv implements IEACorpCardProvider
         DataExch: Record "Data Exch.";
         DataExchDef: Record "Data Exch. Def";
         CorpCardMapMgt: Codeunit EACorpCardMapMgt;
-        CorpCardDESeed: Codeunit EACorpCardDESeed;
+        CreateCorpCardSetup: Codeunit "Create Corp Card Setup";
         PostImportOrch: Codeunit EACorpCardPostImportOrch;
     begin
         CorpCardBatch.Get(BatchNo);
@@ -65,8 +66,9 @@ codeunit 7243 EACorpCardDataExchProv implements IEACorpCardProvider
             exit;
 
         CorpCardProvider.Get(CorpCardBatch."Provider Code");
-        CorpCardDESeed.EnsureForProvider(CorpCardProvider);
+        CreateCorpCardSetup.EnsureDataExchangeForProvider(CorpCardProvider);
         DataExch.Get(CorpCardBatch."Data Exch Entry No.");
+        EnsureDataExchFileContentFromProviderPayload(DataExch, CorpCardProvider);
         if DataExch."Data Exch. Line Def Code" = '' then begin
             DataExch."Data Exch. Line Def Code" := CorpCardProvider."Data Exch Map Code";
             DataExch.Modify(true);
@@ -84,7 +86,14 @@ codeunit 7243 EACorpCardDataExchProv implements IEACorpCardProvider
         if HasParsedFields(DataExch) then
             MapDataExchToTrans(CorpCardBatch, CorpCardProvider, DataExch)
         else
-            ParseCsvPayloadToTrans(CorpCardBatch, CorpCardProvider, DataExch);
+            if CorpCardProvider."Feed Type" = CorpCardProvider."Feed Type"::CSV then
+                ParseCsvPayloadToTrans(CorpCardBatch, CorpCardProvider, DataExch)
+            else begin
+                CorpCardBatch.Status := CorpCardBatch.Status::Failed;
+                CorpCardBatch.Rejected += 1;
+                CorpCardBatch.Modify();
+                Error(NonCsvFallbackErr, CorpCardProvider.Code, CorpCardProvider."Feed Type", CorpCardProvider."Data Exch Def Code", CorpCardProvider."Data Exch Map Code");
+            end;
 
         PostImportOrch.ProcessBatchPostImport(BatchNo);
     end;
@@ -117,6 +126,29 @@ codeunit 7243 EACorpCardDataExchProv implements IEACorpCardProvider
         DataExch.Modify();
     end;
 
+    local procedure EnsureDataExchFileContentFromProviderPayload(var DataExch: Record "Data Exch."; CorpCardProvider: Record EACorpCardProvider)
+    var
+        ProviderRefreshed: Record EACorpCardProvider;
+        SourceInStr: InStream;
+        TargetOutStr: OutStream;
+    begin
+        if not ProviderRefreshed.Get(CorpCardProvider.Code) then
+            exit;
+
+        ProviderRefreshed.CalcFields("Source Payload");
+        if not ProviderRefreshed."Source Payload".HasValue() then
+            exit;
+
+        ProviderRefreshed."Source Payload".CreateInStream(SourceInStr);
+        DataExch."File Content".CreateOutStream(TargetOutStr);
+        CopyStream(TargetOutStr, SourceInStr);
+
+        if ProviderRefreshed."Source File Name" <> '' then
+            DataExch."File Name" := CopyStr(ProviderRefreshed."Source File Name", 1, MaxStrLen(DataExch."File Name"));
+
+        DataExch.Modify();
+    end;
+
     local procedure HasParsedFields(DataExch: Record "Data Exch."): Boolean
     var
         DataExchField: Record "Data Exch. Field";
@@ -133,6 +165,7 @@ codeunit 7243 EACorpCardDataExchProv implements IEACorpCardProvider
         InStr: InStream;
         LineTxt: Text;
         IsHeader: Boolean;
+        ValidationReason: Text[250];
     begin
         DataExch.CalcFields("File Content");
         if not DataExch."File Content".HasValue() then
@@ -160,9 +193,12 @@ codeunit 7243 EACorpCardDataExchProv implements IEACorpCardProvider
 
             MapCsvLineToTrans(LineTxt, CorpCardTrans);
 
-            if not CorpCardValidateMgt.ValidateTrans(CorpCardTrans) then begin
+            ValidationReason := '';
+            if not CorpCardValidateMgt.ValidateTrans(CorpCardTrans, ValidationReason) then begin
                 CorpCardTrans.Status := CorpCardTrans.Status::Exception;
-                InsertException(CorpCardBatch, CorpCardTrans, Enum::EACorpCardExcpType::Validation, StrSubstNo(InvalidTransErr, CorpCardTrans."Provider Trans Id"));
+                if ValidationReason = '' then
+                    ValidationReason := StrSubstNo(InvalidTransErr, CorpCardTrans."Provider Trans Id");
+                InsertException(CorpCardBatch, CorpCardTrans, Enum::EACorpCardExcpType::Validation, ValidationReason);
                 CorpCardBatch.Exceptions += 1;
                 CorpCardBatch.Rejected += 1;
                 continue;
@@ -221,7 +257,12 @@ codeunit 7243 EACorpCardDataExchProv implements IEACorpCardProvider
     local procedure GetCsvField(LineTxt: Text; FieldIndex: Integer): Text
     var
         FieldTxt: Text;
+        CommaCount: Integer;
     begin
+        CommaCount := StrLen(LineTxt) - StrLen(DelChr(LineTxt, '=', ','));
+        if FieldIndex > (CommaCount + 1) then
+            exit('');
+
         FieldTxt := SelectStr(FieldIndex, LineTxt);
         exit(DelChr(FieldTxt, '=', '"'));
     end;
@@ -270,6 +311,7 @@ codeunit 7243 EACorpCardDataExchProv implements IEACorpCardProvider
         CorpCardValidateMgt: Codeunit EACorpCardValidateMgt;
         CorpCardRecRef: RecordRef;
         CurrentLineNo: Integer;
+        ValidationReason: Text[250];
     begin
         DataExchField.SetAutoCalcFields("Data Exch. Def Code");
         DataExchField.SetRange("Data Exch. No.", DataExch."Entry No.");
@@ -308,9 +350,12 @@ codeunit 7243 EACorpCardDataExchProv implements IEACorpCardProvider
             CorpCardRecRef.SetTable(CorpCardTrans);
             NormalizeMappedTransFields(CorpCardTrans);
 
-            if not CorpCardValidateMgt.ValidateTrans(CorpCardTrans) then begin
+            ValidationReason := '';
+            if not CorpCardValidateMgt.ValidateTrans(CorpCardTrans, ValidationReason) then begin
                 CorpCardTrans.Status := CorpCardTrans.Status::Exception;
-                InsertException(CorpCardBatch, CorpCardTrans, Enum::EACorpCardExcpType::Validation, StrSubstNo(InvalidTransErr, CorpCardTrans."Provider Trans Id"));
+                if ValidationReason = '' then
+                    ValidationReason := StrSubstNo(InvalidTransErr, CorpCardTrans."Provider Trans Id");
+                InsertException(CorpCardBatch, CorpCardTrans, Enum::EACorpCardExcpType::Validation, ValidationReason);
                 CorpCardBatch.Exceptions += 1;
                 CorpCardBatch.Rejected += 1;
                 continue;
