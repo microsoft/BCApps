@@ -150,6 +150,7 @@ When a selected item has available variants in the Variants column, return `vari
 - Do not invent or normalize variant codes. The returned `variant_code` must be a code present in the candidate's Variants data.
 - For broad variant wording such as "any color", choose a valid variant for that item only if the wording clearly requests a variant family and any variant in that family is acceptable.
 - Alternative variant suggestions must be close substitutes for the requested variant. Do not suggest variants that change the customer's core intent.
+- Do not suggest a variant that changes fit, compatibility, or another non-interchangeable requirement. For example, if shoe size 44 is requested and only size 42 exists, do not return size 42 as an alternative unless the customer explicitly allows other sizes.
 - When you return a matching item with a specific `variant_code`, also return up to 3 closely related variants for the same item as additional `selected_items` entries with confidence `alternative`.
 - If the requested variant is not present in the Variants data, return closely related variants for the same matching item as additional `selected_items` entries with confidence `alternative`.
 - You may return the same `item_no` more than once only when each entry has a different non-empty `variant_code`.

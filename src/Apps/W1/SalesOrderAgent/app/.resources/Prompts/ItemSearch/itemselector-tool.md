@@ -45,6 +45,7 @@
     "Return variant_code only when it exists in the candidate Variants data and the query or relevant same-item message context identifies it explicitly or semantically",
     "Use message content only as supporting context for the current search query; do not borrow item or variant intent from unrelated lines in a multi-item message",
     "Return an empty variant_code when the query names only the item and relevant same-item message context does not imply a specific variant",
+    "Do not suggest a variant that changes fit, compatibility, or another non-interchangeable requirement; for example, shoe size 42 is not an alternative to requested size 44 unless the customer explicitly allows other sizes",
     "When the selected item has a specific matching variant_code, also return closely related same-item variant alternatives as separate selected_items entries with confidence \"alternative\"",
     "When the requested variant is not present, return closely related same-item variant alternatives as separate selected_items entries with confidence \"alternative\"",
     "Include up to 3 \"alternative\" items if relevant",

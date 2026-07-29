@@ -246,7 +246,7 @@ codeunit 4591 "SOA Item Search"
                     SearchQuery := BuildSearchQueryText(SearchKeyWordsTrimmed);
                     MessageContent := GetLastIncomingMessageContent();
                     if SelectBestItem(ItemFilter, SearchQuery, MessageContent, CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants) then begin
-                        NormalizeVariantAlternatives(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, SearchQuery);
+                        NormalizeVariantAlternatives(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants);
                         ItemSelectorUsed := true;
                         TelemetryCustomDimension.Add('ItemSelectorUsed', 'true');
                         TelemetryCustomDimension.Add('ItemSelectorMatchingCount', Format(CountFilterItems(SelectedMatchingItemFilter)));
@@ -373,138 +373,9 @@ codeunit 4591 "SOA Item Search"
         exit(MessageContent);
     end;
 
-    local procedure NormalizeVariantAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; SearchQuery: Text)
+    internal procedure NormalizeVariantAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]])
     begin
-        AddSameItemVariantAlternativesForMissingVariant(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, SearchQuery);
-        KeepSameItemVariantAlternativesOnly(SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants);
         RemoveMatchingItemsWithBlankVariantAndSameItemAlternatives(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants);
-    end;
-
-    local procedure AddSameItemVariantAlternativesForMissingVariant(SelectedMatchingItemFilter: Text; SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]]; SearchQuery: Text)
-    var
-        Item: Record Item;
-        FallbackAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]];
-        AlternativeVariantCodes: List of [Code[10]];
-        MatchingVariantCodes: List of [Code[10]];
-        VariantCodes: List of [Code[10]];
-        ItemSystemId: Text;
-        FallbackAlternativeItemFilter: Text;
-    begin
-        if SelectedMatchingItemFilter = '' then
-            exit;
-
-        Item.SetLoadFields("No.", Description, "Description 2");
-        foreach ItemSystemId in SelectedMatchingItemFilter.Split('|') do begin
-            Clear(MatchingVariantCodes);
-            if SelectedMatchingItemVariants.ContainsKey(ItemSystemId) then
-                MatchingVariantCodes := SelectedMatchingItemVariants.Get(ItemSystemId);
-
-            if MatchingVariantCodes.Count() > 0 then
-                continue;
-            if SelectedAlternativeItemVariants.ContainsKey(ItemSystemId) then begin
-                AlternativeVariantCodes := SelectedAlternativeItemVariants.Get(ItemSystemId);
-                if AlternativeVariantCodes.Count() > 0 then
-                    continue;
-            end;
-
-            if not Item.GetBySystemId(ItemSystemId) then
-                continue;
-
-            if HasVariantSignalForItem(Item, SearchQuery) then begin
-                VariantCodes := GetItemVariantCodes(Item."No.");
-                if VariantCodes.Count() > 0 then begin
-                    if FallbackAlternativeItemFilter = '' then
-                        FallbackAlternativeItemFilter := ItemSystemId
-                    else
-                        FallbackAlternativeItemFilter += '|' + ItemSystemId;
-                    FallbackAlternativeItemVariants.Add(ItemSystemId, VariantCodes);
-                end;
-            end;
-        end;
-
-        if FallbackAlternativeItemFilter = '' then
-            exit;
-
-        SelectedAlternativeItemFilter := FallbackAlternativeItemFilter;
-        SelectedAlternativeItemVariants := FallbackAlternativeItemVariants;
-    end;
-
-    local procedure KeepSameItemVariantAlternativesOnly(SelectedMatchingItemFilter: Text; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]])
-    var
-        MatchingItemSystemIds: Dictionary of [Text, Boolean];
-        SameItemAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]];
-        VariantCodes: List of [Code[10]];
-        AlternativeItemSystemId: Text;
-        MatchingItemSystemId: Text;
-        SameItemAlternativeItemFilter: Text;
-    begin
-        if (SelectedMatchingItemFilter = '') or (SelectedAlternativeItemFilter = '') then
-            exit;
-
-        foreach MatchingItemSystemId in SelectedMatchingItemFilter.Split('|') do
-            if not MatchingItemSystemIds.ContainsKey(MatchingItemSystemId) then
-                MatchingItemSystemIds.Add(MatchingItemSystemId, true);
-
-        foreach AlternativeItemSystemId in SelectedAlternativeItemFilter.Split('|') do begin
-            if not MatchingItemSystemIds.ContainsKey(AlternativeItemSystemId) then
-                continue;
-            if not SelectedAlternativeItemVariants.ContainsKey(AlternativeItemSystemId) then
-                continue;
-
-            VariantCodes := SelectedAlternativeItemVariants.Get(AlternativeItemSystemId);
-            if VariantCodes.Count() = 0 then
-                continue;
-
-            if SameItemAlternativeItemFilter = '' then
-                SameItemAlternativeItemFilter := AlternativeItemSystemId
-            else
-                SameItemAlternativeItemFilter += '|' + AlternativeItemSystemId;
-
-            if not SameItemAlternativeItemVariants.ContainsKey(AlternativeItemSystemId) then
-                SameItemAlternativeItemVariants.Add(AlternativeItemSystemId, VariantCodes);
-        end;
-
-        if SameItemAlternativeItemFilter = '' then
-            exit;
-
-        SelectedAlternativeItemFilter := SameItemAlternativeItemFilter;
-        SelectedAlternativeItemVariants := SameItemAlternativeItemVariants;
-    end;
-
-    local procedure HasVariantSignalForItem(Item: Record Item; SearchQuery: Text): Boolean
-    var
-        SearchToken: Text;
-    begin
-        SearchQuery := LowerCase(SearchQuery);
-        foreach SearchToken in SearchQuery.Split(' ') do begin
-            SearchToken := SearchToken.Trim();
-            if StrLen(SearchToken) <= 2 then
-                continue;
-            if StrPos(LowerCase(Item."No."), SearchToken) > 0 then
-                continue;
-            if StrPos(LowerCase(Item.Description), SearchToken) > 0 then
-                continue;
-            if StrPos(LowerCase(Item."Description 2"), SearchToken) > 0 then
-                continue;
-            exit(true);
-        end;
-
-        exit(false);
-    end;
-
-    local procedure GetItemVariantCodes(ItemNo: Code[20]): List of [Code[10]]
-    var
-        ItemVariant: Record "Item Variant";
-        VariantCodes: List of [Code[10]];
-    begin
-        ItemVariant.SetLoadFields(Code);
-        ItemVariant.SetRange("Item No.", ItemNo);
-        if ItemVariant.FindSet() then
-            repeat
-                VariantCodes.Add(ItemVariant.Code);
-            until ItemVariant.Next() = 0;
-
-        exit(VariantCodes);
     end;
 
     local procedure RemoveMatchingItemsWithBlankVariantAndSameItemAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, List of [Code[10]]]; SelectedAlternativeItemVariants: Dictionary of [Text, List of [Code[10]]])
