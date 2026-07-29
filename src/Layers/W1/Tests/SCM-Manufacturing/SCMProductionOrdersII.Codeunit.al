@@ -146,6 +146,7 @@ codeunit 137072 "SCM Production Orders II"
         UnitCostMustBeEqualErr: Label '%1 must be correct in %2', Comment = '%1 =Field Name %2 = Table Name';
         PostingReverseEntriesQst: Label 'To reverse these entries, correcting entries will be posted.\Do you want to reverse the entries?';
         QtyMustBeEqualErr: Label 'Quantity must be equal after reverse production entry';
+        ReservedQtyErr: Label 'Reserved Qty. (Base) on component line %1 is incorrect.', Comment = '%1 = Prod. Order Component Line No.';
 
     [Test]
     [Scope('OnPrem')]
@@ -8117,6 +8118,61 @@ codeunit 137072 "SCM Production Orders II"
         Assert.RecordIsNotEmpty(ProductionOrder);
     end;
 
+    [Test]
+    procedure ReservationSplitStaysCorrectAfterReplanWithSameComponentOnOneProdOrderLine()
+    var
+        CompItem: Record Item;
+        ProdItem: Record Item;
+        ProductionOrder: Record "Production Order";
+        StdComponentLineNo: Integer;
+        FixedComponentLineNo: Integer;
+        ProdOrderQty: Decimal;
+        StdQtyPer: Decimal;
+        FixedQty: Decimal;
+        UpdatedStdQtyPer: Decimal;
+        UpdatedFixedQty: Decimal;
+    begin
+        // [FEATURE] [Planning] [Reservation] [Calculation Formula]
+        // [SCENARIO 643972] Reservation split across prod. order components stays correct after replanning the
+        // replenishment when the same component is on one prod. order line twice with different calculation formulas.
+        Initialize();
+        ProdOrderQty := LibraryRandom.RandIntInRange(5, 20);
+        StdQtyPer := LibraryRandom.RandIntInRange(5, 10);
+        FixedQty := LibraryRandom.RandIntInRange(2, 5);
+        UpdatedStdQtyPer := StdQtyPer + LibraryRandom.RandIntInRange(5, 10);
+        UpdatedFixedQty := FixedQty + LibraryRandom.RandIntInRange(2, 5);
+
+        // [GIVEN] Production item "P" and component item "C" replenished by a prod. order, reordering policy = Order.
+        LibraryInventory.CreateItem(ProdItem);
+        CreateOrderPolicyProductionItem(CompItem);
+
+        // [GIVEN] Released production order for "P" with a single prod. order line that carries component "C" twice:
+        // [GIVEN]  line 1 standard "Quantity per" = StdQtyPer; line 2 Fixed Quantity = FixedQty.
+        LibraryManufacturing.CreateProductionOrder(
+          ProductionOrder, ProductionOrder.Status::Released, ProductionOrder."Source Type"::Item, ProdItem."No.", ProdOrderQty);
+        CreateProdOrderLineWithTwoSameItemComponents(
+          ProductionOrder, ProdItem."No.", CompItem."No.", StdQtyPer, FixedQty, StdComponentLineNo, FixedComponentLineNo);
+
+        // [GIVEN] Regenerative planning creates the replenishment for "C" reserved to the two components and
+        // [GIVEN]  the action message is carried out, so the reservations point at firm planned supply orders.
+        CalcRegenPlanForSingleItem(CompItem."No.");
+        AcceptAndCarryOutActionMessage(CompItem."No.");
+
+        // [GIVEN] The demand grows: standard component "Quantity per" and fixed component quantity are increased.
+        UpdateProdOrderComponentQty(ProductionOrder, StdComponentLineNo, UpdatedStdQtyPer);
+        UpdateProdOrderComponentQty(ProductionOrder, FixedComponentLineNo, UpdatedFixedQty);
+
+        // [WHEN] Regenerative planning runs again to top up the replenishment supply for "C".
+        CalcRegenPlanForSingleItem(CompItem."No.");
+
+        // [THEN] The reservation split across the two components stays correct: the standard line is reserved for
+        // [THEN]  UpdatedStdQtyPer * ProdOrderQty and the fixed line for UpdatedFixedQty.
+        VerifyProdOrderComponentReservedQty(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::" ", UpdatedStdQtyPer * ProdOrderQty);
+        VerifyProdOrderComponentReservedQty(
+          ProductionOrder."No.", CompItem."No.", "Quantity Calculation Formula"::"Fixed Quantity", UpdatedFixedQty);
+    end;
+
     local procedure Initialize()
     var
         LibraryERMCountryData: Codeunit "Library - ERM Country Data";
@@ -8408,6 +8464,75 @@ codeunit 137072 "SCM Production Orders II"
         Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
         Item.Validate("Production BOM No.", ProductionBOMNo);
         Item.Modify(true);
+    end;
+
+    local procedure CreateOrderPolicyProductionItem(var Item: Record Item)
+    begin
+        LibraryInventory.CreateItem(Item);
+        Item.Validate("Replenishment System", Item."Replenishment System"::"Prod. Order");
+        // Reordering Policy = Order (make-to-order) so planning creates Order-to-Order reservations between the
+        // prod. order components and their dedicated supply orders (the reservation split validated here).
+        Item.Validate("Reordering Policy", Item."Reordering Policy"::Order);
+        Item.Modify(true);
+    end;
+
+    local procedure CreateProdOrderLineWithTwoSameItemComponents(var ProductionOrder: Record "Production Order"; ProdItemNo: Code[20]; CompItemNo: Code[20]; StdQtyPer: Decimal; FixedQty: Decimal; var StdComponentLineNo: Integer; var FixedComponentLineNo: Integer)
+    var
+        ProdOrderLine: Record "Prod. Order Line";
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        LibraryManufacturing.CreateProdOrderLine(
+          ProdOrderLine, ProductionOrder.Status, ProductionOrder."No.", ProdItemNo, '', '', ProductionOrder.Quantity);
+
+        // Component 1 on this line: standard calculation formula.
+        LibraryManufacturing.CreateProductionOrderComponent(
+          ProdOrderComponent, ProdOrderLine.Status, ProdOrderLine."Prod. Order No.", ProdOrderLine."Line No.");
+        ProdOrderComponent.Validate("Item No.", CompItemNo);
+        ProdOrderComponent.Validate("Quantity per", StdQtyPer);
+        ProdOrderComponent.Modify(true);
+        StdComponentLineNo := ProdOrderComponent."Line No.";
+
+        // Component 2 on the same line: fixed quantity calculation formula.
+        LibraryManufacturing.CreateProductionOrderComponent(
+          ProdOrderComponent, ProdOrderLine.Status, ProdOrderLine."Prod. Order No.", ProdOrderLine."Line No.");
+        ProdOrderComponent.Validate("Item No.", CompItemNo);
+        ProdOrderComponent.Validate("Calculation Formula", ProdOrderComponent."Calculation Formula"::"Fixed Quantity");
+        ProdOrderComponent.Validate("Quantity per", FixedQty);
+        ProdOrderComponent.Modify(true);
+        FixedComponentLineNo := ProdOrderComponent."Line No.";
+    end;
+
+    local procedure UpdateProdOrderComponentQty(ProductionOrder: Record "Production Order"; ComponentLineNo: Integer; NewQtyPer: Decimal)
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        ProdOrderComponent.SetRange(Status, ProductionOrder.Status);
+        ProdOrderComponent.SetRange("Prod. Order No.", ProductionOrder."No.");
+        ProdOrderComponent.SetRange("Line No.", ComponentLineNo);
+        ProdOrderComponent.FindFirst();
+        ProdOrderComponent.Validate("Quantity per", NewQtyPer);
+        ProdOrderComponent.Modify(true);
+    end;
+
+    local procedure CalcRegenPlanForSingleItem(ItemNo: Code[20])
+    var
+        Item: Record Item;
+    begin
+        Item.Get(ItemNo);
+        Item.SetRecFilter();
+        LibraryPlanning.CalcRegenPlanForPlanWksh(Item, WorkDate(), CalcDate('<+3M>', WorkDate()));
+    end;
+
+    local procedure VerifyProdOrderComponentReservedQty(ProductionOrderNo: Code[20]; ItemNo: Code[20]; CalcFormula: Enum "Quantity Calculation Formula"; ExpectedReservedQty: Decimal)
+    var
+        ProdOrderComponent: Record "Prod. Order Component";
+    begin
+        ProdOrderComponent.SetRange("Calculation Formula", CalcFormula);
+        FindProdOrderComponentByOrderNoAndItem(ProdOrderComponent, ProductionOrderNo, ItemNo);
+        ProdOrderComponent.CalcFields("Reserved Qty. (Base)");
+        Assert.AreEqual(
+          ExpectedReservedQty, ProdOrderComponent."Reserved Qty. (Base)",
+          StrSubstNo(ReservedQtyErr, ProdOrderComponent."Line No."));
     end;
 
     local procedure CreateProductionItemWithRoutingNo(var Item: Record Item; RoutingNo: Code[20])
