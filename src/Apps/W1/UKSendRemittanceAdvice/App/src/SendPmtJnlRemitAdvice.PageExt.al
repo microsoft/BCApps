@@ -70,6 +70,7 @@ pageextension 4022 SendPmtJnlRemitAdvice extends "Payment Journal"
         }
 #endif
     }
+#if not CLEAN29
     local procedure SendVendorRecords(var GenJournalLine: Record "Gen. Journal Line")
     var
         DocumentSendingProfile: Record "Document Sending Profile";
@@ -89,4 +90,5 @@ pageextension 4022 SendPmtJnlRemitAdvice extends "Payment Journal"
 
     var
         RemittanceAdviceTxt: Label 'Remittance Advice';
+#endif
 }

@@ -32,7 +32,6 @@ codeunit 139541 "E-Doc. Remit. Advice Test"
         LibraryPurchase: Codeunit "Library - Purchase";
         LibraryERM: Codeunit "Library - ERM";
         LibraryJournals: Codeunit "Library - Journals";
-        LibraryUtility: Codeunit "Library - Utility";
         LibraryRandom: Codeunit "Library - Random";
         LibraryVariableStorage: Codeunit "Library - Variable Storage";
         LibraryReportDataset: Codeunit "Library - Report Dataset";

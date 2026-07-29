@@ -5,7 +5,9 @@
 
 namespace Microsoft.Purchases.Vendor.RemittanceAdvice;
 
+#if not CLEAN29
 using Microsoft.Foundation.Reporting;
+#endif
 using Microsoft.Purchases.Payables;
 
 pageextension 4023 SendVendLedgerEntryRemitAdvice extends "Vendor Ledger Entries"
@@ -44,6 +46,7 @@ pageextension 4023 SendVendLedgerEntryRemitAdvice extends "Vendor Ledger Entries
         }
 #endif
     }
+#if not CLEAN29
     local procedure SendVendorRecords(var VendorLedgerEntry: Record "Vendor Ledger Entry")
     var
         DocumentSendingProfile: Record "Document Sending Profile";
@@ -63,4 +66,5 @@ pageextension 4023 SendVendLedgerEntryRemitAdvice extends "Vendor Ledger Entries
 
     var
         RemittanceAdviceTxt: Label 'Remittance Advice';
+#endif
 }
