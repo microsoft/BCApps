@@ -260,7 +260,7 @@ codeunit 4415 "SOA Create Task Impl"
             exit(0);
 
         VariantFilter := SourceItem.GetFilter("Variant Filter");
-        CacheKey := SourceItem."No." + '|' + VariantFilter;
+        CacheKey := GetAvailabilityCacheKey(SourceItem."No.", VariantFilter, LocationCode);
         if CachedAvailBalance.Get(CacheKey, ProjAvailableBalance) then
             exit(ProjAvailableBalance);
 
@@ -279,6 +279,18 @@ codeunit 4415 "SOA Create Task Impl"
             DummyQtyAvailable, AvailableInventory);
         CachedAvailBalance.Set(CacheKey, ProjAvailableBalance);
         exit(ProjAvailableBalance);
+    end;
+
+    local procedure GetAvailabilityCacheKey(ItemNo: Code[20]; VariantFilter: Text; LocationCode: Code[10]): Text
+    var
+        CacheKeyJson: JsonObject;
+        CacheKey: Text;
+    begin
+        CacheKeyJson.Add('itemNo', ItemNo);
+        CacheKeyJson.Add('variantFilter', VariantFilter);
+        CacheKeyJson.Add('locationCode', LocationCode);
+        CacheKeyJson.WriteTo(CacheKey);
+        exit(CacheKey);
     end;
 
     local procedure QuantityFromAvailableBalance(AvailableQty: Decimal): Integer
