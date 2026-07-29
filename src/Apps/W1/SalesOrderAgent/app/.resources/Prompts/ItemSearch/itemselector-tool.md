@@ -3,7 +3,7 @@
   "type": "function",
   "function": {
     "name": "select_best_matching_item",
-    "description": "Select the best matching item(s) and variant codes from candidates based on the search query. Prioritize exact matches on structured identifiers before semantic similarity, and use the Variants column only when the query gives enough variant signal.",
+    "description": "Select the best matching item(s) and variant codes from candidates based primarily on the search query, using message content only as supporting context for that same item. Prioritize exact matches on structured identifiers before semantic similarity, and use the Variants column only when the query or relevant same-item context gives enough variant signal.",
     "parameters": {
       "type": "object",
       "properties": {
@@ -19,7 +19,7 @@
               },
               "variant_code": {
                 "type": "string",
-                "description": "The selected Item Variant Code from the candidate's Variants column. Return an empty string when no variant is explicitly or semantically identified by the query. Do not invent variant codes."
+                "description": "The selected Item Variant Code from the candidate's Variants column. Return an empty string when no variant is explicitly or semantically identified by the query or relevant same-item message context. Do not invent variant codes."
               },
               "confidence": {
                 "type": "string",
@@ -42,8 +42,9 @@
     "Only return items with confidence \"matching\" or \"alternative\"",
     "Items marked as \"none\" must NOT be included in the final output",
     "Always return \"matching\" items first",
-    "Return variant_code only when it exists in the candidate Variants data and the query identifies it explicitly or semantically",
-    "Return an empty variant_code when the query names only the item and does not imply a specific variant",
+    "Return variant_code only when it exists in the candidate Variants data and the query or relevant same-item message context identifies it explicitly or semantically",
+    "Use message content only as supporting context for the current search query; do not borrow item or variant intent from unrelated lines in a multi-item message",
+    "Return an empty variant_code when the query names only the item and relevant same-item message context does not imply a specific variant",
     "When the selected item has a specific matching variant_code, also return closely related same-item variant alternatives as separate selected_items entries with confidence \"alternative\"",
     "When the requested variant is not present, return closely related same-item variant alternatives as separate selected_items entries with confidence \"alternative\"",
     "Include up to 3 \"alternative\" items if relevant",

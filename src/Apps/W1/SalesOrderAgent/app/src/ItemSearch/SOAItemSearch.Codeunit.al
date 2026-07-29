@@ -9,6 +9,7 @@ namespace Microsoft.Agent.SalesOrderAgent;
 using Microsoft.Inventory.Availability;
 using Microsoft.Inventory.Item;
 using Microsoft.Sales.Document;
+using System.Agents;
 using System.Environment.Configuration;
 using System.Telemetry;
 
@@ -18,6 +19,7 @@ codeunit 4591 "SOA Item Search"
     EventSubscriberInstance = Manual;
     InherentEntitlements = X;
     InherentPermissions = X;
+    Permissions = tabledata "Agent Task Message" = r;
 
     var
         AgentTaskID: BigInteger;
@@ -204,6 +206,7 @@ codeunit 4591 "SOA Item Search"
         ItemFilter: Text;
         SelectedMatchingItemFilter: Text;
         SelectedAlternativeItemFilter: Text;
+        MessageContent: Text;
         SearchType: Text;
         OriginalFilterGroup: Integer;
         CountBeforeAvailabilityCheck: Integer;
@@ -245,7 +248,8 @@ codeunit 4591 "SOA Item Search"
                 // Run item selection for all candidate payloads so variant resolution is consistent.
                 if CandidateArray.Count() > 0 then begin
                     SearchQuery := BuildSearchQueryText(SearchKeyWordsTrimmed);
-                    if SelectBestItem(ItemFilter, SearchQuery, CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants) then begin
+                    MessageContent := GetLastIncomingMessageContent();
+                    if SelectBestItem(ItemFilter, SearchQuery, MessageContent, CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemVariants) then begin
                         NormalizeVariantAlternatives(SelectedMatchingItemFilter, SelectedMatchingItemVariants, SelectedAlternativeItemFilter, SelectedAlternativeItemVariants, SearchQuery);
                         ItemSelectorUsed := true;
                         TelemetryCustomDimension.Add('ItemSelectorUsed', 'true');
@@ -304,7 +308,7 @@ codeunit 4591 "SOA Item Search"
         OnAfterFindRecordItem(ItemFilter, Which, CrossColumnSearchFilter, Found, RequiredQuantity, InUOMCode);
     end;
 
-    local procedure SelectBestItem(ItemFilter: Text; SearchQuery: Text; CandidateArray: JsonArray; var SelectedMatchingItemFilter: Text; var SelectedAlternativeItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, Text]; var SelectedAlternativeItemVariants: Dictionary of [Text, Text]): Boolean
+    local procedure SelectBestItem(ItemFilter: Text; SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var SelectedMatchingItemFilter: Text; var SelectedAlternativeItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, Text]; var SelectedAlternativeItemVariants: Dictionary of [Text, Text]): Boolean
     var
         Item: Record Item;
         ItemSelector: Codeunit "SOA Item Selector";
@@ -322,7 +326,7 @@ codeunit 4591 "SOA Item Search"
         Clear(SelectedAlternativeItemVariants);
 
         if CandidateArray.Count() > 0 then
-            if ItemSelector.SelectBestMatchingItemWithVariants(SearchQuery, CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, RawSelectedMatchingItemVariants, RawSelectedAlternativeItemVariants) then begin
+            if ItemSelector.SelectBestMatchingItemWithVariants(SearchQuery, MessageContent, CandidateArray, SelectedMatchingItemFilter, SelectedAlternativeItemFilter, RawSelectedMatchingItemVariants, RawSelectedAlternativeItemVariants) then begin
                 RawSelectedMatchingItemFilter := SelectedMatchingItemFilter;
                 RawSelectedAlternativeItemFilter := SelectedAlternativeItemFilter;
 
@@ -347,6 +351,30 @@ codeunit 4591 "SOA Item Search"
                     exit(true);
             end;
         exit(false);
+    end;
+
+    local procedure GetLastIncomingMessageContent(): Text
+    var
+        AgentTaskMessage: Record "Agent Task Message";
+        MessageContent: Text;
+        InStream: InStream;
+    begin
+        if AgentTaskID = 0 then
+            exit('');
+
+        AgentTaskMessage.ReadIsolation := IsolationLevel::ReadUncommitted;
+        AgentTaskMessage.SetAutoCalcFields(Content);
+        AgentTaskMessage.SetRange("Task ID", AgentTaskID);
+        AgentTaskMessage.SetRange(Type, AgentTaskMessage.Type::Input);
+        AgentTaskMessage.SetFilter(Status, '<>%1&<>%2', AgentTaskMessage.Status::Discarded, AgentTaskMessage.Status::Rejected);
+        AgentTaskMessage.SetCurrentKey(SystemCreatedAt);
+        AgentTaskMessage.Ascending(false);
+        if not AgentTaskMessage.FindFirst() then
+            exit('');
+
+        AgentTaskMessage.Content.CreateInStream(InStream, TextEncoding::UTF8);
+        InStream.Read(MessageContent);
+        exit(MessageContent);
     end;
 
     local procedure NormalizeVariantAlternatives(var SelectedMatchingItemFilter: Text; var SelectedMatchingItemVariants: Dictionary of [Text, Text]; var SelectedAlternativeItemFilter: Text; var SelectedAlternativeItemVariants: Dictionary of [Text, Text]; SearchQuery: Text)

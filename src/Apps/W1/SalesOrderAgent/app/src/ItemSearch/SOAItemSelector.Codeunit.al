@@ -37,12 +37,17 @@ codeunit 4417 "SOA Item Selector"
 
     internal procedure SelectBestMatchingItemWithVariants(SearchQuery: Text; CandidateArray: JsonArray; var MatchingItemFilter: Text; var AlternativeItemFilter: Text; var MatchingItemVariants: Dictionary of [Text, Text]; var AlternativeItemVariants: Dictionary of [Text, Text]): Boolean
     begin
+        exit(SelectBestMatchingItemWithVariants(SearchQuery, '', CandidateArray, MatchingItemFilter, AlternativeItemFilter, MatchingItemVariants, AlternativeItemVariants));
+    end;
+
+    internal procedure SelectBestMatchingItemWithVariants(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItemFilter: Text; var AlternativeItemFilter: Text; var MatchingItemVariants: Dictionary of [Text, Text]; var AlternativeItemVariants: Dictionary of [Text, Text]): Boolean
+    begin
         MatchingItemFilter := '';
         AlternativeItemFilter := '';
         Clear(MatchingItemVariants);
         Clear(AlternativeItemVariants);
 
-        if not TrySelectBestMatchingItem(SearchQuery, CandidateArray, MatchingItemFilter, AlternativeItemFilter, MatchingItemVariants, AlternativeItemVariants) then
+        if not TrySelectBestMatchingItem(SearchQuery, MessageContent, CandidateArray, MatchingItemFilter, AlternativeItemFilter, MatchingItemVariants, AlternativeItemVariants) then
             exit(false);
 
         exit((MatchingItemFilter <> '') or (AlternativeItemFilter <> ''));
@@ -50,7 +55,7 @@ codeunit 4417 "SOA Item Selector"
 
     [NonDebuggable]
     [TryFunction]
-    local procedure TrySelectBestMatchingItem(SearchQuery: Text; CandidateArray: JsonArray; var MatchingItems: Text; var AlternativeItems: Text; var MatchingItemVariants: Dictionary of [Text, Text]; var AlternativeItemVariants: Dictionary of [Text, Text])
+    local procedure TrySelectBestMatchingItem(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray; var MatchingItems: Text; var AlternativeItems: Text; var MatchingItemVariants: Dictionary of [Text, Text]; var AlternativeItemVariants: Dictionary of [Text, Text])
     var
         ItemSelectorFunc: Codeunit "SOA Item Selector Func";
         AzureOpenAI: Codeunit "Azure OpenAI";
@@ -76,7 +81,7 @@ codeunit 4417 "SOA Item Selector"
         // Setup messages and tool
         AOAIChatMessages.AddTool(ItemSelectorFunc);
         AOAIChatMessages.SetPrimarySystemMessage(SystemPrompt);
-        AOAIChatMessages.AddUserMessage(BuildUserMessage(SearchQuery, CandidateArray));
+        AOAIChatMessages.AddUserMessage(BuildUserMessage(SearchQuery, MessageContent, CandidateArray));
 
         // Generate completion
         AzureOpenAI.GenerateChatCompletion(AOAIChatMessages, AOAIChatCompletionParams, AOAIOperationResponse);
@@ -104,7 +109,7 @@ codeunit 4417 "SOA Item Selector"
         exit(SOAInstructions.GetItemSelectorSystemPrompt(Prompt));
     end;
 
-    local procedure BuildUserMessage(SearchQuery: Text; CandidateArray: JsonArray): Text
+    local procedure BuildUserMessage(SearchQuery: Text; MessageContent: Text; CandidateArray: JsonArray): Text
     var
         Payload: JsonObject;
         PayloadText: Text;
@@ -115,6 +120,7 @@ codeunit 4417 "SOA Item Selector"
         NewLine := Format(NLChar);
 
         Payload.Add('search_query', SanitizeUntrustedText(SearchQuery));
+        Payload.Add('message_content', SanitizeUntrustedText(MessageContent));
         Payload.Add('candidates', CandidateArray);
         Payload.WriteTo(PayloadText);
 
