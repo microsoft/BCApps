@@ -571,6 +571,7 @@ report 99001501 "Subc. Create Transf. Order"
         TransferLineToCheck.SetRange("Subc. Operation No.", PurchaseLine."Operation No.");
         TransferLineToCheck.SetRange("Derived From Line No.", 0);
         TransferLineToCheck.SetRange("Transfer WIP Item", true);
+        TransferLineToCheck.SetRange("Subc. Return Order", false);
         TransferLineToCheck.CalcSums(Quantity);
         if TransferLineToCheck.Quantity = 0 then
             exit(0);
