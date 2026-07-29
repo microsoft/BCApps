@@ -3632,7 +3632,7 @@ codeunit 137063 "SCM Manufacturing 7.0"
     end;
 
     [Test]
-    [HandlerFunctions('ChangeStatusOnProdOrderToFinished,ErrorMessageHandler')]
+    [HandlerFunctions('ChangeStatusOnProdOrderToFinished')]
     procedure ChangeProductionOrderStatusWithoutVariantCode()
     var
         ProductionOrder: array[4] of Record "Production Order";
@@ -3668,7 +3668,8 @@ codeunit 137063 "SCM Manufacturing 7.0"
             ProductionOrder[1]."Source Type"::Item, Item[1]."No.", LibraryRandom.RandInt(5));
 
         // [GIVEN] Refresh Production Order "X".
-        LibraryManufacturing.RefreshProdOrder(ProductionOrder[1], false, true, true, true, false);
+        AssertError LibraryManufacturing.RefreshProdOrder(ProductionOrder[1], false, true, true, true, false);
+        Assert.ExpectedTestFieldError(ProductionOrder[1].FieldCaption("Variant Code"), '');
 
         // [GIVEN] Create Production Order "Y".
         LibraryManufacturing.CreateProductionOrder(
