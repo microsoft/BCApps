@@ -3,12 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.DataMigration;
 using System.Integration;
 
-codeunit 46875 "BC14 Migration Runner"
+codeunit 66875 "BC14 Migration Runner"
 {
     TableNo = "Hybrid Replication Summary";
 

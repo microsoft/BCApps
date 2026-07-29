@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46856 "BC14 Global Migration Settings"
+table 66856 "BC14 Global Migration Settings"
 {
     DataClassification = CustomerContent;
     Description = 'Business Central 14 Global Migration Settings';

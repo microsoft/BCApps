@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.DataMigration;
 
-codeunit 46853 "BC14 Company Upgrade Task"
+codeunit 66853 "BC14 Company Upgrade Task"
 {
     Access = Internal;
     TableNo = "Hybrid Replication Summary";

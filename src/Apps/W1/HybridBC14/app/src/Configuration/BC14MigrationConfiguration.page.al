@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.DataMigration;
 
-page 46860 "BC14 Migration Configuration"
+page 66860 "BC14 Migration Configuration"
 {
     PageType = Card;
     SourceTable = BC14CompanyMigrationInfo;

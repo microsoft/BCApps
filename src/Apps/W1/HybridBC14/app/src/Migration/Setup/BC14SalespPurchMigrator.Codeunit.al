@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.CRM.Team;
 
-codeunit 46912 "BC14 Salesp./Purch. Migrator" implements "BC14 Migrator"
+codeunit 66912 "BC14 Salesp./Purch. Migrator" implements "BC14 Migrator"
 {
     TableNo = "BC14 Salesperson/Purchaser";
 

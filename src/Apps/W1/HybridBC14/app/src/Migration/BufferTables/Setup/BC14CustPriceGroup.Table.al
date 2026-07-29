@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46921 "BC14 Cust. Price Group"
+table 66921 "BC14 Cust. Price Group"
 {
     Caption = 'BC14 Cust. Price Group Migration Data';
     DataClassification = CustomerContent;

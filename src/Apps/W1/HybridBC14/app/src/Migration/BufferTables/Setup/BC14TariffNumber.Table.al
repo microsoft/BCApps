@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46917 "BC14 Tariff Number"
+table 66917 "BC14 Tariff Number"
 {
     Caption = 'Tariff Number Migration Data';
     DataClassification = CustomerContent;

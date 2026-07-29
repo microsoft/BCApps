@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-page 46868 "BC14 Co. Migration Settings"
+page 66868 "BC14 Co. Migration Settings"
 {
     PageType = ListPart;
     SourceTable = BC14CompanyMigrationInfo;

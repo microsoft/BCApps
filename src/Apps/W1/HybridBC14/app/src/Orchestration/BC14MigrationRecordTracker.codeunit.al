@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-codeunit 46852 "BC14 Migration Record Tracker"
+codeunit 66852 "BC14 Migration Record Tracker"
 {
     internal procedure LogMigrateResult(
         MigratorName: Text[250];

@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.Inventory.BOM;
 
-codeunit 46935 "BC14 BOM Component Migrator" implements "BC14 Migrator"
+codeunit 66935 "BC14 BOM Component Migrator" implements "BC14 Migrator"
 {
     TableNo = "BC14 BOM Component";
 

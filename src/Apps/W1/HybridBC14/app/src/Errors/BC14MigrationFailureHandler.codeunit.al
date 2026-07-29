@@ -3,13 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.DataMigration;
 using System.Integration;
 using System.Reflection;
 
-codeunit 46860 "BC14 Migration Failure Handler"
+codeunit 66860 "BC14 Migration Failure Handler"
 {
     Access = Internal;
     TableNo = "Hybrid Replication Summary";

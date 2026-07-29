@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46893 "BC14 Currency"
+table 66893 "BC14 Currency"
 {
     Caption = 'Currency Migration Data';
     DataClassification = CustomerContent;

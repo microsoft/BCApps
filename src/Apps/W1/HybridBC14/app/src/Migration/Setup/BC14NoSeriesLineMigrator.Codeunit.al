@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.Foundation.NoSeries;
 
-codeunit 46929 "BC14 No. Series Line Migrator" implements "BC14 Migrator"
+codeunit 66929 "BC14 No. Series Line Migrator" implements "BC14 Migrator"
 {
     TableNo = "BC14 No. Series Line";
 

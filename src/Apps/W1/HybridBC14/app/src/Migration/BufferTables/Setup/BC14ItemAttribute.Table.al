@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46930 "BC14 Item Attribute"
+table 66930 "BC14 Item Attribute"
 {
     Caption = 'Item Attribute Migration Data';
     DataClassification = CustomerContent;

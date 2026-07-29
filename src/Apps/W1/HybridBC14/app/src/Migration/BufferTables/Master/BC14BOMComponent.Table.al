@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46935 "BC14 BOM Component"
+table 66935 "BC14 BOM Component"
 {
     Caption = 'BOM Component Migration Data';
     DataClassification = CustomerContent;

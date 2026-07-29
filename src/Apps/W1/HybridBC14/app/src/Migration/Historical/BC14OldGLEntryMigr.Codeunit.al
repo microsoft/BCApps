@@ -3,12 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-using Microsoft.DataMigration.BC14Reimplementation.HistoricalData;
+using MS.DataMigration.BC14Reimplementation.HistoricalData;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
-codeunit 46881 "BC14 Old G/L Entry Migr." implements "BC14 Migrator"
+codeunit 66881 "BC14 Old G/L Entry Migr." implements "BC14 Migrator"
 {
     trigger OnRun()
     begin

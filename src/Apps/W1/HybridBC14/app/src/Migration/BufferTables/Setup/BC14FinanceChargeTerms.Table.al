@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46924 "BC14 Finance Charge Terms"
+table 66924 "BC14 Finance Charge Terms"
 {
     Caption = 'Finance Charge Terms Migration Data';
     DataClassification = CustomerContent;

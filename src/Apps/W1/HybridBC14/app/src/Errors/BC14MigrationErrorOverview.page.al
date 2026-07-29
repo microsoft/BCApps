@@ -3,12 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.DataMigration;
 using System.Integration;
 
-page 46863 "BC14 Migration Error Overview"
+page 66863 "BC14 Migration Error Overview"
 {
     PageType = List;
     ApplicationArea = All;

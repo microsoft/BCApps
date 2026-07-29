@@ -3,12 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.DataMigration;
 using Microsoft.Finance.GeneralLedger.Account;
 
-codeunit 46857 "BC14 Balance Warning" implements "Cloud Migration Warning", "BC14 Migration Validation"
+codeunit 66857 "BC14 Balance Warning" implements "Cloud Migration Warning", "BC14 Migration Validation"
 {
     procedure GetDisplayName(): Text[250]
     begin

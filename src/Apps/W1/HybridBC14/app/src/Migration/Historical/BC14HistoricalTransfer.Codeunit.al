@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-codeunit 46882 "BC14 Historical Transfer"
+codeunit 66882 "BC14 Historical Transfer"
 {
     Access = Internal;
 

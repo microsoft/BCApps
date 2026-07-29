@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46911 "BC14 VAT Posting Setup"
+table 66911 "BC14 VAT Posting Setup"
 {
     Caption = 'VAT Posting Setup Migration Data';
     DataClassification = CustomerContent;

@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46914 "BC14 Territory"
+table 66914 "BC14 Territory"
 {
     Caption = 'Territory Migration Data';
     DataClassification = CustomerContent;

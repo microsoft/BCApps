@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 /// <summary>
 /// Master Data phase migrators (G/L Account, Customer, Vendor, Item, and their satellite tables).
@@ -11,7 +11,7 @@ namespace Microsoft.DataMigration.BC14Reimplementation;
 /// is determined by the order in which migrators are added to the phase list (see
 /// PopulateMasterMigrators in codeunit "BC14 Migration Runner"), not by the enum value.
 /// </summary>
-enum 46887 "BC14 Master Migrator" implements "BC14 Migrator"
+enum 66887 "BC14 Master Migrator" implements "BC14 Migrator"
 {
     Extensible = true;
 

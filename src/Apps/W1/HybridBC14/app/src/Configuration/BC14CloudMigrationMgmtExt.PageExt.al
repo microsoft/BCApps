@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.DataMigration;
 
-pageextension 46870 "BC14 Cloud Migration Mgmt Ext" extends "Cloud Migration Management"
+pageextension 66870 "BC14 Cloud Migration Mgmt Ext" extends "Cloud Migration Management"
 {
     layout
     {

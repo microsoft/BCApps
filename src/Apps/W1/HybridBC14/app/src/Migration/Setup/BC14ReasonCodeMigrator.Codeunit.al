@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.Foundation.AuditCodes;
 
-codeunit 46919 "BC14 Reason Code Migrator" implements "BC14 Migrator"
+codeunit 66919 "BC14 Reason Code Migrator" implements "BC14 Migrator"
 {
     TableNo = "BC14 Reason Code";
 

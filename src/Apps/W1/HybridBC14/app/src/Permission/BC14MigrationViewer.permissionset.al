@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using System.Integration;
 
@@ -12,7 +12,7 @@ using System.Integration;
 /// This permission set provides read-only access to monitor migration status and errors.
 /// Safe to assign to users who need to view migration progress without making changes.
 /// </summary>
-permissionset 46851 "BC14MigrationViewer"
+permissionset 66851 "BC14MigrationViewer"
 {
     Assignable = true;
     Caption = 'Cloud Migration - Viewer';

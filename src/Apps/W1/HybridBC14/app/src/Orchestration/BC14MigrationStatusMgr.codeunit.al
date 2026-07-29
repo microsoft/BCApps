@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.DataMigration;
 
-codeunit 46858 "BC14 Migration Status Mgr."
+codeunit 66858 "BC14 Migration Status Mgr."
 {
     Access = Internal;
 

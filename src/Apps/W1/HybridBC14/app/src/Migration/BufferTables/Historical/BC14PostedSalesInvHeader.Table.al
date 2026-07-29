@@ -2,9 +2,9 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46880 "BC14 Posted Sales Inv Header"
+table 66880 "BC14 Posted Sales Inv Header"
 {
     Caption = 'Posted Sales Invoice Header Migration Data';
     DataClassification = CustomerContent;

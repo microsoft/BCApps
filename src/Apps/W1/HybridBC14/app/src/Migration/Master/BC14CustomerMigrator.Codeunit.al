@@ -3,12 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Sales.Customer;
 
-codeunit 46865 "BC14 Customer Migrator" implements "BC14 Migrator"
+codeunit 66865 "BC14 Customer Migrator" implements "BC14 Migrator"
 {
     TableNo = "BC14 Customer";
 

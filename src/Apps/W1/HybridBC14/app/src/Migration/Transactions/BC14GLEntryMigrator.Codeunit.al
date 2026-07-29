@@ -3,13 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.Finance.GeneralLedger.Account;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
 
-codeunit 46888 "BC14 G/L Entry Migrator" implements "BC14 Migrator"
+codeunit 66888 "BC14 G/L Entry Migrator" implements "BC14 Migrator"
 {
     TableNo = "BC14 G/L Entry";
 

@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46901 "BC14 Post Code"
+table 66901 "BC14 Post Code"
 {
     Caption = 'Post Code Migration Data';
     DataClassification = CustomerContent;

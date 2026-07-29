@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation.HistoricalData;
+namespace MS.DataMigration.BC14Reimplementation.HistoricalData;
 
-page 46882 "BC14 Arch. Sales Inv. Subpage"
+page 66882 "BC14 Arch. Sales Inv. Subpage"
 {
     Caption = 'Lines';
     PageType = ListPart;

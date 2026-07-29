@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 /// <summary>
 /// Webhook-safe entry point for triggering an upgrade. Runs via Codeunit.Run so failures
@@ -11,7 +11,7 @@ namespace Microsoft.DataMigration.BC14Reimplementation;
 /// HTTP 500 on the replication-completed webhook. TryFunction is not an option because the
 /// wrapped logic issues explicit Commit calls.
 /// </summary>
-codeunit 46856 "BC14 Upgrade Trigger"
+codeunit 66856 "BC14 Upgrade Trigger"
 {
     Access = Internal;
 

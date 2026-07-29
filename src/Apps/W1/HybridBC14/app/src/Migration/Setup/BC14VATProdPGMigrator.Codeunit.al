@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.Finance.VAT.Setup;
 
-codeunit 46909 "BC14 VATProd PG Migrator" implements "BC14 Migrator"
+codeunit 66909 "BC14 VATProd PG Migrator" implements "BC14 Migrator"
 {
     TableNo = "BC14 VAT Prod. Posting Group";
 

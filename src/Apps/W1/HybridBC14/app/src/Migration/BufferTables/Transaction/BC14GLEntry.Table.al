@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.Finance.GeneralLedger.Account;
 
-table 46868 "BC14 G/L Entry"
+table 66868 "BC14 G/L Entry"
 {
     Caption = 'G/L Entry Migration Data';
     DataClassification = CustomerContent;

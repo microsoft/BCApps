@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.Foundation.Shipping;
 
-codeunit 46913 "BC14 Shipment Method Migrator" implements "BC14 Migrator"
+codeunit 66913 "BC14 Shipment Method Migrator" implements "BC14 Migrator"
 {
     TableNo = "BC14 Shipment Method";
 

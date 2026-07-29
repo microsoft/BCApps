@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.Sales.Reminder;
 
-codeunit 46925 "BC14 Reminder Terms Migrator" implements "BC14 Migrator"
+codeunit 66925 "BC14 Reminder Terms Migrator" implements "BC14 Migrator"
 {
     TableNo = "BC14 Reminder Terms";
 

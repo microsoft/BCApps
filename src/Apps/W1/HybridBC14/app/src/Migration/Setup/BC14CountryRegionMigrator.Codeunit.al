@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.Foundation.Address;
 
-codeunit 46900 "BC14 Country/Region Migrator" implements "BC14 Migrator"
+codeunit 66900 "BC14 Country/Region Migrator" implements "BC14 Migrator"
 {
     TableNo = "BC14 Country/Region";
 

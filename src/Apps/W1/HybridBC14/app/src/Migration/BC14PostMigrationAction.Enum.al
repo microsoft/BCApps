@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 /// <summary>
 /// Actions executed after all migrators finish data movement (currently: posting the
@@ -11,7 +11,7 @@ namespace Microsoft.DataMigration.BC14Reimplementation;
 /// already-migrated data rather than producing it — and so partner extensions register
 /// new post-migration steps here, not in any migrator enum.
 /// </summary>
-enum 46884 "BC14 Post Migration Action" implements "BC14 Post Migration Action"
+enum 66884 "BC14 Post Migration Action" implements "BC14 Post Migration Action"
 {
     Extensible = true;
 

@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation.HistoricalData;
+namespace MS.DataMigration.BC14Reimplementation.HistoricalData;
 
-table 46884 "BC14 Old G/L Entry"
+table 66884 "BC14 Old G/L Entry"
 {
     Caption = 'BC14 Old G/L Entry';
     DataClassification = CustomerContent;

@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using System.Integration;
 
@@ -13,7 +13,7 @@ using System.Integration;
 /// stop-on-first-error" pattern so each migrator only has to declare its source
 /// RecordRef, key field, and per-record codeunit.
 /// </summary>
-codeunit 46855 "BC14 Migration Loop"
+codeunit 66855 "BC14 Migration Loop"
 {
     Access = Internal;
 

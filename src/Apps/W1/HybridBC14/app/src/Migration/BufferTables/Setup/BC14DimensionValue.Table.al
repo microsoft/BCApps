@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46885 "BC14 Dimension Value"
+table 66885 "BC14 Dimension Value"
 {
     Caption = 'Dimension Value Migration Data';
     DataClassification = CustomerContent;

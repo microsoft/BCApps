@@ -3,12 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Posting;
 
-codeunit 46896 "BC14 Journal Post Action" implements "BC14 Post Migration Action"
+codeunit 66896 "BC14 Journal Post Action" implements "BC14 Post Migration Action"
 {
     var
         BC14Telemetry: Codeunit "BC14 Telemetry";

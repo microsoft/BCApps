@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.Finance.GeneralLedger.Account;
 
-page 46866 "BC14 Balance Validation"
+page 66866 "BC14 Balance Validation"
 {
     PageType = List;
     ApplicationArea = All;

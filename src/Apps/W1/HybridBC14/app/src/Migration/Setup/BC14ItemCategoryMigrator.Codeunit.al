@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.Inventory.Item;
 
-codeunit 46915 "BC14 Item Category Migrator" implements "BC14 Migrator"
+codeunit 66915 "BC14 Item Category Migrator" implements "BC14 Migrator"
 {
     TableNo = "BC14 Item Category";
 

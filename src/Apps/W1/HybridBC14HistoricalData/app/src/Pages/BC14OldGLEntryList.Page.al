@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation.HistoricalData;
+namespace MS.DataMigration.BC14Reimplementation.HistoricalData;
 
-page 46885 "BC14 Old G/L Entry List"
+page 66885 "BC14 Old G/L Entry List"
 {
     Caption = 'BC14 Old G/L Entries';
     PageType = List;

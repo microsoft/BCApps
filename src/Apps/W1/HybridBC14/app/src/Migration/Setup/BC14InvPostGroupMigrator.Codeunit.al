@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.Inventory.Item;
 
-codeunit 46897 "BC14 Inv. Post. Group Migrator" implements "BC14 Migrator"
+codeunit 66897 "BC14 Inv. Post. Group Migrator" implements "BC14 Migrator"
 {
     TableNo = "BC14 Inventory Posting Group";
 

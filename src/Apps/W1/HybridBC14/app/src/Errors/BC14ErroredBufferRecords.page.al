@@ -3,12 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using System.Integration;
 using System.IO;
 
-page 46878 "BC14 Errored Buffer Records"
+page 66878 "BC14 Errored Buffer Records"
 {
     PageType = Worksheet;
     Caption = 'Errored Buffer Records';

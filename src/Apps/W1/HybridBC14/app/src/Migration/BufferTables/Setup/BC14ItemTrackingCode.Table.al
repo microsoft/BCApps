@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46916 "BC14 Item Tracking Code"
+table 66916 "BC14 Item Tracking Code"
 {
     Caption = 'Item Tracking Code Migration Data';
     DataClassification = CustomerContent;

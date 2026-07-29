@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.DataMigration;
 
-table 46855 BC14CompanyMigrationInfo
+table 66855 BC14CompanyMigrationInfo
 {
     ReplicateData = false;
     DataPerCompany = false;

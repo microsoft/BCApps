@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.Purchases.Vendor;
 
-table 46863 "BC14 Vendor"
+table 66863 "BC14 Vendor"
 {
     Caption = 'Vendor Migration Data';
     DataClassification = CustomerContent;

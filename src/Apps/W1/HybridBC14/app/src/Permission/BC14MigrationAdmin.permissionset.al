@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using System.Integration;
 
@@ -12,7 +12,7 @@ using System.Integration;
 /// This permission set should only be assigned to administrators who need full control
 /// over the migration process, including modifying configuration and deleting error logs.
 /// </summary>
-permissionset 46850 "BC14 Migration Admin"
+permissionset 66850 "BC14 Migration Admin"
 {
     Assignable = false;
     Caption = 'Cloud Migration - Admin';

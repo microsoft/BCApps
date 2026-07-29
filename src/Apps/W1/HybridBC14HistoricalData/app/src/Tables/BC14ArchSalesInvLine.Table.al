@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation.HistoricalData;
+namespace MS.DataMigration.BC14Reimplementation.HistoricalData;
 
-table 46883 "BC14 Arch. Sales Inv. Line"
+table 66883 "BC14 Arch. Sales Inv. Line"
 {
     Caption = 'BC14 Archived Sales Invoice Line';
     DataClassification = CustomerContent;

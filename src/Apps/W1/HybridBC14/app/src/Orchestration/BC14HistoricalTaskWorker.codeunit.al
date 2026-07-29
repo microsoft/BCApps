@@ -3,14 +3,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 /// <summary>
 /// Runs all Historical migrators in a background session.
 /// Dispatched by the Runner so the main migration flow can continue to Posting without waiting.
 /// After all Historical migrators finish, this worker finalizes the migration status to Completed.
 /// </summary>
-codeunit 46864 "BC14 Historical Task Worker"
+codeunit 66864 "BC14 Historical Task Worker"
 {
     Access = Internal;
 

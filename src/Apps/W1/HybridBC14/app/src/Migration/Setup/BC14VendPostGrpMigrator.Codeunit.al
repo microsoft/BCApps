@@ -3,11 +3,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.Purchases.Vendor;
 
-codeunit 46905 "BC14 Vend. Post. Grp. Migrator" implements "BC14 Migrator"
+codeunit 66905 "BC14 Vend. Post. Grp. Migrator" implements "BC14 Migrator"
 {
     TableNo = "BC14 Vendor Posting Group";
 

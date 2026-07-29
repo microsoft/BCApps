@@ -3,14 +3,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.DataMigration;
 using Microsoft.Utilities;
 using System.Environment;
 using System.Integration;
 
-codeunit 46862 "BC14 Migration Orchestrator"
+codeunit 66862 "BC14 Migration Orchestrator"
 {
 
     var

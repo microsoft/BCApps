@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 /// <summary>
 /// Setup / Configuration phase migrators. Each value implements the shared
@@ -11,7 +11,7 @@ namespace Microsoft.DataMigration.BC14Reimplementation;
 /// order in which migrators are added to the phase list (see PopulateSetupMigrators
 /// in codeunit "BC14 Migration Runner"), not by the enum value.
 /// </summary>
-enum 46886 "BC14 Setup Migrator" implements "BC14 Migrator"
+enum 66886 "BC14 Setup Migrator" implements "BC14 Migrator"
 {
     Extensible = true;
 

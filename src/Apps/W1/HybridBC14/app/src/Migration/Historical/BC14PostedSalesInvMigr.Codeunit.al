@@ -3,12 +3,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-using Microsoft.DataMigration.BC14Reimplementation.HistoricalData;
+using MS.DataMigration.BC14Reimplementation.HistoricalData;
 using Microsoft.Sales.History;
 
-codeunit 46880 "BC14 Posted Sales Inv Migr." implements "BC14 Migrator"
+codeunit 66880 "BC14 Posted Sales Inv Migr." implements "BC14 Migrator"
 {
     trigger OnRun()
     begin

@@ -3,13 +3,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
 using Microsoft.DataMigration;
 
-enumextension 46851 "BC14 Warning Type Ext" extends "Cloud Migration Warning Type"
+enumextension 66851 "BC14 Warning Type Ext" extends "Cloud Migration Warning Type"
 {
-    value(46850; "BC14 Balance Mismatch")
+    value(66850; "BC14 Balance Mismatch")
     {
         Caption = 'Balance Mismatch';
         Implementation = "Cloud Migration Warning" = "BC14 Balance Warning";

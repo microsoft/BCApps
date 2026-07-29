@@ -1,7 +1,7 @@
 {
-  "id": "2363a2b7-1018-4976-a32a-c77338dc9f16",
+  "id": "8750c18e-3529-4e7f-9e86-f19a1d841c00",
   "name": "Dynamics 365 Business Central v14 Reimplementation",
-  "publisher": "Microsoft",
+  "publisher": "MS",
   "version": "29.0.0.0",
   "brief": "Migrate data from Business Central 14 on-premises to Business Central online",
   "description": "This extension enables cloud migration from Business Central 14 on-premises to Business Central online. It replicates and transforms customers, vendors, items, chart of accounts, and transactional data to help you move your business to the cloud seamlessly.",
@@ -19,8 +19,8 @@
       "version": "29.0.0.0"
     },
     {
-      "id": "f4e3d2c1-b0a9-4867-8765-432109876543",
-      "publisher": "Microsoft",
+      "id": "3ceb8e5c-9b9c-49b2-b5bd-659b7a178b82",
+      "publisher": "MS",
       "name": "Business Central 14 Historical Data",
       "version": "29.0.0.0"
     }
@@ -30,8 +30,8 @@
   "application": "29.0.0.0",
   "idRanges": [
     {
-      "from": 46850,
-      "to": 46999
+      "from": 66850,
+      "to": 66999
     }
   ],
   "internalsVisibleTo": [

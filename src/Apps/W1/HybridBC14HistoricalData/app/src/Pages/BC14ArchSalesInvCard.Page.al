@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation.HistoricalData;
+namespace MS.DataMigration.BC14Reimplementation.HistoricalData;
 
-page 46884 "BC14 Arch. Sales Inv. Card"
+page 66884 "BC14 Arch. Sales Inv. Card"
 {
     Caption = 'BC14 Archived Sales Invoice';
     PageType = Document;

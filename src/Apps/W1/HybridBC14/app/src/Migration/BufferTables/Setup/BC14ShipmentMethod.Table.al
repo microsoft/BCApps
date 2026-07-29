@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46913 "BC14 Shipment Method"
+table 66913 "BC14 Shipment Method"
 {
     Caption = 'Shipment Method Migration Data';
     DataClassification = CustomerContent;

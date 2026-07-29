@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation.HistoricalData;
+namespace MS.DataMigration.BC14Reimplementation.HistoricalData;
 
-permissionset 46882 "BC14 Historical Data"
+permissionset 66882 "BC14 Historical Data"
 {
     Assignable = true;
     Caption = 'BC14 Historical Data';

@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46933 "BC14 Vendor Bank Account"
+table 66933 "BC14 Vendor Bank Account"
 {
     Caption = 'Vendor Bank Account Migration Data';
     DataClassification = CustomerContent;

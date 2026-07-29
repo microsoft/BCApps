@@ -3,10 +3,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 using System.Integration;
 
-codeunit 46854 "BC14 Migration Error Handler"
+codeunit 66854 "BC14 Migration Error Handler"
 {
     // SingleInstance = true means ErrorOccurred is per-session only.
     // The main migration flow and Historical Worker run in separate sessions,

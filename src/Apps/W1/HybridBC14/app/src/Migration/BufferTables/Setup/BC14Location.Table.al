@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46918 "BC14 Location"
+table 66918 "BC14 Location"
 {
     Caption = 'Location Migration Data';
     DataClassification = CustomerContent;

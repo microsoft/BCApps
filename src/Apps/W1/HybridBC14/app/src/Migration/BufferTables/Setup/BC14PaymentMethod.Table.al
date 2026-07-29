@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46892 "BC14 Payment Method"
+table 66892 "BC14 Payment Method"
 {
     Caption = 'Payment Method Migration Data';
     DataClassification = CustomerContent;

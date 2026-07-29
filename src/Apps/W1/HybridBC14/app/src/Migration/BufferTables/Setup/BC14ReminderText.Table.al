@@ -3,9 +3,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 // ------------------------------------------------------------------------------------------------
 
-namespace Microsoft.DataMigration.BC14Reimplementation;
+namespace MS.DataMigration.BC14Reimplementation;
 
-table 46927 "BC14 Reminder Text"
+table 66927 "BC14 Reminder Text"
 {
     Caption = 'Reminder Text Migration Data';
     DataClassification = CustomerContent;
