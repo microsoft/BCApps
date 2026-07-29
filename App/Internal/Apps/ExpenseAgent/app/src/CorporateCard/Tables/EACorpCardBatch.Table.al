@@ -63,6 +63,13 @@ table 7212 EACorpCardBatch
             Caption = 'Data Exchange Entry No.';
             TableRelation = "Data Exch."."Entry No.";
         }
+        field(12; "Imported Transactions"; Integer)
+        {
+            Caption = 'Imported Transactions';
+            FieldClass = FlowField;
+            CalcFormula = count(EACorpCardTrans where("Batch No." = field("Batch No."), "Provider Code" = field("Provider Code")));
+            Editable = false;
+        }
     }
 
     keys

@@ -7,6 +7,7 @@ namespace Microsoft.ExpenseAgent;
 using Microsoft.Finance.GeneralLedger.Setup;
 using Microsoft.Foundation.AuditCodes;
 using Microsoft.Foundation.UOM;
+using System.IO;
 
 codeunit 6970 "Create Expense Agent Setup"
 {
@@ -15,12 +16,165 @@ codeunit 6970 "Create Expense Agent Setup"
     InherentPermissions = X;
     Permissions =
         tabledata "Expense Agent Setup" = rim,
-        tabledata "Source Code Setup" = rim;
+        tabledata "Expense User" = r,
+        tabledata "Source Code Setup" = rim,
+        tabledata "Data Exch. Def" = rimd,
+        tabledata "Data Exch. Line Def" = rimd,
+        tabledata "Data Exch. Column Def" = rimd,
+        tabledata "Data Exch. Mapping" = rimd,
+        tabledata "Data Exch. Field Mapping" = rimd,
+        tabledata EACorpCard = rimd,
+        tabledata EACorpCardProvider = rimd;
 
     trigger OnRun()
     begin
         CreateSetupTable();
         UpdateSourceCodeSetup();
+        EnsureCorpCardDefaults();
+    end;
+
+    internal procedure CreateCorporateCardDefaults()
+    begin
+        EnsureCorpCardDefaults();
+    end;
+
+    local procedure EnsureCorpCardDefaults()
+    var
+        CorpCardProvider: Record EACorpCardProvider;
+        CorpCardDESeed: Codeunit EACorpCardDESeed;
+    begin
+        EnsureCorpCardProvider();
+        CorpCardProvider.Get(CorpCardProviderCodeTok);
+        CorpCardDESeed.EnsureForProvider(CorpCardProvider);
+        EnsureDefaultCorpCardLinks(CorpCardProvider.Code);
+        EnsureCorpCardSetup();
+    end;
+
+    local procedure EnsureDefaultCorpCardLinks(ProviderCode: Code[20])
+    var
+        ExpenseUser: Record "Expense User";
+        CorpCard: Record EACorpCard;
+    begin
+        if not ExpenseUser.FindSet() then
+            exit;
+
+        repeat
+            CorpCard.Reset();
+            CorpCard.SetRange("Provider Code", ProviderCode);
+            CorpCard.SetRange("Expense User No.", ExpenseUser."No.");
+            if not CorpCard.IsEmpty() then
+                continue;
+
+            CorpCard.Init();
+            CorpCard."Card Id" := GetNextCorpCardId();
+            CorpCard."Provider Code" := ProviderCode;
+            CorpCard."Expense User No." := ExpenseUser."No.";
+            CorpCard."External Card Ref" := CopyStr(ExpenseUser."No.", 1, MaxStrLen(CorpCard."External Card Ref"));
+            CorpCard."Masked Card No." := BuildMaskedCardNo(CorpCard."Card Id");
+            CorpCard."Valid From" := Today();
+            CorpCard.Insert(true);
+        until ExpenseUser.Next() = 0;
+    end;
+
+    local procedure GetNextCorpCardId(): Code[50]
+    var
+        CorpCard: Record EACorpCard;
+        CandidateCardId: Code[50];
+        SequenceNo: Integer;
+    begin
+        SequenceNo := 1;
+        repeat
+            CandidateCardId := CopyStr(StrSubstNo('CARD-%1', PadNumberLeft(SequenceNo, 4)), 1, MaxStrLen(CorpCard."Card Id"));
+            SequenceNo += 1;
+        until not CorpCard.Get(CandidateCardId);
+
+        exit(CandidateCardId);
+    end;
+
+    local procedure PadNumberLeft(Value: Integer; TotalLength: Integer): Text
+    var
+        ValueTxt: Text;
+    begin
+        ValueTxt := Format(Value);
+        while StrLen(ValueTxt) < TotalLength do
+            ValueTxt := '0' + ValueTxt;
+
+        exit(ValueTxt);
+    end;
+
+    local procedure BuildMaskedCardNo(CardId: Code[50]): Text[30]
+    var
+        StartPos: Integer;
+        Last4: Text;
+    begin
+        StartPos := StrLen(CardId) - 3;
+        if StartPos < 1 then
+            StartPos := 1;
+
+        Last4 := CopyStr(CardId, StartPos, 4);
+        exit(CopyStr(StrSubstNo('****%1', Last4), 1, 30));
+    end;
+
+    local procedure EnsureCorpCardProvider()
+    var
+        CorpCardProvider: Record EACorpCardProvider;
+    begin
+        if not CorpCardProvider.Get(CorpCardProviderCodeTok) then begin
+            CorpCardProvider.Init();
+            CorpCardProvider.Code := CorpCardProviderCodeTok;
+            CorpCardProvider.Description := CorpCardProviderDescriptionLbl;
+            CorpCardProvider.Enabled := true;
+            CorpCardProvider."Feed Type" := CorpCardProvider."Feed Type"::CSV;
+            CorpCardProvider."Data Exch Def Code" := CorpCardDataExchDefCodeTok;
+            CorpCardProvider."Data Exch Map Code" := CorpCardDataExchLineCodeTok;
+            CorpCardProvider."Import Frequency (Min)" := 1440;
+            CorpCardProvider.Insert(true);
+            exit;
+        end;
+
+        if CorpCardProvider."Data Exch Def Code" = '' then
+            CorpCardProvider."Data Exch Def Code" := CorpCardDataExchDefCodeTok;
+        if CorpCardProvider."Data Exch Map Code" = '' then
+            CorpCardProvider."Data Exch Map Code" := CorpCardDataExchLineCodeTok;
+        if CorpCardProvider."Feed Type" = CorpCardProvider."Feed Type"::DataExch then
+            CorpCardProvider."Feed Type" := CorpCardProvider."Feed Type"::CSV;
+        if CorpCardProvider."Import Frequency (Min)" = 0 then
+            CorpCardProvider."Import Frequency (Min)" := 1440;
+        CorpCardProvider.Modify(true);
+    end;
+
+    local procedure EnsureCorpCardSetup()
+    var
+        ExpenseAgentSetup: Record "Expense Agent Setup";
+        SetupChanged: Boolean;
+    begin
+        if not ExpenseAgentSetup.Get() then begin
+            ExpenseAgentSetup.Init();
+            ExpenseAgentSetup.Insert(true);
+        end;
+
+        if ExpenseAgentSetup."Corp Card Default Provider" = '' then begin
+            ExpenseAgentSetup."Corp Card Create Mode" := ExpenseAgentSetup."Corp Card Create Mode"::AutoDraft;
+            ExpenseAgentSetup."Corp Card Auto Create Draft" := true;
+            ExpenseAgentSetup."Corp Card Date Match Window" := 7;
+            ExpenseAgentSetup."Corp Card Amount Tolerance" := 5;
+            ExpenseAgentSetup."Corp Card Default Provider" := CorpCardProviderCodeTok;
+            ExpenseAgentSetup.Modify(true);
+            exit;
+        end;
+
+        SetupChanged := false;
+        if ExpenseAgentSetup."Corp Card Date Match Window" = 0 then begin
+            ExpenseAgentSetup."Corp Card Date Match Window" := 7;
+            SetupChanged := true;
+        end;
+        if ExpenseAgentSetup."Corp Card Amount Tolerance" = 0 then begin
+            ExpenseAgentSetup."Corp Card Amount Tolerance" := 5;
+            SetupChanged := true;
+        end;
+
+        if SetupChanged then
+            ExpenseAgentSetup.Modify(true);
     end;
 
     local procedure CreateSetupTable()
@@ -219,6 +373,10 @@ codeunit 6970 "Create Expense Agent Setup"
     var
         ExpenseTok: Label 'EXPENSE', MaxLength = 10, Locked = true;
         ExpenseDescriptionLbl: Label 'Expenses', MaxLength = 100;
+        CorpCardProviderCodeTok: Label 'CORPCARDCSV', MaxLength = 20, Locked = true;
+        CorpCardDataExchDefCodeTok: Label 'EACCARDCSV', MaxLength = 20, Locked = true;
+        CorpCardDataExchLineCodeTok: Label 'TRANS', MaxLength = 20, Locked = true;
+        CorpCardProviderDescriptionLbl: Label 'Corporate Card CSV Provider';
         CardTok: Label 'Card', Locked = true;
         CashTok: Label 'Cash', Locked = true;
         BankTok: Label 'Bank', Locked = true;

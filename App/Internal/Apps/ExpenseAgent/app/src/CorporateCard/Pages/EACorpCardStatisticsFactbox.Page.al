@@ -104,6 +104,12 @@ page 7232 "EACorpCardStatisticsFactbox"
                     Caption = 'Scheduled Imports';
                     ToolTip = 'Specifies the number of providers with scheduled imports.';
                 }
+                field(TotalActiveCards; GetActiveCardCount())
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Total Active Cards';
+                    ToolTip = 'Specifies the number of active corporate cards that are not blocked and are valid on the current date.';
+                }
             }
         }
     }
@@ -222,5 +228,15 @@ page 7232 "EACorpCardStatisticsFactbox"
         JobQueueEntry.SetRange("Object ID to Run", Codeunit::EACorpCardJQRunner);
         JobQueueEntry.SetRange("Recurring Job", true);
         exit(JobQueueEntry.Count());
+    end;
+
+    local procedure GetActiveCardCount(): Integer
+    var
+        CorpCard: Record EACorpCard;
+    begin
+        CorpCard.SetRange(Blocked, false);
+        CorpCard.SetFilter("Valid From", '%1|..%2', 0D, Today());
+        CorpCard.SetFilter("Valid To", '%1|%2..', 0D, Today());
+        exit(CorpCard.Count());
     end;
 }

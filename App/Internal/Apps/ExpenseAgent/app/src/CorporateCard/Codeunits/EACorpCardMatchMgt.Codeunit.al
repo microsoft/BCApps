@@ -14,18 +14,18 @@ codeunit 7211 EACorpCardMatchMgt
 
     internal procedure MatchTransaction(var CorpCardTrans: Record EACorpCardTrans; var ExpenseNo: Code[20]): Boolean
     var
-        CorpCardSetup: Record EACorpCardSetup;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         CorpCard: Record EACorpCard;
         Expense: Record Expense;
         DateWindow: Integer;
         AmountTolerance: Decimal;
         ExpenseUserNo: Code[20];
     begin
-        if not CorpCardSetup.Get() then
+        if not ExpenseAgentSetup.Get() then
             exit(false);
 
-        DateWindow := CorpCardSetup."Date Match Window";
-        AmountTolerance := CorpCardSetup."Amount Tolerance";
+        DateWindow := ExpenseAgentSetup."Corp Card Date Match Window";
+        AmountTolerance := ExpenseAgentSetup."Corp Card Amount Tolerance";
 
         if not CorpCard.Get(CorpCardTrans."Card Id") then
             exit(false);

@@ -48,6 +48,13 @@ page 7224 EACorpCardProviders
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the source file name associated with the payload content.';
                 }
+                field("Detected Source Format"; GetDetectedSourceFormat())
+                {
+                    ApplicationArea = Basic, Suite;
+                    Caption = 'Detected Source Format';
+                    ToolTip = 'Specifies the detected import file format for the provider, based on source file name and data exchange definition.';
+                    Editable = false;
+                }
                 field("Last Import DT"; Rec."Last Import DT")
                 {
                     ApplicationArea = Basic, Suite;
@@ -150,6 +157,18 @@ page 7224 EACorpCardProviders
                     ViewProviderSchedule();
                 end;
             }
+            action(InitializeDataExchange)
+            {
+                Caption = 'Initialize Data Exchange';
+                ApplicationArea = Basic, Suite;
+                Image = Setup;
+                ToolTip = 'Creates or repairs Data Exchange definition and mappings for the selected provider.';
+
+                trigger OnAction()
+                begin
+                    InitializeDataExchangeForProvider();
+                end;
+            }
         }
     }
 
@@ -158,8 +177,14 @@ page 7224 EACorpCardProviders
         SourcePayloadClearedMsg: Label 'Source payload was cleared for provider %1.', Comment = '%1 = Provider code';
         SourcePayloadSavedMsg: Label 'Source payload was uploaded for provider %1.', Comment = '%1 = Provider code';
         ImportTriggeredMsg: Label 'Import was triggered for provider %1.', Comment = '%1 = Provider code';
+        DataExchangeInitializedMsg: Label 'Data Exchange setup is ready for provider %1 (Definition: %2, Mapping: %3).', Comment = '%1 = Provider code, %2 = Data Exch Def Code, %3 = Data Exch Map Code';
         ReplacePayloadQst: Label 'Provider %1 already has source payload. Do you want to replace it?', Comment = '%1 = Provider code';
         NoBatchFoundErr: Label 'No import batch exists yet for provider %1.', Comment = '%1 = Provider code';
+        CsvLbl: Label 'CSV', Locked = true;
+        XmlLbl: Label 'XML', Locked = true;
+        CamtLbl: Label 'CAMT', Locked = true;
+        NotSetLbl: Label 'Not set', Locked = true;
+        UnknownLbl: Label 'Unknown', Locked = true;
 
     local procedure UploadSourcePayloadForProvider()
     var
@@ -237,4 +262,35 @@ page 7224 EACorpCardProviders
     begin
         Message('Import scheduling is managed via the Schedule Import and Unschedule Import actions.');
     end;
+
+    local procedure InitializeDataExchangeForProvider()
+    var
+        CorpCardDESeed: Codeunit EACorpCardDESeed;
+    begin
+        CorpCardDESeed.EnsureForProvider(Rec);
+        CurrPage.Update(false);
+        Message(DataExchangeInitializedMsg, Rec.Code, Rec."Data Exch Def Code", Rec."Data Exch Map Code");
+    end;
+
+    local procedure GetDetectedSourceFormat(): Text[30]
+    var
+        FileNameLower: Text;
+    begin
+        FileNameLower := LowerCase(Rec."Source File Name");
+
+        if (StrPos(FileNameLower, 'camt') > 0) or (StrPos(UpperCase(Rec."Data Exch Def Code"), 'CAMT') > 0) then
+            exit(CamtLbl);
+
+        if (StrPos(FileNameLower, '.xml') > 0) or (StrPos(UpperCase(Rec."Data Exch Def Code"), 'XML') > 0) then
+            exit(XmlLbl);
+
+        if (StrPos(FileNameLower, '.csv') > 0) or (StrPos(UpperCase(Rec."Data Exch Def Code"), 'CSV') > 0) then
+            exit(CsvLbl);
+
+        if Rec."Source File Name" = '' then
+            exit(NotSetLbl);
+
+        exit(UnknownLbl);
+    end;
+
 }

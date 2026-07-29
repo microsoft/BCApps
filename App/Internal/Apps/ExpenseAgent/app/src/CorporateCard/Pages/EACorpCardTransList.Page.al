@@ -71,4 +71,33 @@ page 7223 EACorpCardTransList
             }
         }
     }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(OpenMatchedExpense)
+            {
+                Caption = 'Open Matched Expense';
+                ApplicationArea = Basic, Suite;
+                Image = Navigate;
+                Enabled = Rec."Expense No." <> '';
+                ToolTip = 'Opens the linked expense card for the selected transaction.';
+
+                trigger OnAction()
+                var
+                    Expense: Record Expense;
+                begin
+                    if Rec."Expense No." = '' then
+                        Error(NoLinkedExpenseErr);
+
+                    Expense.Get(Rec."Expense No.");
+                    Page.RunModal(Page::Expense, Expense);
+                end;
+            }
+        }
+    }
+
+    var
+        NoLinkedExpenseErr: Label 'No linked expense exists for the selected transaction.';
 }

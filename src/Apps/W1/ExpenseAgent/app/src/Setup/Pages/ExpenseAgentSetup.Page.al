@@ -184,6 +184,26 @@ page 6996 "Expense Agent Setup"
                     }
                 }
             }
+            group("Corporate Card")
+            {
+                Caption = 'Corporate Card';
+
+                field("Corp Card Default Provider"; Rec."Corp Card Default Provider")
+                {
+                }
+                field("Corp Card Create Mode"; Rec."Corp Card Create Mode")
+                {
+                }
+                field("Corp Card Auto Create Draft"; Rec."Corp Card Auto Create Draft")
+                {
+                }
+                field("Corp Card Date Match Window"; Rec."Corp Card Date Match Window")
+                {
+                }
+                field("Corp Card Amount Tolerance"; Rec."Corp Card Amount Tolerance")
+                {
+                }
+            }
             group("Rule & Controls")
             {
                 field("Use Rules"; Rec."Use Rules")

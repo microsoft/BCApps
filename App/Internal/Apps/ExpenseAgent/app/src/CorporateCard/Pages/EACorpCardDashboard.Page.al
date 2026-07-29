@@ -75,7 +75,7 @@ page 7228 "EACorpCardDashboard"
                     Caption = 'Setup';
                     ApplicationArea = Basic, Suite;
                     Image = Setup;
-                    RunObject = Page EACorpCardSetupPage;
+                    RunObject = Page "Expense Agent Setup";
                     ToolTip = 'Configure import settings and rules.';
                 }
             }

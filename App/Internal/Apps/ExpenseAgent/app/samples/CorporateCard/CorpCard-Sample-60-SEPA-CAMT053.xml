@@ -1,0 +1,2447 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:camt.053.001.08">
+  <BkToCstmrStmt>
+    <GrpHdr>
+      <MsgId>EA-CAMT53-0001</MsgId>
+      <CreDtTm>2026-07-29T07:43:09</CreDtTm>
+      <NbOfTxs>60</NbOfTxs>
+      <CtrlSum>11461.50</CtrlSum>
+    </GrpHdr>
+    <Stmt>
+      <Id>EA-STMT-2026-06</Id>
+      <ElctrncSeqNb>1</ElctrncSeqNb>
+      <CreDtTm>2026-06-30T23:59:59</CreDtTm>
+      <Acct>
+        <Id>
+          <IBAN>DE89370400440532013000</IBAN>
+        </Id>
+        <Ccy>USD</Ccy>
+        <Nm>ExpenseAgent Corporate Card Clearing</Nm>
+      </Acct>
+      <Bal>
+        <Tp>
+          <CdOrPrtry>
+            <Cd>OPBD</Cd>
+          </CdOrPrtry>
+        </Tp>
+        <Amt Ccy="USD">0.00</Amt>
+        <CdtDbtInd>CRDT</CdtDbtInd>
+        <Dt>
+          <Dt>2026-06-01</Dt>
+        </Dt>
+      </Bal>
+      <Bal>
+        <Tp>
+          <CdOrPrtry>
+            <Cd>CLBD</Cd>
+          </CdOrPrtry>
+        </Tp>
+        <Amt Ccy="USD">11461.50</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Dt>
+          <Dt>2026-06-30</Dt>
+        </Dt>
+      </Bal>
+      <Ntry>
+        <Amt Ccy="USD">19.63</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-03</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-02</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00001</AcctSvcrRef>
+        <AddtlNtryInf>Contoso Air</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00001</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">19.63</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Contoso Air</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0001; MCC=4511; Country=US; Notes=Sample transaction 1</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4511; Sample transaction 1</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">26.76</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-04</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-03</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00002</AcctSvcrRef>
+        <AddtlNtryInf>Fabrikam Hotel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00002</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">26.76</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Fabrikam Hotel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0002; MCC=7011; Country=US; Notes=Sample transaction 2</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=7011; Sample transaction 2</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">33.89</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-05</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-04</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00003</AcctSvcrRef>
+        <AddtlNtryInf>Northwind Taxi</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00003</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">33.89</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Northwind Taxi</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0003; MCC=4121; Country=US; Notes=Sample transaction 3</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4121; Sample transaction 3</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">41.02</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-06</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-05</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00004</AcctSvcrRef>
+        <AddtlNtryInf>Adventure Meals</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00004</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">41.02</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Adventure Meals</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0004; MCC=5812; Country=US; Notes=Sample transaction 4</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5812; Sample transaction 4</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">48.15</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-07</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-06</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00005</AcctSvcrRef>
+        <AddtlNtryInf>Proseware Rail</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00005</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">48.15</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Proseware Rail</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0005; MCC=4112; Country=US; Notes=Sample transaction 5</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4112; Sample transaction 5</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">55.28</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-08</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-07</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00006</AcctSvcrRef>
+        <AddtlNtryInf>Litware Fuel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00006</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">55.28</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Litware Fuel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0006; MCC=5541; Country=US; Notes=Sample transaction 6</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5541; Sample transaction 6</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">62.41</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-09</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-08</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00007</AcctSvcrRef>
+        <AddtlNtryInf>Tailspin Office</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00007</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">62.41</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Tailspin Office</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0001; MCC=5943; Country=US; Notes=Sample transaction 7</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5943; Sample transaction 7</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">69.54</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-10</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-09</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00008</AcctSvcrRef>
+        <AddtlNtryInf>Alpine Parking</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00008</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">69.54</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Alpine Parking</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0002; MCC=7523; Country=US; Notes=Sample transaction 8</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=7523; Sample transaction 8</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">76.67</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-11</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-10</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00009</AcctSvcrRef>
+        <AddtlNtryInf>Woodgrove Supplies</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00009</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">76.67</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Woodgrove Supplies</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0003; MCC=5111; Country=US; Notes=Sample transaction 9</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5111; Sample transaction 9</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">83.80</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-12</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-11</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00010</AcctSvcrRef>
+        <AddtlNtryInf>BlueYonder Travel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00010</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">83.80</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>BlueYonder Travel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0004; MCC=4722; Country=US; Notes=Sample transaction 10</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4722; Sample transaction 10</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">90.93</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-13</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-12</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00011</AcctSvcrRef>
+        <AddtlNtryInf>Contoso Air</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00011</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">90.93</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Contoso Air</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0005; MCC=4511; Country=US; Notes=Sample transaction 11</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4511; Sample transaction 11</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">98.06</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-14</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-13</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00012</AcctSvcrRef>
+        <AddtlNtryInf>Fabrikam Hotel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00012</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">98.06</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Fabrikam Hotel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0006; MCC=7011; Country=US; Notes=Sample transaction 12</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=7011; Sample transaction 12</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">105.19</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-15</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-14</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00013</AcctSvcrRef>
+        <AddtlNtryInf>Northwind Taxi</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00013</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">105.19</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Northwind Taxi</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0001; MCC=4121; Country=US; Notes=Sample transaction 13</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4121; Sample transaction 13</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">112.32</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-16</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-15</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00014</AcctSvcrRef>
+        <AddtlNtryInf>Adventure Meals</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00014</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">112.32</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Adventure Meals</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0002; MCC=5812; Country=US; Notes=Sample transaction 14</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5812; Sample transaction 14</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">119.45</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-17</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-16</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00015</AcctSvcrRef>
+        <AddtlNtryInf>Proseware Rail</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00015</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">119.45</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Proseware Rail</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0003; MCC=4112; Country=US; Notes=Sample transaction 15</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4112; Sample transaction 15</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">126.58</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-18</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-17</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00016</AcctSvcrRef>
+        <AddtlNtryInf>Litware Fuel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00016</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">126.58</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Litware Fuel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0004; MCC=5541; Country=US; Notes=Sample transaction 16</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5541; Sample transaction 16</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">133.71</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-19</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-18</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00017</AcctSvcrRef>
+        <AddtlNtryInf>Tailspin Office</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00017</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">133.71</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Tailspin Office</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0005; MCC=5943; Country=US; Notes=Sample transaction 17</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5943; Sample transaction 17</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">140.84</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-20</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-19</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00018</AcctSvcrRef>
+        <AddtlNtryInf>Alpine Parking</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00018</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">140.84</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Alpine Parking</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0006; MCC=7523; Country=US; Notes=Sample transaction 18</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=7523; Sample transaction 18</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">147.97</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-21</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-20</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00019</AcctSvcrRef>
+        <AddtlNtryInf>Woodgrove Supplies</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00019</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">147.97</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Woodgrove Supplies</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0001; MCC=5111; Country=US; Notes=Sample transaction 19</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5111; Sample transaction 19</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">155.10</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-22</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-21</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00020</AcctSvcrRef>
+        <AddtlNtryInf>BlueYonder Travel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00020</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">155.10</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>BlueYonder Travel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0002; MCC=4722; Country=US; Notes=Sample transaction 20</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4722; Sample transaction 20</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">162.23</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-23</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-22</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00021</AcctSvcrRef>
+        <AddtlNtryInf>Contoso Air</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00021</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">162.23</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Contoso Air</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0003; MCC=4511; Country=US; Notes=Sample transaction 21</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4511; Sample transaction 21</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">169.36</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-24</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-23</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00022</AcctSvcrRef>
+        <AddtlNtryInf>Fabrikam Hotel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00022</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">169.36</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Fabrikam Hotel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0004; MCC=7011; Country=US; Notes=Sample transaction 22</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=7011; Sample transaction 22</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">176.49</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-25</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-24</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00023</AcctSvcrRef>
+        <AddtlNtryInf>Northwind Taxi</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00023</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">176.49</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Northwind Taxi</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0005; MCC=4121; Country=US; Notes=Sample transaction 23</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4121; Sample transaction 23</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">183.62</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-26</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-25</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00024</AcctSvcrRef>
+        <AddtlNtryInf>Adventure Meals</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00024</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">183.62</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Adventure Meals</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0006; MCC=5812; Country=US; Notes=Sample transaction 24</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5812; Sample transaction 24</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">190.75</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-27</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-26</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00025</AcctSvcrRef>
+        <AddtlNtryInf>Proseware Rail</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00025</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">190.75</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Proseware Rail</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0001; MCC=4112; Country=US; Notes=Sample transaction 25</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4112; Sample transaction 25</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">197.88</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-28</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-27</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00026</AcctSvcrRef>
+        <AddtlNtryInf>Litware Fuel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00026</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">197.88</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Litware Fuel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0002; MCC=5541; Country=US; Notes=Sample transaction 26</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5541; Sample transaction 26</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">205.01</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-29</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-28</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00027</AcctSvcrRef>
+        <AddtlNtryInf>Tailspin Office</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00027</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">205.01</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Tailspin Office</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0003; MCC=5943; Country=US; Notes=Sample transaction 27</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5943; Sample transaction 27</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">212.14</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-02</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-01</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00028</AcctSvcrRef>
+        <AddtlNtryInf>Alpine Parking</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00028</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">212.14</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Alpine Parking</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0004; MCC=7523; Country=US; Notes=Sample transaction 28</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=7523; Sample transaction 28</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">219.27</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-03</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-02</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00029</AcctSvcrRef>
+        <AddtlNtryInf>Woodgrove Supplies</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00029</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">219.27</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Woodgrove Supplies</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0005; MCC=5111; Country=US; Notes=Sample transaction 29</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5111; Sample transaction 29</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">226.40</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-04</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-03</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00030</AcctSvcrRef>
+        <AddtlNtryInf>BlueYonder Travel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00030</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">226.40</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>BlueYonder Travel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0006; MCC=4722; Country=US; Notes=Sample transaction 30</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4722; Sample transaction 30</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">233.53</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-05</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-04</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00031</AcctSvcrRef>
+        <AddtlNtryInf>Contoso Air</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00031</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">233.53</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Contoso Air</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0001; MCC=4511; Country=US; Notes=Sample transaction 31</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4511; Sample transaction 31</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">240.66</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-06</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-05</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00032</AcctSvcrRef>
+        <AddtlNtryInf>Fabrikam Hotel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00032</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">240.66</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Fabrikam Hotel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0002; MCC=7011; Country=US; Notes=Sample transaction 32</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=7011; Sample transaction 32</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">247.79</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-07</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-06</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00033</AcctSvcrRef>
+        <AddtlNtryInf>Northwind Taxi</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00033</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">247.79</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Northwind Taxi</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0003; MCC=4121; Country=US; Notes=Sample transaction 33</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4121; Sample transaction 33</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">254.92</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-08</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-07</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00034</AcctSvcrRef>
+        <AddtlNtryInf>Adventure Meals</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00034</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">254.92</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Adventure Meals</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0004; MCC=5812; Country=US; Notes=Sample transaction 34</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5812; Sample transaction 34</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">262.05</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-09</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-08</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00035</AcctSvcrRef>
+        <AddtlNtryInf>Proseware Rail</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00035</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">262.05</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Proseware Rail</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0005; MCC=4112; Country=US; Notes=Sample transaction 35</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4112; Sample transaction 35</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">269.18</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-10</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-09</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00036</AcctSvcrRef>
+        <AddtlNtryInf>Litware Fuel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00036</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">269.18</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Litware Fuel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0006; MCC=5541; Country=US; Notes=Sample transaction 36</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5541; Sample transaction 36</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">276.31</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-11</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-10</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00037</AcctSvcrRef>
+        <AddtlNtryInf>Tailspin Office</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00037</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">276.31</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Tailspin Office</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0001; MCC=5943; Country=US; Notes=Sample transaction 37</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5943; Sample transaction 37</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">283.44</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-12</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-11</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00038</AcctSvcrRef>
+        <AddtlNtryInf>Alpine Parking</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00038</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">283.44</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Alpine Parking</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0002; MCC=7523; Country=US; Notes=Sample transaction 38</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=7523; Sample transaction 38</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">290.57</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-13</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-12</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00039</AcctSvcrRef>
+        <AddtlNtryInf>Woodgrove Supplies</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00039</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">290.57</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Woodgrove Supplies</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0003; MCC=5111; Country=US; Notes=Sample transaction 39</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5111; Sample transaction 39</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">297.70</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-14</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-13</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00040</AcctSvcrRef>
+        <AddtlNtryInf>BlueYonder Travel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00040</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">297.70</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>BlueYonder Travel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0004; MCC=4722; Country=US; Notes=Sample transaction 40</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4722; Sample transaction 40</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">304.83</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-15</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-14</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00041</AcctSvcrRef>
+        <AddtlNtryInf>Contoso Air</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00041</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">304.83</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Contoso Air</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0005; MCC=4511; Country=US; Notes=Sample transaction 41</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4511; Sample transaction 41</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">311.96</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-16</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-15</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00042</AcctSvcrRef>
+        <AddtlNtryInf>Fabrikam Hotel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00042</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">311.96</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Fabrikam Hotel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0006; MCC=7011; Country=US; Notes=Sample transaction 42</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=7011; Sample transaction 42</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">319.09</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-17</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-16</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00043</AcctSvcrRef>
+        <AddtlNtryInf>Northwind Taxi</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00043</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">319.09</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Northwind Taxi</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0001; MCC=4121; Country=US; Notes=Sample transaction 43</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4121; Sample transaction 43</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">326.22</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-18</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-17</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00044</AcctSvcrRef>
+        <AddtlNtryInf>Adventure Meals</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00044</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">326.22</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Adventure Meals</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0002; MCC=5812; Country=US; Notes=Sample transaction 44</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5812; Sample transaction 44</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">333.35</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-19</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-18</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00045</AcctSvcrRef>
+        <AddtlNtryInf>Proseware Rail</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00045</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">333.35</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Proseware Rail</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0003; MCC=4112; Country=US; Notes=Sample transaction 45</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4112; Sample transaction 45</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">340.48</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-20</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-19</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00046</AcctSvcrRef>
+        <AddtlNtryInf>Litware Fuel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00046</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">340.48</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Litware Fuel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0004; MCC=5541; Country=US; Notes=Sample transaction 46</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5541; Sample transaction 46</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">347.61</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-21</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-20</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00047</AcctSvcrRef>
+        <AddtlNtryInf>Tailspin Office</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00047</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">347.61</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Tailspin Office</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0005; MCC=5943; Country=US; Notes=Sample transaction 47</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5943; Sample transaction 47</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">354.74</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-22</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-21</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00048</AcctSvcrRef>
+        <AddtlNtryInf>Alpine Parking</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00048</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">354.74</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Alpine Parking</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0006; MCC=7523; Country=US; Notes=Sample transaction 48</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=7523; Sample transaction 48</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">361.87</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-23</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-22</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00049</AcctSvcrRef>
+        <AddtlNtryInf>Woodgrove Supplies</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00049</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">361.87</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Woodgrove Supplies</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0001; MCC=5111; Country=US; Notes=Sample transaction 49</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5111; Sample transaction 49</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">369.00</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-24</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-23</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00050</AcctSvcrRef>
+        <AddtlNtryInf>BlueYonder Travel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00050</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">369.00</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>BlueYonder Travel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0002; MCC=4722; Country=US; Notes=Sample transaction 50</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4722; Sample transaction 50</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">376.13</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-25</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-24</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00051</AcctSvcrRef>
+        <AddtlNtryInf>Contoso Air</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00051</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">376.13</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Contoso Air</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0003; MCC=4511; Country=US; Notes=Sample transaction 51</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4511; Sample transaction 51</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">383.26</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-26</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-25</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00052</AcctSvcrRef>
+        <AddtlNtryInf>Fabrikam Hotel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00052</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">383.26</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Fabrikam Hotel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0004; MCC=7011; Country=US; Notes=Sample transaction 52</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=7011; Sample transaction 52</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">390.39</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-27</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-26</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00053</AcctSvcrRef>
+        <AddtlNtryInf>Northwind Taxi</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00053</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">390.39</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Northwind Taxi</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0005; MCC=4121; Country=US; Notes=Sample transaction 53</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4121; Sample transaction 53</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">397.52</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-28</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-27</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00054</AcctSvcrRef>
+        <AddtlNtryInf>Adventure Meals</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00054</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">397.52</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Adventure Meals</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0006; MCC=5812; Country=US; Notes=Sample transaction 54</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5812; Sample transaction 54</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">15.25</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-29</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-28</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00055</AcctSvcrRef>
+        <AddtlNtryInf>Proseware Rail</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00055</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">15.25</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Proseware Rail</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0001; MCC=4112; Country=US; Notes=Sample transaction 55</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4112; Sample transaction 55</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">22.38</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-02</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-01</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00056</AcctSvcrRef>
+        <AddtlNtryInf>Litware Fuel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00056</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">22.38</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Litware Fuel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0002; MCC=5541; Country=US; Notes=Sample transaction 56</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5541; Sample transaction 56</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">29.51</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-03</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-02</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00057</AcctSvcrRef>
+        <AddtlNtryInf>Tailspin Office</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00057</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">29.51</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Tailspin Office</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0003; MCC=5943; Country=US; Notes=Sample transaction 57</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5943; Sample transaction 57</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">36.64</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-04</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-03</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00058</AcctSvcrRef>
+        <AddtlNtryInf>Alpine Parking</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00058</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">36.64</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Alpine Parking</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0004; MCC=7523; Country=US; Notes=Sample transaction 58</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=7523; Sample transaction 58</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">43.77</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-05</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-04</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00059</AcctSvcrRef>
+        <AddtlNtryInf>Woodgrove Supplies</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00059</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">43.77</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>Woodgrove Supplies</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0005; MCC=5111; Country=US; Notes=Sample transaction 59</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=5111; Sample transaction 59</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+      <Ntry>
+        <Amt Ccy="USD">50.90</Amt>
+        <CdtDbtInd>DBIT</CdtDbtInd>
+        <Sts>BOOK</Sts>
+        <BookgDt>
+          <Dt>2026-06-06</Dt>
+        </BookgDt>
+        <ValDt>
+          <Dt>2026-06-05</Dt>
+        </ValDt>
+        <AcctSvcrRef>TXN00060</AcctSvcrRef>
+        <AddtlNtryInf>BlueYonder Travel</AddtlNtryInf>
+        <NtryDtls>
+          <TxDtls>
+            <Refs>
+              <EndToEndId>TXN00060</EndToEndId>
+            </Refs>
+            <AmtDtls>
+              <TxAmt>
+                <Amt Ccy="USD">50.90</Amt>
+              </TxAmt>
+            </AmtDtls>
+            <RltdPties>
+              <Cdtr>
+                <Nm>BlueYonder Travel</Nm>
+                <PstlAdr>
+                  <Ctry>US</Ctry>
+                </PstlAdr>
+              </Cdtr>
+            </RltdPties>
+            <RmtInf>
+              <Ustrd>CardId=CARD-0006; MCC=4722; Country=US; Notes=Sample transaction 60</Ustrd>
+            </RmtInf>
+            <Purp>
+              <Prtry>CORPCARD</Prtry>
+            </Purp>
+            <AddtlTxInf>MCC=4722; Sample transaction 60</AddtlTxInf>
+          </TxDtls>
+        </NtryDtls>
+      </Ntry>
+    </Stmt>
+  </BkToCstmrStmt>
+</Document>

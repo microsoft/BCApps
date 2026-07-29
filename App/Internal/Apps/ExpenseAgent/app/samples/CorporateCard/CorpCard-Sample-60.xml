@@ -1,0 +1,724 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CorporateCardTransactions>
+  <Transaction>
+    <ProviderTransId>TXN00001</ProviderTransId>
+    <CardId>CARD-0001</CardId>
+    <TransDate>2026-06-02</TransDate>
+    <PostingDate>2026-06-03</PostingDate>
+    <Amount>19.63</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Contoso Air</MerchantRaw>
+    <MCC>4511</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 1</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00002</ProviderTransId>
+    <CardId>CARD-0002</CardId>
+    <TransDate>2026-06-03</TransDate>
+    <PostingDate>2026-06-04</PostingDate>
+    <Amount>26.76</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Fabrikam Hotel</MerchantRaw>
+    <MCC>7011</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 2</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00003</ProviderTransId>
+    <CardId>CARD-0003</CardId>
+    <TransDate>2026-06-04</TransDate>
+    <PostingDate>2026-06-05</PostingDate>
+    <Amount>33.89</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Northwind Taxi</MerchantRaw>
+    <MCC>4121</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 3</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00004</ProviderTransId>
+    <CardId>CARD-0004</CardId>
+    <TransDate>2026-06-05</TransDate>
+    <PostingDate>2026-06-06</PostingDate>
+    <Amount>41.02</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Adventure Meals</MerchantRaw>
+    <MCC>5812</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 4</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00005</ProviderTransId>
+    <CardId>CARD-0005</CardId>
+    <TransDate>2026-06-06</TransDate>
+    <PostingDate>2026-06-07</PostingDate>
+    <Amount>48.15</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Proseware Rail</MerchantRaw>
+    <MCC>4112</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 5</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00006</ProviderTransId>
+    <CardId>CARD-0006</CardId>
+    <TransDate>2026-06-07</TransDate>
+    <PostingDate>2026-06-08</PostingDate>
+    <Amount>55.28</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Litware Fuel</MerchantRaw>
+    <MCC>5541</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 6</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00007</ProviderTransId>
+    <CardId>CARD-0001</CardId>
+    <TransDate>2026-06-08</TransDate>
+    <PostingDate>2026-06-09</PostingDate>
+    <Amount>62.41</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Tailspin Office</MerchantRaw>
+    <MCC>5943</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 7</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00008</ProviderTransId>
+    <CardId>CARD-0002</CardId>
+    <TransDate>2026-06-09</TransDate>
+    <PostingDate>2026-06-10</PostingDate>
+    <Amount>69.54</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Alpine Parking</MerchantRaw>
+    <MCC>7523</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 8</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00009</ProviderTransId>
+    <CardId>CARD-0003</CardId>
+    <TransDate>2026-06-10</TransDate>
+    <PostingDate>2026-06-11</PostingDate>
+    <Amount>76.67</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Woodgrove Supplies</MerchantRaw>
+    <MCC>5111</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 9</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00010</ProviderTransId>
+    <CardId>CARD-0004</CardId>
+    <TransDate>2026-06-11</TransDate>
+    <PostingDate>2026-06-12</PostingDate>
+    <Amount>83.8</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>BlueYonder Travel</MerchantRaw>
+    <MCC>4722</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 10</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00011</ProviderTransId>
+    <CardId>CARD-0005</CardId>
+    <TransDate>2026-06-12</TransDate>
+    <PostingDate>2026-06-13</PostingDate>
+    <Amount>90.93</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Contoso Air</MerchantRaw>
+    <MCC>4511</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 11</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00012</ProviderTransId>
+    <CardId>CARD-0006</CardId>
+    <TransDate>2026-06-13</TransDate>
+    <PostingDate>2026-06-14</PostingDate>
+    <Amount>98.06</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Fabrikam Hotel</MerchantRaw>
+    <MCC>7011</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 12</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00013</ProviderTransId>
+    <CardId>CARD-0001</CardId>
+    <TransDate>2026-06-14</TransDate>
+    <PostingDate>2026-06-15</PostingDate>
+    <Amount>105.19</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Northwind Taxi</MerchantRaw>
+    <MCC>4121</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 13</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00014</ProviderTransId>
+    <CardId>CARD-0002</CardId>
+    <TransDate>2026-06-15</TransDate>
+    <PostingDate>2026-06-16</PostingDate>
+    <Amount>112.32</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Adventure Meals</MerchantRaw>
+    <MCC>5812</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 14</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00015</ProviderTransId>
+    <CardId>CARD-0003</CardId>
+    <TransDate>2026-06-16</TransDate>
+    <PostingDate>2026-06-17</PostingDate>
+    <Amount>119.45</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Proseware Rail</MerchantRaw>
+    <MCC>4112</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 15</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00016</ProviderTransId>
+    <CardId>CARD-0004</CardId>
+    <TransDate>2026-06-17</TransDate>
+    <PostingDate>2026-06-18</PostingDate>
+    <Amount>126.58</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Litware Fuel</MerchantRaw>
+    <MCC>5541</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 16</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00017</ProviderTransId>
+    <CardId>CARD-0005</CardId>
+    <TransDate>2026-06-18</TransDate>
+    <PostingDate>2026-06-19</PostingDate>
+    <Amount>133.71</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Tailspin Office</MerchantRaw>
+    <MCC>5943</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 17</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00018</ProviderTransId>
+    <CardId>CARD-0006</CardId>
+    <TransDate>2026-06-19</TransDate>
+    <PostingDate>2026-06-20</PostingDate>
+    <Amount>140.84</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Alpine Parking</MerchantRaw>
+    <MCC>7523</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 18</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00019</ProviderTransId>
+    <CardId>CARD-0001</CardId>
+    <TransDate>2026-06-20</TransDate>
+    <PostingDate>2026-06-21</PostingDate>
+    <Amount>147.97</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Woodgrove Supplies</MerchantRaw>
+    <MCC>5111</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 19</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00020</ProviderTransId>
+    <CardId>CARD-0002</CardId>
+    <TransDate>2026-06-21</TransDate>
+    <PostingDate>2026-06-22</PostingDate>
+    <Amount>155.1</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>BlueYonder Travel</MerchantRaw>
+    <MCC>4722</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 20</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00021</ProviderTransId>
+    <CardId>CARD-0003</CardId>
+    <TransDate>2026-06-22</TransDate>
+    <PostingDate>2026-06-23</PostingDate>
+    <Amount>162.23</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Contoso Air</MerchantRaw>
+    <MCC>4511</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 21</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00022</ProviderTransId>
+    <CardId>CARD-0004</CardId>
+    <TransDate>2026-06-23</TransDate>
+    <PostingDate>2026-06-24</PostingDate>
+    <Amount>169.36</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Fabrikam Hotel</MerchantRaw>
+    <MCC>7011</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 22</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00023</ProviderTransId>
+    <CardId>CARD-0005</CardId>
+    <TransDate>2026-06-24</TransDate>
+    <PostingDate>2026-06-25</PostingDate>
+    <Amount>176.49</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Northwind Taxi</MerchantRaw>
+    <MCC>4121</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 23</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00024</ProviderTransId>
+    <CardId>CARD-0006</CardId>
+    <TransDate>2026-06-25</TransDate>
+    <PostingDate>2026-06-26</PostingDate>
+    <Amount>183.62</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Adventure Meals</MerchantRaw>
+    <MCC>5812</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 24</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00025</ProviderTransId>
+    <CardId>CARD-0001</CardId>
+    <TransDate>2026-06-26</TransDate>
+    <PostingDate>2026-06-27</PostingDate>
+    <Amount>190.75</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Proseware Rail</MerchantRaw>
+    <MCC>4112</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 25</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00026</ProviderTransId>
+    <CardId>CARD-0002</CardId>
+    <TransDate>2026-06-27</TransDate>
+    <PostingDate>2026-06-28</PostingDate>
+    <Amount>197.88</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Litware Fuel</MerchantRaw>
+    <MCC>5541</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 26</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00027</ProviderTransId>
+    <CardId>CARD-0003</CardId>
+    <TransDate>2026-06-28</TransDate>
+    <PostingDate>2026-06-29</PostingDate>
+    <Amount>205.01</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Tailspin Office</MerchantRaw>
+    <MCC>5943</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 27</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00028</ProviderTransId>
+    <CardId>CARD-0004</CardId>
+    <TransDate>2026-06-01</TransDate>
+    <PostingDate>2026-06-02</PostingDate>
+    <Amount>212.14</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Alpine Parking</MerchantRaw>
+    <MCC>7523</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 28</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00029</ProviderTransId>
+    <CardId>CARD-0005</CardId>
+    <TransDate>2026-06-02</TransDate>
+    <PostingDate>2026-06-03</PostingDate>
+    <Amount>219.27</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Woodgrove Supplies</MerchantRaw>
+    <MCC>5111</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 29</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00030</ProviderTransId>
+    <CardId>CARD-0006</CardId>
+    <TransDate>2026-06-03</TransDate>
+    <PostingDate>2026-06-04</PostingDate>
+    <Amount>226.4</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>BlueYonder Travel</MerchantRaw>
+    <MCC>4722</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 30</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00031</ProviderTransId>
+    <CardId>CARD-0001</CardId>
+    <TransDate>2026-06-04</TransDate>
+    <PostingDate>2026-06-05</PostingDate>
+    <Amount>233.53</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Contoso Air</MerchantRaw>
+    <MCC>4511</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 31</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00032</ProviderTransId>
+    <CardId>CARD-0002</CardId>
+    <TransDate>2026-06-05</TransDate>
+    <PostingDate>2026-06-06</PostingDate>
+    <Amount>240.66</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Fabrikam Hotel</MerchantRaw>
+    <MCC>7011</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 32</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00033</ProviderTransId>
+    <CardId>CARD-0003</CardId>
+    <TransDate>2026-06-06</TransDate>
+    <PostingDate>2026-06-07</PostingDate>
+    <Amount>247.79</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Northwind Taxi</MerchantRaw>
+    <MCC>4121</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 33</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00034</ProviderTransId>
+    <CardId>CARD-0004</CardId>
+    <TransDate>2026-06-07</TransDate>
+    <PostingDate>2026-06-08</PostingDate>
+    <Amount>254.92</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Adventure Meals</MerchantRaw>
+    <MCC>5812</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 34</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00035</ProviderTransId>
+    <CardId>CARD-0005</CardId>
+    <TransDate>2026-06-08</TransDate>
+    <PostingDate>2026-06-09</PostingDate>
+    <Amount>262.05</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Proseware Rail</MerchantRaw>
+    <MCC>4112</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 35</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00036</ProviderTransId>
+    <CardId>CARD-0006</CardId>
+    <TransDate>2026-06-09</TransDate>
+    <PostingDate>2026-06-10</PostingDate>
+    <Amount>269.18</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Litware Fuel</MerchantRaw>
+    <MCC>5541</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 36</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00037</ProviderTransId>
+    <CardId>CARD-0001</CardId>
+    <TransDate>2026-06-10</TransDate>
+    <PostingDate>2026-06-11</PostingDate>
+    <Amount>276.31</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Tailspin Office</MerchantRaw>
+    <MCC>5943</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 37</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00038</ProviderTransId>
+    <CardId>CARD-0002</CardId>
+    <TransDate>2026-06-11</TransDate>
+    <PostingDate>2026-06-12</PostingDate>
+    <Amount>283.44</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Alpine Parking</MerchantRaw>
+    <MCC>7523</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 38</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00039</ProviderTransId>
+    <CardId>CARD-0003</CardId>
+    <TransDate>2026-06-12</TransDate>
+    <PostingDate>2026-06-13</PostingDate>
+    <Amount>290.57</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Woodgrove Supplies</MerchantRaw>
+    <MCC>5111</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 39</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00040</ProviderTransId>
+    <CardId>CARD-0004</CardId>
+    <TransDate>2026-06-13</TransDate>
+    <PostingDate>2026-06-14</PostingDate>
+    <Amount>297.7</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>BlueYonder Travel</MerchantRaw>
+    <MCC>4722</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 40</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00041</ProviderTransId>
+    <CardId>CARD-0005</CardId>
+    <TransDate>2026-06-14</TransDate>
+    <PostingDate>2026-06-15</PostingDate>
+    <Amount>304.83</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Contoso Air</MerchantRaw>
+    <MCC>4511</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 41</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00042</ProviderTransId>
+    <CardId>CARD-0006</CardId>
+    <TransDate>2026-06-15</TransDate>
+    <PostingDate>2026-06-16</PostingDate>
+    <Amount>311.96</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Fabrikam Hotel</MerchantRaw>
+    <MCC>7011</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 42</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00043</ProviderTransId>
+    <CardId>CARD-0001</CardId>
+    <TransDate>2026-06-16</TransDate>
+    <PostingDate>2026-06-17</PostingDate>
+    <Amount>319.09</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Northwind Taxi</MerchantRaw>
+    <MCC>4121</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 43</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00044</ProviderTransId>
+    <CardId>CARD-0002</CardId>
+    <TransDate>2026-06-17</TransDate>
+    <PostingDate>2026-06-18</PostingDate>
+    <Amount>326.22</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Adventure Meals</MerchantRaw>
+    <MCC>5812</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 44</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00045</ProviderTransId>
+    <CardId>CARD-0003</CardId>
+    <TransDate>2026-06-18</TransDate>
+    <PostingDate>2026-06-19</PostingDate>
+    <Amount>333.35</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Proseware Rail</MerchantRaw>
+    <MCC>4112</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 45</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00046</ProviderTransId>
+    <CardId>CARD-0004</CardId>
+    <TransDate>2026-06-19</TransDate>
+    <PostingDate>2026-06-20</PostingDate>
+    <Amount>340.48</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Litware Fuel</MerchantRaw>
+    <MCC>5541</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 46</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00047</ProviderTransId>
+    <CardId>CARD-0005</CardId>
+    <TransDate>2026-06-20</TransDate>
+    <PostingDate>2026-06-21</PostingDate>
+    <Amount>347.61</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Tailspin Office</MerchantRaw>
+    <MCC>5943</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 47</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00048</ProviderTransId>
+    <CardId>CARD-0006</CardId>
+    <TransDate>2026-06-21</TransDate>
+    <PostingDate>2026-06-22</PostingDate>
+    <Amount>354.74</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Alpine Parking</MerchantRaw>
+    <MCC>7523</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 48</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00049</ProviderTransId>
+    <CardId>CARD-0001</CardId>
+    <TransDate>2026-06-22</TransDate>
+    <PostingDate>2026-06-23</PostingDate>
+    <Amount>361.87</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Woodgrove Supplies</MerchantRaw>
+    <MCC>5111</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 49</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00050</ProviderTransId>
+    <CardId>CARD-0002</CardId>
+    <TransDate>2026-06-23</TransDate>
+    <PostingDate>2026-06-24</PostingDate>
+    <Amount>369</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>BlueYonder Travel</MerchantRaw>
+    <MCC>4722</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 50</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00051</ProviderTransId>
+    <CardId>CARD-0003</CardId>
+    <TransDate>2026-06-24</TransDate>
+    <PostingDate>2026-06-25</PostingDate>
+    <Amount>376.13</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Contoso Air</MerchantRaw>
+    <MCC>4511</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 51</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00052</ProviderTransId>
+    <CardId>CARD-0004</CardId>
+    <TransDate>2026-06-25</TransDate>
+    <PostingDate>2026-06-26</PostingDate>
+    <Amount>383.26</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Fabrikam Hotel</MerchantRaw>
+    <MCC>7011</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 52</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00053</ProviderTransId>
+    <CardId>CARD-0005</CardId>
+    <TransDate>2026-06-26</TransDate>
+    <PostingDate>2026-06-27</PostingDate>
+    <Amount>390.39</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Northwind Taxi</MerchantRaw>
+    <MCC>4121</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 53</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00054</ProviderTransId>
+    <CardId>CARD-0006</CardId>
+    <TransDate>2026-06-27</TransDate>
+    <PostingDate>2026-06-28</PostingDate>
+    <Amount>397.52</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Adventure Meals</MerchantRaw>
+    <MCC>5812</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 54</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00055</ProviderTransId>
+    <CardId>CARD-0001</CardId>
+    <TransDate>2026-06-28</TransDate>
+    <PostingDate>2026-06-29</PostingDate>
+    <Amount>15.25</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Proseware Rail</MerchantRaw>
+    <MCC>4112</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 55</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00056</ProviderTransId>
+    <CardId>CARD-0002</CardId>
+    <TransDate>2026-06-01</TransDate>
+    <PostingDate>2026-06-02</PostingDate>
+    <Amount>22.38</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Litware Fuel</MerchantRaw>
+    <MCC>5541</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 56</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00057</ProviderTransId>
+    <CardId>CARD-0003</CardId>
+    <TransDate>2026-06-02</TransDate>
+    <PostingDate>2026-06-03</PostingDate>
+    <Amount>29.51</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Tailspin Office</MerchantRaw>
+    <MCC>5943</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 57</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00058</ProviderTransId>
+    <CardId>CARD-0004</CardId>
+    <TransDate>2026-06-03</TransDate>
+    <PostingDate>2026-06-04</PostingDate>
+    <Amount>36.64</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Alpine Parking</MerchantRaw>
+    <MCC>7523</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 58</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00059</ProviderTransId>
+    <CardId>CARD-0005</CardId>
+    <TransDate>2026-06-04</TransDate>
+    <PostingDate>2026-06-05</PostingDate>
+    <Amount>43.77</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>Woodgrove Supplies</MerchantRaw>
+    <MCC>5111</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 59</Notes>
+  </Transaction>
+  <Transaction>
+    <ProviderTransId>TXN00060</ProviderTransId>
+    <CardId>CARD-0006</CardId>
+    <TransDate>2026-06-05</TransDate>
+    <PostingDate>2026-06-06</PostingDate>
+    <Amount>50.9</Amount>
+    <CurrencyCode>USD</CurrencyCode>
+    <MerchantRaw>BlueYonder Travel</MerchantRaw>
+    <MCC>4722</MCC>
+    <Country>US</Country>
+    <Notes>Sample transaction 60</Notes>
+  </Transaction>
+</CorporateCardTransactions>
+

@@ -16,7 +16,7 @@ codeunit 7213 EACorpCardPostImportOrch
     var
         CorpCardBatch: Record EACorpCardBatch;
         CorpCardTrans: Record EACorpCardTrans;
-        CorpCardSetup: Record EACorpCardSetup;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         MerchantNorm: Codeunit EACorpCardMerchantNorm;
         EnhancedMatchMgt: Codeunit EACorpCardEnhancedMatchMgt;
         ExpWriter: Codeunit EACorpCardExpWriter;
@@ -29,8 +29,8 @@ codeunit 7213 EACorpCardPostImportOrch
         if not CorpCardBatch.Get(BatchNo) then
             exit;
 
-        if not CorpCardSetup.Get() then
-            CorpCardSetup.Init();
+        if not ExpenseAgentSetup.Get() then
+            ExpenseAgentSetup.Init();
 
         CorpCardTrans.SetRange("Batch No.", BatchNo);
         CorpCardTrans.SetRange(Status, CorpCardTrans.Status::Imported);
@@ -42,16 +42,20 @@ codeunit 7213 EACorpCardPostImportOrch
             MerchantNorm.NormalizeTransaction(CorpCardTrans);
             CorpCardTrans.Modify();
 
-            if EnhancedMatchMgt.EnhancedMatchTransaction(CorpCardTrans, MatchedExpenseNo) then begin
-                CorpCardTrans.Status := CorpCardTrans.Status::Matched;
-                CorpCardTrans."Expense No." := MatchedExpenseNo;
-                MatchedCount += 1;
+            if ExpenseAgentSetup."Corp Card Create Mode" = ExpenseAgentSetup."Corp Card Create Mode"::AutoDraft then begin
+                ExpWriter.CreateDraftFromTrans(CorpCardTrans, DraftExpenseNo);
+                AuditSubscribers.LogDraftCreated(CorpCardTrans."Entry No.", DraftExpenseNo);
             end else
-                if CorpCardSetup."Auto Create Draft" then begin
-                    ExpWriter.CreateDraftFromTrans(CorpCardTrans, DraftExpenseNo);
-                    AuditSubscribers.LogDraftCreated(CorpCardTrans."Entry No.", DraftExpenseNo);
+                if EnhancedMatchMgt.EnhancedMatchTransaction(CorpCardTrans, MatchedExpenseNo) then begin
+                    CorpCardTrans.Status := CorpCardTrans.Status::Matched;
+                    CorpCardTrans."Expense No." := MatchedExpenseNo;
+                    MatchedCount += 1;
                 end else
-                    UnmatchedCount += 1;
+                    if ExpenseAgentSetup."Corp Card Auto Create Draft" then begin
+                        ExpWriter.CreateDraftFromTrans(CorpCardTrans, DraftExpenseNo);
+                        AuditSubscribers.LogDraftCreated(CorpCardTrans."Entry No.", DraftExpenseNo);
+                    end else
+                        UnmatchedCount += 1;
 
             CorpCardTrans.Modify();
         until CorpCardTrans.Next() = 0;

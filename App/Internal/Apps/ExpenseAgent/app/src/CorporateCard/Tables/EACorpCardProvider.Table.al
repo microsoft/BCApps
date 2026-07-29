@@ -4,6 +4,8 @@
 // ------------------------------------------------------------------------------------------------
 namespace Microsoft.ExpenseAgent;
 
+using System.IO;
+
 table 7216 EACorpCardProvider
 {
     Access = Internal;
@@ -38,6 +40,7 @@ table 7216 EACorpCardProvider
         field(6; "Data Exch Def Code"; Code[20])
         {
             Caption = 'Data Exchange Definition Code';
+            TableRelation = "Data Exch. Def";
         }
         field(7; "Data Exch Map Code"; Code[20])
         {

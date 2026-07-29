@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Corporate Card module for Expense Agent provides automated import, normalization, matching, and reporting of corporate card transactions into the Business Central Expense framework.
+The Corporate Card module for Expense Agent provides automated import, normalization, draft creation, and reporting of corporate card transactions into the Business Central Expense framework.
 
 **Namespace:** `Microsoft.ExpenseAgent`  
 **Access Level:** `Internal` (all objects)  
@@ -15,10 +15,11 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 ### Design Principles
 
 1. **Automated Import Pipeline** - Provider-driven file import with field mapping validation
-2. **Intelligent Matching** - Multi-strategy transaction-to-expense matching with fuzzy algorithm
-3. **Scheduled Processing** - Job Queue integration for recurring imports with retry resilience
-4. **Standard Workflows** - Leverages platform Expense Report approval and GL posting
-5. **Comprehensive Observability** - Telemetry at every step: import → normalization → matching → reporting
+2. **Multi-Format Support** - CSV, generic XML, and SEPA CAMT mapping profiles
+3. **Configurable Creation Mode** - AutoDraft can create one draft per imported transaction
+4. **Scheduled Processing** - Job Queue integration for recurring imports with retry resilience
+5. **Standard Workflows** - Leverages platform Expense Report approval and GL posting
+6. **Comprehensive Observability** - Telemetry at every step: import → normalization → matching → reporting
 
 ### Workflow Stages
 
@@ -50,8 +51,8 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
                                 ↓
 ┌─────────────────────────────────────────────────────────────────────┐
 │ STAGE 4: DRAFT CREATION / MANUAL MATCHING                           │
-│ - Matched transactions: linked to existing expense (no draft)        │
-│ - Unmatched + Auto-Create enabled: new draft Expense created        │
+│ - AutoDraft mode: always creates 1 draft per imported transaction   │
+│ - ManualLink mode: tries matching first, then optional draft create │
 │ - Codeunit: EACorpCardExpWriter (7212)                             │
 │ - MCC mapping to category: Codeunit EACorpCardMCCMgt (7217)        │
 └─────────────────────────────────────────────────────────────────────┘
@@ -94,7 +95,7 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 | 7219 | EACorpCardReportMgt | Expense Report aggregation | CreateReportFromCorpCardExpenses, AddExpenseToReport, ReleaseExpenseForReporting |
 | 7223 | EACorpCardJQRunner | Job Queue entry point with error resilience | OnRun (Job Queue trigger) |
 
-### Pages (13 total)
+### Pages (12 total)
 
 | ID | Name | Type | Purpose |
 |----|------|------|----------|
@@ -104,11 +105,10 @@ The Corporate Card module for Expense Agent provides automated import, normaliza
 | 7223 | EACorpCardTransList | List | Imported transaction listing with expense linking |
 | 7224 | EACorpCardProviders | List | Provider administration with scheduling actions |
 | 7225 | EACorpCardMCCMap | List | Merchant category code to expense category mapping |
-| 7226 | EACorpCardSetupPage | Card | Setup configuration for import parameters |
 | 7227 | EACorpCardMerchantRules | List | Merchant name normalization regex pattern rules |
 | 7228 | EACorpCardDashboard | RoleCenter | Import reconciliation dashboard with navigation |
 | 7229 | EACorpCardJQSchedule | List+Card | Job Queue schedule management UI for providers |
-| 7230 | EACorpCardJQScheduleSubpage | Subpage | Read-only Job Queue entry details filtered by provider |
+| 7235 | EACorpCardJQScheduleSubpage | Subpage | Read-only Job Queue entry details filtered by provider |
 | 7231 | EACorpCardDashboardFactbox | ListPart | Recent import batches sorted chronologically |
 | 7232 | EACorpCardStatisticsFactbox | CardPart | KPI statistics (30-day rolling aggregation) |
 
@@ -130,7 +130,7 @@ The module uses only **platform tables**:
 ```
 Provider.Download()
     → Creates Data Exchange record
-    → Injects source file content (CSV/XML)
+    → Injects source file content (CSV/XML/CAMT)
             ↓
 Provider.ParseToStaging()
     → Validates field mappings (EACorpCardMapMgt)
@@ -140,8 +140,8 @@ Provider.ParseToStaging()
 EACorpCardPostImportOrch.ProcessBatchPostImport()
     → For each transaction:
         1. EACorpCardMerchantNorm.NormalizeTransaction()
-        2. EACorpCardEnhancedMatchMgt.EnhancedMatchTransaction()
-        3. If matched: update Status=Matched, Expense No.
+        2. If Create Mode = AutoDraft: EACorpCardExpWriter.CreateDraftFromTrans()
+        3. Else try EACorpCardEnhancedMatchMgt.EnhancedMatchTransaction()
         4. If unmatched + Auto-Create: EACorpCardExpWriter.CreateDraftFromTrans()
     → Log results via AuditSubscribers
             ↓
@@ -230,10 +230,12 @@ Platform ExpenseReportPost (Codeunit 6987)
    - Upload first payload or configure API connection
 
 3. **Configure Import Parameters**
-   - Navigate: Corp Card Setup
-   - Date Match Window: Days to search before/after trans date (default: 0)
-   - Amount Tolerance: Decimal variance allowed (default: 0)
-   - Auto Create Draft: Boolean (default: false)
+    - Navigate: Expense Agent Setup → Corporate Card
+    - Corp Card Create Mode
+    - Corp Card Date Match Window (first-time default: 7)
+    - Corp Card Amount Tolerance (first-time default: 5)
+    - Corp Card Auto Create Draft (first-time default: true)
+    - Corp Card Default Provider
 
 4. **Enable Approval Workflow (Optional)**
    - Navigate: Expense Agent Setup
@@ -262,7 +264,7 @@ Platform ExpenseReportPost (Codeunit 6987)
    - Available actions:
      - **Corp Card Dashboard:** View import statistics & recent batches
      - **Corp Card Providers:** Manage providers & scheduling
-     - **Corp Card Setup:** Configure import settings
+    - **Corp Card Setup:** Opens Expense Agent Setup (Corporate Card group)
      - **Merchant Normalization Rules:** Add custom regex patterns
      - **MCC Code Mappings:** Map category codes to expense categories
 
@@ -341,18 +343,18 @@ All events logged to platform telemetry with:
 
 ### Role Center Hub (ExpenseManagementRoleCenter)
 
-A new **"Corporate Card"** section was added to the main Expense Management Role Center with 5 key actions:
+A **"Corporate Card"** section is available in the main Expense Management Role Center with 5 key actions:
 
 ```
 ExpenseManagementRoleCenter (6933)
 └── Corporate Card Group
-    ├─ Corp Card Dashboard (7177)
+    ├─ Corp Card Dashboard (7228)
     │  └─ Shows: Recent batches, statistics, import status
     │  └─ Actions: Providers, Transactions, Batches, Exceptions, Setup
     ├─ Corp Card Providers (7224)
     │  └─ Manage provider credentials & scheduling
-    ├─ Corp Card Setup (7226)
-    │  └─ Configure import settings & parameters
+    ├─ Corp Card Setup
+    │  └─ Opens Expense Agent Setup (Corporate Card settings)
     ├─ Merchant Normalization Rules (7227)
     │  └─ Create/edit regex patterns for merchant standardization
     └─ MCC Code Mappings (7225)
@@ -363,7 +365,7 @@ ExpenseManagementRoleCenter (6933)
 
 ### Dashboard Navigation
 
-The **EACorpCardDashboard** (RoleCenter 7177) provides drill-down navigation:
+The **EACorpCardDashboard** (RoleCenter 7228) provides drill-down navigation:
 
 | Navigation Area | Target | Purpose |
 |-----------------|--------|---------|
@@ -371,7 +373,7 @@ The **EACorpCardDashboard** (RoleCenter 7177) provides drill-down navigation:
 | Transactions | EACorpCardTransList (7223) | View imported transactions |
 | Batches | EACorpCardBatches (7220) | View import batches |
 | Exceptions | EACorpCardExceptions (7222) | View & resolve import errors |
-| Setup | EACorpCardSetupPage (7226) | Configure import parameters |
+| Setup | Expense Agent Setup (6996) | Configure import parameters |
 
 ### Employee Integration
 
@@ -388,8 +390,8 @@ Pages are interlinked with drill-down actions:
 
 | Page | Drill-Down Actions |
 |------|-------------------|
-| EACorpCardBatches (7220) | → View Transactions, View Exceptions |
-| EACorpCardTransList (7223) | → View Batch, Open Expense |
+| EACorpCardBatches (7220) | → Show Transactions, Run Matching |
+| EACorpCardTransList (7223) | → Open Matched Expense |
 | EACorpCardExceptions (7222) | → Mark Resolved, View Batch, View Transaction |
 
 ---
@@ -402,6 +404,12 @@ Pages are interlinked with drill-down actions:
 ✅ **Fuzzy Algorithm:** Levenshtein distance for typo tolerance  
 ✅ **Scoring:** 0-100 scale with degradation for date/amount variance  
 ✅ **Configurable:** Match window + amount tolerance via setup  
+
+### Draft-Per-Transaction Mode
+
+✅ **AutoDraft 1:1:** One imported transaction creates one draft expense  
+✅ **Amount Integrity:** Draft amount equals transaction amount  
+✅ **Deterministic Output:** No reuse of existing open expenses in AutoDraft mode  
 
 ### Merchant Normalization
 
@@ -434,7 +442,7 @@ Pages are interlinked with drill-down actions:
 |----------|--------|--------|
 | Provider file format error | Logged as exception | Transaction marked Status=Exception, batch continues |
 | Field mapping missing | Validation error raised | Import stops, user notified, batch marked Failed |
-| No data in file | Creates batch, 0 records | Batch marked Completed, no error |
+| No data in file | Import fails with explicit error | Batch marked Failed with diagnostics |
 
 ### Matching Errors
 
@@ -528,8 +536,8 @@ Pages are interlinked with drill-down actions:
 
 **Symptom:** Many transactions unmatched  
 **Check:**
-1. Date window too narrow? → Increase EACorpCardSetup."Date Match Window"
-2. Amount tolerance too strict? → Increase EACorpCardSetup."Amount Tolerance"
+1. Date window too narrow? → Increase Expense Agent Setup."Corp Card Date Match Window"
+2. Amount tolerance too strict? → Increase Expense Agent Setup."Corp Card Amount Tolerance"
 3. Merchant names different? → Add regex normalization rules in EACorpCardMerchantRule
 4. No open expenses for employees? → Ensure Open expenses exist before import
 
@@ -537,9 +545,15 @@ Pages are interlinked with drill-down actions:
 
 **Symptom:** Unmatched transactions but no drafts  
 **Check:**
-1. Auto-Create enabled? → Set EACorpCardSetup."Auto Create Draft" = true
-2. Expense User No. valid? → Verify transaction has expense user linked
-3. Transaction status? → Should be Status=Imported before post-import processing
+1. Auto-Create enabled? → Set Expense Agent Setup."Corp Card Auto Create Draft" = true
+2. Create mode? → For strict 1:1 creation set Expense Agent Setup."Corp Card Create Mode" = AutoDraft
+3. Expense User No. valid? → Verify transaction has expense user linked
+4. Transaction status? → Should be Status=Imported before post-import processing
+
+### File Format Visibility
+
+**Symptom:** Unsure which profile will be used for import  
+**Check:** Corp Card Providers page → `Detected Source Format` column (CSV/XML/CAMT/Not set/Unknown)
 
 ---
 
@@ -551,6 +565,6 @@ Pages are interlinked with drill-down actions:
 
 ---
 
-**Document Version:** 1.0  
-**Last Updated:** 2026-07-28  
-**Module Status:** Sprint 3 Complete (All features implemented and integrated)
+**Document Version:** 1.1  
+**Last Updated:** 2026-07-29  
+**Module Status:** Active (CSV/XML/CAMT import and AutoDraft 1:1 flow enabled)

@@ -53,6 +53,11 @@ page 7220 EACorpCardBatches
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the number of imported transactions.';
                 }
+                field("Imported Transactions"; Rec."Imported Transactions")
+                {
+                    ApplicationArea = Basic, Suite;
+                    ToolTip = 'Specifies the actual number of transactions currently stored for this batch.';
+                }
                 field(Rejected; Rec.Rejected)
                 {
                     ApplicationArea = Basic, Suite;
@@ -68,6 +73,44 @@ page 7220 EACorpCardBatches
                     ApplicationArea = Basic, Suite;
                     ToolTip = 'Specifies the number of transactions with exceptions.';
                 }
+            }
+        }
+    }
+
+    actions
+    {
+        area(Processing)
+        {
+            action(RunMatching)
+            {
+                Caption = 'Run Matching';
+                ApplicationArea = Basic, Suite;
+                Image = Calculate;
+                ToolTip = 'Runs post-import matching and draft creation for imported transactions in the selected batch.';
+
+                trigger OnAction()
+                var
+                    PostImportOrch: Codeunit EACorpCardPostImportOrch;
+                begin
+                    PostImportOrch.ProcessBatchPostImport(Rec."Batch No.");
+                    CurrPage.Update(false);
+                end;
+            }
+            action(ShowTransactions)
+            {
+                Caption = 'Show Transactions';
+                ApplicationArea = Basic, Suite;
+                Image = List;
+                ToolTip = 'Opens corporate card transactions for the selected batch.';
+
+                trigger OnAction()
+                var
+                    CorpCardTrans: Record EACorpCardTrans;
+                begin
+                    CorpCardTrans.SetRange("Batch No.", Rec."Batch No.");
+                    CorpCardTrans.SetRange("Provider Code", Rec."Provider Code");
+                    Page.RunModal(Page::EACorpCardTransList, CorpCardTrans);
+                end;
             }
         }
     }

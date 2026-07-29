@@ -214,7 +214,7 @@ page 6933 "Expense Management Role Center"
                     {
                         Caption = 'Corp Card Setup';
                         ApplicationArea = Basic, Suite;
-                        RunObject = Page "EACorpCardSetupPage";
+                        RunObject = Page "Expense Agent Setup";
                         ToolTip = 'Configure corporate card import parameters.';
                     }
                     action("Merchant Normalization Rules")

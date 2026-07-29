@@ -13,7 +13,6 @@ codeunit 7216 EACorpCardEnhancedMatchMgt
     Access = Internal;
 
     var
-        HighScoreThreshold: Decimal;
         MediumScoreThreshold: Decimal;
 
     /// <summary>
@@ -25,7 +24,6 @@ codeunit 7216 EACorpCardEnhancedMatchMgt
         MatchScore: Decimal;
     begin
         // Initialize thresholds
-        HighScoreThreshold := 0.85;  // 85% similarity for high confidence
         MediumScoreThreshold := 0.70; // 70% similarity for medium confidence
 
         // Strategy 1: Exact match by amount, date, user (highest priority)
@@ -58,7 +56,7 @@ codeunit 7216 EACorpCardEnhancedMatchMgt
     /// </summary>
     local procedure ExactAmountDateMatch(var CorpCardTrans: Record EACorpCardTrans; var ExpenseNo: Code[20]; var MatchScore: Decimal): Boolean
     var
-        CorpCardSetup: Record EACorpCardSetup;
+        ExpenseAgentSetup: Record "Expense Agent Setup";
         CorpCard: Record EACorpCard;
         Expense: Record Expense;
         DateDiff: Integer;
@@ -69,11 +67,11 @@ codeunit 7216 EACorpCardEnhancedMatchMgt
         if not CorpCard.Get(CorpCardTrans."Card Id") then
             exit(false);
 
-        if not CorpCardSetup.Get() then
+        if not ExpenseAgentSetup.Get() then
             exit(false);
 
-        MaxDateDiff := CorpCardSetup."Date Match Window";
-        MaxAmountDiff := CorpCardSetup."Amount Tolerance";
+        MaxDateDiff := ExpenseAgentSetup."Corp Card Date Match Window";
+        MaxAmountDiff := ExpenseAgentSetup."Corp Card Amount Tolerance";
 
         Expense.SetRange("Expense User No.", CorpCard."Expense User No.");
         Expense.SetRange("Status", Expense."Status"::Open);
@@ -195,7 +193,7 @@ codeunit 7216 EACorpCardEnhancedMatchMgt
         i: Integer;
         j: Integer;
         Cost: Integer;
-        Matrix: array[100, 100] of Integer;
+        Matrix: array[101, 101] of Integer;
     begin
         Len1 := StrLen(Text1);
         Len2 := StrLen(Text2);
@@ -212,23 +210,23 @@ codeunit 7216 EACorpCardEnhancedMatchMgt
         if Len2 > 100 then
             Len2 := 100;
 
-        // Initialize first row and column
-        for i := 0 to Len1 do
-            Matrix[i, 0] := i;
-        for j := 0 to Len2 do
-            Matrix[0, j] := j;
+        // Use a 1-based matrix where row/column 1 represents distance against empty string.
+        for i := 1 to Len1 + 1 do
+            Matrix[i, 1] := i - 1;
+        for j := 1 to Len2 + 1 do
+            Matrix[1, j] := j - 1;
 
         // Compute distance
-        for i := 1 to Len1 do
-            for j := 1 to Len2 do begin
-                if Text1[i] = Text2[j] then
+        for i := 2 to Len1 + 1 do
+            for j := 2 to Len2 + 1 do begin
+                if Text1[i - 1] = Text2[j - 1] then
                     Cost := 0
                 else
                     Cost := 1;
                 Matrix[i, j] := Min(Min(Matrix[i - 1, j] + 1, Matrix[i, j - 1] + 1), Matrix[i - 1, j - 1] + Cost);
             end;
 
-        exit(Matrix[Len1, Len2]);
+        exit(Matrix[Len1 + 1, Len2 + 1]);
     end;
 
     local procedure DaysBetween(Date1: Date; Date2: Date): Integer

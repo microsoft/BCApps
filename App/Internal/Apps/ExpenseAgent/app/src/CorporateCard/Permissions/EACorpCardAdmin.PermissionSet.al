@@ -15,6 +15,8 @@ permissionset 7213 EACorpCardAdmin
     Permissions =
         page EACorpCardJQSchedule = X,
         page EACorpCardJQScheduleSubpage = X,
+        codeunit EACorpCardDESeed = X,
+        codeunit EACorpCardDENoop = X,
         tabledata EACorpCardProvider = D,
         tabledata EACorpCard = D,
         tabledata EACorpCardTrans = D,
@@ -23,5 +25,5 @@ permissionset 7213 EACorpCardAdmin
         tabledata EACorpCardException = D,
         tabledata EACorpCardMCCMap = D,
         tabledata EACorpCardMerchantRule = D,
-        tabledata EACorpCardSetup = D;
+        tabledata "Expense Agent Setup" = D;
 }

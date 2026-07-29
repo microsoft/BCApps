@@ -6,7 +6,7 @@ namespace Microsoft.ExpenseAgent;
 
 using System.Threading;
 
-page 7230 "EACorpCardJQScheduleSubpage"
+page 7235 "EACorpCardJQScheduleSubpage"
 {
     ApplicationArea = Basic, Suite;
     Caption = 'Job Queue Schedule';
