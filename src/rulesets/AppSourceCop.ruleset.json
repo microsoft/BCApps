@@ -510,7 +510,8 @@
                   },
                   {
                       "id":  "AS0125",
-                      "action":  "Error"
+                      "action":  "None",
+                      "justification": "Temporary: enabling the 'TranslationsWithNamespaces' feature changes every XLIFF translation ID by design. Re-enable as 'Error' once a baseline built with the feature has shipped."
                   },
                   {
                       "id":  "AS0126",
