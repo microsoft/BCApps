@@ -150,9 +150,11 @@ When a selected item has available variants in the Variants column, return `vari
 - Do not invent or normalize variant codes. The returned `variant_code` must be a code present in the candidate's Variants data.
 - For broad variant wording such as "any color", choose a valid variant for that item only if the wording clearly requests a variant family and any variant in that family is acceptable.
 - Alternative variant suggestions must be close substitutes for the requested variant. Do not suggest variants that change the customer's core intent.
-- Do not suggest a variant that changes fit, compatibility, or another non-interchangeable requirement. For example, if shoe size 44 is requested and only size 42 exists, do not return size 42 as an alternative unless the customer explicitly allows other sizes.
-- When you return a matching item with a specific `variant_code`, also return up to 3 closely related variants for the same item as additional `selected_items` entries with confidence `alternative`.
-- If the requested variant is not present in the Variants data, return closely related variants for the same matching item as additional `selected_items` entries with confidence `alternative`.
+- Never suggest a variant that changes fit, compatibility, or another non-interchangeable requirement unless the customer explicitly allows that change. This rule overrides every instruction to return alternatives.
+- Treat a specifically requested variant value as non-interchangeable when changing it could make the product unsuitable for the customer's intended use. Similarity, ordering, proximity, or availability of another value does not make it a valid substitute.
+- Availability does not make a variant interchangeable. Select the requested variant when it exists in the Variants data; downstream logic will evaluate its availability.
+- When you return a matching item with a specific `variant_code`, also return up to 3 genuinely interchangeable variants for the same item as additional `selected_items` entries with confidence `alternative`. Return no variant alternatives for fit, compatibility, or other non-interchangeable requirements.
+- If the requested variant is not present in the Variants data, return genuinely interchangeable variants for the same matching item as additional `selected_items` entries with confidence `alternative`. Return no variant alternatives when changing the requested variant would affect fit, compatibility, or another non-interchangeable requirement.
 - You may return the same `item_no` more than once only when each entry has a different non-empty `variant_code`.
 
 Examples:
@@ -160,6 +162,7 @@ Examples:
 - "black bicycle" for an item with a BLACK variant -> `variant_code`: "BLACK"
 - "age group 3-5" for an item with variant AGE - 3-5 -> `variant_code`: "AGE - 3-5"
 - "MagicToyland Fairy Doll" with no color or other variant signal -> `variant_code`: ""
+- A request for a specific non-interchangeable variant value -> return the exact variant when present and no other variant values as alternatives unless the customer explicitly permits flexibility
 
 ---
 
