@@ -69,53 +69,53 @@ page 9001 "Accounting Manager Role Center"
     {
         area(rolecenter)
         {
-                part(Control1902304208; "Account Manager Activities")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                part("User Tasks Activities"; "User Tasks Activities")
-                {
-                    ApplicationArea = Suite;
-                }
-                part("Job Queue Tasks Activities"; "Job Queue Tasks Activities")
-                {
-                    ApplicationArea = Suite;
-                }
-                part(Control99; "Finance Performance")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Visible = false;
-                }
-                part(Control103; "Trailing Sales Orders Chart")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Visible = false;
-                }
-                part(Control106; "My Job Queue")
-                {
-                    ApplicationArea = Basic, Suite;
-                    Visible = false;
-                }
-                part(Control100; "Cash Flow Forecast Chart")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                part(Control1907692008; "My Customers")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                part(Control1902476008; "My Vendors")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                part(Control108; "Report Inbox Part")
-                {
-                    ApplicationArea = Basic, Suite;
-                }
-                systempart(Control1901377608; MyNotes)
-                {
-                    ApplicationArea = Basic, Suite;
-                }
+            part(Control1902304208; "Account Manager Activities")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            part("User Tasks Activities"; "User Tasks Activities")
+            {
+                ApplicationArea = Suite;
+            }
+            part("Job Queue Tasks Activities"; "Job Queue Tasks Activities")
+            {
+                ApplicationArea = Suite;
+            }
+            part(Control99; "Finance Performance")
+            {
+                ApplicationArea = Basic, Suite;
+                Visible = false;
+            }
+            part(Control103; "Trailing Sales Orders Chart")
+            {
+                ApplicationArea = Basic, Suite;
+                Visible = false;
+            }
+            part(Control106; "My Job Queue")
+            {
+                ApplicationArea = Basic, Suite;
+                Visible = false;
+            }
+            part(Control100; "Cash Flow Forecast Chart")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            part(Control1907692008; "My Customers")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            part(Control1902476008; "My Vendors")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            part(Control108; "Report Inbox Part")
+            {
+                ApplicationArea = Basic, Suite;
+            }
+            systempart(Control1901377608; MyNotes)
+            {
+                ApplicationArea = Basic, Suite;
+            }
         }
     }
 
@@ -692,7 +692,7 @@ page 9001 "Accounting Manager Role Center"
                 }
                 action("Cost Centers")
                 {
-                    ApplicationArea = Dimensions;
+                    ApplicationArea = CostAccounting;
                     Caption = 'Cost Centers';
                     RunObject = Page "Chart of Cost Centers";
                     ToolTip = 'Manage cost centers, which are departments and profit centers that are responsible for costs and income. Often, there are more cost centers set up in cost accounting than in any dimension that is set up in the general ledger. In the general ledger, usually only the first level cost centers for direct costs and the initial costs are used. In cost accounting, additional cost centers are created for additional allocation levels.';
@@ -1055,7 +1055,7 @@ page 9001 "Accounting Manager Role Center"
             }
             action("Cost Accounting Setup")
             {
-                ApplicationArea = Dimensions;
+                ApplicationArea = CostAccounting;
                 Caption = 'Cost Accounting Setup';
                 Image = CostAccountingSetup;
                 RunObject = Page "Cost Accounting Setup";

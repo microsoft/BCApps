@@ -3840,52 +3840,6 @@ table 81 "Gen. Journal Line"
                 UpdateVendorNo();
             end;
         }
-        field(11000000; "Transaction Mode Code"; Code[20])
-        {
-            Caption = 'Transaction Mode Code';
-            TableRelation = if ("Account Type" = const(Customer)) "Transaction Mode".Code where("Account Type" = const(Customer))
-            else
-            if ("Account Type" = const(Vendor)) "Transaction Mode".Code where("Account Type" = const(Vendor))
-            else
-            if ("Account Type" = const(Employee)) "Transaction Mode".Code where("Account Type" = const(Employee))
-            else
-            if ("Bal. Account Type" = const(Customer)) "Transaction Mode".Code where("Account Type" = const(Customer))
-            else
-            if ("Bal. Account Type" = const(Vendor)) "Transaction Mode".Code where("Account Type" = const(Vendor))
-            else
-            if ("Bal. Account Type" = const(Employee)) "Transaction Mode".Code where("Account Type" = const(Employee));
-
-            trigger OnValidate()
-            var
-                TrMode: Record "Transaction Mode";
-            begin
-                if "Transaction Mode Code" <> '' then begin
-                    case "Account Type" of
-                        "Account Type"::Customer:
-                            TrMode.Get(TrMode."Account Type"::Customer, "Transaction Mode Code");
-                        "Account Type"::Vendor:
-                            TrMode.Get(TrMode."Account Type"::Vendor, "Transaction Mode Code");
-                        "Account Type"::Employee:
-                            TrMode.Get(TrMode."Account Type"::Employee, "Transaction Mode Code");
-                        else
-                            case "Bal. Account Type" of
-                                "Bal. Account Type"::Customer:
-                                    TrMode.Get(TrMode."Account Type"::Customer, "Transaction Mode Code");
-                                "Bal. Account Type"::Vendor:
-                                    TrMode.Get(TrMode."Account Type"::Vendor, "Transaction Mode Code");
-                                "Bal. Account Type"::Employee:
-                                    TrMode.Get(TrMode."Account Type"::Employee, "Transaction Mode Code");
-                                else
-                                    Error(
-                                      Text1000000, FieldCaption("Transaction Mode Code"), FieldCaption("Account Type"), FieldCaption("Bal. Account Type"));
-                            end;
-                    end;
-
-                    if TrMode."Payment Terms Code" <> '' then
-                        Validate("Payment Terms Code", TrMode."Payment Terms Code");
-                end;
-            end;
-        }
     }
 
     keys
@@ -4123,7 +4077,6 @@ table 81 "Gen. Journal Line"
 #pragma warning restore AA0470
 #pragma warning restore AA0074
         GLSetupRead: Boolean;
-        Text1000000: Label '%1 can only be filled in when %2 %3 is equal to Customer or Vendor.';
         ExportAgainQst: Label 'One or more of the selected lines have already been exported. Do you want to export them again?';
         NothingToExportErr: Label 'There is nothing to export.';
         NotExistErr: Label 'Document number %1 does not exist or is already closed.', Comment = '%1=Document number';
@@ -7288,7 +7241,6 @@ table 81 "Gen. Journal Line"
                 "Payment Reference" := PurchHeader."Vendor Invoice No.";
         end;
         "Payment Method Code" := PurchHeader."Payment Method Code";
-        "Transaction Mode Code" := PurchHeader."Transaction Mode Code";
         "Recipient Bank Account" := PurchHeader."Bank Account Code";
 
         OnAfterCopyGenJnlLineFromPurchHeaderPayment(PurchHeader, Rec);
@@ -7384,7 +7336,6 @@ table 81 "Gen. Journal Line"
         "Pmt. Discount Date" := SalesHeader."Pmt. Discount Date";
         "Payment Discount %" := SalesHeader."Payment Discount %";
         "Direct Debit Mandate ID" := SalesHeader."Direct Debit Mandate ID";
-        "Transaction Mode Code" := SalesHeader."Transaction Mode Code";
         "Recipient Bank Account" := SalesHeader."Bank Account Code";
 
         OnAfterCopyGenJnlLineFromSalesHeaderPayment(SalesHeader, Rec);
@@ -7813,7 +7764,6 @@ table 81 "Gen. Journal Line"
         CheckConfirmDifferentCustomerAndBillToCustomer(Cust, "Account No.");
         OnGetCustomerAccountOnBeforeValidatePaymentTermsCode(Rec, Cust, HideValidationDialog);
         Validate("Payment Terms Code");
-        "Transaction Mode Code" := Cust."Transaction Mode Code";
         CheckPaymentTolerance();
 
         OnAfterAccountNoOnValidateGetCustomerAccount(Rec, Cust, CurrFieldNo);
@@ -7860,7 +7810,6 @@ table 81 "Gen. Journal Line"
         ClearBalancePostingGroups();
         CheckConfirmDifferentCustomerAndBillToCustomer(Cust, "Bal. Account No.");
         Validate("Payment Terms Code");
-        "Transaction Mode Code" := Cust."Transaction Mode Code";
         CheckPaymentTolerance();
 
         OnAfterAccountNoOnValidateGetCustomerBalAccount(Rec, Cust, CurrFieldNo);
@@ -7903,7 +7852,6 @@ table 81 "Gen. Journal Line"
         ClearPostingGroups();
         CheckConfirmDifferentVendorAndPayToVendor(Vend, "Account No.");
         Validate("Payment Terms Code");
-        "Transaction Mode Code" := Vend."Transaction Mode Code";
         CheckPaymentTolerance();
 
         OnAfterAccountNoOnValidateGetVendorAccount(Rec, Vend, CurrFieldNo);
@@ -7948,7 +7896,6 @@ table 81 "Gen. Journal Line"
         Validate("Recipient Bank Account", Employee."No.");
         "Posting Group" := Employee."Employee Posting Group";
         SetSalespersonPurchaserCode(Employee."Salespers./Purch. Code", "Salespers./Purch. Code");
-        "Transaction Mode Code" := Employee."Transaction Mode Code";
         if not SetCurrencyCode("Bal. Account Type", "Bal. Account No.") then
             "Currency Code" := Employee."Currency Code";
         ClearPostingGroups();
@@ -7977,7 +7924,6 @@ table 81 "Gen. Journal Line"
         ClearBalancePostingGroups();
         CheckConfirmDifferentVendorAndPayToVendor(Vend, "Bal. Account No.");
         Validate("Payment Terms Code");
-        "Transaction Mode Code" := Vend."Transaction Mode Code";
         CheckPaymentTolerance();
 
         OnAfterAccountNoOnValidateGetVendorBalAccount(Rec, Vend, CurrFieldNo);
@@ -8007,7 +7953,6 @@ table 81 "Gen. Journal Line"
         Validate("Recipient Bank Account", Employee."No.");
         "Posting Group" := Employee."Employee Posting Group";
         SetSalespersonPurchaserCode(Employee."Salespers./Purch. Code", "Salespers./Purch. Code");
-        "Transaction Mode Code" := Employee."Transaction Mode Code";
         if ("Account No." = '') or ("Account Type" = "Account Type"::"G/L Account") then
             "Currency Code" := Employee."Currency Code";
         ClearBalancePostingGroups();

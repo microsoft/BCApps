@@ -736,41 +736,6 @@ table 25 "Vendor Ledger Entry"
         {
             Caption = 'Transaction Mode Code';
             TableRelation = "Transaction Mode".Code where("Account Type" = const(Vendor));
-
-            trigger OnValidate()
-            var
-            begin
-            end;
-        }
-        field(11000002; "Payments in Process"; Decimal)
-        {
-            AutoFormatExpression = "Currency Code";
-            AutoFormatType = 1;
-            BlankZero = true;
-            CalcFormula = sum("Detail Line"."Amount (Entry)" where("Serial No. (Entry)" = field("Entry No."),
-                                                                    Status = const("In process"),
-                                                                    "Account Type" = const(Vendor),
-                                                                    "Connect Batches" = field("Connect Batches Filter"),
-                                                                    "Connect Lines" = field("Connect Lines Filter"),
-                                                                    "Our Bank" = field("Our Bank Filter")));
-            Caption = 'Payments in Process';
-            Editable = false;
-            FieldClass = FlowField;
-        }
-        field(11000003; "Connect Batches Filter"; Code[20])
-        {
-            Caption = 'Connect Batches Filter';
-            FieldClass = FlowFilter;
-        }
-        field(11000004; "Connect Lines Filter"; Integer)
-        {
-            Caption = 'Connect Lines Filter';
-            FieldClass = FlowFilter;
-        }
-        field(11000005; "Our Bank Filter"; Code[20])
-        {
-            Caption = 'Our Bank Filter';
-            FieldClass = FlowFilter;
         }
     }
 
@@ -813,16 +778,13 @@ table 25 "Vendor Ledger Entry"
         key(Key15; "Vendor No.", "Applies-to ID", Open, Positive, "Due Date")
         {
         }
-        key(Key16; Open, "On Hold", "Transaction Mode Code")
+        key(Key16; "Vendor Posting Group")
         {
         }
-        key(Key17; "Vendor Posting Group")
+        key(Key17; "Pmt. Discount Date")
         {
         }
-        key(Key18; "Pmt. Discount Date")
-        {
-        }
-        key(Key19; "Document Type", "Due Date", Open)
+        key(Key18; "Document Type", "Due Date", Open)
         {
         }
         key(Key25; "Vendor No.", "Posting Date", "Applies-to ID")
@@ -832,6 +794,9 @@ table 25 "Vendor Ledger Entry"
         key(Key26; "Applies-to ID")
         {
             IncludedFields = "Accepted Payment Tolerance";
+        }
+        key(TransactionMode; Open, "On Hold", "Transaction Mode Code")
+        {
         }
     }
 
@@ -1052,7 +1017,6 @@ table 25 "Vendor Ledger Entry"
         "Payment Reference" := GenJnlLine."Payment Reference";
         "Payment Method Code" := GenJnlLine."Payment Method Code";
         "Exported to Payment File" := GenJnlLine."Exported to Payment File";
-        "Transaction Mode Code" := GenJnlLine."Transaction Mode Code";
         if (GenJnlLine."Remit-to Code" <> '') then
             "Remit-to Code" := GenJnlLine."Remit-to Code";
 

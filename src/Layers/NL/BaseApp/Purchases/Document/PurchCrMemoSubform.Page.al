@@ -423,25 +423,6 @@ page 98 "Purch. Cr. Memo Subform"
                     ApplicationArea = Basic, Suite;
                     Visible = ShowNonDedVATInLines;
                 }
-                field(Amount; Rec.Amount)
-                {
-                    ApplicationArea = Basic, Suite;
-                    BlankZero = true;
-                    ToolTip = 'Specifies the sum of amounts in the Line Amount field on the document lines.';
-                    Visible = false;
-                }
-                field("Amount Including VAT"; Rec."Amount Including VAT")
-                {
-                    ApplicationArea = Basic, Suite;
-                    BlankZero = true;
-                    ToolTip = 'Specifies the net amount, including VAT, for this line.';
-                    Visible = false;
-
-                    trigger OnValidate()
-                    begin
-                        DeltaUpdateTotals();
-                    end;
-                }
                 field("Allow Item Charge Assignment"; Rec."Allow Item Charge Assignment")
                 {
                     ApplicationArea = ItemCharges;

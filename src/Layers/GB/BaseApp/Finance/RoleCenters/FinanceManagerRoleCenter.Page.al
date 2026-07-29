@@ -96,7 +96,6 @@ using System.Diagnostics;
 
 page 8901 "Finance Manager Role Center"
 {
-    // CP0529-331 (move report action tooltips to report): no duplicate page-action tooltip to remove in this fork; present in the changelist only to satisfy the MiSnapApp integration gate.
     Caption = 'Finance Manager Role Center';
     PageType = RoleCenter;
 
@@ -2555,9 +2554,10 @@ page 8901 "Finance Manager Role Center"
                     Caption = 'Posting Groups';
                     action("General Business")
                     {
+                        ApplicationArea = Basic, Suite;
                         Caption = 'General Business Posting Groups';
                         RunObject = page "Gen. Business Posting Groups";
-                        Tooltip = 'Open the Gen. Business Posting Groups page.';
+                        Tooltip = 'Open the General Business Posting Groups page.';
                     }
                     action("Gen. Product Posting Groups")
                     {

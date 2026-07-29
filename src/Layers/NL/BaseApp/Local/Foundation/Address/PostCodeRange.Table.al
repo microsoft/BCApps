@@ -51,13 +51,13 @@ table 11406 "Post Code Range"
                 case Type of
                     Type::" ", Type::"House Boat", Type::"House Trailer":
                         if "From No." <> 0 then
-                            FieldError("From No.", StrSubstNo(Text001, FieldCaption(Type), Type));
+                            FieldError("From No.", StrSubstNo(MustBe0Lbl, FieldCaption(Type), Type));
                     Type::Odd:
                         if "From No." mod 2 <> 1 then
-                            FieldError("From No.", StrSubstNo(Text002, FieldCaption(Type), Type));
+                            FieldError("From No.", StrSubstNo(MustBeOddLbl, FieldCaption(Type), Type));
                     Type::Even:
                         if "From No." mod 2 <> 0 then
-                            FieldError("From No.", StrSubstNo(Text003, FieldCaption(Type), Type));
+                            FieldError("From No.", StrSubstNo(MustBeEvenLbl, FieldCaption(Type), Type));
                 end;
             end;
         }
@@ -71,13 +71,13 @@ table 11406 "Post Code Range"
                 case Type of
                     Type::" ", Type::"House Boat", Type::"House Trailer":
                         if "To No." <> 0 then
-                            FieldError("To No.", StrSubstNo(Text001, FieldCaption(Type), Type));
+                            FieldError("To No.", StrSubstNo(MustBe0Lbl, FieldCaption(Type), Type));
                     Type::Odd:
                         if "To No." mod 2 <> 1 then
-                            FieldError("To No.", StrSubstNo(Text002, FieldCaption(Type), Type));
+                            FieldError("To No.", StrSubstNo(MustBeOddLbl, FieldCaption(Type), Type));
                     Type::Even:
                         if "To No." mod 2 <> 0 then
-                            FieldError("To No.", StrSubstNo(Text003, FieldCaption(Type), Type));
+                            FieldError("To No.", StrSubstNo(MustBeEvenLbl, FieldCaption(Type), Type));
                 end;
             end;
         }
@@ -122,9 +122,9 @@ table 11406 "Post Code Range"
     end;
 
     var
-        Text001: Label 'must be 0 if %1 is %2';
-        Text002: Label 'must be odd if %1 is %2';
-        Text003: Label 'must be even if %1 is %2';
+        MustBe0Lbl: Label 'must be 0 if %1 is %2', Comment = '%1 = Field Caption (Type), %2 = Type value';
+        MustBeOddLbl: Label 'must be odd if %1 is %2', Comment = '%1 = Field Caption (Type), %2 = Type value';
+        MustBeEvenLbl: Label 'must be even if %1 is %2', Comment = '%1 = Field Caption (Type), %2 = Type value';
 
     protected var
         PostCode: Record "Post Code";

@@ -5,8 +5,6 @@
 namespace Microsoft.Finance.RoleCenters;
 
 using Microsoft.Bank.BankAccount;
-using Microsoft.Bank.Journal;
-using Microsoft.Bank.Payment;
 using Microsoft.EServices.EDocument;
 using Microsoft.Finance.GeneralLedger.Journal;
 using Microsoft.Finance.GeneralLedger.Ledger;
@@ -220,20 +218,6 @@ page 9002 "Acc. Payables Coordinator RC"
                 RunObject = Page "Item List";
                 ToolTip = 'View or edit detailed information for the products that you trade in. The item card can be of type Inventory or Service to specify if the item is a physical unit or a labor time unit. Here you also define if items in inventory or on incoming orders are automatically reserved for outbound documents and whether order tracking links are created between demand and supply to reflect planning actions.';
             }
-            action(Telebanking)
-            {
-                ApplicationArea = Advanced;
-                Caption = 'Telebanking';
-                RunObject = Page "Telebank - Bank Overview";
-                ToolTip = 'Prepare to exchange your payments to vendors and collections from customers with your bank electronically. This includes the export of payment and collection data that need to be forwarded to the bank as well as the import of bank statements sent to you by the bank.';
-            }
-            action("Telebank - Bank Overview")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Telebank - Bank Overview';
-                RunObject = Page "Telebank - Bank Overview";
-                ToolTip = 'View a list of bank accounts that are set up for electronic bank file transfers.';
-            }
             action(PurchaseJournals)
             {
                 ApplicationArea = Basic, Suite;
@@ -262,22 +246,6 @@ page 9002 "Acc. Payables Coordinator RC"
                 RunPageView = where("Template Type" = const(General),
                                     Recurring = const(false));
                 ToolTip = 'Post financial transactions directly to general ledger accounts and other accounts, such as bank, customer, vendor, and employee accounts. Posting with a general journal always creates entries on general ledger accounts. This is true even when, for example, you post a journal line to a customer account, because an entry is posted to a general ledger receivables account through a posting group.';
-            }
-            action("Bank/Giro Journals")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Bank/Giro Journals';
-                RunObject = Page "Bank/Giro Journal List";
-                RunPageView = where(Type = const("Bank/Giro"));
-                ToolTip = 'Reconcile a bank account by comparing incoming and outgoing bank transactions to a physical bank statement or by importing an electronic bank statement file, and apply the related payments to open customer or vendor documents.';
-            }
-            action("Cash Journals")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Cash Journals';
-                RunObject = Page "Cash Journal List";
-                RunPageView = where(Type = const(Cash));
-                ToolTip = 'Post transactions to the cash account in the general ledger.';
             }
         }
         area(sections)
@@ -397,20 +365,6 @@ page 9002 "Acc. Payables Coordinator RC"
                                     "Remaining Amount" = filter(< 0),
                                     "Applies-to ID" = filter(''));
                 ToolTip = 'Opens vendor ledger entries for all vendors with invoices that have not been paid yet.';
-            }
-            action("Bank/Giro Journal")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Bank/Giro Journal';
-                RunObject = Page "Bank/Giro Journal List";
-                ToolTip = 'Reconcile a bank account by comparing incoming and outgoing bank transactions to a physical bank statement or by importing an electronic bank statement file, and apply the related payments to open customer or vendor documents.';
-            }
-            action("Cash Journal")
-            {
-                ApplicationArea = Basic, Suite;
-                Caption = 'Cash Journal';
-                RunObject = Page "Cash Journal List";
-                ToolTip = 'Post transactions to the cash account in the general ledger.';
             }
             separator(Administration)
             {
