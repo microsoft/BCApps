@@ -734,7 +734,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         if not SalesShipmentHeader.Get(ShipmentNo) then begin
             SalesShipmentHeader.Init();
             SalesShipmentHeader."No." := ShipmentNo;
-            SalesShipmentHeader."Posting Date" := WorkDate();
+            SalesShipmentHeader."Posting Date" := CalcDate('<-1D>', WorkDate());
             SalesShipmentHeader.Insert();
         end;
 

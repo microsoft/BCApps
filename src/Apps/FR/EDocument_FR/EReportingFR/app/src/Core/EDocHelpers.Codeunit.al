@@ -125,13 +125,15 @@ codeunit 10991 "EDoc. Helpers"
         if not ServiceParticipant.Get(EDocumentServiceCode, ParticipantType, ParticipantNo) then
             exit(false);
 
-        exit(ServiceParticipant."Participant Identifier" <> '');
+        exit(
+            (ServiceParticipant."Participant Identifier" <> '') and
+            (ServiceParticipant."FR Identifier Scheme" <> ServiceParticipant."FR Identifier Scheme"::" "));
     end;
 
     var
         SIRENRequiredErr: Label 'Registration No. must be specified in Company Information for French e-invoicing.';
         SIRETRequiredErr: Label 'SIRET No. must be specified in Company Information for French e-invoicing.';
         SellerElectronicAddressRequiredErr: Label 'SIRET No., VAT Registration No., or a Service Participant identifier must be specified for the company for French e-invoicing.';
-        BuyerElectronicAddressRequiredErr: Label 'Electronic Address must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
+        BuyerElectronicAddressRequiredErr: Label 'Electronic Address, VAT Registration No., or a Service Participant identifier must be specified for Customer %1 for French e-invoicing.', Comment = '%1 = Customer No.';
         SellerCountryCodeRequiredErr: Label 'Country/Region Code must be specified in Company Information for French e-invoicing.';
 }

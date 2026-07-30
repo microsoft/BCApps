@@ -118,6 +118,7 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         end;
 
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetLoadFields("Line No.", "Order No.", "Order Line No.", "Shipment No.", "Shipment Line No.");
         if SalesInvoiceLine.FindSet() then
             repeat
                 InjectExtendedLineReferences(XmlDoc, NamespaceMgr, SalesInvoiceLine);
@@ -133,12 +134,16 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         DeliveryDates: Dictionary of [Text, Boolean];
     begin
         SalesInvoiceLine.SetRange("Document No.", DocumentNo);
+        SalesInvoiceLine.SetLoadFields("Shipment No.", "Order No.");
+        SalesShipmentHeader.SetLoadFields("Posting Date");
         if SalesInvoiceLine.FindSet() then
             repeat
                 if SalesInvoiceLine."Shipment No." <> '' then begin
-                    AddDistinctValue(ShipmentNos, SalesInvoiceLine."Shipment No.");
-                    if SalesShipmentHeader.Get(SalesInvoiceLine."Shipment No.") then
-                        AddDistinctValue(DeliveryDates, Format(SalesShipmentHeader."Posting Date", 0, 9));
+                    if not ShipmentNos.ContainsKey(SalesInvoiceLine."Shipment No.") then begin
+                        ShipmentNos.Add(SalesInvoiceLine."Shipment No.", true);
+                        if SalesShipmentHeader.Get(SalesInvoiceLine."Shipment No.") then
+                            AddDistinctValue(DeliveryDates, Format(SalesShipmentHeader."Posting Date", 0, 9));
+                    end;
                 end;
                 if SalesInvoiceLine."Order No." <> '' then
                     AddDistinctValue(OrderNos, SalesInvoiceLine."Order No.");
@@ -391,6 +396,8 @@ codeunit 10977 "Peppol BIS 3.0 FR Format" implements "E-Document"
         if not ServiceParticipant.Get(EDocumentServiceCode, ParticipantType, ParticipantNo) then
             exit(false);
         if ServiceParticipant."Participant Identifier" = '' then
+            exit(false);
+        if ServiceParticipant."FR Identifier Scheme" = ServiceParticipant."FR Identifier Scheme"::" " then
             exit(false);
 
         ElecAddress := CopyStr(ServiceParticipant."Participant Identifier", 1, MaxStrLen(ElecAddress));
