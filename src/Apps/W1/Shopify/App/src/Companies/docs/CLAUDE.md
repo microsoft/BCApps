@@ -21,6 +21,9 @@ mapping resolves through the `ICompanyMapping` interface, selected by the Shop's
 `ShpfyCreateCustomer.CreateCustomerFromCompany` builds a BC Customer from the
 company's location data (address, phone, tax ID, payment terms).
 
+*Updated: 2026-07-29 -- company export now resolves ISO country codes before
+tax-area lookup, and tax ID mapping is explicitly localization-friendly*
+
 ## Things to know
 
 - B2B features (companies, catalogs) are available on all Shopify plans.
@@ -45,8 +48,14 @@ company's location data (address, phone, tax ID, payment terms).
   The mapping codeunit checks at runtime whether the selected implementation
   supports `IFindCompanyMapping` and falls back to `CompByEmailPhone` if not.
 - Tax registration ID mapping is itself pluggable via
-  `Shpfy Tax Registration Id Mapping` interface with two implementations:
-  `ShpfyTaxRegistrationNo` (matches Registration No.) and
-  `ShpfyVATRegistrationNo` (matches VAT Registration No.).
+  `Shpfy Tax Registration Id Mapping` interface. The base app includes
+  `ShpfyTaxRegistrationNo` (matches Registration Number) and
+  `ShpfyVATRegistrationNo` (matches VAT Registration No.); localizations can
+  add enum values that map the Shopify tax ID to a country-specific customer
+  field, such as the Belgian Enterprise No.
+- Company export resolves the BC Country/Region to its ISO code before setting
+  `Shpfy Company Location`.`Country/Region Code` and before filtering
+  `Shpfy Tax Area`. This matters for countries where the BC code differs from
+  Shopify's ISO 3166-1 alpha-2 code.
 - When creating customers from companies, the county is resolved through the
   same `ICounty` interface used by the Customers module.
