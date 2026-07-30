@@ -923,8 +923,6 @@ codeunit 7314 "Warehouse Availability Mgt."
         if not (Location.Get(LocationCode) and Location."Bin Mandatory" and (Location."Shipment Bin Code" <> '')) then
             exit;
 
-        // The quantity picked but not yet shipped can sit in any Ship-type bin, not only the location's default Shipment Bin,
-        // because a shipment can be assigned a different ship bin. Sum across all Ship-type bins to avoid falsely zeroing QtyPicked.
         QtyOnShipmentBin := CalcQtyOnShipmentBins(LocationCode, ItemNo, VariantCode, ItemTrackingSetup);
         if QtyOnShipmentBin = 0 then
             QtyPicked := 0
@@ -960,8 +958,6 @@ codeunit 7314 "Warehouse Availability Mgt."
             QtyOnShipmentBins := WarehouseEntry."Qty. (Base)";
         end;
 
-        // The location's configured Shipment Bin may not have a Ship-type bin type assigned, so it is not covered by the
-        // filter above. Add its quantity too, unless it was already counted as a Ship-type bin (to avoid double counting).
         if Location.Get(LocationCode) and (Location."Shipment Bin Code" <> '') then
             if Bin.Get(LocationCode, Location."Shipment Bin Code") then begin
                 if Bin."Bin Type Code" <> '' then
