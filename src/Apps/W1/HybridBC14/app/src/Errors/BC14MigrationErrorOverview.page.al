@@ -143,7 +143,7 @@ page 46863 "BC14 Migration Error Overview"
             {
                 ApplicationArea = All;
                 Caption = 'Continue migration';
-                ToolTip = 'Continue migration for the company of the selected error record. Records that already succeeded will be skipped automatically.';
+                ToolTip = 'Reruns the migration for the company of the selected error record. Records that already succeeded are skipped, and any errored record that migrates successfully this time is automatically marked as resolved. Rerunning is the only way to resolve migration errors: fix the underlying data first, then run this action.';
                 Image = Refresh;
                 trigger OnAction()
                 var
@@ -250,6 +250,15 @@ page 46863 "BC14 Migration Error Overview"
         LoadErrorsFromAllCompanies();
     end;
 
+    /// <summary>
+    /// Restricts the aggregated error list to a single company. Call before Run() to open the
+    /// page scoped to one company (e.g. from the Upgrading Companies page).
+    /// </summary>
+    procedure SetCompanyFilter(CompanyNameToShow: Text[30])
+    begin
+        CompanyNameFilter := CompanyNameToShow;
+    end;
+
     local procedure OpenCompanyInNewTab(TargetCompany: Text[30])
     begin
         if TargetCompany = '' then
@@ -267,6 +276,8 @@ page 46863 "BC14 Migration Error Overview"
         Rec.Reset();
         Rec.DeleteAll();
 
+        if CompanyNameFilter <> '' then
+            HybridCompany.SetRange(Name, CompanyNameFilter);
         if not HybridCompany.FindSet() then
             exit;
 
@@ -293,6 +304,7 @@ page 46863 "BC14 Migration Error Overview"
 
     var
         ShowResolvedErrors: Boolean;
+        CompanyNameFilter: Text[30];
         ContinueMigrationQst: Label 'Continue migration for company %1?', Comment = '%1 = Company Name';
         UnresolvedErrorsWarningQst: Label 'There are still %1 unresolved errors for company %2. Continue migration anyway?', Comment = '%1 = Number of unresolved errors, %2 = Company Name';
         NoCompanySelectedMsg: Label 'Please select an error record first.';
