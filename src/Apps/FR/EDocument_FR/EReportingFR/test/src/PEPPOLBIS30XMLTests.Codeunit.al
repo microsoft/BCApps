@@ -429,14 +429,14 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         // [SCENARIO] An invoice containing lines from distinct orders uses the Extended CTC profile
         Initialize();
 
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithTwoLines(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
-        SetPostedInvoiceLineReferences(SalesInvoiceHeader."No.", '', 'ORDER-', false, true);
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceFromMultipleOrders(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
 
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
         Assert.AreEqual('EXTENDED-CTC-FR', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
             StrSubstNo(IncorrectValueErr, 'CustomizationID'));
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
         SalesInvoiceLine.FindFirst();
         Assert.AreEqual(SalesInvoiceLine."Order No.", GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:OrderLineReference/cac:OrderReference/cbc:ID'),
             StrSubstNo(IncorrectValueErr, 'OrderReference ID'));
@@ -455,14 +455,14 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         // [SCENARIO] An invoice containing lines from distinct shipments uses the Extended CTC profile
         Initialize();
 
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithTwoLines(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
-        SetPostedInvoiceLineReferences(SalesInvoiceHeader."No.", 'SHIPMENT-', 'ORDER-1', true, false);
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceFromMultipleShipments(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
 
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
         Assert.AreEqual('EXTENDED-CTC-FR', GetNodeByPath(XmlDoc, '/Invoice/cbc:CustomizationID'),
             StrSubstNo(IncorrectValueErr, 'CustomizationID'));
         SalesInvoiceLine.SetRange("Document No.", SalesInvoiceHeader."No.");
+        SalesInvoiceLine.SetFilter(Type, '<>%1', SalesInvoiceLine.Type::" ");
         SalesInvoiceLine.FindFirst();
         SalesShipmentHeader.Get(SalesInvoiceLine."Shipment No.");
         Assert.AreEqual(SalesInvoiceLine."Shipment No.", GetNodeByPath(XmlDoc, '/Invoice/cac:InvoiceLine/cac:Delivery/cbc:ID'),
@@ -480,8 +480,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         // [SCENARIO] Repeated references to one shipment and one order do not select the Extended CTC profile
         Initialize();
 
-        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceWithTwoLines(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
-        SetPostedInvoiceLineReferences(SalesInvoiceHeader."No.", 'SHIPMENT-1', 'ORDER-1', false, false);
+        SalesInvoiceHeader.Get(CreateAndPostSalesInvoiceFromSingleShipment(CreateCustomer('123456789', "Electronic Address Scheme"::"0002")));
 
         ExportInvoice(SalesInvoiceHeader, XmlDoc);
 
@@ -775,6 +774,7 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
 
     local procedure Initialize()
     var
+        CountryRegion: Record "Country/Region";
         ServiceCode: Code[20];
     begin
         LibraryTestInitialize.OnTestInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
@@ -782,13 +782,16 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
             exit;
         LibraryTestInitialize.OnBeforeTestSuiteInitialize(Codeunit::"PEPPOL BIS 3.0 XML Tests");
 
+        CountryRegion.Get('FR');
+        CountryRegion.Validate("ISO Code", 'FR');
+        CountryRegion.Modify(true);
+
         CompanyInformation.Get();
-        EnsureCountryRegionExists('FR');
         CompanyInformation.Name := 'Test Company FR';
         CompanyInformation.Address := '123 Rue de Paris';
         CompanyInformation.City := 'Paris';
         CompanyInformation."Post Code" := '75001';
-        CompanyInformation."Country/Region Code" := 'FR';
+        CompanyInformation."Country/Region Code" := CountryRegion.Code;
         CompanyInformation.Validate("Registration No.", '123456789');
         CompanyInformation.Validate("SIRET No.", '12345678901234');
         if CompanyInformation."VAT Registration No." = '' then
@@ -824,63 +827,102 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
     end;
 
-    local procedure CreateAndPostSalesInvoiceWithTwoLines(CustomerNo: Code[20]): Code[20]
+    local procedure CreateAndPostSalesInvoiceFromMultipleOrders(CustomerNo: Code[20]): Code[20]
+    var
+        FirstShipmentNo: Code[20];
+        SecondShipmentNo: Code[20];
+    begin
+        FirstShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 1, 1);
+        SecondShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 1, 1);
+        exit(CreateAndPostSalesInvoiceFromShipments(CustomerNo, FirstShipmentNo + '|' + SecondShipmentNo));
+    end;
+
+    local procedure CreateAndPostSalesInvoiceFromMultipleShipments(CustomerNo: Code[20]): Code[20]
     var
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
-        NewSalesLine: Record "Sales Line";
+        FirstShipmentNo: Code[20];
+        SecondShipmentNo: Code[20];
     begin
-        SalesHeader.Get("Sales Document Type"::Invoice, CreateSalesInvoiceWithLine(CustomerNo));
+        CreateSalesOrderWithLines(SalesHeader, CustomerNo, 1, 2);
         SalesLine.SetRange("Document Type", SalesHeader."Document Type");
         SalesLine.SetRange("Document No.", SalesHeader."No.");
         SalesLine.FindFirst();
-        LibrarySales.CreateSalesLine(NewSalesLine, SalesHeader, SalesLine.Type, SalesLine."No.", 1);
-        NewSalesLine.Validate("Unit Price", SalesLine."Unit Price");
-        NewSalesLine.Modify(true);
-        exit(LibrarySales.PostSalesDocument(SalesHeader, true, true));
+        SalesLine.Validate("Qty. to Ship", 1);
+        SalesLine.Modify(true);
+        FirstShipmentNo := LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        SalesHeader.Get(SalesHeader."Document Type", SalesHeader."No.");
+        SalesLine.FindFirst();
+        SalesLine.Validate("Qty. to Ship", 1);
+        SalesLine.Modify(true);
+        SecondShipmentNo := LibrarySales.PostSalesDocument(SalesHeader, true, false);
+
+        exit(CreateAndPostSalesInvoiceFromShipments(CustomerNo, FirstShipmentNo + '|' + SecondShipmentNo));
     end;
 
-    local procedure SetPostedInvoiceLineReferences(DocumentNo: Code[20]; ShipmentNo: Text; OrderNo: Text; AppendShipmentIndex: Boolean; AppendOrderIndex: Boolean)
+    local procedure CreateAndPostSalesInvoiceFromSingleShipment(CustomerNo: Code[20]): Code[20]
     var
-        SalesInvoiceLine: Record "Sales Invoice Line";
+        ShipmentNo: Code[20];
+    begin
+        ShipmentNo := CreateAndPostSalesOrderShipment(CustomerNo, 2, 1);
+        exit(CreateAndPostSalesInvoiceFromShipments(CustomerNo, ShipmentNo));
+    end;
+
+    local procedure CreateAndPostSalesOrderShipment(CustomerNo: Code[20]; NumberOfLines: Integer; Quantity: Decimal): Code[20]
+    var
+        SalesHeader: Record "Sales Header";
+    begin
+        CreateSalesOrderWithLines(SalesHeader, CustomerNo, NumberOfLines, Quantity);
+        exit(LibrarySales.PostSalesDocument(SalesHeader, true, false));
+    end;
+
+    local procedure CreateSalesOrderWithLines(var SalesHeader: Record "Sales Header"; CustomerNo: Code[20]; NumberOfLines: Integer; Quantity: Decimal)
+    var
+        Customer: Record Customer;
+        GLAccount: Record "G/L Account";
+        SalesLine: Record "Sales Line";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
         LineIndex: Integer;
     begin
-        SalesInvoiceLine.SetRange("Document No.", DocumentNo);
-        SalesInvoiceLine.FindSet(true);
-        repeat
-            LineIndex += 1;
-            if AppendShipmentIndex then
-                SalesInvoiceLine."Shipment No." := CopyStr(ShipmentNo + Format(LineIndex), 1, MaxStrLen(SalesInvoiceLine."Shipment No."))
-            else
-                SalesInvoiceLine."Shipment No." := CopyStr(ShipmentNo, 1, MaxStrLen(SalesInvoiceLine."Shipment No."));
-            SalesInvoiceLine."Shipment Line No." := SalesInvoiceLine."Line No.";
-            if AppendOrderIndex then
-                SalesInvoiceLine."Order No." := CopyStr(OrderNo + Format(LineIndex), 1, MaxStrLen(SalesInvoiceLine."Order No."))
-            else
-                SalesInvoiceLine."Order No." := CopyStr(OrderNo, 1, MaxStrLen(SalesInvoiceLine."Order No."));
-            SalesInvoiceLine."Order Line No." := SalesInvoiceLine."Line No.";
-            SalesInvoiceLine.Modify();
-            if SalesInvoiceLine."Shipment No." <> '' then
-                CreatePostedShipmentReference(SalesInvoiceLine."Shipment No.", SalesInvoiceLine."Shipment Line No.");
-        until SalesInvoiceLine.Next() = 0;
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Order Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Posted Shipment Nos."));
+        GLAccount.Get(LibraryERM.CreateGLAccountWithSalesSetup());
+        Customer.Get(CustomerNo);
+        Customer.Validate("Gen. Bus. Posting Group", GLAccount."Gen. Bus. Posting Group");
+        Customer.Validate("VAT Bus. Posting Group", GLAccount."VAT Bus. Posting Group");
+        Customer.Modify(true);
+
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Order, CustomerNo);
+        for LineIndex := 1 to NumberOfLines do begin
+            LibrarySales.CreateSalesLine(SalesLine, SalesHeader, SalesLine.Type::"G/L Account", GLAccount."No.", Quantity);
+            SalesLine.Validate("Unit Price", 100);
+            SalesLine.Modify(true);
+        end;
     end;
 
-    local procedure CreatePostedShipmentReference(ShipmentNo: Code[20]; ShipmentLineNo: Integer)
+    local procedure CreateAndPostSalesInvoiceFromShipments(CustomerNo: Code[20]; ShipmentNoFilter: Text): Code[20]
     var
-        SalesShipmentHeader: Record "Sales Shipment Header";
+        SalesHeader: Record "Sales Header";
         SalesShipmentLine: Record "Sales Shipment Line";
+        SalesReceivablesSetup: Record "Sales & Receivables Setup";
+        SalesGetShipment: Codeunit "Sales-Get Shipment";
     begin
-        if not SalesShipmentHeader.Get(ShipmentNo) then begin
-            SalesShipmentHeader.Init();
-            SalesShipmentHeader."No." := ShipmentNo;
-            SalesShipmentHeader."Posting Date" := CalcDate('<-1D>', WorkDate());
-            SalesShipmentHeader.Insert();
-        end;
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Invoice Nos."));
+        LibraryUtility.UpdateSetupNoSeriesCode(
+            DATABASE::"Sales & Receivables Setup", SalesReceivablesSetup.FieldNo("Posted Invoice Nos."));
+        LibrarySales.CreateSalesHeader(SalesHeader, "Sales Document Type"::Invoice, CustomerNo);
+        SalesHeader.Validate("Your Reference", 'FR-BUYER-REF');
+        SalesHeader.Modify(true);
 
-        SalesShipmentLine.Init();
-        SalesShipmentLine."Document No." := ShipmentNo;
-        SalesShipmentLine."Line No." := ShipmentLineNo;
-        SalesShipmentLine.Insert();
+        SalesShipmentLine.SetFilter("Document No.", ShipmentNoFilter);
+        SalesGetShipment.SetSalesHeader(SalesHeader);
+        SalesGetShipment.CreateInvLines(SalesShipmentLine);
+
+        exit(LibrarySales.PostSalesDocument(SalesHeader, false, true));
     end;
 
     local procedure CreateSalesInvoiceWithLine(CustomerNo: Code[20]): Code[20]
@@ -1092,20 +1134,4 @@ codeunit 148147 "PEPPOL BIS 3.0 XML Tests"
         end;
     end;
 
-    local procedure EnsureCountryRegionExists(CountryCode: Code[2])
-    var
-        CountryRegion: Record "Country/Region";
-    begin
-        if not CountryRegion.Get(CountryCode) then begin
-            CountryRegion.Init();
-            CountryRegion.Code := CountryCode;
-            CountryRegion.Name := CountryCode;
-            CountryRegion."ISO Code" := CountryCode;
-            CountryRegion.Insert(true);
-        end else
-            if CountryRegion."ISO Code" = '' then begin
-                CountryRegion."ISO Code" := CountryCode;
-                CountryRegion.Modify(true);
-            end;
-    end;
 }
