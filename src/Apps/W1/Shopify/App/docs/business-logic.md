@@ -12,17 +12,27 @@ The export flow is driven by `ShpfyProductExport.Codeunit.al`. It iterates all S
 
 The update flow relies heavily on hash-based change detection. Before making any API call, the codeunit computes the current hash of the product's tags, HTML description, and images, then compares them against the stored hashes on the Product record. Only fields that have actually changed result in API calls. This is critical because Shopify's GraphQL API has per-store rate limits, and a full product catalog update without change detection would quickly exhaust the budget.
 
-Price sync can run independently of the full product sync via the `OnlyUpdatePrice` flag. When enabled, prices are batched into a bulk mutation (`ShpfyBulkUpdateProductPrice.Codeunit.al`) for efficiency. If the bulk operation fails, it falls back to individual variant price updates, reverting variant changes on failure. Item price sync is skipped when the item's unit of measure is invalid, preventing errors from propagating into Shopify pricing data.
+Price sync can run independently of the full product sync via the `OnlyUpdatePrice` flag. When enabled, changed variant price, compare-at price, and unit cost updates are collected for a bulk mutation (`ShpfyBulkUpdateProductPrice.Codeunit.al`). The bulk threshold is based on that changed-update count, not on the total product or variant count scanned. If the bulk operation cannot be started, the connector falls back to individual variant price updates. If Shopify rejects specific bulk lines, the connector reverts those variant changes and logs skipped records with the Shopify error where available. Item price sync is skipped when the item's unit of measure is invalid, preventing errors from propagating into Shopify pricing data.
 
 *Updated: 2026-04-08 -- Price sync skipped for invalid unit of measure*
 
+*Updated: 2026-07-29 -- Bulk price sync now counts changed updates and records skipped failures*
+
 The product body HTML is assembled from BC data by `CreateProductBody()` in the export codeunit -- it concatenates extended text, marketing text, and item attributes into an HTML structure. Events fire before and after this assembly (`OnBeforeCreateProductBodyHtml`, `OnAfterCreateProductBodyHtml`), allowing extensions to customize the output.
+
+When a BC item is added to Shopify, `ShpfyCreateProduct` sets the product status through `ICreateProductStatusValue`. The built-in choices are Active, Draft, and Unlisted; all three feed the same product creation flow and convert to Shopify's uppercase GraphQL status value.
+
+*Updated: 2026-07-29 -- Unlisted added to the product creation status flow*
 
 ### Shopify to BC import
 
 The import direction is handled by `ShpfyProductImport.Codeunit.al`. It fetches products from Shopify using timestamp-based incremental sync, creates or updates local Product and Variant records, and optionally creates BC Items.
 
 Item creation uses the template system -- the Shop's `"Item Templ. Code"` provides defaults, and the `OnAfterFindItemTemplate` event allows per-product template selection. `ShpfyCreateItem.Codeunit.al` handles the actual item creation. Variant mapping is complex because Shopify variants carry option values (size/color) that may map to BC Item Variants, and the `"UoM as Variant"` setting can make unit-of-measure values appear as variant options.
+
+When `"Sync HS Code and Country"` is enabled, imported Shopify variant inventory-item data can set the BC item's Tariff No. and Country/Region of Origin Code. Existing-item updates resolve the Shopify values through BC Tariff Number and Country/Region records before applying them, so missing or unmapped values are ignored instead of clearing valid BC data.
+
+*Updated: 2026-07-29 -- HS code and country of origin now flow from Shopify to BC items*
 
 ```mermaid
 flowchart TD
@@ -54,15 +64,21 @@ Order processing is the most complex flow in the connector. It spans multiple co
 
 ### Import
 
-`ShpfyImportOrder.Codeunit.al` takes an order from the staging table and creates the full Order Header and Order Lines. It parses the GraphQL response to populate all address blocks, financial fields (in both currencies), customer IDs, discount codes, attributes, tax lines, and risk assessments. Staff member handling during order import is gated by the Shop's `"Advanced Shopify Plan"` flag (true for Plus, Plus Trial, Development, and Advanced plans). The `OnAfterImportShopifyOrderHeader` and `OnAfterCreateShopifyOrderAndLines` events fire after import.
+`ShpfyImportOrder.Codeunit.al` takes an order from the staging table and creates the full Order Header and Order Lines. It parses the GraphQL response to populate all address blocks, financial fields (in both currencies), customer IDs, discount codes, attributes, tax lines, and risk assessments. Order line GraphQL paging now requests 10 line items per page. Staff member handling during order import is gated by the Shop's `"Advanced Shopify Plan"` flag (true for Plus, Plus Trial, Development, and Advanced plans). The `OnAfterImportShopifyOrderHeader` and `OnAfterCreateShopifyOrderAndLines` events fire after import.
 
 *Updated: 2026-04-08 -- Staff member gating moved from B2B Enabled to Advanced Shopify Plan*
+
+*Updated: 2026-07-29 -- Order line import page size raised to 10*
 
 ### Mapping
 
 Before a sales document can be created, the order must be mapped to BC entities. `ShpfyOrderMapping.Codeunit.al` orchestrates this. The mapping proceeds in sequence: customer mapping, then shipment method, shipping agent, and payment method. Each step has Before/After events that allow extensions to override or supplement the logic.
 
 Customer mapping is the most involved step. For B2B orders (where `"Company Id"` is set), the company mapping strategy runs instead. For D2C orders, the `ICustomerMapping` interface dispatches based on the Shop's `"Customer Mapping Type"` enum -- options include By Email/Phone, By Bill-to Info, and Default Customer. If the customer cannot be found and `"Auto Create Unknown Customers"` is enabled, a new BC customer is created from the template.
+
+Shipment method discovery adapts to Shopify's market-driven shipping model. If the shop feature flag `marketDrivenShipping` is true, `ShpfyShippingMethods` reads active option definitions from Markets instead of delivery profiles. Inherited market shipping configurations and carrier-calculated options without static names are skipped because they do not create stable mapping names.
+
+*Updated: 2026-07-29 -- Shipping method discovery now supports market-driven shipping*
 
 ### Sales document creation
 
@@ -93,7 +109,9 @@ The header creation in `CreateHeaderFromShopifyOrder()` is notably manual -- it 
 
 The `"Create Invoices From Orders"` setting causes fully-fulfilled orders to be created as Sales Invoices instead of Sales Orders. The `"Use Shopify Order No."` setting uses the Shopify order number (e.g., "#1001") as the BC document number, which requires the number series to have Manual Nos. enabled.
 
-Special line types require attention: gift card purchases map to the `"Sold Gift Card Account"` G/L account, tips map to `"Tip Account"`, and shipping charges map to `"Shipping Charges Account"`. These are all configured on the Shop record.
+Special line types require attention: gift card purchases map to the `"Sold Gift Card Account"` G/L account, tips map to `"Tip Account"`, and shipping charges map to `"Shipping Charges Account"`. These are all configured on the Shop record. Shipping charges are staged as their own records before sales line creation, and their Shopify tax lines are imported as `Shpfy Order Tax Line` rows parented by the shipping line ID.
+
+*Updated: 2026-07-29 -- Shipping charge tax lines are now retained during order import*
 
 The Shopify Order page includes contact lookup and validation, allowing users to verify and resolve customer contact information directly from the order.
 
@@ -122,6 +140,10 @@ The processing strategy is selected by the `"Return and Refund Process"` enum on
 The `IDocumentSource` interface determines which Shopify document (return or refund) provides the line data for the BC credit memo. The default implementation sources from refund lines, but this can be overridden.
 
 Refund lines carry a `"Restock Type"` that affects inventory: Return means items go back to stock, Cancel means they were never shipped, NoRestock is purely financial. Lines with non-restock types are mapped to G/L accounts (`"Refund Acc. non-restock Items"`) instead of item lines on the credit memo.
+
+For return-with-exchange cases, order import fetches exchange line items from the order's returns and flags the matching Shopify order lines as exchange items. Sales document creation excludes those order lines from the original invoice. Refund import then fetches the refund's return exchange lines and creates synthetic negative-quantity refund lines, so the credit memo offsets the exchange item without adding a balancing refund-account line.
+
+*Updated: 2026-07-29 -- Refund-with-exchange handling now uses exchange GraphQL queries*
 
 ## Inventory synchronization
 
