@@ -15,7 +15,7 @@ That is the entire contract. No codeunit, no interface, no state.
 
 ## Enum-to-resource mapping
 
-The `Shpfy GraphQL Type` enum declares 143 values using
+The `Shpfy GraphQL Type` enum declares 149 values using
 `{Area}_{QueryName}` naming (e.g., `Customers_GetCustomerIds`). The enum
 is `Extensible = false` -- extensions cannot add new query types.
 
@@ -27,6 +27,14 @@ body.
 
 Adding a new API operation requires two things: a `.graphql` resource
 file and a new enum value.
+
+Recent additions for market-driven shipping and exchange-line handling
+continue the same convention: `Shipping_GetMarketShippingMethods`,
+`Orders_GetOrderExchangeLineItems`, and `Refunds_GetRefundExchangeLines`
+each map to a same-named resource file under their area folder, with a
+`GetNext...` partner when the Shopify response is paged.
+
+*Updated: 2026-07-29 -- query enum expanded while preserving the resource naming contract*
 
 ## Parameter substitution
 
@@ -89,6 +97,22 @@ the restore rate defaults to 50 points/second.
 
 There is no automatic cost calculation. If Shopify changes query pricing,
 the constants need manual adjustment.
+
+## Rate limiter wait calculation
+
+`ShpfyGraphQLRateLimit` stores Shopify's `currentlyAvailable`,
+`restoreRate`, and the time the last throttle response was received. When
+the next expected cost would exceed the last known budget, it computes the
+missing points, divides by `restoreRate`, and subtracts the elapsed time
+since the last response because Shopify has been restoring points during
+that interval. Negative results are clamped to zero.
+
+The wake-up time is based on the current time plus the remaining wait, not
+the last response time plus the full restore duration. Otherwise the
+elapsed time would be applied twice and the connector could resume before
+the missing points are actually restored.
+
+*Updated: 2026-07-29 -- documented corrected elapsed-time crediting in throttling*
 
 ## Obsolete stub codeunits
 
