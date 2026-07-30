@@ -252,6 +252,7 @@ The small curated J/H scenarios stay in the **Daily** `TMA-UNIT` gate; the large
 | `TMA-TS-RealCA.yaml` | ~14 | Real CA provinces, real Shopify titles (GST/PST/HST/QST + TPS/TVQ) |
 | `TMA-TS-Heldout.yaml` | ~6 | Held-out generalization: unusual official names **not** named in the prompt |
 | `TMA-TS-Traps.yaml` | ~7 | Traps: correct answer is no-match despite tempting distractors (false-positive probes) |
+| `TMA-TS-Hard.yaml` | ~10 | Adversarial hard mode: homonym places, geo/substring traps, code-vs-desc conflict, many distractors, level discrimination, Code[20] truncation collision |
 
 **Two dataset families.** *Synthetic* (`TMA-TS-Acc*`) exercises breadth through systematic title
 **perturbations** — 24 US states + 7 CA provinces (state/province + county/city/district), via
@@ -292,6 +293,17 @@ scenario whose answer is *spelled out in the prompt* proves little. Two datasets
 (session artifact) reads any `*_Eval_Summary.xlsx` and classifies every jurisdiction assertion as
 *correct*, *miss/no-match (safe)*, or *wrong-match / over-match (false positive)*, reported overall
 and per family. The target is **zero false positives**; misses are tolerated (held for review).
+
+**Adversarial hard mode.** Because the model aces the sets above (GPT-4.1 has strong public tax
+knowledge), `TMA-TS-Hard.yaml` is deliberately built to find the failure boundary, each case with a
+single defensible answer: homonym places disambiguated only by ship-to (Washington/Franklin County
+across states; Portland OR vs ME; Columbus OH vs GA); geography traps (Kansas City is in *Missouri*;
+"Arkansas" contains "kansas"); a **code-vs-description conflict** (a candidate coded `TEXAS` but
+described "Tennessee"); level discrimination against a higher-overlap distractor; a dozen near-
+identical Springfields; and a **Code[20] truncation collision** (two titles that both truncate to
+`METROPOLITAN TRANSPO` — a data-pipeline limitation probe, expected to be effectively impossible).
+This family is *expected* to score below 100%; a miss here is a real hill-climb target (or, for the
+truncation case, motivation to store a longer title).
 
 **Metric** — this corpus is intentionally **not** a 100% pass gate. Accuracy is expected to be
 below 100% and improved over time (hill-climb); each scenario asserts the exact expected

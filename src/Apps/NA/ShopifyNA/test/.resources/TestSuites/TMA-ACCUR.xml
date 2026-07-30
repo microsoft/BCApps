@@ -28,5 +28,8 @@
         <Line CodeunitID="134717"
               Description="Accuracy - traps / false-positive (no-match-correct with distractors)"
               Dataset="TMA-TS-Traps.yaml" />
+        <Line CodeunitID="134717"
+              Description="Accuracy - adversarial hard mode (homonyms, geo/substring traps, code-vs-desc, truncation)"
+              Dataset="TMA-TS-Hard.yaml" />
     </AITSuite>
 </Root>
