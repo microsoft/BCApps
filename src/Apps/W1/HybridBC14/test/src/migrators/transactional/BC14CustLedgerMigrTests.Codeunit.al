@@ -68,6 +68,7 @@ codeunit 148915 "BC14 CustLedgerMigr Tests"
         BC14JournalMgmt.EnsureBatchExists(JournalBatchNameTxt, 'BC14 Customer Ledger Migration');
 
         InsertCustLedgerEntry(1, 'CUST-001', 'CUSTPG', 'CDOC-001', 1500);
+        BC14CustLedgerEntry.Get(1);
 
         // [WHEN] The migrator stages the entry
         BC14CustLedgerMigrator.CreateJournalLine(BC14CustLedgerEntry);
@@ -98,6 +99,7 @@ codeunit 148915 "BC14 CustLedgerMigr Tests"
         BC14JournalMgmt.EnsureBatchExists(JournalBatchNameTxt, 'BC14 Customer Ledger Migration');
 
         InsertCustLedgerEntry(2, 'CUST-002', 'CUSTPG', 'CDOC-002', 0);
+        BC14CustLedgerEntry.Get(2);
 
         // [WHEN] The migrator processes the entry
         BC14CustLedgerMigrator.CreateJournalLine(BC14CustLedgerEntry);
@@ -123,6 +125,7 @@ codeunit 148915 "BC14 CustLedgerMigr Tests"
         BC14JournalMgmt.EnsureBatchExists(JournalBatchNameTxt, 'BC14 Customer Ledger Migration');
 
         InsertCustLedgerEntry(3, 'CUST-003', 'CUSTPG', 'CDOC-003', 900);
+        BC14CustLedgerEntry.Get(3);
 
         // [WHEN] The migrator runs twice for the same entry
         BC14CustLedgerMigrator.CreateJournalLine(BC14CustLedgerEntry);

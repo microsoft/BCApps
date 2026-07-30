@@ -69,6 +69,8 @@ codeunit 148916 "BC14 VendLedgerMigr Tests"
 
         InsertVendorLedgerEntry(1, 'VEND-001', 'VENDPG', 'VDOC-001', -1200);
 
+        BC14VendorLedgerEntry.Get(1);
+
         // [WHEN] The migrator stages the entry
         BC14VendorLedgerMigrator.CreateJournalLine(BC14VendorLedgerEntry);
 
@@ -98,6 +100,7 @@ codeunit 148916 "BC14 VendLedgerMigr Tests"
         BC14JournalMgmt.EnsureBatchExists(JournalBatchNameTxt, 'BC14 Vendor Ledger Migration');
 
         InsertVendorLedgerEntry(2, 'VEND-002', 'VENDPG', 'VDOC-002', 0);
+        BC14VendorLedgerEntry.Get(2);
 
         // [WHEN] The migrator processes the entry
         BC14VendorLedgerMigrator.CreateJournalLine(BC14VendorLedgerEntry);
