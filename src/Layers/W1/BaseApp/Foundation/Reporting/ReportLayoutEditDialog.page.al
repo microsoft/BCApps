@@ -76,13 +76,12 @@ page 9661 "Report Layout Edit Dialog"
                 trigger OnValidate()
                 begin
                     // In override mode (extension layout) checking "Save Changes to a Copy" re-enables
-                    // the Layout Name so the forked copy can be given a distinct name, and exposes the
+                    // the Layout Name so the forked copy can be given a distinct name, and unlocks the
                     // layout-availability field — the copy is a normal tenant layout, so its company
                     // scope is chosen there (not by the override-scope control).
                     if OverrideMode then begin
                         LayoutNameEditable := CreateCopy;
                         AvailableInAllCompaniesEditable := CreateCopy;
-                        CurrPage.Update(false);
                     end else
                         if (CreateCopy) then
                             AvailableInAllCompaniesEditable := true
@@ -101,10 +100,13 @@ page 9661 "Report Layout Edit Dialog"
                 ApplicationArea = Basic, Suite;
                 Caption = 'Available in All Companies';
                 ToolTip = 'Specifies whether the layout should be available in all companies or just the current company.';
+                // Always visible: `Visible` is evaluated when the page initialises and is NOT
+                // re-evaluated when a variable changes, so it cannot be revealed by ticking Copy.
+                // Editability carries the meaning instead — for an extension layout this field states
+                // the (true) fact that the layout is available everywhere and is read-only until the
+                // user opts into a copy, whose company scope it then controls. The *override* scope is
+                // a separate control, so the two meanings stay distinct.
                 Editable = AvailableInAllCompaniesEditable;
-                // Hidden while overriding an extension layout (the layout is already available
-                // everywhere); shown again when the user opts into a copy, which IS a tenant layout.
-                Visible = (not OverrideMode) or CreateCopy;
             }
             field(OverrideForAllCompanies; OverrideForAllCompanies)
             {
