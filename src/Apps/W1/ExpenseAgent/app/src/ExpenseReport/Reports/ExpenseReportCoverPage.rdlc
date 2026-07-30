@@ -1,0 +1,1383 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner" xmlns:am="http://schemas.microsoft.com/sqlserver/reporting/authoringmetadata">
+  <rd:ReportUnitType>Cm</rd:ReportUnitType>
+  <rd:ReportID>22222222-2222-2222-2222-222222222222</rd:ReportID>
+  <am:AuthoringMetadata>
+    <am:CreatedBy>
+      <am:Name>MSRB</am:Name>
+      <am:Version>15.1.30001.02</am:Version>
+    </am:CreatedBy>
+    <am:UpdatedBy>
+      <am:Name>MSRB</am:Name>
+      <am:Version>15.1.30001.02</am:Version>
+    </am:UpdatedBy>
+    <am:LastModifiedTimestamp>2026-02-08T21:00:14.8300896Z</am:LastModifiedTimestamp>
+  </am:AuthoringMetadata>
+  <AutoRefresh>0</AutoRefresh>
+  <DataSources>
+    <DataSource Name="DataSource">
+      <rd:SecurityType>None</rd:SecurityType>
+      <ConnectionProperties>
+        <DataProvider>SQL</DataProvider>
+        <ConnectString />
+      </ConnectionProperties>
+      <rd:DataSourceID>95614b33-013e-4ec0-b423-902d4b7cb96c</rd:DataSourceID>
+    </DataSource>
+  </DataSources>
+  <ReportSections>
+    <ReportSection>
+      <Body>
+        <ReportItems>
+          <Tablix Name="TwoColumn">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn>
+                  <Width>18.35689cm</Width>
+                </TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>4.37715cm</Height>
+                  <TablixCells>
+                    <TablixCell>
+                      <CellContents>
+                        <Rectangle Name="LeftCol">
+                          <ReportItems>
+                            <Rectangle Name="LeftInfo">
+                              <ReportItems>
+                                <Textbox Name="LblExpenseReportNo">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!ExpenseReportNoLbl.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <FontWeight>Bold</FontWeight>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style />
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>0.37715cm</Top>
+                                  <Left>0.05952cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>4.2417cm</Width>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="ValExpenseReportNo">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!ExpenseReportNo.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style>
+                                        <TextAlign>Right</TextAlign>
+                                      </Style>
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>0.37715cm</Top>
+                                  <Left>4.30122cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>4.45183cm</Width>
+                                  <ZIndex>1</ZIndex>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="LblExpenseUserName">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!ExpenseUserNameLbl.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <FontWeight>Bold</FontWeight>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style />
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>0.87715cm</Top>
+                                  <Left>0.05952cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>4.2417cm</Width>
+                                  <ZIndex>2</ZIndex>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="ValExpenseUserName">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!ExpenseUserName.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style>
+                                        <TextAlign>Right</TextAlign>
+                                      </Style>
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>0.87715cm</Top>
+                                  <Left>4.30122cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>4.45183cm</Width>
+                                  <ZIndex>3</ZIndex>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="LblReportDate">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!ExpenseReportDateLbl.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <FontWeight>Bold</FontWeight>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style />
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>1.37715cm</Top>
+                                  <Left>0.05952cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>4.2417cm</Width>
+                                  <ZIndex>4</ZIndex>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="ValReportDate">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!ExpenseReportDate.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <Format>d</Format>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style>
+                                        <TextAlign>Right</TextAlign>
+                                      </Style>
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>1.37715cm</Top>
+                                  <Left>4.30122cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>4.45183cm</Width>
+                                  <ZIndex>5</ZIndex>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="LblPostingDate">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!PostingDateLbl.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <FontWeight>Bold</FontWeight>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style />
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>1.87715cm</Top>
+                                  <Left>0.05952cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>4.2417cm</Width>
+                                  <ZIndex>6</ZIndex>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="ValPostingDate">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!PostingDate.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <Format>d</Format>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style>
+                                        <TextAlign>Right</TextAlign>
+                                      </Style>
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>1.87715cm</Top>
+                                  <Left>4.30122cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>4.45183cm</Width>
+                                  <ZIndex>7</ZIndex>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="LblDescription">
+                                  <CanGrow>true</CanGrow>
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!DescriptionLbl.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <FontWeight>Bold</FontWeight>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style />
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>2.37715cm</Top>
+                                  <Left>0.05952cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>4.2417cm</Width>
+                                  <ZIndex>8</ZIndex>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="ValDescription">
+                                  <CanGrow>true</CanGrow>
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!Description.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style>
+                                        <TextAlign>Right</TextAlign>
+                                      </Style>
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>2.37715cm</Top>
+                                  <Left>4.30122cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>4.45183cm</Width>
+                                  <ZIndex>9</ZIndex>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="LblAntiAtt">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!AntiCorruptionAttestationLbl.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <FontWeight>Bold</FontWeight>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style />
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>2.87715cm</Top>
+                                  <Left>0.05952cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>4.2417cm</Width>
+                                  <ZIndex>10</ZIndex>
+                                  <Visibility>
+                                    <Hidden>=IIF(IsNothing(Fields!AntiCorruptionAttestation.Value), True, IIF(UCase(Trim(CStr(Fields!AntiCorruptionAttestation.Value))) = "TRUE" OR UCase(Trim(CStr(Fields!AntiCorruptionAttestation.Value))) = "YES" OR UCase(Trim(CStr(Fields!AntiCorruptionAttestation.Value))) = "1", False, True))</Hidden>
+                                  </Visibility>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="ValAntiAtt">
+                                  <CanGrow>true</CanGrow>
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=IIF(IsNothing(Fields!AntiCorruptionAttestation.Value), "", IIF(CBool(Fields!AntiCorruptionAttestation.Value), "Yes", "No"))</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style>
+                                        <TextAlign>Right</TextAlign>
+                                      </Style>
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>2.87715cm</Top>
+                                  <Left>4.30122cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>4.45183cm</Width>
+                                  <ZIndex>11</ZIndex>
+                                  <Visibility>
+                                    <Hidden>=IIF(IsNothing(Fields!AntiCorruptionAttestation.Value), True, IIF(UCase(Trim(CStr(Fields!AntiCorruptionAttestation.Value))) = "TRUE" OR UCase(Trim(CStr(Fields!AntiCorruptionAttestation.Value))) = "YES" OR UCase(Trim(CStr(Fields!AntiCorruptionAttestation.Value))) = "1", False, True))</Hidden>
+                                  </Visibility>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="LblAntiDesc">
+                                  <CanGrow>true</CanGrow>
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!AntiCorruptionDescriptionLbl.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <FontWeight>Bold</FontWeight>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style />
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>3.37715cm</Top>
+                                  <Left>0.05952cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>4.2417cm</Width>
+                                  <ZIndex>12</ZIndex>
+                                  <Visibility>
+                                    <Hidden>=IIF(IsNothing(Fields!AntiCorruptionDescription.Value) OR Len(Trim(Fields!AntiCorruptionDescription.Value)) = 0, True, False)</Hidden>
+                                  </Visibility>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="ValAntiDesc">
+                                  <CanGrow>true</CanGrow>
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!AntiCorruptionDescription.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style>
+                                        <TextAlign>Right</TextAlign>
+                                      </Style>
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>3.37715cm</Top>
+                                  <Left>4.30122cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>4.45183cm</Width>
+                                  <ZIndex>13</ZIndex>
+                                  <Visibility>
+                                    <Hidden>=IIF(IsNothing(Fields!AntiCorruptionDescription.Value) OR Len(Trim(Fields!AntiCorruptionDescription.Value)) = 0, True, False)</Hidden>
+                                  </Visibility>
+                                  <Style />
+                                </Textbox>
+                              </ReportItems>
+                              <Top>0cm</Top>
+                              <Left>0cm</Left>
+                              <Height>4.37715cm</Height>
+                              <Width>8.75305cm</Width>
+                              <Style />
+                            </Rectangle>
+                            <Rectangle Name="RightInfo">
+                              <ReportItems>
+                                <Textbox Name="LblTotalAmount">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!TotalAmountLCYLbl.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <FontWeight>Bold</FontWeight>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style />
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>0.37715cm</Top>
+                                  <Left>0.02361cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>5.15347cm</Width>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="ValTotalAmount">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!TotalAmountLCY.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <Format>0.00;- 0.00;''</Format>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style>
+                                        <TextAlign>Right</TextAlign>
+                                      </Style>
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>0.37715cm</Top>
+                                  <Left>5.17708cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>3.61709cm</Width>
+                                  <ZIndex>1</ZIndex>
+                                  <Style>
+                                    <Border>
+                                      <Style>None</Style>
+                                    </Border>
+                                    <TextAlign>Right</TextAlign>
+                                  </Style>
+                                </Textbox>
+                                <Textbox Name="LblTotalReimb">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!TotalReimbursableAmountLCYLbl.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <FontWeight>Bold</FontWeight>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style />
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>0.87715cm</Top>
+                                  <Left>0.02361cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>5.15347cm</Width>
+                                  <ZIndex>2</ZIndex>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="ValTotalReimb">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!TotalReimbursableAmountLCY.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <Format>0.00;- 0.00;''</Format>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style />
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>0.87715cm</Top>
+                                  <Left>5.17708cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>3.61709cm</Width>
+                                  <ZIndex>3</ZIndex>
+                                  <Style>
+                                    <Border>
+                                      <Style>None</Style>
+                                    </Border>
+                                    <TextAlign>Right</TextAlign>
+                                  </Style>
+                                </Textbox>
+                                <Textbox Name="LblPaidByCompany">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!TotalPaidByCompanyLCYLbl.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <FontWeight>Bold</FontWeight>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style />
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>1.37715cm</Top>
+                                  <Left>0cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>5.17708cm</Width>
+                                  <ZIndex>4</ZIndex>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="ValPaidByCompany">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!TotalPaidByCompanyLCY.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <Format>0.00;- 0.00;''</Format>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style>
+                                        <TextAlign>Right</TextAlign>
+                                      </Style>
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>1.37715cm</Top>
+                                  <Left>5.17708cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>3.61709cm</Width>
+                                  <ZIndex>5</ZIndex>
+                                  <Style>
+                                    <Border>
+                                      <Style>None</Style>
+                                    </Border>
+                                    <TextAlign>Right</TextAlign>
+                                  </Style>
+                                </Textbox>
+                                <Textbox Name="LblNonRefund">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!TotalNonRefundableAmountLCYLbl.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <FontWeight>Bold</FontWeight>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style />
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>1.87715cm</Top>
+                                  <Left>0cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>5.17708cm</Width>
+                                  <ZIndex>6</ZIndex>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="ValNonRefund">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!TotalNonRefundableAmountLCY.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <Format>0.00;- 0.00;''</Format>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style>
+                                        <TextAlign>Right</TextAlign>
+                                      </Style>
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>1.87715cm</Top>
+                                  <Left>5.17708cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>3.61709cm</Width>
+                                  <ZIndex>7</ZIndex>
+                                  <Style>
+                                    <Border>
+                                      <Style>None</Style>
+                                    </Border>
+                                    <TextAlign>Right</TextAlign>
+                                  </Style>
+                                </Textbox>
+                                <Textbox Name="LblRefund">
+                                  <CanGrow>true</CanGrow>
+                                  <CanShrink>true</CanShrink>
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!TotalRefundableAmountLCYLbl.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <FontWeight>Bold</FontWeight>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style />
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>2.37715cm</Top>
+                                  <Left>0cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>5.17708cm</Width>
+                                  <ZIndex>8</ZIndex>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="ValRefund">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!TotalRefundableAmountLCY.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <Format>0.00;- 0.00;''</Format>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style>
+                                        <TextAlign>Right</TextAlign>
+                                      </Style>
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>2.37715cm</Top>
+                                  <Left>5.17708cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>3.61709cm</Width>
+                                  <ZIndex>9</ZIndex>
+                                  <Style>
+                                    <Border>
+                                      <Style>None</Style>
+                                    </Border>
+                                    <TextAlign>Right</TextAlign>
+                                  </Style>
+                                </Textbox>
+                                <Textbox Name="LblCurrency">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!CurrencyCodeLbl.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <FontWeight>Bold</FontWeight>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style />
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>2.87715cm</Top>
+                                  <Left>0.02361cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>5.15347cm</Width>
+                                  <ZIndex>10</ZIndex>
+                                  <Style />
+                                </Textbox>
+                                <Textbox Name="ValCurrency">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!CurrencyCode.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style>
+                                        <TextAlign>Right</TextAlign>
+                                      </Style>
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>2.87715cm</Top>
+                                  <Left>5.17708cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>3.61709cm</Width>
+                                  <ZIndex>11</ZIndex>
+                                  <Style>
+                                    <TextAlign>Right</TextAlign>
+                                  </Style>
+                                </Textbox>
+                                <Textbox Name="LblSubmittedBy">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!SubmittedByLbl.Value+":"</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <FontWeight>Bold</FontWeight>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style />
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>3.37715cm</Top>
+                                  <Left>0cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>5.17708cm</Width>
+                                  <ZIndex>12</ZIndex>
+                                  <Style>
+                                    <Border>
+                                      <Style>None</Style>
+                                    </Border>
+                                  </Style>
+                                </Textbox>
+                                <Textbox Name="ValSubmittedBy">
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!SubmittedBy.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style>
+                                        <TextAlign>Right</TextAlign>
+                                      </Style>
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>3.37715cm</Top>
+                                  <Left>5.17708cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>3.61709cm</Width>
+                                  <ZIndex>13</ZIndex>
+                                  <Style>
+                                    <TextAlign>Right</TextAlign>
+                                  </Style>
+                                </Textbox>
+                                <Textbox Name="LblApprovedBy">
+                                  <CanGrow>true</CanGrow>
+                                  <CanShrink>true</CanShrink>
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!ApprovedByLbl.Value+":"</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                            <FontWeight>Bold</FontWeight>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style />
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>3.87715cm</Top>
+                                  <Left>0cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>5.17708cm</Width>
+                                  <ZIndex>14</ZIndex>
+                                  <Style>
+                                    <Border>
+                                      <Style>None</Style>
+                                    </Border>
+                                  </Style>
+                                </Textbox>
+                                <Textbox Name="ValApprovedBy">
+                                  <CanGrow>true</CanGrow>
+                                  <CanShrink>true</CanShrink>
+                                  <KeepTogether>true</KeepTogether>
+                                  <Paragraphs>
+                                    <Paragraph>
+                                      <TextRuns>
+                                        <TextRun>
+                                          <Value>=Fields!ApprovedBy.Value</Value>
+                                          <Style>
+                                            <FontFamily>Segoe UI</FontFamily>
+                                            <FontSize>8pt</FontSize>
+                                          </Style>
+                                        </TextRun>
+                                      </TextRuns>
+                                      <Style>
+                                        <TextAlign>Right</TextAlign>
+                                      </Style>
+                                    </Paragraph>
+                                  </Paragraphs>
+                                  <Top>3.87715cm</Top>
+                                  <Left>5.17708cm</Left>
+                                  <Height>0.5cm</Height>
+                                  <Width>3.61709cm</Width>
+                                  <ZIndex>15</ZIndex>
+                                  <Style>
+                                    <TextAlign>Right</TextAlign>
+                                  </Style>
+                                </Textbox>
+                              </ReportItems>
+                              <Top>0cm</Top>
+                              <Left>9.56272cm</Left>
+                              <Height>4.37715cm</Height>
+                              <Width>8.79417cm</Width>
+                              <ZIndex>1</ZIndex>
+                              <Style />
+                            </Rectangle>
+                          </ReportItems>
+                          <KeepTogether>true</KeepTogether>
+                          <Style />
+                        </Rectangle>
+                      </CellContents>
+                    </TablixCell>
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy>
+              <TablixMembers>
+                <TablixMember />
+              </TablixMembers>
+            </TablixColumnHierarchy>
+            <TablixRowHierarchy>
+              <TablixMembers>
+                <TablixMember>
+                  <Group Name="HeaderGroup">
+                    <GroupExpressions>
+                      <GroupExpression>=Fields!ExpenseReportNo.Value</GroupExpression>
+                    </GroupExpressions>
+                    <PageBreak>
+                      <BreakLocation>Between</BreakLocation>
+                      <ResetPageNumber>true</ResetPageNumber>
+                    </PageBreak>
+                  </Group>
+                </TablixMember>
+              </TablixMembers>
+            </TablixRowHierarchy>
+            <DataSetName>DataSet_Result</DataSetName>
+            <Top>0cm</Top>
+            <Left>0.04695cm</Left>
+            <Height>4.37715cm</Height>
+            <Width>18.35689cm</Width>
+            <Style />
+          </Tablix>
+        </ReportItems>
+        <Height>4.37715cm</Height>
+        <Style />
+      </Body>
+      <Width>18.40384cm</Width>
+      <Page>
+        <PageHeader>
+          <Height>3.04271cm</Height>
+          <PrintOnFirstPage>true</PrintOnFirstPage>
+          <PrintOnLastPage>true</PrintOnLastPage>
+          <ReportItems>
+            <Textbox Name="ReportTitle">
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Value>=Fields!ReportTitleLbl.Value</Value>
+                      <Style>
+                        <FontFamily>Segoe UI</FontFamily>
+                        <FontSize>14pt</FontSize>
+                        <FontWeight>Bold</FontWeight>
+                      </Style>
+                    </TextRun>
+                  </TextRuns>
+                  <Style>
+                    <TextAlign>Left</TextAlign>
+                  </Style>
+                </Paragraph>
+              </Paragraphs>
+              <Top>0cm</Top>
+              <Left>0.01719cm</Left>
+              <Height>0.9cm</Height>
+              <Width>8.78281cm</Width>
+              <Style />
+            </Textbox>
+            <Textbox Name="H_PageNo">
+              <CanGrow>true</CanGrow>
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Value>=First(Fields!Page_Lbl.Value, "DataSet_Result")</Value>
+                      <Style>
+                        <FontFamily>Segoe UI</FontFamily>
+                        <FontSize>8pt</FontSize>
+                        <FontWeight>Bold</FontWeight>
+                      </Style>
+                    </TextRun>
+                    <TextRun>
+                      <Value xml:space="preserve"> </Value>
+                      <Style>
+                        <FontFamily>Segoe UI</FontFamily>
+                        <FontSize>8pt</FontSize>
+                        <FontWeight>Bold</FontWeight>
+                      </Style>
+                    </TextRun>
+                    <TextRun>
+                      <Value>=Globals!PageNumber</Value>
+                      <Style>
+                        <FontFamily>Segoe UI</FontFamily>
+                        <FontSize>8pt</FontSize>
+                        <FontWeight>Bold</FontWeight>
+                      </Style>
+                    </TextRun>
+                    <TextRun>
+                      <Value> / </Value>
+                      <Style>
+                        <FontFamily>Segoe UI</FontFamily>
+                        <FontSize>8pt</FontSize>
+                        <FontWeight>Bold</FontWeight>
+                      </Style>
+                    </TextRun>
+                    <TextRun>
+                      <Value>=Globals!TotalPages</Value>
+                      <Style>
+                        <FontFamily>Segoe UI</FontFamily>
+                        <FontSize>8pt</FontSize>
+                        <FontWeight>Bold</FontWeight>
+                      </Style>
+                    </TextRun>
+                  </TextRuns>
+                  <Style>
+                    <TextAlign>Left</TextAlign>
+                  </Style>
+                </Paragraph>
+              </Paragraphs>
+              <Top>0.9cm</Top>
+              <Left>0cm</Left>
+              <Height>0.4cm</Height>
+              <Width>8.8cm</Width>
+              <ZIndex>1</ZIndex>
+              <Style>
+                <Border>
+                  <Style>None</Style>
+                </Border>
+                <PaddingLeft>2pt</PaddingLeft>
+                <PaddingRight>5pt</PaddingRight>
+              </Style>
+            </Textbox>
+            <Textbox Name="CompanyAddress1">
+              <rd:DefaultName>CompanyAddress1</rd:DefaultName>
+              <CanGrow>true</CanGrow>
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Value>=First(Fields!CompanyAddress1.Value, "DataSet_Result")</Value>
+                      <Style>
+                        <FontFamily>Segoe UI</FontFamily>
+                        <FontSize>9pt</FontSize>
+                      </Style>
+                    </TextRun>
+                  </TextRuns>
+                  <Style>
+                    <TextAlign>Right</TextAlign>
+                  </Style>
+                </Paragraph>
+              </Paragraphs>
+              <Top>0.15624in</Top>
+              <Left>3.79263in</Left>
+              <Height>0.15278in</Height>
+              <Width>3.44126in</Width>
+              <ZIndex>2</ZIndex>
+              <Style>
+                <Border>
+                  <Color>LightGrey</Color>
+                  <Style>None</Style>
+                </Border>
+                <PaddingLeft>5pt</PaddingLeft>
+                <PaddingRight>2pt</PaddingRight>
+              </Style>
+            </Textbox>
+            <Textbox Name="CompanyAddress2">
+              <rd:DefaultName>CompanyAddress2</rd:DefaultName>
+              <CanGrow>true</CanGrow>
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Value>=First(Fields!CompanyAddress2.Value, "DataSet_Result")</Value>
+                      <Style>
+                        <FontFamily>Segoe UI</FontFamily>
+                        <FontSize>9pt</FontSize>
+                      </Style>
+                    </TextRun>
+                  </TextRuns>
+                  <Style>
+                    <TextAlign>Right</TextAlign>
+                  </Style>
+                </Paragraph>
+              </Paragraphs>
+              <Top>0.32291in</Top>
+              <Left>3.79263in</Left>
+              <Height>0.15278in</Height>
+              <Width>3.44126in</Width>
+              <ZIndex>3</ZIndex>
+              <Style>
+                <Border>
+                  <Color>LightGrey</Color>
+                  <Style>None</Style>
+                </Border>
+                <PaddingLeft>5pt</PaddingLeft>
+                <PaddingRight>2pt</PaddingRight>
+              </Style>
+            </Textbox>
+            <Textbox Name="CompanyAddress3">
+              <rd:DefaultName>CompanyAddress3</rd:DefaultName>
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Value>=First(Fields!CompanyAddress3.Value, "DataSet_Result")</Value>
+                      <Style>
+                        <FontFamily>Segoe UI</FontFamily>
+                        <FontSize>9pt</FontSize>
+                      </Style>
+                    </TextRun>
+                  </TextRuns>
+                  <Style>
+                    <TextAlign>Right</TextAlign>
+                  </Style>
+                </Paragraph>
+              </Paragraphs>
+              <Top>0.48958in</Top>
+              <Left>3.79263in</Left>
+              <Height>0.15278in</Height>
+              <Width>3.44126in</Width>
+              <ZIndex>4</ZIndex>
+              <Style>
+                <Border>
+                  <Color>LightGrey</Color>
+                  <Style>None</Style>
+                </Border>
+                <PaddingLeft>5pt</PaddingLeft>
+                <PaddingRight>2pt</PaddingRight>
+              </Style>
+            </Textbox>
+            <Textbox Name="CompanyAddress4">
+              <rd:DefaultName>CompanyAddress4</rd:DefaultName>
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Value>=First(Fields!CompanyAddress4.Value, "DataSet_Result")</Value>
+                      <Style>
+                        <FontFamily>Segoe UI</FontFamily>
+                        <FontSize>9pt</FontSize>
+                      </Style>
+                    </TextRun>
+                  </TextRuns>
+                  <Style>
+                    <TextAlign>Right</TextAlign>
+                  </Style>
+                </Paragraph>
+              </Paragraphs>
+              <Top>0.64236in</Top>
+              <Left>3.79263in</Left>
+              <Height>0.15278in</Height>
+              <Width>3.44126in</Width>
+              <ZIndex>5</ZIndex>
+              <Style>
+                <Border>
+                  <Color>LightGrey</Color>
+                  <Style>None</Style>
+                </Border>
+                <PaddingLeft>5pt</PaddingLeft>
+                <PaddingRight>2pt</PaddingRight>
+              </Style>
+            </Textbox>
+            <Textbox Name="CompanyAddress5">
+              <rd:DefaultName>CompanyAddress5</rd:DefaultName>
+              <CanGrow>true</CanGrow>
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Value>=First(Fields!CompanyAddress5.Value, "DataSet_Result")</Value>
+                      <Style>
+                        <FontFamily>Segoe UI</FontFamily>
+                        <FontSize>9pt</FontSize>
+                      </Style>
+                    </TextRun>
+                  </TextRuns>
+                  <Style>
+                    <TextAlign>Right</TextAlign>
+                  </Style>
+                </Paragraph>
+              </Paragraphs>
+              <Top>0.79514in</Top>
+              <Left>3.79263in</Left>
+              <Height>0.15278in</Height>
+              <Width>3.44126in</Width>
+              <ZIndex>6</ZIndex>
+              <Style>
+                <Border>
+                  <Color>LightGrey</Color>
+                  <Style>None</Style>
+                </Border>
+                <PaddingLeft>5pt</PaddingLeft>
+                <PaddingRight>2pt</PaddingRight>
+              </Style>
+            </Textbox>
+            <Textbox Name="CompanyAddress6">
+              <rd:DefaultName>CompanyAddress6</rd:DefaultName>
+              <CanGrow>true</CanGrow>
+              <KeepTogether>true</KeepTogether>
+              <Paragraphs>
+                <Paragraph>
+                  <TextRuns>
+                    <TextRun>
+                      <Value>=First(Fields!CompanyAddress6.Value, "DataSet_Result")</Value>
+                      <Style>
+                        <FontFamily>Segoe UI</FontFamily>
+                        <FontSize>9pt</FontSize>
+                      </Style>
+                    </TextRun>
+                  </TextRuns>
+                  <Style>
+                    <TextAlign>Right</TextAlign>
+                  </Style>
+                </Paragraph>
+              </Paragraphs>
+              <Top>0.94792in</Top>
+              <Left>3.79263in</Left>
+              <Height>0.15278in</Height>
+              <Width>3.44126in</Width>
+              <ZIndex>7</ZIndex>
+              <Style>
+                <Border>
+                  <Color>LightGrey</Color>
+                  <Style>None</Style>
+                </Border>
+                <PaddingLeft>5pt</PaddingLeft>
+                <PaddingRight>2pt</PaddingRight>
+              </Style>
+            </Textbox>
+          </ReportItems>
+          <Style>
+            <Border>
+              <Style>None</Style>
+            </Border>
+          </Style>
+        </PageHeader>
+        <PageHeight>29.7cm</PageHeight>
+        <PageWidth>21cm</PageWidth>
+        <InteractiveHeight>11in</InteractiveHeight>
+        <InteractiveWidth>8.5in</InteractiveWidth>
+        <LeftMargin>1cm</LeftMargin>
+        <RightMargin>1cm</RightMargin>
+        <TopMargin>1.5cm</TopMargin>
+        <BottomMargin>1.5cm</BottomMargin>
+        <Style />
+      </Page>
+    </ReportSection>
+  </ReportSections>
+  <Code>Shared Data as Object
+
+Public Function GetData(Num as Integer) as Object
+  Return Cstr(Choose(Num, Split(Cstr(Data),Chr(177))))
+End Function
+
+Public Function SetData(NewData as Object)
+  Data = NewData
+  Return True
+End Function
+
+</Code>
+  <Language>=User!Language</Language>
+  <ConsumeContainerWhitespace>true</ConsumeContainerWhitespace>
+  <DataSets>
+    <DataSet Name="DataSet_Result">
+      <Fields>
+        <Field Name="ReportTitleLbl">
+          <DataField>ReportTitleLbl</DataField>
+        </Field>
+        <Field Name="CompanyAddress1">
+          <DataField>CompanyAddress1</DataField>
+        </Field>
+        <Field Name="CompanyAddress2">
+          <DataField>CompanyAddress2</DataField>
+        </Field>
+        <Field Name="CompanyAddress3">
+          <DataField>CompanyAddress3</DataField>
+        </Field>
+        <Field Name="CompanyAddress4">
+          <DataField>CompanyAddress4</DataField>
+        </Field>
+        <Field Name="CompanyAddress5">
+          <DataField>CompanyAddress5</DataField>
+        </Field>
+        <Field Name="CompanyAddress6">
+          <DataField>CompanyAddress6</DataField>
+        </Field>
+        <Field Name="CompanyAddress7">
+          <DataField>CompanyAddress7</DataField>
+        </Field>
+        <Field Name="CompanyAddress8">
+          <DataField>CompanyAddress8</DataField>
+        </Field>
+        <Field Name="ExpenseReportNo">
+          <DataField>ExpenseReportNo</DataField>
+        </Field>
+        <Field Name="ExpenseUserName">
+          <DataField>ExpenseUserName</DataField>
+        </Field>
+        <Field Name="ExpenseReportDate">
+          <DataField>ExpenseReportDate</DataField>
+        </Field>
+        <Field Name="PostingDate">
+          <DataField>PostingDate</DataField>
+        </Field>
+        <Field Name="Description">
+          <DataField>Description</DataField>
+        </Field>
+        <Field Name="AntiCorruptionAttestation">
+          <DataField>AntiCorruptionAttestation</DataField>
+        </Field>
+        <Field Name="AntiCorruptionDescription">
+          <DataField>AntiCorruptionDescription</DataField>
+        </Field>
+        <Field Name="TotalAmountLCY">
+          <DataField>TotalAmountLCY</DataField>
+        </Field>
+        <Field Name="TotalAmountLCYFormat">
+          <DataField>TotalAmountLCYFormat</DataField>
+        </Field>
+        <Field Name="TotalReimbursableAmountLCY">
+          <DataField>TotalReimbursableAmountLCY</DataField>
+        </Field>
+        <Field Name="TotalReimbursableAmountLCYFormat">
+          <DataField>TotalReimbursableAmountLCYFormat</DataField>
+        </Field>
+        <Field Name="TotalPaidByCompanyLCY">
+          <DataField>TotalPaidByCompanyLCY</DataField>
+        </Field>
+        <Field Name="TotalPaidByCompanyLCYFormat">
+          <DataField>TotalPaidByCompanyLCYFormat</DataField>
+        </Field>
+        <Field Name="TotalNonRefundableAmountLCY">
+          <DataField>TotalNonRefundableAmountLCY</DataField>
+        </Field>
+        <Field Name="TotalNonRefundableAmountLCYFormat">
+          <DataField>TotalNonRefundableAmountLCYFormat</DataField>
+        </Field>
+        <Field Name="TotalRefundableAmountLCY">
+          <DataField>TotalRefundableAmountLCY</DataField>
+        </Field>
+        <Field Name="TotalRefundableAmountLCYFormat">
+          <DataField>TotalRefundableAmountLCYFormat</DataField>
+        </Field>
+        <Field Name="CurrencyCode">
+          <DataField>CurrencyCode</DataField>
+        </Field>
+        <Field Name="SubmittedBy">
+          <DataField>SubmittedBy</DataField>
+        </Field>
+        <Field Name="ApprovedBy">
+          <DataField>ApprovedBy</DataField>
+        </Field>
+        <Field Name="ExpenseReportNoLbl">
+          <DataField>ExpenseReportNoLbl</DataField>
+        </Field>
+        <Field Name="ExpenseUserNameLbl">
+          <DataField>ExpenseUserNameLbl</DataField>
+        </Field>
+        <Field Name="ExpenseReportDateLbl">
+          <DataField>ExpenseReportDateLbl</DataField>
+        </Field>
+        <Field Name="PostingDateLbl">
+          <DataField>PostingDateLbl</DataField>
+        </Field>
+        <Field Name="DescriptionLbl">
+          <DataField>DescriptionLbl</DataField>
+        </Field>
+        <Field Name="AntiCorruptionAttestationLbl">
+          <DataField>AntiCorruptionAttestationLbl</DataField>
+        </Field>
+        <Field Name="AntiCorruptionDescriptionLbl">
+          <DataField>AntiCorruptionDescriptionLbl</DataField>
+        </Field>
+        <Field Name="TotalAmountLCYLbl">
+          <DataField>TotalAmountLCYLbl</DataField>
+        </Field>
+        <Field Name="TotalReimbursableAmountLCYLbl">
+          <DataField>TotalReimbursableAmountLCYLbl</DataField>
+        </Field>
+        <Field Name="TotalPaidByCompanyLCYLbl">
+          <DataField>TotalPaidByCompanyLCYLbl</DataField>
+        </Field>
+        <Field Name="TotalNonRefundableAmountLCYLbl">
+          <DataField>TotalNonRefundableAmountLCYLbl</DataField>
+        </Field>
+        <Field Name="TotalRefundableAmountLCYLbl">
+          <DataField>TotalRefundableAmountLCYLbl</DataField>
+        </Field>
+        <Field Name="CurrencyCodeLbl">
+          <DataField>CurrencyCodeLbl</DataField>
+        </Field>
+        <Field Name="SubmittedByLbl">
+          <DataField>SubmittedByLbl</DataField>
+        </Field>
+        <Field Name="ApprovedByLbl">
+          <DataField>ApprovedByLbl</DataField>
+        </Field>
+        <Field Name="Page_Lbl">
+          <DataField>Page_Lbl</DataField>
+        </Field>
+      </Fields>
+      <Query>
+        <DataSourceName>DataSource</DataSourceName>
+        <CommandText />
+      </Query>
+    </DataSet>
+  </DataSets>
+</Report>
