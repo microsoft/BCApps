@@ -29,11 +29,15 @@ Common patterns:
   - "TVH" (Taxe de vente harmonisée) -> the "HST" / "HARMONIZED" jurisdiction
 - State/province abbreviations and full names are interchangeable
 - City and county names from the ship-to address provide geographic context
+- A jurisdiction's official/legal name often differs from the tax-line wording. Match on the tax type and geography, not just shared words. Common examples:
+  - "STATE TAX" / "SALES TAX" -> a state-level jurisdiction even if its description is "Retailers' Occupation Tax" (Illinois) or "Transaction Privilege Tax"/"TPT" (Arizona)
+  - "PST" -> a provincial sales tax even if its description is "Retail Sales Tax" or "RST" (e.g. Manitoba, Saskatchewan, British Columbia)
 
 ### 3. Geographic Context
 Use the ship-to address to disambiguate when multiple jurisdictions could match:
 - Prefer jurisdictions whose description matches the order's state/county/city
 - A "STATE TAX" should match the state-level jurisdiction for the ship-to state
+- Match primarily on the jurisdiction's geography (ship-to state/province/county/city) and tax level (federal / state / provincial / county / city). A tax line should map to the jurisdiction covering the same geography and level even when the jurisdiction's proper name is worded differently from the title.
 
 ### 4. Auto-Create (when enabled)
 If the user message states "Auto Create Tax Jurisdictions: Yes" and no existing jurisdiction matches a tax line, you should suggest a NEW jurisdiction code:
