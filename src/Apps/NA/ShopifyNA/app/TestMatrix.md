@@ -235,11 +235,40 @@ The mitigation under test is the security/guardrail prompt merged from Azure Key
 eval environment must have the secret provisioned via the enlistment commands.
 
 ---
+
+## Generated Accuracy Dataset (large-scale matching accuracy)
+
+To measure jurisdiction-matching accuracy at scale (beyond the small curated J/H set), a dedicated
+**Weekly** suite `TMA-ACCUR` runs a large, generated corpus through `Shpfy TMA Match Test` (134717).
+The small curated J/H scenarios stay in the **Daily** `TMA-UNIT` gate; the large corpus runs Weekly
+(mirrors the Payables Agent `PA-ACCUR` split):
+
+| Dataset | Scenarios | Coverage |
+|---------|-----------|----------|
+| `TMA-TS-AccUS-1.yaml` | ~144 | US states (first half of the catalog) |
+| `TMA-TS-AccUS-2.yaml` | ~139 | US states (second half) |
+| `TMA-TS-AccCA.yaml` | ~69 | Canada provinces incl. French (TPS/TVQ) abbreviations |
+
+**Coverage axes** — 24 US states + 7 CA provinces (state/province + county/city/district
+jurisdictions), each exercised through title **perturbations**: exact, sales-variant,
+abbreviation, minimal-abbreviation, punctuation, embedded-rate, reworded, `Code[20]` truncation,
+plus structural cases: multi-line orders, distractor jurisdictions from other regions, unmatched
+(`jurisdictionCode: ""`), auto-create (`hasJurisdictionCode`), and non-English (Quebec French).
+
+**Generation** — produced deterministically (no PII; public US/CA tax facts + synthetic title
+perturbations) so the corpus can be regenerated while hill-climbing the prompt. Each tax line is
+labeled with its target jurisdiction, so accuracy = matched / total.
+
+**Metric** — this corpus is intentionally **not** a 100% pass gate. Accuracy is expected to be
+below 100% and improved over time (hill-climb); each scenario asserts the exact expected
+jurisdiction, so the AI Test Toolkit reports the pass rate per dataset line.
+
+---
 ## Automated Test Coverage
 
 | Test codeunit | ID | Covers |
 |---------------|----|--------|
-| `Shpfy TMA Match Test` | 134717 | Jurisdiction matching (J*), creation (JC*), Tax Detail incl. rate-conflict TD3/RD1, shipping (ST*) — data-driven via the real LLM + `MatchTaxLines` |
+| `Shpfy TMA Match Test` | 134717 | Jurisdiction matching (J*), creation (JC*), Tax Detail incl. rate-conflict TD3/RD1, shipping (ST*) — data-driven via the real LLM + `MatchTaxLines`; plus the large generated US/CA accuracy corpus (`TMA-TS-Acc*.yaml`, run Weekly via the `TMA-ACCUR` suite) |
 | `Shpfy TMA Tax Area Test` | 134718 | Tax Area find/create (TA*) — `FindOrCreateTaxArea` |
 | `Shpfy TMA Guard Test` | 134719 | Guard / early-exit (GD*, P1–P6) |
 | `Shpfy TMA HITL Test` | 134716 | HITL-1…6 — marker propagation, `MarkReviewed`, `DisableForUser`, Activity Log helpers, `Capitalize` |

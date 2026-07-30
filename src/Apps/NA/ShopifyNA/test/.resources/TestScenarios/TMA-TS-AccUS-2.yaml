@@ -1,0 +1,4386 @@
+test_setup: TMA-Setup.yaml
+
+tests:
+  - name: US-NC-01-exact
+    description: "NC primary jurisdiction via exact title must match NCSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NCSTAX
+          Description: North Carolina State Tax
+          Country/Region Code: US
+        - Code: NCMECK
+          Description: Mecklenburg County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NC
+        city: Charlotte
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NC STATE TAX"
+              ratePct: 4.75
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NCSTAX"
+
+  - name: US-NC-02-sales-variant
+    description: "NC primary jurisdiction via sales-variant title must match NCSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NCSTAX
+          Description: North Carolina State Tax
+          Country/Region Code: US
+        - Code: NCMECK
+          Description: Mecklenburg County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NC
+        city: Charlotte
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NC STATE SALES TAX"
+              ratePct: 4.75
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NCSTAX"
+
+  - name: US-NC-03-abbreviation
+    description: "NC primary jurisdiction via abbreviation title must match NCSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NCSTAX
+          Description: North Carolina State Tax
+          Country/Region Code: US
+        - Code: NCMECK
+          Description: Mecklenburg County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NC
+        city: Charlotte
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NC STATE TAX"
+              ratePct: 4.75
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NCSTAX"
+
+  - name: US-NC-04-minimal-abbrev
+    description: "NC primary jurisdiction via minimal-abbrev title must match NCSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NCSTAX
+          Description: North Carolina State Tax
+          Country/Region Code: US
+        - Code: NCMECK
+          Description: Mecklenburg County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NC
+        city: Charlotte
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NC TAX"
+              ratePct: 4.75
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NCSTAX"
+
+  - name: US-NC-05-punctuation
+    description: "NC primary jurisdiction via punctuation title must match NCSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NCSTAX
+          Description: North Carolina State Tax
+          Country/Region Code: US
+        - Code: NCMECK
+          Description: Mecklenburg County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NC
+        city: Charlotte
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "STATE TAX (NC)"
+              ratePct: 4.75
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NCSTAX"
+
+  - name: US-NC-06-embedded-rate
+    description: "NC primary jurisdiction via embedded-rate title must match NCSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NCSTAX
+          Description: North Carolina State Tax
+          Country/Region Code: US
+        - Code: NCMECK
+          Description: Mecklenburg County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NC
+        city: Charlotte
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NC TAX 4.75%"
+              ratePct: 4.75
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NCSTAX"
+
+  - name: US-NC-07-reworded
+    description: "NC primary jurisdiction via reworded title must match NCSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NCSTAX
+          Description: North Carolina State Tax
+          Country/Region Code: US
+        - Code: NCMECK
+          Description: Mecklenburg County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NC
+        city: Charlotte
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TAX - NC STATE TAX"
+              ratePct: 4.75
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NCSTAX"
+
+  - name: US-NC-08-truncated-code20
+    description: "NC primary jurisdiction via truncated-code20 title must match NCSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NCSTAX
+          Description: North Carolina State Tax
+          Country/Region Code: US
+        - Code: NCMECK
+          Description: Mecklenburg County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NC
+        city: Charlotte
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NORTH CAROLINA STATE SALES & USE TAX"
+              ratePct: 4.75
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NCSTAX"
+
+  - name: US-NC-D-distractors
+    description: "NC match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NCSTAX
+          Description: North Carolina State Tax
+          Country/Region Code: US
+        - Code: NCMECK
+          Description: Mecklenburg County Tax
+          Country/Region Code: US
+        - Code: NYSTAX
+          Description: New York State Tax
+          Country/Region Code: US
+        - Code: CASTAX
+          Description: California State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NC
+        city: Charlotte
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NC STATE TAX"
+              ratePct: 4.75
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NCSTAX"
+
+  - name: US-NC-N-nomatch
+    description: "NC unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NCSTAX
+          Description: North Carolina State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NC
+        city: Charlotte
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: US-NC-M-multiline
+    description: "NC multi-jurisdiction order: every line matches its jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NCSTAX
+          Description: North Carolina State Tax
+          Country/Region Code: US
+        - Code: NCMECK
+          Description: Mecklenburg County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NC
+        city: Charlotte
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NC STATE TAX"
+              ratePct: 4.75
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "MECKLENBURG TAX"
+              ratePct: 2.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NCSTAX"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "NCMECK"
+
+  - name: US-NC-A-autocreate
+    description: "NC auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NCSTAX
+          Description: North Carolina State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NC
+        city: Charlotte
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NC STATE TAX"
+              ratePct: 4.75
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "NC SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NCSTAX"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
+
+  - name: US-MA-01-exact
+    description: "MA primary jurisdiction via exact title must match MASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MASTAX
+          Description: Massachusetts State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MA
+        city: Boston
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MASSACHUSETTS TAX"
+              ratePct: 6.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MASTAX"
+
+  - name: US-MA-02-sales-variant
+    description: "MA primary jurisdiction via sales-variant title must match MASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MASTAX
+          Description: Massachusetts State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MA
+        city: Boston
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MASSACHUSETTS TAX SALES"
+              ratePct: 6.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MASTAX"
+
+  - name: US-MA-03-abbreviation
+    description: "MA primary jurisdiction via abbreviation title must match MASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MASTAX
+          Description: Massachusetts State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MA
+        city: Boston
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MA STATE TAX"
+              ratePct: 6.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MASTAX"
+
+  - name: US-MA-04-minimal-abbrev
+    description: "MA primary jurisdiction via minimal-abbrev title must match MASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MASTAX
+          Description: Massachusetts State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MA
+        city: Boston
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MA TAX"
+              ratePct: 6.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MASTAX"
+
+  - name: US-MA-05-punctuation
+    description: "MA primary jurisdiction via punctuation title must match MASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MASTAX
+          Description: Massachusetts State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MA
+        city: Boston
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "STATE TAX (MA)"
+              ratePct: 6.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MASTAX"
+
+  - name: US-MA-06-embedded-rate
+    description: "MA primary jurisdiction via embedded-rate title must match MASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MASTAX
+          Description: Massachusetts State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MA
+        city: Boston
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MA TAX 6.25%"
+              ratePct: 6.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MASTAX"
+
+  - name: US-MA-07-reworded
+    description: "MA primary jurisdiction via reworded title must match MASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MASTAX
+          Description: Massachusetts State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MA
+        city: Boston
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TAX - MA STATE TAX"
+              ratePct: 6.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MASTAX"
+
+  - name: US-MA-08-truncated-code20
+    description: "MA primary jurisdiction via truncated-code20 title must match MASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MASTAX
+          Description: Massachusetts State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MA
+        city: Boston
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MASSACHUSETTS STATE SALES & USE TAX"
+              ratePct: 6.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MASTAX"
+
+  - name: US-MA-D-distractors
+    description: "MA match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MASTAX
+          Description: Massachusetts State Tax
+          Country/Region Code: US
+        - Code: NYSTAX
+          Description: New York State Tax
+          Country/Region Code: US
+        - Code: CASTAX
+          Description: California State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MA
+        city: Boston
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MASSACHUSETTS TAX"
+              ratePct: 6.25
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MASTAX"
+
+  - name: US-MA-N-nomatch
+    description: "MA unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MASTAX
+          Description: Massachusetts State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MA
+        city: Boston
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: US-MA-A-autocreate
+    description: "MA auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MASTAX
+          Description: Massachusetts State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MA
+        city: Boston
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MASSACHUSETTS TAX"
+              ratePct: 6.25
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "MA SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MASTAX"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
+
+  - name: US-NJ-01-exact
+    description: "NJ primary jurisdiction via exact title must match NJSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NJSTAX
+          Description: New Jersey State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NJ
+        city: Newark
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NEW JERSEY TAX"
+              ratePct: 6.625
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NJSTAX"
+
+  - name: US-NJ-02-sales-variant
+    description: "NJ primary jurisdiction via sales-variant title must match NJSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NJSTAX
+          Description: New Jersey State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NJ
+        city: Newark
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NEW JERSEY TAX SALES"
+              ratePct: 6.625
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NJSTAX"
+
+  - name: US-NJ-03-abbreviation
+    description: "NJ primary jurisdiction via abbreviation title must match NJSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NJSTAX
+          Description: New Jersey State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NJ
+        city: Newark
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NJ STATE TAX"
+              ratePct: 6.625
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NJSTAX"
+
+  - name: US-NJ-04-minimal-abbrev
+    description: "NJ primary jurisdiction via minimal-abbrev title must match NJSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NJSTAX
+          Description: New Jersey State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NJ
+        city: Newark
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NJ TAX"
+              ratePct: 6.625
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NJSTAX"
+
+  - name: US-NJ-05-punctuation
+    description: "NJ primary jurisdiction via punctuation title must match NJSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NJSTAX
+          Description: New Jersey State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NJ
+        city: Newark
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "STATE TAX (NJ)"
+              ratePct: 6.625
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NJSTAX"
+
+  - name: US-NJ-06-embedded-rate
+    description: "NJ primary jurisdiction via embedded-rate title must match NJSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NJSTAX
+          Description: New Jersey State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NJ
+        city: Newark
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NJ TAX 6.625%"
+              ratePct: 6.625
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NJSTAX"
+
+  - name: US-NJ-07-reworded
+    description: "NJ primary jurisdiction via reworded title must match NJSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NJSTAX
+          Description: New Jersey State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NJ
+        city: Newark
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TAX - NJ STATE TAX"
+              ratePct: 6.625
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NJSTAX"
+
+  - name: US-NJ-08-truncated-code20
+    description: "NJ primary jurisdiction via truncated-code20 title must match NJSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NJSTAX
+          Description: New Jersey State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NJ
+        city: Newark
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NEW JERSEY STATE SALES & USE TAX"
+              ratePct: 6.625
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NJSTAX"
+
+  - name: US-NJ-D-distractors
+    description: "NJ match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NJSTAX
+          Description: New Jersey State Tax
+          Country/Region Code: US
+        - Code: NYSTAX
+          Description: New York State Tax
+          Country/Region Code: US
+        - Code: CASTAX
+          Description: California State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NJ
+        city: Newark
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NEW JERSEY TAX"
+              ratePct: 6.625
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NJSTAX"
+
+  - name: US-NJ-N-nomatch
+    description: "NJ unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NJSTAX
+          Description: New Jersey State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NJ
+        city: Newark
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: US-NJ-A-autocreate
+    description: "NJ auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NJSTAX
+          Description: New Jersey State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NJ
+        city: Newark
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NEW JERSEY TAX"
+              ratePct: 6.625
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "NJ SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NJSTAX"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
+
+  - name: US-VA-01-exact
+    description: "VA primary jurisdiction via exact title must match VASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: VASTAX
+          Description: Virginia State Tax
+          Country/Region Code: US
+        - Code: VARICH
+          Description: Richmond Regional Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: VA
+        city: Richmond
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "VIRGINIA STATE TAX"
+              ratePct: 5.3
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "VASTAX"
+
+  - name: US-VA-02-sales-variant
+    description: "VA primary jurisdiction via sales-variant title must match VASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: VASTAX
+          Description: Virginia State Tax
+          Country/Region Code: US
+        - Code: VARICH
+          Description: Richmond Regional Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: VA
+        city: Richmond
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "VIRGINIA STATE SALES TAX"
+              ratePct: 5.3
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "VASTAX"
+
+  - name: US-VA-03-abbreviation
+    description: "VA primary jurisdiction via abbreviation title must match VASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: VASTAX
+          Description: Virginia State Tax
+          Country/Region Code: US
+        - Code: VARICH
+          Description: Richmond Regional Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: VA
+        city: Richmond
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "VA STATE TAX"
+              ratePct: 5.3
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "VASTAX"
+
+  - name: US-VA-04-minimal-abbrev
+    description: "VA primary jurisdiction via minimal-abbrev title must match VASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: VASTAX
+          Description: Virginia State Tax
+          Country/Region Code: US
+        - Code: VARICH
+          Description: Richmond Regional Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: VA
+        city: Richmond
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "VA TAX"
+              ratePct: 5.3
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "VASTAX"
+
+  - name: US-VA-05-punctuation
+    description: "VA primary jurisdiction via punctuation title must match VASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: VASTAX
+          Description: Virginia State Tax
+          Country/Region Code: US
+        - Code: VARICH
+          Description: Richmond Regional Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: VA
+        city: Richmond
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "STATE TAX (VA)"
+              ratePct: 5.3
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "VASTAX"
+
+  - name: US-VA-06-embedded-rate
+    description: "VA primary jurisdiction via embedded-rate title must match VASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: VASTAX
+          Description: Virginia State Tax
+          Country/Region Code: US
+        - Code: VARICH
+          Description: Richmond Regional Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: VA
+        city: Richmond
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "VA TAX 5.3%"
+              ratePct: 5.3
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "VASTAX"
+
+  - name: US-VA-07-reworded
+    description: "VA primary jurisdiction via reworded title must match VASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: VASTAX
+          Description: Virginia State Tax
+          Country/Region Code: US
+        - Code: VARICH
+          Description: Richmond Regional Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: VA
+        city: Richmond
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TAX - VA STATE TAX"
+              ratePct: 5.3
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "VASTAX"
+
+  - name: US-VA-08-truncated-code20
+    description: "VA primary jurisdiction via truncated-code20 title must match VASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: VASTAX
+          Description: Virginia State Tax
+          Country/Region Code: US
+        - Code: VARICH
+          Description: Richmond Regional Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: VA
+        city: Richmond
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "VIRGINIA STATE SALES & USE TAX"
+              ratePct: 5.3
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "VASTAX"
+
+  - name: US-VA-D-distractors
+    description: "VA match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: VASTAX
+          Description: Virginia State Tax
+          Country/Region Code: US
+        - Code: VARICH
+          Description: Richmond Regional Tax
+          Country/Region Code: US
+        - Code: NYSTAX
+          Description: New York State Tax
+          Country/Region Code: US
+        - Code: CASTAX
+          Description: California State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: VA
+        city: Richmond
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "VIRGINIA STATE TAX"
+              ratePct: 5.3
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "VASTAX"
+
+  - name: US-VA-N-nomatch
+    description: "VA unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: VASTAX
+          Description: Virginia State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: VA
+        city: Richmond
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: US-VA-M-multiline
+    description: "VA multi-jurisdiction order: every line matches its jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: VASTAX
+          Description: Virginia State Tax
+          Country/Region Code: US
+        - Code: VARICH
+          Description: Richmond Regional Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: VA
+        city: Richmond
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "VIRGINIA STATE TAX"
+              ratePct: 5.3
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "RICHMOND REG TAX"
+              ratePct: 0.7
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "VASTAX"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "VARICH"
+
+  - name: US-VA-A-autocreate
+    description: "VA auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: VASTAX
+          Description: Virginia State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: VA
+        city: Richmond
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "VIRGINIA STATE TAX"
+              ratePct: 5.3
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "VA SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "VASTAX"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
+
+  - name: US-MI-01-exact
+    description: "MI primary jurisdiction via exact title must match MISTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MISTAX
+          Description: Michigan State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MI
+        city: Detroit
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MICHIGAN STATE TAX"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MISTAX"
+
+  - name: US-MI-02-sales-variant
+    description: "MI primary jurisdiction via sales-variant title must match MISTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MISTAX
+          Description: Michigan State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MI
+        city: Detroit
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MICHIGAN STATE SALES TAX"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MISTAX"
+
+  - name: US-MI-03-abbreviation
+    description: "MI primary jurisdiction via abbreviation title must match MISTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MISTAX
+          Description: Michigan State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MI
+        city: Detroit
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MI STATE TAX"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MISTAX"
+
+  - name: US-MI-04-minimal-abbrev
+    description: "MI primary jurisdiction via minimal-abbrev title must match MISTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MISTAX
+          Description: Michigan State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MI
+        city: Detroit
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MI TAX"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MISTAX"
+
+  - name: US-MI-05-punctuation
+    description: "MI primary jurisdiction via punctuation title must match MISTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MISTAX
+          Description: Michigan State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MI
+        city: Detroit
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "STATE TAX (MI)"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MISTAX"
+
+  - name: US-MI-06-embedded-rate
+    description: "MI primary jurisdiction via embedded-rate title must match MISTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MISTAX
+          Description: Michigan State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MI
+        city: Detroit
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MI TAX 6.0%"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MISTAX"
+
+  - name: US-MI-07-reworded
+    description: "MI primary jurisdiction via reworded title must match MISTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MISTAX
+          Description: Michigan State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MI
+        city: Detroit
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TAX - MI STATE TAX"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MISTAX"
+
+  - name: US-MI-08-truncated-code20
+    description: "MI primary jurisdiction via truncated-code20 title must match MISTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MISTAX
+          Description: Michigan State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MI
+        city: Detroit
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MICHIGAN STATE SALES & USE TAX"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MISTAX"
+
+  - name: US-MI-D-distractors
+    description: "MI match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MISTAX
+          Description: Michigan State Tax
+          Country/Region Code: US
+        - Code: NYSTAX
+          Description: New York State Tax
+          Country/Region Code: US
+        - Code: CASTAX
+          Description: California State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MI
+        city: Detroit
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MICHIGAN STATE TAX"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MISTAX"
+
+  - name: US-MI-N-nomatch
+    description: "MI unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MISTAX
+          Description: Michigan State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MI
+        city: Detroit
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: US-MI-A-autocreate
+    description: "MI auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MISTAX
+          Description: Michigan State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MI
+        city: Detroit
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MICHIGAN STATE TAX"
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "MI SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MISTAX"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
+
+  - name: US-MN-01-exact
+    description: "MN primary jurisdiction via exact title must match MNSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MNSTAX
+          Description: Minnesota State Tax
+          Country/Region Code: US
+        - Code: MNHENN
+          Description: Hennepin County Tax
+          Country/Region Code: US
+        - Code: MNMPLS
+          Description: Minneapolis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MN
+        city: Minneapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MINNESOTA STATE TAX"
+              ratePct: 6.875
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MNSTAX"
+
+  - name: US-MN-02-sales-variant
+    description: "MN primary jurisdiction via sales-variant title must match MNSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MNSTAX
+          Description: Minnesota State Tax
+          Country/Region Code: US
+        - Code: MNHENN
+          Description: Hennepin County Tax
+          Country/Region Code: US
+        - Code: MNMPLS
+          Description: Minneapolis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MN
+        city: Minneapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MINNESOTA STATE SALES TAX"
+              ratePct: 6.875
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MNSTAX"
+
+  - name: US-MN-03-abbreviation
+    description: "MN primary jurisdiction via abbreviation title must match MNSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MNSTAX
+          Description: Minnesota State Tax
+          Country/Region Code: US
+        - Code: MNHENN
+          Description: Hennepin County Tax
+          Country/Region Code: US
+        - Code: MNMPLS
+          Description: Minneapolis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MN
+        city: Minneapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MN STATE TAX"
+              ratePct: 6.875
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MNSTAX"
+
+  - name: US-MN-04-minimal-abbrev
+    description: "MN primary jurisdiction via minimal-abbrev title must match MNSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MNSTAX
+          Description: Minnesota State Tax
+          Country/Region Code: US
+        - Code: MNHENN
+          Description: Hennepin County Tax
+          Country/Region Code: US
+        - Code: MNMPLS
+          Description: Minneapolis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MN
+        city: Minneapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MN TAX"
+              ratePct: 6.875
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MNSTAX"
+
+  - name: US-MN-05-punctuation
+    description: "MN primary jurisdiction via punctuation title must match MNSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MNSTAX
+          Description: Minnesota State Tax
+          Country/Region Code: US
+        - Code: MNHENN
+          Description: Hennepin County Tax
+          Country/Region Code: US
+        - Code: MNMPLS
+          Description: Minneapolis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MN
+        city: Minneapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "STATE TAX (MN)"
+              ratePct: 6.875
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MNSTAX"
+
+  - name: US-MN-06-embedded-rate
+    description: "MN primary jurisdiction via embedded-rate title must match MNSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MNSTAX
+          Description: Minnesota State Tax
+          Country/Region Code: US
+        - Code: MNHENN
+          Description: Hennepin County Tax
+          Country/Region Code: US
+        - Code: MNMPLS
+          Description: Minneapolis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MN
+        city: Minneapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MN TAX 6.875%"
+              ratePct: 6.875
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MNSTAX"
+
+  - name: US-MN-07-reworded
+    description: "MN primary jurisdiction via reworded title must match MNSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MNSTAX
+          Description: Minnesota State Tax
+          Country/Region Code: US
+        - Code: MNHENN
+          Description: Hennepin County Tax
+          Country/Region Code: US
+        - Code: MNMPLS
+          Description: Minneapolis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MN
+        city: Minneapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TAX - MN STATE TAX"
+              ratePct: 6.875
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MNSTAX"
+
+  - name: US-MN-08-truncated-code20
+    description: "MN primary jurisdiction via truncated-code20 title must match MNSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MNSTAX
+          Description: Minnesota State Tax
+          Country/Region Code: US
+        - Code: MNHENN
+          Description: Hennepin County Tax
+          Country/Region Code: US
+        - Code: MNMPLS
+          Description: Minneapolis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MN
+        city: Minneapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MINNESOTA STATE SALES & USE TAX"
+              ratePct: 6.875
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MNSTAX"
+
+  - name: US-MN-D-distractors
+    description: "MN match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MNSTAX
+          Description: Minnesota State Tax
+          Country/Region Code: US
+        - Code: MNHENN
+          Description: Hennepin County Tax
+          Country/Region Code: US
+        - Code: MNMPLS
+          Description: Minneapolis City Tax
+          Country/Region Code: US
+        - Code: NYSTAX
+          Description: New York State Tax
+          Country/Region Code: US
+        - Code: CASTAX
+          Description: California State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MN
+        city: Minneapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MINNESOTA STATE TAX"
+              ratePct: 6.875
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MNSTAX"
+
+  - name: US-MN-N-nomatch
+    description: "MN unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MNSTAX
+          Description: Minnesota State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MN
+        city: Minneapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: US-MN-M-multiline
+    description: "MN multi-jurisdiction order: every line matches its jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MNSTAX
+          Description: Minnesota State Tax
+          Country/Region Code: US
+        - Code: MNHENN
+          Description: Hennepin County Tax
+          Country/Region Code: US
+        - Code: MNMPLS
+          Description: Minneapolis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MN
+        city: Minneapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MINNESOTA STATE TAX"
+              ratePct: 6.875
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "HENNEPIN CO TAX"
+              ratePct: 0.15
+              channelLiable: false
+        - lineId: 10003
+          taxLines:
+            - lineNo: 1
+              title: "MINNEAPOLIS TAX"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MNSTAX"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "MNHENN"
+        - parentId: 10003
+          lineNo: 1
+          jurisdictionCode: "MNMPLS"
+
+  - name: US-MN-A-autocreate
+    description: "MN auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MNSTAX
+          Description: Minnesota State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MN
+        city: Minneapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MINNESOTA STATE TAX"
+              ratePct: 6.875
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "MN SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MNSTAX"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
+
+  - name: US-MO-01-exact
+    description: "MO primary jurisdiction via exact title must match MOSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MOSTAX
+          Description: Missouri State Tax
+          Country/Region Code: US
+        - Code: MOSTL
+          Description: St. Louis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MO
+        city: St. Louis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MISSOURI STATE TAX"
+              ratePct: 4.225
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MOSTAX"
+
+  - name: US-MO-02-sales-variant
+    description: "MO primary jurisdiction via sales-variant title must match MOSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MOSTAX
+          Description: Missouri State Tax
+          Country/Region Code: US
+        - Code: MOSTL
+          Description: St. Louis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MO
+        city: St. Louis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MISSOURI STATE SALES TAX"
+              ratePct: 4.225
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MOSTAX"
+
+  - name: US-MO-03-abbreviation
+    description: "MO primary jurisdiction via abbreviation title must match MOSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MOSTAX
+          Description: Missouri State Tax
+          Country/Region Code: US
+        - Code: MOSTL
+          Description: St. Louis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MO
+        city: St. Louis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MO STATE TAX"
+              ratePct: 4.225
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MOSTAX"
+
+  - name: US-MO-04-minimal-abbrev
+    description: "MO primary jurisdiction via minimal-abbrev title must match MOSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MOSTAX
+          Description: Missouri State Tax
+          Country/Region Code: US
+        - Code: MOSTL
+          Description: St. Louis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MO
+        city: St. Louis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MO TAX"
+              ratePct: 4.225
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MOSTAX"
+
+  - name: US-MO-05-punctuation
+    description: "MO primary jurisdiction via punctuation title must match MOSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MOSTAX
+          Description: Missouri State Tax
+          Country/Region Code: US
+        - Code: MOSTL
+          Description: St. Louis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MO
+        city: St. Louis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "STATE TAX (MO)"
+              ratePct: 4.225
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MOSTAX"
+
+  - name: US-MO-06-embedded-rate
+    description: "MO primary jurisdiction via embedded-rate title must match MOSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MOSTAX
+          Description: Missouri State Tax
+          Country/Region Code: US
+        - Code: MOSTL
+          Description: St. Louis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MO
+        city: St. Louis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MO TAX 4.225%"
+              ratePct: 4.225
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MOSTAX"
+
+  - name: US-MO-07-reworded
+    description: "MO primary jurisdiction via reworded title must match MOSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MOSTAX
+          Description: Missouri State Tax
+          Country/Region Code: US
+        - Code: MOSTL
+          Description: St. Louis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MO
+        city: St. Louis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TAX - MO STATE TAX"
+              ratePct: 4.225
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MOSTAX"
+
+  - name: US-MO-08-truncated-code20
+    description: "MO primary jurisdiction via truncated-code20 title must match MOSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MOSTAX
+          Description: Missouri State Tax
+          Country/Region Code: US
+        - Code: MOSTL
+          Description: St. Louis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MO
+        city: St. Louis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MISSOURI STATE SALES & USE TAX"
+              ratePct: 4.225
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MOSTAX"
+
+  - name: US-MO-D-distractors
+    description: "MO match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MOSTAX
+          Description: Missouri State Tax
+          Country/Region Code: US
+        - Code: MOSTL
+          Description: St. Louis City Tax
+          Country/Region Code: US
+        - Code: NYSTAX
+          Description: New York State Tax
+          Country/Region Code: US
+        - Code: CASTAX
+          Description: California State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MO
+        city: St. Louis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MISSOURI STATE TAX"
+              ratePct: 4.225
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MOSTAX"
+
+  - name: US-MO-N-nomatch
+    description: "MO unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MOSTAX
+          Description: Missouri State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MO
+        city: St. Louis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: US-MO-M-multiline
+    description: "MO multi-jurisdiction order: every line matches its jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MOSTAX
+          Description: Missouri State Tax
+          Country/Region Code: US
+        - Code: MOSTL
+          Description: St. Louis City Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MO
+        city: St. Louis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MISSOURI STATE TAX"
+              ratePct: 4.225
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "ST LOUIS CITY TAX"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MOSTAX"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "MOSTL"
+
+  - name: US-MO-A-autocreate
+    description: "MO auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MOSTAX
+          Description: Missouri State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MO
+        city: St. Louis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MISSOURI STATE TAX"
+              ratePct: 4.225
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "MO SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MOSTAX"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
+
+  - name: US-WI-01-exact
+    description: "WI primary jurisdiction via exact title must match WISTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WISTAX
+          Description: Wisconsin State Tax
+          Country/Region Code: US
+        - Code: WIMILW
+          Description: Milwaukee County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WI
+        city: Milwaukee
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "WISCONSIN STATE TAX"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "WISTAX"
+
+  - name: US-WI-02-sales-variant
+    description: "WI primary jurisdiction via sales-variant title must match WISTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WISTAX
+          Description: Wisconsin State Tax
+          Country/Region Code: US
+        - Code: WIMILW
+          Description: Milwaukee County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WI
+        city: Milwaukee
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "WISCONSIN STATE SALES TAX"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "WISTAX"
+
+  - name: US-WI-03-abbreviation
+    description: "WI primary jurisdiction via abbreviation title must match WISTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WISTAX
+          Description: Wisconsin State Tax
+          Country/Region Code: US
+        - Code: WIMILW
+          Description: Milwaukee County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WI
+        city: Milwaukee
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "WI STATE TAX"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "WISTAX"
+
+  - name: US-WI-04-minimal-abbrev
+    description: "WI primary jurisdiction via minimal-abbrev title must match WISTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WISTAX
+          Description: Wisconsin State Tax
+          Country/Region Code: US
+        - Code: WIMILW
+          Description: Milwaukee County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WI
+        city: Milwaukee
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "WI TAX"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "WISTAX"
+
+  - name: US-WI-05-punctuation
+    description: "WI primary jurisdiction via punctuation title must match WISTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WISTAX
+          Description: Wisconsin State Tax
+          Country/Region Code: US
+        - Code: WIMILW
+          Description: Milwaukee County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WI
+        city: Milwaukee
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "STATE TAX (WI)"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "WISTAX"
+
+  - name: US-WI-06-embedded-rate
+    description: "WI primary jurisdiction via embedded-rate title must match WISTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WISTAX
+          Description: Wisconsin State Tax
+          Country/Region Code: US
+        - Code: WIMILW
+          Description: Milwaukee County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WI
+        city: Milwaukee
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "WI TAX 5.0%"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "WISTAX"
+
+  - name: US-WI-07-reworded
+    description: "WI primary jurisdiction via reworded title must match WISTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WISTAX
+          Description: Wisconsin State Tax
+          Country/Region Code: US
+        - Code: WIMILW
+          Description: Milwaukee County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WI
+        city: Milwaukee
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TAX - WI STATE TAX"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "WISTAX"
+
+  - name: US-WI-08-truncated-code20
+    description: "WI primary jurisdiction via truncated-code20 title must match WISTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WISTAX
+          Description: Wisconsin State Tax
+          Country/Region Code: US
+        - Code: WIMILW
+          Description: Milwaukee County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WI
+        city: Milwaukee
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "WISCONSIN STATE SALES & USE TAX"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "WISTAX"
+
+  - name: US-WI-D-distractors
+    description: "WI match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WISTAX
+          Description: Wisconsin State Tax
+          Country/Region Code: US
+        - Code: WIMILW
+          Description: Milwaukee County Tax
+          Country/Region Code: US
+        - Code: NYSTAX
+          Description: New York State Tax
+          Country/Region Code: US
+        - Code: CASTAX
+          Description: California State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WI
+        city: Milwaukee
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "WISCONSIN STATE TAX"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "WISTAX"
+
+  - name: US-WI-N-nomatch
+    description: "WI unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WISTAX
+          Description: Wisconsin State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WI
+        city: Milwaukee
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: US-WI-M-multiline
+    description: "WI multi-jurisdiction order: every line matches its jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WISTAX
+          Description: Wisconsin State Tax
+          Country/Region Code: US
+        - Code: WIMILW
+          Description: Milwaukee County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WI
+        city: Milwaukee
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "WISCONSIN STATE TAX"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "MILWAUKEE CO TAX"
+              ratePct: 0.9
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "WISTAX"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "WIMILW"
+
+  - name: US-WI-A-autocreate
+    description: "WI auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: WISTAX
+          Description: Wisconsin State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: WI
+        city: Milwaukee
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "WISCONSIN STATE TAX"
+              ratePct: 5.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "WI SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "WISTAX"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
+
+  - name: US-LA-01-exact
+    description: "LA primary jurisdiction via exact title must match LASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: LASTAX
+          Description: Louisiana State Tax
+          Country/Region Code: US
+        - Code: LAORL
+          Description: Orleans Parish Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: LA
+        city: New Orleans
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "LOUISIANA STATE TAX"
+              ratePct: 4.45
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "LASTAX"
+
+  - name: US-LA-02-sales-variant
+    description: "LA primary jurisdiction via sales-variant title must match LASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: LASTAX
+          Description: Louisiana State Tax
+          Country/Region Code: US
+        - Code: LAORL
+          Description: Orleans Parish Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: LA
+        city: New Orleans
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "LOUISIANA STATE SALES TAX"
+              ratePct: 4.45
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "LASTAX"
+
+  - name: US-LA-03-abbreviation
+    description: "LA primary jurisdiction via abbreviation title must match LASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: LASTAX
+          Description: Louisiana State Tax
+          Country/Region Code: US
+        - Code: LAORL
+          Description: Orleans Parish Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: LA
+        city: New Orleans
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "LA STATE TAX"
+              ratePct: 4.45
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "LASTAX"
+
+  - name: US-LA-04-minimal-abbrev
+    description: "LA primary jurisdiction via minimal-abbrev title must match LASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: LASTAX
+          Description: Louisiana State Tax
+          Country/Region Code: US
+        - Code: LAORL
+          Description: Orleans Parish Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: LA
+        city: New Orleans
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "LA TAX"
+              ratePct: 4.45
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "LASTAX"
+
+  - name: US-LA-05-punctuation
+    description: "LA primary jurisdiction via punctuation title must match LASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: LASTAX
+          Description: Louisiana State Tax
+          Country/Region Code: US
+        - Code: LAORL
+          Description: Orleans Parish Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: LA
+        city: New Orleans
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "STATE TAX (LA)"
+              ratePct: 4.45
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "LASTAX"
+
+  - name: US-LA-06-embedded-rate
+    description: "LA primary jurisdiction via embedded-rate title must match LASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: LASTAX
+          Description: Louisiana State Tax
+          Country/Region Code: US
+        - Code: LAORL
+          Description: Orleans Parish Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: LA
+        city: New Orleans
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "LA TAX 4.45%"
+              ratePct: 4.45
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "LASTAX"
+
+  - name: US-LA-07-reworded
+    description: "LA primary jurisdiction via reworded title must match LASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: LASTAX
+          Description: Louisiana State Tax
+          Country/Region Code: US
+        - Code: LAORL
+          Description: Orleans Parish Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: LA
+        city: New Orleans
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TAX - LA STATE TAX"
+              ratePct: 4.45
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "LASTAX"
+
+  - name: US-LA-08-truncated-code20
+    description: "LA primary jurisdiction via truncated-code20 title must match LASTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: LASTAX
+          Description: Louisiana State Tax
+          Country/Region Code: US
+        - Code: LAORL
+          Description: Orleans Parish Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: LA
+        city: New Orleans
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "LOUISIANA STATE SALES & USE TAX"
+              ratePct: 4.45
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "LASTAX"
+
+  - name: US-LA-D-distractors
+    description: "LA match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: LASTAX
+          Description: Louisiana State Tax
+          Country/Region Code: US
+        - Code: LAORL
+          Description: Orleans Parish Tax
+          Country/Region Code: US
+        - Code: NYSTAX
+          Description: New York State Tax
+          Country/Region Code: US
+        - Code: CASTAX
+          Description: California State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: LA
+        city: New Orleans
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "LOUISIANA STATE TAX"
+              ratePct: 4.45
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "LASTAX"
+
+  - name: US-LA-N-nomatch
+    description: "LA unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: LASTAX
+          Description: Louisiana State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: LA
+        city: New Orleans
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: US-LA-M-multiline
+    description: "LA multi-jurisdiction order: every line matches its jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: LASTAX
+          Description: Louisiana State Tax
+          Country/Region Code: US
+        - Code: LAORL
+          Description: Orleans Parish Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: LA
+        city: New Orleans
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "LOUISIANA STATE TAX"
+              ratePct: 4.45
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "ORLEANS PAR TAX"
+              ratePct: 5.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "LASTAX"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "LAORL"
+
+  - name: US-LA-A-autocreate
+    description: "LA auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: LASTAX
+          Description: Louisiana State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: LA
+        city: New Orleans
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "LOUISIANA STATE TAX"
+              ratePct: 4.45
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "LA SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "LASTAX"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
+
+  - name: US-IN-01-exact
+    description: "IN primary jurisdiction via exact title must match INSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: INSTAX
+          Description: Indiana State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: IN
+        city: Indianapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "INDIANA STATE TAX"
+              ratePct: 7.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "INSTAX"
+
+  - name: US-IN-02-sales-variant
+    description: "IN primary jurisdiction via sales-variant title must match INSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: INSTAX
+          Description: Indiana State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: IN
+        city: Indianapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "INDIANA STATE SALES TAX"
+              ratePct: 7.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "INSTAX"
+
+  - name: US-IN-03-abbreviation
+    description: "IN primary jurisdiction via abbreviation title must match INSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: INSTAX
+          Description: Indiana State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: IN
+        city: Indianapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "IN STATE TAX"
+              ratePct: 7.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "INSTAX"
+
+  - name: US-IN-04-minimal-abbrev
+    description: "IN primary jurisdiction via minimal-abbrev title must match INSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: INSTAX
+          Description: Indiana State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: IN
+        city: Indianapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "IN TAX"
+              ratePct: 7.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "INSTAX"
+
+  - name: US-IN-05-punctuation
+    description: "IN primary jurisdiction via punctuation title must match INSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: INSTAX
+          Description: Indiana State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: IN
+        city: Indianapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "STATE TAX (IN)"
+              ratePct: 7.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "INSTAX"
+
+  - name: US-IN-06-embedded-rate
+    description: "IN primary jurisdiction via embedded-rate title must match INSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: INSTAX
+          Description: Indiana State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: IN
+        city: Indianapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "IN TAX 7.0%"
+              ratePct: 7.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "INSTAX"
+
+  - name: US-IN-07-reworded
+    description: "IN primary jurisdiction via reworded title must match INSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: INSTAX
+          Description: Indiana State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: IN
+        city: Indianapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TAX - IN STATE TAX"
+              ratePct: 7.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "INSTAX"
+
+  - name: US-IN-08-truncated-code20
+    description: "IN primary jurisdiction via truncated-code20 title must match INSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: INSTAX
+          Description: Indiana State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: IN
+        city: Indianapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "INDIANA STATE SALES & USE TAX"
+              ratePct: 7.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "INSTAX"
+
+  - name: US-IN-D-distractors
+    description: "IN match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: INSTAX
+          Description: Indiana State Tax
+          Country/Region Code: US
+        - Code: NYSTAX
+          Description: New York State Tax
+          Country/Region Code: US
+        - Code: CASTAX
+          Description: California State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: IN
+        city: Indianapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "INDIANA STATE TAX"
+              ratePct: 7.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "INSTAX"
+
+  - name: US-IN-N-nomatch
+    description: "IN unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: INSTAX
+          Description: Indiana State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: IN
+        city: Indianapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: US-IN-A-autocreate
+    description: "IN auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: INSTAX
+          Description: Indiana State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: IN
+        city: Indianapolis
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "INDIANA STATE TAX"
+              ratePct: 7.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "IN SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "INSTAX"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
+
+  - name: US-MD-01-exact
+    description: "MD primary jurisdiction via exact title must match MDSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MDSTAX
+          Description: Maryland State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MD
+        city: Baltimore
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MARYLAND STATE TAX"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MDSTAX"
+
+  - name: US-MD-02-sales-variant
+    description: "MD primary jurisdiction via sales-variant title must match MDSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MDSTAX
+          Description: Maryland State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MD
+        city: Baltimore
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MARYLAND STATE SALES TAX"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MDSTAX"
+
+  - name: US-MD-03-abbreviation
+    description: "MD primary jurisdiction via abbreviation title must match MDSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MDSTAX
+          Description: Maryland State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MD
+        city: Baltimore
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MD STATE TAX"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MDSTAX"
+
+  - name: US-MD-04-minimal-abbrev
+    description: "MD primary jurisdiction via minimal-abbrev title must match MDSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MDSTAX
+          Description: Maryland State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MD
+        city: Baltimore
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MD TAX"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MDSTAX"
+
+  - name: US-MD-05-punctuation
+    description: "MD primary jurisdiction via punctuation title must match MDSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MDSTAX
+          Description: Maryland State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MD
+        city: Baltimore
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "STATE TAX (MD)"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MDSTAX"
+
+  - name: US-MD-06-embedded-rate
+    description: "MD primary jurisdiction via embedded-rate title must match MDSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MDSTAX
+          Description: Maryland State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MD
+        city: Baltimore
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MD TAX 6.0%"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MDSTAX"
+
+  - name: US-MD-07-reworded
+    description: "MD primary jurisdiction via reworded title must match MDSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MDSTAX
+          Description: Maryland State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MD
+        city: Baltimore
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TAX - MD STATE TAX"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MDSTAX"
+
+  - name: US-MD-08-truncated-code20
+    description: "MD primary jurisdiction via truncated-code20 title must match MDSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MDSTAX
+          Description: Maryland State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MD
+        city: Baltimore
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MARYLAND STATE SALES & USE TAX"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MDSTAX"
+
+  - name: US-MD-D-distractors
+    description: "MD match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MDSTAX
+          Description: Maryland State Tax
+          Country/Region Code: US
+        - Code: NYSTAX
+          Description: New York State Tax
+          Country/Region Code: US
+        - Code: CASTAX
+          Description: California State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MD
+        city: Baltimore
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MARYLAND STATE TAX"
+              ratePct: 6.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MDSTAX"
+
+  - name: US-MD-N-nomatch
+    description: "MD unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MDSTAX
+          Description: Maryland State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MD
+        city: Baltimore
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: US-MD-A-autocreate
+    description: "MD auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: MDSTAX
+          Description: Maryland State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: MD
+        city: Baltimore
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "MARYLAND STATE TAX"
+              ratePct: 6.0
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "MD SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "MDSTAX"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
+
+  - name: US-NV-01-exact
+    description: "NV primary jurisdiction via exact title must match NVSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NVSTAX
+          Description: Nevada State Tax
+          Country/Region Code: US
+        - Code: NVCLARK
+          Description: Clark County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NV
+        city: Las Vegas
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NEVADA STATE TAX"
+              ratePct: 6.85
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NVSTAX"
+
+  - name: US-NV-02-sales-variant
+    description: "NV primary jurisdiction via sales-variant title must match NVSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NVSTAX
+          Description: Nevada State Tax
+          Country/Region Code: US
+        - Code: NVCLARK
+          Description: Clark County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NV
+        city: Las Vegas
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NEVADA STATE SALES TAX"
+              ratePct: 6.85
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NVSTAX"
+
+  - name: US-NV-03-abbreviation
+    description: "NV primary jurisdiction via abbreviation title must match NVSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NVSTAX
+          Description: Nevada State Tax
+          Country/Region Code: US
+        - Code: NVCLARK
+          Description: Clark County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NV
+        city: Las Vegas
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NV STATE TAX"
+              ratePct: 6.85
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NVSTAX"
+
+  - name: US-NV-04-minimal-abbrev
+    description: "NV primary jurisdiction via minimal-abbrev title must match NVSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NVSTAX
+          Description: Nevada State Tax
+          Country/Region Code: US
+        - Code: NVCLARK
+          Description: Clark County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NV
+        city: Las Vegas
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NV TAX"
+              ratePct: 6.85
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NVSTAX"
+
+  - name: US-NV-05-punctuation
+    description: "NV primary jurisdiction via punctuation title must match NVSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NVSTAX
+          Description: Nevada State Tax
+          Country/Region Code: US
+        - Code: NVCLARK
+          Description: Clark County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NV
+        city: Las Vegas
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "STATE TAX (NV)"
+              ratePct: 6.85
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NVSTAX"
+
+  - name: US-NV-06-embedded-rate
+    description: "NV primary jurisdiction via embedded-rate title must match NVSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NVSTAX
+          Description: Nevada State Tax
+          Country/Region Code: US
+        - Code: NVCLARK
+          Description: Clark County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NV
+        city: Las Vegas
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NV TAX 6.85%"
+              ratePct: 6.85
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NVSTAX"
+
+  - name: US-NV-07-reworded
+    description: "NV primary jurisdiction via reworded title must match NVSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NVSTAX
+          Description: Nevada State Tax
+          Country/Region Code: US
+        - Code: NVCLARK
+          Description: Clark County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NV
+        city: Las Vegas
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "TAX - NV STATE TAX"
+              ratePct: 6.85
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NVSTAX"
+
+  - name: US-NV-08-truncated-code20
+    description: "NV primary jurisdiction via truncated-code20 title must match NVSTAX"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NVSTAX
+          Description: Nevada State Tax
+          Country/Region Code: US
+        - Code: NVCLARK
+          Description: Clark County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NV
+        city: Las Vegas
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NEVADA STATE SALES & USE TAX"
+              ratePct: 6.85
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NVSTAX"
+
+  - name: US-NV-D-distractors
+    description: "NV match despite distractor jurisdictions from other regions"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NVSTAX
+          Description: Nevada State Tax
+          Country/Region Code: US
+        - Code: NVCLARK
+          Description: Clark County Tax
+          Country/Region Code: US
+        - Code: NYSTAX
+          Description: New York State Tax
+          Country/Region Code: US
+        - Code: CASTAX
+          Description: California State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NV
+        city: Las Vegas
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NEVADA STATE TAX"
+              ratePct: 6.85
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NVSTAX"
+
+  - name: US-NV-N-nomatch
+    description: "NV unrelated tax title with no candidate must stay unmatched"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NVSTAX
+          Description: Nevada State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NV
+        city: Las Vegas
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "UNKNOWN LOCAL LEVY"
+              ratePct: 1.0
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: ""
+
+  - name: US-NV-M-multiline
+    description: "NV multi-jurisdiction order: every line matches its jurisdiction"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: false
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NVSTAX
+          Description: Nevada State Tax
+          Country/Region Code: US
+        - Code: NVCLARK
+          Description: Clark County Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NV
+        city: Las Vegas
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NEVADA STATE TAX"
+              ratePct: 6.85
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "CLARK COUNTY TAX"
+              ratePct: 1.53
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NVSTAX"
+        - parentId: 10002
+          lineNo: 1
+          jurisdictionCode: "NVCLARK"
+
+  - name: US-NV-A-autocreate
+    description: "NV auto-create seeds a jurisdiction for an unmatched but valid tax line"
+    setup:
+      shopSettings:
+        autoCreateTaxJurisdictions: true
+        autoCreateTaxAreas: true
+        taxAreaNamingPattern: SHPFY-
+      taxJurisdictions:
+        - Code: NVSTAX
+          Description: Nevada State Tax
+          Country/Region Code: US
+      orderAddress:
+        countryRegionCode: US
+        county: NV
+        city: Las Vegas
+      orderLines:
+        - lineId: 10001
+          taxLines:
+            - lineNo: 1
+              title: "NEVADA STATE TAX"
+              ratePct: 6.85
+              channelLiable: false
+        - lineId: 10002
+          taxLines:
+            - lineNo: 1
+              title: "NV SPECIAL DISTRICT"
+              ratePct: 0.5
+              channelLiable: false
+    expected:
+      taxLineJurisdictions:
+        - parentId: 10001
+          lineNo: 1
+          jurisdictionCode: "NVSTAX"
+        - parentId: 10002
+          lineNo: 1
+          hasJurisdictionCode: true
