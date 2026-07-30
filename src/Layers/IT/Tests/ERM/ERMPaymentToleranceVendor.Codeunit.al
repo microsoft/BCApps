@@ -840,7 +840,7 @@ codeunit 134003 "ERM Payment Tolerance Vendor"
     end;
 
     [Test]
-    [HandlerFunctions('ApplyVendorEntriesGenJnlPageHandler,AcceptPmtDiscTolWarningModalPageHandler,ConfirmHandlerYes')]
+    [HandlerFunctions('ApplyVendorEntriesGenJnlPageHandler,AcceptPmtDiscTolWarningModalPageHandler')]
     [Scope('OnPrem')]
     procedure MultipleInvoicePmtWithinGraceDoesNotDoublePmtDiscTolerance()
     var
@@ -1468,12 +1468,5 @@ codeunit 134003 "ERM Payment Tolerance Vendor"
     begin
         PaymentDiscToleranceWarning.InitializeNewPostingAction(1);
         Response := ACTION::Yes;
-    end;
-
-    [ConfirmHandler]
-    [Scope('OnPrem')]
-    procedure ConfirmHandlerYes(Question: Text[1024]; var Reply: Boolean)
-    begin
-        Reply := true;
     end;
 }
