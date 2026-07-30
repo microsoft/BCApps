@@ -42,8 +42,8 @@ codeunit 46862 "BC14 Migration Orchestrator"
         OneStepUpgradeFailedLbl: Label 'One Step Upgrade scheduling failed in webhook: %1. The user can start the upgrade manually.', Locked = true, Comment = '%1 = Error text';
         InvokeUpgradeInProcessLbl: Label 'InvokeCompanyUpgrade: running upgrade in-process for company %1 (session creation suppressed by subscriber).', Locked = true, Comment = '%1 = Company Name';
         InvokeUpgradeScheduledTaskLbl: Label 'InvokeCompanyUpgrade: scheduled background task for company %1 with delay %2.', Locked = true, Comment = '%1 = Company Name, %2 = Delay duration';
-        InvokeUpgradeStartSessionLbl: Label 'InvokeCompanyUpgrade: TaskScheduler unavailable; falling back to Session.StartSession for company %1.', Locked = true, Comment = '%1 = Company Name';
-        InvokeUpgradeStartSessionFallbackMsg: Label 'The background task scheduler is busy. The upgrade will start in a separate session and may take a moment to begin.';
+        InvokeUpgradeStartSessionLbl: Label 'InvokeCompanyUpgrade: TaskScheduler unavailable; running the upgrade synchronously in the current session for company %1.', Locked = true, Comment = '%1 = Company Name';
+        InvokeUpgradeStartSessionFallbackMsg: Label 'The background task scheduler is busy. The upgrade is running in the current session and may take a few minutes to complete.';
 
     #region Orchestrator
 
@@ -156,7 +156,6 @@ codeunit 46862 "BC14 Migration Orchestrator"
     internal procedure InvokeCompanyUpgrade(var HybridReplicationSummary: Record "Hybrid Replication Summary"; CompanyName: Text[50]; DelayUpgrade: Duration)
     var
         BC14StatusMgr: Codeunit "BC14 Migration Status Mgr.";
-        SessionID: Integer;
         RunSynchronously: Boolean;
     begin
         if DelayUpgrade = 0 then
@@ -179,9 +178,15 @@ codeunit 46862 "BC14 Migration Orchestrator"
             TaskScheduler.CreateTask(
                 Codeunit::"BC14 Company Upgrade Task", Codeunit::"BC14 Migration Failure Handler", true, CompanyName, CurrentDateTime() + DelayUpgrade, HybridReplicationSummary.RecordId, GetDefaultJobTimeout());
         end else begin
+            // TaskScheduler is unavailable. Session.StartSession has no failure codeunit, so if the
+            // spawned session crashed the company would be left stuck in Started with no running
+            // task/session and nothing to recover it (Bug 642739). Run the upgrade synchronously in
+            // the current session instead — the same hardening the Historical dispatch fallback
+            // already uses — so any failure surfaces to the caller and the "BC14 Company Upgrade
+            // Task" marks the company Failed rather than orphaning it in Started.
             Session.LogMessage('0000TXC', StrSubstNo(InvokeUpgradeStartSessionLbl, CompanyName), Verbosity::Warning, DataClassification::OrganizationIdentifiableInformation, TelemetryScope::ExtensionPublisher, 'Category', BC14Telemetry.GetCategory());
             BC14StatusMgr.UpdateCompanyMessage(CopyStr(CompanyName, 1, 30), InvokeUpgradeStartSessionFallbackMsg);
-            Session.StartSession(SessionID, Codeunit::"BC14 Company Upgrade Task", CompanyName, HybridReplicationSummary, GetDefaultJobTimeout());
+            Codeunit.Run(Codeunit::"BC14 Company Upgrade Task", HybridReplicationSummary);
         end;
     end;
 
