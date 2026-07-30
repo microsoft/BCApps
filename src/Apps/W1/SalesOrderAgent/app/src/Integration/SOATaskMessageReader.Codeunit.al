@@ -17,11 +17,21 @@ codeunit 4420 "SOA Task Message Reader"
     internal procedure GetLastIncomingMessageContent(AgentTaskID: BigInteger): Text
     var
         AgentTaskMessage: Record "Agent Task Message";
+        AgentSession: Codeunit "Agent Session";
+        AgentMetadataProvider: Enum "Agent Metadata Provider";
         MessageContent: Text;
         InStream: InStream;
+        TaskContextMismatchErr: Label 'The requested agent task does not match the current agent session.';
     begin
         if AgentTaskID = 0 then
             exit('');
+
+        if not AgentSession.IsAgentSession(AgentMetadataProvider) then
+            Error(TaskContextMismatchErr);
+        if AgentMetadataProvider <> "Agent Metadata Provider"::"SO Agent" then
+            Error(TaskContextMismatchErr);
+        if AgentSession.GetCurrentSessionAgentTaskId() <> AgentTaskID then
+            Error(TaskContextMismatchErr);
 
         AgentTaskMessage.ReadIsolation := IsolationLevel::ReadCommitted;
         AgentTaskMessage.SetAutoCalcFields(Content);
