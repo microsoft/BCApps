@@ -69,6 +69,7 @@ codeunit 433 "Azure AD Tenant"
     /// <param name="Domain">The domain name to check.</param>
     /// <returns>True if the domain is verified; otherwise, false.</returns>
     /// <error>Failed to retrieve the Microsoft Entra tenant verified domains.</error>
+    [Scope('OnPrem')]
     procedure IsVerifiedDomain(Domain: Text): Boolean
     begin
         exit(AzureADTenantImpl.IsVerifiedDomain(Domain));
