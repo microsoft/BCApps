@@ -151,9 +151,13 @@ report 790 "Calculate Inventory"
                 trigger OnAfterGetRecord()
                 var
                     ItemVariant: Record "Item Variant";
+                    IsHandled: Boolean;
                 begin
-                    if not "Item Ledger Entry".IsEmpty() then
-                        CurrReport.Break();   // Skip if item has any record in Item Ledger Entry.
+                    IsHandled := false;
+                    OnWarehouseEntryOnAfterGetRecordOnBeforeItemLedgerEntryIsEmptyCheck("Item Ledger Entry", IsHandled);
+                    if not IsHandled then
+                        if not "Item Ledger Entry".IsEmpty() then
+                            CurrReport.Break();   // Skip if item has any record in Item Ledger Entry.
 
                     if "Warehouse Entry"."Variant Code" <> '' then begin
                         ItemVariant.SetLoadFields(Blocked);
@@ -1006,6 +1010,11 @@ report 790 "Calculate Inventory"
 
     [IntegrationEvent(false, false)]
     local procedure OnItemLedgerEntryOnAfterGetRecordOnBeforeUpdateBuffer(var WarehouseEntry: Record "Warehouse Entry")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnWarehouseEntryOnAfterGetRecordOnBeforeItemLedgerEntryIsEmptyCheck(var ItemLedgerEntry: Record "Item Ledger Entry"; var IsHandled: Boolean)
     begin
     end;
 

@@ -303,8 +303,7 @@ tableextension 11705 "Purchase Header CZL" extends "Purchase Header"
 
             trigger OnValidate()
             begin
-                if "EU 3-Party Intermed. Role CZL" then
-                    "EU 3 Party Trade" := true;
+                "EU 3 Party Trade" := "EU 3-Party Intermed. Role CZL";
             end;
         }
 #if not CLEANSCHEMA27

@@ -11,97 +11,6 @@
       <rd:DataSourceID>6391917f-ce7d-447d-a227-354248d7de49</rd:DataSourceID>
     </DataSource>
   </DataSources>
-  <DataSets>
-    <DataSet Name="DataSet_Result">
-      <Query>
-        <DataSourceName>DataSource</DataSourceName>
-        <CommandText />
-      </Query>
-      <Fields>
-        <Field Name="COMPANYNAME">
-          <DataField>COMPANYNAME</DataField>
-        </Field>
-        <Field Name="AccFilter">
-          <DataField>AccFilter</DataField>
-        </Field>
-        <Field Name="GLEntryFilter">
-          <DataField>GLEntryFilter</DataField>
-        </Field>
-        <Field Name="GLAccount_No">
-          <DataField>GLAccount_No</DataField>
-        </Field>
-        <Field Name="OriginalGLEntry_EntryNo">
-          <DataField>OriginalGLEntry_EntryNo</DataField>
-        </Field>
-        <Field Name="AppliedAmount">
-          <DataField>AppliedAmount</DataField>
-        </Field>
-        <Field Name="AppliedAmountFormat">
-          <DataField>AppliedAmountFormat</DataField>
-        </Field>
-        <Field Name="OriginalEntry_CreditAmount">
-          <DataField>OriginalEntry_CreditAmount</DataField>
-        </Field>
-        <Field Name="OriginalEntry_CreditAmountFormat">
-          <DataField>OriginalEntry_CreditAmountFormat</DataField>
-        </Field>
-        <Field Name="OriginalEntry_DebitAmount">
-          <DataField>OriginalEntry_DebitAmount</DataField>
-        </Field>
-        <Field Name="OriginalEntry_DebitAmountFormat">
-          <DataField>OriginalEntry_DebitAmountFormat</DataField>
-        </Field>
-        <Field Name="OriginalEntry_Amount">
-          <DataField>OriginalEntry_Amount</DataField>
-        </Field>
-        <Field Name="OriginalEntry_AmountFormat">
-          <DataField>OriginalEntry_AmountFormat</DataField>
-        </Field>
-        <Field Name="OriginalEntry_Description">
-          <DataField>OriginalEntry_Description</DataField>
-        </Field>
-        <Field Name="OriginalEntry_PostingDate">
-          <DataField>OriginalEntry_PostingDate</DataField>
-        </Field>
-        <Field Name="OriginalEntry_DocumentNo">
-          <DataField>OriginalEntry_DocumentNo</DataField>
-        </Field>
-        <Field Name="OriginalEntry_EntryNo">
-          <DataField>OriginalEntry_EntryNo</DataField>
-        </Field>
-        <Field Name="DetailedGLEntryCZA_Amount">
-          <DataField>DetailedGLEntryCZA_Amount</DataField>
-        </Field>
-        <Field Name="DetailedGLEntryCZA_AmountFormat">
-          <DataField>DetailedGLEntryCZA_AmountFormat</DataField>
-        </Field>
-        <Field Name="GLEntry_CreditAmount">
-          <DataField>GLEntry_CreditAmount</DataField>
-        </Field>
-        <Field Name="GLEntry_CreditAmountFormat">
-          <DataField>GLEntry_CreditAmountFormat</DataField>
-        </Field>
-        <Field Name="GLEntry_DebitAmount">
-          <DataField>GLEntry_DebitAmount</DataField>
-        </Field>
-        <Field Name="GLEntry_DebitAmountFormat">
-          <DataField>GLEntry_DebitAmountFormat</DataField>
-        </Field>
-        <Field Name="GLEntry_Description">
-          <DataField>GLEntry_Description</DataField>
-        </Field>
-        <Field Name="GLEntry_PostingDate">
-          <DataField>GLEntry_PostingDate</DataField>
-        </Field>
-        <Field Name="GLEntry_DocumentNo">
-          <DataField>GLEntry_DocumentNo</DataField>
-        </Field>
-        <Field Name="DetailedGLEntryCZA_GLEntryNo">
-          <DataField>DetailedGLEntryCZA_GLEntryNo</DataField>
-        </Field>
-      </Fields>
-    </DataSet>
-  </DataSets>
   <ReportSections>
     <ReportSection>
       <Body>
@@ -1649,4 +1558,95 @@ End Function
   <ConsumeContainerWhitespace>true</ConsumeContainerWhitespace>
   <rd:ReportUnitType>Cm</rd:ReportUnitType>
   <rd:ReportID>04b31d42-25ec-4159-af20-e77db33ec39b</rd:ReportID>
+  <DataSets>
+    <DataSet Name="DataSet_Result">
+      <Fields>
+        <Field Name="COMPANYNAME">
+          <DataField>COMPANYNAME</DataField>
+        </Field>
+        <Field Name="AccFilter">
+          <DataField>AccFilter</DataField>
+        </Field>
+        <Field Name="GLEntryFilter">
+          <DataField>GLEntryFilter</DataField>
+        </Field>
+        <Field Name="GLAccount_No">
+          <DataField>GLAccount_No</DataField>
+        </Field>
+        <Field Name="OriginalGLEntry_EntryNo">
+          <DataField>OriginalGLEntry_EntryNo</DataField>
+        </Field>
+        <Field Name="AppliedAmount">
+          <DataField>AppliedAmount</DataField>
+        </Field>
+        <Field Name="AppliedAmountFormat">
+          <DataField>AppliedAmountFormat</DataField>
+        </Field>
+        <Field Name="OriginalEntry_CreditAmount">
+          <DataField>OriginalEntry_CreditAmount</DataField>
+        </Field>
+        <Field Name="OriginalEntry_CreditAmountFormat">
+          <DataField>OriginalEntry_CreditAmountFormat</DataField>
+        </Field>
+        <Field Name="OriginalEntry_DebitAmount">
+          <DataField>OriginalEntry_DebitAmount</DataField>
+        </Field>
+        <Field Name="OriginalEntry_DebitAmountFormat">
+          <DataField>OriginalEntry_DebitAmountFormat</DataField>
+        </Field>
+        <Field Name="OriginalEntry_Amount">
+          <DataField>OriginalEntry_Amount</DataField>
+        </Field>
+        <Field Name="OriginalEntry_AmountFormat">
+          <DataField>OriginalEntry_AmountFormat</DataField>
+        </Field>
+        <Field Name="OriginalEntry_Description">
+          <DataField>OriginalEntry_Description</DataField>
+        </Field>
+        <Field Name="OriginalEntry_PostingDate">
+          <DataField>OriginalEntry_PostingDate</DataField>
+        </Field>
+        <Field Name="OriginalEntry_DocumentNo">
+          <DataField>OriginalEntry_DocumentNo</DataField>
+        </Field>
+        <Field Name="OriginalEntry_EntryNo">
+          <DataField>OriginalEntry_EntryNo</DataField>
+        </Field>
+        <Field Name="DetailedGLEntryCZA_Amount">
+          <DataField>DetailedGLEntryCZA_Amount</DataField>
+        </Field>
+        <Field Name="DetailedGLEntryCZA_AmountFormat">
+          <DataField>DetailedGLEntryCZA_AmountFormat</DataField>
+        </Field>
+        <Field Name="GLEntry_CreditAmount">
+          <DataField>GLEntry_CreditAmount</DataField>
+        </Field>
+        <Field Name="GLEntry_CreditAmountFormat">
+          <DataField>GLEntry_CreditAmountFormat</DataField>
+        </Field>
+        <Field Name="GLEntry_DebitAmount">
+          <DataField>GLEntry_DebitAmount</DataField>
+        </Field>
+        <Field Name="GLEntry_DebitAmountFormat">
+          <DataField>GLEntry_DebitAmountFormat</DataField>
+        </Field>
+        <Field Name="GLEntry_Description">
+          <DataField>GLEntry_Description</DataField>
+        </Field>
+        <Field Name="GLEntry_PostingDate">
+          <DataField>GLEntry_PostingDate</DataField>
+        </Field>
+        <Field Name="GLEntry_DocumentNo">
+          <DataField>GLEntry_DocumentNo</DataField>
+        </Field>
+        <Field Name="DetailedGLEntryCZA_GLEntryNo">
+          <DataField>DetailedGLEntryCZA_GLEntryNo</DataField>
+        </Field>
+      </Fields>
+      <Query>
+        <DataSourceName>DataSource</DataSourceName>
+        <CommandText />
+      </Query>
+    </DataSet>
+  </DataSets>
 </Report>

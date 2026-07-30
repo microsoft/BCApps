@@ -495,6 +495,7 @@ codeunit 7600 "Calendar Management"
         if not (DateFormulaExpr[1] in ['+', '-']) then
             if NewDateFormulaExpr <> '<0D>' then
                 NewDateFormulaExpr := '-' + NewDateFormulaExpr;
+        OnAfterReverseSign(DateFormulaExpr, NewDateFormulaExpr);
         exit(NewDateFormulaExpr);
     end;
 
@@ -539,6 +540,11 @@ codeunit 7600 "Calendar Management"
 
     [IntegrationEvent(false, false)]
     local procedure OnBeforeCalcDateBOC(var CustomCalendarChange: array[2] of Record "Customized Calendar Change"; var CalConvTimeFrame: Integer; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnAfterReverseSign(DateFormulaExpr: Text[30]; var NewDateFormulaExpr: Text[30])
     begin
     end;
 

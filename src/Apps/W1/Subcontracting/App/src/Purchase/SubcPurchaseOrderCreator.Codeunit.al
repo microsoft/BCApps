@@ -347,6 +347,7 @@ codeunit 99001557 "Subc. Purchase Order Creator"
 
         ProdOrderComponent.SetRange(Status, ProdOrderRoutingLine.Status);
         ProdOrderComponent.SetRange("Prod. Order No.", ProdOrderRoutingLine."Prod. Order No.");
+        ProdOrderComponent.SetRange("Prod. Order Line No.", ProdOrderRoutingLine."Routing Reference No.");
         ProdOrderComponent.SetRange("Routing Link Code", ProdOrderRoutingLine."Routing Link Code");
         ProdOrderComponent.SetRange("Component Supply Method", "Component Supply Method"::"Transfer to Vendor");
 
@@ -573,13 +574,8 @@ codeunit 99001557 "Subc. Purchase Order Creator"
         RequisitionLine."Due Date" := ProdOrderRoutingLine."Ending Date";
         RequisitionLine."Requester ID" := CopyStr(UserId(), 1, MaxStrLen(RequisitionLine."Requester ID"));
 
-        if WorkCenter."Location Code" <> '' then begin
-            RequisitionLine."Location Code" := WorkCenter."Location Code";
-            RequisitionLine."Bin Code" := WorkCenter."Open Shop Floor Bin Code";
-        end else begin
-            RequisitionLine."Location Code" := ProdOrderLine."Location Code";
-            RequisitionLine."Bin Code" := ProdOrderLine."Bin Code";
-        end;
+        RequisitionLine."Location Code" := ProdOrderLine."Location Code";
+        RequisitionLine."Bin Code" := ProdOrderLine."Bin Code";
 
         RequisitionLine."Routing Reference No." := ProdOrderRoutingLine."Routing Reference No.";
         RequisitionLine."Routing No." := ProdOrderRoutingLine."Routing No.";

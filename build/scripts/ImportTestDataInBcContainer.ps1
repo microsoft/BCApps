@@ -187,6 +187,11 @@ function Restore-TenantDatabaseForDemoDataRetry {
         [string]$BackupFile
     )
 
+    # Restart the container to drop lingering connections to 'default' so the restore can obtain exclusive access.
+    Write-Host "Restarting container to release lingering database connections before restoring snapshot..."
+    Restart-BcContainer -containerName $ContainerName
+    Wait-ForTenantReady -ContainerName $ContainerName
+
     Write-Host "Restoring tenant database from snapshot before retrying demo data generation..."
     Invoke-ScriptInBcContainer -containerName $ContainerName -scriptblock {
         Stop-NAVServerInstance -ServerInstance $ServerInstance
@@ -332,19 +337,102 @@ function Invoke-LegacyDemoDataTool() {
         [string]$ContainerName,
         [string]$CompanyName = (Get-TestCompanyName),
         [PSCredential]$Credential,
-        [string]$Tenant = "default"
+        [string]$Tenant = "default",
+        [ValidateSet("Standard","Evaluation","Extended")]
+        [string]$DemoDataType = "Extended",
+        [switch]$SkipCompanyInitialize
     )
 
     $ErrorActionPreference = "Stop"
 
-    Write-Host "Initializing company"
-    Invoke-NavContainerCodeunit -Codeunitid 2 -containerName $ContainerName -CompanyName $CompanyName
+    # NAV's Run-NavDemoTool runs the legacy DemoTool against a brand-new EMPTY company and never runs
+    # Company-Initialize (CU2). For the real Extended test company we keep the CU2 call (existing behavior
+    # that tests may rely on), but the additional Standard/Evaluation verification passes -SkipCompanyInitialize
+    # to mirror NAV exactly: some localizations (e.g. CZ, DK) have OnCompanyInitialize subscribers that seed
+    # setup which then collides with the Standard/Evaluation demo data paths, so running CU2 first would cause
+    # false failures that never occur in NAV.
+    if (-not $SkipCompanyInitialize) {
+        Write-Host "Initializing company"
+        Invoke-NavContainerCodeunit -Codeunitid 2 -containerName $ContainerName -CompanyName $CompanyName
+    } else {
+        Write-Host "Skipping company initialization (CU2) to mirror NAV's empty-company legacy DemoTool run"
+    }
 
     $countryCode = Get-CountryCodeFromSettings
 
-    Initialize-DemoToolResources -ContainerName $ContainerName -CountryCode $countryCode
+    Initialize-DemoToolResources -ContainerName $ContainerName -CountryCode $countryCode -DemoDataType $DemoDataType
 
     Invoke-DemoToolPageAction -ContainerName $ContainerName -CompanyName $CompanyName -Credential $Credential -Tenant $Tenant
+}
+
+<#
+.SYNOPSIS
+    Verifies the legacy DemoTool for one or more additional (non-Extended) data types against a throwaway company.
+.DESCRIPTION
+    BCApps legacy tests only generate Extended demo data, so the Standard/Evaluation generation path
+    ('Interface Trial Data'.CreateSetupData, CU122000) is never exercised in BCApps CI. Bugs on that path
+    (e.g. a missing localization DemoTool override assigning a non-existent G/L account) therefore only
+    surface later in the NAV translated-country build, which loops Standard/Evaluation/Extended.
+
+    This function closes that gap: for each requested data type it creates a disposable company, runs the
+    legacy DemoTool into it, and removes it again. It is designed to run BEFORE the real (Extended) test
+    company is built. Because New-TestCompany subsequently deletes all companies and recreates the real one
+    from a clean slate, this verification cannot interfere with the demo data the tests actually run against.
+
+    The DemoTool bug class this targets throws DURING generation (before any rapidstart export), so a
+    throwaway-company run reliably reproduces it without needing the full generate/export/delete pipeline.
+
+    Company-Initialize (CU2) is deliberately skipped for these runs (see -SkipCompanyInitialize below) so the
+    behavior matches NAV's Run-NavDemoTool, which runs the legacy DemoTool against a fresh empty company.
+.PARAMETER DemoDataTypes
+    One or more of "Standard","Evaluation". Extended is skipped here because it is already covered by the
+    real test-company generation.
+#>
+function Invoke-AdditionalLegacyDemoData() {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$ContainerName,
+        [PSCredential]$Credential,
+        [string]$Tenant = "default",
+        [string[]]$DemoDataTypes = @("Standard")
+    )
+
+    $ErrorActionPreference = "Stop"
+
+    foreach ($demoDataType in $DemoDataTypes) {
+        if ($demoDataType -eq "Extended") {
+            Write-Host "Skipping Extended in additional demo data verification (already covered by the real test company)"
+            continue
+        }
+
+        $additionalCompanyName = "Additional $demoDataType"
+        Write-Host "=== Legacy DemoTool additional demo data check: DataType=$demoDataType (throwaway company '$additionalCompanyName') ==="
+
+        # Evaluation demo data requires an evaluation company; Standard uses a normal company.
+        $isEvaluation = ($demoDataType -eq "Evaluation")
+
+        try {
+            Write-Host "Creating throwaway company '$additionalCompanyName' (evaluation=$isEvaluation)"
+            New-CompanyInBcContainer -containerName $ContainerName -companyName $additionalCompanyName -evaluationCompany:$isEvaluation
+
+            Invoke-LegacyDemoDataTool -ContainerName $ContainerName -CompanyName $additionalCompanyName `
+                -Credential $Credential -Tenant $Tenant -DemoDataType $demoDataType -SkipCompanyInitialize
+
+            Write-Host "Legacy DemoTool additional demo data check for DataType=$demoDataType succeeded"
+        } catch {
+            throw "Legacy DemoTool additional demo data check FAILED for DataType=$demoDataType (country $(Get-CountryCodeFromSettings)). This path is exercised by the NAV translated-country build but not by BCApps Extended-only demo data. Error: $($_.Exception.Message)"
+        } finally {
+            # Always remove the throwaway company so it never lingers into the real test run.
+            try {
+                if (Get-CompanyInBcContainer -containerName $ContainerName | Where-Object { $_.CompanyName -eq $additionalCompanyName }) {
+                    Write-Host "Removing throwaway company '$additionalCompanyName'"
+                    Remove-CompanyInBcContainer -containerName $ContainerName -companyName $additionalCompanyName
+                }
+            } catch {
+                Write-Host "Warning: failed to remove throwaway company '$additionalCompanyName': $($_.Exception.Message)"
+            }
+        }
+    }
 }
 
 <#
@@ -617,8 +705,13 @@ function Install-AllApps() {
 
     # Install all published-but-not-installed apps in dependency order
     Write-Host "Installing all published apps..."
-    $publishedApps = Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesFirst
-    $uninstalledApps = $publishedApps | Where-Object { $_.IsPublished -and -not $_.IsInstalled }
+    $publishedApps = @(Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesFirst)
+
+    if ($publishedApps.Count -eq 0) {
+        throw "No apps found in container '$ContainerName'. The build/publish step produced no apps to install. This usually means dependency resolution downloaded no apps - e.g. a branch name containing glob metacharacters (such as ']') can break artifact matching in AL-Go's DownloadProjectDependencies."
+    }
+
+    $uninstalledApps = @($publishedApps | Where-Object { $_.IsPublished -and -not $_.IsInstalled })
 
     if ($uninstalledApps.Count -eq 0) {
         Write-Host "All apps already installed"
@@ -672,7 +765,7 @@ function Install-BaseAppsForDemoTool() {
 
     # Install only those apps (in dependency order)
     $publishedApps = Get-BcContainerAppInfo -containerName $ContainerName -tenantSpecificProperties -sort DependenciesFirst
-    $appsToInstall = $publishedApps | Where-Object { $_.IsPublished -and -not $_.IsInstalled -and ($baseAppNames -contains $_.Name) }
+    $appsToInstall = @($publishedApps | Where-Object { $_.IsPublished -and -not $_.IsInstalled -and ($baseAppNames -contains $_.Name) })
 
     Write-Host "Installing $($appsToInstall.Count) base apps"
     foreach ($app in $appsToInstall) {
@@ -730,6 +823,18 @@ function Invoke-DemoDataGeneration
         Invoke-ContosoDemoToolWithRetry -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
     } elseif ( $TestType -eq "Legacy" ) {
         Install-BaseAppsForDemoTool -ContainerName $ContainerName -CountryCode (Get-CountryCodeFromSettings)
+
+        # Optional: run the legacy DemoTool for additional non-Extended demo data types (Standard/Evaluation)
+        # against throwaway companies BEFORE building the real Extended test company. This catches DemoTool
+        # bugs on the 'Interface Trial Data'.CreateSetupData path that otherwise only fail in the NAV
+        # translated-country build. Gated by the "additionalDemoDataTypes" AL-Go setting (array, e.g.
+        # ["Standard"]); when unset or empty, behavior is unchanged. Runs before New-TestCompany, which wipes
+        # all companies and recreates the real one, guaranteeing this cannot affect the demo data tests run against.
+        $additionalDemoDataTypes = Get-ALGoSetting -Key "additionalDemoDataTypes"
+        if ($additionalDemoDataTypes -and $additionalDemoDataTypes.Count -gt 0) {
+            Invoke-AdditionalLegacyDemoData -ContainerName $ContainerName -Credential $Credential -Tenant $Tenant -DemoDataTypes $additionalDemoDataTypes
+        }
+
         New-TestCompany -ContainerName $ContainerName -CompanyName (Get-TestCompanyName)
         Write-Host "Proceeding with full demo data generation as test type is set to Legacy"
         Invoke-LegacyDemoDataTool -ContainerName $ContainerName -Credential $Credential -Tenant $Tenant

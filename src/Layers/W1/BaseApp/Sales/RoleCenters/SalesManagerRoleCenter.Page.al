@@ -149,7 +149,6 @@ page 9005 "Sales Manager Role Center"
                 Caption = 'Campaign - &Details';
                 Image = "Report";
                 RunObject = Report "Campaign - Details";
-                ToolTip = 'Show detailed information about the campaign.';
             }
         }
         area(embedding)

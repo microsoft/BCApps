@@ -463,6 +463,7 @@ table 12137 "Purch. Withh. Contribution"
     var
         Assoggettato: Decimal;
         Gap: Decimal;
+        IsHandled: Boolean;
     begin
         if "Payment Date" <> 0D then begin
             SocSecBracketLine.SetSocSecLineFilters(
@@ -488,11 +489,14 @@ table 12137 "Purch. Withh. Contribution"
 
         Vend.CalcFields("Soc. Sec. Company Base");
 
-        Assoggettato := Vend."Soc. Sec. Company Base" + Vend."Soc. Sec. 3 Parties Base" +
-          SocSecBracketLine.GetCompContribRemGrossAmtForVendorInPeriod(
-            Vend."No.",
-            CalcDate('<-CY>', "Date Related"),
-            CalcDate('<CY>', "Date Related"));
+        IsHandled := false;
+        OnValorizzaINPSOnBeforeCalcAssoggettato(Assoggettato, Vend, PurchHeader, IsHandled);
+        if not IsHandled then
+            Assoggettato := Vend."Soc. Sec. Company Base" + Vend."Soc. Sec. 3 Parties Base" +
+              SocSecBracketLine.GetCompContribRemGrossAmtForVendorInPeriod(
+                Vend."No.",
+                CalcDate('<-CY>', "Date Related"),
+                CalcDate('<CY>', "Date Related"));
 
         if SocSecCodeLine.Amount - Assoggettato > GrossAmount then
             "Gross Amount" := GrossAmount
@@ -648,6 +652,7 @@ table 12137 "Purch. Withh. Contribution"
             PurchWithhContribution."Social Security Code" := Vend."Social Security Code";
             PurchWithhContribution."INAIL Code" := Vend."INAIL Code";
             PurchWithhContribution.Validate("Currency Code", Vend."Currency Code");
+            OnCreateRecordOnBeforeInsertPurchWithhContribution(PurchWithhContribution, PurchaseHeader, Vend);
             PurchWithhContribution.Insert(true);
         end;
     end;
@@ -687,6 +692,16 @@ table 12137 "Purch. Withh. Contribution"
 
     [IntegrationEvent(false, false)]
     local procedure OnValorizzaRitenuteOnBeforeValidateWithholdingTaxAmount(var PurchWithhContribution: Record "Purch. Withh. Contribution")
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnValorizzaINPSOnBeforeCalcAssoggettato(var Assoggettato: Decimal; Vendor: Record Vendor; PurchaseHeader: Record "Purchase Header"; var IsHandled: Boolean)
+    begin
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnCreateRecordOnBeforeInsertPurchWithhContribution(var PurchWithhContribution: Record "Purch. Withh. Contribution"; PurchaseHeader: Record "Purchase Header"; Vendor: Record Vendor)
     begin
     end;
 }

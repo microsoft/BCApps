@@ -15,6 +15,7 @@ table 20412 "Qlty. I. Result Condit. Conf."
 {
     Caption = 'Quality Inspection Result Condition Configuration';
     DataClassification = CustomerContent;
+    Permissions = tabledata "Qlty. Inspection Result" = r;
 
     fields
     {

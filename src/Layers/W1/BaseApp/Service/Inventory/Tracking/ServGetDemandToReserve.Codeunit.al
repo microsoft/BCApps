@@ -146,6 +146,7 @@ codeunit 6485 "Serv. Get Demand To Reserve"
         ServiceHeader: Record "Service Header";
         Customer: Record Customer;
         ReservationWorksheetMgt: Codeunit "Reservation Worksheet Mgt.";
+        DoInsertReservationWkshLine: Boolean;
         RemainingQty, RemainingQtyBase : Decimal;
         AvailableQtyBase, InventoryQtyBase, ReservedQtyBase, WarehouseQtyBase : Decimal;
         LineNo: Integer;
@@ -209,9 +210,18 @@ codeunit 6485 "Serv. Get Demand To Reserve"
 
             if (ReservationWkshLine."Remaining Qty. to Reserve" > 0) and
                (ReservationWkshLine."Available Qty. to Reserve" > 0)
-            then
-                ReservationWkshLine.Insert(true);
+            then begin
+                DoInsertReservationWkshLine := true;
+                OnSyncServiceOrderLinesOnBeforeInsertReservationWkshLine(ReservationWkshLine, TempServiceLine, DoInsertReservationWkshLine);
+                if DoInsertReservationWkshLine then
+                    ReservationWkshLine.Insert(true);
+            end;
         until TempServiceLine.Next() = 0;
+    end;
+
+    [IntegrationEvent(false, false)]
+    local procedure OnSyncServiceOrderLinesOnBeforeInsertReservationWkshLine(var ReservationWkshLine: Record "Reservation Wksh. Line"; var TempServiceLine: Record "Service Line" temporary; var DoInsertReservationWkshLine: Boolean)
+    begin
     end;
 
 #if not CLEAN27
