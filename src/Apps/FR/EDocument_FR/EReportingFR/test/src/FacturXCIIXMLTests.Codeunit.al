@@ -1105,7 +1105,7 @@ codeunit 148148 "Factur-X CII XML Tests"
         LibrarySales.CreateCustomer(Customer);
         if Customer."Country/Region Code" = '' then
             Customer.Validate("Country/Region Code", CompanyInformation."Country/Region Code");
-        Customer.Validate("VAT Registration No.", LibraryERM.GenerateVATRegistrationNo('FR'));
+        Customer."VAT Registration No." := LibraryERM.GenerateVATRegistrationNo('FR');
         Customer.Validate("FR Electronic Address", FRElecAddress);
         Customer.Modify(true);
         exit(Customer."No.");
